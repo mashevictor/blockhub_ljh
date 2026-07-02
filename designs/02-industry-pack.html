@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>设计 B · 行业方案包 · TrackChat</title>
+<style>
+:root{--pri:#4338ca;--bg:#f1f5f9;--card:#fff;--text:#1e293b;--muted:#64748b;--border:#e2e8f0}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text)}
+.bar-top{background:#fff;border-bottom:1px solid var(--border);padding:12px 24px;display:flex;justify-content:space-between;align-items:center}
+.bar-top a{font-size:12px;color:var(--pri);text-decoration:none}
+.layout{display:grid;grid-template-columns:1fr 380px;gap:0;min-height:calc(100vh - 49px)}
+.main{padding:28px 32px}
+.main h1{font-size:26px;margin-bottom:6px}
+.main .sub{color:var(--muted);font-size:14px;margin-bottom:28px}
+.industry-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin-bottom:28px}
+.ind-card{border:2px solid var(--border);border-radius:16px;padding:22px;cursor:pointer;background:var(--card);transition:all .2s;position:relative}
+.ind-card:hover{box-shadow:0 8px 24px rgba(0,0,0,.06)}
+.ind-card.selected{border-color:var(--pri);background:linear-gradient(180deg,#eef2ff,#fff);box-shadow:0 8px 30px rgba(67,56,202,.15)}
+.ind-card .icon{font-size:36px;margin-bottom:10px}
+.ind-card h3{font-size:16px;margin-bottom:4px}
+.ind-card p{font-size:12px;color:var(--muted)}
+.ind-card .count{position:absolute;top:12px;right:12px;font-size:11px;background:#eef2ff;color:var(--pri);padding:3px 10px;border-radius:12px;font-weight:600}
+.ind-card .check{position:absolute;top:12px;left:12px;width:22px;height:22px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px}
+.ind-card.selected .check{background:var(--pri);border-color:var(--pri);color:#fff}
+.scenes{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px}
+.scenes h3{font-size:15px;margin-bottom:14px;color:var(--pri)}
+.scene-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;max-height:280px;overflow-y:auto}
+.scene-item{display:flex;align-items:center;gap:8px;padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:12px}
+.scene-item input{accent-color:var(--pri)}
+.side{background:#fff;border-left:1px solid var(--border);padding:24px;display:flex;flex-direction:column}
+.side h3{font-size:15px;margin-bottom:16px}
+.steps{flex:1}
+.step{display:flex;gap:12px;margin-bottom:20px;opacity:.4}
+.step.done,.step.active{opacity:1}
+.step-num{width:28px;height:28px;border-radius:50%;background:#e2e8f0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.step.active .step-num{background:var(--pri);color:#fff}
+.step.done .step-num{background:#10b981;color:#fff}
+.step-body{font-size:13px}
+.step-body strong{display:block;margin-bottom:2px}
+.step-body span{font-size:11px;color:var(--muted)}
+.preview-box{aspect-ratio:9/16;max-height:280px;background:#1e293b;border-radius:20px;padding:10px;margin:16px 0}
+.preview-inner{background:#fff;border-radius:14px;height:100%;padding:10px;font-size:9px}
+.btn-block{width:100%;padding:14px;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;margin-top:8px}
+.btn-primary{background:linear-gradient(135deg,#4338ca,#6366f1);color:#fff}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed}
+.audience{margin-bottom:20px}
+.audience label{display:flex;align-items:center;gap:8px;padding:10px 14px;border:1px solid var(--border);border-radius:10px;margin-bottom:8px;cursor:pointer;font-size:13px}
+.audience input{accent-color:var(--pri)}
+</style>
+</head>
+<body>
+<div class="bar-top">
+  <strong>TrackChat · 行业方案包</strong>
+  <a href="index.html">← 设计稿列表</a>
+</div>
+<div class="layout">
+  <div class="main">
+    <h1>选择您的行业</h1>
+    <p class="sub">整包预填推荐场景，比从零勾选快 80% · 114 场景中的 49 项行业专属</p>
+
+    <div class="industry-grid" id="indGrid">
+      <div class="ind-card selected" data-key="office" onclick="pickIndustry(this)">
+        <span class="check">✓</span><span class="count">65 场景</span>
+        <div class="icon">🏢</div><h3>通用办公</h3><p>人事、财务、审批、知识库</p>
+      </div>
+      <div class="ind-card" data-key="mfg" onclick="pickIndustry(this)">
+        <span class="check"></span><span class="count">12 场景</span>
+        <div class="icon">🏭</div><h3>传统制造业</h3><p>报修、SOP、质检、MES</p>
+      </div>
+      <div class="ind-card" data-key="sales" onclick="pickIndustry(this)">
+        <span class="check"></span><span class="count">12 场景</span>
+        <div class="icon">📈</div><h3>销售行业</h3><p>话术、漏斗、合同、CRM</p>
+      </div>
+      <div class="ind-card" data-key="med" onclick="pickIndustry(this)">
+        <span class="check"></span><span class="count">12 场景</span>
+        <div class="icon">🏥</div><h3>医疗行业</h3><p>指南、排班、导诊、HIS</p>
+      </div>
+      <div class="ind-card" data-key="game" onclick="pickIndustry(this)">
+        <span class="check"></span><span class="count">13 场景</span>
+        <div class="icon">🎮</div><h3>游戏行业</h3><p>FAQ、工单、C 端 NPC</p>
+      </div>
+    </div>
+
+    <div class="scenes">
+      <h3 id="sceneTitle">通用办公 · 预推荐场景（可增减）</h3>
+      <div class="scene-list" id="sceneList"></div>
+    </div>
+  </div>
+
+  <div class="side">
+    <h3>创建进度</h3>
+    <div class="steps">
+      <div class="step active" id="st1"><div class="step-num">1</div><div class="step-body"><strong>选行业</strong><span>方案包预填</span></div></div>
+      <div class="step" id="st2"><div class="step-num">2</div><div class="step-body"><strong>选受众</strong><span>企业内 / 对外 C 端</span></div></div>
+      <div class="step" id="st3"><div class="step-num">3</div><div class="step-body"><strong>预览发布</strong><span>Web + App</span></div></div>
+    </div>
+
+    <div class="audience" id="audPanel" style="display:none">
+      <label><input type="radio" name="aud" value="b" checked> 🏢 企业员工端（B 端后台）</label>
+      <label><input type="radio" name="aud" value="c"> 👤 外部客户/玩家（C 端轻应用）</label>
+      <label><input type="radio" name="aud" value="both"> 🔀 双端同时生成</label>
+    </div>
+
+    <div class="preview-box" id="phonePreview" style="display:none">
+      <div class="preview-inner" id="prevInner">选择行业后预览</div>
+    </div>
+
+    <button class="btn-block btn-primary" id="btnNext" onclick="nextStep()">下一步：选择受众</button>
+  </div>
+</div>
+
+<script>
+const SCENES = {
+  office:['制度政策问答','请假申请','加班申请','报销审批','入职办理','用印申请','会议室预约','通用审批','待办中心','部门看板','制度文档库','IT报障','对接OA','企微通知','费用报销','合同审批','自然语言查数'],
+  mfg:['设备报修','SOP/工艺问答','生产日报/OEE','质检审批','物料领用','安环隐患上报','排班/考勤','保养计划提醒','图纸/BOM检索','对接MES/ERP','能耗/碳排统计','技能培训记录'],
+  sales:['产品/话术问答','报价/折扣审批','销售漏斗看板','客户跟进记录','合同审批','商机到期提醒','业绩排行/提成','案例/方案库','样品/礼品申请','对接Salesforce','外勤签到','区域销售分析'],
+  med:['诊疗指南/药品库','内部制度/合规问答','排班/调班申请','耗材/设备申购','患者宣教资料','数据脱敏/权限','不良事件上报','科室运营看板','对接HIS/LIS','智能导诊(对外)','会诊/转诊申请'],
+  game:['玩家FAQ/攻略','客服工单','版本/活动规则库','留存/ARPU看板','版号/合规审查','活动上线通知','NPC/角色对话(C端)','外包验收审批','渠道投放分析','公会/社区管理','内购/订阅(C端)']
+};
+let step=1, industry='office';
+
+function pickIndustry(el){
+  document.querySelectorAll('.ind-card').forEach(c=>{c.classList.remove('selected');c.querySelector('.check').textContent=''});
+  el.classList.add('selected');
+  el.querySelector('.check').textContent='✓';
+  industry=el.dataset.key;
+  renderScenes();
+}
+
+function renderScenes(){
+  const names = {office:'通用办公',mfg:'传统制造业',sales:'销售行业',med:'医疗行业',game:'游戏行业'};
+  document.getElementById('sceneTitle').textContent = names[industry] + ' · 预推荐场景（可增减）';
+  document.getElementById('sceneList').innerHTML = SCENES[industry].map((s,i)=>
+    `<label class="scene-item"><input type="checkbox" checked> ${s}</label>`).join('');
+}
+
+function nextStep(){
+  if(step===1){
+    step=2;
+    document.getElementById('st1').classList.add('done');
+    document.getElementById('st2').classList.add('active');
+    document.getElementById('audPanel').style.display='block';
+    document.getElementById('btnNext').textContent='下一步：预览发布';
+  } else if(step===2){
+    step=3;
+    document.getElementById('st2').classList.add('done');
+    document.getElementById('st3').classList.add('active');
+    document.getElementById('phonePreview').style.display='block';
+    const aud = document.querySelector('input[name=aud]:checked').value;
+    document.getElementById('prevInner').innerHTML = `<div style="font-weight:700;color:#4338ca;margin-bottom:6px">${industry==='game'?'玩家助手':'企业助手'}</div><div style="height:6px;background:#e2e8f0;border-radius:3px;width:80%;margin-bottom:6px"></div>${aud==='c'||aud==='both'?'<div style="padding:6px;background:#eef2ff;border-radius:6px;margin-top:8px">💬 C端对话入口</div>':''}<div style="padding:6px;background:#fef3c7;border-radius:6px;margin-top:6px">✅ 审批 2 待办</div>`;
+    document.getElementById('btnNext').textContent='🚀 一键发布 Web + App';
+  } else {
+    alert('已发布！\n\n🌐 Web: https://demo.trackchat.app/'+industry+'\n📱 App: 扫码下载预览包\n\n（设计稿演示）');
+  }
+}
+renderScenes();
+</script>
+</body>
+</html>

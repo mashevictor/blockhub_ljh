@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TrackChat PaaS · 最新技术框架图</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+:root{
+  --pri:#4338ca;--pri2:#6366f1;--ok:#10b981;--warn:#f59e0b;--todo:#64748b;
+  --bg:#0f172a;--card:#1e293b;--card2:#334155;--text:#f1f5f9;--muted:#94a3b8;--border:rgba(255,255,255,.1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Microsoft YaHei","PingFang SC",sans-serif;background:linear-gradient(160deg,#0f172a 0%,#1e1b4b 50%,#0f172a 100%);color:var(--text);line-height:1.55;font-size:13px;min-height:100vh}
+a{color:#a5b4fc}
+.wrap{max-width:1180px;margin:0 auto;padding:32px 24px 64px}
+.hero{background:linear-gradient(135deg,rgba(99,102,241,.25),rgba(67,56,202,.15));border:1px solid var(--border);border-radius:20px;padding:32px 36px;margin-bottom:28px}
+.hero h1{font-size:26px;margin-bottom:8px;letter-spacing:-.02em}
+.hero .meta{color:var(--muted);font-size:13px;margin-bottom:20px}
+.stats{display:flex;flex-wrap:wrap;gap:12px}
+.stat{background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:12px;padding:14px 18px;min-width:110px}
+.stat .n{font-size:22px;font-weight:700;color:#c7d2fe}
+.stat .l{font-size:11px;color:var(--muted);margin-top:2px}
+.pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.pill{font-size:11px;padding:5px 12px;border-radius:20px;background:rgba(99,102,241,.2);color:#c7d2fe;border:1px solid rgba(99,102,241,.35)}
+nav.toc{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:28px}
+nav.toc a{font-size:12px;padding:6px 14px;border-radius:8px;background:var(--card);border:1px solid var(--border);color:var(--muted);text-decoration:none}
+nav.toc a:hover{color:#fff;border-color:var(--pri2)}
+section{margin-bottom:36px;scroll-margin-top:20px}
+.section-title{font-size:18px;color:#c7d2fe;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--pri2);display:flex;align-items:center;gap:10px}
+.section-title em{font-size:11px;font-style:normal;color:var(--muted);font-weight:400}
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:14px}
+.card h3{font-size:14px;color:#a5b4fc;margin-bottom:10px}
+.card p,.card li{color:var(--muted);font-size:12px}
+.card ul{padding-left:18px;margin-top:8px}
+.card li{margin-bottom:4px}
+.diagram{background:rgba(15,23,42,.6);border:1px solid var(--border);border-radius:12px;padding:16px;overflow-x:auto;margin:12px 0}
+.diagram .mermaid{background:transparent}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:800px){.grid2{grid-template-columns:1fr}}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{background:rgba(99,102,241,.35);color:#e0e7ff;padding:9px 11px;text-align:left;font-weight:600}
+td{padding:9px 11px;border-bottom:1px solid var(--border);vertical-align:top;color:var(--muted)}
+tr:hover td{background:rgba(255,255,255,.03)}
+.tag{display:inline-block;font-size:10px;padding:2px 8px;border-radius:4px;font-weight:600;margin-right:4px}
+.tag-ok{background:rgba(16,185,129,.2);color:#6ee7b7}
+.tag-wip{background:rgba(245,158,11,.2);color:#fcd34d}
+.tag-plan{background:rgba(100,116,139,.3);color:#cbd5e1}
+.layer-stack{display:flex;flex-direction:column;gap:6px}
+.layer{display:grid;grid-template-columns:72px 140px 1fr 90px;gap:12px;align-items:center;padding:12px 16px;border-radius:10px;border:1px solid var(--border);font-size:12px}
+.layer .lv{font-weight:700;font-size:14px;color:#c7d2fe}
+.layer.l5{background:rgba(99,102,241,.15);border-color:rgba(99,102,241,.4)}
+.layer.l4{background:rgba(59,130,246,.12)}
+.layer.l3{background:rgba(16,185,129,.1)}
+.layer.l2{background:rgba(245,158,11,.08)}
+.layer.l1{background:rgba(236,72,153,.08)}
+.layer.l0{background:rgba(100,116,139,.15)}
+.tree{font-family:Consolas,monospace;font-size:11px;line-height:1.7;background:#0c1222;color:#cbd5e1;padding:16px 18px;border-radius:10px;overflow-x:auto;white-space:pre;border:1px solid var(--border)}
+.footer{margin-top:40px;padding-top:20px;border-top:1px solid var(--border);font-size:12px;color:var(--muted)}
+.footer strong{color:#a5b4fc}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="hero">
+    <h1>TrackChat PaaS · 最新技术框架图</h1>
+    <p class="meta">拍板栈：React 双 SPA + FastAPI + REST/SSE + PostgreSQL/Redis/COS/向量库 + Flutter App<br>
+    更新：2026-07-01 · 仓库 <code>cozecode/</code> · 生产目标：腾讯云</p>
+    <div class="stats">
+      <div class="stat"><div class="n">114</div><div class="l">场景 SKU</div></div>
+      <div class="stat"><div class="n">7</div><div class="l">PaaS Agent</div></div>
+      <div class="stat"><div class="n">36</div><div class="l">Capability</div></div>
+      <div class="stat"><div class="n">2+1</div><div class="l">前端 + API</div></div>
+      <div class="stat"><div class="n">2</div><div class="l">L5 交付端</div></div>
+    </div>
+    <div class="pills">
+      <span class="pill">Home :5173 普通用户</span>
+      <span class="pill">Admin :5174 高级开发</span>
+      <span class="pill">API :8001 FastAPI</span>
+      <span class="pill">Web Runtime + Flutter App</span>
+      <span class="pill">REST + SSE</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <a href="#overview">总览</a>
+    <a href="#layers">五层架构</a>
+    <a href="#product">双入口产品</a>
+    <a href="#l5">L5 双端交付</a>
+    <a href="#comm">通信协议</a>
+    <a href="#storage">存储分工</a>
+    <a href="#tencent">腾讯云</a>
+    <a href="#repo">目录结构</a>
+    <a href="#roadmap">实施阶段</a>
+  </nav>
+
+  <!-- 1 总览 -->
+  <section id="overview">
+    <h2 class="section-title">① 系统总览 <em>端到端数据流</em></h2>
+    <div class="diagram">
+      <pre class="mermaid">
+flowchart TB
+  subgraph Users["用户层"]
+    U1["普通用户"]
+    U2["技术/管理员"]
+    U3["企业员工"]
+  end
+
+  subgraph Front["前端 · React + Vite + TS"]
+    Home["Home 主页 :5173<br/>方案 A/B/C 创建"]
+    Admin["Admin PaaS :5174<br/>114场景·7Agent·6模块"]
+  end
+
+  subgraph API["后端 · FastAPI :8001"]
+    GW["/api/v1/*"]
+    Cat["Catalog 114"]
+    Agt["Agents ×7"]
+    Mod["6 业务模块"]
+    Cre["Creation 发布"]
+  end
+
+  subgraph L5["L5 Runtime 员工端"]
+    RW["runtime-web<br/>React schema-renderer"]
+    RA["runtime-app<br/>Flutter WidgetRegistry"]
+  end
+
+  subgraph Infra["L0 基础设施 · 腾讯云"]
+    PG[(PostgreSQL)]
+    RD[(Redis)]
+    COS[(COS 对象存储)]
+    VEC[(pgvector / VectorDB)]
+  end
+
+  U1 --> Home
+  U2 --> Admin
+  Home --> GW
+  Admin --> GW
+  GW --> Cat & Agt & Mod & Cre
+  Cre -->|"page_schema JSON"| RW
+  Cre -->|"同 Schema"| RA
+  U3 --> RW
+  U3 --> RA
+  GW --> PG & RD & COS & VEC
+      </pre>
+    </div>
+  </section>
+
+  <!-- 2 五层 -->
+  <section id="layers">
+    <h2 class="section-title">② 五层业务架构 <em>L0 → L5</em></h2>
+    <div class="layer-stack">
+      <div class="layer l5">
+        <span class="lv">L5</span>
+        <strong>Runtime 交付</strong>
+        <span>Web 员工端 (React schema-renderer) + Flutter App (TDesign/Bruno ui_kit) · 读 page_schema</span>
+        <span><span class="tag tag-wip">Phase 1/2</span></span>
+      </div>
+      <div class="layer l4">
+        <span class="lv">L4</span>
+        <strong>智能创建</strong>
+        <span>Home 三视图 A 一句话 / B 行业包 / C 模块积木 + Admin /create 向导 + POST /creation/publish</span>
+        <span><span class="tag tag-ok">已实现</span></span>
+      </div>
+      <div class="layer l3">
+        <span class="lv">L3</span>
+        <strong>Catalog</strong>
+        <span>65 办公 + 49 行业 = 114 场景 SKU · seed.py + /catalog/*</span>
+        <span><span class="tag tag-ok">已实现</span></span>
+      </div>
+      <div class="layer l2">
+        <span class="lv">L2</span>
+        <strong>Capability</strong>
+        <span>36 项能力 Registry · chat/approval/kb/report/notify… · /catalog/modules</span>
+        <span><span class="tag tag-ok">已实现</span></span>
+      </div>
+      <div class="layer l1">
+        <span class="lv">L1</span>
+        <strong>Agent</strong>
+        <span>7 PaaS Agent Pipeline · 智能创建/问答/知识库/审批/报表/通知/集成 · /agents/*</span>
+        <span><span class="tag tag-ok">已实现</span></span>
+      </div>
+      <div class="layer l0">
+        <span class="lv">L0</span>
+        <strong>Infra</strong>
+        <span>FastAPI · PG · Redis · COS · 向量库 · LLM 网关 · JWT/RBAC · 当前 Demo 为内存</span>
+        <span><span class="tag tag-plan">生产待接</span></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 双入口 -->
+  <section id="product">
+    <h2 class="section-title">③ 双入口产品形态</h2>
+    <div class="diagram">
+      <pre class="mermaid">
+flowchart LR
+  subgraph Home5173["Home :5173 普通用户"]
+    A["方案 A 一句话<br/>主方案·24场景卡片"]
+    B["方案 B 行业包<br/>5 大行业"]
+    C["方案 C 模块积木<br/>36 Capability"]
+  end
+
+  subgraph Admin5174["Admin :5174 高级开发"]
+    D["Dashboard 总览"]
+    E["114 场景目录"]
+    F["7 Agent 中心"]
+    G["6 模块管理<br/>问答/知识库/审批/报表/通知/创建"]
+  end
+
+  Home5173 -->|"POST /creation/publish"| API2["FastAPI :8001"]
+  Admin5174 --> API2
+  API2 --> Out["Web URL + App Schema"]
+      </pre>
+    </div>
+    <div class="card">
+      <table>
+        <thead><tr><th>角色</th><th>入口</th><th>开发地址</th><th>生产域名</th></tr></thead>
+        <tbody>
+          <tr><td>普通用户</td><td>Home 主页</td><td>http://127.0.0.1:5173</td><td>app.trackchat.com</td></tr>
+          <tr><td>技术/管理员</td><td>Admin 高级开发</td><td>http://127.0.0.1:5174</td><td>admin.trackchat.com</td></tr>
+          <tr><td>API</td><td>FastAPI</td><td>http://127.0.0.1:8001/docs</td><td>api.trackchat.com</td></tr>
+          <tr><td>员工 Web</td><td>runtime-web</td><td>待建</td><td>r.trackchat.com/{appId}</td></tr>
+          <tr><td>员工 App</td><td>runtime-app Flutter</td><td>待建</td><td>内测 APK / 应用商店</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 4 L5 -->
+  <section id="l5">
+    <h2 class="section-title">④ L5 双端交付 · Web + Flutter</h2>
+    <div class="grid2">
+      <div class="card">
+        <h3>🌐 runtime-web（Phase 1）</h3>
+        <ul>
+          <li>React 18 + schema-renderer</li>
+          <li>36 Widget 映射 L2 Capability</li>
+          <li>手机浏览器可用（MVP 可先 H5）</li>
+          <li>域名：<code>r.xxx.com/{appId}</code></li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>📱 runtime-app（Phase 2 · 生产必含）</h3>
+        <ul>
+          <li>Flutter 3.x + 同 page_schema JSON</li>
+          <li>UI 基座：TDesign Flutter / Bruno</li>
+          <li>图表 fl_chart · 对话 dash_chat_2</li>
+          <li>模块化：flutter_modular + go_router + Riverpod</li>
+          <li>通用壳 + 远程 Schema 或 Flavor 白标包</li>
+        </ul>
+      </div>
+    </div>
+    <div class="diagram">
+      <pre class="mermaid">
+flowchart TB
+  Schema["page_schema JSON<br/>applications 表"]
+  Schema --> WebR["runtime-web<br/>WidgetRegistry TS"]
+  Schema --> AppR["runtime-app<br/>WidgetRegistry Dart"]
+  WebR --> Emp1["员工浏览器"]
+  AppR --> Emp2["员工手机 App"]
+  Config["GET /tenant/config"] --> WebR
+  Config --> AppR
+      </pre>
+    </div>
+  </section>
+
+  <!-- 5 通信 -->
+  <section id="comm">
+    <h2 class="section-title">⑤ 通信协议</h2>
+    <div class="card">
+      <table>
+        <thead><tr><th>协议</th><th>用途</th><th>状态</th><th>说明</th></tr></thead>
+        <tbody>
+          <tr><td><strong>REST</strong></td><td>创建、Catalog、审批、知识库、登录、报表</td><td><span class="tag tag-ok">必须</span></td><td>JSON over HTTPS · Axios/Dio</td></tr>
+          <tr><td><strong>SSE</strong></td><td>LLM 对话流式输出</td><td><span class="tag tag-ok">必须</span></td><td>POST /chat/completions/stream · Nginx proxy_buffering off</td></tr>
+          <tr><td><strong>WebSocket</strong></td><td>通知红点、审批实时刷新、多人协同</td><td><span class="tag tag-plan">Phase 2 可选</span></td><td>MVP 不必上；可用 SSE 用户通道或轮询</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="diagram">
+      <pre class="mermaid">
+sequenceDiagram
+  participant C as Home/Admin/App
+  participant API as FastAPI
+  participant LLM as LLM 网关
+
+  C->>API: REST POST 提问
+  API->>LLM: 流式请求
+  LLM-->>API: token stream
+  API-->>C: SSE data: {...}
+  API->>API: 消息落库 PostgreSQL
+      </pre>
+    </div>
+  </section>
+
+  <!-- 6 存储 -->
+  <section id="storage">
+    <h2 class="section-title">⑥ 存储分工 <em>不是多个业务库，各干一事</em></h2>
+    <div class="diagram">
+      <pre class="mermaid">
+flowchart LR
+  API["FastAPI"]
+
+  PG[(PostgreSQL<br/>业务主库)]
+  RD[(Redis<br/>会话/缓存/限流)]
+  OBJ[(COS<br/>文件本体)]
+  VEC[(向量库<br/>RAG embedding)]
+
+  API --> PG & RD & OBJ & VEC
+
+  PG --- P1["114场景·Agent·应用schema<br/>对话·审批·通知·用户租户"]
+  RD --- R1["JWT·限流·任务队列"]
+  OBJ --- O1["PDF/Word/附件/导出"]
+  VEC --- V1["文档切片语义检索"]
+      </pre>
+    </div>
+    <div class="card">
+      <table>
+        <thead><tr><th>组件</th><th>存什么</th><th>不存什么</th><th>MVP</th></tr></thead>
+        <tbody>
+          <tr><td><strong>PostgreSQL</strong></td><td>全部结构化业务数据、page_schema、关系</td><td>大文件 blob</td><td><span class="tag tag-ok">必须</span></td></tr>
+          <tr><td><strong>Redis</strong></td><td>会话、限流、热点缓存、Celery 队列</td><td>业务主数据</td><td><span class="tag tag-ok">必须</span></td></tr>
+          <tr><td><strong>COS</strong></td><td>知识库原文件、附件、报表导出</td><td>业务关系</td><td><span class="tag tag-ok">有上传则必须</span></td></tr>
+          <tr><td><strong>pgvector / VectorDB</strong></td><td>embedding 向量、RAG 检索</td><td>文档元数据（在 PG）</td><td><span class="tag tag-wip">有 RAG 则必须</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 7 腾讯云 -->
+  <section id="tencent">
+    <h2 class="section-title">⑦ 腾讯云生产拓扑</h2>
+    <div class="diagram">
+      <pre class="mermaid">
+flowchart TB
+  CDN["CDN<br/>Home + Admin 静态 dist"]
+  CLB["CLB 负载均衡<br/>SSE/WebSocket 支持"]
+
+  subgraph CVM["CVM / 容器"]
+    NGX["Nginx 三域名 SSL"]
+    UVI["uvicorn FastAPI :8001"]
+  end
+
+  CDN --> NGX
+  CLB --> UVI
+
+  UVI --> TPG["TencentDB PostgreSQL"]
+  UVI --> TRD["TencentDB Redis"]
+  UVI --> TCOS["对象存储 COS"]
+  UVI --> TVDB["VectorDB / pgvector"]
+  UVI --> TPNS["移动推送 TPNS"]
+      </pre>
+    </div>
+    <div class="card">
+      <table>
+        <thead><tr><th>域名</th><th>指向</th></tr></thead>
+        <tbody>
+          <tr><td>app.xxx.com</td><td>home/dist 静态站</td></tr>
+          <tr><td>admin.xxx.com</td><td>frontend/dist 静态站</td></tr>
+          <tr><td>api.xxx.com</td><td>FastAPI · SSE 需 proxy_buffering off</td></tr>
+          <tr><td>r.xxx.com</td><td>runtime-web 生成的员工 Web 应用</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 8 目录 -->
+  <section id="repo">
+    <h2 class="section-title">⑧ 仓库目录结构</h2>
+    <div class="tree">cozecode/
+├── home/                 # 普通用户 Home :5173（方案 A/B/C）
+├── frontend/             # Admin 高级开发 :5174
+├── backend/              # FastAPI :8001
+│   └── app/
+│       ├── data/seed.py          ★ 114 场景 + 36 能力 + 7 Agent
+│       ├── data/module_data.py   ★ 6 模块演示数据
+│       └── api/v1/               catalog · agents · creation · chat · kb …
+├── runtime-web/          # L5 Web schema-renderer（待建）
+├── runtime-app/          # L5 Flutter App（待建）
+├── designs/              # HTML 设计稿 + 本框架图
+├── docs/
+│   ├── FLUTTER-APP-RUNTIME.md
+│   ├── TECH-SOLUTION.md
+│   └── PRODUCTION-DEPLOYMENT.md
+├── projects/             # Coze 参考（Schema 迁移源，非主栈）
+└── start-all.ps1         # 一键启动 5173 + 5174 + 8001</div>
+  </section>
+
+  <!-- 9 路线图 -->
+  <section id="roadmap">
+    <h2 class="section-title">⑨ 实施阶段与当前状态</h2>
+    <div class="card">
+      <table>
+        <thead><tr><th>阶段</th><th>内容</th><th>状态</th></tr></thead>
+        <tbody>
+          <tr><td>Phase 1</td><td>Catalog 114 + Admin Dashboard + Home 三视图 UI</td><td><span class="tag tag-ok">✅ Demo 完成</span></td></tr>
+          <tr><td>Phase 2</td><td>PostgreSQL 持久化 + JWT + 替换内存存储</td><td><span class="tag tag-plan">⏳ 生产 P0</span></td></tr>
+          <tr><td>Phase 3</td><td>Creation 发布打通真实 Schema 生成</td><td><span class="tag tag-wip">部分 Mock</span></td></tr>
+          <tr><td>Phase 4</td><td>LLM 网关 + SSE 真实流式 + RAG</td><td><span class="tag tag-plan">⏳</span></td></tr>
+          <tr><td>Phase 5</td><td>runtime-web schema-renderer</td><td><span class="tag tag-plan">⏳</span></td></tr>
+          <tr><td>Phase 6</td><td>runtime-app Flutter + 内测包</td><td><span class="tag tag-plan">⏳</span></td></tr>
+          <tr><td>Phase 7</td><td>腾讯云部署 + COS + TPNS + 备案 HTTPS</td><td><span class="tag tag-plan">⏳</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="footer">
+    <strong>本地启动：</strong> <code>cd cozecode && .\start-all.ps1</code><br>
+    Home <a href="http://127.0.0.1:5173/" target="_blank">:5173</a> ·
+    Admin <a href="http://127.0.0.1:5174/" target="_blank">:5174</a> ·
+    API <a href="http://127.0.0.1:8001/docs" target="_blank">:8001/docs</a><br>
+    详细文档：<code>功能/14-TrackChat-技术架构选型.html</code>（拍板正文）·
+    <a href="../../功能/14-TrackChat-技术架构选型.html#backend">后端章节</a> ·
+    <code>docs/TECH-SOLUTION.md</code> · <code>docs/FLUTTER-APP-RUNTIME.md</code>
+  </div>
+
+</div>
+<script>
+mermaid.initialize({
+  startOnLoad: true,
+  theme: 'dark',
+  themeVariables: {
+    primaryColor: '#4338ca',
+    primaryTextColor: '#e0e7ff',
+    primaryBorderColor: '#6366f1',
+    lineColor: '#64748b',
+    secondaryColor: '#1e293b',
+    tertiaryColor: '#0f172a',
+    background: '#1e293b',
+    mainBkg: '#334155',
+    nodeBorder: '#6366f1',
+    clusterBkg: 'rgba(99,102,241,0.08)',
+    titleColor: '#c7d2fe',
+    edgeLabelBackground: '#1e293b'
+  },
+  flowchart: { curve: 'basis', padding: 16 },
+  sequence: { actorMargin: 40 }
+});
+</script>
+</body>
+</html>

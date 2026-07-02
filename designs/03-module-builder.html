@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>设计 C · 模块积木台 · TrackChat</title>
+<style>
+:root{--pri:#4338ca;--sidebar:#1e1b4b;--bg:#f1f5f9;--card:#fff;--text:#1e293b;--muted:#64748b;--border:#e2e8f0}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column}
+header{background:#fff;border-bottom:1px solid var(--border);padding:10px 20px;display:flex;justify-content:space-between;align-items:center}
+header a{font-size:12px;color:var(--pri);text-decoration:none}
+.workspace{flex:1;display:grid;grid-template-columns:280px 1fr 320px;min-height:0}
+.palette{background:var(--sidebar);color:#fff;padding:16px;overflow-y:auto}
+.palette h3{font-size:13px;margin-bottom:12px;opacity:.9}
+.cat{margin-bottom:16px}
+.cat-title{font-size:10px;text-transform:uppercase;opacity:.5;margin-bottom:8px;letter-spacing:.05em}
+.cap{display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(255,255,255,.06);border:1px solid transparent;border-radius:10px;margin-bottom:6px;cursor:grab;font-size:12px;transition:background .15s}
+.cap:hover{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.15)}
+.cap .ico{font-size:18px}
+.cap.added{opacity:.4;border-color:#10b981}
+.canvas{background:var(--bg);padding:20px;overflow-y:auto;display:flex;flex-direction:column}
+.canvas-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.canvas-head h2{font-size:18px}
+.device-tabs{display:flex;gap:6px}
+.device-tabs button{padding:6px 14px;border:1px solid var(--border);background:var(--card);border-radius:8px;font-size:12px;cursor:pointer}
+.device-tabs button.on{background:var(--pri);color:#fff;border-color:var(--pri)}
+.canvas-area{flex:1;background:var(--card);border:2px dashed var(--border);border-radius:16px;padding:20px;min-height:400px;position:relative}
+.canvas-area.drag-over{border-color:var(--pri);background:#fafbff}
+.empty-hint{text-align:center;color:var(--muted);padding:60px 20px;font-size:14px}
+.widget-slot{background:#f8fafc;border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;display:flex;align-items:center;gap:12px;animation:fadeIn .3s}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.widget-slot .w-icon{font-size:28px}
+.widget-slot .w-info{flex:1}
+.widget-slot .w-info strong{font-size:14px;display:block}
+.widget-slot .w-info span{font-size:11px;color:var(--muted)}
+.widget-slot .rm{color:#ef4444;cursor:pointer;font-size:18px;padding:4px}
+.inspector{background:#fff;border-left:1px solid var(--border);padding:16px;overflow-y:auto;display:flex;flex-direction:column}
+.inspector h3{font-size:14px;margin-bottom:12px}
+.stat-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px}
+.stat-row strong{color:var(--pri)}
+.publish-area{margin-top:auto;padding-top:16px;border-top:1px solid var(--border)}
+.publish-area button{width:100%;padding:12px;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:8px}
+.btn-pub{background:linear-gradient(135deg,#4338ca,#6366f1);color:#fff}
+.btn-pub2{background:#059669;color:#fff}
+</style>
+</head>
+<body>
+<header>
+  <strong>TrackChat · 模块积木台</strong>
+  <a href="index.html">← 设计稿列表</a>
+</header>
+
+<div class="workspace">
+  <div class="palette">
+    <h3>🧩 36 Capability · 8 企业模块类</h3>
+    <div class="cat"><div class="cat-title">💬 智能交互</div>
+      <div class="cap" draggable="true" data-cap="chat_qa" data-name="智能问答" data-ico="💬" ondragstart="drag(event)"><span class="ico">💬</span>智能问答</div>
+      <div class="cap" draggable="true" data-cap="chat_voice" data-name="语音问答" data-ico="🎤" ondragstart="drag(event)"><span class="ico">🎤</span>语音问答</div>
+      <div class="cap" draggable="true" data-cap="multi_agent" data-name="多助手" data-ico="🤖" ondragstart="drag(event)"><span class="ico">🤖</span>多助手切换</div>
+    </div>
+    <div class="cat"><div class="cat-title">📋 流程审批</div>
+      <div class="cap" draggable="true" data-cap="approval_flow" data-name="审批流" data-ico="✅" ondragstart="drag(event)"><span class="ico">✅</span>通用审批流</div>
+      <div class="cap" draggable="true" data-cap="approval_inbox" data-name="待办中心" data-ico="📥" ondragstart="drag(event)"><span class="ico">📥</span>待办/已办</div>
+      <div class="cap" draggable="true" data-cap="approval_countersign" data-name="会签" data-ico="✍" ondragstart="drag(event)"><span class="ico">✍</span>会签/或签</div>
+    </div>
+    <div class="cat"><div class="cat-title">📚 知识数据</div>
+      <div class="cap" draggable="true" data-cap="kb_document" data-name="知识库" data-ico="📚" ondragstart="drag(event)"><span class="ico">📚</span>文档知识库</div>
+      <div class="cap" draggable="true" data-cap="data_nl_query" data-name="NL查数" data-ico="🔍" ondragstart="drag(event)"><span class="ico">🔍</span>自然语言查数</div>
+    </div>
+    <div class="cat"><div class="cat-title">📊 可视化</div>
+      <div class="cap" draggable="true" data-cap="chart_dashboard" data-name="数据看板" data-ico="📊" ondragstart="drag(event)"><span class="ico">📊</span>数据看板</div>
+      <div class="cap" draggable="true" data-cap="chart_funnel" data-name="漏斗图" data-ico="📉" ondragstart="drag(event)"><span class="ico">📉</span>销售漏斗</div>
+    </div>
+    <div class="cat"><div class="cat-title">🔔 通知集成</div>
+      <div class="cap" draggable="true" data-cap="notify_inapp" data-name="站内信" data-ico="🔔" ondragstart="drag(event)"><span class="ico">🔔</span>站内消息</div>
+      <div class="cap" draggable="true" data-cap="notify_im" data-name="企微钉钉" data-ico="💼" ondragstart="drag(event)"><span class="ico">💼</span>企微/钉钉</div>
+    </div>
+    <div class="cat"><div class="cat-title">🔐 权限 / 外部</div>
+      <div class="cap" draggable="true" data-cap="rbac_page" data-name="权限" data-ico="🔐" ondragstart="drag(event)"><span class="ico">🔐</span>角色权限</div>
+      <div class="cap" draggable="true" data-cap="erp_connector" data-name="ERP" data-ico="🔌" ondragstart="drag(event)"><span class="ico">🔌</span>ERP 连接器</div>
+    </div>
+  </div>
+
+  <div class="canvas">
+    <div class="canvas-head">
+      <h2>应用画布 · 拖拽模块组装</h2>
+      <div class="device-tabs">
+        <button class="on" onclick="setDevice(this,'web')">🖥 Web 网页</button>
+        <button onclick="setDevice(this,'app')">📱 App</button>
+        <button onclick="setDevice(this,'both')">双端</button>
+      </div>
+    </div>
+    <div class="canvas-area" id="dropZone" ondragover="allowDrop(event)" ondragleave="this.classList.remove('drag-over')" ondrop="drop(event)">
+      <div class="empty-hint" id="emptyHint">从左侧拖入模块，或点击模块快速添加<br><span style="font-size:12px">实时生成 Page Schema 预览</span></div>
+      <div id="widgets"></div>
+    </div>
+  </div>
+
+  <div class="inspector">
+    <h3>📋 应用摘要</h3>
+    <div class="stat-row"><span>已选模块</span><strong id="cntMod">0</strong></div>
+    <div class="stat-row"><span>Capability</span><strong id="cntCap">0</strong></div>
+    <div class="stat-row"><span>关联 Agent</span><strong id="cntAgent">0</strong></div>
+    <div class="stat-row"><span>交付形态</span><strong id="deviceLabel">Web 网页</strong></div>
+    <div class="stat-row"><span>预估场景</span><strong id="cntScene">—</strong></div>
+    <p style="font-size:11px;color:var(--muted);margin-top:12px;line-height:1.5">模块自动映射 L2 Registry → 生成 L5 Runtime Schema。B 端默认侧栏布局，C 端切换为 Tab 布局。</p>
+    <div class="publish-area">
+      <button class="btn-pub" onclick="pub('web')">🌐 发布网页</button>
+      <button class="btn-pub2" onclick="pub('app')">📱 打包 App</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const added = new Set();
+const AGENT_MAP = {chat_qa:'问答',approval_flow:'审批',approval_inbox:'审批',kb_document:'知识库',chart_dashboard:'报表',notify_inapp:'通知',erp_connector:'外部数据'};
+
+function drag(e){ e.dataTransfer.setData('cap', e.target.closest('.cap').dataset.cap); e.dataTransfer.setData('name', e.target.closest('.cap').dataset.name); e.dataTransfer.setData('ico', e.target.closest('.cap').dataset.ico); }
+function allowDrop(e){ e.preventDefault(); document.getElementById('dropZone').classList.add('drag-over'); }
+function drop(e){
+  e.preventDefault();
+  document.getElementById('dropZone').classList.remove('drag-over');
+  addWidget(e.dataTransfer.getData('cap'), e.dataTransfer.getData('name'), e.dataTransfer.getData('ico'));
+}
+document.querySelectorAll('.cap').forEach(c=>c.addEventListener('click',()=>addWidget(c.dataset.cap,c.dataset.name,c.dataset.ico)));
+
+function addWidget(cap,name,ico){
+  if(added.has(cap)) return;
+  added.add(cap);
+  document.getElementById('emptyHint').style.display='none';
+  document.querySelector(`[data-cap="${cap}"]`)?.classList.add('added');
+  const div = document.createElement('div');
+  div.className='widget-slot';
+  div.dataset.cap=cap;
+  div.innerHTML=`<span class="w-icon">${ico}</span><div class="w-info"><strong>${name}</strong><span>${cap} → FormWidget / ChatWidget</span></div><span class="rm" onclick="removeWidget('${cap}',this)">×</span>`;
+  document.getElementById('widgets').appendChild(div);
+  updateStats();
+}
+function removeWidget(cap,el){
+  added.delete(cap);
+  el.closest('.widget-slot').remove();
+  document.querySelector(`[data-cap="${cap}"]`)?.classList.remove('added');
+  if(!added.size) document.getElementById('emptyHint').style.display='block';
+  updateStats();
+}
+function updateStats(){
+  document.getElementById('cntMod').textContent=added.size;
+  document.getElementById('cntCap').textContent=added.size;
+  const agents = new Set([...added].map(c=>AGENT_MAP[c]||'创建'));
+  document.getElementById('cntAgent').textContent=agents.size;
+  document.getElementById('cntScene').textContent = added.size ? Math.min(added.size*3, 18) : '—';
+}
+function setDevice(btn,type){
+  document.querySelectorAll('.device-tabs button').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  document.getElementById('deviceLabel').textContent = type==='web'?'Web 网页':type==='app'?'App':'Web + App';
+}
+function pub(t){
+  if(!added.size){alert('请先添加至少一个模块');return;}
+  alert((t==='web'?'网页':'App')+' 已生成！\n\nSchema 含 '+added.size+' 个 Widget\nURL: https://demo.trackchat.app/build/'+Date.now().toString(36));
+}
+</script>
+</body>
+</html>

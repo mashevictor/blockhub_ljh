@@ -1,0 +1,47 @@
+[
+  {
+    "file": "favicon-16.png",
+    "size": "16x16",
+    "usage": "浏览器标签小图标"
+  },
+  {
+    "file": "favicon-32.png",
+    "size": "32x32",
+    "usage": "浏览器标签主图标"
+  },
+  {
+    "file": "favicon-48.png",
+    "size": "48x48",
+    "usage": "浏览器收藏夹"
+  },
+  {
+    "file": "apple-touch-icon.png",
+    "size": "180x180",
+    "usage": "iOS 主屏幕"
+  },
+  {
+    "file": "icon-192.png",
+    "size": "192x192",
+    "usage": "Android / PWA"
+  },
+  {
+    "file": "icon-512.png",
+    "size": "512x512",
+    "usage": "PWA 启动图"
+  },
+  {
+    "file": "logo-256.png",
+    "size": "256x256",
+    "usage": "Header 导航 Logo"
+  },
+  {
+    "file": "logo-512.png",
+    "size": "512x512",
+    "usage": "高清 Logo"
+  },
+  {
+    "file": "logo-1024.png",
+    "size": "1024x1024",
+    "usage": "设计源图导出"
+  }
+]

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>设计 A · 一句话生成 · TrackChat</title>
+<style>
+:root{--pri:#6366f1;--pri-dark:#4338ca;--bg:#f8fafc;--card:#fff;--text:#1e293b;--muted:#64748b;--border:#e2e8f0;--ok:#10b981}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.top{background:linear-gradient(135deg,#0f172a,#4338ca);color:#fff;padding:14px 24px;display:flex;justify-content:space-between;align-items:center}
+.top a{color:#c7d2fe;font-size:12px;text-decoration:none}
+.hero{text-align:center;padding:48px 24px 32px;max-width:720px;margin:0 auto}
+.hero h1{font-size:32px;margin-bottom:10px;background:linear-gradient(135deg,#4338ca,#6366f1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero p{color:var(--muted);font-size:15px}
+.prompt-box{max-width:680px;margin:0 auto 24px;padding:0 20px}
+.prompt-inner{background:var(--card);border:2px solid var(--border);border-radius:16px;padding:6px;box-shadow:0 8px 30px rgba(67,56,202,.08);transition:border-color .2s,box-shadow .2s}
+.prompt-inner:focus-within{border-color:var(--pri);box-shadow:0 8px 40px rgba(99,102,241,.2)}
+.prompt-inner textarea{width:100%;border:none;outline:none;resize:none;padding:16px 18px;font-size:15px;font-family:inherit;min-height:88px;line-height:1.5}
+.prompt-actions{display:flex;justify-content:space-between;align-items:center;padding:8px 12px 10px;border-top:1px solid var(--border)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;max-width:680px;margin:0 auto 40px;padding:0 20px}
+.chip{padding:8px 16px;background:var(--card);border:1px solid var(--border);border-radius:20px;font-size:12px;cursor:pointer;transition:all .15s}
+.chip:hover{border-color:var(--pri);background:#eef2ff;color:var(--pri-dark)}
+.btn-gen{background:linear-gradient(135deg,#4338ca,#6366f1);color:#fff;border:none;padding:10px 24px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer}
+.btn-gen:hover{opacity:.92}
+.btn-gen:disabled{opacity:.5;cursor:not-allowed}
+.section{max-width:1100px;margin:0 auto;padding:0 24px 48px}
+.section h2{font-size:17px;margin-bottom:16px;color:var(--pri-dark)}
+.module-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
+.mod{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center;font-size:12px;cursor:pointer;transition:all .15s}
+.mod:hover,.mod.on{border-color:var(--pri);background:#eef2ff}
+.mod .icon{font-size:24px;margin-bottom:6px}
+.mod .name{font-weight:600;font-size:13px}
+.overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,.6);z-index:100;align-items:center;justify-content:center;padding:20px}
+.overlay.show{display:flex}
+.modal{background:#fff;border-radius:20px;max-width:520px;width:100%;padding:32px;text-align:center;animation:pop .35s ease}
+@keyframes pop{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
+.modal .steps{display:flex;justify-content:center;gap:8px;margin:20px 0;font-size:12px;color:var(--muted)}
+.modal .step{padding:6px 12px;border-radius:20px;background:#f1f5f9}
+.modal .step.active{background:#eef2ff;color:var(--pri);font-weight:600}
+.preview-phone{width:200px;height:360px;background:#1e293b;border-radius:24px;margin:16px auto;padding:12px;box-shadow:0 20px 50px rgba(0,0,0,.3)}
+.preview-screen{background:#fff;border-radius:16px;height:100%;padding:12px;font-size:10px;text-align:left;overflow:hidden}
+.preview-screen .bar{height:8px;background:#e2e8f0;border-radius:4px;margin-bottom:8px}
+.publish-btns{display:flex;gap:10px;justify-content:center;margin-top:20px;flex-wrap:wrap}
+.publish-btns button{padding:10px 20px;border-radius:8px;font-size:13px;cursor:pointer;border:none;font-weight:600}
+.btn-web{background:var(--pri);color:#fff}
+.btn-app{background:#059669;color:#fff}
+.btn-close{background:#f1f5f9;color:var(--text)}
+.loader{width:40px;height:40px;border:3px solid #e2e8f0;border-top-color:var(--pri);border-radius:50%;animation:spin .8s linear infinite;margin:20px auto}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="top">
+  <strong>TrackChat</strong>
+  <a href="index.html">← 返回设计稿列表</a>
+</div>
+
+<div class="hero">
+  <h1>说一句话，生成你的应用</h1>
+  <p>描述你想做什么，AI 自动选模块、配场景，生成网页或 App</p>
+</div>
+
+<div class="prompt-box">
+  <div class="prompt-inner">
+    <textarea id="prompt" placeholder="例如：我是一家 50 人的销售公司，需要报价审批、客户跟进、产品话术问答，还要给外勤同事用手机 App…"></textarea>
+    <div class="prompt-actions">
+      <span style="font-size:11px;color:var(--muted)">支持自然语言 · 自动匹配 114 场景</span>
+      <button class="btn-gen" id="btnGen" onclick="startGenerate()">✨ 生成应用</button>
+    </div>
+  </div>
+</div>
+
+<div class="chips">
+  <span class="chip" onclick="fillChip(this)">制造业设备报修 + SOP 问答</span>
+  <span class="chip" onclick="fillChip(this)">销售团队 CRM + 审批 + 漏斗看板</span>
+  <span class="chip" onclick="fillChip(this)">医院内部制度问答 + 排班申请</span>
+  <span class="chip" onclick="fillChip(this)">游戏玩家 FAQ + 客服工单 C 端</span>
+  <span class="chip" onclick="fillChip(this)">全员请假报销 + 知识库 + 企微通知</span>
+</div>
+
+<div class="section">
+  <h2>也可快速点选模块（自动写入描述）</h2>
+  <div class="module-grid" id="modGrid">
+    <div class="mod" data-m="智能问答" onclick="toggleMod(this)"><div class="icon">💬</div><div class="name">智能问答</div></div>
+    <div class="mod" data-m="知识库" onclick="toggleMod(this)"><div class="icon">📚</div><div class="name">知识库</div></div>
+    <div class="mod" data-m="审批流程" onclick="toggleMod(this)"><div class="icon">✅</div><div class="name">审批流程</div></div>
+    <div class="mod" data-m="数据报表" onclick="toggleMod(this)"><div class="icon">📊</div><div class="name">数据报表</div></div>
+    <div class="mod" data-m="消息通知" onclick="toggleMod(this)"><div class="icon">🔔</div><div class="name">消息通知</div></div>
+    <div class="mod" data-m="外部对接" onclick="toggleMod(this)"><div class="icon">🔌</div><div class="name">ERP/OA 对接</div></div>
+    <div class="mod" data-m="请假加班" onclick="toggleMod(this)"><div class="icon">👥</div><div class="name">人事行政</div></div>
+    <div class="mod" data-m="费用报销" onclick="toggleMod(this)"><div class="icon">💼</div><div class="name">财务法务</div></div>
+    <div class="mod" data-m="制度文档库" onclick="toggleMod(this)"><div class="icon">📋</div><div class="name">知识协同</div></div>
+    <div class="mod" data-m="IT报障" onclick="toggleMod(this)"><div class="icon">🛠</div><div class="name">IT 与资产</div></div>
+    <div class="mod" data-m="多级会签" onclick="toggleMod(this)"><div class="icon">📝</div><div class="name">流程审批</div></div>
+    <div class="mod" data-m="NL 查数" onclick="toggleMod(this)"><div class="icon">🔍</div><div class="name">自然语言查数</div></div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <div id="phaseLoad">
+      <div class="loader"></div>
+      <p style="font-weight:600;margin-bottom:8px">AI 正在解析需求…</p>
+      <p style="font-size:12px;color:var(--muted)" id="loadText">匹配 Capability Registry</p>
+    </div>
+    <div id="phaseDone" style="display:none">
+      <h3 style="color:var(--pri-dark);margin-bottom:8px">🎉 应用已生成</h3>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:12px" id="resultDesc"></p>
+      <div class="preview-phone">
+        <div class="preview-screen" id="preview"></div>
+      </div>
+      <div class="publish-btns">
+        <button class="btn-web" onclick="alert('Web 已发布：https://demo.trackchat.app/s/abc123')">🌐 发布网页</button>
+        <button class="btn-app" onclick="alert('App 壳已生成，扫码下载预览包')">📱 生成 App</button>
+        <button class="btn-close" onclick="closeModal()">继续修改</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const selected = new Set();
+function fillChip(el){ document.getElementById('prompt').value = el.textContent; }
+function toggleMod(el){
+  el.classList.toggle('on');
+  const m = el.dataset.m;
+  if(el.classList.contains('on')) selected.add(m); else selected.delete(m);
+  if(selected.size){
+    document.getElementById('prompt').value = '我需要：' + [...selected].join('、') + '，请帮我生成企业应用';
+  }
+}
+function startGenerate(){
+  const t = document.getElementById('prompt').value.trim();
+  if(!t){ alert('请先输入或选择需求'); return; }
+  document.getElementById('overlay').classList.add('show');
+  document.getElementById('phaseLoad').style.display='block';
+  document.getElementById('phaseDone').style.display='none';
+  const texts = ['解析自然语言…','匹配 36 Capability…','编排 7 Agent Pipeline…','生成 Page Schema…','渲染预览…'];
+  let i=0;
+  const iv = setInterval(()=>{
+    if(i<texts.length) document.getElementById('loadText').textContent = texts[i++];
+    else { clearInterval(iv); showDone(t); }
+  }, 600);
+}
+function showDone(t){
+  document.getElementById('phaseLoad').style.display='none';
+  document.getElementById('phaseDone').style.display='block';
+  document.getElementById('resultDesc').textContent = '已识别：' + t.slice(0,60) + (t.length>60?'…':'');
+  document.getElementById('preview').innerHTML = '<div style="font-weight:700;margin-bottom:8px;color:#4338ca">销售助手</div><div class="bar" style="width:70%"></div><div class="bar" style="width:90%"></div><div style="margin-top:12px;padding:8px;background:#eef2ff;border-radius:8px;font-size:9px">💬 智能问答</div><div style="margin-top:6px;padding:8px;background:#fef3c7;border-radius:8px;font-size:9px">✅ 待办 3</div><div style="margin-top:6px;padding:8px;background:#ecfdf5;border-radius:8px;font-size:9px">📊 漏斗看板</div>';
+}
+function closeModal(){ document.getElementById('overlay').classList.remove('show'); }
+</script>
+</body>
+</html>

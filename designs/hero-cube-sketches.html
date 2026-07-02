@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>英雄区魔方方案 · 5 套草图</title>
+  <style>
+    :root {
+      --bg: #0f0518;
+      --pri: #db2777;
+      --sec: #9333ea;
+      --cyan: #06b6d4;
+      --gold: #fbbf24;
+      --orange: #f97316;
+      --ink: #0a0a0a;
+      --text: #f8fafc;
+      --muted: rgba(255,255,255,0.65);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    /* —— 导航 —— */
+    .nav {
+      position: sticky; top: 0; z-index: 100;
+      display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+      padding: 12px 20px;
+      background: rgba(15,5,24,0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .nav h1 { font-size: 14px; font-weight: 800; margin-right: 12px; color: var(--gold); }
+    .nav a {
+      padding: 6px 14px; border-radius: 999px; font-size: 12px; font-weight: 700;
+      text-decoration: none; color: var(--muted);
+      border: 1px solid rgba(255,255,255,0.12);
+      transition: all 0.2s;
+    }
+    .nav a:hover, .nav a.on {
+      color: #fff; background: linear-gradient(135deg, var(--pri), var(--sec));
+      border-color: transparent;
+    }
+
+    .sketch {
+      min-height: 100vh;
+      padding: 48px 24px 80px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      position: relative;
+      overflow: hidden;
+    }
+    .sketch::before {
+      content: '';
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(ellipse 60% 50% at 20% 80%, rgba(219,39,119,0.15), transparent 60%),
+        radial-gradient(ellipse 50% 40% at 80% 20%, rgba(147,51,234,0.12), transparent 55%);
+      pointer-events: none;
+    }
+    .sketch-inner { max-width: 1100px; margin: 0 auto; position: relative; z-index: 1; }
+
+    .sketch-tag {
+      display: inline-block;
+      padding: 4px 12px; border-radius: 8px;
+      font-size: 10px; font-weight: 800; letter-spacing: 0.12em;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: var(--gold);
+      margin-bottom: 8px;
+    }
+    .sketch-title { font-size: clamp(22px, 4vw, 32px); font-weight: 800; margin-bottom: 6px; }
+    .sketch-desc { font-size: 14px; color: var(--muted); max-width: 640px; margin-bottom: 28px; }
+    .sketch-meta {
+      display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px;
+    }
+    .sketch-meta span {
+      font-size: 11px; padding: 4px 10px; border-radius: 6px;
+      background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    /* 通用魔方格 */
+    .cell {
+      border: 3px solid var(--ink);
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      text-align: center;
+      font-weight: 800;
+      position: relative;
+      overflow: hidden;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.25);
+    }
+    .cell::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.2), transparent 50%);
+      pointer-events: none;
+    }
+    .cmd {
+      font-family: ui-monospace, "Cascadia Code", monospace;
+      color: #fef08a;
+      text-shadow: 0 0 12px rgba(254,240,138,0.5);
+    }
+    .cmd-lg { font-size: clamp(18px, 3vw, 28px); }
+
+    /* ═══ 方案 A：等距三阶魔方 ═══ */
+    #a .stage {
+      perspective: 1200px;
+      height: 420px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    #a .cube-3d {
+      width: 280px; height: 280px;
+      position: relative;
+      transform-style: preserve-3d;
+      animation: spinSlow 18s linear infinite;
+    }
+    @keyframes spinSlow {
+      0% { transform: rotateX(-18deg) rotateY(0deg); }
+      100% { transform: rotateX(-18deg) rotateY(360deg); }
+    }
+    #a .face {
+      position: absolute;
+      width: 280px; height: 280px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(3, 1fr);
+      gap: 4px;
+      padding: 4px;
+      background: rgba(0,0,0,0.5);
+      border: 4px solid var(--ink);
+      border-radius: 10px;
+      backface-visibility: hidden;
+    }
+    #a .face-front  { transform: translateZ(140px); }
+    #a .face-right  { transform: rotateY(90deg) translateZ(140px); }
+    #a .face-top    { transform: rotateX(90deg) translateZ(140px); }
+    #a .face .cell { font-size: 11px; padding: 4px; line-height: 1.2; }
+    #a .face .cell.hero { grid-column: span 3; font-size: 13px; background: linear-gradient(135deg, var(--pri), var(--sec)); }
+    #a .face .cell.cmd-cell { background: #1e1b4b; font-size: 20px; animation: pulseCmd 2s ease infinite; }
+    @keyframes pulseCmd {
+      0%,100% { box-shadow: 0 0 0 0 rgba(254,240,138,0.4); }
+      50% { box-shadow: 0 0 20px 4px rgba(254,240,138,0.25); }
+    }
+    #a .side-label {
+      position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+      font-size: 12px; color: var(--muted); text-align: center;
+    }
+
+    /* ═══ 方案 B：>> 指令脊柱 ═══ */
+    #b .spine-wrap {
+      display: grid;
+      grid-template-columns: 56px 1fr;
+      gap: 0;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    #b .spine {
+      display: flex; flex-direction: column; align-items: center;
+      padding: 8px 0;
+    }
+    #b .spine-line {
+      flex: 1; width: 4px;
+      background: linear-gradient(180deg, var(--gold), var(--pri), var(--sec));
+      border-radius: 2px;
+      animation: spineFlow 3s ease infinite;
+    }
+    @keyframes spineFlow {
+      0%,100% { opacity: 0.6; filter: brightness(1); }
+      50% { opacity: 1; filter: brightness(1.3); }
+    }
+    #b .spine-cmd {
+      writing-mode: vertical-rl;
+      font-size: 22px; font-weight: 900;
+      padding: 12px 0;
+      letter-spacing: 0.15em;
+    }
+    #b .layers { display: flex; flex-direction: column; gap: 8px; }
+    #b .layer {
+      display: grid;
+      grid-template-columns: repeat(9, 1fr);
+      gap: 4px;
+      animation: layerIn 0.6s ease backwards;
+    }
+    #b .layer:nth-child(1) { animation-delay: 0.05s; }
+    #b .layer:nth-child(2) { animation-delay: 0.15s; }
+    #b .layer:nth-child(3) { animation-delay: 0.25s; }
+    #b .layer:nth-child(4) { animation-delay: 0.35s; }
+    @keyframes layerIn {
+      from { opacity: 0; transform: translateX(20px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    #b .layer .cell { aspect-ratio: 1; font-size: 9px; padding: 2px; }
+    #b .layer .cell.wide { grid-column: span 3; aspect-ratio: auto; min-height: 48px; font-size: 12px; }
+    #b .layer .cell.cmd { background: #312e81; grid-column: span 2; font-size: 14px; }
+
+    /* ═══ 方案 C：文字碎裂重组 ═══ */
+    #c .mosaic {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      grid-auto-rows: 52px;
+      gap: 5px;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+    #c .cell {
+      font-size: 10px;
+      cursor: default;
+      transition: transform 0.35s, z-index 0s;
+    }
+    #c .cell:hover { transform: scale(1.08); z-index: 5; }
+    #c .c1 { grid-column: span 2; background: #fff; color: #111; }
+    #c .c2 { grid-column: span 2; background: var(--gold); color: #111; }
+    #c .c3 { grid-column: span 2; background: var(--orange); }
+    #c .c4 { grid-column: span 2; background: var(--pri); }
+    #c .c5 { grid-column: span 2; background: var(--sec); }
+    #c .c6 { grid-column: span 2; background: var(--cyan); color: #111; }
+    #c .big { grid-column: span 4; grid-row: span 2; font-size: 14px; flex-direction: column; gap: 6px; }
+    #c .cmd-block {
+      grid-column: span 4;
+      grid-row: span 2;
+      background: linear-gradient(145deg, #1e1b4b, #0f172a);
+      flex-direction: column;
+      gap: 8px;
+      animation: cmdGlow 2.5s ease infinite;
+    }
+    @keyframes cmdGlow {
+      0%,100% { box-shadow: 0 0 30px rgba(254,240,138,0.15); }
+      50% { box-shadow: 0 0 50px rgba(254,240,138,0.35); }
+    }
+    #c .cmd-block .sub { font-size: 11px; font-weight: 600; color: var(--muted); max-width: 90%; }
+
+    /* ═══ 方案 D：剧场幕布立方 ═══ */
+    #d .theater {
+      position: relative;
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 24px;
+      background: rgba(0,0,0,0.4);
+      border-radius: 20px;
+      border: 2px solid rgba(255,255,255,0.1);
+    }
+    #d .curtain-top {
+      display: flex; justify-content: center; margin-bottom: 16px;
+    }
+    #d .curtain-badge {
+      padding: 10px 24px;
+      border: 3px solid var(--ink);
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--pri), var(--sec));
+      font-size: 15px; font-weight: 800;
+    }
+    #d .theater-grid {
+      display: grid;
+      grid-template-columns: 80px 1fr 80px;
+      gap: 12px;
+      align-items: stretch;
+    }
+    #d .wing {
+      display: grid;
+      grid-template-rows: repeat(5, 1fr);
+      gap: 4px;
+    }
+    #d .wing .cell { font-size: 8px; min-height: 44px; }
+    #d .center-cube {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      grid-template-rows: repeat(5, 1fr);
+      gap: 5px;
+      aspect-ratio: 1;
+      max-height: 360px;
+    }
+    #d .center-cube .cell { font-size: 9px; }
+    #d .center-cube .core {
+      grid-column: 2 / 5;
+      grid-row: 2 / 5;
+      background: radial-gradient(circle at 30% 30%, #312e81, #0f0518);
+      flex-direction: column;
+      gap: 10px;
+      border-width: 4px;
+      animation: coreBeat 2s ease infinite;
+    }
+    @keyframes coreBeat {
+      0%,100% { transform: scale(1); }
+      50% { transform: scale(1.02); }
+    }
+    #d .core .hint { font-size: 11px; color: var(--gold); font-weight: 700; }
+    #d .core .title { font-size: 13px; line-height: 1.35; padding: 0 8px; }
+
+    /* ═══ 方案 E：无限滚轮魔方带 ═══ */
+    #e .belt-wrap {
+      overflow: hidden;
+      mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+      margin-bottom: 20px;
+    }
+    #e .belt {
+      display: flex; gap: 8px;
+      width: max-content;
+      animation: beltMove 28s linear infinite;
+    }
+    @keyframes beltMove {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+    #e .belt-card {
+      width: 120px; height: 120px;
+      flex-shrink: 0;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(3, 1fr);
+      gap: 2px;
+      padding: 3px;
+      background: var(--ink);
+      border-radius: 8px;
+    }
+    #e .belt-card .mini {
+      border: 2px solid var(--ink);
+      border-radius: 3px;
+      font-size: 7px;
+      font-weight: 800;
+      display: flex; align-items: center; justify-content: center;
+    }
+    #e .hero-panel {
+      display: grid;
+      grid-template-columns: 1fr 280px 1fr;
+      gap: 16px;
+      align-items: center;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+    #e .panel-side {
+      display: flex; flex-direction: column; gap: 6px;
+    }
+    #e .panel-side .cell { min-height: 56px; font-size: 11px; padding: 8px; }
+    #e .panel-center {
+      aspect-ratio: 1;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(3, 1fr);
+      gap: 6px;
+      padding: 8px;
+      background: rgba(0,0,0,0.5);
+      border: 4px solid var(--ink);
+      border-radius: 14px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    }
+    #e .panel-center .cell { font-size: 10px; }
+    #e .panel-center .mid {
+      grid-column: 1 / 4;
+      grid-row: 2;
+      background: linear-gradient(135deg, #1e1b4b, #4c1d95);
+      font-size: 12px;
+      flex-direction: column;
+      gap: 6px;
+      padding: 12px;
+    }
+
+    .compare-table {
+      width: 100%; max-width: 960px; margin: 40px auto 0;
+      border-collapse: collapse; font-size: 12px;
+    }
+    .compare-table th, .compare-table td {
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 10px 12px; text-align: left;
+    }
+    .compare-table th { background: rgba(255,255,255,0.06); color: var(--gold); }
+    .compare-table .bar {
+      height: 6px; border-radius: 3px;
+      background: rgba(255,255,255,0.1);
+      overflow: hidden;
+    }
+    .compare-table .bar i {
+      display: block; height: 100%;
+      background: linear-gradient(90deg, var(--pri), var(--gold));
+      border-radius: 3px;
+    }
+  </style>
+</head>
+<body>
+
+<nav class="nav">
+  <h1>英雄区 · 5 套草图</h1>
+  <a href="#a" class="on">A 等距三阶</a>
+  <a href="#b">B 指令脊柱</a>
+  <a href="#c">C 碎裂重组</a>
+  <a href="#d">D 剧场立方</a>
+  <a href="#e">E 滚轮带</a>
+  <a href="#compare">对比</a>
+</nav>
+
+<!-- ════════════════════════════════════════
+     方案 A · 等距三阶魔方 — 文字贴满三面
+     ════════════════════════════════════════ -->
+<section class="sketch" id="a">
+  <div class="sketch-inner">
+    <span class="sketch-tag">方案 A · 难度 ★★★★★</span>
+    <h2 class="sketch-title">等距三阶魔方 · 三面叙事</h2>
+    <p class="sketch-desc">
+      整个 Hero 就是一颗缓慢自转的 3×3×3 魔方。正面贴主文案，右面贴能力格，顶面贴数据指标。
+      中心格永远是 <span class="cmd">>></span>，作为「智能体符号」锚点，三面的文字都指向它。
+    </p>
+    <div class="sketch-meta">
+      <span>WebGL/CSS 3D</span>
+      <span>文字嵌入每格</span>
+      <span>自动旋转 + 悬停暂停</span>
+    </div>
+
+    <div class="stage">
+      <div class="cube-3d">
+        <div class="face face-front">
+          <div class="cell" style="background:#fff;color:#111">五</div>
+          <div class="cell" style="background:var(--gold);color:#111">分</div>
+          <div class="cell" style="background:var(--orange)">钟</div>
+          <div class="cell cmd-cell cmd cmd-lg">&gt;&gt;</div>
+          <div class="cell" style="background:var(--pri)">定</div>
+          <div class="cell" style="background:var(--sec)">义</div>
+          <div class="cell hero">说说您需要什么<br/>我们来帮您生成</div>
+          <div class="cell" style="background:var(--cyan);color:#111">智</div>
+          <div class="cell" style="background:#3b82f6">能</div>
+        </div>
+        <div class="face face-right">
+          <div class="cell" style="background:var(--gold);color:#111">10</div>
+          <div class="cell" style="background:#fff;color:#111">大</div>
+          <div class="cell" style="background:var(--orange)">能</div>
+          <div class="cell" style="background:var(--pri)">力</div>
+          <div class="cell cmd-cell cmd">&gt;&gt;</div>
+          <div class="cell" style="background:var(--sec)">问</div>
+          <div class="cell" style="background:var(--cyan);color:#111">答</div>
+          <div class="cell" style="background:#3b82f6">审</div>
+          <div class="cell" style="background:#22c55e;color:#111">批</div>
+        </div>
+        <div class="face face-top">
+          <div class="cell" style="background:#fff;color:#111">114</div>
+          <div class="cell" style="background:var(--gold);color:#111">场</div>
+          <div class="cell" style="background:var(--orange)">景</div>
+          <div class="cell" style="background:var(--pri)">5</div>
+          <div class="cell cmd-cell cmd">&gt;&gt;</div>
+          <div class="cell" style="background:var(--sec)">端</div>
+          <div class="cell" style="background:var(--cyan);color:#111">全</div>
+          <div class="cell" style="background:#3b82f6">覆</div>
+          <div class="cell" style="background:#22c55e;color:#111">盖</div>
+        </div>
+      </div>
+    </div>
+    <p class="side-label">↑ 自动旋转中 · 中心 <strong class="cmd">&gt;&gt;</strong> = 智能体符号定义点</p>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+     方案 B · >> 指令脊柱
+     ════════════════════════════════════════ -->
+<section class="sketch" id="b">
+  <div class="sketch-inner">
+    <span class="sketch-tag">方案 B · 难度 ★★★★☆</span>
+    <h2 class="sketch-title">指令脊柱 · 层叠魔方面</h2>
+    <p class="sketch-desc">
+      左侧竖排 <span class="cmd">>></span> 是「智能体脊柱」，右侧 4 层 9 列方格，每层是一行叙事：
+      输入 → 选模块 → 优化提示词 → 生成。文字拆进格子里，像数据在管道里流动。
+    </p>
+    <div class="sketch-meta">
+      <span>ScrollTrigger 层进</span>
+      <span>左侧 >> 恒定发光</span>
+      <span>与输入框联动</span>
+    </div>
+
+    <div class="spine-wrap">
+      <div class="spine">
+        <div class="spine-line"></div>
+        <div class="spine-cmd cmd cmd-lg">&gt;&gt;</div>
+        <div class="spine-line"></div>
+      </div>
+      <div class="layers">
+        <div class="layer">
+          <div class="cell cmd">&gt;&gt;</div>
+          <div class="cell cmd">定义</div>
+          <div class="cell wide" style="background:linear-gradient(90deg,var(--pri),var(--sec))">智能体符号 · 应用创建入口</div>
+          <div class="cell" style="background:#fff;color:#111">入</div>
+          <div class="cell" style="background:var(--gold);color:#111">口</div>
+        </div>
+        <div class="layer">
+          <div class="cell" style="background:var(--cyan);color:#111">描</div>
+          <div class="cell" style="background:#3b82f6">述</div>
+          <div class="cell wide" style="background:rgba(255,255,255,0.12)">勾选行业与场景 · 10 大能力自动组合</div>
+          <div class="cell cmd">&gt;</div>
+          <div class="cell" style="background:var(--orange)">模</div>
+        </div>
+        <div class="layer">
+          <div class="cell" style="background:var(--pri)">优</div>
+          <div class="cell" style="background:var(--sec)">化</div>
+          <div class="cell wide" style="background:rgba(255,255,255,0.08)">提示词实时更新 · 模块同步到描述文字</div>
+          <div class="cell" style="background:var(--gold);color:#111">114</div>
+          <div class="cell" style="background:#fff;color:#111">景</div>
+        </div>
+        <div class="layer">
+          <div class="cell" style="background:#22c55e;color:#111">生</div>
+          <div class="cell" style="background:var(--cyan);color:#111">成</div>
+          <div class="cell wide" style="background:linear-gradient(90deg,var(--gold),var(--orange))">网页 / App / 双端 · 员工即刻可用</div>
+          <div class="cell cmd">&gt;&gt;</div>
+          <div class="cell" style="background:var(--pri)">GO</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+     方案 C · 文字碎裂重组
+     ════════════════════════════════════════ -->
+<section class="sketch" id="c">
+  <div class="sketch-inner">
+    <span class="sketch-tag">方案 C · 难度 ★★★★★</span>
+    <h2 class="sketch-title">碎裂重组 · 全屏魔方马赛克</h2>
+    <p class="sketch-desc">
+      标题、副标题、指标全部拆成单字/词块，铺满 12 列马赛克墙。Hover 时相邻格聚拢，
+      中央 4×2 大格是 <span class="cmd">>></span> 定义区，周围格子弹出说明。像魔方被打散又随时能拼回。
+    </p>
+    <div class="sketch-meta">
+      <span>12 列响应式网格</span>
+      <span>Hover 磁吸聚合</span>
+      <span>字块级动画</span>
+    </div>
+
+    <div class="mosaic">
+      <div class="cell c1">说</div>
+      <div class="cell c2">说</div>
+      <div class="cell c3">您</div>
+      <div class="cell c4">需</div>
+      <div class="cell c5">要</div>
+      <div class="cell c6">什</div>
+      <div class="cell c1">么</div>
+      <div class="cell c2">10</div>
+      <div class="cell c3">大</div>
+      <div class="cell c4">能</div>
+      <div class="cell c5">力</div>
+      <div class="cell c6">114</div>
+
+      <div class="cell cmd-block">
+        <span class="cmd cmd-lg">&gt;&gt;</span>
+        <span style="font-size:16px;font-weight:900">定义智能体符号</span>
+        <span class="sub">一个 &gt; 对应一个模块 · 输入即命令 · 符号即应用 DNA</span>
+      </div>
+      <div class="cell big c4">我们来<br/>帮您<br/>生成</div>
+      <div class="cell c1">Web</div>
+      <div class="cell c2">iOS</div>
+      <div class="cell c3">安卓</div>
+      <div class="cell c5">Win</div>
+      <div class="cell c6">Mac</div>
+      <div class="cell c1">已</div>
+      <div class="cell c2">支</div>
+      <div class="cell c3">持</div>
+
+      <div class="cell c4">制</div>
+      <div class="cell c5">造</div>
+      <div class="cell c6">业</div>
+      <div class="cell c1">医</div>
+      <div class="cell c2">疗</div>
+      <div class="cell c3">零</div>
+      <div class="cell c4">售</div>
+      <div class="cell c5">游</div>
+      <div class="cell c6">戏</div>
+      <div class="cell c1">审</div>
+      <div class="cell c2">批</div>
+      <div class="cell c3">知</div>
+      <div class="cell c4">识</div>
+      <div class="cell c5">库</div>
+      <div class="cell c6">问</div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+     方案 D · 剧场幕布立方
+     ════════════════════════════════════════ -->
+<section class="sketch" id="d">
+  <div class="sketch-inner">
+    <span class="sketch-tag">方案 D · 难度 ★★★★☆</span>
+    <h2 class="sketch-title">剧场立方 · 5×5 舞台 + 核心 >> 舱</h2>
+    <p class="sketch-desc">
+      像剧院：两侧翼是能力/场景侧栏，中央 5×5 舞台，正中心 3×3「>> 核心舱」嵌主标题。
+      顶栏徽章写「>> 定义智能体符号」。切换 Tab 时翼板方格洗牌动画。
+    </p>
+    <div class="sketch-meta">
+      <span>5×5 舞台网格</span>
+      <span>核心舱呼吸光</span>
+      <span>与积木仓联动</span>
+    </div>
+
+    <div class="theater">
+      <div class="curtain-top">
+        <div class="curtain-badge"><span class="cmd">&gt;&gt;</span> 定义智能体符号 · BlockHub</div>
+      </div>
+      <div class="theater-grid">
+        <div class="wing">
+          <div class="cell" style="background:var(--gold);color:#111">问答</div>
+          <div class="cell" style="background:var(--pri)">审批</div>
+          <div class="cell" style="background:var(--sec)">知识库</div>
+          <div class="cell" style="background:var(--cyan);color:#111">看板</div>
+          <div class="cell" style="background:var(--orange)">通知</div>
+        </div>
+        <div class="center-cube">
+          <div class="cell" style="background:#fff;color:#111">五</div>
+          <div class="cell" style="background:var(--gold);color:#111">分</div>
+          <div class="cell" style="background:var(--orange)">钟</div>
+          <div class="cell" style="background:var(--pri)">搭</div>
+          <div class="cell" style="background:var(--sec)">好</div>
+
+          <div class="cell" style="background:var(--cyan);color:#111">老</div>
+          <div class="cell core">
+            <span class="cmd cmd-lg">&gt;&gt;</span>
+            <span class="hint">智能体符号</span>
+            <span class="title">说说您需要什么<br/>我们来帮您生成</span>
+          </div>
+          <div class="cell" style="background:#3b82f6">板</div>
+
+          <div class="cell" style="background:#22c55e;color:#111">员</div>
+          <div class="cell" style="background:var(--gold);color:#111">工</div>
+          <div class="cell" style="background:var(--pri)">即</div>
+          <div class="cell" style="background:var(--sec)">刻</div>
+          <div class="cell" style="background:var(--orange)">用</div>
+        </div>
+        <div class="wing">
+          <div class="cell" style="background:#fff;color:#111">制造</div>
+          <div class="cell" style="background:var(--gold);color:#111">医疗</div>
+          <div class="cell" style="background:var(--pri)">销售</div>
+          <div class="cell" style="background:var(--sec)">游戏</div>
+          <div class="cell" style="background:var(--cyan);color:#111">办公</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+     方案 E · 无限滚轮魔方带
+     ════════════════════════════════════════ -->
+<section class="sketch" id="e">
+  <div class="sketch-inner">
+    <span class="sketch-tag">方案 E · 难度 ★★★★★</span>
+    <h2 class="sketch-title">滚轮魔方带 · 中央 3×3 控制台</h2>
+    <p class="sketch-desc">
+      顶部无限滚动的 3×3 迷你魔方卡片带（能力/场景/端），营造「积木在传送带上组装」。
+      中央主控制台 3×3，中间横条是 >> 命令行 + 完整标题。两侧辅助格显示实时数据。
+    </p>
+    <div class="sketch-meta">
+      <span>无限 CSS 滚动带</span>
+      <span>中央命令行</span>
+      <span>与 AgentInput 同步</span>
+    </div>
+
+    <div class="belt-wrap">
+      <div class="belt" id="belt">
+        <!-- 重复两遍用于无缝循环 -->
+      </div>
+    </div>
+
+    <div class="hero-panel">
+      <div class="panel-side">
+        <div class="cell" style="background:var(--gold);color:#111">10 大能力</div>
+        <div class="cell" style="background:var(--pri)">114 场景</div>
+        <div class="cell" style="background:var(--sec)">5 端覆盖</div>
+      </div>
+      <div class="panel-center">
+        <div class="cell" style="background:#fff;color:#111">输</div>
+        <div class="cell" style="background:var(--gold);color:#111">入</div>
+        <div class="cell" style="background:var(--orange)">&gt;</div>
+        <div class="cell mid">
+          <span class="cmd cmd-lg">&gt;&gt; 定义智能体符号</span>
+          <span style="font-size:11px;font-weight:700">勾选模块 · 实时优化提示词 · 一键生成应用</span>
+        </div>
+        <div class="cell" style="background:var(--cyan);color:#111">模</div>
+        <div class="cell" style="background:#3b82f6">块</div>
+        <div class="cell" style="background:#22c55e;color:#111">仓</div>
+      </div>
+      <div class="panel-side">
+        <div class="cell" style="background:rgba(255,255,255,0.1)">网页 ✓</div>
+        <div class="cell" style="background:rgba(255,255,255,0.1)">App ✓</div>
+        <div class="cell" style="background:rgba(255,255,255,0.1)">双端 ✓</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+     对比表
+     ════════════════════════════════════════ -->
+<section class="sketch" id="compare" style="min-height: auto; padding-bottom: 60px;">
+  <div class="sketch-inner">
+    <span class="sketch-tag">选型参考</span>
+    <h2 class="sketch-title">五方案对比</h2>
+    <p class="sketch-desc">实现难度、>> 符号突出度、与现有 AgentInput 联动性、移动端友好度。</p>
+
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th>方案</th>
+          <th>视觉冲击力</th>
+          <th>>> 符号突出</th>
+          <th>文字嵌入度</th>
+          <th>实现成本</th>
+          <th>推荐场景</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>A 等距三阶</strong></td>
+          <td><div class="bar"><i style="width:95%"></i></div></td>
+          <td><div class="bar"><i style="width:85%"></i></div></td>
+          <td><div class="bar"><i style="width:80%"></i></div></td>
+          <td><div class="bar"><i style="width:90%"></i></div></td>
+          <td>品牌首屏、发布会级展示</td>
+        </tr>
+        <tr>
+          <td><strong>B 指令脊柱</strong></td>
+          <td><div class="bar"><i style="width:75%"></i></div></td>
+          <td><div class="bar"><i style="width:98%"></i></div></td>
+          <td><div class="bar"><i style="width:95%"></i></div></td>
+          <td><div class="bar"><i style="width:65%"></i></div></td>
+          <td>与输入框逻辑最一致 ⭐</td>
+        </tr>
+        <tr>
+          <td><strong>C 碎裂重组</strong></td>
+          <td><div class="bar"><i style="width:100%"></i></div></td>
+          <td><div class="bar"><i style="width:90%"></i></div></td>
+          <td><div class="bar"><i style="width:100%"></i></div></td>
+          <td><div class="bar"><i style="width:95%"></i></div></td>
+          <td>最大胆、艺术向</td>
+        </tr>
+        <tr>
+          <td><strong>D 剧场立方</strong></td>
+          <td><div class="bar"><i style="width:80%"></i></div></td>
+          <td><div class="bar"><i style="width:88%"></i></div></td>
+          <td><div class="bar"><i style="width:92%"></i></div></td>
+          <td><div class="bar"><i style="width:70%"></i></div></td>
+          <td>信息密度高、可落地 ⭐</td>
+        </tr>
+        <tr>
+          <td><strong>E 滚轮带</strong></td>
+          <td><div class="bar"><i style="width:88%"></i></div></td>
+          <td><div class="bar"><i style="width:82%"></i></div></td>
+          <td><div class="bar"><i style="width:85%"></i></div></td>
+          <td><div class="bar"><i style="width:75%"></i></div></td>
+          <td>动态感强、展示能力清单</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p style="margin-top:24px;font-size:13px;color:var(--muted);max-width:720px">
+      <strong style="color:var(--gold)">建议组合落地：</strong>
+      B（>> 脊柱叙事）+ D（5×5 核心舱）—— 左侧竖排 >> 与 AgentInput 呼应，中央魔方舞台嵌入全部文案与指标，顶栏徽章固定「>> 定义智能体符号」。
+    </p>
+  </div>
+</section>
+
+<script>
+  // 方案 E：生成滚轮带卡片
+  const labels = ['问答','审批','知识库','看板','制造','医疗','销售','Web','iOS','Android','114景','5端','>>','模块','生成','积木'];
+  const colors = ['#fff','#fbbf24','#f97316','#db2777','#9333ea','#06b6d4','#3b82f6','#22c55e','#1e1b4b'];
+  const belt = document.getElementById('belt');
+  function makeCards() {
+    let html = '';
+    for (let rep = 0; rep < 2; rep++) {
+      for (let i = 0; i < 14; i++) {
+        const bg = colors[i % colors.length];
+        const fg = (bg === '#fff' || bg === '#fbbf24' || bg === '#06b6d4' || bg === '#22c55e') ? '#111' : '#fff';
+        html += `<div class="belt-card">`;
+        for (let j = 0; j < 9; j++) {
+          const t = j === 4 ? (i % 3 === 0 ? '>>' : labels[(i + j) % labels.length].slice(0, 2)) : labels[(i + j) % labels.length].slice(0, 2);
+          html += `<div class="mini" style="background:${bg};color:${fg}">${t}</div>`;
+        }
+        html += `</div>`;
+      }
+    }
+    belt.innerHTML = html;
+  }
+  makeCards();
+
+  // 导航高亮
+  document.querySelectorAll('.nav a').forEach(a => {
+    a.addEventListener('click', () => {
+      document.querySelectorAll('.nav a').forEach(x => x.classList.remove('on'));
+      a.classList.add('on');
+    });
+  });
+</script>
+</body>
+</html>

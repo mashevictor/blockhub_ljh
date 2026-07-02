@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TrackChat · 创建入口设计稿对比</title>
+<style>
+:root{--pri:#4338ca;--bg:#0f172a;--card:#1e293b;--text:#f1f5f9;--muted:#94a3b8}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Microsoft YaHei","PingFang SC",sans-serif;background:linear-gradient(135deg,#0f172a,#1e1b4b);color:var(--text);min-height:100vh;padding:40px 24px}
+.wrap{max-width:960px;margin:0 auto}
+h1{font-size:28px;margin-bottom:8px}
+.sub{color:var(--muted);font-size:14px;margin-bottom:32px;line-height:1.6}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.card{background:var(--card);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:24px;text-decoration:none;color:inherit;transition:transform .2s,box-shadow .2s,border-color .2s;display:block}
+.card:hover{transform:translateY(-4px);box-shadow:0 12px 40px rgba(99,102,241,.25);border-color:#6366f1;text-decoration:none;color:inherit}
+.card .tag{font-size:10px;background:rgba(99,102,241,.3);color:#a5b4fc;padding:3px 10px;border-radius:20px;display:inline-block;margin-bottom:12px}
+.card h2{font-size:18px;margin-bottom:8px}
+.card p{font-size:13px;color:var(--muted);line-height:1.55;margin-bottom:14px}
+.card .meta{font-size:11px;color:#64748b}
+.footer{margin-top:40px;padding-top:20px;border-top:1px solid rgba(255,255,255,.1);font-size:12px;color:var(--muted)}
+.footer a{color:#a5b4fc}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>TrackChat · 普通用户创建入口 · 4 套设计稿</h1>
+  <p class="sub">面向「刚进来的普通用户」：选模块 / 选行业 / 说一句话 → 自动生成网页或 App。<br>现有 PaaS 管理端作为<strong style="color:#a5b4fc">高级开发模式</strong>保留。</p>
+  <div class="grid">
+    <a class="card" href="05-tech-architecture.html" style="border-color:rgba(16,185,129,.4)">
+      <span class="tag" style="background:rgba(16,185,129,.25);color:#6ee7b7">架构 · 最新</span>
+      <h2>🏗 技术框架总览</h2>
+      <p>五层 L0–L5 · 双入口 Home/Admin · Web+Flutter 双交付 · REST/SSE · PG/Redis/COS · 腾讯云</p>
+      <div class="meta">Mermaid 交互图 · 与 cozecode 拍板栈一致</div>
+    </a>
+    <a class="card" href="01-prompt-first.html">
+      <span class="tag">设计 A · 推荐 C 端 / 小白</span>
+      <h2>💬 一句话生成</h2>
+      <p>输入「我要一个销售团队用的审批+问答助手」→ AI 解析 → 预览 → 发布 Web/App</p>
+      <div class="meta">交互：对话式 · 零配置 · 最快上手</div>
+    </a>
+    <a class="card" href="02-industry-pack.html">
+      <span class="tag">设计 B · 推荐行业客户</span>
+      <h2>🏭 行业方案包</h2>
+      <p>选制造业/医疗/游戏等整包 → 预填 12~13 场景 → 一键生成企业网页</p>
+      <div class="meta">交互：卡片选行业 · 3 步发布</div>
+    </a>
+    <a class="card" href="03-module-builder.html">
+      <span class="tag">设计 C · 推荐 B 端企业</span>
+      <h2>🧩 模块积木台</h2>
+      <p>从 36 能力 + 8 类企业模块自由勾选 → 实时预览布局 → 导出 Web/App</p>
+      <div class="meta">交互：拖拽/点选 · 可视化强</div>
+    </a>
+    <a class="card" href="04-dual-mode-hub.html">
+      <span class="tag">设计 D · 推荐统一入口</span>
+      <h2>🚪 双轨首页 Hub</h2>
+      <p>普通用户走「快速创建」三卡片；技术同行走「高级开发模式」进现有 PaaS 后台</p>
+      <div class="meta">交互：模式分流 · 产品化最完整</div>
+    </a>
+  </div>
+  <div class="footer">
+    高级开发模式（现有实现）→ <a href="http://127.0.0.1:5174/" target="_blank">http://127.0.0.1:5174/</a> ·
+    114 场景 · 7 Agent · 36 Capability
+  </div>
+</div>
+</body>
+</html>
