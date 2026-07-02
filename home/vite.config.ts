@@ -12,6 +12,16 @@ export default defineConfig({
   resolve: {
     alias: { '@shared': path.resolve(__dirname, '../shared') },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+          http: ['axios'],
+        },
+      },
+    },
+  },
   server: {
     port: 5173,
     proxy: {

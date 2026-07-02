@@ -333,17 +333,45 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone }: Pr
 
   useEffect(() => {
     fetchCatalogSummary().then(setSummary).catch(() => {})
-    setCatalogLoading(true)
-    Promise.all([
-      fetchOfficeScenarios(),
-      fetchIndustryScenarios(),
-    ])
-      .then(([o, i]) => {
-        setOfficeAll(o.map((s) => ({ ...s, kind: 'office' as const })))
-        setIndustryAll(i.map((s) => ({ ...s, kind: 'industry' as const })))
-      })
-      .catch(() => {})
-      .finally(() => setCatalogLoading(false))
+  }, [])
+
+  useEffect(() => {
+    const el = catalogRef.current
+    if (!el) return
+    let cancelled = false
+    const loadCatalog = () => {
+      if (cancelled) return
+      setCatalogLoading(true)
+      Promise.all([
+        fetchOfficeScenarios({ lite: true }),
+        fetchIndustryScenarios({ lite: true }),
+      ])
+        .then(([o, i]) => {
+          if (cancelled) return
+          setOfficeAll(o.map((s) => ({ ...s, kind: 'office' as const })))
+          setIndustryAll(i.map((s) => ({ ...s, kind: 'industry' as const })))
+        })
+        .catch(() => {})
+        .finally(() => {
+          if (!cancelled) setCatalogLoading(false)
+        })
+    }
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting) {
+          loadCatalog()
+          io.disconnect()
+        }
+      },
+      { rootMargin: '240px' },
+    )
+    io.observe(el)
+    const fallback = window.setTimeout(loadCatalog, 2500)
+    return () => {
+      cancelled = true
+      io.disconnect()
+      window.clearTimeout(fallback)
+    }
   }, [])
 
   const searchFilter = useCallback(

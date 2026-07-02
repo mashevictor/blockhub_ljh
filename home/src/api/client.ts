@@ -73,13 +73,17 @@ export async function fetchCatalogSummary() {
   return res.data
 }
 
-export async function fetchOfficeScenarios(params?: { category?: string; q?: string }) {
-  const res = await api.get<{ items: OfficeScenario[] }>('/catalog/office', { params })
+export async function fetchOfficeScenarios(params?: { category?: string; q?: string; lite?: boolean }) {
+  const res = await api.get<{ items: OfficeScenario[] }>('/catalog/office', {
+    params: { ...params, lite: params?.lite ? true : undefined },
+  })
   return res.data.items
 }
 
-export async function fetchIndustryScenarios(params?: { pack?: string; q?: string }) {
-  const res = await api.get<{ items: IndustryScenario[] }>('/catalog/industry', { params })
+export async function fetchIndustryScenarios(params?: { pack?: string; q?: string; lite?: boolean }) {
+  const res = await api.get<{ items: IndustryScenario[] }>('/catalog/industry', {
+    params: { ...params, lite: params?.lite ? true : undefined },
+  })
   return res.data.items
 }
 

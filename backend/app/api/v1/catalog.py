@@ -11,6 +11,38 @@ from app.data.seed import (
 router = APIRouter(prefix="/catalog", tags=["catalog"])
 
 
+def _office_lite(items: list[dict]) -> list[dict]:
+    return [
+        {
+            "id": s["id"],
+            "name": s["name"],
+            "category": s["category"],
+            "category_icon": s.get("category_icon", ""),
+            "agent": s.get("agent", ""),
+            "type": "office",
+        }
+        for s in items
+    ]
+
+
+def _industry_lite(items: list[dict]) -> list[dict]:
+    return [
+        {
+            "id": s["id"],
+            "name": s["name"],
+            "category": s["category"],
+            "pack_key": s["pack_key"],
+            "pack_name": s.get("pack_name", ""),
+            "pack_icon": s.get("pack_icon", ""),
+            "problem": s.get("problem", ""),
+            "standard": s.get("standard", ""),
+            "agent": s.get("agent", ""),
+            "type": "industry",
+        }
+        for s in items
+    ]
+
+
 @router.get("/summary")
 def catalog_summary() -> dict:
     return {
@@ -27,13 +59,15 @@ def catalog_summary() -> dict:
 def list_office(
     category: str | None = Query(None, description="Filter by category name"),
     q: str | None = Query(None, description="Search by scenario name"),
+    lite: bool = Query(False, description="Minimal fields for Home list (faster)"),
 ) -> dict:
     items = OFFICE_SCENARIOS
     if category:
         items = [s for s in items if s["category"] == category]
     if q:
         items = [s for s in items if q.lower() in s["name"].lower()]
-    return {"total": len(items), "items": items, "groups": OFFICE_GROUPS}
+    payload_items = _office_lite(items) if lite else items
+    return {"total": len(payload_items), "items": payload_items, "groups": [] if lite else OFFICE_GROUPS}
 
 
 @router.get("/office/groups")
@@ -46,6 +80,7 @@ def list_industry(
     pack: str | None = Query(None, description="Filter by pack key: mfg|sales|med|game"),
     category: str | None = Query(None, description="Filter by sub-category e.g. 临床知识"),
     q: str | None = Query(None, description="Search by scenario name"),
+    lite: bool = Query(False, description="Minimal fields for Home list (faster)"),
 ) -> dict:
     items = INDUSTRY_SCENARIOS
     if pack:
@@ -54,7 +89,8 @@ def list_industry(
         items = [s for s in items if s["category"] == category]
     if q:
         items = [s for s in items if q.lower() in s["name"].lower()]
-    return {"total": len(items), "items": items, "packs": INDUSTRY_PACKS}
+    payload_items = _industry_lite(items) if lite else items
+    return {"total": len(payload_items), "items": payload_items, "packs": [] if lite else INDUSTRY_PACKS}
 
 
 @router.get("/industry/{pack_key}")
