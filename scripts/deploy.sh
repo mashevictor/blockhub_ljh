@@ -36,9 +36,9 @@ fi
 alembic upgrade head
 alembic current
 
-echo "==> [4/9] systemd + nginx config"
+echo "==> [4/9] systemd + nginx config (paths → $ROOT)"
 if [ -f "$ROOT/scripts/blockhub-api.service" ]; then
-  sudo cp "$ROOT/scripts/blockhub-api.service" /etc/systemd/system/
+  sed "s|BLOCKHUB_ROOT|$ROOT|g" "$ROOT/scripts/blockhub-api.service" | sudo tee /etc/systemd/system/blockhub-api.service >/dev/null
   sudo systemctl daemon-reload
 fi
 if [ -f "$ROOT/scripts/nginx-blockhub.conf" ]; then
@@ -49,7 +49,21 @@ fi
 echo "==> [5/9] restart API"
 sudo systemctl enable blockhub-api 2>/dev/null || true
 sudo systemctl restart blockhub-api
-sleep 3
+echo "    waiting for API health..."
+API_OK=false
+for i in 1 2 3 4 5 6 7 8 9 10; do
+  if curl -sf --max-time 3 http://127.0.0.1:8001/api/v1/health >/dev/null 2>&1; then
+    API_OK=true
+    echo "    API health OK (attempt $i)"
+    break
+  fi
+  sleep 2
+done
+if [ "$API_OK" != true ]; then
+  echo "ERROR: API not responding on :8001 — run: bash scripts/diagnose-api.sh"
+  journalctl -u blockhub-api -n 30 --no-pager 2>/dev/null || true
+  exit 1
+fi
 
 echo "==> [6/9] build frontends"
 cd "$ROOT/home"

@@ -17,6 +17,12 @@ async def lifespan(_: FastAPI):
     try:
         ensure_seed_data(db)
         ensure_catalog_seeded(db)
+    except Exception:
+        import logging
+
+        logging.getLogger("uvicorn.error").exception(
+            "Startup seed failed — API will still run; check DB and run POST /api/v1/seed"
+        )
     finally:
         db.close()
     yield

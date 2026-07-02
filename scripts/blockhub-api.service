@@ -4,10 +4,10 @@ After=network.target postgresql.service
 
 [Service]
 User=root
-WorkingDirectory=/root/blockhub/backend
-EnvironmentFile=/root/blockhub/backend/.env
-Environment=PATH=/root/blockhub/backend/.venv/bin
-ExecStart=/root/blockhub/backend/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8001 --workers 2
+WorkingDirectory=BLOCKHUB_ROOT/backend
+EnvironmentFile=BLOCKHUB_ROOT/backend/.env
+Environment=PATH=BLOCKHUB_ROOT/backend/.venv/bin
+ExecStart=BLOCKHUB_ROOT/backend/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8001 --workers 1
 Restart=always
 RestartSec=3
 
