@@ -26,15 +26,20 @@ source .venv/bin/activate
 pip install -r requirements.txt -q
 
 echo "==> [3/9] alembic migrate (target: 004 hero presets)"
-# 仅当从未跑过 alembic、但已有旧表时，stamp 到 001 再升级（勿 stamp head）
-if ! alembic current 2>/dev/null | grep -qE '[0-9a-f]+|001|002|003|004'; then
-  if python -c "from app.db.session import engine; from sqlalchemy import inspect; print('yes' if inspect(engine).has_table('users') else 'no')" 2>/dev/null | grep -q yes; then
-    echo "    legacy DB detected → alembic stamp 001"
-    alembic stamp 001
+bash "$ROOT/scripts/repair-db.sh" || {
+  echo "    repair-db skipped or failed; trying direct upgrade..."
+  cd "$ROOT/backend"
+  source .venv/bin/activate
+  if ! alembic current 2>/dev/null | grep -qE '[0-9a-f]+|001|002|003|004'; then
+    if python -c "from app.db.session import engine; from sqlalchemy import inspect; print('yes' if inspect(engine).has_table('users') else 'no')" 2>/dev/null | grep -q yes; then
+      echo "    legacy DB detected → alembic stamp 001"
+      alembic stamp 001
+    fi
   fi
-fi
-alembic upgrade head
-alembic current
+  alembic upgrade head
+  alembic current
+}
+cd "$ROOT/backend"
 
 echo "==> [4/9] systemd + nginx config (paths → $ROOT)"
 if [ -f "$ROOT/scripts/blockhub-api.service" ]; then

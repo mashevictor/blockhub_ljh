@@ -47,14 +47,35 @@ with engine.connect() as c:
     insp = inspect(engine)
     for t in ['users','catalog_office_scenarios','catalog_hero_presets']:
         print(f'  table {t}:', 'yes' if insp.has_table(t) else 'NO')
+    if insp.has_table('users'):
+        cols = {col['name'] for col in insp.get_columns('users')}
+        print(f'  column users.phone:', 'yes' if 'phone' in cols else 'NO')
 " 2>&1 || echo "DB connect FAILED"
 else
   echo "MISSING $ROOT/backend/.env"
 fi
 
 echo ""
-echo "=== 7. Alembic ==="
-cd "$ROOT/backend" && source .venv/bin/activate 2>/dev/null && alembic current 2>/dev/null || true
+echo "=== 7. Alembic vs schema ==="
+cd "$ROOT/backend" && source .venv/bin/activate 2>/dev/null || true
+alembic current 2>/dev/null || true
+python3 -c "
+from sqlalchemy import inspect
+from app.db.session import engine
+insp = inspect(engine)
+def col(t,c):
+    return insp.has_table(t) and c in {x['name'] for x in insp.get_columns(t)}
+if not insp.has_table('users'):
+    print('schema level: empty')
+elif col('users','phone') and insp.has_table('catalog_office_scenarios') and insp.has_table('catalog_hero_presets'):
+    print('schema level: 004 (complete)')
+elif col('users','phone') and insp.has_table('catalog_office_scenarios'):
+    print('schema level: 003')
+elif col('users','phone'):
+    print('schema level: 002')
+else:
+    print('schema level: 001 — DRIFT likely (alembic ahead of schema)')
+" 2>/dev/null || true
 
 echo ""
 echo "=== 8. systemd paths (must match repo) ==="
@@ -63,6 +84,7 @@ echo "Expected WorkingDirectory: $ROOT/backend"
 
 echo ""
 echo "=== Fix hints ==="
+echo "  bash scripts/repair-db.sh    # fix alembic/schema drift (users.phone missing, etc.)"
 echo "  sudo sed -i \"s|BLOCKHUB_ROOT|$ROOT|g\" /etc/systemd/system/blockhub-api.service"
 echo "  sudo systemctl daemon-reload && sudo systemctl restart blockhub-api"
 echo "  journalctl -u blockhub-api -f"
