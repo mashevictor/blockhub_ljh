@@ -7,6 +7,8 @@ export default function LoginPage() {
       backLink="/"
       defaultEmail="employee@trackchat.local"
       defaultPassword="emp123"
+      defaultMode="password"
+      showDemoAccounts
     />
   )
 }

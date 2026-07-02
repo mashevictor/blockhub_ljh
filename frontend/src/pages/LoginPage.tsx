@@ -6,6 +6,8 @@ export default function LoginPage() {
       subtitle="管理后台登录"
       defaultEmail="admin@trackchat.local"
       defaultPassword="admin123"
+      defaultMode="password"
+      showDemoAccounts
     />
   )
 }

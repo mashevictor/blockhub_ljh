@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="BlockHub">
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a1628"/>
+      <stop offset="55%" stop-color="#1e3a5f"/>
+      <stop offset="100%" stop-color="#b8860b"/>
+    </linearGradient>
+  </defs>
+  <rect width="256" height="256" rx="48" fill="url(#g)"/>
+  <g fill="#fef3c7" stroke="#d4af37" stroke-width="4">
+    <path d="M72 152V96l56-32 56 32v56l-56 32z" fill="#fef9e7"/>
+    <path d="M72 96l56 32 56-32M128 128v56" fill="none" stroke="#b8860b" stroke-width="5"/>
+    <path d="M96 112v44l32 18 32-18v-44l-32-18z" fill="#d4af37" opacity=".35"/>
+  </g>
+</svg>

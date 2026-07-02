@@ -974,6 +974,19 @@ html[data-theme="monochrome-business"] .app-card {
 .login-mode-tabs button.on {
   border-color: var(--pri); color: var(--pri); background: rgba(99, 102, 241, 0.08);
 }
+.login-demo-accounts {
+  margin: 4px 0 12px; padding: 10px 12px; border-radius: 10px;
+  background: #f8fafc; border: 1px solid var(--border);
+}
+.login-demo-title { font-size: 11px; color: var(--muted); margin-bottom: 8px; }
+.login-demo-accounts ul { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.login-demo-pick {
+  width: 100%; text-align: left; padding: 8px 10px; border-radius: 8px;
+  border: 1px solid var(--border); background: #fff; cursor: pointer; font: inherit;
+}
+.login-demo-pick:hover { border-color: var(--pri-light); background: var(--pri-soft); }
+.login-demo-pick strong { display: block; font-size: 12px; color: var(--text); }
+.login-demo-pick span { display: block; font-size: 11px; color: var(--muted); font-family: Consolas, monospace; }
 .otp-code-row .otp-code-inputs {
   display: flex; gap: 8px; margin-top: 6px;
 }

@@ -2,7 +2,7 @@ import { FormEvent, useEffect, useMemo, useState } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { loginOtp, loginWithPassword, sendOtpCode } from '../auth/session'
 import { getToken } from '../auth/storage'
-import { BRAND, LOGO } from '../data/brand'
+import { BRAND, DEMO_ACCOUNTS, LOGO } from '../data/brand'
 
 type AuthMode = 'otp' | 'password'
 
@@ -18,6 +18,8 @@ interface Props {
   defaultEmail?: string
   defaultPassword?: string
   showPasswordLogin?: boolean
+  defaultMode?: AuthMode
+  showDemoAccounts?: boolean
 }
 
 export default function AuthPage({
@@ -26,12 +28,14 @@ export default function AuthPage({
   defaultEmail = '',
   defaultPassword = '',
   showPasswordLogin = true,
+  defaultMode = 'otp',
+  showDemoAccounts = false,
 }: Props) {
   const navigate = useNavigate()
   const location = useLocation()
   const from = (location.state as { from?: string } | null)?.from || '/'
 
-  const [mode, setMode] = useState<AuthMode>('otp')
+  const [mode, setMode] = useState<AuthMode>(defaultMode)
   const [account, setAccount] = useState('')
   const [code, setCode] = useState('')
   const [email, setEmail] = useState(defaultEmail)
@@ -163,6 +167,30 @@ export default function AuthPage({
               密码
               <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="current-password" />
             </label>
+            {showDemoAccounts && (
+              <div className="login-demo-accounts">
+                <p className="login-demo-title">演示账号（密码登录）</p>
+                <ul>
+                  {DEMO_ACCOUNTS.map((acc) => (
+                    <li key={acc.email}>
+                      <button
+                        type="button"
+                        className="login-demo-pick"
+                        onClick={() => {
+                          setEmail(acc.email)
+                          setPassword(acc.password)
+                          setError('')
+                        }}
+                      >
+                        <strong>{acc.role}</strong>
+                        <span>{acc.email}</span>
+                        <span>{acc.password}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </>
         )}
 
