@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import Any
 from uuid import uuid4
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, String, Text, func
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import JSON
 
@@ -32,8 +32,9 @@ class User(Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenants.id"), nullable=False, index=True)
-    email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
-    password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
+    email: Mapped[str | None] = mapped_column(String(255), unique=True, nullable=True, index=True)
+    phone: Mapped[str | None] = mapped_column(String(20), unique=True, nullable=True, index=True)
+    password_hash: Mapped[str | None] = mapped_column(String(255), nullable=True)
     role: Mapped[str] = mapped_column(String(32), nullable=False, default="employee")
     display_name: Mapped[str] = mapped_column(String(120), nullable=False, default="")
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
@@ -81,3 +82,76 @@ class PublishRecord(Base):
 
     app: Mapped[AppRecord] = relationship(back_populates="publish_records")
     user: Mapped[User | None] = relationship(back_populates="publish_records")
+
+
+class CatalogAgent(Base):
+    __tablename__ = "catalog_agents"
+
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    name: Mapped[str] = mapped_column(String(120), nullable=False)
+    icon: Mapped[str] = mapped_column(String(16), nullable=False, default="")
+    color: Mapped[str] = mapped_column(String(32), nullable=False, default="")
+    status: Mapped[str] = mapped_column(String(32), nullable=False, default="active")
+    description: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    pipeline: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    capability_keys: Mapped[list[Any]] = mapped_column(JSON, nullable=False, default=list)
+    office_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    industry_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+
+
+class CatalogCapability(Base):
+    __tablename__ = "catalog_capabilities"
+
+    key: Mapped[str] = mapped_column(String(64), primary_key=True)
+    name: Mapped[str] = mapped_column(String(120), nullable=False)
+    category: Mapped[str] = mapped_column(String(64), nullable=False)
+    widget: Mapped[str] = mapped_column(String(64), nullable=False, default="")
+    agent_id: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+
+
+class CatalogOfficeGroup(Base):
+    __tablename__ = "catalog_office_groups"
+
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    category: Mapped[str] = mapped_column(String(64), nullable=False)
+    icon: Mapped[str] = mapped_column(String(16), nullable=False, default="")
+    agent: Mapped[str] = mapped_column(String(64), nullable=False, default="")
+    items: Mapped[list[Any]] = mapped_column(JSON, nullable=False, default=list)
+    sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+
+
+class CatalogIndustryPack(Base):
+    __tablename__ = "catalog_industry_packs"
+
+    key: Mapped[str] = mapped_column(String(32), primary_key=True)
+    name: Mapped[str] = mapped_column(String(120), nullable=False)
+    icon: Mapped[str] = mapped_column(String(16), nullable=False, default="")
+    color: Mapped[str] = mapped_column(String(32), nullable=False, default="")
+    sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+
+
+class CatalogOfficeScenario(Base):
+    __tablename__ = "catalog_office_scenarios"
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True)
+    name: Mapped[str] = mapped_column(String(200), nullable=False)
+    category: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    category_icon: Mapped[str] = mapped_column(String(16), nullable=False, default="")
+    agent: Mapped[str] = mapped_column(String(64), nullable=False, default="")
+    auto_generate: Mapped[str] = mapped_column(Text, nullable=False, default="")
+
+
+class CatalogIndustryScenario(Base):
+    __tablename__ = "catalog_industry_scenarios"
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True)
+    name: Mapped[str] = mapped_column(String(200), nullable=False)
+    category: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    pack_key: Mapped[str] = mapped_column(String(32), nullable=False, index=True)
+    pack_name: Mapped[str] = mapped_column(String(120), nullable=False, default="")
+    pack_icon: Mapped[str] = mapped_column(String(16), nullable=False, default="")
+    pack_color: Mapped[str] = mapped_column(String(32), nullable=False, default="")
+    problem: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    pages: Mapped[str] = mapped_column(String(64), nullable=False, default="")
+    standard: Mapped[str] = mapped_column(String(32), nullable=False, default="")
+    agent: Mapped[str] = mapped_column(String(64), nullable=False, default="")

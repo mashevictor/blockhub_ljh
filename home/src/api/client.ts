@@ -15,7 +15,7 @@ api.interceptors.response.use(
   (res) => res,
   (error) => {
     const url = String(error.config?.url || '')
-    if (error.response?.status === 401 && !url.includes('/auth/login')) {
+    if (error.response?.status === 401 && !url.includes('/auth/login') && !url.includes('/auth/login-otp') && !url.includes('/auth/send-code')) {
       clearToken()
       redirectToLogin()
     }
@@ -106,6 +106,9 @@ export interface CreatedApp {
   industry_key: string
   scenarios: string[]
   schema_url: string
+  web_url?: string
+  download_url?: string
+  app_qr?: string
   status: string
   created_at: string
   audience?: string

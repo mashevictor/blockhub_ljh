@@ -3,10 +3,11 @@ from contextlib import asynccontextmanager
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.v1 import agents, approvals, auth, catalog, chat, creation, health, kb, notifications, reports, stats
+from app.api.v1 import agents, approvals, auth, catalog, chat, creation, health, kb, notifications, reports, seed, stats
 from app.core.config import settings
 from app.core.deps import get_current_user
 from app.db.session import SessionLocal
+from app.services.catalog_seed import ensure_catalog_seeded
 from app.services.db_seed import ensure_seed_data
 
 
@@ -15,6 +16,7 @@ async def lifespan(_: FastAPI):
     db = SessionLocal()
     try:
         ensure_seed_data(db)
+        ensure_catalog_seeded(db)
     finally:
         db.close()
     yield
@@ -35,6 +37,7 @@ _auth = [Depends(get_current_user)]
 app.include_router(health.router, prefix=settings.api_prefix)
 app.include_router(auth.router, prefix=settings.api_prefix)
 app.include_router(catalog.router, prefix=settings.api_prefix)
+app.include_router(seed.router, prefix=settings.api_prefix, dependencies=_auth)
 app.include_router(creation.router, prefix=settings.api_prefix)
 app.include_router(agents.router, prefix=settings.api_prefix, dependencies=_auth)
 app.include_router(stats.router, prefix=settings.api_prefix, dependencies=_auth)

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { ADMIN_URL, type PublishResult, type ViewMode } from './data/constants'
 import type { RoleApplyRequest } from './data/rolePresets'
 import PublishModal from './components/PublishModal'
@@ -23,6 +23,7 @@ export default function HomeApp() {
   const [published, setPublished] = useState<PublishResult | null>(null)
   const [roleApply, setRoleApply] = useState<RoleApplyRequest | null>(null)
   const [user, setUser] = useState<AuthUser | null>(null)
+  const location = useLocation()
 
   useEffect(() => {
     document.body.classList.add('cube-theme')
@@ -30,10 +31,12 @@ export default function HomeApp() {
   }, [])
 
   useEffect(() => {
-    if (getToken()) {
-      fetchMe().then(setUser).catch(() => {})
+    if (!getToken()) {
+      setUser(null)
+      return
     }
-  }, [])
+    fetchMe().then(setUser).catch(() => setUser(null))
+  }, [location.pathname])
 
   const handleRoleApply = (role: RoleApplyRequest['preset'], generate?: boolean) => {
     setView('prompt')
@@ -65,15 +68,18 @@ export default function HomeApp() {
               <>
                 <span className="header-user">{user.display_name}</span>
                 <button type="button" className="btn-login" onClick={() => logout()}>退出</button>
+                <a className="btn-advanced" href={ADMIN_URL} target="_blank" rel="noreferrer">
+                  <IconSettings size={15} />
+                  <span className="btn-advanced-text">管理后台</span>
+                  <IconArrowRight size={14} className="btn-arrow" />
+                </a>
               </>
             ) : (
-              <Link className="btn-login" to="/login">登录</Link>
+              <>
+                <Link className="btn-login" to="/login">登录</Link>
+                <Link className="btn-login btn-register" to="/login">注册</Link>
+              </>
             )}
-            <a className="btn-advanced" href={ADMIN_URL} target="_blank" rel="noreferrer">
-              <IconSettings size={15} />
-              <span className="btn-advanced-text">管理后台</span>
-              <IconArrowRight size={14} className="btn-arrow" />
-            </a>
           </div>
         </div>
       </header>
@@ -101,13 +107,21 @@ export default function HomeApp() {
 
       <footer className="site-footer">
         <span>{BRAND.footer}</span>
-        <a href={ADMIN_URL} target="_blank" rel="noreferrer">
-          管理后台
-          <IconArrowRight size={14} />
-        </a>
+        {user && (
+          <a href={ADMIN_URL} target="_blank" rel="noreferrer">
+            管理后台
+            <IconArrowRight size={14} />
+          </a>
+        )}
       </footer>
 
-      {published && <PublishModal result={published} onClose={() => setPublished(null)} />}
+      {published && (
+        <PublishModal
+          result={published}
+          showAdminLink={!!user}
+          onClose={() => setPublished(null)}
+        />
+      )}
     </div>
   )
 }

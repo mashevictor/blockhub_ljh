@@ -6,6 +6,7 @@ from uuid import uuid4
 from sqlalchemy.orm import Session
 
 from app.db.models import AppRecord, PublishRecord, Tenant, User
+from app.services.app_urls import app_download_url, app_qr_payload, app_web_url
 from app.services.db_seed import DEFAULT_TENANT_SLUG
 
 
@@ -28,6 +29,9 @@ def app_record_to_dict(record: AppRecord) -> dict[str, Any]:
         "capability_keys": record.capability_keys,
         "modules": record.modules,
         "schema_url": record.schema_url,
+        "web_url": app_web_url(record.public_id),
+        "download_url": app_download_url(record.public_id),
+        "app_qr": app_qr_payload(record.public_id),
         "status": record.status,
         "created_at": record.created_at.isoformat() if record.created_at else "",
         "audience": record.audience,

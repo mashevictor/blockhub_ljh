@@ -483,6 +483,18 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone }: Pr
     return map
   }, [officeAll, industryAll])
 
+  const clearAll = useCallback(() => {
+    userSuffixRef.current = ''
+    skipSyncRef.current = false
+    setDebouncedIntent('')
+    setPromptModules([])
+    setSelected(new Set())
+    setIndustryKeys(new Set())
+    setOfficeCats(new Set())
+    setPrompt('')
+    setLastAddedId(null)
+  }, [])
+
   const runPublish = useCallback(async (
     bundle: ReturnType<typeof resolveAppBundle>,
     contact: ContactInfo,
@@ -512,19 +524,22 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone }: Pr
         modules: publishedModules,
         scenarios: bundle.scenarioNames,
       }))
+      clearAll()
     } catch {
       onPublish({
         appName: bundle.appName,
-        webUrl: `https://app.trackchat.io/r/${Date.now().toString(36)}`,
-        appQr: 'trackchat://preview/' + Date.now().toString(36),
+        webUrl: `${import.meta.env.VITE_PUBLIC_BASE_URL || 'http://101.32.209.251'}/r/${Date.now().toString(36)}`,
+        downloadUrl: `${import.meta.env.VITE_PUBLIC_BASE_URL || 'http://101.32.209.251'}/r/${Date.now().toString(36)}/download`,
+        appQr: `${import.meta.env.VITE_PUBLIC_BASE_URL || 'http://101.32.209.251'}/r/${Date.now().toString(36)}`,
         moduleCount: publishedModules.length,
         modules: publishedModules,
         scenarios: bundle.scenarioNames,
       })
+      clearAll()
     } finally {
       setGeneratePhase(null)
     }
-  }, [deliver, onPublish])
+  }, [deliver, onPublish, clearAll])
 
   const executePresetGenerate = useCallback(async (preset: RolePreset, contact: ContactInfo) => {
     const picks = buildModulesFromPreset(preset)
@@ -591,18 +606,6 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone }: Pr
   const handleGenerate = () => {
     setPendingPreset(null)
     setContactOpen(true)
-  }
-
-  const clearAll = () => {
-    userSuffixRef.current = ''
-    skipSyncRef.current = false
-    setDebouncedIntent('')
-    setPromptModules([])
-    setSelected(new Set())
-    setIndustryKeys(new Set())
-    setOfficeCats(new Set())
-    setPrompt('')
-    setLastAddedId(null)
   }
 
   const handleAgentPick = useCallback((pick: AgentPick, extra?: { iconKey?: string; color?: string }) => {

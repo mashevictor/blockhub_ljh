@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { contactsForMode, saveContactHistory } from '../auth/contactHistory'
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock'
 
 export interface ContactInfo {
@@ -38,6 +39,7 @@ export default function ContactGateModal({ open, onClose, onConfirm }: Props) {
   const [mode, setMode] = useState<'email' | 'phone'>('email')
   const [value, setValue] = useState('')
   const [activeIdx, setActiveIdx] = useState(0)
+  const [historyOpen, setHistoryOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -47,11 +49,20 @@ export default function ContactGateModal({ open, onClose, onConfirm }: Props) {
     setMounted(true)
   }, [])
 
+  const historyItems = useMemo(() => contactsForMode(mode), [mode, open])
+
   useEffect(() => {
     if (!open) return
-    setValue('')
     setActiveIdx(0)
-    setMode('email')
+    setHistoryOpen(false)
+    const saved = contactsForMode('email')
+    if (saved.length > 0) {
+      setMode('email')
+      setValue(saved[0].value)
+    } else {
+      setMode('email')
+      setValue('')
+    }
     window.setTimeout(() => inputRef.current?.focus(), 80)
   }, [open])
 
@@ -71,6 +82,12 @@ export default function ContactGateModal({ open, onClose, onConfirm }: Props) {
     return EMAIL_SUFFIXES.map((s) => v + s)
   }, [mode, value])
 
+  const dropdownItems = useMemo(() => {
+    if (emailSuggestions.length > 0) return emailSuggestions
+    if (historyOpen && historyItems.length > 0) return historyItems.map((item) => item.value)
+    return []
+  }, [emailSuggestions, historyOpen, historyItems])
+
   const error = useMemo(() => {
     const v = value.trim()
     if (!v) return ''
@@ -86,20 +103,27 @@ export default function ContactGateModal({ open, onClose, onConfirm }: Props) {
   const applySuggestion = (s: string) => {
     setValue(s)
     setActiveIdx(0)
+    setHistoryOpen(false)
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (emailSuggestions.length === 0) return
+    if (dropdownItems.length === 0) return
     if (e.key === 'ArrowDown') {
       e.preventDefault()
-      setActiveIdx((i) => (i + 1) % emailSuggestions.length)
+      setActiveIdx((i) => (i + 1) % dropdownItems.length)
     } else if (e.key === 'ArrowUp') {
       e.preventDefault()
-      setActiveIdx((i) => (i - 1 + emailSuggestions.length) % emailSuggestions.length)
-    } else if (e.key === 'Enter' && emailSuggestions.length > 0 && !canSubmit) {
+      setActiveIdx((i) => (i - 1 + dropdownItems.length) % dropdownItems.length)
+    } else if (e.key === 'Enter' && dropdownItems.length > 0 && !canSubmit) {
       e.preventDefault()
-      applySuggestion(emailSuggestions[activeIdx])
+      applySuggestion(dropdownItems[activeIdx])
     }
+  }
+
+  const handleConfirm = () => {
+    const contact = { type: mode, value: value.trim().replace(/\s/g, '') }
+    saveContactHistory(contact)
+    onConfirm(contact)
   }
 
   if (!open || !mounted) return null
@@ -115,14 +139,24 @@ export default function ContactGateModal({ open, onClose, onConfirm }: Props) {
           <button
             type="button"
             className={mode === 'email' ? 'on' : ''}
-            onClick={() => { setMode('email'); setValue(''); setActiveIdx(0) }}
+            onClick={() => {
+              setMode('email')
+              const saved = contactsForMode('email')
+              setValue(saved[0]?.value ?? '')
+              setActiveIdx(0)
+            }}
           >
             邮箱
           </button>
           <button
             type="button"
             className={mode === 'phone' ? 'on' : ''}
-            onClick={() => { setMode('phone'); setValue(''); setActiveIdx(0) }}
+            onClick={() => {
+              setMode('phone')
+              const saved = contactsForMode('phone')
+              setValue(saved[0]?.value ?? '')
+              setActiveIdx(0)
+            }}
           >
             手机号
           </button>
@@ -141,12 +175,24 @@ export default function ContactGateModal({ open, onClose, onConfirm }: Props) {
             placeholder={mode === 'email' ? 'name@company.com' : '138 0000 0000'}
             value={value}
             onChange={(e) => { setValue(e.target.value); setActiveIdx(0) }}
+            onFocus={() => {
+              if (emailSuggestions.length === 0 && historyItems.length > 0) setHistoryOpen(true)
+            }}
             onKeyDown={handleKeyDown}
           />
+          {historyItems.length > 0 && (
+            <button
+              type="button"
+              className="contact-history-toggle"
+              onClick={() => setHistoryOpen((v) => !v)}
+            >
+              历史记录 ({historyItems.length})
+            </button>
+          )}
           {error && <span className="contact-gate-error">{error}</span>}
-          {mode === 'email' && emailSuggestions.length > 0 && (
+          {dropdownItems.length > 0 && (
             <ul className="contact-gate-suggest" role="listbox">
-              {emailSuggestions.map((s, i) => (
+              {dropdownItems.map((s, i) => (
                 <li key={s}>
                   <button
                     type="button"
@@ -170,7 +216,7 @@ export default function ContactGateModal({ open, onClose, onConfirm }: Props) {
             type="button"
             className="btn-primary"
             disabled={!canSubmit}
-            onClick={() => onConfirm({ type: mode, value: value.trim().replace(/\s/g, '') })}
+            onClick={handleConfirm}
           >
             确认并生成
           </button>

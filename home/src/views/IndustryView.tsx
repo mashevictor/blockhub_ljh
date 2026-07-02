@@ -91,15 +91,28 @@ export default function IndustryView({ onPublish }: Props) {
         modules: publishedModules,
         scenarios: scenarioNames,
       }))
+      setIndustry('office')
+      setStep(1)
+      setSelected(new Set())
+      setAudience('b')
+      setAppName('我的行业应用')
     } catch {
+      const base = import.meta.env.VITE_PUBLIC_BASE_URL || 'http://101.32.209.251'
+      const id = Date.now().toString(36)
       onPublish({
         appName,
-        webUrl: `https://app.trackchat.io/${industry}/${Date.now().toString(36)}`,
-        appQr: 'trackchat://preview/industry',
+        webUrl: `${base}/r/${id}`,
+        downloadUrl: `${base}/r/${id}/download`,
+        appQr: `${base}/r/${id}`,
         moduleCount: publishedModules.length,
         modules: publishedModules,
         scenarios: scenarioNames,
       })
+      setIndustry('office')
+      setStep(1)
+      setSelected(new Set())
+      setAudience('b')
+      setAppName('我的行业应用')
     } finally {
       setLoading(false)
     }

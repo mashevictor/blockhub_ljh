@@ -1,4 +1,5 @@
 export const ADMIN_URL = import.meta.env.VITE_ADMIN_URL || 'http://127.0.0.1:5174'
+export const PUBLIC_BASE_URL = import.meta.env.VITE_PUBLIC_BASE_URL || 'http://101.32.209.251'
 
 export { INDUSTRIES_SHOWCASE as INDUSTRIES } from './showcase'
 
@@ -70,6 +71,7 @@ export type DeliverTarget = 'web' | 'app' | 'both'
 export interface PublishResult {
   webUrl: string
   appQr: string
+  downloadUrl?: string
   appName: string
   moduleCount: number
   /** 本次应用实际包含的模块/场景（用于发布弹窗展示） */

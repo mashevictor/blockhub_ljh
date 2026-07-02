@@ -21,6 +21,9 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 60 * 24 * 7
 
+    public_base_url: str = "http://101.32.209.251"
+    otp_debug_expose: bool = True
+
     @field_validator("database_url")
     @classmethod
     def require_postgresql(cls, v: str) -> str:

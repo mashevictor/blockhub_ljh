@@ -1,5 +1,6 @@
 import type { CreatedApp } from './client'
 import type { PublishResult, PublishedModuleItem } from '../data/constants'
+import { PUBLIC_BASE_URL } from '../data/constants'
 
 export interface PublishResultOptions {
   moduleCount?: number
@@ -8,7 +9,7 @@ export interface PublishResultOptions {
 }
 
 export function createdAppToPublishResult(app: CreatedApp, opts: PublishResultOptions = {}): PublishResult {
-  const id = app.schema_url.split('/').pop() ?? app.id
+  const id = app.id || app.schema_url.split('/').pop() || ''
   const modules = opts.modules ?? app.modules?.map((m) => ({
     key: m.key,
     label: m.label,
@@ -17,10 +18,15 @@ export function createdAppToPublishResult(app: CreatedApp, opts: PublishResultOp
     source: m.source as PublishedModuleItem['source'],
   })) ?? []
 
+  const webUrl = app.web_url || `${PUBLIC_BASE_URL}/r/${id}`
+  const downloadUrl = app.download_url || `${PUBLIC_BASE_URL}/r/${id}/download`
+  const appQr = app.app_qr || webUrl
+
   return {
     appName: app.name,
-    webUrl: `https://app.trackchat.io${app.schema_url}`,
-    appQr: `trackchat://app/${id}`,
+    webUrl,
+    downloadUrl,
+    appQr,
     moduleCount: opts.moduleCount ?? (modules.length || app.scenarios.length),
     modules,
     scenarios: opts.scenarios ?? app.scenarios,

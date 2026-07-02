@@ -7,10 +7,10 @@ from sqlalchemy.orm import Session
 from app.core.deps import get_current_user, get_optional_user
 from app.data.module_data import CREATION_WIZARD_STEPS, INDUSTRY_PACK_OPTIONS
 from app.data.capability_registry import list_capabilities
-from app.data.seed import INDUSTRY_SCENARIOS, OFFICE_SCENARIOS
 from app.db.models import User
 from app.db.session import get_db
 from app.services.app_store import list_published_apps, persist_published_app
+from app.services import catalog_store
 from app.services.module_suggest import suggest_modules
 
 router = APIRouter(prefix="/creation", tags=["creation"])
@@ -55,16 +55,20 @@ def wizard_meta() -> dict:
 
 
 @router.get("/scenarios")
-def scenarios_for_industry(industry_key: str = "office") -> dict:
+def scenarios_for_industry(
+    industry_key: str = "office",
+    db: Session = Depends(get_db),
+) -> dict:
     if industry_key == "office":
-        items = [{"id": s["id"], "name": s["name"], "category": s["category"]} for s in OFFICE_SCENARIOS]
+        items, _ = catalog_store.list_office_scenarios(db, lite=True)
+        payload = [{"id": s["id"], "name": s["name"], "category": s["category"]} for s in items]
     else:
-        items = [
-            {"id": s["id"], "name": s["name"], "category": s["category"], "standard": s["standard"]}
-            for s in INDUSTRY_SCENARIOS
-            if s["pack_key"] == industry_key
+        items, _ = catalog_store.list_industry_scenarios(db, pack=industry_key, lite=False)
+        payload = [
+            {"id": s["id"], "name": s["name"], "category": s["category"], "standard": s.get("standard", "")}
+            for s in items
         ]
-    return {"industry_key": industry_key, "total": len(items), "items": items}
+    return {"industry_key": industry_key, "total": len(payload), "items": payload}
 
 
 @router.get("/capabilities")
@@ -99,7 +103,7 @@ def publish_app(
     current_user: Annotated[User | None, Depends(get_optional_user)] = None,
 ) -> dict:
     names: list[str] = []
-    all_scenarios = {s["id"]: s["name"] for s in OFFICE_SCENARIOS + INDUSTRY_SCENARIOS}
+    all_scenarios = catalog_store.scenario_name_map(db)
     for sid in body.scenario_ids:
         names.append(all_scenarios.get(sid, sid))
     if body.scenario_names:

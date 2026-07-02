@@ -35,6 +35,69 @@ const STAT_META = [
   { key: 'unread_notifications', label: '未读消息', icon: IconBell, tone: 'rose' },
 ] as const
 
+const PUBLIC_BASE = import.meta.env.VITE_PUBLIC_BASE_URL || 'http://101.32.209.251'
+
+function appWebUrl(app: CreatedApp) {
+  return app.web_url || `${PUBLIC_BASE}/r/${app.id}`
+}
+
+function appDownloadUrl(app: CreatedApp) {
+  return app.download_url || `${PUBLIC_BASE}/r/${app.id}/download`
+}
+
+function qrImageUrl(data: string) {
+  return `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(data)}`
+}
+
+function sourceLabel(source?: string) {
+  if (source === 'prompt') return '描述需求'
+  if (source === 'module') return '自由搭配'
+  return '按行业'
+}
+
+function AppCard({ app }: { app: CreatedApp }) {
+  const webUrl = appWebUrl(app)
+  const downloadUrl = appDownloadUrl(app)
+  const modules = app.modules ?? []
+  const featureText = modules.length > 0
+    ? modules.slice(0, 6).map((m) => m.label).join(' · ')
+    : app.scenarios.slice(0, 6).join(' · ')
+
+  return (
+    <article className="created-app-card">
+      <div className="created-app-main">
+        <div className="created-app-head">
+          <h3>{app.name}</h3>
+          <span className="badge-active">{app.status || 'published'}</span>
+        </div>
+        <p className="created-app-meta">
+          {sourceLabel(app.source)} · {app.industry_key} · {app.scenarios.length} 个场景
+          · {new Date(app.created_at).toLocaleString('zh-CN')}
+        </p>
+        <p className="created-app-features">
+          <strong>功能介绍：</strong>{featureText || '智能问答 · 审批流 · 知识库'}
+        </p>
+        <div className="created-app-links">
+          <div className="created-app-link-row">
+            <span>网页访问</span>
+            <a href={webUrl} target="_blank" rel="noreferrer">{webUrl}</a>
+            <button type="button" onClick={() => navigator.clipboard.writeText(webUrl)}>复制</button>
+          </div>
+          <div className="created-app-link-row">
+            <span>下载链接</span>
+            <a href={downloadUrl} target="_blank" rel="noreferrer">{downloadUrl}</a>
+            <button type="button" onClick={() => navigator.clipboard.writeText(downloadUrl)}>复制</button>
+          </div>
+        </div>
+      </div>
+      <div className="created-app-qr">
+        <img src={qrImageUrl(webUrl)} alt={`${app.name} 二维码`} width={120} height={120} />
+        <span>扫码打开应用</span>
+      </div>
+    </article>
+  )
+}
+
 export default function OverviewPage() {
   const [stats, setStats] = useState<Awaited<ReturnType<typeof fetchDashboard>> | null>(null)
   const [agents, setAgents] = useState<Agent[]>([])
@@ -63,13 +126,13 @@ export default function OverviewPage() {
           </div>
           <h1>欢迎回来</h1>
           <p>
-            在这里管理问答、知识库、审批和报表，也可以快速创建发给员工使用的应用
+            查看已生成的应用、复制访问链接或下载地址，分发给员工使用
           </p>
           <div className="hero-actions">
-            <Link to="/create" className="btn btn-primary">
+            <a href={PUBLIC_BASE} className="btn btn-primary" target="_blank" rel="noreferrer">
               <IconSparkles size={16} />
-              创建新应用
-            </Link>
+              前往创建页
+            </a>
             <Link to="/chat" className="btn btn-ghost">
               <IconMessage size={16} />
               开始对话
@@ -94,6 +157,29 @@ export default function OverviewPage() {
             </div>
           )
         })}
+      </div>
+
+      <div className="card card-hover created-apps-section">
+        <div className="section-header" style={{ marginBottom: 16 }}>
+          <div>
+            <h2>已创建应用</h2>
+            <div style={{ fontSize: 12, color: 'var(--muted)' }}>
+              来自 Home 创建入口 · 链接均使用公网地址 {PUBLIC_BASE}
+            </div>
+          </div>
+        </div>
+        {createdApps.length === 0 ? (
+          <div className="created-apps-empty">
+            <p>还没有已发布的应用。请先在首页创建并发布。</p>
+            <a href={PUBLIC_BASE} className="btn btn-primary" target="_blank" rel="noreferrer">去创建应用</a>
+          </div>
+        ) : (
+          <div className="created-apps-grid">
+            {createdApps.map((app) => (
+              <AppCard key={app.id} app={app} />
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="section-header animate-fade-up">
@@ -183,31 +269,6 @@ export default function OverviewPage() {
           )}
         </div>
       </div>
-
-      {createdApps.length > 0 && (
-        <div className="card card-hover" style={{ marginBottom: 24 }}>
-          <div className="section-header" style={{ marginBottom: 12 }}>
-            <h2>积木仓 · 已创建应用</h2>
-            <span style={{ fontSize: 12, color: 'var(--muted)' }}>来自 Home 三入口发布 · 实时同步</span>
-          </div>
-          <ul className="activity-list">
-            {createdApps.slice(0, 8).map((app) => (
-              <li key={app.id} className="activity-item">
-                <div className="activity-icon">📦</div>
-                <div>
-                  <div className="activity-title">{app.name}</div>
-                  <div className="activity-desc">
-                    {app.source === 'prompt' ? '描述需求' : app.source === 'module' ? '自由搭配' : '按行业'}
-                    · {app.industry_key} · {app.scenarios.length} 项
-                    {app.audience && app.audience !== 'both' ? ` · 受众 ${app.audience}` : ''}
-                  </div>
-                  <div className="activity-time">{new Date(app.created_at).toLocaleString('zh-CN')}</div>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
 
       <div className="two-col">
         <div className="card card-hover">

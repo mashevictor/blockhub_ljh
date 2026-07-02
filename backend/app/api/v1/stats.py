@@ -2,16 +2,11 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.data.module_data import _notify_store, approval_stats
-from app.data.seed import (
-    AGENTS,
-    ARCH_LAYERS,
-    CAPABILITIES,
-    INDUSTRY_SCENARIOS,
-    OFFICE_SCENARIOS,
-    RECENT_ACTIVITIES,
-)
+from app.data.seed import ARCH_LAYERS, RECENT_ACTIVITIES
+from app.db.models import CatalogAgent
 from app.db.session import get_db
 from app.services.app_store import list_published_apps
+from app.services import catalog_store
 
 router = APIRouter(prefix="/stats", tags=["stats"])
 
@@ -21,15 +16,16 @@ def dashboard_stats(db: Session = Depends(get_db)) -> dict:
     appr = approval_stats()
     unread = sum(1 for n in _notify_store if not n["read"])
     apps = list_published_apps(db)
+    summary = catalog_store.catalog_summary(db)
     return {
         "status": "healthy",
         "status_text": "系统运行正常",
-        "agents": len(AGENTS),
-        "capabilities": len(CAPABILITIES),
-        "office_scenarios": len(OFFICE_SCENARIOS),
-        "industry_scenarios": len(INDUSTRY_SCENARIOS),
-        "total_scenarios": len(OFFICE_SCENARIOS) + len(INDUSTRY_SCENARIOS),
-        "apps_created": 24 + len(apps),
+        "agents": db.query(CatalogAgent).count(),
+        "capabilities": summary["capability_count"],
+        "office_scenarios": summary["office_count"],
+        "industry_scenarios": summary["industry_count"],
+        "total_scenarios": summary["total"],
+        "apps_created": len(apps),
         "chat_sessions": 1286,
         "pending_approvals": appr["pending"],
         "unread_notifications": unread,

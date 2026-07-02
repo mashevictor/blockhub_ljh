@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type CSSProperties } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { PublishResult } from '../data/constants'
 import { ADMIN_URL } from '../data/constants'
@@ -10,15 +10,14 @@ import { DynamicIcon } from './icons'
 interface Props {
   result: PublishResult
   onClose: () => void
+  showAdminLink?: boolean
 }
 
-const PLATFORMS = [
-  { key: 'web', label: '网页版' },
-  { key: 'ios', label: 'iOS / Android' },
-  { key: 'windows', label: 'Windows · Mac', muted: true },
-] as const
+function qrImageUrl(data: string) {
+  return `https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(data)}`
+}
 
-export default function PublishModal({ result, onClose }: Props) {
+export default function PublishModal({ result, onClose, showAdminLink = false }: Props) {
   const [mounted, setMounted] = useState(false)
 
   useBodyScrollLock(true)
@@ -42,6 +41,8 @@ export default function PublishModal({ result, onClose }: Props) {
       source: 'user' as const,
     }))
   }, [result.modules, result.scenarios])
+
+  const downloadUrl = result.downloadUrl || `${result.webUrl}/download`
 
   if (!mounted) return null
 
@@ -88,7 +89,7 @@ export default function PublishModal({ result, onClose }: Props) {
                 <div
                   key={`${m.kind}:${m.key}`}
                   className="phone-widget"
-                  style={{ '--widget-bg': widgetTint(i) } as CSSProperties}
+                  style={{ '--widget-bg': widgetTint(i) } as React.CSSProperties}
                 >
                   <DynamicIcon name={m.iconKey} size={14} />
                   {m.label}
@@ -104,34 +105,36 @@ export default function PublishModal({ result, onClose }: Props) {
         </div>
 
         <div className="publish-links">
-          {PLATFORMS.map((p) => (
-            <div key={p.key} className={`link-row${'muted' in p && p.muted ? ' muted-row' : ''}`}>
-              <span className="link-row-label">
-                <DynamicIcon name={p.key === 'ios' ? 'android' : p.key} size={16} />
-                {p.label}
-              </span>
-              {p.key === 'web' && (
-                <>
-                  <code>{result.webUrl}</code>
-                  <button type="button" onClick={() => navigator.clipboard.writeText(result.webUrl)}>复制</button>
-                </>
-              )}
-              {p.key === 'ios' && (
-                <>
-                  <code>{result.appQr}</code>
-                  <button type="button" onClick={() => alert('扫码安装 App · 与网页同一套应用')}>获取</button>
-                </>
-              )}
-              {p.key === 'windows' && (
-                <code style={{ fontSize: 10 }}>桌面客户端 · 第五周交付</code>
-              )}
-            </div>
-          ))}
+          <div className="link-row">
+            <span className="link-row-label">
+              <DynamicIcon name="web" size={16} />
+              网页版
+            </span>
+            <code>{result.webUrl}</code>
+            <button type="button" onClick={() => navigator.clipboard.writeText(result.webUrl)}>复制</button>
+          </div>
+          <div className="link-row">
+            <span className="link-row-label">
+              <DynamicIcon name="android" size={16} />
+              下载链接
+            </span>
+            <code>{downloadUrl}</code>
+            <button type="button" onClick={() => navigator.clipboard.writeText(downloadUrl)}>复制</button>
+          </div>
+          <div className="link-row publish-qr-row">
+            <span className="link-row-label">
+              <DynamicIcon name="android" size={16} />
+              扫码访问
+            </span>
+            <img className="publish-qr-img" src={qrImageUrl(result.webUrl)} alt={`${result.appName} 二维码`} width={96} height={96} />
+          </div>
         </div>
 
-        <a className="btn-ghost full" href={ADMIN_URL} target="_blank" rel="noreferrer" style={{ marginBottom: 10, display: 'block', textAlign: 'center' }}>
-          在管理后台查看已创建应用 →
-        </a>
+        {showAdminLink && (
+          <a className="btn-ghost full" href={ADMIN_URL} target="_blank" rel="noreferrer" style={{ marginBottom: 10, display: 'block', textAlign: 'center' }}>
+            在管理后台查看已创建应用 →
+          </a>
+        )}
         <button type="button" className="btn-primary full" onClick={onClose}>完成，继续创建</button>
       </div>
     </div>,

@@ -4098,6 +4098,32 @@ html[data-theme="monochrome-business"] .brand em.brand-en {
 }
 .login-error { color: #dc2626; font-size: 12px; margin-bottom: 12px; }
 .login-hint { font-size: 11px; color: var(--muted); margin-top: 14px; text-align: center; }
+.login-mode-tabs, .contact-gate-tabs.login-mode-tabs {
+  display: flex; gap: 8px; margin-bottom: 16px;
+}
+.login-mode-tabs button, .contact-gate-tabs.login-mode-tabs button {
+  flex: 1; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border);
+  background: var(--surface); font-size: 12px; cursor: pointer;
+}
+.login-mode-tabs button.on, .contact-gate-tabs.login-mode-tabs button.on {
+  border-color: var(--pri); color: var(--pri); background: rgba(99, 102, 241, 0.08);
+}
+.otp-code-row .otp-code-inputs {
+  display: flex; gap: 8px; margin-top: 6px;
+}
+.otp-code-row .otp-code-inputs input { flex: 1; margin-top: 0; }
+.otp-send-btn {
+  flex-shrink: 0; width: auto !important; padding: 10px 12px !important;
+  border: 1px solid var(--border) !important; background: var(--surface) !important;
+  color: var(--text) !important; font-size: 12px !important;
+}
+.contact-history-toggle {
+  margin-top: 8px; border: none; background: none; color: var(--pri);
+  font-size: 12px; cursor: pointer; padding: 0;
+}
+.btn-register { opacity: 0.85; }
+.publish-qr-row { align-items: center; }
+.publish-qr-img { border-radius: 8px; border: 1px solid var(--border); background: #fff; }
 .btn-login, .header-user {
   font-size: 12px; margin-right: 10px; color: var(--muted);
   text-decoration: none; background: none; border: none; cursor: pointer; font-family: inherit;

@@ -54,15 +54,22 @@ export default function ModuleView({ onPublish }: Props) {
         modules: publishedModules,
         scenarios: widgets.map((w) => w.name),
       }))
+      setWidgets([])
+      setDevice('both')
     } catch {
+      const base = import.meta.env.VITE_PUBLIC_BASE_URL || 'http://101.32.209.251'
+      const id = Date.now().toString(36)
       onPublish({
         appName: '模块组装应用',
-        webUrl: `https://app.trackchat.io/build/${Date.now().toString(36)}`,
-        appQr: 'trackchat://build/preview',
+        webUrl: `${base}/r/${id}`,
+        downloadUrl: `${base}/r/${id}/download`,
+        appQr: `${base}/r/${id}`,
         moduleCount: publishedModules.length,
         modules: publishedModules,
         scenarios: widgets.map((w) => w.name),
       })
+      setWidgets([])
+      setDevice('both')
     } finally {
       setLoading(false)
     }
