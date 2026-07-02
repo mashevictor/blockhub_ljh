@@ -87,6 +87,11 @@ if echo "$SUMMARY" | grep -q '"total":114'; then ok "catalog total=114"; else ba
 if echo "$SUMMARY" | grep -q '"office_count":65'; then ok "office_count=65"; else bad "office_count!=65"; fi
 if echo "$SUMMARY" | grep -q '"industry_count":49'; then ok "industry_count=49"; else bad "industry_count!=49"; fi
 
+if echo "$SUMMARY" | grep -q '"hero_preset_count":30'; then ok "hero_preset_count=30"; else bad "hero_preset_count!=30 ($SUMMARY)"; fi
+
+HERO=$(curl -sf "$API/catalog/hero-presets" 2>/dev/null || echo "")
+if echo "$HERO" | grep -q '"total":30'; then ok "GET /catalog/hero-presets total=30"; else bad "GET /catalog/hero-presets ($HERO)"; fi
+
 OFFICE=$(curl -sf "$API/catalog/office?lite=true" 2>/dev/null || echo "")
 if echo "$OFFICE" | grep -q '"total":65'; then ok "GET /catalog/office lite"; else bad "GET /catalog/office"; fi
 

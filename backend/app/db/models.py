@@ -155,3 +155,29 @@ class CatalogIndustryScenario(Base):
     pages: Mapped[str] = mapped_column(String(64), nullable=False, default="")
     standard: Mapped[str] = mapped_column(String(32), nullable=False, default="")
     agent: Mapped[str] = mapped_column(String(64), nullable=False, default="")
+
+
+class CatalogHeroPreset(Base):
+    __tablename__ = "catalog_hero_presets"
+
+    id: Mapped[str] = mapped_column(String(16), primary_key=True)
+    label: Mapped[str] = mapped_column(String(120), nullable=False)
+    hint: Mapped[str] = mapped_column(String(120), nullable=False)
+    role: Mapped[str] = mapped_column(String(64), nullable=False, default="")
+    weight: Mapped[int] = mapped_column(Integer, nullable=False, default=3)
+    color: Mapped[str] = mapped_column(String(32), nullable=False, default="")
+    prompt: Mapped[str] = mapped_column(Text, nullable=False)
+    picks: Mapped[list[Any]] = mapped_column(JSON, nullable=False, default=list)
+    flow_lines: Mapped[list[Any]] = mapped_column(JSON, nullable=False, default=list)
+    sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+
+
+class CatalogChipTemplate(Base):
+    __tablename__ = "catalog_chip_templates"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    text: Mapped[str] = mapped_column(String(200), nullable=False)
+    prompt: Mapped[str] = mapped_column(Text, nullable=False)
+    picks: Mapped[list[Any]] = mapped_column(JSON, nullable=False, default=list)
+    scenario_names: Mapped[list[Any]] = mapped_column(JSON, nullable=False, default=list)
+    sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=0)

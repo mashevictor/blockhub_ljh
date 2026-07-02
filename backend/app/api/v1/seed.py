@@ -32,6 +32,6 @@ def seed_database(
     ensure_seed_data(db)
     counts = seed_catalog(db, force=body.force)
     return SeedResponse(
-        message="Catalog 数据已写入 PostgreSQL",
+        message="Catalog + 英雄区 + 快捷示例 已写入 PostgreSQL",
         counts=counts,
     )

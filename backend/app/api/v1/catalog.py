@@ -66,3 +66,15 @@ def list_all_scenarios(
 def list_capabilities(db: Annotated[Session, Depends(get_db)]) -> dict:
     items, by_category = catalog_store.list_capabilities(db)
     return {"total": len(items), "items": items, "by_category": by_category}
+
+
+@router.get("/hero-presets")
+def hero_presets(db: Annotated[Session, Depends(get_db)]) -> dict:
+    items = catalog_store.list_hero_presets(db)
+    return {"total": len(items), "items": items, "source": "database"}
+
+
+@router.get("/chip-templates")
+def chip_templates(db: Annotated[Session, Depends(get_db)]) -> dict:
+    items = catalog_store.list_chip_templates(db)
+    return {"total": len(items), "items": items, "source": "database"}

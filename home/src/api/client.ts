@@ -27,6 +27,33 @@ export interface CatalogSummary {
   office_count: number
   industry_count: number
   total: number
+  hero_preset_count?: number
+  chip_template_count?: number
+  source?: string
+}
+
+export interface HeroPresetApi {
+  id: string
+  label: string
+  hint: string
+  role: string
+  weight: number
+  color: string
+  prompt: string
+  picks: Array<{ type: string; key: string; label: string }>
+  flowLines: string[]
+}
+
+export async function fetchHeroPresets() {
+  const res = await api.get<{ items: HeroPresetApi[]; total: number }>('/catalog/hero-presets')
+  return res.data.items
+}
+
+export async function fetchChipTemplates() {
+  const res = await api.get<{ items: Array<{ text: string; prompt: string; picks: HeroPresetApi['picks']; scenarioNames: string[] }> }>(
+    '/catalog/chip-templates',
+  )
+  return res.data.items
 }
 
 export interface OfficeScenario {

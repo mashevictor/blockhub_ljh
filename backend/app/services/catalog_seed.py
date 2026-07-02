@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+from uuid import uuid4
+
 from sqlalchemy.orm import Session
 
+from app.data.hero_presets import CHIP_TEMPLATES, HERO_PRESETS, preset_role
 from app.data.seed import (
     AGENTS,
     CAPABILITIES,
@@ -13,6 +16,8 @@ from app.data.seed import (
 from app.db.models import (
     CatalogAgent,
     CatalogCapability,
+    CatalogChipTemplate,
+    CatalogHeroPreset,
     CatalogIndustryPack,
     CatalogIndustryScenario,
     CatalogOfficeGroup,
@@ -20,8 +25,84 @@ from app.db.models import (
 )
 
 
+def _seed_hero_and_chips(db: Session) -> None:
+    db.query(CatalogChipTemplate).delete()
+    db.query(CatalogHeroPreset).delete()
+    db.flush()
+
+    for idx, preset in enumerate(HERO_PRESETS):
+        db.add(
+            CatalogHeroPreset(
+                id=preset["id"],
+                label=preset["label"],
+                hint=preset["hint"],
+                role=preset.get("role") or preset_role(preset),
+                weight=int(preset.get("weight", 3)),
+                color=preset.get("color", ""),
+                prompt=preset["prompt"],
+                picks=preset["picks"],
+                flow_lines=preset["flow_lines"],
+                sort_order=idx,
+            )
+        )
+
+    for idx, chip in enumerate(CHIP_TEMPLATES):
+        db.add(
+            CatalogChipTemplate(
+                id=str(uuid4()),
+                text=chip["text"],
+                prompt=chip["prompt"],
+                picks=chip["picks"],
+                scenario_names=chip.get("scenario_names", []),
+                sort_order=idx,
+            )
+        )
+
+
+def _seed_extra_scenarios(db: Session) -> int:
+    """英雄区/快捷示例里的场景 id 若不在 114 清单中，补进 office 场景表。"""
+    existing_ids = {row.id for row in db.query(CatalogOfficeScenario.id).all()}
+    existing_names = {row.name for row in db.query(CatalogOfficeScenario.name).all()}
+    added = 0
+
+    def add_pick(pick: dict) -> None:
+        nonlocal added
+        if pick.get("type") != "scenario":
+            return
+        key = pick.get("key", "")
+        label = pick.get("label", "")
+        if not key or not label:
+            return
+        sid = key
+        if sid in existing_ids:
+            return
+        if label in existing_names:
+            return
+        db.add(
+            CatalogOfficeScenario(
+                id=sid,
+                name=label,
+                category="英雄区推荐",
+                category_icon="✨",
+                agent="creation",
+                auto_generate="来自英雄区/快捷示例的用户场景",
+            )
+        )
+        existing_ids.add(sid)
+        existing_names.add(label)
+        added += 1
+
+    for preset in HERO_PRESETS:
+        for pick in preset["picks"]:
+            add_pick(pick)
+    for chip in CHIP_TEMPLATES:
+        for pick in chip["picks"]:
+            add_pick(pick)
+    return added
+
+
 def seed_catalog(db: Session, *, force: bool = False) -> dict[str, int]:
-    """Load 114 scenarios + capabilities + agents from seed.py into PostgreSQL."""
+    """Load catalog + hero presets + chips into PostgreSQL."""
     existing = db.query(CatalogOfficeScenario).count()
     if existing > 0 and not force:
         return catalog_counts(db)
@@ -32,6 +113,8 @@ def seed_catalog(db: Session, *, force: bool = False) -> dict[str, int]:
     db.query(CatalogAgent).delete()
     db.query(CatalogOfficeGroup).delete()
     db.query(CatalogIndustryPack).delete()
+    db.query(CatalogChipTemplate).delete()
+    db.query(CatalogHeroPreset).delete()
     db.flush()
 
     for agent in AGENTS:
@@ -113,8 +196,12 @@ def seed_catalog(db: Session, *, force: bool = False) -> dict[str, int]:
             )
         )
 
+    _seed_hero_and_chips(db)
+    extra = _seed_extra_scenarios(db)
     db.commit()
-    return catalog_counts(db)
+    counts = catalog_counts(db)
+    counts["extra_scenarios"] = extra
+    return counts
 
 
 def catalog_counts(db: Session) -> dict[str, int]:
@@ -128,10 +215,19 @@ def catalog_counts(db: Session) -> dict[str, int]:
         "total_scenarios": office + industry,
         "office_groups": db.query(CatalogOfficeGroup).count(),
         "industry_packs": db.query(CatalogIndustryPack).count(),
+        "hero_presets": db.query(CatalogHeroPreset).count(),
+        "chip_templates": db.query(CatalogChipTemplate).count(),
     }
 
 
 def ensure_catalog_seeded(db: Session) -> dict[str, int]:
     if db.query(CatalogOfficeScenario).count() == 0:
         return seed_catalog(db)
+    if db.query(CatalogHeroPreset).count() == 0:
+        _seed_hero_and_chips(db)
+        extra = _seed_extra_scenarios(db)
+        db.commit()
+        counts = catalog_counts(db)
+        counts["extra_scenarios"] = extra
+        return counts
     return catalog_counts(db)

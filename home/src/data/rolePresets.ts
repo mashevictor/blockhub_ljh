@@ -339,3 +339,27 @@ export interface RoleApplyRequest {
 export function getRolePreset(id: string): RolePreset | undefined {
   return ROLE_PRESETS.find((r) => r.id === id)
 }
+
+export function mapHeroPresetFromApi(item: {
+  id: string
+  label: string
+  hint: string
+  role?: string
+  weight: number
+  color: string
+  prompt: string
+  picks: AgentPick[]
+  flowLines: string[]
+}): RolePreset {
+  return {
+    id: item.id,
+    label: item.label,
+    hint: item.hint,
+    role: item.role,
+    weight: item.weight,
+    color: item.color,
+    prompt: item.prompt,
+    picks: item.picks,
+    flowLines: item.flowLines,
+  }
+}

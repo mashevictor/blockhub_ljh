@@ -7,6 +7,8 @@ from sqlalchemy.orm import Session
 from app.db.models import (
     CatalogAgent,
     CatalogCapability,
+    CatalogChipTemplate,
+    CatalogHeroPreset,
     CatalogIndustryPack,
     CatalogIndustryScenario,
     CatalogOfficeGroup,
@@ -56,6 +58,8 @@ def catalog_summary(db: Session) -> dict[str, int]:
         "capability_count": db.query(CatalogCapability).count(),
         "industry_packs": db.query(CatalogIndustryPack).count(),
         "office_groups": db.query(CatalogOfficeGroup).count(),
+        "hero_preset_count": db.query(CatalogHeroPreset).count(),
+        "chip_template_count": db.query(CatalogChipTemplate).count(),
         "source": "database",
     }
 
@@ -238,3 +242,44 @@ def scenario_name_map(db: Session) -> dict[str, str]:
     for row in db.query(CatalogIndustryScenario).all():
         mapping[row.id] = row.name
     return mapping
+
+
+def scenario_name_by_label(db: Session) -> dict[str, str]:
+    mapping: dict[str, str] = {}
+    for row in db.query(CatalogOfficeScenario).all():
+        mapping[row.name] = row.name
+    for row in db.query(CatalogIndustryScenario).all():
+        mapping[row.name] = row.name
+    return mapping
+
+
+def list_hero_presets(db: Session) -> list[dict[str, Any]]:
+    rows = db.query(CatalogHeroPreset).order_by(CatalogHeroPreset.sort_order).all()
+    return [
+        {
+            "id": row.id,
+            "label": row.label,
+            "hint": row.hint,
+            "role": row.role,
+            "weight": row.weight,
+            "color": row.color,
+            "prompt": row.prompt,
+            "picks": row.picks,
+            "flowLines": row.flow_lines,
+        }
+        for row in rows
+    ]
+
+
+def list_chip_templates(db: Session) -> list[dict[str, Any]]:
+    rows = db.query(CatalogChipTemplate).order_by(CatalogChipTemplate.sort_order).all()
+    return [
+        {
+            "id": row.id,
+            "text": row.text,
+            "prompt": row.prompt,
+            "picks": row.picks,
+            "scenarioNames": row.scenario_names,
+        }
+        for row in rows
+    ]

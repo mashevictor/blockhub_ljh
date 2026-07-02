@@ -1,5 +1,6 @@
-import { useMemo, useState, type CSSProperties } from 'react'
-import { buildDanmakuLayout, presetRole, type RolePreset } from '../data/rolePresets'
+import { useEffect, useMemo, useState, type CSSProperties } from 'react'
+import { fetchHeroPresets } from '../api/client'
+import { buildDanmakuLayout, mapHeroPresetFromApi, presetRole, ROLE_PRESETS, type RolePreset } from '../data/rolePresets'
 import HeroRoleDialog from './HeroRoleDialog'
 
 const LANE_COUNT = 10
@@ -9,9 +10,23 @@ interface Props {
 }
 
 export default function HeroDanmakuCloud({ onRoleApply }: Props) {
-  const items = useMemo(() => buildDanmakuLayout(), [])
+  const [presets, setPresets] = useState<RolePreset[]>(ROLE_PRESETS)
+  const items = useMemo(() => buildDanmakuLayout(presets), [presets])
   const [active, setActive] = useState<RolePreset | null>(null)
   const [paused, setPaused] = useState(false)
+
+  useEffect(() => {
+    fetchHeroPresets()
+      .then((rows) => {
+        if (rows.length > 0) {
+          setPresets(rows.map((row) => mapHeroPresetFromApi({
+            ...row,
+            picks: row.picks as RolePreset['picks'],
+          })))
+        }
+      })
+      .catch(() => {})
+  }, [])
 
   const handleApply = (role: RolePreset, generate?: boolean) => {
     setActive(null)
@@ -42,7 +57,7 @@ export default function HeroDanmakuCloud({ onRoleApply }: Props) {
             LIVE
           </span>
           <span className="hud-title">IDENTITY × SCENARIO</span>
-          <span className="hud-meta">30 场景 · 点击生成</span>
+          <span className="hud-meta">{presets.length} 场景 · 点击生成</span>
         </header>
 
         <div className="hero-danmaku-stage">
