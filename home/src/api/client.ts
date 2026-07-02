@@ -27,6 +27,7 @@ export interface CatalogSummary {
   office_count: number
   industry_count: number
   total: number
+  base_scenario_total?: number
   hero_preset_count?: number
   chip_template_count?: number
   source?: string

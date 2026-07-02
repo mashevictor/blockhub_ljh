@@ -60,9 +60,14 @@ Write-Host "`n=== Catalog (PostgreSQL) ==="
 try {
     $summary = Invoke-RestMethod -Uri "$Api/catalog/summary"
     if ($summary.source -eq "database") { Ok "catalog source=database" } else { Bad "catalog source=$($summary.source)" }
-    if ($summary.total -eq 114) { Ok "catalog total=114" } else { Bad "catalog total=$($summary.total)" }
-    if ($summary.office_count -eq 65) { Ok "office_count=65" } else { Bad "office_count=$($summary.office_count)" }
-} catch { Bad "GET /catalog/summary" }
+    if ($summary.industry_count -eq 49) { Ok "industry_count=49" } else { Bad "industry_count=$($summary.industry_count)" }
+    if ($summary.office_count -ge 65) { Ok "office_count>=65 ($($summary.office_count))" } else { Bad "office_count=$($summary.office_count)" }
+    if ($summary.total -ge 114) { Ok "total>=114 ($($summary.total))" } else { Bad "total=$($summary.total)" }
+    if ($summary.hero_preset_count -eq 30) { Ok "hero_preset_count=30" } else { Bad "hero_preset_count=$($summary.hero_preset_count)" }
+    if ($summary.chip_template_count -eq 5) { Ok "chip_template_count=5" } else { Bad "chip_template_count=$($summary.chip_template_count)" }
+    $hero = Invoke-RestMethod -Uri "$Api/catalog/hero-presets"
+    if ($hero.total -eq 30) { Ok "GET /catalog/hero-presets total=30" } else { Bad "hero-presets total=$($hero.total)" }
+} catch { Bad "GET /catalog/summary or hero-presets" }
 
 Write-Host "`n=== Agents ==="
 if ($token) {

@@ -51,15 +51,18 @@ def _industry_to_dict(row: CatalogIndustryScenario, *, lite: bool = False) -> di
 def catalog_summary(db: Session) -> dict[str, int]:
     office = db.query(CatalogOfficeScenario).count()
     industry = db.query(CatalogIndustryScenario).count()
+    hero = db.query(CatalogHeroPreset).count()
+    chips = db.query(CatalogChipTemplate).count()
     return {
         "office_count": office,
         "industry_count": industry,
         "total": office + industry,
+        "base_scenario_total": 114,
         "capability_count": db.query(CatalogCapability).count(),
         "industry_packs": db.query(CatalogIndustryPack).count(),
         "office_groups": db.query(CatalogOfficeGroup).count(),
-        "hero_preset_count": db.query(CatalogHeroPreset).count(),
-        "chip_template_count": db.query(CatalogChipTemplate).count(),
+        "hero_preset_count": hero,
+        "chip_template_count": chips,
         "source": "database",
     }
 

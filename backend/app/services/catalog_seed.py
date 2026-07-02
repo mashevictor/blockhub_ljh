@@ -201,6 +201,7 @@ def seed_catalog(db: Session, *, force: bool = False) -> dict[str, int]:
     db.commit()
     counts = catalog_counts(db)
     counts["extra_scenarios"] = extra
+    counts["message"] = "114 base + hero extras in office table; hero_presets=30, chips=5"
     return counts
 
 
