@@ -96,8 +96,9 @@ export default function AuthPage({
     try {
       await loginWithPassword(email, password)
       navigate(from, { replace: true })
-    } catch {
-      setError('登录失败，请检查邮箱和密码')
+    } catch (err: unknown) {
+      const detail = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail
+      setError(typeof detail === 'string' ? detail : '登录失败，请检查邮箱和密码')
     } finally {
       setLoading(false)
     }

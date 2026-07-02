@@ -28,8 +28,14 @@ def ensure_seed_data(db: Session) -> None:
         db.flush()
 
     for item in DEFAULT_USERS:
-        exists = db.query(User).filter(User.email == item["email"]).first()
-        if exists:
+        user = db.query(User).filter(User.email == item["email"]).first()
+        if user:
+            # 演示账号每次启动强制恢复密码/角色（避免 OTP 注册后 password_hash 为空）
+            user.tenant_id = tenant.id
+            user.password_hash = hash_password(item["password"])
+            user.role = item["role"]
+            user.display_name = item["display_name"]
+            user.is_active = True
             continue
         db.add(
             User(
