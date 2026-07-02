@@ -1,4 +1,5 @@
 export const TOKEN_KEY = 'blockhub_token'
+export const BUILD_VERSION_KEY = 'blockhub_build_version'
 
 export function getToken(): string | null {
   return localStorage.getItem(TOKEN_KEY)

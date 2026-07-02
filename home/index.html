@@ -3,6 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <meta name="app-build-version" content="__BUILD_VERSION__" />
+    <meta name="app-build-time" content="__BUILD_TIME__" />
     <meta name="description" content="积木仓 BlockHub — 五分钟搭好，老板员工即刻用" />
     <meta name="theme-color" content="#db2777" />
     <meta property="og:title" content="积木仓 BlockHub" />
@@ -10,13 +15,14 @@
     <meta property="og:image" content="/og-image.png" />
     <meta property="og:type" content="website" />
     <title>积木仓 BlockHub · 五分钟搭好，老板员工即刻用</title>
-    <link rel="icon" href="/favicon.ico" sizes="any" />
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" href="/favicon.ico?v=__BUILD_VERSION__" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=__BUILD_VERSION__" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=__BUILD_VERSION__" />
+    <link rel="manifest" href="/manifest.webmanifest?v=__BUILD_VERSION__" />
   </head>
-  <body>
+  <body data-build-version="__BUILD_VERSION__">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <!-- BlockHub home build __BUILD_VERSION__ @ __BUILD_TIME__ -->
   </body>
 </html>

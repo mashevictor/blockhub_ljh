@@ -52,6 +52,9 @@ export default function LoginPage() {
         {error && <p className="login-error">{error}</p>}
         <button type="submit" disabled={loading}>{loading ? '登录中…' : '登录'}</button>
         <p className="login-hint">演示账号：admin@trackchat.local / admin123</p>
+        {typeof __APP_BUILD_VERSION__ === 'string' && (
+          <p className="login-hint">版本 {__APP_BUILD_VERSION__}</p>
+        )}
       </form>
     </div>
   )
