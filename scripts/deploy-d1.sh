@@ -30,10 +30,10 @@ npm install --silent
 npm run build
 
 echo "==> copy static to /var/www"
-mkdir -p /var/www/blockhub
-rm -rf /var/www/blockhub/home /var/www/blockhub/admin
-cp -r ../home/dist /var/www/blockhub/home
-cp -r dist /var/www/blockhub/admin
+mkdir -p /var/www/blockhub/home /var/www/blockhub/admin
+rm -rf /var/www/blockhub/home/* /var/www/blockhub/admin/*
+cp -r ../home/dist/. /var/www/blockhub/home/
+cp -r dist/. /var/www/blockhub/admin/
 chown -R www-data:www-data /var/www/blockhub
 
 echo "==> reload nginx"
