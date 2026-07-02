@@ -19,6 +19,7 @@ import SelectionBox, { type SelectionItem } from '../components/SelectionBox'
 import AgentInput, { type AgentPick } from '../components/AgentInput'
 import PromptSuggestBar from '../components/PromptSuggestBar'
 import ContactGateModal, { type ContactInfo } from '../components/ContactGateModal'
+import GenerateLoadingOverlay, { type GeneratePhase } from '../components/GenerateLoadingOverlay'
 import { moduleId, pickToModule, type PromptModule } from '../components/agentInputLogic'
 import { PROMPT_CHIPS, type PublishResult } from '../data/constants'
 import { findChipTemplate, pickWithMeta, resolveAppBundle, composeLogicalPrompt, mergePromptText, splitPromptText } from '../data/appAssembly'
@@ -80,7 +81,8 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone }: Pr
   const [industryKeys, setIndustryKeys] = useState<Set<string>>(new Set())
   const [officeCats, setOfficeCats] = useState<Set<string>>(new Set())
   const [q, setQ] = useState('')
-  const [loading, setLoading] = useState(false)
+  const [generatePhase, setGeneratePhase] = useState<GeneratePhase | null>(null)
+  const loading = generatePhase !== null
   const [contactOpen, setContactOpen] = useState(false)
   const [pendingPreset, setPendingPreset] = useState<RolePreset | null>(null)
   const [catalogLoading, setCatalogLoading] = useState(true)
@@ -458,7 +460,7 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone }: Pr
     contact: ContactInfo,
   ) => {
     const publishedModules = buildPublishedModulesFromBundle(bundle)
-    setLoading(true)
+    setGeneratePhase('publish')
     try {
       const res = await publishApp(bundle.appName, bundle.industryKey, {
         scenarioIds: bundle.scenarioIds,
@@ -492,7 +494,7 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone }: Pr
         scenarios: bundle.scenarioNames,
       })
     } finally {
-      setLoading(false)
+      setGeneratePhase(null)
     }
   }, [deliver, onPublish])
 
@@ -523,10 +525,15 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone }: Pr
     if (pendingPreset) {
       const preset = pendingPreset
       setPendingPreset(null)
-      await executePresetGenerate(preset, contact)
+      setGeneratePhase('analyze')
+      try {
+        await executePresetGenerate(preset, contact)
+      } finally {
+        setGeneratePhase(null)
+      }
       return
     }
-    setLoading(true)
+    setGeneratePhase('analyze')
     try {
       const intent = userIntentText.trim() || prompt.replace(/^>\s*$/, '').trim()
       const bundle = await resolvePublishBundle({
@@ -537,8 +544,8 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone }: Pr
         intentText: intent,
       })
       await runPublish(bundle, contact)
-    } finally {
-      setLoading(false)
+    } catch {
+      setGeneratePhase(null)
     }
   }, [pendingPreset, executePresetGenerate, runPublish, userIntentText, prompt, promptModules, selected, catalogNames])
 
@@ -829,14 +836,7 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone }: Pr
         openSignal={boxOpenSignal}
       />
 
-      {loading && (
-        <div className="loading-overlay">
-          <div className="loading-box">
-            <div className="spinner" />
-            <p>正在理解您的需求，匹配功能并生成应用…</p>
-          </div>
-        </div>
-      )}
+      {generatePhase && <GenerateLoadingOverlay phase={generatePhase} />}
 
       <ContactGateModal
         open={contactOpen}
