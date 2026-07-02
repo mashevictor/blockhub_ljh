@@ -1,6 +1,27 @@
 import axios from 'axios'
+import { getToken, clearToken, redirectToLogin } from '../auth/storage'
 
 export const api = axios.create({ baseURL: '/api/v1', timeout: 20000 })
+
+api.interceptors.request.use((config) => {
+  const token = getToken()
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
+  }
+  return config
+})
+
+api.interceptors.response.use(
+  (res) => res,
+  (error) => {
+    const url = String(error.config?.url || '')
+    if (error.response?.status === 401 && !url.includes('/auth/login')) {
+      clearToken()
+      redirectToLogin()
+    }
+    return Promise.reject(error)
+  },
+)
 
 export interface CatalogSummary {
   office_count: number

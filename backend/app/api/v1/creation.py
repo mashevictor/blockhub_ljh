@@ -1,14 +1,16 @@
-from fastapi import APIRouter
-from pydantic import BaseModel
+from typing import Annotated
 
-from app.data.module_data import (
-    CREATION_WIZARD_STEPS,
-    INDUSTRY_PACK_OPTIONS,
-    create_app,
-    list_created_apps,
-)
+from fastapi import APIRouter, Depends
+from pydantic import BaseModel
+from sqlalchemy.orm import Session
+
+from app.core.deps import get_current_user, get_optional_user
+from app.data.module_data import CREATION_WIZARD_STEPS, INDUSTRY_PACK_OPTIONS
 from app.data.capability_registry import list_capabilities
 from app.data.seed import INDUSTRY_SCENARIOS, OFFICE_SCENARIOS
+from app.db.models import User
+from app.db.session import get_db
+from app.services.app_store import list_published_apps, persist_published_app
 from app.services.module_suggest import suggest_modules
 
 router = APIRouter(prefix="/creation", tags=["creation"])
@@ -91,7 +93,11 @@ def feasibility_check(body: FeasibilityRequest) -> dict:
 
 
 @router.post("/publish")
-def publish_app(body: PublishRequest) -> dict:
+def publish_app(
+    body: PublishRequest,
+    db: Annotated[Session, Depends(get_db)],
+    current_user: Annotated[User | None, Depends(get_optional_user)] = None,
+) -> dict:
     names: list[str] = []
     all_scenarios = {s["id"]: s["name"] for s in OFFICE_SCENARIOS + INDUSTRY_SCENARIOS}
     for sid in body.scenario_ids:
@@ -100,10 +106,11 @@ def publish_app(body: PublishRequest) -> dict:
         names.extend(body.scenario_names)
     if not names:
         names = ["自定义应用"]
-    app = create_app(
-        body.name,
-        body.industry_key,
-        names,
+    app = persist_published_app(
+        db,
+        name=body.name,
+        industry_key=body.industry_key,
+        scenarios=names,
         audience=body.audience,
         deliver=body.deliver,
         source=body.source,
@@ -112,10 +119,16 @@ def publish_app(body: PublishRequest) -> dict:
         contact_phone=body.contact_phone,
         capability_keys=body.capability_keys,
         modules=[m.model_dump() for m in body.modules],
+        user=current_user,
+        payload=body.model_dump(),
     )
     return {"success": True, "app": app}
 
 
 @router.get("/apps")
-def get_created_apps() -> dict:
-    return {"items": list_created_apps()}
+def get_created_apps(
+    db: Annotated[Session, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> dict:
+    tenant_id = current_user.tenant_id if current_user.role != "admin" else None
+    return {"items": list_published_apps(db, tenant_id=tenant_id)}

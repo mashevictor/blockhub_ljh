@@ -1,6 +1,7 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
 
-from app.data.module_data import _notify_store, approval_stats, list_created_apps
+from app.data.module_data import _notify_store, approval_stats
 from app.data.seed import (
     AGENTS,
     ARCH_LAYERS,
@@ -9,15 +10,17 @@ from app.data.seed import (
     OFFICE_SCENARIOS,
     RECENT_ACTIVITIES,
 )
+from app.db.session import get_db
+from app.services.app_store import list_published_apps
 
 router = APIRouter(prefix="/stats", tags=["stats"])
 
 
 @router.get("/dashboard")
-def dashboard_stats() -> dict:
+def dashboard_stats(db: Session = Depends(get_db)) -> dict:
     appr = approval_stats()
     unread = sum(1 for n in _notify_store if not n["read"])
-    apps = list_created_apps()
+    apps = list_published_apps(db)
     return {
         "status": "healthy",
         "status_text": "系统运行正常",

@@ -1,10 +1,26 @@
-from fastapi import FastAPI
+from contextlib import asynccontextmanager
+
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.v1 import agents, approvals, catalog, chat, creation, health, kb, notifications, reports, stats
+from app.api.v1 import agents, approvals, auth, catalog, chat, creation, health, kb, notifications, reports, stats
 from app.core.config import settings
+from app.core.deps import get_current_user
+from app.db.session import SessionLocal
+from app.services.db_seed import ensure_seed_data
 
-app = FastAPI(title=settings.app_name, version=settings.app_version)
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    db = SessionLocal()
+    try:
+        ensure_seed_data(db)
+    finally:
+        db.close()
+    yield
+
+
+app = FastAPI(title=settings.app_name, version=settings.app_version, lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -14,16 +30,19 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+_auth = [Depends(get_current_user)]
+
 app.include_router(health.router, prefix=settings.api_prefix)
+app.include_router(auth.router, prefix=settings.api_prefix)
 app.include_router(catalog.router, prefix=settings.api_prefix)
-app.include_router(agents.router, prefix=settings.api_prefix)
-app.include_router(stats.router, prefix=settings.api_prefix)
 app.include_router(creation.router, prefix=settings.api_prefix)
-app.include_router(chat.router, prefix=settings.api_prefix)
-app.include_router(kb.router, prefix=settings.api_prefix)
-app.include_router(approvals.router, prefix=settings.api_prefix)
-app.include_router(reports.router, prefix=settings.api_prefix)
-app.include_router(notifications.router, prefix=settings.api_prefix)
+app.include_router(agents.router, prefix=settings.api_prefix, dependencies=_auth)
+app.include_router(stats.router, prefix=settings.api_prefix, dependencies=_auth)
+app.include_router(chat.router, prefix=settings.api_prefix, dependencies=_auth)
+app.include_router(kb.router, prefix=settings.api_prefix, dependencies=_auth)
+app.include_router(approvals.router, prefix=settings.api_prefix, dependencies=_auth)
+app.include_router(reports.router, prefix=settings.api_prefix, dependencies=_auth)
+app.include_router(notifications.router, prefix=settings.api_prefix, dependencies=_auth)
 
 
 @app.get("/")

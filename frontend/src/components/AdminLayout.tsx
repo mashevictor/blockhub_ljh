@@ -1,6 +1,7 @@
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { fetchCatalogSummary, fetchDashboard, type CatalogSummary, type DashboardStats } from '../api/client'
+import { fetchMe, logout, type AuthUser } from '../auth/session'
 import ThemePicker from './ThemePicker'
 import { BRAND, LOGO } from '../data/brand'
 import {
@@ -30,11 +31,13 @@ const NAV = [
 export default function AdminLayout() {
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [catalog, setCatalog] = useState<CatalogSummary | null>(null)
+  const [user, setUser] = useState<AuthUser | null>(null)
   const location = useLocation()
 
   useEffect(() => {
     fetchDashboard().then(setStats).catch(() => {})
     fetchCatalogSummary().then(setCatalog).catch(() => {})
+    fetchMe().then(setUser).catch(() => {})
   }, [])
 
   return (
@@ -86,6 +89,8 @@ export default function AdminLayout() {
               创建入口
             </a>
             <ThemePicker />
+            {user && <span className="topbar-user">{user.display_name || user.email}</span>}
+            <button type="button" className="topbar-logout" onClick={() => logout()}>退出</button>
             <span className="status-badge">
               <span className="status-dot" />
               {stats?.status_text ?? '系统运行正常'}
