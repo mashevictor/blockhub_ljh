@@ -1,7 +1,7 @@
-import { useState } from 'react'
-import { publishApp } from '../api/client'
+import { useEffect, useMemo, useState, type CSSProperties } from 'react'
+import { fetchCatalogModules, publishApp } from '../api/client'
 import { createdAppToPublishResult } from '../api/publishHelpers'
-import { MODULES, type PublishResult } from '../data/constants'
+import type { PublishResult } from '../data/constants'
 import { DynamicIcon } from '../components/icons'
 import { useTheme } from '../context/ThemeContext'
 import { MODULE_ICON_KEYS, iconWrapStyle, moduleColor } from '../data/iconPalette'
@@ -14,13 +14,53 @@ interface Props {
 
 interface Widget { key: string; name: string; iconKey: string }
 
+interface CapabilityGroup {
+  cat: string
+  items: Widget[]
+}
+
 export default function ModuleView({ onPublish }: Props) {
   const { theme } = useTheme()
   const [widgets, setWidgets] = useState<Widget[]>([])
+  const [moduleGroups, setModuleGroups] = useState<CapabilityGroup[]>([])
+  const [modulesLoading, setModulesLoading] = useState(true)
+  const [modulesError, setModulesError] = useState<string | null>(null)
   const [device, setDevice] = useState<'web' | 'app' | 'both'>('web')
 
   const [loading, setLoading] = useState(false)
+  const [publishError, setPublishError] = useState<string | null>(null)
   const [contactOpen, setContactOpen] = useState(false)
+
+  const loadModules = () => {
+    setModulesLoading(true)
+    setModulesError(null)
+    fetchCatalogModules()
+      .then((data) => {
+        const groups = Object.entries(data.by_category ?? {}).map(([cat, items]) => ({
+          cat,
+          items: items.map((m) => ({
+            key: m.key,
+            name: m.name,
+            iconKey: MODULE_ICON_KEYS[m.key] ?? 'creation',
+          })),
+        }))
+        if (groups.length === 0) {
+          setModulesError('能力模块为空，请执行 POST /api/v1/seed')
+          setModuleGroups([])
+          return
+        }
+        setModuleGroups(groups)
+      })
+      .catch(() => {
+        setModulesError('无法加载能力模块，请检查 API 与 PostgreSQL')
+        setModuleGroups([])
+      })
+      .finally(() => setModulesLoading(false))
+  }
+
+  useEffect(() => {
+    loadModules()
+  }, [])
 
   const add = (w: Widget) => {
     if (widgets.some((x) => x.key === w.key)) return
@@ -33,6 +73,7 @@ export default function ModuleView({ onPublish }: Props) {
     if (!widgets.length) return
     const publishedModules = buildPublishedModulesFromWidgets(widgets)
     setLoading(true)
+    setPublishError(null)
     try {
       const res = await publishApp('模块组装应用', 'office', {
         scenarioNames: widgets.map((w) => w.name),
@@ -57,19 +98,7 @@ export default function ModuleView({ onPublish }: Props) {
       setWidgets([])
       setDevice('both')
     } catch {
-      const base = import.meta.env.VITE_PUBLIC_BASE_URL || 'http://101.32.209.251'
-      const id = Date.now().toString(36)
-      onPublish({
-        appName: '模块组装应用',
-        webUrl: `${base}/r/${id}`,
-        downloadUrl: `${base}/r/${id}/download`,
-        appQr: `${base}/r/${id}`,
-        moduleCount: publishedModules.length,
-        modules: publishedModules,
-        scenarios: widgets.map((w) => w.name),
-      })
-      setWidgets([])
-      setDevice('both')
+      setPublishError('发布失败，请确认 API 可用')
     } finally {
       setLoading(false)
     }
@@ -82,8 +111,15 @@ export default function ModuleView({ onPublish }: Props) {
       <div className="builder-layout cube-panel">
         <aside className="builder-palette cube-panel-inner">
           <h3>功能模块</h3>
-          <p className="palette-hint">点击添加到右侧 · 可自由组合</p>
-          {MODULES.map((g) => (
+          <p className="palette-hint">点击添加到右侧 · 数据来自 PostgreSQL Catalog</p>
+          {modulesLoading && <p className="catalog-loading">加载能力模块…</p>}
+          {modulesError && (
+            <div className="catalog-error">
+              <p>{modulesError}</p>
+              <button type="button" className="btn-secondary" onClick={loadModules}>重试</button>
+            </div>
+          )}
+          {!modulesLoading && !modulesError && moduleGroups.map((g) => (
             <div key={g.cat} className="palette-group">
               <div className="palette-cat">{g.cat}</div>
               {g.items.map((m) => {
@@ -156,6 +192,8 @@ export default function ModuleView({ onPublish }: Props) {
           </button>
         </aside>
       </div>
+
+      {publishError && <p className="publish-error">{publishError}</p>}
 
       <ContactGateModal
         open={contactOpen}

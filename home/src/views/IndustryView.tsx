@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { fetchScenarios, publishApp } from '../api/client'
 import { createdAppToPublishResult } from '../api/publishHelpers'
-import { INDUSTRIES, SCENES, type Audience, type PublishResult } from '../data/constants'
+import { INDUSTRIES, type Audience, type PublishResult } from '../data/constants'
 import { DynamicIcon } from '../components/icons'
 import { useTheme } from '../context/ThemeContext'
 import { categoryColor, industryColor, iconWrapStyle } from '../data/iconPalette'
@@ -27,25 +27,37 @@ export default function IndustryView({ onPublish }: Props) {
   const [scenes, setScenes] = useState<SceneItem[]>([])
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [loading, setLoading] = useState(false)
+  const [scenesLoading, setScenesLoading] = useState(false)
+  const [sceneError, setSceneError] = useState<string | null>(null)
+  const [publishError, setPublishError] = useState<string | null>(null)
   const [contactOpen, setContactOpen] = useState(false)
   const [appName, setAppName] = useState('我的行业应用')
 
-  useEffect(() => {
+  const loadScenes = () => {
     const apiKey = resolveIndustryApiKey(industry)
+    setScenesLoading(true)
+    setSceneError(null)
     fetchScenarios(apiKey)
       .then((items) => {
+        if (items.length === 0) {
+          setSceneError('该行业暂无场景数据，请检查 Catalog seed')
+          setScenes([])
+          setSelected(new Set())
+          return
+        }
         setScenes(items)
         setSelected(new Set(items.slice(0, Math.min(6, items.length)).map((s) => s.id)))
       })
       .catch(() => {
-        const fallback = (SCENES[industry] || SCENES.office).map((name, i) => ({
-          id: `local-${i}`,
-          name,
-          category: '推荐',
-        }))
-        setScenes(fallback)
-        setSelected(new Set(fallback.slice(0, 6).map((s) => s.id)))
+        setSceneError('无法加载场景列表，请检查 API 与 PostgreSQL')
+        setScenes([])
+        setSelected(new Set())
       })
+      .finally(() => setScenesLoading(false))
+  }
+
+  useEffect(() => {
+    loadScenes()
   }, [industry])
 
   const pack = INDUSTRIES.find((p) => p.key === industry)!
@@ -69,6 +81,7 @@ export default function IndustryView({ onPublish }: Props) {
       scenarioNames,
     })
     setLoading(true)
+    setPublishError(null)
     try {
       const res = await publishApp(appName, resolveIndustryApiKey(industry), {
         scenarioIds: [...selected],
@@ -97,22 +110,7 @@ export default function IndustryView({ onPublish }: Props) {
       setAudience('b')
       setAppName('我的行业应用')
     } catch {
-      const base = import.meta.env.VITE_PUBLIC_BASE_URL || 'http://101.32.209.251'
-      const id = Date.now().toString(36)
-      onPublish({
-        appName,
-        webUrl: `${base}/r/${id}`,
-        downloadUrl: `${base}/r/${id}/download`,
-        appQr: `${base}/r/${id}`,
-        moduleCount: publishedModules.length,
-        modules: publishedModules,
-        scenarios: scenarioNames,
-      })
-      setIndustry('office')
-      setStep(1)
-      setSelected(new Set())
-      setAudience('b')
-      setAppName('我的行业应用')
+      setPublishError('发布失败，请确认已登录且 API 可用')
     } finally {
       setLoading(false)
     }
@@ -169,7 +167,14 @@ export default function IndustryView({ onPublish }: Props) {
 
       {step === 2 && (
         <>
-          {sceneGroups.map(([cat, items]) => (
+          {scenesLoading && <p className="catalog-loading">正在从 PostgreSQL 加载场景…</p>}
+          {sceneError && (
+            <div className="catalog-error">
+              <p>{sceneError}</p>
+              <button type="button" className="btn-secondary" onClick={loadScenes}>重试</button>
+            </div>
+          )}
+          {!scenesLoading && !sceneError && sceneGroups.map(([cat, items]) => (
             <div key={cat} className="scene-panel">
               <h4>
                 {pack.name} · {cat}
@@ -244,6 +249,8 @@ export default function IndustryView({ onPublish }: Props) {
           </div>
         </>
       )}
+
+      {publishError && <p className="publish-error">{publishError}</p>}
 
       <ContactGateModal
         open={contactOpen}

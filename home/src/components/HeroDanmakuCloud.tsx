@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { fetchHeroPresets } from '../api/client'
-import { buildDanmakuLayout, mapHeroPresetFromApi, presetRole, ROLE_PRESETS, type RolePreset } from '../data/rolePresets'
+import { buildDanmakuLayout, mapHeroPresetFromApi, presetRole, type RolePreset } from '../data/rolePresets'
 import HeroRoleDialog from './HeroRoleDialog'
 
 const LANE_COUNT = 10
@@ -10,22 +10,37 @@ interface Props {
 }
 
 export default function HeroDanmakuCloud({ onRoleApply }: Props) {
-  const [presets, setPresets] = useState<RolePreset[]>(ROLE_PRESETS)
+  const [presets, setPresets] = useState<RolePreset[]>([])
+  const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
   const items = useMemo(() => buildDanmakuLayout(presets), [presets])
   const [active, setActive] = useState<RolePreset | null>(null)
   const [paused, setPaused] = useState(false)
 
-  useEffect(() => {
+  const loadPresets = () => {
+    setLoading(true)
+    setLoadError(null)
     fetchHeroPresets()
       .then((rows) => {
-        if (rows.length > 0) {
-          setPresets(rows.map((row) => mapHeroPresetFromApi({
-            ...row,
-            picks: row.picks as RolePreset['picks'],
-          })))
+        if (rows.length === 0) {
+          setLoadError('英雄区预设为空，请执行 POST /api/v1/seed')
+          setPresets([])
+          return
         }
+        setPresets(rows.map((row) => mapHeroPresetFromApi({
+          ...row,
+          picks: row.picks as RolePreset['picks'],
+        })))
       })
-      .catch(() => {})
+      .catch(() => {
+        setLoadError('无法加载英雄区预设，请检查 API 与数据库 seed')
+        setPresets([])
+      })
+      .finally(() => setLoading(false))
+  }
+
+  useEffect(() => {
+    loadPresets()
   }, [])
 
   const handleApply = (role: RolePreset, generate?: boolean) => {
@@ -54,11 +69,20 @@ export default function HeroDanmakuCloud({ onRoleApply }: Props) {
         <header className="hero-danmaku-hud-head">
           <span className="hud-status">
             <i className="hud-pulse" aria-hidden />
-            LIVE
+            {loading ? 'SYNC' : loadError ? 'ERR' : 'LIVE'}
           </span>
           <span className="hud-title">IDENTITY × SCENARIO</span>
-          <span className="hud-meta">{presets.length} 场景 · 点击生成</span>
+          <span className="hud-meta">
+            {loading ? '加载 PG 预设…' : loadError ? '数据未就绪' : `${presets.length} 场景 · 点击生成`}
+          </span>
         </header>
+
+        {loadError && (
+          <div className="hero-danmaku-error">
+            <p>{loadError}</p>
+            <button type="button" onClick={loadPresets}>重试</button>
+          </div>
+        )}
 
         <div className="hero-danmaku-stage">
           {Array.from({ length: LANE_COUNT }, (_, track) => (

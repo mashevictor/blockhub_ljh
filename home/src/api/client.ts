@@ -211,9 +211,27 @@ export async function suggestModules(text: string, forceLlm = false): Promise<Su
   return res.data
 }
 
-export async function fetchCapabilities() {
-  const res = await api.get<{ total: number; items: Array<{ key: string; name: string; category: string; flutter_pkg: string }> }>('/creation/capabilities')
+export interface CatalogCapability {
+  key: string
+  name: string
+  category: string
+  widget: string
+  agent_id: string
+}
+
+export async function fetchCatalogModules() {
+  const res = await api.get<{
+    total: number
+    items: CatalogCapability[]
+    by_category: Record<string, CatalogCapability[]>
+    source?: string
+  }>('/catalog/modules')
   return res.data
+}
+
+/** @deprecated use fetchCatalogModules */
+export async function fetchCapabilities() {
+  return fetchCatalogModules()
 }
 
 export async function fetchScenarios(industryKey: string) {

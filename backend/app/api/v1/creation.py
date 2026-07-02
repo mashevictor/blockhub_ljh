@@ -6,7 +6,6 @@ from sqlalchemy.orm import Session
 
 from app.core.deps import get_current_user, get_optional_user
 from app.data.module_data import CREATION_WIZARD_STEPS, INDUSTRY_PACK_OPTIONS
-from app.data.capability_registry import list_capabilities
 from app.db.models import User
 from app.db.session import get_db
 from app.services.app_store import list_published_apps, persist_published_app
@@ -72,9 +71,9 @@ def scenarios_for_industry(
 
 
 @router.get("/capabilities")
-def get_capabilities() -> dict:
-    items = list_capabilities()
-    return {"total": len(items), "items": items}
+def get_capabilities(db: Session = Depends(get_db)) -> dict:
+    items, by_category = catalog_store.list_capabilities(db)
+    return {"total": len(items), "items": items, "by_category": by_category, "source": "database"}
 
 
 @router.post("/suggest-modules")

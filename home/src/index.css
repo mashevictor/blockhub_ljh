@@ -2306,6 +2306,20 @@ body {
 .catalog-loading {
   text-align: center; padding: 40px 20px; color: var(--muted); font-size: 13px;
 }
+.catalog-error, .hero-danmaku-error {
+  text-align: center; padding: 20px; margin: 12px 0;
+  border: 1px solid #fecaca; border-radius: var(--radius);
+  background: #fef2f2; color: #991b1b; font-size: 13px;
+}
+.catalog-error button, .hero-danmaku-error button {
+  margin-top: 10px; padding: 6px 14px; border-radius: 8px;
+  border: 1px solid #fca5a5; background: #fff; color: #991b1b; cursor: pointer;
+}
+.publish-error {
+  margin: 12px 0; padding: 10px 14px; border-radius: 8px;
+  background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; font-size: 13px;
+}
+.hero-danmaku-error { position: relative; z-index: 2; }
 
 .scenario-pick-grid {
   display: grid;

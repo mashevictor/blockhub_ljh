@@ -307,7 +307,7 @@ export interface DanmakuLayout {
 const LANE_COUNT = 10
 
 /** 10 轨道均匀分配，同轨弹幕等距错峰，避免重叠 */
-export function buildDanmakuLayout(presets: RolePreset[] = ROLE_PRESETS): DanmakuLayout[] {
+export function buildDanmakuLayout(presets: RolePreset[] = []): DanmakuLayout[] {
   const lanes: RolePreset[][] = Array.from({ length: LANE_COUNT }, () => [])
   presets.forEach((preset, i) => {
     lanes[i % LANE_COUNT].push(preset)

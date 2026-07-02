@@ -97,6 +97,7 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone }: Pr
   const [debouncedIntent, setDebouncedIntent] = useState('')
   const [promptSuggestions, setPromptSuggestions] = useState<SuggestItem[]>([])
   const [suggestUsedLlm, setSuggestUsedLlm] = useState(false)
+  const [publishError, setPublishError] = useState<string | null>(null)
 
   const promptCardRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -501,6 +502,7 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone }: Pr
   ) => {
     const publishedModules = buildPublishedModulesFromBundle(bundle)
     setGeneratePhase('publish')
+    setPublishError(null)
     try {
       const res = await publishApp(bundle.appName, bundle.industryKey, {
         scenarioIds: bundle.scenarioIds,
@@ -526,16 +528,7 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone }: Pr
       }))
       clearAll()
     } catch {
-      onPublish({
-        appName: bundle.appName,
-        webUrl: `${import.meta.env.VITE_PUBLIC_BASE_URL || 'http://101.32.209.251'}/r/${Date.now().toString(36)}`,
-        downloadUrl: `${import.meta.env.VITE_PUBLIC_BASE_URL || 'http://101.32.209.251'}/r/${Date.now().toString(36)}/download`,
-        appQr: `${import.meta.env.VITE_PUBLIC_BASE_URL || 'http://101.32.209.251'}/r/${Date.now().toString(36)}`,
-        moduleCount: publishedModules.length,
-        modules: publishedModules,
-        scenarios: bundle.scenarioNames,
-      })
-      clearAll()
+      setPublishError('发布失败，请确认 API 可用并已填写联系方式')
     } finally {
       setGeneratePhase(null)
     }
@@ -868,6 +861,7 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone }: Pr
       />
 
       {generatePhase && <GenerateLoadingOverlay phase={generatePhase} />}
+      {publishError && <p className="publish-error">{publishError}</p>}
 
       <ContactGateModal
         open={contactOpen}
