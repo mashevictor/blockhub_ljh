@@ -809,6 +809,32 @@ body {
     0 0 80px rgba(6, 182, 212, 0.12);
   overflow: hidden;
   backdrop-filter: blur(20px);
+  animation: hudAuraPulse 6s ease-in-out infinite;
+}
+@keyframes hudAuraPulse {
+  0%, 100% { box-shadow: 0 0 0 1px rgba(255,255,255,0.06) inset, 0 24px 64px rgba(0,0,0,0.45), 0 0 60px rgba(6, 182, 212, 0.1); }
+  50% { box-shadow: 0 0 0 1px rgba(255,255,255,0.1) inset, 0 28px 72px rgba(0,0,0,0.5), 0 0 100px rgba(139, 92, 246, 0.18), 0 0 40px rgba(6, 182, 212, 0.2); }
+}
+.hero-danmaku-hud::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(120deg, rgba(6,182,212,0.5), rgba(139,92,246,0.45), rgba(251,191,36,0.35), rgba(6,182,212,0.5));
+  background-size: 300% 100%;
+  animation: hudBorderFlow 10s linear infinite;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  z-index: 3;
+  opacity: 0.75;
+}
+@keyframes hudBorderFlow {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 300% 50%; }
 }
 .hero-danmaku-hud.paused .hero-danmaku-item {
   animation-play-state: paused;
@@ -909,6 +935,21 @@ body {
   mask-image: linear-gradient(90deg, transparent 0%, #000 8%, #000 92%, transparent 100%);
   -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 8%, #000 92%, transparent 100%);
 }
+.hero-danmaku-aurora {
+  position: absolute;
+  inset: -20% -10%;
+  background:
+    radial-gradient(ellipse 40% 50% at 20% 40%, rgba(6, 182, 212, 0.18), transparent 70%),
+    radial-gradient(ellipse 35% 45% at 80% 60%, rgba(139, 92, 246, 0.15), transparent 70%),
+    radial-gradient(ellipse 30% 40% at 50% 20%, rgba(251, 191, 36, 0.08), transparent 65%);
+  animation: danmakuAurora 12s ease-in-out infinite alternate;
+  pointer-events: none;
+  z-index: 0;
+}
+@keyframes danmakuAurora {
+  0% { transform: translate(0, 0) scale(1); opacity: 0.7; }
+  100% { transform: translate(2%, -3%) scale(1.05); opacity: 1; }
+}
 .hero-danmaku-lane {
   position: absolute;
   left: 0;
@@ -927,7 +968,7 @@ body {
   gap: 8px;
   padding: 7px 18px 7px 10px;
   border: 1px solid color-mix(in srgb, var(--dm-color) 55%, rgba(6, 182, 212, 0.4));
-  border-radius: 6px;
+  border-radius: 999px;
   font-size: 13px;
   font-weight: 700;
   font-family: inherit;
@@ -935,20 +976,90 @@ body {
   white-space: nowrap;
   cursor: pointer;
   background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--dm-color) 28%, rgba(8, 12, 32, 0.85)),
-    rgba(8, 12, 32, 0.75)
+    125deg,
+    color-mix(in srgb, var(--dm-color) 38%, rgba(8, 12, 32, 0.9)),
+    rgba(12, 10, 28, 0.82) 45%,
+    color-mix(in srgb, var(--dm-color) 22%, rgba(8, 12, 32, 0.88))
   );
+  background-size: 200% 200%;
   box-shadow:
     0 0 20px color-mix(in srgb, var(--dm-color) 25%, transparent),
     inset 0 1px 0 rgba(255,255,255,0.12),
     inset 0 -1px 0 rgba(0,0,0,0.3);
-  animation: danmakuFly var(--dm-duration, 32s) linear infinite;
-  animation-delay: var(--dm-delay, 0s);
-  transition: box-shadow 0.2s, border-color 0.2s, filter 0.2s;
+  animation:
+    danmakuFly var(--dm-duration, 32s) linear infinite,
+    danmakuFloat 3.2s ease-in-out infinite,
+    danmakuGlowPulse 4.5s ease-in-out infinite,
+    danmakuBgShift 8s ease infinite;
+  animation-delay: var(--dm-delay, 0s), var(--dm-delay, 0s), var(--dm-glow-delay, 0s), var(--dm-delay, 0s);
+  transition: box-shadow 0.2s, border-color 0.2s, filter 0.2s, transform 0.2s;
   z-index: 2;
   will-change: transform;
   backdrop-filter: blur(8px);
+  overflow: hidden;
+  isolation: isolate;
+}
+.hero-danmaku-item::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: linear-gradient(
+    105deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.35) 48%,
+    transparent 62%
+  );
+  transform: translateX(-120%);
+  animation: danmakuShimmer 5s ease-in-out infinite;
+  animation-delay: var(--dm-glow-delay, 0s);
+  pointer-events: none;
+  z-index: -1;
+}
+.hero-danmaku-item.hot {
+  border-color: color-mix(in srgb, var(--dm-color) 75%, #fef08a);
+  animation-duration: var(--dm-duration, 32s), 2.6s, 3s, 6s;
+}
+.hero-danmaku-item.hot::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: inherit;
+  background: radial-gradient(ellipse at center, color-mix(in srgb, var(--dm-color) 35%, transparent), transparent 70%);
+  animation: danmakuHotPulse 2.2s ease-in-out infinite;
+  animation-delay: var(--dm-glow-delay, 0s);
+  pointer-events: none;
+  z-index: -2;
+}
+@keyframes danmakuFloat {
+  0%, 100% { margin-top: 0; }
+  50% { margin-top: -4px; }
+}
+@keyframes danmakuGlowPulse {
+  0%, 100% {
+    box-shadow:
+      0 0 16px color-mix(in srgb, var(--dm-color) 22%, transparent),
+      inset 0 1px 0 rgba(255,255,255,0.1);
+  }
+  50% {
+    box-shadow:
+      0 0 28px color-mix(in srgb, var(--dm-color) 45%, transparent),
+      0 0 48px color-mix(in srgb, var(--dm-color) 18%, transparent),
+      inset 0 1px 0 rgba(255,255,255,0.18);
+  }
+}
+@keyframes danmakuBgShift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+@keyframes danmakuShimmer {
+  0%, 35% { transform: translateX(-120%); opacity: 0; }
+  50% { opacity: 1; }
+  65%, 100% { transform: translateX(120%); opacity: 0; }
+}
+@keyframes danmakuHotPulse {
+  0%, 100% { opacity: 0.35; transform: scale(0.98); }
+  50% { opacity: 0.85; transform: scale(1.02); }
 }
 .hero-danmaku-item.reverse {
   left: 0;
@@ -956,27 +1067,34 @@ body {
   animation-name: danmakuFlyReverse;
 }
 .hero-danmaku-item:hover {
-  animation-play-state: paused;
-  border-color: rgba(254, 240, 138, 0.65);
+  animation-play-state: paused, paused, paused, paused;
+  border-color: rgba(254, 240, 138, 0.75);
   box-shadow:
-    0 0 32px color-mix(in srgb, var(--dm-color) 45%, transparent),
-    0 0 0 1px rgba(254, 240, 138, 0.35),
-    inset 0 1px 0 rgba(255,255,255,0.2);
+    0 0 40px color-mix(in srgb, var(--dm-color) 55%, transparent),
+    0 0 0 2px rgba(254, 240, 138, 0.4),
+    inset 0 1px 0 rgba(255,255,255,0.25);
   z-index: 20;
-  filter: brightness(1.12);
+  filter: brightness(1.15) saturate(1.1);
+  transform: scale(1.04);
 }
 .hero-danmaku-role {
   padding: 2px 8px;
-  border-radius: 4px;
+  border-radius: 999px;
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   font-family: ui-monospace, monospace;
-  background: color-mix(in srgb, var(--dm-color) 55%, rgba(0,0,0,0.4));
+  background: linear-gradient(135deg, color-mix(in srgb, var(--dm-color) 65%, #fff), color-mix(in srgb, var(--dm-color) 45%, rgba(0,0,0,0.4)));
   border: 1px solid color-mix(in srgb, var(--dm-color) 70%, transparent);
   color: #fff;
-  box-shadow: 0 0 12px color-mix(in srgb, var(--dm-color) 40%, transparent);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--dm-color) 45%, transparent);
+  animation: roleTagPulse 3s ease-in-out infinite;
+  animation-delay: var(--dm-glow-delay, 0s);
+}
+@keyframes roleTagPulse {
+  0%, 100% { box-shadow: 0 0 10px color-mix(in srgb, var(--dm-color) 35%, transparent); }
+  50% { box-shadow: 0 0 18px color-mix(in srgb, var(--dm-color) 55%, transparent); }
 }
 .hero-danmaku-sep {
   font-size: 10px;
@@ -987,13 +1105,33 @@ body {
   font-family: ui-monospace, monospace;
   font-size: 12px;
   font-weight: 900;
-  color: var(--hero-accent, #fef08a);
-  text-shadow: 0 0 12px rgba(254,240,138,0.6);
+  background: linear-gradient(90deg, #fef08a, #fde047, #fff, #fef08a);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: prefixShine 2.5s linear infinite;
   flex-shrink: 0;
+  filter: drop-shadow(0 0 8px rgba(254,240,138,0.55));
+}
+@keyframes prefixShine {
+  0% { background-position: 0% center; }
+  100% { background-position: 200% center; }
 }
 .hero-danmaku-label {
   font-weight: 700;
   letter-spacing: 0.02em;
+  background: linear-gradient(90deg, #fff 0%, color-mix(in srgb, var(--dm-color) 30%, #fff) 50%, #fff 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: labelShine 4s ease-in-out infinite;
+  animation-delay: var(--dm-glow-delay, 0s);
+}
+@keyframes labelShine {
+  0%, 100% { background-position: 0% center; }
+  50% { background-position: 100% center; }
 }
 @keyframes danmakuFly {
   0% { transform: translateX(0); }
@@ -4152,6 +4290,7 @@ html[data-theme="monochrome-business"] .brand em.brand-en {
 .btn-register { opacity: 0.85; }
 .btn-my-apps {
   display: inline-flex; align-items: center; gap: 6px;
+  position: relative;
   margin-right: 10px; padding: 6px 12px; border-radius: 999px;
   border: 1px solid var(--border); background: var(--surface);
   font-size: 12px; font-weight: 600; color: var(--text);
@@ -4167,6 +4306,68 @@ html[data-theme="monochrome-business"] .brand em.brand-en {
   border-radius: 999px; background: var(--pri); color: #fff;
   font-size: 10px; font-weight: 700; line-height: 18px; text-align: center;
 }
+.btn-my-apps.hint-active {
+  position: relative;
+  z-index: 120;
+  border-color: var(--pri);
+  color: var(--pri-dark);
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--pri) 25%, transparent),
+    0 0 24px color-mix(in srgb, var(--pri) 35%, transparent);
+  animation: myAppsBtnPulse 1.6s ease-in-out infinite;
+}
+@keyframes myAppsBtnPulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 0 3px color-mix(in srgb, var(--pri) 20%, transparent), 0 0 16px color-mix(in srgb, var(--pri) 25%, transparent); }
+  50% { transform: scale(1.04); box-shadow: 0 0 0 5px color-mix(in srgb, var(--pri) 30%, transparent), 0 0 28px color-mix(in srgb, var(--pri) 40%, transparent); }
+}
+.my-apps-hint-bubble {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  min-width: 200px;
+  max-width: 260px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--navy, #0a1628), color-mix(in srgb, var(--pri) 35%, #1e3a5f));
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.45;
+  text-align: left;
+  white-space: normal;
+  box-shadow: 0 12px 32px rgba(0,0,0,0.25), 0 0 0 1px rgba(255,255,255,0.12) inset;
+  animation: hintBubbleIn 0.45s cubic-bezier(0.34, 1.4, 0.64, 1);
+  pointer-events: none;
+}
+.my-apps-hint-bubble::before {
+  content: '';
+  position: absolute;
+  top: -6px;
+  right: 24px;
+  width: 12px;
+  height: 12px;
+  background: inherit;
+  transform: rotate(45deg);
+  border-radius: 2px;
+}
+@keyframes hintBubbleIn {
+  from { opacity: 0; transform: translateY(-8px) scale(0.92); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.publish-my-apps-tip {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--pri) 35%, var(--border));
+  background: linear-gradient(135deg, color-mix(in srgb, var(--pri-soft) 80%, #fff), #fff);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text);
+}
+.publish-my-apps-tip strong { color: var(--pri-dark); }
 .my-apps-panel { max-width: 520px; max-height: min(85vh, 640px); overflow: auto; }
 .my-apps-head { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 16px; }
 .my-apps-head h3 { margin: 0 0 4px; font-size: 18px; }

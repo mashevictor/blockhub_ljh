@@ -11,13 +11,14 @@ interface Props {
   result: PublishResult
   onClose: () => void
   showAdminLink?: boolean
+  showMyAppsHint?: boolean
 }
 
 function qrImageUrl(data: string) {
   return `https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(data)}`
 }
 
-export default function PublishModal({ result, onClose, showAdminLink = false }: Props) {
+export default function PublishModal({ result, onClose, showAdminLink = false, showMyAppsHint = false }: Props) {
   const [mounted, setMounted] = useState(false)
 
   useBodyScrollLock(true)
@@ -129,6 +130,15 @@ export default function PublishModal({ result, onClose, showAdminLink = false }:
             <img className="publish-qr-img" src={qrImageUrl(result.webUrl)} alt={`${result.appName} 二维码`} width={96} height={96} />
           </div>
         </div>
+
+        {showMyAppsHint && (
+          <div className="publish-my-apps-tip" role="note">
+            <DynamicIcon name="layers" size={16} />
+            <span>
+              应用已保存到右上角 <strong>「我的应用」</strong>，关闭弹窗后随时可查看链接与二维码
+            </span>
+          </div>
+        )}
 
         {showAdminLink && (
           <a className="btn-ghost full" href={ADMIN_URL} target="_blank" rel="noreferrer" style={{ marginBottom: 10, display: 'block', textAlign: 'center' }}>

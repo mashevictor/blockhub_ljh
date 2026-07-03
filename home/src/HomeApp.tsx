@@ -27,6 +27,7 @@ export default function HomeApp() {
   const [published, setPublished] = useState<PublishResult | null>(null)
   const [showMyApps, setShowMyApps] = useState(false)
   const [myAppsCount, setMyAppsCount] = useState(0)
+  const [myAppsHint, setMyAppsHint] = useState(false)
   const [roleApply, setRoleApply] = useState<RoleApplyRequest | null>(null)
   const [user, setUser] = useState<AuthUser | null>(null)
   const location = useLocation()
@@ -48,10 +49,17 @@ export default function HomeApp() {
     setMyAppsCount(loadMyApps().length)
   }, [published, showMyApps])
 
+  useEffect(() => {
+    if (!myAppsHint) return
+    const timer = window.setTimeout(() => setMyAppsHint(false), 14000)
+    return () => window.clearTimeout(timer)
+  }, [myAppsHint])
+
   const handlePublish = (result: PublishResult) => {
     addMyApp(result)
     setMyAppsCount(loadMyApps().length)
     setPublished(result)
+    setMyAppsHint(true)
   }
 
   const handleRoleApply = (role: RoleApplyRequest['preset'], generate?: boolean) => {
@@ -80,13 +88,21 @@ export default function HomeApp() {
           <div className="header-actions">
             <button
               type="button"
-              className="btn-my-apps"
-              onClick={() => setShowMyApps(true)}
+              className={`btn-my-apps${myAppsHint ? ' hint-active' : ''}`}
+              onClick={() => {
+                setMyAppsHint(false)
+                setShowMyApps(true)
+              }}
               title="查看本浏览器发布过的应用"
             >
               <IconLayers size={15} />
               我的应用
               {myAppsCount > 0 && <span className="btn-my-apps-badge">{myAppsCount}</span>}
+              {myAppsHint && (
+                <span className="my-apps-hint-bubble" role="status">
+                  刚发布的应用已保存这里
+                </span>
+              )}
             </button>
             {user ? (
               <>
@@ -143,6 +159,7 @@ export default function HomeApp() {
         <PublishModal
           result={published}
           showAdminLink={!!user}
+          showMyAppsHint
           onClose={() => setPublished(null)}
         />
       )}
