@@ -1,29 +1,28 @@
 # shellcheck shell=bash
-# 按服务器内存自动配置 Gradle / Flutter 构建（小内存机必用）
+# 按服务器内存自动配置 Gradle 构建（小内存机必用）
 
 gradle_mem_total_mb() {
   awk '/MemTotal/ {print int($2/1024)}' /proc/meminfo 2>/dev/null || echo 4096
 }
 
-gradle_swap_total_mb() {
-  awk '/SwapTotal/ {print int($2/1024)}' /proc/meminfo 2>/dev/null || echo 0
+gradle_swap_free_mb() {
+  awk '/SwapFree/ {print int($2/1024)}' /proc/meminfo 2>/dev/null || echo 0
 }
 
-# 输出: low | standard
+gradle_mem_available_mb() {
+  awk '/MemAvailable/ {print int($2/1024)}' /proc/meminfo 2>/dev/null || echo 1024
+}
+
 gradle_memory_profile() {
-  local ram swap_mb
+  local ram avail swap_free
   ram="$(gradle_mem_total_mb)"
-  swap_mb="$(gradle_swap_total_mb)"
+  avail="$(gradle_mem_available_mb)"
+  swap_free="$(gradle_swap_free_mb)"
   if [ "${GRADLE_LOW_MEM:-}" = "1" ]; then
     echo "low"
     return
   fi
-  # 物理内存 < 3.5G 且无 swap → 低内存模式
-  if [ "$ram" -lt 3500 ] && [ "$swap_mb" -lt 512 ]; then
-    echo "low"
-    return
-  fi
-  if [ "$ram" -lt 2500 ]; then
+  if [ "$ram" -le 4096 ] || [ "$avail" -lt 1200 ] || [ "$swap_free" -lt 256 ]; then
     echo "low"
     return
   fi
@@ -33,32 +32,32 @@ gradle_memory_profile() {
 apply_gradle_memory_profile() {
   local profile heap workers parallel
   profile="$(gradle_memory_profile)"
-  local ram swap_mb
+  local ram avail swap_free
   ram="$(gradle_mem_total_mb)"
-  swap_mb="$(gradle_swap_total_mb)"
+  avail="$(gradle_mem_available_mb)"
+  swap_free="$(gradle_swap_free_mb)"
 
   if [ "$profile" = "low" ]; then
-    heap="1400m"
+    heap="1024m"
     workers="1"
     parallel="false"
-    echo "==> Gradle 低内存模式 (RAM=${ram}MB swap=${swap_mb}MB): heap=${heap} workers=${workers}"
-    echo "    建议: sudo bash scripts/setup-build-swap.sh  或构建前 systemctl stop blockhub-api"
+    echo "==> Gradle 低内存模式 (RAM=${ram}MB avail=${avail}MB swap_free=${swap_free}MB)"
+    echo "    heap=${heap} workers=${workers} — 构建前建议: systemctl stop blockhub-api"
   else
-    heap="2048m"
+    heap="1536m"
     workers="2"
     parallel="true"
-    echo "==> Gradle 标准模式 (RAM=${ram}MB swap=${swap_mb}MB): heap=${heap}"
+    echo "==> Gradle 标准模式 (RAM=${ram}MB avail=${avail}MB)"
   fi
 
-  export GRADLE_OPTS="-Xmx${heap} -XX:MaxMetaspaceSize=384m -XX:+HeapDumpOnOutOfMemoryError"
+  export GRADLE_OPTS="-Xmx${heap} -XX:MaxMetaspaceSize=256m -XX:+HeapDumpOnOutOfMemoryError"
   export GRADLE_USER_HOME="${GRADLE_USER_HOME:-/tmp/gradle-home-$(id -u)}"
   mkdir -p "$GRADLE_USER_HOME"
 
   local gp="${1:-}/gradle.properties"
-  if [ -f "$gp" ]; then
-    # 临时写入构建用配置（不依赖 git）
+  if [ -f "$gp" ] || [ -d "$(dirname "$gp")" ]; then
     cat > "${gp}.build" <<EOF
-org.gradle.jvmargs=-Xmx${heap} -XX:MaxMetaspaceSize=384m -XX:+HeapDumpOnOutOfMemoryError
+org.gradle.jvmargs=-Xmx${heap} -XX:MaxMetaspaceSize=256m -XX:+HeapDumpOnOutOfMemoryError
 org.gradle.daemon=false
 org.gradle.parallel=${parallel}
 org.gradle.workers.max=${workers}
@@ -66,32 +65,36 @@ org.gradle.caching=true
 android.useAndroidX=true
 android.enableJetifier=true
 EOF
-    export GRADLE_PROPERTIES_FILE="${gp}.build"
   fi
 }
 
 gradle_preflight_check() {
-  local ram swap_mb profile
+  local ram avail swap_free profile
   ram="$(gradle_mem_total_mb)"
-  swap_mb="$(gradle_swap_total_mb)"
+  avail="$(gradle_mem_available_mb)"
+  swap_free="$(gradle_swap_free_mb)"
   profile="$(gradle_memory_profile)"
 
-  echo "==> 系统内存: ${ram}MB  交换分区: ${swap_mb}MB  可用: $(awk '/MemAvailable/ {print int($2/1024)}' /proc/meminfo 2>/dev/null || echo '?')MB"
+  echo "==> 系统: RAM=${ram}MB  可用=${avail}MB  swap剩余=${swap_free}MB  CPU=$(grep -c processor /proc/cpuinfo 2>/dev/null || echo '?')核"
 
-  if [ "$profile" = "low" ] && [ "$swap_mb" -lt 512 ]; then
-    echo "WARN: 内存偏小且无 swap，Gradle 可能 OOM 被杀。"
-    echo "      执行: sudo bash scripts/setup-build-swap.sh"
-    echo "      或:   sudo systemctl stop blockhub-api && 构建完成后再 start"
+  if [ "$profile" = "low" ]; then
+    echo "WARN: 小内存环境 — 构建前释放内存:"
+    echo "  sudo systemctl stop blockhub-api"
+    echo "  sync && echo 3 | sudo tee /proc/sys/vm/drop_caches   # 可选，清缓存"
+    if [ "$swap_free" -lt 256 ]; then
+      echo "WARN: swap 几乎用尽 — 建议: sudo bash scripts/setup-build-swap.sh  (扩到 4G)"
+    fi
   fi
 }
 
 gradle_diagnose_oom() {
   local log="${1:-}"
   [ -n "$log" ] && [ -f "$log" ] || return 0
-  if grep -qiE 'OutOfMemory|GC overhead|Killed process|ENOMEM|Cannot allocate memory' "$log"; then
+  if grep -qiE 'OutOfMemory|GC overhead|Killed process|ENOMEM|Cannot allocate memory|Gradle build daemon disappeared' "$log"; then
     echo ""
-    echo ">>> 疑似内存不足 (OOM)。请增加 swap 或使用低内存模式:"
-    echo "    sudo bash scripts/setup-build-swap.sh"
+    echo ">>> 疑似内存不足 (OOM)。2核/4G 机请:"
+    echo "    sudo systemctl stop blockhub-api"
     echo "    GRADLE_LOW_MEM=1 APP_NAME=laoliu bash scripts/flutter-build-apk.sh"
+    echo "    sudo systemctl start blockhub-api"
   fi
 }
