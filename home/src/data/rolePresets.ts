@@ -302,11 +302,26 @@ export interface DanmakuLayout {
   delay: number
   duration: number
   direction: 'normal' | 'reverse'
+  /** 起始水平位置 %，组成 >> 形分布 */
+  startLeft: number
 }
 
 const LANE_COUNT = 10
 
-/** 10 轨道均匀分配，同轨弹幕等距错峰，避免重叠 */
+/** >> 形双 chevron：每组 5 轨斜向错开，避免右侧整齐一条线 */
+function chevronStartLeft(track: number, direction: 'normal' | 'reverse'): number {
+  const laneInChevron = track % 5
+  const chevron = Math.floor(track / 5) % 2
+  const step = 7.2
+  if (direction === 'normal') {
+    const base = chevron === 0 ? 97 : 56
+    return Math.max(14, base - laneInChevron * step)
+  }
+  const base = chevron === 0 ? 3 : 44
+  return Math.min(86, base + laneInChevron * step)
+}
+
+/** 10 轨道 >> 形分配，同轨错峰 */
 export function buildDanmakuLayout(presets: RolePreset[] = []): DanmakuLayout[] {
   const lanes: RolePreset[][] = Array.from({ length: LANE_COUNT }, () => [])
   presets.forEach((preset, i) => {
@@ -317,14 +332,19 @@ export function buildDanmakuLayout(presets: RolePreset[] = []): DanmakuLayout[] 
   lanes.forEach((laneItems, track) => {
     const duration = 32 + (track % 5) * 5
     const count = laneItems.length
+    const direction: 'normal' | 'reverse' = track % 4 === 2 ? 'reverse' : 'normal'
+    const startLeft = chevronStartLeft(track, direction)
+    const laneInChevron = track % 5
+    const chevron = Math.floor(track / 5) % 2
     laneItems.forEach((preset, slot) => {
       const spacing = duration / count
       layouts.push({
         preset,
         track,
-        delay: -(slot * spacing),
+        delay: -(slot * spacing) - laneInChevron * 1.35 - chevron * 2.2,
         duration,
-        direction: track % 4 === 2 ? 'reverse' : 'normal',
+        direction,
+        startLeft,
       })
     })
   })

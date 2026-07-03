@@ -14,8 +14,10 @@ interface Props {
   showMyAppsHint?: boolean
 }
 
+const MAX_CHIPS = 8
+
 function qrImageUrl(data: string) {
-  return `https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(data)}`
+  return `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(data)}`
 }
 
 export default function PublishModal({ result, onClose, showAdminLink = false, showMyAppsHint = false }: Props) {
@@ -28,7 +30,7 @@ export default function PublishModal({ result, onClose, showAdminLink = false, s
   }, [])
 
   const phoneWidgets = useMemo(
-    () => pickPhonePreviewModules(result.modules),
+    () => pickPhonePreviewModules(result.modules).slice(0, 3),
     [result.modules],
   )
 
@@ -43,109 +45,109 @@ export default function PublishModal({ result, onClose, showAdminLink = false, s
     }))
   }, [result.modules, result.scenarios])
 
+  const visibleChips = chipModules.slice(0, MAX_CHIPS)
+  const extraChipCount = chipModules.length - visibleChips.length
   const downloadUrl = result.downloadUrl || `${result.webUrl}/download`
 
   if (!mounted) return null
 
   return createPortal(
-    <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
+    <div className="modal-overlay modal-overlay-compact" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="modal-card publish-result-card" role="dialog" aria-modal="true">
         <button type="button" className="modal-close" onClick={onClose} aria-label="关闭">×</button>
-        <div className="modal-icon-svg">
-          <img src={LOGO.mark} alt="" width={48} height={48} className="modal-brand-logo" />
-        </div>
-        <h3>发布成功</h3>
-        <p className="modal-sub">
-          {result.appName} · 已包含 {result.moduleCount} 项功能
-          {result.scenarios && result.scenarios.length > 0 && (
-            <span className="publish-scenario-hint">
-              {' '}· {result.scenarios.slice(0, 3).join('、')}
-              {result.scenarios.length > 3 ? ` 等 ${result.scenarios.length} 个场景` : ''}
-            </span>
-          )}
-        </p>
 
-        {chipModules.length > 0 && (
-          <ul className="publish-module-list" aria-label="已包含模块与能力">
-            {chipModules.map((m) => (
-              <li
-                key={`${m.kind}:${m.key}`}
-                className={`publish-module-chip${m.source === 'auto' ? ' auto' : ''}${m.source === 'user' ? ' user' : ''}${m.source === 'suggest' ? ' suggest' : ''}`}
-              >
-                <DynamicIcon name={m.iconKey} size={12} />
-                <span>{m.label}</span>
-                {m.source === 'auto' && <em>自动</em>}
-                {m.source === 'suggest' && <em>AI</em>}
-              </li>
-            ))}
-          </ul>
-        )}
-
-        <div className="phone-preview">
-          <div className="phone-screen">
-            <div className="phone-title">{result.appName}</div>
-            <div className="phone-bar" />
-            {phoneWidgets.length > 0 ? (
-              phoneWidgets.map((m, i) => (
-                <div
-                  key={`${m.kind}:${m.key}`}
-                  className="phone-widget"
-                  style={{ '--widget-bg': widgetTint(i) } as React.CSSProperties}
-                >
-                  <DynamicIcon name={m.iconKey} size={14} />
-                  {m.label}
-                </div>
-              ))
-            ) : (
-              <>
-                <div className="phone-bar short" />
-                <div className="phone-bar" />
-              </>
-            )}
+        <header className="publish-result-head">
+          <img src={LOGO.mark} alt="" width={36} height={36} className="publish-result-logo" />
+          <div>
+            <h3>发布成功</h3>
+            <p className="modal-sub publish-result-sub">
+              {result.appName} · {result.moduleCount} 项功能
+            </p>
           </div>
-        </div>
-
-        <div className="publish-links">
-          <div className="link-row">
-            <span className="link-row-label">
-              <DynamicIcon name="web" size={16} />
-              网页版
-            </span>
-            <code>{result.webUrl}</code>
-            <button type="button" onClick={() => navigator.clipboard.writeText(result.webUrl)}>复制</button>
-          </div>
-          <div className="link-row">
-            <span className="link-row-label">
-              <DynamicIcon name="android" size={16} />
-              下载链接
-            </span>
-            <code>{downloadUrl}</code>
-            <button type="button" onClick={() => navigator.clipboard.writeText(downloadUrl)}>复制</button>
-          </div>
-          <div className="link-row publish-qr-row">
-            <span className="link-row-label">
-              <DynamicIcon name="android" size={16} />
-              扫码访问
-            </span>
-            <img className="publish-qr-img" src={qrImageUrl(result.webUrl)} alt={`${result.appName} 二维码`} width={96} height={96} />
-          </div>
-        </div>
+        </header>
 
         {showMyAppsHint && (
           <div className="publish-my-apps-tip" role="note">
-            <DynamicIcon name="layers" size={16} />
-            <span>
-              应用已保存到右上角 <strong>「我的应用」</strong>，关闭弹窗后随时可查看链接与二维码
-            </span>
+            <DynamicIcon name="layers" size={14} />
+            <span>已保存到右上角 <strong>「我的应用」</strong></span>
           </div>
         )}
 
-        {showAdminLink && (
-          <a className="btn-ghost full" href={ADMIN_URL} target="_blank" rel="noreferrer" style={{ marginBottom: 10, display: 'block', textAlign: 'center' }}>
-            在管理后台查看已创建应用 →
-          </a>
-        )}
-        <button type="button" className="btn-primary full" onClick={onClose}>完成，继续创建</button>
+        <div className="publish-result-scroll">
+          {visibleChips.length > 0 && (
+            <ul className="publish-module-list" aria-label="已包含模块与能力">
+              {visibleChips.map((m) => (
+                <li
+                  key={`${m.kind}:${m.key}`}
+                  className={`publish-module-chip${m.source === 'auto' ? ' auto' : ''}${m.source === 'user' ? ' user' : ''}${m.source === 'suggest' ? ' suggest' : ''}`}
+                >
+                  <DynamicIcon name={m.iconKey} size={11} />
+                  <span>{m.label}</span>
+                </li>
+              ))}
+              {extraChipCount > 0 && (
+                <li className="publish-module-chip more">+{extraChipCount}</li>
+              )}
+            </ul>
+          )}
+
+          <div className="publish-result-preview-row">
+            <div className="phone-preview phone-preview-compact">
+              <div className="phone-screen">
+                <div className="phone-title">{result.appName}</div>
+                {phoneWidgets.length > 0 ? (
+                  phoneWidgets.map((m, i) => (
+                    <div
+                      key={`${m.kind}:${m.key}`}
+                      className="phone-widget"
+                      style={{ '--widget-bg': widgetTint(i) } as React.CSSProperties}
+                    >
+                      <DynamicIcon name={m.iconKey} size={12} />
+                      {m.label}
+                    </div>
+                  ))
+                ) : (
+                  <>
+                    <div className="phone-bar" />
+                    <div className="phone-bar short" />
+                  </>
+                )}
+              </div>
+            </div>
+            <div className="publish-qr-block">
+              <img className="publish-qr-img" src={qrImageUrl(result.webUrl)} alt={`${result.appName} 二维码`} width={88} height={88} />
+              <span>扫码访问</span>
+            </div>
+          </div>
+
+          <div className="publish-links publish-links-compact">
+            <div className="link-row">
+              <span className="link-row-label">
+                <DynamicIcon name="web" size={14} />
+                网页
+              </span>
+              <code>{result.webUrl}</code>
+              <button type="button" onClick={() => navigator.clipboard.writeText(result.webUrl)}>复制</button>
+            </div>
+            <div className="link-row">
+              <span className="link-row-label">
+                <DynamicIcon name="android" size={14} />
+                下载
+              </span>
+              <code>{downloadUrl}</code>
+              <button type="button" onClick={() => navigator.clipboard.writeText(downloadUrl)}>复制</button>
+            </div>
+          </div>
+        </div>
+
+        <footer className="publish-result-foot">
+          {showAdminLink && (
+            <a className="btn-ghost full" href={ADMIN_URL} target="_blank" rel="noreferrer">
+              在管理后台查看 →
+            </a>
+          )}
+          <button type="button" className="btn-primary full" onClick={onClose}>完成，继续创建</button>
+        </footer>
       </div>
     </div>,
     document.body,

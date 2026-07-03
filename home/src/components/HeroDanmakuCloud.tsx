@@ -86,10 +86,11 @@ export default function HeroDanmakuCloud({ onRoleApply }: Props) {
 
         <div className="hero-danmaku-stage">
           <div className="hero-danmaku-aurora" aria-hidden />
+          <div className="hero-danmaku-chevron" aria-hidden>&gt;&gt;</div>
           {Array.from({ length: LANE_COUNT }, (_, track) => (
             <div key={track} className="hero-danmaku-lane" style={{ '--lane-i': track } as CSSProperties} />
           ))}
-          {items.map(({ preset, track, delay, duration, direction }, index) => {
+          {items.map(({ preset, track, delay, duration, direction, startLeft }, index) => {
             const role = presetRole(preset)
             const hot = index % 4 === 0
             return (
@@ -103,6 +104,7 @@ export default function HeroDanmakuCloud({ onRoleApply }: Props) {
                   '--dm-delay': `${delay}s`,
                   '--dm-duration': `${duration}s`,
                   '--dm-glow-delay': `${(index % 7) * 0.45}s`,
+                  '--dm-start-left': `${startLeft}%`,
                 } as CSSProperties}
                 onClick={() => {
                   setPaused(true)
