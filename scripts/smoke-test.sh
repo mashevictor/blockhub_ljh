@@ -97,7 +97,7 @@ CHIP_COUNT=$(echo "$SUMMARY" | python3 -c "import sys,json; print(json.load(sys.
 [ "$HERO_COUNT" -eq 30 ] 2>/dev/null && ok "hero_preset_count=30" || bad "hero_preset_count!=30 ($SUMMARY)"
 [ "$CHIP_COUNT" -eq 5 ] 2>/dev/null && ok "chip_template_count=5" || bad "chip_template_count!=5 ($SUMMARY)"
 AGENT_COUNT=$(echo "$SUMMARY" | python3 -c "import sys,json; print(json.load(sys.stdin).get('agent_count',0))" 2>/dev/null || echo 0)
-[ "$AGENT_COUNT" -ge 10 ] 2>/dev/null && ok "agent_count>=10 ($AGENT_COUNT)" || bad "agent_count<10 ($SUMMARY)"
+[ "$AGENT_COUNT" -ge 11 ] 2>/dev/null && ok "agent_count>=11 ($AGENT_COUNT)" || bad "agent_count<11 ($SUMMARY)"
 
 HERO=$(curl -sf "$API/catalog/hero-presets" 2>/dev/null || echo "")
 if echo "$HERO" | grep -q '"total":30'; then ok "GET /catalog/hero-presets total=30"; else bad "GET /catalog/hero-presets ($HERO)"; fi
@@ -105,10 +105,37 @@ if echo "$HERO" | grep -q '"total":30'; then ok "GET /catalog/hero-presets total
 OFFICE=$(curl -sf "$API/catalog/office?lite=true" 2>/dev/null || echo "")
 if echo "$OFFICE" | grep -q '"total":'; then ok "GET /catalog/office lite"; else bad "GET /catalog/office"; fi
 
+if [ -n "$TOKEN" ]; then
+  AGENTS=$(curl -sf -H "Authorization: Bearer $TOKEN" "$API/agents" 2>/dev/null || echo "")
+  if echo "$AGENTS" | grep -q '"total":11'; then ok "GET /agents total=11"; else bad "GET /agents ($AGENTS)"; fi
+fi
+
 echo ""
-echo "=== Agents (PostgreSQL) ==="
-AGENTS=$(curl -sf -H "Authorization: Bearer $TOKEN" "$API/agents" 2>/dev/null || echo "")
-if echo "$AGENTS" | grep -q '"total":10'; then ok "GET /agents total=10"; else bad "GET /agents ($AGENTS)"; fi
+echo "=== Contract e-sign Agent ==="
+if [ -n "$TOKEN" ]; then
+  CFG=$(curl -sf -H "Authorization: Bearer $TOKEN" "$API/contracts/config" 2>/dev/null || echo "")
+  if echo "$CFG" | grep -q 'contract_esign'; then ok "GET /contracts/config"; else bad "GET /contracts/config"; fi
+  CID=$(curl -sf -X POST "$API/contracts" \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer $TOKEN" \
+    -d '{"title":"冒烟测试合同","template_key":"nda","parties":{"party_a":"测试甲","party_b":"测试乙"}}' \
+    | python3 -c "import sys,json; print(json.load(sys.stdin).get('contract',{}).get('id',''))" 2>/dev/null || echo "")
+  if [ -n "$CID" ]; then ok "POST /contracts ($CID)"; else bad "POST /contracts"; fi
+  if [ -n "$CID" ]; then
+    # 1x1 PNG
+    PNG='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='
+    ASSET=$(curl -sf -X POST "$API/contracts/$CID/assets" \
+      -H "Content-Type: application/json" \
+      -H "Authorization: Bearer $TOKEN" \
+      -d "{\"asset_type\":\"signature\",\"data_url\":\"$PNG\"}" 2>/dev/null || echo "")
+    if echo "$ASSET" | grep -q '"success":true'; then ok "POST /contracts/assets signature"; else bad "POST /contracts/assets"; fi
+    SIGN=$(curl -sf -X POST "$API/contracts/$CID/sign" \
+      -H "Authorization: Bearer $TOKEN" 2>/dev/null || echo "")
+    if echo "$SIGN" | grep -q '"status":"signed"'; then ok "POST /contracts/sign"; else bad "POST /contracts/sign ($SIGN)"; fi
+    PDF_CODE=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer $TOKEN" "$API/contracts/$CID/signed.pdf")
+    [ "$PDF_CODE" = "200" ] && ok "GET /contracts/signed.pdf" || bad "GET signed.pdf got $PDF_CODE"
+  fi
+fi
 
 echo ""
 echo "=== Protected routes (D3: no token → 403) ==="

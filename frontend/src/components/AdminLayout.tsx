@@ -15,6 +15,7 @@ import {
   IconCheckCircle,
   IconBarChart,
   IconBell,
+  IconStamp,
 } from './icons'
 
 const NAV = [
@@ -25,6 +26,7 @@ const NAV = [
   { to: '/chat', label: '智能问答', icon: IconMessage },
   { to: '/knowledge', label: '知识库', icon: IconBook },
   { to: '/approvals', label: '审批中心', icon: IconCheckCircle },
+  { to: '/contracts', label: '合同盖章', icon: IconStamp },
   { to: '/reports', label: '数据报表', icon: IconBarChart },
   { to: '/notifications', label: '消息通知', icon: IconBell },
 ]

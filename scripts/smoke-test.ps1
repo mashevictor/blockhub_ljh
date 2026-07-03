@@ -65,7 +65,7 @@ try {
     if ($summary.total -ge 114) { Ok "total>=114 ($($summary.total))" } else { Bad "total=$($summary.total)" }
     if ($summary.hero_preset_count -eq 30) { Ok "hero_preset_count=30" } else { Bad "hero_preset_count=$($summary.hero_preset_count)" }
     if ($summary.chip_template_count -eq 5) { Ok "chip_template_count=5" } else { Bad "chip_template_count=$($summary.chip_template_count)" }
-    if ($summary.agent_count -ge 10) { Ok "agent_count>=10 ($($summary.agent_count))" } else { Bad "agent_count=$($summary.agent_count)" }
+    if ($summary.agent_count -ge 11) { Ok "agent_count>=11 ($($summary.agent_count))" } else { Bad "agent_count=$($summary.agent_count)" }
     $hero = Invoke-RestMethod -Uri "$Api/catalog/hero-presets"
     if ($hero.total -eq 30) { Ok "GET /catalog/hero-presets total=30" } else { Bad "hero-presets total=$($hero.total)" }
 } catch { Bad "GET /catalog/summary or hero-presets" }
@@ -74,7 +74,7 @@ Write-Host "`n=== Agents ==="
 if ($token) {
     try {
         $agents = Invoke-RestMethod -Uri "$Api/agents" -Headers @{ Authorization = "Bearer $token" }
-        if ($agents.total -eq 10) { Ok "GET /agents total=10" } else { Bad "GET /agents total=$($agents.total)" }
+        if ($agents.total -eq 11) { Ok "GET /agents total=11" } else { Bad "GET /agents total=$($agents.total)" }
     } catch { Bad "GET /agents" }
 }
 

@@ -305,3 +305,53 @@ export const fetchOfficeScenarios = (params?: { category?: string; q?: string })
 export const fetchIndustryScenarios = (params?: { pack?: string; q?: string }) =>
   api.get<{ items: IndustryScenario[]; packs: unknown[] }>('/catalog/industry', { params }).then((r) => r.data)
 export const fetchCapabilities = () => api.get('/catalog/modules').then((r) => r.data)
+
+// ── 合同盖章 Agent ──
+export interface ContractAsset {
+  id: string
+  asset_type: 'signature' | 'seal'
+  file_key: string
+  file_url: string
+  label: string
+  placement: { page?: number; x_pct?: number; y_pct?: number; width_pct?: number; height_pct?: number }
+}
+
+export interface ContractRecord {
+  id: string
+  title: string
+  template_key: string
+  body_html: string
+  parties: { party_a?: string; party_b?: string }
+  status: string
+  review_notes: string
+  signed_pdf_url: string
+  created_at: string
+  updated_at: string
+  signed_at: string | null
+  assets?: ContractAsset[]
+}
+
+export const fetchContractsConfig = () => api.get('/contracts/config').then((r) => r.data)
+export const fetchContracts = () => api.get<{ items: ContractRecord[] }>('/contracts').then((r) => r.data.items)
+export const fetchContract = (id: string) => api.get<ContractRecord>(`/contracts/${id}`).then((r) => r.data)
+export const createContract = (body: { title: string; template_key?: string; parties?: { party_a?: string; party_b?: string } }) =>
+  api.post<{ contract: ContractRecord }>('/contracts', body).then((r) => r.data.contract)
+export const updateContract = (id: string, body: Partial<{ title: string; body_html: string; parties: { party_a?: string; party_b?: string }; template_key: string }>) =>
+  api.put<{ contract: ContractRecord }>(`/contracts/${id}`, body).then((r) => r.data.contract)
+export const aiDraftContract = (id: string, prompt: string) =>
+  api.post<{ contract: ContractRecord }>(`/contracts/${id}/draft`, { prompt }).then((r) => r.data.contract)
+export const aiReviewContract = (id: string) =>
+  api.post<{ contract: ContractRecord }>(`/contracts/${id}/review`).then((r) => r.data.contract)
+export const uploadContractAsset = (id: string, body: { asset_type: string; data_url: string; label?: string; placement?: ContractAsset['placement'] }) =>
+  api.post<{ contract: ContractRecord }>(`/contracts/${id}/assets`, body).then((r) => r.data.contract)
+export const createDefaultSeal = (id: string) =>
+  api.post<{ contract: ContractRecord }>(`/contracts/${id}/default-seal`).then((r) => r.data.contract)
+export const updateContractPlacements = (id: string, items: { id: string; placement: ContractAsset['placement'] }[]) =>
+  api.put<{ contract: ContractRecord }>(`/contracts/${id}/placements`, { items }).then((r) => r.data.contract)
+export const signContract = (id: string) =>
+  api.post<{ contract: ContractRecord }>(`/contracts/${id}/sign`).then((r) => r.data.contract)
+export const deleteContract = (id: string) => api.delete(`/contracts/${id}`).then((r) => r.data)
+export const fetchContractPreviewBlob = (id: string) =>
+  api.get(`/contracts/${id}/preview.pdf`, { responseType: 'blob' }).then((r) => r.data as Blob)
+export const downloadSignedPdfBlob = (id: string) =>
+  api.get(`/contracts/${id}/signed.pdf`, { responseType: 'blob' }).then((r) => r.data as Blob)

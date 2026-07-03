@@ -181,3 +181,51 @@ class CatalogChipTemplate(Base):
     picks: Mapped[list[Any]] = mapped_column(JSON, nullable=False, default=list)
     scenario_names: Mapped[list[Any]] = mapped_column(JSON, nullable=False, default=list)
     sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+
+
+class ContractRecord(Base):
+    __tablename__ = "contracts"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenants.id"), nullable=False, index=True)
+    title: Mapped[str] = mapped_column(String(300), nullable=False)
+    template_key: Mapped[str] = mapped_column(String(64), nullable=False, default="blank")
+    body_html: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    parties_json: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False, default=dict)
+    status: Mapped[str] = mapped_column(String(32), nullable=False, default="draft", index=True)
+    review_notes: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    signed_pdf_key: Mapped[str] = mapped_column(String(512), nullable=False, default="")
+    created_by_id: Mapped[str | None] = mapped_column(ForeignKey("users.id"), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    signed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    assets: Mapped[list[ContractAsset]] = relationship(back_populates="contract", cascade="all, delete-orphan")
+    events: Mapped[list[ContractEvent]] = relationship(back_populates="contract", cascade="all, delete-orphan")
+
+
+class ContractAsset(Base):
+    __tablename__ = "contract_assets"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    contract_id: Mapped[str] = mapped_column(ForeignKey("contracts.id", ondelete="CASCADE"), nullable=False, index=True)
+    asset_type: Mapped[str] = mapped_column(String(32), nullable=False)
+    file_key: Mapped[str] = mapped_column(String(512), nullable=False)
+    label: Mapped[str] = mapped_column(String(120), nullable=False, default="")
+    placement_json: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False, default=dict)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    contract: Mapped[ContractRecord] = relationship(back_populates="assets")
+
+
+class ContractEvent(Base):
+    __tablename__ = "contract_events"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    contract_id: Mapped[str] = mapped_column(ForeignKey("contracts.id", ondelete="CASCADE"), nullable=False, index=True)
+    actor_id: Mapped[str | None] = mapped_column(ForeignKey("users.id"), nullable=True)
+    action: Mapped[str] = mapped_column(String(64), nullable=False)
+    payload_json: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False, default=dict)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    contract: Mapped[ContractRecord] = relationship(back_populates="events")

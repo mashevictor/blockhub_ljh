@@ -1,4 +1,4 @@
-"""L3 Catalog seed: 65 office + 49 industry scenarios, 36 capabilities, 10 agents."""
+"""L3 Catalog seed: 65 office + 49 industry scenarios, 40 capabilities, 11 agents."""
 
 AGENTS = [
     {
@@ -55,6 +55,25 @@ AGENTS = [
         ],
         "office_count": 22,
         "industry_count": 14,
+    },
+    {
+        "id": "contract_esign",
+        "name": "合同盖章",
+        "icon": "🔏",
+        "color": "#b91c1c",
+        "status": "active",
+        "description": "自定义文本合同、手写签名与电子章，AI 起草审阅，一键生成 PDF",
+        "pipeline": "选模板→编辑→AI审阅→签名盖章→PDF归档",
+        "capabilities": [
+            "contract_editor",
+            "contract_sign",
+            "contract_seal",
+            "contract_pdf",
+            "approval_esign",
+            "chat_qa",
+        ],
+        "office_count": 3,
+        "industry_count": 2,
     },
     {
         "id": "report",
@@ -157,6 +176,10 @@ CAPABILITIES = [
     {"key": "approval_conditional", "name": "条件分支审批", "category": "流程审批", "widget": "WorkflowWidget", "agent_id": "approval"},
     {"key": "approval_remind", "name": "超时催办", "category": "流程审批", "widget": "NotifyWidget", "agent_id": "approval"},
     {"key": "approval_esign", "name": "电子签批", "category": "流程审批", "widget": "EsignWidget", "agent_id": "approval"},
+    {"key": "contract_editor", "name": "合同编辑器", "category": "合同签章", "widget": "ContractEditorWidget", "agent_id": "contract_esign"},
+    {"key": "contract_sign", "name": "手写签名", "category": "合同签章", "widget": "SignWidget", "agent_id": "contract_esign"},
+    {"key": "contract_seal", "name": "电子公章", "category": "合同签章", "widget": "SealWidget", "agent_id": "contract_esign"},
+    {"key": "contract_pdf", "name": "合同 PDF", "category": "合同签章", "widget": "PdfWidget", "agent_id": "contract_esign"},
     {"key": "kb_document", "name": "文档知识库", "category": "知识数据", "widget": "KBUploadWidget", "agent_id": "kb"},
     {"key": "kb_search", "name": "语义检索", "category": "知识数据", "widget": "KBSearchWidget", "agent_id": "kb"},
     {"key": "data_nl_query", "name": "自然语言查数", "category": "知识数据", "widget": "NLQueryWidget", "agent_id": "report"},
@@ -214,6 +237,7 @@ OFFICE_GROUPS = [
             "费用报销",
             "借款申请",
             "合同审批",
+            "合同电子签章",
             "发票核验",
             "预算查询",
             "付款申请",

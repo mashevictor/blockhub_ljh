@@ -11,6 +11,7 @@ import KnowledgePage from './pages/KnowledgePage'
 import ApprovalPage from './pages/ApprovalPage'
 import ReportPage from './pages/ReportPage'
 import NotificationPage from './pages/NotificationPage'
+import ContractPage from './pages/ContractPage'
 import LoginPage from './pages/LoginPage'
 
 export default function App() {
@@ -29,6 +30,7 @@ export default function App() {
           <Route path="knowledge" element={<KnowledgePage />} />
           <Route path="kb" element={<Navigate to="/knowledge" replace />} />
           <Route path="approvals" element={<ApprovalPage />} />
+          <Route path="contracts" element={<ContractPage />} />
           <Route path="approval" element={<Navigate to="/approvals" replace />} />
           <Route path="reports" element={<ReportPage />} />
           <Route path="report" element={<Navigate to="/reports" replace />} />

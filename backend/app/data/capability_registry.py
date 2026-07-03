@@ -57,7 +57,7 @@ CORE_CAPABILITIES: list[CapabilityDef] = [
     CapabilityDef("kb_document", "知识库", "知识数据", "KBUploadWidget", "kb",
                     "file_picker", ("知识库", "文档", "制度", "手册", "sop")),
     CapabilityDef("approval_flow", "审批流", "流程审批", "FormWidget", "approval",
-                    "", ("审批", "请假", "报销", "流程", "待办", "会签", "补贴", "审核", "绩效", "评估", "立案")),
+                    "", ("审批", "请假", "报销", "流程", "待办", "会签", "合同", "盖章", "签章", "电子签")),
     CapabilityDef("approval_inbox", "待办中心", "流程审批", "ListWidget", "approval",
                     "", ("待办", "已办", "inbox", "案件", "进度跟踪", "跟踪")),
     CapabilityDef("chart_dashboard", "数据看板", "可视化", "DashboardWidget", "report",

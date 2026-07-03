@@ -163,3 +163,17 @@ export function IconInbox({ size = 18, ...p }: P) {
     </svg>
   )
 }
+
+export function IconStamp({ size = 18, ...p }: P) {
+  const a = s(size)
+  return (
+    <svg {...a} {...p}>
+      <path d="M5 22h14" />
+      <path d="M6 18v2" />
+      <path d="M18 18v2" />
+      <path d="M8 14h8" />
+      <circle cx="12" cy="10" r="6" />
+      <path d="M12 6v1M12 13v1M9 10h1M14 10h1" />
+    </svg>
+  )
+}
