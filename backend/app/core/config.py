@@ -6,7 +6,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
     app_name: str = "TrackChat PaaS API"
-    app_version: str = "1.2.1"
+    app_version: str = "1.2.2"
     api_prefix: str = "/api/v1"
     cors_origins: str = "http://localhost:5173,http://127.0.0.1:5173,http://localhost:5174,http://127.0.0.1:5174,http://101.32.209.251,http://101.32.209.251/admin"
 
@@ -31,6 +31,26 @@ class Settings(BaseSettings):
     otp_debug_expose: bool = True
 
     uploads_dir: str = "uploads"
+
+    # Redis（D5：限流 / OTP 缓存；未配置时回退内存）
+    redis_url: str = "redis://127.0.0.1:6379/0"
+    rate_limit_enabled: bool = True
+
+    # 腾讯云 COS（生产上传；未配置时走本地 uploads/）
+    cos_secret_id: str = ""
+    cos_secret_key: str = ""
+    cos_region: str = "ap-guangzhou"
+    cos_bucket: str = ""
+    cos_cdn_base_url: str = ""
+
+    # 邮件（QQ SMTP，参考 D:\product\邮件模板\发送邮件的js.txt）
+    smtp_enabled: bool = False
+    smtp_host: str = "smtp.qq.com"
+    smtp_port: int = 465
+    smtp_user: str = ""
+    smtp_password: str = ""
+    smtp_from_name: str = "积木仓 BlockHub"
+    publish_email_enabled: bool = True
 
     @field_validator("database_url")
     @classmethod

@@ -55,6 +55,47 @@ function sourceLabel(source?: string) {
   return '按行业'
 }
 
+function deliverLabel(deliver?: string) {
+  if (deliver === 'web') return '网页版'
+  if (deliver === 'app') return 'App'
+  return '双端'
+}
+
+function AppIcon({ app }: { app: CreatedApp }) {
+  const color = app.primary_color || '#4338ca'
+  const size = 48
+  if (app.icon_url) {
+    return (
+      <img
+        src={app.icon_url}
+        alt=""
+        width={size}
+        height={size}
+        style={{ borderRadius: 12, objectFit: 'cover', flexShrink: 0 }}
+      />
+    )
+  }
+  return (
+    <span
+      style={{
+        width: size,
+        height: size,
+        borderRadius: 12,
+        background: color,
+        color: '#fff',
+        display: 'grid',
+        placeItems: 'center',
+        fontWeight: 700,
+        fontSize: 20,
+        flexShrink: 0,
+      }}
+      aria-hidden
+    >
+      {(app.name || '应').slice(0, 1)}
+    </span>
+  )
+}
+
 function AppCard({ app }: { app: CreatedApp }) {
   const webUrl = appWebUrl(app)
   const downloadUrl = appDownloadUrl(app)
@@ -67,27 +108,34 @@ function AppCard({ app }: { app: CreatedApp }) {
     <article className="created-app-card">
       <div className="created-app-main">
         <div className="created-app-head">
-          <h3>{app.name}</h3>
-          <span className="badge-active">{app.status || 'published'}</span>
+          <AppIcon app={app} />
+          <div>
+            <h3>{app.name}</h3>
+            <span className="badge-active">{app.status || 'published'}</span>
+          </div>
         </div>
         <p className="created-app-meta">
-          {sourceLabel(app.source)} · {app.industry_key} · {app.scenarios.length} 个场景
+          {sourceLabel(app.source)} · {deliverLabel(app.deliver)} · {app.industry_key} · {app.scenarios.length} 个场景
           · {new Date(app.created_at).toLocaleString('zh-CN')}
         </p>
         <p className="created-app-features">
           <strong>功能介绍：</strong>{featureText || '智能问答 · 审批流 · 知识库'}
         </p>
         <div className="created-app-links">
-          <div className="created-app-link-row">
-            <span>网页访问</span>
-            <a href={webUrl} target="_blank" rel="noreferrer">{webUrl}</a>
-            <button type="button" onClick={() => navigator.clipboard.writeText(webUrl)}>复制</button>
-          </div>
-          <div className="created-app-link-row">
-            <span>下载链接</span>
-            <a href={downloadUrl} target="_blank" rel="noreferrer">{downloadUrl}</a>
-            <button type="button" onClick={() => navigator.clipboard.writeText(downloadUrl)}>复制</button>
-          </div>
+          {(app.deliver === 'web' || app.deliver === 'both' || !app.deliver) && (
+            <div className="created-app-link-row">
+              <span>网页访问</span>
+              <a href={webUrl} target="_blank" rel="noreferrer">{webUrl}</a>
+              <button type="button" onClick={() => navigator.clipboard.writeText(webUrl)}>复制</button>
+            </div>
+          )}
+          {(app.deliver === 'app' || app.deliver === 'both' || !app.deliver) && (
+            <div className="created-app-link-row">
+              <span>APK 下载</span>
+              <a href={downloadUrl} target="_blank" rel="noreferrer">{downloadUrl}</a>
+              <button type="button" onClick={() => navigator.clipboard.writeText(downloadUrl)}>复制</button>
+            </div>
+          )}
         </div>
       </div>
       <div className="created-app-qr">

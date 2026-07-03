@@ -2,15 +2,17 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { PublishResult } from '../data/constants'
 import { ADMIN_URL } from '../data/constants'
-import { LOGO } from '../data/brand'
 import type { AudienceSelection } from '../data/plazaAudience'
 import { audienceAtLabel } from '../data/plazaAudience'
 import { pickPhonePreviewModules, widgetTint } from '../data/publishDisplay'
+import AppIconAvatar from './AppIconAvatar'
 import { getPlazaPostForApp, publishToPlazaFeed } from '../lib/plazaFeedStorage'
 import type { PlazaAudienceMeta } from '../lib/myAppsStorage'
 import { ROUTES } from '../routes/paths'
 import PlazaAudiencePicker from './PlazaAudiencePicker'
+import PublishDeliveryLinks from './PublishDeliveryLinks'
 import { DynamicIcon } from './icons'
+import { deliverLabel, normalizeDeliver, showWebDeliver } from '../data/deliverDisplay'
 
 interface Props {
   result: PublishResult
@@ -70,7 +72,8 @@ export default function PublishSuccessCard({
 
   const visibleChips = chipModules.slice(0, MAX_CHIPS)
   const extraChipCount = chipModules.length - visibleChips.length
-  const downloadUrl = result.downloadUrl || `${result.webUrl}/download`
+  const deliverMode = normalizeDeliver(result.deliver)
+  const qrTarget = showWebDeliver(result) ? result.webUrl : (result.downloadUrl || `${result.webUrl}/download`)
 
   const handlePlazaConfirm = (selection: AudienceSelection) => {
     publishToPlazaFeed(result, selection)
@@ -89,14 +92,33 @@ export default function PublishSuccessCard({
   return (
     <article className={`publish-success-card${compact ? ' compact' : ''}`}>
       <header className="publish-result-head">
-        <img src={LOGO.mark} alt="" width={36} height={36} className="publish-result-logo" />
+        <AppIconAvatar
+          name={result.appName}
+          iconUrl={result.iconUrl}
+          primaryColor={result.primaryColor}
+          size={36}
+          className="publish-result-logo"
+        />
         <div>
           <h3>{compact ? result.appName : '发布成功'}</h3>
           <p className="modal-sub publish-result-sub">
-            {result.appName} · {result.moduleCount} 项功能
+            {result.appName} · {result.moduleCount} 项功能 · {deliverLabel(deliverMode)}
           </p>
         </div>
       </header>
+
+      {result.contactEmail && (
+        <div className={`publish-email-strip${result.emailSent ? ' sent' : ''}`} role="status">
+          <DynamicIcon name="web" size={14} />
+          <span>
+            {result.emailSent
+              ? <>访问链接已发送至 <strong>{result.contactEmail}</strong>（含网页{result.deliver !== 'web' ? '与 APK 附件' : ''}）</>
+              : result.emailConfigured === false
+                ? <>邮件服务未配置，链接未发送。请复制下方地址手动分享。</>
+                : <>邮件发送失败，请复制下方链接手动分享给 <strong>{result.contactEmail}</strong></>}
+          </span>
+        </div>
+      )}
 
       {plazaMeta && (
         <div className="plaza-published-strip" role="status">
@@ -130,8 +152,11 @@ export default function PublishSuccessCard({
 
         <div className="publish-result-preview-row">
           <div className="phone-preview phone-preview-compact">
-            <div className="phone-screen">
-              <div className="phone-title">{result.appName}</div>
+            <div className="phone-screen" style={{ '--phone-accent': result.primaryColor || '#4338ca' } as React.CSSProperties}>
+              <div className="phone-title-row">
+                <AppIconAvatar name={result.appName} iconUrl={result.iconUrl} primaryColor={result.primaryColor} size={22} />
+                <div className="phone-title">{result.appName}</div>
+              </div>
               {phoneWidgets.length > 0 ? (
                 phoneWidgets.map((m, i) => (
                   <div
@@ -152,29 +177,12 @@ export default function PublishSuccessCard({
             </div>
           </div>
           <div className="publish-qr-block">
-            <img className="publish-qr-img" src={qrImageUrl(result.webUrl)} alt={`${result.appName} 二维码`} width={88} height={88} />
-            <span>扫码访问</span>
+            <img className="publish-qr-img" src={qrImageUrl(qrTarget)} alt={`${result.appName} 二维码`} width={88} height={88} />
+            <span>{showWebDeliver(result) ? '扫码打开网页' : '扫码下载 App'}</span>
           </div>
         </div>
 
-        <div className="publish-links publish-links-compact">
-          <div className="link-row">
-            <span className="link-row-label">
-              <DynamicIcon name="web" size={14} />
-              网页
-            </span>
-            <code>{result.webUrl}</code>
-            <button type="button" onClick={() => navigator.clipboard.writeText(result.webUrl)}>复制</button>
-          </div>
-          <div className="link-row">
-            <span className="link-row-label">
-              <DynamicIcon name="android" size={14} />
-              下载
-            </span>
-            <code>{downloadUrl}</code>
-            <button type="button" onClick={() => navigator.clipboard.writeText(downloadUrl)}>复制</button>
-          </div>
-        </div>
+        <PublishDeliveryLinks result={result} />
       </div>
 
       {showPicker && (

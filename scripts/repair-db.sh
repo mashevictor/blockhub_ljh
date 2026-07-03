@@ -30,6 +30,10 @@ def has_column(table: str, col: str) -> bool:
 def schema_revision() -> str | None:
     if not has_table("users"):
         return None
+    if has_column("apps", "icon_url"):
+        return "007"
+    if has_column("tenants", "config_json"):
+        return "006"
     if has_table("contracts"):
         return "005"
     has_phone = has_column("users", "phone")
@@ -60,6 +64,8 @@ checks = [
     ("catalog_office_scenarios", has_table("catalog_office_scenarios")),
     ("catalog_hero_presets", has_table("catalog_hero_presets")),
     ("contracts", has_table("contracts")),
+    ("tenants.config_json", has_column("tenants", "config_json")),
+    ("apps.icon_url", has_column("apps", "icon_url")),
 ]
 for label, ok in checks:
     print(f"  {label}: {'OK' if ok else 'MISSING'}")

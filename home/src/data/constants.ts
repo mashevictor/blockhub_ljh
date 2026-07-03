@@ -73,6 +73,8 @@ export interface PublishResult {
   appQr: string
   downloadUrl?: string
   appName: string
+  iconUrl?: string
+  primaryColor?: string
   moduleCount: number
   /** 本次应用实际包含的模块/场景（用于发布弹窗展示） */
   modules: PublishedModuleItem[]
@@ -80,6 +82,10 @@ export interface PublishResult {
   appId?: string
   schemaUrl?: string
   source?: string
+  deliver?: 'web' | 'app' | 'both' | string
+  contactEmail?: string
+  emailSent?: boolean
+  emailConfigured?: boolean
 }
 
 export interface PublishedModuleItem {

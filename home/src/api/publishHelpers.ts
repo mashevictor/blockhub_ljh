@@ -6,6 +6,9 @@ export interface PublishResultOptions {
   moduleCount?: number
   modules?: PublishedModuleItem[]
   scenarios?: string[]
+  contactEmail?: string
+  emailSent?: boolean
+  emailConfigured?: boolean
 }
 
 export function createdAppToPublishResult(app: CreatedApp, opts: PublishResultOptions = {}): PublishResult {
@@ -24,6 +27,8 @@ export function createdAppToPublishResult(app: CreatedApp, opts: PublishResultOp
 
   return {
     appName: app.name,
+    iconUrl: app.icon_url,
+    primaryColor: app.primary_color,
     webUrl,
     downloadUrl,
     appQr,
@@ -33,5 +38,9 @@ export function createdAppToPublishResult(app: CreatedApp, opts: PublishResultOp
     appId: app.id,
     schemaUrl: app.schema_url,
     source: app.source,
+    deliver: (app.deliver as PublishResult['deliver']) ?? 'both',
+    contactEmail: opts.contactEmail,
+    emailSent: opts.emailSent,
+    emailConfigured: opts.emailConfigured,
   }
 }

@@ -4,6 +4,7 @@ import type { PublishResult } from '../data/constants'
 import { loadMyApps, removeMyApp, type StoredMyApp } from '../lib/myAppsStorage'
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock'
 import { IconLayers, IconGlobe } from './icons'
+import AppIconAvatar from './AppIconAvatar'
 
 interface Props {
   onClose: () => void
@@ -57,6 +58,12 @@ export default function MyAppsPanel({ onClose, onOpenApp }: Props) {
           <ul className="my-apps-list">
             {apps.map((app) => (
               <li key={app.appId || app.webUrl} className="my-apps-item">
+                <AppIconAvatar
+                  name={app.appName}
+                  iconUrl={app.iconUrl}
+                  primaryColor={app.primaryColor}
+                  size={40}
+                />
                 <div className="my-apps-item-main">
                   <strong>{app.appName}</strong>
                   <span className="my-apps-meta">

@@ -7,6 +7,8 @@ import { useTheme } from '../context/ThemeContext'
 import { MODULE_ICON_KEYS, iconWrapStyle, moduleColor } from '../data/iconPalette'
 import { buildPublishedModulesFromWidgets } from '../data/publishDisplay'
 import ContactGateModal, { type ContactInfo } from '../components/ContactGateModal'
+import AppBrandingFields from '../components/AppBrandingFields'
+import { emptyBranding } from '../data/appBranding'
 
 interface Props {
   onPublish: (r: PublishResult) => void
@@ -30,6 +32,7 @@ export default function ModuleView({ onPublish }: Props) {
   const [loading, setLoading] = useState(false)
   const [publishError, setPublishError] = useState<string | null>(null)
   const [contactOpen, setContactOpen] = useState(false)
+  const [branding, setBranding] = useState(() => emptyBranding('模块组装应用'))
 
   const loadModules = () => {
     setModulesLoading(true)
@@ -75,7 +78,7 @@ export default function ModuleView({ onPublish }: Props) {
     setLoading(true)
     setPublishError(null)
     try {
-      const res = await publishApp('模块组装应用', 'office', {
+      const res = await publishApp(branding.appName || '模块组装应用', 'office', {
         scenarioNames: widgets.map((w) => w.name),
         capabilityKeys: widgets.map((w) => w.key),
         modules: publishedModules.map((m) => ({
@@ -87,6 +90,8 @@ export default function ModuleView({ onPublish }: Props) {
         })),
         deliver: device,
         source: 'module',
+        iconUrl: branding.iconUrl,
+        primaryColor: branding.primaryColor,
         contactEmail: contact.type === 'email' ? contact.value : undefined,
         contactPhone: contact.type === 'phone' ? contact.value : undefined,
       })
@@ -94,6 +99,9 @@ export default function ModuleView({ onPublish }: Props) {
         moduleCount: publishedModules.length,
         modules: publishedModules,
         scenarios: widgets.map((w) => w.name),
+        contactEmail: res.notification?.email,
+        emailSent: res.notification?.email_sent,
+        emailConfigured: res.notification?.email_configured,
       }))
       setWidgets([])
       setDevice('both')
@@ -187,6 +195,7 @@ export default function ModuleView({ onPublish }: Props) {
             <div><dt>发布形式</dt><dd>{device === 'web' ? '网页版' : device === 'app' ? '手机 App' : '网页 + 手机'}</dd></div>
             <div><dt>界面风格</dt><dd>{device === 'app' ? '简洁单列' : '完整工作台'}</dd></div>
           </dl>
+          <AppBrandingFields value={branding} onChange={setBranding} compact />
           <button type="button" className="btn-primary full" disabled={!widgets.length || loading} onClick={handlePublish}>
             {loading ? '发布中…' : '发布应用'}
           </button>

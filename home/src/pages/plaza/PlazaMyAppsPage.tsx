@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import PublishSuccessCard from '../../components/PublishSuccessCard'
 import PlazaModuleFlowPanel from '../../components/plaza/PlazaModuleFlowPanel'
 import { IconGlobe, IconLayers } from '../../components/icons'
+import AppIconAvatar from '../../components/AppIconAvatar'
 import type { PublishResult } from '../../data/constants'
 import { fetchMe, type AuthUser } from '../../auth/session'
 import { getToken } from '../../auth/storage'
@@ -119,6 +120,12 @@ export default function PlazaMyAppsPage() {
               return (
                 <li key={key} className={`plaza-my-item${expanded ? ' expanded' : ''}`}>
                   <div className="plaza-my-item-row">
+                    <AppIconAvatar
+                      name={app.appName}
+                      iconUrl={app.iconUrl}
+                      primaryColor={app.primaryColor}
+                      size={44}
+                    />
                     <div className="plaza-my-item-main">
                       <strong>{app.appName}</strong>
                       <span className="plaza-my-meta">

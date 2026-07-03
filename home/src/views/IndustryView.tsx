@@ -8,6 +8,8 @@ import { categoryColor, industryColor, iconWrapStyle } from '../data/iconPalette
 import { resolveCategoryIcon, resolveIndustryApiKey } from '../data/showcase'
 import { buildPublishedModulesFromIndustry } from '../data/publishDisplay'
 import ContactGateModal, { type ContactInfo } from '../components/ContactGateModal'
+import AppBrandingFields from '../components/AppBrandingFields'
+import { emptyBranding, resolveAppName } from '../data/appBranding'
 
 interface SceneItem {
   id: string
@@ -32,6 +34,7 @@ export default function IndustryView({ onPublish }: Props) {
   const [publishError, setPublishError] = useState<string | null>(null)
   const [contactOpen, setContactOpen] = useState(false)
   const [appName, setAppName] = useState('我的行业应用')
+  const [branding, setBranding] = useState(() => emptyBranding('我的行业应用'))
 
   const loadScenes = () => {
     const apiKey = resolveIndustryApiKey(industry)
@@ -83,7 +86,7 @@ export default function IndustryView({ onPublish }: Props) {
     setLoading(true)
     setPublishError(null)
     try {
-      const res = await publishApp(appName, resolveIndustryApiKey(industry), {
+      const res = await publishApp(resolveAppName(branding.appName, appName), resolveIndustryApiKey(industry), {
         scenarioIds: [...selected],
         scenarioNames,
         capabilityKeys: publishedModules.filter((m) => m.kind === 'module').map((m) => m.key),
@@ -96,6 +99,8 @@ export default function IndustryView({ onPublish }: Props) {
         })),
         audience,
         source: 'industry',
+        iconUrl: branding.iconUrl,
+        primaryColor: branding.primaryColor,
         contactEmail: contact.type === 'email' ? contact.value : undefined,
         contactPhone: contact.type === 'phone' ? contact.value : undefined,
       })
@@ -103,12 +108,16 @@ export default function IndustryView({ onPublish }: Props) {
         moduleCount: publishedModules.length,
         modules: publishedModules,
         scenarios: scenarioNames,
+        contactEmail: res.notification?.email,
+        emailSent: res.notification?.email_sent,
+        emailConfigured: res.notification?.email_configured,
       }))
       setIndustry('office')
       setStep(1)
       setSelected(new Set())
       setAudience('b')
       setAppName('我的行业应用')
+      setBranding(emptyBranding('我的行业应用'))
     } catch {
       setPublishError('发布失败，请确认已登录且 API 可用')
     } finally {
@@ -235,11 +244,12 @@ export default function IndustryView({ onPublish }: Props) {
               </label>
             ))}
           </div>
-          <input
-            className="input-field"
-            value={appName}
-            onChange={(e) => setAppName(e.target.value)}
-            placeholder="应用名称"
+          <AppBrandingFields
+            value={{ ...branding, appName: branding.appName || appName }}
+            onChange={(next) => {
+              setBranding(next)
+              if (next.appName) setAppName(next.appName)
+            }}
           />
           <div className="step-actions">
             <button type="button" className="btn-ghost" onClick={() => setStep(2)}>上一步</button>

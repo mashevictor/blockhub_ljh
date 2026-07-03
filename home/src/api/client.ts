@@ -130,6 +130,8 @@ export interface PublishOptions {
   prompt?: string
   contactEmail?: string
   contactPhone?: string
+  iconUrl?: string
+  primaryColor?: string
 }
 
 export interface CreatedApp {
@@ -141,6 +143,8 @@ export interface CreatedApp {
   web_url?: string
   download_url?: string
   app_qr?: string
+  icon_url?: string
+  primary_color?: string
   status: string
   created_at: string
   audience?: string
@@ -161,7 +165,11 @@ export async function publishApp(
   industryKey: string,
   opts: PublishOptions = {},
 ) {
-  const res = await api.post<{ success: boolean; app: CreatedApp }>('/creation/publish', {
+  const res = await api.post<{
+    success: boolean
+    app: CreatedApp
+    notification?: { email?: string; email_sent?: boolean; email_configured?: boolean }
+  }>('/creation/publish', {
     name,
     industry_key: industryKey,
     scenario_ids: opts.scenarioIds ?? [],
@@ -180,8 +188,17 @@ export async function publishApp(
     prompt: opts.prompt ?? '',
     contact_email: opts.contactEmail ?? '',
     contact_phone: opts.contactPhone ?? '',
+    icon_url: opts.iconUrl ?? '',
+    primary_color: opts.primaryColor ?? '#4338ca',
   })
   return res.data
+}
+
+export async function uploadAppIcon(dataUrl: string) {
+  const res = await api.post<{ success: boolean; icon_url: string }>('/creation/upload-icon', {
+    data_url: dataUrl,
+  })
+  return res.data.icon_url
 }
 
 export async function fetchCreatedApps() {

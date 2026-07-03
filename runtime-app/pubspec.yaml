@@ -1,0 +1,29 @@
+name: trackchat_runtime_app
+description: TrackChat Flutter runtime — configurable app name, icon, tenant config.
+publish_to: "none"
+version: 0.1.0+1
+
+environment:
+  sdk: ">=3.3.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  dio: ^5.7.0
+  shared_preferences: ^2.3.3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+  flutter_launcher_icons: ^0.14.2
+
+flutter:
+  uses-material-design: true
+
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: "branding/icon.png"
+  adaptive_icon_background: "#4338ca"
+  adaptive_icon_foreground: "branding/icon.png"

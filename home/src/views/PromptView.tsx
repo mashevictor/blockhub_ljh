@@ -19,7 +19,9 @@ import SelectionBox, { type SelectionItem } from '../components/SelectionBox'
 import AgentInput, { type AgentPick } from '../components/AgentInput'
 import PromptSuggestBar from '../components/PromptSuggestBar'
 import ContactGateModal, { type ContactInfo } from '../components/ContactGateModal'
+import AppBrandingFields from '../components/AppBrandingFields'
 import GenerateLoadingOverlay, { type GeneratePhase } from '../components/GenerateLoadingOverlay'
+import { emptyBranding, resolveAppName } from '../data/appBranding'
 import { moduleId, pickToModule, type PromptModule } from '../components/agentInputLogic'
 import { PROMPT_CHIPS, type PublishResult } from '../data/constants'
 import { findChipTemplate, pickWithMeta, resolveAppBundle, composeLogicalPrompt, mergePromptText, splitPromptText } from '../data/appAssembly'
@@ -87,6 +89,7 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone }: Pr
   const [pendingPreset, setPendingPreset] = useState<RolePreset | null>(null)
   const [catalogLoading, setCatalogLoading] = useState(true)
   const [deliver, setDeliver] = useState<'web' | 'app' | 'both'>('both')
+  const [branding, setBranding] = useState(() => emptyBranding())
   const [summary, setSummary] = useState<CatalogSummary | null>(null)
   const [officeAll, setOfficeAll] = useState<CatalogScenario[]>([])
   const [industryAll, setIndustryAll] = useState<CatalogScenario[]>([])
@@ -504,7 +507,7 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone }: Pr
     setGeneratePhase('publish')
     setPublishError(null)
     try {
-      const res = await publishApp(bundle.appName, bundle.industryKey, {
+      const res = await publishApp(resolveAppName(branding.appName, bundle.appName), bundle.industryKey, {
         scenarioIds: bundle.scenarioIds,
         scenarioNames: bundle.scenarioNames,
         capabilityKeys: publishedModules.filter((m) => m.kind === 'module' || m.kind === 'capability').map((m) => m.key),
@@ -518,6 +521,8 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone }: Pr
         deliver,
         source: 'prompt',
         prompt: bundle.promptText,
+        iconUrl: branding.iconUrl,
+        primaryColor: branding.primaryColor,
         contactEmail: contact.type === 'email' ? contact.value : undefined,
         contactPhone: contact.type === 'phone' ? contact.value : undefined,
       })
@@ -525,6 +530,9 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone }: Pr
         moduleCount: publishedModules.length,
         modules: publishedModules,
         scenarios: bundle.scenarioNames,
+        contactEmail: res.notification?.email,
+        emailSent: res.notification?.email_sent,
+        emailConfigured: res.notification?.email_configured,
       }))
       clearAll()
     } catch {
@@ -532,7 +540,7 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone }: Pr
     } finally {
       setGeneratePhase(null)
     }
-  }, [deliver, onPublish, clearAll])
+  }, [deliver, onPublish, clearAll, branding])
 
   const executePresetGenerate = useCallback(async (preset: RolePreset, contact: ContactInfo) => {
     const picks = buildModulesFromPreset(preset)
@@ -682,6 +690,18 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone }: Pr
           onApplyPreview={applyEnhancedPreview}
           usedLlm={suggestUsedLlm}
         />
+        {promptModules.length > 0 && (
+          <div className="prompt-branding-wrap">
+            <AppBrandingFields
+              value={{
+                ...branding,
+                appName: branding.appName || resolvedBundle?.appName || '',
+              }}
+              onChange={setBranding}
+              compact
+            />
+          </div>
+        )}
         <div className="prompt-footer">
           <div className="prompt-meta">
             {composedFromModules && (

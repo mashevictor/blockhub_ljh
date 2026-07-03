@@ -4598,8 +4598,60 @@ html[data-theme="monochrome-business"] .brand em.brand-en {
 .my-apps-empty-hint { font-size: 12px; margin-top: 6px; }
 .my-apps-list { list-style: none; margin: 0 0 16px; padding: 0; display: flex; flex-direction: column; gap: 10px; }
 .my-apps-item {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
   border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px;
   background: color-mix(in srgb, var(--surface) 92%, var(--pri-soft));
+}
+.plaza-my-item-row { display: flex; gap: 12px; align-items: flex-start; width: 100%; }
+.plaza-my-item-main { flex: 1; min-width: 0; }
+.app-branding-fields {
+  display: flex; flex-direction: column; gap: 12px; margin: 12px 0;
+  padding: 12px; border-radius: 12px; border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 94%, var(--pri-soft));
+}
+.app-branding-fields.compact { margin: 8px 0; padding: 10px; gap: 10px; }
+.app-branding-label { display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: var(--muted); }
+.app-branding-label-text { font-size: 12px; color: var(--muted); display: block; margin-bottom: 6px; }
+.app-branding-row { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start; }
+.app-branding-icon-block { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+.app-branding-icon-preview {
+  width: 48px; height: 48px; border-radius: 12px; color: #fff;
+  display: grid; place-items: center; font-weight: 700; font-size: 20px; overflow: hidden;
+}
+.app-branding-icon-preview img { width: 100%; height: 100%; object-fit: cover; }
+.app-branding-color { flex: 1; min-width: 160px; }
+.app-branding-color-row { display: flex; gap: 8px; align-items: center; }
+.app-branding-color-row input[type="color"] { width: 40px; height: 36px; padding: 2px; border: none; background: transparent; cursor: pointer; }
+.prompt-branding-wrap { margin-top: 8px; }
+.phone-title-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.phone-title-row .phone-title { margin: 0; font-size: 13px; font-weight: 700; }
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+}
+.publish-apk-hint {
+  font-size: 11px; color: var(--muted); margin: 4px 0 0;
+  line-height: 1.5;
+}
+.publish-apk-hint code { font-size: 10px; background: #f3f4f6; padding: 1px 4px; border-radius: 4px; }
+.publish-deliver-badges { margin-bottom: 10px; }
+.publish-deliver-badge {
+  display: inline-block; font-size: 11px; font-weight: 600;
+  padding: 4px 10px; border-radius: 999px;
+  background: var(--pri-soft); color: var(--pri-dark); border: 1px solid var(--pri-light);
+}
+.publish-deliver-badge.mode-web { background: #eef2ff; color: #4338ca; border-color: #c7d2fe; }
+.publish-deliver-badge.mode-app { background: #ecfdf5; color: #059669; border-color: #a7f3d0; }
+.publish-deliver-badge.mode-both { background: #fdf4ff; color: #7c3aed; border-color: #e9d5ff; }
+.publish-email-strip {
+  display: flex; gap: 8px; align-items: flex-start;
+  margin: 0 0 12px; padding: 10px 12px; border-radius: 10px;
+  font-size: 12px; color: #92400e; background: #fffbeb; border: 1px solid #fde68a;
+}
+.publish-email-strip.sent {
+  color: #065f46; background: #ecfdf5; border-color: #a7f3d0;
 }
 .my-apps-item-main strong { display: block; font-size: 14px; margin-bottom: 4px; }
 .my-apps-meta { display: block; font-size: 11px; color: var(--muted); margin-bottom: 6px; }

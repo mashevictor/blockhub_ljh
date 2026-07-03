@@ -5,9 +5,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import OperationalError
 
-from app.api.v1 import agents, approvals, auth, catalog, chat, contracts, creation, health, kb, notifications, reports, seed, stats
+from app.api.v1 import agents, approvals, auth, catalog, chat, contracts, creation, health, kb, notifications, reports, runtime, seed, stats, tenant
 from app.core.config import settings
 from app.core.deps import get_current_user, require_admin
+from app.core.rate_limit import RateLimitMiddleware
 from app.db.session import SessionLocal
 from app.services.catalog_seed import ensure_catalog_seeded
 from app.services.db_seed import ensure_seed_data
@@ -32,6 +33,8 @@ async def lifespan(_: FastAPI):
 
 app = FastAPI(title=settings.app_name, version=settings.app_version, lifespan=lifespan)
 
+app.add_middleware(RateLimitMiddleware)
+
 
 @app.exception_handler(OperationalError)
 async def database_unavailable(_: Request, __: OperationalError) -> JSONResponse:
@@ -53,6 +56,8 @@ _auth = [Depends(get_current_user)]
 _admin = [Depends(require_admin)]
 
 app.include_router(health.router, prefix=settings.api_prefix)
+app.include_router(tenant.router, prefix=settings.api_prefix)
+app.include_router(runtime.router, prefix=settings.api_prefix)
 app.include_router(auth.router, prefix=settings.api_prefix)
 app.include_router(catalog.router, prefix=settings.api_prefix)
 app.include_router(seed.router, prefix=settings.api_prefix, dependencies=_admin)

@@ -2,9 +2,11 @@ import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { PublishResult } from '../data/constants'
 import { ADMIN_URL } from '../data/constants'
-import { LOGO } from '../data/brand'
+import AppIconAvatar from './AppIconAvatar'
 import { pickPhonePreviewModules, widgetTint } from '../data/publishDisplay'
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock'
+import PublishDeliveryLinks from './PublishDeliveryLinks'
+import { deliverLabel, normalizeDeliver, showWebDeliver } from '../data/deliverDisplay'
 import { DynamicIcon } from './icons'
 
 interface Props {
@@ -47,7 +49,8 @@ export default function PublishModal({ result, onClose, showAdminLink = false, s
 
   const visibleChips = chipModules.slice(0, MAX_CHIPS)
   const extraChipCount = chipModules.length - visibleChips.length
-  const downloadUrl = result.downloadUrl || `${result.webUrl}/download`
+  const deliverMode = normalizeDeliver(result.deliver)
+  const qrTarget = showWebDeliver(result) ? result.webUrl : (result.downloadUrl || `${result.webUrl}/download`)
 
   if (!mounted) return null
 
@@ -57,11 +60,17 @@ export default function PublishModal({ result, onClose, showAdminLink = false, s
         <button type="button" className="modal-close" onClick={onClose} aria-label="关闭">×</button>
 
         <header className="publish-result-head">
-          <img src={LOGO.mark} alt="" width={36} height={36} className="publish-result-logo" />
+          <AppIconAvatar
+            name={result.appName}
+            iconUrl={result.iconUrl}
+            primaryColor={result.primaryColor}
+            size={36}
+            className="publish-result-logo"
+          />
           <div>
             <h3>发布成功</h3>
             <p className="modal-sub publish-result-sub">
-              {result.appName} · {result.moduleCount} 项功能
+              {result.appName} · {result.moduleCount} 项功能 · {deliverLabel(deliverMode)}
             </p>
           </div>
         </header>
@@ -93,8 +102,11 @@ export default function PublishModal({ result, onClose, showAdminLink = false, s
 
           <div className="publish-result-preview-row">
             <div className="phone-preview phone-preview-compact">
-              <div className="phone-screen">
-                <div className="phone-title">{result.appName}</div>
+              <div className="phone-screen" style={{ '--phone-accent': result.primaryColor || '#4338ca' } as React.CSSProperties}>
+                <div className="phone-title-row">
+                  <AppIconAvatar name={result.appName} iconUrl={result.iconUrl} primaryColor={result.primaryColor} size={22} />
+                  <div className="phone-title">{result.appName}</div>
+                </div>
                 {phoneWidgets.length > 0 ? (
                   phoneWidgets.map((m, i) => (
                     <div
@@ -115,29 +127,12 @@ export default function PublishModal({ result, onClose, showAdminLink = false, s
               </div>
             </div>
             <div className="publish-qr-block">
-              <img className="publish-qr-img" src={qrImageUrl(result.webUrl)} alt={`${result.appName} 二维码`} width={88} height={88} />
-              <span>扫码访问</span>
+              <img className="publish-qr-img" src={qrImageUrl(qrTarget)} alt={`${result.appName} 二维码`} width={88} height={88} />
+              <span>{showWebDeliver(result) ? '扫码打开网页' : '扫码下载 App'}</span>
             </div>
           </div>
 
-          <div className="publish-links publish-links-compact">
-            <div className="link-row">
-              <span className="link-row-label">
-                <DynamicIcon name="web" size={14} />
-                网页
-              </span>
-              <code>{result.webUrl}</code>
-              <button type="button" onClick={() => navigator.clipboard.writeText(result.webUrl)}>复制</button>
-            </div>
-            <div className="link-row">
-              <span className="link-row-label">
-                <DynamicIcon name="android" size={14} />
-                下载
-              </span>
-              <code>{downloadUrl}</code>
-              <button type="button" onClick={() => navigator.clipboard.writeText(downloadUrl)}>复制</button>
-            </div>
-          </div>
+          <PublishDeliveryLinks result={result} />
         </div>
 
         <footer className="publish-result-foot">

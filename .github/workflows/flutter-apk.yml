@@ -1,0 +1,116 @@
+name: Flutter APK Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      app_name:
+        description: App display name
+        required: true
+        default: TrackChat Demo
+      tenant_slug:
+        description: Tenant slug for GET /tenant/config
+        required: true
+        default: demo
+      api_base_url:
+        description: API base URL (with /api/v1)
+        required: true
+        default: http://101.32.209.251/api/v1
+      primary_color:
+        description: Theme color hex
+        required: false
+        default: "#4338CA"
+      icon_url:
+        description: Optional icon PNG URL
+        required: false
+        default: ""
+      app_public_id:
+        description: Optional published app public_id (per-app APK filename)
+        required: false
+        default: ""
+  push:
+    branches: [main]
+    paths:
+      - "runtime-app/**"
+      - "scripts/flutter-build-apk.sh"
+      - ".github/workflows/flutter-apk.yml"
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: runtime-app
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install Pillow (icon placeholder)
+        run: pip install pillow
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Bootstrap Android project
+        run: |
+          if [ ! -f android/local.properties ]; then
+            flutter create . --platforms=android --org com.trackchat.runtime
+          fi
+
+      - name: Prepare branding icon
+        env:
+          ICON_URL: ${{ github.event.inputs.icon_url || '' }}
+        run: |
+          mkdir -p branding
+          if [ -n "$ICON_URL" ]; then
+            curl -fsSL "$ICON_URL" -o branding/icon.png
+          elif [ ! -f branding/icon.png ]; then
+            python3 - <<'PY'
+          from PIL import Image, ImageDraw
+          img = Image.new("RGB", (512, 512), "#4338CA")
+          draw = ImageDraw.Draw(img)
+          draw.ellipse((96, 96, 416, 416), fill="#ffffff")
+          draw.text((210, 220), "T", fill="#4338CA")
+          img.save("branding/icon.png")
+          PY
+          fi
+          dart run flutter_launcher_icons
+
+      - name: Build release APK
+        env:
+          APP_NAME: ${{ github.event.inputs.app_name || 'TrackChat Demo' }}
+          TENANT_SLUG: ${{ github.event.inputs.tenant_slug || 'demo' }}
+          API_BASE_URL: ${{ github.event.inputs.api_base_url || 'http://101.32.209.251/api/v1' }}
+          PRIMARY_COLOR: ${{ github.event.inputs.primary_color || '#4338CA' }}
+          APP_PUBLIC_ID: ${{ github.event.inputs.app_public_id || '' }}
+        run: |
+          flutter build apk --release \
+            -PappLabel="$APP_NAME" \
+            --dart-define=APP_NAME="$APP_NAME" \
+            --dart-define=APP_ID=com.trackchat.runtime \
+            --dart-define=TENANT_SLUG="$TENANT_SLUG" \
+            --dart-define=API_BASE_URL="$API_BASE_URL" \
+            --dart-define=PRIMARY_COLOR="$PRIMARY_COLOR"
+
+      - name: Stage APK for server download API
+        env:
+          APP_PUBLIC_ID: ${{ github.event.inputs.app_public_id || '' }}
+        run: |
+          APK_DIR="$GITHUB_WORKSPACE/backend/uploads/apks"
+          mkdir -p "$APK_DIR"
+          cp build/app/outputs/flutter-apk/app-release.apk "$APK_DIR/default.apk"
+          if [ -n "$APP_PUBLIC_ID" ]; then
+            cp build/app/outputs/flutter-apk/app-release.apk "$APK_DIR/${APP_PUBLIC_ID}.apk"
+          fi
+          ls -lh "$APK_DIR"
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: trackchat-runtime-${{ github.run_number }}
+          path: runtime-app/build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error

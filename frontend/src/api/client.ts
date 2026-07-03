@@ -88,6 +88,8 @@ export interface CreatedApp {
   web_url?: string
   download_url?: string
   app_qr?: string
+  icon_url?: string
+  primary_color?: string
   status: string
   created_at: string
   audience?: string

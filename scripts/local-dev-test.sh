@@ -7,7 +7,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
 echo "==> start postgres"
-docker compose up -d postgres
+docker compose up -d postgres redis
 echo "waiting for postgres..."
 for i in $(seq 1 30); do
   if docker compose exec -T postgres pg_isready -U trackchat -d trackchat >/dev/null 2>&1; then

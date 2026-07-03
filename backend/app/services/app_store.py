@@ -24,6 +24,8 @@ def app_record_to_dict(record: AppRecord) -> dict[str, Any]:
     return {
         "id": record.public_id,
         "name": record.name,
+        "icon_url": record.icon_url,
+        "primary_color": record.primary_color,
         "industry_key": record.industry_key,
         "scenarios": record.scenarios,
         "capability_keys": record.capability_keys,
@@ -59,6 +61,8 @@ def persist_published_app(
     modules: list[dict],
     user: User | None = None,
     payload: dict[str, Any] | None = None,
+    icon_url: str = "",
+    primary_color: str = "#4338ca",
 ) -> dict[str, Any]:
     tenant = user.tenant if user else _default_tenant(db)
     public_id = uuid4().hex[:8]
@@ -67,6 +71,8 @@ def persist_published_app(
         tenant_id=tenant.id,
         name=name,
         industry_key=industry_key,
+        icon_url=icon_url,
+        primary_color=primary_color or "#4338ca",
         scenarios=scenarios,
         capability_keys=capability_keys,
         modules=modules,

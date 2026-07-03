@@ -6,6 +6,9 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
+echo "==> [0/9] docker compose (postgres + redis)"
+docker compose up -d postgres redis 2>/dev/null || true
+
 echo "=========================================="
 echo " BlockHub Deploy"
 echo " Git: $(git rev-parse --short HEAD 2>/dev/null || echo unknown)"
@@ -77,15 +80,20 @@ npm run build
 cd "$ROOT/frontend"
 npm install --silent
 npm run build
+cd "$ROOT/runtime-web"
+npm install --silent
+npm run build
 
 echo "==> [7/9] copy static files (atomic, verify bundles)"
 STAGE="$(mktemp -d /tmp/blockhub-stage.XXXXXX)"
-mkdir -p "$STAGE/home" "$STAGE/admin"
+mkdir -p "$STAGE/home" "$STAGE/admin" "$STAGE/r"
 cp -r "$ROOT/home/dist/." "$STAGE/home/"
 cp -r "$ROOT/frontend/dist/." "$STAGE/admin/"
+cp -r "$ROOT/runtime-web/dist/." "$STAGE/r/"
 
 ADMIN_JS="$(find "$STAGE/admin/assets" -maxdepth 1 -name 'index-*.js' 2>/dev/null | head -1)"
 HOME_JS="$(find "$STAGE/home/assets" -maxdepth 1 -name 'index-*.js' 2>/dev/null | head -1)"
+RUNTIME_JS="$(find "$STAGE/r/assets" -maxdepth 1 -name 'index-*.js' 2>/dev/null | head -1)"
 if [ -z "$ADMIN_JS" ] || [ ! -s "$ADMIN_JS" ]; then
   echo "ERROR: admin JS bundle missing or empty — abort deploy"
   rm -rf "$STAGE"
@@ -96,16 +104,24 @@ if [ -z "$HOME_JS" ] || [ ! -s "$HOME_JS" ]; then
   rm -rf "$STAGE"
   exit 1
 fi
+if [ -z "$RUNTIME_JS" ] || [ ! -s "$RUNTIME_JS" ]; then
+  echo "ERROR: runtime-web JS bundle missing or empty — abort deploy"
+  rm -rf "$STAGE"
+  exit 1
+fi
 echo "    admin js: $(basename "$ADMIN_JS") ($(wc -c < "$ADMIN_JS") bytes)"
 echo "    home js:  $(basename "$HOME_JS") ($(wc -c < "$HOME_JS") bytes)"
+echo "    runtime js: $(basename "$RUNTIME_JS") ($(wc -c < "$RUNTIME_JS") bytes)"
 
 sudo mkdir -p /var/www/blockhub
-sudo rm -rf /var/www/blockhub/home.old /var/www/blockhub/admin.old
+sudo rm -rf /var/www/blockhub/home.old /var/www/blockhub/admin.old /var/www/blockhub/r.old
 sudo mv /var/www/blockhub/home /var/www/blockhub/home.old 2>/dev/null || true
 sudo mv /var/www/blockhub/admin /var/www/blockhub/admin.old 2>/dev/null || true
+sudo mv /var/www/blockhub/r /var/www/blockhub/r.old 2>/dev/null || true
 sudo mv "$STAGE/home" /var/www/blockhub/home
 sudo mv "$STAGE/admin" /var/www/blockhub/admin
-sudo rm -rf /var/www/blockhub/home.old /var/www/blockhub/admin.old
+sudo mv "$STAGE/r" /var/www/blockhub/r
+sudo rm -rf /var/www/blockhub/home.old /var/www/blockhub/admin.old /var/www/blockhub/r.old
 sudo chown -R www-data:www-data /var/www/blockhub
 rmdir "$STAGE" 2>/dev/null || true
 

@@ -1035,7 +1035,8 @@ html[data-theme="monochrome-business"] .app-card {
   display: flex; gap: 20px; justify-content: space-between; align-items: flex-start;
   padding: 16px; border: 1px solid var(--border); border-radius: 12px; background: var(--bg);
 }
-.created-app-head { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+.created-app-head { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
+.created-app-head > div { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .created-app-head h3 { font-size: 16px; margin: 0; }
 .created-app-meta, .created-app-features { font-size: 12px; color: var(--muted); margin: 0 0 8px; }
 .created-app-features strong { color: var(--text); }

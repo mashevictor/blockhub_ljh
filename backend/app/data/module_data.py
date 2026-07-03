@@ -60,48 +60,6 @@ CREATION_WIZARD_STEPS = [
     {"step": 4, "title": "创建完成", "key": "complete"},
 ]
 
-_created_apps: list[dict] = []
-
-
-def create_app(
-    name: str,
-    industry_key: str,
-    scenarios: list[str],
-    *,
-    audience: str = "both",
-    deliver: str = "both",
-    source: str = "industry",
-    prompt: str = "",
-    contact_email: str = "",
-    contact_phone: str = "",
-    capability_keys: list[str] | None = None,
-    modules: list[dict] | None = None,
-) -> dict:
-    app = {
-        "id": str(uuid4())[:8],
-        "name": name,
-        "industry_key": industry_key,
-        "scenarios": scenarios,
-        "capability_keys": capability_keys or [],
-        "modules": modules or [],
-        "schema_url": f"/runtime/{uuid4().hex[:8]}",
-        "status": "published",
-        "created_at": datetime.now().isoformat(),
-        "audience": audience,
-        "deliver": deliver,
-        "source": source,
-        "prompt": prompt[:500] if prompt else "",
-        "contact_email": contact_email,
-        "contact_phone": contact_phone,
-    }
-    _created_apps.insert(0, app)
-    return app
-
-
-def list_created_apps() -> list[dict]:
-    return _created_apps
-
-
 # ── 智能问答 ──────────────────────────────────────────
 
 CHAT_SUGGESTIONS = [

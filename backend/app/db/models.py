@@ -21,6 +21,7 @@ class Tenant(Base):
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
     name: Mapped[str] = mapped_column(String(120), nullable=False)
     slug: Mapped[str] = mapped_column(String(64), unique=True, nullable=False, index=True)
+    config_json: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     users: Mapped[list[User]] = relationship(back_populates="tenant")
@@ -51,6 +52,8 @@ class AppRecord(Base):
     public_id: Mapped[str] = mapped_column(String(16), unique=True, nullable=False, index=True)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenants.id"), nullable=False, index=True)
     name: Mapped[str] = mapped_column(String(200), nullable=False)
+    icon_url: Mapped[str] = mapped_column(String(512), nullable=False, default="")
+    primary_color: Mapped[str] = mapped_column(String(16), nullable=False, default="#4338ca")
     industry_key: Mapped[str] = mapped_column(String(64), nullable=False, default="office")
     scenarios: Mapped[list[Any]] = mapped_column(JSON, nullable=False, default=list)
     capability_keys: Mapped[list[Any]] = mapped_column(JSON, nullable=False, default=list)

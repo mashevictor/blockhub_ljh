@@ -76,8 +76,22 @@ if [ "$SEED_ONLY" = true ]; then
 fi
 
 echo ""
-echo "=== Health ==="
-check_json "GET /health" "$API/health" '"status"'
+echo "=== Health (D5 Redis) ==="
+HEALTH=$(curl -sf "$API/health" 2>/dev/null || echo "")
+if echo "$HEALTH" | grep -q '"status"'; then ok "GET /health status"; else bad "GET /health"; fi
+if echo "$HEALTH" | grep -q '"redis":"ok"'; then
+  ok "redis ping ok"
+elif echo "$HEALTH" | grep -q '"redis":"unavailable"'; then
+  ok "redis field present (unavailable — start: docker compose up -d redis)"
+else
+  bad "health missing redis field ($HEALTH)"
+fi
+
+echo ""
+echo "=== Tenant config (D6) ==="
+TENANT_CFG=$(curl -sf "$API/tenant/config?tenant=demo" 2>/dev/null || echo "")
+if echo "$TENANT_CFG" | grep -q '"tenant_slug":"demo"'; then ok "GET /tenant/config"; else bad "GET /tenant/config ($TENANT_CFG)"; fi
+if echo "$TENANT_CFG" | grep -q '"app_name"'; then ok "tenant config app_name"; else bad "tenant config missing app_name"; fi
 
 echo ""
 echo "=== Catalog (PostgreSQL) ==="
@@ -179,8 +193,19 @@ if [ -n "$TOKEN" ]; then
   PUBLISH=$(curl -sf -X POST "$API/creation/publish" \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer $TOKEN" \
-    -d '{"name":"冒烟测试应用","industry_key":"office","scenario_names":["制度政策问答"]}' 2>/dev/null || echo "")
+    -d '{"name":"冒烟测试应用","industry_key":"office","scenario_names":["制度政策问答"],"deliver":"both","contact_email":"smoke-test@trackchat.local"}' 2>/dev/null || echo "")
   if echo "$PUBLISH" | grep -q '"success":true'; then ok "POST /creation/publish"; else bad "POST /creation/publish"; fi
+
+  APP_ID=$(echo "$PUBLISH" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('app',{}).get('id',''))" 2>/dev/null || echo "")
+  if [ -n "$APP_ID" ]; then
+    APP_CFG=$(curl -sf "$API/tenant/config?tenant=demo&app_id=$APP_ID" 2>/dev/null || echo "")
+    if echo "$APP_CFG" | grep -q '冒烟测试应用'; then ok "GET /tenant/config?app_id (W1)"; else bad "tenant config app override"; fi
+
+    RUNTIME=$(curl -sf "$API/runtime/$APP_ID" 2>/dev/null || echo "")
+    if echo "$RUNTIME" | grep -q '"public_id"'; then ok "GET /runtime/{appId}"; else bad "GET /runtime/{appId} ($RUNTIME)"; fi
+    if echo "$RUNTIME" | grep -q '"deliver"'; then ok "runtime deliver field"; else bad "runtime missing deliver"; fi
+    if echo "$PUBLISH" | grep -q '"notification"'; then ok "publish notification payload"; else bad "publish missing notification"; fi
+  fi
 
   APPS=$(curl -sf -H "Authorization: Bearer $TOKEN" "$API/creation/apps" 2>/dev/null || echo "")
   if echo "$APPS" | grep -q '冒烟测试应用'; then ok "GET /creation/apps"; else bad "GET /creation/apps"; fi

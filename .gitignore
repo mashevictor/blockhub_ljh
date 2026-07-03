@@ -49,3 +49,11 @@ Thumbs.db
 
 # Eval / local reports (regenerable)
 backend/scripts/eval_suggest_report.json
+
+# Flutter runtime-app (generated locally)
+runtime-app/.dart_tool/
+runtime-app/.flutter-plugins-dependencies
+runtime-app/build/
+runtime-app/android/local.properties
+runtime-app/android/.gradle/
+runtime-app/android/app/build/
