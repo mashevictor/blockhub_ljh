@@ -14,6 +14,8 @@ APP_DIR="$ROOT/runtime-app"
 BUILD_LOG="${BUILD_LOG:-/tmp/flutter-apk-build.log}"
 # shellcheck source=lib/android-sdk-env.sh
 source "$ROOT/scripts/lib/android-sdk-env.sh"
+# shellcheck source=lib/gradle-mem-env.sh
+source "$ROOT/scripts/lib/gradle-mem-env.sh"
 cd "$APP_DIR"
 
 if ! command -v flutter >/dev/null 2>&1; then
@@ -84,6 +86,7 @@ dump_gradle_failure() {
     grep -E "FAILURE:|error:|Error:|Exception|What went wrong|Execution failed|BUILD FAILED" "$gradle_log" | tail -n 40 || true
     echo "--- gradle log (last 80 lines) ---"
     tail -n 80 "$gradle_log" || true
+    gradle_diagnose_oom "$gradle_log"
   fi
   echo "==============================================="
 }
@@ -103,6 +106,13 @@ ensure_java_17
 
 configure_android_sdk "$APP_DIR" || exit 1
 accept_android_licenses
+
+gradle_preflight_check
+apply_gradle_memory_profile "$APP_DIR/android"
+# 构建时使用内存优化版 gradle.properties
+if [ -f "$APP_DIR/android/gradle.properties.build" ]; then
+  cp "$APP_DIR/android/gradle.properties.build" "$APP_DIR/android/gradle.properties"
+fi
 
 echo "==> Flutter: $(flutter --version | head -n1)"
 
@@ -154,6 +164,7 @@ build_status=${PIPESTATUS[0]}
 set -e
 if [ "$build_status" -ne 0 ]; then
   echo "ERROR: flutter build apk failed (exit $build_status)."
+  gradle_diagnose_oom "$BUILD_LOG"
   dump_gradle_failure
   exit "$build_status"
 fi
