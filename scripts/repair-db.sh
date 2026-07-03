@@ -30,6 +30,8 @@ def has_column(table: str, col: str) -> bool:
 def schema_revision() -> str | None:
     if not has_table("users"):
         return None
+    if has_table("contracts"):
+        return "005"
     has_phone = has_column("users", "phone")
     has_catalog = has_table("catalog_office_scenarios")
     has_hero = has_table("catalog_hero_presets")
@@ -57,6 +59,7 @@ checks = [
     ("users.phone", has_column("users", "phone")),
     ("catalog_office_scenarios", has_table("catalog_office_scenarios")),
     ("catalog_hero_presets", has_table("catalog_hero_presets")),
+    ("contracts", has_table("contracts")),
 ]
 for label, ok in checks:
     print(f"  {label}: {'OK' if ok else 'MISSING'}")
@@ -80,13 +83,14 @@ insp = inspect(engine)
 def col(t,c):
     return insp.has_table(t) and c in {x['name'] for x in insp.get_columns(t)}
 if not insp.has_table('users'): print(''); raise SystemExit
-if col('users','phone') and insp.has_table('catalog_office_scenarios') and insp.has_table('catalog_hero_presets'): print('004')
+if insp.has_table('contracts'): print('005')
+elif col('users','phone') and insp.has_table('catalog_office_scenarios') and insp.has_table('catalog_hero_presets'): print('004')
 elif col('users','phone') and insp.has_table('catalog_office_scenarios'): print('003')
 elif col('users','phone'): print('002')
 else: print('001')
 ")
 
-ALEMBIC_REV=$(alembic current 2>/dev/null | grep -oE '00[1-4]' | tail -1 || true)
+ALEMBIC_REV=$(alembic current 2>/dev/null | grep -oE '00[1-5]' | tail -1 || true)
 
 if [ -z "$SCHEMA_REV" ]; then
   echo "==> fresh DB → alembic upgrade head"
@@ -122,7 +126,7 @@ python3 <<'PY'
 from sqlalchemy import inspect
 from app.db.session import engine
 insp = inspect(engine)
-for t in ["users", "catalog_office_scenarios", "catalog_hero_presets"]:
+for t in ["users", "catalog_office_scenarios", "catalog_hero_presets", "contracts"]:
     ok = insp.has_table(t)
     print(f"verify {t}: {'OK' if ok else 'MISSING'}")
 phone = "phone" in {c["name"] for c in insp.get_columns("users")} if insp.has_table("users") else False
