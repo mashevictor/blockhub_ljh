@@ -28,7 +28,7 @@ fi
 source .venv/bin/activate
 pip install -r requirements.txt -q
 
-echo "==> [3/9] alembic migrate (target: 004 hero presets)"
+echo "==> [3/9] alembic migrate (target: head, incl. 007 app branding)"
 bash "$ROOT/scripts/repair-db.sh" || {
   echo "    repair-db skipped or failed; trying direct upgrade..."
   cd "$ROOT/backend"

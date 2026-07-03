@@ -89,14 +89,16 @@ insp = inspect(engine)
 def col(t,c):
     return insp.has_table(t) and c in {x['name'] for x in insp.get_columns(t)}
 if not insp.has_table('users'): print(''); raise SystemExit
-if insp.has_table('contracts'): print('005')
+if col('apps','icon_url'): print('007')
+elif col('tenants','config_json'): print('006')
+elif insp.has_table('contracts'): print('005')
 elif col('users','phone') and insp.has_table('catalog_office_scenarios') and insp.has_table('catalog_hero_presets'): print('004')
 elif col('users','phone') and insp.has_table('catalog_office_scenarios'): print('003')
 elif col('users','phone'): print('002')
 else: print('001')
 ")
 
-ALEMBIC_REV=$(alembic current 2>/dev/null | grep -oE '00[1-5]' | tail -1 || true)
+ALEMBIC_REV=$(alembic current 2>/dev/null | grep -oE '00[1-7]' | tail -1 || true)
 
 if [ -z "$SCHEMA_REV" ]; then
   echo "==> fresh DB → alembic upgrade head"
@@ -132,11 +134,15 @@ python3 <<'PY'
 from sqlalchemy import inspect
 from app.db.session import engine
 insp = inspect(engine)
+def col(t, c):
+    return insp.has_table(t) and c in {x["name"] for x in insp.get_columns(t)}
 for t in ["users", "catalog_office_scenarios", "catalog_hero_presets", "contracts"]:
     ok = insp.has_table(t)
     print(f"verify {t}: {'OK' if ok else 'MISSING'}")
-phone = "phone" in {c["name"] for c in insp.get_columns("users")} if insp.has_table("users") else False
+phone = col("users", "phone")
 print(f"verify users.phone: {'OK' if phone else 'MISSING'}")
+print(f"verify tenants.config_json: {'OK' if col('tenants', 'config_json') else 'MISSING'}")
+print(f"verify apps.icon_url: {'OK' if col('apps', 'icon_url') else 'MISSING'}")
 PY
 
 echo "==> restart API"

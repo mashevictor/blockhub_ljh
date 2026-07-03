@@ -1,5 +1,7 @@
 from typing import Annotated
 
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import Response
 from pydantic import BaseModel
@@ -18,6 +20,7 @@ from app.services.publish_email import send_publish_delivery_email
 from app.services.email_service import smtp_configured
 
 router = APIRouter(prefix="/creation", tags=["creation"])
+logger = logging.getLogger(__name__)
 
 
 class FeasibilityRequest(BaseModel):
@@ -112,56 +115,71 @@ def publish_app(
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User | None, Depends(get_optional_user)] = None,
 ) -> dict:
-    names: list[str] = []
-    all_scenarios = catalog_store.scenario_name_map(db)
-    for sid in body.scenario_ids:
-        names.append(all_scenarios.get(sid, sid))
-    if body.scenario_names:
-        names.extend(body.scenario_names)
-    if not names:
-        names = ["自定义应用"]
-    app = persist_published_app(
-        db,
-        name=body.name,
-        industry_key=body.industry_key,
-        scenarios=names,
-        audience=body.audience,
-        deliver=body.deliver,
-        source=body.source,
-        prompt=body.prompt,
-        contact_email=body.contact_email,
-        contact_phone=body.contact_phone,
-        capability_keys=body.capability_keys,
-        modules=[m.model_dump() for m in body.modules],
-        user=current_user,
-        payload=body.model_dump(),
-        icon_url=body.icon_url,
-        primary_color=body.primary_color,
-    )
-    apk_path = uploads_root() / "apks" / f"{app['id']}.apk"
-    default_apk = uploads_root() / "apks" / "default.apk"
-    deliver = app.get("deliver", "both")
-    apk_ready = (apk_path.is_file() or default_apk.is_file()) and deliver in ("app", "both")
+    try:
+        names: list[str] = []
+        all_scenarios = catalog_store.scenario_name_map(db)
+        for sid in body.scenario_ids:
+            names.append(all_scenarios.get(sid, sid))
+        if body.scenario_names:
+            names.extend(body.scenario_names)
+        if not names:
+            names = ["自定义应用"]
+        app = persist_published_app(
+            db,
+            name=body.name,
+            industry_key=body.industry_key,
+            scenarios=names,
+            audience=body.audience,
+            deliver=body.deliver,
+            source=body.source,
+            prompt=body.prompt,
+            contact_email=body.contact_email,
+            contact_phone=body.contact_phone,
+            capability_keys=body.capability_keys,
+            modules=[m.model_dump() for m in body.modules],
+            user=current_user,
+            payload=body.model_dump(),
+            icon_url=body.icon_url,
+            primary_color=body.primary_color,
+        )
+        apk_path = uploads_root() / "apks" / f"{app['id']}.apk"
+        default_apk = uploads_root() / "apks" / "default.apk"
+        deliver = app.get("deliver", "both")
+        apk_ready = (apk_path.is_file() or default_apk.is_file()) and deliver in ("app", "both")
 
-    email_sent = False
-    if body.contact_email and settings.publish_email_enabled:
-        email_sent = send_publish_delivery_email(body.contact_email, app, deliver=deliver)
+        email_sent = False
+        if body.contact_email and settings.publish_email_enabled:
+            try:
+                email_sent = send_publish_delivery_email(body.contact_email, app, deliver=deliver)
+            except Exception:
+                logger.exception("publish email failed for %s (app still published)", body.contact_email)
 
-    return {
-        "success": True,
-        "app": app,
-        "runtime": {
-            "web_url": app.get("web_url"),
-            "download_url": app.get("download_url"),
-            "deliver": deliver,
-            "apk_ready": apk_ready,
-        },
-        "notification": {
-            "email": body.contact_email or None,
-            "email_sent": email_sent,
-            "email_configured": smtp_configured(),
-        },
-    }
+        return {
+            "success": True,
+            "app": app,
+            "runtime": {
+                "web_url": app.get("web_url"),
+                "download_url": app.get("download_url"),
+                "deliver": deliver,
+                "apk_ready": apk_ready,
+            },
+            "notification": {
+                "email": body.contact_email or None,
+                "email_sent": email_sent,
+                "email_configured": smtp_configured(),
+            },
+        }
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.exception("POST /creation/publish failed")
+        detail = str(exc).lower()
+        if "icon_url" in detail or "primary_color" in detail or "undefinedcolumn" in detail.replace(" ", ""):
+            raise HTTPException(
+                status_code=503,
+                detail="数据库 schema 过旧，请在服务器执行: cd /root/blockhub && bash scripts/repair-db.sh",
+            ) from exc
+        raise HTTPException(status_code=500, detail="发布失败，请稍后重试或联系管理员查看 API 日志") from exc
 
 
 @router.post("/upload-icon")
