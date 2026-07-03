@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import PublishSuccessCard from '../../components/PublishSuccessCard'
 import DeliveryProgress from '../../components/DeliveryProgress'
 import PlazaModuleFlowPanel from '../../components/plaza/PlazaModuleFlowPanel'
@@ -11,6 +11,11 @@ import { getToken } from '../../auth/storage'
 import { removeMyApp, type StoredMyApp } from '../../lib/myAppsStorage'
 import { useMyApps } from '../../hooks/useMyApps'
 import { ROUTES } from '../../routes/paths'
+import {
+  appDomId,
+  clearJustPublished,
+  readJustPublished,
+} from '../../lib/publishFlow'
 
 function formatWhen(iso: string) {
   try {
@@ -29,35 +34,31 @@ function moduleLabels(app: StoredMyApp): string[] {
   return app.scenarios?.slice(0, 6) ?? []
 }
 
-type PlazaNavState = {
-  justPublishedId?: string
-  saveFailed?: boolean
-}
-
 export default function PlazaMyAppsPage() {
-  const location = useLocation()
-  const navigate = useNavigate()
-  const navState = (location.state as PlazaNavState | null) ?? {}
-  const [justPublishedId, setJustPublishedId] = useState<string | null>(null)
-  const [saveFailed, setSaveFailed] = useState(false)
+  const publishHint = readJustPublished()
+  const [justPublishedId, setJustPublishedId] = useState<string | null>(
+    () => publishHint?.appKey ?? null,
+  )
+  const saveFailed = Boolean(publishHint?.saveFailed)
   const apps = useMyApps()
-  const [expandedKey, setExpandedKey] = useState<string | null>(null)
+  const [expandedKey, setExpandedKey] = useState<string | null>(
+    () => publishHint?.appKey ?? null,
+  )
   const [user, setUser] = useState<AuthUser | null>(null)
   const scrolledRef = useRef(false)
 
   useEffect(() => {
-    if (navState.justPublishedId) {
-      setJustPublishedId(navState.justPublishedId)
-      setExpandedKey(navState.justPublishedId)
-      setSaveFailed(Boolean(navState.saveFailed))
-      scrolledRef.current = false
-      navigate(ROUTES.plazaMyApps, { replace: true, state: {} })
+    if (!justPublishedId) return
+    const found = apps.some((a) => appKey(a) === justPublishedId)
+    if (found) {
+      clearJustPublished()
     }
-  }, [location.state, navigate, navState.justPublishedId, navState.saveFailed])
+  }, [justPublishedId, apps])
 
   useEffect(() => {
     if (!justPublishedId || scrolledRef.current) return
-    const el = document.getElementById(`my-app-${justPublishedId}`)
+    const domId = appDomId(justPublishedId)
+    const el = document.getElementById(domId)
     if (!el) return
     scrolledRef.current = true
     requestAnimationFrame(() => {
@@ -132,7 +133,7 @@ export default function PlazaMyAppsPage() {
               return (
                 <li
                   key={key}
-                  id={`my-app-${key}`}
+                  id={appDomId(key)}
                   className={`plaza-my-item${expanded ? ' expanded' : ''}${isNew ? ' just-published' : ''}`}
                 >
                   <div className="plaza-my-item-row">

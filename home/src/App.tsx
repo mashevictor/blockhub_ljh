@@ -15,7 +15,7 @@ export default function App() {
         <Route index element={<PlazaFeedPage />} />
         <Route path="my" element={<PlazaMyAppsPage />} />
       </Route>
-      <Route path="/*" element={<HomeApp />} />
+      <Route path="/" element={<HomeApp />} />
     </Routes>
   )
 }

@@ -518,10 +518,9 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
         modules: publishedModules,
         scenarios: bundle.scenarioNames,
       }))
-      clearAll()
+      return
     } catch {
       setPublishError('发布失败，请确认 API 可用并已填写联系方式')
-    } finally {
       setGeneratePhase(null)
     }
   }, [deliver, onPublish, clearAll, branding])

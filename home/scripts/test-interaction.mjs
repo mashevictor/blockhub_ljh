@@ -100,5 +100,46 @@ ok('H2 同 appId 覆盖更新', s2.list.length === 1 && s2.list[0].appName === '
 const s3 = mockAddMyApp([], { appName: 'x', moduleCount: 0, modules: [] })
 ok('H3 无 appId/webUrl 不保存', !s3.saved && s3.list.length === 0)
 
+// I. 发布跳转逻辑（与 publishFlow.ts 一致）
+const PLAZA_MY = '/plaza/my'
+function appStorageKey(r) { return r.appId || r.webUrl || '' }
+function appDomId(key) { return `my-app-${key.replace(/[^a-zA-Z0-9_-]/g, '_')}` }
+
+const mockSession = new Map()
+function stashJustPublished(hint) { mockSession.set('hint', JSON.stringify(hint)) }
+function readJustPublished() {
+  const raw = mockSession.get('hint')
+  if (!raw) return null
+  const parsed = JSON.parse(raw)
+  if (!parsed.appKey) return null
+  return parsed
+}
+function clearJustPublished() { mockSession.delete('hint') }
+
+function mockFinishPublish(navigateTo, result, addFn) {
+  const saved = addFn(result)
+  const appKey = appStorageKey(result)
+  if (appKey) stashJustPublished({ appKey, saveFailed: !saved, at: Date.now() })
+  navigateTo(PLAZA_MY)
+  return saved
+}
+
+let navigated = null
+const nav = (path) => { navigated = path }
+const addOk = () => true
+const addFail = () => false
+
+mockSession.clear()
+navigated = null
+mockFinishPublish(nav, r1, addOk)
+ok('I1 发布成功跳转我的应用', navigated === PLAZA_MY)
+ok('I2 写入刚发布标记', readJustPublished()?.appKey === 'abc123')
+
+mockSession.clear()
+mockFinishPublish(nav, { appName: 'x', moduleCount: 0, modules: [] }, addFail)
+ok('I3 无 key 时不写标记', readJustPublished() === null)
+
+ok('I4 URL 转 DOM id', appDomId('http://x/r/abc') === 'my-app-http___x_r_abc')
+
 console.log(`\n结果: ${pass} 通过, ${fail} 失败\n`)
 process.exit(fail ? 1 : 0)

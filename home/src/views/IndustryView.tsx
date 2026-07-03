@@ -116,15 +116,9 @@ export default function IndustryView({ onPublish, active = true }: Props) {
         modules: publishedModules,
         scenarios: scenarioNames,
       }))
-      setIndustry('office')
-      setStep(1)
-      setSelected(new Set())
-      setAudience('b')
-      setAppName('我的行业应用')
-      setBranding(emptyBranding('我的行业应用'))
+      return
     } catch {
       setPublishError('发布失败，请确认已登录且 API 可用')
-    } finally {
       setLoading(false)
     }
   }

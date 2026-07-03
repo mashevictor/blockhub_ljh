@@ -107,11 +107,9 @@ export default function ModuleView({ onPublish, active = true }: Props) {
         modules: publishedModules,
         scenarios: widgets.map((w) => w.name),
       }))
-      setWidgets([])
-      setDevice('both')
+      return
     } catch {
       setPublishError('发布失败，请确认 API 可用')
-    } finally {
       setLoading(false)
     }
   }
@@ -213,7 +211,10 @@ export default function ModuleView({ onPublish, active = true }: Props) {
       <ContactGateModal
         open={active && contactOpen}
         onClose={() => setContactOpen(false)}
-        onConfirm={(c) => { setContactOpen(false); void doPublish(c) }}
+        onConfirm={(c) => {
+          setContactOpen(false)
+          void doPublish(c)
+        }}
       />
     </div>
   )

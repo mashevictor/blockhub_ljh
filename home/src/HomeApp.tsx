@@ -17,7 +17,7 @@ import {
 } from './components/icons'
 import { BRAND } from './data/brand'
 import BrandMark from './components/BrandMark'
-import { addMyApp } from './lib/myAppsStorage'
+import { finishPublishNavigate } from './lib/publishFlow'
 import { useMyApps } from './hooks/useMyApps'
 import { ROUTES } from './routes/paths'
 import './index.css'
@@ -54,14 +54,7 @@ export default function HomeApp() {
   }, [location.pathname])
 
   const handlePublish = (result: PublishResult) => {
-    const saved = addMyApp(result)
-    const appKey = result.appId || result.webUrl
-    navigate(ROUTES.plazaMyApps, {
-      state: {
-        justPublishedId: appKey,
-        saveFailed: !saved,
-      },
-    })
+    finishPublishNavigate(navigate, result)
   }
 
   const handleRoleApply = (role: RoleApplyRequest['preset'], generate?: boolean) => {
