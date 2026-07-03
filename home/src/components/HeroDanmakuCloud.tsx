@@ -7,9 +7,11 @@ const LANE_COUNT = 10
 
 interface Props {
   onRoleApply?: (role: RolePreset, generate?: boolean) => void
+  /** 嵌入 Hero 第一屏，与 >> 符号区视觉一体 */
+  integrated?: boolean
 }
 
-export default function HeroDanmakuCloud({ onRoleApply }: Props) {
+export default function HeroDanmakuCloud({ onRoleApply, integrated }: Props) {
   const [presets, setPresets] = useState<RolePreset[]>([])
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
@@ -52,7 +54,7 @@ export default function HeroDanmakuCloud({ onRoleApply }: Props) {
   return (
     <>
       <div
-        className={`hero-danmaku-hud${paused ? ' paused' : ''}`}
+        className={`hero-danmaku-hud${paused ? ' paused' : ''}${integrated ? ' integrated' : ''}`}
         aria-label="身份与场景弹幕流"
         onMouseEnter={() => setPaused(true)}
         onMouseLeave={() => !active && setPaused(false)}
@@ -71,7 +73,7 @@ export default function HeroDanmakuCloud({ onRoleApply }: Props) {
             <i className="hud-pulse" aria-hidden />
             {loading ? 'SYNC' : loadError ? 'ERR' : 'LIVE'}
           </span>
-          <span className="hud-title">IDENTITY × SCENARIO</span>
+          <span className="hud-title">&gt;&gt; IDENTITY × SCENARIO</span>
           <span className="hud-meta">
             {loading ? '加载 PG 预设…' : loadError ? '数据未就绪' : `${presets.length} 场景 · 点击生成`}
           </span>
@@ -122,11 +124,13 @@ export default function HeroDanmakuCloud({ onRoleApply }: Props) {
         </div>
 
         <footer className="hero-danmaku-hud-foot">
+          <span>&gt;&gt; 符号编排</span>
+          <span className="hud-foot-dot" />
           <span>身份识别</span>
           <span className="hud-foot-dot" />
           <span>场景匹配</span>
           <span className="hud-foot-dot" />
-          <span>&gt;&gt; 符号编排</span>
+          <span>点击生成应用</span>
         </footer>
       </div>
 

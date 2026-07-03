@@ -13,6 +13,36 @@ interface Props {
   onRoleApply?: (role: RolePreset, generate?: boolean) => void
 }
 
+function CubeBeltItem({
+  item,
+  index,
+  size = 'md',
+  className,
+}: {
+  item: { label: string; iconKey: string; accent: string }
+  index: number
+  size?: 'md' | 'lg'
+  className?: string
+}) {
+  const Icon = CAPABILITY_ICONS[item.iconKey] ?? IconZap
+  const short = cubeShortLabel(item.label, 5)
+  return (
+    <CubeFace
+      size={size}
+      accent={item.accent}
+      label={short}
+      seed={cubeSeedFromString(item.label) + index}
+      className={className}
+      center={(
+        <>
+          <Icon size={size === 'lg' ? 22 : 16} />
+          <em>{short}</em>
+        </>
+      )}
+    />
+  )
+}
+
 export default function HeroCubeStage({ onRoleApply }: Props) {
   const { theme } = useTheme()
   const tileColors = useMemo(() => [theme.pri, theme.sec, theme.accent], [theme])
@@ -26,58 +56,53 @@ export default function HeroCubeStage({ onRoleApply }: Props) {
     [theme, tileColors],
   )
 
-  const beltLoop = useMemo(() => [...beltItems, ...beltItems], [beltItems])
+  const beltLoop = useMemo(() => [...beltItems, ...beltItems, ...beltItems], [beltItems])
+
+  const renderVerticalBelt = (side: 'left' | 'right') => (
+    <aside className={`hero-e-vbelt hero-e-vbelt-${side}`} aria-hidden>
+      <div className={`hero-e-vbelt-track${side === 'right' ? ' reverse' : ''}`}>
+        {beltLoop.map((item, i) => (
+          <CubeBeltItem
+            key={`${side}-${item.label}-${i}`}
+            item={item}
+            index={i}
+            className="hero-e-vbelt-cube"
+          />
+        ))}
+      </div>
+    </aside>
+  )
 
   return (
     <div className="hero-e-stage hero-e-stage-focus">
-      <div className="hero-e-agent-sign" aria-label="智能体符号">
-        <div className="hero-e-sign-glow" aria-hidden />
-        <div className="hero-e-sign-inner">
-          <div className="hero-e-sign-flow" aria-hidden>
-            <span className="hero-e-sign-stream">&gt;&gt; &gt;&gt; &gt;&gt; &gt;&gt; &gt;&gt;</span>
-            <span className="hero-e-sign-stream">&gt;&gt; &gt;&gt; &gt;&gt; &gt;&gt; &gt;&gt;</span>
-          </div>
-          <div className="hero-e-sign-mark">
-            <span className="hero-e-sign-chevrons" aria-hidden>&gt;&gt;</span>
-            <p className="hero-e-sign-title">定义智能体符号</p>
-          </div>
-        </div>
-        <div className="hero-e-sign-connector" aria-hidden>
-          <span className="hero-e-sign-connector-line" />
-          <span className="hero-e-sign-connector-chevron">&gt;&gt;</span>
-        </div>
-      </div>
+      <div className="hero-e-first-screen">
+        {renderVerticalBelt('left')}
 
-      <div className="hero-e-belt-wrap">
-        <div className="hero-e-belt hero-e-belt-sparse">
-          {beltLoop.map((item, i) => {
-            const Icon = CAPABILITY_ICONS[item.iconKey] ?? IconZap
-            const short = cubeShortLabel(item.label, 5)
-            return (
-              <CubeFace
-                key={`${item.label}-${i}`}
-                size="lg"
-                accent={item.accent}
-                label={short}
-                seed={cubeSeedFromString(item.label) + i}
-                className="hero-e-belt-cube"
-                center={(
-                  <>
-                    <Icon size={22} />
-                    <em>{short}</em>
-                  </>
-                )}
-              />
-            )
-          })}
-        </div>
-      </div>
+        <div className="hero-e-center">
+          <div className="hero-e-agent-sign" aria-label="用符号重新定义智能体">
+            <div className="hero-e-sign-glow" aria-hidden />
+            <div className="hero-e-sign-inner">
+              <div className="hero-e-sign-flow" aria-hidden>
+                <span className="hero-e-sign-stream">&gt;&gt; &gt;&gt; &gt;&gt; &gt;&gt; &gt;&gt;</span>
+                <span className="hero-e-sign-stream">&gt;&gt; &gt;&gt; &gt;&gt; &gt;&gt; &gt;&gt;</span>
+              </div>
+              <div className="hero-e-sign-mark">
+                <p className="hero-e-sign-title">
+                  用符号<span className="hero-e-sign-inline-chev" aria-hidden>&gt;&gt;</span>重新定义智能体
+                </p>
+              </div>
+            </div>
+            <div className="hero-e-sign-bridge" aria-hidden>
+              <span className="hero-e-sign-bridge-line" />
+              <span className="hero-e-sign-bridge-chev">&gt;&gt;</span>
+              <span className="hero-e-sign-bridge-hint">身份 × 场景 · 点击弹幕生成应用</span>
+            </div>
+          </div>
 
-      <div className="hero-e-focus">
-        <p className="hero-e-role-hint">
-          身份 × 场景弹幕流 — 点击任意条目，<strong>&gt;&gt;</strong> 生成应用
-        </p>
-        <HeroDanmakuCloud onRoleApply={onRoleApply} />
+          <HeroDanmakuCloud onRoleApply={onRoleApply} integrated />
+        </div>
+
+        {renderVerticalBelt('right')}
       </div>
     </div>
   )
