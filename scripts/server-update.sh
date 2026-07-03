@@ -43,8 +43,13 @@ if [ ! -f "$ROOT/backend/.env" ]; then
 fi
 
 echo ""
-echo ">>> [1/3] 部署（git pull + migrate + build + nginx）"
-bash "$ROOT/scripts/deploy.sh"
+echo ">>> [1/3] 部署（git pull + migrate + build + nginx + APK 可选）"
+# 网站全量部署；需要 APK 时: WITH_APK=1 bash scripts/server-update.sh
+if [ "${WITH_APK:-0}" = "1" ]; then
+  bash "$ROOT/scripts/deploy-all.sh" --with-apk
+else
+  bash "$ROOT/scripts/deploy-all.sh" --web-only
+fi
 
 echo ""
 echo ">>> [2/3] API 冒烟（本机经 :8001）"
