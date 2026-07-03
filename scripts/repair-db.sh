@@ -66,23 +66,14 @@ checks = [
     ("contracts", has_table("contracts")),
     ("tenants.config_json", has_column("tenants", "config_json")),
     ("apps.icon_url", has_column("apps", "icon_url")),
+    ("apps.primary_color", has_column("apps", "primary_color")),
 ]
 for label, ok in checks:
     print(f"  {label}: {'OK' if ok else 'MISSING'}")
-
-if schema_rev is None:
-    print("No users table — fresh DB, run: alembic upgrade head")
-    raise SystemExit(0)
-
-if alembic_rev == schema_rev:
-    print("Schema matches alembic — no repair needed.")
-    raise SystemExit(0)
-
-print(f"DRIFT: alembic={alembic_rev} but schema≈{schema_rev}")
 PY
 
-# Re-detect for shell logic
-SCHEMA_REV=$(python3 -c "
+schema_level() {
+  python3 -c "
 from sqlalchemy import inspect
 from app.db.session import engine
 insp = inspect(engine)
@@ -96,27 +87,33 @@ elif col('users','phone') and insp.has_table('catalog_office_scenarios') and ins
 elif col('users','phone') and insp.has_table('catalog_office_scenarios'): print('003')
 elif col('users','phone'): print('002')
 else: print('001')
-")
+"
+}
 
-ALEMBIC_REV=$(alembic current 2>/dev/null | grep -oE '00[1-7]' | tail -1 || true)
+has_icon_url() {
+  python3 -c "
+from sqlalchemy import inspect
+from app.db.session import engine
+insp = inspect(engine)
+ok = insp.has_table('apps') and 'icon_url' in {c['name'] for c in insp.get_columns('apps')}
+raise SystemExit(0 if ok else 1)
+" 2>/dev/null
+}
+
+SCHEMA_REV="$(schema_level)"
+ALEMBIC_REV="$(alembic current 2>/dev/null | grep -oE '00[1-7]' | tail -1 || true)"
+HEAD_REV="$(alembic heads 2>/dev/null | grep -oE '00[1-7]' | tail -1 || echo '007')"
+
+echo "==> head=$HEAD_REV alembic=${ALEMBIC_REV:-none} schema≈${SCHEMA_REV:-none}"
 
 if [ -z "$SCHEMA_REV" ]; then
   echo "==> fresh DB → alembic upgrade head"
   alembic upgrade head
-  exit 0
-fi
-
-if [ "$ALEMBIC_REV" = "$SCHEMA_REV" ]; then
-  echo "==> schema OK at $SCHEMA_REV"
-  exit 0
-fi
-
-echo "==> stamping alembic to schema level $SCHEMA_REV (was ${ALEMBIC_REV:-unknown})"
-alembic stamp "$SCHEMA_REV"
-
-# 004 表可能先于 003 被创建；回退后需删掉以便 upgrade 004 重跑
-if [ "$SCHEMA_REV" != "004" ]; then
-  python3 <<'PY'
+elif [ -n "$ALEMBIC_REV" ] && [ "$ALEMBIC_REV" != "$SCHEMA_REV" ]; then
+  echo "==> DRIFT: alembic=$ALEMBIC_REV but schema≈$SCHEMA_REV — stamp then upgrade"
+  alembic stamp "$SCHEMA_REV"
+  if [ "$SCHEMA_REV" != "004" ]; then
+    python3 <<'PY'
 from sqlalchemy import text
 from app.db.session import engine
 with engine.begin() as conn:
@@ -124,10 +121,15 @@ with engine.begin() as conn:
     conn.execute(text("DROP TABLE IF EXISTS catalog_hero_presets CASCADE"))
 print("dropped orphan 004 tables (if any)")
 PY
+  fi
 fi
 
-echo "==> alembic upgrade head"
-alembic upgrade head
+# 常见坑：alembic 与 schema 同是 005，但 head 已是 007 → 必须 upgrade
+if [ "${ALEMBIC_REV:-}" != "$HEAD_REV" ] || ! has_icon_url; then
+  echo "==> alembic upgrade head (need 006/007 branding columns)"
+  alembic upgrade head
+fi
+
 alembic current
 
 python3 <<'PY'
@@ -139,10 +141,12 @@ def col(t, c):
 for t in ["users", "catalog_office_scenarios", "catalog_hero_presets", "contracts"]:
     ok = insp.has_table(t)
     print(f"verify {t}: {'OK' if ok else 'MISSING'}")
-phone = col("users", "phone")
-print(f"verify users.phone: {'OK' if phone else 'MISSING'}")
+print(f"verify users.phone: {'OK' if col('users', 'phone') else 'MISSING'}")
 print(f"verify tenants.config_json: {'OK' if col('tenants', 'config_json') else 'MISSING'}")
 print(f"verify apps.icon_url: {'OK' if col('apps', 'icon_url') else 'MISSING'}")
+print(f"verify apps.primary_color: {'OK' if col('apps', 'primary_color') else 'MISSING'}")
+if not col("apps", "icon_url"):
+    raise SystemExit("FAIL: apps.icon_url still missing after upgrade")
 PY
 
 echo "==> restart API"
@@ -154,5 +158,7 @@ curl -sf --max-time 5 http://127.0.0.1:8001/api/v1/health && echo " API health O
 }
 
 echo "=========================================="
-echo " Repair complete. Run: bash scripts/smoke-test.sh http://101.32.209.251"
+echo " Repair complete."
+echo " Test publish: bash $ROOT/scripts/smoke-db.sh"
+echo " Full smoke:   bash $ROOT/scripts/smoke-test.sh http://101.32.209.251"
 echo "=========================================="
