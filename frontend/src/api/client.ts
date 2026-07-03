@@ -321,7 +321,8 @@ export interface ContractRecord {
   title: string
   template_key: string
   body_html: string
-  parties: { party_a?: string; party_b?: string }
+  parties: { party_a?: string; party_b?: string; fields?: Record<string, string>; seal_company?: string }
+  field_values?: Record<string, string>
   status: string
   review_notes: string
   signed_pdf_url: string
@@ -331,12 +332,41 @@ export interface ContractRecord {
   assets?: ContractAsset[]
 }
 
+export interface ContractFieldDef {
+  key: string
+  label: string
+  section: string
+  type: string
+  required?: boolean
+  placeholder?: string
+  default?: string
+  options?: string[]
+}
+
+export interface ContractTemplateDetail {
+  key: string
+  name: string
+  description: string
+  category: string
+  fields: ContractFieldDef[]
+  sample_body_html: string
+}
+
+export const fetchContractTemplate = (key: string) =>
+  api.get<ContractTemplateDetail>(`/contracts/templates/${key}`).then((r) => r.data)
+export const renderContractFields = (id: string, fieldValues: Record<string, string>, rerender = true) =>
+  api.post<{ contract: ContractRecord }>(`/contracts/${id}/render`, { field_values: fieldValues, rerender }).then((r) => r.data.contract)
+export const aiGenerateContract = (id: string) =>
+  api.post<{ contract: ContractRecord }>(`/contracts/${id}/generate`).then((r) => r.data.contract)
+export const createDefaultSeal = (id: string, opts?: { company_name?: string; seal_text?: string; style?: string }) =>
+  api.post<{ contract: ContractRecord }>(`/contracts/${id}/default-seal`, opts || {}).then((r) => r.data.contract)
+
 export const fetchContractsConfig = () => api.get('/contracts/config').then((r) => r.data)
 export const fetchContracts = () => api.get<{ items: ContractRecord[] }>('/contracts').then((r) => r.data.items)
 export const fetchContract = (id: string) => api.get<ContractRecord>(`/contracts/${id}`).then((r) => r.data)
-export const createContract = (body: { title: string; template_key?: string; parties?: { party_a?: string; party_b?: string } }) =>
+export const createContract = (body: { title?: string; template_key?: string; field_values?: Record<string, string> }) =>
   api.post<{ contract: ContractRecord }>('/contracts', body).then((r) => r.data.contract)
-export const updateContract = (id: string, body: Partial<{ title: string; body_html: string; parties: { party_a?: string; party_b?: string }; template_key: string }>) =>
+export const updateContract = (id: string, body: Partial<{ title: string; body_html: string; template_key: string; field_values: Record<string, string> }>) =>
   api.put<{ contract: ContractRecord }>(`/contracts/${id}`, body).then((r) => r.data.contract)
 export const aiDraftContract = (id: string, prompt: string) =>
   api.post<{ contract: ContractRecord }>(`/contracts/${id}/draft`, { prompt }).then((r) => r.data.contract)
@@ -344,8 +374,6 @@ export const aiReviewContract = (id: string) =>
   api.post<{ contract: ContractRecord }>(`/contracts/${id}/review`).then((r) => r.data.contract)
 export const uploadContractAsset = (id: string, body: { asset_type: string; data_url: string; label?: string; placement?: ContractAsset['placement'] }) =>
   api.post<{ contract: ContractRecord }>(`/contracts/${id}/assets`, body).then((r) => r.data.contract)
-export const createDefaultSeal = (id: string) =>
-  api.post<{ contract: ContractRecord }>(`/contracts/${id}/default-seal`).then((r) => r.data.contract)
 export const updateContractPlacements = (id: string, items: { id: string; placement: ContractAsset['placement'] }[]) =>
   api.put<{ contract: ContractRecord }>(`/contracts/${id}/placements`, { items }).then((r) => r.data.contract)
 export const signContract = (id: string) =>

@@ -9,7 +9,12 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_current_user
-from app.data.contract_templates import CONTRACT_TEMPLATES, apply_parties, get_template
+from app.data.contract_templates import (
+    get_template,
+    get_template_fields,
+    list_templates_brief,
+    render_body,
+)
 from app.db.models import User
 from app.db.session import get_db
 from app.services import contract_store
@@ -31,19 +36,34 @@ def _pdf_headers(disposition: str, title: str, contract_id: str) -> dict[str, st
 class PartiesBody(BaseModel):
     party_a: str = ""
     party_b: str = ""
+    fields: dict[str, Any] | None = None
+    seal_company: str = ""
 
 
 class CreateContractBody(BaseModel):
-    title: str = Field(min_length=1, max_length=300)
-    template_key: str = "blank"
+    title: str = Field(default="", max_length=300)
+    template_key: str = "labor"
     parties: PartiesBody | None = None
+    field_values: dict[str, Any] | None = None
 
 
 class UpdateContractBody(BaseModel):
     title: str | None = None
     body_html: str | None = None
-    parties: PartiesBody | None = None
+    parties: PartiesBody | dict[str, Any] | None = None
     template_key: str | None = None
+    field_values: dict[str, Any] | None = None
+
+
+class FieldValuesBody(BaseModel):
+    field_values: dict[str, Any]
+    rerender: bool = True
+
+
+class SealBody(BaseModel):
+    company_name: str = ""
+    seal_text: str = "合同专用章"
+    style: str = "round"  # round | square
 
 
 class DraftBody(BaseModel):
@@ -73,13 +93,33 @@ def contracts_config() -> dict:
         "description": "自定义文本合同、手写签名与电子章，一键生成 PDF",
         "agent_id": "contract_esign",
         "llm_configured": llm_configured(),
-        "templates": [{"key": t["key"], "name": t["name"], "description": t["description"]} for t in CONTRACT_TEMPLATES],
+        "opensource_refs": [
+            {"name": "开放签 kaifangqian-base", "url": "https://github.com/kaifangqian/kaifangqian-base", "note": "手写签名/印章/PDF 签署参考"},
+            {"name": "Mini Contract.Pro", "url": "https://github.com/freeleepm/mini-contract", "note": "模板市场+AI起草"},
+            {"name": "docxtpl", "url": "https://github.com/elapouya/docxtpl", "note": "Word 模板占位符（可后续接入）"},
+        ],
+        "templates": list_templates_brief(),
     }
 
 
 @router.get("/templates")
 def list_templates() -> dict:
-    return {"items": CONTRACT_TEMPLATES}
+    return {"items": list_templates_brief()}
+
+
+@router.get("/templates/{key}")
+def template_detail(key: str) -> dict:
+    tpl = get_template(key)
+    if not tpl:
+        raise HTTPException(404, "模板不存在")
+    return {
+        "key": key,
+        "name": tpl["name"],
+        "description": tpl["description"],
+        "category": tpl.get("category", ""),
+        "fields": get_template_fields(key),
+        "sample_body_html": render_body(key, {}, title=tpl.get("default_title", "")),
+    }
 
 
 @router.get("/templates/{key}/preview")
@@ -87,8 +127,8 @@ def preview_template(key: str, party_a: str = "", party_b: str = "") -> dict:
     tpl = get_template(key)
     if not tpl:
         raise HTTPException(404, "模板不存在")
-    parties = {"party_a": party_a or "甲方", "party_b": party_b or "乙方", "title": tpl["name"]}
-    return {"key": key, "body_html": apply_parties(tpl["body"], parties)}
+    vals = {"party_a": party_a or "甲方", "party_b": party_b or "乙方"}
+    return {"key": key, "body_html": render_body(key, vals, title=tpl.get("default_title", ""))}
 
 
 @router.get("")
@@ -105,9 +145,20 @@ def create(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> dict:
-    parties = body.parties.model_dump() if body.parties else {}
+    fv: dict[str, Any] = dict(body.field_values or {})
+    if body.parties:
+        if body.parties.party_a:
+            fv["party_a"] = body.parties.party_a
+        if body.parties.party_b:
+            fv["party_b"] = body.parties.party_b
+        if body.parties.seal_company:
+            fv["seal_company"] = body.parties.seal_company
+        if body.parties.fields:
+            fv.update(body.parties.fields)
+    tpl = get_template(body.template_key) or get_template("labor")
+    title = (body.title or "").strip() or str(tpl.get("default_title", "合同") if tpl else "合同")
     c = contract_store.create_contract(
-        db, user, title=body.title, template_key=body.template_key, parties=parties,
+        db, user, title=title, template_key=body.template_key, field_values=fv,
     )
     loaded = contract_store.get_contract(db, c.id, user)
     return {"success": True, "contract": contract_store.contract_to_dict(loaded)}
@@ -148,13 +199,19 @@ def update(
     if not c:
         raise HTTPException(404, "合同不存在")
     try:
-        c = contract_store.update_contract(
-            db, c, user,
-            title=body.title,
-            body_html=body.body_html,
-            parties=body.parties.model_dump() if body.parties else None,
-            template_key=body.template_key,
-        )
+        if body.field_values:
+            c = contract_store.apply_field_values(db, c, user, body.field_values, rerender=True)
+        if body.title is not None or body.body_html is not None or body.template_key is not None or body.parties is not None:
+            parties_data = None
+            if body.parties is not None:
+                parties_data = body.parties.model_dump() if isinstance(body.parties, PartiesBody) else body.parties
+            c = contract_store.update_contract(
+                db, c, user,
+                title=body.title,
+                body_html=body.body_html,
+                parties=parties_data,
+                template_key=body.template_key,
+            )
     except ValueError as e:
         raise HTTPException(400, str(e)) from e
     loaded = contract_store.get_contract(db, c.id, user)
@@ -172,6 +229,41 @@ def remove(
         raise HTTPException(404, "合同不存在")
     contract_store.delete_contract(db, c, user)
     return {"success": True}
+
+
+@router.post("/{contract_id}/render")
+def render_from_fields(
+    contract_id: str,
+    body: FieldValuesBody,
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+) -> dict:
+    c = contract_store.get_contract(db, contract_id, user)
+    if not c:
+        raise HTTPException(404, "合同不存在")
+    try:
+        c = contract_store.apply_field_values(db, c, user, body.field_values, rerender=body.rerender)
+    except ValueError as e:
+        raise HTTPException(400, str(e)) from e
+    loaded = contract_store.get_contract(db, c.id, user)
+    return {"success": True, "contract": contract_store.contract_to_dict(loaded)}
+
+
+@router.post("/{contract_id}/generate")
+def ai_generate(
+    contract_id: str,
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+) -> dict:
+    c = contract_store.get_contract(db, contract_id, user)
+    if not c:
+        raise HTTPException(404, "合同不存在")
+    try:
+        c = contract_store.ai_generate_contract(db, c, user)
+    except ValueError as e:
+        raise HTTPException(400, str(e)) from e
+    loaded = contract_store.get_contract(db, c.id, user)
+    return {"success": True, "contract": contract_store.contract_to_dict(loaded)}
 
 
 @router.post("/{contract_id}/draft")
@@ -254,13 +346,20 @@ def set_placements(
 @router.post("/{contract_id}/default-seal")
 def default_seal(
     contract_id: str,
+    body: SealBody | None = None,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> dict:
     c = contract_store.get_contract(db, contract_id, user)
     if not c:
         raise HTTPException(404, "合同不存在")
-    asset = contract_store.ensure_default_seal(db, c, user)
+    opts = body or SealBody()
+    asset = contract_store.ensure_default_seal(
+        db, c, user,
+        company_name=opts.company_name,
+        seal_text=opts.seal_text,
+        style=opts.style,
+    )
     loaded = contract_store.get_contract(db, contract_id, user)
     return {"success": True, "asset": contract_store.asset_to_dict(asset) if asset else None, "contract": contract_store.contract_to_dict(loaded)}
 

@@ -1,11 +1,18 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
-from app.data.contract_templates import apply_parties, get_template
+from app.data.contract_templates import (
+    default_field_values,
+    flatten_parties,
+    get_template,
+    parties_from_fields,
+    render_body,
+)
 from app.db.models import ContractAsset, ContractEvent, ContractRecord, User
 from app.services.contract_pdf import build_contract_pdf, generate_default_seal
 from app.services.file_storage import contract_dir, file_url, save_data_url
@@ -15,9 +22,15 @@ DEFAULT_SIGNATURE_PLACEMENT = {"page": 0, "x_pct": 12, "y_pct": 14, "width_pct":
 DEFAULT_SEAL_PLACEMENT = {"page": 0, "x_pct": 62, "y_pct": 12, "width_pct": 22, "height_pct": 22}
 
 DRAFT_SYSTEM = (
-    "你是企业法务助手。根据用户要求起草中文合同正文，使用简洁专业的法律用语。"
-    "输出 HTML 片段（p/h2 标签），不要 markdown，不要包裹 html/body。"
-    "保留 {{party_a}} {{party_b}} 占位符若用户未指定具体名称。"
+    "你是资深企业法务。根据用户提供的结构化字段，输出规范、完整的中文合同正文。"
+    "使用 HTML（h2/h3/p 标签），条款编号清晰，符合中国法律法规习惯；不要 markdown，不要 html/body 包裹。"
+)
+
+GENERATE_SYSTEM = (
+    "你是资深劳动合同起草专家。根据用户填写的用人单位与劳动者信息，生成完整规范的劳动合同 HTML。"
+    "必须包含：合同期限、工作内容与地点、工时与休假、劳动报酬、社会保险、劳动保护、"
+    "合同变更解除、违约责任、争议解决、签署页等条款。使用 h2/h3/p 标签，专业法律用语，"
+    "将用户提供的数据自然填入对应条款；未提供的信息用合理表述或留空线。不要 markdown。"
 )
 
 REVIEW_SYSTEM = (
@@ -40,12 +53,15 @@ def _record_event(db: Session, contract_id: str, actor_id: str | None, action: s
 
 
 def contract_to_dict(c: ContractRecord, *, include_assets: bool = True) -> dict:
+    parties = c.parties_json or {}
+    field_values = flatten_parties(parties)
     data = {
         "id": c.id,
         "title": c.title,
         "template_key": c.template_key,
         "body_html": c.body_html,
-        "parties": c.parties_json or {},
+        "parties": parties,
+        "field_values": field_values,
         "status": c.status,
         "review_notes": c.review_notes,
         "signed_pdf_url": file_url(c.signed_pdf_key) if c.signed_pdf_key else "",
@@ -91,18 +107,21 @@ def create_contract(
     user: User,
     *,
     title: str,
-    template_key: str = "blank",
+    template_key: str = "labor",
     parties: dict | None = None,
+    field_values: dict | None = None,
 ) -> ContractRecord:
-    parties = parties or {"party_a": "", "party_b": ""}
-    tpl = get_template(template_key) or get_template("blank")
-    body = apply_parties(tpl["body"], {**parties, "title": title}) if tpl else ""
+    tpl = get_template(template_key) or get_template("labor")
+    assert tpl is not None
+    merged = {**default_field_values(template_key), **(field_values or {})}
+    stored = parties_from_fields(merged)
+    body = render_body(template_key, merged, title=title or tpl.get("default_title", "合同"))
     c = ContractRecord(
         tenant_id=user.tenant_id,
-        title=title,
+        title=title or tpl.get("default_title", "合同"),
         template_key=template_key,
         body_html=body,
-        parties_json=parties,
+        parties_json=stored,
         status="draft",
         created_by_id=user.id,
     )
@@ -131,15 +150,76 @@ def update_contract(
     if body_html is not None:
         contract.body_html = body_html
     if parties is not None:
-        contract.parties_json = parties
+        if "fields" in parties or "party_a" in parties:
+            contract.parties_json = parties
+        else:
+            contract.parties_json = parties_from_fields(parties)
     if template_key is not None:
         contract.template_key = template_key
         tpl = get_template(template_key)
         if tpl:
-            parties_merged = {**(contract.parties_json or {}), "title": contract.title or tpl["name"]}
-            contract.body_html = apply_parties(tpl["body"], parties_merged)
+            vals = flatten_parties(contract.parties_json)
+            contract.body_html = render_body(template_key, vals, title=contract.title)
     contract.updated_at = _now()
     _record_event(db, contract.id, user.id, "updated")
+    db.commit()
+    db.refresh(contract)
+    return contract
+
+
+def render_contract_body(contract: ContractRecord) -> str:
+    vals = flatten_parties(contract.parties_json)
+    return render_body(contract.template_key, vals, title=contract.title)
+
+
+def apply_field_values(
+    db: Session,
+    contract: ContractRecord,
+    user: User,
+    field_values: dict[str, Any],
+    *,
+    rerender: bool = True,
+) -> ContractRecord:
+    if contract.status == "signed":
+        raise ValueError("已签署合同不可编辑")
+    merged = {**flatten_parties(contract.parties_json), **field_values}
+    contract.parties_json = parties_from_fields(merged)
+    if rerender:
+        contract.body_html = render_body(contract.template_key, merged, title=contract.title)
+    contract.updated_at = _now()
+    _record_event(db, contract.id, user.id, "fields_updated")
+    db.commit()
+    db.refresh(contract)
+    return contract
+
+
+def ai_generate_contract(db: Session, contract: ContractRecord, user: User) -> ContractRecord:
+    """DeepSeek 根据表单字段生成/润色完整合同。"""
+    if not llm_configured():
+        raise ValueError("未配置 LLM API Key，请使用「应用模板填空」或配置 DEEPSEEK_API_KEY")
+    vals = flatten_parties(contract.parties_json)
+    tpl = get_template(contract.template_key)
+    tpl_name = tpl["name"] if tpl else contract.template_key
+    field_lines = "\n".join(f"- {k}: {v}" for k, v in vals.items() if v)
+    template_body = render_body(contract.template_key, vals, title=contract.title)
+    system = GENERATE_SYSTEM if contract.template_key == "labor" else DRAFT_SYSTEM
+    user_msg = (
+        f"合同类型：{tpl_name}\n"
+        f"合同标题：{contract.title}\n\n"
+        f"用户已填写字段：\n{field_lines or '（暂无）'}\n\n"
+        f"模板填空参考（可在此基础上润色补全）：\n{template_body[:6000]}\n\n"
+        "请输出完整合同 HTML 正文。"
+    )
+    text = chat_complete(
+        [{"role": "system", "content": system}, {"role": "user", "content": user_msg}],
+        temperature=0.4,
+    )
+    if not text:
+        raise ValueError("AI 生成失败，请稍后重试")
+    contract.body_html = text.strip()
+    contract.status = "draft"
+    contract.updated_at = _now()
+    _record_event(db, contract.id, user.id, "ai_generate")
     db.commit()
     db.refresh(contract)
     return contract
@@ -149,12 +229,12 @@ def ai_draft(db: Session, contract: ContractRecord, user: User, prompt: str) -> 
     if not llm_configured():
         raise ValueError("未配置 LLM API Key，无法智能起草")
     parties = contract.parties_json or {}
+    vals = flatten_parties(parties)
     user_msg = (
         f"合同标题：{contract.title}\n"
-        f"甲方：{parties.get('party_a', '')}\n"
-        f"乙方：{parties.get('party_b', '')}\n"
         f"模板类型：{contract.template_key}\n"
-        f"用户要求：{prompt}\n"
+        f"已填字段：{vals}\n"
+        f"用户补充要求：{prompt}\n"
         "请输出完整合同正文 HTML。"
     )
     text = chat_complete(
@@ -238,17 +318,36 @@ def upsert_asset(
     return asset
 
 
-def ensure_default_seal(db: Session, contract: ContractRecord, user: User) -> ContractAsset | None:
+def ensure_default_seal(
+    db: Session,
+    contract: ContractRecord,
+    user: User,
+    *,
+    company_name: str = "",
+    seal_text: str = "合同专用章",
+    style: str = "round",
+    replace: bool = True,
+) -> ContractAsset | None:
     if any(a.asset_type == "seal" for a in contract.assets):
-        return next(a for a in contract.assets if a.asset_type == "seal")
+        if not replace:
+            return next(a for a in contract.assets if a.asset_type == "seal")
+        for a in list(contract.assets):
+            if a.asset_type == "seal":
+                db.delete(a)
+        db.flush()
     parties = contract.parties_json or {}
-    label = parties.get("party_a", "")[:6] + "章" if parties.get("party_a") else "合同专用章"
-    file_key = generate_default_seal(label, contract.id)
+    company = company_name or parties.get("seal_company") or parties.get("party_a") or "单位名称"
+    file_key = generate_default_seal(
+        company,
+        contract.id,
+        seal_text=seal_text,
+        style=style,
+    )
     asset = ContractAsset(
         contract_id=contract.id,
         asset_type="seal",
         file_key=file_key,
-        label=label,
+        label=f"{seal_text}（模拟）",
         placement_json=DEFAULT_SEAL_PLACEMENT,
     )
     db.add(asset)

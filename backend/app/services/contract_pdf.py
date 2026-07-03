@@ -65,28 +65,52 @@ def _wrap_line(c: canvas.Canvas, text: str, font: str, size: int, max_width: flo
     return lines or [""]
 
 
-def generate_default_seal(label: str, contract_id: str) -> str:
-    """生成默认红色圆形电子章，返回 file_key。"""
-    size = 240
+def generate_default_seal(
+    company_name: str,
+    contract_id: str,
+    *,
+    seal_text: str = "合同专用章",
+    style: str = "round",
+) -> str:
+    """生成模拟电子公章 PNG（Pillow 实现，参考开放签印章生成交互）。"""
+    size = 280
     img = Image.new("RGBA", (size, size), (255, 255, 255, 0))
     draw = ImageDraw.Draw(img)
-    margin = 8
-    draw.ellipse([margin, margin, size - margin, size - margin], outline=(200, 30, 30, 255), width=6)
-    draw.ellipse([margin + 14, margin + 14, size - margin - 14, size - margin - 14], outline=(200, 30, 30, 200), width=2)
-    text = (label or "合同专用章")[:8]
+    red = (196, 30, 30, 255)
+    red_light = (196, 30, 30, 180)
     try:
-        font = ImageFont.truetype("msyh.ttc", 28)
+        font_lg = ImageFont.truetype("msyh.ttc", 22)
+        font_sm = ImageFont.truetype("msyh.ttc", 18)
     except OSError:
         try:
-            font = ImageFont.truetype("arial.ttf", 24)
+            font_lg = ImageFont.truetype("/usr/share/fonts/truetype/wqy/wqy-microhei.ttc", 20)
+            font_sm = font_lg
         except OSError:
-            font = ImageFont.load_default()
-    bbox = draw.textbbox((0, 0), text, font=font)
-    tw, th = bbox[2] - bbox[0], bbox[3] - bbox[1]
-    draw.text(((size - tw) / 2, (size - th) / 2 - 4), text, fill=(200, 30, 30, 255), font=font)
-    dest = contract_dir(contract_id) / "default_seal.png"
+            font_lg = ImageFont.load_default()
+            font_sm = font_lg
+    margin = 10
+    if style == "square":
+        draw.rectangle([margin, margin, size - margin, size - margin], outline=red, width=5)
+        draw.rectangle([margin + 12, margin + 12, size - margin - 12, size - margin - 12], outline=red_light, width=2)
+    else:
+        draw.ellipse([margin, margin, size - margin, size - margin], outline=red, width=5)
+        draw.ellipse([margin + 14, margin + 14, size - margin - 14, size - margin - 14], outline=red_light, width=2)
+    center_text = (seal_text or "合同专用章")[:6]
+    cb = draw.textbbox((0, 0), center_text, font=font_lg)
+    tw = cb[2] - cb[0]
+    draw.text(((size - tw) / 2, size * 0.38), center_text, fill=red, font=font_lg)
+    star = "★"
+    sb = draw.textbbox((0, 0), star, font=font_lg)
+    sw = sb[2] - sb[0]
+    draw.text(((size - sw) / 2, size * 0.52), star, fill=red, font=font_lg)
+    name = (company_name or "单位名称").replace("\n", "")[:12]
+    nb = draw.textbbox((0, 0), name, font=font_sm)
+    nw = nb[2] - nb[0]
+    draw.text(((size - nw) / 2, size * 0.68), name, fill=red, font=font_sm)
+    fname = f"seal_{style}.png"
+    dest = contract_dir(contract_id) / fname
     img.save(dest, "PNG")
-    return f"contracts/{contract_id}/default_seal.png"
+    return f"contracts/{contract_id}/{fname}"
 
 
 def build_contract_pdf(
