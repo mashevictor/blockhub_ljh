@@ -57,8 +57,13 @@ jobs:
 
       - name: Bootstrap Android project
         run: |
-          if [ ! -f android/local.properties ]; then
+          needs=0
+          if [ ! -f android/app/src/main/res/values/styles.xml ]; then needs=1; fi
+          if [ ! -f android/gradlew ]; then needs=1; fi
+          if [ "$needs" -eq 1 ]; then
             flutter create . --platforms=android --org com.trackchat.runtime
+            rm -f android/build.gradle.kts android/settings.gradle.kts android/app/build.gradle.kts
+            rm -rf android/app/src/main/kotlin/com/trackchat/runtime/trackchat_runtime_app 2>/dev/null || true
           fi
 
       - name: Prepare branding icon

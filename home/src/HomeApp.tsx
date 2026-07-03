@@ -38,11 +38,9 @@ export default function HomeApp() {
 
   const handleViewChange = (mode: ViewMode) => {
     setView(mode)
-    if (mode === 'industry' || mode === 'module') {
-      requestAnimationFrame(() => {
-        mainRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-      })
-    }
+    requestAnimationFrame(() => {
+      mainRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    })
   }
 
   useEffect(() => {
@@ -65,6 +63,11 @@ export default function HomeApp() {
   const handleRoleApply = (role: RoleApplyRequest['preset'], generate?: boolean) => {
     setView('prompt')
     setRoleApply({ preset: role, generate })
+    if (generate) {
+      requestAnimationFrame(() => {
+        mainRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      })
+    }
   }
 
   return (
@@ -119,16 +122,21 @@ export default function HomeApp() {
         </div>
       </section>
 
-      <main ref={mainRef} id="create-screen" key={view} className="main-content page-enter">
-        {view === 'prompt' && (
+      <main ref={mainRef} id="create-screen" className="main-content page-enter">
+        <div className={view === 'prompt' ? undefined : 'view-hidden'} aria-hidden={view !== 'prompt'}>
           <PromptView
+            active={view === 'prompt'}
             onPublish={handlePublish}
             roleApply={roleApply}
             onRoleApplyDone={() => setRoleApply(null)}
           />
-        )}
-        {view === 'industry' && <IndustryView onPublish={handlePublish} />}
-        {view === 'module' && <ModuleView onPublish={handlePublish} />}
+        </div>
+        <div className={view === 'industry' ? undefined : 'view-hidden'} aria-hidden={view !== 'industry'}>
+          <IndustryView active={view === 'industry'} onPublish={handlePublish} />
+        </div>
+        <div className={view === 'module' ? undefined : 'view-hidden'} aria-hidden={view !== 'module'}>
+          <ModuleView active={view === 'module'} onPublish={handlePublish} />
+        </div>
       </main>
 
       <PlatformShowcaseFooter />

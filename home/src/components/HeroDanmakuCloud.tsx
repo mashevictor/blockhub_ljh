@@ -97,7 +97,7 @@ export default function HeroDanmakuCloud({ onRoleApply, integrated }: Props) {
             const hot = index % 4 === 0
             return (
               <button
-                key={preset.id}
+                key={`${preset.id}-${track}-${index}`}
                 type="button"
                 className={`hero-danmaku-item${direction === 'reverse' ? ' reverse' : ''}${hot ? ' hot' : ''}`}
                 style={{

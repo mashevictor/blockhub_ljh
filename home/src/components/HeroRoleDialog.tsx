@@ -74,7 +74,7 @@ export default function HeroRoleDialog({ role, onClose, onApply }: Props) {
           </div>
           <div className="hero-role-flow">
             {role.flowLines.slice(0, visibleLines).map((line, idx) => (
-              <p key={line} className="hero-role-line" style={{ animationDelay: `${idx * 0.05}s` }}>
+              <p key={`${role.id}-line-${idx}`} className="hero-role-line" style={{ animationDelay: `${idx * 0.05}s` }}>
                 {line}
               </p>
             ))}

@@ -12,6 +12,7 @@ import { emptyBranding } from '../data/appBranding'
 
 interface Props {
   onPublish: (r: PublishResult) => void
+  active?: boolean
 }
 
 interface Widget { key: string; name: string; iconKey: string }
@@ -21,7 +22,7 @@ interface CapabilityGroup {
   items: Widget[]
 }
 
-export default function ModuleView({ onPublish }: Props) {
+export default function ModuleView({ onPublish, active = true }: Props) {
   const { theme } = useTheme()
   const [widgets, setWidgets] = useState<Widget[]>([])
   const [moduleGroups, setModuleGroups] = useState<CapabilityGroup[]>([])
@@ -64,6 +65,11 @@ export default function ModuleView({ onPublish }: Props) {
   useEffect(() => {
     loadModules()
   }, [])
+
+  useEffect(() => {
+    if (active) return
+    setContactOpen(false)
+  }, [active])
 
   const add = (w: Widget) => {
     if (widgets.some((x) => x.key === w.key)) return
@@ -205,7 +211,7 @@ export default function ModuleView({ onPublish }: Props) {
       {publishError && <p className="publish-error">{publishError}</p>}
 
       <ContactGateModal
-        open={contactOpen}
+        open={active && contactOpen}
         onClose={() => setContactOpen(false)}
         onConfirm={(c) => { setContactOpen(false); void doPublish(c) }}
       />

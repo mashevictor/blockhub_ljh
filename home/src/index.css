@@ -118,6 +118,7 @@ body {
 .hero-title.animate-fade-up { animation-fill-mode: forwards; }
 .delay-1 { animation-delay: 0.08s; opacity: 0; }
 .page-enter { animation: fadeInUp 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+.view-hidden { display: none !important; }
 
 .stagger-in > * {
   animation: fadeInUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) backwards;
@@ -1074,6 +1075,7 @@ body {
   position: absolute;
   top: calc(var(--dm-track) * 38px + 6px);
   left: var(--dm-start-left, 100%);
+  pointer-events: auto;
   display: inline-flex;
   align-items: center;
   gap: 8px;

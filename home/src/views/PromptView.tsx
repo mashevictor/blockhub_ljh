@@ -40,6 +40,8 @@ interface Props {
   onPublish: (r: PublishResult) => void
   roleApply?: RoleApplyRequest | null
   onRoleApplyDone?: () => void
+  /** 当前是否为「描述需求」Tab（隐藏时收起弹层与积木仓） */
+  active?: boolean
 }
 
 type Tab = 'all' | 'office' | 'industry'
@@ -75,7 +77,7 @@ function filterByIndustries(
   return out
 }
 
-export default function PromptView({ onPublish, roleApply, onRoleApplyDone }: Props) {
+export default function PromptView({ onPublish, roleApply, onRoleApplyDone, active = true }: Props) {
   const { theme } = useTheme()
   const [prompt, setPrompt] = useState('')
   const [selected, setSelected] = useState<Set<string>>(new Set())
@@ -205,6 +207,8 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone }: Pr
     if (!base) return raw
     return ''
   }, [prompt, promptModules])
+
+  const canGenerate = promptModules.length > 0 || userIntentText.trim().length >= 2
 
   useEffect(() => {
     const id = window.setTimeout(() => setDebouncedIntent(userIntentText), 400)
@@ -340,41 +344,23 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone }: Pr
   }, [])
 
   useEffect(() => {
-    const el = catalogRef.current
-    if (!el) return
     let cancelled = false
-    const loadCatalog = () => {
-      if (cancelled) return
-      setCatalogLoading(true)
-      Promise.all([
-        fetchOfficeScenarios({ lite: true }),
-        fetchIndustryScenarios({ lite: true }),
-      ])
-        .then(([o, i]) => {
-          if (cancelled) return
-          setOfficeAll(o.map((s) => ({ ...s, kind: 'office' as const })))
-          setIndustryAll(i.map((s) => ({ ...s, kind: 'industry' as const })))
-        })
-        .catch(() => {})
-        .finally(() => {
-          if (!cancelled) setCatalogLoading(false)
-        })
-    }
-    const io = new IntersectionObserver(
-      ([entry]) => {
-        if (entry?.isIntersecting) {
-          loadCatalog()
-          io.disconnect()
-        }
-      },
-      { rootMargin: '240px' },
-    )
-    io.observe(el)
-    const fallback = window.setTimeout(loadCatalog, 2500)
+    setCatalogLoading(true)
+    Promise.all([
+      fetchOfficeScenarios({ lite: true }),
+      fetchIndustryScenarios({ lite: true }),
+    ])
+      .then(([o, i]) => {
+        if (cancelled) return
+        setOfficeAll(o.map((s) => ({ ...s, kind: 'office' as const })))
+        setIndustryAll(i.map((s) => ({ ...s, kind: 'industry' as const })))
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setCatalogLoading(false)
+      })
     return () => {
       cancelled = true
-      io.disconnect()
-      window.clearTimeout(fallback)
     }
   }, [])
 
@@ -590,6 +576,7 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone }: Pr
       await runPublish(bundle, contact)
     } catch {
       setGeneratePhase(null)
+      setPublishError('生成失败，请确认已选择模块或填写需求，且 API 可用')
     }
   }, [pendingPreset, executePresetGenerate, runPublish, userIntentText, prompt, promptModules, selected, catalogNames])
 
@@ -605,9 +592,18 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone }: Pr
   }, [roleApply, catalogLoading])
 
   const handleGenerate = () => {
+    if (!canGenerate) return
     setPendingPreset(null)
     setContactOpen(true)
+    focusPrompt()
   }
+
+  useEffect(() => {
+    if (active) return
+    setContactOpen(false)
+    setPendingPreset(null)
+    setGeneratePhase(null)
+  }, [active])
 
   const handleAgentPick = useCallback((pick: AgentPick, extra?: { iconKey?: string; color?: string }) => {
     if (pick.type === 'action') {
@@ -719,7 +715,7 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone }: Pr
                 </button>
               ))}
             </div>
-            <button type="button" className="btn-primary" disabled={loading} onClick={handleGenerate}>
+            <button type="button" className="btn-primary" disabled={loading || !canGenerate} onClick={handleGenerate}>
               {loading ? '正在生成…' : '生成我的应用'}
             </button>
           </div>
@@ -869,22 +865,24 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone }: Pr
         )}
       </div>
 
-      <SelectionBox
-        items={selectionItems}
-        onRemove={removeSelectionItem}
-        onClear={clearAll}
-        onScrollToPrompt={focusPrompt}
-        onGenerate={handleGenerate}
-        generating={loading}
-        lastAddedId={lastAddedId}
-        openSignal={boxOpenSignal}
-      />
+      {active && (
+        <SelectionBox
+          items={selectionItems}
+          onRemove={removeSelectionItem}
+          onClear={clearAll}
+          onScrollToPrompt={focusPrompt}
+          onGenerate={canGenerate ? handleGenerate : undefined}
+          generating={loading}
+          lastAddedId={lastAddedId}
+          openSignal={boxOpenSignal}
+        />
+      )}
 
-      {generatePhase && <GenerateLoadingOverlay phase={generatePhase} />}
-      {publishError && <p className="publish-error">{publishError}</p>}
+      {active && generatePhase && <GenerateLoadingOverlay phase={generatePhase} />}
+      {active && publishError && <p className="publish-error">{publishError}</p>}
 
       <ContactGateModal
-        open={contactOpen}
+        open={active && contactOpen}
         onClose={() => { setContactOpen(false); setPendingPreset(null) }}
         onConfirm={handleContactConfirm}
       />

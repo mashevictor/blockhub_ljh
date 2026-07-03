@@ -19,9 +19,10 @@ interface SceneItem {
 
 interface Props {
   onPublish: (r: PublishResult) => void
+  active?: boolean
 }
 
-export default function IndustryView({ onPublish }: Props) {
+export default function IndustryView({ onPublish, active = true }: Props) {
   const { theme } = useTheme()
   const [industry, setIndustry] = useState('office')
   const [step, setStep] = useState(1)
@@ -62,6 +63,11 @@ export default function IndustryView({ onPublish }: Props) {
   useEffect(() => {
     loadScenes()
   }, [industry])
+
+  useEffect(() => {
+    if (active) return
+    setContactOpen(false)
+  }, [active])
 
   const pack = INDUSTRIES.find((p) => p.key === industry)!
 
@@ -263,7 +269,7 @@ export default function IndustryView({ onPublish }: Props) {
       {publishError && <p className="publish-error">{publishError}</p>}
 
       <ContactGateModal
-        open={contactOpen}
+        open={active && contactOpen}
         onClose={() => setContactOpen(false)}
         onConfirm={(c) => { setContactOpen(false); void doPublish(c) }}
       />

@@ -371,6 +371,9 @@ export function mapHeroPresetFromApi(item: {
   picks: AgentPick[]
   flowLines: string[]
 }): RolePreset {
+  const flowLines = Array.isArray(item.flowLines) && item.flowLines.length > 0
+    ? item.flowLines
+    : [`>> ${item.label} · 一键生成`, '>> 智能编排 · 场景就绪']
   return {
     id: item.id,
     label: item.label,
@@ -379,7 +382,7 @@ export function mapHeroPresetFromApi(item: {
     weight: item.weight,
     color: item.color,
     prompt: item.prompt,
-    picks: item.picks,
-    flowLines: item.flowLines,
+    picks: item.picks ?? [],
+    flowLines,
   }
 }

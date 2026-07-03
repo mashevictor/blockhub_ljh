@@ -15,9 +15,22 @@ if ! command -v flutter >/dev/null 2>&1; then
   exit 1
 fi
 
-# Bootstrap android/ios if missing (first clone)
-if [ ! -f android/local.properties ]; then
+# Root builds: Flutter warns but CI/servers often run as root — allow explicitly.
+if [ "$(id -u 2>/dev/null || echo 0)" -eq 0 ]; then
+  export FLUTTER_ROOT_ALLOW_ROOT=true
+  echo "NOTE: building as root (FLUTTER_ROOT_ALLOW_ROOT=true). Prefer a normal user when possible."
+fi
+
+# Bootstrap android res / gradle wrapper when repo skeleton is incomplete.
+needs_bootstrap=0
+if [ ! -f android/app/src/main/res/values/styles.xml ]; then needs_bootstrap=1; fi
+if [ ! -f android/gradlew ]; then needs_bootstrap=1; fi
+if [ "$needs_bootstrap" -eq 1 ]; then
+  echo "==> Bootstrapping Android platform files (flutter create)..."
   flutter create . --platforms=android --org com.trackchat.runtime
+  # flutter create may add *.kts duplicates — keep our Groovy build scripts with appLabel support.
+  rm -f android/build.gradle.kts android/settings.gradle.kts android/app/build.gradle.kts
+  rm -rf android/app/src/main/kotlin/com/trackchat/runtime/trackchat_runtime_app 2>/dev/null || true
 fi
 
 BRANDING_FILE="${BRANDING_JSON:-$APP_DIR/branding/branding.json}"
@@ -56,13 +69,24 @@ flutter pub get
 dart run flutter_launcher_icons
 
 echo "==> Building APK: $APP_NAME ($APP_ID)"
+set +e
 flutter build apk --release \
   -PappLabel="$APP_NAME" \
   --dart-define=APP_NAME="$APP_NAME" \
   --dart-define=APP_ID="$APP_ID" \
   --dart-define=TENANT_SLUG="$TENANT_SLUG" \
   --dart-define=API_BASE_URL="$API_BASE_URL" \
-  --dart-define=PRIMARY_COLOR="$PRIMARY_COLOR"
+  --dart-define=PRIMARY_COLOR="$PRIMARY_COLOR" 2>&1 | tee /tmp/flutter-apk-build.log
+build_status=${PIPESTATUS[0]}
+set -e
+if [ "$build_status" -ne 0 ]; then
+  echo "ERROR: flutter build apk failed (exit $build_status). Last Gradle lines:"
+  tail -n 40 /tmp/flutter-apk-build.log 2>/dev/null || true
+  if [ -f android/build/reports/problems/problems-report.html ]; then
+    echo "See android/build/reports/problems/problems-report.html"
+  fi
+  exit "$build_status"
+fi
 
 OUT="$APP_DIR/build/app/outputs/flutter-apk/app-release.apk"
 APK_DIR="$ROOT/backend/uploads/apks"
