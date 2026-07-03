@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { ADMIN_URL, type PublishResult, type ViewMode } from './data/constants'
 import type { RoleApplyRequest } from './data/rolePresets'
@@ -29,10 +29,21 @@ export default function HomeApp() {
   const location = useLocation()
   const navigate = useNavigate()
 
+  const mainRef = useRef<HTMLElement>(null)
+
   useEffect(() => {
     document.body.classList.add('cube-theme')
     return () => document.body.classList.remove('cube-theme')
   }, [])
+
+  const handleViewChange = (mode: ViewMode) => {
+    setView(mode)
+    if (mode === 'industry' || mode === 'module') {
+      requestAnimationFrame(() => {
+        mainRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      })
+    }
+  }
 
   useEffect(() => {
     if (!getToken()) {
@@ -73,7 +84,7 @@ export default function HomeApp() {
               <span>{BRAND.tagline}</span>
             </div>
           </div>
-          <ViewModeSwitcher value={view} onChange={setView} />
+          <ViewModeSwitcher value={view} onChange={handleViewChange} />
           <div className="header-actions">
             <Link to={ROUTES.plazaFeed} className="btn-plaza-nav">📡 广场</Link>
             <Link to={ROUTES.plazaMyApps} className="btn-my-apps" title="查看本浏览器发布过的应用">
@@ -108,7 +119,7 @@ export default function HomeApp() {
         </div>
       </section>
 
-      <main key={view} className="main-content page-enter">
+      <main ref={mainRef} id="create-screen" key={view} className="main-content page-enter">
         {view === 'prompt' && (
           <PromptView
             onPublish={handlePublish}

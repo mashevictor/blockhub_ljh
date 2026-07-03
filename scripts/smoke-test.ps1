@@ -65,6 +65,7 @@ try {
     if ($summary.total -ge 114) { Ok "total>=114 ($($summary.total))" } else { Bad "total=$($summary.total)" }
     if ($summary.hero_preset_count -eq 30) { Ok "hero_preset_count=30" } else { Bad "hero_preset_count=$($summary.hero_preset_count)" }
     if ($summary.chip_template_count -eq 5) { Ok "chip_template_count=5" } else { Bad "chip_template_count=$($summary.chip_template_count)" }
+    if ($summary.agent_count -ge 10) { Ok "agent_count>=10 ($($summary.agent_count))" } else { Bad "agent_count=$($summary.agent_count)" }
     $hero = Invoke-RestMethod -Uri "$Api/catalog/hero-presets"
     if ($hero.total -eq 30) { Ok "GET /catalog/hero-presets total=30" } else { Bad "hero-presets total=$($hero.total)" }
 } catch { Bad "GET /catalog/summary or hero-presets" }
@@ -75,6 +76,40 @@ if ($token) {
         $agents = Invoke-RestMethod -Uri "$Api/agents" -Headers @{ Authorization = "Bearer $token" }
         if ($agents.total -eq 10) { Ok "GET /agents total=10" } else { Bad "GET /agents total=$($agents.total)" }
     } catch { Bad "GET /agents" }
+}
+
+Write-Host "`n=== Protected routes (D3) ==="
+try {
+    $code = (Invoke-WebRequest -Uri "$Api/stats/dashboard" -UseBasicParsing).StatusCode
+    if ($code -eq 403) { Ok "stats/dashboard 403 without token" } else { Bad "stats/dashboard expected 403 got $code" }
+} catch {
+    if ($_.Exception.Response.StatusCode.value__ -eq 403) { Ok "stats/dashboard 403 without token" }
+    else { Bad "stats/dashboard - $($_.Exception.Message)" }
+}
+
+if ($token) {
+    try {
+        $code = (Invoke-WebRequest -Uri "$Api/stats/dashboard" -Headers @{ Authorization = "Bearer $token" } -UseBasicParsing).StatusCode
+        if ($code -eq 200) { Ok "stats/dashboard 200 with token" } else { Bad "stats/dashboard expected 200 got $code" }
+    } catch { Bad "stats/dashboard with token" }
+    try {
+        $empLogin = Invoke-RestMethod -Uri "$Api/auth/login" -Method Post -Body (@{ email = "employee@trackchat.local"; password = "emp123" } | ConvertTo-Json) -ContentType "application/json"
+        Invoke-WebRequest -Uri "$Api/seed" -Method Post -Headers @{ Authorization = "Bearer $($empLogin.access_token)" } -Body '{"force":false}' -ContentType "application/json" -UseBasicParsing | Out-Null
+        Bad "POST /seed should 403 for employee"
+    } catch {
+        if ($_.Exception.Response.StatusCode.value__ -eq 403) { Ok "POST /seed 403 for employee" }
+        else { Bad "POST /seed employee RBAC - $($_.Exception.Message)" }
+    }
+}
+
+Write-Host "`n=== Chat SSE (D4) ==="
+if ($token) {
+    try {
+        $cfg = Invoke-RestMethod -Uri "$Api/chat/config" -Headers @{ Authorization = "Bearer $token" }
+        if ($cfg.stream_supported) { Ok "GET /chat/config stream_supported" } else { Bad "chat stream_supported=false" }
+        $stream = Invoke-WebRequest -Uri "$Api/chat/completions/stream" -Method Post -Headers @{ Authorization = "Bearer $token" } -Body '{"message":"你好","session_id":"smoke"}' -ContentType "application/json" -UseBasicParsing
+        if ($stream.Content -match 'data:') { Ok "POST /chat/completions/stream SSE" } else { Bad "chat stream empty" }
+    } catch { Bad "chat SSE - $($_.Exception.Message)" }
 }
 
 Write-Host "`n=== Creation ==="

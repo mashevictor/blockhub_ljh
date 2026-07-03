@@ -15,7 +15,7 @@ api.interceptors.response.use(
   (res) => res,
   (error) => {
     const url = String(error.config?.url || '')
-    if (error.response?.status === 401 && !url.includes('/auth/login') && !url.includes('/auth/login-otp') && !url.includes('/auth/send-code')) {
+    if ((error.response?.status === 401 || error.response?.status === 403) && !url.includes('/auth/login') && !url.includes('/auth/login-otp') && !url.includes('/auth/send-code')) {
       clearToken()
       redirectToLogin()
     }
@@ -120,6 +120,58 @@ export const fetchChatMessages = (sessionId = 'default') =>
 
 export const sendChatMessage = (message: string, sessionId = 'default', model?: string) =>
   api.post<{ message: ChatMessage }>('/chat/completions', { message, session_id: sessionId, model }).then((r) => r.data)
+
+export async function sendChatMessageStream(
+  message: string,
+  sessionId: string,
+  model: string,
+  onChunk: (content: string, done: boolean, source?: string) => void,
+): Promise<void> {
+  const token = getToken()
+  const res = await fetch('/api/v1/chat/completions/stream', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify({ message, session_id: sessionId, model }),
+  })
+  if (!res.ok) {
+    if (res.status === 401 || res.status === 403) {
+      clearToken()
+      redirectToLogin()
+    }
+    throw new Error(`Chat stream failed: ${res.status}`)
+  }
+  const reader = res.body?.getReader()
+  if (!reader) throw new Error('No response body')
+  const decoder = new TextDecoder()
+  let buffer = ''
+  while (true) {
+    const { done, value } = await reader.read()
+    if (done) break
+    buffer += decoder.decode(value, { stream: true })
+    const lines = buffer.split('\n')
+    buffer = lines.pop() ?? ''
+    for (const line of lines) {
+      const trimmed = line.trim()
+      if (!trimmed.startsWith('data:')) continue
+      const payload = trimmed.slice(5).trim()
+      if (payload === '[DONE]') {
+        onChunk('', true)
+        return
+      }
+      try {
+        const data = JSON.parse(payload) as { content?: string; done?: boolean; source?: string }
+        if (data.content != null) {
+          onChunk(data.content, Boolean(data.done), data.source)
+        }
+      } catch {
+        /* skip malformed chunk */
+      }
+    }
+  }
+}
 
 // ── 知识库 ──
 export const fetchKbStats = () => api.get('/kb/stats').then((r) => r.data)
@@ -237,6 +289,7 @@ export interface CatalogSummary {
   industry_count: number
   total: number
   capability_count: number
+  agent_count?: number
   industry_packs: number
   office_groups: number
 }

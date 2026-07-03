@@ -6,7 +6,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
     app_name: str = "TrackChat PaaS API"
-    app_version: str = "1.0.0"
+    app_version: str = "1.1.0"
     api_prefix: str = "/api/v1"
     cors_origins: str = "http://localhost:5173,http://127.0.0.1:5173,http://localhost:5174,http://127.0.0.1:5174,http://101.32.209.251,http://101.32.209.251/admin"
 
@@ -14,6 +14,12 @@ class Settings(BaseSettings):
     deepseek_base_url: str = "https://api.deepseek.com/v1"
     deepseek_model: str = "deepseek-chat"
     deepseek_timeout: int = 25
+
+    # Chat LLM（OpenAI 兼容：DeepSeek / 通义 / 豆包等，未设则回退 deepseek_*）
+    llm_api_key: str = ""
+    llm_base_url: str = ""
+    llm_model: str = ""
+    llm_timeout: int = 60
 
     # PostgreSQL only — set DATABASE_URL in .env (see .env.example)
     database_url: str = "postgresql+psycopg2://trackchat:trackchat@localhost:5432/trackchat"

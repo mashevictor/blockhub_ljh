@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from app.core.deps import get_current_user
+from app.core.deps import require_admin
 from app.db.models import User
 from app.db.session import get_db
 from app.services.catalog_seed import seed_catalog
@@ -27,7 +27,7 @@ class SeedResponse(BaseModel):
 def seed_database(
     body: SeedRequest,
     db: Annotated[Session, Depends(get_db)],
-    _: Annotated[User, Depends(get_current_user)],
+    _: Annotated[User, Depends(require_admin)],
 ) -> SeedResponse:
     ensure_seed_data(db)
     counts = seed_catalog(db, force=body.force)

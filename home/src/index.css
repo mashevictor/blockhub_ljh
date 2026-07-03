@@ -2065,6 +2065,7 @@ body {
   flex: 1; max-width: 1200px; width: 100%;
   margin: 0 auto; padding: 28px 24px 48px;
   position: relative; z-index: 1;
+  scroll-margin-top: 72px;
 }
 .view-hero.compact { text-align: center; margin-bottom: 24px; }
 .view-hero.compact h2 { font-size: var(--fs-xl); color: var(--pri-dark); margin-bottom: 8px; font-weight: 800; }

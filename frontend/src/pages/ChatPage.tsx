@@ -2,17 +2,26 @@ import { useEffect, useRef, useState } from 'react'
 import {
   fetchChatConfig,
   fetchChatMessages,
-  sendChatMessage,
+  sendChatMessageStream,
   type ChatMessage,
 } from '../api/client'
 
 export default function ChatPage() {
-  const [config, setConfig] = useState<{ title: string; description: string; default_model: string; models: string[]; suggestions: string[] } | null>(null)
+  const [config, setConfig] = useState<{
+    title: string
+    description: string
+    default_model: string
+    models: string[]
+    suggestions: string[]
+    llm_configured?: boolean
+  } | null>(null)
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [input, setInput] = useState('')
   const [model, setModel] = useState('')
   const [loading, setLoading] = useState(false)
+  const [streamSource, setStreamSource] = useState<string | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
+  const assistantIdRef = useRef<string | null>(null)
 
   useEffect(() => {
     fetchChatConfig().then((c) => {
@@ -31,13 +40,35 @@ export default function ChatPage() {
     if (!msg || loading) return
     setInput('')
     setLoading(true)
-    setMessages((prev) => [...prev, { id: `tmp-${Date.now()}`, role: 'user', content: msg, created_at: new Date().toISOString() }])
+    setStreamSource(null)
+    const userMsg: ChatMessage = {
+      id: `tmp-u-${Date.now()}`,
+      role: 'user',
+      content: msg,
+      created_at: new Date().toISOString(),
+    }
+    const assistantId = `tmp-a-${Date.now()}`
+    assistantIdRef.current = assistantId
+    setMessages((prev) => [
+      ...prev,
+      userMsg,
+      { id: assistantId, role: 'assistant', content: '', created_at: new Date().toISOString() },
+    ])
     try {
-      const res = await sendChatMessage(msg, 'default', model)
-      setMessages((prev) => [...prev.filter((m) => !m.id.startsWith('tmp-')), ...prev.filter((m) => m.id.startsWith('tmp-')), res.message])
-      fetchChatMessages().then(setMessages)
+      await sendChatMessageStream(msg, 'default', model, (content, done, source) => {
+        if (source) setStreamSource(source)
+        setMessages((prev) =>
+          prev.map((m) => (m.id === assistantId ? { ...m, content } : m)),
+        )
+        if (done) {
+          fetchChatMessages().then(setMessages)
+        }
+      })
+    } catch {
+      setMessages((prev) => prev.filter((m) => m.id !== assistantId))
     } finally {
       setLoading(false)
+      assistantIdRef.current = null
     }
   }
 
@@ -48,6 +79,12 @@ export default function ChatPage() {
           + 新对话
         </button>
         <div className="chat-sidebar-item active">默认会话</div>
+        {config && (
+          <p className="chat-sidebar-meta">
+            {config.llm_configured ? 'LLM 已连接' : '演示模式（Mock）'}
+            {streamSource && ` · ${streamSource}`}
+          </p>
+        )}
       </aside>
 
       <div className="chat-main">
@@ -79,10 +116,11 @@ export default function ChatPage() {
           )}
           {messages.map((m) => (
             <div key={m.id} className={`chat-bubble ${m.role}`}>
-              <div className="bubble-content">{m.content}</div>
+              <div className="bubble-content">
+                {m.content || (loading && m.id === assistantIdRef.current ? '▍' : '')}
+              </div>
             </div>
           ))}
-          {loading && <div className="chat-bubble assistant"><div className="bubble-content typing">思考中…</div></div>}
           <div ref={bottomRef} />
         </div>
 
@@ -93,9 +131,10 @@ export default function ChatPage() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+            disabled={loading}
           />
           <button type="button" className="btn btn-primary-dark" onClick={() => handleSend()} disabled={loading}>
-            发送
+            {loading ? '生成中…' : '发送'}
           </button>
         </div>
         <p className="chat-disclaimer">回答由 AI 生成，重要事项请以正式制度文件为准</p>

@@ -15,7 +15,7 @@ api.interceptors.response.use(
   (res) => res,
   (error) => {
     const url = String(error.config?.url || '')
-    if (error.response?.status === 401 && !url.includes('/auth/login') && !url.includes('/auth/login-otp') && !url.includes('/auth/send-code')) {
+    if ((error.response?.status === 401 || error.response?.status === 403) && !url.includes('/auth/login') && !url.includes('/auth/login-otp') && !url.includes('/auth/send-code')) {
       clearToken()
       redirectToLogin()
     }
@@ -28,6 +28,10 @@ export interface CatalogSummary {
   industry_count: number
   total: number
   base_scenario_total?: number
+  capability_count?: number
+  agent_count?: number
+  industry_packs?: number
+  office_groups?: number
   hero_preset_count?: number
   chip_template_count?: number
   source?: string

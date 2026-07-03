@@ -7,7 +7,7 @@ from sqlalchemy.exc import OperationalError
 
 from app.api.v1 import agents, approvals, auth, catalog, chat, creation, health, kb, notifications, reports, seed, stats
 from app.core.config import settings
-from app.core.deps import get_current_user
+from app.core.deps import get_current_user, require_admin
 from app.db.session import SessionLocal
 from app.services.catalog_seed import ensure_catalog_seeded
 from app.services.db_seed import ensure_seed_data
@@ -50,11 +50,12 @@ app.add_middleware(
 )
 
 _auth = [Depends(get_current_user)]
+_admin = [Depends(require_admin)]
 
 app.include_router(health.router, prefix=settings.api_prefix)
 app.include_router(auth.router, prefix=settings.api_prefix)
 app.include_router(catalog.router, prefix=settings.api_prefix)
-app.include_router(seed.router, prefix=settings.api_prefix, dependencies=_auth)
+app.include_router(seed.router, prefix=settings.api_prefix, dependencies=_admin)
 app.include_router(creation.router, prefix=settings.api_prefix)
 app.include_router(agents.router, prefix=settings.api_prefix, dependencies=_auth)
 app.include_router(stats.router, prefix=settings.api_prefix, dependencies=_auth)

@@ -96,6 +96,8 @@ CHIP_COUNT=$(echo "$SUMMARY" | python3 -c "import sys,json; print(json.load(sys.
 [ "$TOTAL_COUNT" -ge 114 ] 2>/dev/null && ok "total>=114 ($TOTAL_COUNT)" || bad "total<114 ($SUMMARY)"
 [ "$HERO_COUNT" -eq 30 ] 2>/dev/null && ok "hero_preset_count=30" || bad "hero_preset_count!=30 ($SUMMARY)"
 [ "$CHIP_COUNT" -eq 5 ] 2>/dev/null && ok "chip_template_count=5" || bad "chip_template_count!=5 ($SUMMARY)"
+AGENT_COUNT=$(echo "$SUMMARY" | python3 -c "import sys,json; print(json.load(sys.stdin).get('agent_count',0))" 2>/dev/null || echo 0)
+[ "$AGENT_COUNT" -ge 10 ] 2>/dev/null && ok "agent_count>=10 ($AGENT_COUNT)" || bad "agent_count<10 ($SUMMARY)"
 
 HERO=$(curl -sf "$API/catalog/hero-presets" 2>/dev/null || echo "")
 if echo "$HERO" | grep -q '"total":30'; then ok "GET /catalog/hero-presets total=30"; else bad "GET /catalog/hero-presets ($HERO)"; fi
@@ -109,13 +111,39 @@ AGENTS=$(curl -sf -H "Authorization: Bearer $TOKEN" "$API/agents" 2>/dev/null ||
 if echo "$AGENTS" | grep -q '"total":10'; then ok "GET /agents total=10"; else bad "GET /agents ($AGENTS)"; fi
 
 echo ""
-echo "=== Protected routes ==="
+echo "=== Protected routes (D3: no token → 403) ==="
 CODE=$(curl -s -o /dev/null -w "%{http_code}" "$API/stats/dashboard")
-[ "$CODE" = "401" ] && ok "stats/dashboard 401 without token" || bad "stats/dashboard expected 401 got $CODE"
+[ "$CODE" = "403" ] && ok "stats/dashboard 403 without token" || bad "stats/dashboard expected 403 got $CODE"
 
 if [ -n "$TOKEN" ]; then
   CODE=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer $TOKEN" "$API/stats/dashboard")
   [ "$CODE" = "200" ] && ok "stats/dashboard 200 with token" || bad "stats/dashboard expected 200 got $CODE"
+fi
+
+EMP_TOKEN=$(curl -sf -X POST "$API/auth/login" \
+  -H "Content-Type: application/json" \
+  -d '{"email":"employee@trackchat.local","password":"emp123"}' \
+  | python3 -c "import sys,json; print(json.load(sys.stdin).get('access_token',''))" 2>/dev/null || echo "")
+if [ -n "$EMP_TOKEN" ]; then
+  CODE=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$API/seed" \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer $EMP_TOKEN" \
+    -d '{"force":false}')
+  [ "$CODE" = "403" ] && ok "POST /seed 403 for employee" || bad "POST /seed expected 403 for employee got $CODE"
+else
+  bad "employee login for RBAC test"
+fi
+
+echo ""
+echo "=== Chat SSE (D4) ==="
+if [ -n "$TOKEN" ]; then
+  CHAT_CFG=$(curl -sf -H "Authorization: Bearer $TOKEN" "$API/chat/config" 2>/dev/null || echo "")
+  if echo "$CHAT_CFG" | grep -q '"stream_supported":true'; then ok "GET /chat/config stream_supported"; else bad "GET /chat/config"; fi
+  STREAM=$(curl -sf -N -X POST "$API/chat/completions/stream" \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer $TOKEN" \
+    -d '{"message":"你好","session_id":"smoke"}' 2>/dev/null | head -c 200 || echo "")
+  if echo "$STREAM" | grep -q 'data:'; then ok "POST /chat/completions/stream (SSE chunks)"; else bad "chat stream no SSE data"; fi
 fi
 
 echo ""
