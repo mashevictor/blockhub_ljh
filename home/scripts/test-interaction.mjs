@@ -82,5 +82,23 @@ ok('F 清空后仍可恢复', mergePromptText(base, '') === base)
 const afterRemove = [m4[0]]
 ok('G 去掉勾选更新描述', composeLogicalPrompt(afterRemove).includes('销售行业') && !composeLogicalPrompt(afterRemove).includes('医疗健康'))
 
+// H. 我的应用 localStorage 逻辑（与 myAppsStorage 一致）
+function mockAddMyApp(list, result) {
+  const key = result.appId || result.webUrl
+  if (!key) return { list, saved: false }
+  const entry = { ...result, savedAt: new Date().toISOString() }
+  const prev = list.filter((a) => (a.appId || a.webUrl) !== key)
+  return { list: [entry, ...prev], saved: true }
+}
+
+const r1 = { appId: 'abc123', webUrl: 'http://x/r/abc123', appName: 'Test', moduleCount: 2, modules: [] }
+const s1 = mockAddMyApp([], r1)
+ok('H1 首次保存我的应用', s1.saved && s1.list.length === 1)
+const r2 = { ...r1, appName: 'Test2' }
+const s2 = mockAddMyApp(s1.list, r2)
+ok('H2 同 appId 覆盖更新', s2.list.length === 1 && s2.list[0].appName === 'Test2')
+const s3 = mockAddMyApp([], { appName: 'x', moduleCount: 0, modules: [] })
+ok('H3 无 appId/webUrl 不保存', !s3.saved && s3.list.length === 0)
+
 console.log(`\n结果: ${pass} 通过, ${fail} 失败\n`)
 process.exit(fail ? 1 : 0)

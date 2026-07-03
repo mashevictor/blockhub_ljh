@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { ADMIN_URL, type PublishResult, type ViewMode } from './data/constants'
 import type { RoleApplyRequest } from './data/rolePresets'
 import PublishModal from './components/PublishModal'
@@ -18,17 +18,21 @@ import {
 } from './components/icons'
 import { BRAND } from './data/brand'
 import BrandMark from './components/BrandMark'
-import { addMyApp, loadMyApps } from './lib/myAppsStorage'
+import { addMyApp } from './lib/myAppsStorage'
+import { useMyApps } from './hooks/useMyApps'
 import { ROUTES } from './routes/paths'
 import './index.css'
 
 export default function HomeApp() {
   const [view, setView] = useState<ViewMode>('prompt')
-  const [myAppsCount, setMyAppsCount] = useState(0)
-  const [roleApply, setRoleApply] = useState<RoleApplyRequest | null>(null)
   const [publishResult, setPublishResult] = useState<PublishResult | null>(null)
+  const [publishSaveWarn, setPublishSaveWarn] = useState<string | null>(null)
+  const myApps = useMyApps()
+  const myAppsCount = myApps.length
+  const [roleApply, setRoleApply] = useState<RoleApplyRequest | null>(null)
   const [user, setUser] = useState<AuthUser | null>(null)
   const location = useLocation()
+  const navigate = useNavigate()
 
   const mainRef = useRef<HTMLElement>(null)
 
@@ -53,13 +57,27 @@ export default function HomeApp() {
   }, [location.pathname])
 
   useEffect(() => {
-    setMyAppsCount(loadMyApps().length)
+    setPublishSaveWarn(null)
   }, [location.pathname])
 
   const handlePublish = (result: PublishResult) => {
-    addMyApp(result)
-    setMyAppsCount(loadMyApps().length)
+    const saved = addMyApp(result)
+    if (!saved) {
+      setPublishSaveWarn('应用已发布，但未能写入本机「我的应用」列表，请检查浏览器是否禁用本地存储')
+    } else {
+      setPublishSaveWarn(null)
+    }
     setPublishResult(result)
+  }
+
+  const handleViewMyApps = () => {
+    const result = publishResult
+    setPublishResult(null)
+    if (result) {
+      navigate(ROUTES.plazaMyApps, { state: { justPublished: result } })
+    } else {
+      navigate(ROUTES.plazaMyApps)
+    }
   }
 
   const handleRoleApply = (role: RoleApplyRequest['preset'], generate?: boolean) => {
@@ -153,12 +171,17 @@ export default function HomeApp() {
         )}
       </footer>
 
+      {publishSaveWarn && (
+        <p className="publish-save-warn" role="alert">{publishSaveWarn}</p>
+      )}
+
       {publishResult && (
         <PublishModal
           result={publishResult}
           showAdminLink={!!user}
           showMyAppsHint
           onClose={() => setPublishResult(null)}
+          onViewMyApps={handleViewMyApps}
         />
       )}
     </div>

@@ -2994,6 +2994,32 @@ body.modal-scroll-lock {
   border-top: 1px solid var(--border);
 }
 .publish-result-foot .btn-ghost.full { margin-bottom: 0; text-align: center; font-size: 12px; }
+.publish-result-foot-actions {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+.publish-result-foot-actions .btn-ghost,
+.publish-result-foot-actions .btn-primary {
+  flex: 1;
+  margin: 0;
+}
+.publish-save-warn {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1200;
+  max-width: min(520px, 92vw);
+  margin: 0;
+  padding: 10px 16px;
+  border-radius: 10px;
+  background: #fef3c7;
+  border: 1px solid #f59e0b;
+  color: #92400e;
+  font-size: 13px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+}
 .publish-scenario-hint { display: block; margin-top: 4px; font-size: 12px; opacity: 0.9; }
 .publish-module-list {
   display: flex; flex-wrap: wrap; gap: 5px;

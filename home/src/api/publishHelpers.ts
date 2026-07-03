@@ -12,7 +12,7 @@ export interface PublishResultOptions {
 }
 
 export function createdAppToPublishResult(app: CreatedApp, opts: PublishResultOptions = {}): PublishResult {
-  const id = app.id || app.schema_url.split('/').pop() || ''
+  const id = app.id || app.schema_url?.split('/').filter(Boolean).pop() || ''
   const modules = opts.modules ?? app.modules?.map((m) => ({
     key: m.key,
     label: m.label,
@@ -32,10 +32,10 @@ export function createdAppToPublishResult(app: CreatedApp, opts: PublishResultOp
     webUrl,
     downloadUrl,
     appQr,
-    moduleCount: opts.moduleCount ?? (modules.length || app.scenarios.length),
+    moduleCount: opts.moduleCount ?? (modules.length || app.scenarios?.length || 0),
     modules,
     scenarios: opts.scenarios ?? app.scenarios,
-    appId: app.id,
+    appId: id,
     schemaUrl: app.schema_url,
     source: app.source,
     deliver: (app.deliver as PublishResult['deliver']) ?? 'both',

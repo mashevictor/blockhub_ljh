@@ -7,7 +7,8 @@ import AppIconAvatar from '../../components/AppIconAvatar'
 import type { PublishResult } from '../../data/constants'
 import { fetchMe, type AuthUser } from '../../auth/session'
 import { getToken } from '../../auth/storage'
-import { loadMyApps, removeMyApp, type StoredMyApp } from '../../lib/myAppsStorage'
+import { removeMyApp, type StoredMyApp } from '../../lib/myAppsStorage'
+import { useMyApps } from '../../hooks/useMyApps'
 import { ROUTES } from '../../routes/paths'
 
 function formatWhen(iso: string) {
@@ -31,13 +32,9 @@ export default function PlazaMyAppsPage() {
   const location = useLocation()
   const navigate = useNavigate()
   const [highlightApp, setHighlightApp] = useState<PublishResult | null>(null)
-  const [apps, setApps] = useState<StoredMyApp[]>([])
+  const apps = useMyApps()
   const [expandedKey, setExpandedKey] = useState<string | null>(null)
   const [user, setUser] = useState<AuthUser | null>(null)
-
-  useEffect(() => {
-    setApps(loadMyApps())
-  }, [location.pathname])
 
   useEffect(() => {
     const state = location.state as { justPublished?: PublishResult } | null
@@ -57,7 +54,7 @@ export default function PlazaMyAppsPage() {
 
   const handleRemove = (app: StoredMyApp) => {
     const key = appKey(app)
-    setApps(removeMyApp(key))
+    removeMyApp(key)
     if (expandedKey === key) setExpandedKey(null)
     if (highlightApp && (highlightApp.appId || highlightApp.webUrl) === key) {
       setHighlightApp(null)
@@ -97,7 +94,6 @@ export default function PlazaMyAppsPage() {
           <PublishSuccessCard
             result={highlightApp}
             showAdminLink={!!user}
-            onPlazaPublished={() => setApps(loadMyApps())}
           />
         </section>
       )}
@@ -167,7 +163,6 @@ export default function PlazaMyAppsPage() {
                         showAdminLink={!!user}
                         compact
                         plazaMeta={app.plaza}
-                        onPlazaPublished={() => setApps(loadMyApps())}
                       />
                     </div>
                   )}

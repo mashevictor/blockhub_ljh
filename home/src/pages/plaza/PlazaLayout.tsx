@@ -3,7 +3,7 @@ import BrandMark from '../../components/BrandMark'
 import { BRAND } from '../../data/brand'
 import { PLAZA_TRENDS } from '../../data/plazaMock'
 import { IconLayers } from '../../components/icons'
-import { loadMyApps } from '../../lib/myAppsStorage'
+import { useMyApps } from '../../hooks/useMyApps'
 import { ROUTES } from '../../routes/paths'
 
 function sideLinkClass({ isActive }: { isActive: boolean }) {
@@ -15,7 +15,8 @@ function topLinkClass({ isActive }: { isActive: boolean }) {
 }
 
 export default function PlazaLayout() {
-  const myAppsCount = loadMyApps().length
+  const myApps = useMyApps()
+  const myAppsCount = myApps.length
   const { pathname } = useLocation()
   const onMyApps = pathname === ROUTES.plazaMyApps
 

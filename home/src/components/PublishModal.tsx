@@ -12,6 +12,7 @@ import { DynamicIcon } from './icons'
 interface Props {
   result: PublishResult
   onClose: () => void
+  onViewMyApps?: () => void
   showAdminLink?: boolean
   showMyAppsHint?: boolean
 }
@@ -22,7 +23,7 @@ function qrImageUrl(data: string) {
   return `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(data)}`
 }
 
-export default function PublishModal({ result, onClose, showAdminLink = false, showMyAppsHint = false }: Props) {
+export default function PublishModal({ result, onClose, onViewMyApps, showAdminLink = false, showMyAppsHint = false }: Props) {
   const [mounted, setMounted] = useState(false)
 
   useBodyScrollLock(true)
@@ -141,7 +142,12 @@ export default function PublishModal({ result, onClose, showAdminLink = false, s
               在管理后台查看 →
             </a>
           )}
-          <button type="button" className="btn-primary full" onClick={onClose}>完成，继续创建</button>
+          <div className="publish-result-foot-actions">
+            <button type="button" className="btn-ghost" onClick={onClose}>继续创建</button>
+            <button type="button" className="btn-primary" onClick={onViewMyApps ?? onClose}>
+              查看我的应用
+            </button>
+          </div>
         </footer>
       </div>
     </div>,
