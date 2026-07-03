@@ -346,9 +346,9 @@ def set_placements(
 @router.post("/{contract_id}/default-seal")
 def default_seal(
     contract_id: str,
-    body: SealBody | None = None,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
+    body: SealBody | None = None,
 ) -> dict:
     c = contract_store.get_contract(db, contract_id, user)
     if not c:
