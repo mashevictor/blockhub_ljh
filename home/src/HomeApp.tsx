@@ -93,8 +93,8 @@ export default function HomeApp() {
               </>
             ) : (
               <>
-                <Link className="btn-login" to="/login">登录</Link>
-                <Link className="btn-login btn-register" to="/login">注册</Link>
+                <Link className="btn-login" to={ROUTES.login}>登录</Link>
+                <Link className="btn-login btn-register" to={ROUTES.register}>注册</Link>
               </>
             )}
           </div>

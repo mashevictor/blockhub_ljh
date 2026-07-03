@@ -2,6 +2,7 @@
 export const ROUTES = {
   home: '/',
   login: '/login',
+  register: '/register',
   plazaFeed: '/plaza',
   plazaMyApps: '/plaza/my',
 } as const

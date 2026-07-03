@@ -4373,6 +4373,13 @@ html[data-theme="monochrome-business"] .brand em.brand-en {
 }
 .login-error { color: #dc2626; font-size: 12px; margin-bottom: 12px; }
 .login-hint { font-size: 11px; color: var(--muted); margin-top: 14px; text-align: center; }
+.login-hint-left { text-align: left; margin-top: 0; margin-bottom: 12px; line-height: 1.5; }
+.login-hint-success { color: #047857; background: #ecfdf5; padding: 8px 10px; border-radius: 8px; text-align: left; }
+.login-switch { font-size: 12px; text-align: center; margin-top: 14px; color: var(--muted); }
+.login-switch a { color: var(--pri); font-weight: 600; margin-left: 4px; }
+.login-version { opacity: 0.65; font-size: 10px; }
+.login-card button[type="submit"]:disabled { opacity: 0.55; cursor: not-allowed; }
+.otp-send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .login-mode-tabs, .contact-gate-tabs.login-mode-tabs {
   display: flex; gap: 8px; margin-bottom: 16px;
 }

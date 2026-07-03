@@ -1,15 +1,13 @@
-import { useEffect } from 'react'
-import { adminLoginUrl } from '../data/brand'
+import AuthPage from './AuthPage'
 
-/** Home 登录入口统一跳转到 Admin 管理后台登录 */
+/** Home 登录：验证码 / 密码 */
 export default function LoginPage() {
-  useEffect(() => {
-    window.location.replace(adminLoginUrl())
-  }, [])
-
   return (
-    <div className="login-page">
-      <p className="login-hint">正在跳转到管理后台登录…</p>
-    </div>
+    <AuthPage
+      subtitle="登录您的账号"
+      defaultMode="otp"
+      showPasswordLogin
+      showDemoAccounts={false}
+    />
   )
 }
