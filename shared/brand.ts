@@ -22,9 +22,25 @@ function asset(path: string): string {
 }
 
 export const LOGO = {
-  mark: asset('logo-mark.svg'),
+  mark: asset('logo-mark.jpg'),
   icon32: asset('favicon-32.png'),
 } as const
+
+/** Admin 登录页 URL（生产同域 /admin/login，本地开发 5174） */
+export function adminLoginUrl(): string {
+  if (typeof window !== 'undefined') {
+    const { origin, hostname, port } = window.location
+    const isLocal = hostname === 'localhost' || hostname === '127.0.0.1'
+    if (!isLocal) {
+      return `${origin}/admin/login`
+    }
+    if (port === '5173') {
+      return `${origin.replace(':5173', ':5174')}/admin/login`
+    }
+    return `${origin}/admin/login`
+  }
+  return `${BRAND.adminUrl}/admin/login`
+}
 
 /** 启动 seed 写入的演示账号（密码登录） */
 export const DEMO_ACCOUNTS = [
