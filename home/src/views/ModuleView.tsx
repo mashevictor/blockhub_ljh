@@ -7,6 +7,7 @@ import { useTheme } from '../context/ThemeContext'
 import { MODULE_ICON_KEYS, iconWrapStyle, moduleColor } from '../data/iconPalette'
 import { buildPublishedModulesFromWidgets } from '../data/publishDisplay'
 import ContactGateModal, { type ContactInfo } from '../components/ContactGateModal'
+import GenerateLoadingOverlay from '../components/GenerateLoadingOverlay'
 import AppBrandingFields from '../components/AppBrandingFields'
 import { emptyBranding } from '../data/appBranding'
 
@@ -209,6 +210,8 @@ export default function ModuleView({ onPublish, active = true }: Props) {
       </div>
 
       {publishError && <p className="publish-error">{publishError}</p>}
+
+      {loading && <GenerateLoadingOverlay phase="publish" />}
 
       <ContactGateModal
         open={active && contactOpen}

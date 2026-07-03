@@ -8,6 +8,7 @@ import { categoryColor, industryColor, iconWrapStyle } from '../data/iconPalette
 import { resolveCategoryIcon, resolveIndustryApiKey } from '../data/showcase'
 import { buildPublishedModulesFromIndustry } from '../data/publishDisplay'
 import ContactGateModal, { type ContactInfo } from '../components/ContactGateModal'
+import GenerateLoadingOverlay from '../components/GenerateLoadingOverlay'
 import AppBrandingFields from '../components/AppBrandingFields'
 import { emptyBranding, resolveAppName } from '../data/appBranding'
 
@@ -267,6 +268,8 @@ export default function IndustryView({ onPublish, active = true }: Props) {
       )}
 
       {publishError && <p className="publish-error">{publishError}</p>}
+
+      {loading && <GenerateLoadingOverlay phase="publish" />}
 
       <ContactGateModal
         open={active && contactOpen}

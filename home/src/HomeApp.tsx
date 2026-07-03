@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { ADMIN_URL, type PublishResult, type ViewMode } from './data/constants'
 import type { RoleApplyRequest } from './data/rolePresets'
+import PublishModal from './components/PublishModal'
 import HeroCubeStage from './components/HeroCubeStage'
 import PlatformShowcaseFooter from './components/PlatformShowcaseFooter'
 import ViewModeSwitcher from './components/ViewModeSwitcher'
@@ -25,9 +26,9 @@ export default function HomeApp() {
   const [view, setView] = useState<ViewMode>('prompt')
   const [myAppsCount, setMyAppsCount] = useState(0)
   const [roleApply, setRoleApply] = useState<RoleApplyRequest | null>(null)
+  const [publishResult, setPublishResult] = useState<PublishResult | null>(null)
   const [user, setUser] = useState<AuthUser | null>(null)
   const location = useLocation()
-  const navigate = useNavigate()
 
   const mainRef = useRef<HTMLElement>(null)
 
@@ -57,7 +58,8 @@ export default function HomeApp() {
 
   const handlePublish = (result: PublishResult) => {
     addMyApp(result)
-    navigate(ROUTES.plazaMyApps, { state: { justPublished: result } })
+    setMyAppsCount(loadMyApps().length)
+    setPublishResult(result)
   }
 
   const handleRoleApply = (role: RoleApplyRequest['preset'], generate?: boolean) => {
@@ -150,6 +152,15 @@ export default function HomeApp() {
           </a>
         )}
       </footer>
+
+      {publishResult && (
+        <PublishModal
+          result={publishResult}
+          showAdminLink={!!user}
+          showMyAppsHint
+          onClose={() => setPublishResult(null)}
+        />
+      )}
     </div>
   )
 }

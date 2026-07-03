@@ -208,7 +208,8 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
     return ''
   }, [prompt, promptModules])
 
-  const canGenerate = promptModules.length > 0 || userIntentText.trim().length >= 2
+  const canGenerate = promptModules.length > 0
+    || prompt.replace(/^>\s*$/, '').trim().length >= 2
 
   useEffect(() => {
     const id = window.setTimeout(() => setDebouncedIntent(userIntentText), 400)
@@ -558,8 +559,8 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
       setGeneratePhase('analyze')
       try {
         await executePresetGenerate(preset, contact)
-      } finally {
-        setGeneratePhase(null)
+      } catch {
+        setPublishError('生成失败，请确认 API 可用并已填写联系方式')
       }
       return
     }
@@ -595,7 +596,6 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
     if (!canGenerate) return
     setPendingPreset(null)
     setContactOpen(true)
-    focusPrompt()
   }
 
   useEffect(() => {
@@ -871,14 +871,14 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
           onRemove={removeSelectionItem}
           onClear={clearAll}
           onScrollToPrompt={focusPrompt}
-          onGenerate={canGenerate ? handleGenerate : undefined}
+          onGenerate={handleGenerate}
           generating={loading}
           lastAddedId={lastAddedId}
           openSignal={boxOpenSignal}
         />
       )}
 
-      {active && generatePhase && <GenerateLoadingOverlay phase={generatePhase} />}
+      {generatePhase && <GenerateLoadingOverlay phase={generatePhase} />}
       {active && publishError && <p className="publish-error">{publishError}</p>}
 
       <ContactGateModal
