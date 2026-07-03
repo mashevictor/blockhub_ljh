@@ -109,10 +109,11 @@ accept_android_licenses
 
 gradle_preflight_check
 apply_gradle_memory_profile "$APP_DIR/android"
-# 构建时使用内存优化版 gradle.properties
 if [ -f "$APP_DIR/android/gradle.properties.build" ]; then
   cp "$APP_DIR/android/gradle.properties.build" "$APP_DIR/android/gradle.properties"
 fi
+gradle_free_memory_for_build "$APP_DIR/android"
+trap 'gradle_restore_stopped_services' EXIT
 
 echo "==> Flutter: $(flutter --version | head -n1)"
 

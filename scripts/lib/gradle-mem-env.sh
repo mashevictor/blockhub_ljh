@@ -1,6 +1,8 @@
 # shellcheck shell=bash
 # 按服务器内存自动配置 Gradle 构建（小内存机必用）
 
+GRADLE_STOPPED_SERVICES=""
+
 gradle_mem_total_mb() {
   awk '/MemTotal/ {print int($2/1024)}' /proc/meminfo 2>/dev/null || echo 4096
 }
@@ -13,57 +15,110 @@ gradle_mem_available_mb() {
   awk '/MemAvailable/ {print int($2/1024)}' /proc/meminfo 2>/dev/null || echo 1024
 }
 
+# low = 4G 及以下；ultra = 可用内存 < 1.5G
 gradle_memory_profile() {
-  local ram avail swap_free
+  local ram avail
   ram="$(gradle_mem_total_mb)"
   avail="$(gradle_mem_available_mb)"
-  swap_free="$(gradle_swap_free_mb)"
-  if [ "${GRADLE_LOW_MEM:-}" = "1" ]; then
-    echo "low"
+  if [ "${GRADLE_ULTRA_MEM:-}" = "1" ]; then
+    echo "ultra"
     return
   fi
-  if [ "$ram" -le 4096 ] || [ "$avail" -lt 1200 ] || [ "$swap_free" -lt 256 ]; then
+  if [ "${GRADLE_LOW_MEM:-}" = "1" ] || [ "$ram" -le 4096 ]; then
+    if [ "$avail" -lt 1500 ]; then
+      echo "ultra"
+      return
+    fi
     echo "low"
     return
   fi
   echo "standard"
 }
 
+gradle_free_memory_for_build() {
+  if [ "${BUILD_SKIP_STOP_SERVICES:-}" = "1" ]; then
+    return 0
+  fi
+  echo "==> 释放内存（停 API / 清 Gradle 守护进程）"
+  for svc in blockhub-api; do
+    if command -v systemctl >/dev/null 2>&1 && systemctl is-active --quiet "$svc" 2>/dev/null; then
+      systemctl stop "$svc" && GRADLE_STOPPED_SERVICES="${GRADLE_STOPPED_SERVICES} ${svc}"
+      echo "    stopped $svc"
+    fi
+  done
+  if [ -x "${1:-}/gradlew" ]; then
+    (cd "${1}" && ./gradlew --stop 2>/dev/null) || true
+    echo "    gradlew --stop"
+  fi
+  sync 2>/dev/null || true
+  if [ -w /proc/sys/vm/drop_caches ] 2>/dev/null; then
+    echo 3 >/proc/sys/vm/drop_caches 2>/dev/null || true
+  fi
+  sleep 2
+  echo "    可用内存: $(gradle_mem_available_mb)MB"
+}
+
+gradle_restore_stopped_services() {
+  for svc in $GRADLE_STOPPED_SERVICES; do
+    [ -n "$svc" ] || continue
+    if command -v systemctl >/dev/null 2>&1; then
+      systemctl start "$svc" 2>/dev/null && echo "==> 已恢复 $svc" || echo "WARN: 无法启动 $svc"
+    fi
+  done
+  GRADLE_STOPPED_SERVICES=""
+}
+
 apply_gradle_memory_profile() {
-  local profile heap workers parallel
+  local profile heap workers parallel metaspace gp
   profile="$(gradle_memory_profile)"
   local ram avail swap_free
   ram="$(gradle_mem_total_mb)"
   avail="$(gradle_mem_available_mb)"
   swap_free="$(gradle_swap_free_mb)"
 
-  if [ "$profile" = "low" ]; then
-    heap="1024m"
-    workers="1"
-    parallel="false"
-    echo "==> Gradle 低内存模式 (RAM=${ram}MB avail=${avail}MB swap_free=${swap_free}MB)"
-    echo "    heap=${heap} workers=${workers} — 构建前建议: systemctl stop blockhub-api"
-  else
-    heap="1536m"
-    workers="2"
-    parallel="true"
-    echo "==> Gradle 标准模式 (RAM=${ram}MB avail=${avail}MB)"
-  fi
+  case "$profile" in
+    ultra)
+      heap="768m"
+      metaspace="192m"
+      workers="1"
+      parallel="false"
+      echo "==> Gradle 超低内存模式 (RAM=${ram}MB avail=${avail}MB) heap=${heap}"
+      ;;
+    low)
+      heap="1024m"
+      metaspace="256m"
+      workers="1"
+      parallel="false"
+      echo "==> Gradle 低内存模式 (RAM=${ram}MB avail=${avail}MB swap_free=${swap_free}MB)"
+      ;;
+    *)
+      heap="1536m"
+      metaspace="256m"
+      workers="2"
+      parallel="true"
+      echo "==> Gradle 标准模式 (RAM=${ram}MB avail=${avail}MB)"
+      ;;
+  esac
 
-  export GRADLE_OPTS="-Xmx${heap} -XX:MaxMetaspaceSize=256m -XX:+HeapDumpOnOutOfMemoryError"
+  export GRADLE_OPTS="-Xmx${heap} -XX:MaxMetaspaceSize=${metaspace} -XX:+UseSerialGC -XX:+HeapDumpOnOutOfMemoryError"
+  export _JAVA_OPTIONS="${GRADLE_OPTS}"
   export GRADLE_USER_HOME="${GRADLE_USER_HOME:-/tmp/gradle-home-$(id -u)}"
+  export KOTLIN_DAEMON_JVM_OPTIONS="-Xmx384m -XX:MaxMetaspaceSize=128m -XX:+UseSerialGC"
   mkdir -p "$GRADLE_USER_HOME"
 
-  local gp="${1:-}/gradle.properties"
+  gp="${1:-}/gradle.properties"
   if [ -f "$gp" ] || [ -d "$(dirname "$gp")" ]; then
     cat > "${gp}.build" <<EOF
-org.gradle.jvmargs=-Xmx${heap} -XX:MaxMetaspaceSize=256m -XX:+HeapDumpOnOutOfMemoryError
+org.gradle.jvmargs=-Xmx${heap} -XX:MaxMetaspaceSize=${metaspace} -XX:+UseSerialGC -XX:+HeapDumpOnOutOfMemoryError
 org.gradle.daemon=false
 org.gradle.parallel=${parallel}
 org.gradle.workers.max=${workers}
 org.gradle.caching=true
+kotlin.daemon.jvmargs=-Xmx384m -XX:MaxMetaspaceSize=128m -XX:+UseSerialGC
+kotlin.compiler.execution.strategy=in-process
 android.useAndroidX=true
 android.enableJetifier=true
+android.enableR8.fullMode=false
 EOF
   fi
 }
@@ -75,26 +130,26 @@ gradle_preflight_check() {
   swap_free="$(gradle_swap_free_mb)"
   profile="$(gradle_memory_profile)"
 
-  echo "==> 系统: RAM=${ram}MB  可用=${avail}MB  swap剩余=${swap_free}MB  CPU=$(grep -c processor /proc/cpuinfo 2>/dev/null || echo '?')核"
+  echo "==> 系统: RAM=${ram}MB  可用=${avail}MB  swap剩余=${swap_free}MB  CPU=$(grep -c processor /proc/cpuinfo 2>/dev/null || echo '?')核  profile=${profile}"
 
-  if [ "$profile" = "low" ]; then
-    echo "WARN: 小内存环境 — 构建前释放内存:"
-    echo "  sudo systemctl stop blockhub-api"
-    echo "  sync && echo 3 | sudo tee /proc/sys/vm/drop_caches   # 可选，清缓存"
-    if [ "$swap_free" -lt 256 ]; then
-      echo "WARN: swap 几乎用尽 — 建议: sudo bash scripts/setup-build-swap.sh  (扩到 4G)"
-    fi
+  if [ "$profile" = "ultra" ] || [ "$profile" = "low" ]; then
+    echo "    小内存机：脚本将自动 systemctl stop blockhub-api"
+    echo "    若仍 OOM：GRADLE_ULTRA_MEM=1 或改用 GitHub Actions 构建 APK"
+  fi
+  if dmesg 2>/dev/null | tail -30 | grep -qi 'killed process'; then
+    echo "WARN: 近期有进程被 OOM Killer 杀掉 — dmesg | tail -20"
   fi
 }
 
 gradle_diagnose_oom() {
   local log="${1:-}"
   [ -n "$log" ] && [ -f "$log" ] || return 0
-  if grep -qiE 'OutOfMemory|GC overhead|Killed process|ENOMEM|Cannot allocate memory|Gradle build daemon disappeared' "$log"; then
+  if grep -qiE 'OutOfMemory|GC overhead|Killed process|ENOMEM|Cannot allocate memory|daemon disappeared|DaemonDisappearedException' "$log"; then
     echo ""
-    echo ">>> 疑似内存不足 (OOM)。2核/4G 机请:"
+    echo ">>> 内存不足：Gradle 守护进程被系统杀掉。请:"
     echo "    sudo systemctl stop blockhub-api"
-    echo "    GRADLE_LOW_MEM=1 APP_NAME=laoliu bash scripts/flutter-build-apk.sh"
-    echo "    sudo systemctl start blockhub-api"
+    echo "    GRADLE_ULTRA_MEM=1 APP_NAME=laoliu bash scripts/flutter-build-apk.sh"
+    echo "    或 GitHub → Actions → Flutter APK Build → Run workflow"
+    dmesg 2>/dev/null | tail -5 | grep -i kill || true
   fi
 }
