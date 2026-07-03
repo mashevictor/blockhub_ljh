@@ -1,14 +1,23 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import type { PublishResult } from '../data/constants'
 import { ADMIN_URL } from '../data/constants'
 import { LOGO } from '../data/brand'
+import type { AudienceSelection } from '../data/plazaAudience'
+import { audienceAtLabel } from '../data/plazaAudience'
 import { pickPhonePreviewModules, widgetTint } from '../data/publishDisplay'
+import { getPlazaPostForApp, publishToPlazaFeed } from '../lib/plazaFeedStorage'
+import type { PlazaAudienceMeta } from '../lib/myAppsStorage'
+import { ROUTES } from '../routes/paths'
+import PlazaAudiencePicker from './PlazaAudiencePicker'
 import { DynamicIcon } from './icons'
 
 interface Props {
   result: PublishResult
   showAdminLink?: boolean
   compact?: boolean
+  plazaMeta?: PlazaAudienceMeta | null
+  onPlazaPublished?: (meta: PlazaAudienceMeta) => void
 }
 
 const MAX_CHIPS = 8
@@ -17,7 +26,32 @@ function qrImageUrl(data: string) {
   return `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(data)}`
 }
 
-export default function PublishSuccessCard({ result, showAdminLink = false, compact = false }: Props) {
+function appKey(result: Pick<PublishResult, 'appId' | 'webUrl'>) {
+  return result.appId || result.webUrl
+}
+
+export default function PublishSuccessCard({
+  result,
+  showAdminLink = false,
+  compact = false,
+  plazaMeta: plazaMetaProp,
+  onPlazaPublished,
+}: Props) {
+  const [showPicker, setShowPicker] = useState(false)
+  const [plazaMeta, setPlazaMeta] = useState<PlazaAudienceMeta | null>(() => {
+    if (plazaMetaProp) return plazaMetaProp
+    const stored = getPlazaPostForApp(appKey(result))
+    return stored ? {
+      type: stored.audienceType,
+      label: stored.atLabel,
+      deptName: stored.atLabel.startsWith('@') && stored.audienceType === 'dept'
+        ? stored.atLabel.slice(1)
+        : undefined,
+      publishedAt: stored.savedAt,
+      onPlazaFeed: stored.audienceType === 'public' || stored.audienceType === 'dept',
+    } : null
+  })
+
   const phoneWidgets = useMemo(
     () => pickPhonePreviewModules(result.modules).slice(0, 3),
     [result.modules],
@@ -38,6 +72,20 @@ export default function PublishSuccessCard({ result, showAdminLink = false, comp
   const extraChipCount = chipModules.length - visibleChips.length
   const downloadUrl = result.downloadUrl || `${result.webUrl}/download`
 
+  const handlePlazaConfirm = (selection: AudienceSelection) => {
+    publishToPlazaFeed(result, selection)
+    const meta: PlazaAudienceMeta = {
+      type: selection.type,
+      label: audienceAtLabel(selection),
+      deptName: selection.deptName,
+      publishedAt: new Date().toISOString(),
+      onPlazaFeed: selection.type === 'public' || selection.type === 'dept',
+    }
+    setPlazaMeta(meta)
+    setShowPicker(false)
+    onPlazaPublished?.(meta)
+  }
+
   return (
     <article className={`publish-success-card${compact ? ' compact' : ''}`}>
       <header className="publish-result-head">
@@ -49,6 +97,18 @@ export default function PublishSuccessCard({ result, showAdminLink = false, comp
           </p>
         </div>
       </header>
+
+      {plazaMeta && (
+        <div className="plaza-published-strip" role="status">
+          <DynamicIcon name="layers" size={14} />
+          <span>
+            已发布到广场 · <strong>{plazaMeta.label}</strong>
+            {plazaMeta.onPlazaFeed && (
+              <> · <Link to={ROUTES.plazaFeed}>去广场查看 →</Link></>
+            )}
+          </span>
+        </div>
+      )}
 
       <div className="publish-result-scroll">
         {visibleChips.length > 0 && (
@@ -117,10 +177,36 @@ export default function PublishSuccessCard({ result, showAdminLink = false, comp
         </div>
       </div>
 
+      {showPicker && (
+        <PlazaAudiencePicker
+          appName={result.appName}
+          onConfirm={handlePlazaConfirm}
+          onCancel={() => setShowPicker(false)}
+        />
+      )}
+
       <footer className="publish-success-foot">
         <a className="btn-ghost" href={result.webUrl} target="_blank" rel="noreferrer">
           打开应用 →
         </a>
+        {!plazaMeta && !showPicker && (
+          <button
+            type="button"
+            className="btn-ghost btn-plaza-publish"
+            onClick={() => setShowPicker(true)}
+          >
+            📡 发布到广场
+          </button>
+        )}
+        {plazaMeta && !showPicker && (
+          <button
+            type="button"
+            className="btn-ghost btn-plaza-publish secondary"
+            onClick={() => setShowPicker(true)}
+          >
+            修改 @ 范围
+          </button>
+        )}
         {showAdminLink && (
           <a className="btn-ghost" href={ADMIN_URL} target="_blank" rel="noreferrer">
             管理后台

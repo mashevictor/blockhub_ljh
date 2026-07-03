@@ -4672,3 +4672,70 @@ a.btn-my-apps {
   text-decoration: none; cursor: pointer; font-family: inherit; position: relative;
 }
 a.btn-my-apps:hover { border-color: var(--pri-light); color: var(--pri); }
+
+/* —— 发布到广场 · @ 受众 —— */
+.plaza-published-strip {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 12px; padding: 10px 14px;
+  border-radius: 10px; font-size: 12px;
+  background: linear-gradient(135deg, #ecfeff, #ecfdf5);
+  border: 1px solid color-mix(in srgb, #0891b2 30%, var(--border));
+}
+.plaza-published-strip a { color: #0891b2; font-weight: 600; margin-left: 4px; }
+.btn-plaza-publish {
+  background: linear-gradient(135deg, #0891b2, var(--pri)) !important;
+  color: #fff !important; border-color: transparent !important; font-weight: 600;
+}
+.btn-plaza-publish.secondary {
+  background: #fff !important; color: #0891b2 !important;
+  border-color: color-mix(in srgb, #0891b2 40%, var(--border)) !important;
+}
+.plaza-audience-picker {
+  margin: 12px 0 0; padding: 16px; border-radius: 12px;
+  border: 1px solid color-mix(in srgb, #0891b2 35%, var(--border));
+  background: linear-gradient(180deg, #f0fdfa, #fff);
+}
+.plaza-audience-picker h4 { margin: 0 0 8px; font-size: 14px; color: var(--text); }
+.plaza-audience-picker-hint { font-size: 11px; color: var(--muted); margin: 0 0 12px; line-height: 1.5; }
+.plaza-audience-options { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+.plaza-audience-opt {
+  display: flex; gap: 10px; padding: 10px 12px; border-radius: 10px; cursor: pointer;
+  border: 1px solid var(--border); background: #fff; transition: border-color .15s, box-shadow .15s;
+}
+.plaza-audience-opt:hover { border-color: #0891b2; background: #f0fdfa; }
+.plaza-audience-opt.selected {
+  border-color: #0891b2; background: linear-gradient(135deg, #ecfeff, #f0fdfa);
+  box-shadow: 0 0 0 2px rgba(8, 145, 178, .12);
+}
+.plaza-audience-opt input { margin-top: 3px; accent-color: #0891b2; flex-shrink: 0; }
+.plaza-audience-opt strong { display: block; font-size: 13px; margin-bottom: 2px; }
+.plaza-audience-opt span { font-size: 11px; color: var(--muted); line-height: 1.45; }
+.plaza-audience-badge {
+  font-size: 9px; padding: 2px 6px; border-radius: 4px; background: #dbeafe; color: #1d4ed8;
+  margin-left: 6px; font-weight: 600; vertical-align: middle;
+}
+.plaza-audience-dept { margin-bottom: 12px; }
+.plaza-audience-dept-label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 6px; }
+.plaza-audience-dept-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.plaza-audience-dept-chips button {
+  font-size: 11px; padding: 5px 10px; border-radius: 999px; border: 1px solid var(--border);
+  background: #fff; cursor: pointer; font-family: inherit; color: var(--muted);
+}
+.plaza-audience-dept-chips button.on {
+  border-color: #0891b2; background: #ecfeff; color: #0e7490; font-weight: 600;
+}
+.plaza-audience-preview {
+  font-size: 11px; padding: 10px 12px; border-radius: 8px; margin: 0 0 12px;
+  background: #fff; border: 1px dashed var(--border); color: var(--muted); line-height: 1.5;
+}
+.plaza-audience-actions { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+.plaza-audience-actions .btn-ghost {
+  font-size: 12px; padding: 8px 14px; border-radius: 8px; border: 1px solid var(--border);
+  background: #fff; cursor: pointer;
+}
+.plaza-audience-submit { font-size: 12px; padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer; }
+.plaza-audience-footnote { font-size: 10px; color: var(--muted); margin: 10px 0 0; text-align: right; }
+.plaza-audience-footnote a { color: #0891b2; }
+.plaza-my-at-badge {
+  display: inline-block; margin-left: 8px; padding: 1px 7px; border-radius: 999px;
+  font-size: 10px; background: #ecfeff; color: #0891b2; font-weight: 600;
+}

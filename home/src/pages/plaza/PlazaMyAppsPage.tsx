@@ -75,7 +75,11 @@ export default function PlazaMyAppsPage() {
       {highlightApp && (
         <section className="plaza-my-just-published" aria-label="刚发布的应用">
           <p className="plaza-my-success-banner">🎉 发布成功，已保存到「我的应用」</p>
-          <PublishSuccessCard result={highlightApp} showAdminLink={!!user} />
+          <PublishSuccessCard
+            result={highlightApp}
+            showAdminLink={!!user}
+            onPlazaPublished={() => setApps(loadMyApps())}
+          />
         </section>
       )}
 
@@ -99,7 +103,12 @@ export default function PlazaMyAppsPage() {
                   <div className="plaza-my-item-row">
                     <div className="plaza-my-item-main">
                       <strong>{app.appName}</strong>
-                      <span className="plaza-my-meta">{app.moduleCount} 项功能 · {formatWhen(app.savedAt)}</span>
+                      <span className="plaza-my-meta">
+                        {app.moduleCount} 项功能 · {formatWhen(app.savedAt)}
+                        {app.plaza && (
+                          <span className="plaza-my-at-badge">{app.plaza.label}</span>
+                        )}
+                      </span>
                     </div>
                     <div className="plaza-my-item-actions">
                       <button
@@ -126,7 +135,13 @@ export default function PlazaMyAppsPage() {
                   </div>
                   {expanded && (
                     <div className="plaza-my-item-detail">
-                      <PublishSuccessCard result={app} showAdminLink={!!user} compact />
+                      <PublishSuccessCard
+                        result={app}
+                        showAdminLink={!!user}
+                        compact
+                        plazaMeta={app.plaza}
+                        onPlazaPublished={() => setApps(loadMyApps())}
+                      />
                     </div>
                   )}
                 </li>

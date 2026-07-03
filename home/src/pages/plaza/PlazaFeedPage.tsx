@@ -1,5 +1,6 @@
-import { useState } from 'react'
-import { PLAZA_MOCK_FEED, type PlazaFeedItem } from '../../data/plazaMock'
+import { useMemo, useState } from 'react'
+import { loadPlazaFeedItems } from '../../lib/plazaFeedStorage'
+import type { PlazaFeedItem } from '../../data/plazaMock'
 
 type FeedFilter = 'latest' | 'hot' | 'mention'
 
@@ -23,7 +24,7 @@ function FeedCard({ item }: { item: PlazaFeedItem }) {
           <strong>{item.authorName} · {item.authorMeta}</strong>
           <span>{item.timeLabel} · 通过「描述需求」创建</span>
         </div>
-        <span className={`plaza-vis-badge ${vis.cls}`}>{vis.text}</span>
+        <span className={`plaza-vis-badge ${vis.cls}`}>{item.atLabel || vis.text}</span>
       </div>
       <div className="plaza-feed-app">
         <h4><span className="plaza-at-tag">{item.atLabel}</span> {item.appName}</h4>
@@ -67,6 +68,17 @@ function FeedCard({ item }: { item: PlazaFeedItem }) {
 
 export default function PlazaFeedPage() {
   const [filter, setFilter] = useState<FeedFilter>('latest')
+  const items = useMemo(() => loadPlazaFeedItems(), [])
+
+  const filtered = useMemo(() => {
+    if (filter === 'hot') {
+      return [...items].sort((a, b) => b.likes - a.likes)
+    }
+    if (filter === 'mention') {
+      return items.filter((i) => i.authorName === '我' || i.atLabel.includes('@'))
+    }
+    return items
+  }, [items, filter])
 
   return (
     <main className="plaza-main">
@@ -86,9 +98,9 @@ export default function PlazaFeedPage() {
         </div>
       </div>
       <p className="plaza-main-hint">
-        公开 <code>@</code> 发布的应用会出现在这里；点赞 / 评论 / 转发将在 W4 接 PostgreSQL。
+        选 <code>@公开</code> 发布的应用会出现在这里；点赞 / 评论 / 转发将在 W4 接 PostgreSQL。
       </p>
-      {PLAZA_MOCK_FEED.map((item) => (
+      {filtered.map((item) => (
         <FeedCard key={item.id} item={item} />
       ))}
     </main>
