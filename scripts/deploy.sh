@@ -78,12 +78,36 @@ cd "$ROOT/frontend"
 npm install --silent
 npm run build
 
-echo "==> [7/9] copy static files"
-sudo mkdir -p /var/www/blockhub/home /var/www/blockhub/admin
-sudo rm -rf /var/www/blockhub/home/* /var/www/blockhub/admin/*
-sudo cp -r "$ROOT/home/dist/." /var/www/blockhub/home/
-sudo cp -r "$ROOT/frontend/dist/." /var/www/blockhub/admin/
+echo "==> [7/9] copy static files (atomic, verify bundles)"
+STAGE="$(mktemp -d /tmp/blockhub-stage.XXXXXX)"
+mkdir -p "$STAGE/home" "$STAGE/admin"
+cp -r "$ROOT/home/dist/." "$STAGE/home/"
+cp -r "$ROOT/frontend/dist/." "$STAGE/admin/"
+
+ADMIN_JS="$(find "$STAGE/admin/assets" -maxdepth 1 -name 'index-*.js' 2>/dev/null | head -1)"
+HOME_JS="$(find "$STAGE/home/assets" -maxdepth 1 -name 'index-*.js' 2>/dev/null | head -1)"
+if [ -z "$ADMIN_JS" ] || [ ! -s "$ADMIN_JS" ]; then
+  echo "ERROR: admin JS bundle missing or empty — abort deploy"
+  rm -rf "$STAGE"
+  exit 1
+fi
+if [ -z "$HOME_JS" ] || [ ! -s "$HOME_JS" ]; then
+  echo "ERROR: home JS bundle missing or empty — abort deploy"
+  rm -rf "$STAGE"
+  exit 1
+fi
+echo "    admin js: $(basename "$ADMIN_JS") ($(wc -c < "$ADMIN_JS") bytes)"
+echo "    home js:  $(basename "$HOME_JS") ($(wc -c < "$HOME_JS") bytes)"
+
+sudo mkdir -p /var/www/blockhub
+sudo rm -rf /var/www/blockhub/home.old /var/www/blockhub/admin.old
+sudo mv /var/www/blockhub/home /var/www/blockhub/home.old 2>/dev/null || true
+sudo mv /var/www/blockhub/admin /var/www/blockhub/admin.old 2>/dev/null || true
+sudo mv "$STAGE/home" /var/www/blockhub/home
+sudo mv "$STAGE/admin" /var/www/blockhub/admin
+sudo rm -rf /var/www/blockhub/home.old /var/www/blockhub/admin.old
 sudo chown -R www-data:www-data /var/www/blockhub
+rmdir "$STAGE" 2>/dev/null || true
 
 echo "==> [8/9] reload nginx"
 sudo nginx -t
