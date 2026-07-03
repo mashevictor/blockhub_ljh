@@ -105,6 +105,7 @@ def seed_catalog(db: Session, *, force: bool = False) -> dict[str, int]:
     """Load catalog + hero presets + chips into PostgreSQL."""
     existing = db.query(CatalogOfficeScenario).count()
     if existing > 0 and not force:
+        sync_catalog_delta(db)
         return catalog_counts(db)
 
     db.query(CatalogIndustryScenario).delete()
@@ -221,6 +222,50 @@ def catalog_counts(db: Session) -> dict[str, int]:
     }
 
 
+def sync_catalog_delta(db: Session) -> int:
+    """增量同步 seed 中新增的 Agent/能力，无需 force 全量重建。"""
+    existing_agents = {row.id for row in db.query(CatalogAgent.id).all()}
+    existing_caps = {row.key for row in db.query(CatalogCapability.key).all()}
+    added = 0
+
+    for agent in AGENTS:
+        if agent["id"] in existing_agents:
+            continue
+        db.add(
+            CatalogAgent(
+                id=agent["id"],
+                name=agent["name"],
+                icon=agent.get("icon", ""),
+                color=agent.get("color", ""),
+                status=agent.get("status", "active"),
+                description=agent.get("description", ""),
+                pipeline=agent.get("pipeline", ""),
+                capability_keys=agent.get("capabilities", []),
+                office_count=int(agent.get("office_count", 0)),
+                industry_count=int(agent.get("industry_count", 0)),
+            )
+        )
+        added += 1
+
+    for cap in CAPABILITIES:
+        if cap["key"] in existing_caps:
+            continue
+        db.add(
+            CatalogCapability(
+                key=cap["key"],
+                name=cap["name"],
+                category=cap["category"],
+                widget=cap.get("widget", ""),
+                agent_id=cap["agent_id"],
+            )
+        )
+        added += 1
+
+    if added:
+        db.commit()
+    return added
+
+
 def ensure_catalog_seeded(db: Session) -> dict[str, int]:
     if db.query(CatalogOfficeScenario).count() == 0:
         return seed_catalog(db)
@@ -230,5 +275,7 @@ def ensure_catalog_seeded(db: Session) -> dict[str, int]:
         db.commit()
         counts = catalog_counts(db)
         counts["extra_scenarios"] = extra
-        return counts
+        sync_catalog_delta(db)
+        return catalog_counts(db)
+    sync_catalog_delta(db)
     return catalog_counts(db)

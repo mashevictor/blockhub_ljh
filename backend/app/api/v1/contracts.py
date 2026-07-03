@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import urllib.parse
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -16,6 +17,15 @@ from app.services.file_storage import read_bytes, uploads_root
 from app.services.llm_gateway import llm_configured
 
 router = APIRouter(prefix="/contracts", tags=["contracts"])
+
+
+def _pdf_headers(disposition: str, title: str, contract_id: str) -> dict[str, str]:
+    """Content-Disposition 须 ASCII 安全，中文标题用 RFC 5987 filename*。"""
+    ascii_name = f"{disposition}-{contract_id}.pdf"
+    utf_name = urllib.parse.quote(f"{title or 'contract'}.pdf")
+    return {
+        "Content-Disposition": f'{disposition}; filename="{ascii_name}"; filename*=UTF-8\'\'{utf_name}',
+    }
 
 
 class PartiesBody(BaseModel):
@@ -265,7 +275,11 @@ def preview_pdf(
     if not c:
         raise HTTPException(404, "合同不存在")
     pdf_bytes, _ = contract_store.preview_pdf(c)
-    return Response(pdf_bytes, media_type="application/pdf", headers={"Content-Disposition": f'inline; filename="preview-{contract_id}.pdf"'})
+    return Response(
+        pdf_bytes,
+        media_type="application/pdf",
+        headers=_pdf_headers("inline", c.title, contract_id),
+    )
 
 
 @router.post("/{contract_id}/sign")
@@ -298,4 +312,8 @@ def download_signed(
         data = read_bytes(c.signed_pdf_key)
     except FileNotFoundError as e:
         raise HTTPException(404, "PDF 文件丢失") from e
-    return Response(data, media_type="application/pdf", headers={"Content-Disposition": f'attachment; filename="{c.title}.pdf"'})
+    return Response(
+        data,
+        media_type="application/pdf",
+        headers=_pdf_headers("attachment", c.title, contract_id),
+    )
