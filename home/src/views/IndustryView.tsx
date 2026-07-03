@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { fetchScenarios, publishApp } from '../api/client'
-import { createdAppToPublishResult } from '../api/publishHelpers'
+import { publishApiToResult } from '../api/publishHelpers'
 import { INDUSTRIES, type Audience, type PublishResult } from '../data/constants'
 import { DynamicIcon } from '../components/icons'
 import { useTheme } from '../context/ThemeContext'
@@ -111,13 +111,10 @@ export default function IndustryView({ onPublish, active = true }: Props) {
         contactEmail: contact.type === 'email' ? contact.value : undefined,
         contactPhone: contact.type === 'phone' ? contact.value : undefined,
       })
-      onPublish(createdAppToPublishResult(res.app, {
+      onPublish(publishApiToResult(res, {
         moduleCount: publishedModules.length,
         modules: publishedModules,
         scenarios: scenarioNames,
-        contactEmail: res.notification?.email,
-        emailSent: res.notification?.email_sent,
-        emailConfigured: res.notification?.email_configured,
       }))
       setIndustry('office')
       setStep(1)

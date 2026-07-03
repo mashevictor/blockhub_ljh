@@ -86,6 +86,21 @@ export function removeMyApp(appIdOrUrl: string): StoredMyApp[] {
   return next
 }
 
+export function updateMyAppApkReady(appIdOrUrl: string, apkReady: boolean): StoredMyApp[] {
+  const next = loadMyApps().map((a) => {
+    const key = a.appId || a.webUrl
+    if (key !== appIdOrUrl) return a
+    return { ...a, apkReady }
+  })
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(next))
+    notifyMyAppsUpdated()
+  } catch {
+    /* ignore */
+  }
+  return next
+}
+
 export function setMyAppPlazaAudience(appKey: string, plaza: PlazaAudienceMeta): StoredMyApp[] {
   const next = loadMyApps().map((a) => {
     const key = a.appId || a.webUrl

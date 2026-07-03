@@ -160,6 +160,24 @@ export interface CreatedApp {
   }>
 }
 
+export interface RuntimeInfo {
+  public_id: string
+  name: string
+  deliver: string
+  schema_url: string
+  icon_url?: string
+  primary_color?: string
+  web_ready: boolean
+  apk_ready: boolean
+  modules?: unknown[]
+  capability_keys?: string[]
+}
+
+export async function fetchRuntimeInfo(publicId: string) {
+  const res = await api.get<RuntimeInfo>(`/runtime/${publicId}`)
+  return res.data
+}
+
 export async function publishApp(
   name: string,
   industryKey: string,
@@ -168,6 +186,7 @@ export async function publishApp(
   const res = await api.post<{
     success: boolean
     app: CreatedApp
+    runtime?: { apk_ready?: boolean; web_url?: string; download_url?: string; deliver?: string }
     notification?: { email?: string; email_sent?: boolean; email_configured?: boolean }
   }>('/creation/publish', {
     name,

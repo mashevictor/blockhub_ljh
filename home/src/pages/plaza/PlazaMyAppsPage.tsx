@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import PublishSuccessCard from '../../components/PublishSuccessCard'
+import DeliveryProgress from '../../components/DeliveryProgress'
 import PlazaModuleFlowPanel from '../../components/plaza/PlazaModuleFlowPanel'
 import { IconGlobe, IconLayers } from '../../components/icons'
 import AppIconAvatar from '../../components/AppIconAvatar'
-import type { PublishResult } from '../../data/constants'
+import { showAppDeliver } from '../../data/deliverDisplay'
 import { fetchMe, type AuthUser } from '../../auth/session'
 import { getToken } from '../../auth/storage'
 import { removeMyApp, type StoredMyApp } from '../../lib/myAppsStorage'
@@ -28,21 +29,41 @@ function moduleLabels(app: StoredMyApp): string[] {
   return app.scenarios?.slice(0, 6) ?? []
 }
 
+type PlazaNavState = {
+  justPublishedId?: string
+  saveFailed?: boolean
+}
+
 export default function PlazaMyAppsPage() {
   const location = useLocation()
   const navigate = useNavigate()
-  const [highlightApp, setHighlightApp] = useState<PublishResult | null>(null)
+  const navState = (location.state as PlazaNavState | null) ?? {}
+  const [justPublishedId, setJustPublishedId] = useState<string | null>(null)
+  const [saveFailed, setSaveFailed] = useState(false)
   const apps = useMyApps()
   const [expandedKey, setExpandedKey] = useState<string | null>(null)
   const [user, setUser] = useState<AuthUser | null>(null)
+  const scrolledRef = useRef(false)
 
   useEffect(() => {
-    const state = location.state as { justPublished?: PublishResult } | null
-    if (state?.justPublished) {
-      setHighlightApp(state.justPublished)
+    if (navState.justPublishedId) {
+      setJustPublishedId(navState.justPublishedId)
+      setExpandedKey(navState.justPublishedId)
+      setSaveFailed(Boolean(navState.saveFailed))
+      scrolledRef.current = false
       navigate(ROUTES.plazaMyApps, { replace: true, state: {} })
     }
-  }, [location.state, navigate])
+  }, [location.state, navigate, navState.justPublishedId, navState.saveFailed])
+
+  useEffect(() => {
+    if (!justPublishedId || scrolledRef.current) return
+    const el = document.getElementById(`my-app-${justPublishedId}`)
+    if (!el) return
+    scrolledRef.current = true
+    requestAnimationFrame(() => {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    })
+  }, [justPublishedId, apps])
 
   useEffect(() => {
     if (!getToken()) {
@@ -56,15 +77,8 @@ export default function PlazaMyAppsPage() {
     const key = appKey(app)
     removeMyApp(key)
     if (expandedKey === key) setExpandedKey(null)
-    if (highlightApp && (highlightApp.appId || highlightApp.webUrl) === key) {
-      setHighlightApp(null)
-    }
+    if (justPublishedId === key) setJustPublishedId(null)
   }
-
-  const highlightKey = highlightApp ? (highlightApp.appId || highlightApp.webUrl) : null
-  const otherApps = highlightKey
-    ? apps.filter((a) => appKey(a) !== highlightKey)
-    : apps
 
   const renderAppFlow = (app: StoredMyApp, compact?: boolean) => (
     <PlazaModuleFlowPanel
@@ -87,18 +101,17 @@ export default function PlazaMyAppsPage() {
         {user ? ` 已登录 ${user.email}` : ' 未登录时数据仅存本设备。'}
       </p>
 
-      {highlightApp && (
-        <section className="plaza-my-just-published" aria-label="刚发布的应用">
-          <p className="plaza-my-success-banner">🎉 发布成功，已保存到「我的应用」</p>
-          {renderAppFlow({ ...highlightApp, savedAt: new Date().toISOString() } as StoredMyApp)}
-          <PublishSuccessCard
-            result={highlightApp}
-            showAdminLink={!!user}
-          />
-        </section>
+      {saveFailed && (
+        <p className="publish-save-warn" role="alert">
+          应用已发布，但未能写入本机「我的应用」列表，请检查浏览器是否禁用本地存储
+        </p>
       )}
 
-      {apps.length === 0 && !highlightApp && (
+      {justPublishedId && apps.some((a) => appKey(a) === justPublishedId) && (
+        <p className="plaza-my-success-banner">🎉 发布成功，已保存到「我的应用」</p>
+      )}
+
+      {apps.length === 0 && (
         <div className="plaza-my-empty">
           <p>还没有发布过应用</p>
           <p className="plaza-my-empty-hint">在首页创建并发布后，会自动跳转到这里</p>
@@ -106,15 +119,22 @@ export default function PlazaMyAppsPage() {
         </div>
       )}
 
-      {otherApps.length > 0 && (
+      {apps.length > 0 && (
         <section className="plaza-my-history">
-          <h2>{highlightApp ? '历史应用' : '全部应用'} <span className="plaza-my-count">{otherApps.length}</span></h2>
+          <h2>全部应用 <span className="plaza-my-count">{apps.length}</span></h2>
           <ul className="plaza-my-list">
-            {otherApps.map((app) => {
+            {apps.map((app) => {
               const key = appKey(app)
-              const expanded = expandedKey === key
+              const isNew = justPublishedId === key
+              const expanded = expandedKey === key || isNew
+              const showDelivery = showAppDeliver(app) || isNew
+
               return (
-                <li key={key} className={`plaza-my-item${expanded ? ' expanded' : ''}`}>
+                <li
+                  key={key}
+                  id={`my-app-${key}`}
+                  className={`plaza-my-item${expanded ? ' expanded' : ''}${isNew ? ' just-published' : ''}`}
+                >
                   <div className="plaza-my-item-row">
                     <AppIconAvatar
                       name={app.appName}
@@ -126,9 +146,13 @@ export default function PlazaMyAppsPage() {
                       <strong>{app.appName}</strong>
                       <span className="plaza-my-meta">
                         {app.moduleCount} 项功能 · {formatWhen(app.savedAt)}
+                        {isNew && <span className="plaza-my-new-badge">刚发布</span>}
                         <span className="plaza-creator-badge">创建者</span>
                         {app.plaza && (
                           <span className="plaza-my-at-badge">{app.plaza.label}</span>
+                        )}
+                        {showAppDeliver(app) && !app.apkReady && (
+                          <span className="plaza-my-apk-pending">APK 构建中</span>
                         )}
                       </span>
                     </div>
@@ -136,7 +160,7 @@ export default function PlazaMyAppsPage() {
                       <button
                         type="button"
                         className="btn-ghost"
-                        onClick={() => setExpandedKey(expanded ? null : key)}
+                        onClick={() => setExpandedKey(expanded && !isNew ? null : key)}
                       >
                         {expanded ? '收起' : '模块流 / 详情'}
                       </button>
@@ -157,6 +181,7 @@ export default function PlazaMyAppsPage() {
                   </div>
                   {expanded && (
                     <div className="plaza-my-item-detail">
+                      {showDelivery && <DeliveryProgress app={app} compact />}
                       {renderAppFlow(app, true)}
                       <PublishSuccessCard
                         result={app}

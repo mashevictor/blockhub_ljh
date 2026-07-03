@@ -41,7 +41,9 @@ export default function PublishDeliveryLinks({ result }: Props) {
         )}
         {showApp && (
           <p className="publish-apk-hint">
-            首次下载需管理员执行 <code>bash scripts/flutter-build-apk.sh</code> 或 GitHub Actions 构建 APK。
+            {result.apkReady
+              ? 'APK 已就绪，可直接下载安装。'
+              : 'APK 正在后台构建，完成后此链接即可下载；也可由管理员执行 bash scripts/flutter-build-apk.sh。'}
           </p>
         )}
       </div>

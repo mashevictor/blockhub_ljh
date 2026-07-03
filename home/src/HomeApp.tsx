@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { ADMIN_URL, type PublishResult, type ViewMode } from './data/constants'
 import type { RoleApplyRequest } from './data/rolePresets'
-import PublishModal from './components/PublishModal'
 import HeroCubeStage from './components/HeroCubeStage'
 import PlatformShowcaseFooter from './components/PlatformShowcaseFooter'
 import ViewModeSwitcher from './components/ViewModeSwitcher'
@@ -25,8 +24,6 @@ import './index.css'
 
 export default function HomeApp() {
   const [view, setView] = useState<ViewMode>('prompt')
-  const [publishResult, setPublishResult] = useState<PublishResult | null>(null)
-  const [publishSaveWarn, setPublishSaveWarn] = useState<string | null>(null)
   const myApps = useMyApps()
   const myAppsCount = myApps.length
   const [roleApply, setRoleApply] = useState<RoleApplyRequest | null>(null)
@@ -56,28 +53,15 @@ export default function HomeApp() {
     fetchMe().then(setUser).catch(() => setUser(null))
   }, [location.pathname])
 
-  useEffect(() => {
-    setPublishSaveWarn(null)
-  }, [location.pathname])
-
   const handlePublish = (result: PublishResult) => {
     const saved = addMyApp(result)
-    if (!saved) {
-      setPublishSaveWarn('应用已发布，但未能写入本机「我的应用」列表，请检查浏览器是否禁用本地存储')
-    } else {
-      setPublishSaveWarn(null)
-    }
-    setPublishResult(result)
-  }
-
-  const handleViewMyApps = () => {
-    const result = publishResult
-    setPublishResult(null)
-    if (result) {
-      navigate(ROUTES.plazaMyApps, { state: { justPublished: result } })
-    } else {
-      navigate(ROUTES.plazaMyApps)
-    }
+    const appKey = result.appId || result.webUrl
+    navigate(ROUTES.plazaMyApps, {
+      state: {
+        justPublishedId: appKey,
+        saveFailed: !saved,
+      },
+    })
   }
 
   const handleRoleApply = (role: RoleApplyRequest['preset'], generate?: boolean) => {
@@ -170,20 +154,6 @@ export default function HomeApp() {
           </a>
         )}
       </footer>
-
-      {publishSaveWarn && (
-        <p className="publish-save-warn" role="alert">{publishSaveWarn}</p>
-      )}
-
-      {publishResult && (
-        <PublishModal
-          result={publishResult}
-          showAdminLink={!!user}
-          showMyAppsHint
-          onClose={() => setPublishResult(null)}
-          onViewMyApps={handleViewMyApps}
-        />
-      )}
     </div>
   )
 }

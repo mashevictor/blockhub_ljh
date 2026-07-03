@@ -9,6 +9,13 @@ export interface PublishResultOptions {
   contactEmail?: string
   emailSent?: boolean
   emailConfigured?: boolean
+  apkReady?: boolean
+}
+
+export interface PublishApiResponse {
+  app: CreatedApp
+  runtime?: { apk_ready?: boolean }
+  notification?: { email?: string; email_sent?: boolean; email_configured?: boolean }
 }
 
 export function createdAppToPublishResult(app: CreatedApp, opts: PublishResultOptions = {}): PublishResult {
@@ -42,5 +49,17 @@ export function createdAppToPublishResult(app: CreatedApp, opts: PublishResultOp
     contactEmail: opts.contactEmail,
     emailSent: opts.emailSent,
     emailConfigured: opts.emailConfigured,
+    apkReady: opts.apkReady,
   }
+}
+
+/** 将 POST /creation/publish 响应转为前端 PublishResult */
+export function publishApiToResult(res: PublishApiResponse, opts: PublishResultOptions = {}): PublishResult {
+  return createdAppToPublishResult(res.app, {
+    ...opts,
+    contactEmail: opts.contactEmail ?? res.notification?.email,
+    emailSent: opts.emailSent ?? res.notification?.email_sent,
+    emailConfigured: opts.emailConfigured ?? res.notification?.email_configured,
+    apkReady: opts.apkReady ?? res.runtime?.apk_ready,
+  })
 }

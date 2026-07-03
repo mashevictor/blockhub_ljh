@@ -7,7 +7,7 @@ import {
   type CatalogSummary,
 } from '../api/client'
 import { publishApp, suggestModules as suggestModulesApi } from '../api/client'
-import { createdAppToPublishResult } from '../api/publishHelpers'
+import { publishApiToResult } from '../api/publishHelpers'
 import { DynamicIcon, IconCheckCircle } from '../components/icons'
 import { useTheme } from '../context/ThemeContext'
 import {
@@ -513,13 +513,10 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
         contactEmail: contact.type === 'email' ? contact.value : undefined,
         contactPhone: contact.type === 'phone' ? contact.value : undefined,
       })
-      onPublish(createdAppToPublishResult(res.app, {
+      onPublish(publishApiToResult(res, {
         moduleCount: publishedModules.length,
         modules: publishedModules,
         scenarios: bundle.scenarioNames,
-        contactEmail: res.notification?.email,
-        emailSent: res.notification?.email_sent,
-        emailConfigured: res.notification?.email_configured,
       }))
       clearAll()
     } catch {

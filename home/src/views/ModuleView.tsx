@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { fetchCatalogModules, publishApp } from '../api/client'
-import { createdAppToPublishResult } from '../api/publishHelpers'
+import { publishApiToResult } from '../api/publishHelpers'
 import type { PublishResult } from '../data/constants'
 import { DynamicIcon } from '../components/icons'
 import { useTheme } from '../context/ThemeContext'
@@ -102,13 +102,10 @@ export default function ModuleView({ onPublish, active = true }: Props) {
         contactEmail: contact.type === 'email' ? contact.value : undefined,
         contactPhone: contact.type === 'phone' ? contact.value : undefined,
       })
-      onPublish(createdAppToPublishResult(res.app, {
+      onPublish(publishApiToResult(res, {
         moduleCount: publishedModules.length,
         modules: publishedModules,
         scenarios: widgets.map((w) => w.name),
-        contactEmail: res.notification?.email,
-        emailSent: res.notification?.email_sent,
-        emailConfigured: res.notification?.email_configured,
       }))
       setWidgets([])
       setDevice('both')

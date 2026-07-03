@@ -86,6 +86,8 @@ export interface PublishResult {
   contactEmail?: string
   emailSent?: boolean
   emailConfigured?: boolean
+  /** 服务端 APK 是否已就绪（与 Flutter 构建无关，不阻塞发布） */
+  apkReady?: boolean
 }
 
 export interface PublishedModuleItem {
