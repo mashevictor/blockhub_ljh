@@ -106,7 +106,9 @@ export default function AuthPage({
     } catch (err: unknown) {
       const resp = (err as { response?: { status?: number; data?: { detail?: string } } })?.response
       if (!resp) {
-        setError('无法连接 API，请确认 backend :8001 与 PostgreSQL 已启动')
+        setError(
+          '无法连接 API。请确认：① 已运行 npm run dev（5174）或 scripts/dev-admin.ps1；② 或直接访问演示站 http://101.32.209.251/admin/login',
+        )
       } else if (resp.status === 503 || resp.status === 500) {
         setError('数据库未启动。本地请运行: docker compose up -d postgres，或使用 scripts/dev-admin.ps1')
       } else {
