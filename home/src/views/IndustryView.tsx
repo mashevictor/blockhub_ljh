@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { fetchScenarios, publishApp } from '../api/client'
 import { publishApiToResult } from '../api/publishHelpers'
+import { runLoadingPublishPipeline } from '../lib/publishFlow'
 import { INDUSTRIES, type Audience, type PublishResult } from '../data/constants'
 import { DynamicIcon } from '../components/icons'
 import { useTheme } from '../context/ThemeContext'
@@ -84,43 +85,44 @@ export default function IndustryView({ onPublish, active = true }: Props) {
   }, [scenes])
 
   const doPublish = async (contact: ContactInfo) => {
-    const scenarioNames = scenes.filter((s) => selected.has(s.id)).map((s) => s.name)
-    const publishedModules = buildPublishedModulesFromIndustry({
-      industryKey: resolveIndustryApiKey(industry),
-      industryLabel: pack.name,
-      scenarioNames,
+    await runLoadingPublishPipeline({
+      closeContact: () => setContactOpen(false),
+      setLoading,
+      setError: setPublishError,
+      onSuccess: onPublish,
+      errorMessage: '发布失败，请确认已登录且 API 可用',
+      execute: async () => {
+        const scenarioNames = scenes.filter((s) => selected.has(s.id)).map((s) => s.name)
+        const publishedModules = buildPublishedModulesFromIndustry({
+          industryKey: resolveIndustryApiKey(industry),
+          industryLabel: pack.name,
+          scenarioNames,
+        })
+        const res = await publishApp(resolveAppName(branding.appName, appName), resolveIndustryApiKey(industry), {
+          scenarioIds: [...selected],
+          scenarioNames,
+          capabilityKeys: publishedModules.filter((m) => m.kind === 'module').map((m) => m.key),
+          modules: publishedModules.map((m) => ({
+            key: m.key,
+            label: m.label,
+            kind: m.kind,
+            iconKey: m.iconKey,
+            source: m.source,
+          })),
+          audience,
+          source: 'industry',
+          iconUrl: branding.iconUrl,
+          primaryColor: branding.primaryColor,
+          contactEmail: contact.type === 'email' ? contact.value : undefined,
+          contactPhone: contact.type === 'phone' ? contact.value : undefined,
+        })
+        return publishApiToResult(res, {
+          moduleCount: publishedModules.length,
+          modules: publishedModules,
+          scenarios: scenarioNames,
+        })
+      },
     })
-    setLoading(true)
-    setPublishError(null)
-    try {
-      const res = await publishApp(resolveAppName(branding.appName, appName), resolveIndustryApiKey(industry), {
-        scenarioIds: [...selected],
-        scenarioNames,
-        capabilityKeys: publishedModules.filter((m) => m.kind === 'module').map((m) => m.key),
-        modules: publishedModules.map((m) => ({
-          key: m.key,
-          label: m.label,
-          kind: m.kind,
-          iconKey: m.iconKey,
-          source: m.source,
-        })),
-        audience,
-        source: 'industry',
-        iconUrl: branding.iconUrl,
-        primaryColor: branding.primaryColor,
-        contactEmail: contact.type === 'email' ? contact.value : undefined,
-        contactPhone: contact.type === 'phone' ? contact.value : undefined,
-      })
-      onPublish(publishApiToResult(res, {
-        moduleCount: publishedModules.length,
-        modules: publishedModules,
-        scenarios: scenarioNames,
-      }))
-      return
-    } catch {
-      setPublishError('发布失败，请确认已登录且 API 可用')
-      setLoading(false)
-    }
   }
 
   const handlePublish = () => setContactOpen(true)
@@ -265,7 +267,7 @@ export default function IndustryView({ onPublish, active = true }: Props) {
       <ContactGateModal
         open={active && contactOpen}
         onClose={() => setContactOpen(false)}
-        onConfirm={(c) => { setContactOpen(false); void doPublish(c) }}
+        onConfirm={(c) => { void doPublish(c) }}
       />
     </div>
   )

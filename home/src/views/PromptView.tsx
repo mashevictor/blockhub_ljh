@@ -8,6 +8,7 @@ import {
 } from '../api/client'
 import { publishApp, suggestModules as suggestModulesApi } from '../api/client'
 import { publishApiToResult } from '../api/publishHelpers'
+import { runContactPublishPipeline } from '../lib/publishFlow'
 import { DynamicIcon, IconCheckCircle } from '../components/icons'
 import { useTheme } from '../context/ThemeContext'
 import {
@@ -491,39 +492,31 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
     contact: ContactInfo,
   ) => {
     const publishedModules = buildPublishedModulesFromBundle(bundle)
-    setGeneratePhase('publish')
-    setPublishError(null)
-    try {
-      const res = await publishApp(resolveAppName(branding.appName, bundle.appName), bundle.industryKey, {
-        scenarioIds: bundle.scenarioIds,
-        scenarioNames: bundle.scenarioNames,
-        capabilityKeys: publishedModules.filter((m) => m.kind === 'module' || m.kind === 'capability').map((m) => m.key),
-        modules: publishedModules.map((m) => ({
-          key: m.key,
-          label: m.label,
-          kind: m.kind,
-          iconKey: m.iconKey,
-          source: m.source,
-        })),
-        deliver,
-        source: 'prompt',
-        prompt: bundle.promptText,
-        iconUrl: branding.iconUrl,
-        primaryColor: branding.primaryColor,
-        contactEmail: contact.type === 'email' ? contact.value : undefined,
-        contactPhone: contact.type === 'phone' ? contact.value : undefined,
-      })
-      onPublish(publishApiToResult(res, {
-        moduleCount: publishedModules.length,
-        modules: publishedModules,
-        scenarios: bundle.scenarioNames,
-      }))
-      return
-    } catch {
-      setPublishError('发布失败，请确认 API 可用并已填写联系方式')
-      setGeneratePhase(null)
-    }
-  }, [deliver, onPublish, clearAll, branding])
+    const res = await publishApp(resolveAppName(branding.appName, bundle.appName), bundle.industryKey, {
+      scenarioIds: bundle.scenarioIds,
+      scenarioNames: bundle.scenarioNames,
+      capabilityKeys: publishedModules.filter((m) => m.kind === 'module' || m.kind === 'capability').map((m) => m.key),
+      modules: publishedModules.map((m) => ({
+        key: m.key,
+        label: m.label,
+        kind: m.kind,
+        iconKey: m.iconKey,
+        source: m.source,
+      })),
+      deliver,
+      source: 'prompt',
+      prompt: bundle.promptText,
+      iconUrl: branding.iconUrl,
+      primaryColor: branding.primaryColor,
+      contactEmail: contact.type === 'email' ? contact.value : undefined,
+      contactPhone: contact.type === 'phone' ? contact.value : undefined,
+    })
+    return publishApiToResult(res, {
+      moduleCount: publishedModules.length,
+      modules: publishedModules,
+      scenarios: bundle.scenarioNames,
+    })
+  }, [deliver, branding])
 
   const executePresetGenerate = useCallback(async (preset: RolePreset, contact: ContactInfo) => {
     const picks = buildModulesFromPreset(preset)
@@ -534,7 +527,7 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
       scenarioIds,
       catalogNames,
     })
-    await runPublish(bundle, contact)
+    return runPublish(bundle, contact)
   }, [buildModulesFromPreset, catalogNames, runPublish])
 
   const resolvedBundle = useMemo(
@@ -548,34 +541,35 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
   )
 
   const handleContactConfirm = useCallback(async (contact: ContactInfo) => {
-    setContactOpen(false)
-    if (pendingPreset) {
-      const preset = pendingPreset
-      setPendingPreset(null)
-      setGeneratePhase('analyze')
-      try {
-        await executePresetGenerate(preset, contact)
-      } catch {
-        setPublishError('生成失败，请确认 API 可用并已填写联系方式')
-      }
-      return
-    }
-    setGeneratePhase('analyze')
-    try {
-      const intent = userIntentText.trim() || prompt.replace(/^>\s*$/, '').trim()
-      const bundle = await resolvePublishBundle({
-        userModules: promptModules,
-        promptText: prompt,
-        scenarioIds: [...selected],
-        catalogNames,
-        intentText: intent,
-      })
-      await runPublish(bundle, contact)
-    } catch {
-      setGeneratePhase(null)
-      setPublishError('生成失败，请确认已选择模块或填写需求，且 API 可用')
-    }
-  }, [pendingPreset, executePresetGenerate, runPublish, userIntentText, prompt, promptModules, selected, catalogNames])
+    const preset = pendingPreset
+    if (preset) setPendingPreset(null)
+
+    await runContactPublishPipeline({
+      closeContact: () => setContactOpen(false),
+      setPhase: setGeneratePhase,
+      setError: setPublishError,
+      onSuccess: onPublish,
+      errorMessage: preset
+        ? '生成失败，请确认 API 可用并已填写联系方式'
+        : '生成失败，请确认已选择模块或填写需求，且 API 可用',
+      execute: async (markPhase) => {
+        if (preset) {
+          markPhase('publish')
+          return executePresetGenerate(preset, contact)
+        }
+        const intent = userIntentText.trim() || prompt.replace(/^>\s*$/, '').trim()
+        const bundle = await resolvePublishBundle({
+          userModules: promptModules,
+          promptText: prompt,
+          scenarioIds: [...selected],
+          catalogNames,
+          intentText: intent,
+        })
+        markPhase('publish')
+        return runPublish(bundle, contact)
+      },
+    })
+  }, [pendingPreset, executePresetGenerate, runPublish, onPublish, userIntentText, prompt, promptModules, selected, catalogNames])
 
   useEffect(() => {
     if (!roleApply || catalogLoading) return

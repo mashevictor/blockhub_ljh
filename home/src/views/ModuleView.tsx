@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { fetchCatalogModules, publishApp } from '../api/client'
 import { publishApiToResult } from '../api/publishHelpers'
+import { runLoadingPublishPipeline } from '../lib/publishFlow'
 import type { PublishResult } from '../data/constants'
 import { DynamicIcon } from '../components/icons'
 import { useTheme } from '../context/ThemeContext'
@@ -81,37 +82,39 @@ export default function ModuleView({ onPublish, active = true }: Props) {
 
   const doPublish = async (contact: ContactInfo) => {
     if (!widgets.length) return
-    const publishedModules = buildPublishedModulesFromWidgets(widgets)
-    setLoading(true)
-    setPublishError(null)
-    try {
-      const res = await publishApp(branding.appName || '模块组装应用', 'office', {
-        scenarioNames: widgets.map((w) => w.name),
-        capabilityKeys: widgets.map((w) => w.key),
-        modules: publishedModules.map((m) => ({
-          key: m.key,
-          label: m.label,
-          kind: m.kind,
-          iconKey: m.iconKey,
-          source: m.source,
-        })),
-        deliver: device,
-        source: 'module',
-        iconUrl: branding.iconUrl,
-        primaryColor: branding.primaryColor,
-        contactEmail: contact.type === 'email' ? contact.value : undefined,
-        contactPhone: contact.type === 'phone' ? contact.value : undefined,
-      })
-      onPublish(publishApiToResult(res, {
-        moduleCount: publishedModules.length,
-        modules: publishedModules,
-        scenarios: widgets.map((w) => w.name),
-      }))
-      return
-    } catch {
-      setPublishError('发布失败，请确认 API 可用')
-      setLoading(false)
-    }
+    await runLoadingPublishPipeline({
+      closeContact: () => setContactOpen(false),
+      setLoading,
+      setError: setPublishError,
+      onSuccess: (result) => {
+        onPublish(result)
+      },
+      execute: async () => {
+        const publishedModules = buildPublishedModulesFromWidgets(widgets)
+        const res = await publishApp(branding.appName || '模块组装应用', 'office', {
+          scenarioNames: widgets.map((w) => w.name),
+          capabilityKeys: widgets.map((w) => w.key),
+          modules: publishedModules.map((m) => ({
+            key: m.key,
+            label: m.label,
+            kind: m.kind,
+            iconKey: m.iconKey,
+            source: m.source,
+          })),
+          deliver: device,
+          source: 'module',
+          iconUrl: branding.iconUrl,
+          primaryColor: branding.primaryColor,
+          contactEmail: contact.type === 'email' ? contact.value : undefined,
+          contactPhone: contact.type === 'phone' ? contact.value : undefined,
+        })
+        return publishApiToResult(res, {
+          moduleCount: publishedModules.length,
+          modules: publishedModules,
+          scenarios: widgets.map((w) => w.name),
+        })
+      },
+    })
   }
 
   const handlePublish = () => setContactOpen(true)
@@ -211,10 +214,7 @@ export default function ModuleView({ onPublish, active = true }: Props) {
       <ContactGateModal
         open={active && contactOpen}
         onClose={() => setContactOpen(false)}
-        onConfirm={(c) => {
-          setContactOpen(false)
-          void doPublish(c)
-        }}
+        onConfirm={(c) => { void doPublish(c) }}
       />
     </div>
   )

@@ -15,7 +15,16 @@ BUILD_LOG="${BUILD_LOG:-/tmp/flutter-apk-build.log}"
 cd "$APP_DIR"
 
 if ! command -v flutter >/dev/null 2>&1; then
-  echo "ERROR: flutter CLI not found. Install Flutter 3.x and retry."
+  for d in /opt/flutter /root/flutter /usr/local/flutter; do
+    if [ -x "$d/bin/flutter" ]; then
+      export PATH="$d/bin:$PATH"
+      break
+    fi
+  done
+fi
+
+if ! command -v flutter >/dev/null 2>&1; then
+  echo "ERROR: flutter CLI not found. Run: sudo bash scripts/setup-flutter-android.sh"
   exit 1
 fi
 
@@ -54,20 +63,25 @@ ensure_java_17() {
 }
 
 dump_gradle_failure() {
+  local gradle_log="${GRADLE_LOG:-/tmp/gradle-assemble-release.log}"
   echo ""
   echo "========== Gradle failure diagnostics =========="
   if [ -f "$BUILD_LOG" ]; then
     echo "--- flutter log (errors only) ---"
-    grep -E "FAILURE:|error:|Error:|Exception|What went wrong|Execution failed" "$BUILD_LOG" | tail -n 30 || true
-    echo "--- flutter log (last 25 lines) ---"
-    tail -n 25 "$BUILD_LOG" || true
+    grep -E "FAILURE:|error:|Error:|Exception|What went wrong|Execution failed|BUILD FAILED" "$BUILD_LOG" | tail -n 40 || true
+    echo "--- flutter log (last 40 lines) ---"
+    tail -n 40 "$BUILD_LOG" || true
   fi
   if [ -f android/build/reports/problems/problems-report.html ]; then
     echo "See: $APP_DIR/android/build/reports/problems/problems-report.html"
   fi
   if [ -x android/gradlew ]; then
-    echo "--- gradlew assembleRelease --stacktrace (last 60 lines) ---"
-    (cd android && ./gradlew :app:assembleRelease --stacktrace --no-daemon 2>&1 | tail -n 60) || true
+    echo "--- gradlew :app:assembleRelease --stacktrace (full log: $gradle_log) ---"
+    (cd android && ./gradlew :app:assembleRelease --stacktrace --no-daemon 2>&1 | tee "$gradle_log") || true
+    echo "--- gradle errors (grep) ---"
+    grep -E "FAILURE:|error:|Error:|Exception|What went wrong|Execution failed|BUILD FAILED" "$gradle_log" | tail -n 40 || true
+    echo "--- gradle log (last 80 lines) ---"
+    tail -n 80 "$gradle_log" || true
   fi
   echo "==============================================="
 }
@@ -84,6 +98,9 @@ if [ "$needs_bootstrap" -eq 1 ]; then
 fi
 
 ensure_java_17
+
+echo "==> Flutter: $(flutter --version | head -n1)"
+flutter doctor --android-licenses </dev/null 2>&1 | tail -n 3 || true
 
 BRANDING_FILE="${BRANDING_JSON:-$APP_DIR/branding/branding.json}"
 if [ -f "$BRANDING_FILE" ]; then
