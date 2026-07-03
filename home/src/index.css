@@ -4150,6 +4150,50 @@ html[data-theme="monochrome-business"] .brand em.brand-en {
   font-size: 12px; cursor: pointer; padding: 0;
 }
 .btn-register { opacity: 0.85; }
+.btn-my-apps {
+  display: inline-flex; align-items: center; gap: 6px;
+  margin-right: 10px; padding: 6px 12px; border-radius: 999px;
+  border: 1px solid var(--border); background: var(--surface);
+  font-size: 12px; font-weight: 600; color: var(--text);
+  cursor: pointer; font-family: inherit;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.btn-my-apps:hover {
+  border-color: var(--pri-light);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--pri) 12%, transparent);
+}
+.btn-my-apps-badge {
+  min-width: 18px; height: 18px; padding: 0 5px;
+  border-radius: 999px; background: var(--pri); color: #fff;
+  font-size: 10px; font-weight: 700; line-height: 18px; text-align: center;
+}
+.my-apps-panel { max-width: 520px; max-height: min(85vh, 640px); overflow: auto; }
+.my-apps-head { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 16px; }
+.my-apps-head h3 { margin: 0 0 4px; font-size: 18px; }
+.my-apps-empty { text-align: center; padding: 28px 12px; color: var(--muted); }
+.my-apps-empty-hint { font-size: 12px; margin-top: 6px; }
+.my-apps-list { list-style: none; margin: 0 0 16px; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.my-apps-item {
+  border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px;
+  background: color-mix(in srgb, var(--surface) 92%, var(--pri-soft));
+}
+.my-apps-item-main strong { display: block; font-size: 14px; margin-bottom: 4px; }
+.my-apps-meta { display: block; font-size: 11px; color: var(--muted); margin-bottom: 6px; }
+.my-apps-url {
+  display: block; font-size: 11px; color: var(--pri-dark);
+  word-break: break-all; background: #fff; padding: 6px 8px; border-radius: 6px;
+  border: 1px solid var(--border);
+}
+.my-apps-actions {
+  display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px;
+}
+.my-apps-actions .btn-ghost {
+  font-size: 11px; padding: 5px 10px; border-radius: 8px;
+  border: 1px solid var(--border); background: #fff; cursor: pointer;
+  text-decoration: none; color: var(--text); display: inline-flex; align-items: center; gap: 4px;
+}
+.my-apps-actions .btn-ghost:hover { border-color: var(--pri-light); color: var(--pri); }
+.my-apps-remove { color: #b45309 !important; }
 .publish-qr-row { align-items: center; }
 .publish-qr-img { border-radius: 8px; border: 1px solid var(--border); background: #fff; }
 .btn-login, .header-user {

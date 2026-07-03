@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { ADMIN_URL, type PublishResult, type ViewMode } from './data/constants'
 import type { RoleApplyRequest } from './data/rolePresets'
 import PublishModal from './components/PublishModal'
+import MyAppsPanel from './components/MyAppsPanel'
 import HeroCubeStage from './components/HeroCubeStage'
 import PlatformShowcaseFooter from './components/PlatformShowcaseFooter'
 import ViewModeSwitcher from './components/ViewModeSwitcher'
@@ -14,14 +15,18 @@ import { getToken } from './auth/storage'
 import {
   IconSettings,
   IconArrowRight,
+  IconLayers,
 } from './components/icons'
 import { BRAND } from './data/brand'
 import BrandMark from './components/BrandMark'
+import { addMyApp, loadMyApps } from './lib/myAppsStorage'
 import './index.css'
 
 export default function HomeApp() {
   const [view, setView] = useState<ViewMode>('prompt')
   const [published, setPublished] = useState<PublishResult | null>(null)
+  const [showMyApps, setShowMyApps] = useState(false)
+  const [myAppsCount, setMyAppsCount] = useState(0)
   const [roleApply, setRoleApply] = useState<RoleApplyRequest | null>(null)
   const [user, setUser] = useState<AuthUser | null>(null)
   const location = useLocation()
@@ -38,6 +43,16 @@ export default function HomeApp() {
     }
     fetchMe().then(setUser).catch(() => setUser(null))
   }, [location.pathname])
+
+  useEffect(() => {
+    setMyAppsCount(loadMyApps().length)
+  }, [published, showMyApps])
+
+  const handlePublish = (result: PublishResult) => {
+    addMyApp(result)
+    setMyAppsCount(loadMyApps().length)
+    setPublished(result)
+  }
 
   const handleRoleApply = (role: RoleApplyRequest['preset'], generate?: boolean) => {
     setView('prompt')
@@ -63,6 +78,16 @@ export default function HomeApp() {
           </div>
           <ViewModeSwitcher value={view} onChange={setView} />
           <div className="header-actions">
+            <button
+              type="button"
+              className="btn-my-apps"
+              onClick={() => setShowMyApps(true)}
+              title="查看本浏览器发布过的应用"
+            >
+              <IconLayers size={15} />
+              我的应用
+              {myAppsCount > 0 && <span className="btn-my-apps-badge">{myAppsCount}</span>}
+            </button>
             {user ? (
               <>
                 <span className="header-user">{user.display_name}</span>
@@ -93,13 +118,13 @@ export default function HomeApp() {
       <main key={view} className="main-content page-enter">
         {view === 'prompt' && (
           <PromptView
-            onPublish={setPublished}
+            onPublish={handlePublish}
             roleApply={roleApply}
             onRoleApplyDone={() => setRoleApply(null)}
           />
         )}
-        {view === 'industry' && <IndustryView onPublish={setPublished} />}
-        {view === 'module' && <ModuleView onPublish={setPublished} />}
+        {view === 'industry' && <IndustryView onPublish={handlePublish} />}
+        {view === 'module' && <ModuleView onPublish={handlePublish} />}
       </main>
 
       <PlatformShowcaseFooter />
@@ -119,6 +144,16 @@ export default function HomeApp() {
           result={published}
           showAdminLink={!!user}
           onClose={() => setPublished(null)}
+        />
+      )}
+
+      {showMyApps && (
+        <MyAppsPanel
+          onClose={() => setShowMyApps(false)}
+          onOpenApp={(app) => {
+            setShowMyApps(false)
+            setPublished(app)
+          }}
         />
       )}
     </div>
