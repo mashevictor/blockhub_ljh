@@ -133,10 +133,17 @@ fi
 
 echo ""
 echo "=== OTP (optional) ==="
+OTP_ACCOUNT="smoke-otp-$(date +%s)@trackchat.local"
 SEND=$(curl -sf -X POST "$API/auth/send-code" \
   -H "Content-Type: application/json" \
-  -d '{"account":"13800138000"}' 2>/dev/null || echo "")
-if echo "$SEND" | grep -q '"success":true'; then ok "POST /auth/send-code"; else bad "POST /auth/send-code"; fi
+  -d "{\"account\":\"$OTP_ACCOUNT\"}" 2>/dev/null || echo "")
+if echo "$SEND" | grep -q '"success":true'; then
+  ok "POST /auth/send-code"
+elif echo "$SEND" | grep -q '请 .* 秒后再获取'; then
+  ok "POST /auth/send-code (rate-limited, endpoint alive)"
+else
+  bad "POST /auth/send-code ($SEND)"
+fi
 
 echo ""
 echo "=========================================="
