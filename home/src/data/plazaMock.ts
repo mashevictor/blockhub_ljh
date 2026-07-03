@@ -2,6 +2,7 @@ export type FeedVisibility = 'public' | 'org' | 'dept'
 
 export interface PlazaFeedItem {
   id: string
+  appKey?: string
   authorName: string
   authorInitial: string
   authorMeta: string
@@ -21,6 +22,7 @@ export interface PlazaFeedItem {
 export const PLAZA_MOCK_FEED: PlazaFeedItem[] = [
   {
     id: 'f1',
+    appKey: 'http://101.32.209.251/r/demo001',
     authorName: '李明',
     authorInitial: '李',
     authorMeta: '制造业',
@@ -40,6 +42,7 @@ export const PLAZA_MOCK_FEED: PlazaFeedItem[] = [
   },
   {
     id: 'f2',
+    appKey: 'http://101.32.209.251/r/demo002',
     authorName: '张敏',
     authorInitial: '张',
     authorMeta: 'HR',
@@ -56,6 +59,7 @@ export const PLAZA_MOCK_FEED: PlazaFeedItem[] = [
   },
   {
     id: 'f3',
+    appKey: 'http://101.32.209.251/r/demo003',
     authorName: '陈总',
     authorInitial: '陈',
     authorMeta: '管理层',

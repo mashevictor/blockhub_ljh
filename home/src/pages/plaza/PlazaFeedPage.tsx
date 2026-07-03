@@ -1,13 +1,8 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { loadPlazaFeedItems } from '../../lib/plazaFeedStorage'
 import type { PlazaFeedItem } from '../../data/plazaMock'
-import {
-  buildBarrageTags,
-  getPlazaDataFlowSnapshot,
-  splitIntoRails,
-} from '../../lib/plazaBarrage'
-import PlazaBarrageRail from '../../components/plaza/PlazaBarrageRail'
-import PlazaDataFlowPanel from '../../components/plaza/PlazaDataFlowPanel'
+import { feedAppKey, isFeedCreator } from '../../lib/plazaAppUtils'
+import PlazaModuleFlowPanel from '../../components/plaza/PlazaModuleFlowPanel'
 
 type FeedFilter = 'latest' | 'hot' | 'mention'
 
@@ -20,73 +15,27 @@ function visLabel(v: PlazaFeedItem['visibility']) {
 function FeedCard({
   item,
   selected,
-  compact,
+  onSelect,
 }: {
   item: PlazaFeedItem
   selected: boolean
-  compact: boolean
+  onSelect: () => void
 }) {
   const [liked, setLiked] = useState(false)
   const [likes, setLikes] = useState(item.likes)
   const [showComments, setShowComments] = useState(false)
   const vis = visLabel(item.visibility)
-
-  if (compact && !selected) {
-    return (
-      <article className="plaza-rail-item dimmed" aria-label={`${item.appName} 未选中`}>
-        <span className="plaza-rail-item-chev dimmed" aria-hidden>&gt;&gt;</span>
-        <div>
-          <strong>{item.atLabel} {item.appName}</strong>
-          <span className="plaza-rail-item-hint">未选中 · 点击上方弹幕激活</span>
-        </div>
-      </article>
-    )
-  }
-
-  if (compact && selected) {
-    return (
-      <article className="plaza-rail-item selected">
-        <span className="plaza-rail-item-chev" aria-hidden>&gt;&gt;</span>
-        <div className="plaza-rail-item-body">
-          <strong>{item.atLabel} {item.appName}</strong>
-          <span className="plaza-rail-item-meta">
-            {item.timeLabel} · {item.modules.join(' · ')} · ♥ {likes} 💬 {item.comments}
-          </span>
-          <p className="plaza-rail-item-desc">{item.summary}</p>
-          <div className="plaza-feed-actions plaza-feed-actions--rail">
-            <button
-              type="button"
-              className={`plaza-feed-act${liked ? ' liked' : ''}`}
-              onClick={() => {
-                setLiked((v) => !v)
-                setLikes((n) => (liked ? n - 1 : n + 1))
-              }}
-            >
-              ♥ <span>{likes}</span>
-            </button>
-            <button type="button" className="plaza-feed-act" onClick={() => setShowComments((v) => !v)}>
-              💬 {item.comments}
-            </button>
-            <button type="button" className="plaza-feed-act">↗ 转发 {item.reposts}</button>
-            <a className="plaza-feed-act open" href={item.webUrl} target="_blank" rel="noreferrer">
-              打开应用 →
-            </a>
-          </div>
-          {showComments && item.commentPreview && (
-            <div className="plaza-feed-comments plaza-feed-comments--rail">
-              {item.commentPreview.map((c) => (
-                <p key={c.author}><strong>{c.author}</strong> {c.text}</p>
-              ))}
-              <p className="plaza-feed-comments-note">评论 API 开发中（W4）</p>
-            </div>
-          )}
-        </div>
-      </article>
-    )
-  }
+  const creator = isFeedCreator(item)
 
   return (
-    <article className={`plaza-feed-card plaza-feed-card--rail${selected ? ' selected' : ''}`}>
+    <article
+      className={`plaza-feed-card${selected ? ' selected' : ''}`}
+      onClick={onSelect}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onSelect() }}
+      role="button"
+      tabIndex={0}
+      aria-pressed={selected}
+    >
       <div className="plaza-feed-head">
         <div className="plaza-feed-avatar">{item.authorInitial}</div>
         <div className="plaza-feed-meta">
@@ -94,6 +43,7 @@ function FeedCard({
           <span>{item.timeLabel} · 通过「描述需求」创建</span>
         </div>
         <span className={`plaza-vis-badge ${vis.cls}`}>{item.atLabel || vis.text}</span>
+        {creator && <span className="plaza-creator-badge">创建者</span>}
       </div>
       <div className="plaza-feed-app">
         <h4><span className="plaza-at-tag">{item.atLabel}</span> {item.appName}</h4>
@@ -104,7 +54,7 @@ function FeedCard({
         </div>
         <p className="plaza-feed-desc">{item.summary}</p>
       </div>
-      <div className="plaza-feed-actions">
+      <div className="plaza-feed-actions" onClick={(e) => e.stopPropagation()}>
         <button
           type="button"
           className={`plaza-feed-act${liked ? ' liked' : ''}`}
@@ -124,7 +74,7 @@ function FeedCard({
         </a>
       </div>
       {showComments && item.commentPreview && (
-        <div className="plaza-feed-comments">
+        <div className="plaza-feed-comments" onClick={(e) => e.stopPropagation()}>
           {item.commentPreview.map((c) => (
             <p key={c.author}><strong>{c.author}</strong> {c.text}</p>
           ))}
@@ -145,7 +95,6 @@ export default function PlazaFeedPage() {
   const [filter, setFilter] = useState<FeedFilter>('latest')
   const [items, setItems] = useState(() => loadPlazaFeedItems())
   const [selectedId, setSelectedId] = useState<string | null>(null)
-  const feedRef = useRef<HTMLDivElement>(null)
 
   const refresh = useCallback(() => setItems(loadPlazaFeedItems()), [])
 
@@ -166,10 +115,10 @@ export default function PlazaFeedPage() {
     return items
   }, [items, filter])
 
-  const { rail1, rail2 } = useMemo(() => splitIntoRails(filtered), [filtered])
-  const rail1Tags = useMemo(() => buildBarrageTags(rail1, 0), [rail1])
-  const rail2Tags = useMemo(() => buildBarrageTags(rail2, 1), [rail2])
-  const snapshot = useMemo(() => getPlazaDataFlowSnapshot(filtered), [filtered])
+  const selected = useMemo(
+    () => filtered.find((i) => i.id === selectedId) ?? filtered[0] ?? null,
+    [filtered, selectedId],
+  )
 
   useEffect(() => {
     if (filtered.length === 0) {
@@ -181,19 +130,14 @@ export default function PlazaFeedPage() {
     }
   }, [filtered, selectedId])
 
-  const handleSelect = (itemId: string) => {
-    setSelectedId(itemId)
-    feedRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
-  }
-
   return (
-    <main className="plaza-main plaza-main--rail">
+    <main className="plaza-main">
       <div className="plaza-main-head">
         <h1>
           <span className="plaza-title-chev" aria-hidden>&gt;&gt;</span>
           广场 · Newsfeed
         </h1>
-        <div className="plaza-filters plaza-filters--rail">
+        <div className="plaza-filters">
           {(['latest', 'hot', 'mention'] as const).map((key) => (
             <button
               key={key}
@@ -207,36 +151,31 @@ export default function PlazaFeedPage() {
         </div>
       </div>
 
-      <PlazaDataFlowPanel
-        snapshot={snapshot}
-        selectedId={selectedId}
-        filterLabel={FILTER_LABELS[filter]}
-      />
+      <p className="plaza-main-hint">
+        基于已发布应用数据展示 Feed；选中应用后上方弹幕区显示该应用的<strong>模块数据流</strong>，创建者可编辑节点。
+      </p>
 
-      <section className="plaza-rail-stage" aria-label="弹幕双轨广场">
-        <PlazaBarrageRail
-          tags={rail1Tags}
-          selectedId={selectedId}
-          onSelect={handleSelect}
-          label="轨1 · 公开与组织"
+      {selected ? (
+        <PlazaModuleFlowPanel
+          appKey={feedAppKey(selected)}
+          appName={selected.appName}
+          moduleLabels={selected.modules}
+          isCreator={isFeedCreator(selected)}
         />
-        <PlazaBarrageRail
-          tags={rail2Tags}
-          selectedId={selectedId}
-          onSelect={handleSelect}
-          dimmed
-          label="轨2 · 部门范围"
-        />
-        <p className="plaza-rail-hint">↓ 点击上方弹幕 · 展开 Feed 详情</p>
-      </section>
+      ) : (
+        <div className="plaza-mflow-placeholder">
+          <span className="plaza-mflow-chev">&gt;&gt;</span>
+          选择下方应用 · 查看模块数据流
+        </div>
+      )}
 
-      <div className="plaza-rail-feed" ref={feedRef}>
+      <div className="plaza-feed-list">
         {filtered.map((item) => (
           <FeedCard
             key={item.id}
             item={item}
-            selected={selectedId === item.id}
-            compact
+            selected={selected?.id === item.id}
+            onSelect={() => setSelectedId(item.id)}
           />
         ))}
       </div>
