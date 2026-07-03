@@ -1,7 +1,7 @@
 import axios from 'axios'
 import { getToken, redirectToLogin, clearToken } from '../auth/storage'
 
-export const api = axios.create({ baseURL: '/api/v1', timeout: 15000 })
+export const api = axios.create({ baseURL: '/api/v1', timeout: 45000 })
 
 api.interceptors.request.use((config) => {
   const token = getToken()
