@@ -44,6 +44,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
@@ -86,20 +91,14 @@ jobs:
           dart run flutter_launcher_icons
 
       - name: Build release APK
+        working-directory: ${{ github.workspace }}
         env:
           APP_NAME: ${{ github.event.inputs.app_name || 'TrackChat Demo' }}
           TENANT_SLUG: ${{ github.event.inputs.tenant_slug || 'demo' }}
           API_BASE_URL: ${{ github.event.inputs.api_base_url || 'http://101.32.209.251/api/v1' }}
           PRIMARY_COLOR: ${{ github.event.inputs.primary_color || '#4338CA' }}
           APP_PUBLIC_ID: ${{ github.event.inputs.app_public_id || '' }}
-        run: |
-          flutter build apk --release \
-            -PappLabel="$APP_NAME" \
-            --dart-define=APP_NAME="$APP_NAME" \
-            --dart-define=APP_ID=com.trackchat.runtime \
-            --dart-define=TENANT_SLUG="$TENANT_SLUG" \
-            --dart-define=API_BASE_URL="$API_BASE_URL" \
-            --dart-define=PRIMARY_COLOR="$PRIMARY_COLOR"
+        run: bash scripts/flutter-build-apk.sh
 
       - name: Stage APK for server download API
         env:
