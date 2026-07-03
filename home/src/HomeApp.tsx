@@ -18,6 +18,7 @@ import {
 import { BRAND } from './data/brand'
 import BrandMark from './components/BrandMark'
 import { addMyApp, loadMyApps } from './lib/myAppsStorage'
+import { ROUTES } from './routes/paths'
 import './index.css'
 
 export default function HomeApp() {
@@ -47,7 +48,7 @@ export default function HomeApp() {
 
   const handlePublish = (result: PublishResult) => {
     addMyApp(result)
-    navigate('/plaza/my', { state: { justPublished: result } })
+    navigate(ROUTES.plazaMyApps, { state: { justPublished: result } })
   }
 
   const handleRoleApply = (role: RoleApplyRequest['preset'], generate?: boolean) => {
@@ -74,8 +75,8 @@ export default function HomeApp() {
           </div>
           <ViewModeSwitcher value={view} onChange={setView} />
           <div className="header-actions">
-            <Link to="/plaza" className="btn-plaza-nav">📡 广场</Link>
-            <Link to="/plaza/my" className="btn-my-apps" title="查看本浏览器发布过的应用">
+            <Link to={ROUTES.plazaFeed} className="btn-plaza-nav">📡 广场</Link>
+            <Link to={ROUTES.plazaMyApps} className="btn-my-apps" title="查看本浏览器发布过的应用">
               <IconLayers size={15} />
               我的应用
               {myAppsCount > 0 && <span className="btn-my-apps-badge">{myAppsCount}</span>}

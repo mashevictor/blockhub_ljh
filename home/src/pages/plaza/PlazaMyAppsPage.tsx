@@ -6,6 +6,7 @@ import type { PublishResult } from '../../data/constants'
 import { fetchMe, type AuthUser } from '../../auth/session'
 import { getToken } from '../../auth/storage'
 import { loadMyApps, removeMyApp, type StoredMyApp } from '../../lib/myAppsStorage'
+import { ROUTES } from '../../routes/paths'
 
 function formatWhen(iso: string) {
   try {
@@ -29,10 +30,13 @@ export default function PlazaMyAppsPage() {
 
   useEffect(() => {
     setApps(loadMyApps())
+  }, [location.pathname])
+
+  useEffect(() => {
     const state = location.state as { justPublished?: PublishResult } | null
     if (state?.justPublished) {
       setHighlightApp(state.justPublished)
-      navigate('/plaza/my', { replace: true, state: {} })
+      navigate(ROUTES.plazaMyApps, { replace: true, state: {} })
     }
   }, [location.state, navigate])
 
@@ -62,7 +66,7 @@ export default function PlazaMyAppsPage() {
     <main className="plaza-main plaza-my-main">
       <div className="plaza-main-head">
         <h1><IconLayers size={20} /> 我的应用</h1>
-        <Link to="/" className="plaza-my-create-btn">+ 继续创建</Link>
+        <Link to={ROUTES.home} className="plaza-my-create-btn">+ 继续创建</Link>
       </div>
       <p className="plaza-main-hint">
         本浏览器发布过的应用保存在此（未登录也可查看，仅存于此设备）。
@@ -79,7 +83,7 @@ export default function PlazaMyAppsPage() {
         <div className="plaza-my-empty">
           <p>还没有发布过应用</p>
           <p className="plaza-my-empty-hint">在首页创建并发布后，会自动跳转到这里</p>
-          <Link to="/" className="btn-primary plaza-my-empty-cta">去创建应用</Link>
+          <Link to={ROUTES.home} className="btn-primary plaza-my-empty-cta">去创建应用</Link>
         </div>
       )}
 

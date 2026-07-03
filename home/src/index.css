@@ -4544,6 +4544,9 @@ html[data-theme="monochrome-business"] .brand em.brand-en {
 .plaza-topbar-nav { display: flex; align-items: center; gap: 14px; font-size: 12px; }
 .plaza-topbar-nav a { color: var(--muted); text-decoration: none; }
 .plaza-topbar-nav a.on, .plaza-topbar-nav a:hover { color: var(--pri); font-weight: 600; }
+.plaza-layout:has(.plaza-my-main) {
+  grid-template-columns: 200px 1fr;
+}
 .plaza-layout {
   display: grid; grid-template-columns: 200px 1fr 220px; gap: 20px;
   max-width: 1200px; margin: 0 auto; padding: 20px;
