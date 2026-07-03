@@ -16,6 +16,7 @@ out/
 .env
 .env.*
 !.env.example
+!frontend/.env.local.example
 backend/.env
 
 # Python
