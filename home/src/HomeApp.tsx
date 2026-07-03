@@ -86,6 +86,7 @@ export default function HomeApp() {
           </div>
           <ViewModeSwitcher value={view} onChange={setView} />
           <div className="header-actions">
+            <Link to="/plaza" className="btn-plaza-nav">📡 广场</Link>
             <button
               type="button"
               className={`btn-my-apps${myAppsHint ? ' hint-active' : ''}`}

@@ -110,7 +110,19 @@ cozecode/
 | 快速入口 | quick-grid links |
 | 场景目录 114 | ScenarioCatalogPage 全表展示 |
 
-## 7. 后续迭代路线
+## 7. 广场 · Newsfeed（方案 B，已定稿）
+
+| 模块 | 路由/表 | 状态 |
+|------|---------|------|
+| 广场页 UI | Home `/plaza` · 三栏（导航 / Feed / 热门） | ✅ Mock 壳 |
+| @ 受众发布 | PublishModal 选 `@公开` / `@部门` / `@角色` | ⬜ W3 |
+| Feed 数据 | `feed_posts` · `feed_reactions` · `feed_comments` | ⬜ W4 |
+| API | `GET /plaza/feed` · `POST .../like` · `POST .../comment` | ⬜ W4 |
+| 应用字段 | `apps.audience_type` · `apps.audience_targets` | ⬜ W3 |
+
+设计稿：`designs/06-at-plaza-newsfeed.html`（方案 B 已定稿）
+
+## 8. 后续迭代路线
 
 | 阶段 | 内容 | 优先级 |
 |------|------|--------|
@@ -122,7 +134,7 @@ cozecode/
 | Phase 6 | **runtime-app Flutter** + WidgetRegistry + 内测包 | P1 |
 | Phase 7 | Milvus/向量检索 + COS 文档 | P2 |
 
-## 8. 部署建议
+## 9. 部署建议
 
 - **开发**: `start.ps1` 本地双进程
 - **生产**: Docker Compose（FastAPI + Nginx + PG + Redis）

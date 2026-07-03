@@ -4526,3 +4526,76 @@ html[data-theme="monochrome-business"] .brand em.brand-en {
 }
 .btn-login:hover { color: var(--pri); }
 .header-user { color: var(--text); font-weight: 600; }
+
+/* —— 广场 · Newsfeed（方案 B）—— */
+.btn-plaza-nav {
+  font-size: 12px; padding: 6px 12px; border-radius: 8px; margin-right: 8px;
+  border: 1px solid color-mix(in srgb, var(--pri) 35%, var(--border));
+  background: color-mix(in srgb, var(--pri-soft) 60%, #fff);
+  color: var(--pri-dark); text-decoration: none; font-weight: 600;
+}
+.btn-plaza-nav:hover { border-color: var(--pri); color: var(--pri); }
+.plaza-page { min-height: 100vh; background: var(--bg); color: var(--text); }
+.plaza-topbar {
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+  padding: 12px 20px; border-bottom: 1px solid var(--border); background: var(--surface);
+}
+.plaza-topbar-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text); font-weight: 700; font-size: 14px; }
+.plaza-topbar-nav { display: flex; align-items: center; gap: 14px; font-size: 12px; }
+.plaza-topbar-nav a { color: var(--muted); text-decoration: none; }
+.plaza-topbar-nav a.on, .plaza-topbar-nav a:hover { color: var(--pri); font-weight: 600; }
+.plaza-layout {
+  display: grid; grid-template-columns: 200px 1fr 220px; gap: 20px;
+  max-width: 1200px; margin: 0 auto; padding: 20px;
+}
+@media (max-width: 900px) {
+  .plaza-layout { grid-template-columns: 1fr; }
+  .plaza-side, .plaza-right { display: none; }
+}
+.plaza-side h4, .plaza-right h4 { font-size: 11px; color: var(--muted); margin-bottom: 10px; text-transform: uppercase; letter-spacing: .04em; }
+.plaza-side a { display: block; padding: 8px 10px; border-radius: 8px; font-size: 12px; color: var(--text); text-decoration: none; margin-bottom: 4px; }
+.plaza-side a.on { background: color-mix(in srgb, var(--pri-soft) 80%, #fff); color: var(--pri-dark); font-weight: 600; }
+.plaza-side-note { font-size: 10px; color: var(--muted); margin-top: 16px; line-height: 1.5; }
+.plaza-main-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 8px; }
+.plaza-main-head h1 { font-size: 20px; margin: 0; }
+.plaza-filters { display: flex; gap: 6px; }
+.plaza-filters button {
+  font-size: 11px; padding: 5px 12px; border-radius: 999px; border: 1px solid var(--border);
+  background: #fff; cursor: pointer; font-family: inherit; color: var(--muted);
+}
+.plaza-filters button.on { border-color: var(--pri); color: var(--pri); background: var(--pri-soft); font-weight: 600; }
+.plaza-main-hint { font-size: 11px; color: var(--muted); margin-bottom: 16px; }
+.plaza-feed-card {
+  border: 1px solid var(--border); border-radius: 14px; padding: 16px; margin-bottom: 12px;
+  background: var(--surface);
+}
+.plaza-feed-head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.plaza-feed-avatar {
+  width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--navy, #0a1628), var(--pri));
+  color: #fff; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; flex-shrink: 0;
+}
+.plaza-feed-meta { flex: 1; min-width: 0; }
+.plaza-feed-meta strong { display: block; font-size: 13px; }
+.plaza-feed-meta span { font-size: 11px; color: var(--muted); }
+.plaza-vis-badge { font-size: 10px; padding: 3px 8px; border-radius: 999px; font-weight: 600; }
+.plaza-vis-badge.vis-public { background: #ecfeff; color: #0891b2; }
+.plaza-vis-badge.vis-dept { background: #fef3c7; color: #b45309; }
+.plaza-vis-badge.vis-role { background: #ede9fe; color: #7c3aed; }
+.plaza-feed-app h4 { font-size: 15px; margin: 0 0 8px; }
+.plaza-at-tag { color: #0891b2; font-weight: 700; }
+.plaza-feed-modules { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.plaza-feed-mod { font-size: 10px; padding: 2px 8px; border-radius: 6px; background: #f1f5f9; color: #475569; }
+.plaza-feed-desc { font-size: 12px; color: var(--muted); line-height: 1.55; margin: 0; }
+.plaza-feed-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+.plaza-feed-act {
+  font-size: 11px; padding: 5px 10px; border-radius: 8px; border: 1px solid var(--border);
+  background: #fff; cursor: pointer; font-family: inherit; color: var(--muted); text-decoration: none;
+}
+.plaza-feed-act.liked { color: #e11d48; border-color: #fecdd3; background: #fff1f2; }
+.plaza-feed-act.open { margin-left: auto; color: var(--pri-dark); border-color: color-mix(in srgb, var(--pri) 40%, var(--border)); font-weight: 600; }
+.plaza-feed-comments { margin-top: 10px; padding: 10px; background: #f8fafc; border-radius: 8px; font-size: 11px; }
+.plaza-feed-comments p { margin: 0 0 6px; }
+.plaza-feed-comments-note { color: var(--muted); font-style: italic; }
+.plaza-trend { display: flex; justify-content: space-between; font-size: 12px; padding: 8px 0; border-bottom: 1px dashed var(--border); }
+.plaza-stats { font-size: 12px; line-height: 1.8; color: var(--muted); }
+.plaza-stats strong { color: var(--text); }

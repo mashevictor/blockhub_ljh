@@ -72,6 +72,7 @@ td code{font-size:11px;background:#f5f5f4;padding:2px 6px;border-radius:4px}
   <a href="#day0">Day0 已完成</a>
   <a href="#w1">W1–W6 目标</a>
   <a href="#home">Home</a>
+  <a href="#plaza">广场</a>
   <a href="#ai">智能推荐</a>
   <a href="#runtime">Runtime</a>
   <a href="#admin">Admin</a>
@@ -131,6 +132,8 @@ td code{font-size:11px;background:#f5f5f4;padding:2px 6px;border-radius:4px}
       <tr><td>DeepSeek 模块推荐</td><td><span class="tag tag-done">✅</span></td><td>suggest-modules + intentPublish · 100 评估 99/100</td></tr>
       <tr><td>联系门禁 + 发布 API</td><td><span class="tag tag-done">✅</span></td><td>内存 publish · W1 D6 落库</td></tr>
       <tr><td>动态发布弹窗</td><td><span class="tag tag-done">✅</span></td><td>按用户模块展示 · W3 换真 webUrl</td></tr>
+      <tr><td>我的应用 + 顶栏入口</td><td><span class="tag tag-done">✅</span></td><td>localStorage · 发布后气泡提示</td></tr>
+      <tr><td>广场 /plaza Mock 壳</td><td><span class="tag tag-wip">🔶</span></td><td>方案 B 已定稿 · W4 Feed API</td></tr>
       <tr><td>白金商务主题</td><td><span class="tag tag-done">✅</span></td><td>shared/themes.ts · Admin 四主题切换</td></tr>
       <tr><td>Admin 5174 六模块 UI</td><td><span class="tag tag-done">✅</span></td><td>问答/KB/审批/报表/通知/创建 · W2 接 PG</td></tr>
       <tr><td>Modal Portal 叠层修复</td><td><span class="tag tag-done">✅</span></td><td>HeroRole / ContactGate / Publish</td></tr>
@@ -146,8 +149,8 @@ td code{font-size:11px;background:#f5f5f4;padding:2px 6px;border-radius:4px}
     <tbody>
       <tr><td><span class="tag tag-week">W1</span></td><td>M1 基建</td><td>PG+Alembic · 114/36/7 seed · JWT · LLM SSE · Redis · 发布落库</td><td>登录可用 · Catalog 来自 DB · Chat 真流式</td></tr>
       <tr><td><span class="tag tag-week">W2</span></td><td>M2 Agent 核心</td><td>RAG：COS+pgvector · 审批状态机 · custom_* 审核入库 · 移除内存 store</td><td>PDF 可问答+citation · 审批可提交</td></tr>
-      <tr><td><span class="tag tag-week">W3</span></td><td>M3 发布闭环</td><td>Schema 生成 · runtime-web · 8 Widget · 三入口统一发布 · 真 webUrl</td><td>10 分钟 Demo 主路径打通</td></tr>
-      <tr><td><span class="tag tag-week">W4</span></td><td>M4 七 Agent</td><td>报表+通知+集成 · 114 PG 全量 · 租户 Config · Dashboard 真统计</td><td>Admin 六模块全非 Mock</td></tr>
+      <tr><td><span class="tag tag-week">W3</span></td><td>M3 发布闭环</td><td>Schema 生成 · runtime-web · @受众 UI · /plaza 壳 · 真 webUrl</td><td>10 分钟 Demo 主路径打通</td></tr>
+      <tr><td><span class="tag tag-week">W4</span></td><td>M4 七 Agent + 广场</td><td>报表+通知+集成 · Plaza Feed API · 114 PG 全量</td><td>Admin 六模块全非 Mock · 广场可互动</td></tr>
       <tr><td><span class="tag tag-week">W5</span></td><td>M5 多端+云</td><td>Flutter Schema 渲染 · 腾讯云 staging · Nginx HTTPS · 内测 APK</td><td>三域名可访问 · App 主路径可用</td></tr>
       <tr><td><span class="tag tag-week">W6</span></td><td>M6 GA</td><td>114 回归 · 10 并发压测 · Docker Compose · Demo 定稿 · 2 天缓冲</td><td>GA Checklist 8/8 通过</td></tr>
     </tbody>
@@ -166,6 +169,23 @@ td code{font-size:11px;background:#f5f5f4;padding:2px 6px;border-radius:4px}
       <tr><td>JWT 登录</td><td><span class="tag tag-plan">⬜</span></td><td><span class="tag tag-wip">W1 D3</span></td></tr>
       <tr><td>三入口统一积木仓</td><td><span class="tag tag-mock">🎭 仅 Prompt</span></td><td><span class="tag tag-wip">W3 D16–D17</span></td></tr>
       <tr><td>Home 主题切换入口</td><td><span class="tag tag-mock">🎭 未挂载</span></td><td><span class="tag tag-wip">W4 可选</span></td></tr>
+      <tr><td>顶栏「广场」入口</td><td><span class="tag tag-done">✅</span></td><td>链至 <code>/plaza</code></td></tr>
+      <tr><td>@ 受众选择（发布）</td><td><span class="tag tag-plan">⬜</span></td><td><span class="tag tag-wip">W3 D16 PublishModal</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="plaza">
+  <h2 class="section-title">广场 · Newsfeed（方案 B 已定稿）</h2>
+  <table>
+    <thead><tr><th>功能</th><th>Day0</th><th>W3–W4</th></tr></thead>
+    <tbody>
+      <tr><td>设计稿 06 方案 B</td><td><span class="tag tag-done">✅</span></td><td>三栏桌面 · 左导航 / 中 Feed / 右热门</td></tr>
+      <tr><td>Home /plaza 页面壳</td><td><span class="tag tag-wip">🔶 Mock</span></td><td>Mock 数据 · 筛选 Tab · 点赞 UI 本地态</td></tr>
+      <tr><td>发布写入广场</td><td><span class="tag tag-plan">⬜</span></td><td>W3：<code>@公开</code> 自动发 feed_post</td></tr>
+      <tr><td>feed_posts / reactions / comments</td><td><span class="tag tag-plan">⬜</span></td><td>W4 Alembic + PG 表</td></tr>
+      <tr><td>GET /plaza/feed + 互动 API</td><td><span class="tag tag-plan">⬜</span></td><td>W4 D20–D21 替换 Mock</td></tr>
+      <tr><td>apps.audience_type / targets</td><td><span class="tag tag-plan">⬜</span></td><td>W3 迁移字段</td></tr>
     </tbody>
   </table>
 </section>

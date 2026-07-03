@@ -3,17 +3,26 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TrackChat · 创建入口设计稿对比</title>
+<title>BlockHub · 设计稿索引</title>
 <style>
-:root{--pri:#4338ca;--bg:#0f172a;--card:#1e293b;--text:#f1f5f9;--muted:#94a3b8}
+:root{--pri:#4338ca;--plaza:#0891b2;--bg:#0f172a;--card:#1e293b;--text:#f1f5f9;--muted:#94a3b8}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:"Microsoft YaHei","PingFang SC",sans-serif;background:linear-gradient(135deg,#0f172a,#1e1b4b);color:var(--text);min-height:100vh;padding:40px 24px}
 .wrap{max-width:960px;margin:0 auto}
 h1{font-size:28px;margin-bottom:8px}
-.sub{color:var(--muted);font-size:14px;margin-bottom:32px;line-height:1.6}
+.sub{color:var(--muted);font-size:14px;margin-bottom:24px;line-height:1.6}
+.selected-banner{
+  background:linear-gradient(135deg,rgba(8,145,178,.25),rgba(67,56,202,.2));
+  border:1px solid rgba(8,145,178,.45);border-radius:14px;padding:16px 20px;margin-bottom:24px;
+  display:flex;flex-wrap:wrap;align-items:center;gap:12px;font-size:13px;
+}
+.selected-banner strong{color:#67e8f9}
+.selected-banner a{color:#a5b4fc;margin-left:auto;font-size:12px;text-decoration:none;padding:6px 14px;border:1px solid rgba(165,180,252,.4);border-radius:8px}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
-.card{background:var(--card);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:24px;text-decoration:none;color:inherit;transition:transform .2s,box-shadow .2s,border-color .2s;display:block}
+.card{background:var(--card);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:24px;text-decoration:none;color:inherit;transition:transform .2s,box-shadow .2s,border-color .2s;display:block;position:relative}
 .card:hover{transform:translateY(-4px);box-shadow:0 12px 40px rgba(99,102,241,.25);border-color:#6366f1;text-decoration:none;color:inherit}
+.card.featured{border-color:rgba(8,145,178,.55);box-shadow:0 0 0 1px rgba(8,145,178,.2) inset}
+.card .badge-selected{position:absolute;top:12px;right:12px;font-size:9px;background:#0891b2;color:#fff;padding:3px 8px;border-radius:20px;font-weight:700}
 .card .tag{font-size:10px;background:rgba(99,102,241,.3);color:#a5b4fc;padding:3px 10px;border-radius:20px;display:inline-block;margin-bottom:12px}
 .card h2{font-size:18px;margin-bottom:8px}
 .card p{font-size:13px;color:var(--muted);line-height:1.55;margin-bottom:14px}
@@ -24,49 +33,58 @@ h1{font-size:28px;margin-bottom:8px}
 </head>
 <body>
 <div class="wrap">
-  <h1>TrackChat · 普通用户创建入口 · 4 套设计稿</h1>
-  <p class="sub">面向「刚进来的普通用户」：选模块 / 选行业 / 说一句话 → 自动生成网页或 App。<br>现有 PaaS 管理端作为<strong style="color:#a5b4fc">高级开发模式</strong>保留。</p>
+  <h1>积木仓 BlockHub · 设计稿索引</h1>
+  <p class="sub">创建入口四方案 + <strong style="color:#67e8f9">@ 受众 + 广场 Newsfeed</strong>（已定稿方案 B）。<br>
+  线上实现：<code style="color:#a5b4fc">/</code> 创建 · <code style="color:#67e8f9">/plaza</code> 广场 · Admin <code>/admin/</code> 高级模式。</p>
+
+  <div class="selected-banner">
+    <span>✅ <strong>已定稿：方案 B · 广场 · Newsfeed</strong>（桌面三栏：左导航 / 中 Feed / 右热门）</span>
+    <a href="06-at-plaza-newsfeed.html#scheme-b">查看设计稿 →</a>
+    <a href="http://127.0.0.1:5173/plaza" target="_blank" style="border-color:rgba(103,232,249,.5);color:#67e8f9">Home /plaza 预览 →</a>
+  </div>
+
   <div class="grid">
-    <a class="card" href="06-at-plaza-newsfeed.html" style="border-color:rgba(8,145,178,.45)">
-      <span class="tag" style="background:rgba(8,145,178,.2);color:#67e8f9">新功能 · @ 广场</span>
-      <h2>@ 受众 + 广场 Newsfeed</h2>
-      <p>@ 公开/范围受众 · 广场动态流 · 点赞评论转发 · 3 套 UI 方案可交互预览</p>
-      <div class="meta">2026-07 · 设计稿 v0.1 · 待选型</div>
+    <a class="card featured" href="06-at-plaza-newsfeed.html">
+      <span class="badge-selected">已定稿 B</span>
+      <span class="tag" style="background:rgba(8,145,178,.2);color:#67e8f9">@ + 广场 · 优先</span>
+      <h2>📡 广场 · Newsfeed</h2>
+      <p>@ 公开/部门/角色受众 · 动态流卡片 · 点赞评论转发 · 方案 B 已接入 Home <code>/plaza</code></p>
+      <div class="meta">2026-07 · v0.2 · 方案 B 定稿 · W3 受众 UI · W4 Feed API</div>
     </a>
     <a class="card" href="05-tech-architecture.html" style="border-color:rgba(16,185,129,.4)">
       <span class="tag" style="background:rgba(16,185,129,.25);color:#6ee7b7">架构 · 最新</span>
       <h2>🏗 技术框架总览</h2>
-      <p>五层 L0–L5 · 双入口 Home/Admin · Web+Flutter 双交付 · REST/SSE · PG/Redis/COS · 腾讯云</p>
+      <p>五层 L0–L5 · 双入口 Home/Admin · Web+Flutter · REST/SSE · PG/Redis/COS</p>
       <div class="meta">Mermaid 交互图 · 与 cozecode 拍板栈一致</div>
     </a>
     <a class="card" href="01-prompt-first.html">
-      <span class="tag">设计 A · 推荐 C 端 / 小白</span>
+      <span class="tag">设计 A · 推荐 C 端</span>
       <h2>💬 一句话生成</h2>
-      <p>输入「我要一个销售团队用的审批+问答助手」→ AI 解析 → 预览 → 发布 Web/App</p>
-      <div class="meta">交互：对话式 · 零配置 · 最快上手</div>
+      <p>输入需求 → AI 解析 → 预览 → 发布 Web/App</p>
+      <div class="meta">已实现为主路径（Home 描述需求）</div>
     </a>
     <a class="card" href="02-industry-pack.html">
-      <span class="tag">设计 B · 推荐行业客户</span>
+      <span class="tag">设计 B · 行业客户</span>
       <h2>🏭 行业方案包</h2>
-      <p>选制造业/医疗/游戏等整包 → 预填 12~13 场景 → 一键生成企业网页</p>
-      <div class="meta">交互：卡片选行业 · 3 步发布</div>
+      <p>选制造业/医疗等整包 → 预填场景 → 一键生成</p>
+      <div class="meta">Home「按行业」Tab</div>
     </a>
     <a class="card" href="03-module-builder.html">
-      <span class="tag">设计 C · 推荐 B 端企业</span>
+      <span class="tag">设计 C · B 端企业</span>
       <h2>🧩 模块积木台</h2>
-      <p>从 36 能力 + 8 类企业模块自由勾选 → 实时预览布局 → 导出 Web/App</p>
-      <div class="meta">交互：拖拽/点选 · 可视化强</div>
+      <p>36 能力 + 8 类模块自由勾选 → 实时预览</p>
+      <div class="meta">Home「自由搭配」Tab</div>
     </a>
     <a class="card" href="04-dual-mode-hub.html">
-      <span class="tag">设计 D · 推荐统一入口</span>
+      <span class="tag">设计 D · 统一入口</span>
       <h2>🚪 双轨首页 Hub</h2>
-      <p>普通用户走「快速创建」三卡片；技术同行走「高级开发模式」进现有 PaaS 后台</p>
-      <div class="meta">交互：模式分流 · 产品化最完整</div>
+      <p>快速创建 + 高级开发模式进 Admin PaaS</p>
+      <div class="meta">顶栏登录 → Admin 已实现</div>
     </a>
   </div>
   <div class="footer">
-    高级开发模式（现有实现）→ <a href="http://127.0.0.1:5174/" target="_blank">http://127.0.0.1:5174/</a> ·
-    114 场景 · 7 Agent · 36 Capability
+    高级开发模式 → <a href="http://127.0.0.1:5174/" target="_blank">Admin :5174</a> ·
+    广场 Mock → <a href="http://127.0.0.1:5173/plaza" target="_blank">Home /plaza</a>
   </div>
 </div>
 </body>

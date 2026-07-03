@@ -69,7 +69,7 @@ footer{margin-top:40px;font-size:11px;color:var(--muted);text-align:center}
   <div class="diagram"><pre class="mermaid">
 flowchart TB
   subgraph Client["用户浏览器 / 手机"]
-    Home["Home 积木仓<br/>/"]
+    Home["Home 积木仓<br/>/ · /plaza"]
     Admin["Admin 管理后台<br/>/admin/"]
   end
 
@@ -93,10 +93,11 @@ flowchart TB
   </pre></div>
 
   <div class="grid3">
-    <div class="card"><strong>Home</strong><br><span class="tag tag-ok">已上线</span><br>三入口创建：描述需求 / 选行业 / 拖模块 → 发布</div>
+    <div class="card"><strong>Home</strong><br><span class="tag tag-ok">已上线</span><br>三入口创建 + <code>/plaza</code> 广场 Mock（方案 B）</div>
     <div class="card"><strong>Admin</strong><br><span class="tag tag-ok">已上线</span><br>登录、总览、114 场景 Catalog、Agent 中心、已创建应用列表</div>
     <div class="card"><strong>Runtime /r/:id</strong><br><span class="tag tag-plan">未建</span><br>发布弹窗 URL 为占位，W3 D15 才真可打开</div>
   </div>
+  <div class="note" style="margin-top:12px"><strong>@ + 广场（方案 B 已定稿）：</strong>发布时选 <code>@公开</code> / <code>@部门</code> / <code>@角色</code>；公开动态进入 <code>/plaza</code> Newsfeed。W3 受众 UI + 字段迁移 · W4 <code>GET /plaza/feed</code> 与点赞/评论/转发落库。设计稿 <code>designs/06-at-plaza-newsfeed.html</code>。</div>
 </section>
 
 <section id="deploy">
