@@ -20,6 +20,7 @@ interface Props {
   showPasswordLogin?: boolean
   defaultMode?: AuthMode
   showDemoAccounts?: boolean
+  showLogo?: boolean
 }
 
 export default function AuthPage({
@@ -30,6 +31,7 @@ export default function AuthPage({
   showPasswordLogin = true,
   defaultMode = 'otp',
   showDemoAccounts = false,
+  showLogo = true,
 }: Props) {
   const navigate = useNavigate()
   const location = useLocation()
@@ -97,8 +99,15 @@ export default function AuthPage({
       await loginWithPassword(email, password)
       navigate(from, { replace: true })
     } catch (err: unknown) {
-      const detail = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail
-      setError(typeof detail === 'string' ? detail : '登录失败，请检查邮箱和密码')
+      const resp = (err as { response?: { status?: number; data?: { detail?: string } } })?.response
+      if (!resp) {
+        setError('无法连接 API，请确认 backend :8001 与 PostgreSQL 已启动')
+      } else if (resp.status === 503 || resp.status === 500) {
+        setError('数据库未启动。本地请运行: docker compose up -d postgres，或使用 scripts/dev-admin.ps1')
+      } else {
+        const detail = resp.data?.detail
+        setError(typeof detail === 'string' ? detail : '登录失败，请检查邮箱和密码')
+      }
     } finally {
       setLoading(false)
     }
@@ -108,7 +117,7 @@ export default function AuthPage({
     <div className="login-page">
       <form className="login-card" onSubmit={mode === 'otp' ? onSubmitOtp : onSubmitPassword}>
         <div className="login-brand">
-          <img src={LOGO.mark} alt="" width={40} height={40} />
+          {showLogo && <img src={LOGO.mark} alt="" width={40} height={40} />}
           <div>
             <h1>{title}</h1>
             <p>{subtitle}</p>

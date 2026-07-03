@@ -1,7 +1,9 @@
 from contextlib import asynccontextmanager
 
-from fastapi import Depends, FastAPI
+from fastapi import Depends, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from sqlalchemy.exc import OperationalError
 
 from app.api.v1 import agents, approvals, auth, catalog, chat, creation, health, kb, notifications, reports, seed, stats
 from app.core.config import settings
@@ -29,6 +31,15 @@ async def lifespan(_: FastAPI):
 
 
 app = FastAPI(title=settings.app_name, version=settings.app_version, lifespan=lifespan)
+
+
+@app.exception_handler(OperationalError)
+async def database_unavailable(_: Request, __: OperationalError) -> JSONResponse:
+    return JSONResponse(
+        status_code=503,
+        content={"detail": "数据库不可用，请启动 PostgreSQL（docker compose up -d postgres）"},
+    )
+
 
 app.add_middleware(
     CORSMiddleware,
