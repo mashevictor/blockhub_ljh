@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 # One-time server setup for Flutter Android APK builds (Tencent Cloud / Ubuntu).
 # Usage:
+#   export ANDROID_HOME=/root/Android   # if SDK not auto-detected
 #   sudo bash scripts/setup-flutter-android.sh
-#   # or non-root if flutter already in PATH:
-#   bash scripts/setup-flutter-android.sh
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 FLUTTER_DIR="${FLUTTER_DIR:-/opt/flutter}"
+# shellcheck source=lib/android-sdk-env.sh
+source "$ROOT/scripts/lib/android-sdk-env.sh"
 
 echo "==> Installing Java 17 (required by Android Gradle Plugin 8.7+)..."
 if command -v apt-get >/dev/null 2>&1; then
@@ -38,7 +39,7 @@ find_flutter() {
     command -v flutter
     return 0
   fi
-  for d in "$FLUTTER_DIR" /root/flutter /usr/local/flutter "$HOME/flutter"; do
+  for d in "$FLUTTER_DIR" /root/flutter /usr/local/flutter "${HOME:-/root}/flutter"; do
     if [ -x "$d/bin/flutter" ]; then
       echo "$d/bin/flutter"
       return 0
@@ -68,21 +69,22 @@ export PATH="$(dirname "$FLUTTER_BIN"):$PATH"
 export FLUTTER_ROOT_ALLOW_ROOT=true
 
 echo "==> Flutter: $($FLUTTER_BIN --version | head -n1)"
-flutter doctor -v || true
 
-echo "==> Accepting Android SDK licenses..."
-yes | flutter doctor --android-licenses >/dev/null 2>&1 || true
-if command -v sdkmanager >/dev/null 2>&1; then
-  yes | sdkmanager --licenses >/dev/null 2>&1 || true
-  sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0" || true
-fi
+configure_android_sdk "$ROOT/runtime-app"
+accept_android_licenses
 
 echo "==> Precaching Android toolchain..."
 flutter precache --android
 
 echo ""
-echo "Done. Add to shell profile if needed:"
-echo "  export PATH=\"$(dirname "$FLUTTER_BIN"):\$PATH\""
+echo "==> flutter doctor (android)"
+flutter doctor -v 2>&1 | grep -A6 "Android toolchain" || flutter doctor -v || true
+
+echo ""
+echo "Done. Add to ~/.bashrc or run before build:"
+echo "  export ANDROID_HOME=\"${ANDROID_HOME}\""
+echo "  export ANDROID_SDK_ROOT=\"${ANDROID_HOME}\""
+echo "  export PATH=\"$(dirname "$FLUTTER_BIN"):\$ANDROID_HOME/platform-tools:\$PATH\""
 echo "  export JAVA_HOME=\"$JAVA_HOME\""
 echo "  export FLUTTER_ROOT_ALLOW_ROOT=true"
 echo ""

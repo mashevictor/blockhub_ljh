@@ -12,6 +12,8 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 APP_DIR="$ROOT/runtime-app"
 BUILD_LOG="${BUILD_LOG:-/tmp/flutter-apk-build.log}"
+# shellcheck source=lib/android-sdk-env.sh
+source "$ROOT/scripts/lib/android-sdk-env.sh"
 cd "$APP_DIR"
 
 if ! command -v flutter >/dev/null 2>&1; then
@@ -99,8 +101,10 @@ fi
 
 ensure_java_17
 
+configure_android_sdk "$APP_DIR" || exit 1
+accept_android_licenses
+
 echo "==> Flutter: $(flutter --version | head -n1)"
-flutter doctor --android-licenses </dev/null 2>&1 | tail -n 3 || true
 
 BRANDING_FILE="${BRANDING_JSON:-$APP_DIR/branding/branding.json}"
 if [ -f "$BRANDING_FILE" ]; then
