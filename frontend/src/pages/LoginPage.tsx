@@ -8,7 +8,7 @@ export default function LoginPage() {
       defaultPassword="admin123"
       defaultMode="password"
       showDemoAccounts
-      showLogo={false}
+      showLogo
     />
   )
 }

@@ -15,7 +15,8 @@ import {
   IconSettings,
   IconArrowRight,
 } from './components/icons'
-import { BRAND, LOGO } from './data/brand'
+import { BRAND } from './data/brand'
+import BrandMark from './components/BrandMark'
 import './index.css'
 
 export default function HomeApp() {
@@ -54,9 +55,7 @@ export default function HomeApp() {
       <header className="site-header">
         <div className="header-inner">
           <div className="brand animate-fade-in">
-            <span className="brand-mark">
-              <img src={LOGO.mark} alt="" width={42} height={42} />
-            </span>
+            <BrandMark size={42} />
             <div>
               <strong>{BRAND.nameZh}｜<em className="brand-en">{BRAND.nameEn}｜</em></strong>
               <span>{BRAND.tagline}</span>

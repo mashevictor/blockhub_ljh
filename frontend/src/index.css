@@ -108,6 +108,27 @@ a:hover { text-decoration: underline; }
   overflow: hidden;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
+/* 与 Home 顶栏一致的白底 Logo */
+.brand-mark {
+  width: 42px; height: 42px;
+  border-radius: 13px;
+  display: flex; align-items: center; justify-content: center;
+  background: #fff;
+  overflow: hidden;
+  flex-shrink: 0;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.brand-mark img {
+  width: 100%; height: 100%;
+  object-fit: contain;
+  display: block;
+  padding: 2px;
+}
+.sidebar-brand:hover .brand-mark {
+  transform: scale(1.05);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.28);
+}
 .brand-logo img {
   width: 28px;
   height: 28px;
@@ -403,15 +424,15 @@ a:hover { text-decoration: underline; }
 
 .stat-tone-violet .stat-card-icon { background: #ede9fe; color: #7c3aed; }
 .stat-tone-sky .stat-card-icon { background: #e0f2fe; color: #0284c7; }
-.stat-tone-indigo .stat-card-icon { background: var(--pri-soft); color: var(--pri); }
+.stat-tone-indigo .stat-card-icon { background: #e0e7ff; color: #4338ca; }
 .stat-tone-amber .stat-card-icon { background: #fef3c7; color: #d97706; }
 .stat-tone-emerald .stat-card-icon { background: #d1fae5; color: #059669; }
 .stat-tone-cyan .stat-card-icon { background: #cffafe; color: #0891b2; }
 .stat-tone-orange .stat-card-icon { background: #ffedd5; color: #ea580c; }
 .stat-tone-rose .stat-card-icon { background: #ffe4e6; color: #e11d48; }
 
-.stat-card .value { font-size: 26px; font-weight: 700; color: var(--pri); line-height: 1.2; }
-.stat-card .label { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.stat-card .value { font-size: 26px; font-weight: 700; color: var(--text); line-height: 1.2; }
+.stat-card .label { font-size: 11px; color: var(--muted-strong, var(--muted)); margin-top: 2px; font-weight: 600; }
 
 .section-header {
   display: flex;
@@ -900,8 +921,15 @@ html[data-theme="monochrome-business"] body {
 html[data-theme="monochrome-business"] .sidebar {
   box-shadow: inset -1px 0 0 rgba(212, 175, 55, 0.15);
 }
-html[data-theme="monochrome-business"] .sidebar-brand .brand-logo {
+html[data-theme="monochrome-business"] .sidebar-brand .brand-logo,
+html[data-theme="monochrome-business"] .sidebar-brand .brand-mark {
   box-shadow: 0 0 0 1px rgba(212, 175, 55, 0.35), 0 4px 16px rgba(0, 0, 0, 0.25);
+}
+html[data-theme="monochrome-business"] .stat-card .value {
+  color: var(--pri-dark);
+}
+html[data-theme="monochrome-business"] .stat-card .label {
+  color: #57534e;
 }
 html[data-theme="monochrome-business"] .topbar {
   background: rgba(255, 255, 255, 0.88);
@@ -937,56 +965,61 @@ html[data-theme="monochrome-business"] .app-card {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg);
+  background: #faf9f7;
+  color: #1c1917;
   padding: 24px;
 }
 .login-card {
   width: 100%;
   max-width: 400px;
-  background: var(--card);
-  border: 1px solid var(--border);
+  background: #fff;
+  color: #1c1917;
+  border: 1px solid #e8dfc0;
   border-radius: 16px;
   padding: 32px;
   box-shadow: 0 12px 40px rgba(15, 23, 42, 0.08);
 }
 .login-brand { display: flex; gap: 12px; align-items: center; margin-bottom: 24px; }
-.login-brand h1 { font-size: 18px; color: var(--text); }
-.login-brand p { font-size: 12px; color: var(--muted); margin-top: 4px; }
-.login-card label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 16px; }
+.login-brand h1 { font-size: 18px; color: #1c1917; font-weight: 700; }
+.login-brand p { font-size: 12px; color: #57534e; margin-top: 4px; }
+.login-card label { display: block; font-size: 12px; color: #57534e; font-weight: 600; margin-bottom: 16px; }
 .login-card input {
   display: block; width: 100%; margin-top: 6px; padding: 10px 12px;
-  border: 1px solid var(--border); border-radius: 8px; font-size: 14px;
+  border: 1px solid #e8dfc0; border-radius: 8px; font-size: 14px;
+  color: #1c1917; background: #fff;
 }
-.login-card button {
+.login-card button[type="submit"] {
   width: 100%; padding: 11px; border: none; border-radius: 8px;
-  background: var(--pri); color: #fff; font-size: 14px; cursor: pointer;
+  background: linear-gradient(135deg, #96700a, #d4af37);
+  color: #fff; font-size: 14px; font-weight: 600; cursor: pointer;
 }
 .login-card button:disabled { opacity: 0.6; cursor: wait; }
 .login-error { color: var(--fail); font-size: 12px; margin-bottom: 12px; }
-.login-hint { font-size: 11px; color: var(--muted); margin-top: 14px; text-align: center; }
+.login-hint { font-size: 11px; color: #57534e; margin-top: 14px; text-align: center; }
 .login-mode-tabs {
   display: flex; gap: 8px; margin-bottom: 16px;
 }
 .login-mode-tabs button {
-  flex: 1; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border);
-  background: var(--card); font-size: 12px; cursor: pointer;
+  flex: 1; padding: 8px 10px; border-radius: 8px; border: 1px solid #e8dfc0;
+  background: #fff; font-size: 12px; color: #57534e; cursor: pointer;
 }
 .login-mode-tabs button.on {
-  border-color: var(--pri); color: var(--pri); background: rgba(99, 102, 241, 0.08);
+  border-color: #d4af37; color: #96700a; background: #fef9e7;
 }
 .login-demo-accounts {
   margin: 4px 0 12px; padding: 10px 12px; border-radius: 10px;
-  background: #f8fafc; border: 1px solid var(--border);
+  background: #faf9f7; border: 1px solid #e8dfc0;
 }
-.login-demo-title { font-size: 11px; color: var(--muted); margin-bottom: 8px; }
+.login-demo-title { font-size: 11px; color: #57534e; font-weight: 600; margin-bottom: 8px; }
 .login-demo-accounts ul { list-style: none; display: flex; flex-direction: column; gap: 6px; }
 .login-demo-pick {
-  width: 100%; text-align: left; padding: 8px 10px; border-radius: 8px;
-  border: 1px solid var(--border); background: #fff; cursor: pointer; font: inherit;
+  width: 100%; text-align: left; padding: 10px 12px; border-radius: 8px;
+  border: 1px solid #e8dfc0; background: #fff; cursor: pointer; font: inherit;
 }
-.login-demo-pick:hover { border-color: var(--pri-light); background: var(--pri-soft); }
-.login-demo-pick strong { display: block; font-size: 12px; color: var(--text); }
-.login-demo-pick span { display: block; font-size: 11px; color: var(--muted); font-family: Consolas, monospace; }
+.login-demo-pick:hover:not(:disabled) { border-color: #d4af37; background: #fef9e7; }
+.login-demo-pick:disabled { opacity: 0.6; cursor: wait; }
+.login-demo-pick strong { display: block; font-size: 13px; color: #1c1917; }
+.login-demo-pick span { display: block; font-size: 11px; color: #57534e; font-family: Consolas, monospace; }
 .otp-code-row .otp-code-inputs {
   display: flex; gap: 8px; margin-top: 6px;
 }

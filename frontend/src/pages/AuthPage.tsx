@@ -2,7 +2,8 @@ import { FormEvent, useEffect, useMemo, useState } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { loginOtp, loginWithPassword, sendOtpCode } from '../auth/session'
 import { getToken } from '../auth/storage'
-import { BRAND, DEMO_ACCOUNTS, LOGO } from '../data/brand'
+import { BRAND, DEMO_ACCOUNTS } from '../data/brand'
+import BrandMark from '../components/BrandMark'
 
 type AuthMode = 'otp' | 'password'
 
@@ -93,10 +94,14 @@ export default function AuthPage({
 
   const onSubmitPassword = async (e: FormEvent) => {
     e.preventDefault()
+    await loginWithCredentials(email, password)
+  }
+
+  const loginWithCredentials = async (demoEmail: string, demoPassword: string) => {
     setLoading(true)
     setError('')
     try {
-      await loginWithPassword(email, password)
+      await loginWithPassword(demoEmail, demoPassword)
       navigate(from, { replace: true })
     } catch (err: unknown) {
       const resp = (err as { response?: { status?: number; data?: { detail?: string } } })?.response
@@ -113,11 +118,17 @@ export default function AuthPage({
     }
   }
 
+  const onDemoLogin = (acc: (typeof DEMO_ACCOUNTS)[number]) => {
+    setEmail(acc.email)
+    setPassword(acc.password)
+    void loginWithCredentials(acc.email, acc.password)
+  }
+
   return (
     <div className="login-page">
       <form className="login-card" onSubmit={mode === 'otp' ? onSubmitOtp : onSubmitPassword}>
         <div className="login-brand">
-          {showLogo && <img src={LOGO.mark} alt="" width={40} height={40} />}
+          {showLogo && <BrandMark size={40} />}
           <div>
             <h1>{title}</h1>
             <p>{subtitle}</p>
@@ -186,15 +197,12 @@ export default function AuthPage({
                       <button
                         type="button"
                         className="login-demo-pick"
-                        onClick={() => {
-                          setEmail(acc.email)
-                          setPassword(acc.password)
-                          setError('')
-                        }}
+                        disabled={loading}
+                        onClick={() => onDemoLogin(acc)}
                       >
                         <strong>{acc.role}</strong>
                         <span>{acc.email}</span>
-                        <span>{acc.password}</span>
+                        <span>点击直接登录 · 密码 {acc.password}</span>
                       </button>
                     </li>
                   ))}

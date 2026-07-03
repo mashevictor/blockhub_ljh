@@ -4099,16 +4099,17 @@ html[data-theme="monochrome-business"] .brand em.brand-en {
   box-shadow: var(--shadow-lg);
 }
 .login-brand { display: flex; gap: 12px; align-items: center; margin-bottom: 24px; }
-.login-brand h1 { font-size: 18px; }
-.login-brand p { font-size: 12px; color: var(--muted); margin-top: 4px; }
-.login-card label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 16px; }
+.login-brand h1 { font-size: 18px; color: var(--text); font-weight: 700; }
+.login-brand p { font-size: 12px; color: var(--muted-strong, var(--muted)); margin-top: 4px; }
+.login-card label { display: block; font-size: 12px; color: var(--muted-strong, var(--muted)); font-weight: 600; margin-bottom: 16px; }
 .login-card input {
   display: block; width: 100%; margin-top: 6px; padding: 10px 12px;
   border: 1px solid var(--border); border-radius: 8px; font-size: 14px;
+  color: var(--text); background: #fff;
 }
-.login-card button {
+.login-card button[type="submit"] {
   width: 100%; padding: 11px; border: none; border-radius: 8px;
-  background: var(--grad-brand); color: #fff; font-size: 14px; cursor: pointer;
+  background: var(--grad-brand); color: #fff; font-size: 14px; font-weight: 600; cursor: pointer;
 }
 .login-error { color: #dc2626; font-size: 12px; margin-bottom: 12px; }
 .login-hint { font-size: 11px; color: var(--muted); margin-top: 14px; text-align: center; }
@@ -4132,9 +4133,10 @@ html[data-theme="monochrome-business"] .brand em.brand-en {
   width: 100%; text-align: left; padding: 8px 10px; border-radius: 8px;
   border: 1px solid var(--border); background: #fff; cursor: pointer; font: inherit;
 }
-.login-demo-pick:hover { border-color: var(--pri-light); background: var(--pri-soft); }
-.login-demo-pick strong { display: block; font-size: 12px; color: var(--text); }
-.login-demo-pick span { display: block; font-size: 11px; color: var(--muted); font-family: Consolas, monospace; }
+.login-demo-pick:hover:not(:disabled) { border-color: var(--pri-light); background: var(--pri-soft); }
+.login-demo-pick:disabled { opacity: 0.6; cursor: wait; }
+.login-demo-pick strong { display: block; font-size: 13px; color: var(--text); }
+.login-demo-pick span { display: block; font-size: 11px; color: var(--muted-strong, var(--muted)); font-family: Consolas, monospace; }
 .otp-code-row .otp-code-inputs {
   display: flex; gap: 8px; margin-top: 6px;
 }

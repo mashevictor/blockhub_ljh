@@ -3,7 +3,8 @@ import { useEffect, useState } from 'react'
 import { fetchCatalogSummary, fetchDashboard, type CatalogSummary, type DashboardStats } from '../api/client'
 import { fetchMe, logout, type AuthUser } from '../auth/session'
 import ThemePicker from './ThemePicker'
-import { BRAND, LOGO } from '../data/brand'
+import BrandMark from './BrandMark'
+import { BRAND } from '../data/brand'
 import {
   IconHome,
   IconBot,
@@ -44,9 +45,7 @@ export default function AdminLayout() {
     <div className="layout">
       <aside className="sidebar">
         <div className="sidebar-brand">
-          <div className="brand-logo">
-            <img src={LOGO.mark} alt="" width={28} height={28} />
-          </div>
+          <BrandMark size={42} className="sidebar-brand-mark" />
           <div>
             <h2>{BRAND.nameZh}</h2>
             <p>{BRAND.nameEn} · 管理后台</p>
