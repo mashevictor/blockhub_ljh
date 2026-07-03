@@ -13,6 +13,17 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
+if [ ! -f "$ROOT/scripts/deploy.sh" ]; then
+  echo "ERROR: 找不到 $ROOT/scripts/deploy.sh"
+  echo "  当前目录: $(pwd)"
+  echo "  请确认在仓库根目录执行，例如:"
+  echo "    cd ~/blockhub"
+  echo "    git pull origin main"
+  echo "    ls scripts/deploy.sh"
+  echo "  若仍无 scripts 目录，请重新 clone: git clone git@github.com:mashevictor/blockhub.git ~/blockhub"
+  exit 1
+fi
+
 PUBLIC_URL="${PUBLIC_URL:-http://101.32.209.251}"
 ADMIN_EMAIL="${ADMIN_EMAIL:-admin@trackchat.local}"
 ADMIN_PASSWORD="${ADMIN_PASSWORD:-admin123}"
