@@ -1,9 +1,7 @@
 import { useEffect, useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { ADMIN_URL, type PublishResult, type ViewMode } from './data/constants'
 import type { RoleApplyRequest } from './data/rolePresets'
-import PublishModal from './components/PublishModal'
-import MyAppsPanel from './components/MyAppsPanel'
 import HeroCubeStage from './components/HeroCubeStage'
 import PlatformShowcaseFooter from './components/PlatformShowcaseFooter'
 import ViewModeSwitcher from './components/ViewModeSwitcher'
@@ -24,13 +22,11 @@ import './index.css'
 
 export default function HomeApp() {
   const [view, setView] = useState<ViewMode>('prompt')
-  const [published, setPublished] = useState<PublishResult | null>(null)
-  const [showMyApps, setShowMyApps] = useState(false)
   const [myAppsCount, setMyAppsCount] = useState(0)
-  const [myAppsHint, setMyAppsHint] = useState(false)
   const [roleApply, setRoleApply] = useState<RoleApplyRequest | null>(null)
   const [user, setUser] = useState<AuthUser | null>(null)
   const location = useLocation()
+  const navigate = useNavigate()
 
   useEffect(() => {
     document.body.classList.add('cube-theme')
@@ -47,19 +43,11 @@ export default function HomeApp() {
 
   useEffect(() => {
     setMyAppsCount(loadMyApps().length)
-  }, [published, showMyApps])
-
-  useEffect(() => {
-    if (!myAppsHint) return
-    const timer = window.setTimeout(() => setMyAppsHint(false), 14000)
-    return () => window.clearTimeout(timer)
-  }, [myAppsHint])
+  }, [location.pathname])
 
   const handlePublish = (result: PublishResult) => {
     addMyApp(result)
-    setMyAppsCount(loadMyApps().length)
-    setPublished(result)
-    setMyAppsHint(true)
+    navigate('/plaza/my', { state: { justPublished: result } })
   }
 
   const handleRoleApply = (role: RoleApplyRequest['preset'], generate?: boolean) => {
@@ -87,24 +75,11 @@ export default function HomeApp() {
           <ViewModeSwitcher value={view} onChange={setView} />
           <div className="header-actions">
             <Link to="/plaza" className="btn-plaza-nav">📡 广场</Link>
-            <button
-              type="button"
-              className={`btn-my-apps${myAppsHint ? ' hint-active' : ''}`}
-              onClick={() => {
-                setMyAppsHint(false)
-                setShowMyApps(true)
-              }}
-              title="查看本浏览器发布过的应用"
-            >
+            <Link to="/plaza/my" className="btn-my-apps" title="查看本浏览器发布过的应用">
               <IconLayers size={15} />
               我的应用
               {myAppsCount > 0 && <span className="btn-my-apps-badge">{myAppsCount}</span>}
-              {myAppsHint && (
-                <span className="my-apps-hint-bubble" role="status">
-                  刚发布的应用已保存这里
-                </span>
-              )}
-            </button>
+            </Link>
             {user ? (
               <>
                 <span className="header-user">{user.display_name}</span>
@@ -155,25 +130,6 @@ export default function HomeApp() {
           </a>
         )}
       </footer>
-
-      {published && (
-        <PublishModal
-          result={published}
-          showAdminLink={!!user}
-          showMyAppsHint
-          onClose={() => setPublished(null)}
-        />
-      )}
-
-      {showMyApps && (
-        <MyAppsPanel
-          onClose={() => setShowMyApps(false)}
-          onOpenApp={(app) => {
-            setShowMyApps(false)
-            setPublished(app)
-          }}
-        />
-      )}
     </div>
   )
 }

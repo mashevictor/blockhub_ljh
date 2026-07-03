@@ -1,0 +1,136 @@
+import { useEffect, useState } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import PublishSuccessCard from '../../components/PublishSuccessCard'
+import { IconGlobe, IconLayers } from '../../components/icons'
+import type { PublishResult } from '../../data/constants'
+import { fetchMe, type AuthUser } from '../../auth/session'
+import { getToken } from '../../auth/storage'
+import { loadMyApps, removeMyApp, type StoredMyApp } from '../../lib/myAppsStorage'
+
+function formatWhen(iso: string) {
+  try {
+    return new Date(iso).toLocaleString('zh-CN')
+  } catch {
+    return iso
+  }
+}
+
+function appKey(app: StoredMyApp) {
+  return app.appId || app.webUrl
+}
+
+export default function PlazaMyAppsPage() {
+  const location = useLocation()
+  const navigate = useNavigate()
+  const [highlightApp, setHighlightApp] = useState<PublishResult | null>(null)
+  const [apps, setApps] = useState<StoredMyApp[]>([])
+  const [expandedKey, setExpandedKey] = useState<string | null>(null)
+  const [user, setUser] = useState<AuthUser | null>(null)
+
+  useEffect(() => {
+    setApps(loadMyApps())
+    const state = location.state as { justPublished?: PublishResult } | null
+    if (state?.justPublished) {
+      setHighlightApp(state.justPublished)
+      navigate('/plaza/my', { replace: true, state: {} })
+    }
+  }, [location.state, navigate])
+
+  useEffect(() => {
+    if (!getToken()) {
+      setUser(null)
+      return
+    }
+    fetchMe().then(setUser).catch(() => setUser(null))
+  }, [])
+
+  const handleRemove = (app: StoredMyApp) => {
+    const key = appKey(app)
+    setApps(removeMyApp(key))
+    if (expandedKey === key) setExpandedKey(null)
+    if (highlightApp && (highlightApp.appId || highlightApp.webUrl) === key) {
+      setHighlightApp(null)
+    }
+  }
+
+  const highlightKey = highlightApp ? (highlightApp.appId || highlightApp.webUrl) : null
+  const otherApps = highlightKey
+    ? apps.filter((a) => appKey(a) !== highlightKey)
+    : apps
+
+  return (
+    <main className="plaza-main plaza-my-main">
+      <div className="plaza-main-head">
+        <h1><IconLayers size={20} /> 我的应用</h1>
+        <Link to="/" className="plaza-my-create-btn">+ 继续创建</Link>
+      </div>
+      <p className="plaza-main-hint">
+        本浏览器发布过的应用保存在此（未登录也可查看，仅存于此设备）。
+      </p>
+
+      {highlightApp && (
+        <section className="plaza-my-just-published" aria-label="刚发布的应用">
+          <p className="plaza-my-success-banner">🎉 发布成功，已保存到「我的应用」</p>
+          <PublishSuccessCard result={highlightApp} showAdminLink={!!user} />
+        </section>
+      )}
+
+      {apps.length === 0 && !highlightApp && (
+        <div className="plaza-my-empty">
+          <p>还没有发布过应用</p>
+          <p className="plaza-my-empty-hint">在首页创建并发布后，会自动跳转到这里</p>
+          <Link to="/" className="btn-primary plaza-my-empty-cta">去创建应用</Link>
+        </div>
+      )}
+
+      {otherApps.length > 0 && (
+        <section className="plaza-my-history">
+          <h2>{highlightApp ? '历史应用' : '全部应用'} <span className="plaza-my-count">{otherApps.length}</span></h2>
+          <ul className="plaza-my-list">
+            {otherApps.map((app) => {
+              const key = appKey(app)
+              const expanded = expandedKey === key
+              return (
+                <li key={key} className={`plaza-my-item${expanded ? ' expanded' : ''}`}>
+                  <div className="plaza-my-item-row">
+                    <div className="plaza-my-item-main">
+                      <strong>{app.appName}</strong>
+                      <span className="plaza-my-meta">{app.moduleCount} 项功能 · {formatWhen(app.savedAt)}</span>
+                    </div>
+                    <div className="plaza-my-item-actions">
+                      <button
+                        type="button"
+                        className="btn-ghost"
+                        onClick={() => setExpandedKey(expanded ? null : key)}
+                      >
+                        {expanded ? '收起' : '详情'}
+                      </button>
+                      <button
+                        type="button"
+                        className="btn-ghost"
+                        onClick={() => navigator.clipboard.writeText(app.webUrl)}
+                      >
+                        复制链接
+                      </button>
+                      <a className="btn-ghost" href={app.webUrl} target="_blank" rel="noreferrer">
+                        <IconGlobe size={14} /> 打开
+                      </a>
+                      <button type="button" className="btn-ghost plaza-my-remove" onClick={() => handleRemove(app)}>
+                        移除
+                      </button>
+                    </div>
+                  </div>
+                  {expanded && (
+                    <div className="plaza-my-item-detail">
+                      <PublishSuccessCard result={app} showAdminLink={!!user} compact />
+                    </div>
+                  )}
+                </li>
+              )
+            })}
+          </ul>
+        </section>
+      )}
+    </main>
+  )
+}

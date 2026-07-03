@@ -4599,3 +4599,73 @@ html[data-theme="monochrome-business"] .brand em.brand-en {
 .plaza-trend { display: flex; justify-content: space-between; font-size: 12px; padding: 8px 0; border-bottom: 1px dashed var(--border); }
 .plaza-stats { font-size: 12px; line-height: 1.8; color: var(--muted); }
 .plaza-stats strong { color: var(--text); }
+
+/* —— 广场 · 我的应用页 —— */
+.plaza-topbar-my { display: inline-flex; align-items: center; gap: 4px; }
+.plaza-my-badge, .plaza-side-count {
+  font-size: 10px; min-width: 16px; height: 16px; padding: 0 5px; border-radius: 999px;
+  background: var(--pri); color: #fff; font-weight: 700; display: inline-flex; align-items: center; justify-content: center;
+  margin-left: 4px;
+}
+.plaza-side-count { float: right; }
+.plaza-my-main .plaza-main-head h1 { display: flex; align-items: center; gap: 8px; }
+.plaza-my-create-btn {
+  font-size: 12px; padding: 6px 14px; border-radius: 8px; text-decoration: none;
+  border: 1px solid var(--border); background: #fff; color: var(--pri-dark); font-weight: 600;
+}
+.plaza-my-create-btn:hover { border-color: var(--pri); color: var(--pri); }
+.plaza-my-success-banner {
+  margin: 0 0 12px; padding: 10px 14px; border-radius: 10px; font-size: 13px; font-weight: 600;
+  background: linear-gradient(135deg, #ecfdf5, #ecfeff);
+  border: 1px solid color-mix(in srgb, var(--pri) 25%, var(--border));
+  color: var(--text);
+}
+.plaza-my-empty { text-align: center; padding: 48px 20px; color: var(--muted); }
+.plaza-my-empty-hint { font-size: 12px; margin: 8px 0 20px; }
+.plaza-my-empty-cta { display: inline-block; text-decoration: none; padding: 10px 24px; border-radius: 10px; }
+.plaza-my-history h2 { font-size: 14px; margin: 24px 0 12px; color: var(--muted); font-weight: 600; }
+.plaza-my-count {
+  font-size: 11px; padding: 2px 8px; border-radius: 999px; background: #f1f5f9; color: #475569; margin-left: 6px;
+}
+.plaza-my-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.plaza-my-item {
+  border: 1px solid var(--border); border-radius: 12px; background: var(--surface); overflow: hidden;
+}
+.plaza-my-item.expanded { border-color: color-mix(in srgb, var(--pri) 35%, var(--border)); }
+.plaza-my-item-row {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 14px 16px;
+}
+.plaza-my-item-main strong { display: block; font-size: 14px; margin-bottom: 4px; }
+.plaza-my-meta { font-size: 11px; color: var(--muted); }
+.plaza-my-item-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.plaza-my-item-actions .btn-ghost {
+  font-size: 11px; padding: 5px 10px; border-radius: 8px;
+  border: 1px solid var(--border); background: #fff; cursor: pointer;
+  text-decoration: none; color: var(--text); display: inline-flex; align-items: center; gap: 4px;
+}
+.plaza-my-item-actions .btn-ghost:hover { border-color: var(--pri-light); color: var(--pri); }
+.plaza-my-remove { color: #b45309 !important; }
+.plaza-my-item-detail { padding: 0 16px 16px; border-top: 1px dashed var(--border); }
+.publish-success-card {
+  border: 1px solid var(--border); border-radius: 14px; padding: 16px; background: #fff;
+}
+.publish-success-card.compact { padding: 12px; }
+.publish-success-card .publish-result-scroll { max-height: none; overflow: visible; }
+.publish-success-foot {
+  display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border);
+}
+.publish-success-foot .btn-ghost {
+  font-size: 12px; padding: 8px 14px; border-radius: 8px; border: 1px solid var(--border);
+  background: #fff; text-decoration: none; color: var(--text); cursor: pointer;
+}
+.publish-success-foot .btn-ghost:first-child {
+  background: var(--pri); color: #fff; border-color: var(--pri); font-weight: 600;
+}
+a.btn-my-apps {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12px; margin-right: 10px; padding: 6px 10px; border-radius: 8px;
+  border: 1px solid var(--border); background: #fff; color: var(--text);
+  text-decoration: none; cursor: pointer; font-family: inherit; position: relative;
+}
+a.btn-my-apps:hover { border-color: var(--pri-light); color: var(--pri); }
