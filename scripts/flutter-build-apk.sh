@@ -153,14 +153,23 @@ flutter pub get
 dart run flutter_launcher_icons
 
 echo "==> Building APK: $APP_NAME ($APP_ID)"
+FLUTTER_BUILD_ARGS=(
+  --release
+  -PappLabel="$APP_NAME"
+  --dart-define=APP_NAME="$APP_NAME"
+  --dart-define=APP_ID="$APP_ID"
+  --dart-define=TENANT_SLUG="$TENANT_SLUG"
+  --dart-define=API_BASE_URL="$API_BASE_URL"
+  --dart-define=PRIMARY_COLOR="$PRIMARY_COLOR"
+)
+case "${GRADLE_MEMORY_PROFILE:-}" in
+  ultra|low)
+    FLUTTER_BUILD_ARGS+=(--target-platform android-arm64)
+    echo "    小内存模式：仅构建 arm64-v8a"
+    ;;
+esac
 set +e
-flutter build apk --release \
-  -PappLabel="$APP_NAME" \
-  --dart-define=APP_NAME="$APP_NAME" \
-  --dart-define=APP_ID="$APP_ID" \
-  --dart-define=TENANT_SLUG="$TENANT_SLUG" \
-  --dart-define=API_BASE_URL="$API_BASE_URL" \
-  --dart-define=PRIMARY_COLOR="$PRIMARY_COLOR" 2>&1 | tee "$BUILD_LOG"
+flutter build apk "${FLUTTER_BUILD_ARGS[@]}" 2>&1 | tee "$BUILD_LOG"
 build_status=${PIPESTATUS[0]}
 set -e
 if [ "$build_status" -ne 0 ]; then

@@ -78,15 +78,15 @@ apply_gradle_memory_profile() {
 
   case "$profile" in
     ultra)
-      heap="768m"
-      metaspace="192m"
+      heap="1024m"
+      metaspace="512m"
       workers="1"
       parallel="false"
-      echo "==> Gradle 超低内存模式 (RAM=${ram}MB avail=${avail}MB) heap=${heap}"
+      echo "==> Gradle 超低内存模式 (RAM=${ram}MB avail=${avail}MB) heap=${heap} metaspace=${metaspace}"
       ;;
     low)
       heap="1024m"
-      metaspace="256m"
+      metaspace="512m"
       workers="1"
       parallel="false"
       echo "==> Gradle 低内存模式 (RAM=${ram}MB avail=${avail}MB swap_free=${swap_free}MB)"
@@ -101,9 +101,10 @@ apply_gradle_memory_profile() {
   esac
 
   export GRADLE_OPTS="-Xmx${heap} -XX:MaxMetaspaceSize=${metaspace} -XX:+UseSerialGC -XX:+HeapDumpOnOutOfMemoryError"
-  export _JAVA_OPTIONS="${GRADLE_OPTS}"
+  unset _JAVA_OPTIONS
+  export GRADLE_MEMORY_PROFILE="$profile"
   export GRADLE_USER_HOME="${GRADLE_USER_HOME:-/tmp/gradle-home-$(id -u)}"
-  export KOTLIN_DAEMON_JVM_OPTIONS="-Xmx384m -XX:MaxMetaspaceSize=128m -XX:+UseSerialGC"
+  export KOTLIN_DAEMON_JVM_OPTIONS="-Xmx512m -XX:MaxMetaspaceSize=256m -XX:+UseSerialGC"
   mkdir -p "$GRADLE_USER_HOME"
 
   gp="${1:-}/gradle.properties"
@@ -114,11 +115,15 @@ org.gradle.daemon=false
 org.gradle.parallel=${parallel}
 org.gradle.workers.max=${workers}
 org.gradle.caching=true
-kotlin.daemon.jvmargs=-Xmx384m -XX:MaxMetaspaceSize=128m -XX:+UseSerialGC
+kotlin.daemon.jvmargs=-Xmx512m -XX:MaxMetaspaceSize=256m -XX:+UseSerialGC
 kotlin.compiler.execution.strategy=in-process
+kotlin.build.report.enable=false
 android.useAndroidX=true
 android.enableJetifier=true
 android.enableR8.fullMode=false
+android.lint.checkReleaseBuilds=false
+android.lint.checkDependencies=false
+android.suppressUnsupportedCompileSdk=36
 EOF
   fi
 }
@@ -144,6 +149,15 @@ gradle_preflight_check() {
 gradle_diagnose_oom() {
   local log="${1:-}"
   [ -n "$log" ] && [ -f "$log" ] || return 0
+  if grep -qi 'OutOfMemoryError: Metaspace\|Metaspace' "$log"; then
+    echo ""
+    echo ">>> Metaspace 不足（类元数据区，非堆内存）。已在本仓库禁用 release lint、提高 MaxMetaspaceSize。"
+    echo "    请 git pull 后重试，并确保未设置全局 _JAVA_OPTIONS："
+    echo "    unset _JAVA_OPTIONS"
+    echo "    GRADLE_ULTRA_MEM=1 APP_NAME=laoliu bash scripts/flutter-build-apk.sh"
+    echo "    或 GitHub → Actions → Flutter APK Build"
+    return 0
+  fi
   if grep -qiE 'OutOfMemory|GC overhead|Killed process|ENOMEM|Cannot allocate memory|daemon disappeared|DaemonDisappearedException' "$log"; then
     echo ""
     echo ">>> 内存不足：Gradle 守护进程被系统杀掉。请:"
