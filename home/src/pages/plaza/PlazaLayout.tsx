@@ -18,9 +18,10 @@ export default function PlazaLayout() {
   const myAppsCount = loadMyApps().length
   const { pathname } = useLocation()
   const onMyApps = pathname === ROUTES.plazaMyApps
+  const onFeed = pathname === ROUTES.plazaFeed || pathname === `${ROUTES.plazaFeed}/`
 
   return (
-    <div className="plaza-page">
+    <div className={`plaza-page${onFeed ? ' plaza-page--rail' : ''}`}>
       <header className="plaza-topbar">
         <Link to={ROUTES.home} className="plaza-topbar-brand">
           <BrandMark size={36} />
@@ -36,17 +37,29 @@ export default function PlazaLayout() {
         </nav>
       </header>
 
+      {onFeed && (
+        <div className="plaza-flow-strip" aria-hidden>
+          <span>&gt;&gt; &gt;&gt; &gt;&gt; 身份 × 场景 · 广场弹幕轨 &gt;&gt; &gt;&gt;</span>
+          <span>&gt;&gt; &gt;&gt; &gt;&gt; 身份 × 场景 · 广场弹幕轨 &gt;&gt; &gt;&gt;</span>
+        </div>
+      )}
+
       <div className="plaza-layout">
         <aside className="plaza-side" aria-label="广场导航">
           <h4>导航</h4>
           <Link to={ROUTES.home}>🏠 创建应用</Link>
           <NavLink to={ROUTES.plazaFeed} end className={sideLinkClass}>
-            📡 广场 · Newsfeed
+            📡 广场 · 弹幕双轨
           </NavLink>
           <NavLink to={ROUTES.plazaMyApps} className={sideLinkClass}>
             📱 我的应用
             {myAppsCount > 0 && <span className="plaza-side-count">{myAppsCount}</span>}
           </NavLink>
+          {onFeed && (
+            <p className="plaza-side-note">
+              <span className="plaza-side-chev">&gt;&gt;</span> 智能体发布流 · 点击弹幕展开 Feed
+            </p>
+          )}
         </aside>
 
         <Outlet />

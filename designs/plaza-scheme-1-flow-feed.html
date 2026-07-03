@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>方案 01 · &gt;&gt; 三栏流动 Feed · 广场 Newsfeed</title>
+<style>
+:root{--navy:#0a1628;--gold:#fef08a;--cyan:#06b6d4;--card:#1e293b;--mono:Consolas,monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:linear-gradient(160deg,#0f172a,#1e1b4b);color:#f1f5f9;font-size:13px;line-height:1.55;min-height:100vh;padding:28px 20px 64px}
+.wrap{max-width:1100px;margin:0 auto}
+.top-nav{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:20px;font-size:12px}
+.top-nav a{color:#a5b4fc;text-decoration:none;padding:6px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.1)}
+.top-nav a:hover{border-color:rgba(254,240,138,.4)}
+.top-nav .cur{color:var(--gold);border-color:rgba(254,240,138,.35);background:rgba(254,240,138,.06)}
+.scheme-nav{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:24px}
+.scheme-nav a{font-size:11px;padding:6px 12px;border-radius:8px;background:var(--card);border:1px solid rgba(255,255,255,.1);color:#94a3b8;text-decoration:none}
+.scheme-nav a.on{border-color:var(--gold);color:var(--gold);background:rgba(254,240,138,.08)}
+.doc-hero{background:linear-gradient(135deg,var(--navy),#4338ca);border-radius:16px;padding:28px 32px;margin-bottom:20px}
+.doc-hero h1{font-size:22px;margin-bottom:6px}.doc-hero h1 em{color:var(--gold);font-style:normal;font-family:var(--mono)}
+.doc-hero .num{font-size:11px;color:#a5b4fc;margin-bottom:8px}
+.doc-hero p{font-size:13px;opacity:.9;max-width:760px;line-height:1.7}
+.intent{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px}
+@media(max-width:720px){.intent{grid-template-columns:1fr}}
+.intent-box{background:rgba(30,41,59,.6);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:16px;font-size:12px;line-height:1.75}
+.intent-box h3{font-size:12px;color:var(--gold);margin-bottom:8px}
+.intent-box ul{padding-left:18px;color:#94a3b8}
+.tag-rec{display:inline-block;font-size:9px;padding:2px 8px;border-radius:999px;background:rgba(254,240,138,.15);color:var(--gold);margin-left:8px}
+.mock{border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,.1);box-shadow:0 24px 64px rgba(0,0,0,.4);background:#0a1628}
+.mock-bar{display:flex;align-items:center;gap:8px;padding:10px 14px;background:#1e293b;border-bottom:1px solid rgba(255,255,255,.08);font-size:11px;color:#94a3b8}
+.mock-dots{display:flex;gap:5px}.mock-dots i{width:9px;height:9px;border-radius:50%;display:block}
+.mock-dots i:nth-child(1){background:#f87171}.mock-dots i:nth-child(2){background:#fbbf24}.mock-dots i:nth-child(3){background:#4ade80}
+.mock-url{flex:1;text-align:center;background:rgba(0,0,0,.25);border-radius:6px;padding:4px 10px;font-family:var(--mono);font-size:10px;color:#cbd5e1}
+.flow-strip{display:flex;overflow:hidden;height:28px;align-items:center;background:linear-gradient(90deg,rgba(254,240,138,.06),rgba(67,56,202,.08),rgba(254,240,138,.06));border-bottom:1px solid rgba(254,240,138,.15)}
+.flow-strip span{flex-shrink:0;padding-right:2em;font-family:var(--mono);font-size:11px;font-weight:800;color:rgba(254,240,138,.55);letter-spacing:.2em;animation:marquee 5s linear infinite;white-space:nowrap}
+.flow-strip span:nth-child(2){animation-delay:-2.5s}
+@keyframes marquee{to{transform:translateX(-100%)}}
+.chev{font-family:var(--mono);font-weight:900;color:var(--gold);text-shadow:0 0 12px rgba(254,240,138,.4)}
+.chev-sm{font-size:12px}.chev-md{font-size:18px}
+.p1{display:grid;grid-template-columns:160px 1fr 180px;min-height:400px}
+.p1-side{padding:14px;border-right:1px solid rgba(255,255,255,.06);font-size:11px}
+.p1-side a{display:block;padding:8px 10px;border-radius:8px;color:#94a3b8;text-decoration:none;margin-bottom:4px}
+.p1-side a.on{background:rgba(254,240,138,.1);color:var(--gold)}
+.p1-main{padding:14px}
+.p1-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.p1-head h3{font-size:15px;display:flex;align-items:center;gap:8px}
+.p1-card{border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px;margin-bottom:10px;background:rgba(30,41,59,.6);position:relative;overflow:hidden}
+.p1-card::before{content:'>>';position:absolute;top:10px;right:12px;font-family:var(--mono);font-size:10px;color:rgba(254,240,138,.25)}
+.p1-right{padding:14px;border-left:1px solid rgba(255,255,255,.06);font-size:11px;color:#94a3b8}
+footer{margin-top:32px;font-size:11px;color:#64748b;display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between}
+footer a{color:#a5b4fc}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top-nav">
+    <a href="index.html">← 设计稿索引</a>
+    <a href="07-plaza-schemes-index.html">五方案索引</a>
+    <a href="07-plaza-five-schemes.html">合订版切换</a>
+    <a href="06-at-plaza-newsfeed.html">06 定稿 B</a>
+  </div>
+  <nav class="scheme-nav">
+    <a class="on" href="plaza-scheme-1-flow-feed.html">01 三栏 Feed</a>
+    <a href="plaza-scheme-2-rail-barrage.html">02 弹幕双轨</a>
+    <a href="plaza-scheme-3-terminal.html">03 终端指令</a>
+    <a href="plaza-scheme-4-cube-nav.html">04 魔方导航</a>
+    <a href="plaza-scheme-5-minimal.html">05 极简单列</a>
+  </nav>
+
+  <header class="doc-hero">
+    <p class="num">方案 01 / 05<span class="tag-rec">推荐 · 与现 /plaza 最接近</span></p>
+    <h1><em>&gt;&gt;</em> 三栏流动 Feed</h1>
+    <p>用顶栏 <strong>&gt;&gt;</strong> 跑马灯 + 卡片角标 chevron，把广场 Newsfeed 定义为「智能体发布流」——每条动态 = 一次 &gt;&gt; 创建 + @ 受众交付。桌面三栏布局，左导航 / 中 Feed / 右 @ 标签热榜。</p>
+  </header>
+
+  <div class="intent">
+    <div class="intent-box">
+      <h3>🎯 设计意图 · &gt;&gt; 重新定义 Newsfeed</h3>
+      <ul>
+        <li>首页 <code>&gt;&gt;</code> = 能力编排入口；广场 Feed = 编排结果的<strong>交付展示</strong></li>
+        <li>顶栏流动条持续传递「智能体符号」品牌感，区别于普通社交 Timeline</li>
+        <li>卡片右上角半透明 <code>&gt;&gt;</code> 水印：每条都是 Agent 产物</li>
+      </ul>
+    </div>
+    <div class="intent-box">
+      <h3>✅ 适用场景</h3>
+      <ul>
+        <li>桌面端主广场 · 与当前 <code>/plaza</code> 方案 B 直接迭代</li>
+        <li>需要侧栏「我的应用」+ @ 标签筛选的企业内网</li>
+        <li>与 Hero 魔方带、发布成功卡视觉统一</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="mock">
+    <div class="mock-bar"><div class="mock-dots"><i></i><i></i><i></i></div><div class="mock-url">101.32.209.251/plaza</div></div>
+    <div class="flow-strip"><span>&gt;&gt; PLAZA · NEWSFEED · @公开 · @部门 · &gt;&gt;</span><span>&gt;&gt; PLAZA · NEWSFEED · @公开 · @部门 · &gt;&gt;</span></div>
+    <div class="p1">
+      <aside class="p1-side">
+        <a href="#">🏠 创建</a>
+        <a href="#" class="on">📡 广场</a>
+        <a href="#">📱 我的应用</a>
+        <p style="margin-top:16px;font-size:10px;opacity:.6"><span class="chev chev-sm">&gt;&gt;</span> 智能体发布流</p>
+      </aside>
+      <main class="p1-main">
+        <div class="p1-head"><h3><span class="chev chev-md">&gt;&gt;</span> 广场 · Newsfeed</h3><span style="font-size:10px;color:#64748b">最新 · 热门 · @我</span></div>
+        <div class="p1-card"><strong style="font-size:12px">@公开 设备报修助手</strong><p style="font-size:10px;color:#94a3b8;margin-top:6px">审批流 · 智能问答 · 知识库 · ♥ 24 💬 8 ↗ 3</p></div>
+        <div class="p1-card"><strong style="font-size:12px">@研发部 请假一体化</strong><p style="font-size:10px;color:#94a3b8;margin-top:6px">范围可见 · 摘要展示 · 李明 · 1小时前</p></div>
+        <div class="p1-card"><strong style="font-size:12px">@HR 制度政策问答</strong><p style="font-size:10px;color:#94a3b8;margin-top:6px">10 项能力 · 张敏 · 刚刚发布</p></div>
+      </main>
+      <aside class="p1-right">
+        <strong>🔥 @ 标签</strong>
+        <p style="margin-top:8px;line-height:1.8">#审批流<br>#制造业<br>#智能问答<br>#知识库</p>
+        <p style="margin-top:16px;font-size:10px;opacity:.6"><span class="chev chev-sm">&gt;&gt;</span> 按能力筛 Feed</p>
+      </aside>
+    </div>
+  </div>
+
+  <footer>
+    <span>积木仓 BlockHub · 方案 01 · 待选型</span>
+    <span><a href="plaza-scheme-2-rail-barrage.html">下一方案 02 →</a></span>
+  </footer>
+</div>
+</body>
+</html>

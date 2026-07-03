@@ -30,6 +30,24 @@ export default function HeroCubeStage({ onRoleApply }: Props) {
 
   return (
     <div className="hero-e-stage hero-e-stage-focus">
+      <div className="hero-e-agent-sign" aria-label="智能体符号">
+        <div className="hero-e-sign-glow" aria-hidden />
+        <div className="hero-e-sign-inner">
+          <div className="hero-e-sign-flow" aria-hidden>
+            <span className="hero-e-sign-stream">&gt;&gt; &gt;&gt; &gt;&gt; &gt;&gt; &gt;&gt;</span>
+            <span className="hero-e-sign-stream">&gt;&gt; &gt;&gt; &gt;&gt; &gt;&gt; &gt;&gt;</span>
+          </div>
+          <div className="hero-e-sign-mark">
+            <span className="hero-e-sign-chevrons" aria-hidden>&gt;&gt;</span>
+            <p className="hero-e-sign-title">定义智能体符号</p>
+          </div>
+        </div>
+        <div className="hero-e-sign-connector" aria-hidden>
+          <span className="hero-e-sign-connector-line" />
+          <span className="hero-e-sign-connector-chevron">&gt;&gt;</span>
+        </div>
+      </div>
+
       <div className="hero-e-belt-wrap">
         <div className="hero-e-belt hero-e-belt-sparse">
           {beltLoop.map((item, i) => {
@@ -52,13 +70,6 @@ export default function HeroCubeStage({ onRoleApply }: Props) {
               />
             )
           })}
-        </div>
-        <div className="hero-e-belt-core" aria-hidden>
-          <div className="hero-e-flow-track">
-            <span className="hero-e-flow-cmd">&gt;&gt; &gt;&gt; &gt;&gt; &gt;&gt; &gt;&gt;</span>
-            <span className="hero-e-flow-cmd">&gt;&gt; &gt;&gt; &gt;&gt; &gt;&gt; &gt;&gt;</span>
-          </div>
-          <p className="hero-e-flow-title">定义智能体符号</p>
         </div>
       </div>
 

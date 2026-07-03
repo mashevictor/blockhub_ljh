@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>方案 02 · &gt;&gt; 弹幕双轨广场 · 广场 Newsfeed</title>
+<style>
+:root{--navy:#0a1628;--gold:#fef08a;--card:#1e293b;--mono:Consolas,monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:linear-gradient(160deg,#0f172a,#1e1b4b);color:#f1f5f9;font-size:13px;line-height:1.55;min-height:100vh;padding:28px 20px 64px}
+.wrap{max-width:1100px;margin:0 auto}
+.top-nav{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;font-size:12px}
+.top-nav a{color:#a5b4fc;text-decoration:none;padding:6px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.1)}
+.scheme-nav{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:24px}
+.scheme-nav a{font-size:11px;padding:6px 12px;border-radius:8px;background:var(--card);border:1px solid rgba(255,255,255,.1);color:#94a3b8;text-decoration:none}
+.scheme-nav a.on{border-color:var(--gold);color:var(--gold);background:rgba(254,240,138,.08)}
+.doc-hero{background:linear-gradient(135deg,var(--navy),#1e3a5f);border-radius:16px;padding:28px 32px;margin-bottom:20px}
+.doc-hero h1{font-size:22px;margin-bottom:6px}.doc-hero h1 em{color:var(--gold);font-style:normal;font-family:var(--mono)}
+.doc-hero .num{font-size:11px;color:#a5b4fc;margin-bottom:8px}
+.doc-hero p{font-size:13px;opacity:.9;max-width:760px;line-height:1.7}
+.intent{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px}
+@media(max-width:720px){.intent{grid-template-columns:1fr}}
+.intent-box{background:rgba(30,41,59,.6);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:16px;font-size:12px;line-height:1.75}
+.intent-box h3{font-size:12px;color:var(--gold);margin-bottom:8px}
+.intent-box ul{padding-left:18px;color:#94a3b8}
+.mock{border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,.1);box-shadow:0 24px 64px rgba(0,0,0,.4);background:#0a1628}
+.mock-bar{display:flex;align-items:center;gap:8px;padding:10px 14px;background:#1e293b;border-bottom:1px solid rgba(255,255,255,.08);font-size:11px;color:#94a3b8}
+.mock-dots{display:flex;gap:5px}.mock-dots i{width:9px;height:9px;border-radius:50%;display:block}
+.mock-dots i:nth-child(1){background:#f87171}.mock-dots i:nth-child(2){background:#fbbf24}.mock-dots i:nth-child(3){background:#4ade80}
+.mock-url{flex:1;text-align:center;background:rgba(0,0,0,.25);border-radius:6px;padding:4px 10px;font-family:var(--mono);font-size:10px;color:#cbd5e1}
+.flow-strip{display:flex;overflow:hidden;height:28px;align-items:center;background:linear-gradient(90deg,rgba(254,240,138,.06),rgba(67,56,202,.08),rgba(254,240,138,.06));border-bottom:1px solid rgba(254,240,138,.15)}
+.flow-strip span{flex-shrink:0;padding-right:2em;font-family:var(--mono);font-size:11px;font-weight:800;color:rgba(254,240,138,.55);letter-spacing:.2em;animation:marquee 5s linear infinite;white-space:nowrap}
+.flow-strip span:nth-child(2){animation-delay:-2.5s}
+@keyframes marquee{to{transform:translateX(-100%)}}
+.chev{font-family:var(--mono);font-weight:900;color:var(--gold)}
+.chev-sm{font-size:12px}
+.p2{padding:16px;background:linear-gradient(180deg,#0a1628,#111827);min-height:400px}
+.p2-rail{position:relative;height:36px;margin-bottom:8px;overflow:hidden;border-radius:8px;background:rgba(0,0,0,.3);border:1px solid rgba(254,240,138,.1)}
+.p2-rail .tag{position:absolute;top:50%;transform:translateY(-50%);padding:4px 12px;border-radius:999px;font-size:10px;white-space:nowrap;animation:railMove 12s linear infinite}
+.p2-rail .tag:nth-child(1){left:0;background:rgba(67,56,202,.5);color:#c7d2fe;animation-duration:14s}
+.p2-rail .tag:nth-child(2){left:0;background:rgba(8,145,178,.4);color:#a5f3fc;animation-duration:11s;animation-delay:-4s}
+.p2-rail .tag:nth-child(3){left:0;background:rgba(254,240,138,.15);color:var(--gold);animation-duration:16s;animation-delay:-8s}
+@keyframes railMove{0%{transform:translate(-120%,-50%)}100%{transform:translate(110vw,-50%)}}
+.p2-feed{margin-top:16px;display:flex;flex-direction:column;gap:8px}
+.p2-item{display:flex;gap:10px;align-items:flex-start;padding:10px;border-radius:10px;background:rgba(30,41,59,.5);border-left:3px solid var(--gold)}
+footer{margin-top:32px;font-size:11px;color:#64748b;display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between}
+footer a{color:#a5b4fc}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top-nav">
+    <a href="index.html">← 设计稿索引</a>
+    <a href="07-plaza-schemes-index.html">五方案索引</a>
+    <a href="07-plaza-five-schemes.html">合订版切换</a>
+  </div>
+  <nav class="scheme-nav">
+    <a href="plaza-scheme-1-flow-feed.html">01 三栏 Feed</a>
+    <a class="on" href="plaza-scheme-2-rail-barrage.html">02 弹幕双轨</a>
+    <a href="plaza-scheme-3-terminal.html">03 终端指令</a>
+    <a href="plaza-scheme-4-cube-nav.html">04 魔方导航</a>
+    <a href="plaza-scheme-5-minimal.html">05 极简单列</a>
+  </nav>
+
+  <header class="doc-hero">
+    <p class="num">方案 02 / 05 · <span style="color:#4ade80;font-weight:700">✅ 已定稿 · 已上线 /plaza</span></p>
+    <h1><em>&gt;&gt;</em> 弹幕双轨广场</h1>
+    <p>广场 = 首页「身份×场景」弹幕区的放大版。横向 <strong>&gt;&gt;</strong> 轨道持续滚动 @ 受众 + 应用名 + 发布者；点击弹幕展开下方 Feed 卡片。Newsfeed 从「静态列表」变成「活态情报带」。</p>
+  </header>
+
+  <div class="intent">
+    <div class="intent-box">
+      <h3>🎯 设计意图 · &gt;&gt; 重新定义 Newsfeed</h3>
+      <ul>
+        <li>每条弹幕前缀 <code>&gt;&gt;</code>，强化「智能体动作」而非「人发动态」</li>
+        <li>双轨（或多轨）并行：不同 @ 受众用不同色带区分</li>
+        <li>Feed 区是弹幕的「落地页」——点击后左侧 gold 边条锚定来源</li>
+      </ul>
+    </div>
+    <div class="intent-box">
+      <h3>✅ 适用场景</h3>
+      <ul>
+        <li>与首页 Hero 弹幕区视觉同构，品牌一致性强</li>
+        <li>信息密度高、需要「广场很热闹」的感知</li>
+        <li>大屏展示 / 运营监控墙变体</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="mock">
+    <div class="mock-bar"><div class="mock-dots"><i></i><i></i><i></i></div><div class="mock-url">/plaza?view=rail</div></div>
+    <div class="flow-strip"><span>&gt;&gt; &gt;&gt; &gt;&gt; 身份 × 场景 · 广场弹幕轨 &gt;&gt; &gt;&gt;</span><span>&gt;&gt; &gt;&gt; &gt;&gt; 身份 × 场景 · 广场弹幕轨 &gt;&gt; &gt;&gt;</span></div>
+    <div class="p2">
+      <div class="p2-rail">
+        <span class="tag"><span class="chev">&gt;&gt;</span> @公开 · 设备报修 · 李明</span>
+        <span class="tag"><span class="chev">&gt;&gt;</span> @HR · 制度问答 · 张敏</span>
+        <span class="tag"><span class="chev">&gt;&gt;</span> @老板 · 经营看板 · 陈总</span>
+      </div>
+      <div class="p2-rail" style="opacity:.7">
+        <span class="tag" style="animation-duration:18s;background:rgba(16,185,129,.3);color:#6ee7b7"><span class="chev">&gt;&gt;</span> @部门 · 请假出差 · 王芳</span>
+      </div>
+      <p style="font-size:11px;color:#64748b;margin:12px 0 8px">↓ 点击上方弹幕 · 展开 Feed 详情</p>
+      <div class="p2-feed">
+        <div class="p2-item"><span class="chev chev-sm">&gt;&gt;</span><div><strong style="font-size:12px">@公开 设备报修助手</strong><br><span style="font-size:10px;color:#94a3b8">12分钟前 · 审批流 · 智能问答 · ♥ 24 💬 8</span></div></div>
+        <div class="p2-item" style="opacity:.6;border-left-color:#64748b"><span class="chev chev-sm" style="color:#64748b">&gt;&gt;</span><div><strong style="font-size:12px;color:#94a3b8">@HR 制度政策问答</strong><br><span style="font-size:10px;color:#64748b">未选中 · 点击弹幕激活</span></div></div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <span><a href="plaza-scheme-1-flow-feed.html">← 方案 01</a></span>
+    <span>积木仓 BlockHub · 方案 02 · <strong style="color:#4ade80">已定稿</strong></span>
+    <span><a href="plaza-scheme-3-terminal.html">下一方案 03 →</a></span>
+  </footer>
+</div>
+</body>
+</html>

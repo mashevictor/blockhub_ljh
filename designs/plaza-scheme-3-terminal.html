@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>方案 03 · &gt;&gt; 终端指令流 · 广场 Newsfeed</title>
+<style>
+:root{--navy:#0a1628;--gold:#fef08a;--card:#1e293b;--mono:Consolas,monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:linear-gradient(160deg,#0f172a,#1e1b4b);color:#f1f5f9;font-size:13px;line-height:1.55;min-height:100vh;padding:28px 20px 64px}
+.wrap{max-width:1100px;margin:0 auto}
+.top-nav{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;font-size:12px}
+.top-nav a{color:#a5b4fc;text-decoration:none;padding:6px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.1)}
+.scheme-nav{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:24px}
+.scheme-nav a{font-size:11px;padding:6px 12px;border-radius:8px;background:var(--card);border:1px solid rgba(255,255,255,.1);color:#94a3b8;text-decoration:none}
+.scheme-nav a.on{border-color:var(--gold);color:var(--gold);background:rgba(254,240,138,.08)}
+.doc-hero{background:linear-gradient(135deg,#020617,var(--navy));border-radius:16px;padding:28px 32px;margin-bottom:20px;border:1px solid rgba(74,222,128,.15)}
+.doc-hero h1{font-size:22px;margin-bottom:6px}.doc-hero h1 em{color:var(--gold);font-style:normal;font-family:var(--mono)}
+.doc-hero .num{font-size:11px;color:#4ade80;margin-bottom:8px;font-family:var(--mono)}
+.doc-hero p{font-size:13px;opacity:.9;max-width:760px;line-height:1.7}
+.intent{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px}
+@media(max-width:720px){.intent{grid-template-columns:1fr}}
+.intent-box{background:rgba(30,41,59,.6);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:16px;font-size:12px;line-height:1.75}
+.intent-box h3{font-size:12px;color:var(--gold);margin-bottom:8px}
+.intent-box ul{padding-left:18px;color:#94a3b8}
+.mock{border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,.1);box-shadow:0 24px 64px rgba(0,0,0,.4);background:#0a1628}
+.mock-bar{display:flex;align-items:center;gap:8px;padding:10px 14px;background:#0f172a;border-bottom:1px solid rgba(255,255,255,.08);font-size:11px;color:#94a3b8}
+.mock-dots{display:flex;gap:5px}.mock-dots i{width:9px;height:9px;border-radius:50%;display:block}
+.mock-dots i:nth-child(1){background:#f87171}.mock-dots i:nth-child(2){background:#fbbf24}.mock-dots i:nth-child(3){background:#4ade80}
+.mock-url{flex:1;text-align:center;background:rgba(0,0,0,.25);border-radius:6px;padding:4px 10px;font-family:var(--mono);font-size:10px;color:#4ade80}
+.chev{font-family:var(--mono);font-weight:900;color:var(--gold)}.chev-sm{font-size:12px}
+.p3{font-family:var(--mono);font-size:11px;padding:20px 16px;background:#020617;min-height:420px}
+.p3-line{color:#4ade80;margin-bottom:6px;display:flex;gap:8px}
+.p3-line .prompt{color:var(--gold);flex-shrink:0}
+.p3-line .cmd{color:#e2e8f0}
+.p3-line.out{color:#94a3b8;padding-left:24px}
+.p3-card{margin:10px 0 10px 24px;padding:12px;border:1px solid rgba(254,240,138,.2);border-radius:8px;background:rgba(30,41,59,.4);font-family:"PingFang SC",sans-serif}
+.p3-card strong{color:#f1f5f9;font-size:12px}
+.blink{animation:blink 1s step-end infinite}
+@keyframes blink{50%{opacity:0}}
+footer{margin-top:32px;font-size:11px;color:#64748b;display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between}
+footer a{color:#a5b4fc}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top-nav">
+    <a href="index.html">← 设计稿索引</a>
+    <a href="07-plaza-schemes-index.html">五方案索引</a>
+    <a href="07-plaza-five-schemes.html">合订版切换</a>
+  </div>
+  <nav class="scheme-nav">
+    <a href="plaza-scheme-1-flow-feed.html">01 三栏 Feed</a>
+    <a href="plaza-scheme-2-rail-barrage.html">02 弹幕双轨</a>
+    <a class="on" href="plaza-scheme-3-terminal.html">03 终端指令</a>
+    <a href="plaza-scheme-4-cube-nav.html">04 魔方导航</a>
+    <a href="plaza-scheme-5-minimal.html">05 极简单列</a>
+  </nav>
+
+  <header class="doc-hero">
+    <p class="num">方案 03 / 05 · plaza --mode=terminal</p>
+    <h1><em>&gt;&gt;</em> 终端指令流</h1>
+    <p>把 Newsfeed 呈现为 CLI 输出：<strong>&gt;&gt;</strong> 是 prompt 前缀，用户输入 <code>plaza feed</code>、<code>like</code>、<code>@filter</code> 等指令，Feed 卡片作为命令结果块渲染。极客/开发者向，差异化最强。</p>
+  </header>
+
+  <div class="intent">
+    <div class="intent-box">
+      <h3>🎯 设计意图 · &gt;&gt; 重新定义 Newsfeed</h3>
+      <ul>
+        <li><code>&gt;&gt;</code> = shell prompt，与「定义智能体符号」的编排语义一致</li>
+        <li>Feed 不是刷卡片，而是<strong>查询 Agent Catalog 的返回结果</strong></li>
+        <li>点赞/评论/转发可映射为子命令，降低 UI 组件复杂度</li>
+      </ul>
+    </div>
+    <div class="intent-box">
+      <h3>✅ 适用场景</h3>
+      <ul>
+        <li>技术团队、DevOps、喜欢 Keyboard-first 的用户</li>
+        <li>Admin 高级模式 / 开发者广场变体</li>
+        <li>与 TrackChat CLI、API 文档叙事统一</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="mock">
+    <div class="mock-bar"><div class="mock-dots"><i></i><i></i><i></i></div><div class="mock-url">plaza --mode=terminal</div></div>
+    <div class="p3">
+      <div class="p3-line"><span class="prompt">&gt;&gt;</span><span class="cmd">plaza feed --filter=latest --at=public</span></div>
+      <div class="p3-line out">✓ 加载 3 条动态 · 114 场景 Catalog 已连接 · latency 42ms</div>
+      <div class="p3-card"><strong><span class="chev chev-sm">&gt;&gt;</span> @公开 设备报修助手</strong><p style="font-size:10px;color:#94a3b8;margin-top:6px">modules: [审批流, 智能问答, 知识库] · author: 李明 · ♥ 24</p></div>
+      <div class="p3-card"><strong><span class="chev chev-sm">&gt;&gt;</span> @研发部 请假一体化</strong><p style="font-size:10px;color:#94a3b8;margin-top:6px">modules: [审批流, 日历] · scope: dept:研发部</p></div>
+      <div class="p3-line"><span class="prompt">&gt;&gt;</span><span class="cmd">like post_f1</span></div>
+      <div class="p3-line out">♥ 已点赞 · notify author via @mention</div>
+      <div class="p3-line"><span class="prompt">&gt;&gt;</span><span class="cmd">plaza publish --at=hr --app=制度问答</span></div>
+      <div class="p3-line out">… 发布中 · 等待 @受众 确认</div>
+      <div class="p3-line"><span class="prompt">&gt;&gt;</span><span class="cmd blink">_</span></div>
+    </div>
+  </div>
+
+  <footer>
+    <span><a href="plaza-scheme-2-rail-barrage.html">← 方案 02</a></span>
+    <span>积木仓 BlockHub · 方案 03 · 待选型</span>
+    <span><a href="plaza-scheme-4-cube-nav.html">下一方案 04 →</a></span>
+  </footer>
+</div>
+</body>
+</html>

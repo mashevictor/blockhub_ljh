@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>积木仓 · 广场五方案 · &gt;&gt; 流动智能体符号</title>
+<style>
+:root{
+  --navy:#0a1628;--navy-m:#1e3a5f;--gold:#fef08a;--gold-d:#fbbf24;
+  --cyan:#06b6d4;--at:#0891b2;--pri:#4338ca;
+  --text:#1c1917;--muted:#78716c;--border:#e2e8f0;--bg:#0f172a;--card:#1e293b;
+  --mono:Consolas,"SF Mono",ui-monospace,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:linear-gradient(160deg,#0f172a,#1e1b4b 50%,#0a1628);color:#f1f5f9;font-size:13px;line-height:1.55;min-height:100vh}
+.wrap{max-width:1280px;margin:0 auto;padding:28px 20px 64px}
+.doc-hero{background:linear-gradient(135deg,var(--navy),var(--navy-m) 55%,#4338ca);border-radius:20px;padding:32px 36px;margin-bottom:24px;box-shadow:0 20px 56px rgba(0,0,0,.35)}
+.doc-hero h1{font-size:26px;margin-bottom:8px}
+.doc-hero h1 em{color:var(--gold);font-style:normal;font-family:var(--mono)}
+.doc-hero p{opacity:.9;max-width:820px;font-size:14px}
+.doc-hero .sym{display:inline-flex;align-items:center;gap:10px;margin-top:14px;padding:8px 16px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(254,240,138,.3);font-size:13px}
+.doc-hero .sym b{font-size:22px;color:var(--gold);font-family:var(--mono);animation:chevFlow 2.5s ease-in-out infinite}
+@keyframes chevFlow{0%,100%{transform:translateX(0)}50%{transform:translateX(8px)}}
+
+nav.schemes{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;position:sticky;top:0;z-index:50;background:rgba(15,23,42,.92);backdrop-filter:blur(10px);padding:12px 0;border-bottom:1px solid rgba(255,255,255,.08)}
+nav.schemes button{padding:10px 16px;border-radius:10px;border:1px solid rgba(255,255,255,.12);background:var(--card);color:#94a3b8;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit}
+nav.schemes button.on{border-color:var(--gold);color:var(--gold);background:rgba(254,240,138,.08);box-shadow:0 0 24px rgba(254,240,138,.12)}
+.panel{display:none}.panel.active{display:block}
+.note{background:rgba(8,145,178,.12);border:1px solid rgba(6,182,212,.35);border-radius:12px;padding:14px 18px;font-size:12px;margin-bottom:20px;line-height:1.75;color:#a5f3fc}
+.mock{border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,.1);box-shadow:0 24px 64px rgba(0,0,0,.4);background:#0a1628;min-height:420px}
+.mock-bar{display:flex;align-items:center;gap:8px;padding:10px 14px;background:#1e293b;border-bottom:1px solid rgba(255,255,255,.08);font-size:11px;color:#94a3b8}
+.mock-dots{display:flex;gap:5px}.mock-dots i{width:9px;height:9px;border-radius:50%;display:block}
+.mock-dots i:nth-child(1){background:#f87171}.mock-dots i:nth-child(2){background:#fbbf24}.mock-dots i:nth-child(3){background:#4ade80}
+.mock-url{flex:1;text-align:center;background:rgba(0,0,0,.25);border-radius:6px;padding:4px 10px;font-family:var(--mono);font-size:10px;color:#cbd5e1}
+
+/* >> 流动条 · 共用 */
+.flow-strip{display:flex;overflow:hidden;height:28px;align-items:center;background:linear-gradient(90deg,rgba(254,240,138,.06),rgba(67,56,202,.08),rgba(254,240,138,.06));border-bottom:1px solid rgba(254,240,138,.15)}
+.flow-strip span{flex-shrink:0;padding-right:2em;font-family:var(--mono);font-size:11px;font-weight:800;color:rgba(254,240,138,.55);letter-spacing:.2em;animation:marquee 5s linear infinite;white-space:nowrap}
+.flow-strip span:nth-child(2){animation-delay:-2.5s}
+@keyframes marquee{to{transform:translateX(-100%)}}
+.chev{font-family:var(--mono);font-weight:900;color:var(--gold);text-shadow:0 0 12px rgba(254,240,138,.4)}
+.chev-sm{font-size:12px}.chev-md{font-size:18px}.chev-lg{font-size:28px}
+
+/* 方案1 · 三栏 Newsfeed */
+.p1{display:grid;grid-template-columns:160px 1fr 180px;min-height:380px}
+.p1-side{padding:14px;border-right:1px solid rgba(255,255,255,.06);font-size:11px}
+.p1-side a{display:block;padding:8px 10px;border-radius:8px;color:#94a3b8;text-decoration:none;margin-bottom:4px}
+.p1-side a.on{background:rgba(254,240,138,.1);color:var(--gold)}
+.p1-main{padding:14px}
+.p1-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.p1-head h3{font-size:15px;display:flex;align-items:center;gap:8px}
+.p1-card{border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px;margin-bottom:10px;background:rgba(30,41,59,.6);position:relative;overflow:hidden}
+.p1-card::before{content:'>>';position:absolute;top:10px;right:12px;font-family:var(--mono);font-size:10px;color:rgba(254,240,138,.25)}
+.p1-right{padding:14px;border-left:1px solid rgba(255,255,255,.06);font-size:11px;color:#94a3b8}
+
+/* 方案2 · 弹幕双轨 */
+.p2{padding:16px;background:linear-gradient(180deg,#0a1628,#111827)}
+.p2-rail{position:relative;height:36px;margin-bottom:8px;overflow:hidden;border-radius:8px;background:rgba(0,0,0,.3);border:1px solid rgba(254,240,138,.1)}
+.p2-rail .tag{position:absolute;top:50%;transform:translateY(-50%);padding:4px 12px;border-radius:999px;font-size:10px;white-space:nowrap;animation:railMove 12s linear infinite}
+.p2-rail .tag:nth-child(1){left:0;background:rgba(67,56,202,.5);color:#c7d2fe;animation-duration:14s}
+.p2-rail .tag:nth-child(2){left:0;background:rgba(8,145,178,.4);color:#a5f3fc;animation-duration:11s;animation-delay:-4s}
+.p2-rail .tag:nth-child(3){left:0;background:rgba(254,240,138,.15);color:var(--gold);animation-duration:16s;animation-delay:-8s}
+@keyframes railMove{0%{transform:translate(-120%,-50%)}100%{transform:translate(110vw,-50%)}}
+.p2-feed{margin-top:16px;display:flex;flex-direction:column;gap:8px}
+.p2-item{display:flex;gap:10px;align-items:flex-start;padding:10px;border-radius:10px;background:rgba(30,41,59,.5);border-left:3px solid var(--gold)}
+
+/* 方案3 · 终端指令 */
+.p3{font-family:var(--mono);font-size:11px;padding:16px;background:#020617;min-height:380px}
+.p3-line{color:#4ade80;margin-bottom:6px;display:flex;gap:8px}
+.p3-line .prompt{color:var(--gold);flex-shrink:0}
+.p3-line .cmd{color:#e2e8f0}
+.p3-line.out{color:#94a3b8;padding-left:24px}
+.p3-card{margin:10px 0 10px 24px;padding:10px;border:1px solid rgba(254,240,138,.2);border-radius:8px;background:rgba(30,41,59,.4);font-family:"PingFang SC",sans-serif}
+.p3-card strong{color:#f1f5f9;font-size:12px}
+
+/* 方案4 · 魔方侧栏 */
+.p4{display:grid;grid-template-columns:120px 1fr;min-height:380px}
+.p4-cubes{padding:12px;display:flex;flex-direction:column;gap:8px;border-right:1px solid rgba(255,255,255,.06);background:rgba(0,0,0,.2)}
+.p4-cube{width:48px;height:48px;border-radius:8px;background:linear-gradient(135deg,#4338ca,#06b6d4);display:grid;grid-template-columns:repeat(3,1fr);gap:2px;padding:4px;margin:0 auto}
+.p4-cube i{background:rgba(255,255,255,.25);border-radius:2px}
+.p4-cube i:nth-child(5){background:rgba(254,240,138,.8)}
+.p4-main{padding:14px}
+.p4-crumb{display:flex;align-items:center;gap:6px;font-size:11px;color:#94a3b8;margin-bottom:12px}
+.p4-crumb .chev{animation:chevFlow 2s ease-in-out infinite}
+
+/* 方案5 · 极简单列 */
+.p5{padding:20px 16px;max-width:480px;margin:0 auto;min-height:380px}
+.p5-hero{text-align:center;padding:20px 0 24px}
+.p5-hero .chev-lg{display:block;margin-bottom:8px;animation:chevFlow 2.5s ease-in-out infinite}
+.p5-hero h3{font-size:18px;letter-spacing:.15em;margin-bottom:4px}
+.p5-hero p{font-size:11px;color:#94a3b8}
+.p5-divider{display:flex;align-items:center;gap:10px;margin:16px 0;color:rgba(254,240,138,.4);font-family:var(--mono);font-size:11px}
+.p5-divider::before,.p5-divider::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(254,240,138,.3),transparent)}
+.p5-card{border-radius:14px;padding:14px;background:rgba(30,41,59,.55);border:1px solid rgba(255,255,255,.08);margin-bottom:10px}
+
+.tag-rec{display:inline-block;font-size:9px;padding:2px 8px;border-radius:999px;background:rgba(254,240,138,.15);color:var(--gold);margin-left:8px}
+footer.doc-foot{margin-top:40px;text-align:center;font-size:11px;color:#64748b}
+footer a{color:#a5b4fc}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="doc-hero">
+    <h1>广场 · 五套 <em>&gt;&gt;</em> 流动设计方案</h1>
+    <p>统一视觉语言：<strong>&gt;&gt;</strong> 智能体符号流动感 + @ 受众广场。与首页「定义智能体符号」魔方上方徽标一脉相承。方案 1 为已定稿 B 的 &gt;&gt; 进化版。</p>
+    <div class="sym"><b>&gt;&gt;</b> 流动 chevron · Newsfeed · @ 公开/部门 · 点赞评论转发</div>
+    <p style="margin-top:14px;font-size:12px;opacity:.85">📂 单独预览：<a href="07-plaza-schemes-index.html" style="color:#a5b4fc">五方案索引</a> ·
+      <a href="plaza-scheme-1-flow-feed.html" style="color:#fef08a">01</a> ·
+      <a href="plaza-scheme-2-rail-barrage.html" style="color:#a5b4fc">02</a> ·
+      <a href="plaza-scheme-3-terminal.html" style="color:#a5b4fc">03</a> ·
+      <a href="plaza-scheme-4-cube-nav.html" style="color:#a5b4fc">04</a> ·
+      <a href="plaza-scheme-5-minimal.html" style="color:#a5b4fc">05</a>
+    </p>
+  </header>
+
+  <nav class="schemes" id="nav">
+    <button type="button" class="on" data-p="p1">方案1 · &gt;&gt; 三栏 Feed</button>
+    <button type="button" data-p="p2">方案2 · &gt;&gt; 弹幕双轨</button>
+    <button type="button" data-p="p3">方案3 · &gt;&gt; 终端指令流</button>
+    <button type="button" data-p="p4">方案4 · &gt;&gt; 魔方导航</button>
+    <button type="button" data-p="p5">方案5 · &gt;&gt; 极简单列</button>
+  </nav>
+
+  <div class="note">💡 点击上方切换方案。实现路径：方案 1 ≈ 当前 <code>/plaza</code> 迭代；方案 2–5 可作为 A/B 或移动端变体。所有方案顶栏均含 &gt;&gt; 流动条。</div>
+
+  <!-- 方案1 -->
+  <section class="panel active" id="p1">
+    <p style="font-size:12px;color:#94a3b8;margin-bottom:10px">方案 1 · 桌面三栏 · 已定稿 B 进化<span class="tag-rec">推荐</span></p>
+    <div class="mock">
+      <div class="mock-bar"><div class="mock-dots"><i></i><i></i><i></i></div><div class="mock-url">101.32.209.251/plaza</div></div>
+      <div class="flow-strip"><span>&gt;&gt; PLAZA · NEWSFEED · @公开 · @部门 · &gt;&gt;</span><span>&gt;&gt; PLAZA · NEWSFEED · @公开 · @部门 · &gt;&gt;</span></div>
+      <div class="p1">
+        <aside class="p1-side">
+          <a href="#">🏠 创建</a>
+          <a href="#" class="on">📡 广场</a>
+          <a href="#">📱 我的应用</a>
+          <p style="margin-top:16px;font-size:10px;opacity:.6"><span class="chev chev-sm">&gt;&gt;</span> 智能体发布流</p>
+        </aside>
+        <main class="p1-main">
+          <div class="p1-head"><h3><span class="chev chev-md">&gt;&gt;</span> 广场 · Newsfeed</h3><span style="font-size:10px;color:#64748b">最新 · 热门 · @我</span></div>
+          <div class="p1-card"><strong style="font-size:12px">@公开 设备报修助手</strong><p style="font-size:10px;color:#94a3b8;margin-top:6px">审批流 · 智能问答 · ♥ 24 💬 8</p></div>
+          <div class="p1-card"><strong style="font-size:12px">@研发部 请假一体化</strong><p style="font-size:10px;color:#94a3b8;margin-top:6px">范围可见 · 摘要展示</p></div>
+        </main>
+        <aside class="p1-right"><strong>🔥 @ 标签</strong><p style="margin-top:8px">#审批流<br>#制造业</p></aside>
+      </div>
+    </div>
+  </section>
+
+  <!-- 方案2 -->
+  <section class="panel" id="p2">
+    <p style="font-size:12px;color:#94a3b8;margin-bottom:10px">方案 2 · 广场 = 身份×场景弹幕轨 · 与首页弹幕区同构</p>
+    <div class="mock">
+      <div class="mock-bar"><div class="mock-dots"><i></i><i></i><i></i></div><div class="mock-url">/plaza?view=rail</div></div>
+      <div class="flow-strip"><span>&gt;&gt; &gt;&gt; &gt;&gt; 身份 × 场景 · 广场弹幕轨 &gt;&gt; &gt;&gt;</span><span>&gt;&gt; &gt;&gt; &gt;&gt; 身份 × 场景 · 广场弹幕轨 &gt;&gt; &gt;&gt;</span></div>
+      <div class="p2">
+        <div class="p2-rail"><span class="tag"><span class="chev">&gt;&gt;</span> @公开 · 设备报修 · 李明</span><span class="tag"><span class="chev">&gt;&gt;</span> @HR · 制度问答 · 张敏</span><span class="tag"><span class="chev">&gt;&gt;</span> @老板 · 经营看板 · 陈总</span></div>
+        <div class="p2-rail" style="opacity:.7"><span class="tag" style="animation-duration:18s">@部门 · 请假出差 · 王芳</span></div>
+        <p style="font-size:11px;color:#64748b;margin:12px 0 8px">点击弹幕 → 展开 Feed 卡片</p>
+        <div class="p2-feed">
+          <div class="p2-item"><span class="chev chev-sm">&gt;&gt;</span><div><strong style="font-size:12px">@公开 设备报修助手</strong><br><span style="font-size:10px;color:#94a3b8">12分钟前 · 点赞 24</span></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 方案3 -->
+  <section class="panel" id="p3">
+    <p style="font-size:12px;color:#94a3b8;margin-bottom:10px">方案 3 · 开发者/极客向 · &gt;&gt; 指令输入 + Feed 输出</p>
+    <div class="mock">
+      <div class="mock-bar" style="background:#0f172a"><div class="mock-dots"><i></i><i></i><i></i></div><div class="mock-url">plaza --mode=terminal</div></div>
+      <div class="p3">
+        <div class="p3-line"><span class="prompt">&gt;&gt;</span><span class="cmd">plaza feed --filter=latest --at=public</span></div>
+        <div class="p3-line out">加载 3 条动态 · 114 场景 Catalog 已连接</div>
+        <div class="p3-card"><strong><span class="chev chev-sm">&gt;&gt;</span> @公开 设备报修助手</strong><p style="font-size:10px;color:#94a3b8;margin-top:6px">modules: [审批流, 智能问答, 知识库]</p></div>
+        <div class="p3-line"><span class="prompt">&gt;&gt;</span><span class="cmd">like post_f1</span></div>
+        <div class="p3-line out">♥ 已点赞 · notify author</div>
+        <div class="p3-line"><span class="prompt">&gt;&gt;</span><span class="cmd blink">_</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 方案4 -->
+  <section class="panel" id="p4">
+    <p style="font-size:12px;color:#94a3b8;margin-bottom:10px">方案 4 · 左侧魔方能力导航 + &gt;&gt; 面包屑 Feed</p>
+    <div class="mock">
+      <div class="mock-bar"><div class="mock-dots"><i></i><i></i><i></i></div><div class="mock-url">/plaza?view=cube-nav</div></div>
+      <div class="flow-strip"><span>&gt;&gt; 能力魔方 · 广场 &gt;&gt; Feed &gt;&gt;</span><span>&gt;&gt; 能力魔方 · 广场 &gt;&gt; Feed &gt;&gt;</span></div>
+      <div class="p4">
+        <aside class="p4-cubes">
+          <div class="p4-cube"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          <p style="font-size:9px;text-align:center;color:#64748b">问答</p>
+          <div class="p4-cube" style="opacity:.5"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          <p style="font-size:9px;text-align:center;color:#64748b">审批</p>
+        </aside>
+        <main class="p4-main">
+          <div class="p4-crumb"><span class="chev chev-sm">&gt;&gt;</span> 广场 <span class="chev chev-sm">&gt;&gt;</span> @公开 <span class="chev chev-sm">&gt;&gt;</span> 最新</div>
+          <div class="p1-card"><strong>@公开 制度政策问答</strong><p style="font-size:10px;color:#94a3b8;margin-top:6px">10 项能力 · 刚刚发布</p></div>
+        </main>
+      </div>
+    </div>
+  </section>
+
+  <!-- 方案5 -->
+  <section class="panel" id="p5">
+    <p style="font-size:12px;color:#94a3b8;margin-bottom:10px">方案 5 · 移动端优先 · 大 &gt;&gt; Hero + 单列卡片</p>
+    <div class="mock" style="max-width:420px;margin:0 auto">
+      <div class="mock-bar"><div class="mock-dots"><i></i><i></i><i></i></div><div class="mock-url">m.plaza</div></div>
+      <div class="p5">
+        <div class="p5-hero">
+          <span class="chev chev-lg">&gt;&gt;</span>
+          <h3>广场 · Newsfeed</h3>
+          <p>定义智能体符号 · @ 受众发布</p>
+        </div>
+        <div class="flow-strip" style="border-radius:8px;margin-bottom:16px"><span>&gt;&gt; &gt;&gt; &gt;&gt;</span><span>&gt;&gt; &gt;&gt; &gt;&gt;</span></div>
+        <div class="p5-card"><strong style="font-size:13px"><span class="chev chev-sm">&gt;&gt;</span> @公开 制度政策问答</strong><p style="font-size:10px;color:#94a3b8;margin-top:8px">我 · 刚刚 · 10 项功能</p></div>
+        <div class="p5-divider">&gt;&gt;</div>
+        <div class="p5-card"><strong style="font-size:13px">@研发部 设备报修</strong><p style="font-size:10px;color:#94a3b8;margin-top:8px">李明 · 12分钟前</p></div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="doc-foot">
+    关联：<a href="06-at-plaza-newsfeed.html">06 @+广场 定稿</a> ·
+    <a href="index.html">设计稿索引</a> ·
+    线上 <a href="http://127.0.0.1:5173/plaza">/plaza</a>
+  </footer>
+</div>
+<script>
+document.getElementById('nav').addEventListener('click', e => {
+  const btn = e.target.closest('button[data-p]');
+  if (!btn) return;
+  document.querySelectorAll('#nav button').forEach(b => b.classList.remove('on'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('on');
+  document.getElementById(btn.dataset.p).classList.add('active');
+});
+</script>
+</body>
+</html>
