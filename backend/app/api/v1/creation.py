@@ -15,6 +15,7 @@ from app.db.session import get_db
 from app.services.app_store import list_published_apps, persist_published_app
 from app.services import catalog_store
 from app.services.file_storage import read_bytes, save_app_icon_data_url, uploads_root
+from app.services.flow_module_api import generate_flow_module_apis
 from app.services.module_suggest import suggest_modules
 from app.services.publish_email import send_publish_delivery_email
 from app.services.email_service import smtp_configured
@@ -31,6 +32,19 @@ class FeasibilityRequest(BaseModel):
 class SuggestModulesRequest(BaseModel):
     text: str
     force_llm: bool = False
+
+
+class FlowModuleNodeIn(BaseModel):
+    node_id: str
+    label: str
+    kind: str  # ingress | module | egress
+    note: str = ""
+
+
+class FlowModuleApisRequest(BaseModel):
+    app_slug: str
+    app_name: str
+    nodes: list[FlowModuleNodeIn]
 
 
 class PublishModuleItem(BaseModel):
@@ -93,6 +107,18 @@ def get_capabilities(db: Session = Depends(get_db)) -> dict:
 @router.post("/suggest-modules")
 def suggest_modules_api(body: SuggestModulesRequest) -> dict:
     return suggest_modules(body.text, force_llm=body.force_llm)
+
+
+@router.post("/flow-module-apis")
+def flow_module_apis_api(body: FlowModuleApisRequest) -> dict:
+    """为数据流各节点（含输入/输出）生成模拟 REST API，优先 DeepSeek。"""
+    if not body.nodes:
+        raise HTTPException(status_code=400, detail="nodes 不能为空")
+    return generate_flow_module_apis(
+        app_slug=body.app_slug,
+        app_name=body.app_name,
+        nodes=[n.model_dump() for n in body.nodes],
+    )
 
 
 @router.post("/feasibility")

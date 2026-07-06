@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { fetchCatalogModules, publishApp } from '../api/client'
 import { publishApiToResult } from '../api/publishHelpers'
-import { runLoadingPublishPipeline } from '../lib/publishFlow'
+import { runLoadingPublishPipeline, finishPublishNavigate } from '../lib/publishFlow'
 import type { PublishResult } from '../data/constants'
 import { DynamicIcon } from '../components/icons'
 import { useTheme } from '../context/ThemeContext'
@@ -24,7 +25,8 @@ interface CapabilityGroup {
   items: Widget[]
 }
 
-export default function ModuleView({ onPublish, active = true }: Props) {
+export default function ModuleView({ onPublish: _onPublish, active = true }: Props) {
+  const navigate = useNavigate()
   const { theme } = useTheme()
   const [widgets, setWidgets] = useState<Widget[]>([])
   const [moduleGroups, setModuleGroups] = useState<CapabilityGroup[]>([])
@@ -86,9 +88,7 @@ export default function ModuleView({ onPublish, active = true }: Props) {
       closeContact: () => setContactOpen(false),
       setLoading,
       setError: setPublishError,
-      onSuccess: (result) => {
-        onPublish(result)
-      },
+      onSuccess: (result) => finishPublishNavigate(navigate, result),
       execute: async () => {
         const publishedModules = buildPublishedModulesFromWidgets(widgets)
         const res = await publishApp(branding.appName || '模块组装应用', 'office', {

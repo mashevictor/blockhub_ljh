@@ -29,6 +29,8 @@ export default function PlazaModuleFlowRail({
   }
 
   return (
+    <div className={`plaza-mflow-rail-wrap${dimmed ? ' dimmed' : ''}`}>
+      <div className="plaza-mflow-rail-label">{label}{!readOnly && onSelect ? ' · 点击选中' : ''}</div>
     <div
       className={`plaza-mflow-rail${dimmed ? ' dimmed' : ''}${paused ? ' paused' : ''}`}
       aria-label={label}
@@ -52,6 +54,7 @@ export default function PlazaModuleFlowRail({
           {tag.label} · {tag.note}
         </button>
       ))}
+    </div>
     </div>
   )
 }

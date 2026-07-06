@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   fetchCatalogSummary,
   fetchIndustryScenarios,
@@ -8,7 +9,7 @@ import {
 } from '../api/client'
 import { publishApp, suggestModules as suggestModulesApi } from '../api/client'
 import { publishApiToResult } from '../api/publishHelpers'
-import { runContactPublishPipeline } from '../lib/publishFlow'
+import { runContactPublishPipeline, finishPublishNavigate } from '../lib/publishFlow'
 import { DynamicIcon, IconCheckCircle } from '../components/icons'
 import { useTheme } from '../context/ThemeContext'
 import {
@@ -78,7 +79,8 @@ function filterByIndustries(
   return out
 }
 
-export default function PromptView({ onPublish, roleApply, onRoleApplyDone, active = true }: Props) {
+export default function PromptView({ onPublish: _onPublish, roleApply, onRoleApplyDone, active = true }: Props) {
+  const navigate = useNavigate()
   const { theme } = useTheme()
   const [prompt, setPrompt] = useState('')
   const [selected, setSelected] = useState<Set<string>>(new Set())
@@ -89,6 +91,7 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
   const [generatePhase, setGeneratePhase] = useState<GeneratePhase | null>(null)
   const loading = generatePhase !== null
   const [contactOpen, setContactOpen] = useState(false)
+  const [contactBusy, setContactBusy] = useState(false)
   const [pendingPreset, setPendingPreset] = useState<RolePreset | null>(null)
   const [catalogLoading, setCatalogLoading] = useState(true)
   const [deliver, setDeliver] = useState<'web' | 'app' | 'both'>('both')
@@ -327,6 +330,18 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
     })
   }, [officeAll, industryAll, theme])
 
+  const quickApplyRolePreset = useCallback((preset: RolePreset) => {
+    const picks = preset.picks.map((p) => pickWithMeta(p))
+    userSuffixRef.current = ''
+    setPromptModules(picks)
+    setIndustryKeys(new Set(preset.picks.filter((p) => p.type === 'industry').map((p) => p.key)))
+    setOfficeCats(new Set(preset.picks.filter((p) => p.type === 'office').map((p) => p.key)))
+    setSelected(new Set(picks.filter((m) => m.type === 'scenario').map((m) => m.key)))
+    setTab('all')
+    skipSyncRef.current = true
+    setPrompt(preset.prompt)
+  }, [])
+
   const applyRolePreset = useCallback((preset: RolePreset) => {
     const picks = buildModulesFromPreset(preset)
 
@@ -540,44 +555,68 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
     [promptModules, prompt, selected, catalogNames],
   )
 
+  const handlePublishSuccess = useCallback((result: PublishResult) => {
+    finishPublishNavigate(navigate, result)
+  }, [navigate])
+
   const handleContactConfirm = useCallback(async (contact: ContactInfo) => {
+    if (contactBusy) return
+    setContactBusy(true)
     const preset = pendingPreset
     if (preset) setPendingPreset(null)
 
-    await runContactPublishPipeline({
-      closeContact: () => setContactOpen(false),
-      setPhase: setGeneratePhase,
-      setError: setPublishError,
-      onSuccess: onPublish,
-      errorMessage: preset
-        ? '生成失败，请确认 API 可用并已填写联系方式'
-        : '生成失败，请确认已选择模块或填写需求，且 API 可用',
-      execute: async (markPhase) => {
-        if (preset) {
+    try {
+      await runContactPublishPipeline({
+        closeContact: () => setContactOpen(false),
+        setPhase: setGeneratePhase,
+        setError: setPublishError,
+        onSuccess: handlePublishSuccess,
+        errorMessage: preset
+          ? '生成失败，请确认 API 可用并已填写联系方式'
+          : '生成失败，请确认已选择模块或填写需求，且 API 可用',
+        execute: async (markPhase) => {
+          if (preset) {
+            markPhase('publish')
+            return executePresetGenerate(preset, contact)
+          }
+          const intent = userIntentText.trim() || prompt.replace(/^>\s*$/, '').trim()
+          const bundle = await resolvePublishBundle({
+            userModules: promptModules,
+            promptText: prompt,
+            scenarioIds: [...selected],
+            catalogNames,
+            intentText: intent,
+          })
           markPhase('publish')
-          return executePresetGenerate(preset, contact)
-        }
-        const intent = userIntentText.trim() || prompt.replace(/^>\s*$/, '').trim()
-        const bundle = await resolvePublishBundle({
-          userModules: promptModules,
-          promptText: prompt,
-          scenarioIds: [...selected],
-          catalogNames,
-          intentText: intent,
-        })
-        markPhase('publish')
-        return runPublish(bundle, contact)
-      },
-    })
-  }, [pendingPreset, executePresetGenerate, runPublish, onPublish, userIntentText, prompt, promptModules, selected, catalogNames])
+          return runPublish(bundle, contact)
+        },
+      })
+    } finally {
+      setContactBusy(false)
+    }
+  }, [contactBusy, pendingPreset, executePresetGenerate, runPublish, handlePublishSuccess, userIntentText, prompt, promptModules, selected, catalogNames])
 
   useEffect(() => {
-    if (!roleApply || catalogLoading) return
-    applyRolePreset(roleApply.preset)
+    if (!roleApply) return
+
     if (roleApply.generate) {
+      quickApplyRolePreset(roleApply.preset)
       setPendingPreset(roleApply.preset)
       setContactOpen(true)
     }
+
+    if (!catalogLoading) {
+      if (roleApply.generate) {
+        const picks = buildModulesFromPreset(roleApply.preset)
+        setPromptModules(picks)
+        setSelected(new Set(picks.filter((m) => m.type === 'scenario').map((m) => m.key)))
+      } else {
+        applyRolePreset(roleApply.preset)
+      }
+    } else if (!roleApply.generate) {
+      quickApplyRolePreset(roleApply.preset)
+    }
+
     onRoleApplyDone?.()
     // eslint-disable-next-line react-hooks/exhaustive-deps -- 仅在弹幕场景注入时触发
   }, [roleApply, catalogLoading])
@@ -873,7 +912,8 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
 
       <ContactGateModal
         open={active && contactOpen}
-        onClose={() => { setContactOpen(false); setPendingPreset(null) }}
+        busy={contactBusy}
+        onClose={() => { if (!contactBusy) { setContactOpen(false); setPendingPreset(null) } }}
         onConfirm={handleContactConfirm}
       />
 

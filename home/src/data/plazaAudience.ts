@@ -15,7 +15,7 @@ export const AUDIENCE_OPTIONS: AudienceOption[] = [
     id: 'public',
     label: '@公开',
     badge: '推荐',
-    desc: '所有人可见 · 进入广场 Newsfeed · 可被发现、转发',
+    desc: '所有人可见 · 进入应用广场 · 可被发现、转发',
     showOnPlazaFeed: true,
     visibility: 'public',
   },
@@ -59,7 +59,7 @@ export function audienceAtLabel(sel: AudienceSelection): string {
 export function audiencePreviewText(sel: AudienceSelection, appName: string): string {
   const opt = AUDIENCE_OPTIONS.find((o) => o.id === sel.type)
   const at = audienceAtLabel(sel)
-  const dest = opt?.showOnPlazaFeed ? '广场可见' : '仅受众通知'
+  const dest = opt?.showOnPlazaFeed ? '应用广场可见' : '仅受众通知'
   const reach =
     sel.type === 'public'
       ? '全员 + Feed 订阅者'

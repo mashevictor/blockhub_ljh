@@ -1,0 +1,109 @@
+/**
+ * 积木仓 BlockHub · 统一设计令牌
+ * Home (5173) · Admin (5174) · 邮件模板 · 广场/我的应用 共用
+ * 使用：在 index.css 顶部 @import '../../shared/design-tokens.css';
+ */
+
+:root {
+  /* —— 品牌色 —— */
+  --bh-brand: #0f172a;
+  --bh-brand-light: #334155;
+  --bh-brand-dark: #020617;
+  --bh-brand-soft: #f1f5f9;
+  --bh-accent: #475569;
+
+  /* —— 语义色 —— */
+  --bh-bg: #eef2f7;
+  --bh-surface: #ffffff;
+  --bh-surface-alt: #f8fafc;
+  --bh-text: #0f172a;
+  --bh-text-secondary: #475569;
+  --bh-muted: #64748b;
+  --bh-border: #e2e8f0;
+  --bh-border-strong: #cbd5e1;
+  --bh-ok: #16a34a;
+  --bh-warn: #f59e0b;
+  --bh-fail: #ef4444;
+  --bh-info: #0284c7;
+
+  /* —— 字体 —— */
+  --bh-font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC",
+    "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --bh-font-mono: "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+
+  /* —— 字号阶梯（正文 15px 基准）—— */
+  --bh-fs-2xs: 11px;
+  --bh-fs-xs: 12px;
+  --bh-fs-sm: 13px;
+  --bh-fs-base: 15px;
+  --bh-fs-md: 17px;
+  --bh-fs-lg: 20px;
+  --bh-fs-xl: 24px;
+  --bh-fs-2xl: 28px;
+
+  /* —— 字重 —— */
+  --bh-fw-normal: 400;
+  --bh-fw-medium: 500;
+  --bh-fw-semibold: 600;
+  --bh-fw-bold: 700;
+  --bh-fw-extrabold: 800;
+
+  /* —— 行高 —— */
+  --bh-lh-tight: 1.35;
+  --bh-lh-normal: 1.6;
+  --bh-lh-relaxed: 1.75;
+
+  /* —— 间距（4px 网格）—— */
+  --bh-space-1: 4px;
+  --bh-space-2: 8px;
+  --bh-space-3: 12px;
+  --bh-space-4: 16px;
+  --bh-space-5: 20px;
+  --bh-space-6: 24px;
+  --bh-space-8: 32px;
+  --bh-space-10: 40px;
+
+  /* —— 圆角 —— */
+  --bh-radius-sm: 8px;
+  --bh-radius-md: 12px;
+  --bh-radius-lg: 14px;
+  --bh-radius-xl: 20px;
+  --bh-radius-2xl: 24px;
+  --bh-radius-pill: 999px;
+
+  /* —— 阴影 —— */
+  --bh-shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.06);
+  --bh-shadow-md: 0 4px 20px rgba(15, 23, 42, 0.08);
+  --bh-shadow-lg: 0 12px 40px rgba(15, 23, 42, 0.12);
+  --bh-shadow-btn: 0 4px 18px rgba(15, 23, 42, 0.28);
+
+  /* —— 渐变 —— */
+  --bh-grad-brand: linear-gradient(145deg, #0f172a 0%, #334155 55%, #475569 100%);
+  --bh-grad-hero: linear-gradient(145deg, #020617 0%, #1e293b 38%, #334155 68%, #64748b 100%);
+
+  /* —— 动效 —— */
+  --bh-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --bh-duration-fast: 0.15s;
+  --bh-duration-normal: 0.25s;
+
+  /* —— 兼容旧变量名（Home / Admin 逐步迁移）—— */
+  --pri: var(--bh-brand);
+  --pri-light: var(--bh-brand-light);
+  --pri-dark: var(--bh-brand-dark);
+  --pri-soft: var(--bh-brand-soft);
+  --bg: var(--bh-bg);
+  --surface: var(--bh-surface);
+  --text: var(--bh-text);
+  --muted: var(--bh-muted);
+  --border: var(--bh-border);
+  --ok: var(--bh-ok);
+  --radius: var(--bh-radius-lg);
+  --shadow: var(--bh-shadow-md);
+  --font-sans: var(--bh-font-sans);
+  --fs-base: var(--bh-fs-base);
+  --fs-sm: var(--bh-fs-sm);
+  --fs-xs: var(--bh-fs-xs);
+  --fs-lg: var(--bh-fs-md);
+  --fs-xl: var(--bh-fs-lg);
+  --grad-brand: var(--bh-grad-brand);
+}

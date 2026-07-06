@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState, type CSSProperties } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { fetchScenarios, publishApp } from '../api/client'
 import { publishApiToResult } from '../api/publishHelpers'
-import { runLoadingPublishPipeline } from '../lib/publishFlow'
+import { runLoadingPublishPipeline, finishPublishNavigate } from '../lib/publishFlow'
 import { INDUSTRIES, type Audience, type PublishResult } from '../data/constants'
 import { DynamicIcon } from '../components/icons'
 import { useTheme } from '../context/ThemeContext'
@@ -24,7 +25,8 @@ interface Props {
   active?: boolean
 }
 
-export default function IndustryView({ onPublish, active = true }: Props) {
+export default function IndustryView({ onPublish: _onPublish, active = true }: Props) {
+  const navigate = useNavigate()
   const { theme } = useTheme()
   const [industry, setIndustry] = useState('office')
   const [step, setStep] = useState(1)
@@ -89,7 +91,7 @@ export default function IndustryView({ onPublish, active = true }: Props) {
       closeContact: () => setContactOpen(false),
       setLoading,
       setError: setPublishError,
-      onSuccess: onPublish,
+      onSuccess: (result) => finishPublishNavigate(navigate, result),
       errorMessage: '发布失败，请确认已登录且 API 可用',
       execute: async () => {
         const scenarioNames = scenes.filter((s) => selected.has(s.id)).map((s) => s.name)

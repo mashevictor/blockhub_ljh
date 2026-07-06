@@ -23,6 +23,7 @@ const EMAIL_SUFFIXES = [
 
 interface Props {
   open: boolean
+  busy?: boolean
   onClose: () => void
   onConfirm: (contact: ContactInfo) => void
 }
@@ -35,19 +36,14 @@ function isValidPhone(v: string) {
   return /^1[3-9]\d{9}$/.test(v.replace(/\s/g, ''))
 }
 
-export default function ContactGateModal({ open, onClose, onConfirm }: Props) {
+export default function ContactGateModal({ open, busy = false, onClose, onConfirm }: Props) {
   const [mode, setMode] = useState<'email' | 'phone'>('email')
   const [value, setValue] = useState('')
   const [activeIdx, setActiveIdx] = useState(0)
   const [historyOpen, setHistoryOpen] = useState(false)
-  const [mounted, setMounted] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
   useBodyScrollLock(open)
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
 
   const historyItems = useMemo(() => contactsForMode(mode), [mode, open])
 
@@ -63,17 +59,17 @@ export default function ContactGateModal({ open, onClose, onConfirm }: Props) {
       setMode('email')
       setValue('')
     }
-    window.setTimeout(() => inputRef.current?.focus(), 80)
+    requestAnimationFrame(() => inputRef.current?.focus())
   }, [open])
 
   useEffect(() => {
-    if (!open) return
+    if (!open || busy) return
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose()
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [open, onClose])
+  }, [open, busy, onClose])
 
   const emailSuggestions = useMemo(() => {
     if (mode !== 'email') return []
@@ -121,24 +117,36 @@ export default function ContactGateModal({ open, onClose, onConfirm }: Props) {
   }
 
   const handleConfirm = () => {
+    if (busy || !canSubmit) return
     const contact = { type: mode, value: value.trim().replace(/\s/g, '') }
     saveContactHistory(contact)
     onConfirm(contact)
   }
 
-  if (!open || !mounted) return null
+  if (!open) return null
 
   return createPortal(
-    <div className="modal-overlay contact-gate-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="modal-card contact-gate-card" role="dialog" aria-labelledby="contact-gate-title">
-        <button type="button" className="modal-close" onClick={onClose} aria-label="关闭">×</button>
+    <div
+      className={`modal-overlay contact-gate-overlay${busy ? ' contact-gate-busy' : ''}`}
+      onClick={(e) => !busy && e.target === e.currentTarget && onClose()}
+    >
+      <div className="modal-card contact-gate-card" role="dialog" aria-labelledby="contact-gate-title" aria-busy={busy}>
+        <button type="button" className="modal-close" onClick={onClose} disabled={busy} aria-label="关闭">×</button>
         <h3 id="contact-gate-title">留下联系方式</h3>
         <p className="modal-sub">生成完成后，我们将把应用链接发送到您的邮箱或手机</p>
+
+        {busy && (
+          <div className="contact-gate-progress" role="status" aria-live="polite">
+            <div className="contact-gate-progress-bar" aria-hidden />
+            <p>正在生成应用，请稍候…</p>
+          </div>
+        )}
 
         <div className="contact-gate-tabs">
           <button
             type="button"
             className={mode === 'email' ? 'on' : ''}
+            disabled={busy}
             onClick={() => {
               setMode('email')
               const saved = contactsForMode('email')
@@ -151,6 +159,7 @@ export default function ContactGateModal({ open, onClose, onConfirm }: Props) {
           <button
             type="button"
             className={mode === 'phone' ? 'on' : ''}
+            disabled={busy}
             onClick={() => {
               setMode('phone')
               const saved = contactsForMode('phone')
@@ -174,6 +183,7 @@ export default function ContactGateModal({ open, onClose, onConfirm }: Props) {
             autoComplete={mode === 'email' ? 'email' : 'tel'}
             placeholder={mode === 'email' ? 'name@company.com' : '138 0000 0000'}
             value={value}
+            disabled={busy}
             onChange={(e) => { setValue(e.target.value); setActiveIdx(0) }}
             onFocus={() => {
               if (emailSuggestions.length === 0 && historyItems.length > 0) setHistoryOpen(true)
@@ -184,13 +194,14 @@ export default function ContactGateModal({ open, onClose, onConfirm }: Props) {
             <button
               type="button"
               className="contact-history-toggle"
+              disabled={busy}
               onClick={() => setHistoryOpen((v) => !v)}
             >
               历史记录 ({historyItems.length})
             </button>
           )}
           {error && <span className="contact-gate-error">{error}</span>}
-          {dropdownItems.length > 0 && (
+          {dropdownItems.length > 0 && !busy && (
             <ul className="contact-gate-suggest" role="listbox">
               {dropdownItems.map((s, i) => (
                 <li key={s}>
@@ -211,14 +222,14 @@ export default function ContactGateModal({ open, onClose, onConfirm }: Props) {
         </div>
 
         <div className="contact-gate-actions">
-          <button type="button" className="btn-ghost" onClick={onClose}>稍后再说</button>
+          <button type="button" className="btn-ghost" onClick={onClose} disabled={busy}>稍后再说</button>
           <button
             type="button"
             className="btn-primary"
-            disabled={!canSubmit}
+            disabled={!canSubmit || busy}
             onClick={handleConfirm}
           >
-            确认并生成
+            {busy ? '生成中…' : '确认并生成'}
           </button>
         </div>
       </div>

@@ -1,92 +1,158 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" xmlns="http://www.w3.org/1999/xhtml">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>积木仓 BlockHub - 您的应用已就绪</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: "Microsoft YaHei", "PingFang SC", "Helvetica Neue", Arial, sans-serif;
-            background: linear-gradient(180deg, #f0f4f8 0%, #e8eef4 100%);
-            color: #333;
-            line-height: 1.7;
-            font-size: 15px;
-            padding: 24px 12px;
-        }
-        .wrap {
-            max-width: 560px;
-            margin: 0 auto;
-            background: #fff;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 4px 24px rgba(0,0,0,0.08);
-        }
-        .header {
-            background: linear-gradient(135deg, #4338ca 0%, #312e81 100%);
-            padding: 28px 24px;
-            text-align: center;
-        }
-        .logo { height: 48px; max-width: 180px; object-fit: contain; }
-        .body-inner { padding: 28px 32px; }
-        .hi { margin-bottom: 18px; font-size: 17px; color: #1a1a1a; font-weight: 500; }
-        .p { margin-bottom: 14px; color: #444; }
-        .app-desc {
-            margin: 20px 0;
-            padding: 16px 18px;
-            background: #f8fafb;
-            border-radius: 8px;
-            color: #555;
-            font-size: 14px;
-            border-left: 4px solid #4338ca;
-        }
-        .download-block {
-            margin: 20px 0;
-            padding: 16px 18px;
-            background: #f0f9ff;
-            border-radius: 8px;
-            border: 1px solid #c7d2fe;
-        }
-        .badge {
-            display: inline-block;
-            padding: 4px 10px;
-            border-radius: 999px;
-            background: #eef2ff;
-            color: #4338ca;
-            font-size: 12px;
-            font-weight: 600;
-            margin-bottom: 12px;
-        }
-        .tip { margin-top: 20px; font-size: 14px; color: #666; }
-        .bye {
-            margin-top: 28px;
-            padding-top: 20px;
-            border-top: 1px solid #eee;
-            font-size: 14px;
-            color: #888;
-        }
-        .footer-brand { color: #4338ca; font-weight: 600; }
-    </style>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="x-apple-disable-message-reformatting" />
+  <title>积木仓 BlockHub - 您的应用已就绪</title>
 </head>
-<body>
-    <div class="wrap">
-        <div class="header">
-            <img src="{LOGO_URL}" alt="积木仓 BlockHub" class="logo" width="160" height="48">
-        </div>
-        <div class="body-inner">
-            <p class="hi">您好，{用户姓名}：</p>
-            <p class="p">您在积木仓 BlockHub 创建的智能应用已发布成功，交付形式：<span class="badge">{交付形式}</span></p>
-            <p class="p">应用名称：<strong>{应用名称}</strong></p>
+<body style="margin:0;padding:0;background-color:#0f0d0a;font-family:Arial,Helvetica,'PingFang SC','Microsoft YaHei',sans-serif;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;">
+  <div style="display:none;max-height:0;overflow:hidden;mso-hide:all;">
+    您的应用「{应用名称}」已发布成功，请查收网页版与安装包访问方式。
+  </div>
 
-            {下载链接区块}
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#0f0d0a;">
+    <tr>
+      <td align="center" style="padding:36px 16px;">
 
-            <div class="app-desc">
-                <strong>已包含能力</strong>：{场景列表}
-            </div>
+        <table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" style="max-width:600px;width:100%;background-color:#1a1612;border-radius:20px;overflow:hidden;border:1px solid #3d3428;">
 
-            <p class="tip">请妥善保管访问链接。如有疑问，可直接回复本邮件，我们会尽快处理。</p>
-            <p class="bye">祝好，<br><span class="footer-brand">积木仓 BlockHub 团队</span></p>
-        </div>
-    </div>
+          <!-- 金色顶线 -->
+          <tr>
+            <td height="3" bgcolor="#d4af37" style="background:linear-gradient(90deg,#96700a 0%,#d4af37 40%,#f0d78c 60%,#d4af37 100%);font-size:0;line-height:3px;">&nbsp;</td>
+          </tr>
+
+          <!-- Header -->
+          <tr>
+            <td align="center" bgcolor="#1a1612" style="background-color:#1a1612;padding:32px 36px 28px;">
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+                <tr>
+                  <td align="center" style="padding-bottom:14px;">
+                    <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+                      <tr>
+                        <td align="center" width="56" height="56" style="width:56px;height:56px;border-radius:14px;border:2px solid #d4af37;background-color:#221c16;">
+                          <img src="{LOGO_URL}" alt="积木仓" width="44" height="44" style="display:block;width:44px;height:44px;border-radius:10px;margin:4px auto;border:0;" />
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+                <tr>
+                  <td align="center" style="font-size:22px;font-weight:700;color:#f5f0e8;line-height:1.35;letter-spacing:0.02em;">
+                    &#10022; 积木仓 BlockHub
+                  </td>
+                </tr>
+                <tr>
+                  <td align="center" style="padding-top:8px;font-size:13px;color:#a89f8f;line-height:1.5;letter-spacing:0.06em;">
+                    INTELLIGENT APP DELIVERY
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- 成功状态条 -->
+          <tr>
+            <td style="padding:0 36px;">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                <tr>
+                  <td style="padding:12px 16px;background-color:#221c16;border-radius:12px;border:1px solid #3d3428;">
+                    <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+                      <tr>
+                        <td width="32" valign="middle" style="font-size:20px;line-height:1;padding-right:10px;">&#9989;</td>
+                        <td valign="middle" style="font-size:14px;font-weight:600;color:#f0d78c;line-height:1.4;">
+                          应用发布成功 · {交付形式}
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- 正文 -->
+          <tr>
+            <td style="padding:28px 36px 24px;">
+
+              <p style="margin:0 0 18px;font-size:17px;font-weight:600;color:#f5f0e8;line-height:1.5;">
+                您好，{用户姓名}：
+              </p>
+
+              <p style="margin:0 0 24px;font-size:15px;color:#c4b9a8;line-height:1.7;">
+                您在积木仓创建的智能应用已部署完成，员工可立即使用。以下为访问方式：
+              </p>
+
+              <!-- 应用名称 -->
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom:24px;">
+                <tr>
+                  <td style="padding:18px 20px;background-color:#221c16;border-radius:14px;border:1px solid #3d3428;border-left:4px solid #d4af37;">
+                    <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+                      <tr>
+                        <td width="36" valign="top" style="font-size:22px;line-height:1;padding-right:12px;">&#9881;</td>
+                        <td valign="top">
+                          <p style="margin:0 0 4px;font-size:11px;font-weight:600;color:#a89f8f;letter-spacing:0.08em;text-transform:uppercase;">应用名称</p>
+                          <p style="margin:0;font-size:19px;font-weight:700;color:#f5f0e8;line-height:1.4;">{应用名称}</p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+
+              {下载链接区块}
+
+              <!-- 能力列表 -->
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom:24px;">
+                <tr>
+                  <td style="padding:18px 20px;background-color:#221c16;border-radius:14px;border:1px solid #3d3428;">
+                    <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+                      <tr>
+                        <td width="36" valign="top" style="font-size:22px;line-height:1;padding-right:12px;">&#9889;</td>
+                        <td valign="top">
+                          <p style="margin:0 0 8px;font-size:13px;font-weight:600;color:#f0d78c;">已包含能力</p>
+                          <p style="margin:0;font-size:14px;color:#c4b9a8;line-height:1.7;">{场景列表}</p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="margin:0 0 24px;font-size:13px;color:#8a8070;line-height:1.65;">
+                &#128274; 请妥善保管访问链接。如有疑问，可直接回复本邮件。
+              </p>
+
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                <tr>
+                  <td style="padding-top:20px;border-top:1px solid #3d3428;">
+                    <p style="margin:0;font-size:14px;color:#a89f8f;line-height:1.6;">
+                      祝好，<br />
+                      <span style="font-weight:700;color:#f0d78c;">积木仓 BlockHub 团队</span>
+                    </p>
+                  </td>
+                </tr>
+              </table>
+
+            </td>
+          </tr>
+
+          <!-- 页脚 -->
+          <tr>
+            <td align="center" bgcolor="#14110e" style="background-color:#14110e;padding:20px 36px;border-top:1px solid #3d3428;">
+              <p style="margin:0 0 6px;font-size:11px;color:#6b6358;line-height:1.5;">
+                此邮件由系统自动发送，请勿转发链接给无关人员
+              </p>
+              <p style="margin:0;font-size:11px;color:#6b6358;line-height:1.5;">
+                &copy; 积木仓 BlockHub &nbsp;&#183;&nbsp; 五分钟搭好，老板员工即刻用
+              </p>
+            </td>
+          </tr>
+
+        </table>
+
+      </td>
+    </tr>
+  </table>
 </body>
 </html>

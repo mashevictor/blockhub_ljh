@@ -1,3 +1,5 @@
+import { defaultFlowHint } from '../data/moduleCatalog'
+
 /** 单个模块在数据流中的节点 */
 export interface ModuleFlowStep {
   id: string
@@ -26,7 +28,7 @@ const DEFAULT_NOTES: Record<string, string> = {
 }
 
 function defaultNote(label: string): string {
-  return DEFAULT_NOTES[label] ?? `数据流经 ${label}`
+  return DEFAULT_NOTES[label] ?? defaultFlowHint(label)
 }
 
 export function buildDefaultFlow(appKey: string, moduleLabels: string[]): AppModuleFlow {
@@ -83,6 +85,30 @@ export function addFlowStep(flow: AppModuleFlow, label: string, note?: string): 
   return saveModuleFlow({ ...flow, steps: [...flow.steps, step] })
 }
 
+/** 在指定节点之后插入模块（用于「> 添加模块」） */
+export function insertFlowStepAfter(
+  flow: AppModuleFlow,
+  afterStepId: string | null,
+  label: string,
+  note?: string,
+): AppModuleFlow {
+  const trimmed = label.trim()
+  const step: ModuleFlowStep = {
+    id: `${flow.appKey}-step-${Date.now()}`,
+    label: trimmed,
+    note: note?.trim() || defaultNote(trimmed),
+    order: 0,
+  }
+  if (!afterStepId) {
+    return saveModuleFlow({ ...flow, steps: [...flow.steps, step].map((s, i) => ({ ...s, order: i })) })
+  }
+  const idx = flow.steps.findIndex((s) => s.id === afterStepId)
+  if (idx < 0) return addFlowStep(flow, trimmed, note)
+  const steps = [...flow.steps]
+  steps.splice(idx + 1, 0, step)
+  return saveModuleFlow({ ...flow, steps: steps.map((s, i) => ({ ...s, order: i })) })
+}
+
 export function updateFlowStep(flow: AppModuleFlow, stepId: string, patch: Partial<Pick<ModuleFlowStep, 'label' | 'note'>>): AppModuleFlow {
   const steps = flow.steps.map((s) =>
     s.id === stepId ? { ...s, ...patch } : s,
@@ -102,8 +128,18 @@ export function moveFlowStep(flow: AppModuleFlow, stepId: string, dir: -1 | 1): 
   if (idx < 0) return flow
   const next = idx + dir
   if (next < 0 || next >= flow.steps.length) return flow
+  return reorderFlowSteps(flow, idx, next)
+}
+
+/** 拖拽排序：将 fromIndex 位置的模块移到 toIndex */
+export function reorderFlowSteps(flow: AppModuleFlow, fromIndex: number, toIndex: number): AppModuleFlow {
+  if (fromIndex === toIndex) return flow
+  if (fromIndex < 0 || toIndex < 0 || fromIndex >= flow.steps.length || toIndex >= flow.steps.length) {
+    return flow
+  }
   const steps = [...flow.steps]
-  ;[steps[idx], steps[next]] = [steps[next], steps[idx]]
+  const [removed] = steps.splice(fromIndex, 1)
+  steps.splice(toIndex, 0, removed)
   return saveModuleFlow({
     ...flow,
     steps: steps.map((s, i) => ({ ...s, order: i })),
@@ -141,4 +177,23 @@ export function buildFlowRailTags(steps: ModuleFlowStep[], laneIndex: 0 | 1): Fl
 
 export function flowStepLabel(step: ModuleFlowStep): string {
   return `${step.label} · ${step.note}`
+}
+
+/** 数据流虚拟节点 ID */
+export const FLOW_INGRESS_ID = '__ingress__'
+export const FLOW_EGRESS_ID = '__egress__'
+
+export function buildFlowApiNodeList(steps: ModuleFlowStep[]) {
+  const nodes: Array<{ node_id: string; label: string; kind: string; note: string }> = [
+    { node_id: FLOW_INGRESS_ID, label: '业务输入', kind: 'ingress', note: '用户 / 业务请求进入' },
+  ]
+  for (const s of steps) {
+    nodes.push({ node_id: s.id, label: s.label, kind: 'module', note: s.note })
+  }
+  nodes.push({ node_id: FLOW_EGRESS_ID, label: '触达输出', kind: 'egress', note: '员工 / 管理者可见' })
+  return nodes
+}
+
+export function flowStepsFingerprint(steps: ModuleFlowStep[]): string {
+  return steps.map((s) => `${s.label}:${s.note}`).join('|')
 }

@@ -5,7 +5,19 @@ import { addMyApp } from './myAppsStorage'
 
 export const JUST_PUBLISHED_STORAGE_KEY = 'blockhub:just-published'
 
-export type PublishWorkPhase = 'analyze' | 'publish'
+export type PublishWorkPhase = 'analyze' | 'publish' | 'redirect'
+
+/** 发布 loading 遮罩最长展示时间（含「理解需求」「生成应用」两步） */
+export const PUBLISH_OVERLAY_MAX_MS = 2000
+/** analyze 步自动切到 publish 的时长 */
+export const PUBLISH_ANALYZE_PHASE_MS = 600
+
+function startOverlayPhaseTimers(setPhase: (phase: PublishWorkPhase | null) => void): () => void {
+  const analyzeTimer = window.setTimeout(() => setPhase('publish'), PUBLISH_ANALYZE_PHASE_MS)
+  return () => {
+    window.clearTimeout(analyzeTimer)
+  }
+}
 
 export interface JustPublishedHint {
   appKey: string
@@ -53,7 +65,7 @@ export function clearJustPublished(): void {
   }
 }
 
-/** 保存到「我的应用」并跳转 /plaza/my（等同合同页 loadList + setTab('preview')） */
+/** 保存到「我的应用」并跳转 /plaza/my */
 export function finishPublishNavigate(navigate: NavigateFunction, result: PublishResult): boolean {
   const saved = addMyApp(result)
   const appKey = appStorageKey(result)
@@ -62,7 +74,14 @@ export function finishPublishNavigate(navigate: NavigateFunction, result: Publis
   } else {
     console.warn('[publishFlow] missing appId/webUrl, cannot highlight new app', result)
   }
-  navigate(ROUTES.plazaMyApps)
+  const target = ROUTES.plazaMyApps
+  navigate(target, { replace: true })
+  // 部分环境下 react-router navigate 可能未生效，短延迟后硬跳转兜底
+  window.setTimeout(() => {
+    if (window.location.pathname !== target) {
+      window.location.assign(target)
+    }
+  }, 150)
   return saved
 }
 
@@ -81,13 +100,19 @@ export async function runContactPublishPipeline(opts: {
   onSuccess: (result: PublishResult) => void
   errorMessage?: string
 }): Promise<void> {
-  opts.closeContact()
   opts.setError(null)
   opts.setPhase('analyze')
+  opts.closeContact()
+  const clearOverlayTimers = startOverlayPhaseTimers(opts.setPhase)
   try {
-    const result = await opts.execute((phase) => opts.setPhase(phase))
+    const result = await opts.execute((phase) => {
+      if (phase === 'publish') opts.setPhase('publish')
+    })
+    clearOverlayTimers()
+    opts.setPhase('redirect')
     opts.onSuccess(result)
   } catch {
+    clearOverlayTimers()
     opts.setPhase(null)
     opts.setError(opts.errorMessage ?? '发布失败，请确认 API 可用并已填写联系方式')
   }
@@ -102,13 +127,17 @@ export async function runLoadingPublishPipeline(opts: {
   onSuccess: (result: PublishResult) => void
   errorMessage?: string
 }): Promise<void> {
-  opts.closeContact()
   opts.setError(null)
   opts.setLoading(true)
+  opts.closeContact()
+  const maxTimer = window.setTimeout(() => opts.setLoading(false), PUBLISH_OVERLAY_MAX_MS)
   try {
     const result = await opts.execute()
+    window.clearTimeout(maxTimer)
+    opts.setLoading(false)
     opts.onSuccess(result)
   } catch {
+    window.clearTimeout(maxTimer)
     opts.setLoading(false)
     opts.setError(opts.errorMessage ?? '发布失败，请确认 API 可用')
   }

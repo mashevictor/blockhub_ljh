@@ -1,3 +1,5 @@
+@import '../../shared/design-tokens.css';
+
 :root {
   --pri: #0f172a;
   --pri-light: #334155;

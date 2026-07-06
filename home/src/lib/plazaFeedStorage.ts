@@ -107,16 +107,16 @@ export function publishToPlazaFeed(
   return entry
 }
 
-/** 广场 Feed：用户公开/部门帖 + Mock 演示数据 */
+/** 应用广场 Feed：仅 @公开 的应用（用户发布 + 演示数据） */
 export function loadPlazaFeedItems(): PlazaFeedItem[] {
   const userPosts = loadStoredPlazaPosts()
-    .filter((p) => p.audienceType === 'public' || p.audienceType === 'dept')
+    .filter((p) => p.audienceType === 'public')
     .map((p) => ({
       ...p,
       timeLabel: formatTimeLabel(p.savedAt),
     }))
   const mockIds = new Set(userPosts.map((p) => p.id))
-  const mock = PLAZA_MOCK_FEED.filter((m) => !mockIds.has(m.id))
+  const mock = PLAZA_MOCK_FEED.filter((m) => m.visibility === 'public' && !mockIds.has(m.id))
   return [...userPosts, ...mock]
 }
 

@@ -86,7 +86,7 @@ export default function HomeApp() {
           </div>
           <ViewModeSwitcher value={view} onChange={handleViewChange} />
           <div className="header-actions">
-            <Link to={ROUTES.plazaFeed} className="btn-plaza-nav">📡 广场</Link>
+            <Link to={ROUTES.plazaFeed} className="btn-plaza-nav">📡 应用广场</Link>
             <Link to={ROUTES.plazaMyApps} className="btn-my-apps" title="查看本浏览器发布过的应用">
               <IconLayers size={15} />
               我的应用

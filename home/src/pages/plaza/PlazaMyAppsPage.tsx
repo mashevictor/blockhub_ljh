@@ -98,9 +98,20 @@ export default function PlazaMyAppsPage() {
         <Link to={ROUTES.home} className="plaza-my-create-btn">+ 继续创建</Link>
       </div>
       <p className="plaza-main-hint">
-        你是这些应用的<strong>创建者</strong>，可编辑模块数据流、发布到广场 @ 受众。
+        你是这些应用的<strong>创建者</strong>，可编辑模块数据流、发布到应用广场 @ 受众。
         {user ? ` 已登录 ${user.email}` : ' 未登录时数据仅存本设备。'}
       </p>
+
+      {apps.length > 0 && (
+        <div className="plaza-my-guide" role="note">
+          <strong>快速上手</strong>
+          <ul>
+            <li><span>①</span> 点应用右侧 <strong>「管理模块」</strong> 展开详情</li>
+            <li><span>②</span> 在<strong>模块顺序</strong>栏按住 ⠿ 拖动调整顺序</li>
+            <li><span>③</span> <strong>「复制链接」</strong> 发给员工，<strong>「打开」</strong> 预览网页版</li>
+          </ul>
+        </div>
+      )}
 
       {saveFailed && (
         <p className="publish-save-warn" role="alert">
@@ -160,10 +171,10 @@ export default function PlazaMyAppsPage() {
                     <div className="plaza-my-item-actions">
                       <button
                         type="button"
-                        className="btn-ghost"
+                        className={`btn-ghost${expanded ? ' on' : ''}`}
                         onClick={() => setExpandedKey(expanded && !isNew ? null : key)}
                       >
-                        {expanded ? '收起' : '模块流 / 详情'}
+                        {expanded ? '收起详情' : '管理模块'}
                       </button>
                       <button
                         type="button"

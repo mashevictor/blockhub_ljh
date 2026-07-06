@@ -38,6 +38,26 @@ def _post_chat(messages: list[dict], *, temperature: float = 0.2) -> str | None:
         return None
 
 
+def deepseek_json_chat(system: str, user: str, *, temperature: float = 0.25) -> dict | None:
+    """通用 JSON 对话，失败返回 None。"""
+    raw = _post_chat([
+        {"role": "system", "content": system},
+        {"role": "user", "content": user},
+    ], temperature=temperature)
+    if not raw:
+        return None
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError:
+        m = re.search(r"\{[\s\S]*\}", raw)
+        if not m:
+            return None
+        try:
+            return json.loads(m.group())
+        except json.JSONDecodeError:
+            return None
+
+
 def suggest_with_deepseek(user_text: str) -> dict | None:
     """返回 { items: [{key,label,reason,score,source}], supplemented: [...] }"""
     catalog = capability_catalog_for_llm()

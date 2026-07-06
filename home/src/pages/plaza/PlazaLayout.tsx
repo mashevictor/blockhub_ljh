@@ -1,9 +1,9 @@
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import BrandMark from '../../components/BrandMark'
 import { BRAND } from '../../data/brand'
-import { PLAZA_TRENDS } from '../../data/plazaMock'
 import { IconLayers } from '../../components/icons'
 import { useMyApps } from '../../hooks/useMyApps'
+import { loadPlazaFeedItems } from '../../lib/plazaFeedStorage'
 import { ROUTES } from '../../routes/paths'
 
 function sideLinkClass({ isActive }: { isActive: boolean }) {
@@ -17,8 +17,9 @@ function topLinkClass({ isActive }: { isActive: boolean }) {
 export default function PlazaLayout() {
   const myApps = useMyApps()
   const myAppsCount = myApps.length
+  const publicFeedCount = loadPlazaFeedItems().length
   const { pathname } = useLocation()
-  const onMyApps = pathname === ROUTES.plazaMyApps
+  const onMyAppsPage = pathname === ROUTES.plazaMyApps
 
   return (
     <div className="plaza-page">
@@ -29,7 +30,9 @@ export default function PlazaLayout() {
         </Link>
         <nav className="plaza-topbar-nav">
           <Link to={ROUTES.home}>创建应用</Link>
-          <NavLink to={ROUTES.plazaFeed} end className={topLinkClass}>广场</NavLink>
+          <NavLink to={ROUTES.plazaFeed} end className={topLinkClass}>
+            📡 应用广场
+          </NavLink>
           <NavLink to={ROUTES.plazaMyApps} className={topLinkClass}>
             <IconLayers size={14} /> 我的应用
             {myAppsCount > 0 && <span className="plaza-my-badge">{myAppsCount}</span>}
@@ -37,41 +40,35 @@ export default function PlazaLayout() {
         </nav>
       </header>
 
-      <div className="plaza-flow-strip" aria-hidden>
-        <span>&gt;&gt; 应用发布 · 模块数据流 · @ 受众 · Newsfeed &gt;&gt;</span>
-        <span>&gt;&gt; 应用发布 · 模块数据流 · @ 受众 · Newsfeed &gt;&gt;</span>
+      <div className="plaza-flow-strip" role="marquee" aria-label="应用广场提示">
+        <p className="plaza-flow-strip-text">应用发布 · 模块数据流 · @ 受众 · 应用广场 · 我的应用</p>
       </div>
 
       <div className="plaza-layout">
-        <aside className="plaza-side" aria-label="广场导航">
+        <aside className="plaza-side" aria-label="应用广场导航">
           <h4>导航</h4>
           <Link to={ROUTES.home}>🏠 创建应用</Link>
           <NavLink to={ROUTES.plazaFeed} end className={sideLinkClass}>
-            📡 广场 · Newsfeed
+            📡 应用广场
+            {publicFeedCount > 0 && <span className="plaza-side-count">{publicFeedCount}</span>}
           </NavLink>
           <NavLink to={ROUTES.plazaMyApps} className={sideLinkClass}>
             📱 我的应用
             {myAppsCount > 0 && <span className="plaza-side-count">{myAppsCount}</span>}
           </NavLink>
           <p className="plaza-side-note">
-            <span className="plaza-side-chev">&gt;&gt;</span>
-            Feed 用应用数据 · 弹幕区展示模块流
+            应用广场浏览 @公开 应用；我的应用管理你创建的应用与模块 API
           </p>
         </aside>
 
         <Outlet />
 
-        {!onMyApps && (
+        {!onMyAppsPage && (
           <aside className="plaza-right">
-            <h4>🔥 热门 @ 标签</h4>
-            {PLAZA_TRENDS.map((t) => (
-              <div key={t.tag} className="plaza-trend">
-                <strong>{t.tag}</strong>
-                <span>{t.count}</span>
-              </div>
-            ))}
-            <h4 style={{ marginTop: 20 }}>📊 广场统计</h4>
-            <p className="plaza-stats">今日发布 <strong>23</strong><br />互动 <strong>1.2k</strong><br />公开应用 <strong>456</strong></p>
+            <h4>📊 应用广场</h4>
+            <p className="plaza-stats">@公开 应用 <strong>{publicFeedCount}</strong></p>
+            <p className="plaza-stats">我的应用 <strong>{myAppsCount}</strong></p>
+            <Link to={ROUTES.plazaMyApps} className="plaza-right-link">去我的应用 →</Link>
           </aside>
         )}
       </div>

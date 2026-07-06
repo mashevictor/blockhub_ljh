@@ -135,7 +135,7 @@ export default function PlazaFeedPage() {
       <div className="plaza-main-head">
         <h1>
           <span className="plaza-title-chev" aria-hidden>&gt;&gt;</span>
-          广场 · Newsfeed
+          应用广场
         </h1>
         <div className="plaza-filters">
           {(['latest', 'hot', 'mention'] as const).map((key) => (
@@ -152,7 +152,7 @@ export default function PlazaFeedPage() {
       </div>
 
       <p className="plaza-main-hint">
-        基于已发布应用数据展示 Feed；选中应用后上方弹幕区显示该应用的<strong>模块数据流</strong>，创建者可编辑节点。
+        浏览所有人 <strong>@公开</strong> 发布的应用；选中卡片可查看该应用的模块数据流（创建者可编辑）。
       </p>
 
       {selected ? (

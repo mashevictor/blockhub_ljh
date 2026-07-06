@@ -26,6 +26,7 @@ def send_email(
     html: str | None = None,
     *,
     attachments: list[tuple[str, Path]] | None = None,
+    reply_to: str | None = None,
 ) -> bool:
     """发送 HTML + 纯文本邮件，可选附件（如 APK）。"""
     if not smtp_configured():
@@ -36,6 +37,10 @@ def send_email(
     msg["Subject"] = subject
     msg["From"] = formataddr((settings.smtp_from_name, settings.smtp_user))
     msg["To"] = to
+    if reply_to:
+        msg["Reply-To"] = reply_to
+    elif settings.smtp_user:
+        msg["Reply-To"] = settings.smtp_user
 
     alt = MIMEMultipart("alternative")
     alt.attach(MIMEText(text, "plain", "utf-8"))

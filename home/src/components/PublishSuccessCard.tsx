@@ -124,9 +124,9 @@ export default function PublishSuccessCard({
         <div className="plaza-published-strip" role="status">
           <DynamicIcon name="layers" size={14} />
           <span>
-            已发布到广场 · <strong>{plazaMeta.label}</strong>
+            已发布到应用广场 · <strong>{plazaMeta.label}</strong>
             {plazaMeta.onPlazaFeed && (
-              <> · <Link to={ROUTES.plazaFeed}>去广场查看 →</Link></>
+              <> · <Link to={ROUTES.plazaFeed}>去应用广场查看 →</Link></>
             )}
           </span>
         </div>
@@ -203,7 +203,7 @@ export default function PublishSuccessCard({
             className="btn-ghost btn-plaza-publish"
             onClick={() => setShowPicker(true)}
           >
-            📡 发布到广场
+            📡 发布到应用广场
           </button>
         )}
         {plazaMeta && !showPicker && (

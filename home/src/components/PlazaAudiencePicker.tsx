@@ -28,9 +28,9 @@ export default function PlazaAudiencePicker({ appName, initial, onConfirm, onCan
 
   return (
     <div className="plaza-audience-picker" role="region" aria-label="选择 @ 受众范围">
-      <h4>📡 发布到广场 · 选择 @ 范围</h4>
+      <h4>📡 发布到应用广场 · 选择 @ 范围</h4>
       <p className="plaza-audience-picker-hint">
-        <code>@</code> 表示应用交付给谁。选 <strong>@公开</strong> 会出现在广场动态流。
+        <code>@</code> 表示应用交付给谁。选 <strong>@公开</strong> 会出现在应用广场列表。
       </p>
 
       <div className="plaza-audience-options">
@@ -88,7 +88,7 @@ export default function PlazaAudiencePicker({ appName, initial, onConfirm, onCan
         </button>
       </div>
       <p className="plaza-audience-footnote">
-        @公开 动态可在 <Link to={ROUTES.plazaFeed}>广场</Link> 查看 · 后端 API W4 落库
+        @公开 应用可在 <Link to={ROUTES.plazaFeed}>应用广场</Link> 查看 · 后端 API W4 落库
       </p>
     </div>
   )
