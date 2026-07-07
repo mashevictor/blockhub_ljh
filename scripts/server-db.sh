@@ -37,16 +37,20 @@ echo " 目录: $ROOT"
 echo "=============================================="
 
 echo ""
-echo ">>> [1/4] 启动 PostgreSQL + Redis（Docker）"
+echo ">>> [1/5] 确保 pgvector 可用（009 迁移依赖）"
+bash "$ROOT/scripts/setup-pgvector.sh"
+
+echo ""
+echo ">>> [2/5] 启动 PostgreSQL + Redis（Docker）"
 docker compose up -d postgres redis 2>/dev/null || true
 sleep 2
 
 echo ""
-echo ">>> [2/4] 修复漂移 + alembic upgrade head"
+echo ">>> [3/5] 修复漂移 + alembic upgrade head"
 bash "$ROOT/scripts/repair-db.sh"
 
 echo ""
-echo ">>> [3/4] 校验 schema（009 知识库 + pgvector）"
+echo ">>> [4/5] 校验 schema（009 知识库 + pgvector）"
 cd "$ROOT/backend"
 source .venv/bin/activate
 python3 <<'PY'
@@ -77,7 +81,7 @@ PY
 
 if [ "$NO_RESTART" = false ]; then
   echo ""
-  echo ">>> [4/4] 重启 API"
+  echo ">>> [5/5] 重启 API"
   sudo systemctl restart blockhub-api
   sleep 2
   curl -sf --max-time 5 http://127.0.0.1:8001/api/v1/health && echo " API health OK" || {
@@ -86,7 +90,7 @@ if [ "$NO_RESTART" = false ]; then
   }
 else
   echo ""
-  echo ">>> [4/4] 跳过 API 重启 (--no-restart)"
+  echo ">>> [5/5] 跳过 API 重启 (--no-restart)"
 fi
 
 echo ""

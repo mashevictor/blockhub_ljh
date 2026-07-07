@@ -6,7 +6,10 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
-echo "==> [0/9] docker compose (postgres + redis)"
+echo "==> [0/9] docker compose (postgres pgvector + redis)"
+bash "$ROOT/scripts/setup-pgvector.sh" || {
+  echo "WARN: pgvector setup failed — migration 009 may fail"
+}
 docker compose up -d postgres redis 2>/dev/null || true
 
 echo "=========================================="
