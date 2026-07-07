@@ -1,4 +1,4 @@
-"""L3 Catalog seed: 65 office + 49 industry scenarios, 40 capabilities, 11 agents."""
+"""L3 Catalog seed: 96 office + 49 industry scenarios, 41 capabilities, 11 agents."""
 
 AGENTS = [
     {
@@ -7,7 +7,7 @@ AGENTS = [
         "icon": "✨",
         "color": "#6366f1",
         "status": "active",
-        "description": "选场景、评估方案、一键发布给员工使用",
+        "description": "选场景、评估方案、一键发布，多端同步可用",
         "pipeline": "需求→研判→澄清→Schema→编排→发布",
         "capabilities": ["creation", "form_widget", "list_widget", "rbac_page"],
         "office_count": 0,
@@ -476,7 +476,7 @@ RECENT_ACTIVITIES = [
 ]
 
 ARCH_LAYERS = [
-    {"level": "L5", "name": "Runtime", "desc": "员工端 Web/App、ChatWidget", "visible": True},
+    {"level": "L5", "name": "Runtime", "desc": "多端 Web/App、ChatWidget", "visible": True},
     {"level": "L4", "name": "创建", "desc": "7步向导、可行性报告、Page Schema", "visible": True},
     {"level": "L3", "name": "Catalog", "desc": "65 办公 + 49 行业场景清单", "visible": True},
     {"level": "L2", "name": "Capability", "desc": "36 原子能力注册与映射", "visible": False},

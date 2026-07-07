@@ -66,6 +66,9 @@ class AppRecord(Base):
     prompt: Mapped[str] = mapped_column(Text, nullable=False, default="")
     contact_email: Mapped[str] = mapped_column(String(255), nullable=False, default="")
     contact_phone: Mapped[str] = mapped_column(String(64), nullable=False, default="")
+    plaza_visibility: Mapped[str] = mapped_column(String(32), nullable=False, default="none")
+    plaza_dept_name: Mapped[str] = mapped_column(String(120), nullable=False, default="")
+    plaza_published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_by_id: Mapped[str | None] = mapped_column(ForeignKey("users.id"), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 

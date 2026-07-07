@@ -57,7 +57,7 @@ export default function IndustryView({ onPublish: _onPublish, active = true }: P
         setSelected(new Set(items.slice(0, Math.min(6, items.length)).map((s) => s.id)))
       })
       .catch(() => {
-        setSceneError('无法加载场景列表，请检查 API 与 PostgreSQL')
+        setSceneError('无法加载场景列表，请稍后重试')
         setScenes([])
         setSelected(new Set())
       })
@@ -92,7 +92,7 @@ export default function IndustryView({ onPublish: _onPublish, active = true }: P
       setLoading,
       setError: setPublishError,
       onSuccess: (result) => finishPublishNavigate(navigate, result),
-      errorMessage: '发布失败，请确认已登录且 API 可用',
+      errorMessage: '发布失败，请确认已登录后重试',
       execute: async () => {
         const scenarioNames = scenes.filter((s) => selected.has(s.id)).map((s) => s.name)
         const publishedModules = buildPublishedModulesFromIndustry({
@@ -178,7 +178,7 @@ export default function IndustryView({ onPublish: _onPublish, active = true }: P
 
       {step === 2 && (
         <>
-          {scenesLoading && <p className="catalog-loading">正在从 PostgreSQL 加载场景…</p>}
+          {scenesLoading && <p className="catalog-loading">正在加载场景…</p>}
           {sceneError && (
             <div className="catalog-error">
               <p>{sceneError}</p>
@@ -236,9 +236,9 @@ export default function IndustryView({ onPublish: _onPublish, active = true }: P
         <>
           <div className="audience-panel">
             {([
-              ['b', '🏢 给员工用', '内部员工：问答、审批、看板等完整功能'],
+              ['b', '🏢 内部使用', '问答、审批、看板等完整功能'],
               ['c', '👤 给客户/玩家用', '对外轻量版：以问答、查询为主'],
-              ['both', '🔀 内外都要', '同时生成员工版与对外版'],
+              ['both', '🔀 内外都要', '同时生成内部版与对外版'],
             ] as const).map(([k, title, desc]) => (
               <label key={k} className={`audience-opt${audience === k ? ' on' : ''}`}>
                 <input type="radio" name="aud" checked={audience === k} onChange={() => setAudience(k)} />
@@ -256,7 +256,7 @@ export default function IndustryView({ onPublish: _onPublish, active = true }: P
           <div className="step-actions">
             <button type="button" className="btn-ghost" onClick={() => setStep(2)}>上一步</button>
             <button type="button" className="btn-primary" disabled={loading} onClick={handlePublish}>
-              {loading ? '发布中…' : '🚀 发布给员工使用'}
+              {loading ? '发布中…' : '🚀 开始发布'}
             </button>
           </div>
         </>

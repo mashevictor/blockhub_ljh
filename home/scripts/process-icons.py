@@ -140,7 +140,7 @@ def main() -> None:
     manifest = {
         "name": "积木仓 BlockHub",
         "short_name": "积木仓",
-        "description": "五分钟搭好，老板员工即刻用",
+        "description": "五分钟搭好，打开就能用",
         "start_url": "/",
         "display": "standalone",
         "background_color": "#fdf2f8",

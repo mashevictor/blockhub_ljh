@@ -10,13 +10,13 @@ export interface ScenarioPick {
   promptLine: string
 }
 
-/** 从 114 场景 Catalog 抽取的可点选场景卡片（方案 A 主页） */
+/** 从业务场景库抽取的可点选场景卡片 */
 export const SCENARIO_PICKS: ScenarioPick[] = [
   // 人事行政
-  { key: 'leave', category: '人事行政', icon: '📝', title: '请假申请', desc: '员工在线请假，多级审批自动流转', capability: 'approval_flow', agent: '审批', promptLine: '员工请假申请与多级审批（含年假/事假/病假）' },
+  { key: 'leave', category: '人事行政', icon: '📝', title: '请假申请', desc: '在线请假，多级审批自动流转', capability: 'approval_flow', agent: '审批', promptLine: '请假申请与多级审批（含年假/事假/病假）' },
   { key: 'expense', category: '人事行政', icon: '💰', title: '费用报销', desc: '上传发票，财务审核，自动入账提醒', capability: 'approval_flow', agent: '审批', promptLine: '费用报销审批流（发票上传+财务审核+打款提醒）' },
   { key: 'attendance', category: '人事行政', icon: '⏰', title: '考勤查询', desc: '打卡记录、异常申诉、部门统计', capability: 'chart_basic', agent: '报表', promptLine: '考勤查询与异常申诉（对接考勤数据看板）' },
-  { key: 'handbook', category: '人事行政', icon: '📖', title: '员工手册问答', desc: '制度、福利、入职政策智能问答', capability: 'chat_qa', agent: '问答', promptLine: '员工手册与福利政策智能问答' },
+  { key: 'handbook', category: '人事行政', icon: '📖', title: '制度手册问答', desc: '制度、福利、入职政策智能问答', capability: 'chat_qa', agent: '问答', promptLine: '制度手册与福利政策智能问答' },
 
   // 流程审批
   { key: 'approval_general', category: '流程审批', icon: '✅', title: '通用审批', desc: '自定义表单 + 工作流，适配各类申请', capability: 'approval_flow', agent: '审批', promptLine: '通用审批工作流（表单+多级路由+待办中心）' },
@@ -31,7 +31,7 @@ export const SCENARIO_PICKS: ScenarioPick[] = [
   { key: 'meeting', category: '知识协同', icon: '🗓', title: '会议纪要检索', desc: '历史纪要语义搜索，快速回顾决策', capability: 'kb_search', agent: '知识库', promptLine: '会议纪要上传与语义检索' },
 
   // 数据报表
-  { key: 'dashboard', category: '数据报表', icon: '📊', title: '部门看板', desc: 'KPI 卡片 + 图表，管理者一屏总览', capability: 'chart_dashboard', agent: '报表', promptLine: '部门运营数据看板（KPI+折线/柱状图）' },
+  { key: 'dashboard', category: '数据报表', icon: '📊', title: '部门看板', desc: 'KPI 卡片 + 图表，一屏看清运营情况', capability: 'chart_dashboard', agent: '报表', promptLine: '部门运营数据看板（KPI+折线/柱状图）' },
   { key: 'nl_query', category: '数据报表', icon: '🔍', title: '智能问数', desc: '「上月审批通过率？」说话即可查询', capability: 'data_nl_query', agent: '报表', promptLine: '对话式数据查询与统计报表' },
   { key: 'funnel', category: '数据报表', icon: '📉', title: '销售漏斗', desc: '线索→商机→成交转化可视化', capability: 'chart_funnel', agent: '报表', promptLine: '销售漏斗看板（线索商机转化追踪）' },
   { key: 'approval_stats', category: '数据报表', icon: '📈', title: '审批效率统计', desc: '平均处理时长、通过率趋势', capability: 'chart_basic', agent: '报表', promptLine: '审批效率与通过率统计报表' },

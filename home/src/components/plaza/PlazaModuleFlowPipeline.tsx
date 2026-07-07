@@ -41,7 +41,7 @@ function EndpointNode({
     <>
       <span className="plaza-mflow-pipe-endpoint-icon" aria-hidden>📤</span>
       <span className="plaza-mflow-pipe-endpoint-label">触达输出</span>
-      <span className="plaza-mflow-pipe-endpoint-sub">员工 / 管理者可见</span>
+      <span className="plaza-mflow-pipe-endpoint-sub">团队可见</span>
     </>
   )
   return (

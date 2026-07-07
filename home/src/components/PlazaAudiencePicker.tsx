@@ -15,9 +15,10 @@ interface Props {
   initial?: AudienceSelection | null
   onConfirm: (selection: AudienceSelection) => void
   onCancel: () => void
+  busy?: boolean
 }
 
-export default function PlazaAudiencePicker({ appName, initial, onConfirm, onCancel }: Props) {
+export default function PlazaAudiencePicker({ appName, initial, onConfirm, onCancel, busy = false }: Props) {
   const [type, setType] = useState<AudienceType>(initial?.type ?? 'public')
   const [deptName, setDeptName] = useState(initial?.deptName ?? DEPT_PRESETS[0])
 
@@ -78,17 +79,18 @@ export default function PlazaAudiencePicker({ appName, initial, onConfirm, onCan
       <p className="plaza-audience-preview">{audiencePreviewText(selection, appName)}</p>
 
       <div className="plaza-audience-actions">
-        <button type="button" className="btn-ghost" onClick={onCancel}>取消</button>
+        <button type="button" className="btn-ghost" onClick={onCancel} disabled={busy}>取消</button>
         <button
           type="button"
           className="btn-primary plaza-audience-submit"
           onClick={() => onConfirm(selection)}
+          disabled={busy}
         >
-          发布到 {audienceAtLabel(selection)}
+          {busy ? '发布中…' : `发布到 ${audienceAtLabel(selection)}`}
         </button>
       </div>
       <p className="plaza-audience-footnote">
-        @公开 应用可在 <Link to={ROUTES.plazaFeed}>应用广场</Link> 查看 · 后端 API W4 落库
+        @公开 应用可在 <Link to={ROUTES.plazaFeed}>应用广场</Link> 查看 · 已同步服务端
       </p>
     </div>
   )

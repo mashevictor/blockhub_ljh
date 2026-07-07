@@ -15,7 +15,7 @@ DEFAULT_USERS = [
         "email": "employee@trackchat.local",
         "password": "emp123",
         "role": "employee",
-        "display_name": "普通员工",
+        "display_name": "使用者",
     },
 ]
 

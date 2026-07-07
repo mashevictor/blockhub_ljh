@@ -94,7 +94,7 @@ function fallbackNodeApis(
       input_api: makeApi('POST', `${base}/egress/collect`, '汇聚各模块处理结果', {
         modules: ['module-a', 'module-b'],
       }),
-      output_api: makeApi('GET', `${base}/egress/deliver`, '推送至员工端 / 通知渠道'),
+      output_api: makeApi('GET', `${base}/egress/deliver`, '推送到网页 / 消息通知'),
     }
   }
   return {

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { PublishResult } from '../data/constants'
-import { ADMIN_URL } from '../data/constants'
+import { getAdminUrl } from '../data/constants'
 import AppIconAvatar from './AppIconAvatar'
 import { pickPhonePreviewModules, widgetTint } from '../data/publishDisplay'
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock'
@@ -138,7 +138,7 @@ export default function PublishModal({ result, onClose, onViewMyApps, showAdminL
 
         <footer className="publish-result-foot">
           {showAdminLink && (
-            <a className="btn-ghost full" href={ADMIN_URL} target="_blank" rel="noreferrer">
+            <a className="btn-ghost full" href={getAdminUrl()} target="_blank" rel="noreferrer">
               在管理后台查看 →
             </a>
           )}

@@ -33,7 +33,7 @@ export interface ChipTemplate {
 export const CHIP_TEMPLATES: ChipTemplate[] = [
   {
     text: '制造业设备报修 + SOP 问答',
-    prompt: '制造业现场设备报修与 SOP 工艺问答，员工移动端提交、主管审批。',
+    prompt: '制造业现场设备报修与 SOP 工艺问答，手机提交、主管审批。',
     picks: [
       { type: 'industry', key: 'mfg', label: '传统制造' },
       { type: 'scenario', key: 'chip-mfg-repair', label: '设备报修' },
@@ -201,13 +201,26 @@ export function resolveAppBundle(opts: ResolveOptions): ResolvedAppBundle {
     promptText,
   )
 
-  const appName =
-    userOrdered.find((m) => m.type === 'scenario')?.label
-    ?? userOrdered.find((m) => m.type === 'industry')?.label
-    ?? suggestedOrdered.find((m) => m.type === 'scenario')?.label
-    ?? intentLabel.trim().slice(0, 20)
-    ?? promptTextBuilt.slice(0, 20)
-    ?? '我的应用'
+  const appName = (() => {
+    const userMods = userOrdered
+    const scenarios = userMods.filter((m) => m.type === 'scenario')
+    const funcs = userMods.filter((m) => m.type === 'module' || m.type === 'capability')
+    const industry = userMods.find((m) => m.type === 'industry')
+    const intentName = intentLabel.trim().replace(/[，。！？、,.!?；;：:\s]+/g, '').slice(0, 14)
+
+    if (scenarios.length === 1) return scenarios[0].label
+    if (scenarios.length > 1) return `${scenarios[0].label}·${scenarios[1].label}`
+    if (funcs.length >= 2) return `${funcs[0].label}${funcs[1].label}`
+    if (funcs.length === 1 && industry) return `${industry.label}·${funcs[0].label}`
+    if (funcs.length === 1) return funcs[0].label
+    if (intentName.length >= 2) return intentName
+    if (industry) return `${industry.label}助手`
+    const sugScenario = suggestedOrdered.find((m) => m.type === 'scenario')
+    if (sugScenario) return sugScenario.label
+    const sugFunc = suggestedOrdered.find((m) => m.type === 'module' || m.type === 'capability')
+    if (sugFunc) return sugFunc.label
+    return promptTextBuilt.slice(0, 16) || '我的应用'
+  })()
 
   return {
     userModules: userOrdered,
@@ -268,9 +281,9 @@ export function composeLogicalPrompt(modules: PromptModule[]): string {
   }
 
   if (industries.length > 0 && scenarios.length === 0 && funcs.length === 0) {
-    lines.push('请基于上述行业视角，组合典型办公与行业场景，生成可交付的应用。')
+    lines.push('请基于上述行业视角，组合典型场景，生成可直接使用的应用。')
   } else {
-    lines.push('请按以上组合生成网页/App 双端应用，员工可立即使用。')
+    lines.push('请按以上组合生成网页和手机都能用的应用，打开即可使用。')
   }
 
   return lines.join('\n')
@@ -278,7 +291,7 @@ export function composeLogicalPrompt(modules: PromptModule[]): string {
 
 export function splitPromptText(full: string, modules: PromptModule[]): { base: string; suffix: string } {
   const base = composeLogicalPrompt(modules)
-  if (!base) return { base: '', suffix: full.trim().replace(/^>$/, '').trim() }
+  if (!base) return { base: '', suffix: full.trim().replace(/^>>$/, '').trim() }
   if (full.startsWith(base)) {
     return { base, suffix: full.slice(base.length).replace(/^\n+/, '').trim() }
   }

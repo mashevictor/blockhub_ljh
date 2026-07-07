@@ -1,29 +1,24 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  fetchCatalogSummary,
   fetchIndustryScenarios,
   fetchOfficeScenarios,
   type CatalogScenario,
-  type CatalogSummary,
 } from '../api/client'
 import { publishApp, suggestModules as suggestModulesApi } from '../api/client'
 import { publishApiToResult } from '../api/publishHelpers'
 import { runContactPublishPipeline, finishPublishNavigate } from '../lib/publishFlow'
-import { DynamicIcon, IconCheckCircle } from '../components/icons'
 import { useTheme } from '../context/ThemeContext'
 import {
   categoryColor,
-  industryColor,
-  iconWrapStyle,
 } from '../data/iconPalette'
 import SelectionBox, { type SelectionItem } from '../components/SelectionBox'
-import AgentInput, { type AgentPick } from '../components/AgentInput'
+import AgentInput, { type AgentInputHandle, type AgentPick } from '../components/AgentInput'
 import PromptSuggestBar from '../components/PromptSuggestBar'
+import IntentAnalysisStrip from '../components/IntentAnalysisStrip'
 import ContactGateModal, { type ContactInfo } from '../components/ContactGateModal'
-import AppBrandingFields from '../components/AppBrandingFields'
 import GenerateLoadingOverlay, { type GeneratePhase } from '../components/GenerateLoadingOverlay'
-import { emptyBranding, resolveAppName } from '../data/appBranding'
+import { deriveDefaultAppName, emptyBranding, resolveAppName } from '../data/appBranding'
 import { moduleId, pickToModule, type PromptModule } from '../components/agentInputLogic'
 import { PROMPT_CHIPS, type PublishResult } from '../data/constants'
 import { findChipTemplate, pickWithMeta, resolveAppBundle, composeLogicalPrompt, mergePromptText, splitPromptText } from '../data/appAssembly'
@@ -31,12 +26,10 @@ import { buildPublishedModulesFromBundle } from '../data/publishDisplay'
 import { resolvePublishBundle } from '../data/intentPublish'
 import { enhanceSimplePrompt, suggestModulesFromText, type SuggestItem } from '../data/promptSuggest'
 import {
-  INDUSTRIES_SHOWCASE,
   resolveCategoryIcon,
   resolveIndustryApiKey,
 } from '../data/showcase'
 import type { RoleApplyRequest, RolePreset } from '../data/rolePresets'
-import { formatAgentLabel } from '../data/agentLabels'
 
 interface Props {
   onPublish: (r: PublishResult) => void
@@ -47,11 +40,6 @@ interface Props {
 }
 
 type Tab = 'all' | 'office' | 'industry'
-
-const OFFICE_CATS = [
-  '人事行政', '财务法务', '知识协同', '流程审批',
-  '数据报表', '消息通知', 'IT与资产', '外部对接',
-]
 
 const API_PACK_KEYS = new Set(['mfg', 'sales', 'med', 'game'])
 
@@ -87,7 +75,6 @@ export default function PromptView({ onPublish: _onPublish, roleApply, onRoleApp
   const [tab, setTab] = useState<Tab>('all')
   const [industryKeys, setIndustryKeys] = useState<Set<string>>(new Set())
   const [officeCats, setOfficeCats] = useState<Set<string>>(new Set())
-  const [q, setQ] = useState('')
   const [generatePhase, setGeneratePhase] = useState<GeneratePhase | null>(null)
   const loading = generatePhase !== null
   const [contactOpen, setContactOpen] = useState(false)
@@ -96,7 +83,6 @@ export default function PromptView({ onPublish: _onPublish, roleApply, onRoleApp
   const [catalogLoading, setCatalogLoading] = useState(true)
   const [deliver, setDeliver] = useState<'web' | 'app' | 'both'>('both')
   const [branding, setBranding] = useState(() => emptyBranding())
-  const [summary, setSummary] = useState<CatalogSummary | null>(null)
   const [officeAll, setOfficeAll] = useState<CatalogScenario[]>([])
   const [industryAll, setIndustryAll] = useState<CatalogScenario[]>([])
   const [promptHighlight, setPromptHighlight] = useState(false)
@@ -105,11 +91,15 @@ export default function PromptView({ onPublish: _onPublish, roleApply, onRoleApp
   const [lastAddedId, setLastAddedId] = useState<string | null>(null)
   const [debouncedIntent, setDebouncedIntent] = useState('')
   const [promptSuggestions, setPromptSuggestions] = useState<SuggestItem[]>([])
-  const [suggestUsedLlm, setSuggestUsedLlm] = useState(false)
+  const [suggestSourceLabel, setSuggestSourceLabel] = useState('')
+  const [suggestUsedAi, setSuggestUsedAi] = useState(false)
+  const [suggestFetching, setSuggestFetching] = useState(false)
+  const [analysisProgress, setAnalysisProgress] = useState(0)
+  const [analysisPhase, setAnalysisPhase] = useState<'idle' | 'debounce' | 'fetch' | 'done'>('idle')
   const [publishError, setPublishError] = useState<string | null>(null)
 
   const promptCardRef = useRef<HTMLDivElement>(null)
-  const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const textareaRef = useRef<AgentInputHandle>(null)
   const catalogRef = useRef<HTMLDivElement>(null)
   const [boxOpenSignal, setBoxOpenSignal] = useState(0)
   const userSuffixRef = useRef('')
@@ -180,7 +170,7 @@ export default function PromptView({ onPublish: _onPublish, roleApply, onRoleApp
       skipSyncRef.current = false
       if (composedFromModules) {
         setPrompt((prev) => {
-          if (!prev.replace(/^>\s*$/, '').trim()) return merged
+          if (!prev.replace(/^>>\s*$/, '').trim()) return merged
           return prev
         })
       }
@@ -190,7 +180,7 @@ export default function PromptView({ onPublish: _onPublish, roleApply, onRoleApp
   }, [composedFromModules])
 
   const handlePromptChange = useCallback((value: string) => {
-    const stripped = value.replace(/^>\s*$/, '').trim()
+    const stripped = value.replace(/^>>\s*$/, '').trim()
     if (!stripped && promptModules.length > 0) {
       userSuffixRef.current = ''
       skipSyncRef.current = false
@@ -204,7 +194,7 @@ export default function PromptView({ onPublish: _onPublish, roleApply, onRoleApp
   }, [promptModules, composedFromModules])
 
   const userIntentText = useMemo(() => {
-    const raw = prompt.replace(/^>\s*$/, '').trim()
+    const raw = prompt.replace(/^>>\s*$/, '').trim()
     if (!raw) return ''
     const { suffix, base } = splitPromptText(prompt, promptModules)
     if (suffix.trim()) return suffix.trim()
@@ -213,7 +203,7 @@ export default function PromptView({ onPublish: _onPublish, roleApply, onRoleApp
   }, [prompt, promptModules])
 
   const canGenerate = promptModules.length > 0
-    || prompt.replace(/^>\s*$/, '').trim().length >= 2
+    || prompt.replace(/^>>\s*$/, '').trim().length >= 2
 
   useEffect(() => {
     const id = window.setTimeout(() => setDebouncedIntent(userIntentText), 400)
@@ -225,18 +215,62 @@ export default function PromptView({ onPublish: _onPublish, roleApply, onRoleApp
     [officeAll, industryAll],
   )
 
+  const intentAnalyzable = userIntentText.trim().length >= 2
+  const isIntentDebouncing = intentAnalyzable && userIntentText.trim() !== debouncedIntent.trim()
+
+  useEffect(() => {
+    if (!intentAnalyzable) {
+      setAnalysisPhase('idle')
+      setAnalysisProgress(0)
+      return
+    }
+    if (isIntentDebouncing) {
+      setAnalysisPhase('debounce')
+      setAnalysisProgress((p) => (p > 30 ? 6 : p))
+      return
+    }
+    if (suggestFetching) {
+      setAnalysisPhase('fetch')
+    }
+  }, [intentAnalyzable, isIntentDebouncing, suggestFetching])
+
+  useEffect(() => {
+    if (!intentAnalyzable || analysisPhase === 'idle') return
+
+    const id = window.setInterval(() => {
+      setAnalysisProgress((prev) => {
+        if (analysisPhase === 'debounce') return Math.min(28, prev + 2.2)
+        if (analysisPhase === 'fetch') return Math.min(92, prev + 1.4)
+        if (analysisPhase === 'done') return Math.min(100, prev + 8)
+        return prev
+      })
+    }, 40)
+    return () => window.clearInterval(id)
+  }, [intentAnalyzable, analysisPhase])
+
   useEffect(() => {
     const text = debouncedIntent.trim()
     if (text.length < 2) {
       setPromptSuggestions([])
-      setSuggestUsedLlm(false)
+      setSuggestSourceLabel('')
+      setSuggestUsedAi(false)
+      setSuggestFetching(false)
       return
     }
     let cancelled = false
+    setSuggestFetching(true)
     suggestModulesApi(text)
       .then((res) => {
         if (cancelled) return
-        setSuggestUsedLlm(res.used_llm)
+        const hasDeepSeek = res.used_llm || res.items.some((it) => it.source.startsWith('deepseek'))
+        setSuggestUsedAi(hasDeepSeek)
+        if (hasDeepSeek) {
+          setSuggestSourceLabel(res.confidence >= 0.7 ? `智能推荐 · ${Math.round(res.confidence * 100)}%` : '智能推荐')
+        } else if (res.items.length > 0) {
+          setSuggestSourceLabel('为你匹配')
+        } else {
+          setSuggestSourceLabel('')
+        }
         setPromptSuggestions(res.items.map((it) => ({
           pick: {
             type: it.type === 'industry' ? 'industry' as const
@@ -253,12 +287,31 @@ export default function PromptView({ onPublish: _onPublish, roleApply, onRoleApp
               ? `${it.reason} · ${it.flutter_pkg}`
               : it.reason,
         })))
+        const pct = res.confidence > 0 ? Math.round(res.confidence * 100) : 100
+        setAnalysisProgress(pct)
+        setAnalysisPhase('done')
+        window.setTimeout(() => {
+          if (!cancelled) {
+            setAnalysisPhase('idle')
+            setAnalysisProgress(0)
+          }
+        }, 700)
       })
       .catch(() => {
         if (!cancelled) {
-          setSuggestUsedLlm(false)
+          setSuggestUsedAi(false)
+          setSuggestSourceLabel('关键词匹配')
           setPromptSuggestions(suggestModulesFromText(text, catalogScenarios))
+          setAnalysisProgress(100)
+          setAnalysisPhase('done')
+          window.setTimeout(() => {
+            setAnalysisPhase('idle')
+            setAnalysisProgress(0)
+          }, 700)
         }
+      })
+      .finally(() => {
+        if (!cancelled) setSuggestFetching(false)
       })
     return () => { cancelled = true }
   }, [debouncedIntent, catalogScenarios])
@@ -291,11 +344,6 @@ export default function PromptView({ onPublish: _onPublish, roleApply, onRoleApp
     skipSyncRef.current = true
     setPrompt(composedFromModules ? mergePromptText(composedFromModules, enhancedPreview) : enhancedPreview)
   }, [enhancedPreview, composedFromModules])
-
-  const selectedIndustries = useMemo(
-    () => INDUSTRIES_SHOWCASE.filter((i) => industryKeys.has(i.key)),
-    [industryKeys],
-  )
 
   const focusPrompt = useCallback(() => {
     requestAnimationFrame(() => {
@@ -357,10 +405,6 @@ export default function PromptView({ onPublish: _onPublish, roleApply, onRoleApp
   }, [buildModulesFromPreset, focusPrompt])
 
   useEffect(() => {
-    fetchCatalogSummary().then(setSummary).catch(() => {})
-  }, [])
-
-  useEffect(() => {
     let cancelled = false
     setCatalogLoading(true)
     Promise.all([
@@ -381,18 +425,9 @@ export default function PromptView({ onPublish: _onPublish, roleApply, onRoleApp
     }
   }, [])
 
-  const searchFilter = useCallback(
-    (items: CatalogScenario[]) => {
-      if (!q.trim()) return items
-      const qq = q.trim().toLowerCase()
-      return items.filter((s) => s.name.toLowerCase().includes(qq))
-    },
-    [q],
-  )
-
   const visibleItems = useMemo((): CatalogScenario[] => {
-    let officeItems = searchFilter(officeAll)
-    let industryItems = searchFilter(industryAll)
+    let officeItems = officeAll
+    let industryItems = industryAll
 
     if (officeCats.size > 0) {
       officeItems = officeItems.filter((s) => officeCats.has(s.category))
@@ -417,49 +452,7 @@ export default function PromptView({ onPublish: _onPublish, roleApply, onRoleApp
     if (tab === 'all' || tab === 'office') list.push(...officeItems)
     if (tab === 'all' || tab === 'industry') list.push(...industryItems)
     return list
-  }, [tab, officeAll, industryAll, officeCats, industryKeys, searchFilter])
-
-  const categoryGroups = useMemo(() => {
-    const map = new Map<string, CatalogScenario[]>()
-    for (const item of visibleItems) {
-      const list = map.get(item.category) ?? []
-      list.push(item)
-      map.set(item.category, list)
-    }
-    return [...map.entries()]
-  }, [visibleItems])
-
-  const toggleIndustryKey = (key: string) => {
-    const ind = INDUSTRIES_SHOWCASE.find((i) => i.key === key)
-    if (!ind) return
-    upsertModule(
-      { type: 'industry', key, label: ind.name },
-      { iconKey: ind.iconKey, color: industryColor(key, theme) },
-    )
-  }
-
-  const clearIndustries = () => {
-    promptModules.filter((m) => m.type === 'industry').forEach((m) => removeModule(m.id))
-  }
-
-  const toggleOfficeCat = (cat: string) => {
-    upsertModule(
-      { type: 'office', key: cat, label: cat },
-      { iconKey: resolveCategoryIcon(cat, 'office'), color: categoryColor(cat, theme) },
-    )
-  }
-
-  const toggleScenario = (item: CatalogScenario) => {
-    upsertModule(
-      { type: 'scenario', key: item.id, label: item.name },
-      {
-        iconKey: resolveCategoryIcon(item.category, item.kind === 'industry' ? 'industry' : 'office'),
-        color: categoryColor(item.category, theme),
-      },
-    )
-  }
-
-  const handleTabChange = (t: Tab) => setTab(t)
+  }, [tab, officeAll, industryAll, officeCats, industryKeys])
 
   const handleChip = (text: string) => {
     userSuffixRef.current = ''
@@ -505,9 +498,11 @@ export default function PromptView({ onPublish: _onPublish, roleApply, onRoleApp
   const runPublish = useCallback(async (
     bundle: ReturnType<typeof resolveAppBundle>,
     contact: ContactInfo,
+    appNameOverride?: string,
   ) => {
     const publishedModules = buildPublishedModulesFromBundle(bundle)
-    const res = await publishApp(resolveAppName(branding.appName, bundle.appName), bundle.industryKey, {
+    const appName = resolveAppName(appNameOverride ?? branding.appName, bundle.appName)
+    const res = await publishApp(appName, bundle.industryKey, {
       scenarioIds: bundle.scenarioIds,
       scenarioNames: bundle.scenarioNames,
       capabilityKeys: publishedModules.filter((m) => m.kind === 'module' || m.kind === 'capability').map((m) => m.key),
@@ -533,7 +528,7 @@ export default function PromptView({ onPublish: _onPublish, roleApply, onRoleApp
     })
   }, [deliver, branding])
 
-  const executePresetGenerate = useCallback(async (preset: RolePreset, contact: ContactInfo) => {
+  const executePresetGenerate = useCallback(async (preset: RolePreset, contact: ContactInfo, appNameOverride?: string) => {
     const picks = buildModulesFromPreset(preset)
     const scenarioIds = picks.filter((m) => m.type === 'scenario').map((m) => m.key)
     const bundle = resolveAppBundle({
@@ -542,7 +537,7 @@ export default function PromptView({ onPublish: _onPublish, roleApply, onRoleApp
       scenarioIds,
       catalogNames,
     })
-    return runPublish(bundle, contact)
+    return runPublish(bundle, contact, appNameOverride)
   }, [buildModulesFromPreset, catalogNames, runPublish])
 
   const resolvedBundle = useMemo(
@@ -555,12 +550,27 @@ export default function PromptView({ onPublish: _onPublish, roleApply, onRoleApp
     [promptModules, prompt, selected, catalogNames],
   )
 
+  const defaultAppName = useMemo(
+    () => deriveDefaultAppName({
+      modules: promptModules,
+      suggestions: promptSuggestions,
+      intentText: userIntentText,
+      usedAi: suggestUsedAi,
+      fallback: resolvedBundle.appName,
+    }),
+    [promptModules, promptSuggestions, userIntentText, suggestUsedAi, resolvedBundle.appName],
+  )
+
   const handlePublishSuccess = useCallback((result: PublishResult) => {
     finishPublishNavigate(navigate, result)
   }, [navigate])
 
-  const handleContactConfirm = useCallback(async (contact: ContactInfo) => {
+  const handleContactConfirm = useCallback(async (contact: ContactInfo, opts?: { appName?: string }) => {
     if (contactBusy) return
+    const appNameOverride = opts?.appName?.trim() || defaultAppName
+    if (appNameOverride) {
+      setBranding((prev) => ({ ...prev, appName: appNameOverride }))
+    }
     setContactBusy(true)
     const preset = pendingPreset
     if (preset) setPendingPreset(null)
@@ -572,14 +582,14 @@ export default function PromptView({ onPublish: _onPublish, roleApply, onRoleApp
         setError: setPublishError,
         onSuccess: handlePublishSuccess,
         errorMessage: preset
-          ? '生成失败，请确认 API 可用并已填写联系方式'
-          : '生成失败，请确认已选择模块或填写需求，且 API 可用',
+          ? '搭建失败，请确认网络正常并已填写联系方式'
+          : '搭建失败，请确认已选好功能或填写描述，且网络正常',
         execute: async (markPhase) => {
           if (preset) {
             markPhase('publish')
-            return executePresetGenerate(preset, contact)
+            return executePresetGenerate(preset, contact, appNameOverride)
           }
-          const intent = userIntentText.trim() || prompt.replace(/^>\s*$/, '').trim()
+          const intent = userIntentText.trim() || prompt.replace(/^>>\s*$/, '').trim()
           const bundle = await resolvePublishBundle({
             userModules: promptModules,
             promptText: prompt,
@@ -588,13 +598,13 @@ export default function PromptView({ onPublish: _onPublish, roleApply, onRoleApp
             intentText: intent,
           })
           markPhase('publish')
-          return runPublish(bundle, contact)
+          return runPublish(bundle, contact, appNameOverride)
         },
       })
     } finally {
       setContactBusy(false)
     }
-  }, [contactBusy, pendingPreset, executePresetGenerate, runPublish, handlePublishSuccess, userIntentText, prompt, promptModules, selected, catalogNames])
+  }, [contactBusy, pendingPreset, executePresetGenerate, runPublish, handlePublishSuccess, userIntentText, prompt, promptModules, selected, catalogNames, defaultAppName])
 
   useEffect(() => {
     if (!roleApply) return
@@ -636,7 +646,7 @@ export default function PromptView({ onPublish: _onPublish, roleApply, onRoleApp
 
   const handleAgentPick = useCallback((pick: AgentPick, extra?: { iconKey?: string; color?: string }) => {
     if (pick.type === 'action') {
-      if (pick.key === 'add-scene') catalogRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      if (pick.key === 'add-scene') textareaRef.current?.openPicker()
       if (pick.key === 'warehouse') {
         if (promptModules.length > 0) setBoxOpenSignal((n) => n + 1)
         else focusPrompt()
@@ -685,18 +695,21 @@ export default function PromptView({ onPublish: _onPublish, roleApply, onRoleApp
   }
 
   return (
-    <div className="view prompt-view layout-sticky">
-      <div className="view-hero compact cube-panel">
-        <h2>描述您想要的应用</h2>
-        <p>直接描述需求 — 下方会实时推荐 <strong>&gt;</strong> 模块并优化提示词；也可输入 <strong>&gt;</strong> 手动插入</p>
+    <div className="view prompt-view prompt-view-minimal layout-sticky">
+      <div className="minimal-hero">
+        <img src="/design/hero-minimal.jpg" alt="" className="minimal-hero-img" width={72} height={72} />
+        <h2>搭积木，造应用</h2>
+        <p className="minimal-hero-hint">输入 <span className="minimal-brand-chev">&gt;&gt;</span> 编排模块，或直接描述需求</p>
       </div>
 
       <div
         ref={promptCardRef}
-        className={`prompt-card cube-panel${promptHighlight ? ' prompt-highlight' : ''}${promptExpanded ? ' prompt-expanded' : ''}`}
+        className={`prompt-card minimal-card${promptHighlight ? ' prompt-highlight' : ''}${promptExpanded ? ' prompt-expanded' : ''}`}
       >
         <AgentInput
           ref={textareaRef}
+          variant="minimal"
+          theme={theme}
           value={prompt}
           onChange={handlePromptChange}
           onFocus={() => setPromptExpanded(true)}
@@ -706,6 +719,11 @@ export default function PromptView({ onPublish: _onPublish, roleApply, onRoleApp
           scenarios={panelScenarios}
           onPick={handleAgentPick}
         />
+        <IntentAnalysisStrip
+          visible={intentAnalyzable}
+          progress={analysisProgress}
+          phase={analysisPhase}
+        />
         <PromptSuggestBar
           userIntent={userIntentText}
           suggestions={promptSuggestions}
@@ -713,185 +731,34 @@ export default function PromptView({ onPublish: _onPublish, roleApply, onRoleApp
           selectedIds={selectedModuleIds}
           onToggle={upsertModule}
           onApplyPreview={applyEnhancedPreview}
-          usedLlm={suggestUsedLlm}
+          sourceLabel={suggestSourceLabel}
+          loading={suggestFetching || isIntentDebouncing}
         />
-        {promptModules.length > 0 && (
-          <div className="prompt-branding-wrap">
-            <AppBrandingFields
-              value={{
-                ...branding,
-                appName: branding.appName || resolvedBundle?.appName || '',
-              }}
-              onChange={setBranding}
-              compact
-            />
-          </div>
-        )}
-        <div className="prompt-footer">
+        <div className="prompt-footer minimal-footer">
           <div className="prompt-meta">
-            {composedFromModules && (
-            <span className="prompt-meta-hint">模块已同步到描述文字，可在段落后继续补充需求</span>
-          )}
             {(promptModules.length > 0 || prompt.trim()) && (
               <button type="button" className="link-btn" onClick={clearAll}>清空</button>
             )}
           </div>
           <div className="prompt-footer-right">
-            <div className="deliver-select">
+            <div className="deliver-select minimal-deliver">
               {(['web', 'app', 'both'] as const).map((d) => (
                 <button key={d} type="button" className={`deliver-btn${deliver === d ? ' on' : ''}`} onClick={() => setDeliver(d)}>
                   {d === 'web' ? '网页' : d === 'app' ? 'App' : '双端'}
                 </button>
               ))}
             </div>
-            <button type="button" className="btn-primary" disabled={loading || !canGenerate} onClick={handleGenerate}>
-              {loading ? '正在生成…' : '生成我的应用'}
+            <button type="button" className="btn-primary minimal-generate" disabled={loading || !canGenerate} onClick={handleGenerate}>
+              {loading ? '搭建中…' : '开始搭建'}
             </button>
           </div>
         </div>
       </div>
 
-      <div className="chips-row">
-        {PROMPT_CHIPS.map((c) => (
-          <button key={c} type="button" className="chip" onClick={() => handleChip(c)}>{c}</button>
+      <div className="minimal-chips" ref={catalogRef}>
+        {PROMPT_CHIPS.slice(0, 4).map((c) => (
+          <button key={c} type="button" className="minimal-chip" onClick={() => handleChip(c)}>{c}</button>
         ))}
-      </div>
-
-      <div className="catalog-panel cube-panel" ref={catalogRef}>
-        <div className="section-header-row">
-          <div className="section-label left">业务场景目录</div>
-          <span className="section-hint">
-            {summary ? `${summary.office_count} 办公 + ${summary.industry_count} 行业` : '…'}
-            · 显示 <strong>{visibleItems.length}</strong> 项
-          </span>
-        </div>
-
-        <div className="catalog-filter-row">
-          <div className="filter-tabs-inline">
-            {(['all', 'office', 'industry'] as Tab[]).map((t) => (
-              <button key={t} type="button" className={`cat-tab${tab === t ? ' on' : ''}`} onClick={() => handleTabChange(t)}>
-                {t === 'all' ? `全部 ${summary?.total ?? 114}` : t === 'office' ? `办公 ${summary?.office_count ?? 65}` : `行业 ${summary?.industry_count ?? 49}`}
-              </button>
-            ))}
-          </div>
-          <input className="catalog-search" placeholder="搜索场景…" value={q} onChange={(e) => setQ(e.target.value)} />
-        </div>
-
-        <div className="filter-section">
-          <div className="filter-section-head">
-            <span>行业视角</span>
-            <em>可多选</em>
-            {industryKeys.size > 0 && (
-              <button type="button" className="link-btn" onClick={clearIndustries}>清除</button>
-            )}
-          </div>
-          <div className="industry-rail-wrap">
-            <div className="industry-rail">
-              {INDUSTRIES_SHOWCASE.map((ind) => {
-                const on = industryKeys.has(ind.key)
-                const ic = industryColor(ind.key, theme)
-                return (
-                  <button
-                    key={ind.key}
-                    type="button"
-                    className={`rail-item checkable${on ? ' on' : ''}`}
-                    onClick={() => toggleIndustryKey(ind.key)}
-                    title={ind.desc}
-                    aria-pressed={on}
-                  >
-                    {on && <span className="rail-check"><IconCheckCircle size={10} /></span>}
-                    <span className="rail-icon icon-themed" style={iconWrapStyle(on ? '#fff' : ic)}>
-                      <DynamicIcon name={ind.iconKey} size={18} color={on ? '#fff' : ic} />
-                    </span>
-                    <span>{ind.name}</span>
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-        </div>
-
-        {selectedIndustries.length > 0 && (
-          <div className="industry-context-banner multi">
-            {selectedIndustries.map((ind) => (
-              <div key={ind.key} className="icb-chip" style={{ '--ind-color': ind.color } as CSSProperties}>
-                <DynamicIcon name={ind.iconKey} size={16} color={ind.color} />
-                <span>{ind.name}</span>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {tab !== 'industry' && (
-          <div className="filter-section">
-            <div className="filter-section-head">
-              <span>办公分类</span>
-              <em>可多选</em>
-              {officeCats.size > 0 && (
-                <button type="button" className="link-btn" onClick={() => { for (const c of officeCats) removeModule(moduleId({ type: 'office', key: c })) }}>清除</button>
-              )}
-            </div>
-            <div className="filter-check-grid">
-              {OFFICE_CATS.map((c) => {
-                const on = officeCats.has(c)
-                const ic = categoryColor(c, theme)
-                const iconKey = resolveCategoryIcon(c, 'office')
-                return (
-                  <label key={c} className={`filter-check${on ? ' on' : ''}`}>
-                    <input type="checkbox" checked={on} onChange={() => toggleOfficeCat(c)} />
-                    <span className="filter-check-box" aria-hidden />
-                    <span className="filter-check-icon icon-themed" style={iconWrapStyle(ic)}>
-                      <DynamicIcon name={iconKey} size={12} color={ic} />
-                    </span>
-                    {c}
-                  </label>
-                )
-              })}
-            </div>
-          </div>
-        )}
-
-        {catalogLoading ? (
-          <div className="catalog-loading">正在加载场景…</div>
-        ) : categoryGroups.length === 0 ? (
-          <div className="catalog-loading">没有匹配的场景，请调整筛选</div>
-        ) : (
-          categoryGroups.map(([cat, items]) => {
-            const catIcon = resolveCategoryIcon(cat, items[0]?.kind === 'industry' ? 'industry' : 'office')
-            const catColor = categoryColor(cat, theme)
-            return (
-            <section key={cat} className="catalog-section">
-              <h3 className="catalog-section-title">
-                <span className="catalog-section-icon icon-themed" style={iconWrapStyle(catColor)}>
-                  <DynamicIcon name={catIcon} size={18} color={catColor} />
-                </span>
-                {cat}
-                <em>{items.length} 项</em>
-              </h3>
-              <div className="scenario-pick-grid">
-                {items.map((s) => {
-                  const isOn = selected.has(s.id) || promptModules.some((m) => m.type === 'scenario' && m.key === s.id)
-                  const iconKey = resolveCategoryIcon(s.category, s.kind === 'industry' ? 'industry' : 'office')
-                  const iconColor = categoryColor(s.category, theme)
-                  return (
-                    <button key={s.id} type="button" className={`scenario-pick${isOn ? ' on' : ''}`} onClick={() => toggleScenario(s)} aria-pressed={isOn}>
-                      {isOn && <span className="sp-check" aria-hidden><IconCheckCircle size={16} /></span>}
-                      <div className="sp-top">
-                        <span className="sp-icon icon-themed" style={iconWrapStyle(iconColor)}>
-                          <DynamicIcon name={iconKey} size={16} color={iconColor} />
-                        </span>
-                        <span className="sp-cat">{s.category}</span>
-                      </div>
-                      <strong className="sp-title">{s.name}</strong>
-                      <p className="sp-desc">{s.kind === 'industry' ? s.problem : `适用：${formatAgentLabel(s.agent)}`}</p>
-                    </button>
-                  )
-                })}
-              </div>
-            </section>
-            )
-          })
-        )}
       </div>
 
       {active && (
@@ -907,12 +774,18 @@ export default function PromptView({ onPublish: _onPublish, roleApply, onRoleApp
         />
       )}
 
-      {generatePhase && <GenerateLoadingOverlay phase={generatePhase} />}
+      {generatePhase && (
+        <GenerateLoadingOverlay
+          phase={generatePhase}
+          appName={branding.appName || defaultAppName}
+        />
+      )}
       {active && publishError && <p className="publish-error">{publishError}</p>}
 
       <ContactGateModal
         open={active && contactOpen}
         busy={contactBusy}
+        defaultAppName={defaultAppName}
         onClose={() => { if (!contactBusy) { setContactOpen(false); setPendingPreset(null) } }}
         onConfirm={handleContactConfirm}
       />

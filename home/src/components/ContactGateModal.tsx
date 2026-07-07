@@ -24,8 +24,9 @@ const EMAIL_SUFFIXES = [
 interface Props {
   open: boolean
   busy?: boolean
+  defaultAppName?: string
   onClose: () => void
-  onConfirm: (contact: ContactInfo) => void
+  onConfirm: (contact: ContactInfo, opts?: { appName?: string }) => void
 }
 
 function isValidEmail(v: string) {
@@ -36,9 +37,16 @@ function isValidPhone(v: string) {
   return /^1[3-9]\d{9}$/.test(v.replace(/\s/g, ''))
 }
 
-export default function ContactGateModal({ open, busy = false, onClose, onConfirm }: Props) {
+export default function ContactGateModal({
+  open,
+  busy = false,
+  defaultAppName = '',
+  onClose,
+  onConfirm,
+}: Props) {
   const [mode, setMode] = useState<'email' | 'phone'>('email')
   const [value, setValue] = useState('')
+  const [appName, setAppName] = useState('')
   const [activeIdx, setActiveIdx] = useState(0)
   const [historyOpen, setHistoryOpen] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -51,6 +59,7 @@ export default function ContactGateModal({ open, busy = false, onClose, onConfir
     if (!open) return
     setActiveIdx(0)
     setHistoryOpen(false)
+    setAppName(defaultAppName.trim())
     const saved = contactsForMode('email')
     if (saved.length > 0) {
       setMode('email')
@@ -60,7 +69,7 @@ export default function ContactGateModal({ open, busy = false, onClose, onConfir
       setValue('')
     }
     requestAnimationFrame(() => inputRef.current?.focus())
-  }, [open])
+  }, [open, defaultAppName])
 
   useEffect(() => {
     if (!open || busy) return
@@ -120,7 +129,8 @@ export default function ContactGateModal({ open, busy = false, onClose, onConfir
     if (busy || !canSubmit) return
     const contact = { type: mode, value: value.trim().replace(/\s/g, '') }
     saveContactHistory(contact)
-    onConfirm(contact)
+    const trimmedName = appName.trim()
+    onConfirm(contact, trimmedName ? { appName: trimmedName } : undefined)
   }
 
   if (!open) return null
@@ -132,13 +142,13 @@ export default function ContactGateModal({ open, busy = false, onClose, onConfir
     >
       <div className="modal-card contact-gate-card" role="dialog" aria-labelledby="contact-gate-title" aria-busy={busy}>
         <button type="button" className="modal-close" onClick={onClose} disabled={busy} aria-label="关闭">×</button>
-        <h3 id="contact-gate-title">留下联系方式</h3>
-        <p className="modal-sub">生成完成后，我们将把应用链接发送到您的邮箱或手机</p>
+        <h3 id="contact-gate-title">留个联系方式</h3>
+        <p className="modal-sub">搭建完成后，我们会把访问链接发到你的邮箱或手机</p>
 
         {busy && (
           <div className="contact-gate-progress" role="status" aria-live="polite">
             <div className="contact-gate-progress-bar" aria-hidden />
-            <p>正在生成应用，请稍候…</p>
+            <p>正在为你搭建，请稍候…</p>
           </div>
         )}
 
@@ -221,6 +231,22 @@ export default function ContactGateModal({ open, busy = false, onClose, onConfir
           )}
         </div>
 
+        <div className="contact-gate-field contact-gate-appname">
+          <label htmlFor="contact-gate-appname">
+            应用名称
+            <span className="contact-gate-optional">已根据你的描述自动生成，可改可不改</span>
+          </label>
+          <input
+            id="contact-gate-appname"
+            type="text"
+            className="contact-gate-appname-input"
+            value={appName}
+            disabled={busy}
+            placeholder="例如：请假助手、门店看板"
+            onChange={(e) => setAppName(e.target.value)}
+          />
+        </div>
+
         <div className="contact-gate-actions">
           <button type="button" className="btn-ghost" onClick={onClose} disabled={busy}>稍后再说</button>
           <button
@@ -229,7 +255,7 @@ export default function ContactGateModal({ open, busy = false, onClose, onConfir
             disabled={!canSubmit || busy}
             onClick={handleConfirm}
           >
-            {busy ? '生成中…' : '确认并生成'}
+            {busy ? '搭建中…' : '确认并搭建'}
           </button>
         </div>
       </div>

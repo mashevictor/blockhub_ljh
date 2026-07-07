@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime, timezone
 from typing import Any
 from uuid import uuid4
 
@@ -8,6 +9,8 @@ from sqlalchemy.orm import Session
 from app.db.models import AppRecord, PublishRecord, Tenant, User
 from app.services.app_urls import app_download_url, app_qr_payload, app_web_url
 from app.services.db_seed import DEFAULT_TENANT_SLUG
+
+PLAZA_VISIBILITY_VALUES = frozenset({"none", "public", "org", "dept", "users"})
 
 
 def _default_tenant(db: Session) -> Tenant:
@@ -18,6 +21,12 @@ def _default_tenant(db: Session) -> Tenant:
     db.add(tenant)
     db.flush()
     return tenant
+
+
+def get_app_by_public_id(db: Session, public_id: str) -> AppRecord | None:
+    if not public_id:
+        return None
+    return db.query(AppRecord).filter(AppRecord.public_id == public_id).first()
 
 
 def app_record_to_dict(record: AppRecord) -> dict[str, Any]:
@@ -42,6 +51,61 @@ def app_record_to_dict(record: AppRecord) -> dict[str, Any]:
         "prompt": record.prompt,
         "contact_email": record.contact_email,
         "contact_phone": record.contact_phone,
+        "plaza_visibility": record.plaza_visibility,
+        "plaza_dept_name": record.plaza_dept_name,
+        "plaza_published_at": record.plaza_published_at.isoformat() if record.plaza_published_at else None,
+    }
+
+
+def _plaza_at_label(visibility: str, dept_name: str) -> str:
+    if visibility == "public":
+        return "@公开"
+    if visibility == "org":
+        return "@全公司"
+    if visibility == "dept":
+        return f"@{dept_name}" if dept_name else "@部门"
+    if visibility == "users":
+        return "@指定成员"
+    return ""
+
+
+def _module_labels(record: AppRecord) -> list[str]:
+    if record.modules:
+        return [str(m.get("label", m.get("key", ""))) for m in record.modules[:6] if isinstance(m, dict)]
+    return [str(s) for s in (record.scenarios or [])[:6]]
+
+
+def plaza_feed_item_from_record(record: AppRecord) -> dict[str, Any]:
+    visibility = record.plaza_visibility if record.plaza_visibility in ("public", "dept") else "public"
+    published_at = record.plaza_published_at or record.created_at
+    author = (record.contact_email.split("@")[0] if record.contact_email else "") or "创作者"
+    modules = _module_labels(record)
+    mod_text = " · ".join(modules)
+    summary = f"{len(modules) or len(record.scenarios or [])} 项能力"
+    if mod_text:
+        summary += f"：{mod_text}"
+    summary += "。Web + App 双端可访问。"
+    if record.plaza_visibility == "dept" and record.plaza_dept_name:
+        summary = f"范围可见 · {record.plaza_dept_name}内可访问 · {summary}"
+
+    return {
+        "id": f"db-{record.public_id}",
+        "appKey": record.public_id,
+        "authorName": author,
+        "authorInitial": author[:1] or "创",
+        "authorMeta": "积木仓",
+        "publishedAt": published_at.isoformat() if published_at else "",
+        "visibility": visibility,
+        "atLabel": _plaza_at_label(record.plaza_visibility, record.plaza_dept_name),
+        "appName": record.name,
+        "modules": modules,
+        "summary": summary,
+        "webUrl": app_web_url(record.public_id),
+        "likes": 0,
+        "comments": 0,
+        "reposts": 0,
+        "plaza_visibility": record.plaza_visibility,
+        "plaza_dept_name": record.plaza_dept_name,
     }
 
 
@@ -63,7 +127,36 @@ def persist_published_app(
     payload: dict[str, Any] | None = None,
     icon_url: str = "",
     primary_color: str = "#4338ca",
+    app_id: str = "",
 ) -> dict[str, Any]:
+    existing = get_app_by_public_id(db, app_id) if app_id else None
+    if existing:
+        existing.name = name
+        existing.industry_key = industry_key
+        existing.icon_url = icon_url or existing.icon_url
+        existing.primary_color = primary_color or existing.primary_color
+        existing.scenarios = scenarios
+        existing.capability_keys = capability_keys
+        existing.modules = modules
+        existing.audience = audience
+        existing.deliver = deliver
+        existing.source = source
+        existing.prompt = prompt[:500] if prompt else ""
+        existing.contact_email = contact_email
+        existing.contact_phone = contact_phone
+        existing.status = "published"
+        db.add(
+            PublishRecord(
+                app_id=existing.id,
+                user_id=user.id if user else None,
+                action="republish",
+                payload=payload or {},
+            )
+        )
+        db.commit()
+        db.refresh(existing)
+        return app_record_to_dict(existing)
+
     tenant = user.tenant if user else _default_tenant(db)
     public_id = uuid4().hex[:8]
     record = AppRecord(
@@ -99,6 +192,48 @@ def persist_published_app(
     db.commit()
     db.refresh(record)
     return app_record_to_dict(record)
+
+
+def publish_app_to_plaza(
+    db: Session,
+    *,
+    public_id: str,
+    visibility: str,
+    dept_name: str = "",
+) -> dict[str, Any] | None:
+    if visibility not in PLAZA_VISIBILITY_VALUES:
+        visibility = "none"
+    record = get_app_by_public_id(db, public_id)
+    if not record:
+        return None
+    record.plaza_visibility = visibility
+    record.plaza_dept_name = dept_name if visibility == "dept" else ""
+    record.plaza_published_at = datetime.now(timezone.utc)
+    db.add(
+        PublishRecord(
+            app_id=record.id,
+            user_id=None,
+            action="plaza_publish",
+            payload={"visibility": visibility, "dept_name": dept_name},
+        )
+    )
+    db.commit()
+    db.refresh(record)
+    return app_record_to_dict(record)
+
+
+def list_plaza_feed_apps(db: Session, *, limit: int = 50) -> list[dict[str, Any]]:
+    rows = (
+        db.query(AppRecord)
+        .filter(
+            AppRecord.plaza_visibility.in_(["public", "dept"]),
+            AppRecord.status == "published",
+        )
+        .order_by(AppRecord.plaza_published_at.desc().nullslast(), AppRecord.created_at.desc())
+        .limit(limit)
+        .all()
+    )
+    return [plaza_feed_item_from_record(row) for row in rows]
 
 
 def list_published_apps(db: Session, *, tenant_id: str | None = None) -> list[dict[str, Any]]:

@@ -126,7 +126,7 @@ export function suggestModulesFromText(
 
 /** 将简单描述 + 已匹配模块转为可生成的 prompt */
 export function enhanceSimplePrompt(raw: string, picks: AgentPick[]): string {
-  const t = raw.trim().replace(/^>\s*$/, '').trim()
+  const t = raw.trim().replace(/^>>\s*$/, '').trim()
   if (!t) return ''
 
   const industries = picks.filter((p) => p.type === 'industry')
@@ -134,21 +134,21 @@ export function enhanceSimplePrompt(raw: string, picks: AgentPick[]): string {
   const offices = picks.filter((p) => p.type === 'office')
   const funcs = picks.filter((p) => p.type === 'capability' || p.type === 'module')
 
-  const lines: string[] = [`>> 用户需求：${t}`]
+  const lines: string[] = [`>> 你想做：${t}`]
 
   if (industries.length) {
-    lines.push(`>> 面向行业：${industries.map((p) => p.label).join('、')}`)
+    lines.push(`>> 适合行业：${industries.map((p) => p.label).join('、')}`)
   }
   if (offices.length) {
-    lines.push(`>> 办公侧重：${offices.map((p) => p.label).join('、')}`)
+    lines.push(`>> 常用场景：${offices.map((p) => p.label).join('、')}`)
   }
   if (scenes.length) {
-    lines.push(`>> 核心场景：${scenes.map((p) => p.label).join('、')}`)
+    lines.push(`>> 核心功能：${scenes.map((p) => p.label).join('、')}`)
   }
   if (funcs.length) {
-    lines.push(`>> 能力模块：${funcs.map((p) => p.label).join('、')}`)
+    lines.push(`>> 推荐搭配：${funcs.map((p) => p.label).join('、')}`)
   }
 
-  lines.push('>> 请组合为可立即发布的网页/App 双端应用，员工可直接使用')
+  lines.push('>> 网页和手机都能用，打开即可开始')
   return lines.join('\n')
 }

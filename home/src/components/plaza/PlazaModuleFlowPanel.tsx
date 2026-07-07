@@ -49,7 +49,7 @@ function FlowHelpGuide({ onDismiss }: { onDismiss: () => void }) {
         </li>
         <li>
           <span className="plaza-mflow-help-num">3</span>
-          <span>点<strong>拨通全部模块</strong>，DeepSeek 为各节点生成流入/流出 API；可点击输入/输出节点查看</span>
+          <span>点<strong>拨通全部模块</strong>，为各节点配置数据流入与流出；可点击输入/输出节点查看</span>
         </li>
       </ol>
       <button type="button" className="plaza-mflow-help-dismiss" onClick={onDismiss}>
@@ -216,7 +216,7 @@ export default function PlazaModuleFlowPanel({
 
       <p className="plaza-mflow-rail-hint">
         {isCreator
-          ? '先在「模块顺序」栏拖拽调整顺序，数据流图与 API 会同步更新'
+          ? '先在「模块顺序」栏拖拽调整顺序，数据流图会同步更新'
           : '完整模块数据流如下'}
       </p>
 
@@ -326,8 +326,8 @@ export default function PlazaModuleFlowPanel({
           </p>
           <p className="plaza-mflow-endpoint-desc">
             {activeNodeId === FLOW_INGRESS_ID
-              ? '外部请求由此进入应用数据流，拨通后可查看流入/流出 API。'
-              : '处理结果由此触达员工端或通知渠道，拨通后可查看流入/流出 API。'}
+              ? '外部请求由此进入应用数据流，拨通后可查看流入与流出配置。'
+              : '处理结果会推送到网页、手机或消息通知。'}
           </p>
         </div>
       ) : (

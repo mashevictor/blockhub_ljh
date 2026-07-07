@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { PublishResult } from '../data/constants'
-import { ADMIN_URL } from '../data/constants'
+import { getAdminUrl } from '../data/constants'
 import type { AudienceSelection } from '../data/plazaAudience'
 import { audienceAtLabel } from '../data/plazaAudience'
 import { pickPhonePreviewModules, widgetTint } from '../data/publishDisplay'
@@ -40,6 +40,8 @@ export default function PublishSuccessCard({
   onPlazaPublished,
 }: Props) {
   const [showPicker, setShowPicker] = useState(false)
+  const [plazaBusy, setPlazaBusy] = useState(false)
+  const [plazaError, setPlazaError] = useState<string | null>(null)
   const [plazaMeta, setPlazaMeta] = useState<PlazaAudienceMeta | null>(() => {
     if (plazaMetaProp) return plazaMetaProp
     const stored = getPlazaPostForApp(appKey(result))
@@ -75,18 +77,26 @@ export default function PublishSuccessCard({
   const deliverMode = normalizeDeliver(result.deliver)
   const qrTarget = showWebDeliver(result) ? result.webUrl : (result.downloadUrl || `${result.webUrl}/download`)
 
-  const handlePlazaConfirm = (selection: AudienceSelection) => {
-    publishToPlazaFeed(result, selection)
-    const meta: PlazaAudienceMeta = {
-      type: selection.type,
-      label: audienceAtLabel(selection),
-      deptName: selection.deptName,
-      publishedAt: new Date().toISOString(),
-      onPlazaFeed: selection.type === 'public' || selection.type === 'dept',
+  const handlePlazaConfirm = async (selection: AudienceSelection) => {
+    setPlazaBusy(true)
+    setPlazaError(null)
+    try {
+      await publishToPlazaFeed(result, selection)
+      const meta: PlazaAudienceMeta = {
+        type: selection.type,
+        label: audienceAtLabel(selection),
+        deptName: selection.deptName,
+        publishedAt: new Date().toISOString(),
+        onPlazaFeed: selection.type === 'public' || selection.type === 'dept',
+      }
+      setPlazaMeta(meta)
+      setShowPicker(false)
+      onPlazaPublished?.(meta)
+    } catch {
+      setPlazaError('发布到广场失败，请确认应用已发布后重试')
+    } finally {
+      setPlazaBusy(false)
     }
-    setPlazaMeta(meta)
-    setShowPicker(false)
-    onPlazaPublished?.(meta)
   }
 
   return (
@@ -185,11 +195,16 @@ export default function PublishSuccessCard({
         <PublishDeliveryLinks result={result} />
       </div>
 
+      {plazaError && (
+        <p className="publish-save-warn" role="alert">{plazaError}</p>
+      )}
+
       {showPicker && (
         <PlazaAudiencePicker
           appName={result.appName}
-          onConfirm={handlePlazaConfirm}
+          onConfirm={(sel) => { void handlePlazaConfirm(sel) }}
           onCancel={() => setShowPicker(false)}
+          busy={plazaBusy}
         />
       )}
 
@@ -216,7 +231,7 @@ export default function PublishSuccessCard({
           </button>
         )}
         {showAdminLink && (
-          <a className="btn-ghost" href={ADMIN_URL} target="_blank" rel="noreferrer">
+          <a className="btn-ghost" href={getAdminUrl()} target="_blank" rel="noreferrer">
             管理后台
           </a>
         )}

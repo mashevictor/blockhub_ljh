@@ -84,7 +84,7 @@ def _build_download_block(
 ) -> str:
     parts: list[str] = []
     if deliver in ("web", "both") and web_url:
-        parts.append(_cta_button(web_url, "打开网页员工端", "&#127760;"))
+        parts.append(_cta_button(web_url, "打开网页版", "&#127760;"))
         parts.append(
             _info_row(
                 "网页版链接",
@@ -128,7 +128,7 @@ def _build_download_block(
                     "Android 安装包",
                     f'<p style="margin:0;font-size:14px;color:{_EMAIL_MUTED};line-height:1.65;">'
                     "Gmail 对 .apk 附件限制较严，本邮件未附带安装包。"
-                    "请登录积木仓「我的应用」页面获取下载链接，或使用网页员工端。</p>",
+                    "请登录积木仓「我的应用」页面获取下载链接，或使用网页版。</p>",
                     "&#128241;",
                 )
             )
@@ -155,7 +155,7 @@ def _build_text(
         "",
     ]
     if deliver in ("web", "both"):
-        lines.extend(["网页员工端：", web_url, ""])
+        lines.extend(["网页版：", web_url, ""])
     if deliver in ("app", "both"):
         if apk_attached:
             lines.append("Android 安装包已随邮件附件发送，请查收 .apk 文件。")

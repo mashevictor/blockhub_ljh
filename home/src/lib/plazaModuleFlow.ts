@@ -190,7 +190,7 @@ export function buildFlowApiNodeList(steps: ModuleFlowStep[]) {
   for (const s of steps) {
     nodes.push({ node_id: s.id, label: s.label, kind: 'module', note: s.note })
   }
-  nodes.push({ node_id: FLOW_EGRESS_ID, label: '触达输出', kind: 'egress', note: '员工 / 管理者可见' })
+  nodes.push({ node_id: FLOW_EGRESS_ID, label: '触达输出', kind: 'egress', note: '团队可见' })
   return nodes
 }
 

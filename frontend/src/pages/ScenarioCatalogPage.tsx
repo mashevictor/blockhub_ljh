@@ -7,6 +7,7 @@ import {
   type IndustryScenario,
   type OfficeScenario,
 } from '../api/client'
+import { PLATFORM_STATS } from '@shared/platformStats'
 
 type Tab = 'all' | 'office' | 'industry'
 
@@ -113,8 +114,9 @@ export default function ScenarioCatalogPage() {
       <div className="page-header">
         <h1>场景目录</h1>
         <p>
-          L3 Catalog：{summary?.office_count ?? 65} 办公场景 + {summary?.industry_count ?? 49} 行业场景 ={' '}
-          <strong>{summary?.total ?? 114}</strong> 总计
+          {summary?.office_count ?? PLATFORM_STATS.officeScenarios} 办公场景 +{' '}
+          {summary?.industry_count ?? PLATFORM_STATS.industryScenarios} 行业场景 ={' '}
+          <strong>{summary?.total ?? PLATFORM_STATS.scenarios}</strong> 总计
         </p>
       </div>
 
@@ -136,7 +138,11 @@ export default function ScenarioCatalogPage() {
               className={`filter-tab${tab === t ? ' active' : ''}`}
               onClick={() => handleTabChange(t)}
             >
-              {t === 'all' ? `全部 ${summary?.total ?? 114}` : t === 'office' ? `办公 ${summary?.office_count ?? 65}` : `行业 ${summary?.industry_count ?? 49}`}
+              {t === 'all'
+                ? `全部 ${summary?.total ?? PLATFORM_STATS.scenarios}`
+                : t === 'office'
+                  ? `办公 ${summary?.office_count ?? PLATFORM_STATS.officeScenarios}`
+                  : `行业 ${summary?.industry_count ?? PLATFORM_STATS.industryScenarios}`}
             </button>
           ))}
         </div>

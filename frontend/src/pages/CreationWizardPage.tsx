@@ -62,7 +62,7 @@ export default function CreationWizardPage() {
     <>
       <div className="page-header">
         <h1>创建应用</h1>
-        <p>选行业 → 勾选需要的功能 → 确认后发布，员工即可通过链接或 App 使用</p>
+        <p>选行业 → 勾选需要的功能 → 确认后发布，通过链接或 App 即可使用</p>
       </div>
 
       <div className="wizard-steps">
@@ -146,9 +146,9 @@ export default function CreationWizardPage() {
         <div className="card success-card">
           <div style={{ fontSize: 48, marginBottom: 12 }}>🎉</div>
           <h3>创建完成</h3>
-          <p style={{ margin: '8px 0' }}>应用「{(published.app as { name: string })?.name}」已发布，可发给员工使用</p>
+          <p style={{ margin: '8px 0' }}>应用「{(published.app as { name: string })?.name}」已发布，可分享给团队使用</p>
           <p style={{ fontSize: 12, color: 'var(--muted)' }}>
-            员工访问地址已生成，可在创建门户或管理后台查看
+            访问链接已生成，可在创建页或管理后台查看
           </p>
         </div>
       )}

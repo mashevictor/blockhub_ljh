@@ -15,7 +15,7 @@ export interface RolePreset {
 
 /** 身份 × 场景 映射 */
 const PRESET_ROLES: Record<string, string> = {
-  s01: 'HR', s02: '财务', s03: '员工', s04: 'HR', s05: '销售',
+  s01: 'HR', s02: '财务', s03: '同事', s04: 'HR', s05: '销售',
   s06: '销售', s07: '老板', s08: '制造', s09: '质检', s10: '零售',
   s11: '运营', s12: '医护', s13: '护士', s14: '玩家', s15: '家长',
   s16: '学生', s17: '学生', s18: '运营', s19: '业主', s20: '销售',
@@ -43,7 +43,7 @@ function scene(
 /** 30 个生活 / 工作真实场景 — 英雄区弹幕词云 */
 export const ROLE_PRESETS: RolePreset[] = [
   scene('s01', '请假审批', '人事 · 流程', '#8b5cf6',
-    '员工请假在线申请、主管审批与假期余额查询。',
+    '请假在线申请、主管审批与假期余额查询。',
     [
       { type: 'industry', key: 'office', label: '通用办公' },
       { type: 'office', key: '人事行政', label: '人事行政' },
@@ -61,7 +61,7 @@ export const ROLE_PRESETS: RolePreset[] = [
     ],
     ['>> 报销申请 · 发票拍照上传', '>> 财务审核 · 合规自动校验', '>> 审批流 · 多级签批', '>> 台账查询 · 费用明细']),
   scene('s03', '制度问答', '知识 · 自助', '#6366f1',
-    '公司制度、福利政策智能问答，员工自助查询。',
+    '公司制度、福利政策智能问答，随时自助查询。',
     [
       { type: 'industry', key: 'office', label: '通用办公' },
       { type: 'office', key: '知识协同', label: '知识协同' },
@@ -220,7 +220,7 @@ export const ROLE_PRESETS: RolePreset[] = [
       { type: 'scenario', key: 's21-book', label: '客房预订' },
       { type: 'module', key: 'approval_flow', label: '审批流' },
     ],
-    ['>> 客房预订 · 房态查询', '>> 排班管理 · 员工轮班', '>> 客诉处理 · 工单跟踪', '>> 消息通知 · 入住提醒']),
+    ['>> 客房预订 · 房态查询', '>> 排班管理 · 人员轮班', '>> 客诉处理 · 工单跟踪', '>> 消息通知 · 入住提醒']),
   scene('s22', '外卖配送', '生活 · 配送', '#f43f5e',
     '订单跟踪、骑手调度与异常处理。',
     [

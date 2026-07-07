@@ -57,7 +57,7 @@ export default function PlazaLayout() {
             {myAppsCount > 0 && <span className="plaza-side-count">{myAppsCount}</span>}
           </NavLink>
           <p className="plaza-side-note">
-            应用广场浏览 @公开 应用；我的应用管理你创建的应用与模块 API
+            应用广场浏览 @公开 应用；我的应用管理你创建的应用与模块配置
           </p>
         </aside>
 

@@ -58,7 +58,7 @@ def catalog_summary(db: Session) -> dict[str, int]:
         "office_count": office,
         "industry_count": industry,
         "total": office + industry,
-        "base_scenario_total": 114,
+        "base_scenario_total": 145,
         "capability_count": db.query(CatalogCapability).count(),
         "agent_count": agents,
         "industry_packs": db.query(CatalogIndustryPack).count(),

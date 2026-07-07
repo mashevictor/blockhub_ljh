@@ -3,10 +3,12 @@ import type { AudienceSelection } from '../data/plazaAudience'
 import { audienceAtLabel } from '../data/plazaAudience'
 import type { PlazaFeedItem } from '../data/plazaMock'
 import { PLAZA_MOCK_FEED } from '../data/plazaMock'
+import { publishAppToPlaza, fetchPlazaFeed, type PlazaFeedApiItem } from '../api/client'
 import type { PlazaAudienceMeta } from '../lib/myAppsStorage'
 import { setMyAppPlazaAudience } from '../lib/myAppsStorage'
 
 const STORAGE_KEY = 'blockhub_plaza_feed'
+export const PLAZA_FEED_UPDATED_EVENT = 'blockhub:plaza-feed-updated'
 
 export interface StoredPlazaPost extends PlazaFeedItem {
   appKey: string
@@ -35,11 +37,36 @@ function moduleLabels(result: PublishResult): string[] {
 
 function buildSummary(result: PublishResult, sel: AudienceSelection): string {
   const mods = moduleLabels(result).join(' · ')
-  const base = `${result.moduleCount} 项能力${mods ? `：${mods}` : ''}。Web + App 双端可访问。`
+  const base = `${result.moduleCount} 项能力${mods ? `：${mods}` : ''}。网页和手机都能用。`
   if (sel.type === 'public') return base
   if (sel.type === 'org') return `组织内可见 · ${base}`
   if (sel.type === 'dept') return `范围可见 · ${sel.deptName ?? '部门'}内可访问 · ${base}`
   return `定向发布 · 仅指定成员可见 · ${base}`
+}
+
+function notifyPlazaFeedUpdated(): void {
+  window.dispatchEvent(new CustomEvent(PLAZA_FEED_UPDATED_EVENT))
+}
+
+function apiItemToFeedItem(item: PlazaFeedApiItem): PlazaFeedItem {
+  const publishedAt = item.publishedAt || new Date().toISOString()
+  return {
+    id: item.id,
+    appKey: item.appKey,
+    authorName: item.authorName,
+    authorInitial: item.authorInitial,
+    authorMeta: item.authorMeta,
+    timeLabel: formatTimeLabel(publishedAt),
+    visibility: item.visibility,
+    atLabel: item.atLabel,
+    appName: item.appName,
+    modules: item.modules,
+    summary: item.summary,
+    webUrl: item.webUrl,
+    likes: item.likes,
+    comments: item.comments,
+    reposts: item.reposts,
+  }
 }
 
 export function loadStoredPlazaPosts(): StoredPlazaPost[] {
@@ -57,15 +84,43 @@ export function getPlazaPostForApp(key: string): StoredPlazaPost | null {
   return loadStoredPlazaPosts().find((p) => p.appKey === key) ?? null
 }
 
-export function publishToPlazaFeed(
+function cachePlazaPost(entry: StoredPlazaPost): void {
+  const prev = loadStoredPlazaPosts().filter((p) => p.appKey !== entry.appKey)
+  const next = [entry, ...prev].slice(0, 30)
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(next))
+  } catch {
+    /* quota */
+  }
+}
+
+export async function publishToPlazaFeed(
   result: PublishResult,
   selection: AudienceSelection,
-): StoredPlazaPost {
+): Promise<StoredPlazaPost> {
   const key = appKey(result)
   const atLabel = audienceAtLabel(selection)
-  const savedAt = new Date().toISOString()
+  let savedAt = new Date().toISOString()
   const vis =
     selection.type === 'public' ? 'public' : selection.type === 'org' ? 'org' : 'dept'
+
+  let summary = buildSummary(result, selection)
+  let webUrl = result.webUrl
+
+  if (result.appId) {
+    try {
+      const res = await publishAppToPlaza(
+        result.appId,
+        selection.type,
+        selection.deptName ?? '',
+      )
+      if (res.feed_item?.summary) summary = res.feed_item.summary
+      if (res.feed_item?.webUrl) webUrl = res.feed_item.webUrl
+      if (res.app?.plaza_published_at) savedAt = res.app.plaza_published_at
+    } catch (err) {
+      console.warn('[plaza] API publish failed, fallback to local cache', err)
+    }
+  }
 
   const entry: StoredPlazaPost = {
     id: `user-${key}`,
@@ -80,20 +135,14 @@ export function publishToPlazaFeed(
     atLabel,
     appName: result.appName,
     modules: moduleLabels(result),
-    summary: buildSummary(result, selection),
-    webUrl: result.webUrl,
+    summary,
+    webUrl,
     likes: 0,
     comments: 0,
     reposts: 0,
   }
 
-  const prev = loadStoredPlazaPosts().filter((p) => p.appKey !== key)
-  const next = [entry, ...prev].slice(0, 30)
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(next))
-  } catch {
-    /* quota */
-  }
+  cachePlazaPost(entry)
 
   const meta: PlazaAudienceMeta = {
     type: selection.type,
@@ -103,8 +152,27 @@ export function publishToPlazaFeed(
     onPlazaFeed: selection.type === 'public' || selection.type === 'dept',
   }
   setMyAppPlazaAudience(key, meta)
+  notifyPlazaFeedUpdated()
 
   return entry
+}
+
+/** 从服务端加载广场 Feed，失败时回退本地 + 演示数据 */
+export async function loadPlazaFeedItemsAsync(): Promise<PlazaFeedItem[]> {
+  try {
+    const apiItems = await fetchPlazaFeed()
+    const fromApi = apiItems
+      .filter((item) => item.plaza_visibility === 'public' || item.visibility === 'public')
+      .map(apiItemToFeedItem)
+    if (fromApi.length > 0) {
+      const apiIds = new Set(fromApi.map((i) => i.id))
+      const mock = PLAZA_MOCK_FEED.filter((m) => m.visibility === 'public' && !apiIds.has(m.id))
+      return [...fromApi, ...mock]
+    }
+  } catch (err) {
+    console.warn('[plaza] feed API failed, using local cache', err)
+  }
+  return loadPlazaFeedItems()
 }
 
 /** 应用广场 Feed：仅 @公开 的应用（用户发布 + 演示数据） */

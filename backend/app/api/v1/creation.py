@@ -12,7 +12,13 @@ from app.core.deps import get_current_user, get_optional_user
 from app.data.module_data import CREATION_WIZARD_STEPS, INDUSTRY_PACK_OPTIONS
 from app.db.models import User
 from app.db.session import get_db
-from app.services.app_store import list_published_apps, persist_published_app
+from app.services.app_store import (
+    get_app_by_public_id,
+    list_plaza_feed_apps,
+    list_published_apps,
+    persist_published_app,
+    publish_app_to_plaza,
+)
 from app.services import catalog_store
 from app.services.file_storage import read_bytes, save_app_icon_data_url, uploads_root
 from app.services.flow_module_api import generate_flow_module_apis
@@ -58,6 +64,7 @@ class PublishModuleItem(BaseModel):
 class PublishRequest(BaseModel):
     name: str
     industry_key: str
+    app_id: str = ""
     scenario_ids: list[str] = []
     scenario_names: list[str] = []
     capability_keys: list[str] = []
@@ -70,6 +77,12 @@ class PublishRequest(BaseModel):
     contact_phone: str = ""
     icon_url: str = ""
     primary_color: str = "#4338ca"
+
+
+class PlazaPublishRequest(BaseModel):
+    app_id: str
+    visibility: str
+    dept_name: str = ""
 
 
 class UploadIconRequest(BaseModel):
@@ -154,6 +167,7 @@ def publish_app(
             db,
             name=body.name,
             industry_key=body.industry_key,
+            app_id=body.app_id.strip(),
             scenarios=names,
             audience=body.audience,
             deliver=body.deliver,
@@ -200,12 +214,83 @@ def publish_app(
     except Exception as exc:
         logger.exception("POST /creation/publish failed")
         detail = str(exc).lower()
-        if "icon_url" in detail or "primary_color" in detail or "undefinedcolumn" in detail.replace(" ", ""):
+        if (
+            "icon_url" in detail
+            or "primary_color" in detail
+            or "plaza_visibility" in detail
+            or "undefinedcolumn" in detail.replace(" ", "")
+        ):
             raise HTTPException(
                 status_code=503,
                 detail="数据库 schema 过旧，请在服务器执行: cd /root/blockhub && bash scripts/repair-db.sh",
             ) from exc
         raise HTTPException(status_code=500, detail="发布失败，请稍后重试或联系管理员查看 API 日志") from exc
+
+
+@router.post("/plaza/publish")
+def plaza_publish(body: PlazaPublishRequest, db: Session = Depends(get_db)) -> dict:
+    app_id = body.app_id.strip()
+    if not app_id:
+        raise HTTPException(status_code=400, detail="app_id 不能为空")
+    if not get_app_by_public_id(db, app_id):
+        raise HTTPException(status_code=404, detail="应用不存在，请先完成发布")
+    try:
+        app = publish_app_to_plaza(
+            db,
+            public_id=app_id,
+            visibility=body.visibility,
+            dept_name=body.dept_name.strip(),
+        )
+    except Exception as exc:
+        logger.exception("POST /creation/plaza/publish failed")
+        detail = str(exc).lower()
+        if "plaza_visibility" in detail or "undefinedcolumn" in detail.replace(" ", ""):
+            raise HTTPException(
+                status_code=503,
+                detail="数据库 schema 过旧，请在服务器执行: cd /root/blockhub && bash scripts/repair-db.sh",
+            ) from exc
+        raise HTTPException(status_code=500, detail="广场发布失败") from exc
+    if not app:
+        raise HTTPException(status_code=404, detail="应用不存在")
+    return {"success": True, "app": app, "feed_item": plaza_feed_item_from_api(app)}
+
+
+@router.get("/plaza/feed")
+def plaza_feed(db: Session = Depends(get_db)) -> dict:
+    try:
+        items = list_plaza_feed_apps(db)
+    except Exception as exc:
+        logger.exception("GET /creation/plaza/feed failed")
+        detail = str(exc).lower()
+        if "plaza_visibility" in detail or "undefinedcolumn" in detail.replace(" ", ""):
+            raise HTTPException(
+                status_code=503,
+                detail="数据库 schema 过旧，请在服务器执行: cd /root/blockhub && bash scripts/repair-db.sh",
+            ) from exc
+        raise HTTPException(status_code=500, detail="加载广场失败") from exc
+    return {"total": len(items), "items": items}
+
+
+def plaza_feed_item_from_api(app: dict) -> dict:
+    visibility = app.get("plaza_visibility", "none")
+    dept = app.get("plaza_dept_name", "")
+    at_label = "@公开" if visibility == "public" else f"@{dept}" if visibility == "dept" and dept else "@部门"
+    modules = [str(m.get("label", "")) for m in (app.get("modules") or [])[:6] if isinstance(m, dict)]
+    if not modules:
+        modules = [str(s) for s in (app.get("scenarios") or [])[:6]]
+    return {
+        "id": f"db-{app['id']}",
+        "appKey": app["id"],
+        "visibility": visibility if visibility in ("public", "dept") else "public",
+        "atLabel": at_label,
+        "appName": app["name"],
+        "modules": modules,
+        "summary": f"{len(modules)} 项能力 · Web + App 双端可访问。",
+        "webUrl": app.get("web_url", ""),
+        "publishedAt": app.get("plaza_published_at") or app.get("created_at"),
+        "plaza_visibility": visibility,
+        "plaza_dept_name": dept,
+    }
 
 
 @router.post("/upload-icon")

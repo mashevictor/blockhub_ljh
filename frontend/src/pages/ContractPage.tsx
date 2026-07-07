@@ -282,7 +282,7 @@ export default function ContractPage() {
       await renderContractFields(selected.id, fieldValues, false)
       const c = await aiGenerateContract(selected.id)
       await loadOne(c.id)
-      setMsg('DeepSeek 已生成完整合同')
+      setMsg('已生成完整合同')
       setTab('body')
     } catch (e: unknown) {
       setMsg(e instanceof Error ? e.message : 'AI 生成失败')
@@ -410,10 +410,10 @@ export default function ContractPage() {
     <div className="contract-page">
       <div className="page-header">
         <h1>合同盖章</h1>
-        <p>完整劳动合同模板 · 表单填空 · DeepSeek 智能生成 · 手写签名 · 上传/模拟电子章</p>
+        <p>完整劳动合同模板 · 表单填空 · 智能生成 · 手写签名 · 上传/模拟电子章</p>
         {config && (
           <span className={`contract-llm-badge${config.llm_configured ? ' on' : ''}`}>
-            {config.llm_configured ? 'DeepSeek 已连接' : '配置 DEEPSEEK_API_KEY 后可 AI 生成'}
+            {config.llm_configured ? '智能生成已就绪' : '配置后可使用智能生成'}
           </span>
         )}
       </div>
@@ -507,7 +507,7 @@ export default function ContractPage() {
                     </button>
                     {config?.llm_configured && (
                       <button type="button" className="btn btn-ghost-dark" onClick={handleAiGenerate} disabled={busy || selected.status === 'signed'}>
-                        DeepSeek 智能生成完整合同
+                        智能生成完整合同
                       </button>
                     )}
                     <button type="button" className="btn btn-ghost-dark" onClick={() => setTab('body')}>下一步：查看正文 →</button>
@@ -523,7 +523,7 @@ export default function ContractPage() {
                     <textarea value={bodyHtml} onChange={(e) => setBodyHtml(e.target.value)} rows={12} disabled={selected.status === 'signed'} />
                   </details>
                   {config?.llm_configured && selected.status !== 'signed' && (
-                    <button type="button" className="btn btn-ghost-dark" onClick={handleReview} disabled={busy}>DeepSeek 法务审阅</button>
+                    <button type="button" className="btn btn-ghost-dark" onClick={handleReview} disabled={busy}>智能法务审阅</button>
                   )}
                   {reviewNotes && (
                     <div className="contract-review"><h4>审阅意见</h4><pre>{reviewNotes}</pre></div>

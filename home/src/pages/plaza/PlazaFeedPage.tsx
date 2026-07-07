@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { loadPlazaFeedItems } from '../../lib/plazaFeedStorage'
+import { loadPlazaFeedItemsAsync, PLAZA_FEED_UPDATED_EVENT } from '../../lib/plazaFeedStorage'
 import type { PlazaFeedItem } from '../../data/plazaMock'
 import { feedAppKey, isFeedCreator } from '../../lib/plazaAppUtils'
 import PlazaModuleFlowPanel from '../../components/plaza/PlazaModuleFlowPanel'
@@ -78,7 +78,7 @@ function FeedCard({
           {item.commentPreview.map((c) => (
             <p key={c.author}><strong>{c.author}</strong> {c.text}</p>
           ))}
-          <p className="plaza-feed-comments-note">评论 API 开发中（W4）</p>
+          <p className="plaza-feed-comments-note">评论功能即将上线</p>
         </div>
       )}
     </article>
@@ -93,15 +93,24 @@ const FILTER_LABELS: Record<FeedFilter, string> = {
 
 export default function PlazaFeedPage() {
   const [filter, setFilter] = useState<FeedFilter>('latest')
-  const [items, setItems] = useState(() => loadPlazaFeedItems())
+  const [items, setItems] = useState<PlazaFeedItem[]>([])
+  const [loading, setLoading] = useState(true)
   const [selectedId, setSelectedId] = useState<string | null>(null)
 
-  const refresh = useCallback(() => setItems(loadPlazaFeedItems()), [])
+  const refresh = useCallback(() => {
+    setLoading(true)
+    void loadPlazaFeedItemsAsync()
+      .then((next) => setItems(next))
+      .finally(() => setLoading(false))
+  }, [])
 
   useEffect(() => {
+    refresh()
+    window.addEventListener(PLAZA_FEED_UPDATED_EVENT, refresh)
     window.addEventListener('focus', refresh)
     window.addEventListener('storage', refresh)
     return () => {
+      window.removeEventListener(PLAZA_FEED_UPDATED_EVENT, refresh)
       window.removeEventListener('focus', refresh)
       window.removeEventListener('storage', refresh)
     }
@@ -153,6 +162,7 @@ export default function PlazaFeedPage() {
 
       <p className="plaza-main-hint">
         浏览所有人 <strong>@公开</strong> 发布的应用；选中卡片可查看该应用的模块数据流（创建者可编辑）。
+        {loading && <span> · 加载中…</span>}
       </p>
 
       {selected ? (

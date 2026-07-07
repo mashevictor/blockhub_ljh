@@ -23,7 +23,7 @@ export default function PublishDeliveryLinks({ result }: Props) {
           <div className="link-row">
             <span className="link-row-label">
               <DynamicIcon name="web" size={14} />
-              网页员工端
+              网页版
             </span>
             <code>{result.webUrl}</code>
             <button type="button" onClick={() => navigator.clipboard.writeText(result.webUrl)}>复制</button>
@@ -43,7 +43,7 @@ export default function PublishDeliveryLinks({ result }: Props) {
           <p className="publish-apk-hint">
             {result.apkReady
               ? 'APK 已就绪，可直接下载安装。'
-              : 'APK 正在后台构建，完成后此链接即可下载；也可由管理员执行 bash scripts/flutter-build-apk.sh。'}
+              : '安装包正在后台生成，完成后此链接即可下载。'}
           </p>
         )}
       </div>

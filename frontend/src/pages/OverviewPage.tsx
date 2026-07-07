@@ -10,6 +10,7 @@ import {
   type CreatedApp,
 } from '../api/client'
 import { BRAND } from '../data/brand'
+import { PLATFORM_STATS } from '@shared/platformStats'
 import {
   IconBot,
   IconGrid,
@@ -174,7 +175,7 @@ export default function OverviewPage() {
           </div>
           <h1>欢迎回来</h1>
           <p>
-            查看已生成的应用、复制访问链接或下载地址，分发给员工使用
+            查看已搭建的应用，复制链接或下载地址，分享给团队使用
           </p>
           <div className="hero-actions">
             <a href={PUBLIC_BASE} className="btn btn-primary" target="_blank" rel="noreferrer">
@@ -231,7 +232,7 @@ export default function OverviewPage() {
       </div>
 
       <div className="section-header animate-fade-up">
-        <h2>十大能力</h2>
+        <h2>{PLATFORM_STATS.agents} 个助手</h2>
         <Link to="/agents" className="section-link">查看全部 →</Link>
       </div>
       <div className="agent-grid stagger-in">
@@ -327,8 +328,8 @@ export default function OverviewPage() {
             </div>
           </div>
           <ul className="feature-list">
-            <li><strong>创建应用</strong> — 勾选业务场景，一键发布给员工</li>
-            <li><strong>制度问答</strong> — 上传 PDF，员工提问带出处</li>
+            <li><strong>创建应用</strong> — 勾选业务场景，一键发布</li>
+            <li><strong>制度问答</strong> — 上传 PDF，提问可带出处</li>
             <li><strong>在线审批</strong> — 请假、报销等流程在线提交与处理</li>
             <li><strong>数据报表</strong> — 查看使用情况与业务指标</li>
             <li><strong>消息通知</strong> — 审批结果、公告及时送达</li>
@@ -341,7 +342,7 @@ export default function OverviewPage() {
           </div>
           <div className="quick-grid">
             {[
-              { to: '/scenarios', icon: IconList, title: '业务场景', sub: '114 个可选' },
+              { to: '/scenarios', icon: IconList, title: '业务场景', sub: `${PLATFORM_STATS.scenarios} 个可选` },
               { to: '/knowledge', icon: IconBook, title: '知识库', sub: '上传制度文档' },
               { to: '/approvals', icon: IconCheckCircle, title: '审批中心', sub: '处理待办' },
               { to: '/reports', icon: IconBarChart, title: '数据报表', sub: '查看统计' },

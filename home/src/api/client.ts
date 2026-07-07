@@ -132,6 +132,7 @@ export interface PublishOptions {
   contactPhone?: string
   iconUrl?: string
   primaryColor?: string
+  appId?: string
 }
 
 export interface CreatedApp {
@@ -191,6 +192,7 @@ export async function publishApp(
   }>('/creation/publish', {
     name,
     industry_key: industryKey,
+    app_id: opts.appId ?? '',
     scenario_ids: opts.scenarioIds ?? [],
     scenario_names: opts.scenarioNames ?? [],
     capability_keys: opts.capabilityKeys ?? [],
@@ -223,6 +225,44 @@ export async function uploadAppIcon(dataUrl: string) {
 export async function fetchCreatedApps() {
   const res = await api.get<{ items: CreatedApp[] }>('/creation/apps')
   return res.data.items
+}
+
+export interface PlazaFeedApiItem {
+  id: string
+  appKey: string
+  authorName: string
+  authorInitial: string
+  authorMeta: string
+  publishedAt?: string
+  visibility: 'public' | 'org' | 'dept'
+  atLabel: string
+  appName: string
+  modules: string[]
+  summary: string
+  webUrl: string
+  likes: number
+  comments: number
+  reposts: number
+  plaza_visibility?: string
+  plaza_dept_name?: string
+}
+
+export async function fetchPlazaFeed() {
+  const res = await api.get<{ total: number; items: PlazaFeedApiItem[] }>('/creation/plaza/feed')
+  return res.data.items
+}
+
+export async function publishAppToPlaza(appId: string, visibility: string, deptName = '') {
+  const res = await api.post<{
+    success: boolean
+    app: CreatedApp & { plaza_visibility?: string; plaza_dept_name?: string; plaza_published_at?: string }
+    feed_item: PlazaFeedApiItem
+  }>('/creation/plaza/publish', {
+    app_id: appId,
+    visibility,
+    dept_name: deptName,
+  })
+  return res.data
 }
 
 export interface SuggestModuleItem {

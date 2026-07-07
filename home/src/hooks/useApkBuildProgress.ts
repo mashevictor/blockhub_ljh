@@ -75,7 +75,7 @@ export function useApkBuildProgress(app: Pick<PublishResult, 'appId' | 'deliver'
         id: 'web',
         label: '网页运行时就绪',
         status: 'done',
-        detail: '员工端链接可立即使用',
+        detail: '链接已就绪，可立即打开',
       })
     }
 

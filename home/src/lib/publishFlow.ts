@@ -114,7 +114,7 @@ export async function runContactPublishPipeline(opts: {
   } catch {
     clearOverlayTimers()
     opts.setPhase(null)
-    opts.setError(opts.errorMessage ?? '发布失败，请确认 API 可用并已填写联系方式')
+    opts.setError(opts.errorMessage ?? '搭建失败，请稍后再试')
   }
 }
 
@@ -139,6 +139,6 @@ export async function runLoadingPublishPipeline(opts: {
   } catch {
     window.clearTimeout(maxTimer)
     opts.setLoading(false)
-    opts.setError(opts.errorMessage ?? '发布失败，请确认 API 可用')
+    opts.setError(opts.errorMessage ?? '搭建失败，请稍后再试')
   }
 }

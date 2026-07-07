@@ -34,7 +34,7 @@ def _preset(
 
 
 HERO_PRESETS: list[dict[str, Any]] = [
-    _preset("s01", "请假审批", "人事 · 流程", "#8b5cf6", "员工请假在线申请、主管审批与假期余额查询。",
+    _preset("s01", "请假审批", "人事 · 流程", "#8b5cf6", "请假在线申请、主管审批与假期余额查询。",
             [{"type": "industry", "key": "office", "label": "通用办公"}, {"type": "office", "key": "人事行政", "label": "人事行政"},
              {"type": "scenario", "key": "s01-leave", "label": "请假申请"}, {"type": "module", "key": "approval_flow", "label": "审批流"}],
             [">> 请假申请 · 手机一键提交", ">> 审批流 · 主管即时批复", ">> 假期余额 · 自动扣减", ">> 消息提醒 · 结果推送"], role="HR"),
@@ -42,11 +42,11 @@ HERO_PRESETS: list[dict[str, Any]] = [
             [{"type": "industry", "key": "office", "label": "通用办公"}, {"type": "office", "key": "财务法务", "label": "财务法务"},
              {"type": "scenario", "key": "s02-exp", "label": "报销申请"}, {"type": "module", "key": "approval_flow", "label": "审批流"}],
             [">> 报销申请 · 发票拍照上传", ">> 财务审核 · 合规自动校验", ">> 审批流 · 多级签批", ">> 台账查询 · 费用明细"], role="财务"),
-    _preset("s03", "制度问答", "知识 · 自助", "#6366f1", "公司制度、福利政策智能问答，员工自助查询。",
+    _preset("s03", "制度问答", "知识 · 自助", "#6366f1", "公司制度、福利政策智能问答，随时自助查询。",
             [{"type": "industry", "key": "office", "label": "通用办公"}, {"type": "office", "key": "知识协同", "label": "知识协同"},
              {"type": "scenario", "key": "s03-kb", "label": "制度政策问答"}, {"type": "module", "key": "kb_document", "label": "知识库"},
              {"type": "module", "key": "chat_qa", "label": "智能问答"}],
-            [">> 制度政策问答 · 不懂就问", ">> 知识库 · 手册文档检索", ">> 智能问答 · 结合上下文", ">> 多端门户 · 随时可查"], role="员工"),
+            [">> 制度政策问答 · 不懂就问", ">> 知识库 · 手册文档检索", ">> 智能问答 · 结合上下文", ">> 多端门户 · 随时可查"], role="使用者"),
     _preset("s04", "招聘入职", "HR · 人才", "#a855f7", "招聘发布、简历筛选与入职指引一站式。",
             [{"type": "industry", "key": "office", "label": "通用办公"}, {"type": "office", "key": "人事行政", "label": "人事行政"},
              {"type": "scenario", "key": "s04-hire", "label": "招聘管理"}, {"type": "module", "key": "approval_flow", "label": "审批流"}],
@@ -132,7 +132,7 @@ HERO_PRESETS: list[dict[str, Any]] = [
 ]
 
 CHIP_TEMPLATES: list[dict[str, Any]] = [
-    {"text": "制造业设备报修 + SOP 问答", "prompt": "制造业现场设备报修与 SOP 工艺问答，员工移动端提交、主管审批。",
+    {"text": "制造业设备报修 + SOP 问答", "prompt": "制造业现场设备报修与 SOP 工艺问答，手机端提交、主管审批。",
      "picks": [{"type": "industry", "key": "mfg", "label": "传统制造"}, {"type": "scenario", "key": "chip-mfg-repair", "label": "设备报修"},
                {"type": "scenario", "key": "chip-mfg-sop", "label": "SOP/工艺问答"}, {"type": "module", "key": "approval_flow", "label": "审批流"}],
      "scenario_names": ["设备报修", "SOP/工艺问答"]},
@@ -152,7 +152,7 @@ CHIP_TEMPLATES: list[dict[str, Any]] = [
 ]
 
 PRESET_ROLES: dict[str, str] = {
-    "s01": "HR", "s02": "财务", "s03": "员工", "s04": "HR", "s05": "销售", "s06": "销售", "s07": "老板",
+    "s01": "HR", "s02": "财务", "s03": "使用者", "s04": "HR", "s05": "销售", "s06": "销售", "s07": "老板",
     "s08": "制造", "s09": "质检", "s10": "零售", "s11": "运营", "s12": "医护", "s13": "护士", "s14": "玩家",
     "s15": "家长", "s16": "学生", "s17": "学生", "s18": "运营", "s19": "业主", "s20": "销售", "s21": "酒店",
     "s22": "骑手", "s23": "会员", "s24": "旅行", "s25": "新人", "s26": "业主", "s27": "宠主", "s28": "巡检",

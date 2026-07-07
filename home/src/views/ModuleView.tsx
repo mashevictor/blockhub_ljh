@@ -60,7 +60,7 @@ export default function ModuleView({ onPublish: _onPublish, active = true }: Pro
         setModuleGroups(groups)
       })
       .catch(() => {
-        setModulesError('无法加载能力模块，请检查 API 与 PostgreSQL')
+        setModulesError('无法加载能力模块，请稍后重试')
         setModuleGroups([])
       })
       .finally(() => setModulesLoading(false))
@@ -124,7 +124,7 @@ export default function ModuleView({ onPublish: _onPublish, active = true }: Pro
       <div className="builder-layout cube-panel">
         <aside className="builder-palette cube-panel-inner">
           <h3>功能模块</h3>
-          <p className="palette-hint">点击添加到右侧 · 数据来自 PostgreSQL Catalog</p>
+          <p className="palette-hint">点击添加到右侧 · 来自平台能力库</p>
           {modulesLoading && <p className="catalog-loading">加载能力模块…</p>}
           {modulesError && (
             <div className="catalog-error">

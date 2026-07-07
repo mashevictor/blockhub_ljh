@@ -205,10 +205,26 @@ if [ -n "$TOKEN" ]; then
     if echo "$RUNTIME" | grep -q '"public_id"'; then ok "GET /runtime/{appId}"; else bad "GET /runtime/{appId} ($RUNTIME)"; fi
     if echo "$RUNTIME" | grep -q '"deliver"'; then ok "runtime deliver field"; else bad "runtime missing deliver"; fi
     if echo "$PUBLISH" | grep -q '"notification"'; then ok "publish notification payload"; else bad "publish missing notification"; fi
+
+    PLAZA=$(curl -sf -X POST "$API/creation/plaza/publish" \
+      -H "Content-Type: application/json" \
+      -d "{\"app_id\":\"$APP_ID\",\"visibility\":\"public\"}" 2>/dev/null || echo "")
+    if echo "$PLAZA" | grep -q '"success":true'; then ok "POST /creation/plaza/publish"; else bad "POST /creation/plaza/publish ($PLAZA)"; fi
+
+    FEED=$(curl -sf "$API/creation/plaza/feed" 2>/dev/null || echo "")
+    if echo "$FEED" | grep -q '冒烟测试应用'; then ok "GET /creation/plaza/feed"; else bad "GET /creation/plaza/feed ($FEED)"; fi
   fi
 
   APPS=$(curl -sf -H "Authorization: Bearer $TOKEN" "$API/creation/apps" 2>/dev/null || echo "")
   if echo "$APPS" | grep -q '冒烟测试应用'; then ok "GET /creation/apps"; else bad "GET /creation/apps"; fi
+fi
+
+if [[ "$BASE" != *":8001"* ]]; then
+  echo ""
+  echo "=== Static Admin (Nginx) ==="
+  ADMIN_HTML=$(curl -sf --max-time 10 "$BASE/admin/login" 2>/dev/null || echo "")
+  if echo "$ADMIN_HTML" | grep -q 'id="root"'; then ok "GET /admin/login SPA shell"; else bad "GET /admin/login ($ADMIN_HTML)"; fi
+  if echo "$ADMIN_HTML" | grep -q '/admin/assets/'; then ok "admin bundle refs /admin/assets/"; else bad "admin missing asset refs"; fi
 fi
 
 echo ""

@@ -10,7 +10,15 @@ interface Props {
   selectedIds: Set<string>
   onToggle: (pick: AgentPick, extra?: { iconKey?: string; color?: string }) => void
   onApplyPreview: () => void
-  usedLlm?: boolean
+  /** 推荐来源标签，随输入与接口结果变化 */
+  sourceLabel?: string
+  loading?: boolean
+}
+
+function intentSnippet(text: string, max = 14): string {
+  const t = text.trim()
+  if (t.length <= max) return t
+  return `${t.slice(0, max)}…`
 }
 
 export default function PromptSuggestBar({
@@ -20,16 +28,25 @@ export default function PromptSuggestBar({
   selectedIds,
   onToggle,
   onApplyPreview,
-  usedLlm = false,
+  sourceLabel = '',
+  loading = false,
 }: Props) {
   if (!userIntent.trim() || userIntent.trim().length < 2) return null
 
+  const snippet = intentSnippet(userIntent)
+
   return (
-    <div className="prompt-suggest-bar">
+    <div className={`prompt-suggest-bar${loading ? ' is-loading' : ''}`}>
       <div className="prompt-suggest-head">
         <span className="prompt-suggest-prefix">&gt;&gt;</span>
-        <span className="prompt-suggest-title">根据你的描述，推荐勾选模块（点击切换）</span>
-        {usedLlm && <em className="prompt-suggest-ai-tag">DeepSeek</em>}
+        <span className="prompt-suggest-title">
+          根据「{snippet}」推荐勾选模块（点击切换）
+        </span>
+        {loading ? (
+          <em className="prompt-suggest-ai-tag loading">正在分析…</em>
+        ) : sourceLabel ? (
+          <em className="prompt-suggest-ai-tag">{sourceLabel}</em>
+        ) : null}
       </div>
 
       {suggestions.length > 0 ? (
@@ -58,14 +75,16 @@ export default function PromptSuggestBar({
           })}
         </div>
       ) : (
-        <p className="prompt-suggest-empty">继续输入更多关键词，或输入 <code>&gt;</code> 手动选模块</p>
+        <p className="prompt-suggest-empty">继续输入更多关键词，或输入 <code>&gt;&gt;</code> 手动选模块</p>
       )}
 
       {enhancedPreview && (
-        <div className="prompt-suggest-preview">
+        <div className={`prompt-suggest-preview${loading ? ' is-loading' : ''}`}>
           <div className="prompt-suggest-preview-head">
-            <span><span className="prompt-suggest-prefix">&gt;&gt;</span> 优化后的生成提示词</span>
-            <button type="button" className="link-btn" onClick={onApplyPreview}>采用到输入框</button>
+            <span><span className="prompt-suggest-prefix">&gt;&gt;</span> 整理后的描述</span>
+            {!loading && (
+              <button type="button" className="link-btn" onClick={onApplyPreview}>采用到输入框</button>
+            )}
           </div>
           <pre className="prompt-suggest-preview-body">{enhancedPreview}</pre>
         </div>

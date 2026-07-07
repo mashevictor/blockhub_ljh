@@ -47,7 +47,7 @@ def _fallback_node_apis(app_slug: str, node_id: str, label: str, kind: str, note
             "label": label,
             "kind": kind,
             "input_api": _api("POST", f"{base}/egress/collect", "汇聚各模块处理结果"),
-            "output_api": _api("GET", f"{base}/egress/deliver", "推送至员工端 / 通知渠道"),
+            "output_api": _api("GET", f"{base}/egress/deliver", "推送至各端 / 通知渠道"),
         }
     return {
         "node_id": node_id,

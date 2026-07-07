@@ -35,7 +35,7 @@ export default function HeroDanmakuCloud({ onRoleApply, integrated }: Props) {
         })))
       })
       .catch(() => {
-        setLoadError('无法加载英雄区预设，请检查 API 与数据库 seed')
+        setLoadError('无法加载英雄区预设，请稍后重试')
         setPresets([])
       })
       .finally(() => setLoading(false))

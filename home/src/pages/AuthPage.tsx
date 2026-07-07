@@ -17,7 +17,7 @@ function isValidAccount(v: string) {
 function authErrorMessage(err: unknown, fallback: string): string {
   const resp = (err as { response?: { status?: number; data?: { detail?: string } } })?.response
   if (!resp) {
-    return '无法连接 API。请确认网络正常，或使用演示站 http://101.32.209.251'
+    return '无法连接服务。请确认网络正常，或使用演示站 http://101.32.209.251'
   }
   if (resp.status === 429) {
     return typeof resp.data?.detail === 'string' ? resp.data.detail : '发送过于频繁，请稍后再试'

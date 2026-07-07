@@ -108,7 +108,7 @@ export default function PlazaMyAppsPage() {
           <ul>
             <li><span>①</span> 点应用右侧 <strong>「管理模块」</strong> 展开详情</li>
             <li><span>②</span> 在<strong>模块顺序</strong>栏按住 ⠿ 拖动调整顺序</li>
-            <li><span>③</span> <strong>「复制链接」</strong> 发给员工，<strong>「打开」</strong> 预览网页版</li>
+            <li><span>③</span> <strong>「复制链接」</strong> 分享给团队，<strong>「打开」</strong> 预览网页版</li>
           </ul>
         </div>
       )}

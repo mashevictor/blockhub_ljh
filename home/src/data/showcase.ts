@@ -1,4 +1,4 @@
-/** 首页展示：10 大能力 · 20 行业 · 5 端交付 */
+/** 首页展示：41 项能力 · 11 个助手 · 145 业务场景 · 5 端交付 */
 
 export interface CapabilityItem {
   id: string
@@ -38,11 +38,11 @@ export const CAPABILITIES_SHOWCASE: CapabilityItem[] = [
   { id: 'integration', name: '系统对接', iconKey: 'integration', desc: 'ERP、OA、企微等系统打通', color: '#0f766e' },
   { id: 'workflow', name: '流程编排', iconKey: 'workflow', desc: '可视化配置表单与工作流', color: '#8b5cf6' },
   { id: 'security', name: '安全合规', iconKey: 'security', desc: '权限、脱敏与操作审计', color: '#64748b' },
-  { id: 'portal', name: '多端门户', iconKey: 'portal', desc: '一次发布，全端员工同步使用', color: '#ec4899' },
+  { id: 'portal', name: '多端门户', iconKey: 'portal', desc: '一次发布，各端同步可用', color: '#ec4899' },
 ]
 
 export const INDUSTRIES_SHOWCASE: IndustryItem[] = [
-  { key: 'office', name: '通用办公', iconKey: 'office', count: 65, desc: '人事、财务、审批、知识库', color: '#6366f1', fullPack: true },
+  { key: 'office', name: '通用办公', iconKey: 'office', count: 96, desc: '人事、财务、审批、知识库', color: '#6366f1', fullPack: true },
   { key: 'mfg', name: '传统制造', iconKey: 'mfg', count: 12, desc: '报修、SOP、质检、MES', color: '#3b82f6', fullPack: true },
   { key: 'sales', name: '销售行业', iconKey: 'sales', count: 12, desc: '话术、漏斗、合同、CRM', color: '#ef4444', fullPack: true },
   { key: 'med', name: '医疗健康', iconKey: 'med', count: 12, desc: '指南、排班、导诊、HIS', color: '#10b981', fullPack: true },
@@ -73,7 +73,7 @@ export const PLATFORMS_SHOWCASE: PlatformItem[] = [
 ]
 
 export const SCENARIO_BREAKDOWN = [
-  { label: '通用办公', count: 65, color: '#6366f1', iconKey: 'office' },
+  { label: '通用办公', count: 96, color: '#6366f1', iconKey: 'office' },
   { label: '制造业', count: 12, color: '#3b82f6', iconKey: 'mfg' },
   { label: '销售', count: 12, color: '#ef4444', iconKey: 'sales' },
   { label: '医疗', count: 12, color: '#10b981', iconKey: 'med' },

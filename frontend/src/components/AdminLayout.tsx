@@ -5,6 +5,7 @@ import { fetchMe, logout, type AuthUser } from '../auth/session'
 import ThemePicker from './ThemePicker'
 import BrandMark from './BrandMark'
 import { BRAND } from '../data/brand'
+import { PLATFORM_STATS } from '@shared/platformStats'
 import {
   IconHome,
   IconBot,
@@ -54,13 +55,11 @@ export default function AdminLayout() {
           </div>
         </div>
         <div className="sidebar-meta">
-          {catalog ? `${catalog.total} 个业务场景` : '加载中…'}
-          {stats && (
-            <>
-              <br />
-              {stats.agents} 大能力 · 运行正常
-            </>
-          )}
+          {catalog ? `${catalog.total} 个业务场景` : `${PLATFORM_STATS.scenarios} 个业务场景`}
+          <>
+            <br />
+            {PLATFORM_STATS.capabilities} 项能力 · {PLATFORM_STATS.agents} 个助手 · 运行正常
+          </>
         </div>
         <nav className="nav-section">
           <div className="nav-label">导航</div>

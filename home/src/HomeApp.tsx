@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { ADMIN_URL, type PublishResult, type ViewMode } from './data/constants'
+import { getAdminUrl, type PublishResult, type ViewMode } from './data/constants'
 import type { RoleApplyRequest } from './data/rolePresets'
 import HeroCubeStage from './components/HeroCubeStage'
 import PlatformShowcaseFooter from './components/PlatformShowcaseFooter'
@@ -20,7 +20,6 @@ import BrandMark from './components/BrandMark'
 import { finishPublishNavigate } from './lib/publishFlow'
 import { useMyApps } from './hooks/useMyApps'
 import { ROUTES } from './routes/paths'
-import './index.css'
 
 export default function HomeApp() {
   const [view, setView] = useState<ViewMode>('prompt')
@@ -96,7 +95,7 @@ export default function HomeApp() {
               <>
                 <span className="header-user">{user.display_name}</span>
                 <button type="button" className="btn-login" onClick={() => logout()}>退出</button>
-                <a className="btn-advanced" href={ADMIN_URL} target="_blank" rel="noreferrer">
+                <a className="btn-advanced" href={getAdminUrl()} target="_blank" rel="noreferrer">
                   <IconSettings size={15} />
                   <span className="btn-advanced-text">管理后台</span>
                   <IconArrowRight size={14} className="btn-arrow" />
@@ -141,7 +140,7 @@ export default function HomeApp() {
       <footer className="site-footer">
         <span>{BRAND.footer}</span>
         {user && (
-          <a href={ADMIN_URL} target="_blank" rel="noreferrer">
+          <a href={getAdminUrl()} target="_blank" rel="noreferrer">
             管理后台
             <IconArrowRight size={14} />
           </a>

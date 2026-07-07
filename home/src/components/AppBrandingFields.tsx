@@ -13,7 +13,7 @@ interface Props {
 export default function AppBrandingFields({
   value,
   onChange,
-  namePlaceholder = '应用名称（将显示在手机桌面与员工端）',
+  namePlaceholder = '应用名称（会显示在手机桌面和打开页）',
   compact = false,
 }: Props) {
   const fileRef = useRef<HTMLInputElement>(null)

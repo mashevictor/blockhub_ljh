@@ -35,7 +35,7 @@ function ApiRow({ title, api }: { title: string; api: FlowApiEndpoint }) {
       const res = await testFlowApi(api)
       setTestResult(res)
     } catch {
-      setTestResult({ ok: false, status: 0, body: '请求失败，请确认 API 服务可用', ms: 0 })
+      setTestResult({ ok: false, status: 0, body: '请求失败，请稍后重试', ms: 0 })
     } finally {
       setTesting(false)
     }
@@ -122,10 +122,10 @@ export function ModuleApiPanel({ appKey, appName, steps, activeNodeId }: Props) 
     <div className="plaza-mflow-api-panel">
       <div className="plaza-mflow-api-panel-head">
         <div>
-          <strong>模块 API 接口</strong>
+          <strong>模块数据接口</strong>
           <span className="plaza-mflow-api-source">
-            {result?.source === 'deepseek' ? 'DeepSeek 生成' : result ? '规则模拟（可测）' : '拨通中…'}
-            {result && !result.llm_configured && result.source === 'fallback' ? '' : result && !result.llm_configured ? '（未配置 Key）' : ''}
+            {result?.source === 'deepseek' ? '智能生成' : result ? '规则模拟（可测）' : '拨通中…'}
+            {result && !result.llm_configured && result.source === 'fallback' ? '' : result && !result.llm_configured ? '' : ''}
           </span>
         </div>
         <button
@@ -156,14 +156,14 @@ export function ModuleApiPanel({ appKey, appName, steps, activeNodeId }: Props) 
             <span className="plaza-mflow-chev" aria-hidden>&gt;&gt;</span>
             当前节点：<strong>{activeApi.label}</strong>
           </p>
-          <ApiRow title="流入 API（input）" api={activeApi.input_api} />
-          <ApiRow title="流出 API（output）" api={activeApi.output_api} />
+          <ApiRow title="流入接口（input）" api={activeApi.input_api} />
+          <ApiRow title="流出接口（output）" api={activeApi.output_api} />
         </div>
       )}
 
       {result && (
         <details className="plaza-mflow-api-all">
-          <summary>查看全部 {result.nodes.length} 个节点 API</summary>
+          <summary>查看全部 {result.nodes.length} 个节点接口</summary>
           <ul className="plaza-mflow-api-list">
             {result.nodes.map((n) => (
               <li key={n.node_id} className={activeNodeId === n.node_id ? 'on' : ''}>

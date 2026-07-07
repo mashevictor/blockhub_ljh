@@ -129,6 +129,18 @@ echo "==> [8/9] reload nginx"
 sudo nginx -t
 sudo systemctl reload nginx
 
+if [ -f /var/www/blockhub/admin/index.html ]; then
+  if grep -q 'id="root"' /var/www/blockhub/admin/index.html 2>/dev/null; then
+    echo "    admin index.html OK"
+  else
+    echo "ERROR: admin index.html invalid — rebuild frontend"
+    exit 1
+  fi
+else
+  echo "ERROR: /var/www/blockhub/admin/index.html missing"
+  exit 1
+fi
+
 echo ""
 echo "==> [9/9] seed + smoke (catalog 114 + hero 30 + chips 5)"
 bash "$ROOT/scripts/smoke-test.sh" "${SMOKE_BASE_URL:-http://127.0.0.1}" --seed-only || {

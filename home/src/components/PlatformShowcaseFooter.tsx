@@ -7,6 +7,7 @@ import {
 import { fetchCatalogSummary, type CatalogSummary } from '../api/client'
 import { useTheme } from '../context/ThemeContext'
 import { capabilityColor } from '../data/iconPalette'
+import { PLATFORM_STATS } from '@shared/platformStats'
 import {
   DynamicIcon,
   IconDevices,
@@ -26,17 +27,14 @@ export default function PlatformShowcaseFooter() {
   }, [])
 
   const sceneBars = useMemo(() => {
-    if (!summary) return null
-    const total = summary.total || 1
+    const office = summary?.office_count ?? PLATFORM_STATS.officeScenarios
+    const industry = summary?.industry_count ?? PLATFORM_STATS.industryScenarios
+    const total = PLATFORM_STATS.scenarios
     return [
-      { label: '通用办公', count: summary.office_count, color: '#4338ca' },
-      { label: '行业场景', count: summary.industry_count, color: '#0891b2' },
+      { label: '通用办公', count: office, color: '#4338ca' },
+      { label: '行业场景', count: industry, color: '#0891b2' },
     ].map((s) => ({ ...s, pct: (s.count / total) * 100 }))
   }, [summary])
-
-  const capCount = summary?.capability_count ?? CAPABILITIES_SHOWCASE.length
-  const sceneTotal = summary?.total ?? 114
-  const agentCount = summary?.agent_count ?? 10
 
   return (
     <section className="showcase-footer" aria-label="平台能力总览">
@@ -45,8 +43,8 @@ export default function PlatformShowcaseFooter() {
           <header className="showcase-block-head">
             <span className="showcase-block-icon tone-violet"><IconZap size={20} /></span>
             <div>
-              <h2>{capCount} 项能力 · {agentCount} 套 Agent</h2>
-              <p>{summary?.source === 'database' ? '数据来自 PostgreSQL Catalog' : '从创建到发布，底座能力全覆盖'}</p>
+              <h2>{PLATFORM_STATS.capabilities} 项能力 · {PLATFORM_STATS.agents} 个助手</h2>
+              <p>从想法到可用，常用能力一站配齐</p>
             </div>
           </header>
           <ul className="showcase-cap-grid">
@@ -72,15 +70,12 @@ export default function PlatformShowcaseFooter() {
           <header className="showcase-block-head">
             <span className="showcase-block-icon tone-sky"><IconLayers size={20} /></span>
             <div>
-              <h2>{sceneTotal} 业务场景</h2>
-              <p>办公 + 行业场景包，开箱即用</p>
+              <h2>{PLATFORM_STATS.scenarios} 业务场景</h2>
+              <p>办公与行业场景，点选就能用</p>
             </div>
           </header>
           <ul className="showcase-scene-bars">
-            {(sceneBars ?? [
-              { label: '通用办公', count: 65, color: '#4338ca', pct: 57 },
-              { label: '行业场景', count: 49, color: '#0891b2', pct: 43 },
-            ]).map((s) => (
+            {sceneBars.map((s) => (
               <li key={s.label}>
                 <span>{s.label}</span>
                 <div className="showcase-scene-track">
@@ -91,9 +86,9 @@ export default function PlatformShowcaseFooter() {
             ))}
           </ul>
           <p className="showcase-scene-foot">
-            通用办公 <strong>{summary?.office_count ?? 65}</strong> 项 ·
-            办公 <strong>{summary?.office_groups ?? 8}</strong> 大分类 ·
-            <strong>{summary?.industry_packs ?? 20}</strong> 个行业包
+            通用办公 <strong>{summary?.office_count ?? PLATFORM_STATS.officeScenarios}</strong> 项 ·
+            办公 <strong>{summary?.office_groups ?? PLATFORM_STATS.officeGroups}</strong> 大分类 ·
+            <strong>{summary?.industry_packs ?? PLATFORM_STATS.industryPacks}</strong> 个行业包
           </p>
         </article>
 
@@ -101,8 +96,8 @@ export default function PlatformShowcaseFooter() {
           <header className="showcase-block-head">
             <span className="showcase-block-icon tone-cyan"><IconDevices size={20} /></span>
             <div>
-              <h2>5 端全覆盖</h2>
-              <p>一次发布，员工多端同步使用</p>
+              <h2>{PLATFORM_STATS.platforms} 端全覆盖</h2>
+              <p>一次发布，网页和手机同步可用</p>
             </div>
           </header>
           <ul className="showcase-plat-grid">
