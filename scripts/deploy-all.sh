@@ -67,7 +67,7 @@ refresh_caches() {
   log "[缓存] 刷新构建缓存"
   # git
   git fetch origin
-  git checkout -- home/package-lock.json frontend/package-lock.json runtime-web/package-lock.json 2>/dev/null || true
+  git checkout -- home/package-lock.json frontend/package-lock.json runtime-web/package-lock.json runtime-app/pubspec.lock 2>/dev/null || true
 
   # npm — 清 Vite 产物缓存，保留 node_modules 加速
   for dir in home frontend runtime-web; do

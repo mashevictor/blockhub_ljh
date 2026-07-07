@@ -16,7 +16,7 @@ echo "=========================================="
 
 echo "==> [1/9] git pull (discard local lockfile drift)"
 git fetch origin
-git checkout -- home/package-lock.json 2>/dev/null || true
+git checkout -- home/package-lock.json runtime-app/pubspec.lock 2>/dev/null || true
 git pull origin main
 echo "    now at $(git rev-parse --short HEAD)"
 
