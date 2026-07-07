@@ -28,7 +28,7 @@ fi
 source .venv/bin/activate
 pip install -r requirements.txt -q
 
-echo "==> [3/9] alembic migrate (target: head, incl. 007 app branding)"
+echo "==> [3/9] alembic migrate (target: head, incl. 009 kb+pgvector)"
 bash "$ROOT/scripts/repair-db.sh" || {
   echo "    repair-db skipped or failed; trying direct upgrade..."
   cd "$ROOT/backend"
@@ -142,7 +142,7 @@ else
 fi
 
 echo ""
-echo "==> [9/9] seed + smoke (catalog 114 + hero 30 + chips 5)"
+echo "==> [9/9] seed + smoke (catalog sync)"
 bash "$ROOT/scripts/smoke-test.sh" "${SMOKE_BASE_URL:-http://127.0.0.1}" --seed-only || {
   echo "WARN: seed-only failed; try: curl -X POST .../seed -d '{\"force\":true}'"
 }

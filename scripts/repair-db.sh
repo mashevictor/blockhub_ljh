@@ -135,7 +135,7 @@ fi
 
 # 常见坑：alembic 与 schema 同是 005，但 head 已是 007 → 必须 upgrade
 if [ "${ALEMBIC_REV:-}" != "$HEAD_REV" ] || ! has_icon_url; then
-  echo "==> alembic upgrade head (need 006/007 branding columns)"
+  echo "==> alembic upgrade head (need newer migrations)"
   alembic upgrade head
 fi
 
@@ -153,9 +153,13 @@ for t in ["users", "catalog_office_scenarios", "catalog_hero_presets", "contract
 print(f"verify users.phone: {'OK' if col('users', 'phone') else 'MISSING'}")
 print(f"verify tenants.config_json: {'OK' if col('tenants', 'config_json') else 'MISSING'}")
 print(f"verify apps.icon_url: {'OK' if col('apps', 'icon_url') else 'MISSING'}")
-print(f"verify apps.primary_color: {'OK' if col('apps', 'primary_color') else 'MISSING'}")
+print(f"verify apps.plaza_visibility: {'OK' if col('apps', 'plaza_visibility') else 'MISSING'}")
+print(f"verify knowledge_bases: {'OK' if insp.has_table('knowledge_bases') else 'MISSING'}")
+print(f"verify kb_document_chunks: {'OK' if insp.has_table('kb_document_chunks') else 'MISSING'}")
 if not col("apps", "icon_url"):
     raise SystemExit("FAIL: apps.icon_url still missing after upgrade")
+if not insp.has_table("kb_document_chunks"):
+    raise SystemExit("FAIL: kb_document_chunks missing — need migration 009 + pgvector")
 PY
 
 echo "==> restart API"

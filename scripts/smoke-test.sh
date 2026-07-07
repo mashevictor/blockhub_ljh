@@ -111,7 +111,7 @@ CHIP_COUNT=$(echo "$SUMMARY" | python3 -c "import sys,json; print(json.load(sys.
 [ "$HERO_COUNT" -eq 30 ] 2>/dev/null && ok "hero_preset_count=30" || bad "hero_preset_count!=30 ($SUMMARY)"
 [ "$CHIP_COUNT" -eq 5 ] 2>/dev/null && ok "chip_template_count=5" || bad "chip_template_count!=5 ($SUMMARY)"
 AGENT_COUNT=$(echo "$SUMMARY" | python3 -c "import sys,json; print(json.load(sys.stdin).get('agent_count',0))" 2>/dev/null || echo 0)
-[ "$AGENT_COUNT" -ge 11 ] 2>/dev/null && ok "agent_count>=11 ($AGENT_COUNT)" || bad "agent_count<11 ($SUMMARY)"
+[ "$AGENT_COUNT" -ge 12 ] 2>/dev/null && ok "agent_count>=12 ($AGENT_COUNT)" || bad "agent_count<12 ($SUMMARY)"
 
 HERO=$(curl -sf "$API/catalog/hero-presets" 2>/dev/null || echo "")
 if echo "$HERO" | grep -q '"total":30'; then ok "GET /catalog/hero-presets total=30"; else bad "GET /catalog/hero-presets ($HERO)"; fi
@@ -121,7 +121,8 @@ if echo "$OFFICE" | grep -q '"total":'; then ok "GET /catalog/office lite"; else
 
 if [ -n "$TOKEN" ]; then
   AGENTS=$(curl -sf -H "Authorization: Bearer $TOKEN" "$API/agents" 2>/dev/null || echo "")
-  if echo "$AGENTS" | grep -q '"total":11'; then ok "GET /agents total=11"; else bad "GET /agents ($AGENTS)"; fi
+  if echo "$AGENTS" | grep -q '"total":'; then ok "GET /agents"; else bad "GET /agents ($AGENTS)"; fi
+  if echo "$AGENTS" | grep -q 'shanghai_voice'; then ok "agents includes shanghai_voice"; else bad "agents missing shanghai_voice"; fi
 fi
 
 echo ""
@@ -185,6 +186,67 @@ if [ -n "$TOKEN" ]; then
     -H "Authorization: Bearer $TOKEN" \
     -d '{"message":"你好","session_id":"smoke"}' 2>/dev/null | head -c 200 || echo "")
   if echo "$STREAM" | grep -q 'data:'; then ok "POST /chat/completions/stream (SSE chunks)"; else bad "chat stream no SSE data"; fi
+  if echo "$CHAT_CFG" | grep -q '"rag_available"'; then ok "GET /chat/config rag_available field"; else bad "chat config missing rag_available"; fi
+fi
+
+echo ""
+echo "=== Knowledge Base (D7/D8) ==="
+if [ -n "$TOKEN" ]; then
+  KB_STATS=$(curl -sf -H "Authorization: Bearer $TOKEN" "$API/kb/stats" 2>/dev/null || echo "")
+  if echo "$KB_STATS" | grep -q '"knowledge_bases"'; then ok "GET /kb/stats"; else bad "GET /kb/stats ($KB_STATS)"; fi
+
+  KB_CREATE=$(curl -sf -X POST "$API/kb/bases" \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer $TOKEN" \
+    -d '{"name":"冒烟知识库","description":"smoke test"}' 2>/dev/null || echo "")
+  KB_ID=$(echo "$KB_CREATE" | python3 -c "import sys,json; print(json.load(sys.stdin).get('kb',{}).get('id',''))" 2>/dev/null || echo "")
+  if [ -n "$KB_ID" ]; then ok "POST /kb/bases ($KB_ID)"; else bad "POST /kb/bases ($KB_CREATE)"; fi
+
+  if [ -n "$KB_ID" ]; then
+    TMPDOC=$(mktemp /tmp/blockhub-smoke-kb.XXXXXX.txt)
+    echo "冒烟测试文档：员工请假须提前三个工作日提交申请，主管审批后生效。" > "$TMPDOC"
+    UPLOAD=$(curl -sf -X POST "$API/kb/documents/upload" \
+      -H "Authorization: Bearer $TOKEN" \
+      -F "kb_id=$KB_ID" \
+      -F "file=@$TMPDOC;filename=smoke-leave-policy.txt" 2>/dev/null || echo "")
+    rm -f "$TMPDOC"
+    DOC_ID=$(echo "$UPLOAD" | python3 -c "import sys,json; print(json.load(sys.stdin).get('document',{}).get('id',''))" 2>/dev/null || echo "")
+    if [ -n "$DOC_ID" ]; then ok "POST /kb/documents/upload ($DOC_ID)"; else bad "POST /kb/documents/upload ($UPLOAD)"; fi
+
+    if [ -n "$DOC_ID" ]; then
+      # 等待后台索引（BackgroundTasks）
+      INDEXED=false
+      for _ in 1 2 3 4 5 6 7 8 9 10; do
+        sleep 2
+        DOC=$(curl -sf -H "Authorization: Bearer $TOKEN" "$API/kb/documents/$DOC_ID" 2>/dev/null || echo "")
+        if echo "$DOC" | grep -q '"status":"indexed"'; then INDEXED=true; break; fi
+        if echo "$DOC" | grep -q '"status":"failed"'; then bad "document index failed ($DOC)"; INDEXED=skip; break; fi
+      done
+      if [ "$INDEXED" = true ]; then ok "document indexed (chunks ready)"; elif [ "$INDEXED" != skip ]; then bad "document not indexed in time (still processing?)"; fi
+
+      SEARCH=$(curl -sf -X POST "$API/kb/search" \
+        -H "Content-Type: application/json" \
+        -H "Authorization: Bearer $TOKEN" \
+        -d "{\"query\":\"请假\",\"kb_id\":\"$KB_ID\",\"top_k\":3}" 2>/dev/null || echo "")
+      SEARCH_TOTAL=$(echo "$SEARCH" | python3 -c "import sys,json; print(json.load(sys.stdin).get('total',0))" 2>/dev/null || echo 0)
+      [ "$SEARCH_TOTAL" -ge 1 ] 2>/dev/null && ok "POST /kb/search hits>=1" || bad "POST /kb/search no hits ($SEARCH)"
+    fi
+  fi
+fi
+
+echo ""
+echo "=== Shanghai Voice Agent ==="
+VOICE_CFG=$(curl -sf "$API/voice/config" 2>/dev/null || echo "")
+if echo "$VOICE_CFG" | grep -q '"agent_id":"shanghai_voice"'; then ok "GET /voice/config"; else bad "GET /voice/config ($VOICE_CFG)"; fi
+if echo "$VOICE_CFG" | grep -q '"ws_path"'; then ok "voice ws_path present"; else bad "voice ws_path missing"; fi
+VOICE_STATUS=$(curl -sf "$API/voice/status" 2>/dev/null || echo "")
+if echo "$VOICE_STATUS" | grep -q '"ws_endpoint"'; then ok "GET /voice/status"; else bad "GET /voice/status ($VOICE_STATUS)"; fi
+if echo "$VOICE_STATUS" | grep -q '"configured"'; then
+  if echo "$VOICE_STATUS" | grep -q '"configured":true'; then
+    ok "teleai configured (live voice ready)"
+  else
+    ok "teleai not configured (endpoint alive, set TELEAI_* in .env)"
+  fi
 fi
 
 echo ""
@@ -221,10 +283,12 @@ fi
 
 if [[ "$BASE" != *":8001"* ]]; then
   echo ""
-  echo "=== Static Admin (Nginx) ==="
+  echo "=== Static + Voice page (Nginx) ==="
   ADMIN_HTML=$(curl -sf --max-time 10 "$BASE/admin/login" 2>/dev/null || echo "")
   if echo "$ADMIN_HTML" | grep -q 'id="root"'; then ok "GET /admin/login SPA shell"; else bad "GET /admin/login ($ADMIN_HTML)"; fi
   if echo "$ADMIN_HTML" | grep -q '/admin/assets/'; then ok "admin bundle refs /admin/assets/"; else bad "admin missing asset refs"; fi
+  HOME_HTML=$(curl -sf --max-time 10 "$BASE/" 2>/dev/null || echo "")
+  if echo "$HOME_HTML" | grep -q 'id="root"'; then ok "GET / Home SPA shell"; else bad "GET / Home"; fi
 fi
 
 echo ""
