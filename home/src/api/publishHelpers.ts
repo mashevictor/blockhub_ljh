@@ -14,6 +14,12 @@ export interface PublishResultOptions {
 
 export interface PublishApiResponse {
   app: CreatedApp
+  page_schema?: Record<string, unknown>
+  build_manifest?: {
+    web_pkgs?: string[]
+    flutter_pkgs?: string[]
+    capability_keys?: string[]
+  }
   runtime?: { apk_ready?: boolean }
   notification?: { email?: string; email_sent?: boolean; email_configured?: boolean }
 }
@@ -55,11 +61,16 @@ export function createdAppToPublishResult(app: CreatedApp, opts: PublishResultOp
 
 /** 将 POST /creation/publish 响应转为前端 PublishResult */
 export function publishApiToResult(res: PublishApiResponse, opts: PublishResultOptions = {}): PublishResult {
-  return createdAppToPublishResult(res.app, {
+  const base = createdAppToPublishResult(res.app, {
     ...opts,
     contactEmail: opts.contactEmail ?? res.notification?.email,
     emailSent: opts.emailSent ?? res.notification?.email_sent,
     emailConfigured: opts.emailConfigured ?? res.notification?.email_configured,
     apkReady: opts.apkReady ?? res.runtime?.apk_ready,
   })
+  return {
+    ...base,
+    buildManifest: res.build_manifest ?? res.app.build_manifest,
+    pageSchema: res.page_schema ?? res.app.page_schema,
+  }
 }

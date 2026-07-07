@@ -37,7 +37,7 @@ export interface TenantRuntimeConfig {
   primary_color: string
   theme: string
   api_base_url: string
-  menu: Array<{ key: string; label: string; icon: string }>
+  menu: Array<{ key: string; label: string; icon: string; route?: string }>
   features?: Record<string, boolean>
   app?: {
     id: string

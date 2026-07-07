@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from app.db.models import AppRecord, PublishRecord, Tenant, User
 from app.services.app_urls import app_download_url, app_qr_payload, app_web_url
 from app.services.build_manifest import build_manifest
+from app.services.capability_resolver import resolve_publish_capability_keys
 from app.services.db_seed import DEFAULT_TENANT_SLUG
 from app.services.schema_generator import generate_page_schema
 
@@ -134,7 +135,12 @@ def persist_published_app(
     app_id: str = "",
 ) -> dict[str, Any]:
     existing = get_app_by_public_id(db, app_id) if app_id else None
-    keys = capability_keys or [m.get("key") for m in modules if isinstance(m, dict) and m.get("key")]
+    keys = resolve_publish_capability_keys(
+        scenario_names=scenarios,
+        capability_keys=capability_keys,
+        modules=modules,
+        industry_key=industry_key,
+    )
     page_schema = generate_page_schema(
         app_id=app_id or "pending",
         app_name=name,
@@ -150,7 +156,7 @@ def persist_published_app(
         existing.icon_url = icon_url or existing.icon_url
         existing.primary_color = primary_color or existing.primary_color
         existing.scenarios = scenarios
-        existing.capability_keys = capability_keys
+        existing.capability_keys = keys
         existing.modules = modules
         existing.page_schema = page_schema
         existing.build_manifest = manifest
@@ -184,7 +190,7 @@ def persist_published_app(
         icon_url=icon_url,
         primary_color=primary_color or "#4338ca",
         scenarios=scenarios,
-        capability_keys=capability_keys,
+        capability_keys=keys,
         modules=modules,
         schema_url=f"/runtime/{public_id}",
         page_schema=page_schema,

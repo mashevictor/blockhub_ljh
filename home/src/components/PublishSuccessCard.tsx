@@ -143,6 +143,17 @@ export default function PublishSuccessCard({
       )}
 
       <div className="publish-result-scroll">
+        {result.buildManifest?.web_pkgs && result.buildManifest.web_pkgs.length > 0 && (
+          <div className="publish-manifest-strip" role="status" style={{ marginBottom: 12, fontSize: 13, color: 'var(--muted)' }}>
+            <DynamicIcon name="layers" size={14} />
+            <span style={{ marginLeft: 6 }}>
+              组装 {result.buildManifest.web_pkgs.length} 个 Web 包：
+              {result.buildManifest.web_pkgs.slice(0, 3).map((p) => p.replace('@blockhub/', '')).join(' · ')}
+              {result.buildManifest.web_pkgs.length > 3 ? ` +${result.buildManifest.web_pkgs.length - 3}` : ''}
+            </span>
+          </div>
+        )}
+
         {visibleChips.length > 0 && (
           <ul className="publish-module-list" aria-label="已包含模块与能力">
             {visibleChips.map((m) => (

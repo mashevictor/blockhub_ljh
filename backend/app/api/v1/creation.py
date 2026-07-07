@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.core.deps import get_current_user, get_optional_user, require_admin
 from app.data.module_data import CREATION_WIZARD_STEPS, INDUSTRY_PACK_OPTIONS
+from app.data.schema_templates import feasibility_for_scenarios, list_templates
 from app.db.models import User
 from app.db.session import get_db
 from app.services.app_store import (
@@ -37,7 +38,8 @@ logger = logging.getLogger(__name__)
 
 class FeasibilityRequest(BaseModel):
     industry_key: str
-    scenario_ids: list[str]
+    scenario_ids: list[str] = []
+    scenario_names: list[str] = []
 
 
 class SuggestModulesRequest(BaseModel):
@@ -104,27 +106,19 @@ class CustomCapabilityReview(BaseModel):
 
 @router.post("/feasibility")
 def feasibility_check(body: FeasibilityRequest, db: Session = Depends(get_db)) -> dict:
-    pack = next((p for p in INDUSTRY_PACK_OPTIONS if p["key"] == body.industry_key), None)
-    n = len(body.scenario_ids)
-    base_caps = ["chat_qa", "approval_flow", "kb_document", "chart_dashboard"]
-    if body.industry_key in ("med", "sales"):
-        base_caps.append("notify_inapp")
-    if n >= 5:
-        base_caps.append("multi_agent")
-    score = min(98, 72 + n * 4 + (10 if pack else 0))
-    warnings: list[str] = []
-    if n == 0:
-        warnings.append("未选择场景，将使用默认问答模块")
-        score = 75
-    return {
-        "feasible": score >= 70,
-        "score": score,
-        "industry": pack["name"] if pack else body.industry_key,
-        "scenario_count": n,
-        "capabilities": base_caps[: min(6, len(base_caps))],
-        "warnings": warnings,
-        "summary": f"已选择 {n} 个场景，建议编排 {min(6, len(base_caps))} 项 Capability，可生成 page_schema。",
-    }
+    all_scenarios = catalog_store.scenario_name_map(db)
+    names = [all_scenarios.get(sid, sid) for sid in body.scenario_ids]
+    names.extend(body.scenario_names)
+    return feasibility_for_scenarios(
+        industry_key=body.industry_key,
+        scenario_names=names,
+    )
+
+
+@router.get("/schema-templates")
+def schema_templates_api(industry: str | None = None) -> dict:
+    items = list_templates(industry)
+    return {"total": len(items), "items": items}
 
 
 @router.post("/custom-capabilities")

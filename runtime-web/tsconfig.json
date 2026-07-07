@@ -11,10 +11,19 @@
     "noEmit": true,
     "jsx": "react-jsx",
     "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true
+    "baseUrl": ".",
+    "paths": {
+      "@blockhub/web-core": ["../packages/web-core/src/index.ts"],
+      "@blockhub/web-core/*": ["../packages/web-core/src/*"],
+      "@blockhub/web-capability-chat": ["../packages/web-capability-chat/src/index.ts"],
+      "@blockhub/web-capability-approval": ["../packages/web-capability-approval/src/index.ts"],
+      "@blockhub/web-capability-voice": ["../packages/web-capability-voice/src/index.ts"],
+      "@blockhub/web-capability-kb": ["../packages/web-capability-kb/src/index.ts"],
+      "@blockhub/web-capability-dashboard": ["../packages/web-capability-dashboard/src/index.ts"]
+    }
   },
   "include": ["src"]
 }

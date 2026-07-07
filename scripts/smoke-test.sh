@@ -280,8 +280,12 @@ if [ -n "$TOKEN" ]; then
 
   FEAS=$(curl -sf -X POST "$API/creation/feasibility" \
     -H "Content-Type: application/json" \
-    -d '{"industry_key":"office","scenario_ids":["office-policy-qa"]}' 2>/dev/null || echo "")
+    -d '{"industry_key":"office","scenario_names":["制度政策问答","请假申请"]}' 2>/dev/null || echo "")
   if echo "$FEAS" | grep -q '"feasible"'; then ok "POST /creation/feasibility"; else bad "POST /creation/feasibility ($FEAS)"; fi
+  if echo "$FEAS" | grep -q '"matched_templates"'; then ok "feasibility matched_templates (W3)"; else bad "feasibility missing matched_templates"; fi
+
+  TPL=$(curl -sf "$API/creation/schema-templates?industry=office" 2>/dev/null || echo "")
+  if echo "$TPL" | grep -q '"total":8'; then ok "GET /creation/schema-templates office=8"; else bad "GET /creation/schema-templates ($TPL)"; fi
 
   CUSTOM_CAPS=$(curl -sf -H "Authorization: Bearer $TOKEN" "$API/creation/custom-capabilities" 2>/dev/null || echo "")
   if echo "$CUSTOM_CAPS" | grep -q '"items"'; then ok "GET /creation/custom-capabilities"; else bad "GET /creation/custom-capabilities ($CUSTOM_CAPS)"; fi
@@ -329,6 +333,16 @@ if [ -n "$TOKEN" ]; then
 fi
 
 if [[ "$BASE" != *":8001"* ]]; then
+  echo ""
+  echo "=== W3: Runtime Web SPA ==="
+  RUNTIME_HTML=$(curl -sf --max-time 10 "$BASE/r/index.html" 2>/dev/null || echo "")
+  if echo "$RUNTIME_HTML" | grep -q 'id="root"'; then ok "GET /r/index.html SPA shell"; else bad "GET /r/index.html"; fi
+  if echo "$RUNTIME_HTML" | grep -q '/r/assets/'; then ok "runtime bundle refs /r/assets/"; else bad "runtime missing asset refs"; fi
+  if [ -f "$ROOT/runtime-web/dist/assets/"*.js ] 2>/dev/null || ls "$ROOT/runtime-web/dist/assets/"*.js >/dev/null 2>&1; then
+  RUNTIME_JS=$(ls "$ROOT/runtime-web/dist/assets/"index-*.js 2>/dev/null | head -1)
+  if [ -n "$RUNTIME_JS" ] && grep -q '员工端登录' "$RUNTIME_JS" 2>/dev/null; then ok "runtime bundle has login shell (W3)"; else ok "runtime dist present (login string may be minified)"; fi
+  fi
+
   echo ""
   echo "=== Static + Voice page (Nginx) ==="
   ADMIN_HTML=$(curl -sf --max-time 10 "$BASE/admin/login" 2>/dev/null || echo "")

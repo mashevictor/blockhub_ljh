@@ -152,6 +152,12 @@ export interface CreatedApp {
   deliver?: string
   source?: string
   capability_keys?: string[]
+  page_schema?: Record<string, unknown>
+  build_manifest?: {
+    web_pkgs?: string[]
+    flutter_pkgs?: string[]
+    capability_keys?: string[]
+  }
   modules?: Array<{
     key: string
     label: string

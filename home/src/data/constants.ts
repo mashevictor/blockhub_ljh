@@ -99,6 +99,13 @@ export interface PublishResult {
   emailConfigured?: boolean
   /** 服务端 APK 是否已就绪（与 Flutter 构建无关，不阻塞发布） */
   apkReady?: boolean
+  /** W3：按勾选组装的 Web/App 包清单 */
+  buildManifest?: {
+    web_pkgs?: string[]
+    flutter_pkgs?: string[]
+    capability_keys?: string[]
+  }
+  pageSchema?: Record<string, unknown>
 }
 
 export interface PublishedModuleItem {
