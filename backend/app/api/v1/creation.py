@@ -8,7 +8,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
-from app.core.deps import get_current_user, get_optional_user
+from app.core.deps import get_current_user, get_optional_user, require_admin
 from app.data.module_data import CREATION_WIZARD_STEPS, INDUSTRY_PACK_OPTIONS
 from app.db.models import User
 from app.db.session import get_db
@@ -25,6 +25,11 @@ from app.services.flow_module_api import generate_flow_module_apis
 from app.services.module_suggest import suggest_modules
 from app.services.publish_email import send_publish_delivery_email
 from app.services.email_service import smtp_configured
+from app.services.custom_capability_store import (
+    list_custom_capabilities,
+    propose_capability,
+    review_capability,
+)
 
 router = APIRouter(prefix="/creation", tags=["creation"])
 logger = logging.getLogger(__name__)
@@ -85,6 +90,90 @@ class PlazaPublishRequest(BaseModel):
     dept_name: str = ""
 
 
+class CustomCapabilityPropose(BaseModel):
+    key: str
+    name: str
+    category: str = "自定义"
+    description: str = ""
+    keywords: list[str] = []
+
+
+class CustomCapabilityReview(BaseModel):
+    action: str  # approve | reject
+
+
+@router.post("/feasibility")
+def feasibility_check(body: FeasibilityRequest, db: Session = Depends(get_db)) -> dict:
+    pack = next((p for p in INDUSTRY_PACK_OPTIONS if p["key"] == body.industry_key), None)
+    n = len(body.scenario_ids)
+    base_caps = ["chat_qa", "approval_flow", "kb_document", "chart_dashboard"]
+    if body.industry_key in ("med", "sales"):
+        base_caps.append("notify_inapp")
+    if n >= 5:
+        base_caps.append("multi_agent")
+    score = min(98, 72 + n * 4 + (10 if pack else 0))
+    warnings: list[str] = []
+    if n == 0:
+        warnings.append("未选择场景，将使用默认问答模块")
+        score = 75
+    return {
+        "feasible": score >= 70,
+        "score": score,
+        "industry": pack["name"] if pack else body.industry_key,
+        "scenario_count": n,
+        "capabilities": base_caps[: min(6, len(base_caps))],
+        "warnings": warnings,
+        "summary": f"已选择 {n} 个场景，建议编排 {min(6, len(base_caps))} 项 Capability，可生成 page_schema。",
+    }
+
+
+@router.post("/custom-capabilities")
+def propose_custom_capability(
+    body: CustomCapabilityPropose,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> dict:
+    item = propose_capability(
+        db,
+        current_user,
+        key=body.key,
+        name=body.name,
+        category=body.category,
+        description=body.description,
+        keywords=body.keywords,
+    )
+    return {"success": True, "item": item}
+
+
+@router.get("/custom-capabilities")
+def list_custom_capabilities_api(
+    status: str | None = "pending",
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> dict:
+    items = list_custom_capabilities(db, current_user.tenant_id, status=status)
+    return {"total": len(items), "items": items}
+
+
+@router.post("/custom-capabilities/{capability_id}/review")
+def review_custom_capability_api(
+    capability_id: str,
+    body: CustomCapabilityReview,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin),
+) -> dict:
+    item = review_capability(
+        db,
+        current_user.tenant_id,
+        capability_id,
+        action=body.action,
+        reviewer=current_user,
+    )
+    if not item:
+        raise HTTPException(status_code=404, detail="记录不存在")
+    return {"success": True, "item": item}
+
+
 class UploadIconRequest(BaseModel):
     data_url: str
 
@@ -132,20 +221,6 @@ def flow_module_apis_api(body: FlowModuleApisRequest) -> dict:
         app_name=body.app_name,
         nodes=[n.model_dump() for n in body.nodes],
     )
-
-
-@router.post("/feasibility")
-def feasibility_check(body: FeasibilityRequest) -> dict:
-    pack = next((p for p in INDUSTRY_PACK_OPTIONS if p["key"] == body.industry_key), None)
-    return {
-        "feasible": True,
-        "score": 92,
-        "industry": pack["name"] if pack else body.industry_key,
-        "scenario_count": len(body.scenario_ids),
-        "capabilities": ["chat_qa", "approval_flow", "kb_document", "chart_dashboard"],
-        "warnings": [],
-        "summary": f"已选择 {len(body.scenario_ids)} 个场景，系统将自动生成 Page Schema 并编排 4 项 Capability。",
-    }
 
 
 @router.post("/publish")
@@ -197,6 +272,8 @@ def publish_app(
         return {
             "success": True,
             "app": app,
+            "page_schema": app.get("page_schema"),
+            "build_manifest": app.get("build_manifest"),
             "runtime": {
                 "web_url": app.get("web_url"),
                 "download_url": app.get("download_url"),

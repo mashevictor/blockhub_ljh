@@ -250,6 +250,44 @@ if echo "$VOICE_STATUS" | grep -q '"configured"'; then
 fi
 
 echo ""
+echo "=== W2: Approvals + Chat PG (D10–D11) ==="
+if [ -n "$TOKEN" ]; then
+  APPR_STATS=$(curl -sf -H "Authorization: Bearer $TOKEN" "$API/approvals/stats" 2>/dev/null || echo "")
+  if echo "$APPR_STATS" | grep -q '"pending"'; then ok "GET /approvals/stats"; else bad "GET /approvals/stats ($APPR_STATS)"; fi
+
+  APPR_LIST=$(curl -sf -H "Authorization: Bearer $TOKEN" "$API/approvals" 2>/dev/null || echo "")
+  if echo "$APPR_LIST" | grep -q '"items"'; then ok "GET /approvals list"; else bad "GET /approvals ($APPR_LIST)"; fi
+
+  APPR_NEW=$(curl -sf -X POST "$API/approvals" \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer $TOKEN" \
+    -d '{"title":"冒烟请假申请","type":"leave","department":"测试部","summary":"W2 smoke"}' 2>/dev/null || echo "")
+  APPR_ID=$(echo "$APPR_NEW" | python3 -c "import sys,json; print(json.load(sys.stdin).get('approval',{}).get('id',''))" 2>/dev/null || echo "")
+  if [ -n "$APPR_ID" ]; then ok "POST /approvals submit ($APPR_ID)"; else bad "POST /approvals ($APPR_NEW)"; fi
+
+  CHAT_CFG=$(curl -sf -H "Authorization: Bearer $TOKEN" "$API/chat/config" 2>/dev/null || echo "")
+  if echo "$CHAT_CFG" | grep -q '"persistence":"postgresql"'; then ok "chat persistence=postgresql"; else bad "chat config ($CHAT_CFG)"; fi
+
+  CHAT_REPLY=$(curl -sf -X POST "$API/chat/completions" \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer $TOKEN" \
+    -d '{"message":"你好，冒烟测试","session_id":"smoke-w2","use_rag":false}' 2>/dev/null || echo "")
+  if echo "$CHAT_REPLY" | grep -q '"message"'; then ok "POST /chat/completions"; else bad "POST /chat/completions ($CHAT_REPLY)"; fi
+
+  CHAT_HIST=$(curl -sf -H "Authorization: Bearer $TOKEN" "$API/chat/sessions/smoke-w2/messages" 2>/dev/null || echo "")
+  MSG_COUNT=$(echo "$CHAT_HIST" | python3 -c "import sys,json; print(len(json.load(sys.stdin).get('items',[])))" 2>/dev/null || echo 0)
+  [ "$MSG_COUNT" -ge 2 ] 2>/dev/null && ok "chat messages persisted (>=2)" || bad "chat history count=$MSG_COUNT ($CHAT_HIST)"
+
+  FEAS=$(curl -sf -X POST "$API/creation/feasibility" \
+    -H "Content-Type: application/json" \
+    -d '{"industry_key":"office","scenario_ids":["office-policy-qa"]}' 2>/dev/null || echo "")
+  if echo "$FEAS" | grep -q '"feasible"'; then ok "POST /creation/feasibility"; else bad "POST /creation/feasibility ($FEAS)"; fi
+
+  CUSTOM_CAPS=$(curl -sf -H "Authorization: Bearer $TOKEN" "$API/creation/custom-capabilities" 2>/dev/null || echo "")
+  if echo "$CUSTOM_CAPS" | grep -q '"items"'; then ok "GET /creation/custom-capabilities"; else bad "GET /creation/custom-capabilities ($CUSTOM_CAPS)"; fi
+fi
+
+echo ""
 echo "=== Creation (PostgreSQL) ==="
 if [ -n "$TOKEN" ]; then
   PUBLISH=$(curl -sf -X POST "$API/creation/publish" \
@@ -266,6 +304,15 @@ if [ -n "$TOKEN" ]; then
     RUNTIME=$(curl -sf "$API/runtime/$APP_ID" 2>/dev/null || echo "")
     if echo "$RUNTIME" | grep -q '"public_id"'; then ok "GET /runtime/{appId}"; else bad "GET /runtime/{appId} ($RUNTIME)"; fi
     if echo "$RUNTIME" | grep -q '"deliver"'; then ok "runtime deliver field"; else bad "runtime missing deliver"; fi
+    if echo "$PUBLISH" | grep -q '"page_schema"'; then ok "publish page_schema"; else bad "publish missing page_schema"; fi
+    if echo "$PUBLISH" | grep -q '"build_manifest"'; then ok "publish build_manifest"; else bad "publish missing build_manifest"; fi
+
+    SCHEMA=$(curl -sf "$API/runtime/$APP_ID/schema" 2>/dev/null || echo "")
+    if echo "$SCHEMA" | grep -q '"page_schema"'; then ok "GET /runtime/{id}/schema"; else bad "GET /runtime/{id}/schema ($SCHEMA)"; fi
+
+    MANIFEST=$(curl -sf "$API/runtime/$APP_ID/manifest" 2>/dev/null || echo "")
+    if echo "$MANIFEST" | grep -q '"build_manifest"'; then ok "GET /runtime/{id}/manifest"; else bad "GET /runtime/{id}/manifest ($MANIFEST)"; fi
+
     if echo "$PUBLISH" | grep -q '"notification"'; then ok "publish notification payload"; else bad "publish missing notification"; fi
 
     PLAZA=$(curl -sf -X POST "$API/creation/plaza/publish" \

@@ -7,15 +7,10 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_current_user
-from app.data.module_data import (
-    CHAT_MODELS,
-    CHAT_SUGGESTIONS,
-    add_chat_message,
-    generate_rag_reply,
-    get_chat_messages,
-)
+from app.data.module_data import CHAT_MODELS, CHAT_SUGGESTIONS, generate_rag_reply
 from app.db.models import User
 from app.db.session import get_db
+from app.services.chat_store import add_message, list_messages
 from app.services.embedding_service import embedding_configured
 from app.services.kb_store import search_chunks
 from app.services.llm_gateway import (
@@ -37,8 +32,8 @@ class ChatRequest(BaseModel):
     top_k: int = Field(default=4, ge=1, le=10)
 
 
-def _history_for_llm(session_id: str) -> list[dict[str, str]]:
-    items = get_chat_messages(session_id)
+def _history_for_llm(db: Session, user: User, session_id: str) -> list[dict[str, str]]:
+    items = list_messages(db, user, session_id)
     return [{"role": m["role"], "content": m["content"]} for m in items[-10:]]
 
 
@@ -65,7 +60,7 @@ def _resolve_reply(
     citations = rag.citations if rag else None
 
     if llm_configured():
-        history = _history_for_llm(session_id)
+        history = _history_for_llm(db, user, session_id)
         messages = build_rag_messages(message, history, rag) if rag else None
         if messages is None:
             from app.services.llm_gateway import build_chat_messages
@@ -101,12 +96,17 @@ def chat_config(db: Session = Depends(get_db), user: User = Depends(get_current_
         "embedding_configured": embedding_configured(),
         "rag_available": stats["chunks"] > 0,
         "stream_supported": True,
+        "persistence": "postgresql",
     }
 
 
 @router.get("/sessions/{session_id}/messages")
-def list_messages(session_id: str = "default") -> dict:
-    return {"session_id": session_id, "items": get_chat_messages(session_id)}
+def list_messages_api(
+    session_id: str = "default",
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> dict:
+    return {"session_id": session_id, "items": list_messages(db, user, session_id)}
 
 
 @router.post("/completions")
@@ -115,7 +115,7 @@ def chat_completion(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> dict:
-    add_chat_message(body.session_id, "user", body.message)
+    add_message(db, user, body.session_id, "user", body.message)
     reply, source, citations = _resolve_reply(
         db,
         user,
@@ -126,7 +126,9 @@ def chat_completion(
         kb_id=body.kb_id,
         top_k=body.top_k,
     )
-    msg = add_chat_message(body.session_id, "assistant", reply, citations=citations, source=source)
+    msg = add_message(
+        db, user, body.session_id, "assistant", reply, citations=citations, source=source
+    )
     return {"session_id": body.session_id, "message": msg, "model": body.model, "source": source}
 
 
@@ -136,7 +138,7 @@ async def chat_stream(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    add_chat_message(body.session_id, "user", body.message)
+    add_message(db, user, body.session_id, "user", body.message)
     rag = _retrieve(db, user, body.message, body.kb_id, body.top_k) if body.use_rag else None
     citations = rag.citations if rag else None
 
@@ -145,7 +147,7 @@ async def chat_stream(
         source = "mock"
 
         if llm_configured():
-            history = _history_for_llm(body.session_id)
+            history = _history_for_llm(db, user, body.session_id)
             messages = build_rag_messages(body.message, history, rag) if rag else None
             if messages is None:
                 from app.services.llm_gateway import build_chat_messages
@@ -167,7 +169,9 @@ async def chat_stream(
                 await asyncio.sleep(0)
             if got_llm and reply_parts:
                 full = "".join(reply_parts)
-                add_chat_message(
+                add_message(
+                    db,
+                    user,
                     body.session_id,
                     "assistant",
                     full,
@@ -194,7 +198,9 @@ async def chat_stream(
         else:
             reply = generate_rag_reply(body.message)
 
-        add_chat_message(body.session_id, "assistant", reply, citations=citations, source=source)
+        add_message(
+            db, user, body.session_id, "assistant", reply, citations=citations, source=source
+        )
         chunk = ""
         for i, ch in enumerate(list(reply)):
             chunk += ch

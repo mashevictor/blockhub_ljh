@@ -250,6 +250,12 @@ export interface ApprovalItem {
 export const fetchApprovalStats = () => api.get('/approvals/stats').then((r) => r.data)
 export const fetchApprovals = (status?: string) =>
   api.get<{ items: ApprovalItem[] }>('/approvals', { params: status ? { status } : {} }).then((r) => r.data.items)
+export const submitApproval = (payload: {
+  title: string
+  type?: string
+  department?: string
+  summary?: string
+}) => api.post('/approvals', payload).then((r) => r.data)
 export const approvalAction = (id: string, action: 'approve' | 'reject', comment = '') =>
   api.post(`/approvals/${id}/action`, { action, comment }).then((r) => r.data)
 

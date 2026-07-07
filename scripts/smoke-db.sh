@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 快速检查 PostgreSQL + 009 知识库表（经 API + 直连校验）
+# 快速检查 PostgreSQL + 011 schema（经 API + 直连校验）
 # 用法:
 #   bash scripts/smoke-db.sh                          # 本机 Nginx
 #   bash scripts/smoke-db.sh http://101.32.209.251    # 外网
@@ -23,26 +23,30 @@ echo " Target: $API"
 echo "=========================================="
 
 echo ""
-echo "=== Schema (009) ==="
+echo "=== Schema (011) ==="
 if [ -f "$ROOT/backend/.venv/bin/activate" ]; then
   cd "$ROOT/backend"
   # shellcheck disable=SC1091
   source .venv/bin/activate
-  ALEMBIC_REV=$(alembic current 2>/dev/null | grep -oE '00[0-9]+' | tail -1 || echo "")
-  if [ "$ALEMBIC_REV" = "009" ]; then ok "alembic current=009"; else bad "alembic current=$ALEMBIC_REV (expected 009)"; fi
+  ALEMBIC_REV=$(alembic current 2>/dev/null | grep -oE '01[0-9]+' | tail -1 || echo "")
+  if [ "$ALEMBIC_REV" = "011" ]; then ok "alembic current=011"; else bad "alembic current=$ALEMBIC_REV (expected 011)"; fi
   if python3 <<'PY'
 from sqlalchemy import inspect, text
 from app.db.session import engine
 insp = inspect(engine)
-for t in ("knowledge_bases", "kb_documents", "kb_document_chunks"):
+def col(t, c):
+    return insp.has_table(t) and c in {x["name"] for x in insp.get_columns(t)}
+for t in ("knowledge_bases", "kb_documents", "kb_document_chunks", "approvals", "conversations", "chat_messages", "custom_capabilities"):
     if not insp.has_table(t):
         raise SystemExit(1)
+if not col("apps", "page_schema") or not col("apps", "build_manifest"):
+    raise SystemExit(3)
 with engine.connect() as conn:
     if not conn.execute(text("SELECT 1 FROM pg_extension WHERE extname='vector'")).fetchone():
         raise SystemExit(2)
 PY
   then
-    ok "tables: knowledge_bases, kb_documents, kb_document_chunks + pgvector"
+    ok "tables: kb + approvals/chat + page_schema (011)"
   else
     bad "kb tables/pgvector missing — run: bash scripts/server-db.sh"
   fi
@@ -82,13 +86,19 @@ if echo "$PUBLISH" | grep -q '"success":true'; then ok "apps table write"; else 
 if [ -n "$TOKEN" ]; then
   KB_STATS=$(curl -sf -H "Authorization: Bearer $TOKEN" "$API/kb/stats" 2>/dev/null || echo "")
   if echo "$KB_STATS" | grep -q '"knowledge_bases"'; then ok "GET /kb/stats (D7 tables wired)"; else bad "GET /kb/stats ($KB_STATS)"; fi
+
+  APPR_SUBMIT=$(curl -sf -X POST "$API/approvals" \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer $TOKEN" \
+    -d '{"title":"DB冒烟审批","type":"general","department":"QA","summary":"smoke submit"}' 2>/dev/null || echo "")
+  if echo "$APPR_SUBMIT" | grep -q '"success":true'; then ok "POST /approvals submit (010)"; else bad "POST /approvals ($APPR_SUBMIT)"; fi
 fi
 
 echo ""
 echo "=========================================="
 echo " Result: $pass passed, $fail failed"
 if [ "$fail" -eq 0 ]; then
-  echo " PostgreSQL + 009 schema OK"
+  echo " PostgreSQL + 011 schema OK"
 else
   echo " 修复: bash scripts/server-db.sh"
   echo " 诊断: bash scripts/diagnose-api.sh"

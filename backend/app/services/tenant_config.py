@@ -84,11 +84,17 @@ def get_tenant_config(
                 "schema_url": app.schema_url,
                 "modules": app.modules,
                 "capability_keys": app.capability_keys,
+                "page_schema": app.page_schema,
+                "build_manifest": app.build_manifest,
             }
             payload["app_name"] = app.name
             if app.icon_url:
                 payload["app_icon_url"] = app.icon_url
             if app.primary_color:
                 payload["primary_color"] = app.primary_color
+            if app.page_schema and isinstance(app.page_schema, dict):
+                menu = app.page_schema.get("menu")
+                if menu:
+                    payload["menu"] = menu
 
     return payload

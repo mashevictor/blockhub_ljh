@@ -30,6 +30,10 @@ def has_column(table: str, col: str) -> bool:
 def schema_revision() -> str | None:
     if not has_table("users"):
         return None
+    if has_column("apps", "page_schema"):
+        return "011"
+    if has_table("approvals"):
+        return "010"
     if has_table("kb_document_chunks"):
         return "009"
     if has_column("apps", "plaza_visibility"):
@@ -74,6 +78,12 @@ checks = [
     ("apps.plaza_visibility", has_column("apps", "plaza_visibility")),
     ("knowledge_bases", has_table("knowledge_bases")),
     ("kb_document_chunks", has_table("kb_document_chunks")),
+    ("approvals", has_table("approvals")),
+    ("conversations", has_table("conversations")),
+    ("chat_messages", has_table("chat_messages")),
+    ("custom_capabilities", has_table("custom_capabilities")),
+    ("apps.page_schema", has_column("apps", "page_schema")),
+    ("apps.build_manifest", has_column("apps", "build_manifest")),
 ]
 for label, ok in checks:
     print(f"  {label}: {'OK' if ok else 'MISSING'}")
@@ -87,7 +97,9 @@ insp = inspect(engine)
 def col(t,c):
     return insp.has_table(t) and c in {x['name'] for x in insp.get_columns(t)}
 if not insp.has_table('users'): print(''); raise SystemExit
-if insp.has_table('kb_document_chunks'): print('009')
+if col('apps','page_schema'): print('011')
+elif insp.has_table('approvals'): print('010')
+elif insp.has_table('kb_document_chunks'): print('009')
 elif col('apps','plaza_visibility'): print('008')
 elif col('apps','icon_url'): print('007')
 elif col('tenants','config_json'): print('006')
@@ -110,8 +122,8 @@ raise SystemExit(0 if ok else 1)
 }
 
 SCHEMA_REV="$(schema_level)"
-ALEMBIC_REV="$(alembic current 2>/dev/null | grep -oE '00[1-9]' | tail -1 || true)"
-HEAD_REV="$(alembic heads 2>/dev/null | grep -oE '00[1-9]' | tail -1 || echo '009')"
+ALEMBIC_REV="$(alembic current 2>/dev/null | grep -oE '01[0-9]' | tail -1 || true)"
+HEAD_REV="$(alembic heads 2>/dev/null | grep -oE '01[0-9]' | tail -1 || echo '011')"
 
 echo "==> head=$HEAD_REV alembic=${ALEMBIC_REV:-none} schema≈${SCHEMA_REV:-none}"
 
@@ -156,10 +168,20 @@ print(f"verify apps.icon_url: {'OK' if col('apps', 'icon_url') else 'MISSING'}")
 print(f"verify apps.plaza_visibility: {'OK' if col('apps', 'plaza_visibility') else 'MISSING'}")
 print(f"verify knowledge_bases: {'OK' if insp.has_table('knowledge_bases') else 'MISSING'}")
 print(f"verify kb_document_chunks: {'OK' if insp.has_table('kb_document_chunks') else 'MISSING'}")
+print(f"verify approvals: {'OK' if insp.has_table('approvals') else 'MISSING'}")
+print(f"verify conversations: {'OK' if insp.has_table('conversations') else 'MISSING'}")
+print(f"verify chat_messages: {'OK' if insp.has_table('chat_messages') else 'MISSING'}")
+print(f"verify custom_capabilities: {'OK' if insp.has_table('custom_capabilities') else 'MISSING'}")
+print(f"verify apps.page_schema: {'OK' if col('apps', 'page_schema') else 'MISSING'}")
+print(f"verify apps.build_manifest: {'OK' if col('apps', 'build_manifest') else 'MISSING'}")
 if not col("apps", "icon_url"):
     raise SystemExit("FAIL: apps.icon_url still missing after upgrade")
 if not insp.has_table("kb_document_chunks"):
     raise SystemExit("FAIL: kb_document_chunks missing — need migration 009 + pgvector")
+if not insp.has_table("approvals"):
+    raise SystemExit("FAIL: approvals missing — need migration 010")
+if not col("apps", "page_schema"):
+    raise SystemExit("FAIL: apps.page_schema missing — need migration 011")
 PY
 
 echo "==> restart API"

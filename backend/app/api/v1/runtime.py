@@ -62,6 +62,39 @@ async def _read_body(request: Request) -> Any:
         return raw.decode("utf-8", errors="replace") if raw else None
 
 
+@router.get("/{public_id}/schema")
+def runtime_schema(public_id: str, db: Session = Depends(get_db)) -> dict:
+    """Page schema for runtime-web / Flutter."""
+    app = db.query(AppRecord).filter(AppRecord.public_id == public_id).first()
+    if not app:
+        raise HTTPException(status_code=404, detail="应用不存在")
+    if not app.page_schema:
+        from app.services.schema_generator import generate_page_schema
+
+        schema = generate_page_schema(
+            app_id=app.public_id,
+            app_name=app.name,
+            capability_keys=app.capability_keys or [],
+            primary_color=app.primary_color or "#4338ca",
+        )
+        return {"public_id": app.public_id, "page_schema": schema}
+    return {"public_id": app.public_id, "page_schema": app.page_schema}
+
+
+@router.get("/{public_id}/manifest")
+def runtime_manifest(public_id: str, db: Session = Depends(get_db)) -> dict:
+    """Build manifest — Web/App package list for modular assembly."""
+    app = db.query(AppRecord).filter(AppRecord.public_id == public_id).first()
+    if not app:
+        raise HTTPException(status_code=404, detail="应用不存在")
+    if not app.build_manifest:
+        from app.services.build_manifest import build_manifest as build_manifest_fn
+
+        manifest = build_manifest_fn(app.capability_keys or [], deliver=app.deliver)
+        return {"public_id": app.public_id, "build_manifest": manifest}
+    return {"public_id": app.public_id, "build_manifest": app.build_manifest}
+
+
 @router.get("/{public_id}")
 def runtime_info(public_id: str, db: Session = Depends(get_db)) -> dict:
     """运行时元信息（Web / App 共用）。"""
@@ -80,6 +113,8 @@ def runtime_info(public_id: str, db: Session = Depends(get_db)) -> dict:
         "apk_ready": apk.is_file() and app.deliver in ("app", "both"),
         "modules": app.modules,
         "capability_keys": app.capability_keys,
+        "page_schema": app.page_schema,
+        "build_manifest": app.build_manifest,
     }
 
 

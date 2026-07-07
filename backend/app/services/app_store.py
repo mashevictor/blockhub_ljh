@@ -8,7 +8,9 @@ from sqlalchemy.orm import Session
 
 from app.db.models import AppRecord, PublishRecord, Tenant, User
 from app.services.app_urls import app_download_url, app_qr_payload, app_web_url
+from app.services.build_manifest import build_manifest
 from app.services.db_seed import DEFAULT_TENANT_SLUG
+from app.services.schema_generator import generate_page_schema
 
 PLAZA_VISIBILITY_VALUES = frozenset({"none", "public", "org", "dept", "users"})
 
@@ -40,6 +42,8 @@ def app_record_to_dict(record: AppRecord) -> dict[str, Any]:
         "capability_keys": record.capability_keys,
         "modules": record.modules,
         "schema_url": record.schema_url,
+        "page_schema": record.page_schema,
+        "build_manifest": record.build_manifest,
         "web_url": app_web_url(record.public_id),
         "download_url": app_download_url(record.public_id),
         "app_qr": app_qr_payload(record.public_id),
@@ -130,7 +134,17 @@ def persist_published_app(
     app_id: str = "",
 ) -> dict[str, Any]:
     existing = get_app_by_public_id(db, app_id) if app_id else None
+    keys = capability_keys or [m.get("key") for m in modules if isinstance(m, dict) and m.get("key")]
+    page_schema = generate_page_schema(
+        app_id=app_id or "pending",
+        app_name=name,
+        capability_keys=keys,
+        primary_color=primary_color or "#4338ca",
+    )
+    manifest = build_manifest(keys, deliver=deliver)
+
     if existing:
+        page_schema["appId"] = existing.public_id
         existing.name = name
         existing.industry_key = industry_key
         existing.icon_url = icon_url or existing.icon_url
@@ -138,6 +152,8 @@ def persist_published_app(
         existing.scenarios = scenarios
         existing.capability_keys = capability_keys
         existing.modules = modules
+        existing.page_schema = page_schema
+        existing.build_manifest = manifest
         existing.audience = audience
         existing.deliver = deliver
         existing.source = source
@@ -159,6 +175,7 @@ def persist_published_app(
 
     tenant = user.tenant if user else _default_tenant(db)
     public_id = uuid4().hex[:8]
+    page_schema["appId"] = public_id
     record = AppRecord(
         public_id=public_id,
         tenant_id=tenant.id,
@@ -170,6 +187,8 @@ def persist_published_app(
         capability_keys=capability_keys,
         modules=modules,
         schema_url=f"/runtime/{public_id}",
+        page_schema=page_schema,
+        build_manifest=manifest,
         status="published",
         audience=audience,
         deliver=deliver,

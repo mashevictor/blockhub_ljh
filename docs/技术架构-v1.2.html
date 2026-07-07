@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>积木仓 BlockHub · 技术架构与数据流 v1.2</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+:root{--gold:#b8860b;--gold-l:#d4af37;--gold-s:#fef9e7;--navy:#0a1628;--navy-m:#1e3a5f;--text:#1c1917;--muted:#78716c;--border:#e8dfc0;--bg:#faf9f7;--card:#fff;--ok:#047857;--warn:#b45309;--plan:#64748b;--ahead:#1d4ed8}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);font-size:13px;line-height:1.6}
+.wrap{max-width:1240px;margin:0 auto;padding:32px 20px 72px}
+.hero{background:linear-gradient(135deg,var(--navy),var(--navy-m) 55%,#96700a);color:#fffdf8;border-radius:18px;padding:32px 36px;margin-bottom:24px;box-shadow:0 16px 48px rgba(184,134,11,.18)}
+.hero h1{font-size:26px;margin-bottom:8px}.hero h1 em{color:var(--gold-l);font-style:normal}
+.hero p{opacity:.92;font-size:13px;max-width:960px;line-height:1.7}
+.kpi{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+.kpi div{background:rgba(255,255,255,.1);border:1px solid rgba(212,175,55,.35);border-radius:10px;padding:10px 14px;min-width:100px}
+.kpi b{font-size:18px;display:block;color:#fef3c7}.kpi span{font-size:10px;opacity:.85}
+.pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.pill{font-size:11px;padding:5px 12px;border-radius:20px;background:rgba(254,243,199,.15);border:1px solid rgba(212,175,55,.4);color:#fef3c7}
+nav.toc{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:22px;position:sticky;top:0;z-index:10;background:rgba(250,249,247,.93);backdrop-filter:blur(8px);padding:10px 0;border-bottom:1px solid var(--border)}
+nav.toc a{font-size:11px;padding:6px 12px;border-radius:8px;background:var(--card);border:1px solid var(--border);color:var(--muted);text-decoration:none}
+nav.toc a:hover{color:var(--gold);border-color:var(--gold-l)}
+section{margin-bottom:36px;scroll-margin-top:64px}
+.st{font-size:19px;font-weight:700;color:var(--navy);margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid var(--gold-l)}
+.st em{font-size:12px;font-style:normal;color:var(--muted);font-weight:400;margin-left:8px}
+.note{background:var(--gold-s);border:1px solid var(--border);border-radius:10px;padding:14px 16px;font-size:12px;margin-bottom:16px;line-height:1.75}
+.note-warn{background:#fffbeb;border-color:#fcd34d}
+.note-info{background:#eff6ff;border-color:#93c5fd}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:14px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(max-width:900px){.grid2,.grid3{grid-template-columns:1fr}}
+.diagram{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;overflow-x:auto;margin:12px 0}
+table{width:100%;border-collapse:collapse;font-size:11px;background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin:12px 0}
+th{background:linear-gradient(135deg,var(--navy),var(--navy-m));color:#fef3c7;padding:8px 10px;text-align:left}
+td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top}
+tr:hover td{background:var(--gold-s)}
+.tag{display:inline-block;font-size:10px;padding:2px 8px;border-radius:999px;font-weight:600}
+.tag-ok{background:#d1fae5;color:var(--ok)}.tag-warn{background:#fef3c7;color:var(--warn)}.tag-plan{background:#e2e8f0;color:var(--plan)}.tag-ahead{background:#dbeafe;color:var(--ahead)}
+code{font-family:Consolas,monospace;font-size:11px;background:#f5f5f4;padding:1px 5px;border-radius:4px}
+.tree{font-family:Consolas,monospace;font-size:11px;line-height:1.7;background:#0c1222;color:#cbd5e1;padding:16px 18px;border-radius:10px;overflow-x:auto;white-space:pre;border:1px solid var(--border)}
+.layer-stack{display:flex;flex-direction:column;gap:6px}
+.layer{display:grid;grid-template-columns:48px 120px 1fr 88px;gap:10px;align-items:center;padding:11px 14px;border-radius:10px;border:1px solid var(--border);font-size:12px}
+.layer .lv{font-weight:700;font-size:13px;color:var(--navy)}
+.layer.l5{background:#eef2ff;border-color:#a5b4fc}
+.layer.l4{background:#ecfdf5;border-color:#6ee7b7}
+.layer.l3{background:#fef9c3;border-color:#fde047}
+.layer.l2{background:#fff7ed;border-color:#fdba74}
+.layer.l1{background:#fce7f3;border-color:#f9a8d4}
+.layer.l0{background:#f1f5f9;border-color:#cbd5e1}
+footer{margin-top:40px;font-size:11px;color:var(--muted);text-align:center}
+footer a{color:var(--gold)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <h1>积木仓 <em>BlockHub</em> · 技术架构与数据流 v1.2</h1>
+  <p>
+    <strong>模块化交付架构</strong> · 2026-07-07 · 仓库 <code>cozecode/</code> · Git <code>main</code><br>
+    描述目标架构与当前实现差距：勾选 capability → <code>page_schema</code> + <code>build_manifest</code> → Web/App 按物理包组装。
+    <strong style="color:#fde68a">RAG/语音已超前</strong> · <strong style="color:#fca5a5">Schema/Runtime/拆包待建</strong>。
+  </p>
+  <div class="kpi">
+    <div><b>5</b><span>层 L0–L5</span></div>
+    <div><b>3+1</b><span>SPA + API</span></div>
+    <div><b>2</b><span>L5 交付端</span></div>
+    <div><b>43</b><span>Capability</span></div>
+    <div><b>4</b><span>W3 首批包</span></div>
+    <div><b>101.32.209.251</b><span>staging CVM</span></div>
+  </div>
+  <div class="pills">
+    <span class="pill">capability_manifest</span>
+    <span class="pill">build_manifest</span>
+    <span class="pill">page_schema</span>
+    <span class="pill">packages/*</span>
+    <span class="pill">WidgetRegistry</span>
+  </div>
+</header>
+
+<nav class="toc">
+  <a href="#overview">总览</a>
+  <a href="#modular-flow">模块化发布流</a>
+  <a href="#manifest">三份契约</a>
+  <a href="#layers">五层架构</a>
+  <a href="#monorepo">物理拆包</a>
+  <a href="#deploy">部署拓扑</a>
+  <a href="#data">数据层</a>
+  <a href="#api">API 地图</a>
+  <a href="#sequences">时序图</a>
+  <a href="#gap">差距矩阵</a>
+</nav>
+
+<!-- 1 总览 -->
+<section id="overview">
+  <h2 class="st">① 系统总览 <em>端到端</em></h2>
+  <div class="diagram"><pre class="mermaid">
+flowchart TB
+  subgraph Users["用户"]
+    U1["创作者<br/>Home / Admin"]
+    U2["员工<br/>Web / App"]
+  end
+
+  subgraph L4["L4 智能创建 · 三 SPA"]
+    Home["home :5173<br/>/ · /plaza"]
+    Admin["frontend :5174<br/>/admin/"]
+    Create["ModuleView 勾选<br/>capability_keys"]
+  end
+
+  subgraph API["FastAPI :8001"]
+    Pub["POST /creation/publish"]
+    Gen["schema_generator<br/>build_manifest"]
+    RT["GET /runtime/{id}/schema"]
+    Agents["Agents + Voice + RAG"]
+  end
+
+  subgraph L5["L5 Runtime · 模块化组装"]
+  direction TB
+    RW["runtime-web /r/<br/>WidgetRegistry TS"]
+    PKgw["packages/web-capability-*"]
+    FA["runtime-app shell<br/>WidgetRegistry Dart"]
+    PKgf["packages/capability_*"]
+  end
+
+  subgraph L0["L0 基础设施"]
+    PG[("PostgreSQL<br/>+ pgvector")]
+    RD[("Redis")]
+    COS[("COS / local")]
+    LLM["LLM / TeleAI"]
+  end
+
+  U1 --> Home & Admin
+  Create --> Pub
+  Pub --> Gen
+  Gen --> PG
+  Pub -->|"page_schema<br/>build_manifest"| PG
+  U2 --> RW & FA
+  RW --> RT
+  FA --> RT
+  PKgw --> RW
+  PKgf --> FA
+  Agents --> PG & RD & COS & LLM
+  </pre></div>
+
+  <div class="grid3">
+    <div class="card"><strong>Home + Admin</strong><br><span class="tag tag-ok">已上线</span><br>创建 · 勾选 · 发布落库</div>
+    <div class="card"><strong>Agent / RAG / 语音</strong><br><span class="tag tag-ahead">超前</span><br>代码完成 · 生产 pgvector/redis 待收尾</div>
+    <div class="card"><strong>模块化 Runtime</strong><br><span class="tag tag-plan">待建</span><br>SchemaGenerator · 物理包 · 真渲染</div>
+  </div>
+</section>
+
+<!-- 2 模块化发布流 -->
+<section id="modular-flow">
+  <h2 class="st">② 模块化发布数据流 <em>核心主线</em></h2>
+  <p class="note note-info">这是 v1.2 相对 v1.0/v1.1 的<strong>核心增量</strong>：发布不只存 capability_keys，还要生成 schema 与 manifest，驱动两端按勾选加载模块。</p>
+  <div class="diagram"><pre class="mermaid">
+flowchart LR
+  subgraph Select["1 · 勾选"]
+    MV["ModuleView / IndustryView"]
+    Keys["capability_keys[]<br/>例: shanghai_voice, chat_qa"]
+  end
+
+  subgraph Publish["2 · 发布 API"]
+    REQ["POST /creation/publish"]
+    SG["schema_generator"]
+    BM["build_manifest"]
+  end
+
+  subgraph Store["3 · 落库 apps"]
+    DB1["capability_keys"]
+    DB2["page_schema JSONB"]
+    DB3["build_manifest JSONB"]
+    DB4["schema_url → /r/{id}"]
+  end
+
+  subgraph WebAsm["4a · Web 组装"]
+    CFG["GET /tenant/config?app_id="]
+    SCH["GET /runtime/{id}/schema"]
+    MAN["GET /runtime/{id}/manifest"]
+    REGw["WidgetRegistry<br/>动态 import web_pkgs"]
+    Page["/r/{id}/voice · /chat"]
+  end
+
+  subgraph AppAsm["4b · App 组装"]
+    Shell["apps/shell main"]
+    REGf["WidgetRegistry Dart<br/>按 flutter_pkgs 注册"]
+    Menu["go_router 菜单<br/>仅显示已购 capability"]
+    APK["flutter-build-from-publish"]
+  end
+
+  MV --> Keys --> REQ
+  REQ --> SG --> DB2
+  REQ --> BM --> DB3
+  REQ --> DB1 & DB4
+  DB2 --> SCH
+  DB3 --> MAN
+  SCH --> REGw --> Page
+  MAN --> REGw
+  CFG --> REGw & Shell
+  SCH --> REGf
+  MAN --> REGf --> Menu
+  MAN --> APK
+  </pre></div>
+
+  <div class="diagram"><pre class="mermaid">
+sequenceDiagram
+  autonumber
+  participant H as Home ModuleView
+  participant API as FastAPI publish
+  participant SG as schema_generator
+  participant DB as PostgreSQL apps
+  participant RW as runtime-web
+  participant FL as Flutter shell
+
+  H->>API: POST /creation/publish<br/>{capability_keys, modules, deliver}
+  API->>SG: keys → page_schema + menu
+  API->>SG: keys → build_manifest
+  SG->>DB: INSERT/UPDATE apps<br/>page_schema, build_manifest
+  API-->>H: {web_url, build_manifest preview}
+
+  Note over RW,FL: 员工打开已发布应用
+
+  RW->>API: GET /tenant/config?app_id=xxx
+  RW->>API: GET /runtime/xxx/schema
+  RW->>API: GET /runtime/xxx/manifest
+  RW->>RW: registry.load(manifest.web_pkgs)<br/>render schema nodes
+
+  FL->>API: GET /tenant/config + /runtime/xxx/schema
+  FL->>FL: registry.init(manifest.flutter_pkgs)<br/>go_router 注册 routes
+  </pre></div>
+</section>
+
+<!-- 3 三份契约 -->
+<section id="manifest">
+  <h2 class="st">③ 三份契约 <em>capability_keys · page_schema · build_manifest</em></h2>
+  <table>
+    <thead><tr><th>契约</th><th>生产者</th><th>消费者</th><th>示例</th><th>状态</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><code>capability_keys</code></td>
+        <td>Home 勾选 / suggest</td>
+        <td>schema_generator 输入</td>
+        <td><code>["shanghai_voice","chat_qa"]</code></td>
+        <td><span class="tag tag-ok">✅ 已落库</span></td>
+      </tr>
+      <tr>
+        <td><code>page_schema</code></td>
+        <td>schema_generator + 12 模板</td>
+        <td>runtime-web · Flutter sdui_engine</td>
+        <td>root: tabs → ShanghaiVoiceWidget, ChatWidget</td>
+        <td><span class="tag tag-plan">⬜ 待实现</span></td>
+      </tr>
+      <tr>
+        <td><code>build_manifest</code></td>
+        <td>build_manifest.py + registry</td>
+        <td>runtime import map · Melos link · CI</td>
+        <td><code>web_pkgs: ["@bh/web-capability-shanghai-voice"]</code></td>
+        <td><span class="tag tag-plan">⬜ 待实现</span></td>
+      </tr>
+      <tr>
+        <td><code>capability_manifest</code></td>
+        <td>codegen from registry</td>
+        <td>三端共享 · 单一来源</td>
+        <td>key → widget, route, web_pkg, flutter_pkg</td>
+        <td><span class="tag tag-plan">⬜ 待实现</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="grid2">
+    <div class="card">
+      <strong>page_schema 片段（目标）</strong>
+      <pre class="tree" style="margin-top:10px">{
+  "version": "1",
+  "appId": "a1b2c3d4",
+  "title": "上海话助手",
+  "menu": [
+    {"key": "voice", "label": "上海话", "route": "/voice", "icon": "mic"}
+  ],
+  "root": {
+    "type": "page",
+    "children": [
+      {"type": "shanghai_voice", "widget": "ShanghaiVoiceWidget"}
+    ]
+  }
+}</pre>
+    </div>
+    <div class="card">
+      <strong>build_manifest 片段（目标）</strong>
+      <pre class="tree" style="margin-top:10px">{
+  "capability_keys": ["shanghai_voice"],
+  "web_pkgs": [
+    "@blockhub/web-capability-shanghai-voice"
+  ],
+  "flutter_pkgs": [
+    "capability_shanghai_voice"
+  ],
+  "widgets": ["ShanghaiVoiceWidget"],
+  "routes": ["/voice"],
+  "deliver": "both"
+}</pre>
+    </div>
+  </div>
+</section>
+
+<!-- 4 五层 -->
+<section id="layers">
+  <h2 class="st">④ 五层业务架构 <em>L0 → L5</em></h2>
+  <div class="layer-stack">
+    <div class="layer l5">
+      <span class="lv">L5</span><strong>Runtime 交付</strong>
+      <span>runtime-web + runtime-app · <strong>按 build_manifest 加载 packages/*</strong> · 读 page_schema</span>
+      <span><span class="tag tag-plan">待建</span></span>
+    </div>
+    <div class="layer l4">
+      <span class="lv">L4</span><strong>智能创建</strong>
+      <span>Home 三视图 + publish → <strong>schema + manifest 生成</strong></span>
+      <span><span class="tag tag-warn">部分</span></span>
+    </div>
+    <div class="layer l3">
+      <span class="lv">L3</span><strong>Catalog</strong>
+      <span>114 场景 PG · 12 模板映射表 schema_templates</span>
+      <span><span class="tag tag-ok">PG ✅</span></span>
+    </div>
+    <div class="layer l2">
+      <span class="lv">L2</span><strong>Capability</strong>
+      <span>43 项 registry · widget · web_pkg · flutter_pkg · capability_manifest codegen</span>
+      <span><span class="tag tag-warn">registry ✅ manifest ⬜</span></span>
+    </div>
+    <div class="layer l1">
+      <span class="lv">L1</span><strong>Agent</strong>
+      <span>12 Agent（7 核心 + 扩展含 shanghai_voice）· RAG · TeleAI WS</span>
+      <span><span class="tag tag-ahead">语音/RAG 超前</span></span>
+    </div>
+    <div class="layer l0">
+      <span class="lv">L0</span><strong>Infra</strong>
+      <span>PG · Redis · COS · pgvector · JWT · CVM Nginx</span>
+      <span><span class="tag tag-warn">redis/pgvector 运维</span></span>
+    </div>
+  </div>
+</section>
+
+<!-- 5 物理拆包 -->
+<section id="monorepo">
+  <h2 class="st">⑤ 物理拆包结构 <em>目标 monorepo</em></h2>
+  <div class="diagram"><pre class="mermaid">
+flowchart TB
+  subgraph Shared["shared/ 契约层"]
+    CM["capability-manifest.json<br/>codegen from registry"]
+    PS["page-schema.ts<br/>类型定义"]
+    BR["brand · themes · platformStats"]
+  end
+
+  subgraph WebPkgs["packages/ Web 能力包"]
+    WC["web-core<br/>registry · api · theme"]
+    WV["web-capability-shanghai-voice"]
+    WChat["web-capability-chat"]
+    WAppr["web-capability-approval"]
+    WKb["web-capability-kb"]
+  end
+
+  subgraph FlutterPkgs["runtime-app/ Melos"]
+    Core["packages/core"]
+    SDUI["packages/sdui_engine"]
+    CV["capability_shanghai_voice"]
+    CChat["capability_chat"]
+    Shell["apps/shell"]
+  end
+
+  subgraph SPAs["独立 SPA 部署"]
+    Home2["home/ · 引用 web-capability 做演示"]
+    Admin2["frontend/ · 管理配置"]
+    RT2["runtime-web/ · 员工端组装"]
+  end
+
+  CM --> WebPkgs & FlutterPkgs & SPAs
+  PS --> RT2 & SDUI
+  WV & WChat --> RT2
+  WV --> Home2
+  CV & CChat --> Shell
+  WC --> WV & WChat
+  </pre></div>
+
+  <pre class="tree">cozecode/
+├── shared/
+│   ├── capability-manifest.ts      ← codegen（待建）
+│   ├── page-schema.ts              ← 扩展 types（待建）
+│   └── brand.ts · themes.ts
+├── packages/                       ← Web 能力包（待建目录）
+│   ├── web-core/
+│   ├── web-capability-shanghai-voice/   ← P0 从上海话页迁出
+│   ├── web-capability-chat/
+│   └── web-capability-approval/
+├── home/                           ← 创作门户 · 引用 capability 包
+├── frontend/                       ← Admin
+├── runtime-web/                    ← 员工端 · WidgetRegistry 组装
+├── runtime-app/                    ← Melos（待重组）
+│   ├── melos.yaml
+│   ├── apps/shell/
+│   └── packages/
+│       ├── core/
+│       ├── sdui_engine/
+│       └── capability_shanghai_voice/
+└── backend/
+    ├── app/data/capability_registry.py
+    ├── app/services/schema_generator.py    ← 待建
+    ├── app/services/build_manifest.py      ← 待建
+    └── alembic/versions/010_app_page_schema.py  ← 待建</pre>
+</section>
+
+<!-- 6 部署 -->
+<section id="deploy">
+  <h2 class="st">⑥ 部署拓扑 <em>当前 staging</em></h2>
+  <div class="diagram"><pre class="mermaid">
+flowchart TB
+  subgraph Client["浏览器 / 手机"]
+    B1["http://101.32.209.251/"]
+    B2["/admin/"]
+    B3["/r/{appId} · 待真渲染"]
+    B4["APK download"]
+  end
+
+  subgraph CVM["Ubuntu CVM"]
+    NGX["Nginx :80"]
+    API["blockhub-api :8001"]
+    PG[("PostgreSQL 16<br/>系统实例 :5432")]
+    RD[("Redis :6379<br/>待装")]
+  end
+
+  B1 & B2 & B3 --> NGX
+  NGX -->|"/api/*"| API
+  NGX -->|"/ → home"| Static1["/var/www/blockhub/home"]
+  NGX -->|"/admin/"| Static2["/var/www/blockhub/admin"]
+  NGX -->|"/r/"| Static3["/var/www/blockhub/r"]
+  API --> PG
+  API -.->|限流| RD
+  B4 --> API
+  API -->|"uploads/apks/{id}.apk"| APKStore["backend/uploads/apks"]
+
+  style B3 fill:#fef3c7,stroke:#b45309
+  style RD fill:#fee2e2,stroke:#dc2626
+  </pre></div>
+  <div class="note note-warn">
+    <strong>运维注意：</strong>生产无 Docker · 5432 为系统 PostgreSQL · pgvector 需 <code>apt install postgresql-16-pgvector</code> · Redis 需 <code>redis-server</code> 后 <code>systemctl restart blockhub-api</code>。
+  </div>
+</section>
+
+<!-- 7 数据层 -->
+<section id="data">
+  <h2 class="st">⑦ 数据层 · 存储分工</h2>
+  <table>
+    <thead><tr><th>域</th><th>存储</th><th>表 / 模块</th><th>状态</th></tr></thead>
+    <tbody>
+      <tr><td>用户 / 租户</td><td>PostgreSQL</td><td><code>users</code> <code>tenants</code></td><td><span class="tag tag-ok">✅</span></td></tr>
+      <tr><td>发布应用</td><td>PostgreSQL</td><td><code>apps</code> · capability_keys · modules</td><td><span class="tag tag-ok">✅</span></td></tr>
+      <tr><td>page_schema / build_manifest</td><td>PostgreSQL JSONB</td><td><code>apps</code> 新字段 migration 010</td><td><span class="tag tag-plan">⬜</span></td></tr>
+      <tr><td>114 Catalog</td><td>PostgreSQL</td><td><code>catalog_*</code></td><td><span class="tag tag-ok">✅</span></td></tr>
+      <tr><td>KB 文档 + 向量</td><td>PG + pgvector + COS</td><td><code>kb_*</code> migration 009</td><td><span class="tag tag-ahead">🔵 代码 ✅ 生产插件待装</span></td></tr>
+      <tr><td>Chat 会话</td><td>部分内存</td><td>—</td><td><span class="tag tag-warn">W2 D11</span></td></tr>
+      <tr><td>审批 / 报表 / 通知</td><td>Mock / 待 PG</td><td>—</td><td><span class="tag tag-plan">W2–W4</span></td></tr>
+      <tr><td>限流</td><td>Redis（降级内存）</td><td><code>redis_client.py</code></td><td><span class="tag tag-warn">生产待通</span></td></tr>
+    </tbody>
+  </table>
+
+  <div class="diagram"><pre class="mermaid">
+flowchart LR
+  subgraph Alembic["Alembic 迁移链（当前）"]
+    M001["001 初始"]
+    M009["009 kb+pgvector"]
+    M010["010 page_schema<br/>build_manifest ⬜"]
+    M001 --> M002["002 OTP"] --> M003["003 Catalog"] --> M004["004 Hero"]
+    M004 --> M005["005 contracts"] --> M006["006 tenant"] --> M007["007 branding"]
+    M007 --> M008["008 plaza"] --> M009 --> M010
+  end
+  </pre></div>
+</section>
+
+<!-- 8 API -->
+<section id="api">
+  <h2 class="st">⑧ API 地图 <em>/api/v1</em></h2>
+  <div class="grid2">
+    <div class="card">
+      <strong>已实现 · 生产可用</strong>
+      <ul style="font-size:12px;color:var(--muted);padding-left:18px;margin-top:8px">
+        <li><code>/auth/*</code> JWT + OTP</li>
+        <li><code>/catalog/*</code> 114 + 43 capability</li>
+        <li><code>/creation/publish</code> → apps 落库</li>
+        <li><code>/chat/completions/stream</code> SSE</li>
+        <li><code>/kb/*</code> 上传 · 索引 · search · RAG</li>
+        <li><code>/voice/config</code> <code>/voice/shanghai-agent</code> WS</li>
+        <li><code>/tenant/config</code></li>
+        <li><code>/runtime/{id}</code> 元信息 · APK 下载</li>
+      </ul>
+    </div>
+    <div class="card">
+      <strong>模块化待建 · W3</strong>
+      <ul style="font-size:12px;color:var(--muted);padding-left:18px;margin-top:8px">
+        <li><code>GET /runtime/{id}/schema</code> → page_schema</li>
+        <li><code>GET /runtime/{id}/manifest</code> → build_manifest</li>
+        <li>publish 响应含 schema + manifest 预览</li>
+        <li><code>schema_templates.py</code> 12 模板</li>
+        <li>tenant/config menu 从 schema 生成</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- 9 时序 -->
+<section id="sequences">
+  <h2 class="st">⑨ 关键链路时序</h2>
+
+  <h3 style="font-size:14px;margin:16px 0 8px;color:var(--navy)">A · RAG 问答（已超前实现）</h3>
+  <div class="diagram"><pre class="mermaid">
+sequenceDiagram
+  participant A as Admin Chat
+  participant API as FastAPI
+  participant KB as kb_store + pgvector
+  participant LLM as LLM Gateway
+
+  A->>API: POST /kb/upload (PDF)
+  API->>API: BackgroundTasks 切片+embedding
+  API->>KB: kb_document_chunks + vector
+  A->>API: POST /chat (rag=true)
+  API->>KB: topK 检索
+  API->>LLM: RAG prompt + SSE
+  LLM-->>A: citation 气泡
+  </pre></div>
+
+  <h3 style="font-size:14px;margin:16px 0 8px;color:var(--navy)">B · 上海话语音（已超前 · 未接入 schema 链路）</h3>
+  <div class="diagram"><pre class="mermaid">
+sequenceDiagram
+  participant W as Home / App
+  participant API as FastAPI
+  participant T as TeleAI openapi.teleagi.cn
+
+  W->>API: GET /voice/config
+  W->>API: WebSocket /voice/shanghai-agent
+  API->>T: WSS ASR / TTS (teleai-cloud-auth-v1)
+  T-->>API: 音频流 + 识别文本
+  API->>API: LLM 上海话回复
+  API-->>W: TTS PCM / 文本
+
+  Note over W,API: 待接：publish 勾 shanghai_voice<br/>→ schema 含 ShanghaiVoiceWidget<br/>→ runtime 从包加载
+  </pre></div>
+
+  <h3 style="font-size:14px;margin:16px 0 8px;color:var(--navy)">C · 按勾选裁剪（目标 · GA #9）</h3>
+  <div class="diagram"><pre class="mermaid">
+flowchart TD
+  A["勾选 A: 仅 shanghai_voice"] --> P1["build_manifest<br/>1 web_pkg · 1 flutter_pkg"]
+  B["勾选 B: shanghai_voice + chat_qa"] --> P2["build_manifest<br/>2 web_pkgs · 2 flutter_pkgs"]
+
+  P1 --> W1["runtime-web: 仅 /voice 路由"]
+  P1 --> F1["Flutter: 仅麦克风入口"]
+  P2 --> W2["runtime-web: /voice + /chat tabs"]
+  P2 --> F2["Flutter: 两 tab"]
+
+  W1 & W2 & F1 & F2 --> OK["同一 appId · Web/App 模块一致"]
+  </pre></div>
+</section>
+
+<!-- 10 差距 -->
+<section id="gap">
+  <h2 class="st">⑩ 目标 vs 现状差距矩阵</h2>
+  <table>
+    <thead><tr><th>能力</th><th>目标（v1.2）</th><th>现状</th><th>阻塞项</th><th>计划周</th></tr></thead>
+    <tbody>
+      <tr><td>勾选 capability_keys</td><td>Home 三入口统一</td><td><span class="tag tag-ok">✅</span> ModuleView 已传</td><td>—</td><td>—</td></tr>
+      <tr><td>capability_manifest codegen</td><td>registry 单一来源</td><td><span class="tag tag-plan">⬜</span></td><td>无 codegen 脚本</td><td>W3 D12</td></tr>
+      <tr><td>page_schema 生成</td><td>publish 写入 JSONB</td><td><span class="tag tag-plan">⬜</span></td><td>无 schema_generator</td><td>W3 D13</td></tr>
+      <tr><td>build_manifest</td><td>web_pkg + flutter_pkg 清单</td><td><span class="tag tag-plan">⬜</span></td><td>无 build_manifest.py</td><td>W3 D13</td></tr>
+      <tr><td>runtime-web 真渲染</td><td>/r/:id 按 schema</td><td><span class="tag tag-plan">⬜</span> 占位 renderer</td><td>无 WidgetRegistry</td><td>W3 D15</td></tr>
+      <tr><td>Web 物理包</td><td>packages/web-capability-*</td><td><span class="tag tag-plan">⬜</span> 内联在 home/</td><td>未建 packages/</td><td>W3</td></tr>
+      <tr><td>Flutter Melos + 包</td><td>capability_shanghai_voice</td><td><span class="tag tag-plan">⬜</span> 硬编码按钮</td><td>未拆 melos</td><td>W5</td></tr>
+      <tr><td>RAG + pgvector</td><td>PDF citation</td><td><span class="tag tag-ahead">🔵</span> 代码完成</td><td>生产 pgvector apt</td><td>运维</td></tr>
+      <tr><td>上海话 API</td><td>TeleAI WS</td><td><span class="tag tag-ahead">🔵</span> auth-probe ok</td><td>未进 publish 链路</td><td>W3 样板</td></tr>
+      <tr><td>per-app APK</td><td>build-from-publish</td><td><span class="tag tag-warn">🔶</span> default.apk</td><td>无 manifest 驱动构建</td><td>W5 D29</td></tr>
+    </tbody>
+  </table>
+
+  <div class="note">
+    <strong>实施优先级（D7 起）：</strong>
+    ① migration 010 + schema_generator + build_manifest →
+    ② web-capability-shanghai-voice + runtime WidgetRegistry →
+    ③ 上海话 publish 闭环验收 →
+    ④ chat_qa 第二包 →
+    ⑤ Flutter Melos 迁移。
+  </div>
+</section>
+
+<footer>
+  <strong>积木仓 BlockHub</strong> · 技术架构与数据流 v1.2 · 2026-07-07<br>
+  功能清单：<a href="功能清单-v1.2.html">功能清单-v1.2.html</a> ·
+  Flutter 详设：<a href="FLUTTER-APP-RUNTIME.md">FLUTTER-APP-RUNTIME.md</a> ·
+  部署：<a href="PRODUCTION-DEPLOYMENT.md">PRODUCTION-DEPLOYMENT.md</a>
+</footer>
+
+</div>
+<script>mermaid.initialize({startOnLoad:true,theme:'neutral',securityLevel:'loose'});</script>
+</body>
+</html>
