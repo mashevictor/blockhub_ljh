@@ -10,6 +10,7 @@ const AGENTS = [
   { agent_key: "report", name: "数据报表", description: "图表看板、自然语言查数、定时推送", icon: "BarChart3", color: "#0ea5e9", pipeline: "选指标→聚合→图表→NL查数→导出", config: { caps: ["chart_dashboard", "chart_basic", "chart_funnel", "chart_kpi_card", "data_nl_query", "report_scheduled", "data_export"] } },
   { agent_key: "notify", name: "消息通知", description: "多渠道通知：站内信、邮件、企微、钉钉", icon: "Bell", color: "#f59e0b", pipeline: "触发器→规则→模板→发送→确认", config: { caps: ["notify_inapp", "notify_email", "notify_im", "announce_board"] } },
   { agent_key: "integration", name: "外部数据", description: "对接 ERP/OA/CRM/HR 等外部系统", icon: "Plug", color: "#0f766e", pipeline: "Discover→Extract→Map→Load→Sync→Serve", config: { caps: ["integration", "erp_connector", "oa_connector", "auth_sso", "it_helpdesk", "asset_manage", "meeting_booking"] } },
+  { agent_key: "shanghai_voice", name: "上海话语音", description: "电信星辰 ASR/TTS 实时上海话语音 Agent", icon: "Mic", color: "#d4af37", pipeline: "麦克风→ASR→LLM→TTS→播报", config: { caps: ["shanghai_voice", "shanghai_voice_stream"] } },
 ];
 
 // Seed data for 36 Capabilities
@@ -55,6 +56,9 @@ const CAPABILITIES = [
   { capability_key: "it_helpdesk", name: "IT报障", category: "integration", widget_type: "helpdesk" },
   { capability_key: "asset_manage", name: "资产管理", category: "integration", widget_type: "asset" },
   { capability_key: "meeting_booking", name: "会议室预约", category: "integration", widget_type: "meeting" },
+  // Shanghai Voice Agent
+  { capability_key: "shanghai_voice", name: "上海话语音交互", category: "voice", widget_type: "voice" },
+  { capability_key: "shanghai_voice_stream", name: "实时语音流", category: "voice", widget_type: "stream" },
 ];
 
 // Seed data for Scenarios (Office 65 + Industry 49)
@@ -211,6 +215,7 @@ export async function POST() {
       const catToAgent: Record<string, string> = {
         creation: "creation", chat: "chat_qa", kb: "kb",
         approval: "approval", report: "report", notify: "notify", integration: "integration",
+        voice: "shanghai_voice",
       };
       return { ...c, agent_id: agentMap[catToAgent[c.category]] || agentMap["creation"] };
     });

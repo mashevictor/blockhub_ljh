@@ -1,4 +1,4 @@
-"""L3 Catalog seed: 96 office + 49 industry scenarios, 41 capabilities, 11 agents."""
+"""L3 Catalog seed: 96 office + 49 industry scenarios, 43 capabilities, 12 agents."""
 
 AGENTS = [
     {
@@ -24,6 +24,18 @@ AGENTS = [
         "capabilities": ["chat_qa", "chat_voice", "multi_agent", "chat_summary"],
         "office_count": 18,
         "industry_count": 12,
+    },
+    {
+        "id": "shanghai_voice",
+        "name": "上海话语音",
+        "icon": "🎙️",
+        "color": "#d4af37",
+        "status": "active",
+        "description": "电信星辰 ASR/TTS + DeepSeek，上海话实时语音对话，支持 Web 与 Flutter",
+        "pipeline": "听→识别→LLM→合成→说",
+        "capabilities": ["shanghai_voice", "shanghai_voice_stream", "chat_qa"],
+        "office_count": 6,
+        "industry_count": 4,
     },
     {
         "id": "kb",
@@ -168,6 +180,8 @@ AGENTS = [
 CAPABILITIES = [
     {"key": "chat_qa", "name": "智能问答", "category": "智能交互", "widget": "ChatWidget", "agent_id": "chat_qa"},
     {"key": "chat_voice", "name": "语音问答", "category": "智能交互", "widget": "VoiceWidget", "agent_id": "chat_qa"},
+    {"key": "shanghai_voice", "name": "上海话语音交互", "category": "智能交互", "widget": "ShanghaiVoiceWidget", "agent_id": "shanghai_voice"},
+    {"key": "shanghai_voice_stream", "name": "实时语音流", "category": "智能交互", "widget": "VoiceStreamWidget", "agent_id": "shanghai_voice"},
     {"key": "multi_agent", "name": "多助手切换", "category": "智能交互", "widget": "MultiAgentWidget", "agent_id": "chat_qa"},
     {"key": "chat_summary", "name": "对话摘要", "category": "智能交互", "widget": "SummaryWidget", "agent_id": "chat_qa"},
     {"key": "approval_flow", "name": "通用审批流", "category": "流程审批", "widget": "FormWidget", "agent_id": "approval"},

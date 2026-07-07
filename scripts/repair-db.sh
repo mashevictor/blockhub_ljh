@@ -30,6 +30,10 @@ def has_column(table: str, col: str) -> bool:
 def schema_revision() -> str | None:
     if not has_table("users"):
         return None
+    if has_table("kb_document_chunks"):
+        return "009"
+    if has_column("apps", "plaza_visibility"):
+        return "008"
     if has_column("apps", "icon_url"):
         return "007"
     if has_column("tenants", "config_json"):
@@ -67,6 +71,9 @@ checks = [
     ("tenants.config_json", has_column("tenants", "config_json")),
     ("apps.icon_url", has_column("apps", "icon_url")),
     ("apps.primary_color", has_column("apps", "primary_color")),
+    ("apps.plaza_visibility", has_column("apps", "plaza_visibility")),
+    ("knowledge_bases", has_table("knowledge_bases")),
+    ("kb_document_chunks", has_table("kb_document_chunks")),
 ]
 for label, ok in checks:
     print(f"  {label}: {'OK' if ok else 'MISSING'}")
@@ -80,7 +87,9 @@ insp = inspect(engine)
 def col(t,c):
     return insp.has_table(t) and c in {x['name'] for x in insp.get_columns(t)}
 if not insp.has_table('users'): print(''); raise SystemExit
-if col('apps','icon_url'): print('007')
+if insp.has_table('kb_document_chunks'): print('009')
+elif col('apps','plaza_visibility'): print('008')
+elif col('apps','icon_url'): print('007')
 elif col('tenants','config_json'): print('006')
 elif insp.has_table('contracts'): print('005')
 elif col('users','phone') and insp.has_table('catalog_office_scenarios') and insp.has_table('catalog_hero_presets'): print('004')
@@ -101,8 +110,8 @@ raise SystemExit(0 if ok else 1)
 }
 
 SCHEMA_REV="$(schema_level)"
-ALEMBIC_REV="$(alembic current 2>/dev/null | grep -oE '00[1-7]' | tail -1 || true)"
-HEAD_REV="$(alembic heads 2>/dev/null | grep -oE '00[1-7]' | tail -1 || echo '007')"
+ALEMBIC_REV="$(alembic current 2>/dev/null | grep -oE '00[1-9]' | tail -1 || true)"
+HEAD_REV="$(alembic heads 2>/dev/null | grep -oE '00[1-9]' | tail -1 || echo '009')"
 
 echo "==> head=$HEAD_REV alembic=${ALEMBIC_REV:-none} schema≈${SCHEMA_REV:-none}"
 

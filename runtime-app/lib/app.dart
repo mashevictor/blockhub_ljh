@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'config/app_branding.dart';
 import 'models/tenant_config.dart';
+import 'pages/shanghai_voice_page.dart';
 import 'services/config_service.dart';
 
 class RuntimeApp extends StatefulWidget {
@@ -88,6 +89,18 @@ class _HomeBody extends StatelessWidget {
             for (final item in config.menu)
               Chip(label: Text(item.label)),
           ],
+        ),
+        const SizedBox(height: 24),
+        FilledButton.icon(
+          onPressed: () {
+            Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => ShanghaiVoicePage(branding: branding),
+              ),
+            );
+          },
+          icon: const Icon(Icons.mic),
+          label: const Text('上海话语音 Agent'),
         ),
         const SizedBox(height: 24),
         Text(

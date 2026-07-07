@@ -9,6 +9,7 @@ import {
   BarChart3,
   Bell,
   Plug,
+  Mic,
   X,
   Zap,
   ArrowRight,
@@ -34,7 +35,7 @@ interface Agent {
 }
 
 const ICON_MAP: Record<string, typeof Sparkles> = {
-  Sparkles, MessageSquare, BookOpen, CheckCircle, BarChart3, Bell, Plug,
+  Sparkles, MessageSquare, BookOpen, CheckCircle, BarChart3, Bell, Plug, Mic,
 };
 
 // Agent 详细信息
@@ -101,6 +102,14 @@ const AGENT_DETAILS: Record<string, {
     feModule: "FE-INT · 连接器向导",
     beModule: "BE-INT · ETL 6 阶段",
     docLink: "10-外部数据源对接-Agent落地方案.html",
+  },
+  shanghai_voice: {
+    capabilities: ["shanghai_voice", "shanghai_voice_stream"],
+    officeScenes: "上海话客服·方言培训·本地政务咨询·语音导览",
+    industryScenes: "文旅导览·社区服务·方言客服·本地生活问答",
+    feModule: "FE-VOICE · VoiceAgentPanel · ShanghaiVoicePage",
+    beModule: "BE-VOICE · TeleASR/TTS WebSocket Gateway",
+    docLink: "shanghai-voice-agent/telecom-stars-solution.html",
   },
 };
 

@@ -1,6 +1,7 @@
 /** Home SPA 路由常量 */
 export const ROUTES = {
   home: '/',
+  shanghaiVoice: '/agents/shanghai-voice',
   login: '/login',
   register: '/register',
   /** 应用广场 — 所有人 @公开 的应用 */

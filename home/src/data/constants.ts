@@ -25,6 +25,7 @@ export const MODULES = [
   { cat: '智能交互', items: [
     { key: 'chat_qa', name: '智能问答', icon: '💬' },
     { key: 'chat_voice', name: '语音问答', icon: '🎤' },
+    { key: 'shanghai_voice', name: '上海话语音', icon: '🎙️' },
     { key: 'multi_agent', name: '多助手', icon: '🤖' },
   ]},
   { cat: '流程审批', items: [

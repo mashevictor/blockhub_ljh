@@ -97,13 +97,24 @@ def get_chat_messages(session_id: str = "default") -> list[dict]:
     return _sessions.setdefault(session_id, [])
 
 
-def add_chat_message(session_id: str, role: str, content: str) -> dict:
-    msg = {
+def add_chat_message(
+    session_id: str,
+    role: str,
+    content: str,
+    *,
+    citations: list[dict] | None = None,
+    source: str | None = None,
+) -> dict:
+    msg: dict = {
         "id": f"msg-{uuid4().hex[:6]}",
         "role": role,
         "content": content,
         "created_at": datetime.now().isoformat(),
     }
+    if citations:
+        msg["citations"] = citations
+    if source:
+        msg["source"] = source
     _sessions.setdefault(session_id, []).append(msg)
     return msg
 

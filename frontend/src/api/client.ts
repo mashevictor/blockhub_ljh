@@ -109,11 +109,22 @@ export const fetchCreatedApps = () =>
   api.get<{ items: CreatedApp[] }>('/creation/apps').then((r) => r.data.items)
 
 // ── 智能问答 ──
+export interface ChatCitation {
+  index: number
+  doc_name: string
+  document_id: string
+  chunk_index: number
+  snippet: string
+  score?: number
+}
+
 export interface ChatMessage {
   id: string
   role: 'user' | 'assistant'
   content: string
   created_at: string
+  citations?: ChatCitation[]
+  source?: string
 }
 
 export const fetchChatConfig = () => api.get('/chat/config').then((r) => r.data)
@@ -127,7 +138,8 @@ export async function sendChatMessageStream(
   message: string,
   sessionId: string,
   model: string,
-  onChunk: (content: string, done: boolean, source?: string) => void,
+  onChunk: (content: string, done: boolean, source?: string, citations?: ChatCitation[]) => void,
+  options?: { useRag?: boolean; kbId?: string; topK?: number },
 ): Promise<void> {
   const token = getToken()
   const res = await fetch('/api/v1/chat/completions/stream', {
@@ -136,7 +148,14 @@ export async function sendChatMessageStream(
       'Content-Type': 'application/json',
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
-    body: JSON.stringify({ message, session_id: sessionId, model }),
+    body: JSON.stringify({
+      message,
+      session_id: sessionId,
+      model,
+      use_rag: options?.useRag ?? true,
+      kb_id: options?.kbId ?? null,
+      top_k: options?.topK ?? 4,
+    }),
   })
   if (!res.ok) {
     if (res.status === 401 || res.status === 403) {
@@ -164,9 +183,14 @@ export async function sendChatMessageStream(
         return
       }
       try {
-        const data = JSON.parse(payload) as { content?: string; done?: boolean; source?: string }
+        const data = JSON.parse(payload) as {
+          content?: string
+          done?: boolean
+          source?: string
+          citations?: ChatCitation[]
+        }
         if (data.content != null) {
-          onChunk(data.content, Boolean(data.done), data.source)
+          onChunk(data.content, Boolean(data.done), data.source, data.citations)
         }
       } catch {
         /* skip malformed chunk */
@@ -183,8 +207,32 @@ export const fetchKbDocuments = (kbId?: string) =>
   api.get('/kb/documents', { params: kbId ? { kb_id: kbId } : {} }).then((r) => r.data.items)
 export const createKbBase = (name: string, description = '') =>
   api.post('/kb/bases', { name, description }).then((r) => r.data)
-export const searchKb = (query: string) =>
-  api.post('/kb/search', { query }).then((r) => r.data)
+export const searchKb = (query: string, kbId?: string, topK = 5) =>
+  api.post('/kb/search', { query, kb_id: kbId ?? null, top_k: topK }).then((r) => r.data)
+
+export async function uploadKbDocument(kbId: string, file: File) {
+  const form = new FormData()
+  form.append('kb_id', kbId)
+  form.append('file', file)
+  const token = getToken()
+  const res = await fetch('/api/v1/kb/documents/upload', {
+    method: 'POST',
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: form,
+  })
+  if (!res.ok) {
+    if (res.status === 401 || res.status === 403) {
+      clearToken()
+      redirectToLogin()
+    }
+    const err = await res.json().catch(() => ({}))
+    throw new Error((err as { detail?: string }).detail || `上传失败 (${res.status})`)
+  }
+  return res.json()
+}
+
+export const reindexKbDocument = (docId: string) =>
+  api.post(`/kb/documents/${docId}/reindex`).then((r) => r.data)
 
 // ── 审批 ──
 export interface ApprovalItem {

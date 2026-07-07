@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import OperationalError
 
-from app.api.v1 import agents, approvals, auth, catalog, chat, contracts, creation, health, kb, notifications, reports, runtime, seed, stats, tenant
+from app.api.v1 import agents, approvals, auth, catalog, chat, contracts, creation, health, kb, notifications, reports, runtime, seed, stats, tenant, voice_agent
 from app.core.config import settings
 from app.core.deps import get_current_user, require_admin
 from app.core.rate_limit import RateLimitMiddleware
@@ -70,6 +70,7 @@ app.include_router(kb.router, prefix=settings.api_prefix, dependencies=_auth)
 app.include_router(approvals.router, prefix=settings.api_prefix, dependencies=_auth)
 app.include_router(reports.router, prefix=settings.api_prefix, dependencies=_auth)
 app.include_router(notifications.router, prefix=settings.api_prefix, dependencies=_auth)
+app.include_router(voice_agent.router, prefix=settings.api_prefix)
 
 
 @app.get("/")

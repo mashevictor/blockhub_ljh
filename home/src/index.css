@@ -5919,3 +5919,44 @@ a.btn-my-apps:hover { border-color: var(--pri-light); color: var(--pri); }
   border-style: dashed; border-color: color-mix(in srgb, var(--pri) 40%, var(--border));
 }
 .catalog-minimal-hint { font-size: var(--bh-fs-xs); color: var(--muted); }
+
+/* ── 上海话语音 Agent ── */
+.shanghai-voice-page { min-height: 100vh; background: #0a0908; color: #f5f0e8; }
+.shanghai-voice-topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 20px; border-bottom: 1px solid #3d3428;
+}
+.shanghai-voice-back { color: #d4af37; text-decoration: none; }
+.shanghai-voice-main { max-width: 720px; margin: 0 auto; padding: 24px 16px 48px; }
+.voice-agent-panel {
+  background: #1a1612; border: 1px solid #3d3428; border-radius: 16px; padding: 20px;
+}
+.voice-agent-header { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+.voice-agent-header h2 { margin: 0 0 4px; color: #f0d78c; }
+.voice-agent-header p { margin: 0; color: #a89f8f; font-size: 13px; }
+.voice-state-badge {
+  align-self: flex-start; padding: 6px 10px; border-radius: 999px; font-size: 12px;
+  background: #2a231c; border: 1px solid #3d3428;
+}
+.voice-state-listening, .voice-state-speaking { border-color: #d4af37; color: #f0d78c; }
+.voice-state-error { border-color: #f87171; color: #f87171; }
+.voice-agent-messages {
+  min-height: 220px; max-height: 360px; overflow-y: auto; display: grid; gap: 10px; margin-bottom: 16px;
+}
+.voice-empty { color: #a89f8f; font-size: 14px; }
+.voice-msg {
+  padding: 10px 12px; border-radius: 12px; background: #221c16; border: 1px solid #3d3428;
+  display: grid; gap: 4px; font-size: 14px;
+}
+.voice-msg-user { border-color: #60a5fa; }
+.voice-msg-assistant { border-color: #d4af37; }
+.voice-msg-partial { opacity: 0.8; border-style: dashed; }
+.voice-error { color: #f87171; margin-bottom: 12px; font-size: 13px; }
+.voice-agent-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.voice-btn {
+  border: 1px solid #3d3428; background: #2a231c; color: #f5f0e8; border-radius: 10px;
+  padding: 10px 16px; cursor: pointer; font-family: inherit;
+}
+.voice-btn-primary { background: linear-gradient(135deg, #96700a, #d4af37); color: #1a1612; border-color: #d4af37; }
+.voice-btn-danger { background: #7f1d1d; border-color: #f87171; }
+.voice-btn-ghost { background: transparent; }

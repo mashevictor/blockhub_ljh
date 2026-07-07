@@ -52,6 +52,25 @@ class Settings(BaseSettings):
     smtp_from_name: str = "积木仓 BlockHub"
     publish_email_enabled: bool = True
 
+    # 电信星辰 MaaS · 上海话语音 Agent
+    teleai_app_id: str = ""
+    teleai_app_key: str = ""
+    teleai_region: str = "SH"
+    teleai_host: str = "openapi.teleagi.cn"
+    teleai_asr_path: str = "/aipaas/voice/v1/asr/fy"
+    teleai_tts_path: str = "/aipaas/voice/v1/tts/supernaturalrt"
+    teleai_tts_dialect: str = "shanghai"
+    teleai_auth_expire_seconds: int = 180000
+
+    # 知识库向量化（OpenAI 兼容 /embeddings；未设则回退 LLM/DeepSeek Key，再无则全文检索）
+    embedding_api_key: str = ""
+    embedding_base_url: str = ""
+    embedding_model: str = "text-embedding-v3"
+    embedding_dimension: int = 1536
+    embedding_timeout: int = 60
+    kb_chunk_size: int = 500
+    kb_chunk_overlap: int = 80
+
     @field_validator("database_url")
     @classmethod
     def require_postgresql(cls, v: str) -> str:

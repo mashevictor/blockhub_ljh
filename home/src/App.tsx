@@ -5,6 +5,8 @@ import RegisterPage from './pages/RegisterPage'
 import PlazaLayout from './pages/plaza/PlazaLayout'
 import PlazaFeedPage from './pages/plaza/PlazaFeedPage'
 import PlazaMyAppsPage from './pages/plaza/PlazaMyAppsPage'
+import ShanghaiVoicePage from './pages/ShanghaiVoicePage'
+import { ROUTES } from './routes/paths'
 
 export default function App() {
   return (
@@ -15,6 +17,7 @@ export default function App() {
         <Route index element={<PlazaFeedPage />} />
         <Route path="my" element={<PlazaMyAppsPage />} />
       </Route>
+      <Route path={ROUTES.shanghaiVoice} element={<ShanghaiVoicePage />} />
       <Route path="/" element={<HomeApp />} />
     </Routes>
   )

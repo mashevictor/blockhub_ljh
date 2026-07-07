@@ -309,6 +309,22 @@ export async function fetchCatalogModules() {
   return res.data
 }
 
+export interface VoiceClientConfig {
+  agent_id: string
+  ws_url: string
+  ws_path: string
+  capture_sample_rate: number
+  playback_sample_rate: number
+  frame_ms: number
+  dialect: string
+  configured: boolean
+}
+
+export async function fetchVoiceConfig() {
+  const res = await api.get<VoiceClientConfig>('/voice/config')
+  return res.data
+}
+
 /** @deprecated use fetchCatalogModules */
 export async function fetchCapabilities() {
   return fetchCatalogModules()
