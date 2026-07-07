@@ -6,11 +6,16 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
-echo "==> [0/9] docker compose (postgres pgvector + redis)"
+echo "==> [0/9] 基础设施 (pgvector + redis)"
 bash "$ROOT/scripts/setup-pgvector.sh" || {
   echo "WARN: pgvector setup failed — migration 009 may fail"
 }
-docker compose up -d postgres redis 2>/dev/null || true
+bash "$ROOT/scripts/setup-redis.sh" || {
+  echo "WARN: redis setup failed — rate limit uses in-memory fallback"
+}
+if command -v docker >/dev/null 2>&1; then
+  docker compose up -d postgres redis 2>/dev/null || true
+fi
 
 echo "=========================================="
 echo " BlockHub Deploy"

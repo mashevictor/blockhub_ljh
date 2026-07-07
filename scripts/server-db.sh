@@ -41,14 +41,10 @@ echo ">>> [1/5] 确保 pgvector 可用（009 迁移依赖）"
 bash "$ROOT/scripts/setup-pgvector.sh"
 
 echo ""
-echo ">>> [2/5] 启动 Redis（Docker 可选）"
-if command -v docker >/dev/null 2>&1; then
-  docker compose up -d postgres redis 2>/dev/null || docker compose up -d redis 2>/dev/null || true
-else
-  echo "    无 Docker，跳过容器启动（使用系统 PostgreSQL）"
-  sudo systemctl start redis-server 2>/dev/null || sudo systemctl start redis 2>/dev/null || true
-fi
-sleep 2
+echo ">>> [2/5] 启动 Redis"
+bash "$ROOT/scripts/setup-redis.sh" || {
+  echo "WARN: Redis 未就绪 — API 仍可用，health 会显示 unavailable"
+}
 
 echo ""
 echo ">>> [3/5] 修复漂移 + alembic upgrade head"
