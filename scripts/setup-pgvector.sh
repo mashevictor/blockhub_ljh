@@ -55,21 +55,25 @@ elif command -v netstat >/dev/null 2>&1; then
 fi
 
 DOCKER_PG=false
-if docker ps --format '{{.Names}}' 2>/dev/null | grep -q '^trackchat-postgres$'; then
-  DOCKER_PG=true
-  IMG=$(docker inspect trackchat-postgres --format '{{.Config.Image}}' 2>/dev/null || echo "")
-  echo "    Docker trackchat-postgres 镜像: $IMG"
-  if [[ "$IMG" != *"pgvector"* ]]; then
-    echo "    WARN: 镜像不含 pgvector，将重建容器..."
-    docker compose stop postgres 2>/dev/null || true
-    docker compose rm -f postgres 2>/dev/null || true
-    docker compose pull postgres
-    docker compose up -d postgres
-    sleep 5
+if command -v docker >/dev/null 2>&1; then
+  if docker ps --format '{{.Names}}' 2>/dev/null | grep -q '^trackchat-postgres$'; then
     DOCKER_PG=true
+    IMG=$(docker inspect trackchat-postgres --format '{{.Config.Image}}' 2>/dev/null || echo "")
+    echo "    Docker trackchat-postgres 镜像: $IMG"
+    if [[ "$IMG" != *"pgvector"* ]]; then
+      echo "    WARN: 镜像不含 pgvector，将重建容器..."
+      docker compose stop postgres 2>/dev/null || true
+      docker compose rm -f postgres 2>/dev/null || true
+      docker compose pull postgres
+      docker compose up -d postgres
+      sleep 5
+      DOCKER_PG=true
+    fi
+  else
+    echo "    Docker 已安装，但 trackchat-postgres 未运行"
   fi
 else
-  echo "    Docker trackchat-postgres 未运行"
+  echo "    未安装 Docker — 使用系统 PostgreSQL（需 postgresql-16-pgvector 包）"
 fi
 
 if vector_ok; then
@@ -81,30 +85,9 @@ fi
 echo ""
 echo ">>> [2] pgvector 不可用，尝试修复..."
 
-# 方案 A：优先用 Docker pgvector 镜像（与 docker-compose.yml 一致）
+# 方案 A：Docker pgvector 镜像（仅当已安装 docker）
 if command -v docker >/dev/null 2>&1; then
   echo "    启动/重建 Docker postgres (pgvector/pgvector:pg16)..."
-  # 若系统 PG 占 5432，Docker 会启动失败 — 下面会检测
-  if ss -tlnp 2>/dev/null | grep ':5432' | grep -qv docker; then
-    if systemctl is-active --quiet postgresql 2>/dev/null || systemctl is-active --quiet postgresql@16-main 2>/dev/null; then
-      echo ""
-      echo "!!! 检测到系统 PostgreSQL 占用 5432，与 Docker 冲突"
-      echo "    任选其一："
-      echo ""
-      echo "    【推荐】停系统 PG，改用 Docker（数据在 volume trackchat_pg_data）："
-      echo "      sudo systemctl stop postgresql"
-      echo "      cd ~/blockhub && docker compose up -d postgres"
-      echo ""
-      echo "    【或】给系统 PG 安装 pgvector 插件："
-      echo "      sudo apt update"
-      echo "      sudo apt install -y postgresql-16-pgvector"
-      echo "      sudo systemctl restart postgresql"
-      echo ""
-      echo "    然后重新运行: bash scripts/setup-pgvector.sh"
-      exit 1
-    fi
-  fi
-
   docker compose pull postgres 2>/dev/null || true
   docker compose up -d postgres
   sleep 5
