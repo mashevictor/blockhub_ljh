@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="monochrome-business">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>模块选择 · 10 套发散方案</title>
+  <style>
+    /* ── 四套主题 ── */
+    html[data-theme="monochrome-business"] {
+      --pri:#b8860b;--pri-l:#d4af37;--pri-d:#96700a;--soft:#fef9e7;
+      --bg:#faf9f7;--surf:#fff;--alt:#fffdf8;--text:#1c1917;--muted:#78716c;--border:#e8dfc0;
+      --grad:linear-gradient(145deg,#0a1628,#1e3a5f 55%,#96700a);
+      --btn:linear-gradient(145deg,#96700a,#d4af37 55%,#b8860b);
+      --glow:rgba(184,134,11,.2);--accent:#fbbf24;
+    }
+    html[data-theme="sakura-plum"] {
+      --pri:#db2777;--pri-l:#ec4899;--pri-d:#9d174d;--soft:#fdf2f8;
+      --bg:#fff5f9;--surf:#fff;--alt:#fdf2f8;--text:#1f1318;--muted:#9d7185;--border:#f5d0e3;
+      --grad:linear-gradient(145deg,#500724,#9d174d 55%,#ec4899);
+      --btn:linear-gradient(145deg,#9d174d,#ec4899);
+      --glow:rgba(219,39,119,.18);--accent:#f9a8d4;
+    }
+    html[data-theme="emerald-amber"] {
+      --pri:#047857;--pri-l:#10b981;--pri-d:#064e3b;--soft:#ecfdf5;
+      --bg:#f6faf8;--surf:#fff;--alt:#ecfdf5;--text:#0f1f1a;--muted:#5f7a72;--border:#a7e8cf;
+      --grad:linear-gradient(145deg,#022c22,#047857 55%,#d97706);
+      --btn:linear-gradient(145deg,#064e3b,#10b981 55%,#d97706);
+      --glow:rgba(4,120,87,.18);--accent:#fbbf24;
+    }
+    html[data-theme="ocean-coral"] {
+      --pri:#0369a1;--pri-l:#0ea5e9;--pri-d:#075985;--soft:#e0f2fe;
+      --bg:#f0f9ff;--surf:#fff;--alt:#e0f2fe;--text:#0c1929;--muted:#5b7a94;--border:#7dd3fc;
+      --grad:linear-gradient(145deg,#0c1929,#0369a1 55%,#f97316);
+      --btn:linear-gradient(145deg,#075985,#0ea5e9 55%,#f97316);
+      --glow:rgba(3,105,161,.18);--accent:#38bdf8;
+    }
+
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5}
+
+    /* ── 全局导航 ── */
+    .nav{position:sticky;top:0;z-index:200;background:color-mix(in srgb,var(--surf) 94%,transparent);backdrop-filter:blur(14px);border-bottom:1px solid var(--border);padding:10px 16px}
+    .nav-row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;max-width:1280px;margin:0 auto}
+    .nav h1{font-size:14px;font-weight:800}
+    .nav p{font-size:10px;color:var(--muted)}
+    .theme-row{display:flex;gap:3px;padding:2px;border-radius:8px;background:var(--alt);border:1px solid var(--border)}
+    .theme-row button{border:none;background:transparent;padding:4px 8px;border-radius:6px;font-size:10px;font-weight:700;color:var(--muted);cursor:pointer;font-family:inherit}
+    .theme-row button.on{background:var(--surf);color:var(--pri-d);box-shadow:0 2px 6px var(--glow)}
+    .scheme-nav{display:flex;gap:4px;flex-wrap:wrap;max-width:1280px;margin:10px auto 0;padding:0 16px}
+    .scheme-nav button{border:1px solid var(--border);background:var(--surf);padding:5px 10px;border-radius:999px;font-size:11px;font-weight:600;color:var(--muted);cursor:pointer;font-family:inherit;transition:.15s}
+    .scheme-nav button:hover{border-color:var(--pri-l);color:var(--pri-d)}
+    .scheme-nav button.on{background:var(--pri);color:#fff;border-color:var(--pri)}
+
+    .stage{max-width:1280px;margin:0 auto;padding:20px 16px 60px}
+    .panel{display:none;animation:up .3s ease}
+    .panel.on{display:block}
+    @keyframes up{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+    .panel-tag{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--pri);margin-bottom:6px}
+    .panel h2{font-size:20px;font-weight:800;margin-bottom:4px;letter-spacing:-.02em}
+    .panel .desc{font-size:12px;color:var(--muted);margin-bottom:16px;max-width:640px}
+    .mock{border-radius:20px;overflow:hidden;min-height:420px;position:relative}
+
+    /* ══ 01 App Store 精选 ══ */
+    .m01{background:var(--surf);border:1px solid var(--border);padding:20px}
+    .m01-hero{background:var(--grad);border-radius:16px;padding:24px;color:#fff;margin-bottom:16px;position:relative;overflow:hidden}
+    .m01-hero::after{content:'';position:absolute;right:-20px;top:-20px;width:140px;height:140px;border-radius:50%;background:rgba(255,255,255,.1)}
+    .m01-hero h3{font-size:18px;margin-bottom:4px}
+    .m01-hero p{font-size:12px;opacity:.8}
+    .m01-row{display:flex;gap:12px;overflow-x:auto;padding-bottom:8px;scrollbar-width:none}
+    .m01-row::-webkit-scrollbar{display:none}
+    .m01-row h4{font-size:12px;font-weight:700;margin-bottom:8px;color:var(--muted)}
+    .m01-card{flex-shrink:0;width:120px;border-radius:14px;background:var(--alt);border:1px solid var(--border);padding:12px;text-align:center;cursor:pointer;transition:.2s}
+    .m01-card:hover{transform:scale(1.04);box-shadow:0 8px 24px var(--glow)}
+    .m01-card .ico{font-size:28px;display:block;margin-bottom:6px}
+    .m01-card .t{font-size:11px;font-weight:700}
+    .m01-card .s{font-size:9px;color:var(--muted);margin-top:2px}
+
+    /* ══ 02 Command Palette ══ */
+    .m02{background:#1a1a1e;display:flex;align-items:flex-start;justify-content:center;padding:40px 20px}
+    .m02-box{width:100%;max-width:520px;background:var(--surf);border-radius:16px;box-shadow:0 24px 80px rgba(0,0,0,.4);overflow:hidden}
+    .m02-input{display:flex;align-items:center;gap:10px;padding:16px 18px;border-bottom:1px solid var(--border)}
+    .m02-input span{font-size:18px;opacity:.5}
+    .m02-input input{flex:1;border:none;outline:none;font-size:16px;font-family:inherit;background:transparent}
+    .m02-list{padding:8px}
+    .m02-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;cursor:pointer}
+    .m02-item:hover,.m02-item.hl{background:var(--soft)}
+    .m02-item .ico{width:36px;height:36px;border-radius:10px;background:var(--alt);display:flex;align-items:center;justify-content:center;font-size:16px}
+    .m02-item .info{flex:1}
+    .m02-item .info strong{display:block;font-size:13px}
+    .m02-item .info em{font-style:normal;font-size:11px;color:var(--muted)}
+    .m02-item kbd{font-size:10px;padding:2px 6px;border-radius:4px;background:var(--alt);color:var(--muted);border:1px solid var(--border)}
+
+    /* ══ 03 Bento 便当格 ══ */
+    .m03{background:var(--alt);padding:16px;border:1px solid var(--border)}
+    .m03-grid{display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(3,100px);gap:10px}
+    .m03-cell{border-radius:16px;padding:14px;cursor:pointer;transition:.2s;border:2px solid transparent;display:flex;flex-direction:column;justify-content:flex-end;position:relative;overflow:hidden}
+    .m03-cell:hover{transform:scale(1.02);box-shadow:0 8px 24px var(--glow)}
+    .m03-cell.on{border-color:var(--pri);box-shadow:0 0 0 3px color-mix(in srgb,var(--pri) 25%,transparent)}
+    .m03-cell .ico{font-size:24px;position:absolute;top:12px;left:14px}
+    .m03-cell .t{font-size:12px;font-weight:800;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.3)}
+    .m03-cell.big{grid-column:span 2;grid-row:span 2;background:var(--grad)}
+    .m03-cell.wide{grid-column:span 2;background:linear-gradient(135deg,var(--pri-d),var(--pri-l))}
+    .m03-cell.tall{grid-row:span 2;background:linear-gradient(180deg,var(--pri),var(--accent))}
+    .m03-cell.sm{background:var(--surf);border:1px solid var(--border)}
+    .m03-cell.sm .t{color:var(--text);text-shadow:none}
+
+    /* ══ 04 对话流 Chat ══ */
+    .m04{background:var(--surf);border:1px solid var(--border);display:flex;flex-direction:column;height:460px}
+    .m04-chat{flex:1;padding:20px;overflow-y:auto;display:flex;flex-direction:column;gap:12px}
+    .m04-bubble{max-width:78%;padding:12px 16px;border-radius:16px;font-size:13px;line-height:1.55}
+    .m04-bubble.bot{background:var(--alt);border:1px solid var(--border);align-self:flex-start;border-bottom-left-radius:4px}
+    .m04-bubble.user{background:var(--pri);color:#fff;align-self:flex-end;border-bottom-right-radius:4px}
+    .m04-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+    .m04-chips button{border:1px solid var(--border);background:var(--surf);padding:6px 12px;border-radius:999px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--pri-d)}
+    .m04-chips button:hover{background:var(--soft);border-color:var(--pri-l)}
+    .m04-input{display:flex;gap:8px;padding:14px;border-top:1px solid var(--border);background:var(--alt)}
+    .m04-input input{flex:1;border:1px solid var(--border);border-radius:12px;padding:10px 14px;font-size:13px;font-family:inherit;outline:none}
+    .m04-input button{border:none;border-radius:12px;padding:0 18px;background:var(--btn);color:#fff;font-weight:700;cursor:pointer;font-family:inherit}
+
+    /* ══ 05 灵感墙 Mood Board ══ */
+    .m05{background:var(--bg);border:1px solid var(--border);padding:24px;min-height:460px;position:relative}
+    .m05-pin{position:absolute;border-radius:12px;padding:14px 16px;cursor:pointer;transition:.25s;box-shadow:0 4px 16px rgba(0,0,0,.08);border:2px solid var(--border);background:var(--surf);width:130px;text-align:center}
+    .m05-pin:hover{transform:rotate(0deg) scale(1.06)!important;z-index:10;box-shadow:0 12px 32px var(--glow)}
+    .m05-pin.on{border-color:var(--pri);background:var(--soft)}
+    .m05-pin .ico{font-size:32px;display:block;margin-bottom:4px}
+    .m05-pin .t{font-size:11px;font-weight:700}
+    .m05-p1{top:30px;left:8%;transform:rotate(-4deg)}
+    .m05-p2{top:20px;left:32%;transform:rotate(2deg)}
+    .m05-p3{top:50px;right:12%;transform:rotate(-2deg)}
+    .m05-p4{top:160px;left:18%;transform:rotate(3deg)}
+    .m05-p5{top:140px;left:48%;transform:rotate(-1deg)}
+    .m05-p6{top:180px;right:8%;transform:rotate(4deg)}
+    .m05-p7{bottom:60px;left:10%;transform:rotate(-3deg)}
+    .m05-p8{bottom:80px;left:42%;transform:rotate(1deg)}
+    .m05-p9{bottom:50px;right:15%;transform:rotate(-2deg)}
+    .m05-float{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);background:var(--surf);border:1px solid var(--border);border-radius:999px;padding:8px 20px;font-size:12px;font-weight:600;box-shadow:0 8px 24px var(--glow);white-space:nowrap}
+
+    /* ══ 06 技能树 Skill Tree ══ */
+    .m06{background:linear-gradient(180deg,#0f172a,#1e293b);padding:24px;display:flex;align-items:center;justify-content:center;min-height:460px}
+    .m06-tree{position:relative;width:100%;max-width:600px;height:400px}
+    .m06-node{position:absolute;width:64px;height:64px;border-radius:50%;background:var(--surf);border:3px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;transition:.2s;z-index:2}
+    .m06-node:hover,.m06-node.on{border-color:var(--pri-l);box-shadow:0 0 20px var(--glow);transform:scale(1.1)}
+    .m06-node.on{background:var(--pri);color:#fff}
+    .m06-node.root{width:80px;height:80px;font-size:28px;background:var(--btn);border:none;color:#fff;left:50%;top:50%;transform:translate(-50%,-50%)}
+    .m06-node.root:hover{transform:translate(-50%,-50%) scale(1.08)}
+    .m06-node.n1{left:15%;top:15%}.m06-node.n2{right:15%;top:15%}
+    .m06-node.n3{left:5%;top:55%}.m06-node.n4{right:5%;top:55%}
+    .m06-node.n5{left:30%;bottom:8%}.m06-node.n6{right:30%;bottom:8%}
+    .m06-line{position:absolute;background:var(--border);height:2px;transform-origin:left center;z-index:1;opacity:.4}
+    .m06-label{position:absolute;font-size:9px;color:rgba(255,255,255,.6);font-weight:600;white-space:nowrap}
+
+    /* ══ 07 极简禅 Zen ══ */
+    .m07{background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:460px;padding:40px;text-align:center;border:1px solid var(--border)}
+    .m07-q{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:20px}
+    .m07-input{width:100%;max-width:480px;border:none;border-bottom:2px solid var(--border);background:transparent;font-size:22px;font-weight:300;text-align:center;padding:12px 0;outline:none;font-family:inherit;color:var(--text)}
+    .m07-input:focus{border-bottom-color:var(--pri)}
+    .m07-input::placeholder{color:color-mix(in srgb,var(--muted) 60%,transparent);font-weight:300}
+    .m07-orbs{display:flex;gap:16px;margin-top:36px;flex-wrap:wrap;justify-content:center}
+    .m07-orb{width:56px;height:56px;border-radius:50%;background:var(--surf);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;transition:.3s}
+    .m07-orb:hover{transform:translateY(-4px);box-shadow:0 8px 20px var(--glow);border-color:var(--pri-l)}
+    .m07-orb.on{background:var(--pri);border-color:var(--pri);box-shadow:0 0 24px var(--glow)}
+    .m07-btn{margin-top:32px;border:none;background:var(--btn);color:#fff;padding:12px 36px;border-radius:999px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;opacity:0;animation:fadeBtn 1s .5s forwards}
+    @keyframes fadeBtn{to{opacity:1}}
+
+    /* ══ 08 Metro 磁贴 ══ */
+    .m08{background:#1a1a1a;padding:16px}
+    .m08-grid{display:grid;grid-template-columns:repeat(6,1fr);grid-auto-rows:80px;gap:4px}
+    .m08-tile{border-radius:0;padding:12px;cursor:pointer;display:flex;flex-direction:column;justify-content:flex-end;color:#fff;font-weight:700;font-size:12px;transition:.15s;position:relative;overflow:hidden}
+    .m08-tile:hover{filter:brightness(1.15)}
+    .m08-tile .ico{font-size:28px;position:absolute;top:10px;left:12px;opacity:.9}
+    .m08-tile.on{outline:3px solid #fff;outline-offset:-3px}
+    .m08-tile.l2{grid-column:span 2}.m08-tile.l3{grid-column:span 2;grid-row:span 2}
+    .m08-t1{background:var(--pri-d)}.m08-t2{background:var(--pri)}.m08-t3{background:var(--pri-l);color:var(--text)}
+    .m08-t4{background:#334155}.m08-t5{background:var(--accent);color:var(--text)}.m08-t6{background:#64748b}
+    .m08-t7{background:var(--pri-d)}.m08-t8{background:#475569}.m08-t9{background:var(--pri)}
+
+    /* ══ 09 手风琴 Accordion ══ */
+    .m09{background:var(--surf);border:1px solid var(--border);padding:12px}
+    .m09-group{border:1px solid var(--border);border-radius:12px;margin-bottom:8px;overflow:hidden}
+    .m09-head{display:flex;align-items:center;gap:10px;padding:14px 16px;cursor:pointer;background:var(--alt);font-weight:700;font-size:13px}
+    .m09-head .ico{font-size:18px}.m09-head .cnt{margin-left:auto;font-size:11px;color:var(--muted);font-weight:500}
+    .m09-head .arr{transition:.2s;font-size:10px;color:var(--muted)}
+    .m09-group.open .m09-head{background:var(--soft)}.m09-group.open .arr{transform:rotate(180deg)}
+    .m09-body{display:none;padding:8px 12px 12px;gap:6px;flex-wrap:wrap}
+    .m09-group.open .m09-body{display:flex}
+    .m09-chip{padding:6px 14px;border-radius:999px;border:1px solid var(--border);background:var(--surf);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--text)}
+    .m09-chip:hover{border-color:var(--pri-l)}.m09-chip.on{background:var(--pri);color:#fff;border-color:var(--pri)}
+
+    /* ══ 10 灵动岛 Island ══ */
+    .m10{background:var(--grad);min-height:460px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;position:relative}
+    .m10-phone{width:100%;max-width:360px;background:var(--bg);border-radius:32px;padding:20px 16px;box-shadow:0 24px 60px rgba(0,0,0,.3);border:3px solid #333}
+    .m10-island{background:#000;color:#fff;border-radius:24px;padding:14px 20px;margin:0 auto 20px;max-width:280px;text-align:center;font-size:12px;font-weight:600;box-shadow:0 8px 32px rgba(0,0,0,.4)}
+    .m10-island em{font-style:normal;color:var(--accent);font-weight:800}
+    .m10-scroll{display:flex;gap:8px;overflow-x:auto;padding:8px 0;scrollbar-width:none}
+    .m10-scroll::-webkit-scrollbar{display:none}
+    .m10-pill{flex-shrink:0;padding:10px 16px;border-radius:14px;background:var(--surf);border:1px solid var(--border);font-size:11px;font-weight:700;cursor:pointer;text-align:center;min-width:72px}
+    .m10-pill .ico{font-size:20px;display:block;margin-bottom:2px}
+    .m10-pill.on{background:var(--pri);color:#fff;border-color:var(--pri)}
+    .m10-bar{display:flex;gap:8px;margin-top:16px}
+    .m10-bar input{flex:1;border:1px solid var(--border);border-radius:14px;padding:12px;font-size:13px;font-family:inherit;outline:none}
+    .m10-bar button{border:none;width:44px;height:44px;border-radius:14px;background:var(--btn);color:#fff;font-size:18px;cursor:pointer}
+
+    @media(max-width:700px){
+      .m03-grid{grid-template-columns:repeat(2,1fr);grid-template-rows:auto}
+      .m03-cell.big,.m03-cell.wide,.m03-cell.tall{grid-column:span 1;grid-row:span 1}
+      .m08-grid{grid-template-columns:repeat(3,1fr)}
+    }
+  </style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-row">
+    <div>
+      <h1>模块选择 · 10 套发散方案</h1>
+      <p>点击编号切换 · 右上角换主题色</p>
+    </div>
+    <div class="theme-row">
+      <button class="on" data-theme="monochrome-business">黑金</button>
+      <button data-theme="sakura-plum">樱花</button>
+      <button data-theme="emerald-amber">墨绿</button>
+      <button data-theme="ocean-coral">深海</button>
+    </div>
+  </div>
+  <div class="scheme-nav" id="schemeNav"></div>
+</nav>
+
+<div class="stage">
+
+  <!-- 01 -->
+  <section class="panel on" id="p01">
+    <span class="panel-tag">01 · App Store</span>
+    <h2>精选橱窗</h2>
+    <p class="desc">像应用商店一样：顶部大 Banner + 横向滚动分区。用户先浏览「推荐」，再深入分类。适合内容多、需要运营位。</p>
+    <div class="mock m01">
+      <div class="m01-hero"><h3>本周热门组合</h3><p>销售日报 + 审批 + 推送，一键生成</p></div>
+      <h4>🔥 热门场景</h4>
+      <div class="m01-row" style="margin-bottom:16px">
+        <div class="m01-card"><span class="ico">📋</span><span class="t">销售日报</span><span class="s">1.2k 使用</span></div>
+        <div class="m01-card"><span class="ico">✅</span><span class="t">请假审批</span><span class="s">980 使用</span></div>
+        <div class="m01-card"><span class="ico">📊</span><span class="t">数据看板</span><span class="s">756 使用</span></div>
+        <div class="m01-card"><span class="ico">💬</span><span class="t">消息推送</span><span class="s">643 使用</span></div>
+        <div class="m01-card"><span class="ico">📁</span><span class="t">知识库</span><span class="s">521 使用</span></div>
+      </div>
+      <h4>🏭 制造行业</h4>
+      <div class="m01-row">
+        <div class="m01-card"><span class="ico">🔧</span><span class="t">设备巡检</span></div>
+        <div class="m01-card"><span class="ico">📦</span><span class="t">物料管理</span></div>
+        <div class="m01-card"><span class="ico">⚠️</span><span class="t">异常上报</span></div>
+        <div class="m01-card"><span class="ico">📈</span><span class="t">良率分析</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 02 -->
+  <section class="panel" id="p02">
+    <span class="panel-tag">02 · Command Palette</span>
+    <h2>命令面板</h2>
+    <p class="desc">类似 Spotlight / VS Code 命令面板：搜索即一切。零浏览成本，适合熟手和老用户。</p>
+    <div class="mock m02">
+      <div class="m02-box">
+        <div class="m02-input"><span>⌘</span><input placeholder="搜索场景或输入需求…" value="销售" /></div>
+        <div class="m02-list">
+          <div class="m02-item hl"><div class="ico">📋</div><div class="info"><strong>销售日报</strong><em>办公 · 数据报表</em></div><kbd>↵</kbd></div>
+          <div class="m02-item"><div class="ico">👥</div><div class="info"><strong>客户管理</strong><em>办公 · 外部对接</em></div></div>
+          <div class="m02-item"><div class="ico">📈</div><div class="info"><strong>销售漏斗</strong><em>行业 · 零售</em></div></div>
+          <div class="m02-item"><div class="ico">🧾</div><div class="info"><strong>报价单生成</strong><em>行业 · 制造</em></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 03 -->
+  <section class="panel" id="p03">
+    <span class="panel-tag">03 · Bento Grid</span>
+    <h2>便当格布局</h2>
+    <p class="desc">Apple 风格不对称网格：热门场景占大格，次要场景小格。视觉层次强，信息密度高但不乱。</p>
+    <div class="mock m03">
+      <div class="m03-grid">
+        <div class="m03-cell big on"><span class="ico">📋</span><span class="t">销售日报</span></div>
+        <div class="m03-cell sm"><span class="ico">✅</span><span class="t">审批</span></div>
+        <div class="m03-cell sm"><span class="ico">💬</span><span class="t">推送</span></div>
+        <div class="m03-cell wide"><span class="ico">📊</span><span class="t">数据看板</span></div>
+        <div class="m03-cell tall"><span class="ico">📁</span><span class="t">知识库</span></div>
+        <div class="m03-cell sm"><span class="ico">🔔</span><span class="t">待办</span></div>
+        <div class="m03-cell sm"><span class="ico">👥</span><span class="t">客户</span></div>
+        <div class="m03-cell sm"><span class="ico">🔗</span><span class="t">API</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 04 -->
+  <section class="panel" id="p04">
+    <span class="panel-tag">04 · Chat-first</span>
+    <h2>对话流优先</h2>
+    <p class="desc">AI 对话为主界面，场景以推荐气泡出现。最自然的交互，适合「不会选模块」的用户。</p>
+    <div class="mock m04">
+      <div class="m04-chat">
+        <div class="m04-bubble bot">你好！描述一下你想做的应用，我来推荐模块 👋</div>
+        <div class="m04-bubble user">我想做一个销售团队的日报和审批</div>
+        <div class="m04-bubble bot">
+          推荐这 3 个模块，点击添加：
+          <div class="m04-chips">
+            <button>📋 销售日报</button>
+            <button>✅ 请假审批</button>
+            <button>💬 消息推送</button>
+          </div>
+        </div>
+        <div class="m04-bubble bot" style="font-size:11px;color:var(--muted)">已选 2 个模块 · 可继续补充</div>
+      </div>
+      <div class="m04-input">
+        <input placeholder="继续描述或选择…" />
+        <button>生成</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 05 -->
+  <section class="panel" id="p05">
+    <span class="panel-tag">05 · Mood Board</span>
+    <h2>灵感墙</h2>
+    <p class="desc">Pinterest 拼贴美学：卡片自由散落、微旋转。轻松、有设计感，适合创意类用户。</p>
+    <div class="mock m05">
+      <div class="m05-pin m05-p1 on"><span class="ico">📋</span><span class="t">销售日报</span></div>
+      <div class="m05-pin m05-p2"><span class="ico">✅</span><span class="t">审批</span></div>
+      <div class="m05-pin m05-p3"><span class="ico">📊</span><span class="t">看板</span></div>
+      <div class="m05-pin m05-p4"><span class="ico">💬</span><span class="t">推送</span></div>
+      <div class="m05-pin m05-p5 on"><span class="ico">📁</span><span class="t">知识库</span></div>
+      <div class="m05-pin m05-p6"><span class="ico">🔔</span><span class="t">待办</span></div>
+      <div class="m05-pin m05-p7"><span class="ico">👥</span><span class="t">客户</span></div>
+      <div class="m05-pin m05-p8"><span class="ico">📦</span><span class="t">库存</span></div>
+      <div class="m05-pin m05-p9"><span class="ico">🔗</span><span class="t">API</span></div>
+      <div class="m05-float">已选 2 个 · 点击生成 →</div>
+    </div>
+  </section>
+
+  <!-- 06 -->
+  <section class="panel" id="p06">
+    <span class="panel-tag">06 · Skill Tree</span>
+    <h2>技能树</h2>
+    <p class="desc">游戏化分支选择：从中心能力向外扩展。适合展示模块之间的依赖和组合关系。</p>
+    <div class="mock m06">
+      <div class="m06-tree">
+        <div class="m06-line" style="width:120px;left:50%;top:50%;transform:rotate(-135deg) translateX(40px)"></div>
+        <div class="m06-line" style="width:120px;left:50%;top:50%;transform:rotate(-45deg) translateX(40px)"></div>
+        <div class="m06-line" style="width:140px;left:18%;top:22%;transform:rotate(70deg)"></div>
+        <div class="m06-line" style="width:140px;right:18%;top:22%;transform:rotate(110deg)"></div>
+        <div class="m06-node root" title="你的应用">🏠</div>
+        <div class="m06-node n1 on" title="销售日报">📋</div>
+        <div class="m06-node n2" title="数据看板">📊</div>
+        <div class="m06-node n3" title="审批">✅</div>
+        <div class="m06-node n4" title="推送">💬</div>
+        <div class="m06-node n5 on" title="知识库">📁</div>
+        <div class="m06-node n6" title="API">🔗</div>
+        <span class="m06-label" style="left:12%;top:8%">数据层</span>
+        <span class="m06-label" style="right:10%;top:8%">协作层</span>
+        <span class="m06-label" style="left:42%;bottom:2%">基础层</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 07 -->
+  <section class="panel" id="p07">
+    <span class="panel-tag">07 · Zen Minimal</span>
+    <h2>极简禅</h2>
+    <p class="desc">大量留白 + 一行输入 + 浮动光球推荐。最少干扰，适合「我知道要什么」的用户。</p>
+    <div class="mock m07">
+      <div class="m07-q">Describe your app</div>
+      <input class="m07-input" placeholder="销售日报与审批" />
+      <div class="m07-orbs">
+        <div class="m07-orb on">📋</div>
+        <div class="m07-orb on">✅</div>
+        <div class="m07-orb">📊</div>
+        <div class="m07-orb">💬</div>
+        <div class="m07-orb">📁</div>
+      </div>
+      <button class="m07-btn">生成应用 →</button>
+    </div>
+  </section>
+
+  <!-- 08 -->
+  <section class="panel" id="p08">
+    <span class="panel-tag">08 · Metro Tiles</span>
+    <h2>磁贴矩阵</h2>
+    <p class="desc">Windows Metro 大色块磁贴：高对比、强识别。适合触屏和大屏，一眼看到全部选项。</p>
+    <div class="mock m08">
+      <div class="m08-grid">
+        <div class="m08-tile l3 t1 on"><span class="ico">📋</span>销售日报</div>
+        <div class="m08-tile t2"><span class="ico">✅</span>审批</div>
+        <div class="m08-tile t3"><span class="ico">💬</span>推送</div>
+        <div class="m08-tile l2 t4"><span class="ico">📊</span>数据看板</div>
+        <div class="m08-tile t5"><span class="ico">📁</span>知识库</div>
+        <div class="m08-tile t6"><span class="ico">🔔</span>待办</div>
+        <div class="m08-tile t7"><span class="ico">👥</span>客户</div>
+        <div class="m08-tile t8"><span class="ico">📦</span>库存</div>
+        <div class="m08-tile t9"><span class="ico">🔗</span>API</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 09 -->
+  <section class="panel" id="p09">
+    <span class="panel-tag">09 · Accordion</span>
+    <h2>手风琴折叠</h2>
+    <p class="desc">按行业/分类折叠，一次只展开一层。比当前页面干净，又保留完整目录结构。</p>
+    <div class="mock m09">
+      <div class="m09-group open">
+        <div class="m09-head"><span class="ico">🏭</span>制造行业<span class="cnt">12 场景</span><span class="arr">▼</span></div>
+        <div class="m09-body">
+          <button class="m09-chip on">销售日报</button>
+          <button class="m09-chip on">设备巡检</button>
+          <button class="m09-chip">物料管理</button>
+          <button class="m09-chip">良率分析</button>
+          <button class="m09-chip">异常上报</button>
+        </div>
+      </div>
+      <div class="m09-group">
+        <div class="m09-head"><span class="ico">🛒</span>零售行业<span class="cnt">8 场景</span><span class="arr">▼</span></div>
+        <div class="m09-body"><button class="m09-chip">会员管理</button><button class="m09-chip">促销引擎</button></div>
+      </div>
+      <div class="m09-group">
+        <div class="m09-head"><span class="ico">👔</span>办公通用<span class="cnt">24 场景</span><span class="arr">▼</span></div>
+        <div class="m09-body"><button class="m09-chip">请假审批</button><button class="m09-chip">报销流程</button></div>
+      </div>
+      <div class="m09-group">
+        <div class="m09-head"><span class="ico">🏥</span>医疗行业<span class="cnt">6 场景</span><span class="arr">▼</span></div>
+        <div class="m09-body"><button class="m09-chip">挂号预约</button><button class="m09-chip">病历管理</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 10 -->
+  <section class="panel" id="p10">
+    <span class="panel-tag">10 · Dynamic Island</span>
+    <h2>灵动岛</h2>
+    <p class="desc">移动端优先：顶部灵动岛显示已选状态，底部横滑选模块。现代、紧凑，适合 App 端。</p>
+    <div class="mock m10">
+      <div class="m10-phone">
+        <div class="m10-island">已选 <em>2</em> 个模块 · 销售日报 + 审批</div>
+        <div class="m10-scroll">
+          <div class="m10-pill on"><span class="ico">📋</span>日报</div>
+          <div class="m10-pill on"><span class="ico">✅</span>审批</div>
+          <div class="m10-pill"><span class="ico">📊</span>看板</div>
+          <div class="m10-pill"><span class="ico">💬</span>推送</div>
+          <div class="m10-pill"><span class="ico">📁</span>知识</div>
+          <div class="m10-pill"><span class="ico">🔔</span>待办</div>
+        </div>
+        <div class="m10-bar">
+          <input placeholder="补充需求…" />
+          <button>→</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+  const SCHEMES = [
+    {id:'01',name:'App Store'},
+    {id:'02',name:'命令面板'},
+    {id:'03',name:'便当格'},
+    {id:'04',name:'对话流'},
+    {id:'05',name:'灵感墙'},
+    {id:'06',name:'技能树'},
+    {id:'07',name:'极简禅'},
+    {id:'08',name:'磁贴'},
+    {id:'09',name:'手风琴'},
+    {id:'10',name:'灵动岛'},
+  ];
+  const nav = document.getElementById('schemeNav');
+  SCHEMES.forEach((s,i) => {
+    const b = document.createElement('button');
+    b.textContent = s.id + ' ' + s.name;
+    b.dataset.id = s.id;
+    if (i === 0) b.classList.add('on');
+    b.addEventListener('click', () => {
+      nav.querySelectorAll('button').forEach(x => x.classList.remove('on'));
+      document.querySelectorAll('.panel').forEach(x => x.classList.remove('on'));
+      b.classList.add('on');
+      document.getElementById('p' + s.id).classList.add('on');
+    });
+    nav.appendChild(b);
+  });
+  document.querySelectorAll('.theme-row button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.theme-row button').forEach(b => b.classList.remove('on'));
+      btn.classList.add('on');
+      document.documentElement.dataset.theme = btn.dataset.theme;
+    });
+  });
+  document.querySelectorAll('.m03-cell,.m05-pin,.m06-node,.m07-orb,.m08-tile,.m09-chip,.m10-pill,.m01-card').forEach(el => {
+    el.addEventListener('click', () => el.classList.toggle('on'));
+  });
+  document.querySelectorAll('.m09-head').forEach(head => {
+    head.addEventListener('click', () => head.parentElement.classList.toggle('open'));
+  });
+</script>
+</body>
+</html>

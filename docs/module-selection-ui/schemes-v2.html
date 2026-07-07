@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="monochrome-business">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>模块选择 · 视觉橱窗方案 — 积木仓</title>
+  <style>
+    /* —— 四套主题 —— */
+    html[data-theme="monochrome-business"] {
+      --pri: #b8860b; --pri-light: #d4af37; --pri-dark: #96700a; --pri-soft: #fef9e7;
+      --bg: #faf9f7; --surface: #fff; --surface-alt: #fffdf8;
+      --text: #1c1917; --muted: #78716c; --border: #e8dfc0;
+      --hero-grad: linear-gradient(145deg, #0a1628 0%, #1e3a5f 55%, #96700a 100%);
+      --btn-grad: linear-gradient(145deg, #96700a, #d4af37 55%, #b8860b);
+      --glow: rgba(184, 134, 11, 0.18);
+    }
+    html[data-theme="sakura-plum"] {
+      --pri: #db2777; --pri-light: #ec4899; --pri-dark: #9d174d; --pri-soft: #fdf2f8;
+      --bg: #fff5f9; --surface: #fff; --surface-alt: #fdf2f8;
+      --text: #1f1318; --muted: #9d7185; --border: #f5d0e3;
+      --hero-grad: linear-gradient(145deg, #500724, #9d174d 55%, #ec4899);
+      --btn-grad: linear-gradient(145deg, #9d174d, #ec4899);
+      --glow: rgba(219, 39, 119, 0.15);
+    }
+    html[data-theme="emerald-amber"] {
+      --pri: #047857; --pri-light: #10b981; --pri-dark: #064e3b; --pri-soft: #ecfdf5;
+      --bg: #f6faf8; --surface: #fff; --surface-alt: #ecfdf5;
+      --text: #0f1f1a; --muted: #5f7a72; --border: #a7e8cf;
+      --hero-grad: linear-gradient(145deg, #022c22, #047857 55%, #d97706);
+      --btn-grad: linear-gradient(145deg, #064e3b, #10b981 55%, #d97706);
+      --glow: rgba(4, 120, 87, 0.15);
+    }
+    html[data-theme="ocean-coral"] {
+      --pri: #0369a1; --pri-light: #0ea5e9; --pri-dark: #075985; --pri-soft: #e0f2fe;
+      --bg: #f0f9ff; --surface: #fff; --surface-alt: #e0f2fe;
+      --text: #0c1929; --muted: #5b7a94; --border: #7dd3fc;
+      --hero-grad: linear-gradient(145deg, #0c1929, #0369a1 55%, #f97316);
+      --btn-grad: linear-gradient(145deg, #075985, #0ea5e9 55%, #f97316);
+      --glow: rgba(3, 105, 161, 0.15);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 14px;
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+
+    /* —— 顶栏 —— */
+    .top {
+      position: sticky; top: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+      padding: 12px 24px;
+      background: color-mix(in srgb, var(--surface) 92%, transparent);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .brand { display: flex; align-items: center; gap: 10px; }
+    .brand-mark {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: var(--btn-grad); color: #fff; font-weight: 800; font-size: 14px;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 16px var(--glow);
+    }
+    .brand strong { font-size: 15px; display: block; }
+    .brand span { font-size: 11px; color: var(--muted); }
+    .theme-pills { display: flex; gap: 4px; padding: 3px; border-radius: 10px; background: var(--surface-alt); border: 1px solid var(--border); }
+    .theme-pills button {
+      border: none; background: transparent; padding: 5px 10px; border-radius: 8px;
+      font-size: 11px; font-weight: 600; color: var(--muted); cursor: pointer; font-family: inherit;
+    }
+    .theme-pills button.on { background: var(--surface); color: var(--pri-dark); box-shadow: 0 2px 8px var(--glow); }
+    .scheme-tabs { display: flex; gap: 6px; }
+    .scheme-tabs button {
+      border: 1px solid var(--border); background: var(--surface); padding: 6px 14px;
+      border-radius: 999px; font-size: 12px; font-weight: 600; cursor: pointer; color: var(--muted); font-family: inherit;
+    }
+    .scheme-tabs button.on { border-color: var(--pri); color: var(--pri-dark); background: var(--pri-soft); }
+
+    .wrap { max-width: 1080px; margin: 0 auto; padding: 28px 20px 80px; }
+    .scheme { display: none; animation: rise .35s ease; }
+    .scheme.on { display: block; }
+    @keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+    .scheme-intro {
+      margin-bottom: 20px; padding: 14px 18px; border-radius: 12px;
+      background: var(--pri-soft); border: 1px solid var(--border);
+      font-size: 13px; color: var(--muted);
+    }
+    .scheme-intro strong { color: var(--pri-dark); }
+
+    /* ═══════════════════════════════════════
+       方案 A · 视觉橱窗（推荐）
+       ═══════════════════════════════════════ */
+    .a-hero {
+      border-radius: 20px; overflow: hidden; margin-bottom: 20px;
+      background: var(--hero-grad); color: #fff; position: relative;
+      box-shadow: 0 20px 50px var(--glow);
+    }
+    .a-hero-inner { padding: 28px 28px 24px; position: relative; z-index: 1; }
+    .a-hero h2 { font-size: 22px; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 6px; }
+    .a-hero p { font-size: 13px; opacity: .82; max-width: 480px; }
+    .a-prompt-box {
+      margin-top: 18px; display: flex; gap: 10px; align-items: stretch;
+    }
+    .a-prompt-box input {
+      flex: 1; border: none; border-radius: 14px; padding: 14px 18px;
+      font-size: 15px; font-family: inherit; background: rgba(255,255,255,.95);
+      color: var(--text); outline: none;
+      box-shadow: 0 4px 20px rgba(0,0,0,.12);
+    }
+    .a-prompt-box input::placeholder { color: #a8a29e; }
+    .a-prompt-box button {
+      border: none; border-radius: 14px; padding: 0 28px;
+      background: var(--btn-grad); color: #fff; font-weight: 700; font-size: 14px;
+      cursor: pointer; white-space: nowrap; font-family: inherit;
+      box-shadow: 0 4px 18px var(--glow);
+    }
+    .a-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+    .a-chips span {
+      font-size: 11px; padding: 5px 12px; border-radius: 999px;
+      background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.22);
+      cursor: pointer; transition: background .15s;
+    }
+    .a-chips span:hover { background: rgba(255,255,255,.24); }
+
+    .a-catalog {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 18px; overflow: hidden;
+      box-shadow: 0 4px 24px var(--glow);
+    }
+    .a-catalog-head {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      padding: 16px 20px; border-bottom: 1px solid var(--border);
+    }
+    .a-catalog-head h3 { font-size: 15px; font-weight: 700; }
+    .a-search {
+      width: 200px; padding: 8px 14px 8px 36px; border-radius: 999px;
+      border: 1px solid var(--border); background: var(--surface-alt);
+      font-size: 12px; font-family: inherit; outline: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2378716c' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85zm-5.242 1.156a5 5 0 1 1 0-10 5 5 0 0 1 0 10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: 12px center;
+    }
+    .a-search:focus { border-color: var(--pri-light); }
+
+    /* 行业：仅图标 */
+    .a-industry {
+      padding: 14px 20px; border-bottom: 1px solid var(--border);
+      display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none;
+    }
+    .a-industry::-webkit-scrollbar { display: none; }
+    .a-ind {
+      flex-shrink: 0; width: 52px; display: flex; flex-direction: column; align-items: center; gap: 4px;
+      cursor: pointer; border: none; background: none; font-family: inherit;
+    }
+    .a-ind-icon {
+      width: 44px; height: 44px; border-radius: 14px;
+      display: flex; align-items: center; justify-content: center; font-size: 20px;
+      background: var(--surface-alt); border: 2px solid transparent;
+      transition: all .2s;
+    }
+    .a-ind span { font-size: 10px; color: var(--muted); font-weight: 600; }
+    .a-ind.on .a-ind-icon {
+      background: var(--pri-soft); border-color: var(--pri-light);
+      box-shadow: 0 4px 12px var(--glow);
+    }
+    .a-ind.on span { color: var(--pri-dark); }
+
+    /* 办公：一行胶囊，无 checkbox 文字块 */
+    .a-office {
+      padding: 10px 20px; display: flex; gap: 6px; flex-wrap: wrap;
+      border-bottom: 1px solid var(--border); background: var(--surface-alt);
+    }
+    .a-office button {
+      border: 1px solid var(--border); background: var(--surface);
+      padding: 5px 12px; border-radius: 999px; font-size: 11px; font-weight: 600;
+      color: var(--muted); cursor: pointer; font-family: inherit;
+    }
+    .a-office button.on { background: var(--pri); color: #fff; border-color: var(--pri); }
+
+    /* 场景卡片：图标 + 标题，无描述 */
+    .a-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(108px, 1fr));
+      gap: 10px; padding: 16px 20px 20px;
+    }
+    .a-card {
+      border: 2px solid var(--border); border-radius: 14px; padding: 14px 8px;
+      text-align: center; cursor: pointer; background: var(--surface);
+      transition: all .2s; position: relative;
+    }
+    .a-card:hover { border-color: var(--pri-light); transform: translateY(-2px); box-shadow: 0 8px 20px var(--glow); }
+    .a-card.on { border-color: var(--pri); background: var(--pri-soft); box-shadow: 0 0 0 3px color-mix(in srgb, var(--pri) 20%, transparent); }
+    .a-card.on::after {
+      content: '✓'; position: absolute; top: 6px; right: 6px;
+      width: 16px; height: 16px; border-radius: 50%;
+      background: var(--pri); color: #fff; font-size: 9px; font-weight: 800;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .a-card-icon { font-size: 26px; margin-bottom: 6px; display: block; }
+    .a-card-title { font-size: 12px; font-weight: 700; color: var(--text); line-height: 1.3; }
+
+    .a-selected-bar {
+      display: flex; align-items: center; gap: 8px; padding: 10px 20px;
+      background: color-mix(in srgb, var(--pri) 6%, var(--surface));
+      border-top: 1px solid var(--border); font-size: 12px;
+    }
+    .a-selected-bar em { font-style: normal; color: var(--muted); }
+    .a-selected-bar .pill {
+      padding: 4px 10px; border-radius: 999px; background: var(--pri-soft);
+      border: 1px solid var(--border); font-size: 11px; font-weight: 600; color: var(--pri-dark);
+    }
+
+    /* ═══════════════════════════════════════
+       方案 B · 分步向导
+       ═══════════════════════════════════════ */
+    .b-steps { display: flex; gap: 0; margin-bottom: 20px; }
+    .b-step {
+      flex: 1; text-align: center; padding: 12px; font-size: 12px; font-weight: 600;
+      color: var(--muted); border-bottom: 2px solid var(--border); cursor: pointer;
+    }
+    .b-step.on { color: var(--pri-dark); border-bottom-color: var(--pri); }
+    .b-step.done { color: var(--pri); }
+    .b-panel {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 18px;
+      padding: 24px; box-shadow: 0 4px 24px var(--glow);
+    }
+    .b-panel h3 { font-size: 18px; margin-bottom: 4px; }
+    .b-panel > p { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
+    .b-tiles {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+    }
+    @media (max-width: 700px) { .b-tiles { grid-template-columns: repeat(2, 1fr); } }
+    .b-tile {
+      aspect-ratio: 1; border-radius: 16px; border: 2px solid var(--border);
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+      cursor: pointer; background: var(--surface-alt); transition: all .2s;
+    }
+    .b-tile:hover { border-color: var(--pri-light); }
+    .b-tile.on { border-color: var(--pri); background: var(--pri-soft); }
+    .b-tile .ico { font-size: 32px; }
+    .b-tile .lbl { font-size: 13px; font-weight: 700; }
+    .b-nav { display: flex; justify-content: space-between; margin-top: 20px; }
+    .b-nav button {
+      padding: 10px 24px; border-radius: 10px; font-size: 13px; font-weight: 600;
+      cursor: pointer; font-family: inherit; border: 1px solid var(--border); background: var(--surface);
+    }
+    .b-nav .primary { background: var(--btn-grad); color: #fff; border: none; }
+
+    /* ═══════════════════════════════════════
+       方案 C · 侧栏聚焦
+       ═══════════════════════════════════════ */
+    .c-layout {
+      display: grid; grid-template-columns: 72px 1fr; gap: 0;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 18px;
+      overflow: hidden; min-height: 480px; box-shadow: 0 4px 24px var(--glow);
+    }
+    .c-rail {
+      background: var(--surface-alt); border-right: 1px solid var(--border);
+      padding: 12px 8px; display: flex; flex-direction: column; gap: 6px; align-items: center;
+    }
+    .c-rail button {
+      width: 48px; height: 48px; border-radius: 12px; border: 2px solid transparent;
+      background: var(--surface); font-size: 20px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .c-rail button.on { border-color: var(--pri); background: var(--pri-soft); }
+    .c-main { padding: 20px; display: flex; flex-direction: column; }
+    .c-main h3 { font-size: 16px; margin-bottom: 2px; }
+    .c-main .sub { font-size: 12px; color: var(--muted); margin-bottom: 16px; }
+    .c-main .a-grid { padding: 0; }
+    .c-float-prompt {
+      margin-top: auto; display: flex; gap: 8px; padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+    .c-float-prompt input {
+      flex: 1; border: 1px solid var(--border); border-radius: 12px; padding: 12px 16px;
+      font-size: 14px; font-family: inherit; outline: none;
+    }
+    .c-float-prompt input:focus { border-color: var(--pri-light); }
+    .c-float-prompt button {
+      border: none; border-radius: 12px; padding: 0 20px;
+      background: var(--btn-grad); color: #fff; font-weight: 700; cursor: pointer; font-family: inherit;
+    }
+
+    .compare-note {
+      margin-top: 32px; padding: 20px; border-radius: 14px;
+      border: 1px dashed var(--border); background: var(--surface-alt);
+      font-size: 13px; color: var(--muted);
+    }
+    .compare-note h4 { color: var(--text); margin-bottom: 8px; font-size: 14px; }
+    .compare-note table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
+    .compare-note th, .compare-note td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border); }
+    .compare-note th { color: var(--pri-dark); font-weight: 700; }
+  </style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand">
+    <div class="brand-mark">积</div>
+    <div>
+      <strong>积木仓 · 模块选择 UI 方案 v2</strong>
+      <span>减文字 · 重视觉 · 四套主题可切换</span>
+    </div>
+  </div>
+  <div class="scheme-tabs">
+    <button class="on" data-scheme="a">A 视觉橱窗 ★</button>
+    <button data-scheme="b">B 分步向导</button>
+    <button data-scheme="c">C 侧栏聚焦</button>
+  </div>
+  <div class="theme-pills">
+    <button class="on" data-theme="monochrome-business">黑金</button>
+    <button data-theme="sakura-plum">樱花</button>
+    <button data-theme="emerald-amber">墨绿</button>
+    <button data-theme="ocean-coral">深海</button>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- ═══ 方案 A ═══ -->
+  <section class="scheme on" id="scheme-a">
+    <div class="scheme-intro">
+      <strong>方案 A · 视觉橱窗（推荐）</strong> — 一句话输入置顶；行业只保留图标；办公改为一行胶囊；场景卡片仅「图标 + 4 字标题」，去掉描述与统计数字。信息量减少约 <strong>60%</strong>。
+    </div>
+
+    <div class="a-hero">
+      <div class="a-hero-inner">
+        <h2>描述您想要的应用</h2>
+        <p>输入一句话，或点选下方场景</p>
+        <div class="a-prompt-box">
+          <input type="text" placeholder="例：销售日报 + 审批 + 消息推送" />
+          <button>生成应用</button>
+        </div>
+        <div class="a-chips">
+          <span>销售日报</span><span>请假审批</span><span>知识库</span><span>数据看板</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="a-catalog">
+      <div class="a-catalog-head">
+        <h3>选场景</h3>
+        <input class="a-search" placeholder="搜索" />
+      </div>
+
+      <div class="a-industry">
+        <button class="a-ind on" type="button"><span class="a-ind-icon">🏭</span><span>制造</span></button>
+        <button class="a-ind" type="button"><span class="a-ind-icon">🛒</span><span>零售</span></button>
+        <button class="a-ind" type="button"><span class="a-ind-icon">🏥</span><span>医疗</span></button>
+        <button class="a-ind" type="button"><span class="a-ind-icon">🎮</span><span>游戏</span></button>
+        <button class="a-ind" type="button"><span class="a-ind-icon">🏦</span><span>金融</span></button>
+        <button class="a-ind" type="button"><span class="a-ind-icon">📚</span><span>教育</span></button>
+        <button class="a-ind" type="button"><span class="a-ind-icon">🚚</span><span>物流</span></button>
+        <button class="a-ind" type="button"><span class="a-ind-icon">🏨</span><span>酒店</span></button>
+      </div>
+
+      <div class="a-office">
+        <button class="on">人事</button><button>财务</button><button>审批</button>
+        <button>报表</button><button>知识</button><button>消息</button><button>IT</button><button>对接</button>
+      </div>
+
+      <div class="a-grid">
+        <div class="a-card on"><span class="a-card-icon">📋</span><span class="a-card-title">销售日报</span></div>
+        <div class="a-card on"><span class="a-card-icon">✅</span><span class="a-card-title">请假审批</span></div>
+        <div class="a-card"><span class="a-card-icon">📊</span><span class="a-card-title">数据看板</span></div>
+        <div class="a-card"><span class="a-card-icon">💬</span><span class="a-card-title">消息推送</span></div>
+        <div class="a-card"><span class="a-card-icon">📁</span><span class="a-card-title">知识库</span></div>
+        <div class="a-card"><span class="a-card-icon">🔔</span><span class="a-card-title">待办提醒</span></div>
+        <div class="a-card"><span class="a-card-icon">👥</span><span class="a-card-title">客户管理</span></div>
+        <div class="a-card"><span class="a-card-icon">📦</span><span class="a-card-title">库存盘点</span></div>
+        <div class="a-card"><span class="a-card-icon">🧾</span><span class="a-card-title">报销流程</span></div>
+        <div class="a-card"><span class="a-card-icon">📅</span><span class="a-card-title">排班考勤</span></div>
+        <div class="a-card"><span class="a-card-icon">🔗</span><span class="a-card-title">API对接</span></div>
+        <div class="a-card"><span class="a-card-icon">🛡️</span><span class="a-card-title">权限管理</span></div>
+      </div>
+
+      <div class="a-selected-bar">
+        <em>已选 2</em>
+        <span class="pill">销售日报</span>
+        <span class="pill">请假审批</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ 方案 B ═══ -->
+  <section class="scheme" id="scheme-b">
+    <div class="scheme-intro">
+      <strong>方案 B · 分步向导</strong> — 每次只展示一个决策层（行业 → 分类 → 场景），避免所有筛选项同时堆叠。适合新用户，但多一次点击。
+    </div>
+
+    <div class="b-steps">
+      <div class="b-step done">① 选行业</div>
+      <div class="b-step on">② 选分类</div>
+      <div class="b-step">③ 选场景</div>
+    </div>
+    <div class="b-panel">
+      <h3>办公分类</h3>
+      <p>制造行业 · 可多选</p>
+      <div class="b-tiles">
+        <div class="b-tile on"><span class="ico">👔</span><span class="lbl">人事行政</span></div>
+        <div class="b-tile"><span class="ico">💰</span><span class="lbl">财务法务</span></div>
+        <div class="b-tile on"><span class="ico">📝</span><span class="lbl">流程审批</span></div>
+        <div class="b-tile"><span class="ico">📊</span><span class="lbl">数据报表</span></div>
+        <div class="b-tile"><span class="ico">📚</span><span class="lbl">知识协同</span></div>
+        <div class="b-tile"><span class="ico">🔔</span><span class="lbl">消息通知</span></div>
+        <div class="b-tile"><span class="ico">💻</span><span class="lbl">IT资产</span></div>
+        <div class="b-tile"><span class="ico">🔗</span><span class="lbl">外部对接</span></div>
+      </div>
+      <div class="b-nav">
+        <button>上一步</button>
+        <button class="primary">下一步 →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ 方案 C ═══ -->
+  <section class="scheme" id="scheme-c">
+    <div class="scheme-intro">
+      <strong>方案 C · 侧栏聚焦</strong> — 左侧竖排行业图标（无文字），右侧大网格展示场景；输入框沉底固定。适合高频用户快速切换行业。
+    </div>
+
+    <div class="c-layout">
+      <div class="c-rail">
+        <button class="on" title="制造">🏭</button>
+        <button title="零售">🛒</button>
+        <button title="医疗">🏥</button>
+        <button title="金融">🏦</button>
+        <button title="教育">📚</button>
+        <button title="物流">🚚</button>
+      </div>
+      <div class="c-main">
+        <h3>制造 · 办公场景</h3>
+        <p class="sub">点击添加，悬停查看说明</p>
+        <div class="a-grid">
+          <div class="a-card on"><span class="a-card-icon">📋</span><span class="a-card-title">销售日报</span></div>
+          <div class="a-card"><span class="a-card-icon">📊</span><span class="a-card-title">产能看板</span></div>
+          <div class="a-card"><span class="a-card-icon">🔧</span><span class="a-card-title">设备巡检</span></div>
+          <div class="a-card"><span class="a-card-icon">📦</span><span class="a-card-title">物料管理</span></div>
+          <div class="a-card"><span class="a-card-icon">✅</span><span class="a-card-title">质检审批</span></div>
+          <div class="a-card"><span class="a-card-icon">👷</span><span class="a-card-title">排班考勤</span></div>
+          <div class="a-card"><span class="a-card-icon">⚠️</span><span class="a-card-title">异常上报</span></div>
+          <div class="a-card"><span class="a-card-icon">📈</span><span class="a-card-title">良率分析</span></div>
+        </div>
+        <div class="c-float-prompt">
+          <input placeholder="补充需求…" />
+          <button>生成</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="compare-note">
+    <h4>三方案对比</h4>
+    <table>
+      <tr><th></th><th>文字量</th><th>学习成本</th><th>适合人群</th></tr>
+      <tr><td><strong>A 视觉橱窗 ★</strong></td><td>最少</td><td>低</td><td>全部用户，推荐落地</td></tr>
+      <tr><td>B 分步向导</td><td>少</td><td>最低</td><td>首次使用 / 引导流程</td></tr>
+      <tr><td>C 侧栏聚焦</td><td>少</td><td>中</td><td>高频用户 / 桌面端</td></tr>
+    </table>
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll('.scheme-tabs button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.scheme-tabs button').forEach(b => b.classList.remove('on'));
+      document.querySelectorAll('.scheme').forEach(s => s.classList.remove('on'));
+      btn.classList.add('on');
+      document.getElementById('scheme-' + btn.dataset.scheme).classList.add('on');
+    });
+  });
+  document.querySelectorAll('.theme-pills button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.theme-pills button').forEach(b => b.classList.remove('on'));
+      btn.classList.add('on');
+      document.documentElement.dataset.theme = btn.dataset.theme;
+    });
+  });
+  document.querySelectorAll('.a-card').forEach(card => {
+    card.addEventListener('click', () => card.classList.toggle('on'));
+  });
+  document.querySelectorAll('.a-ind').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.a-ind').forEach(b => b.classList.remove('on'));
+      btn.classList.add('on');
+    });
+  });
+  document.querySelectorAll('.a-office button').forEach(btn => {
+    btn.addEventListener('click', () => btn.classList.toggle('on'));
+  });
+</script>
+</body>
+</html>

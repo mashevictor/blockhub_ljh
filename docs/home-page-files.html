@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>首页源码文件索引 — 积木仓 BlockHub</title>
+  <style>
+    :root {
+      --bg: #f4f6fa; --surface: #fff; --border: #e2e8f0;
+      --text: #0f172a; --muted: #64748b; --pri: #4338ca;
+      --warn-bg: #fff7ed; --warn-border: #fed7aa;
+      --color-bg: #eef2ff; --color-border: #c7d2fe;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.55; }
+    .wrap { max-width: 960px; margin: 0 auto; padding: 28px 20px 60px; }
+    h1 { font-size: 22px; margin: 0 0 8px; }
+    .sub { color: var(--muted); margin-bottom: 24px; }
+    .alert {
+      background: var(--warn-bg); border: 1px solid var(--warn-border);
+      border-radius: 12px; padding: 14px 16px; margin-bottom: 24px; font-size: 13px;
+    }
+    .alert strong { color: #c2410c; }
+    section { margin-bottom: 28px; }
+    section h2 {
+      font-size: 13px; text-transform: uppercase; letter-spacing: .08em;
+      color: var(--pri); margin: 0 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border);
+    }
+    .file-list { list-style: none; margin: 0; padding: 0; }
+    .file-list li {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+      padding: 10px 14px; margin-bottom: 8px; display: flex; flex-wrap: wrap; gap: 8px; align-items: baseline;
+    }
+    .file-list li.color { border-color: var(--color-border); background: var(--color-bg); }
+    code.path {
+      font-family: "SF Mono", Consolas, monospace; font-size: 12px;
+      background: #f1f5f9; padding: 2px 8px; border-radius: 6px; color: #0f172a;
+      word-break: break-all;
+    }
+    .desc { font-size: 13px; color: var(--muted); flex: 1; min-width: 200px; }
+    .tag {
+      font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 6px;
+      background: #dcfce7; color: #15803d;
+    }
+    .tag.color { background: #e0e7ff; color: #4338ca; }
+    .tag.css { background: #fef3c7; color: #b45309; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; background: var(--surface); border-radius: 12px; overflow: hidden; border: 1px solid var(--border); }
+    th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+    th { background: #f8fafc; color: var(--muted); font-size: 11px; }
+    .swatch { display: inline-block; width: 14px; height: 14px; border-radius: 4px; vertical-align: middle; margin-right: 6px; border: 1px solid rgba(0,0,0,.1); }
+    .tree { font-family: monospace; font-size: 12px; background: #1e293b; color: #e2e8f0; padding: 16px; border-radius: 12px; line-height: 1.7; overflow-x: auto; }
+    .tree .dir { color: #93c5fd; }
+    .tree .file { color: #fde68a; }
+    .tree .color { color: #86efac; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>首页（Home）源码文件索引</h1>
+    <p class="sub">项目路径：<code>cozecode/home/</code> · 在 Cursor / VS Code 中按路径打开即可查看</p>
+
+    <div class="alert">
+      <strong>颜色不统一的根因（你说样式 OK、只是色没统一）：</strong><br>
+      目前至少 <strong>4 套色值</strong> 在并行——<code>shared/design-tokens.css</code>（灰蓝商务）、
+      <code>home/src/index.css</code> 里 <code>:root</code> 又写死一套、
+      <code>shared/themes.ts</code> 运行时切换主题（默认白金商务金）、
+      <code>.cube-theme</code> 区块再用硬编码边框/阴影。
+      模块区、广场区部分样式未走 <code>--pri</code> 变量，而是写死 hex 或沿用旧 token。
+    </div>
+
+    <section>
+      <h2>颜色 / 主题 — 优先看这些</h2>
+      <ul class="file-list">
+        <li class="color">
+          <code class="path">shared/design-tokens.css</code>
+          <span class="tag color">色板源头</span>
+          <span class="desc">全站 <code>--bh-*</code> 令牌；<code>--pri</code> 等兼容别名</span>
+        </li>
+        <li class="color">
+          <code class="path">shared/themes.ts</code>
+          <span class="tag color">4 套主题</span>
+          <span class="desc">运行时 <code>applyTheme()</code> 覆盖 CSS 变量；默认 monochrome-business（金+深蓝）</span>
+        </li>
+        <li class="color">
+          <code class="path">home/src/index.css</code>
+          <span class="tag css">5500+ 行</span>
+          <span class="desc">首页全部样式；<code>:root</code> 重复定义色值；<code>.cube-theme</code> 从 3370 行起</span>
+        </li>
+        <li class="color">
+          <code class="path">home/src/data/iconPalette.ts</code>
+          <span class="tag color">图标色</span>
+          <span class="desc">模块/行业/分类图标颜色，从 theme 调色板取色</span>
+        </li>
+        <li class="color">
+          <code class="path">home/src/context/ThemeContext.tsx</code>
+          <span class="desc">主题 Provider，挂到 <code>main.tsx</code></span>
+        </li>
+        <li class="color">
+          <code class="path">home/src/components/ThemePicker.tsx</code>
+          <span class="desc">用户切换主题 UI（若页面有入口）</span>
+        </li>
+      </ul>
+
+      <table style="margin-top:16px">
+        <thead><tr><th>变量</th><th>design-tokens 默认</th><th>index.css :root 覆盖</th><th>themes 默认主题</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>--pri 主色</td>
+            <td><span class="swatch" style="background:#0f172a"></span>#0f172a 灰黑</td>
+            <td><span class="swatch" style="background:#0f172a"></span>#0f172a（又写一遍）</td>
+            <td><span class="swatch" style="background:#b8860b"></span>#b8860b 琥珀金</td>
+          </tr>
+          <tr>
+            <td>--bg 背景</td>
+            <td>#eef2f7</td><td>#eef2f7</td>
+            <td><span class="swatch" style="background:#faf9f7"></span>#faf9f7 暖白</td>
+          </tr>
+          <tr>
+            <td>--border</td>
+            <td>#e2e8f0</td><td>#e2e8f0</td>
+            <td><span class="swatch" style="background:#e8dfc0"></span>#e8dfc0 金边</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>首页入口 & 布局</h2>
+      <ul class="file-list">
+        <li><code class="path">home/index.html</code><span class="desc">Vite HTML 入口</span></li>
+        <li><code class="path">home/src/main.tsx</code><span class="tag">入口</span><span class="desc">ThemeProvider + Router</span></li>
+        <li><code class="path">home/src/App.tsx</code><span class="desc">路由：/ 首页、/plaza 广场、/login</span></li>
+        <li><code class="path">home/src/HomeApp.tsx</code><span class="tag">首页壳</span><span class="desc">Header、三视图切换、Footer；<code>body.cube-theme</code></span></li>
+        <li><code class="path">home/src/index.css</code><span class="tag css">全局样式</span><span class="desc">import design-tokens + 所有组件 class</span></li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>三个创建视图（首页主内容）</h2>
+      <ul class="file-list">
+        <li><code class="path">home/src/views/PromptView.tsx</code><span class="desc">描述需求 · 最大块 UI</span></li>
+        <li><code class="path">home/src/views/IndustryView.tsx</code><span class="desc">选行业场景</span></li>
+        <li><code class="path">home/src/views/ModuleView.tsx</code><span class="desc">选模块 · 三栏 builder（palette / canvas / inspector）</span></li>
+        <li><code class="path">home/src/components/ViewModeSwitcher.tsx</code><span class="desc">顶部「描述需求 / 选行业 / 选模块」切换</span></li>
+        <li><code class="path">home/src/components/HeroCubeStage.tsx</code><span class="desc">首页魔方英雄区</span></li>
+        <li><code class="path">home/src/components/AgentInput.tsx</code><span class="desc">描述需求输入框</span></li>
+        <li><code class="path">home/src/components/PlatformShowcaseFooter.tsx</code><span class="desc">首页底部能力展示</span></li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>广场 / 我的应用（子路由，样式同在 index.css）</h2>
+      <ul class="file-list">
+        <li><code class="path">home/src/pages/plaza/PlazaLayout.tsx</code><span class="desc">广场布局 + 双导航</span></li>
+        <li><code class="path">home/src/pages/plaza/PlazaFeedPage.tsx</code><span class="desc">应用广场 Feed</span></li>
+        <li><code class="path">home/src/pages/plaza/PlazaMyAppsPage.tsx</code><span class="desc">我的应用列表</span></li>
+        <li><code class="path">home/src/components/plaza/PlazaModuleFlowPanel.tsx</code><span class="desc">模块数据流主面板</span></li>
+        <li><code class="path">home/src/components/plaza/ModuleReorderStrip.tsx</code><span class="desc">模块拖拽排序条</span></li>
+        <li><code class="path">home/src/components/plaza/PlazaModuleFlowPipeline.tsx</code><span class="desc">数据流管线图</span></li>
+        <li><code class="path">home/src/components/plaza/ModuleApiPanel.tsx</code><span class="desc">拨通 API 面板</span></li>
+      </ul>
+      <p style="font-size:12px;color:var(--muted);margin-top:8px">广场相关 class 以 <code>.plaza-*</code>、<code>.plaza-mflow-*</code> 开头，在 <code>index.css</code> 约 4800 行以后。</p>
+    </section>
+
+    <section>
+      <h2>共享品牌</h2>
+      <ul class="file-list">
+        <li><code class="path">shared/brand.ts</code><span class="desc">品牌名、Logo 路径、adminLoginUrl</span></li>
+        <li><code class="path">home/src/data/brand.ts</code><span class="desc">re-export shared/brand</span></li>
+        <li><code class="path">home/src/components/BrandMark.tsx</code><span class="desc">Logo 组件</span></li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>目录树（home/src 精简）</h2>
+      <pre class="tree"><span class="dir">home/</span>
+├── index.html
+├── package.json
+└── <span class="dir">src/</span>
+    ├── <span class="file">main.tsx</span>
+    ├── <span class="file">App.tsx</span>
+    ├── <span class="file">HomeApp.tsx</span>
+    ├── <span class="color">index.css</span>          ← 绝大部分样式 + cube-theme
+    ├── <span class="dir">views/</span>
+    │   ├── PromptView.tsx
+    │   ├── IndustryView.tsx
+    │   └── ModuleView.tsx
+    ├── <span class="dir">pages/plaza/</span>
+    ├── <span class="dir">components/</span>
+    ├── <span class="dir">context/</span> ThemeContext.tsx
+    └── <span class="dir">data/</span>
+        ├── <span class="color">themes.ts</span>      → shared/themes.ts
+        └── <span class="color">iconPalette.ts</span>
+
+<span class="dir">shared/</span>（与 home 同级）
+├── <span class="color">design-tokens.css</span>
+├── <span class="color">themes.ts</span>
+└── brand.ts</pre>
+    </section>
+
+    <p style="font-size:12px;color:var(--muted);text-align:center;margin-top:32px">
+      在资源管理器打开：<code>cozecode\home\src\</code> · 本页：<code>docs/home-page-files.html</code>
+    </p>
+  </div>
+</body>
+</html>

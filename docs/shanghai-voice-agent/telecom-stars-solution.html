@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>方案三 · 电信星辰云端语音 Agent — 技术实现说明</title>
+  <style>
+    :root {
+      --bg: #0a0908;
+      --surface: #1a1612;
+      --surface2: #221c16;
+      --surface3: #2a231c;
+      --border: #3d3428;
+      --gold: #d4af37;
+      --gold-light: #f0d78c;
+      --text: #f5f0e8;
+      --muted: #a89f8f;
+      --muted2: #c4b9a8;
+      --ok: #4ade80;
+      --info: #60a5fa;
+      --warn: #fbbf24;
+      --danger: #f87171;
+      --radius: 14px;
+      --font: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+      --mono: "SF Mono", Menlo, Consolas, monospace;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      font-size: 15px;
+    }
+    .top-bar {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(10, 9, 8, 0.94);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 20px;
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; }
+    .brand-mark {
+      width: 36px; height: 36px; border-radius: 9px;
+      border: 2px solid var(--gold); background: var(--surface2);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; color: var(--gold); font-size: 15px;
+    }
+    .brand h1 { margin: 0; font-size: 15px; font-weight: 700; }
+    .brand p { margin: 0; font-size: 11px; color: var(--muted); }
+    .nav-links { display: flex; gap: 4px; flex-wrap: wrap; }
+    .nav-links a {
+      font-size: 11px; font-weight: 600; color: var(--muted2);
+      text-decoration: none; padding: 6px 10px; border-radius: 999px;
+      border: 1px solid transparent;
+    }
+    .nav-links a:hover { color: var(--gold-light); border-color: var(--border); background: var(--surface2); }
+    .layout { display: grid; grid-template-columns: 220px 1fr; max-width: 1280px; margin: 0 auto; }
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+    }
+    .sidebar {
+      position: sticky; top: 58px; height: calc(100vh - 58px);
+      overflow-y: auto; padding: 20px 12px 40px 20px;
+      border-right: 1px solid var(--border);
+    }
+    .sidebar h5 {
+      margin: 0 0 8px; font-size: 10px; text-transform: uppercase;
+      letter-spacing: 0.1em; color: var(--gold);
+    }
+    .sidebar ul { list-style: none; margin: 0 0 20px; padding: 0; }
+    .sidebar li { margin-bottom: 2px; }
+    .sidebar a {
+      display: block; font-size: 12px; color: var(--muted2);
+      text-decoration: none; padding: 5px 8px; border-radius: 6px;
+    }
+    .sidebar a:hover { background: var(--surface2); color: var(--gold-light); }
+    main { padding: 24px 28px 80px; min-width: 0; }
+    .hero {
+      text-align: center; padding: 32px 20px 36px;
+      background: linear-gradient(180deg, rgba(212,175,55,0.1) 0%, transparent 70%);
+      border-radius: var(--radius); margin-bottom: 36px;
+      border: 1px solid var(--border);
+    }
+    .hero .eyebrow {
+      font-size: 11px; font-weight: 700; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--gold); margin-bottom: 10px;
+    }
+    .hero h2 { margin: 0 0 10px; font-size: 26px; font-weight: 800; line-height: 1.3; }
+    .hero h2 em { font-style: normal; color: var(--gold-light); }
+    .hero .sub { color: var(--muted2); max-width: 720px; margin: 0 auto 18px; font-size: 14px; }
+    .hero-tags { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+    .tag {
+      font-size: 11px; font-weight: 700; padding: 5px 12px; border-radius: 999px;
+      background: var(--surface2); border: 1px solid var(--border); color: var(--gold-light);
+    }
+    .tag.rec { border-color: var(--gold); background: rgba(212,175,55,0.14); }
+    .tag.cloud { border-color: var(--info); color: var(--info); background: rgba(96,165,250,0.1); }
+    section { margin-bottom: 44px; scroll-margin-top: 70px; }
+    section > h3 {
+      font-size: 18px; font-weight: 800; margin: 0 0 6px; color: var(--text);
+    }
+    section > .sec-desc { color: var(--muted2); font-size: 13px; margin: 0 0 18px; }
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 20px 22px; margin-bottom: 16px;
+    }
+    .card h4 { margin: 0 0 12px; font-size: 14px; font-weight: 700; color: var(--gold-light); }
+    .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
+    .metric {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 12px; padding: 14px 16px;
+    }
+    .metric label { display: block; font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+    .metric .val { font-size: 22px; font-weight: 800; color: var(--gold-light); }
+    .metric .val small { font-size: 13px; font-weight: 600; }
+    table {
+      width: 100%; border-collapse: collapse; font-size: 13px;
+    }
+    th, td {
+      text-align: left; padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    th { color: var(--gold); font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; }
+    td code { font-size: 12px; }
+    code, pre {
+      font-family: var(--mono);
+      background: rgba(0,0,0,0.35);
+      border-radius: 6px;
+    }
+    code { padding: 2px 6px; font-size: 12px; color: #e8d5a3; }
+    pre {
+      margin: 0; padding: 14px 16px; overflow-x: auto;
+      font-size: 12px; line-height: 1.5; color: #d4cfc4;
+      border: 1px solid var(--border);
+    }
+    .flow-wrap { overflow-x: auto; padding: 8px 0; }
+    .flow {
+      display: flex; align-items: stretch; justify-content: center;
+      flex-wrap: wrap; gap: 6px; min-width: min(100%, 800px);
+    }
+    .flow-node {
+      flex: 1 1 100px; min-width: 90px; padding: 12px 10px; text-align: center;
+      background: var(--surface2); border: 1px solid var(--border); border-radius: 10px;
+    }
+    .flow-node strong { display: block; font-size: 12px; margin-bottom: 3px; }
+    .flow-node span { font-size: 10px; color: var(--muted); }
+    .flow-node.hl { border-color: var(--gold); box-shadow: 0 0 0 1px rgba(212,175,55,0.2); }
+    .flow-node.cloud { border-color: var(--info); }
+    .flow-arrow { align-self: center; color: var(--gold); font-weight: 700; font-size: 16px; }
+    .timeline { position: relative; padding-left: 24px; }
+    .timeline::before {
+      content: ""; position: absolute; left: 7px; top: 4px; bottom: 4px;
+      width: 2px; background: var(--border);
+    }
+    .timeline-item { position: relative; margin-bottom: 16px; }
+    .timeline-item::before {
+      content: ""; position: absolute; left: -20px; top: 6px;
+      width: 10px; height: 10px; border-radius: 50%;
+      background: var(--gold); border: 2px solid var(--bg);
+    }
+    .timeline-item strong { display: block; font-size: 13px; margin-bottom: 2px; }
+    .timeline-item p { margin: 0; font-size: 13px; color: var(--muted2); }
+    .prose { font-size: 14px; color: var(--muted2); margin: 0 0 12px; }
+    .prose strong { color: var(--text); }
+    ul.check { margin: 0; padding-left: 18px; color: var(--muted2); font-size: 13px; }
+    ul.check li { margin-bottom: 6px; }
+    .badge {
+      display: inline-block; font-size: 10px; font-weight: 700;
+      padding: 3px 8px; border-radius: 6px; vertical-align: middle;
+    }
+    .badge.ok { background: rgba(74,222,128,0.15); color: var(--ok); }
+    .badge.warn { background: rgba(251,191,36,0.15); color: var(--warn); }
+    .badge.info { background: rgba(96,165,250,0.15); color: var(--info); }
+    .compare-row { display: flex; gap: 12px; flex-wrap: wrap; }
+    .compare-col {
+      flex: 1 1 260px; background: var(--surface2);
+      border: 1px solid var(--border); border-radius: 12px; padding: 16px;
+    }
+    .compare-col h5 { margin: 0 0 10px; font-size: 13px; color: var(--gold-light); }
+    .file-tree { font-size: 12px; line-height: 1.7; color: var(--muted2); }
+    .file-tree .dir { color: var(--gold); }
+    .file-tree .new { color: var(--ok); }
+    .latency-bar {
+      display: flex; height: 28px; border-radius: 8px; overflow: hidden;
+      margin: 12px 0; font-size: 10px; font-weight: 700;
+    }
+    .latency-bar span {
+      display: flex; align-items: center; justify-content: center;
+      color: #1a1612; white-space: nowrap; padding: 0 4px;
+    }
+    .footer-note {
+      text-align: center; font-size: 12px; color: var(--muted);
+      padding-top: 24px; border-top: 1px solid var(--border);
+    }
+    .ref-list { font-size: 12px; }
+    .ref-list a { color: var(--info); }
+    .state-diagram {
+      font-family: var(--mono); font-size: 11px; line-height: 1.45;
+      white-space: pre; color: var(--muted2);
+    }
+  </style>
+</head>
+<body>
+  <header class="top-bar">
+    <div class="brand">
+      <div class="brand-mark">星</div>
+      <div>
+        <h1>电信星辰 · 云端方案技术说明</h1>
+        <p>积木仓 BlockHub · 上海话实时语音 Agent</p>
+      </div>
+    </div>
+    <nav class="nav-links">
+      <a href="schemes.html">← 四方案对比</a>
+      <a href="#arch">架构</a>
+      <a href="#api">API</a>
+      <a href="#impl">实现</a>
+      <a href="#deploy">部署</a>
+    </nav>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <h5>目录</h5>
+      <ul>
+        <li><a href="#overview">方案概述</a></li>
+        <li><a href="#why">为何选星辰</a></li>
+        <li><a href="#models">模型能力</a></li>
+        <li><a href="#cloud-paths">云端接入路径</a></li>
+        <li><a href="#arch">系统架构</a></li>
+        <li><a href="#latency">延迟预算</a></li>
+        <li><a href="#auth">鉴权签名</a></li>
+        <li><a href="#asr">ASR 流式协议</a></li>
+        <li><a href="#llm">LLM 编排</a></li>
+        <li><a href="#tts">TTS 上海话合成</a></li>
+        <li><a href="#gateway">BlockHub 网关</a></li>
+        <li><a href="#frontend">前端音频</a></li>
+        <li><a href="#state">状态机</a></li>
+        <li><a href="#impl">代码结构</a></li>
+        <li><a href="#env">环境变量</a></li>
+        <li><a href="#deploy">部署清单</a></li>
+        <li><a href="#cost">成本与并发</a></li>
+        <li><a href="#risk">风险与对策</a></li>
+        <li><a href="#refs">参考链接</a></li>
+      </ul>
+    </aside>
+
+    <main>
+      <div class="hero" id="overview">
+        <div class="eyebrow">方案三 · 全云端 · 推荐实施</div>
+        <h2>电信星辰 <em>TeleASR + TeleTTS</em><br>上海话实时语音 Agent 技术方案</h2>
+        <p class="sub">
+          本方案为<strong>纯云端</strong>架构：用户浏览器采集麦克风 → BlockHub 后端 WebSocket 网关编排 →
+          中国电信星辰 MaaS 平台完成多方言 ASR/TTS → DeepSeek 生成上海话回复文本 → 流式合成音频回传。
+          无需自建 GPU，上海话 TTS 口音地道度在四方案中最高。
+        </p>
+        <div class="hero-tags">
+          <span class="tag rec">口音优先 ★★★★★</span>
+          <span class="tag cloud">云端 SaaS</span>
+          <span class="tag">WebSocket 全双工</span>
+          <span class="tag">60 方言 ASR</span>
+          <span class="tag">5 方言 TTS 含上海话</span>
+        </div>
+      </div>
+
+      <!-- 为何选择 -->
+      <section id="why">
+        <h3>为何选择电信星辰（云端）</h3>
+        <p class="sec-desc">对比阿里云 CosyVoice 指令式上海话、端侧 sherpa-onnx 等方案后的结论。</p>
+        <div class="grid-2">
+          <div class="card">
+            <h4>核心优势</h4>
+            <ul class="check">
+              <li><strong>上海话 TTS 原生多方言模型</strong>：<code>TeleTTS-Stream-MultiDialect-V3.2</code> 单模型支持上海话、粤语、四川话、河南话、东北话，评测读音准确率 99%+（相对真人）</li>
+              <li><strong>生产级验证</strong>：万号智能客服、政务热线、数字人，月调用量 4 亿+ 次</li>
+              <li><strong>ASR 混说鲁棒</strong>：<code>TeleASR-Stream-MultiDialect-V3.2</code> 支持 60 种方言混说，电话信道/嘈杂环境优化</li>
+              <li><strong>零运维</strong>：无需 GPU 服务器、模型热更新由电信侧负责</li>
+              <li><strong>流式端到端</strong>：ASR partial → LLM 流式 → TTS 分片，首包可压至 ~1s 感知延迟</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h4>需接受的代价</h4>
+            <ul class="check">
+              <li>需单独申请<strong>天翼 AI / 星辰 MaaS</strong> AppID + AppKey，与现有阿里云账号分离</li>
+              <li>按调用量计费，长时对话成本高于自建（但省去 GPU 与算法人力）</li>
+              <li>需在后端实现<strong>签名鉴权 + 双 WebSocket 代理</strong>（密钥不可暴露给浏览器）</li>
+              <li>多方言 TTS 文档以控制台/商务开通为准，部分参数需开通后确认</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- 模型 -->
+      <section id="models">
+        <h3>模型能力矩阵</h3>
+        <p class="sec-desc">星辰语音大模型 2025 年全系上线模力方舟；生产接入推荐走星辰 MaaS 原生 WebSocket。</p>
+        <div class="card" style="overflow-x:auto">
+          <table>
+            <thead>
+              <tr>
+                <th>组件</th>
+                <th>模型 ID</th>
+                <th>协议</th>
+                <th>上海话相关</th>
+                <th>场景</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>ASR 实时</strong></td>
+                <td><code>TeleASR-Stream-MultiDialect-V3.2</code></td>
+                <td>WebSocket</td>
+                <td>60 方言混说识别，含吴语系；返回 <code>lang</code> 字段标识方言</td>
+                <td>对话听写、打断检测</td>
+              </tr>
+              <tr>
+                <td><strong>TTS 实时多方言</strong></td>
+                <td><code>TeleTTS-Stream-MultiDialect-V3.2</code></td>
+                <td>WebSocket 流式</td>
+                <td><strong>上海话</strong>、粤语、四川话、河南话、东北话</td>
+                <td>Agent 语音回复</td>
+              </tr>
+              <tr>
+                <td><strong>TTS 双向流式</strong> <span class="badge info">可选升级</span></td>
+                <td><code>TeleTTS-Bistream-V3.2</code></td>
+                <td>双向 WebSocket</td>
+                <td>逐字输入即开口，进一步压低感知延迟</td>
+                <td>极致低延迟对话</td>
+              </tr>
+              <tr>
+                <td><strong>LLM</strong></td>
+                <td>DeepSeek（现有）或星辰对话大模型</td>
+                <td>HTTP SSE</td>
+                <td>System prompt 约束输出上海话书面/口语</td>
+                <td>意图理解、模块 API 调度</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="grid-4" style="margin-top:14px">
+          <div class="metric"><label>上海话 TTS 口音</label><div class="val">93.5%<small>+</small></div></div>
+          <div class="metric"><label>多方言 ASR</label><div class="val">60<small> 种</small></div></div>
+          <div class="metric"><label>首包延迟目标</label><div class="val">~1<small> s</small></div></div>
+          <div class="metric"><label>生产调用量</label><div class="val">4<small> 亿+/月</small></div></div>
+        </div>
+      </section>
+
+      <!-- 云端路径 -->
+      <section id="cloud-paths">
+        <h3>两条云端接入路径</h3>
+        <p class="sec-desc">BlockHub 生产环境推荐路径 A；路径 B 适合快速 PoC 或已有模力方舟 Token 的场景。</p>
+        <div class="compare-row">
+          <div class="compare-col">
+            <h5>路径 A · 星辰 MaaS 直连 <span class="badge ok">推荐</span></h5>
+            <ul class="check">
+              <li>控制台：<a href="https://console.teleai.com.cn/overview" target="_blank" rel="noopener">天翼 AI 控制台</a></li>
+              <li>文档：<a href="https://www.ctyun.cn/document/11092117" target="_blank" rel="noopener">星辰 MaaS API 参考</a></li>
+              <li>公网域名：<code>xirang-openapi.ctyun.cn:443</code></li>
+              <li>协议：WebSocket + <code>teleai-cloud-auth-v1</code> 签名鉴权</li>
+              <li>延迟最低、功能最全（热词、敏感词、VAD 参数）</li>
+            </ul>
+          </div>
+          <div class="compare-col">
+            <h5>路径 B · 模力方舟 Serverless <span class="badge warn">PoC</span></h5>
+            <ul class="check">
+              <li>平台：<a href="https://moark.com/serverless-api" target="_blank" rel="noopener">模力方舟 Gitee AI</a></li>
+              <li>Base URL：<code>https://api.moark.com/v1</code></li>
+              <li>模型名：<code>TeleASR-Stream-MultiDialect-V3.2</code> 等</li>
+              <li>鉴权：Bearer Token（统一 API Key）</li>
+              <li>集成快，但实时双向流式需以模型体验页协议为准</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- 架构 -->
+      <section id="arch">
+        <h3>系统架构（云端）</h3>
+        <p class="sec-desc">浏览器不直连电信云；所有密钥与签名在 BlockHub FastAPI 后端完成。</p>
+        <div class="card flow-wrap">
+          <div class="flow">
+            <div class="flow-node"><strong>用户浏览器</strong><span>getUserMedia<br>PCM 16k 单声道</span></div>
+            <span class="flow-arrow">→</span>
+            <div class="flow-node hl"><strong>BlockHub 网关</strong><span>WS /api/v1/voice/shanghai-agent<br>状态机 + 编排</span></div>
+            <span class="flow-arrow">→</span>
+            <div class="flow-node cloud"><strong>TeleASR</strong><span>星辰 MaaS WS<br>多方言流式识别</span></div>
+          </div>
+          <div class="flow" style="margin-top:10px">
+            <div class="flow-node cloud"><strong>TeleASR</strong><span>partial / final 文本</span></div>
+            <span class="flow-arrow">→</span>
+            <div class="flow-node"><strong>DeepSeek</strong><span>stream_chat_deltas<br>上海话回复</span></div>
+            <span class="flow-arrow">→</span>
+            <div class="flow-node cloud"><strong>TeleTTS MultiDialect</strong><span>上海话 PCM 流</span></div>
+            <span class="flow-arrow">→</span>
+            <div class="flow-node"><strong>浏览器播放</strong><span>Web Audio API<br>barge-in 打断</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <h4>与 BlockHub 现有栈的衔接</h4>
+          <table>
+            <thead><tr><th>已有模块</th><th>复用方式</th></tr></thead>
+            <tbody>
+              <tr><td><code>backend/app/services/llm_gateway.py</code></td><td><code>stream_chat_deltas()</code> 流式生成；加上海话 system prompt</td></tr>
+              <tr><td><code>backend/app/api/v1/chat.py</code></td><td>SSE 模式可对照实现 voice 通道的 token 流</td></tr>
+              <tr><td><code>backend/app/api/v1/runtime.py</code></td><td>语音触发的模块 API 仍走现有 ingress/module/egress</td></tr>
+              <tr><td><code>home/</code> React SPA</td><td>新增 <code>VoiceAgentPanel</code> 组件，WebSocket 连后端</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 延迟 -->
+      <section id="latency">
+        <h3>端到端延迟预算</h3>
+        <p class="sec-desc">目标：用户说完一句话后 <strong>≤1.5s</strong> 听到 Agent 首包音频（与方案对比文档一致）。</p>
+        <div class="card">
+          <div class="latency-bar">
+            <span style="width:18%;background:#60a5fa">VAD 尾点 200ms</span>
+            <span style="width:22%;background:#4ade80">ASR final 300ms</span>
+            <span style="width:28%;background:#d4af37">LLM 首 token 400ms</span>
+            <span style="width:22%;background:#f0d78c;color:#1a1612">TTS 首包 300ms</span>
+            <span style="width:10%;background:#a89f8f">网络 80ms</span>
+          </div>
+          <p class="prose">合计约 <strong>1.28s</strong>（乐观路径）。优化手段：</p>
+          <ul class="check">
+            <li>ASR <code>res_status=2</code> 中间结果达到语义完整即触发 LLM，不必等 <code>res_status=3</code></li>
+            <li>LLM 按标点/子句切块（。！？；）立即送 TTS，不等全文结束</li>
+            <li>可选升级 <code>TeleTTS-Bistream-V3.2</code>：LLM 每出一个字即可开始合成</li>
+            <li>音频上行每 <strong>200ms</strong> 发一帧（文档要求实时性，否则报 10007 错误）</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- 鉴权 -->
+      <section id="auth">
+        <h3>云端鉴权（路径 A · MaaS）</h3>
+        <p class="sec-desc">WebSocket 握手时必须在 Header 携带签名；<strong>仅后端生成</strong>，禁止写入前端。</p>
+        <div class="card">
+          <h4>连接地址模板</h4>
+          <pre>wss://xirang-openapi.ctyun.cn:443/aipaas/voice/v1/asr/fy          # ASR 多方言
+wss://xirang-openapi.ctyun.cn:443/aipaas/voice/v1/tts/supernaturalrt  # TTS（普通话接口；多方言以商务开通文档为准）</pre>
+        </div>
+        <div class="card">
+          <h4>请求头</h4>
+          <table>
+            <thead><tr><th>Header</th><th>必填</th><th>说明</th></tr></thead>
+            <tbody>
+              <tr><td><code>Content-Type</code></td><td>是</td><td><code>application/json</code></td></tr>
+              <tr><td><code>X-APP-ID</code></td><td>是</td><td>控制台创建的 AppID</td></tr>
+              <tr><td><code>Authorization</code></td><td>是</td><td>见下方签名格式</td></tr>
+              <tr><td><code>Device-Uuid</code></td><td>否</td><td>设备 UUID，多终端统计用</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card">
+          <h4>Authorization 格式</h4>
+          <pre>teleai-cloud-auth-v1/{X-APP-ID}/{region}/{timestamp}/{expirationSeconds}/{signedHeaders}/{signature}
+
+# 示例（上海区域 region=SH）
+teleai-cloud-auth-v1/your-app-id/SH/1728892448/180000/x-app-id/a1b2c3...
+
+# signature = HMAC-SHA256(signingKey, canonicalRequest) 十六进制小写 64 字符
+# signingKey = HMAC-SHA256(AppKey, authStringPrefix)
+# WebSocket 握手 HTTP Method 按文档使用 GET</pre>
+          <p class="prose">完整 Java/Python 示例见 <a href="https://www.ctyun.cn/document/11092117/11095070" target="_blank" rel="noopener">星辰 MaaS 开发指南 · 签名认证</a>。</p>
+        </div>
+      </section>
+
+      <!-- ASR -->
+      <section id="asr">
+        <h3>ASR 流式协议详解</h3>
+        <p class="sec-desc">模型：<code>TeleASR-Stream-MultiDialect-V3.2</code> · API Path：<code>/aipaas/voice/v1/asr/fy</code></p>
+        <div class="card">
+          <h4>会话状态机（rec_status）</h4>
+          <div class="timeline">
+            <div class="timeline-item">
+              <strong>0 — 开始识别</strong>
+              <p>发送 <code>req_id</code> + <code>option</code>（采样率、标点、热词等），等待 <code>res_status: 0</code> 就绪。</p>
+            </div>
+            <div class="timeline-item">
+              <strong>1 — 发送语音流</strong>
+              <p>循环发送 <code>audio_stream</code>（Base64 PCM），建议每 200ms 一帧；接收 <code>res_status: 2</code> 中间结果。</p>
+            </div>
+            <div class="timeline-item">
+              <strong>2 — 结束本句</strong>
+              <p>发送 <code>rec_status: 2</code>，接收 <code>res_status: 3/4</code> 最终文本与 <code>lang</code> 方言标签。</p>
+            </div>
+            <div class="timeline-item">
+              <strong>多轮对话</strong>
+              <p>保持 WS 连接，从 <code>rec_status: 0</code> 重新开始；或关闭连接释放并发。</p>
+            </div>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <h4>开始识别请求</h4>
+            <pre>{
+  "option": {
+    "sample_rate": 16000,
+    "enable_punctuation": true,
+    "enable_inverse_text_normalization": true,
+    "format": "pcm",
+    "hotwords": ["积木仓", "应用广场", "发布"]
+  },
+  "req_id": "sess-abc-001",
+  "rec_status": 0
+}</pre>
+          </div>
+          <div class="card">
+            <h4>中间结果响应（触发 LLM）</h4>
+            <pre>{
+  "code": 10000,
+  "res_status": 2,
+  "data": {
+    "results": [{
+      "text": "帮吾查一查审批通过率",
+      "lang": "zh",
+      "begin_time": 1500,
+      "end_time": 2800
+    }]
+  }
+}</pre>
+          </div>
+        </div>
+        <div class="card">
+          <h4>上海话 ASR 调优建议</h4>
+          <ul class="check">
+            <li>上传业务热词表（应用名、上海话常用词）via <code>hotwordlistid</code></li>
+            <li>采样率统一 <strong>16kHz / 16bit / mono</strong>，与浏览器采集一致</li>
+            <li><code>maxendsilence</code> 调至 400–600ms，平衡句尾检测与响应速度</li>
+            <li>用户普通话夹杂上海话时，混说模型自动处理，无需手动切方言</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- LLM -->
+      <section id="llm">
+        <h3>LLM 编排（DeepSeek）</h3>
+        <p class="sec-desc">复用 BlockHub 现有 <code>llm_gateway</code>；语音场景需约束输出为上海话并控制句长。</p>
+        <div class="card">
+          <h4>System Prompt 要点</h4>
+          <pre>你是积木仓 BlockHub 的上海话语音助手。
+- 用上海话口语回复（可适当夹杂普通话专业名词）。
+- 每句不超过 30 字，方便语音合成。
+- 可调用模块 API：查审批、发通知、搜索知识库等。
+- 用户打断时立即停止生成。</pre>
+        </div>
+        <div class="card">
+          <h4>流式触发 TTS 的分句策略</h4>
+          <pre># 伪代码：backend/app/services/voice_orchestrator.py
+buffer = ""
+async for delta in stream_chat_deltas(messages):
+    buffer += delta
+    while chunk := pop_sentence(buffer):  # 。！？；\n
+        await tts_client.synthesize(chunk, dialect="shanghai")</pre>
+        </div>
+      </section>
+
+      <!-- TTS -->
+      <section id="tts">
+        <h3>TTS 上海话合成</h3>
+        <p class="sec-desc">模型：<code>TeleTTS-Stream-MultiDialect-V3.2</code> · 输入上海话文本，输出地道上海话 PCM 流。</p>
+        <div class="card">
+          <h4>合成请求（基于 MaaS TTS WebSocket 协议）</h4>
+          <pre>{
+  "req_id": "tts-abc-001",
+  "text": "好呃，帮侬查好了，上个月审批通过率是百分之八十五。",
+  "format": "PCM",
+  "sample_rate": 24000,
+  "speech_rate": 1.0,
+  "volume": 50
+  // 多方言模型开通后增加方言参数，例如：
+  // "dialect": "shanghai"  或  "voice": "shanghai_female"
+  // 以控制台/商务提供的多方言接口文档为准
+}</pre>
+        </div>
+        <div class="card">
+          <h4>流式响应处理</h4>
+          <pre>{
+  "code": 10000,
+  "result": {
+    "audio": "//6YYmNiDlSUXjZlDP8yADQAQ1E2...",  // Base64 PCM
+    "audio_len": 2500,
+    "is_end": false
+  }
+}
+# is_end=true 时本句合成结束；网关立即转发给浏览器 Web Audio 播放</pre>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <h4>音频参数（推荐）</h4>
+            <table>
+              <tbody>
+                <tr><td>编码</td><td>PCM 16bit 单声道</td></tr>
+                <tr><td>采样率</td><td>24000 Hz（或 16000 降带宽）</td></tr>
+                <tr><td>语速</td><td><code>speech_rate</code> 0.9–1.1</td></tr>
+                <tr><td>单句上限</td><td>500 字符（超出截断）</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="card">
+            <h4>评测参考（官方）</h4>
+            <table>
+              <tbody>
+                <tr><td>上海话读音准确率</td><td>99.84%+（相对真人）</td></tr>
+                <tr><td>自然度 MOS</td><td>4.61–4.93</td></tr>
+                <tr><td>口音地道度</td><td>93.5%–95.77%</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- 网关 -->
+      <section id="gateway">
+        <h3>BlockHub 语音网关设计</h3>
+        <p class="sec-desc">新增 FastAPI WebSocket 端点，作为浏览器与电信云之间的唯一代理。</p>
+        <div class="card">
+          <h4>端点定义</h4>
+          <pre>WS  /api/v1/voice/shanghai-agent?session_id={uuid}
+
+# 客户端 → 网关 消息类型（JSON）
+{ "type": "audio", "data": "<base64 pcm>" }
+{ "type": "barge_in" }           # 用户打断，停止 TTS 播放与 LLM 生成
+{ "type": "config", "hotwords": [...] }
+
+# 网关 → 客户端 消息类型
+{ "type": "asr_partial", "text": "..." }
+{ "type": "asr_final", "text": "...", "lang": "zh" }
+{ "type": "llm_delta", "text": "..." }
+{ "type": "tts_audio", "data": "<base64>", "is_end": false }
+{ "type": "error", "code": "...", "message": "..." }</pre>
+        </div>
+        <div class="card">
+          <h4>Python 网关骨架（核心逻辑）</h4>
+          <pre># backend/app/api/v1/voice_agent.py
+@router.websocket("/shanghai-agent")
+async def shanghai_voice_agent(ws: WebSocket, session_id: str = "default"):
+    await ws.accept()
+    auth = TeleAiAuth(settings.TELEAI_APP_ID, settings.TELEAI_APP_KEY, region="SH")
+    asr = TeleAsrClient(auth)   # 长连接 ASR
+    tts = TeleTtsClient(auth)   # 按需建 TTS 连接
+
+    async def pump_asr():
+        async for event in asr.events():
+            if event.res_status == 2:
+                await ws.send_json({"type": "asr_partial", "text": event.text})
+            elif event.res_status in (3, 4) and event.text:
+                await ws.send_json({"type": "asr_final", "text": event.text})
+                asyncio.create_task(run_llm_and_tts(event.text))
+
+    async def run_llm_and_tts(user_text: str):
+        messages = build_shanghai_messages(user_text, session_id)
+        async for sentence in stream_sentences(stream_chat_deltas(messages)):
+            await ws.send_json({"type": "llm_delta", "text": sentence})
+            async for chunk in tts.synthesize_stream(sentence, dialect="shanghai"):
+                await ws.send_json({
+                    "type": "tts_audio",
+                    "data": chunk.audio_b64,
+                    "is_end": chunk.is_end,
+                })
+
+    await asyncio.gather(pump_asr(), receive_browser_audio(ws, asr))</pre>
+        </div>
+      </section>
+
+      <!-- 前端 -->
+      <section id="frontend">
+        <h3>前端音频采集与播放</h3>
+        <p class="sec-desc">React 组件挂于首页或广场；使用 Web Audio API，无需额外 native 插件。</p>
+        <div class="grid-2">
+          <div class="card">
+            <h4>采集（上行）</h4>
+            <pre>// home/src/components/VoiceAgentPanel.tsx
+const stream = await navigator.mediaDevices.getUserMedia({
+  audio: { sampleRate: 16000, channelCount: 1, echoCancellation: true }
+});
+// AudioWorklet 或 ScriptProcessor 每 200ms 取 PCM Int16
+// → base64 → ws.send({ type: "audio", data })</pre>
+          </div>
+          <div class="card">
+            <h4>播放（下行）+ 打断</h4>
+            <pre>// 收到 tts_audio → decode base64 → Float32 → AudioBuffer
+// 播放队列串联，避免爆音
+// 用户再次说话时：
+ws.send({ type: "barge_in" });
+audioQueue.clear();
+source.stop();</pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- 状态机 -->
+      <section id="state">
+        <h3>会话状态机</h3>
+        <p class="sec-desc">网关内需维护清晰状态，避免 ASR/TTS/LLM 并发冲突。</p>
+        <div class="card">
+          <div class="state-diagram">                    ┌─────────────┐
+                    │    IDLE     │
+                    └──────┬──────┘
+                           │ 用户开口 / VAD
+                           ▼
+                    ┌─────────────┐
+              ┌────│  LISTENING  │◄────┐
+              │    └──────┬──────┘     │ barge_in
+              │           │ ASR final │
+              │           ▼           │
+              │    ┌─────────────┐     │
+              │    │  THINKING   │     │
+              │    │ (LLM stream)│     │
+              │    └──────┬──────┘     │
+              │           │ 首句就绪  │
+              │           ▼           │
+              │    ┌─────────────┐     │
+              └────│  SPEAKING   │─────┘
+                   │ (TTS play)  │
+                   └──────┬──────┘
+                          │ is_end + 队列空
+                          ▼
+                    ┌─────────────┐
+                    │    IDLE     │
+                    └─────────────┘</div>
+        </div>
+      </section>
+
+      <!-- 代码结构 -->
+      <section id="impl">
+        <h3>建议代码结构（待实现）</h3>
+        <p class="sec-desc">在现有 BlockHub 仓库中增量添加，不改动发布/广场核心流程。</p>
+        <div class="card">
+          <div class="file-tree">
+<span class="dir">backend/</span>
+  <span class="dir">app/</span>
+    <span class="dir">api/v1/</span>
+      <span class="new">voice_agent.py</span>          # WebSocket 路由
+    <span class="dir">services/</span>
+      <span class="new">teleai_auth.py</span>            # Authorization 签名
+      <span class="new">teleai_asr.py</span>             # ASR WS 客户端
+      <span class="new">teleai_tts.py</span>             # TTS WS 客户端（多方言）
+      <span class="new">voice_orchestrator.py</span>     # ASR→LLM→TTS 编排
+      voice_prompts.py              # 上海话 system prompt
+    config.py                       # +TELEAI_* 环境变量
+<span class="dir">home/src/</span>
+  <span class="dir">components/</span>
+    <span class="new">VoiceAgentPanel.tsx</span>
+    <span class="new">useVoiceWebSocket.ts</span>
+  <span class="dir">lib/</span>
+    <span class="new">audioPcm.ts</span>                 # 采集/播放工具
+          </div>
+        </div>
+      </section>
+
+      <!-- 环境变量 -->
+      <section id="env">
+        <h3>环境变量</h3>
+        <p class="sec-desc">写入服务器 <code>.env</code>，与现有 DeepSeek 配置并列。</p>
+        <div class="card">
+          <pre># 电信星辰 MaaS（路径 A）
+TELEAI_APP_ID=your-app-id
+TELEAI_APP_KEY=your-app-key
+TELEAI_REGION=SH
+TELEAI_ASR_PATH=/aipaas/voice/v1/asr/fy
+TELEAI_TTS_PATH=/aipaas/voice/v1/tts/supernaturalrt
+TELEAI_TTS_DIALECT=shanghai
+
+# 可选：模力方舟（路径 B PoC）
+MOARK_API_KEY=your-moark-token
+MOARK_BASE_URL=https://api.moark.com/v1
+
+# 已有
+DEEPSEEK_API_KEY=...</pre>
+        </div>
+      </section>
+
+      <!-- 部署 -->
+      <section id="deploy">
+        <h3>部署清单</h3>
+        <p class="sec-desc">在 <code>101.32.209.251</code> 服务器上的一键部署流程。</p>
+        <div class="card">
+          <h4>开通与配置</h4>
+          <ol class="check" style="padding-left:20px">
+            <li>注册 <a href="https://www.teleai.com.cn/" target="_blank" rel="noopener">天翼 AI 开放平台</a>，创建应用，获取 AppID / AppKey</li>
+            <li>开通「超多方言实时语音识别」+「多方言实时语音合成」能力（或 TeleTTS-Stream-MultiDialect 套餐）</li>
+            <li>确认并发配额（默认较低，客服场景需商务升配）</li>
+            <li>服务器 <code>.env</code> 填入密钥；<strong>勿提交到 Git</strong></li>
+          </ol>
+        </div>
+        <div class="card">
+          <h4>发布命令（与现网一致）</h4>
+          <pre>cd ~/blockhub && git pull origin main && bash scripts/server-update.sh
+# 或仅 Web：bash scripts/deploy-all.sh --web-only</pre>
+        </div>
+        <div class="card">
+          <h4>Nginx / 反向代理注意</h4>
+          <ul class="check">
+            <li>WebSocket 需配置 <code>proxy_http_version 1.1</code> + <code>Upgrade</code> 头</li>
+            <li>语音 WS 路径：<code>/api/v1/voice/shanghai-agent</code></li>
+            <li>超时建议 <code>proxy_read_timeout 3600s</code>（长连接会话）</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- 成本 -->
+      <section id="cost">
+        <h3>成本与并发</h3>
+        <div class="grid-2">
+          <div class="card">
+            <h4>计费维度（参考）</h4>
+            <ul class="check">
+              <li>ASR：按音频时长（秒）计费</li>
+              <li>TTS：按合成字符数或音频时长</li>
+              <li>LLM：按 DeepSeek token 计费（现有账单）</li>
+              <li>模力方舟：Token 资源包统购（含星辰系列）</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h4>并发与限流</h4>
+            <ul class="check">
+              <li>握手失败 <code>4002</code>：并发超限，需商务扩容</li>
+              <li>单用户会话占用 1 路 ASR WS + 按需 TTS WS</li>
+              <li>网关层可加 Redis 计数，限制每租户同时会话数</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- 风险 -->
+      <section id="risk">
+        <h3>风险与对策</h3>
+        <div class="card" style="overflow-x:auto">
+          <table>
+            <thead><tr><th>风险</th><th>影响</th><th>对策</th></tr></thead>
+            <tbody>
+              <tr>
+                <td>多方言 TTS 接口路径与普通话不同</td>
+                <td>合成失败</td>
+                <td>开通后向电信技术支持确认多方言 WS Path 与 <code>dialect</code> 参数</td>
+              </tr>
+              <tr>
+                <td>签名过期 / 时钟漂移</td>
+                <td>401 鉴权失败</td>
+                <td>服务器 NTP 同步；签名有效期设 180000s</td>
+              </tr>
+              <tr>
+                <td>非实时送音频（10007）</td>
+                <td>ASR 断开</td>
+                <td>严格 200ms 帧对齐；用 AudioWorklet 定时器</td>
+              </tr>
+              <tr>
+                <td>LLM 输出过长</td>
+                <td>TTS 超时 / 截断</td>
+                <td>Prompt 限制句长；流式分句</td>
+              </tr>
+              <tr>
+                <td>用户打断（barge-in）</td>
+                <td>语音重叠</td>
+                <td>状态机切 LISTENING，cancel LLM task + 清空 TTS 队列</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 参考 -->
+      <section id="refs">
+        <h3>参考链接</h3>
+        <div class="card ref-list">
+          <ul class="check">
+            <li><a href="https://www.teleai.com.cn/learnMore/newsDetail?newsId=c0cfc1e7c62c4f3d96d7b886efc07c73" target="_blank" rel="noopener">星辰语音大模型上线模力方舟 — 官方新闻</a></li>
+            <li><a href="https://www.ctyun.cn/document/11092117/11093804" target="_blank" rel="noopener">超多方言实时语音识别 — API 文档</a></li>
+            <li><a href="https://www.ctyun.cn/document/11092117/11093798" target="_blank" rel="noopener">实时超自然语音合成 — API 文档</a></li>
+            <li><a href="https://www.ctyun.cn/document/11092117/11095070" target="_blank" rel="noopener">星辰 MaaS 开发指南 · 签名认证</a></li>
+            <li><a href="https://moark.com/docs/products/apis/speeches/text-to-speech" target="_blank" rel="noopener">模力方舟 · 语音合成 API</a></li>
+            <li><a href="schemes.html">本仓库 · 四方案对比页</a></li>
+          </ul>
+        </div>
+        <p class="footer-note">
+          文件路径：<code>docs/shanghai-voice-agent/telecom-stars-solution.html</code><br>
+          积木仓 BlockHub · 在浏览器中直接打开本文件即可阅读
+        </p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

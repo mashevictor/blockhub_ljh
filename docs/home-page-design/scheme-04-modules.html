@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>方案 04 极简白 · 选模块配套方案</title>
+  <style>
+    :root { --gold:#b8860b;--gold-l:#d4af37;--bg:#faf9f7;--surf:#fff;--text:#1c1917;--muted:#78716c;--border:#e8dfc0;
+      --font:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif; }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:var(--font);background:#e8e8e8;color:var(--text);font-size:14px}
+    .top{position:sticky;top:0;z-index:10;background:#fff;border-bottom:1px solid #ddd;padding:12px 20px}
+    .top h1{font-size:15px}.top p{font-size:11px;color:var(--muted);margin-top:4px}
+    .tabs{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
+    .tabs button{border:1px solid #ddd;background:#f5f5f5;padding:6px 12px;border-radius:999px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit}
+    .tabs button.on{background:var(--gold);color:#fff;border-color:var(--gold)}
+    .tabs button.rec{border-color:var(--gold);color:var(--gold)}
+    .wrap{max-width:520px;margin:0 auto;padding:20px 16px 48px}
+    .note{background:#fff;border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:12px;color:var(--muted);line-height:1.55;border:1px solid #e0e0e0}
+    .note strong{color:var(--gold)}
+    .page{background:var(--bg);border-radius:20px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.08);min-height:520px}
+    .pg-h{padding:10px 16px;border-bottom:1px solid var(--border);font-size:12px;font-weight:700;display:flex;gap:8px;align-items:center}
+    .pg-h i{font-style:normal;font-size:10px;color:var(--muted);margin-left:auto}
+    /* 04 hero */
+    .hero{text-align:center;padding:36px 24px 20px}
+    .hero img{width:72px;height:72px;border-radius:50%;object-fit:cover;box-shadow:0 8px 24px rgba(184,134,11,.2);margin-bottom:16px}
+    .hero h2{font-size:24px;font-weight:300;margin-bottom:8px}
+    .hero .inp{width:100%;max-width:360px;border:none;border-bottom:2px solid var(--border);background:transparent;text-align:center;font-size:16px;padding:10px 0;margin:16px auto;display:block;outline:none;font-family:inherit}
+    .btn{border:none;background:linear-gradient(145deg,#96700a,#d4af37);color:#fff;padding:11px 32px;border-radius:999px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:8px}
+    .mods{padding:8px 20px 28px}
+    .panel{display:none}.panel.on{display:block}
+    /* M-A 仅推荐 */
+    .ma{min-height:80px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px}
+    .ma-chips{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+    .ma-chips span{font-size:11px;padding:6px 14px;border-radius:999px;border:1px dashed var(--border);color:var(--muted)}
+    /* M-B 折叠光球 ★ */
+    .mb-trigger{border:none;background:none;color:var(--muted);font-size:13px;cursor:pointer;font-family:inherit;border-bottom:1px dashed var(--border);padding:8px 16px}
+    .mb-pills{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:12px}
+    .mb-pills i{font-style:normal;font-size:11px;padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:#fff}
+    .mb-search{width:100%;max-width:280px;margin:0 auto 16px;display:block;border:none;border-bottom:1px solid var(--border);text-align:center;padding:8px 0;background:transparent;font-family:inherit;font-size:13px}
+    .mb-orbs{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+    .mb-orbs u{width:44px;height:44px;border-radius:50%;border:1px solid var(--border);background:#fff;display:flex;align-items:center;justify-content:center;text-decoration:none;font-size:18px;list-style:none}
+    .mb-orbs u.on{background:var(--gold);border-color:var(--gold);color:#fff}
+    /* M-C 底栏 */
+    .mc-bar{display:flex;gap:8px;padding:12px 16px;border-top:1px solid var(--border);background:#fff;margin-top:20px}
+    .mc-bar input{flex:1;border:1px solid var(--border);border-radius:12px;padding:10px 12px;font-family:inherit;font-size:13px}
+    /* M-D 纯输入 */
+    .md{text-align:center;padding:20px;font-size:12px;color:var(--muted);line-height:1.7}
+    .md code{background:#f5f5f4;padding:2px 6px;border-radius:4px;font-size:11px}
+  </style>
+</head>
+<body>
+<div class="top">
+  <h1>04 极简白 · 下方「选模块」配套方案</h1>
+  <p>上半部分固定为 04；切换 Tab 看四种模块区设计。★ = 已落地到真实页面</p>
+  <div class="tabs" id="tabs"></div>
+</div>
+<div class="wrap">
+  <div class="note" id="note"></div>
+  <div class="page" id="page"></div>
+</div>
+<script>
+const HERO = `
+  <div class="hero">
+    <img src="assets/thumb-prompt.jpg" alt="" />
+    <h2>搭积木，造应用</h2>
+    <input class="inp" placeholder="描述你的应用…" />
+    <button class="btn">生成</button>
+  </div>`;
+const MODS = {
+  A: { name:'M-A 仅推荐', rec:false,
+    desc:'默认不显示目录。只有输入后，AI 推荐以虚线胶囊出现。零干扰，但主动浏览弱。',
+    html:`<div class="mods ma"><p style="margin-bottom:12px;color:#a8a29e">输入需求后显示 ↓</p><div class="ma-chips"><span>销售日报</span><span>请假审批</span><span>消息推送</span></div></div>` },
+  B: { name:'M-B 折叠光球 ★', rec:true,
+    desc:'默认只显示「+ 选模块」链接；已选模块为顶部小胶囊。展开后：底线搜索 + 纯图标光球（无分类文字）。与 04 留白一致，已实现。',
+    html:`<div class="mods"><div class="mb-pills"><i>销售日报 ×</i><i>审批 ×</i></div><input class="mb-search" placeholder="搜索场景…" /><div class="mb-orbs"><u class="on">📋</u><u>✅</u><u>📊</u><u>💬</u><u>📁</u><u>🔔</u><u>👥</u><u>📦</u></div><p style="text-align:center;margin-top:12px"><button class="mb-trigger">收起</button></p></div>` },
+  C: { name:'M-C 输入即搜', rec:false,
+    desc:'模块区收成底部固定栏：左输入、右生成。点「+」弹出全屏轻层选图标。适合移动端。',
+    html:`<div class="mods" style="min-height:120px"></div><div class="mc-bar"><input placeholder="选模块或描述…" /><button class="btn" style="margin:0;padding:10px 18px">生成</button></div>` },
+  D: { name:'M-D 无目录', rec:false,
+    desc:'完全去掉下方目录。只靠正文输入 + <code>&gt;</code> 插模块 + AI 推荐条。最简，但发现性差。',
+    html:`<div class="md">不在页面展示模块目录<br/>输入 <code>&gt;</code> 手动插入 · 或依赖输入框上方 AI 推荐条</div>` },
+};
+const tabs = document.getElementById('tabs');
+const note = document.getElementById('note');
+const page = document.getElementById('page');
+Object.entries(MODS).forEach(([k,v],i)=>{
+  const b=document.createElement('button');
+  b.textContent=v.name;
+  b.dataset.k=k;
+  if(v.rec) b.classList.add('rec');
+  if(i===1){b.classList.add('on');render(k)}
+  b.onclick=()=>{tabs.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');render(k)};
+  tabs.appendChild(b);
+});
+function render(k){
+  const v=MODS[k];
+  note.innerHTML='<strong>'+v.name+'</strong> — '+v.desc;
+  page.innerHTML=HERO+v.html;
+}
+</script>
+</body>
+</html>

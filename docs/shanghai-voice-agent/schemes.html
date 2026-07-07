@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>上海话实时语音 Agent · 方案对比 — 积木仓 BlockHub</title>
+  <style>
+    :root {
+      --bg: #0a0908;
+      --surface: #1a1612;
+      --surface2: #221c16;
+      --border: #3d3428;
+      --gold: #d4af37;
+      --gold-light: #f0d78c;
+      --text: #f5f0e8;
+      --muted: #a89f8f;
+      --muted2: #c4b9a8;
+      --ok: #4ade80;
+      --info: #60a5fa;
+      --warn: #fbbf24;
+      --radius: 14px;
+      --font: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+      --mono: "SF Mono", Menlo, Consolas, monospace;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      font-size: 15px;
+    }
+    .top-bar {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(10, 9, 8, 0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 24px;
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand-mark {
+      width: 40px; height: 40px; border-radius: 10px;
+      border: 2px solid var(--gold); background: var(--surface2);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; color: var(--gold); font-size: 18px;
+    }
+    .brand h1 { margin: 0; font-size: 17px; font-weight: 700; }
+    .brand p { margin: 0; font-size: 12px; color: var(--muted); }
+    .nav-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+    .nav-tabs button {
+      border: 1px solid var(--border); background: var(--surface2);
+      color: var(--muted2); padding: 8px 14px; border-radius: 999px;
+      font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit;
+      transition: all 0.15s;
+    }
+    .nav-tabs button:hover { border-color: var(--gold); color: var(--gold-light); }
+    .nav-tabs button.on {
+      background: linear-gradient(135deg, #96700a, #d4af37);
+      color: #1a1612; border-color: var(--gold);
+    }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 28px 20px 80px; }
+    .hero {
+      text-align: center; padding: 36px 20px 40px;
+      background: linear-gradient(180deg, rgba(212,175,55,0.08) 0%, transparent 70%);
+      border-radius: var(--radius); margin-bottom: 32px;
+      border: 1px solid var(--border);
+    }
+    .hero h2 { margin: 0 0 12px; font-size: 28px; font-weight: 800; }
+    .hero h2 em { font-style: normal; color: var(--gold-light); }
+    .hero .sub { color: var(--muted2); max-width: 640px; margin: 0 auto 20px; font-size: 15px; }
+    .hero-tags { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+    .tag {
+      font-size: 11px; font-weight: 700; padding: 5px 12px; border-radius: 999px;
+      background: var(--surface2); border: 1px solid var(--border); color: var(--gold-light);
+    }
+    .tag.rec { border-color: var(--gold); background: rgba(212,175,55,0.12); }
+    section { margin-bottom: 40px; }
+    section > h3 {
+      font-size: 13px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.08em; color: var(--gold); margin: 0 0 16px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    section > h3::before { content: ">>"; font-family: var(--mono); font-size: 11px; }
+    .flow-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 24px; overflow-x: auto;
+    }
+    .flow-row {
+      display: flex; align-items: center; justify-content: center; flex-wrap: wrap;
+      gap: 8px; min-width: min(100%, 720px);
+    }
+    .flow-node {
+      flex: 0 0 auto; min-width: 100px; padding: 14px 16px; text-align: center;
+      background: var(--surface2); border: 1px solid var(--border); border-radius: 12px;
+    }
+    .flow-node strong { display: block; font-size: 13px; margin-bottom: 4px; }
+    .flow-node span { font-size: 11px; color: var(--muted); }
+    .flow-node.highlight { border-color: var(--gold); box-shadow: 0 0 0 1px rgba(212,175,55,0.25); }
+    .flow-arrow { color: var(--gold); font-size: 18px; font-weight: 700; flex-shrink: 0; }
+    .scheme-panel { display: none; animation: fadeIn 0.25s ease; }
+    .scheme-panel.on { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+    .scheme-head {
+      display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between;
+      gap: 16px; margin-bottom: 20px;
+    }
+    .scheme-head h4 { margin: 0; font-size: 22px; font-weight: 800; }
+    .scheme-head .badge {
+      font-size: 11px; font-weight: 700; padding: 6px 12px; border-radius: 8px;
+      background: rgba(74, 222, 128, 0.12); color: var(--ok); border: 1px solid rgba(74,222,128,0.3);
+    }
+    .scheme-head .badge.warn { background: rgba(251,191,36,0.12); color: var(--warn); border-color: rgba(251,191,36,0.3); }
+    .scheme-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px;
+      margin-bottom: 24px;
+    }
+    .metric-card {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 12px; padding: 16px 18px;
+    }
+    .metric-card label { font-size: 11px; color: var(--muted); font-weight: 600; display: block; margin-bottom: 6px; }
+    .metric-card .val { font-size: 18px; font-weight: 800; color: var(--gold-light); }
+    .metric-card .val small { font-size: 12px; font-weight: 600; color: var(--muted2); }
+    .stars { color: var(--gold); letter-spacing: 2px; font-size: 14px; }
+    .prose { color: var(--muted2); font-size: 14px; line-height: 1.7; margin: 0 0 16px; }
+    .stack-list {
+      list-style: none; margin: 0; padding: 0;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .stack-list li {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 12px 14px; background: var(--surface2); border-radius: 10px;
+      border: 1px solid var(--border); font-size: 13px;
+    }
+    .stack-list .role {
+      flex-shrink: 0; width: 52px; font-size: 10px; font-weight: 800;
+      color: var(--gold); text-transform: uppercase; padding-top: 2px;
+    }
+    .stack-list code {
+      font-family: var(--mono); font-size: 11px; color: var(--gold-light);
+      background: rgba(0,0,0,0.25); padding: 2px 6px; border-radius: 4px;
+    }
+    .compare-table-wrap { overflow-x: auto; border-radius: var(--radius); border: 1px solid var(--border); }
+    table.compare {
+      width: 100%; border-collapse: collapse; font-size: 13px; min-width: 720px;
+    }
+    table.compare th, table.compare td {
+      padding: 12px 14px; text-align: left; border-bottom: 1px solid var(--border);
+    }
+    table.compare th {
+      background: var(--surface2); color: var(--gold-light); font-weight: 700; font-size: 12px;
+    }
+    table.compare tr:last-child td { border-bottom: none; }
+    table.compare td:first-child { font-weight: 600; color: var(--text); }
+    table.compare tr:hover td { background: rgba(212,175,55,0.04); }
+    table.compare .best { color: var(--ok); font-weight: 700; }
+    .timeline { position: relative; padding-left: 28px; }
+    .timeline::before {
+      content: ""; position: absolute; left: 8px; top: 8px; bottom: 8px;
+      width: 2px; background: linear-gradient(180deg, var(--gold), transparent);
+    }
+    .tl-item { position: relative; margin-bottom: 20px; }
+    .tl-item::before {
+      content: ""; position: absolute; left: -24px; top: 6px;
+      width: 10px; height: 10px; border-radius: 50%;
+      background: var(--gold); border: 2px solid var(--bg);
+    }
+    .tl-item h5 { margin: 0 0 6px; font-size: 15px; color: var(--gold-light); }
+    .tl-item p { margin: 0; font-size: 13px; color: var(--muted2); }
+    .params-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;
+    }
+    .param {
+      padding: 12px 14px; background: var(--surface2); border-radius: 10px;
+      border: 1px solid var(--border); font-size: 12px;
+    }
+    .param strong { display: block; color: var(--text); margin-bottom: 4px; }
+    .param span { color: var(--muted); }
+    .footer-note {
+      text-align: center; font-size: 12px; color: var(--muted);
+      padding-top: 24px; border-top: 1px solid var(--border);
+    }
+    @media (max-width: 640px) {
+      .hero h2 { font-size: 22px; }
+      .scheme-head h4 { font-size: 18px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="top-bar">
+    <div class="brand">
+      <div class="brand-mark">积</div>
+      <div>
+        <h1>上海话实时语音 Agent</h1>
+        <p>积木仓 BlockHub · 方案对比预览</p>
+      </div>
+    </div>
+    <nav class="nav-tabs" aria-label="方案切换">
+      <button type="button" class="on" data-panel="overview">总览</button>
+      <button type="button" data-panel="s1">方案一 Omni</button>
+      <button type="button" data-panel="s2">方案二 三段式</button>
+      <button type="button" data-panel="s3">方案三 星辰</button>
+      <button type="button" data-panel="s4">方案四 自建</button>
+    </nav>
+  </header>
+
+  <main class="wrap">
+    <div class="hero">
+      <h2>上海话 <em>ASR + TTS</em> 实时对话</h2>
+      <p class="sub">
+        支持流式语音识别、上海话合成、语义打断与最小延迟。以下四套方案按「延迟 / 可控性 / 地道程度」对比，便于选型与 POC。
+      </p>
+      <div class="hero-tags">
+        <span class="tag rec">推荐 POC：方案一</span>
+        <span class="tag rec">推荐生产：方案二</span>
+        <span class="tag">WebSocket 流式</span>
+        <span class="tag">16kHz PCM</span>
+        <span class="tag">复用 DeepSeek</span>
+      </div>
+    </div>
+
+    <!-- 总览 -->
+    <div id="panel-overview" class="scheme-panel on">
+      <section>
+        <h3>通用架构</h3>
+        <div class="flow-card">
+          <div class="flow-row">
+            <div class="flow-node"><strong>用户</strong><span>浏览器 / App</span></div>
+            <span class="flow-arrow">→</span>
+            <div class="flow-node highlight"><strong>语音网关</strong><span>WebSocket</span></div>
+            <span class="flow-arrow">→</span>
+            <div class="flow-node"><strong>VAD</strong><span>语义打断</span></div>
+            <span class="flow-arrow">→</span>
+            <div class="flow-node highlight"><strong>ASR</strong><span>上海话识别</span></div>
+            <span class="flow-arrow">→</span>
+            <div class="flow-node highlight"><strong>LLM Agent</strong><span>DeepSeek 等</span></div>
+            <span class="flow-arrow">→</span>
+            <div class="flow-node highlight"><strong>TTS</strong><span>上海话合成</span></div>
+            <span class="flow-arrow">→</span>
+            <div class="flow-node"><strong>播放</strong><span>流式音频</span></div>
+          </div>
+          <p class="prose" style="margin-top:20px;margin-bottom:0;text-align:center;">
+            方案一将 ASR + LLM + TTS 合并为 <strong style="color:var(--gold-light)">单条 Omni Realtime</strong> 链路；方案二～四为可拆分流水线。
+          </p>
+        </div>
+      </section>
+
+      <section>
+        <h3>四方案对比</h3>
+        <div class="compare-table-wrap">
+          <table class="compare">
+            <thead>
+              <tr>
+                <th>维度</th>
+                <th>① Omni 端到端</th>
+                <th>② 阿里三段式</th>
+                <th>③ 星辰方言</th>
+                <th>④ 自建 ONNX</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>首包延迟</td>
+                <td class="best">★★★★★ 300–800ms</td>
+                <td>★★★★ 600ms–1.5s</td>
+                <td>★★★★ ~1s</td>
+                <td class="best">★★★★★ ASR&lt;100ms</td>
+              </tr>
+              <tr>
+                <td>上海话 ASR</td>
+                <td>★★★★ 113语种/方言</td>
+                <td class="best">★★★★★ fun-asr 含上海话</td>
+                <td class="best">★★★★★ 60方言混说</td>
+                <td>★★★ FireRedASR2</td>
+              </tr>
+              <tr>
+                <td>上海话 TTS</td>
+                <td>★★★ 指令控制</td>
+                <td>★★★★ CosyVoice 指令</td>
+                <td class="best">★★★★★ 原生多方言</td>
+                <td>★★ 需自训</td>
+              </tr>
+              <tr>
+                <td>工程量</td>
+                <td class="best">★★ 最低</td>
+                <td>★★★ 中</td>
+                <td>★★★ 中</td>
+                <td>★★★★★ 最高</td>
+              </tr>
+              <tr>
+                <td>BlockHub 契合</td>
+                <td>★★★</td>
+                <td class="best">★★★★★ 复用 DeepSeek</td>
+                <td>★★★★ 客服向</td>
+                <td>★★★</td>
+              </tr>
+              <tr>
+                <td>典型场景</td>
+                <td>快速 POC、语音助手</td>
+                <td>生产 Agent + 工具调用</td>
+                <td>外呼、政务、地道口音</td>
+                <td>大规模、私有化</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section>
+        <h3>推荐落地路径</h3>
+        <div class="timeline">
+          <div class="tl-item">
+            <h5>第 1 周 · POC（方案一）</h5>
+            <p>Qwen3.5-Omni-Plus-Realtime + instructions「全程上海话」→ 验证延迟、打断、听感。</p>
+          </div>
+          <div class="tl-item">
+            <h5>第 2–3 周 · 生产（方案二）</h5>
+            <p>fun-asr-realtime + DeepSeek + cosyvoice-v3-flash-realtime；后端新增 WebSocket VoiceGateway。</p>
+          </div>
+          <div class="tl-item">
+            <h5>若 TTS 不够地道</h5>
+            <p>保留 ASR/LLM，TTS 换星辰 TeleTTS-Stream-MultiDialect（方案三）。</p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h3>技术参数（通用）</h3>
+        <div class="params-grid">
+          <div class="param"><strong>音频采集</strong><span>16kHz · mono · PCM16</span></div>
+          <div class="param"><strong>传输</strong><span>WebSocket 双向流式（低延迟首选）</span></div>
+          <div class="param"><strong>打断</strong><span>semantic_vad · 用户说话即停播 TTS</span></div>
+          <div class="param"><strong>部署</strong><span>华东（上海）机房 · 与 API 同区域</span></div>
+          <div class="param"><strong>TTS 首包目标</strong><span>&lt; 300ms（流式按句切块）</span></div>
+          <div class="param"><strong>现有栈</strong><span>FastAPI + deepseek_client.py 可复用</span></div>
+        </div>
+      </section>
+    </div>
+
+    <!-- 方案一 -->
+    <div id="panel-s1" class="scheme-panel">
+      <div class="scheme-head">
+        <div>
+          <h4>方案一 · Qwen Omni 端到端</h4>
+          <p class="prose">单 WebSocket 完成听→想→说，延迟最低，适合快速验证。</p>
+        </div>
+        <span class="badge">推荐 POC</span>
+      </div>
+      <div class="scheme-grid">
+        <div class="metric-card"><label>首包延迟</label><div class="val">300–800<small> ms</small></div></div>
+        <div class="metric-card"><label>链路复杂度</label><div class="val stars">★★☆☆☆</div></div>
+        <div class="metric-card"><label>上海话 TTS</label><div class="val stars">★★★☆☆</div></div>
+        <div class="metric-card"><label>工具调用</label><div class="val">原生 FC / 搜索</div></div>
+      </div>
+      <ul class="stack-list">
+        <li><span class="role">模型</span><span><code>qwen3.5-omni-plus-realtime</code> 或 Flash 降本版</span></li>
+        <li><span class="role">协议</span><span><code>wss://dashscope.aliyuncs.com/api-ws/v1/realtime</code></span></li>
+        <li><span class="role">ASR</span><span>内置 · 113 种语种/方言识别</span></li>
+        <li><span class="role">TTS</span><span>内置流式输出 · instructions 约束上海话</span></li>
+        <li><span class="role">VAD</span><span><code>semantic_vad</code> 过滤「嗯」「好的」误触发</span></li>
+      </ul>
+      <p class="prose"><strong>优点：</strong>无三段拼接、原生打断、接入最快。<br><strong>缺点：</strong>上海话腔调不如专用方言 TTS；Agent 业务逻辑在 Omni 内，与 BlockHub 模块 API 需额外对接。</p>
+    </div>
+
+    <!-- 方案二 -->
+    <div id="panel-s2" class="scheme-panel">
+      <div class="scheme-head">
+        <div>
+          <h4>方案二 · 阿里三段式流水线</h4>
+          <p class="prose">ASR + DeepSeek + CosyVoice 流式串联，与现有 BlockHub 后端最契合。</p>
+        </div>
+        <span class="badge">推荐生产</span>
+      </div>
+      <div class="scheme-grid">
+        <div class="metric-card"><label>首包延迟</label><div class="val">600–1500<small> ms</small></div></div>
+        <div class="metric-card"><label>可控性</label><div class="val stars">★★★★★</div></div>
+        <div class="metric-card"><label>上海话 ASR</label><div class="val stars">★★★★★</div></div>
+        <div class="metric-card"><label>上海话 TTS</label><div class="val stars">★★★★☆</div></div>
+      </div>
+      <ul class="stack-list">
+        <li><span class="role">ASR</span><span><code>fun-asr-realtime</code> · Paraformer 含吴语/上海话 · WebSocket 流式</span></li>
+        <li><span class="role">LLM</span><span>现有 <code>deepseek_client.py</code> · 上海话 system prompt + 模块工具</span></li>
+        <li><span class="role">TTS</span><span><code>cosyvoice-v3-flash-realtime</code> · instruction: 「请用上海话表达。」</span></li>
+        <li><span class="role">网关</span><span>FastAPI <code>/api/v1/voice/shanghai-agent</code> WebSocket 代理</span></li>
+        <li><span class="role">优化</span><span>ASR partial 即触发 LLM · LLM 流式按句送 TTS · barge-in 取消播放</span></li>
+      </ul>
+      <p class="prose"><strong>优点：</strong>完全自控 Agent、可拨通模块 API、发布流程可语音触发。<br><strong>缺点：</strong>需实现状态机与三段流式编排，工程量比方案一大。</p>
+    </div>
+
+    <!-- 方案三 -->
+    <div id="panel-s3" class="scheme-panel">
+      <div class="scheme-head">
+        <div>
+          <h4>方案三 · 电信星辰方言专模</h4>
+          <p class="prose">多方言 ASR/TTS 工业级落地，上海话口音最「地道」之一。</p>
+        </div>
+        <span class="badge warn">口音优先</span>
+      </div>
+      <div class="scheme-grid">
+        <div class="metric-card"><label>首包延迟</label><div class="val">~1<small> s</small></div></div>
+        <div class="metric-card"><label>方言 TTS</label><div class="val stars">★★★★★</div></div>
+        <div class="metric-card"><label>生产验证</label><div class="val">月调用 4亿+</div></div>
+        <div class="metric-card"><label>接入</label><div class="val">模力方舟 / 天翼 AI</div></div>
+      </div>
+      <ul class="stack-list">
+        <li><span class="role">ASR</span><span><code>TeleASR-Stream-MultiDialect-V3.2</code> · 60 种方言混说 · 流式</span></li>
+        <li><span class="role">TTS</span><span><code>TeleTTS-Stream-MultiDialect-V3</code> · 含上海话、粤语、四川话等 5 种</span></li>
+        <li><span class="role">LLM</span><span>DeepSeek 或星辰大模型</span></li>
+        <li><span class="role">场景</span><span>智能外呼、政务热线、数字人 · 客服已规模化</span></li>
+      </ul>
+      <p class="prose"><strong>优点：</strong>上海话合成原生支持，嘈杂/电话信道鲁棒性好。<br><strong>缺点：</strong>需另接天翼开放平台；与阿里云账号体系分离。</p>
+      <p class="prose" style="margin-top:12px"><a href="telecom-stars-solution.html" style="color:var(--gold-light);font-weight:700">→ 查看电信星辰云端方案完整技术说明（架构 / API / 代码 / 部署）</a></p>
+    </div>
+
+    <!-- 方案四 -->
+    <div id="panel-s4" class="scheme-panel">
+      <div class="scheme-head">
+        <div>
+          <h4>方案四 · 端侧 / 自建 ONNX</h4>
+          <p class="prose">sherpa-onnx + 本地 ASR，数据不出机房，长期成本可控。</p>
+        </div>
+        <span class="badge warn">工程量大</span>
+      </div>
+      <div class="scheme-grid">
+        <div class="metric-card"><label>ASR 延迟</label><div class="val">&lt;100<small> ms</small></div></div>
+        <div class="metric-card"><label>上海话 ASR</label><div class="val stars">★★★☆☆</div></div>
+        <div class="metric-card"><label>上海话 TTS</label><div class="val stars">★★☆☆☆</div></div>
+        <div class="metric-card"><label>运维</label><div class="val">GPU + 模型更新</div></div>
+      </div>
+      <ul class="stack-list">
+        <li><span class="role">ASR</span><span><code>sherpa-onnx</code> + FireRedASR2 · 含上海话测试样例 <code>dia_sh.wav</code></span></li>
+        <li><span class="role">TTS</span><span>本地 CosyVoice 或自训方言声码器（难点）</span></li>
+        <li><span class="role">LLM</span><span>DeepSeek API 或本地小模型</span></li>
+        <li><span class="role">部署</span><span>与 <code>101.32.209.251</code> 同机 · 无按分钟云费用</span></li>
+      </ul>
+      <p class="prose"><strong>优点：</strong>隐私、无云语音账单、ASR 极低延迟。<br><strong>缺点：</strong>上海话 TTS 最难；需算法与 GPU 运维。</p>
+    </div>
+
+    <p class="footer-note">
+      预览文件：<code>docs/shanghai-voice-agent/schemes.html</code> · 积木仓 BlockHub · 在浏览器中直接打开本文件即可查看
+    </p>
+  </main>
+
+  <script>
+    const tabs = document.querySelectorAll('.nav-tabs button');
+    const panels = document.querySelectorAll('.scheme-panel');
+    tabs.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const id = 'panel-' + btn.dataset.panel;
+        tabs.forEach((b) => b.classList.toggle('on', b === btn));
+        panels.forEach((p) => p.classList.toggle('on', p.id === id));
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    });
+  </script>
+</body>
+</html>

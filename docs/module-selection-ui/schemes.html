@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>模块选择 UI/UE 方案 — 积木仓 BlockHub</title>
+  <style>
+    :root {
+      --bg: #f4f6fa;
+      --surface: #fff;
+      --surface2: #f8fafc;
+      --border: #e2e8f0;
+      --border-strong: #cbd5e1;
+      --text: #0f172a;
+      --muted: #64748b;
+      --muted2: #475569;
+      --pri: #4338ca;
+      --pri-soft: #eef2ff;
+      --pri-mid: #6366f1;
+      --ok: #16a34a;
+      --warn: #d97706;
+      --info: #0284c7;
+      --radius: 14px;
+      --shadow: 0 4px 24px rgba(15,23,42,.08);
+      --font: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: var(--font); background: var(--bg); color: var(--text); line-height: 1.55; font-size: 14px; }
+    .top {
+      position: sticky; top: 0; z-index: 50;
+      background: rgba(255,255,255,.92); backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; }
+    .brand-mark {
+      width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg,#4338ca,#6366f1);
+      color: #fff; font-weight: 800; display: flex; align-items: center; justify-content: center;
+    }
+    .brand h1 { margin: 0; font-size: 15px; }
+    .brand p { margin: 0; font-size: 11px; color: var(--muted); }
+    .tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+    .tabs button {
+      border: 1px solid var(--border); background: var(--surface2); color: var(--muted2);
+      padding: 7px 12px; border-radius: 999px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit;
+    }
+    .tabs button:hover { border-color: var(--pri-mid); color: var(--pri); }
+    .tabs button.on { background: var(--pri); color: #fff; border-color: var(--pri); }
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 24px 18px 80px; }
+    .hero {
+      background: linear-gradient(135deg, #eef2ff 0%, #fff 60%);
+      border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 28px 24px; margin-bottom: 28px;
+    }
+    .hero h2 { margin: 0 0 8px; font-size: 24px; }
+    .hero p { margin: 0; color: var(--muted2); max-width: 720px; }
+  .pain-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap: 10px; margin-top: 18px; }
+    .pain { background: #fff7ed; border: 1px solid #fed7aa; border-radius: 10px; padding: 12px 14px; font-size: 13px; }
+    .pain strong { color: #c2410c; display: block; margin-bottom: 4px; }
+    .panel { display: none; animation: fade .2s ease; }
+    .panel.on { display: block; }
+    @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+    .scheme-head { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+    .scheme-head h3 { margin: 0; font-size: 20px; }
+    .badge { font-size: 11px; font-weight: 700; padding: 5px 10px; border-radius: 8px; }
+    .badge.rec { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
+    .badge.alt { background: #e0f2fe; color: #0369a1; border: 1px solid #7dd3fc; }
+    .badge.exp { background: #fef3c7; color: #b45309; border: 1px solid #fcd34d; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 900px) { .grid-2 { grid-template-columns: 1fr; } }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; box-shadow: var(--shadow); }
+    .card h4 { margin: 0 0 10px; font-size: 13px; color: var(--pri); text-transform: uppercase; letter-spacing: .06em; }
+    ul.pros { margin: 0; padding-left: 18px; color: var(--muted2); font-size: 13px; }
+    ul.pros li { margin-bottom: 6px; }
+    .mock {
+      background: #0f172a; border-radius: 16px; padding: 14px; overflow: hidden;
+      min-height: 380px; position: relative;
+    }
+    .mock.light { background: linear-gradient(180deg,#f8fafc,#eef2f7); border: 1px solid var(--border); }
+    .mock-label {
+      position: absolute; top: 10px; left: 12px; font-size: 10px; font-weight: 700;
+      color: rgba(255,255,255,.5); letter-spacing: .08em; text-transform: uppercase;
+    }
+    .mock.light .mock-label { color: var(--muted); }
+    .flow-steps { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0; }
+    .flow-step {
+      flex: 1; min-width: 100px; text-align: center; padding: 10px 8px;
+      background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; font-size: 12px;
+    }
+    .flow-step.active { border-color: var(--pri); background: var(--pri-soft); color: var(--pri); font-weight: 700; }
+    .flow-arrow { color: var(--muted); align-self: center; }
+    table.cmp { width: 100%; border-collapse: collapse; font-size: 13px; }
+    table.cmp th, table.cmp td { padding: 10px 12px; border-bottom: 1px solid var(--border); text-align: left; }
+    table.cmp th { color: var(--muted); font-size: 11px; text-transform: uppercase; }
+    .stars { color: #f59e0b; letter-spacing: 1px; }
+    .footer { text-align: center; font-size: 12px; color: var(--muted); margin-top: 32px; }
+
+    /* —— Mock: 方案一 货架卡片 —— */
+    .s1 { display: grid; grid-template-columns: 1fr 200px; gap: 10px; margin-top: 28px; height: 340px; }
+    .s1-search {
+      grid-column: 1 / -1; display: flex; gap: 8px;
+    }
+    .s1-search input {
+      flex: 1; border: 1px solid rgba(255,255,255,.15); background: rgba(255,255,255,.06);
+      border-radius: 10px; padding: 8px 12px; color: #fff; font-size: 12px;
+    }
+    .s1-cats { display: flex; gap: 6px; flex-wrap: wrap; grid-column: 1 / -1; }
+    .s1-cat {
+      font-size: 11px; padding: 5px 10px; border-radius: 999px;
+      background: rgba(255,255,255,.08); color: rgba(255,255,255,.8); border: 1px solid transparent; cursor: pointer;
+    }
+    .s1-cat.on { background: #6366f1; color: #fff; }
+    .s1-grid {
+      display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; overflow-y: auto; align-content: start;
+    }
+    .s1-card {
+      background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1);
+      border-radius: 12px; padding: 10px; cursor: pointer; transition: .15s;
+    }
+    .s1-card:hover { border-color: #818cf8; transform: translateY(-1px); }
+    .s1-card.sel { border-color: #a5b4fc; background: rgba(99,102,241,.25); box-shadow: 0 0 0 2px rgba(99,102,241,.3); }
+    .s1-card .ico { font-size: 20px; margin-bottom: 4px; }
+    .s1-card .name { font-size: 11px; font-weight: 700; color: #fff; }
+    .s1-card .tag { font-size: 9px; color: rgba(255,255,255,.5); }
+    .s1-phone {
+      background: #1e293b; border-radius: 20px; border: 3px solid #334155;
+      padding: 12px 8px; display: flex; flex-direction: column; gap: 6px;
+    }
+    .s1-phone .bar { height: 6px; background: #334155; border-radius: 4px; }
+    .s1-phone .bar.short { width: 60%; }
+    .s1-phone .w {
+      background: #4338ca; color: #fff; font-size: 9px; padding: 6px 8px; border-radius: 8px; font-weight: 600;
+    }
+    .s1-basket {
+      grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between;
+      background: rgba(99,102,241,.2); border: 1px solid rgba(99,102,241,.4);
+      border-radius: 12px; padding: 8px 12px; font-size: 11px; color: #e0e7ff;
+    }
+
+    /* —— Mock: 方案二 分步向导 —— */
+    .s2 { margin-top: 28px; }
+    .s2-body {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px;
+    }
+    .s2-list { display: flex; flex-direction: column; gap: 6px; }
+    .s2-row {
+      display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+      background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1); border-radius: 10px;
+      cursor: pointer; font-size: 12px; color: #e2e8f0;
+    }
+    .s2-row.on { border-color: #6366f1; background: rgba(99,102,241,.2); }
+    .s2-row .check {
+      width: 18px; height: 18px; border-radius: 6px; border: 2px solid rgba(255,255,255,.3);
+      display: flex; align-items: center; justify-content: center; font-size: 11px;
+    }
+    .s2-row.on .check { background: #6366f1; border-color: #6366f1; color: #fff; }
+    .s2-preview {
+      background: rgba(255,255,255,.04); border: 1px dashed rgba(255,255,255,.2);
+      border-radius: 12px; padding: 14px; color: rgba(255,255,255,.7); font-size: 12px;
+    }
+    .s2-nav { display: flex; justify-content: space-between; margin-top: 12px; }
+    .s2-btn {
+      padding: 8px 16px; border-radius: 10px; font-size: 12px; font-weight: 700; border: none; cursor: pointer;
+    }
+    .s2-btn.sec { background: rgba(255,255,255,.1); color: #fff; }
+    .s2-btn.pri { background: #6366f1; color: #fff; }
+
+    /* —— Mock: 方案三 画布拼装 —— */
+    .s3 { display: grid; grid-template-columns: 140px 1fr; gap: 10px; margin-top: 28px; height: 340px; }
+    .s3-lib { overflow-y: auto; }
+    .s3-lib-item {
+      font-size: 10px; padding: 8px; margin-bottom: 4px; border-radius: 8px;
+      background: rgba(255,255,255,.06); color: #cbd5e1; cursor: grab; border: 1px solid transparent;
+    }
+    .s3-lib-item:hover { border-color: #6366f1; }
+    .s3-canvas {
+      background: repeating-linear-gradient(0deg,transparent,transparent 19px,rgba(255,255,255,.04) 19px,rgba(255,255,255,.04) 20px),
+                  repeating-linear-gradient(90deg,transparent,transparent 19px,rgba(255,255,255,.04) 19px,rgba(255,255,255,.04) 20px);
+      border: 1px solid rgba(255,255,255,.1); border-radius: 12px; position: relative; padding: 20px;
+    }
+    .s3-node {
+      position: absolute; width: 100px; padding: 10px; border-radius: 12px;
+      background: #1e293b; border: 2px solid #6366f1; text-align: center;
+      font-size: 10px; color: #fff; font-weight: 700; box-shadow: 0 8px 20px rgba(0,0,0,.3);
+    }
+    .s3-node.n1 { top: 40px; left: 30px; }
+    .s3-node.n2 { top: 120px; left: 160px; border-color: #22d3ee; }
+    .s3-node.n3 { top: 200px; left: 60px; border-color: #a78bfa; }
+    .s3-line {
+      position: absolute; height: 2px; background: linear-gradient(90deg,#6366f1,#22d3ee);
+      transform-origin: left center;
+    }
+    .s3-line.l1 { top: 75px; left: 120px; width: 60px; transform: rotate(35deg); }
+    .s3-line.l2 { top: 155px; left: 100px; width: 80px; transform: rotate(-25deg); }
+
+    /* —— Mock: 方案四 对话推荐 —— */
+    .s4 { margin-top: 28px; max-width: 520px; margin-left: auto; margin-right: auto; }
+    .s4-chat {
+      background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1);
+      border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 10px;
+    }
+    .s4-bubble {
+      max-width: 85%; padding: 10px 12px; border-radius: 14px; font-size: 12px; line-height: 1.5;
+    }
+    .s4-bubble.ai { background: rgba(99,102,241,.25); color: #e0e7ff; align-self: flex-start; border-bottom-left-radius: 4px; }
+    .s4-bubble.user { background: rgba(255,255,255,.12); color: #fff; align-self: flex-end; border-bottom-right-radius: 4px; }
+    .s4-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+    .s4-chip {
+      font-size: 11px; padding: 6px 10px; border-radius: 999px;
+      background: rgba(255,255,255,.1); color: #fff; border: 1px solid rgba(255,255,255,.15); cursor: pointer;
+    }
+    .s4-chip.added { background: #16a34a; border-color: #16a34a; }
+    .s4-strip {
+      margin-top: 12px; padding: 10px 12px; background: rgba(255,255,255,.06);
+      border-radius: 12px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    }
+    .s4-pill {
+      font-size: 10px; padding: 4px 8px; background: #4338ca; color: #fff; border-radius: 999px;
+    }
+
+    /* —— Mock: 方案五 流水线优先 —— */
+    .s5 { margin-top: 28px; }
+    .s5-rail {
+      display: flex; align-items: center; gap: 0; overflow-x: auto; padding: 8px 0 16px;
+    }
+    .s5-node {
+      flex: 0 0 auto; min-width: 88px; padding: 12px 10px; text-align: center;
+      background: rgba(255,255,255,.08); border: 2px solid rgba(255,255,255,.15);
+      border-radius: 14px; font-size: 11px; color: #fff; font-weight: 700; cursor: pointer;
+    }
+    .s5-node.io { border-style: dashed; color: rgba(255,255,255,.6); font-weight: 500; }
+    .s5-node.on { border-color: #6366f1; background: rgba(99,102,241,.3); box-shadow: 0 0 0 3px rgba(99,102,241,.2); }
+    .s5-conn { flex: 0 0 24px; height: 2px; background: linear-gradient(90deg,#6366f1,#22d3ee); }
+    .s5-drawer {
+      background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12);
+      border-radius: 14px; padding: 14px; margin-top: 8px;
+    }
+    .s5-drawer h5 { margin: 0 0 8px; font-size: 12px; color: #a5b4fc; }
+    .s5-add-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; }
+    .s5-add {
+      padding: 10px 6px; text-align: center; border-radius: 10px;
+      background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1);
+      font-size: 10px; color: #e2e8f0; cursor: pointer;
+    }
+    .s5-add:hover { border-color: #818cf8; }
+    .s5-add .i { font-size: 18px; display: block; margin-bottom: 4px; }
+
+    .ix-table { font-size: 12px; width: 100%; border-collapse: collapse; margin-top: 12px; }
+    .ix-table th, .ix-table td { border: 1px solid var(--border); padding: 8px 10px; text-align: left; vertical-align: top; }
+    .ix-table th { background: var(--surface2); color: var(--muted); width: 28%; }
+  </style>
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <div class="brand-mark">模</div>
+      <div>
+        <h1>模块选择 · UI/UE 方案</h1>
+        <p>积木仓 BlockHub · 创建流程 & 广场编辑</p>
+      </div>
+    </div>
+    <nav class="tabs" id="tabs">
+      <button type="button" class="on" data-p="overview">现状</button>
+      <button type="button" data-p="s1">① 货架卡片</button>
+      <button type="button" data-p="s2">② 分步向导</button>
+      <button type="button" data-p="s3">③ 画布拼装</button>
+      <button type="button" data-p="s4">④ 对话推荐</button>
+      <button type="button" data-p="s5">⑤ 流水线优先</button>
+      <button type="button" data-p="cmp">对比</button>
+    </nav>
+  </header>
+
+  <main class="wrap">
+    <div class="hero">
+      <h2>模块选择 UI 重构方向</h2>
+      <p>功能交互（点击添加、拖拽排序、数据流编辑、拨通 API）已可用；当前问题集中在<strong>信息密度、视觉层次、移动端适配、技术文案外露</strong>。以下五套方案保持现有能力不变，只改呈现与动线。</p>
+      <div class="pain-grid">
+        <div class="pain"><strong>左栏长列表难扫</strong>114 个能力纵向堆叠，无搜索/筛选，找模块费眼</div>
+        <div class="pain"><strong>三栏挤压</strong>创建页 palette + canvas + inspector 在笔记本/平板上局促</div>
+        <div class="pain"><strong>选中反馈弱</strong>已添加仅 opacity 0.35，用户不确定是否成功</div>
+        <div class="pain"><strong>广场选模块弹层小</strong>picker 10px 描述字 + 小网格，不像「选能力」而像 debug 面板</div>
+        <div class="pain"><strong>说明文字过多</strong>「PostgreSQL」「&gt;&gt;」、三步帮助占首屏，干扰主任务</div>
+      </div>
+    </div>
+
+    <!-- 现状 -->
+    <section id="panel-overview" class="panel on">
+      <div class="scheme-head">
+        <h3>现状结构（不改逻辑）</h3>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <h4>创建页 · ModuleView</h4>
+          <table class="ix-table">
+            <tr><th>左</th><td>分类列表 + palette-item 按钮，点击添加到画布</td></tr>
+            <tr><th>中</th><td>canvas-widget 列表 + 设备 Web/App/双端切换</td></tr>
+            <tr><th>右</th><td>摘要 + 品牌字段 + 发布</td></tr>
+          </table>
+        </div>
+        <div class="card">
+          <h4>广场 · PlazaModuleFlowPanel</h4>
+          <table class="ix-table">
+            <tr><th>上</th><td>ModuleReorderStrip 拖拽条 + Pipeline 流程图</td></tr>
+            <tr><th>中</th><td>ModuleApiPanel 拨通 API</td></tr>
+            <tr><th>下</th><td>节点详情 + ModulePicker 小网格 + 手动输入</td></tr>
+          </table>
+        </div>
+      </div>
+      <div class="card" style="margin-top:16px">
+        <h4>设计原则（各方案共通）</h4>
+        <ul class="pros">
+          <li>隐藏技术词：「PostgreSQL Catalog」→「能力库」；帮助折叠为「?」或首次引导</li>
+          <li>选中态：勾选角标 + 震动/弹性动画 + 底部「已选 N 项」浮条</li>
+          <li>搜索优先：顶部固定搜索 + 分类 chips，默认展示「常用 12 项」</li>
+          <li>手机端：单栏 + 底部 Sheet 选模块，画布改为横向已选条</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 方案一 -->
+    <section id="panel-s1" class="panel">
+      <div class="scheme-head">
+        <div>
+          <h3>方案一 · 货架卡片式</h3>
+          <p style="margin:4px 0 0;color:var(--muted)">像应用商店选插件：大卡片、强分类、右侧实时手机预览</p>
+        </div>
+        <span class="badge rec">推荐 · 创建页</span>
+      </div>
+      <div class="grid-2">
+        <div class="card" style="padding:0;overflow:hidden">
+          <div class="mock">
+            <span class="mock-label">交互预览 · 点击卡片切换选中</span>
+            <div class="s1">
+              <div class="s1-search"><input type="text" placeholder="🔍 搜索能力，如 审批、知识库…" readonly /></div>
+              <div class="s1-cats">
+                <span class="s1-cat on">常用</span><span class="s1-cat">智能交互</span><span class="s1-cat">流程审批</span><span class="s1-cat">知识数据</span><span class="s1-cat">Flutter</span>
+              </div>
+              <div class="s1-grid" id="s1-grid"></div>
+              <div class="s1-phone" id="s1-phone"></div>
+              <div class="s1-basket"><span>已选 <strong id="s1-count">0</strong> 项</span><span>下一步：发布设置 →</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <h4>交互设计</h4>
+          <table class="ix-table">
+            <tr><th>浏览</th><td>默认「常用」12 卡；切换分类 chips 过滤；搜索即时高亮</td></tr>
+            <tr><th>选择</th><td>点击卡片 toggle；选中 = 描边 + 角标 ✓ + 飞入右侧手机预览</td></tr>
+            <tr><th>排序</th><td>手机预览内长按拖拽调整模块顺序（与广场 reorder 一致）</td></tr>
+            <tr><th>发布</th><td>底部浮条固定「已选 N 项 · 继续」；右栏 inspector 收成抽屉</td></tr>
+          </table>
+          <h4 style="margin-top:16px">优点 / 代价</h4>
+          <ul class="pros">
+            <li>✓ 扫视成本最低，适合 114 项能力库</li>
+            <li>✓ 选中反馈明确，预览即所得</li>
+            <li>△ 需重做 ModuleView 布局（2 栏：货架 + 预览）</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 方案二 -->
+    <section id="panel-s2" class="panel">
+      <div class="scheme-head">
+        <div>
+          <h3>方案二 · 分步向导式</h3>
+          <p style="margin:4px 0 0;color:var(--muted)">降低决策压力：一次只做一个决定</p>
+        </div>
+        <span class="badge alt">适合新手</span>
+      </div>
+      <div class="grid-2">
+        <div class="card" style="padding:0;overflow:hidden">
+          <div class="mock">
+            <span class="mock-label">Step 2 / 4 · 选择能力模块</span>
+            <div class="s2">
+              <div class="flow-steps">
+                <div class="flow-step">① 定场景</div><span class="flow-arrow">→</span>
+                <div class="flow-step active">② 选模块</div><span class="flow-arrow">→</span>
+                <div class="flow-step">③ 排顺序</div><span class="flow-arrow">→</span>
+                <div class="flow-step">④ 发布</div>
+              </div>
+              <div class="s2-body">
+                <div class="s2-list" id="s2-list"></div>
+                <div class="s2-preview" id="s2-preview">勾选左侧模块，这里实时显示应用将包含的能力说明与示意截图。</div>
+              </div>
+              <div class="s2-nav">
+                <button type="button" class="s2-btn sec">上一步</button>
+                <button type="button" class="s2-btn pri">已选 3 项，下一步</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <h4>交互设计</h4>
+          <table class="ix-table">
+            <tr><th>Step1</th><td>场景/行业（可跳过，从模块入口来则直达 Step2）</td></tr>
+            <tr><th>Step2</th><td>按分类折叠面板 + 复选框列表；右侧能力说明卡</td></tr>
+            <tr><th>Step3</th><td>仅排序：横向 chips 拖拽（复用 ModuleReorderStrip 样式升级）</td></tr>
+            <tr><th>Step4</th><td>品牌 + 联系方式 + 发布（现有 ContactGate 不变）</td></tr>
+          </table>
+          <ul class="pros">
+            <li>✓ 心智负担小，适合第一次使用的老板/业务人员</li>
+            <li>✓ 与「描述需求」「选行业」叙事一致</li>
+            <li>△ 多一步点击；熟用户需要「专家模式」跳过向导</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 方案三 -->
+    <section id="panel-s3" class="panel">
+      <div class="scheme-head">
+        <div>
+          <h3>方案三 · 画布拼装式</h3>
+          <p style="margin:4px 0 0;color:var(--muted)">强调「搭积木」隐喻，模块即节点</p>
+        </div>
+        <span class="badge exp">适合进阶用户</span>
+      </div>
+      <div class="grid-2">
+        <div class="card" style="padding:0;overflow:hidden">
+          <div class="mock">
+            <span class="mock-label">从左侧拖入画布 · 连线表数据流</span>
+            <div class="s3">
+              <div class="s3-lib">
+                <div class="s3-lib-item">💬 智能问答</div>
+                <div class="s3-lib-item">✅ 审批流</div>
+                <div class="s3-lib-item">📚 知识库</div>
+                <div class="s3-lib-item">📊 看板</div>
+                <div class="s3-lib-item">⏰ 闹钟</div>
+              </div>
+              <div class="s3-canvas">
+                <div class="s3-line l1"></div><div class="s3-line l2"></div>
+                <div class="s3-node n1">智能问答</div>
+                <div class="s3-node n2">知识库</div>
+                <div class="s3-node n3">审批流</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <h4>交互设计</h4>
+          <table class="ix-table">
+            <tr><th>添加</th><td>从左栏拖入画布 / 双击快速落点</td></tr>
+            <tr><th>连接</th><td>节点间拖线定义顺序（自动写入 flow steps）</td></tr>
+            <tr><th>编辑</th><td>点击节点：侧栏能力说明 + API（与广场面板统一）</td></tr>
+            <tr><th>统一</th><td>创建页与「我的应用·管理模块」共用同一画布组件</td></tr>
+          </table>
+          <ul class="pros">
+            <li>✓ 与「模块数据流」叙事一致，创建→广场体验连续</li>
+            <li>✓ 视觉差异化强，符合 BlockHub 品牌</li>
+            <li>△ 开发量最大；需处理移动端拖线难度（可降级为自动串联）</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 方案四 -->
+    <section id="panel-s4" class="panel">
+      <div class="scheme-head">
+        <div>
+          <h3>方案四 · 对话 + 推荐条</h3>
+          <p style="margin:4px 0 0;color:var(--muted)">模块选择退居二线，AI 推荐为主、手动微调为辅</p>
+        </div>
+        <span class="badge alt">与描述需求一体</span>
+      </div>
+      <div class="grid-2">
+        <div class="card" style="padding:0;overflow:hidden">
+          <div class="mock">
+            <span class="mock-label">描述需求后 · 一键采纳推荐模块</span>
+            <div class="s4">
+              <div class="s4-chat">
+                <div class="s4-bubble user">想做请假审批 + 制度问答，给员工用手机提交</div>
+                <div class="s4-bubble ai">
+                  建议组合 4 个能力：
+                  <div class="s4-chips" id="s4-chips"></div>
+                </div>
+              </div>
+              <div class="s4-strip">
+                <span style="font-size:11px;color:rgba(255,255,255,.6)">已采纳</span>
+                <span class="s4-pill">审批流</span>
+                <span class="s4-pill">智能问答</span>
+                <span class="s4-pill">知识库</span>
+                <span style="font-size:11px;color:#818cf8;cursor:pointer">+ 自己加</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <h4>交互设计</h4>
+          <table class="ix-table">
+            <tr><th>推荐</th><td>suggest-modules API 结果以 chips 呈现，点击采纳/取消</td></tr>
+            <tr><th>微调</th><td>「+ 自己加」打开底部 Sheet（方案一货架精简版）</td></tr>
+            <tr><th>模块视图</th><td>独立「模块组装」入口保留，但默认隐藏三栏 builder</td></tr>
+            <tr><th>发布</th><td>已选条始终可见，可拖拽排序</td></tr>
+          </table>
+          <ul class="pros">
+            <li>✓ 最符合「五分钟搭好」产品主张</li>
+            <li>✓ 减少空画布焦虑</li>
+            <li>△ 纯手动组模块用户需多一步「+ 自己加」</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 方案五 -->
+    <section id="panel-s5" class="panel">
+      <div class="scheme-head">
+        <div>
+          <h3>方案五 · 流水线优先</h3>
+          <p style="margin:4px 0 0;color:var(--muted)">强化广场编辑体验；选模块 = 在流上插节点</p>
+        </div>
+        <span class="badge rec">推荐 · 广场/我的应用</span>
+      </div>
+      <div class="grid-2">
+        <div class="card" style="padding:0;overflow:hidden">
+          <div class="mock">
+            <span class="mock-label">点击节点 → 底部抽屉选模块插入</span>
+            <div class="s5">
+              <div class="s5-rail" id="s5-rail"></div>
+              <div class="s5-drawer">
+                <h5>在「知识库」之后插入模块</h5>
+                <div class="s5-add-grid" id="s5-grid"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <h4>交互设计</h4>
+          <table class="ix-table">
+            <tr><th>主视觉</th><td>横向流水线（输入 → 模块… → 输出），取代上下堆叠三块区域</td></tr>
+            <tr><th>排序</th><td>直接在流水线上拖拽节点（合并 reorder strip + pipeline）</td></tr>
+            <tr><th>添加</th><td>节点间「+」按钮 → 底部抽屉大卡片（非 10px 小字网格）</td></tr>
+            <tr><th>API</th><td>选中节点后右侧滑出 API 面板（桌面）/ 底部半屏（移动）</td></tr>
+          </table>
+          <ul class="pros">
+            <li>✓ 直接解决广场 ModulePicker 过小、信息分散问题</li>
+            <li>✓ 与「拨通全部模块」心智一致</li>
+            <li>△ 创建页若不用流水线，需维护两套 UI（或创建页也用简化流水线）</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 对比 -->
+    <section id="panel-cmp" class="panel">
+      <div class="scheme-head"><h3>方案对比 & 组合建议</h3></div>
+      <div class="card">
+        <table class="cmp">
+          <thead>
+            <tr>
+              <th>维度</th>
+              <th>① 货架卡片</th>
+              <th>② 分步向导</th>
+              <th>③ 画布拼装</th>
+              <th>④ 对话推荐</th>
+              <th>⑤ 流水线优先</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>学习成本</td>
+              <td class="stars">★★☆☆☆</td>
+              <td class="stars">★☆☆☆☆</td>
+              <td class="stars">★★★☆☆</td>
+              <td class="stars">★☆☆☆☆</td>
+              <td class="stars">★★☆☆☆</td>
+            </tr>
+            <tr>
+              <td>扫选效率（114项）</td>
+              <td class="stars">★★★★★</td>
+              <td class="stars">★★★☆☆</td>
+              <td class="stars">★★★☆☆</td>
+              <td class="stars">★★★★☆</td>
+              <td class="stars">★★★☆☆</td>
+            </tr>
+            <tr>
+              <td>移动端友好</td>
+              <td class="stars">★★★★☆</td>
+              <td class="stars">★★★★★</td>
+              <td class="stars">★★☆☆☆</td>
+              <td class="stars">★★★★★</td>
+              <td class="stars">★★★☆☆</td>
+            </tr>
+            <tr>
+              <td>与数据流/API 一致</td>
+              <td class="stars">★★☆☆☆</td>
+              <td class="stars">★★☆☆☆</td>
+              <td class="stars">★★★★★</td>
+              <td class="stars">★★☆☆☆</td>
+              <td class="stars">★★★★★</td>
+            </tr>
+            <tr>
+              <td>开发工作量</td>
+              <td>中</td><td>中</td><td>高</td><td>中低</td><td>中</td>
+            </tr>
+            <tr>
+              <td>适用页面</td>
+              <td>ModuleView 创建</td><td>全流程向导</td><td>创建+广场统一</td><td>PromptView 为主</td><td>Plaza 我的应用</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card" style="margin-top:16px;border-color:#86efac;background:#f0fdf4">
+        <h4 style="color:#15803d">推荐组合（保持现有交互逻辑）</h4>
+        <ul class="pros">
+          <li><strong>创建页</strong>：方案一（货架卡片）+ 方案四（描述需求后推荐 chips 预填）</li>
+          <li><strong>我的应用 / 广场编辑</strong>：方案五（流水线优先，合并 reorder + pipeline + 大抽屉选模块）</li>
+          <li><strong>第二阶段</strong>：方案三画布作为「专家模式」开关，与方案五共用节点数据</li>
+          <li><strong>通用</strong>：去掉技术文案；搜索 + 常用分类；选中动画 + 底部已选浮条</li>
+        </ul>
+      </div>
+      <div class="card" style="margin-top:16px">
+        <h4>关键 UI 令牌（对齐 design-tokens.css）</h4>
+        <ul class="pros">
+          <li>模块卡片：圆角 12px、阴影 --bh-shadow-sm、选中描边 --bh-info / #6366f1</li>
+          <li>正文字号 15px，模块名 13–14px semibold，描述 12px --bh-muted</li>
+          <li>分类 chips：高度 32px，pill 形；与首页 ViewModeSwitcher 视觉统一</li>
+          <li>减少 cube 深色玻璃在表单区的使用，模块选择区改用浅色 surface 提升可读性</li>
+        </ul>
+      </div>
+    </section>
+
+    <p class="footer">预览文件：<code>docs/module-selection-ui/schemes.html</code> · 浏览器直接打开 · 积木仓 BlockHub</p>
+  </main>
+
+  <script>
+    const tabs = document.querySelectorAll('.tabs button');
+    const panels = document.querySelectorAll('.panel');
+    tabs.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const id = 'panel-' + btn.dataset.p;
+        tabs.forEach((b) => b.classList.toggle('on', b === btn));
+        panels.forEach((p) => p.classList.toggle('on', p.id === id));
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    });
+
+    const modules = [
+      { icon: '💬', name: '智能问答', cat: '智能交互' },
+      { icon: '✅', name: '审批流', cat: '流程审批' },
+      { icon: '📚', name: '知识库', cat: '知识数据' },
+      { icon: '📊', name: '数据看板', cat: '可视化' },
+      { icon: '📥', name: '待办中心', cat: '流程审批' },
+      { icon: '⏰', name: '定时闹钟', cat: 'Flutter' },
+    ];
+    const selected = new Set();
+    const s1Grid = document.getElementById('s1-grid');
+    const s1Phone = document.getElementById('s1-phone');
+    const s1Count = document.getElementById('s1-count');
+    function renderS1() {
+      if (!s1Grid) return;
+      s1Grid.innerHTML = modules.map((m, i) =>
+        `<div class="s1-card${selected.has(i) ? ' sel' : ''}" data-i="${i}">
+          <div class="ico">${m.icon}</div><div class="name">${m.name}</div><div class="tag">${m.cat}</div>
+        </div>`).join('');
+      s1Grid.querySelectorAll('.s1-card').forEach((el) => {
+        el.addEventListener('click', () => {
+          const i = +el.dataset.i;
+          if (selected.has(i)) selected.delete(i); else selected.add(i);
+          renderS1();
+        });
+      });
+      s1Count.textContent = selected.size;
+      s1Phone.innerHTML = selected.size
+        ? [...selected].map((i) => `<div class="w">${modules[i].icon} ${modules[i].name}</div>`).join('')
+        : '<div class="bar"></div><div class="bar short"></div><p style="font-size:9px;color:#64748b;margin:8px 0 0">选择左侧模块预览</p>';
+    }
+    renderS1();
+
+    const s2List = document.getElementById('s2-list');
+    const s2Preview = document.getElementById('s2-preview');
+    const s2Sel = new Set([0, 2]);
+    function renderS2() {
+      if (!s2List) return;
+      s2List.innerHTML = modules.map((m, i) =>
+        `<div class="s2-row${s2Sel.has(i) ? ' on' : ''}" data-i="${i}">
+          <span class="check">${s2Sel.has(i) ? '✓' : ''}</span>
+          <span>${m.icon}</span><span>${m.name}</span><span style="margin-left:auto;opacity:.5;font-size:10px">${m.cat}</span>
+        </div>`).join('');
+      s2List.querySelectorAll('.s2-row').forEach((el) => {
+        el.addEventListener('click', () => {
+          const i = +el.dataset.i;
+          if (s2Sel.has(i)) s2Sel.delete(i); else s2Sel.add(i);
+          renderS2();
+        });
+      });
+      const names = [...s2Sel].map((i) => modules[i].name).join('、');
+      s2Preview.textContent = s2Sel.size
+        ? `将包含：${names}。员工可通过 Web/App 使用上述能力。`
+        : '勾选左侧模块，这里实时显示应用将包含的能力说明。';
+    }
+    renderS2();
+
+    const s4Chips = document.getElementById('s4-chips');
+    const s4Added = new Set([0, 1, 2]);
+    if (s4Chips) {
+      const rec = ['审批流', '智能问答', '知识库', '企微通知'];
+      s4Chips.innerHTML = rec.map((n, i) =>
+        `<span class="s4-chip${s4Added.has(i) ? ' added' : ''}" data-i="${i}">${s4Added.has(i) ? '✓ ' : '+ '}${n}</span>`).join('');
+      s4Chips.querySelectorAll('.s4-chip').forEach((el) => {
+        el.addEventListener('click', () => {
+          const i = +el.dataset.i;
+          if (s4Added.has(i)) s4Added.delete(i); else s4Added.add(i);
+          el.classList.toggle('added', s4Added.has(i));
+          el.textContent = (s4Added.has(i) ? '✓ ' : '+ ') + rec[i];
+        });
+      });
+    }
+
+    const s5Rail = document.getElementById('s5-rail');
+    const s5Grid = document.getElementById('s5-grid');
+    const flowNodes = ['业务输入', '智能问答', '知识库', '审批流', '触达输出'];
+    let s5Active = 2;
+    function renderS5() {
+      if (!s5Rail) return;
+      s5Rail.innerHTML = flowNodes.map((n, i) => {
+        const io = i === 0 || i === flowNodes.length - 1;
+        return `${i > 0 ? '<div class="s5-conn"></div>' : ''}
+          <div class="s5-node${io ? ' io' : ''}${s5Active === i ? ' on' : ''}" data-i="${i}">${n}</div>`;
+      }).join('');
+      s5Rail.querySelectorAll('.s5-node').forEach((el) => {
+        el.addEventListener('click', () => { s5Active = +el.dataset.i; renderS5(); });
+      });
+      if (s5Grid) {
+        s5Grid.innerHTML = modules.map((m) =>
+          `<div class="s5-add"><span class="i">${m.icon}</span>${m.name}</div>`).join('');
+      }
+    }
+    renderS5();
+  </script>
+</body>
+</html>
