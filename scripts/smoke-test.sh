@@ -351,6 +351,9 @@ if [[ "$BASE" != *":8001"* ]]; then
   if echo "$ADMIN_HTML" | grep -q '/admin/assets/'; then ok "admin bundle refs /admin/assets/"; else bad "admin missing asset refs"; fi
   HOME_HTML=$(curl -sf --max-time 10 "$BASE/" 2>/dev/null || echo "")
   if echo "$HOME_HTML" | grep -q 'id="root"'; then ok "GET / Home SPA shell"; else bad "GET / Home"; fi
+
+  LOGIN_REDIRECT=$(curl -sfI --max-time 10 "$BASE/login" 2>/dev/null | tr -d '\r' || echo "")
+  if echo "$LOGIN_REDIRECT" | grep -qi 'Location:.*/admin/login'; then ok "GET /login redirects to /admin/login"; else bad "GET /login should redirect to /admin/login"; fi
 fi
 
 echo ""

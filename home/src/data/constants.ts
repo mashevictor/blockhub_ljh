@@ -1,10 +1,16 @@
-import { adminLoginUrl } from './brand'
+import { adminLoginUrl, adminHomeUrl } from './brand'
 
 /** 生产环境同域 /admin/login；本地 dev 走 5174 */
 export function getAdminUrl(): string {
   if (import.meta.env.VITE_ADMIN_URL) return import.meta.env.VITE_ADMIN_URL
   if (typeof window !== 'undefined') return adminLoginUrl()
   return '/admin/login'
+}
+
+/** 登录后进入管理后台工作台 */
+export function getAdminDashboardUrl(): string {
+  if (typeof window !== 'undefined') return adminHomeUrl()
+  return '/admin/'
 }
 
 /** @deprecated 请用 getAdminUrl()，避免生产构建仍指向 127.0.0.1 */

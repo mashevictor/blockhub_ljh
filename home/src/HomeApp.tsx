@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { getAdminUrl, type PublishResult, type ViewMode } from './data/constants'
+import { getAdminUrl, getAdminDashboardUrl, type PublishResult, type ViewMode } from './data/constants'
 import type { RoleApplyRequest } from './data/rolePresets'
 import HeroCubeStage from './components/HeroCubeStage'
 import PlatformShowcaseFooter from './components/PlatformShowcaseFooter'
@@ -96,7 +96,7 @@ export default function HomeApp() {
               <>
                 <span className="header-user">{user.display_name}</span>
                 <button type="button" className="btn-login" onClick={() => logout()}>退出</button>
-                <a className="btn-advanced" href={getAdminUrl()}>
+                <a className="btn-advanced" href={getAdminDashboardUrl()}>
                   <IconSettings size={15} />
                   <span className="btn-advanced-text">管理后台</span>
                   <IconArrowRight size={14} className="btn-arrow" />
@@ -141,7 +141,7 @@ export default function HomeApp() {
       <footer className="site-footer">
         <span>{BRAND.footer}</span>
         {user && (
-          <a href={getAdminUrl()} target="_blank" rel="noreferrer">
+          <a href={getAdminDashboardUrl()}>
             管理后台
             <IconArrowRight size={14} />
           </a>

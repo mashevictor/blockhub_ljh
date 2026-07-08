@@ -1,8 +1,8 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react'
-import { Navigate, useLocation, useNavigate } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import { loginOtp, loginWithPassword, sendOtpCode } from '../auth/session'
 import { getToken } from '../auth/storage'
-import { BRAND, DEMO_ACCOUNTS } from '../data/brand'
+import { BRAND, DEMO_ACCOUNTS, resolveAdminPostLoginUrl } from '../data/brand'
 import BrandMark from '../components/BrandMark'
 
 type AuthMode = 'otp' | 'password'
@@ -34,9 +34,8 @@ export default function AuthPage({
   showDemoAccounts = false,
   showLogo = true,
 }: Props) {
-  const navigate = useNavigate()
   const location = useLocation()
-  const from = (location.state as { from?: string } | null)?.from || '/'
+  const rawFrom = (location.state as { from?: string } | null)?.from
 
   const [mode, setMode] = useState<AuthMode>(defaultMode)
   const [account, setAccount] = useState('')
@@ -49,9 +48,11 @@ export default function AuthPage({
   const [sending, setSending] = useState(false)
   const [countdown, setCountdown] = useState(0)
 
-  if (getToken()) {
-    return <Navigate to={from} replace />
-  }
+  useEffect(() => {
+    if (getToken()) {
+      window.location.replace(resolveAdminPostLoginUrl(rawFrom))
+    }
+  }, [rawFrom])
 
   useEffect(() => {
     if (countdown <= 0) return
@@ -61,6 +62,14 @@ export default function AuthPage({
 
   const canSendCode = useMemo(() => isValidAccount(account) && countdown === 0 && !sending, [account, countdown, sending])
   const canSubmitOtp = useMemo(() => isValidAccount(account) && /^\d{4,8}$/.test(code.trim()), [account, code])
+
+  const goAfterLogin = () => {
+    window.location.replace(resolveAdminPostLoginUrl(rawFrom))
+  }
+
+  if (getToken()) {
+    return <p className="login-hint" style={{ padding: 24, textAlign: 'center' }}>正在进入管理后台…</p>
+  }
 
   const handleSendCode = async () => {
     setError('')
@@ -84,7 +93,7 @@ export default function AuthPage({
     setError('')
     try {
       await loginOtp(account.trim(), code.trim())
-      navigate(from, { replace: true })
+      goAfterLogin()
     } catch {
       setError('验证码错误或已过期')
     } finally {
@@ -102,7 +111,7 @@ export default function AuthPage({
     setError('')
     try {
       await loginWithPassword(demoEmail, demoPassword)
-      navigate(from, { replace: true })
+      goAfterLogin()
     } catch (err: unknown) {
       const resp = (err as { response?: { status?: number; data?: { detail?: string } } })?.response
       if (!resp) {

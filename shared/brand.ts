@@ -42,6 +42,31 @@ export function adminLoginUrl(): string {
   return `${BRAND.adminUrl}/admin/login`
 }
 
+/** Admin 工作台 URL（登录成功后进入 /admin/） */
+export function adminHomeUrl(): string {
+  if (typeof window !== 'undefined') {
+    const { origin, hostname, port } = window.location
+    const isLocal = hostname === 'localhost' || hostname === '127.0.0.1'
+    if (isLocal && port === '5173') {
+      return `${origin.replace(':5173', ':5174')}/admin/`
+    }
+    return `${origin}/admin/`
+  }
+  return `${BRAND.adminUrl}/admin/`
+}
+
+/** 登录成功后跳转：支持 ProtectedRoute 传入的 /agents 等相对路径 */
+export function resolveAdminPostLoginUrl(from?: string | null): string {
+  if (!from || from === '/') return adminHomeUrl()
+  if (from.startsWith('http://') || from.startsWith('https://')) return from
+  if (from.startsWith('/admin')) {
+    return `${typeof window !== 'undefined' ? window.location.origin : ''}${from}`
+  }
+  const path = from.startsWith('/') ? from : `/${from}`
+  const origin = typeof window !== 'undefined' ? window.location.origin : ''
+  return `${origin}/admin${path}`
+}
+
 /** Home 创建入口 URL（生产同域 /，本地 5173） */
 export function homePublicUrl(): string {
   if (typeof window !== 'undefined') {
