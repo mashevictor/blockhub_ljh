@@ -83,6 +83,18 @@ export default function PublishModal({ result, onClose, onViewMyApps, showAdminL
           </div>
         )}
 
+        {result.buildManifest?.web_pkgs && result.buildManifest.web_pkgs.length > 0 && (
+          <div className="publish-my-apps-tip" role="status">
+            <DynamicIcon name="layers" size={14} />
+            <span>
+              将组装 {result.buildManifest.web_pkgs.length} 个 Web 包：
+              {' '}
+              {result.buildManifest.web_pkgs.slice(0, 3).map((p) => p.replace('@blockhub/', '')).join(' · ')}
+              {result.buildManifest.web_pkgs.length > 3 ? ` +${result.buildManifest.web_pkgs.length - 3}` : ''}
+            </span>
+          </div>
+        )}
+
         <div className="publish-result-scroll">
           {visibleChips.length > 0 && (
             <ul className="publish-module-list" aria-label="已包含模块与能力">

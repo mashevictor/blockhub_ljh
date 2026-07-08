@@ -98,3 +98,47 @@ def generate_page_schema(
             "children": children,
         },
     }
+
+
+def validate_page_schema(schema: dict[str, Any]) -> None:
+    """Lightweight W3 schema validation for generated runtime contracts."""
+    required_top = ("version", "appId", "title", "menu", "capability_keys", "root")
+    for key in required_top:
+        if key not in schema:
+            raise ValueError(f"page_schema missing required field: {key}")
+
+    root = schema.get("root")
+    if not isinstance(root, dict):
+        raise ValueError("page_schema.root must be an object")
+    if root.get("type") != "page":
+        raise ValueError("page_schema.root.type must be 'page'")
+
+    children = root.get("children")
+    if not isinstance(children, list) or not children:
+        raise ValueError("page_schema.root.children must be a non-empty list")
+
+    menu = schema.get("menu")
+    if not isinstance(menu, list) or not menu:
+        raise ValueError("page_schema.menu must be a non-empty list")
+
+    routes = set()
+    for item in menu:
+        if not isinstance(item, dict):
+            raise ValueError("page_schema.menu items must be objects")
+        route = item.get("route")
+        if not isinstance(route, str) or not route.startswith("/"):
+            raise ValueError("page_schema.menu route must start with '/'")
+        routes.add(route)
+
+    for node in children:
+        if not isinstance(node, dict):
+            raise ValueError("page_schema child nodes must be objects")
+        props = node.get("props")
+        if not isinstance(props, dict):
+            raise ValueError(f"page_schema node {node.get('id', '?')} props missing")
+        widget = props.get("widget")
+        route = props.get("route")
+        if not isinstance(widget, str) or not widget:
+            raise ValueError(f"page_schema node {node.get('id', '?')} widget missing")
+        if route not in routes:
+            raise ValueError(f"page_schema node {node.get('id', '?')} route not in menu")

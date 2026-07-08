@@ -12,6 +12,7 @@ import ContactGateModal, { type ContactInfo } from '../components/ContactGateMod
 import GenerateLoadingOverlay from '../components/GenerateLoadingOverlay'
 import AppBrandingFields from '../components/AppBrandingFields'
 import { emptyBranding } from '../data/appBranding'
+import SelectionBox, { type SelectionItem } from '../components/SelectionBox'
 
 interface Props {
   onPublish: (r: PublishResult) => void
@@ -33,6 +34,8 @@ export default function ModuleView({ onPublish: _onPublish, active = true }: Pro
   const [modulesLoading, setModulesLoading] = useState(true)
   const [modulesError, setModulesError] = useState<string | null>(null)
   const [device, setDevice] = useState<'web' | 'app' | 'both'>('web')
+  const [boxOpenSignal, setBoxOpenSignal] = useState(0)
+  const [lastAddedId, setLastAddedId] = useState<string | null>(null)
 
   const [loading, setLoading] = useState(false)
   const [publishError, setPublishError] = useState<string | null>(null)
@@ -78,9 +81,20 @@ export default function ModuleView({ onPublish: _onPublish, active = true }: Pro
   const add = (w: Widget) => {
     if (widgets.some((x) => x.key === w.key)) return
     setWidgets((prev) => [...prev, w])
+    setLastAddedId(w.key)
+    setBoxOpenSignal((n) => n + 1)
   }
 
   const remove = (key: string) => setWidgets((prev) => prev.filter((w) => w.key !== key))
+  const clearSelection = () => setWidgets([])
+
+  const selectionItems: SelectionItem[] = widgets.map((w) => ({
+    id: w.key,
+    name: w.name,
+    kind: 'module',
+    iconKey: w.iconKey,
+    color: moduleColor(w.key, theme),
+  }))
 
   const doPublish = async (contact: ContactInfo) => {
     if (!widgets.length) return
@@ -210,6 +224,18 @@ export default function ModuleView({ onPublish: _onPublish, active = true }: Pro
       {publishError && <p className="publish-error">{publishError}</p>}
 
       {loading && <GenerateLoadingOverlay phase="publish" />}
+
+      {active && selectionItems.length > 0 && (
+        <SelectionBox
+          items={selectionItems}
+          onRemove={remove}
+          onClear={clearSelection}
+          onGenerate={handlePublish}
+          generating={loading}
+          lastAddedId={lastAddedId}
+          openSignal={boxOpenSignal}
+        />
+      )}
 
       <ContactGateModal
         open={active && contactOpen}

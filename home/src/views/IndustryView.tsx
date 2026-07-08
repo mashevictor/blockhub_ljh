@@ -13,6 +13,7 @@ import ContactGateModal, { type ContactInfo } from '../components/ContactGateMod
 import GenerateLoadingOverlay from '../components/GenerateLoadingOverlay'
 import AppBrandingFields from '../components/AppBrandingFields'
 import { emptyBranding, resolveAppName } from '../data/appBranding'
+import SelectionBox, { type SelectionItem } from '../components/SelectionBox'
 
 interface SceneItem {
   id: string
@@ -34,6 +35,8 @@ export default function IndustryView({ onPublish: _onPublish, active = true }: P
   const [scenes, setScenes] = useState<SceneItem[]>([])
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [loading, setLoading] = useState(false)
+  const [boxOpenSignal, setBoxOpenSignal] = useState(0)
+  const [lastAddedId, setLastAddedId] = useState<string | null>(null)
   const [scenesLoading, setScenesLoading] = useState(false)
   const [sceneError, setSceneError] = useState<string | null>(null)
   const [publishError, setPublishError] = useState<string | null>(null)
@@ -85,6 +88,40 @@ export default function IndustryView({ onPublish: _onPublish, active = true }: P
     }
     return [...map.entries()]
   }, [scenes])
+
+  const selectionItems = useMemo<SelectionItem[]>(() => {
+    const industryItem: SelectionItem = {
+      id: `industry:${industry}`,
+      name: pack.name,
+      kind: 'industry',
+      iconKey: pack.iconKey,
+      color: industryColor(pack.key, theme),
+    }
+    const sceneItems = scenes
+      .filter((s) => selected.has(s.id))
+      .map((s) => ({
+        id: s.id,
+        name: s.name,
+        category: s.category ?? '其他',
+        kind: 'scenario' as const,
+        iconKey: resolveCategoryIcon(s.category ?? '其他', 'industry'),
+        color: categoryColor(s.category ?? '其他', theme),
+      }))
+    return [industryItem, ...sceneItems]
+  }, [industry, pack.iconKey, pack.key, pack.name, scenes, selected, theme])
+
+  const removeSelectionItem = (id: string) => {
+    if (id.startsWith('industry:')) return
+    setSelected((prev) => {
+      const next = new Set(prev)
+      next.delete(id)
+      return next
+    })
+  }
+
+  const clearSelection = () => {
+    setSelected(new Set())
+  }
 
   const doPublish = async (contact: ContactInfo) => {
     await runLoadingPublishPipeline({
@@ -207,7 +244,11 @@ export default function IndustryView({ onPublish: _onPublish, active = true }: P
                         setSelected((prev) => {
                           const next = new Set(prev)
                           if (next.has(s.id)) next.delete(s.id)
-                          else next.add(s.id)
+                          else {
+                            next.add(s.id)
+                            setLastAddedId(s.id)
+                            setBoxOpenSignal((n) => n + 1)
+                          }
                           return next
                         })
                       }}
@@ -265,6 +306,18 @@ export default function IndustryView({ onPublish: _onPublish, active = true }: P
       {publishError && <p className="publish-error">{publishError}</p>}
 
       {loading && <GenerateLoadingOverlay phase="publish" />}
+
+      {active && selectionItems.length > 1 && (
+        <SelectionBox
+          items={selectionItems}
+          onRemove={removeSelectionItem}
+          onClear={clearSelection}
+          onGenerate={handlePublish}
+          generating={loading}
+          lastAddedId={lastAddedId}
+          openSignal={boxOpenSignal}
+        />
+      )}
 
       <ContactGateModal
         open={active && contactOpen}

@@ -23,9 +23,9 @@ echo " Git: $(git rev-parse --short HEAD 2>/dev/null || echo unknown)"
 echo "=========================================="
 
 echo "==> [1/9] git pull (discard local lockfile drift)"
-git fetch origin
-git checkout -- home/package-lock.json runtime-app/pubspec.lock 2>/dev/null || true
-git pull origin main
+# shellcheck disable=SC1091
+source "$ROOT/scripts/lib/git-pull.sh"
+blockhub_git_pull main
 echo "    now at $(git rev-parse --short HEAD)"
 
 echo "==> [2/9] backend dependencies"

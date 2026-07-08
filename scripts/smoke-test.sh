@@ -6,6 +6,7 @@
 #   bash scripts/smoke-test.sh http://127.0.0.1 --seed-only
 set -euo pipefail
 
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 BASE="${1:-http://127.0.0.1:8001}"
 SEED_ONLY=false
 if [ "${2:-}" = "--seed-only" ] || [ "${1:-}" = "--seed-only" ]; then

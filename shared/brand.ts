@@ -42,6 +42,19 @@ export function adminLoginUrl(): string {
   return `${BRAND.adminUrl}/admin/login`
 }
 
+/** Home 创建入口 URL（生产同域 /，本地 5173） */
+export function homePublicUrl(): string {
+  if (typeof window !== 'undefined') {
+    const { origin, hostname, port } = window.location
+    const isLocal = hostname === 'localhost' || hostname === '127.0.0.1'
+    if (isLocal && port === '5174') {
+      return `${origin.replace(':5174', ':5173')}/`
+    }
+    return `${origin}/`
+  }
+  return BRAND.homeUrl
+}
+
 /** 启动 seed 写入的演示账号（密码登录） */
 export const DEMO_ACCOUNTS = [
   { role: '管理员', email: 'admin@trackchat.local', password: 'admin123' },

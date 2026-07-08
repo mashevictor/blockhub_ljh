@@ -1,11 +1,12 @@
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { fetchCatalogSummary, fetchDashboard, type CatalogSummary, type DashboardStats } from '../api/client'
 import { fetchMe, logout, type AuthUser } from '../auth/session'
 import ThemePicker from './ThemePicker'
 import BrandMark from './BrandMark'
-import { BRAND } from '../data/brand'
+import { BRAND, homePublicUrl } from '../data/brand'
 import { PLATFORM_STATS } from '@shared/platformStats'
+import { canAccessRoute, type AppRole } from '../lib/roles'
 import {
   IconHome,
   IconBot,
@@ -19,17 +20,17 @@ import {
   IconStamp,
 } from './icons'
 
-const NAV = [
-  { to: '/', label: '工作台', icon: IconHome, end: true },
-  { to: '/agents', label: '能力中心', icon: IconBot },
-  { to: '/scenarios', label: '业务场景', icon: IconList },
-  { to: '/create', label: '创建应用', icon: IconSparkles },
-  { to: '/chat', label: '智能问答', icon: IconMessage },
-  { to: '/knowledge', label: '知识库', icon: IconBook },
-  { to: '/approvals', label: '审批中心', icon: IconCheckCircle },
-  { to: '/contracts', label: '合同盖章', icon: IconStamp },
-  { to: '/reports', label: '数据报表', icon: IconBarChart },
-  { to: '/notifications', label: '消息通知', icon: IconBell },
+const NAV: Array<{ to: string; label: string; icon: typeof IconHome; end?: boolean; roles: AppRole[] }> = [
+  { to: '/', label: '工作台', icon: IconHome, end: true, roles: ['admin', 'employee'] },
+  { to: '/agents', label: '能力中心', icon: IconBot, roles: ['admin'] },
+  { to: '/scenarios', label: '业务场景', icon: IconList, roles: ['admin'] },
+  { to: '/create', label: '创建应用', icon: IconSparkles, roles: ['admin'] },
+  { to: '/chat', label: '智能问答', icon: IconMessage, roles: ['admin', 'employee'] },
+  { to: '/knowledge', label: '知识库', icon: IconBook, roles: ['admin', 'employee'] },
+  { to: '/approvals', label: '审批中心', icon: IconCheckCircle, roles: ['admin', 'employee'] },
+  { to: '/contracts', label: '合同盖章', icon: IconStamp, roles: ['admin'] },
+  { to: '/reports', label: '数据报表', icon: IconBarChart, roles: ['admin'] },
+  { to: '/notifications', label: '消息通知', icon: IconBell, roles: ['admin', 'employee'] },
 ]
 
 export default function AdminLayout() {
@@ -44,6 +45,13 @@ export default function AdminLayout() {
     fetchMe().then(setUser).catch(() => {})
   }, [])
 
+  const visibleNav = useMemo(
+    () => NAV.filter((n) => canAccessRoute(user, n.roles)),
+    [user],
+  )
+
+  const roleLabel = user?.role === 'admin' ? '管理员' : user?.role === 'employee' ? '使用者' : user?.role
+
   return (
     <div className="layout">
       <aside className="sidebar">
@@ -51,7 +59,7 @@ export default function AdminLayout() {
           <BrandMark size={42} className="sidebar-brand-mark" />
           <div>
             <h2>{BRAND.nameZh}</h2>
-            <p>{BRAND.nameEn} · 管理后台</p>
+            <p>{BRAND.nameEn} · {user?.role === 'employee' ? '工作台' : '管理后台'}</p>
           </div>
         </div>
         <div className="sidebar-meta">
@@ -63,7 +71,7 @@ export default function AdminLayout() {
         </div>
         <nav className="nav-section">
           <div className="nav-label">导航</div>
-          {NAV.map((n) => {
+          {visibleNav.map((n) => {
             const NavIcon = n.icon
             return (
               <NavLink
@@ -85,11 +93,16 @@ export default function AdminLayout() {
         <header className="topbar">
           <span className="topbar-title">{BRAND.adminTitle}</span>
           <div className="topbar-actions">
-            <a className="topbar-home-link" href={BRAND.homeUrl} target="_blank" rel="noreferrer">
+            <a className="topbar-home-link" href={homePublicUrl()} target="_blank" rel="noreferrer">
               创建入口
             </a>
             <ThemePicker />
-            {user && <span className="topbar-user">{user.display_name || user.email}</span>}
+            {user && (
+              <span className="topbar-user">
+                {user.display_name || user.email}
+                {roleLabel ? ` · ${roleLabel}` : ''}
+              </span>
+            )}
             <button type="button" className="topbar-logout" onClick={() => logout()}>退出</button>
             <span className="status-badge">
               <span className="status-dot" />

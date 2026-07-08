@@ -13,8 +13,11 @@ export function clearToken(): void {
   localStorage.removeItem(TOKEN_KEY)
 }
 
+import { getAdminUrl } from '../data/constants'
+
 export function redirectToLogin(): void {
-  if (!window.location.pathname.startsWith('/login')) {
-    window.location.href = '/login'
+  const target = getAdminUrl()
+  if (!window.location.href.startsWith(target.split('?')[0])) {
+    window.location.href = target
   }
 }

@@ -11,7 +11,7 @@ from app.services.app_urls import app_download_url, app_qr_payload, app_web_url
 from app.services.build_manifest import build_manifest
 from app.services.capability_resolver import resolve_publish_capability_keys
 from app.services.db_seed import DEFAULT_TENANT_SLUG
-from app.services.schema_generator import generate_page_schema
+from app.services.schema_generator import generate_page_schema, validate_page_schema
 
 PLAZA_VISIBILITY_VALUES = frozenset({"none", "public", "org", "dept", "users"})
 
@@ -147,6 +147,7 @@ def persist_published_app(
         capability_keys=keys,
         primary_color=primary_color or "#4338ca",
     )
+    validate_page_schema(page_schema)
     manifest = build_manifest(keys, deliver=deliver)
 
     if existing:

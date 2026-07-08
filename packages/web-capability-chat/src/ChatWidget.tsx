@@ -28,6 +28,69 @@ export default function ChatWidget(_props: { node: SchemaNode }) {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
+  const streamReply = async (text: string) => {
+    const res = await fetch('/api/v1/chat/completions/stream', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        message: text,
+        session_id: sessionId,
+        model,
+        use_rag: true,
+      }),
+    })
+    if (!res.ok || !res.body) {
+      throw new Error(`HTTP ${res.status}`)
+    }
+
+    const assistantId = `a-${Date.now()}`
+    setMessages((prev) => [...prev, { id: assistantId, role: 'assistant', content: '' }])
+
+    const reader = res.body.getReader()
+    const decoder = new TextDecoder()
+    let buf = ''
+    let finalMessage: ChatMessage | null = null
+
+    while (true) {
+      const { value, done } = await reader.read()
+      if (done) break
+      buf += decoder.decode(value, { stream: true })
+      const chunks = buf.split('\n\n')
+      buf = chunks.pop() ?? ''
+      for (const chunk of chunks) {
+        const line = chunk
+          .split('\n')
+          .find((item) => item.startsWith('data: '))
+        if (!line) continue
+        const payload = line.slice(6)
+        if (payload === '[DONE]') continue
+        const evt = JSON.parse(payload) as {
+          content?: string
+          done?: boolean
+          message?: ChatMessage
+        }
+        if (evt.message) {
+          finalMessage = evt.message
+        }
+        if (typeof evt.content === 'string') {
+          setMessages((prev) =>
+            prev.map((m) => (m.id === assistantId ? { ...m, content: evt.content ?? '' } : m)),
+          )
+        }
+      }
+    }
+
+    if (finalMessage) {
+      setMessages((prev) => prev.map((m) => (m.id === assistantId ? finalMessage as ChatMessage : m)))
+    } else {
+      const latest = await apiFetch<{ items: ChatMessage[] }>(`/api/v1/chat/sessions/${sessionId}/messages`, token)
+      setMessages(latest.items)
+    }
+  }
+
   const handleSend = async () => {
     const text = input.trim()
     if (!text || loading) return
@@ -40,16 +103,7 @@ export default function ChatWidget(_props: { node: SchemaNode }) {
     }
     setMessages((prev) => [...prev, userMsg])
     try {
-      const res = await apiFetch<{ message: ChatMessage }>('/api/v1/chat/completions', token, {
-        method: 'POST',
-        body: JSON.stringify({
-          message: text,
-          session_id: sessionId,
-          model,
-          use_rag: true,
-        }),
-      })
-      setMessages((prev) => [...prev, res.message])
+      await streamReply(text)
     } catch (e) {
       setMessages((prev) => [
         ...prev,

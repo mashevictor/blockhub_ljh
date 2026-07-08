@@ -1,7 +1,6 @@
 import { Route, Routes } from 'react-router-dom'
 import HomeApp from './HomeApp'
-import LoginPage from './pages/LoginPage'
-import RegisterPage from './pages/RegisterPage'
+import RedirectToAdminLogin from './components/RedirectToAdminLogin'
 import PlazaLayout from './pages/plaza/PlazaLayout'
 import PlazaFeedPage from './pages/plaza/PlazaFeedPage'
 import PlazaMyAppsPage from './pages/plaza/PlazaMyAppsPage'
@@ -11,8 +10,8 @@ import { ROUTES } from './routes/paths'
 export default function App() {
   return (
     <Routes>
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
+      <Route path="/login" element={<RedirectToAdminLogin />} />
+      <Route path="/register" element={<RedirectToAdminLogin />} />
       <Route path="/plaza" element={<PlazaLayout />}>
         <Route index element={<PlazaFeedPage />} />
         <Route path="my" element={<PlazaMyAppsPage />} />

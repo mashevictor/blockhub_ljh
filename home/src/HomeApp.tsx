@@ -96,7 +96,7 @@ export default function HomeApp() {
               <>
                 <span className="header-user">{user.display_name}</span>
                 <button type="button" className="btn-login" onClick={() => logout()}>退出</button>
-                <a className="btn-advanced" href={getAdminUrl()} target="_blank" rel="noreferrer">
+                <a className="btn-advanced" href={getAdminUrl()}>
                   <IconSettings size={15} />
                   <span className="btn-advanced-text">管理后台</span>
                   <IconArrowRight size={14} className="btn-arrow" />
@@ -104,8 +104,8 @@ export default function HomeApp() {
               </>
             ) : (
               <>
-                <Link className="btn-login" to={ROUTES.login}>登录</Link>
-                <Link className="btn-login btn-register" to={ROUTES.register}>注册</Link>
+                <a className="btn-login" href={getAdminUrl()}>登录</a>
+                <a className="btn-login btn-register" href={getAdminUrl()}>注册</a>
               </>
             )}
           </div>
