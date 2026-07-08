@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import AdminLayout from './components/AdminLayout'
 import ProtectedRoute from './components/ProtectedRoute'
 import RoleGate from './components/RoleGate'
+import { AuthProvider } from './auth/AuthContext'
 import OverviewPage from './pages/OverviewPage'
 import ScenarioCatalogPage from './pages/ScenarioCatalogPage'
 import AgentCenterPage from './pages/AgentCenterPage'
@@ -20,7 +21,7 @@ export default function App() {
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route element={<ProtectedRoute />}>
-        <Route element={<AdminLayout />}>
+        <Route element={<AuthProvider><AdminLayout /></AuthProvider>}>
           <Route index element={<OverviewPage />} />
           <Route path="agents" element={<RoleGate allow={['admin']}><AgentCenterPage /></RoleGate>} />
           <Route path="agents/:agentId" element={<RoleGate allow={['admin']}><AgentDetailPage /></RoleGate>} />

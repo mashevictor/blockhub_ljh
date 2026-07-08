@@ -11,6 +11,11 @@ export function canAccessRoute(user: AuthUser | null | undefined, allowed: AppRo
   return allowed.includes(user.role)
 }
 
+export function canAccessRole(role: string | null | undefined, allowed: AppRole[]): boolean {
+  if (!role) return false
+  return allowed.includes(role)
+}
+
 /** Admin-only backend modules */
 export const ADMIN_ONLY_PATHS = [
   '/agents',

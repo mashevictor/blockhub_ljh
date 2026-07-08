@@ -3,9 +3,8 @@ from sqlalchemy.orm import Session
 
 from app.data.module_data import _notify_store, approval_stats
 from app.data.seed import ARCH_LAYERS, RECENT_ACTIVITIES
-from app.db.models import CatalogAgent
+from app.db.models import AppRecord, CatalogAgent
 from app.db.session import get_db
-from app.services.app_store import list_published_apps
 from app.services import catalog_store
 
 router = APIRouter(prefix="/stats", tags=["stats"])
@@ -15,7 +14,7 @@ router = APIRouter(prefix="/stats", tags=["stats"])
 def dashboard_stats(db: Session = Depends(get_db)) -> dict:
     appr = approval_stats()
     unread = sum(1 for n in _notify_store if not n["read"])
-    apps = list_published_apps(db)
+    apps_count = db.query(AppRecord).count()
     summary = catalog_store.catalog_summary(db)
     return {
         "status": "healthy",
@@ -25,7 +24,7 @@ def dashboard_stats(db: Session = Depends(get_db)) -> dict:
         "office_scenarios": summary["office_count"],
         "industry_scenarios": summary["industry_count"],
         "total_scenarios": summary["total"],
-        "apps_created": len(apps),
+        "apps_created": apps_count,
         "chat_sessions": 1286,
         "pending_approvals": appr["pending"],
         "unread_notifications": unread,

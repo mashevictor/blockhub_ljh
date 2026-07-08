@@ -1,12 +1,13 @@
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useEffect, useMemo, useState } from 'react'
 import { fetchCatalogSummary, fetchDashboard, type CatalogSummary, type DashboardStats } from '../api/client'
-import { fetchMe, logout, type AuthUser } from '../auth/session'
+import { logout } from '../auth/session'
+import { useAuth } from '../auth/AuthContext'
 import ThemePicker from './ThemePicker'
 import BrandMark from './BrandMark'
 import { BRAND, homePublicUrl } from '../data/brand'
 import { PLATFORM_STATS } from '@shared/platformStats'
-import { canAccessRoute, type AppRole } from '../lib/roles'
+import { canAccessRole, type AppRole } from '../lib/roles'
 import {
   IconHome,
   IconBot,
@@ -36,18 +37,17 @@ const NAV: Array<{ to: string; label: string; icon: typeof IconHome; end?: boole
 export default function AdminLayout() {
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [catalog, setCatalog] = useState<CatalogSummary | null>(null)
-  const [user, setUser] = useState<AuthUser | null>(null)
+  const { user, role } = useAuth()
   const location = useLocation()
 
   useEffect(() => {
     fetchDashboard().then(setStats).catch(() => {})
     fetchCatalogSummary().then(setCatalog).catch(() => {})
-    fetchMe().then(setUser).catch(() => {})
   }, [])
 
   const visibleNav = useMemo(
-    () => NAV.filter((n) => canAccessRoute(user, n.roles)),
-    [user],
+    () => NAV.filter((n) => canAccessRole(user?.role ?? role, n.roles)),
+    [user, role],
   )
 
   const roleLabel = user?.role === 'admin' ? '管理员' : user?.role === 'employee' ? '使用者' : user?.role

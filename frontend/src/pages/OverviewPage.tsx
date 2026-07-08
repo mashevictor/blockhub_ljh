@@ -9,10 +9,10 @@ import {
   type Agent,
   type CreatedApp,
 } from '../api/client'
-import { fetchMe, type AuthUser } from '../auth/session'
+import { useAuth } from '../auth/AuthContext'
 import { BRAND } from '../data/brand'
 import { PLATFORM_STATS } from '@shared/platformStats'
-import { canAccessRoute, type AppRole } from '../lib/roles'
+import { canAccessRole, type AppRole } from '../lib/roles'
 import {
   IconBot,
   IconGrid,
@@ -164,10 +164,9 @@ export default function OverviewPage() {
   const [activities, setActivities] = useState<Array<{ id: number; icon: string; title: string; desc: string; time: string }>>([])
   const [trends, setTrends] = useState<{ growth: string; label: string; days: string[]; chat_qa: number[]; approval: number[] } | null>(null)
   const [createdApps, setCreatedApps] = useState<CreatedApp[]>([])
-  const [user, setUser] = useState<AuthUser | null>(null)
+  const { user, role } = useAuth()
 
   useEffect(() => {
-    fetchMe().then(setUser).catch(() => setUser(null))
     fetchDashboard().then(setStats)
     fetchAgents().then(setAgents)
     fetchActivities().then(setActivities)
@@ -175,10 +174,10 @@ export default function OverviewPage() {
     fetchCreatedApps().then(setCreatedApps).catch(() => {})
   }, [])
 
-  const isAdmin = user?.role === 'admin'
+  const isAdmin = (user?.role ?? role) === 'admin'
   const visibleQuickLinks = useMemo(
-    () => QUICK_LINKS.filter((q) => canAccessRoute(user, q.roles)),
-    [user],
+    () => QUICK_LINKS.filter((q) => canAccessRole(user?.role ?? role, q.roles)),
+    [user, role],
   )
 
   const maxVal = trends ? Math.max(...trends.chat_qa, ...trends.approval, 1) : 1

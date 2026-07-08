@@ -7,7 +7,7 @@ User=root
 WorkingDirectory=BLOCKHUB_ROOT/backend
 EnvironmentFile=BLOCKHUB_ROOT/backend/.env
 Environment=PATH=BLOCKHUB_ROOT/backend/.venv/bin
-ExecStart=BLOCKHUB_ROOT/backend/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8001 --workers 1
+ExecStart=BLOCKHUB_ROOT/backend/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8001 --workers 2
 Restart=always
 RestartSec=3
 
