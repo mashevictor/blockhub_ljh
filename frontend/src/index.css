@@ -375,8 +375,12 @@ a:hover { text-decoration: underline; }
 .btn:hover { transform: translateY(-1px); text-decoration: none; }
 .btn-primary {
   background: var(--surface, #fff);
-  color: var(--btn-text, var(--pri-dark));
+  color: var(--pri-dark, #1e3a5f);
   box-shadow: var(--btn-shadow, 0 4px 14px rgba(0,0,0,.12)), var(--btn-inset, none);
+}
+.hero .btn-primary {
+  background: #fff;
+  color: var(--pri-dark, #1e3a5f);
 }
 .btn-primary:hover { box-shadow: var(--btn-shadow, 0 4px 14px rgba(0,0,0,.2)), var(--btn-inset, none); }
 .btn-ghost { background: rgba(255,255,255,.15); color: #fff; border: 1px solid rgba(255,255,255,.25); }
