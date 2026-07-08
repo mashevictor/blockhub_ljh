@@ -70,8 +70,9 @@ export default function ModuleView({ onPublish: _onPublish, active = true }: Pro
   }
 
   useEffect(() => {
+    if (!active) return
     loadModules()
-  }, [])
+  }, [active])
 
   useEffect(() => {
     if (active) return

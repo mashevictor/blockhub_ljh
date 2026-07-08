@@ -19,10 +19,17 @@ export function resolveWidgetName(node: SchemaNode): string {
   const type = node.type
   const map: Record<string, string> = {
     chat: 'ChatWidget',
+    voice: 'VoiceWidget',
+    voicestream: 'VoiceStreamWidget',
+    shanghaivoice: 'ShanghaiVoiceWidget',
     approval: 'FormWidget',
     form: 'FormWidget',
     list: 'ListWidget',
+    inbox: 'ListWidget',
     chart: 'DashboardWidget',
+    dashboard: 'DashboardWidget',
+    kbupload: 'KBUploadWidget',
+    kbdocument: 'KBUploadWidget',
   }
   return map[type] || 'ListWidget'
 }

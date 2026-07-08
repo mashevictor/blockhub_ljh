@@ -18,6 +18,7 @@ from app.services.app_store import (
     list_plaza_feed_apps,
     list_published_apps,
     persist_published_app,
+    plaza_feed_item_from_record,
     publish_app_to_plaza,
 )
 from app.services import catalog_store
@@ -26,6 +27,12 @@ from app.services.flow_module_api import generate_flow_module_apis
 from app.services.module_suggest import suggest_modules
 from app.services.publish_email import send_publish_delivery_email
 from app.services.email_service import smtp_configured
+from app.services.plaza_interactions import (
+    add_plaza_comment,
+    list_plaza_comments,
+    toggle_plaza_like,
+    user_liked,
+)
 from app.services.custom_capability_store import (
     list_custom_capabilities,
     propose_capability,
@@ -90,6 +97,15 @@ class PlazaPublishRequest(BaseModel):
     app_id: str
     visibility: str
     dept_name: str = ""
+
+
+class PlazaLikeRequest(BaseModel):
+    user_key: str = "anonymous"
+
+
+class PlazaCommentRequest(BaseModel):
+    author_name: str = "访客"
+    text: str
 
 
 class CustomCapabilityPropose(BaseModel):
@@ -323,7 +339,63 @@ def plaza_publish(body: PlazaPublishRequest, db: Session = Depends(get_db)) -> d
         raise HTTPException(status_code=500, detail="广场发布失败") from exc
     if not app:
         raise HTTPException(status_code=404, detail="应用不存在")
-    return {"success": True, "app": app, "feed_item": plaza_feed_item_from_api(app)}
+    record = get_app_by_public_id(db, app_id)
+    feed_item = plaza_feed_item_from_record(record, db) if record else plaza_feed_item_from_api(app, db)
+    return {"success": True, "app": app, "feed_item": feed_item}
+
+
+@router.post("/plaza/feed/{app_id}/like")
+def plaza_feed_like(app_id: str, body: PlazaLikeRequest, db: Session = Depends(get_db)) -> dict:
+    if not get_app_by_public_id(db, app_id.strip()):
+        raise HTTPException(status_code=404, detail="应用不存在")
+    try:
+        return toggle_plaza_like(db, app_public_id=app_id.strip(), user_key=body.user_key)
+    except Exception as exc:
+        logger.exception("POST /creation/plaza/feed/like failed")
+        detail = str(exc).lower()
+        if "plaza_feed" in detail or "undefinedcolumn" in detail.replace(" ", ""):
+            raise HTTPException(
+                status_code=503,
+                detail="数据库 schema 过旧，请执行 alembic upgrade head（012_plaza_feed_interactions）",
+            ) from exc
+        raise HTTPException(status_code=500, detail="点赞失败") from exc
+
+
+@router.post("/plaza/feed/{app_id}/comment")
+def plaza_feed_comment(app_id: str, body: PlazaCommentRequest, db: Session = Depends(get_db)) -> dict:
+    if not get_app_by_public_id(db, app_id.strip()):
+        raise HTTPException(status_code=404, detail="应用不存在")
+    try:
+        return add_plaza_comment(
+            db,
+            app_public_id=app_id.strip(),
+            author_name=body.author_name,
+            text=body.text,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        logger.exception("POST /creation/plaza/feed/comment failed")
+        detail = str(exc).lower()
+        if "plaza_feed" in detail or "undefinedcolumn" in detail.replace(" ", ""):
+            raise HTTPException(
+                status_code=503,
+                detail="数据库 schema 过旧，请执行 alembic upgrade head（012_plaza_feed_interactions）",
+            ) from exc
+        raise HTTPException(status_code=500, detail="评论失败") from exc
+
+
+@router.get("/plaza/feed/{app_id}/comments")
+def plaza_feed_comments(app_id: str, db: Session = Depends(get_db)) -> dict:
+    if not get_app_by_public_id(db, app_id.strip()):
+        raise HTTPException(status_code=404, detail="应用不存在")
+    try:
+        items = list_plaza_comments(db, app_public_id=app_id.strip())
+        liked = user_liked(db, app_public_id=app_id.strip(), user_key="anonymous")
+        return {"items": items, "total": len(items), "user_liked": liked}
+    except Exception as exc:
+        logger.exception("GET /creation/plaza/feed/comments failed")
+        raise HTTPException(status_code=500, detail="加载评论失败") from exc
 
 
 @router.get("/plaza/feed")
@@ -342,16 +414,25 @@ def plaza_feed(db: Session = Depends(get_db)) -> dict:
     return {"total": len(items), "items": items}
 
 
-def plaza_feed_item_from_api(app: dict) -> dict:
+def plaza_feed_item_from_api(app: dict, db: Session | None = None) -> dict:
     visibility = app.get("plaza_visibility", "none")
     dept = app.get("plaza_dept_name", "")
     at_label = "@公开" if visibility == "public" else f"@{dept}" if visibility == "dept" and dept else "@部门"
     modules = [str(m.get("label", "")) for m in (app.get("modules") or [])[:6] if isinstance(m, dict)]
     if not modules:
         modules = [str(s) for s in (app.get("scenarios") or [])[:6]]
+    author = (app.get("contact_email") or "").split("@")[0] or "创作者"
+    likes, comments = 0, 0
+    if db is not None and app.get("id"):
+        from app.services.plaza_interactions import plaza_interaction_counts
+
+        likes, comments = plaza_interaction_counts(db, str(app["id"]))
     return {
         "id": f"db-{app['id']}",
         "appKey": app["id"],
+        "authorName": author,
+        "authorInitial": author[:1] or "创",
+        "authorMeta": "积木仓",
         "visibility": visibility if visibility in ("public", "dept") else "public",
         "atLabel": at_label,
         "appName": app["name"],
@@ -359,6 +440,9 @@ def plaza_feed_item_from_api(app: dict) -> dict:
         "summary": f"{len(modules)} 项能力 · Web + App 双端可访问。",
         "webUrl": app.get("web_url", ""),
         "publishedAt": app.get("plaza_published_at") or app.get("created_at"),
+        "likes": likes,
+        "comments": comments,
+        "reposts": 0,
         "plaza_visibility": visibility,
         "plaza_dept_name": dept,
     }

@@ -80,7 +80,7 @@ def _module_labels(record: AppRecord) -> list[str]:
     return [str(s) for s in (record.scenarios or [])[:6]]
 
 
-def plaza_feed_item_from_record(record: AppRecord) -> dict[str, Any]:
+def plaza_feed_item_from_record(record: AppRecord, db: Session | None = None) -> dict[str, Any]:
     visibility = record.plaza_visibility if record.plaza_visibility in ("public", "dept") else "public"
     published_at = record.plaza_published_at or record.created_at
     author = (record.contact_email.split("@")[0] if record.contact_email else "") or "创作者"
@@ -92,6 +92,12 @@ def plaza_feed_item_from_record(record: AppRecord) -> dict[str, Any]:
     summary += "。Web + App 双端可访问。"
     if record.plaza_visibility == "dept" and record.plaza_dept_name:
         summary = f"范围可见 · {record.plaza_dept_name}内可访问 · {summary}"
+
+    likes, comments = 0, 0
+    if db is not None:
+        from app.services.plaza_interactions import plaza_interaction_counts
+
+        likes, comments = plaza_interaction_counts(db, record.public_id)
 
     return {
         "id": f"db-{record.public_id}",
@@ -106,8 +112,8 @@ def plaza_feed_item_from_record(record: AppRecord) -> dict[str, Any]:
         "modules": modules,
         "summary": summary,
         "webUrl": app_web_url(record.public_id),
-        "likes": 0,
-        "comments": 0,
+        "likes": likes,
+        "comments": comments,
         "reposts": 0,
         "plaza_visibility": record.plaza_visibility,
         "plaza_dept_name": record.plaza_dept_name,
@@ -259,7 +265,7 @@ def list_plaza_feed_apps(db: Session, *, limit: int = 50) -> list[dict[str, Any]
         .limit(limit)
         .all()
     )
-    return [plaza_feed_item_from_record(row) for row in rows]
+    return [plaza_feed_item_from_record(row, db) for row in rows]
 
 
 def list_published_apps(db: Session, *, tenant_id: str | None = None) -> list[dict[str, Any]]:
