@@ -10,9 +10,7 @@ import {
   type PageSchema,
   type TenantRuntimeConfig,
 } from '@blockhub/web-core'
-import { bootWidgetRegistry } from './register-widgets'
-
-bootWidgetRegistry()
+import { bootWidgetsFromManifest } from './register-widgets'
 
 function parseAppId(): string | null {
   const m = window.location.pathname.match(/^\/r\/([a-z0-9]+)/i)
@@ -44,6 +42,7 @@ export default function App() {
   const [config, setConfig] = useState<TenantRuntimeConfig | null>(null)
   const [schema, setSchema] = useState<PageSchema | null>(null)
   const [manifest, setManifest] = useState<BuildManifest | null>(null)
+  const [widgetsReady, setWidgetsReady] = useState(false)
   const [deliver, setDeliver] = useState('both')
   const [apkReady, setApkReady] = useState(false)
   const [error, setError] = useState('')
@@ -60,21 +59,30 @@ export default function App() {
 
   useEffect(() => {
     if (!appId || !token) return
-    const qs = new URLSearchParams({ tenant: 'demo', app_id: appId })
+    let cancelled = false
+    setWidgetsReady(false)
     Promise.all([
-      fetch(`/api/v1/tenant/config?${qs}`).then((r) => r.json()),
+      fetch(`/api/v1/runtime/${appId}/config`).then((r) => r.json()),
       fetch(`/api/v1/runtime/${appId}/schema`).then((r) => r.json()),
       fetch(`/api/v1/runtime/${appId}/manifest`).then((r) => r.json()),
       fetch(`/api/v1/runtime/${appId}`).then((r) => (r.ok ? r.json() : null)),
     ])
-      .then(([cfg, sch, man, meta]) => {
+      .then(async ([cfg, sch, man, meta]) => {
+        if (cancelled) return
+        const bm = (man as { build_manifest: BuildManifest }).build_manifest
+        await bootWidgetsFromManifest(bm)
+        if (cancelled) return
         setConfig(cfg as TenantRuntimeConfig)
         setSchema((sch as { page_schema: PageSchema }).page_schema)
-        setManifest((man as { build_manifest: BuildManifest }).build_manifest)
+        setManifest(bm)
+        setWidgetsReady(true)
         if (meta?.deliver) setDeliver(meta.deliver)
         if (meta?.apk_ready) setApkReady(true)
       })
       .catch((e) => setError(String(e)))
+    return () => {
+      cancelled = true
+    }
   }, [appId, token])
 
   const handleLogin = async () => {
@@ -97,6 +105,8 @@ export default function App() {
     setUser(null)
     setConfig(null)
     setSchema(null)
+    setManifest(null)
+    setWidgetsReady(false)
   }
 
   if (!appId) {
@@ -129,7 +139,7 @@ export default function App() {
     return <p className="error-msg">加载失败：{error}</p>
   }
 
-  if (!config || !schema || !manifest) {
+  if (!config || !schema || !manifest || !widgetsReady) {
     return <p className="loading">加载应用…</p>
   }
 
@@ -198,7 +208,7 @@ export default function App() {
             <a className="btn" href={`/api/v1/runtime/${appId}/download`} style={{ opacity: apkReady ? 1 : 0.5 }}>
               下载 Android APK
             </a>
-            <span className="muted">Web 包：{manifest.web_pkgs.join(', ')}</span>
+            <span className="muted">已加载包：{manifest.web_pkgs.join(', ')}</span>
           </footer>
         )}
       </div>

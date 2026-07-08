@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { api, type Agent } from '../api/client'
 
+const PUBLIC_BASE = import.meta.env.VITE_PUBLIC_BASE_URL || window.location.origin.replace(/\/admin\/?$/, '')
+
 interface Capability {
   key: string
   name: string
@@ -17,14 +19,26 @@ export default function AgentDetailPage() {
 
   useEffect(() => {
     if (!agentId) return
-    api.get(`/agents/${agentId}`).then((r) => {
-      setAgent(r.data.agent)
-      setCaps(r.data.capabilities)
-    })
+    api.get(`/agents/${agentId}`)
+      .then((r) => {
+        setAgent(r.data.agent)
+        setCaps(r.data.capabilities)
+      })
+      .catch(() => setAgent(null))
   }, [agentId])
 
   if (!agent) {
-    return <div className="placeholder-page"><div className="icon">⏳</div><h2>加载中…</h2></div>
+    return (
+      <div className="placeholder-page">
+        <div className="icon">⏳</div>
+        <h2>{agentId ? '加载助手信息…' : '未指定助手'}</h2>
+        {agentId && (
+          <p style={{ fontSize: 13, color: 'var(--muted)' }}>
+            若长时间无内容，请确认已执行 seed 且 API 正常。
+          </p>
+        )}
+      </div>
+    )
   }
 
   return (
@@ -35,6 +49,17 @@ export default function AgentDetailPage() {
       <div className="hero" style={{ background: `linear-gradient(135deg, ${agent.color}, #6366f1)` }}>
         <h1>{agent.icon} {agent.name}</h1>
         <p>{agent.description}</p>
+        {agentId === 'shanghai_voice' && (
+          <a
+            className="btn"
+            href={`${PUBLIC_BASE}/agents/shanghai-voice`}
+            target="_blank"
+            rel="noreferrer"
+            style={{ marginTop: 12, display: 'inline-block' }}
+          >
+            打开实时语音演示 →
+          </a>
+        )}
       </div>
 
       <div className="summary-pills">

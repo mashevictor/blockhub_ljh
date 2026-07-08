@@ -32,6 +32,7 @@ ROOT_COPIES = {
     "icon-192.png",
     "icon-512.png",
     "favicon-32.png",
+    "favicon-48.png",
     "logo-256.png",
 }
 

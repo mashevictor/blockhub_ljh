@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session
 from app.db.models import AppRecord
 from app.db.session import get_db
 from app.services.file_storage import uploads_root
+from app.services.tenant_config import get_tenant_config
 
 router = APIRouter(prefix="/runtime", tags=["runtime"])
 
@@ -79,6 +80,15 @@ def runtime_schema(public_id: str, db: Session = Depends(get_db)) -> dict:
         )
         return {"public_id": app.public_id, "page_schema": schema}
     return {"public_id": app.public_id, "page_schema": app.page_schema}
+
+
+@router.get("/{public_id}/config")
+def runtime_config(public_id: str, db: Session = Depends(get_db)) -> dict:
+    """Runtime shell config (alias of tenant config scoped to app)."""
+    app = db.query(AppRecord).filter(AppRecord.public_id == public_id).first()
+    if not app:
+        raise HTTPException(status_code=404, detail="应用不存在")
+    return get_tenant_config(db, tenant_slug="demo", app_public_id=public_id)
 
 
 @router.get("/{public_id}/manifest")

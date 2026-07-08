@@ -271,6 +271,44 @@ export async function publishAppToPlaza(appId: string, visibility: string, deptN
   return res.data
 }
 
+const PLAZA_USER_KEY = 'blockhub_plaza_user_key'
+
+export function getPlazaUserKey(): string {
+  try {
+    let key = localStorage.getItem(PLAZA_USER_KEY)
+    if (!key) {
+      key = `guest-${Date.now().toString(36)}`
+      localStorage.setItem(PLAZA_USER_KEY, key)
+    }
+    return key
+  } catch {
+    return 'anonymous'
+  }
+}
+
+export async function togglePlazaFeedLike(appId: string) {
+  const res = await api.post<{ liked: boolean; likes: number; comments: number }>(
+    `/creation/plaza/feed/${appId}/like`,
+    { user_key: getPlazaUserKey() },
+  )
+  return res.data
+}
+
+export async function postPlazaFeedComment(appId: string, text: string, authorName = '访客') {
+  const res = await api.post<{ id: string; author: string; text: string; likes: number; comments: number }>(
+    `/creation/plaza/feed/${appId}/comment`,
+    { author_name: authorName, text },
+  )
+  return res.data
+}
+
+export async function fetchPlazaFeedComments(appId: string) {
+  const res = await api.get<{ items: Array<{ id: string; author: string; text: string }>; total: number }>(
+    `/creation/plaza/feed/${appId}/comments`,
+  )
+  return res.data.items
+}
+
 export interface SuggestModuleItem {
   key: string
   label: string

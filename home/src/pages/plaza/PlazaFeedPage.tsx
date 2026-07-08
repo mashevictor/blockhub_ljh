@@ -1,4 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import {
+  fetchPlazaFeedComments,
+  postPlazaFeedComment,
+  togglePlazaFeedLike,
+} from '../../api/client'
 import { loadPlazaFeedItemsAsync, PLAZA_FEED_UPDATED_EVENT } from '../../lib/plazaFeedStorage'
 import type { PlazaFeedItem } from '../../data/plazaMock'
 import { feedAppKey, isFeedCreator } from '../../lib/plazaAppUtils'
@@ -16,16 +21,71 @@ function FeedCard({
   item,
   selected,
   onSelect,
+  onInteraction,
 }: {
   item: PlazaFeedItem
   selected: boolean
   onSelect: () => void
+  onInteraction: () => void
 }) {
+  const appId = feedAppKey(item)
   const [liked, setLiked] = useState(false)
   const [likes, setLikes] = useState(item.likes)
+  const [comments, setComments] = useState(item.comments)
   const [showComments, setShowComments] = useState(false)
+  const [commentRows, setCommentRows] = useState<Array<{ id: string; author: string; text: string }>>([])
+  const [commentText, setCommentText] = useState('')
+  const [busy, setBusy] = useState(false)
   const vis = visLabel(item.visibility)
   const creator = isFeedCreator(item)
+
+  useEffect(() => {
+    setLikes(item.likes)
+    setComments(item.comments)
+  }, [item.likes, item.comments])
+
+  useEffect(() => {
+    if (!showComments || !appId || appId.startsWith('mock-')) return
+    void fetchPlazaFeedComments(appId).then(setCommentRows).catch(() => {})
+  }, [showComments, appId])
+
+  const handleLike = () => {
+    if (!appId || appId.startsWith('mock-')) {
+      setLiked((v) => !v)
+      setLikes((n) => (liked ? n - 1 : n + 1))
+      return
+    }
+    setBusy(true)
+    void togglePlazaFeedLike(appId)
+      .then((res) => {
+        setLiked(res.liked)
+        setLikes(res.likes)
+        setComments(res.comments)
+        onInteraction()
+      })
+      .finally(() => setBusy(false))
+  }
+
+  const handleComment = () => {
+    const text = commentText.trim()
+    if (!text) return
+    if (!appId || appId.startsWith('mock-')) {
+      setCommentRows((prev) => [...prev, { id: `local-${Date.now()}`, author: '我', text }])
+      setComments((n) => n + 1)
+      setCommentText('')
+      return
+    }
+    setBusy(true)
+    void postPlazaFeedComment(appId, text, '访客')
+      .then((res) => {
+        setComments(res.comments)
+        setLikes(res.likes)
+        setCommentRows((prev) => [{ id: res.id, author: res.author, text: res.text }, ...prev])
+        setCommentText('')
+        onInteraction()
+      })
+      .finally(() => setBusy(false))
+  }
 
   return (
     <article
@@ -58,27 +118,36 @@ function FeedCard({
         <button
           type="button"
           className={`plaza-feed-act${liked ? ' liked' : ''}`}
-          onClick={() => {
-            setLiked((v) => !v)
-            setLikes((n) => (liked ? n - 1 : n + 1))
-          }}
+          disabled={busy}
+          onClick={handleLike}
         >
           ♥ <span>{likes}</span>
         </button>
         <button type="button" className="plaza-feed-act" onClick={() => setShowComments((v) => !v)}>
-          💬 {item.comments}
+          💬 {comments}
         </button>
         <button type="button" className="plaza-feed-act">↗ 转发 {item.reposts}</button>
         <a className="plaza-feed-act open" href={item.webUrl} target="_blank" rel="noreferrer">
           打开应用 →
         </a>
       </div>
-      {showComments && item.commentPreview && (
+      {showComments && (
         <div className="plaza-feed-comments" onClick={(e) => e.stopPropagation()}>
-          {item.commentPreview.map((c) => (
-            <p key={c.author}><strong>{c.author}</strong> {c.text}</p>
+          {commentRows.map((c) => (
+            <p key={c.id}><strong>{c.author}</strong> {c.text}</p>
           ))}
-          <p className="plaza-feed-comments-note">评论功能即将上线</p>
+          <div className="plaza-feed-comment-form">
+            <input
+              type="text"
+              value={commentText}
+              placeholder="写评论…"
+              onChange={(e) => setCommentText(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') handleComment() }}
+            />
+            <button type="button" className="btn-secondary" disabled={busy || !commentText.trim()} onClick={handleComment}>
+              发送
+            </button>
+          </div>
         </div>
       )}
     </article>
@@ -186,6 +255,7 @@ export default function PlazaFeedPage() {
             item={item}
             selected={selected?.id === item.id}
             onSelect={() => setSelectedId(item.id)}
+            onInteraction={refresh}
           />
         ))}
       </div>

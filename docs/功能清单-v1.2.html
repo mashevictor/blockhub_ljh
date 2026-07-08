@@ -59,17 +59,17 @@ td code{font-size:11px;background:#f5f5f4;padding:2px 6px;border-radius:4px}
 <header class="hero">
   <h1>积木仓 <em>BlockHub</em> · 功能清单 v1.2</h1>
   <p class="meta">
-    <strong>模块化交付版</strong> · 2026-07-07 修订 · 对齐 6 周全量攻坚 v5 + 模块化生成主线。<br>
+    <strong>模块化交付版</strong> · 2026-07-08 修订（D8）· 对齐 6 周全量攻坚 + 模块化生成主线。<br>
     核心目标：<strong>Home 勾选 capability_keys → 生成 page_schema + build_manifest → runtime-web / Flutter 按模块组装</strong>。
-    当前进度：<span style="color:#fde68a">RAG / 上海话语音超前</span> · <span style="color:#fca5a5">SchemaGenerator / Runtime 滞后</span>。
+    当前进度：<span style="color:#86efac">W3 发布闭环 ~95% 完成</span> · <span style="color:#fde68a">RAG / 语音超前</span> · W4 报表/通知待做。
   </p>
   <div class="stats">
-    <div class="stat"><div class="n">D6</div><div class="l">当前工作日</div></div>
-    <div class="stat"><div class="n">~55%</div><div class="l">W1 基建完成度</div></div>
-    <div class="stat"><div class="n">43</div><div class="l">Capability 注册表</div></div>
-    <div class="stat"><div class="n">12</div><div class="l">Agent（含语音）</div></div>
-    <div class="stat"><div class="n">4</div><div class="l">W3 首批 capability 包</div></div>
-    <div class="stat"><div class="n">0</div><div class="l">已拆物理包</div></div>
+    <div class="stat"><div class="n">D8</div><div class="l">当前工作日</div></div>
+    <div class="stat"><div class="n">~88%</div><div class="l">W1 基建</div></div>
+    <div class="stat"><div class="n">~95%</div><div class="l">W3 闭环</div></div>
+    <div class="stat"><div class="n">5</div><div class="l">Web capability 包</div></div>
+    <div class="stat"><div class="n">35</div><div class="l">Registry 能力项</div></div>
+    <div class="stat"><div class="n">012</div><div class="l">最新迁移</div></div>
   </div>
   <div class="pills">
     <span class="pill">物理拆包 packages/*</span>
@@ -136,51 +136,46 @@ td code{font-size:11px;background:#f5f5f4;padding:2px 6px;border-radius:4px}
     </div>
   </div>
   <div class="note note-info">
-    架构与数据流详见 <a href="技术架构-v1.2.html">技术架构-v1.2.html</a> · 每日排期见 <a href="项目计划-v1.1.html">项目计划-v1.1.html</a>（建议升 v1.2 同步模块化任务）。
+    架构与数据流详见 <a href="技术架构-v1.2.html">技术架构-v1.2.html</a> · 排期见 <a href="项目计划-v1.2.html">项目计划-v1.2.html</a> · 验收脚本 <code>bash scripts/smoke-w3.sh</code>
   </div>
 </section>
 
 <section id="progress">
-  <h2 class="section-title">二、进度快照（2026-07-07 · D6 末）</h2>
-  <div class="note note-warn">
-    <strong>进度偏差：</strong>Agent 能力层（RAG、上海话语音）已超前；发布闭环层（Schema、Runtime 渲染、物理拆包）尚未启动。<strong>W3 必须优先 SchemaGenerator + 首个 capability 包</strong>，否则模块化目标无法验收。
+  <h2 class="section-title">二、进度快照（2026-07-08 · D8）</h2>
+  <div class="note note-info">
+    <strong>W3 已打通：</strong>publish → page_schema + build_manifest → <code>/r/:id</code> 真渲染 · <code>GET /runtime/{id}/config</code> · 广场点赞评论落 PG（012）· manifest 按包 lazy 加载。验收：<code>bash scripts/smoke-w3.sh http://101.32.209.251</code>
   </div>
   <table>
     <thead><tr><th>域</th><th>原计划周</th><th>状态</th><th>说明</th></tr></thead>
     <tbody>
-      <tr><td>PG + Alembic + JWT</td><td>W1</td><td><span class="tag tag-done">✅</span></td><td>001–009 迁移链；生产 pgvector 待 apt 安装</td></tr>
-      <tr><td>114 Catalog + 43 Capability PG</td><td>W1 D2</td><td><span class="tag tag-done">✅</span></td><td>seed + catalog_store 读 DB</td></tr>
-      <tr><td>Chat SSE 真流</td><td>W1 D4</td><td><span class="tag tag-done">✅</span></td><td>LLM Gateway + Admin Chat</td></tr>
-      <tr><td>Redis 限流</td><td>W1 D5</td><td><span class="tag tag-wip">🔶</span></td><td>代码有；生产需 <code>redis-server</code> + 重启 API</td></tr>
-      <tr><td>publish 落库</td><td>W1 D6</td><td><span class="tag tag-done">✅</span></td><td><code>apps.capability_keys</code> 有；<strong>无 page_schema</strong></td></tr>
-      <tr><td>KB 上传 + COS</td><td>W2 D7</td><td><span class="tag tag-ahead">🔵</span></td><td>kb_store + object_storage 已实现</td></tr>
-      <tr><td>RAG pgvector + citation</td><td>W2 D8–D9</td><td><span class="tag tag-ahead">🔵</span></td><td>009 迁移 + rag_service；生产 pgvector 待装</td></tr>
-      <tr><td>上海话语音 Agent</td><td>未单列</td><td><span class="tag tag-ahead">🔵</span></td><td>TeleAI WS + Home 演示页 + Flutter 硬编码页</td></tr>
-      <tr><td>审批真状态机</td><td>W2 D10–D11</td><td><span class="tag tag-mock">🎭</span></td><td>部分 Mock；chat 会话仍部分内存</td></tr>
-      <tr><td>SchemaGenerator</td><td>W3 D13</td><td><span class="tag tag-plan">⬜</span></td><td><strong>阻塞模块化</strong></td></tr>
-      <tr><td>build_manifest</td><td>v1.2 新增</td><td><span class="tag tag-plan">⬜</span></td><td><strong>阻塞按勾选组装</strong></td></tr>
-      <tr><td>runtime-web 真渲染</td><td>W3 D15</td><td><span class="tag tag-plan">⬜</span></td><td>脚手架有；renderer 占位</td></tr>
-      <tr><td>物理 capability 包</td><td>v1.2 新增</td><td><span class="tag tag-plan">⬜</span></td><td>代码仍在 home/runtime-app 内联</td></tr>
-      <tr><td>Flutter WidgetRegistry</td><td>W5</td><td><span class="tag tag-plan">⬜</span></td><td>D6 骨架；上海话写死按钮</td></tr>
-      <tr><td>广场 Feed API</td><td>W4</td><td><span class="tag tag-wip">🔶</span></td><td>部分 API 有；点赞评论未全</td></tr>
-      <tr><td>部署 / smoke</td><td>W5–W6</td><td><span class="tag tag-wip">🔶</span></td><td>server-all.sh · 101.32.209.251 已部署</td></tr>
+      <tr><td>PG + Alembic + JWT + 统一登录</td><td>W1</td><td><span class="tag tag-done">✅</span></td><td>001–012；RBAC admin/employee</td></tr>
+      <tr><td>114 Catalog + Capability PG</td><td>W1 D2</td><td><span class="tag tag-done">✅</span></td><td>seed + catalog_store</td></tr>
+      <tr><td>Chat SSE 真流</td><td>W1 D4</td><td><span class="tag tag-done">✅</span></td><td>Admin + runtime ChatWidget</td></tr>
+      <tr><td>publish 落库 + page_schema</td><td>W1/W3</td><td><span class="tag tag-done">✅</span></td><td>migration 011 · schema_generator</td></tr>
+      <tr><td>build_manifest</td><td>W3</td><td><span class="tag tag-done">✅</span></td><td>web_pkg 命名已修正</td></tr>
+      <tr><td>runtime-web 真渲染</td><td>W3 D15</td><td><span class="tag tag-done">✅</span></td><td>/r/:id · WidgetHost · 5 包</td></tr>
+      <tr><td>物理 capability 包</td><td>W3</td><td><span class="tag tag-done">✅</span></td><td>packages/web-capability-* + web-core</td></tr>
+      <tr><td>广场 Feed + 互动</td><td>W3–W4</td><td><span class="tag tag-done">✅</span></td><td>publish/feed · like/comment PG</td></tr>
+      <tr><td>KB + RAG + citation</td><td>W2</td><td><span class="tag tag-ahead">🔵</span></td><td>009 pgvector</td></tr>
+      <tr><td>上海话语音 Agent</td><td>扩展</td><td><span class="tag tag-ahead">🔵</span></td><td>runtime VoiceWidget 已接</td></tr>
+      <tr><td>审批真状态机</td><td>W2</td><td><span class="tag tag-wip">🔶</span></td><td>PG + demo seed；通知未联动</td></tr>
+      <tr><td>capability_manifest TS</td><td>W3</td><td><span class="tag tag-wip">🔶</span></td><td>JSON+TS 已生成；Dart 待 W5</td></tr>
+      <tr><td>Flutter Melos + 裁剪</td><td>W5</td><td><span class="tag tag-plan">⬜</span></td><td>—</td></tr>
+      <tr><td>部署 / smoke</td><td>W5–W6</td><td><span class="tag tag-done">✅</span></td><td>smoke-test + smoke-admin-api + smoke-w3</td></tr>
     </tbody>
   </table>
   <div class="grid3">
     <div class="card">
       <h3>W1 基建</h3>
-      <div class="progress-bar"><span style="width:85%"></span></div>
-      <p style="font-size:12px;color:var(--muted);margin-top:8px">缺：生产 Redis/pgvector 运维收尾</p>
+      <div class="progress-bar"><span style="width:88%"></span></div>
     </div>
     <div class="card">
       <h3>W2 Agent 核心</h3>
-      <div class="progress-bar"><span style="width:45%"></span></div>
-      <p style="font-size:12px;color:var(--muted);margin-top:8px">RAG 超前；审批/去内存滞后</p>
+      <div class="progress-bar"><span style="width:55%"></span></div>
     </div>
     <div class="card">
       <h3>W3 模块化闭环</h3>
-      <div class="progress-bar"><span style="width:5%"></span></div>
-      <p style="font-size:12px;color:var(--muted);margin-top:8px"><strong>当前最高优先级</strong></p>
+      <div class="progress-bar"><span style="width:95%"></span></div>
     </div>
   </div>
 </section>
@@ -191,15 +186,15 @@ td code{font-size:11px;background:#f5f5f4;padding:2px 6px;border-radius:4px}
   <table>
     <thead><tr><th>#</th><th>任务</th><th>负责层</th><th>状态</th><th>验收标准</th></tr></thead>
     <tbody>
-      <tr><td>M1</td><td><code>capability_manifest</code> codegen（registry → shared JSON/TS/Dart）</td><td>契约</td><td><span class="tag tag-plan">⬜ W3 D12</span></td><td>改 registry 一处，三端 manifest 同步</td></tr>
-      <tr><td>M2</td><td>migration 010：<code>page_schema</code> + <code>build_manifest</code> JSONB</td><td>后端</td><td><span class="tag tag-plan">⬜ W3 D12</span></td><td>publish 后 DB 有两字段</td></tr>
-      <tr><td>M3</td><td><code>schema_generator.py</code>：capability_keys → page_schema + menu</td><td>后端</td><td><span class="tag tag-plan">⬜ W3 D13</span></td><td>勾 2 模块 → schema 含 2 Widget 节点</td></tr>
-      <tr><td>M4</td><td><code>build_manifest.py</code>：keys → web_pkg[] + flutter_pkg[]</td><td>后端</td><td><span class="tag tag-plan">⬜ W3 D13</span></td><td>响应含 manifest；PublishModal 可预览</td></tr>
-      <tr><td>M5</td><td><code>GET /runtime/{id}/schema</code> + <code>/manifest</code></td><td>API</td><td><span class="tag tag-plan">⬜ W3 D14</span></td><td>runtime-web / Flutter 可拉取</td></tr>
-      <tr><td>M6</td><td><code>packages/web-core</code> + <code>widget-registry.ts</code></td><td>Web</td><td><span class="tag tag-plan">⬜ W3 D14</span></td><td>registry.register(cap) 接口定稿</td></tr>
-      <tr><td>M7</td><td><code>web-capability-shanghai-voice</code>（迁 VoiceAgentPanel）</td><td>Web</td><td><span class="tag tag-plan">⬜ W3 D15</span></td><td>home 演示页与 runtime 共用同一包</td></tr>
-      <tr><td>M8</td><td><code>web-capability-chat</code> + ChatWidget 真渲染</td><td>Web</td><td><span class="tag tag-wip">⬜ W3 D16</span></td><td>/r/:id 可 SSE 对话</td></tr>
-      <tr><td>M9</td><td>runtime-web：config + schema → 动态路由</td><td>Web</td><td><span class="tag tag-plan">⬜ W3 D15–17</span></td><td>浏览器打开员工端</td></tr>
+      <tr><td>M1</td><td><code>capability_manifest</code> codegen（registry → shared JSON/TS/Dart）</td><td>契约</td><td><span class="tag tag-wip">🔶</span></td><td>JSON+TS 已生成；Dart 待 W5</td></tr>
+      <tr><td>M2</td><td>migration 011：<code>page_schema</code> + <code>build_manifest</code> JSONB</td><td>后端</td><td><span class="tag tag-done">✅</span></td><td>publish 后 DB 有两字段</td></tr>
+      <tr><td>M3</td><td><code>schema_generator.py</code>：capability_keys → page_schema + menu</td><td>后端</td><td><span class="tag tag-done">✅</span></td><td>12 模板映射</td></tr>
+      <tr><td>M4</td><td><code>build_manifest.py</code>：keys → web_pkg[] + flutter_pkg[]</td><td>后端</td><td><span class="tag tag-done">✅</span></td><td>PublishModal 可预览</td></tr>
+      <tr><td>M5</td><td><code>GET /runtime/{id}/schema|manifest|config</code></td><td>API</td><td><span class="tag tag-done">✅</span></td><td>runtime-web 已接</td></tr>
+      <tr><td>M6</td><td><code>packages/web-core</code> + <code>widget-registry.ts</code></td><td>Web</td><td><span class="tag tag-done">✅</span></td><td>WidgetHost 真渲染</td></tr>
+      <tr><td>M7</td><td><code>web-capability-voice</code></td><td>Web</td><td><span class="tag tag-done">✅</span></td><td>runtime 已注册</td></tr>
+      <tr><td>M8</td><td><code>web-capability-chat</code> + ChatWidget SSE</td><td>Web</td><td><span class="tag tag-done">✅</span></td><td>/r/:id 可对话</td></tr>
+      <tr><td>M9</td><td>runtime-web：manifest lazy 加载 + 动态路由</td><td>Web</td><td><span class="tag tag-done">✅</span></td><td>按 web_pkgs 动态 import</td></tr>
       <tr><td>M10</td><td>Melos：<code>packages/core</code> + <code>capability_shanghai_voice</code></td><td>Flutter</td><td><span class="tag tag-plan">⬜ W5 D25</span></td><td>从上海话页迁出独立 package</td></tr>
       <tr><td>M11</td><td>shell <code>go_router</code> + WidgetRegistry 读 capability_keys</td><td>Flutter</td><td><span class="tag tag-plan">⬜ W5 D26</span></td><td>删 app.dart 硬编码按钮</td></tr>
       <tr><td>M12</td><td><code>flutter-build-from-publish.sh</code></td><td>CI</td><td><span class="tag tag-plan">⬜ W5 D29</span></td><td>publish 后产出 per-app APK</td></tr>

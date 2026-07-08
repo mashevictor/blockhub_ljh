@@ -9,8 +9,27 @@ from app.data.capability_registry import ALL_CAPABILITIES
 # Convention-based web package names (physical packages under packages/)
 WEB_PKG_PREFIX = "@blockhub/web-capability"
 
+# Keys whose folder name differs from slug (must match runtime-web/vite aliases)
+WEB_PKG_OVERRIDES: dict[str, str] = {
+    "chat_qa": f"{WEB_PKG_PREFIX}-chat",
+    "chat_voice": f"{WEB_PKG_PREFIX}-chat",
+    "shanghai_voice": f"{WEB_PKG_PREFIX}-voice",
+    "shanghai_voice_stream": f"{WEB_PKG_PREFIX}-voice",
+    "approval_flow": f"{WEB_PKG_PREFIX}-approval",
+    "approval_inbox": f"{WEB_PKG_PREFIX}-approval",
+    "kb_document": f"{WEB_PKG_PREFIX}-kb",
+    "chart_dashboard": f"{WEB_PKG_PREFIX}-dashboard",
+    "chart_funnel": f"{WEB_PKG_PREFIX}-dashboard",
+    "notify_inapp": f"{WEB_PKG_PREFIX}-dashboard",
+}
 
-def _web_pkg(key: str) -> str:
+
+def _web_pkg(key: str) -> str | None:
+    if key in WEB_PKG_OVERRIDES:
+        return WEB_PKG_OVERRIDES[key]
+    cap = ALL_CAPABILITIES.get(key)
+    if not cap or not cap.widget:
+        return None
     slug = key.replace("_", "-")
     return f"{WEB_PKG_PREFIX}-{slug}"
 
@@ -56,9 +75,11 @@ def build_manifest(
         cap = ALL_CAPABILITIES.get(key)
         if not cap:
             continue
+        pkg = _web_pkg(key)
         widgets.append(cap.widget)
         routes.append(_route_for(key, cap.widget))
-        web_pkgs.append(_web_pkg(key))
+        if pkg and pkg not in web_pkgs:
+            web_pkgs.append(pkg)
         fp = _flutter_pkg(key)
         if fp and fp not in flutter_pkgs:
             flutter_pkgs.append(fp)

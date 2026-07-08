@@ -317,6 +317,8 @@ if [ -n "$TOKEN" ]; then
 
     MANIFEST=$(curl -sf "$API/runtime/$APP_ID/manifest" 2>/dev/null || echo "")
     if echo "$MANIFEST" | grep -q '"build_manifest"'; then ok "GET /runtime/{id}/manifest"; else bad "GET /runtime/{id}/manifest ($MANIFEST)"; fi
+    CONFIG=$(curl -sf "$API/runtime/$APP_ID/config" 2>/dev/null || echo "")
+    if echo "$CONFIG" | grep -q '"app_name"'; then ok "GET /runtime/{id}/config"; else bad "GET /runtime/{id}/config ($CONFIG)"; fi
 
     if echo "$PUBLISH" | grep -q '"notification"'; then ok "publish notification payload"; else bad "publish missing notification"; fi
 

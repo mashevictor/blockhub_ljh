@@ -379,3 +379,22 @@ class CustomCapability(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
+
+
+class PlazaFeedLike(Base):
+    __tablename__ = "plaza_feed_likes"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    app_public_id: Mapped[str] = mapped_column(String(16), nullable=False, index=True)
+    user_key: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class PlazaFeedComment(Base):
+    __tablename__ = "plaza_feed_comments"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    app_public_id: Mapped[str] = mapped_column(String(16), nullable=False, index=True)
+    author_name: Mapped[str] = mapped_column(String(120), nullable=False, default="访客")
+    text: Mapped[str] = mapped_column(String(500), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

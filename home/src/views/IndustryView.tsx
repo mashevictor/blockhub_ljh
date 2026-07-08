@@ -68,8 +68,9 @@ export default function IndustryView({ onPublish: _onPublish, active = true }: P
   }
 
   useEffect(() => {
+    if (!active) return
     loadScenes()
-  }, [industry])
+  }, [industry, active])
 
   useEffect(() => {
     if (active) return

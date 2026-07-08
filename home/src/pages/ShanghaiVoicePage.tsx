@@ -4,7 +4,10 @@ import { ROUTES } from '../routes/paths'
 
 export default function ShanghaiVoicePage() {
   return (
-    <div className="shanghai-voice-page">
+    <div
+      className="shanghai-voice-page"
+      style={{ minHeight: '100vh', background: '#0a0908', color: '#f5f0e8' }}
+    >
       <header className="shanghai-voice-topbar">
         <Link to={ROUTES.home} className="shanghai-voice-back">← 返回首页</Link>
         <span>方案 B · 独立上海话语音 Agent</span>

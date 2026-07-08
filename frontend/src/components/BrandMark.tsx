@@ -12,7 +12,14 @@ export default function BrandMark({ size = 42, className = '' }: Props) {
       className={`brand-mark${className ? ` ${className}` : ''}`}
       style={{ width: size, height: size }}
     >
-      <img src={LOGO.mark} alt="" width={size} height={size} />
+      <img
+        src={LOGO.mark}
+        alt=""
+        width={size}
+        height={size}
+        decoding="sync"
+        fetchPriority="high"
+      />
     </span>
   )
 }
