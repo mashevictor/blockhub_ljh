@@ -1,5 +1,17 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useVoiceWebSocket } from '../../hooks/useVoiceWebSocket'
+import { api } from '../../api/client'
+
+function newSessionId(): string {
+  try {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+      return `web-${crypto.randomUUID()}`
+    }
+  } catch {
+    /* ignore */
+  }
+  return `web-${Date.now().toString(36)}`
+}
 
 const STATE_LABEL: Record<string, string> = {
   disconnected: '未连接',
@@ -12,7 +24,7 @@ const STATE_LABEL: Record<string, string> = {
 }
 
 export default function VoiceAgentPanel() {
-  const sessionId = useMemo(() => `web-${crypto.randomUUID()}`, [])
+  const sessionId = useMemo(() => newSessionId(), [])
   const {
     state,
     partialText,
@@ -27,6 +39,13 @@ export default function VoiceAgentPanel() {
   } = useVoiceWebSocket(sessionId)
 
   const [started, setStarted] = useState(false)
+  const [voiceConfigured, setVoiceConfigured] = useState<boolean | null>(null)
+
+  useEffect(() => {
+    api.get<{ configured: boolean }>('/voice/config')
+      .then((res) => setVoiceConfigured(res.data.configured))
+      .catch(() => setVoiceConfigured(false))
+  }, [])
 
   const handleStart = async () => {
     setStarted(true)
@@ -48,14 +67,34 @@ export default function VoiceAgentPanel() {
       <div className="voice-agent-header">
         <div>
           <h2>上海话语音 Agent</h2>
-          <p>电信星辰 ASR/TTS · DeepSeek · 支持打断</p>
+          <p>电信星辰 ASR/TTS · DeepSeek · 支持打断 · 需麦克风权限</p>
         </div>
         <span className={`voice-state-badge voice-state-${state}`}>{STATE_LABEL[state] || state}</span>
       </div>
 
+      {voiceConfigured === false && (
+        <div className="voice-setup-banner" role="alert">
+          <strong>语音服务未配置</strong>
+          <p>服务器未设置电信星辰 API Key，无法连接实时语音。请联系管理员配置 <code>TELEAI_*</code> 环境变量后重试。</p>
+          <p className="voice-setup-hint">页面可正常打开；配置完成后点击「开始说话」即可体验。</p>
+        </div>
+      )}
+
+      {voiceConfigured === null && (
+        <p className="voice-empty">正在检查语音服务…</p>
+      )}
+
       <div className="voice-agent-messages">
         {messages.length === 0 && !partialText && (
-          <p className="voice-empty">点击「开始说话」后，用上海话或普通话提问。</p>
+          <div className="voice-welcome">
+            <p className="voice-welcome-title">这是独立语音演示页（方案 B）</p>
+            <p className="voice-empty">点击下方「开始说话」，用上海话或普通话提问；识别结果与回复会显示在这里。</p>
+            <ol className="voice-welcome-steps">
+              <li>允许浏览器使用麦克风</li>
+              <li>说完一句后点「结束本句」或等待自动识别</li>
+              <li>可随时点「打断」停止播报</li>
+            </ol>
+          </div>
         )}
         {messages.map((m, idx) => (
           <div key={`${m.role}-${idx}`} className={`voice-msg voice-msg-${m.role}`}>
@@ -75,8 +114,13 @@ export default function VoiceAgentPanel() {
 
       <div className="voice-agent-actions">
         {!started ? (
-          <button type="button" className="voice-btn voice-btn-primary" onClick={() => void handleStart()}>
-            开始说话
+          <button
+            type="button"
+            className="voice-btn voice-btn-primary"
+            disabled={voiceConfigured === false}
+            onClick={() => void handleStart()}
+          >
+            {voiceConfigured === false ? '语音服务未就绪' : '开始说话'}
           </button>
         ) : (
           <>

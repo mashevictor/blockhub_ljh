@@ -22,7 +22,8 @@ function asset(path: string): string {
 }
 
 export const LOGO = {
-  mark: asset('logo-mark.jpg'),
+  /** UI 顶栏/登录用 48×48 PNG（~1.5KB）；勿用 logo-mark.jpg（源图 ~400KB，弱网会白屏闪一下） */
+  mark: asset('favicon-48.png'),
   icon32: asset('favicon-32.png'),
 } as const
 
