@@ -40,53 +40,60 @@ class _ShanghaiVoicePageState extends State<ShanghaiVoicePage> {
     setState(() {});
   }
 
+  List<Widget> _buildActions() {
+    if (!_started) {
+      return [
+        FilledButton(onPressed: _start, child: const Text('开始说话')),
+      ];
+    }
+    return [
+      FilledButton(
+        onPressed: _service.state == 'listening'
+            ? () => _service.stopMic()
+            : () => _service.startMic(),
+        child: Text(_service.state == 'listening' ? '结束本句' : '继续说话'),
+      ),
+      OutlinedButton(onPressed: () => _service.bargeIn(), child: const Text('打断')),
+      TextButton(onPressed: () => _service.disconnect(), child: const Text('断开')),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('上海话语音 Agent')),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text('状态：${_service.state}', style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 8),
-            if (_service.partialText.isNotEmpty)
-              Text('识别中：${_service.partialText}'),
-            if (_service.error != null)
-              Text(_service.error!, style: const TextStyle(color: Colors.red)),
-            const SizedBox(height: 12),
-            Expanded(
-              child: ListView.builder(
-                itemCount: _service.messages.length,
-                itemBuilder: (context, index) {
-                  final item = _service.messages[index];
-                  final isUser = item['role'] == 'user';
-                  return ListTile(
-                    title: Text(isUser ? '你' : '助手'),
-                    subtitle: Text(item['text'] ?? ''),
-                  );
-                },
-              ),
+    // 作为「框架页面」内嵌到 App 壳里（与 Web runtime 一致），
+    // 自身不再包一层 Scaffold/AppBar，由外壳统一提供。
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.max,
+        children: [
+          Text('状态：${_service.state}', style: Theme.of(context).textTheme.titleMedium),
+          const SizedBox(height: 8),
+          if (_service.partialText.isNotEmpty)
+            Text('识别中：${_service.partialText}'),
+          if (_service.error != null)
+            Text(_service.error!, style: const TextStyle(color: Colors.red)),
+          const SizedBox(height: 12),
+          Expanded(
+            child: ListView.builder(
+              itemCount: _service.messages.length,
+              itemBuilder: (context, index) {
+                final item = _service.messages[index];
+                final isUser = item['role'] == 'user';
+                return ListTile(
+                  title: Text(isUser ? '你' : '助手'),
+                  subtitle: Text(item['text'] ?? ''),
+                );
+              },
             ),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                if (!_started)
-                  FilledButton(onPressed: () => _start(), child: const Text('开始说话'))
-                else ...[
-                  FilledButton(
-                    onPressed: _service.state == 'listening' ? () => _service.stopMic() : () => _service.startMic(),
-                    child: Text(_service.state == 'listening' ? '结束本句' : '继续说话'),
-                  ),
-                  OutlinedButton(onPressed: () => _service.bargeIn(), child: const Text('打断')),
-                  TextButton(onPressed: () => _service.disconnect(), child: const Text('断开')),
-                ],
-              ],
-            ),
-          ],
-        ),
+          ),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: _buildActions(),
+          ),
+        ],
       ),
     );
   }

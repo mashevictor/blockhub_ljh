@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'config/app_branding.dart';
 import 'models/tenant_config.dart';
-import 'pages/shanghai_voice_page.dart';
+import 'pages/capability_pages.dart';
 import 'services/config_service.dart';
 
 class RuntimeApp extends StatefulWidget {
@@ -62,50 +62,79 @@ class _RuntimeAppState extends State<RuntimeApp> {
   }
 }
 
-class _HomeBody extends StatelessWidget {
+class _HomeBody extends StatefulWidget {
   const _HomeBody({required this.config, required this.branding});
 
   final TenantConfig config;
   final AppBranding branding;
 
   @override
+  State<_HomeBody> createState() => _HomeBodyState();
+}
+
+class _HomeBodyState extends State<_HomeBody> {
+  late String? _selectedKey;
+
+  @override
+  void initState() {
+    super.initState();
+    final keys = widget.config.menu.map((m) => m.key).toList();
+    // 默认选中上海话语音（若存在），与「框架页面」一致：菜单驱动、就地切换
+    _selectedKey = keys.contains('shanghai_voice')
+        ? 'shanghai_voice'
+        : keys.firstOrNull;
+  }
+
+  Widget _buildPage(String key) {
+    final builder = capabilityPages[key];
+    if (builder != null) {
+      return builder(widget.branding);
+    }
+    final label = widget.config.menu
+        .firstWhere((m) => m.key == key, orElse: () => MenuItem(key: key, label: key, icon: ''))
+        .label;
+    return Center(
+      child: Text('「$label」页面建设中', style: Theme.of(context).textTheme.titleMedium),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.all(20),
+    final menu = widget.config.menu;
+    return Column(
       children: [
         ListTile(
           leading: CircleAvatar(
-            backgroundColor: Color(branding.primaryColorValue),
-            child: Text(config.appName.characters.first),
+            backgroundColor: Color(widget.branding.primaryColorValue),
+            child: Text(widget.config.appName.characters.first),
           ),
-          title: Text(config.appName, style: Theme.of(context).textTheme.titleLarge),
-          subtitle: Text(config.tenantName),
+          title: Text(widget.config.appName, style: Theme.of(context).textTheme.titleLarge),
+          subtitle: Text(widget.config.tenantName),
         ),
         const SizedBox(height: 12),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            for (final item in config.menu)
-              Chip(label: Text(item.label)),
-          ],
+        // 顶部导航：菜单项可点，选中即在「主区」就地切换页面（不再单独 push 一个页面）
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Row(
+            children: [
+              for (final item in menu)
+                Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: ChoiceChip(
+                    label: Text(item.label),
+                    selected: _selectedKey == item.key,
+                    onSelected: (_) => setState(() => _selectedKey = item.key),
+                  ),
+                ),
+            ],
+          ),
         ),
-        const SizedBox(height: 24),
-        FilledButton.icon(
-          onPressed: () {
-            Navigator.of(context).push(
-              MaterialPageRoute<void>(
-                builder: (_) => ShanghaiVoicePage(branding: branding),
-              ),
-            );
-          },
-          icon: const Icon(Icons.mic),
-          label: const Text('上海话语音 Agent'),
-        ),
-        const SizedBox(height: 24),
-        Text(
-          'Flutter runtime D6 骨架 — ConfigService + GET /tenant/config',
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey),
+        const Divider(height: 24),
+        Expanded(
+          child: _selectedKey == null
+              ? const Center(child: Text('暂无页面'))
+              : _buildPage(_selectedKey!),
         ),
       ],
     );
