@@ -5,6 +5,7 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import Response
 from pydantic import BaseModel
+from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
@@ -50,7 +51,7 @@ class FeasibilityRequest(BaseModel):
 
 
 class SuggestModulesRequest(BaseModel):
-    text: str
+    text: str | None = ""
     force_llm: bool = False
 
 
@@ -218,7 +219,16 @@ def get_capabilities(db: Session = Depends(get_db)) -> dict:
 
 @router.post("/suggest-modules")
 def suggest_modules_api(body: SuggestModulesRequest) -> dict:
-    return suggest_modules(body.text, force_llm=body.force_llm)
+    text = (body.text or "").strip()
+    if len(text) < 2:
+        return {
+            "items": [],
+            "confidence": 0.0,
+            "used_llm": False,
+            "supplemented": [],
+            "top_score": 0.0,
+        }
+    return suggest_modules(text, force_llm=body.force_llm)
 
 
 @router.post("/flow-module-apis")
@@ -240,6 +250,11 @@ def publish_app(
     current_user: Annotated[User | None, Depends(get_optional_user)] = None,
 ) -> dict:
     try:
+        has_description = len(body.prompt.strip()) >= 2
+        has_selection = bool(body.scenario_ids or body.scenario_names or body.capability_keys or body.modules)
+        if not has_description and not has_selection:
+            raise HTTPException(status_code=400, detail="请先选择功能模块或填写至少 2 个字的应用描述")
+
         names: list[str] = []
         all_scenarios = catalog_store.scenario_name_map(db)
         for sid in body.scenario_ids:
@@ -300,6 +315,9 @@ def publish_app(
         raise
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except OperationalError as exc:
+        logger.exception("POST /creation/publish database unavailable")
+        raise HTTPException(status_code=503, detail="数据库不可用，请确认 PostgreSQL 已启动并完成迁移") from exc
     except Exception as exc:
         logger.exception("POST /creation/publish failed")
         detail = str(exc).lower()

@@ -9,7 +9,7 @@ const appVersion = readAppVersion(path.join(dir, 'package.json'))
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, dir, '')
-  const devDefaultProxy = 'http://101.32.209.251'
+  const devDefaultProxy = 'http://127.0.0.1:8001'
   const apiProxyTarget =
     env.VITE_API_PROXY || process.env.VITE_API_PROXY || (mode === 'development' ? devDefaultProxy : 'http://127.0.0.1:8001')
   // eslint-disable-next-line no-console

@@ -19,6 +19,16 @@ function startOverlayPhaseTimers(setPhase: (phase: PublishWorkPhase | null) => v
   }
 }
 
+function errorMessageFromApi(error: unknown, fallback: string): string {
+  if (typeof error === 'object' && error !== null && 'response' in error) {
+    const response = (error as { response?: { data?: { detail?: unknown } } }).response
+    const detail = response?.data?.detail
+    if (typeof detail === 'string' && detail.trim()) return detail
+  }
+  if (error instanceof Error && error.message) return `${fallback}：${error.message}`
+  return fallback
+}
+
 export interface JustPublishedHint {
   appKey: string
   saveFailed: boolean
@@ -111,10 +121,10 @@ export async function runContactPublishPipeline(opts: {
     clearOverlayTimers()
     opts.setPhase('redirect')
     opts.onSuccess(result)
-  } catch {
+  } catch (error) {
     clearOverlayTimers()
     opts.setPhase(null)
-    opts.setError(opts.errorMessage ?? '搭建失败，请稍后再试')
+    opts.setError(errorMessageFromApi(error, opts.errorMessage ?? '搭建失败，请稍后再试'))
   }
 }
 
@@ -136,9 +146,9 @@ export async function runLoadingPublishPipeline(opts: {
     window.clearTimeout(maxTimer)
     opts.setLoading(false)
     opts.onSuccess(result)
-  } catch {
+  } catch (error) {
     window.clearTimeout(maxTimer)
     opts.setLoading(false)
-    opts.setError(opts.errorMessage ?? '搭建失败，请稍后再试')
+    opts.setError(errorMessageFromApi(error, opts.errorMessage ?? '搭建失败，请稍后再试'))
   }
 }

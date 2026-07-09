@@ -35,9 +35,11 @@ function scene(
   prompt: string,
   picks: AgentPick[],
   flowLines: string[],
-  weight = 3,
+  weightOrRole: number | string = 3,
 ): RolePreset {
-  return { id, label, hint, weight, color, prompt, picks, flowLines }
+  const weight = typeof weightOrRole === 'number' ? weightOrRole : 3
+  const role = typeof weightOrRole === 'string' ? weightOrRole : undefined
+  return { id, label, hint, role, weight, color, prompt, picks, flowLines }
 }
 
 /** 30 个生活 / 工作真实场景 — 英雄区弹幕词云 */
