@@ -15,6 +15,7 @@ import ReportPage from './pages/ReportPage'
 import NotificationPage from './pages/NotificationPage'
 import IntegrationPage from './pages/IntegrationPage'
 import ContractPage from './pages/ContractPage'
+import TenantSettingsPage from './pages/TenantSettingsPage'
 import LoginPage from './pages/LoginPage'
 
 export default function App() {
@@ -38,6 +39,7 @@ export default function App() {
           <Route path="reports" element={<RoleGate allow={['admin']}><ReportPage /></RoleGate>} />
           <Route path="report" element={<Navigate to="/reports" replace />} />
           <Route path="integrations" element={<RoleGate allow={['admin']}><IntegrationPage /></RoleGate>} />
+          <Route path="settings/tenant" element={<RoleGate allow={['admin']}><TenantSettingsPage /></RoleGate>} />
           <Route path="notifications" element={<NotificationPage />} />
           <Route path="notify" element={<Navigate to="/notifications" replace />} />
         </Route>

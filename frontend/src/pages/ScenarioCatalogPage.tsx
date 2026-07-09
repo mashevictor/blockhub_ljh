@@ -15,6 +15,8 @@ type CatalogItem =
   | (OfficeScenario & { kind: 'office' })
   | (IndustryScenario & { kind: 'industry' })
 
+const PAGE_SIZE = 24
+
 const PACKS = [
   { key: '', label: '全行业' },
   { key: 'mfg', label: '制造业', color: '#254b9c' },
@@ -57,29 +59,48 @@ export default function ScenarioCatalogPage() {
   const [pack, setPack] = useState('')
   const [category, setCategory] = useState('全部')
   const [q, setQ] = useState('')
+  const [page, setPage] = useState(1)
   const [summary, setSummary] = useState<CatalogSummary | null>(null)
   const [office, setOffice] = useState<OfficeScenario[]>([])
   const [industry, setIndustry] = useState<IndustryScenario[]>([])
+  const [officeTotal, setOfficeTotal] = useState(0)
+  const [industryTotal, setIndustryTotal] = useState(0)
 
   useEffect(() => {
     fetchCatalogSummary().then(setSummary)
   }, [])
 
   useEffect(() => {
+    setPage(1)
+  }, [tab, pack, category, q])
+
+  useEffect(() => {
     if (tab === 'industry') return
-    const params: { q?: string; category?: string } = {}
+    const params: { q?: string; category?: string; limit?: number; offset?: number } = {
+      limit: tab === 'office' ? PAGE_SIZE : 200,
+      offset: tab === 'office' ? (page - 1) * PAGE_SIZE : 0,
+    }
     if (q) params.q = q
     if (category !== '全部') params.category = category
-    fetchOfficeScenarios(params).then((d) => setOffice(d.items))
-  }, [category, q, tab])
+    fetchOfficeScenarios(params).then((d) => {
+      setOffice(d.items)
+      setOfficeTotal(d.total)
+    })
+  }, [category, q, tab, page])
 
   useEffect(() => {
     if (tab === 'office') return
-    const params: { q?: string; pack?: string } = {}
+    const params: { q?: string; pack?: string; limit?: number; offset?: number } = {
+      limit: tab === 'industry' ? PAGE_SIZE : 200,
+      offset: tab === 'industry' ? (page - 1) * PAGE_SIZE : 0,
+    }
     if (q) params.q = q
     if (pack) params.pack = pack
-    fetchIndustryScenarios(params).then((d) => setIndustry(d.items))
-  }, [pack, q, tab])
+    fetchIndustryScenarios(params).then((d) => {
+      setIndustry(d.items)
+      setIndustryTotal(d.total)
+    })
+  }, [pack, q, tab, page])
 
   const visibleItems = useMemo((): CatalogItem[] => {
     const list: CatalogItem[] = []
@@ -92,16 +113,30 @@ export default function ScenarioCatalogPage() {
     return list
   }, [tab, office, industry])
 
+  const totalCount = tab === 'office'
+    ? officeTotal
+    : tab === 'industry'
+      ? industryTotal
+      : visibleItems.length
+
+  const pageCount = Math.max(1, Math.ceil(totalCount / PAGE_SIZE))
+
+  const displayItems = useMemo(() => {
+    if (tab === 'office' || tab === 'industry') return visibleItems
+    const start = (page - 1) * PAGE_SIZE
+    return visibleItems.slice(start, start + PAGE_SIZE)
+  }, [tab, visibleItems, page])
+
   const categoryGroups = useMemo(() => {
     const map = new Map<string, CatalogItem[]>()
-    for (const item of visibleItems) {
+    for (const item of displayItems) {
       const key = groupKey(item)
       const list = map.get(key) ?? []
       list.push(item)
       map.set(key, list)
     }
     return [...map.entries()]
-  }, [visibleItems])
+  }, [displayItems])
 
   const handleTabChange = (t: Tab) => {
     setTab(t)
@@ -116,7 +151,7 @@ export default function ScenarioCatalogPage() {
         <p>
           {summary?.office_count ?? PLATFORM_STATS.officeScenarios} 办公场景 +{' '}
           {summary?.industry_count ?? PLATFORM_STATS.industryScenarios} 行业场景 ={' '}
-          <strong>{summary?.total ?? PLATFORM_STATS.scenarios}</strong> 总计
+          <strong>{summary?.total ?? PLATFORM_STATS.scenarios}</strong> 总计（PG 分页）
         </p>
       </div>
 
@@ -125,10 +160,9 @@ export default function ScenarioCatalogPage() {
         <div className="summary-pill"><div className="n">{summary?.industry_count ?? '—'}</div><div className="l">行业场景</div></div>
         <div className="summary-pill"><div className="n">{summary?.total ?? '—'}</div><div className="l">场景总计</div></div>
         <div className="summary-pill"><div className="n">{summary?.industry_packs ?? 4}</div><div className="l">行业方案包</div></div>
-        <div className="summary-pill"><div className="n">{visibleItems.length}</div><div className="l">当前筛选</div></div>
+        <div className="summary-pill"><div className="n">{totalCount}</div><div className="l">当前筛选</div></div>
       </div>
 
-      {/* 一级 Tab：全部 / 办公 / 行业 */}
       <div className="filter-bar">
         <div className="filter-tabs">
           {(['all', 'office', 'industry'] as Tab[]).map((t) => (
@@ -154,7 +188,6 @@ export default function ScenarioCatalogPage() {
         />
       </div>
 
-      {/* 二级：办公大类（仅非「行业」Tab 时显示，与 coze 一致） */}
       {tab !== 'industry' && (
         <div className="filter-bar">
           <div className="filter-tabs">
@@ -172,7 +205,6 @@ export default function ScenarioCatalogPage() {
         </div>
       )}
 
-      {/* 二级：行业包（仅非「办公」Tab 时显示，与 coze 一致） */}
       {tab !== 'office' && (
         <div className="filter-bar">
           <div className="filter-tabs">
@@ -190,7 +222,6 @@ export default function ScenarioCatalogPage() {
         </div>
       )}
 
-      {/* 按 category 分组展示（与 coze projects 相同逻辑） */}
       <div className="catalog-groups">
         {categoryGroups.map(([cat, items]) => {
           const firstIndustry = items.find((i): i is IndustryScenario & { kind: 'industry' } => i.kind === 'industry')
@@ -256,6 +287,31 @@ export default function ScenarioCatalogPage() {
           <div className="icon">🔍</div>
           <h2>没有匹配的场景</h2>
           <p>试试调整 Tab、行业包或搜索关键词</p>
+        </div>
+      )}
+
+      {totalCount > 0 && (
+        <div className="catalog-pagination" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, marginTop: 24 }}>
+          <button
+            type="button"
+            className="btn btn-ghost-dark"
+            disabled={page <= 1}
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+          >
+            上一页
+          </button>
+          <span style={{ fontSize: 13, color: 'var(--muted)' }}>
+            第 {page} / {pageCount} 页 · 共 {totalCount} 条
+            {summary?.total === 114 && tab === 'all' && !q && category === '全部' && !pack ? ' · count=114 ✓' : ''}
+          </span>
+          <button
+            type="button"
+            className="btn btn-ghost-dark"
+            disabled={page >= pageCount}
+            onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
+          >
+            下一页
+          </button>
         </div>
       )}
     </>

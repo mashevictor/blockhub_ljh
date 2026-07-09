@@ -384,15 +384,30 @@ export interface CatalogSummary {
 }
 
 export const fetchDashboard = () => api.get<DashboardStats>('/stats/dashboard').then((r) => r.data)
+
+export interface TenantConfigPayload {
+  app_name?: string
+  app_icon_url?: string
+  primary_color?: string
+  theme?: string
+  menu?: Array<{ key: string; label: string; icon: string }>
+}
+
+export const fetchTenantConfig = (tenant = 'demo') =>
+  api.get<TenantConfigPayload & { tenant_slug: string; tenant_name: string }>('/tenant/config', { params: { tenant } }).then((r) => r.data)
+
+export const updateTenantConfig = (payload: TenantConfigPayload, tenant = 'demo') =>
+  api.put('/tenant/config', payload, { params: { tenant } }).then((r) => r.data)
+
 export const fetchAgents = () => api.get<{ items: Agent[] }>('/agents').then((r) => r.data.items)
 export const fetchActivities = () => api.get('/stats/activities').then((r) => r.data.items)
 export const fetchTrends = () => api.get('/stats/trends').then((r) => r.data)
 export const fetchArchitecture = () => api.get('/stats/architecture').then((r) => r.data.layers)
 export const fetchCatalogSummary = () => api.get<CatalogSummary>('/catalog/summary').then((r) => r.data)
-export const fetchOfficeScenarios = (params?: { category?: string; q?: string }) =>
-  api.get<{ items: OfficeScenario[]; groups: unknown[] }>('/catalog/office', { params }).then((r) => r.data)
-export const fetchIndustryScenarios = (params?: { pack?: string; q?: string }) =>
-  api.get<{ items: IndustryScenario[]; packs: unknown[] }>('/catalog/industry', { params }).then((r) => r.data)
+export const fetchOfficeScenarios = (params?: { category?: string; q?: string; limit?: number; offset?: number }) =>
+  api.get<{ items: OfficeScenario[]; groups: unknown[]; total: number; limit: number; offset: number }>('/catalog/office', { params }).then((r) => r.data)
+export const fetchIndustryScenarios = (params?: { pack?: string; q?: string; limit?: number; offset?: number }) =>
+  api.get<{ items: IndustryScenario[]; packs: unknown[]; total: number; limit: number; offset: number }>('/catalog/industry', { params }).then((r) => r.data)
 export const fetchCapabilities = () => api.get('/catalog/modules').then((r) => r.data)
 
 // ── 合同盖章 Agent ──

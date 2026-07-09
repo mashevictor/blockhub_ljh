@@ -2,7 +2,13 @@
 
 from __future__ import annotations
 
+from app.data.capability_registry import ALL_CAPABILITIES
 from app.data.schema_templates import resolve_capability_keys
+
+
+def _registry_keys(keys: list[str]) -> list[str]:
+    """Only keys present in ALL_CAPABILITIES can be assembled into page_schema."""
+    return [k for k in keys if k and k in ALL_CAPABILITIES]
 
 
 def resolve_publish_capability_keys(
@@ -22,6 +28,6 @@ def resolve_publish_capability_keys(
 
     return resolve_capability_keys(
         scenario_names=scenario_names,
-        explicit_keys=explicit or None,
+        explicit_keys=_registry_keys(explicit) or None,
         industry_key=industry_key,
     )

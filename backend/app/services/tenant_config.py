@@ -108,3 +108,42 @@ def get_tenant_config(
                     payload["menu"] = menu
 
     return payload
+
+
+def update_tenant_config(
+    db: Session,
+    *,
+    tenant_slug: str,
+    patch: dict[str, Any],
+) -> dict[str, Any]:
+    tenant = db.query(Tenant).filter(Tenant.slug == tenant_slug).first()
+    if not tenant:
+        tenant = Tenant(name="TrackChat 演示租户", slug=tenant_slug)
+        db.add(tenant)
+        db.flush()
+
+    allowed_keys = {
+        "app_name",
+        "app_icon_url",
+        "primary_color",
+        "theme",
+        "menu",
+        "features",
+    }
+    current = ensure_tenant_config(db, tenant)
+    merged = dict(current)
+    for key, value in patch.items():
+        if key not in allowed_keys:
+            continue
+        if key == "menu" and isinstance(value, list):
+            merged["menu"] = value
+        elif key == "features" and isinstance(value, dict):
+            merged["features"] = {**merged.get("features", {}), **value}
+        else:
+            merged[key] = value
+
+    tenant.config_json = merged
+    db.add(tenant)
+    db.commit()
+    db.refresh(tenant)
+    return get_tenant_config(db, tenant_slug=tenant_slug)

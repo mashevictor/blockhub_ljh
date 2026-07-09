@@ -117,10 +117,14 @@ class _HomeBodyState extends State<_HomeBody> {
   void initState() {
     super.initState();
     final keys = widget.config.menu.map((m) => m.key).toList();
-    // 默认选中上海话语音（若存在），与「框架页面」一致：菜单驱动、就地切换
-    _selectedKey = keys.contains('shanghai_voice')
+    // 契约 manifest 优先；否则菜单驱动（W5 与 runtime-web 对齐）
+    final manifestKeys = widget.config.resolvedCapabilityKeys;
+    final preferred = manifestKeys.contains('shanghai_voice')
         ? 'shanghai_voice'
-        : keys.firstOrNull;
+        : (keys.contains('shanghai_voice')
+            ? 'shanghai_voice'
+            : (manifestKeys.isNotEmpty ? manifestKeys.first : keys.firstOrNull));
+    _selectedKey = preferred;
   }
 
   Widget _buildPage(String key) {

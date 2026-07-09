@@ -64,6 +64,20 @@ NID=$(curl -sf "$API/notifications" -H "$AUTH" | python3 -c 'import sys,json;pri
 MR=$(curl -sf -X POST "$API/notifications/$NID/read" -H "$AUTH")
 [ -n "$MR" ] && ok "mark notification read" || no "mark read"
 
+# --- W4 D22–D24: catalog pagination + tenant config + stats ---
+SUM=$(curl -sf "$API/catalog/summary" -H "$AUTH")
+echo "$SUM" | python3 -c 'import sys,json;d=json.load(sys.stdin);assert d.get("total")==114' \
+  && ok "catalog total=114" || no "catalog total=114"
+OFF=$(curl -sf "$API/catalog/office?limit=20&offset=0" -H "$AUTH")
+echo "$OFF" | python3 -c 'import sys,json;d=json.load(sys.stdin);assert d["total"]>=60 and len(d["items"])<=20' \
+  && ok "catalog/office pagination" || no "catalog/office pagination"
+TEN=$(curl -sf "$API/tenant/config?tenant=demo" -H "$AUTH")
+echo "$TEN" | python3 -c 'import sys,json;d=json.load(sys.stdin);assert d.get("tenant_slug")=="demo"' \
+  && ok "GET /tenant/config" || no "GET /tenant/config"
+DASH=$(curl -sf "$API/stats/dashboard" -H "$AUTH")
+echo "$DASH" | python3 -c 'import sys,json;d=json.load(sys.stdin);assert "apps_created" in d and d.get("total_scenarios",0)>=100' \
+  && ok "stats/dashboard real PG" || no "stats/dashboard"
+
 echo ""
 echo " Result: $PASS passed, $FAIL failed"
 echo "=========================================="

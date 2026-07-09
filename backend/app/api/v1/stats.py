@@ -1,50 +1,26 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from app.data.module_data import _notify_store, approval_stats
-from app.data.seed import ARCH_LAYERS, RECENT_ACTIVITIES
-from app.db.models import AppRecord, CatalogAgent
+from app.data.seed import ARCH_LAYERS
 from app.db.session import get_db
-from app.services import catalog_store
+from app.services.stats_service import dashboard_stats, recent_activities, usage_trends
 
 router = APIRouter(prefix="/stats", tags=["stats"])
 
 
 @router.get("/dashboard")
-def dashboard_stats(db: Session = Depends(get_db)) -> dict:
-    appr = approval_stats()
-    unread = sum(1 for n in _notify_store if not n["read"])
-    apps_count = db.query(AppRecord).count()
-    summary = catalog_store.catalog_summary(db)
-    return {
-        "status": "healthy",
-        "status_text": "系统运行正常",
-        "agents": db.query(CatalogAgent).count(),
-        "capabilities": summary["capability_count"],
-        "office_scenarios": summary["office_count"],
-        "industry_scenarios": summary["industry_count"],
-        "total_scenarios": summary["total"],
-        "apps_created": apps_count,
-        "chat_sessions": 1286,
-        "pending_approvals": appr["pending"],
-        "unread_notifications": unread,
-    }
+def dashboard_stats_api(db: Session = Depends(get_db)) -> dict:
+    return dashboard_stats(db)
 
 
 @router.get("/activities")
-def recent_activities() -> dict:
-    return {"items": RECENT_ACTIVITIES}
+def recent_activities_api(db: Session = Depends(get_db)) -> dict:
+    return {"items": recent_activities(db)}
 
 
 @router.get("/trends")
-def usage_trends() -> dict:
-    return {
-        "growth": "+23%",
-        "label": "问答与审批使用量",
-        "days": ["周一", "周二", "周三", "周四", "周五", "周六", "周日"],
-        "chat_qa": [42, 58, 65, 72, 68, 35, 28],
-        "approval": [18, 22, 28, 31, 26, 12, 8],
-    }
+def usage_trends_api(db: Session = Depends(get_db)) -> dict:
+    return usage_trends(db)
 
 
 @router.get("/architecture")

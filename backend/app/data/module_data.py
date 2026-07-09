@@ -56,8 +56,11 @@ INDUSTRY_PACK_OPTIONS = [
 CREATION_WIZARD_STEPS = [
     {"step": 1, "title": "选择行业", "key": "industry"},
     {"step": 2, "title": "选择场景", "key": "scenarios"},
-    {"step": 3, "title": "研判确认", "key": "feasibility"},
-    {"step": 4, "title": "创建完成", "key": "complete"},
+    {"step": 3, "title": "方案研判", "key": "feasibility"},
+    {"step": 4, "title": "应用命名", "key": "branding"},
+    {"step": 5, "title": "交付方式", "key": "deliver"},
+    {"step": 6, "title": "确认发布", "key": "publish"},
+    {"step": 7, "title": "创建完成", "key": "complete"},
 ]
 
 # ── 智能问答 ──────────────────────────────────────────
