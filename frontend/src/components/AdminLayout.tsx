@@ -19,6 +19,7 @@ import {
   IconBarChart,
   IconBell,
   IconStamp,
+  IconLayers,
 } from './icons'
 
 const NAV: Array<{ to: string; label: string; icon: typeof IconHome; end?: boolean; roles: AppRole[] }> = [
@@ -31,6 +32,7 @@ const NAV: Array<{ to: string; label: string; icon: typeof IconHome; end?: boole
   { to: '/approvals', label: '审批中心', icon: IconCheckCircle, roles: ['admin', 'employee'] },
   { to: '/contracts', label: '合同盖章', icon: IconStamp, roles: ['admin'] },
   { to: '/reports', label: '数据报表', icon: IconBarChart, roles: ['admin'] },
+  { to: '/integrations', label: '系统集成', icon: IconLayers, roles: ['admin'] },
   { to: '/notifications', label: '消息通知', icon: IconBell, roles: ['admin', 'employee'] },
 ]
 

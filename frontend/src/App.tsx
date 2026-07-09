@@ -13,6 +13,7 @@ import KnowledgePage from './pages/KnowledgePage'
 import ApprovalPage from './pages/ApprovalPage'
 import ReportPage from './pages/ReportPage'
 import NotificationPage from './pages/NotificationPage'
+import IntegrationPage from './pages/IntegrationPage'
 import ContractPage from './pages/ContractPage'
 import LoginPage from './pages/LoginPage'
 
@@ -36,6 +37,7 @@ export default function App() {
           <Route path="approval" element={<Navigate to="/approvals" replace />} />
           <Route path="reports" element={<RoleGate allow={['admin']}><ReportPage /></RoleGate>} />
           <Route path="report" element={<Navigate to="/reports" replace />} />
+          <Route path="integrations" element={<RoleGate allow={['admin']}><IntegrationPage /></RoleGate>} />
           <Route path="notifications" element={<NotificationPage />} />
           <Route path="notify" element={<Navigate to="/notifications" replace />} />
         </Route>

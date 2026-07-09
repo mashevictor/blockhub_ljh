@@ -20,9 +20,12 @@ def list_office(
     category: str | None = Query(None, description="Filter by category name"),
     q: str | None = Query(None, description="Search by scenario name"),
     lite: bool = Query(False, description="Minimal fields for Home list (faster)"),
+    limit: int = Query(50, description="分页大小", ge=1, le=500),
+    offset: int = Query(0, description="分页偏移", ge=0),
 ) -> dict:
     items, groups = catalog_store.list_office_scenarios(db, category=category, q=q, lite=lite)
-    return {"total": len(items), "items": items, "groups": groups}
+    total = len(items)
+    return {"total": total, "items": items[offset:offset + limit], "groups": groups, "limit": limit, "offset": offset}
 
 
 @router.get("/office/groups")
@@ -39,9 +42,12 @@ def list_industry(
     category: str | None = Query(None, description="Filter by sub-category e.g. 临床知识"),
     q: str | None = Query(None, description="Search by scenario name"),
     lite: bool = Query(False, description="Minimal fields for Home list (faster)"),
+    limit: int = Query(50, description="分页大小", ge=1, le=500),
+    offset: int = Query(0, description="分页偏移", ge=0),
 ) -> dict:
     items, packs = catalog_store.list_industry_scenarios(db, pack=pack, category=category, q=q, lite=lite)
-    return {"total": len(items), "items": items, "packs": packs}
+    total = len(items)
+    return {"total": total, "items": items[offset:offset + limit], "packs": packs, "limit": limit, "offset": offset}
 
 
 @router.get("/industry/{pack_key}")
@@ -57,9 +63,12 @@ def list_all_scenarios(
     db: Annotated[Session, Depends(get_db)],
     type: str | None = Query(None, description="office|industry"),
     q: str | None = Query(None),
+    limit: int = Query(20, description="分页大小", ge=1, le=500),
+    offset: int = Query(0, description="分页偏移", ge=0),
 ) -> dict:
     items = catalog_store.list_all_scenarios(db, type=type, q=q)
-    return {"total": len(items), "items": items}
+    total = len(items)
+    return {"total": total, "items": items[offset:offset + limit], "limit": limit, "offset": offset}
 
 
 @router.get("/modules")

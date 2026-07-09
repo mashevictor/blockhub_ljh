@@ -284,6 +284,39 @@ export const fetchNotifications = (read?: 'unread' | 'read') =>
 export const markNotificationRead = (id: string) =>
   api.post(`/notifications/${id}/read`).then((r) => r.data)
 
+// ── 集成（W4 七 Agent · 系统对接）──
+export interface Connector {
+  id: string
+  name: string
+  connector_type: string
+  config: Record<string, unknown>
+  status: string
+  last_sync_at: string | null
+  created_at: string
+}
+export interface EtlJobItem {
+  id: string
+  status: string
+  trigger: string
+  result: Record<string, unknown> | null
+  ran_at: string | null
+  created_at: string
+}
+
+export const fetchConnectors = () =>
+  api.get<{ total: number; items: Connector[] }>('/integrations').then((r) => r.data)
+export const createConnector = (payload: { name: string; connector_type?: string; config?: Record<string, unknown> }) =>
+  api.post('/integrations', payload).then((r) => r.data)
+export const updateConnector = (id: string, payload: Partial<Connector>) =>
+  api.patch(`/integrations/${id}`, payload).then((r) => r.data)
+export const deleteConnector = (id: string) =>
+  api.delete(`/integrations/${id}`).then((r) => r.data)
+export const syncConnector = (id: string) =>
+  api.post(`/integrations/${id}/sync`).then((r) => r.data)
+export const fetchConnectorJobs = (id: string) =>
+  api.get<{ total: number; items: EtlJobItem[] }>(`/integrations/${id}/jobs`).then((r) => r.data)
+
+
 export const markAllNotificationsRead = () =>
   api.post('/notifications/read-all').then((r) => r.data)
 

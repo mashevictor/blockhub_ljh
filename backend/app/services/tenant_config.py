@@ -7,7 +7,7 @@ from typing import Any
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
-from app.db.models import AppRecord, Tenant
+from app.db.models import AppRecord, ApprovalRecord, Tenant, User
 from app.services.db_seed import DEFAULT_TENANT_SLUG
 
 DEFAULT_TENANT_CONFIG: dict[str, Any] = {
@@ -69,6 +69,16 @@ def get_tenant_config(
         "tenant_slug": tenant.slug,
         "tenant_name": tenant.name,
         **config,
+    }
+
+    # Real tenant stats (W4 · 非 Mock).
+    apps_count = db.query(AppRecord).filter(AppRecord.tenant_id == tenant.id).count()
+    approvals_count = db.query(ApprovalRecord).filter(ApprovalRecord.tenant_id == tenant.id).count()
+    users_count = db.query(User).filter(User.tenant_id == tenant.id).count()
+    payload["stats"] = {
+        "apps": apps_count,
+        "approvals": approvals_count,
+        "users": users_count,
     }
 
     if app_public_id:

@@ -8,6 +8,7 @@ from typing import Any
 from sqlalchemy.orm import Session
 
 from app.db.models import ApprovalRecord, User
+from app.services.notification_service import create_notification, notify_tenant_admins
 
 DEMO_APPROVALS = [
     {
@@ -140,6 +141,15 @@ def submit_approval(
     db.add(record)
     db.commit()
     db.refresh(record)
+    applicant_name = user.display_name or user.email or "员工"
+    notify_tenant_admins(
+        db,
+        tenant_id=user.tenant_id,
+        title="新的审批申请",
+        content=f"{applicant_name} 提交了「{record.title}」，请及时处理",
+        type="approval",
+        reference_id=record.id,
+    )
     return approval_to_dict(record)
 
 
@@ -169,4 +179,14 @@ def action_approval(
     db.add(record)
     db.commit()
     db.refresh(record)
+    verb = "通过" if action == "approve" else "驳回"
+    create_notification(
+        db,
+        tenant_id=tenant_id,
+        title=f"审批{verb}：{record.title}",
+        content=f"您的「{record.title}」已被{verb}" + (f"：{comment}" if comment else ""),
+        type="approval_result",
+        recipient_user_id=record.applicant_id,
+        reference_id=record.id,
+    )
     return approval_to_dict(record)
