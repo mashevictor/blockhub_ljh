@@ -250,21 +250,21 @@ sequenceDiagram
         <td>schema_generator + 12 模板</td>
         <td>runtime-web · Flutter sdui_engine</td>
         <td>root: tabs → ShanghaiVoiceWidget, ChatWidget</td>
-        <td><span class="tag tag-plan">⬜ 待实现</span></td>
+        <td><span class="tag tag-ok">✅ 已落库</span></td>
       </tr>
       <tr>
         <td><code>build_manifest</code></td>
         <td>build_manifest.py + registry</td>
         <td>runtime import map · Melos link · CI</td>
         <td><code>web_pkgs: ["@bh/web-capability-shanghai-voice"]</code></td>
-        <td><span class="tag tag-plan">⬜ 待实现</span></td>
+        <td><span class="tag tag-ok">✅ 已落库</span></td>
       </tr>
       <tr>
         <td><code>capability_manifest</code></td>
         <td>codegen from registry</td>
         <td>三端共享 · 单一来源</td>
         <td>key → widget, route, web_pkg, flutter_pkg</td>
-        <td><span class="tag tag-plan">⬜ 待实现</span></td>
+        <td><span class="tag tag-wip">🔶 JSON/TS ✅ · Dart 待 W5</span></td>
       </tr>
     </tbody>
   </table>
@@ -327,7 +327,7 @@ sequenceDiagram
     <div class="layer l2">
       <span class="lv">L2</span><strong>Capability</strong>
       <span>43 项 registry · widget · web_pkg · flutter_pkg · capability_manifest codegen</span>
-      <span><span class="tag tag-warn">registry ✅ manifest ⬜</span></span>
+      <span><span class="tag tag-ok">registry ✅ manifest JSON/TS ✅</span></span>
     </div>
     <div class="layer l1">
       <span class="lv">L1</span><strong>Agent</strong>
@@ -385,17 +385,17 @@ flowchart TB
 
   <pre class="tree">cozecode/
 ├── shared/
-│   ├── capability-manifest.ts      ← codegen（待建）
-│   ├── page-schema.ts              ← 扩展 types（待建）
+│   ├── capability-manifest.ts      ← codegen 已生成（JSON + TS；Dart 待 W5）
+│   ├── page-schema.ts              ← 扩展 types
 │   └── brand.ts · themes.ts
-├── packages/                       ← Web 能力包（待建目录）
+├── packages/                       ← Web 能力包（已建目录）
 │   ├── web-core/
-│   ├── web-capability-shanghai-voice/   ← P0 从上海话页迁出
+│   ├── web-capability-shanghai-voice/
 │   ├── web-capability-chat/
 │   └── web-capability-approval/
 ├── home/                           ← 创作门户 · 引用 capability 包
 ├── frontend/                       ← Admin
-├── runtime-web/                    ← 员工端 · WidgetRegistry 组装
+├── runtime-web/                    ← 员工端 · WidgetRegistry 按 manifest 动态组装
 ├── runtime-app/                    ← Melos（待重组）
 │   ├── melos.yaml
 │   ├── apps/shell/
@@ -405,9 +405,9 @@ flowchart TB
 │       └── capability_shanghai_voice/
 └── backend/
     ├── app/data/capability_registry.py
-    ├── app/services/schema_generator.py    ← 待建
-    ├── app/services/build_manifest.py      ← 待建
-    └── alembic/versions/010_app_page_schema.py  ← 待建</pre>
+    ├── app/services/schema_generator.py    ← 已实现（12 模板）
+    ├── app/services/build_manifest.py      ← 已实现
+    └── alembic/versions/011_app_page_schema.py  ← 已建（含 012 plaza 互动 / 013 通知 / 014 集成）</pre>
 </section>
 
 <!-- 6 部署 -->
@@ -455,11 +455,11 @@ flowchart TB
     <tbody>
       <tr><td>用户 / 租户</td><td>PostgreSQL</td><td><code>users</code> <code>tenants</code></td><td><span class="tag tag-ok">✅</span></td></tr>
       <tr><td>发布应用</td><td>PostgreSQL</td><td><code>apps</code> · capability_keys · modules</td><td><span class="tag tag-ok">✅</span></td></tr>
-      <tr><td>page_schema / build_manifest</td><td>PostgreSQL JSONB</td><td><code>apps</code> 新字段 migration 010</td><td><span class="tag tag-plan">⬜</span></td></tr>
+      <tr><td>page_schema / build_manifest</td><td>PostgreSQL JSONB</td><td><code>apps</code> 新字段 migration 011</td><td><span class="tag tag-ok">✅</span></td></tr>
       <tr><td>114 Catalog</td><td>PostgreSQL</td><td><code>catalog_*</code></td><td><span class="tag tag-ok">✅</span></td></tr>
       <tr><td>KB 文档 + 向量</td><td>PG + pgvector + COS</td><td><code>kb_*</code> migration 009</td><td><span class="tag tag-ahead">🔵 代码 ✅ 生产插件待装</span></td></tr>
       <tr><td>Chat 会话</td><td>部分内存</td><td>—</td><td><span class="tag tag-warn">W2 D11</span></td></tr>
-      <tr><td>审批 / 报表 / 通知</td><td>Mock / 待 PG</td><td>—</td><td><span class="tag tag-plan">W2–W4</span></td></tr>
+      <tr><td>审批 / 报表 / 通知</td><td>审批 PG ✅ · 报表 PG 聚合 ✅ · 通知 PG ✅ · 集成 connector/etl ✅</td><td>approvals / report_service / notification_service / integration</td><td><span class="tag tag-ok">W4 ✅</span></td></tr>
       <tr><td>限流</td><td>Redis（降级内存）</td><td><code>redis_client.py</code></td><td><span class="tag tag-warn">生产待通</span></td></tr>
     </tbody>
   </table>
@@ -469,10 +469,14 @@ flowchart LR
   subgraph Alembic["Alembic 迁移链（当前）"]
     M001["001 初始"]
     M009["009 kb+pgvector"]
-    M010["010 page_schema<br/>build_manifest ⬜"]
+    M010["010 page_schema<br/>build_manifest ✅"]
+    M011["011 app_page_schema"]
+    M012["012 plaza 互动"]
+    M013["013 notifications"]
+    M014["014 integration"]
     M001 --> M002["002 OTP"] --> M003["003 Catalog"] --> M004["004 Hero"]
     M004 --> M005["005 contracts"] --> M006["006 tenant"] --> M007["007 branding"]
-    M007 --> M008["008 plaza"] --> M009 --> M010
+    M007 --> M008["008 plaza"] --> M009 --> M010 --> M011 --> M012 --> M013 --> M014
   end
   </pre></div>
 </section>
@@ -495,13 +499,13 @@ flowchart LR
       </ul>
     </div>
     <div class="card">
-      <strong>模块化待建 · W3</strong>
+      <strong>模块化已实现 · W3 收口</strong>
       <ul style="font-size:12px;color:var(--muted);padding-left:18px;margin-top:8px">
-        <li><code>GET /runtime/{id}/schema</code> → page_schema</li>
-        <li><code>GET /runtime/{id}/manifest</code> → build_manifest</li>
-        <li>publish 响应含 schema + manifest 预览</li>
-        <li><code>schema_templates.py</code> 12 模板</li>
-        <li>tenant/config menu 从 schema 生成</li>
+        <li><code>GET /runtime/{id}/schema</code> → page_schema ✅</li>
+        <li><code>GET /runtime/{id}/manifest</code> → build_manifest ✅</li>
+        <li>publish 响应含 schema + manifest 预览 ✅</li>
+        <li><code>schema_templates.py</code> 12 模板 ✅</li>
+        <li>tenant/config menu 从 schema 生成 ✅ · 新增真实租户统计</li>
       </ul>
     </div>
   </div>

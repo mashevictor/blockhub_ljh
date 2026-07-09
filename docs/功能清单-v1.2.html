@@ -61,7 +61,7 @@ td code{font-size:11px;background:#f5f5f4;padding:2px 6px;border-radius:4px}
   <p class="meta">
     <strong>模块化交付版</strong> · 2026-07-08 修订（D8）· 对齐 6 周全量攻坚 + 模块化生成主线。<br>
     核心目标：<strong>Home 勾选 capability_keys → 生成 page_schema + build_manifest → runtime-web / Flutter 按模块组装</strong>。
-    当前进度：<span style="color:#86efac">W3 发布闭环 ~95% 完成</span> · <span style="color:#fde68a">RAG / 语音超前</span> · W4 报表/通知待做。
+    当前进度：<span style="color:#86efac">W3 发布闭环 已完成</span> · <span style="color:#fde68a">RAG / 语音超前</span> · <span style="color:#86efac">W4 七 Agent 非 Mock 已完成</span>（报表/通知/集成落 PG）。
   </p>
   <div class="stats">
     <div class="stat"><div class="n">D8</div><div class="l">当前工作日</div></div>
@@ -158,7 +158,7 @@ td code{font-size:11px;background:#f5f5f4;padding:2px 6px;border-radius:4px}
       <tr><td>广场 Feed + 互动</td><td>W3–W4</td><td><span class="tag tag-done">✅</span></td><td>publish/feed · like/comment PG</td></tr>
       <tr><td>KB + RAG + citation</td><td>W2</td><td><span class="tag tag-ahead">🔵</span></td><td>009 pgvector</td></tr>
       <tr><td>上海话语音 Agent</td><td>扩展</td><td><span class="tag tag-ahead">🔵</span></td><td>runtime VoiceWidget 已接</td></tr>
-      <tr><td>审批真状态机</td><td>W2</td><td><span class="tag tag-wip">🔶</span></td><td>PG + demo seed；通知未联动</td></tr>
+      <tr><td>审批真状态机</td><td>W2</td><td><span class="tag tag-done">✅</span></td><td>PG + demo seed；提交/通过已联动通知</td></tr>
       <tr><td>capability_manifest TS</td><td>W3</td><td><span class="tag tag-wip">🔶</span></td><td>JSON+TS 已生成；Dart 待 W5</td></tr>
       <tr><td>Flutter Melos + 裁剪</td><td>W5</td><td><span class="tag tag-plan">⬜</span></td><td>—</td></tr>
       <tr><td>部署 / smoke</td><td>W5–W6</td><td><span class="tag tag-done">✅</span></td><td>smoke-test + smoke-admin-api + smoke-w3</td></tr>
@@ -239,10 +239,10 @@ td code{font-size:11px;background:#f5f5f4;padding:2px 6px;border-radius:4px}
       <tr><td>DeepSeek 模块推荐</td><td><span class="tag tag-done">✅</span></td><td>suggest-modules</td></tr>
       <tr><td>联系门禁 + 发布 API</td><td><span class="tag tag-done">✅</span></td><td>落库 apps；W3 显示 build_manifest 预览</td></tr>
       <tr><td>JWT 登录</td><td><span class="tag tag-done">✅</span></td><td>—</td></tr>
-      <tr><td>发布弹窗真 webUrl</td><td><span class="tag tag-wip">🔶</span></td><td>URL 有；runtime 内容未按 schema 渲染</td></tr>
-      <tr><td>PublishModal 模块预览</td><td><span class="tag tag-plan">⬜</span></td><td>W3：将生成哪些 Web/App 包</td></tr>
+      <tr><td>发布弹窗真 webUrl</td><td><span class="tag tag-done">✅</span></td><td>URL 有；runtime 按 schema 真渲染</td></tr>
+      <tr><td>PublishModal 模块预览</td><td><span class="tag tag-done">✅</span></td><td>生成 build_manifest 预览（含 web_pkgs）</td></tr>
       <tr><td>上海话演示 <code>/agents/shanghai-voice</code></td><td><span class="tag tag-ahead">🔵</span></td><td>W3 迁入 web-capability 包</td></tr>
-      <tr><td>@ 受众 + 广场</td><td><span class="tag tag-wip">🔶</span></td><td>部分 API；W4 互动落库</td></tr>
+      <tr><td>@ 受众 + 广场</td><td><span class="tag tag-done">✅</span></td><td>publish/feed + like/comment 已落 PG</td></tr>
     </tbody>
   </table>
 </section>
@@ -252,12 +252,12 @@ td code{font-size:11px;background:#f5f5f4;padding:2px 6px;border-radius:4px}
   <table>
     <thead><tr><th>功能</th><th>当前</th><th>6 周目标（v1.2）</th></tr></thead>
     <tbody>
-      <tr><td>runtime-web 脚手架</td><td><span class="tag tag-wip">🔶</span></td><td>W3 真渲染 + 动态路由</td></tr>
-      <tr><td>schema-renderer</td><td><span class="tag tag-plan">⬜ 占位</span></td><td>WidgetRegistry + 首批 4 Widget</td></tr>
-      <tr><td>page_schema 落库</td><td><span class="tag tag-plan">⬜</span></td><td>migration 010 + SchemaGenerator</td></tr>
-      <tr><td>build_manifest</td><td><span class="tag tag-plan">⬜</span></td><td>publish 响应 + GET /runtime/manifest</td></tr>
-      <tr><td>按勾选组装 Web</td><td><span class="tag tag-plan">⬜</span></td><td>只加载 manifest.web_pkgs</td></tr>
-      <tr><td>deliver web/app/both</td><td><span class="tag tag-wip">🔶</span></td><td>字段有；App 未按 manifest 裁剪</td></tr>
+      <tr><td>runtime-web 脚手架</td><td><span class="tag tag-done">✅</span></td><td>W3 真渲染 + 动态路由（按 manifest 懒加载）</td></tr>
+      <tr><td>schema-renderer</td><td><span class="tag tag-done">✅</span></td><td>WidgetRegistry + 首批 Widget（chat/approval/list/voice）</td></tr>
+      <tr><td>page_schema 落库</td><td><span class="tag tag-done">✅</span></td><td>migration 011 + SchemaGenerator</td></tr>
+      <tr><td>build_manifest</td><td><span class="tag tag-done">✅</span></td><td>publish 响应 + GET /runtime/manifest</td></tr>
+      <tr><td>按勾选组装 Web</td><td><span class="tag tag-done">✅</span></td><td>只加载 manifest.web_pkgs（动态 import）</td></tr>
+      <tr><td>deliver web/app/both</td><td><span class="tag tag-wip">🔶</span></td><td>Web 已按 manifest 裁剪；App 待 W5 Flutter</td></tr>
       <tr><td>APK per-app</td><td><span class="tag tag-wip">🔶</span></td><td>default.apk 有；per-app 待 build 脚本</td></tr>
     </tbody>
   </table>
@@ -271,9 +271,9 @@ td code{font-size:11px;background:#f5f5f4;padding:2px 6px;border-radius:4px}
       <tr><td>工作台 / Catalog / Agent</td><td><span class="tag tag-done">✅ UI+PG</span></td><td>—</td></tr>
       <tr><td>智能问答 SSE</td><td><span class="tag tag-done">✅</span></td><td>W1 完成</td></tr>
       <tr><td>知识库 + RAG</td><td><span class="tag tag-ahead">🔵</span></td><td>W2 超前；Admin UI 已接</td></tr>
-      <tr><td>审批流程</td><td><span class="tag tag-mock">🎭</span></td><td>W2 D10–D11</td></tr>
-      <tr><td>报表 / 通知 / 集成</td><td><span class="tag tag-mock">🎭</span></td><td>W4</td></tr>
-      <tr><td>租户 Config 表单</td><td><span class="tag tag-plan">⬜</span></td><td>W4 D23</td></tr>
+      <tr><td>审批流程</td><td><span class="tag tag-done">✅ PG</span></td><td>状态机 + demo seed；提交/通过联动通知</td></tr>
+      <tr><td>报表 / 通知 / 集成</td><td><span class="tag tag-done">✅ 非 Mock</span></td><td>W4：PG 聚合 / 通知落 PG / connector+etl</td></tr>
+      <tr><td>租户 Config 表单</td><td><span class="tag tag-wip">🔶</span></td><td>W4：真实租户统计已返回；表单编辑待补</td></tr>
     </tbody>
   </table>
 </section>
@@ -283,13 +283,13 @@ td code{font-size:11px;background:#f5f5f4;padding:2px 6px;border-radius:4px}
   <table>
     <thead><tr><th>能力</th><th>状态</th><th>模块化相关</th></tr></thead>
     <tbody>
-      <tr><td>Catalog / Agents / Creation publish</td><td><span class="tag tag-done">✅ PG</span></td><td>publish 缺 page_schema 生成</td></tr>
+      <tr><td>Catalog / Agents / Creation publish</td><td><span class="tag tag-done">✅ PG</span></td><td>publish 含 page_schema + build_manifest + webUrl</td></tr>
       <tr><td>Chat SSE + RAG + KB</td><td><span class="tag tag-ahead">🔵</span></td><td>009 pgvector；生产待装插件</td></tr>
       <tr><td>Voice /shanghai-agent WS</td><td><span class="tag tag-ahead">🔵</span></td><td>TeleAI 已通；待纳入 schema 模板</td></tr>
-      <tr><td>tenant/config</td><td><span class="tag tag-wip">🔶</span></td><td>返回 capability_keys；menu 未从 schema 生成</td></tr>
-      <tr><td>runtime/{id}/schema</td><td><span class="tag tag-plan">⬜</span></td><td>W3 必做</td></tr>
-      <tr><td>schema_templates.py</td><td><span class="tag tag-plan">⬜</span></td><td>12 模板 · widget → schema 片段</td></tr>
-      <tr><td>Approvals / Reports / Notify</td><td><span class="tag tag-mock">🎭</span></td><td>W2–W4</td></tr>
+      <tr><td>tenant/config</td><td><span class="tag tag-done">✅</span></td><td>返回 capability_keys + schema 生成的 menu + 真实租户统计</td></tr>
+      <tr><td>runtime/{id}/schema</td><td><span class="tag tag-done">✅</span></td><td>GET /runtime/{id}/schema|manifest|config</td></tr>
+      <tr><td>schema_templates.py</td><td><span class="tag tag-done">✅</span></td><td>12 模板 · widget → schema 片段</td></tr>
+      <tr><td>Approvals / Reports / Notify / Integration</td><td><span class="tag tag-done">✅ 非 Mock</span></td><td>W2–W4 已落 PG</td></tr>
     </tbody>
   </table>
 </section>
