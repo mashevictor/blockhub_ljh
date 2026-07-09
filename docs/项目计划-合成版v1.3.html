@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>积木仓 BlockHub · 6周全量攻坚计划（合成版 v1.3）</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+:root{--pri:#4338ca;--navy:#0a1628;--gold:#b8860b;--gold-l:#d4af37;--ok:#059669;--warn:#d97706;--no:#dc2626;--bg:#f0f4f8;--card:#fff;--text:#1e293b;--muted:#64748b;--border:#e2e8f0;--a:#1e40af;--b:#047857;--sidebar-w:260px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Microsoft YaHei","PingFang SC",sans-serif;background:var(--bg);color:var(--text);font-size:13px;line-height:1.55}
+.sidebar{position:fixed;top:0;left:0;width:var(--sidebar-w);height:100vh;background:linear-gradient(180deg,#0f172a,#1e1b4b);color:#fff;overflow-y:auto;padding:16px 0;z-index:100}
+.sidebar a{display:block;padding:6px 16px;color:rgba(255,255,255,.88);text-decoration:none;font-size:12px;border-left:3px solid transparent}
+.sidebar a:hover{background:rgba(255,255,255,.1);border-left-color:#a5b4fc}
+.nav-g{padding:8px 16px 2px;font-size:9px;opacity:.45}
+.main{margin-left:var(--sidebar-w);padding:24px 28px 60px;max-width:1200px}
+.hero{background:linear-gradient(135deg,#312e81,#4338ca 55%,#96700a);color:#fff;border-radius:14px;padding:26px 30px;margin-bottom:20px}
+.hero h1{font-size:22px;margin-bottom:6px}.hero p{opacity:.92;font-size:13px;max-width:960px;line-height:1.7}
+.stats{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.stat{background:rgba(255,255,255,.12);padding:10px 14px;border-radius:8px;font-size:12px}
+.stat b{font-size:18px;display:block}
+.pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.pill{background:rgba(255,255,255,.15);padding:5px 11px;border-radius:20px;font-size:11px}
+section{margin-bottom:28px;scroll-margin-top:16px}
+.section-title{font-size:17px;color:var(--pri);margin-bottom:12px;padding-bottom:4px;border-bottom:2px solid var(--pri)}
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:12px}
+.card h3{font-size:14px;color:var(--pri);margin-bottom:8px}
+.note{background:#ecfdf5;border:1px solid #6ee7b7;border-radius:8px;padding:12px;font-size:12px;margin-bottom:14px;line-height:1.75}
+.note-warn{background:#fffbeb;border-color:#fde68a}
+.note-info{background:#eff6ff;border-color:#bfdbfe}
+table{width:100%;border-collapse:collapse;font-size:11px}
+th{background:var(--pri);color:#fff;padding:8px;text-align:left}
+td{padding:8px;border-bottom:1px solid var(--border);vertical-align:top}
+tr:nth-child(even) td{background:#f8fafc}
+.tag{display:inline-block;font-size:9px;padding:2px 7px;border-radius:3px;font-weight:600;white-space:nowrap}
+.tag-done{background:#dcfce7;color:#047857}
+.tag-wip{background:#fef3c7;color:#b45309}
+.tag-plan{background:#f1f5f9;color:#475569}
+.tag-ahead{background:#dbeafe;color:#1e40af}
+.tag-p0{background:#fee2e2;color:#b91c1c}
+.role-a{color:var(--a);font-weight:700}
+.role-b{color:var(--b);font-weight:700}
+.col-a{border-left:3px solid var(--a)}
+.col-b{border-left:3px solid var(--b)}
+.milestone{background:linear-gradient(90deg,#ecfdf5,transparent);border-left:4px solid var(--ok);padding:10px 14px;margin-bottom:12px;font-size:12px;border-radius:0 8px 8px 0}
+.milestone strong{color:var(--navy)}
+.diagram-box{background:#fafbfc;border:1px solid var(--border);border-radius:8px;padding:14px;overflow-x:auto;margin:12px 0}
+.progress-bar{height:10px;background:#e7e5e4;border-radius:5px;overflow:hidden;margin:6px 0}
+.progress-bar span{display:block;height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-l))}
+.acc{color:var(--b);font-size:10px;font-weight:600}
+.footer{text-align:center;color:var(--muted);font-size:11px;margin-top:28px}
+@media(max-width:900px){.sidebar{display:none}.main{margin-left:0}}
+</style>
+</head>
+<body>
+<nav class="sidebar">
+  <div style="padding:0 16px 12px;border-bottom:1px solid rgba(255,255,255,.12);margin-bottom:8px">
+    <strong style="font-size:14px">6 周合成计划</strong>
+    <p style="font-size:10px;opacity:.65;margin-top:4px">v1.3 · 合成 · 母版+进度修订</p>
+  </div>
+  <a href="#merge">合成说明</a>
+  <a href="#snapshot">进度快照</a>
+  <a href="#premise">前提与人力</a>
+  <a href="#gantt">总览 Gantt</a>
+  <a href="#w1">W1 基建</a>
+  <a href="#w2">W2 Agent 核心</a>
+  <a href="#w3">W3 发布闭环</a>
+  <a href="#w4">W4 七 Agent 齐</a>
+  <a href="#w5">W5 Flutter+云</a>
+  <a href="#w6">W6 GA</a>
+  <a href="#plaza">广场排期</a>
+  <a href="#roles">双人分工</a>
+  <a href="#accept">总验收</a>
+  <a href="#deploy">部署现状</a>
+</nav>
+
+<div class="main">
+<div class="hero">
+  <h1>积木仓 BlockHub · 6 周全量攻坚计划（合成版 v1.3）</h1>
+  <p><strong>2 全栈 · 每日 18h · 母版（16-TrackChat-6周全量攻坚计划 / v5.1）与进度修订（项目计划-v1.2 / 截至 2026-07-08）合成。</strong>
+  以母版 D1–D36 全量日计划为骨架，叠加 v1.2 的真实进度、重定基线日历与新增任务，产出一份"每周每天、共 6 周"的统一可执行计划。</p>
+  <div class="stats">
+    <div class="stat"><b>6</b>周</div>
+    <div class="stat"><b>2</b>全栈</div>
+    <div class="stat"><b>~504h</b>总工时/人</div>
+    <div class="stat"><b>114</b>场景 PG</div>
+    <div class="stat"><b>7</b>Agent</div>
+    <div class="stat"><b>3</b>端交付</div>
+    <div class="stat"><b>D8</b>当前快照</div>
+  </div>
+  <div class="pills">
+    <span class="pill">cozecode 主工程</span>
+    <span class="pill">REST + SSE</span>
+    <span class="pill">PG + Redis + COS + pgvector</span>
+    <span class="pill">腾讯云 staging 101.32.209.251</span>
+  </div>
+</div>
+
+<div class="note note-info">
+  <strong>日历基线（取自 v1.2）：</strong>D1 = 2026-07-02，GA 验收窗口 ≈ 2026-08-07 ~ 08-12。<strong>当前快照截至 2026-07-08（约 D7–D8）。</strong>
+  本计划按"每周 6 天、共 D1–D36"排列；状态徽标含义：✅ 完成 · 🔶 进行/部分 · ⬜ 未开始 · 🔵 超前。
+</div>
+
+<section id="merge">
+  <h2 class="section-title">一、两文件对比与合成说明</h2>
+  <div class="card">
+    <table>
+      <thead><tr><th>维度</th><th>母版 16-TrackChat（v5.1）</th><th>修订 项目计划-v1.2</th><th>合成版 v1.3 处理</th></tr></thead>
+      <tbody>
+        <tr><td>定位</td><td>向前看的全量计划模板</td><td>截至 D8 的进度修订</td><td>骨架用母版 D1–D36，进度/调整用 v1.2</td></tr>
+        <tr><td>日历</td><td>W1 起 07-07</td><td>D1=07-02，GA=08-12，重定基线</td><td>采用 v1.2 基线（D1=07-02）</td></tr>
+        <tr><td>进度</td><td>无（纯计划）</td><td>W1 ~88% / W2 ~55% / W3 ~70%</td><td>逐日标注 ✅🔶⬜🔵</td></tr>
+        <tr><td>排期调整</td><td>无</td><td>W3 核心与 W2 并行提前；W3 收口移至 D8–D11；W4 顺延 2 天</td><td>列为"排期变更"并落到对应日</td></tr>
+        <tr><td>新增任务</td><td>无</td><td>custom 审核台、上海话语音 Agent、manifest codegen、staging 单机已跑</td><td>并入对应周/日</td></tr>
+        <tr><td>验收</td><td>GA 8 项 Checklist</td><td>8 项 + 当前预估状态</td><td>8 项并附当前状态</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="note note-warn"><strong>关键排期变更（v1.2 → 本计划）：</strong>
+    ① W3 核心开发（schema/publish/runtime-web）提前至 D7 与 W2 并行完成；原 D13–D18 验收项转为"收口"，集中到 <strong>D8–D11</strong> 完成；
+    ② 因 W3 债务，<strong>W4 顺延 2 天</strong>；
+    ③ staging 单机 HTTP（101.32.209.251）已可用，HTTPS 三域名收归 W5。
+  </div>
+</section>
+
+<section id="snapshot">
+  <h2 class="section-title">二、进度快照（截至 2026-07-08 · 取自 v1.2）</h2>
+  <div class="note">
+    <strong>本周已验证：</strong>服务器 <code>bash scripts/smoke-admin-api.sh</code> 28/28 通过，首屏 API 串行 24ms；<code>/admin/login</code> 统一登录 + RBAC（admin/employee 菜单分流）已上线。
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+    <div class="card">
+      <h3>W1 基建 <span class="tag tag-done">~88%</span></h3>
+      <div class="progress-bar"><span style="width:88%"></span></div>
+      <ul style="margin:8px 0 0 16px;font-size:11px;line-height:1.8;color:var(--muted)">
+        <li>✅ PG + Alembic 001–011</li>
+        <li>✅ JWT + admin/employee RBAC</li>
+        <li>✅ 114 Catalog + 43 Capability PG</li>
+        <li>✅ Chat SSE 真流</li>
+        <li>✅ 发布落库 apps 表</li>
+        <li>🔶 Redis 限流（可降级内存）</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>W2 Agent <span class="tag tag-wip">~55%</span></h3>
+      <div class="progress-bar"><span style="width:55%"></span></div>
+      <ul style="margin:8px 0 0 16px;font-size:11px;line-height:1.8;color:var(--muted)">
+        <li>🔵 RAG + pgvector + citation 超前</li>
+        <li>🔵 上海话语音 Agent Demo</li>
+        <li>✅ KB 上传 + 切片</li>
+        <li>🔶 审批 PG（含 demo seed）</li>
+        <li>🔶 通知/报表仍部分 Mock</li>
+        <li>⬜ custom 审核台未验收</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>W3 闭环 <span class="tag tag-wip">~70%</span></h3>
+      <div class="progress-bar"><span style="width:70%"></span></div>
+      <ul style="margin:8px 0 0 16px;font-size:11px;line-height:1.8;color:var(--muted)">
+        <li>✅ schema_generator + build_manifest</li>
+        <li>✅ publish → webUrl + page_schema</li>
+        <li>✅ runtime-web /r/:appId 真渲染</li>
+        <li>✅ 5 个 web-capability 包</li>
+        <li>🔶 @受众 + /plaza 壳（互动未落 PG）</li>
+        <li>⬜ manifest 动态按需加载</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="premise">
+  <h2 class="section-title">三、前提与有效人力（两版合并）</h2>
+  <div class="card">
+    <table>
+      <thead><tr><th>项</th><th>假设</th></tr></thead>
+      <tbody>
+        <tr><td>人员</td><td>2 全栈（A 偏后端/Agent，B 偏前端/Runtime/Flutter 联调）</td></tr>
+        <tr><td>强度</td><td>每日 18h × 6 天/周（周日半天复盘 + 文档）</td></tr>
+        <tr><td>经验</td><td>Flutter 壳已有；LLM/RAG/Agent Pipeline 有实战经验</td></tr>
+        <tr><td>工程</td><td><code>cozecode/</code> 唯一主仓；Schema 契约对齐 <code>projects/.../schema.ts</code></td></tr>
+        <tr><td>114 场景策略</td><td><strong>114 条元数据全部 PG</strong>；page_schema 用 <strong>12 套模板</strong> 映射覆盖（非 114 套手工 UI）</td></tr>
+        <tr><td>日历</td><td>D1 = 07-02 · GA 目标 08-12 · 当前快照 D8 ≈ 07-08</td></tr>
+        <tr><td>Day0 已交付</td><td>Home 三视图 · Admin 全模块 UI 壳 · 114 内存 Catalog（W1 已迁 PG）· Flutter 工程</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="arch">
+  <h2 class="section-title">四、项目架构与 Web/Flutter 解耦设计（契约驱动）</h2>
+  <div class="note note-info">
+    <strong>核心原则：</strong>后端只产出两份契约——<code>page_schema</code>（UI 树）与 <code>capability_manifest</code>（包清单），二者都由同一份能力注册表派生。
+    <strong>Web（runtime-web）与 Flutter（runtime-app）各自实现 Widget 注册表，按 <code>capability_key</code> 渲染，互不依赖对方代码。</strong>
+    新增一个能力 = 1 条注册表条目 + 1 个 web-capability 包 + 1 个 Flutter Widget，全程零跨端耦合。
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+    <div class="card">
+      <h3>① 单一能力源（后端 · 已落地）</h3>
+      <ul style="margin-left:16px;font-size:11px;line-height:1.85;color:var(--muted)">
+        <li><code>backend/app/data/capability_registry.py</code> → <code>ALL_CAPABILITIES</code></li>
+        <li>每条能力含：<code>widget · web_pkg · flutter_pkg · route · agent_id</code></li>
+        <li>36 Capability 入库即注册，是全部 UI 的唯一真相源</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>② 契约生成（后端 · 已落地）</h3>
+      <ul style="margin-left:16px;font-size:11px;line-height:1.85;color:var(--muted)">
+        <li><code>schema_generator.py</code>：capability_keys → <code>page_schema</code> JSON（menu + schema node，<code>type=widget</code> 小写）</li>
+        <li><code>build_manifest.py</code>：capability_keys → 包清单（web: <code>@blockhub/web-capability-{slug}</code>；flutter: <code>capability_{key}</code>）</li>
+        <li><code>GET /runtime/{id}/schema|manifest</code> 两端共用</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>③ Web 端（runtime-web · 已落地）</h3>
+      <ul style="margin-left:16px;font-size:11px;line-height:1.85;color:var(--muted)">
+        <li><code>packages/web-core</code> WidgetHost 按 capability_key 渲染</li>
+        <li>5 个解耦包：<code>web-capability-chat / approval / dashboard / kb / voice</code></li>
+        <li>每包独立注册 Widget，物理包可 manifest 按需裁剪</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>④ Flutter 端（runtime-app · 待 W5 对齐）</h3>
+      <ul style="margin-left:16px;font-size:11px;line-height:1.85;color:var(--muted)">
+        <li><code>runtime-app/lib</code>：services / config / models / pages</li>
+        <li>自建 <code>WidgetRegistry</code>，按同一 <code>capability_key</code> 映射</li>
+        <li>Dio+SSE 拉同一 schema/manifest，与 Web 共用 appId</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card" style="border-left:4px solid var(--ok)">
+    <strong>解耦边界红线（两端必须遵守）：</strong>
+    <ul style="margin:6px 0 0 16px;font-size:11px;line-height:1.8">
+      <li>后端永不直接写死某端 UI；所有 UI 必须经由 <code>page_schema</code> + <code>manifest</code>。</li>
+      <li>Web 与 Flutter 不共享实现文件；只共享契约（schema.ts 同构定义 + manifest JSON）。</li>
+      <li>新增能力时，Web 包与 Flutter Widget 可独立排期、独立验收，互不阻塞。</li>
+      <li>W3 收口项"manifest 动态加载 + codegen TS/Dart"正是把这份契约固化成两端类型，确保长期解耦不漂移。</li>
+    </ul>
+  </div>
+</section>
+
+<section id="gantt">
+  <h2 class="section-title">五、六周总览 Gantt（合成 · 含进度状态）</h2>
+  <div class="diagram-box"><pre class="mermaid">
+gantt
+    title BlockHub 6周全量攻坚 v1.3（截至 07-08）
+    dateFormat YYYY-MM-DD
+    axisFormat MM/DD
+    section W1 基建
+    PG+JWT+Seed114 done      :done, w1a, 2026-07-02, 6d
+    LLM SSE+统一登录 done     :done, w1b, 2026-07-02, 7d
+    追加 AuthContext+2worker  :done, w1c, 2026-07-08, 2d
+    section W2 Agent核心
+    RAG+pgvector ahead        :active, w2a, 2026-07-08, 5d
+    审批状态机+通知报表mock    :w2b, 2026-07-08, 5d
+    section W3 发布闭环
+    Schema+publish+runtime done:done, w3a, 2026-07-07, 5d
+    W3收口 manifest+E2E+PG互动 :crit, w3c, 2026-07-08, 4d
+    section W4 七Agent齐
+    报表通知集成+广场PG        :w4, 2026-07-14, 6d
+    租户Config+114分页         :w4b, 2026-07-14, 4d
+    section W5 Flutter+云
+    Flutter Schema联调         :w5, 2026-07-20, 6d
+    腾讯云HTTPS完善            :w5b, 2026-07-20, 6d
+    section W6 GA
+    回归压测文档              :w6, 2026-08-01, 4d
+    缓冲修bug                :w6b, 2026-08-05, 2d
+  </pre></div>
+</section>
+
+<!-- ===================== W1 ===================== -->
+<section id="w1">
+  <h2 class="section-title">W1 · 基建与鉴权（D1–D6，收尾 D7–D8）<span class="tag tag-done">~88% 完成</span></h2>
+  <div class="milestone"><strong>M1 达成：</strong>登录可用 · 114 PG · Chat SSE · 发布落库 · 统一 <code>/admin/login</code></div>
+  <table>
+    <thead><tr><th>天</th><th>全栈 A（后端/Agent）</th><th>全栈 B（前端/Flutter）</th><th>状态</th><th>验收</th></tr></thead>
+    <tbody>
+      <tr><td>D1–D2</td><td>Alembic init · SQL models · POST /seed 灌 114+43+7 · Catalog/Agents 改读 PG</td><td>Admin 登录页 + axios JWT 拦截器 · Home/Admin Catalog 接 PG API</td><td><span class="tag tag-done">✅</span></td><td>/catalog/summary 来自 DB</td></tr>
+      <tr><td>D3</td><td>JWT + RBAC 中间件 · users/tenants 表 · 2 角色 seed</td><td>路由守卫 · 401 跳转登录 · RoleGate 菜单分流</td><td><span class="tag tag-done">✅</span></td><td>无 token 403</td></tr>
+      <tr><td>D4</td><td>LLM Gateway（通义/豆包 1 个）· chat SSE 替换 Mock</td><td>Admin Chat 页接真 SSE</td><td><span class="tag tag-done">✅</span></td><td>流式可见</td></tr>
+      <tr><td>D5</td><td>Redis 连接 · 限流中间件 · .env 腾讯云 COS 配置</td><td>runtime-web 脚手架 init（Vite）</td><td><span class="tag tag-wip">🔶</span></td><td>Redis 不可用时可降级</td></tr>
+      <tr><td>D6</td><td>applications/conversations/messages 表 · 创建 API 改 PG · publish 写 PG · 移除内存 store</td><td>Flutter ConfigService 接 /tenant/config 骨架</td><td><span class="tag tag-done">✅</span></td><td>重启数据仍在</td></tr>
+      <tr><td>D7–D8<small>（追加）</small></td><td>AuthContext 单 /me · dashboard COUNT 优化 · 2 workers · <code>smoke-admin-api.sh</code></td><td>Home 英雄区弹幕加宽 · 统一登录联调</td><td><span class="tag tag-done">✅</span></td><td>28/28 API · 首屏 24ms</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ===================== W2 ===================== -->
+<section id="w2">
+  <h2 class="section-title">W2 · Agent 核心：RAG + 审批（D7–D12）<span class="tag tag-wip">~55% · 进行中</span></h2>
+  <div class="milestone"><strong>M2 目标：</strong>PDF 问答 citation · 审批真流 · custom 审核入库</div>
+  <table>
+    <thead><tr><th>天</th><th>全栈 A</th><th>全栈 B</th><th>状态</th><th>验收</th></tr></thead>
+    <tbody>
+      <tr><td>D7–D9</td><td>KB multipart→COS · documents 表 · PyMuPDF 切片 · embedding · pgvector · POST /kb/search + RAG prompt</td><td>Admin 知识库上传 UI 接真 API · Chat citation 气泡 UI · Admin Chat RAG 模式开关</td><td><span class="tag tag-ahead">🔵 超前</span></td><td>topK 命中 + SSE 引用</td></tr>
+      <tr><td>D9</td><td><strong>新增</strong> custom_capabilities 审核 API</td><td>Admin 审核台 UI</td><td><span class="tag tag-plan">⬜</span></td><td>审核台可验收</td></tr>
+      <tr><td>D10–D11</td><td>approvals 表 + 状态机 submit/inbox/action · 移除内存 store（含 demo seed）</td><td>Home 创建页接 /creation/feasibility · Admin 审批页接 PG 列表</td><td><span class="tag tag-wip">🔶</span></td><td>可提交假/真数据</td></tr>
+      <tr><td>D12</td><td>Celery/BackgroundTasks 异步切片 · manifest codegen（JSON only）</td><td>schema-renderer types.ts + Registry 骨架</td><td><span class="tag tag-wip">🔶</span></td><td>大 PDF 不阻塞</td></tr>
+      <tr><td>超前项</td><td><strong>新增</strong> 上海话语音 Agent（TeleAI WS）</td><td>Home + runtime VoiceWidget</td><td><span class="tag tag-ahead">🔵</span></td><td>语音 Demo 可演示</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ===================== W3 ===================== -->
+<section id="w3">
+  <h2 class="section-title">W3 · 发布闭环 + runtime-web（D13–D18）<span class="tag tag-wip">~70% · 收口阶段</span></h2>
+  <div class="milestone"><strong>M3 目标：</strong>10 分钟 Demo：创建 → webUrl → 问答 → 请假审批 · <strong>主路径已通，模块化裁剪未完成</strong> · <strong>两端共契约：Web/Flutter 均由同一 page_schema+manifest 驱动，零硬编码</strong></div>
+  <table>
+    <thead><tr><th>天</th><th>全栈 A</th><th>全栈 B</th><th>状态</th><th>验收</th></tr></thead>
+    <tbody>
+      <tr><td>D13</td><td>SchemaGenerator：scenario_ids→page_schema JSON · capability_resolver · 12 模板</td><td>web-core WidgetHost + ChatWidget（清理 legacy 占位）</td><td><span class="tag tag-done">✅</span></td><td>JSON 合法</td></tr>
+      <tr><td>D14</td><td>POST /creation/publish → webUrl + page_schema · build_manifest · app_store.persist</td><td>FormWidget + Approval Form/Inbox/List Widget</td><td><span class="tag tag-done">✅</span></td><td>DB 有 webUrl</td></tr>
+      <tr><td>D15</td><td>GET /runtime/{id}/schema|manifest + config（走 /tenant/config）</td><td>runtime-web 路由 /r/:appId 菜单渲染</td><td><span class="tag tag-done">✅</span></td><td>浏览器打开员工端</td></tr>
+      <tr><td>D16</td><td>20 场景模板 seed（办公 TOP20）· apps.audience_type · plaza publish/feed API</td><td>ListWidget + StatCard（独立 Dashboard）· PlazaAudiencePicker @受众 · /plaza 壳</td><td><span class="tag tag-wip">🔶</span></td><td>feed 有数据；互动待落 PG</td></tr>
+      <tr><td>D17</td><td>feasibility 覆盖度评分（LLM 可选）· @公开 写 feed 占位</td><td>Industry/Module 三入口统一发布 · 双账号 runtime 联调</td><td><span class="tag tag-wip">🔶</span></td><td>Prompt 已通 · 行业/模块待对齐</td></tr>
+      <tr><td>D18</td><td>smoke-test W3 段 · plaza 联调</td><td>PublishModal build_manifest 预览 · 真 webUrl + App 深链 · 双角色</td><td><span class="tag tag-wip">🔶</span></td><td>API 冒烟通过 · 无浏览器 E2E</td></tr>
+      <tr><td><strong>D8–D11</strong><small>（收口）</small></td><td>manifest 动态加载 · codegen 补 TS/Dart · plaza 点赞评论落 PG</td><td>三入口 Industry/Module 发布对齐 · Playwright E2E 全链路 · 去 localStorage 混用 · 文档同步</td><td><span class="tag tag-plan">⬜</span></td><td><strong>W3 正式关闭</strong></td></tr>
+    </tbody>
+  </table>
+  <div class="note note-warn"><strong>W3 收口清单（优先 D8–D11）：</strong>① manifest 动态按需加载 ② codegen TS/Dart 输出 ③ 三入口 Industry/Module 发布对齐 ④ plaza 点赞评论 PG ⑤ 双角色 smoke ⑥ 更新功能清单/架构文档状态位。</div>
+</section>
+
+<!-- ===================== W4 ===================== -->
+<section id="w4">
+  <h2 class="section-title">W4 · 七 Agent 齐 + Catalog 全量（D19–D24）<span class="tag tag-plan">未开始 · 顺延 2 天</span></h2>
+  <div class="milestone"><strong>M4：</strong>报表/通知/集成非 Mock · 114 分页 · 租户 Config · 广场 Feed 互动落 PG</div>
+  <table>
+    <thead><tr><th>天</th><th>全栈 A</th><th>全栈 B</th><th>状态</th><th>验收</th></tr></thead>
+    <tbody>
+      <tr><td>D19</td><td>reports：dashboard 聚合 API · 预置 SQL 模板（stats/dashboard 已优化 COUNT）</td><td>Admin 报表页接 Chart · StatCardWidget 独立</td><td><span class="tag tag-plan">⬜</span></td><td>看板有数</td></tr>
+      <tr><td>D20</td><td>notifications：PG 收件箱 · 审批触发 notify · feed_posts/reactions/comments 表</td><td>Admin 通知页 · Plaza 点赞评论 API 接入</td><td><span class="tag tag-plan">⬜</span></td><td>广场点赞/评论真落库</td></tr>
+      <tr><td>D21</td><td>integration：REST connector demo + etl_jobs 表</td><td>Admin 集成页 · 同步状态 Timeline</td><td><span class="tag tag-plan">⬜</span></td><td>手动 sync 成功</td></tr>
+      <tr><td>D22</td><td>65 办公 + 49 行业 scenario 全 PG · 模板映射表</td><td>Admin 114 场景页读 PG 分页</td><td><span class="tag tag-plan">⬜</span></td><td>count=114</td></tr>
+      <tr><td>D23</td><td>GET/PUT /tenant/config · theme/menu/capabilities</td><td>Admin 租户 Config 表单</td><td><span class="tag tag-plan">⬜</span></td><td>改主题生效</td></tr>
+      <tr><td>D24</td><td>stats/dashboard 接 PG 真实统计</td><td>Creation 向导 7 步与 Admin /create 统一</td><td><span class="tag tag-plan">⬜</span></td><td>Dashboard 数字真</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ===================== W5 ===================== -->
+<section id="w5">
+  <h2 class="section-title">W5 · Flutter + 腾讯云（D25–D30）<span class="tag tag-plan">部分超前</span></h2>
+  <div class="milestone"><strong>M5：</strong>Flutter Schema 渲染 · staging 域名 HTTPS 可访问 · 内测 APK · <strong>Flutter WidgetRegistry 按 capability_key 消费同一份 manifest，与 web-core 平行解耦</strong></div>
+  <table>
+    <thead><tr><th>天</th><th>全栈 A</th><th>全栈 B</th><th>状态</th><th>验收</th></tr></thead>
+    <tbody>
+      <tr><td>D25</td><td>API CORS 生产域名 · audit_logs 写操作</td><td>Flutter：Dio+SSE · 接 /runtime/{appId}/schema|<span style="color:var(--a)">manifest</span>（与 web-core 同契约）· WidgetRegistry 按 capability_key 注册</td><td><span class="tag tag-plan">⬜</span></td><td>App 显示首页</td></tr>
+      <tr><td>D26</td><td>腾讯云 TencentDB PG + Redis 数据迁移</td><td>Flutter：问答/审批 2 模块 WidgetRegistry</td><td><span class="tag tag-plan">⬜</span></td><td>云 DB 连通</td></tr>
+      <tr><td>D27</td><td>COS 生产 bucket · 文件 URL 签名</td><td>Flutter：看板 fl_chart 模块</td><td><span class="tag tag-plan">⬜</span></td><td>KB 云环境可传</td></tr>
+      <tr><td>D28</td><td>CVM Docker 镜像 · uvicorn + worker</td><td>build home/dist + frontend/dist（static 部署）</td><td><span class="tag tag-wip">🔶</span></td><td>容器跑通（101.32 HTTP 已跑）</td></tr>
+      <tr><td>D29</td><td>Nginx：app/admin/api 三域名 SSL · SSE 配置</td><td>Flutter 内测 APK 打包 · COS 分发</td><td><span class="tag tag-plan">⬜</span></td><td>HTTPS 200</td></tr>
+      <tr><td>D30</td><td>staging 冒烟脚本 · 环境变量文档</td><td>Flutter + Web 同 appId 并行验证</td><td><span class="tag tag-done">✅</span></td><td>三端一致（smoke 已纳入）</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ===================== W6 ===================== -->
+<section id="w6">
+  <h2 class="section-title">W6 · GA 回归与交付（D31–D36）<span class="tag tag-plan">未开始</span></h2>
+  <div class="milestone"><strong>M6 GA：</strong>114 回归清单通过 · 10 分钟 Demo · 部署手册 · 缓冲 2 天</div>
+  <table>
+    <thead><tr><th>天</th><th>全栈 A</th><th>全栈 B</th><th>验收</th></tr></thead>
+    <tbody>
+      <tr><td>D31</td><td>114 场景生成/展示回归脚本</td><td>12 模板覆盖行业精选 12 场景 UI 检查</td><td>回归表 100%</td></tr>
+      <tr><td>D32</td><td>10 并发 chat 压测 · Redis 限流验证</td><td>runtime-web 移动端 H5 适配</td><td>无 5xx</td></tr>
+      <tr><td>D33</td><td>docker-compose.prod.yml · 备份策略</td><td>Demo 脚本 rehearsal · 录屏</td><td>Compose 一键起</td></tr>
+      <tr><td>D34</td><td>安全：HTTPS 强制 · 敏感字段脱敏</td><td>文档：PRODUCTION-DEPLOYMENT 更新实测</td><td>Checklist 80%+</td></tr>
+      <tr><td>D35–D36</td><td colspan="2"><strong>缓冲：</strong>只修 P0 bug · 不新增功能 · GA 签字</td><td>客户 Demo 通过</td></tr>
+    </tbody>
+  </table>
+  <div class="note note-warn"><strong>健康提醒：</strong>18h×6 周可持续风险高。W3/W5 末各预留半天睡眠；W6 必须留 2 天缓冲，禁止排新功能。</div>
+</section>
+
+<!-- ===================== 广场 ===================== -->
+<section id="plaza">
+  <h2 class="section-title">广场 · Newsfeed 专项（方案 B 已定稿）</h2>
+  <div class="note">
+    <strong>选型结论：</strong>采用 <code>designs/06-at-plaza-newsfeed.html</code> 方案 B（桌面三栏）。Home 已接入 <code>/plaza</code> Mock 壳；与创建流 <code>&gt;&gt;</code> 并存，<code>@</code> 表示受众范围。
+  </div>
+  <table>
+    <thead><tr><th>周</th><th>前端</th><th>后端</th><th>验收</th></tr></thead>
+    <tbody>
+      <tr><td>W3 D16–17</td><td>PublishModal @受众选择 · /plaza 三栏壳 · 顶栏入口</td><td><code>apps.audience_type</code> 迁移 · @公开 写 feed 占位</td><td>发布选 @公开 后 Mock 广场可见</td></tr>
+      <tr><td>W3 收口</td><td>Playwright E2E · 三入口统一</td><td>plaza 点赞/评论落 PG（feed_posts/reactions/comments）</td><td>互动刷新不丢</td></tr>
+      <tr><td>W4 D20–21</td><td>PlazaPage 接 API · 点赞/评论 UI</td><td>GET/POST /plaza/* · tenant 范围过滤</td><td>互动落 PG · 部门可见</td></tr>
+      <tr><td>W6</td><td>热门 @ 标签 · @我 筛选</td><td>部门可见策略</td><td>GA Demo 含广场路径</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ===================== 分工 ===================== -->
+<section id="roles">
+  <h2 class="section-title">双人分工原则</h2>
+  <div class="card">
+    <table>
+      <thead><tr><th>角色</th><th>主责</th><th>每日 18h 建议切分</th></tr></thead>
+      <tbody>
+        <tr><td><strong>全栈 A</strong></td><td>PG · LLM/RAG · Agent Pipeline · 腾讯云后端 · 审批/报表/集成 API</td><td>12h 深度开发 + 4h 联调 + 2h 文档/seed</td></tr>
+        <tr><td><strong>全栈 B</strong></td><td>runtime-web · schema-renderer · Home/Admin · Flutter 联调 · 广场 UI</td><td>12h 前端/Flutter + 4h 联调 + 2h UI/Demo</td></tr>
+        <tr><td><strong>共同</strong></td><td>W3/W6 端到端 · Schema 契约 Review · 每日 15min sync</td><td>周日半天：周复盘 + 调整 Todo</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ===================== 验收 ===================== -->
+<section id="accept">
+  <h2 class="section-title">GA 总验收（8 项）· 当前预估（合并 v1.2）</h2>
+  <div class="card">
+    <table>
+      <thead><tr><th>#</th><th>验收项</th><th>标准</th><th>当前</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>114 Catalog</td><td>PG count=114 · Admin 分页</td><td><span class="tag tag-wip">🔶</span> PG 有 · 分页待 W4</td></tr>
+        <tr><td>2</td><td>7 Agent 非 Mock</td><td>创建/问答/KB/审批/报表/通知/集成</td><td><span class="tag tag-wip">🔶</span> 问答/KB 真 · 报表/通知/集成 Mock</td></tr>
+        <tr><td>3</td><td>发布闭环</td><td>三入口 → webUrl + App 同 appId</td><td><span class="tag tag-wip">🔶</span> Prompt 已通 · App 未接</td></tr>
+        <tr><td>4</td><td>RAG</td><td>PDF citation · SSE 5min+</td><td><span class="tag tag-ahead">🔵</span> 基本可用</td></tr>
+        <tr><td>5</td><td>审批</td><td>员工→主管→通知</td><td><span class="tag tag-wip">🔶</span> 审批 PG · 通知未联动</td></tr>
+        <tr><td>6</td><td>Flutter APK</td><td>主 Demo 路径</td><td><span class="tag tag-plan">⬜</span></td></tr>
+        <tr><td>7</td><td>腾讯云 HTTPS</td><td>三域名 SSE 不断</td><td><span class="tag tag-wip">🔶</span> HTTP staging 已有</td></tr>
+        <tr><td>8</td><td>文档</td><td>部署手册 + Demo 脚本</td><td><span class="tag tag-wip">🔶</span> deploy.sh + smoke 脚本已有</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <h3 style="font-size:15px;margin:20px 0 10px;color:var(--navy)">10 分钟 Demo 脚本（W6 验收 · 不变）</h3>
+  <div class="card" style="font-size:12px;line-height:1.9">
+    <strong>1 · 30s</strong> 痛点 — 企业不知道选哪些 AI 场景<br>
+    <strong>2 · 2min</strong> 创建 — 管理员登录 → Home 描述/点选 → 发布真 webUrl<br>
+    <strong>3 · 2min</strong> 员工 Web — runtime → Chat + PDF 引用<br>
+    <strong>4 · 2min</strong> 审批 — Form 请假 → 主管 Inbox 通过<br>
+    <strong>5 · 2min</strong> App — 同 appId APK<br>
+    <strong>6 · 1min</strong> 平台故事 — 114 场景 · 模块化组装<br>
+    <strong>7 · 30s</strong> 商业 — 标准版报价
+  </div>
+</section>
+
+<!-- ===================== 部署现状 ===================== -->
+<section id="deploy">
+  <h2 class="section-title">部署现状 · 101.32.209.251（取自 v1.2）</h2>
+  <table>
+    <thead><tr><th>项</th><th>状态</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td>Home /</td><td><span class="tag tag-done">✅</span></td><td>三视图 · 英雄弹幕 · 发布流程</td></tr>
+      <tr><td>Admin /admin/</td><td><span class="tag tag-done">✅</span></td><td>统一登录 · RBAC 菜单 · 28 API 冒烟通过</td></tr>
+      <tr><td>Runtime /r/:id</td><td><span class="tag tag-done">✅</span></td><td>schema 驱动 Widget 渲染</td></tr>
+      <tr><td>API :8001</td><td><span class="tag tag-done">✅</span></td><td>uvicorn 2 workers · 首屏 API &lt;50ms（机内）</td></tr>
+      <tr><td>HTTPS 三域名</td><td><span class="tag tag-plan">⬜</span></td><td>当前 HTTP IP 访问</td></tr>
+      <tr><td>公网静态资源</td><td><span class="tag tag-wip">🔶</span></td><td>弱网下首屏 JS 慢；已改 favicon-48 减 Logo 闪烁</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<div class="footer">
+  积木仓 BlockHub · 6 周全量攻坚计划 <strong>合成版 v1.3</strong> · 母版 16-TrackChat（v5.1）＋ 进度修订 项目计划-v1.2<br>
+  以代码 + 冒烟脚本为准 · 快照截至 2026-07-08（D8）
+</div>
+</div>
+<script>mermaid.initialize({startOnLoad:true,theme:'default',securityLevel:'loose'});</script>
+</body>
+</html>
