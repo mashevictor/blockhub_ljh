@@ -6,23 +6,6 @@ from typing import Any
 
 from app.data.capability_registry import ALL_CAPABILITIES
 
-MENU_ICONS: dict[str, str] = {
-    "chat_qa": "chat",
-    "chat_voice": "chat",
-    "shanghai_voice": "mic",
-    "shanghai_voice_stream": "mic",
-    "approval_flow": "approval",
-    "approval_inbox": "inbox",
-    "kb_document": "book",
-    "chart_dashboard": "chart",
-    "notify_inapp": "bell",
-}
-
-MENU_LABELS: dict[str, str] = {
-    "shanghai_voice": "上海话语音",
-    "shanghai_voice_stream": "实时语音",
-}
-
 
 def _route_for(key: str) -> str:
     from app.services.build_manifest import _route_for as route_for
@@ -55,11 +38,12 @@ def generate_menu(capability_keys: list[str]) -> list[dict[str, str]]:
         if not cap:
             continue
         route = _route_for(key)
+        # 菜单文案/图标优先取注册表显式字段，留空走默认（name / "module"）
         menu.append(
             {
                 "key": key,
-                "label": MENU_LABELS.get(key, cap.name),
-                "icon": MENU_ICONS.get(key, "module"),
+                "label": cap.menu_label or cap.name,
+                "icon": cap.menu_icon or "module",
                 "route": route,
             }
         )

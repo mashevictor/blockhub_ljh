@@ -9,27 +9,14 @@ from app.data.capability_registry import ALL_CAPABILITIES
 # Convention-based web package names (physical packages under packages/)
 WEB_PKG_PREFIX = "@blockhub/web-capability"
 
-# Keys whose folder name differs from slug (must match runtime-web/vite aliases)
-WEB_PKG_OVERRIDES: dict[str, str] = {
-    "chat_qa": f"{WEB_PKG_PREFIX}-chat",
-    "chat_voice": f"{WEB_PKG_PREFIX}-chat",
-    "shanghai_voice": f"{WEB_PKG_PREFIX}-voice",
-    "shanghai_voice_stream": f"{WEB_PKG_PREFIX}-voice",
-    "approval_flow": f"{WEB_PKG_PREFIX}-approval",
-    "approval_inbox": f"{WEB_PKG_PREFIX}-approval",
-    "kb_document": f"{WEB_PKG_PREFIX}-kb",
-    "chart_dashboard": f"{WEB_PKG_PREFIX}-dashboard",
-    "chart_funnel": f"{WEB_PKG_PREFIX}-dashboard",
-    "notify_inapp": f"{WEB_PKG_PREFIX}-dashboard",
-}
-
 
 def _web_pkg(key: str) -> str | None:
-    if key in WEB_PKG_OVERRIDES:
-        return WEB_PKG_OVERRIDES[key]
     cap = ALL_CAPABILITIES.get(key)
     if not cap or not cap.widget:
         return None
+    # 优先用注册表显式字段；留空走约定 web-capability-{slug}
+    if cap.web_pkg:
+        return cap.web_pkg
     slug = key.replace("_", "-")
     return f"{WEB_PKG_PREFIX}-{slug}"
 
@@ -42,18 +29,11 @@ def _flutter_pkg(key: str) -> str:
 
 
 def _route_for(key: str, widget: str) -> str:
-    routes = {
-        "shanghai_voice": "/voice",
-        "shanghai_voice_stream": "/voice",
-        "chat_qa": "/chat",
-        "chat_voice": "/chat",
-        "approval_flow": "/approval",
-        "approval_inbox": "/inbox",
-        "kb_document": "/kb",
-        "chart_dashboard": "/dashboard",
-        "notify_inapp": "/notifications",
-    }
-    return routes.get(key, f"/{key.replace('_', '-')}")
+    cap = ALL_CAPABILITIES.get(key)
+    # 优先用注册表显式字段；留空走约定 /{slug}
+    if cap and cap.route:
+        return cap.route
+    return f"/{key.replace('_', '-')}"
 
 
 def build_manifest(

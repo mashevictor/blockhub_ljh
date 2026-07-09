@@ -34,6 +34,10 @@ def _preset(
 
 
 HERO_PRESETS: list[dict[str, Any]] = [
+    _preset("s00", "上海话语音助手", "方言 · 交互", "#e11d48", "用上海话实时语音对话，说方言也能问答、办事。",
+            [{"type": "industry", "key": "office", "label": "通用办公"},
+             {"type": "module", "key": "shanghai_voice", "label": "上海话语音"}],
+            [">> 上海话语音 · 开口即说", ">> 实时 ASR · 方言识别", ">> 智能问答 · 语音播报", ">> 网页/APK · 一键生成"], role="沪语用户"),
     _preset("s01", "请假审批", "人事 · 流程", "#8b5cf6", "请假在线申请、主管审批与假期余额查询。",
             [{"type": "industry", "key": "office", "label": "通用办公"}, {"type": "office", "key": "人事行政", "label": "人事行政"},
              {"type": "scenario", "key": "s01-leave", "label": "请假申请"}, {"type": "module", "key": "approval_flow", "label": "审批流"}],
@@ -129,6 +133,10 @@ HERO_PRESETS: list[dict[str, Any]] = [
     _preset("s30", "法务合同", "法务 · 合规", "#334155", "合同审查、法规检索与案件跟踪。",
             [{"type": "industry", "key": "legal", "label": "法律服务"}, {"type": "office", "key": "财务法务", "label": "财务法务"},
              {"type": "scenario", "key": "s30-legal", "label": "合同管理"}, {"type": "module", "key": "kb_document", "label": "知识库"}], weight=4, role="法务"),
+    _preset("s31", "上海话语音助手", "方言 · 语音", "#db2777", "上海话实时语音交互：开口即问、语音播报、支持方言识别。",
+            [{"type": "industry", "key": "office", "label": "通用办公"}, {"type": "module", "key": "shanghai_voice", "label": "上海话语音"},
+             {"type": "module", "key": "chat_qa", "label": "智能问答"}],
+            [">> 上海话语音 · 开口即问", ">> 实时语音 · 边说边答", ">> 语音播报 · 听得到", ">> 手机/网页 · 直接可用"], role="全员"),
 ]
 
 CHIP_TEMPLATES: list[dict[str, Any]] = [
@@ -149,6 +157,9 @@ CHIP_TEMPLATES: list[dict[str, Any]] = [
      "picks": [{"type": "industry", "key": "office", "label": "通用办公"}, {"type": "office", "key": "人事行政", "label": "人事行政"},
                {"type": "office", "key": "流程审批", "label": "流程审批"}, {"type": "module", "key": "kb_document", "label": "知识库"},
                {"type": "module", "key": "notify_im", "label": "企微钉钉"}], "scenario_names": ["请假申请", "报销审批"]},
+    {"text": "上海话语音助手 · 开口即说", "prompt": "用上海话实时语音对话，说方言也能问答、办事，网页与 APK 一键生成。",
+     "picks": [{"type": "industry", "key": "office", "label": "通用办公"},
+               {"type": "module", "key": "shanghai_voice", "label": "上海话语音"}], "scenario_names": ["上海话语音"]},
 ]
 
 PRESET_ROLES: dict[str, str] = {
@@ -156,7 +167,7 @@ PRESET_ROLES: dict[str, str] = {
     "s08": "制造", "s09": "质检", "s10": "零售", "s11": "运营", "s12": "医护", "s13": "护士", "s14": "玩家",
     "s15": "家长", "s16": "学生", "s17": "学生", "s18": "运营", "s19": "业主", "s20": "销售", "s21": "酒店",
     "s22": "骑手", "s23": "会员", "s24": "旅行", "s25": "新人", "s26": "业主", "s27": "宠主", "s28": "巡检",
-    "s29": "市民", "s30": "法务",
+    "s29": "市民", "s30": "法务", "s31": "全员",
 }
 
 

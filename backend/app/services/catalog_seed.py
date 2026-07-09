@@ -261,6 +261,44 @@ def sync_catalog_delta(db: Session) -> int:
         )
         added += 1
 
+    # 增量补齐英雄区弹幕预设与快捷 chip（仅新增，不删历史），
+    # 使 registry/hero_presets 的新能力无需 force 重建即可流通。
+    existing_preset_ids = {row.id for row in db.query(CatalogHeroPreset.id).all()}
+    for idx, preset in enumerate(HERO_PRESETS):
+        if preset["id"] in existing_preset_ids:
+            continue
+        db.add(
+            CatalogHeroPreset(
+                id=preset["id"],
+                label=preset["label"],
+                hint=preset.get("hint", ""),
+                role=preset.get("role") or preset_role(preset),
+                weight=int(preset.get("weight", 3)),
+                color=preset.get("color", ""),
+                prompt=preset["prompt"],
+                picks=preset["picks"],
+                flow_lines=preset["flow_lines"],
+                sort_order=idx,
+            )
+        )
+        added += 1
+
+    existing_chip_texts = {row.text for row in db.query(CatalogChipTemplate.text).all()}
+    for idx, chip in enumerate(CHIP_TEMPLATES):
+        if chip["text"] in existing_chip_texts:
+            continue
+        db.add(
+            CatalogChipTemplate(
+                id=str(uuid4()),
+                text=chip["text"],
+                prompt=chip["prompt"],
+                picks=chip["picks"],
+                scenario_names=chip.get("scenario_names", []),
+                sort_order=idx,
+            )
+        )
+        added += 1
+
     if added:
         db.commit()
     return added

@@ -14,6 +14,13 @@ class CapabilityDef:
     agent_id: str
     flutter_pkg: str = ""
     keywords: tuple[str, ...] = ()
+    # 以下为「约定之外的显式覆盖」字段：默认留空，由 build_manifest / schema_generator
+    # 走约定推导（web_pkg→@blockhub/web-capability-{slug}，route→/{slug}，
+    # menu_icon→module，menu_label→name）。仅为不符合约定的能力填写，无需逐个硬编码。
+    web_pkg: str = ""      # 显式 Web 包名（如 chat/voice/approval/kb/dashboard 共享包时与 slug 不同）
+    menu_icon: str = ""    # 菜单图标名；留空走 "module"
+    menu_label: str = ""   # 菜单别名；留空走 name
+    route: str = ""        # 路由路径；留空走 /{slug} 约定
 
 
 # ── Flutter / 移动端工具能力（纳入能力板块）────────────────────────
@@ -36,8 +43,8 @@ FLUTTER_CAPABILITIES: list[CapabilityDef] = [
                     "local_auth", ("指纹", "面容", "face id", "生物识别", "解锁")),
     CapabilityDef("flutter_signature", "手写签名", "Flutter工具", "SignWidget", "approval",
                     "signature", ("签名", "手写", "电子签", "签批")),
-    CapabilityDef("flutter_speech", "语音交互", "Flutter工具", "SpeechWidget", "shanghai_voice",
-                    "record + audioplayers + web_socket_channel", ("语音", "说话", "tts", "语音输入", "朗读", "上海话")),
+    CapabilityDef("flutter_speech", "语音交互", "Flutter工具", "SpeechWidget", "chat_qa",
+                    "record + audioplayers + web_socket_channel", ("语音", "说话", "tts", "语音输入", "朗读")),
     CapabilityDef("flutter_file_picker", "文件选择", "Flutter工具", "FileWidget", "kb",
                     "file_picker", ("选文件", "附件", "上传文件", "导入excel", "pdf上传")),
     CapabilityDef("flutter_pdf", "PDF预览", "Flutter工具", "PdfWidget", "kb",
@@ -51,29 +58,39 @@ FLUTTER_CAPABILITIES: list[CapabilityDef] = [
 # 业务核心模块（与 seed CAPABILITIES 对齐 + 常用别名）
 CORE_CAPABILITIES: list[CapabilityDef] = [
     CapabilityDef("chat_qa", "智能问答", "智能交互", "ChatWidget", "chat_qa",
-                    "", ("问答", "faq", "客服", "智能问", "对话")),
+                    "", ("问答", "faq", "客服", "智能问", "对话"),
+                    web_pkg="@blockhub/web-capability-chat", menu_icon="chat", route="/chat"),
     CapabilityDef("chat_voice", "语音问答", "智能交互", "VoiceWidget", "chat_qa",
-                    "speech_to_text", ("语音问答", "语音助手")),
+                    "speech_to_text", ("语音问答", "语音助手"),
+                    web_pkg="@blockhub/web-capability-chat", menu_icon="chat", route="/chat"),
     CapabilityDef("shanghai_voice", "上海话语音交互", "智能交互", "ShanghaiVoiceWidget", "shanghai_voice",
                     "record+web_socket_channel+audioplayers",
-                    ("上海话", "语音助手", "方言", "实时语音", "麦克风")),
+                    ("上海话", "语音助手", "方言", "实时语音", "麦克风"),
+                    web_pkg="@blockhub/web-capability-voice", menu_icon="mic", menu_label="上海话语音", route="/voice"),
     CapabilityDef("shanghai_voice_stream", "实时语音流", "智能交互", "VoiceStreamWidget", "shanghai_voice",
                     "web_socket_channel",
-                    ("语音流", "asr", "tts", "websocket")),
+                    ("语音流", "asr", "tts", "websocket"),
+                    web_pkg="@blockhub/web-capability-voice", menu_icon="mic", menu_label="实时语音", route="/voice"),
     CapabilityDef("kb_document", "知识库", "知识数据", "KBUploadWidget", "kb",
-                    "file_picker", ("知识库", "文档", "制度", "手册", "sop")),
+                    "file_picker", ("知识库", "文档", "制度", "手册", "sop"),
+                    web_pkg="@blockhub/web-capability-kb", menu_icon="book", route="/kb"),
     CapabilityDef("approval_flow", "审批流", "流程审批", "FormWidget", "approval",
-                    "", ("审批", "请假", "报销", "流程", "待办", "会签", "合同", "盖章", "签章", "电子签")),
+                    "", ("审批", "请假", "报销", "流程", "待办", "会签", "合同", "盖章", "签章", "电子签"),
+                    web_pkg="@blockhub/web-capability-approval", menu_icon="approval", route="/approval"),
     CapabilityDef("approval_inbox", "待办中心", "流程审批", "ListWidget", "approval",
-                    "", ("待办", "已办", "inbox", "案件", "进度跟踪", "跟踪")),
+                    "", ("待办", "已办", "inbox", "案件", "进度跟踪", "跟踪"),
+                    web_pkg="@blockhub/web-capability-approval", menu_icon="inbox", route="/inbox"),
     CapabilityDef("chart_dashboard", "数据看板", "可视化", "DashboardWidget", "report",
-                    "fl_chart", ("看板", "dashboard", "报表", "统计", "数据大屏")),
+                    "fl_chart", ("看板", "dashboard", "报表", "统计", "数据大屏"),
+                    web_pkg="@blockhub/web-capability-dashboard", menu_icon="chart", route="/dashboard"),
     CapabilityDef("chart_funnel", "销售漏斗", "可视化", "FunnelWidget", "report",
-                    "fl_chart", ("漏斗", "转化", "商机阶段")),
+                    "fl_chart", ("漏斗", "转化", "商机阶段"),
+                    web_pkg="@blockhub/web-capability-dashboard", menu_icon="chart", route="/dashboard"),
     CapabilityDef("data_nl_query", "智能问数", "知识数据", "NLQueryWidget", "report",
                     "", ("问数", "自然语言查数", "sql查询", "查销售", "查数据", "业绩数据")),
     CapabilityDef("notify_inapp", "站内信", "通知集成", "InboxWidget", "notify",
-                    "flutter_local_notifications", ("站内", "消息中心", "提醒", "通知")),
+                    "flutter_local_notifications", ("站内", "消息中心", "提醒", "通知"),
+                    web_pkg="@blockhub/web-capability-dashboard", menu_icon="bell", route="/notifications"),
     CapabilityDef("notify_email", "邮件通知", "通知集成", "EmailWidget", "notify",
                     "", ("邮件", "email", "发邮件")),
     CapabilityDef("notify_im", "企微钉钉", "通知集成", "IMWidget", "notify",
