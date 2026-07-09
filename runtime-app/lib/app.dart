@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'config/app_branding.dart';
 import 'models/tenant_config.dart';
 import 'pages/capability_pages.dart';
+import 'pages/login_page.dart';
+import 'services/auth_service.dart';
 import 'services/config_service.dart';
 
 class RuntimeApp extends StatefulWidget {
@@ -16,14 +18,27 @@ class RuntimeApp extends StatefulWidget {
 
 class _RuntimeAppState extends State<RuntimeApp> {
   late final ConfigService _configService;
+  late final AuthService _authService;
   TenantConfig? _config;
   String? _error;
+  bool _authChecked = false;
 
   @override
   void initState() {
     super.initState();
     _configService = ConfigService(branding: widget.branding);
-    _load();
+    _authService = AuthService(apiBaseUrl: widget.branding.apiBaseUrl);
+    authService = _authService;
+    _initAuth();
+  }
+
+  Future<void> _initAuth() async {
+    await _authService.loadCached();
+    if (!mounted) return;
+    setState(() => _authChecked = true);
+    if (_authService.isLoggedIn) {
+      _load();
+    }
   }
 
   Future<void> _load() async {
@@ -40,6 +55,19 @@ class _RuntimeAppState extends State<RuntimeApp> {
     }
   }
 
+  Future<void> _onLoggedIn() async {
+    await _load();
+  }
+
+  Future<void> _logout() async {
+    await _authService.logout();
+    if (!mounted) return;
+    setState(() {
+      _config = null;
+      _error = null;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final primary = Color(widget.branding.primaryColorValue);
@@ -52,21 +80,30 @@ class _RuntimeAppState extends State<RuntimeApp> {
       ),
       home: Scaffold(
         appBar: AppBar(title: Text(widget.branding.appName)),
-        body: _error != null
-            ? Center(child: Text('加载失败: $_error'))
-            : _config == null
-                ? const Center(child: CircularProgressIndicator())
-                : _HomeBody(config: _config!, branding: widget.branding),
+        body: !_authChecked
+            ? const Center(child: CircularProgressIndicator())
+            : !_authService.isLoggedIn
+                ? LoginPage(branding: widget.branding, onLoggedIn: _onLoggedIn)
+                : _error != null
+                    ? Center(child: Text('加载失败: $_error'))
+                    : _config == null
+                        ? const Center(child: CircularProgressIndicator())
+                        : _HomeBody(
+                            config: _config!,
+                            branding: widget.branding,
+                            onLogout: _logout,
+                          ),
       ),
     );
   }
 }
 
 class _HomeBody extends StatefulWidget {
-  const _HomeBody({required this.config, required this.branding});
+  const _HomeBody({required this.config, required this.branding, required this.onLogout});
 
   final TenantConfig config;
   final AppBranding branding;
+  final VoidCallback onLogout;
 
   @override
   State<_HomeBody> createState() => _HomeBodyState();
@@ -110,6 +147,11 @@ class _HomeBodyState extends State<_HomeBody> {
           ),
           title: Text(widget.config.appName, style: Theme.of(context).textTheme.titleLarge),
           subtitle: Text(widget.config.tenantName),
+          trailing: IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: '退出登录',
+            onPressed: widget.onLogout,
+          ),
         ),
         const SizedBox(height: 12),
         // 顶部导航：菜单项可点，选中即在「主区」就地切换页面（不再单独 push 一个页面）
