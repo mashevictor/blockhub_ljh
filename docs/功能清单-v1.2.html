@@ -159,7 +159,7 @@ td code{font-size:11px;background:#f5f5f4;padding:2px 6px;border-radius:4px}
       <tr><td>KB + RAG + citation</td><td>W2</td><td><span class="tag tag-ahead">🔵</span></td><td>009 pgvector</td></tr>
       <tr><td>上海话语音 Agent</td><td>扩展</td><td><span class="tag tag-ahead">🔵</span></td><td>runtime VoiceWidget 已接</td></tr>
       <tr><td>审批真状态机</td><td>W2</td><td><span class="tag tag-done">✅</span></td><td>PG + demo seed；提交/通过已联动通知</td></tr>
-      <tr><td>capability_manifest TS</td><td>W3</td><td><span class="tag tag-wip">🔶</span></td><td>JSON+TS 已生成；Dart 待 W5</td></tr>
+      <tr><td>capability_manifest</td><td>W3</td><td><span class="tag tag-done">✅</span></td><td>JSON+TS+Dart 已生成（Dart 写入 runtime-app/lib/data，app.dart 已消费）</td></tr>
       <tr><td>Flutter Melos + 裁剪</td><td>W5</td><td><span class="tag tag-plan">⬜</span></td><td>—</td></tr>
       <tr><td>部署 / smoke</td><td>W5–W6</td><td><span class="tag tag-done">✅</span></td><td>smoke-test + smoke-admin-api + smoke-w3</td></tr>
     </tbody>
@@ -186,7 +186,7 @@ td code{font-size:11px;background:#f5f5f4;padding:2px 6px;border-radius:4px}
   <table>
     <thead><tr><th>#</th><th>任务</th><th>负责层</th><th>状态</th><th>验收标准</th></tr></thead>
     <tbody>
-      <tr><td>M1</td><td><code>capability_manifest</code> codegen（registry → shared JSON/TS/Dart）</td><td>契约</td><td><span class="tag tag-wip">🔶</span></td><td>JSON+TS 已生成；Dart 待 W5</td></tr>
+      <tr><td>M1</td><td><code>capability_manifest</code> codegen（registry → shared JSON/TS/Dart）</td><td>契约</td><td><span class="tag tag-done">✅</span></td><td>JSON+TS+Dart 已生成</td></tr>
       <tr><td>M2</td><td>migration 011：<code>page_schema</code> + <code>build_manifest</code> JSONB</td><td>后端</td><td><span class="tag tag-done">✅</span></td><td>publish 后 DB 有两字段</td></tr>
       <tr><td>M3</td><td><code>schema_generator.py</code>：capability_keys → page_schema + menu</td><td>后端</td><td><span class="tag tag-done">✅</span></td><td>12 模板映射</td></tr>
       <tr><td>M4</td><td><code>build_manifest.py</code>：keys → web_pkg[] + flutter_pkg[]</td><td>后端</td><td><span class="tag tag-done">✅</span></td><td>PublishModal 可预览</td></tr>

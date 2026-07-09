@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'config/app_branding.dart';
+import 'data/capability_manifest.dart';
 import 'models/tenant_config.dart';
 import 'pages/capability_pages.dart';
 import 'pages/login_page.dart';
@@ -127,9 +128,12 @@ class _HomeBodyState extends State<_HomeBody> {
     if (builder != null) {
       return builder(widget.branding);
     }
-    final label = widget.config.menu
-        .firstWhere((m) => m.key == key, orElse: () => MenuItem(key: key, label: key, icon: ''))
-        .label;
+    // 回退占位：优先用 codegen 生成的契约名（capability_manifest.dart），
+    // 再退化到菜单 label，保证「建设中」提示始终有可读中文名。
+    final label = capabilityManifestByKey[key]?.name ??
+        widget.config.menu
+            .firstWhere((m) => m.key == key, orElse: () => MenuItem(key: key, label: key, icon: ''))
+            .label;
     return Center(
       child: Text('「$label」页面建设中', style: Theme.of(context).textTheme.titleMedium),
     );

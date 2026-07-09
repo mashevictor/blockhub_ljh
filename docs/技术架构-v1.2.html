@@ -264,7 +264,7 @@ sequenceDiagram
         <td>codegen from registry</td>
         <td>三端共享 · 单一来源</td>
         <td>key → widget, route, web_pkg, flutter_pkg</td>
-        <td><span class="tag tag-wip">🔶 JSON/TS ✅ · Dart 待 W5</span></td>
+        <td><span class="tag tag-done">✅ JSON/TS/Dart</span></td>
       </tr>
     </tbody>
   </table>
@@ -385,7 +385,7 @@ flowchart TB
 
   <pre class="tree">cozecode/
 ├── shared/
-│   ├── capability-manifest.ts      ← codegen 已生成（JSON + TS；Dart 待 W5）
+│   ├── capability-manifest.ts      ← codegen 已生成（JSON + TS + Dart）
 │   ├── page-schema.ts              ← 扩展 types
 │   └── brand.ts · themes.ts
 ├── packages/                       ← Web 能力包（已建目录）
@@ -571,7 +571,7 @@ flowchart TD
     <thead><tr><th>能力</th><th>目标（v1.2）</th><th>现状</th><th>阻塞项</th><th>计划周</th></tr></thead>
     <tbody>
       <tr><td>勾选 capability_keys</td><td>Home 三入口统一</td><td><span class="tag tag-ok">✅</span> ModuleView 已传</td><td>—</td><td>—</td></tr>
-      <tr><td>capability_manifest codegen</td><td>registry 单一来源</td><td><span class="tag tag-plan">⬜</span></td><td>无 codegen 脚本</td><td>W3 D12</td></tr>
+      <tr><td>capability_manifest codegen</td><td>registry 单一来源</td><td><span class="tag tag-done">✅</span></td><td>codegen 已生成（JSON+TS+Dart；Dart 写入 runtime-app/lib/data）</td><td>W3 D12</td></tr>
       <tr><td>page_schema 生成</td><td>publish 写入 JSONB</td><td><span class="tag tag-plan">⬜</span></td><td>无 schema_generator</td><td>W3 D13</td></tr>
       <tr><td>build_manifest</td><td>web_pkg + flutter_pkg 清单</td><td><span class="tag tag-plan">⬜</span></td><td>无 build_manifest.py</td><td>W3 D13</td></tr>
       <tr><td>runtime-web 真渲染</td><td>/r/:id 按 schema</td><td><span class="tag tag-plan">⬜</span> 占位 renderer</td><td>无 WidgetRegistry</td><td>W3 D15</td></tr>

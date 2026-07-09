@@ -91,7 +91,7 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     "agent_id": "report",
     "web_pkg": "@blockhub/web-capability-dashboard",
     "flutter_pkg": "fl_chart",
-    "route": "/chart-funnel",
+    "route": "/dashboard",
     "keywords": [
       "漏斗",
       "转化",
@@ -355,7 +355,7 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     "name": "语音交互",
     "category": "Flutter工具",
     "widget": "SpeechWidget",
-    "agent_id": "shanghai_voice",
+    "agent_id": "chat_qa",
     "web_pkg": "@blockhub/web-capability-flutter-speech",
     "flutter_pkg": "record",
     "route": "/flutter-speech",
@@ -364,8 +364,7 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
       "说话",
       "tts",
       "语音输入",
-      "朗读",
-      "上海话"
+      "朗读"
     ]
   },
   {
