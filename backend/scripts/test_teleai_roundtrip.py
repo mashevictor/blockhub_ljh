@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import asyncio
 import base64
+import struct
 import sys
 
 from app.services.teleai_asr import TeleAsrClient
@@ -28,6 +29,24 @@ async def run_tts(text: str) -> bytes:
             break
     print(f"[TTS] 合成 {chunks} 个音频包，PCM 字节数={len(pcm)}")
     return bytes(pcm)
+
+
+def resample_pcm16(pcm: bytes, from_rate: int, to_rate: int) -> bytes:
+    """线性重采样 16-bit PCM。TTS 输出 24k，ASR 按 16k 配置，需降采样。"""
+    if from_rate == to_rate or not pcm:
+        return pcm
+    n = len(pcm) // 2
+    src = struct.unpack(f"<{n}h", pcm)
+    ratio = from_rate / to_rate
+    out_n = int(n / ratio)
+    out = []
+    for i in range(out_n):
+        idx = i * ratio
+        i0 = int(idx)
+        frac = idx - i0
+        i1 = min(i0 + 1, n - 1)
+        out.append(int(src[i0] + (src[i1] - src[i0]) * frac))
+    return struct.pack(f"<{out_n}h", *out)
 
 
 async def run_asr(pcm: bytes) -> str:
@@ -72,8 +91,11 @@ async def main() -> int:
         print("FAIL: TTS 未返回任何音频")
         return 1
 
-    print(f"\n[ASR] 把 TTS 合成的 PCM 喂回 ASR ...")
-    recognized = await run_asr(pcm)
+    # TTS 输出 24k，ASR 按 16k 配置 → 降采样以匹配真实 App 流程
+    pcm_16k = resample_pcm16(pcm, 24000, 16000)
+
+    print(f"\n[ASR] 把 TTS 合成的 PCM（降采样至 16k）喂回 ASR ...")
+    recognized = await run_asr(pcm_16k)
     if not recognized:
         print("WARN: ASR 未返回识别结果（可能是静音/协议未结束）")
         return 2

@@ -56,9 +56,11 @@ CORS_ORIGINS=*
 | --- | --- | --- |
 | ASR 语音识别 | ✅ 正常 | `openapi.teleagi.cn` 握手 + `option` 返回 `code:10000` |
 | LLM 文本生成 | ✅ 正常 | DeepSeek 流式按句返回 |
-| TTS 语音合成 | ⚠️ 待开通 | 详见 1.4 |
+| TTS 语音合成 | ✅ 正常 | supernaturalrt 已开通；`test_teleai_roundtrip.py` 往返 EXIT=0 |
 
-TTS 诊断结论（`backend/scripts/test_teleai_roundtrip.py` 可复跑）：当前 AppID 在电信网关侧**未授权**使用 `supernaturalrt` 资源——WebSocket 升级成功后立即收到 `1002 Protocol error`（即便客户端不发任何业务报文也会秒关），另一主机 `xirang-openapi.ctyun.cn` 用同一套凭证返回 `HTTP 500`。属于**账号 / 开通层面**，改请求体或代码无法绕过。
+TTS 已验证通过：用 `backend/scripts/test_teleai_roundtrip.py` 做 TTS 合成→降采样 24k→16k→ASR 识别的往返，可稳定得到 `EXIT=0`（例如 TTS 文本「侬好，吾是上海话智能体，谢谢侬。」被 ASR 识回「侬好我是上海话智能体，谢谢侬」）。
+
+> 历史备注（已解决）：最初该 AppID 在电信网关侧未授权 `supernaturalrt`，WebSocket 升级后秒收 `1002`；在天翼 AI 控制台为 `TELEAI_APP_ID` 开通「超自然语音合成」能力后恢复正常。后端对 TTS 失败仍保留**优雅降级**（仅文字回复 + 前端提示），无需改动。
 
 ### 1.3 后端改代码后的标准重启流程
 
@@ -73,17 +75,15 @@ curl -s 127.0.0.1:8001/api/v1/voice/config  # 应返回 ws_url 等
 
 > 注意：`systemctl restart`（不是 `reload`）才能换掉旧 worker。
 
-### 1.4 让 TTS 真正可用（需你这边操作）
-
-在天翼 AI 开放平台控制台，为上面 `TELEAI_APP_ID` 这个应用**开通 / 订阅「超自然语音合成（supernaturalrt）」能力**（并确认配额未耗尽）。开通后：
+### 1.4 复跑 TTS 往返冒烟
 
 ```bash
 cd /root/blockhub/backend && source .venv/bin/activate
 PYTHONPATH=. python scripts/test_teleai_roundtrip.py
-# 期望：TTS 合成出 PCM、再喂回 ASR 识别出文本，最终 EXIT=0
+# 期望：TTS 合成出 PCM、降采样后喂回 ASR 识别出文本，最终 EXIT=0
 ```
 
-开通前，Agent 会**优雅降级**：文字回复照常显示，仅语音播报静音，并在前端提示「语音合成(TTS)暂不可用，已显示文字回复（待开通）」。
+若换成其它上海话 TTS 凭证，或 TTS 偶发不可用，Agent 会**优雅降级**：文字回复照常显示，仅语音播报静音，并在前端提示「语音合成(TTS)暂不可用，已显示文字回复（待开通）」。
 
 ---
 
