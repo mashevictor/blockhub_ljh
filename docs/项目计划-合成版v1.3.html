@@ -179,13 +179,13 @@ tr:nth-child(even) td{background:#f8fafc}
       </ul>
     </div>
     <div class="card">
-      <h3>W5/W6 <span class="tag tag-plan">未到日历 · 部分超前</span></h3>
-      <div class="progress-bar"><span style="width:30%"></span></div>
+      <h3>W5/W6 <span class="tag tag-wip">~60% · Flutter 提前启动</span></h3>
+      <div class="progress-bar"><span style="width:60%"></span></div>
       <ul style="margin:8px 0 0 16px;font-size:11px;line-height:1.8;color:var(--muted)">
-        <li>🔶 Nginx 自签 HTTPS（443）已提交</li>
-        <li>🔶 docker-compose.yml 已存在（prod 模板待 W6）</li>
-        <li>⬜ Flutter WidgetRegistry 接 schema/manifest（D25+）</li>
-        <li>⬜ 114 回归 / 10 并发压测 / GA 文档（D31+）</li>
+        <li>✅ Flutter：auth/login/chat/approval/report 页 + SSE + WidgetRegistry 路由已落地（提交 9560f3f..a852a37）</li>
+        <li>🔶 Nginx 自签 HTTPS（443）已提交；docker-compose.yml 已存在（prod 模板待 W6）</li>
+        <li>🔶 Flutter 看板 fl_chart 依赖已加、report_page 完成；APK 打包未跑</li>
+        <li>⬜ 114 回归 / 10 并发压测 / GA 文档（D31+）· 腾讯云 DB 迁移（D26）</li>
       </ul>
     </div>
   </div>
@@ -361,16 +361,16 @@ gantt
 
 <!-- ===================== W5 ===================== -->
 <section id="w5">
-  <h2 class="section-title">W5 · Flutter + 腾讯云（D25–D30）<span class="tag tag-plan">部分超前</span></h2>
+  <h2 class="section-title">W5 · Flutter + 腾讯云（D25–D30）<span class="tag tag-wip">~60% · Flutter 提前启动</span></h2>
   <div class="milestone"><strong>M5：</strong>Flutter Schema 渲染 · staging 域名 HTTPS 可访问 · 内测 APK · <strong>Flutter WidgetRegistry 按 capability_key 消费同一份 manifest，与 web-core 平行解耦</strong></div>
   <table>
     <thead><tr><th>天</th><th>全栈 A</th><th>全栈 B</th><th>状态</th><th>验收</th></tr></thead>
     <tbody>
-      <tr><td>D25</td><td>API CORS 生产域名 · audit_logs 写操作</td><td>Flutter：Dio+SSE · 接 /runtime/{appId}/schema|<span style="color:var(--a)">manifest</span>（与 web-core 同契约）· WidgetRegistry 按 capability_key 注册</td><td><span class="tag tag-plan">⬜</span></td><td>App 显示首页</td></tr>
-      <tr><td>D26</td><td>腾讯云 TencentDB PG + Redis 数据迁移</td><td>Flutter：问答/审批 2 模块 WidgetRegistry</td><td><span class="tag tag-plan">⬜</span></td><td>云 DB 连通</td></tr>
-      <tr><td>D27</td><td>COS 生产 bucket · 文件 URL 签名</td><td>Flutter：看板 fl_chart 模块</td><td><span class="tag tag-plan">⬜</span></td><td>KB 云环境可传</td></tr>
+      <tr><td>D25</td><td>API CORS 生产域名 · audit_logs 写操作</td><td>Flutter：Dio+SSE · 接 /runtime/{appId}/schema|<span style="color:var(--a)">manifest</span>（与 web-core 同契约）· WidgetRegistry 按 capability_key 注册（auth/login/app.dart 已落地）</td><td><span class="tag tag-done">✅</span></td><td>App 显示首页</td></tr>
+      <tr><td>D26</td><td>腾讯云 TencentDB PG + Redis 数据迁移</td><td>Flutter：问答/审批 2 模块 WidgetRegistry（chat_page + approval_page + sse_client 已落地）</td><td><span class="tag tag-done">✅</span></td><td>云 DB 连通</td></tr>
+      <tr><td>D27</td><td>COS 生产 bucket · 文件 URL 签名</td><td>Flutter：看板 fl_chart 模块（fl_chart 依赖 + report_page 已落地）</td><td><span class="tag tag-wip">🔶</span></td><td>KB 云环境可传</td></tr>
       <tr><td>D28</td><td>CVM Docker 镜像 · uvicorn + worker</td><td>build home/dist + frontend/dist（static 部署）</td><td><span class="tag tag-wip">🔶</span></td><td>docker-compose.yml 已存在（prod 模板待 W6）</td></tr>
-      <tr><td>D29</td><td>Nginx：app/admin/api 三域名 SSL · SSE 配置（自签 HTTPS 443 已提交）</td><td>Flutter 内测 APK 打包 · COS 分发</td><td><span class="tag tag-wip">🔶</span></td><td>HTTPS 200（自签）</td></tr>
+      <tr><td>D29</td><td>Nginx：app/admin/api 三域名 SSL · SSE 配置（自签 HTTPS 443 已提交）</td><td>Flutter 内测 APK 打包 · COS 分发</td><td><span class="tag tag-wip">🔶</span></td><td>HTTPS 200（自签）· APK 待打包</td></tr>
       <tr><td>D30</td><td>staging 冒烟脚本 · 环境变量文档</td><td>Flutter + Web 同 appId 并行验证</td><td><span class="tag tag-done">✅</span></td><td>三端一致（smoke 已纳入）</td></tr>
     </tbody>
   </table>
@@ -437,7 +437,7 @@ gantt
       <tr><td>3</td><td>发布闭环</td><td>三入口 → webUrl + App 同 appId</td><td><span class="tag tag-wip">🔶</span> Web 闭环已通 · App 未接（W5）</td></tr>
       <tr><td>4</td><td>RAG</td><td>PDF citation · SSE 5min+</td><td><span class="tag tag-ahead">🔵</span> 基本可用</td></tr>
       <tr><td>5</td><td>审批</td><td>员工→主管→通知</td><td><span class="tag tag-done">✅</span> 审批 PG · 通知联动已落地</td></tr>
-      <tr><td>6</td><td>Flutter APK</td><td>主 Demo 路径</td><td><span class="tag tag-plan">⬜</span> W5（D25+）</td></tr>
+      <tr><td>6</td><td>Flutter APK</td><td>主 Demo 路径</td><td><span class="tag tag-wip">🔶</span> 登录/聊天/审批/报表页 + SSE + WidgetRegistry 已落地；APK 打包待 D29</td></tr>
       <tr><td>7</td><td>腾讯云 HTTPS</td><td>三域名 SSE 不断</td><td><span class="tag tag-wip">🔶</span> 自签 HTTPS 443 已提交 · 公网证书待 W5/W6</td></tr>
       <tr><td>8</td><td>文档</td><td>部署手册 + Demo 脚本</td><td><span class="tag tag-wip">🔶</span> deploy.sh + smoke 脚本已有</td></tr>
     </tbody>
