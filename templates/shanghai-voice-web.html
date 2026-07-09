@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>__APP_NAME__ · 上海话语音 Agent</title>
+<style>
+  :root { --brand: __PRIMARY_COLOR__; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: -apple-system, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+    background: #0f1020; color: #e9e9f0; min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center;
+  }
+  header { width: 100%; padding: 14px 20px; background: rgba(255,255,255,.04);
+    border-bottom: 1px solid rgba(255,255,255,.08); display:flex; align-items:center; gap:10px; }
+  header .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--brand); }
+  header h1 { font-size: 17px; margin: 0; font-weight: 700; }
+  .wrap { width: 100%; max-width: 720px; padding: 18px; flex: 1; display:flex; flex-direction:column; gap:14px; }
+  .bar { display:flex; gap:10px; align-items:center; flex-wrap: wrap; }
+  .bar input { flex:1; min-width: 200px; padding:8px 10px; border-radius:10px; border:1px solid rgba(255,255,255,.15);
+    background:#15162b; color:#e9e9f0; font-size:13px; }
+  button.mic {
+    width: 76px; height: 76px; border-radius: 50%; border: none; cursor: pointer;
+    background: var(--brand); color: #fff; font-size: 28px; transition: transform .1s, box-shadow .2s;
+    box-shadow: 0 6px 20px rgba(0,0,0,.35); align-self:center;
+  }
+  button.mic:active { transform: scale(.94); }
+  button.mic.listening { animation: pulse 1.2s infinite; }
+  @keyframes pulse { 0%{box-shadow:0 0 0 0 rgba(128,128,255,.5);} 70%{box-shadow:0 0 0 18px rgba(128,128,255,0);} 100%{box-shadow:0 0 0 0 rgba(128,128,255,0);} }
+  button.ghost { padding:8px 14px; border-radius:10px; border:1px solid rgba(255,255,255,.2);
+    background:transparent; color:#e9e9f0; cursor:pointer; font-size:13px; }
+  .status { font-size:12px; color:#9a9ab5; min-height:16px; }
+  .transcript { flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:10px; padding:6px 2px; }
+  .bubble { max-width: 82%; padding:10px 14px; border-radius:14px; line-height:1.5; font-size:15px; white-space:pre-wrap; word-break:break-word; }
+  .bubble.user { align-self:flex-end; background: var(--brand); color:#fff; border-bottom-right-radius:4px; }
+  .bubble.assistant { align-self:flex-start; background:#1c1d36; border-bottom-left-radius:4px; }
+  .partial { opacity:.6; font-style:italic; }
+  .toast { position:fixed; left:50%; bottom:24px; transform:translateX(-50%); background:#2a2b4a; color:#fff;
+    padding:10px 16px; border-radius:10px; font-size:13px; border:1px solid rgba(255,255,255,.15); display:none; max-width:90%; }
+</style>
+</head>
+<body>
+<header><span class="dot"></span><h1>__APP_NAME__ · 上海话语音 Agent</h1></header>
+<div class="wrap">
+  <div class="bar">
+    <input id="api" placeholder="后端 API 基址，如 http://101.32.209.251/api/v1" />
+    <button class="ghost" id="apply">应用</button>
+  </div>
+  <div class="status" id="status">未连接</div>
+  <div class="transcript" id="transcript"></div>
+  <button class="mic" id="mic" title="按住说话 / 点击开关">🎙️</button>
+  <div class="status" id="hint">点击麦克风开始；再次点击结束本轮。需允许麦克风权限。</div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+  "use strict";
+  // ---- 可配置项（生成器会替换占位符）----
+  var DEFAULT_API = "__API_BASE__";
+  var APP_NAME = "__APP_NAME__";
+
+  var apiInput = document.getElementById("api");
+  var statusEl = document.getElementById("status");
+  var transcriptEl = document.getElementById("transcript");
+  var micBtn = document.getElementById("mic");
+  var toastEl = document.getElementById("toast");
+  var hintEl = document.getElementById("hint");
+
+  var apiBase = DEFAULT_API;
+  var cfg = null;
+  var ws = null;
+  var state = "disconnected";
+  var captureCtx = null, micStream = null, scriptNode = null, srcNode = null;
+  var playbackCtx = null, playChain = null;
+  var sessionId = "web-" + Math.random().toString(36).slice(2, 10);
+
+  function toast(msg) {
+    toastEl.textContent = msg; toastEl.style.display = "block";
+    clearTimeout(toast._t); toast._t = setTimeout(function () { toastEl.style.display = "none"; }, 4000);
+  }
+  function setStatus(s) { statusEl.textContent = "状态：" + s; }
+  function setState(s) { state = s; setStatus(s);
+    micBtn.classList.toggle("listening", s === "listening"); }
+
+  function base64FromInt16(arr) {
+    var bytes = new Uint8Array(arr.length * 2);
+    for (var i = 0; i < arr.length; i++) {
+      var s = Math.max(-32768, Math.min(32767, arr[i]));
+      bytes[i*2] = s & 0xff; bytes[i*2+1] = (s >> 8) & 0xff;
+    }
+    return btoa(String.fromCharCode.apply(null, bytes));
+  }
+
+  // 简单线性重采样（Float32）
+  function resample(input, fromRate, toRate) {
+    if (fromRate === toRate || !input.length) return input;
+    var ratio = fromRate / toRate, outLen = Math.round(input.length / ratio), out = new Float32Array(outLen);
+    for (var i = 0; i < outLen; i++) {
+      var idx = i * ratio, i0 = Math.floor(idx), frac = idx - i0, i1 = Math.min(i0 + 1, input.length - 1);
+      out[i] = input[i0] + (input[i1] - input[i0]) * frac;
+    }
+    return out;
+  }
+
+  function float32ToPcm16(f32) {
+    var pcm = new Int16Array(f32.length);
+    for (var i = 0; i < f32.length; i++) pcm[i] = Math.max(-1, Math.min(1, f32[i])) * 32767;
+    return pcm;
+  }
+
+  function addBubble(role, text, isPartial) {
+    var div = document.createElement("div");
+    div.className = "bubble " + role + (isPartial ? " partial" : "");
+    div.textContent = text;
+    transcriptEl.appendChild(div);
+    transcriptEl.scrollTop = transcriptEl.scrollHeight;
+    return div;
+  }
+
+  async function ensureConfig() {
+    if (cfg) return cfg;
+    var r = await fetch(apiBase.replace(/\/$/, "") + "/voice/config");
+    if (!r.ok) throw new Error("获取语音配置失败：" + r.status);
+    cfg = await r.json();
+    if (!cfg.configured) toast("提示：后端语音服务未完全配置（TTS 可能待开通）。");
+    return cfg;
+  }
+
+  async function connect() {
+    await ensureConfig();
+    var url = cfg.ws_url + "?session_id=" + encodeURIComponent(sessionId);
+    ws = new WebSocket(url);
+    ws.onopen = function () { setState("idle"); setStatus("已连接，等待说话"); };
+    ws.onclose = function () { setState("disconnected"); setStatus("连接已关闭"); ws = null; };
+    ws.onerror = function () { toast("WebSocket 连接出错"); };
+    ws.onmessage = function (ev) { handleMessage(JSON.parse(ev.data)); };
+  }
+
+  function handleMessage(msg) {
+    if (msg.type === "state") setState(msg.state || "idle");
+    else if (msg.type === "ready") setState("idle");
+    else if (msg.type === "asr_partial") { renderPartial("user", msg.text || ""); }
+    else if (msg.type === "asr_final") { clearPartial(); addBubble("user", msg.text || ""); }
+    else if (msg.type === "llm_delta") { renderPartial("assistant", msg.text || ""); }
+    else if (msg.type === "tts_audio") {
+      clearPartial();
+      if (msg.data) playPcm(msg.data, cfg.playback_sample_rate || 24000);
+      if (msg.is_end) setState("idle");
+    }
+    else if (msg.type === "error") { toast("错误：" + (msg.message || "未知")); if (msg.message && msg.message.indexOf("TTS") >= 0) hintEl.textContent = "语音合成(TTS)暂不可用，已显示文字回复。"; }
+  }
+
+  var partialEl = null;
+  function renderPartial(role, text) {
+    if (!partialEl) partialEl = addBubble(role, "", true);
+    partialEl.textContent = text;
+    transcriptEl.scrollTop = transcriptEl.scrollHeight;
+  }
+  function clearPartial() { if (partialEl) { partialEl.classList.remove("partial"); partialEl = null; } }
+
+  async function playPcm(b64, rate) {
+    if (!playbackCtx) playbackCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: rate });
+    if (playbackCtx.state === "suspended") await playbackCtx.resume();
+    var bin = atob(b64), len = bin.length / 2, pcm = new Int16Array(len);
+    for (var i = 0; i < len; i++) pcm[i] = (bin.charCodeAt(i*2) & 0xff) | ((bin.charCodeAt(i*2+1) & 0xff) << 8);
+    var f32 = new Float32Array(len);
+    for (var j = 0; j < len; j++) f32[j] = pcm[j] / 32768;
+    f32 = resample(f32, rate, playbackCtx.sampleRate);
+    var buf = playbackCtx.createBuffer(1, f32.length, playbackCtx.sampleRate);
+    buf.copyToChannel(f32, 0);
+    var src = playbackCtx.createBufferSource(); src.buffer = buf;
+    if (playChain) src.connect(playChain); else src.connect(playbackCtx.destination);
+    playChain = src;
+    src.onended = function () { if (playChain === src) playChain = null; };
+    src.start();
+  }
+
+  async function startMic() {
+    if (!ws) await connect();
+    if (state === "listening") return;
+    micStream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true } });
+    captureCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
+    if (captureCtx.state === "suspended") await captureCtx.resume();
+    var targetRate = (cfg && cfg.capture_sample_rate) || 16000;
+    srcNode = captureCtx.createMediaStreamSource(micStream);
+    scriptNode = captureCtx.createScriptProcessor(4096, 1, 1);
+    scriptNode.onaudioprocess = function (e) {
+      var input = e.inputBuffer.getChannelData(0);
+      var f32 = resample(input, captureCtx.sampleRate, targetRate);
+      var pcm = float32ToPcm16(f32);
+      if (ws && ws.readyState === 1) ws.send(JSON.stringify({ type: "audio", data: base64FromInt16(pcm) }));
+    };
+    srcNode.connect(scriptNode);
+    scriptNode.connect(captureCtx.destination);
+    setState("listening");
+    setStatus("聆听中…");
+  }
+
+  function stopMic() {
+    if (scriptNode) { try { srcNode.disconnect(); scriptNode.disconnect(); } catch (e) {} scriptNode = null; }
+    if (captureCtx) { captureCtx.close(); captureCtx = null; }
+    if (micStream) { micStream.getTracks().forEach(function (t) { t.stop(); }); micStream = null; }
+    if (ws && ws.readyState === 1) ws.send(JSON.stringify({ type: "utterance_end" }));
+    setState("thinking");
+  }
+
+  var isListening = false;
+  micBtn.addEventListener("click", function () {
+    if (isListening) { isListening = false; stopMic(); }
+    else { isListening = true; startMic().catch(function (e) { isListening = false; toast("麦克风错误：" + e.message); }); }
+  });
+
+  document.getElementById("apply").addEventListener("click", function () {
+    var v = apiInput.value.trim(); if (v) { apiBase = v; cfg = null; toast("已更新 API 基址"); }
+  });
+
+  // 初始化
+  apiInput.value = apiBase;
+  setStatus("未连接（点击麦克风自动连接）");
+})();
+</script>
+</body>
+</html>

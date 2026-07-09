@@ -44,10 +44,15 @@ async def database_unavailable(_: Request, __: OperationalError) -> JSONResponse
     )
 
 
+# 允许通过环境变量 cors_origins 配置跨域来源。
+# 若包含 "*" 表示允许任意来源（适用于「生成的网页可被任意站点托管」的场景）；
+# 此时关闭凭据，因为浏览器不允许 "*" 与 credentials 同时使用。
+_cors_raw = [o.strip() for o in settings.cors_origins.split(",") if o.strip()]
+_allow_all = "*" in _cors_raw
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[o.strip() for o in settings.cors_origins.split(",") if o.strip()],
-    allow_credentials=True,
+    allow_origins=["*"] if _allow_all else _cors_raw,
+    allow_credentials=False if _allow_all else True,
     allow_methods=["*"],
     allow_headers=["*"],
 )

@@ -167,7 +167,14 @@ async def shanghai_voice_agent(ws: WebSocket, session_id: str = "default") -> No
             raise
         except Exception as exc:
             logger.exception("LLM/TTS pipeline failed")
-            await ws.send_json({"type": "error", "code": "PIPELINE", "message": str(exc)})
+            msg = str(exc)
+            # TTS 在电信网关被按 AppID 拒权(1002)或返回非 10000 时，给出可读提示，
+            # 文字回复已经通过 llm_delta 展示，不阻断对话。
+            if "tts" in msg.lower() or "1002" in msg or "10000" in msg:
+                user_msg = "语音合成(TTS)暂不可用，已为你显示文字回复（待开通 TTS 能力）。"
+            else:
+                user_msg = f"语音处理出错：{msg}"
+            await ws.send_json({"type": "error", "code": "PIPELINE", "message": user_msg})
             return
 
         if reply_parts:
