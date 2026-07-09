@@ -2,8 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:http/http.dart' as http;
-
 /// SSE 流式客户端：POST 到 /chat/completions/stream，按行解析 `data: {json}` 帧。
 ///
 /// staging 自签证书放行。生产应改为正规证书校验。
@@ -13,38 +11,28 @@ class SseClient {
   final String apiBaseUrl;
   final String token;
 
-  http.Client _client() {
-    final httpClient = HttpClient()..badCertificateCallback = (_, __, ___) => true;
-    return http.IOClient(httpClient);
-  }
-
-  /// 返回逐片 content 的流（已拼接为完整增量文本）。
+  /// 返回逐片 content 的流（完整增量文本）。
   Stream<String> streamChat({
     required String message,
     String sessionId = 'default',
     String model = 'doubao-seed-2-0-mini',
     bool useRag = true,
   }) async* {
-    final client = _client();
+    final client = HttpClient()..badCertificateCallback = (_, __, ___) => true;
     try {
-      final request = http.Request(
-        'POST',
-        Uri.parse('$apiBaseUrl/chat/completions/stream'),
-      )
-        ..headers['Content-Type'] = 'application/json'
-        ..headers['Authorization'] = 'Bearer $token'
-        ..body = jsonEncode({
-          'message': message,
-          'session_id': sessionId,
-          'model': model,
-          'use_rag': useRag,
-        });
-
-      final response = await client.send(request);
-      final lines = response.stream
+      final req = await client.postUrl(Uri.parse('$apiBaseUrl/chat/completions/stream'));
+      req.headers.set('Content-Type', 'application/json');
+      req.headers.set('Authorization', 'Bearer $token');
+      req.write(jsonEncode({
+        'message': message,
+        'session_id': sessionId,
+        'model': model,
+        'use_rag': useRag,
+      }));
+      final resp = await req.close();
+      await for (final line in resp
           .transform(utf8.decoder)
-          .transform(const LineSplitter());
-      await for (final line in lines) {
+          .transform(const LineSplitter())) {
         if (!line.startsWith('data:')) continue;
         final payload = line.substring(5).trim();
         if (payload.isEmpty || payload == '[DONE]') continue;
@@ -59,7 +47,7 @@ class SseClient {
         }
       }
     } finally {
-      client.close();
+      client.close(force: true);
     }
   }
 }

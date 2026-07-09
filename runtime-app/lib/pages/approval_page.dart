@@ -77,7 +77,6 @@ class _ApprovalPageState extends State<ApprovalPage> {
 
   @override
   Widget build(BuildContext context) {
-    final primary = Color(widget.branding.primaryColorValue);
     return Column(
       children: [
         if (_error != null)
