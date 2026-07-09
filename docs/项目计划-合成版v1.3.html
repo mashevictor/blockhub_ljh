@@ -149,7 +149,7 @@ tr:nth-child(even) td{background:#f8fafc}
         <li>✅ 上海话语音 Agent（APK+TTS）</li>
         <li>✅ KB 上传 + 切片 + 异步</li>
         <li>✅ 审批 PG 状态机（含 demo seed）</li>
-        <li>🔶 custom 审核台（注册表已解耦，UI 验收中）</li>
+        <li>🔶 custom 审核台（后端 custom_capability_store 已就绪，Admin UI 缺失）</li>
         <li>⬜ 通知/报表 PG 联动（已随 W4 提前完成）</li>
       </ul>
     </div>
@@ -161,7 +161,7 @@ tr:nth-child(even) td{background:#f8fafc}
         <li>✅ publish → webUrl + page_schema</li>
         <li>✅ runtime-web /r/:appId 真渲染 · 能力包自注册自动发现</li>
         <li>✅ plaza 互动落 PG（feed_posts/reactions/comments）</li>
-        <li>🔶 codegen TS/Dart 输出（仅 JSON）</li>
+        <li>🔵 codegen TS 已生成（shared/capability-manifest.ts）；🔶 Dart 输出待补</li>
         <li>⬜ Playwright 浏览器 E2E 全链路</li>
       </ul>
     </div>
@@ -315,9 +315,9 @@ gantt
     <thead><tr><th>天</th><th>全栈 A</th><th>全栈 B</th><th>状态</th><th>验收</th></tr></thead>
     <tbody>
       <tr><td>D7–D9</td><td>KB multipart→COS · documents 表 · PyMuPDF 切片 · embedding · pgvector · POST /kb/search + RAG prompt</td><td>Admin 知识库上传 UI 接真 API · Chat citation 气泡 UI · Admin Chat RAG 模式开关</td><td><span class="tag tag-done">✅</span></td><td>topK 命中 + SSE 引用</td></tr>
-      <tr><td>D9</td><td><strong>新增</strong> custom_capabilities 审核 API（注册表已解耦）</td><td>Admin 审核台 UI</td><td><span class="tag tag-wip">🔶</span></td><td>审核台验收中</td></tr>
+      <tr><td>D9</td><td><strong>新增</strong> custom_capabilities 审核 API（custom_capability_store 已落地）</td><td>Admin 审核台 UI</td><td><span class="tag tag-plan">⬜</span></td><td>后端就绪 · 前端 UI 缺失</td></tr>
       <tr><td>D10–D11</td><td>approvals 表 + 状态机 submit/inbox/action · 移除内存 store（含 demo seed）</td><td>Home 创建页接 /creation/feasibility · Admin 审批页接 PG 列表</td><td><span class="tag tag-done">✅</span></td><td>可提交真数据</td></tr>
-      <tr><td>D12</td><td>Celery/BackgroundTasks 异步切片 · manifest codegen（JSON only）</td><td>schema-renderer types.ts + Registry 骨架</td><td><span class="tag tag-done">✅</span></td><td>大 PDF 不阻塞</td></tr>
+      <tr><td>D12</td><td>Celery/BackgroundTasks 异步切片 · manifest codegen（JS/TS 已生成）</td><td>schema-renderer types.ts + Registry 骨架</td><td><span class="tag tag-done">✅</span></td><td>大 PDF 不阻塞</td></tr>
       <tr><td>超前项</td><td><strong>新增</strong> 上海话语音 Agent（TeleAI WS · APK+TTS 已验证）</td><td>Home + runtime VoiceWidget</td><td><span class="tag tag-done">✅</span></td><td>语音 Demo 可演示</td></tr>
     </tbody>
   </table>
@@ -336,7 +336,7 @@ gantt
       <tr><td>D16</td><td>20 场景模板 seed（办公 TOP20）· apps.audience_type · plaza publish/feed API</td><td>ListWidget + StatCard（独立 Dashboard）· PlazaAudiencePicker @受众 · /plaza 壳</td><td><span class="tag tag-done">✅</span></td><td>feed 有数据；互动落 PG</td></tr>
       <tr><td>D17</td><td>feasibility 覆盖度评分（LLM 可选）· @公开 写 feed 占位</td><td>Industry/Module 三入口统一发布 · 双账号 runtime 联调</td><td><span class="tag tag-wip">🔶</span></td><td>Prompt 已通 · 行业/模块待对齐</td></tr>
       <tr><td>D18</td><td>smoke-test W3 段 · plaza 联调</td><td>PublishModal build_manifest 预览 · 真 webUrl + App 深链 · 双角色</td><td><span class="tag tag-wip">🔶</span></td><td>API 冒烟通过 · 无浏览器 E2E</td></tr>
-      <tr><td><strong>D8–D11</strong><small>（收口）</small></td><td>manifest 动态加载 · codegen 补 TS/Dart · plaza 点赞评论落 PG</td><td>三入口 Industry/Module 发布对齐 · Playwright E2E 全链路 · 去 localStorage 混用 · 文档同步</td><td><span class="tag tag-plan">⬜</span></td><td><strong>W3 正式关闭</strong></td></tr>
+      <tr><td><strong>D8–D11</strong><small>（收口）</small></td><td>manifest 动态加载 · codegen 补 Dart（TS 已生成）· plaza 点赞评论落 PG</td><td>三入口 Industry/Module 发布对齐 · Playwright E2E 全链路 · 去 localStorage 混用 · 文档同步</td><td><span class="tag tag-plan">⬜</span></td><td><strong>W3 正式关闭</strong></td></tr>
     </tbody>
   </table>
   <div class="note note-warn"><strong>W3 收口清单（优先 D8–D11）：</strong>① manifest 动态按需加载 ② codegen TS/Dart 输出 ③ 三入口 Industry/Module 发布对齐 ④ plaza 点赞评论 PG ⑤ 双角色 smoke ⑥ 更新功能清单/架构文档状态位。</div>
