@@ -10,11 +10,13 @@ dependencies:
   flutter:
     sdk: flutter
   dio: ^5.7.0
+  http: ^1.2.2
   shared_preferences: ^2.3.3
   web_socket_channel: ^3.0.2
   record: ^6.0.0
   audioplayers: ^6.1.0
   permission_handler: ^11.3.1
+  fl_chart: ^0.70.2
 
 dev_dependencies:
   flutter_test:
