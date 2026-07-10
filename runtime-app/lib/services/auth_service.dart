@@ -1,8 +1,7 @@
-import 'dart:io';
-
 import 'package:dio/dio.dart';
-import 'package:dio/io.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'dio_factory.dart';
 
 /// 运行端登录：拿到 JWT 并缓存，供 chat/approval/report 等需要鉴权的接口使用。
 class AuthService {
@@ -16,17 +15,8 @@ class AuthService {
   String? _token;
   String? get token => _token;
 
-  /// staging 使用自签证书，放行以便 HTTPS+SSE 跑通；生产应改为正规证书校验。
   Dio _dio() {
-    final dio = Dio(BaseOptions(
-      connectTimeout: const Duration(seconds: 15),
-      receiveTimeout: const Duration(seconds: 30),
-      headers: {'Accept': 'application/json'},
-    ));
-    dio.httpClientAdapter = IOHttpClientAdapter(
-      createHttpClient: () => HttpClient()..badCertificateCallback = (_, __, ___) => true,
-    );
-    return dio;
+    return createDio(receiveTimeout: const Duration(seconds: 30));
   }
 
   Future<void> loadCached() async {

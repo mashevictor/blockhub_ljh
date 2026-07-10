@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../config/app_branding.dart';
 import '../models/tenant_config.dart';
+import 'dio_factory.dart';
 
 class RuntimeContract {
   const RuntimeContract({
@@ -21,12 +22,7 @@ class RuntimeContract {
 class ConfigService {
   ConfigService({AppBranding? branding})
       : _branding = branding ?? AppBranding.fromEnvironment(),
-        _dio = Dio(
-          BaseOptions(
-            connectTimeout: const Duration(seconds: 15),
-            receiveTimeout: const Duration(seconds: 15),
-          ),
-        );
+        _dio = createDio();
 
   final AppBranding _branding;
   final Dio _dio;

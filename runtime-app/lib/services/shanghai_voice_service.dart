@@ -10,6 +10,7 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 
 import '../config/app_branding.dart';
 import '../utils/pcm_wav.dart';
+import 'dio_factory.dart';
 
 class VoiceClientConfig {
   VoiceClientConfig({
@@ -41,7 +42,7 @@ class VoiceClientConfig {
 }
 
 class ShanghaiVoiceService {
-  ShanghaiVoiceService({required AppBranding branding}) : _dio = Dio(BaseOptions(baseUrl: branding.apiBaseUrl));
+  ShanghaiVoiceService({required AppBranding branding}) : _dio = createDio(baseUrl: branding.apiBaseUrl);
 
   final Dio _dio;
   final AudioRecorder _recorder = AudioRecorder();
