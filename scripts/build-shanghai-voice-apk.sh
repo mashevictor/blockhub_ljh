@@ -5,13 +5,21 @@
 #   bash scripts/build-shanghai-voice-apk.sh
 #   PUBLIC_URL=http://你的域名 bash scripts/build-shanghai-voice-apk.sh
 #
+# 环境变量:
+#   APK_BUMP_BUILD=1   构建前自动递增 pubspec build 号（默认 1）
+#   APK_BUMP_BUILD=0   不改动 pubspec 版本
+#
 # 产物:
-#   backend/uploads/apks/shanghai-voice.apk  — 上海话专用（不覆盖 default.apk）
-#   backend/uploads/apks/default.apk         — 通用 TrackChat（仅 flutter-build-apk.sh 默认构建写入）
+#   backend/uploads/apks/shanghai-voice.apk              — 最新包（下载入口）
+#   backend/uploads/apks/shanghai-voice-{ver}+{code}.apk — 归档
+#   backend/uploads/apks/shanghai-voice.version.json     — 版本元数据
 #
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+# shellcheck source=lib/apk-version.sh
+source "$ROOT/scripts/lib/apk-version.sh"
+
 PUBLIC_URL="${PUBLIC_URL:-http://101.32.209.251}"
 API_BASE="${API_BASE_URL:-${PUBLIC_URL%/}/api/v1}"
 BRANDING="$ROOT/runtime-app/branding/shanghai-voice.json"
@@ -21,6 +29,20 @@ echo " 上海话语音 APK 构建"
 echo " API: $API_BASE"
 echo " 模式: VOICE_DEMO=1（跳过登录，直达语音页）"
 echo "=============================================="
+
+if [ "${APK_BUMP_BUILD:-1}" = "1" ]; then
+  echo "==> 递增 APK build 号 (pubspec.yaml)"
+  mapfile -t _ver_parts < <(apk_bump_build "$ROOT")
+  VERSION_NAME="${_ver_parts[0]}"
+  VERSION_CODE="${_ver_parts[1]}"
+else
+  mapfile -t _ver_parts < <(apk_read_version "$ROOT")
+  VERSION_NAME="${_ver_parts[0]}"
+  VERSION_CODE="${_ver_parts[1]}"
+fi
+echo "    version: ${VERSION_NAME}+${VERSION_CODE}"
+
+apk_cleanup_shanghai_artifacts "$ROOT"
 
 # 写入当前公网 API（避免写死 IP）
 python3 <<PY
@@ -53,10 +75,17 @@ bash "$ROOT/scripts/flutter-build-apk.sh"
 APK_DIR="$ROOT/backend/uploads/apks"
 mkdir -p "$APK_DIR"
 OUT="$ROOT/runtime-app/build/app/outputs/flutter-apk/app-release.apk"
+ARCHIVE="$APK_DIR/shanghai-voice-${VERSION_NAME}+${VERSION_CODE}.apk"
 cp "$OUT" "$APK_DIR/shanghai-voice.apk"
+cp "$OUT" "$ARCHIVE"
+apk_write_shanghai_manifest "$ROOT" "$APK_DIR/shanghai-voice.apk" "$VERSION_NAME" "$VERSION_CODE" >/dev/null
+
 echo ""
-echo "==> 上海话测试 APK 已就绪（未覆盖 default.apk）"
-ls -lh "$APK_DIR/shanghai-voice.apk"
+echo "==> 上海话测试 APK 已就绪"
+echo "    latest : $APK_DIR/shanghai-voice.apk"
+echo "    archive: $ARCHIVE"
+ls -lh "$APK_DIR/shanghai-voice.apk" "$ARCHIVE"
+cat "$APK_DIR/shanghai-voice.version.txt" | sed 's/^/    version.txt: /'
 if [ -f "$APK_DIR/default.apk" ]; then
   echo "    default.apk 仍为通用包: $(ls -lh "$APK_DIR/default.apk" | awk '{print $5, $6, $7, $8}')"
 fi
@@ -66,6 +95,7 @@ echo "    APP_NAME=${APP_NAME}"
 echo "    APP_ID=${APP_ID}"
 echo "    API_BASE_URL=${API_BASE_URL}"
 echo "    VOICE_DEMO=${VOICE_DEMO}"
+echo "    VERSION=${VERSION_NAME}+${VERSION_CODE}"
 echo ""
 echo "==> 语音 API 快速检查"
 VOICE_CFG="$(curl -sf --max-time 8 "http://127.0.0.1:8001/api/v1/voice/config" 2>/dev/null || true)"
@@ -99,9 +129,10 @@ else
   echo "    WARN 语音 API 冒烟未全通过 — 若本机 curl 127.0.0.1:8001/voice/config 正常，可忽略并继续装 APK"
 fi
 echo ""
-echo "下载测试:"
-echo "  上海话专用: scp root@服务器:$APK_DIR/shanghai-voice.apk ."
-echo "  通用 TrackChat 下载 API 仍走 default.apk（与上海话包隔离）"
+echo "下载:"
+echo "  最新 APK : ${PUBLIC_URL%/}/downloads/shanghai-voice.apk"
+echo "  版本信息 : ${PUBLIC_URL%/}/downloads/shanghai-voice.version.json"
+echo "  scp      : scp root@服务器:$APK_DIR/shanghai-voice.apk ."
 echo ""
-echo "装好后: 打开 App → 允许麦克风 → 点「开始说话」→ 说上海话"
-echo "验收:   bash scripts/smoke-voice-apk.sh ${PUBLIC_URL}"
+echo "装好后: 打开 App → 允许麦克风 → 点例句或按住说话"
+echo "App 内版本: 设置页标题栏可见 v${VERSION_NAME}+${VERSION_CODE}"

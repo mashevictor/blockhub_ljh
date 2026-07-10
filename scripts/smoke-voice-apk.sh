@@ -94,6 +94,9 @@ APK_DEFAULT="$ROOT/backend/uploads/apks/default.apk"
 APK_SH="$ROOT/backend/uploads/apks/shanghai-voice.apk"
 if [ -f "$APK_SH" ] && [ -s "$APK_SH" ]; then
   ok "shanghai-voice.apk ($(wc -c < "$APK_SH") bytes)"
+  if [ -f "$ROOT/backend/uploads/apks/shanghai-voice.version.txt" ]; then
+    ok "shanghai-voice.version.txt ($(tr -d '\n\r' < "$ROOT/backend/uploads/apks/shanghai-voice.version.txt"))"
+  fi
 elif [ -f "$APK_DEFAULT" ] && [ -s "$APK_DEFAULT" ]; then
   ok "default.apk ($(wc -c < "$APK_DEFAULT") bytes)"
 else

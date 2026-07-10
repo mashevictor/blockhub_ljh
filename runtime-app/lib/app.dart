@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 import 'config/app_branding.dart';
 import 'data/capability_manifest.dart';
@@ -24,6 +25,7 @@ class _RuntimeAppState extends State<RuntimeApp> {
   TenantConfig? _config;
   String? _error;
   bool _authChecked = false;
+  String _appVersionLabel = '';
 
   @override
   void initState() {
@@ -31,6 +33,12 @@ class _RuntimeAppState extends State<RuntimeApp> {
     _configService = ConfigService(branding: widget.branding);
     _authService = AuthService(apiBaseUrl: widget.branding.apiBaseUrl);
     authService = _authService;
+    PackageInfo.fromPlatform().then((info) {
+      if (!mounted) return;
+      setState(() {
+        _appVersionLabel = 'v${info.version}+${info.buildNumber}';
+      });
+    });
     _initAuth();
   }
 
@@ -84,13 +92,18 @@ class _RuntimeAppState extends State<RuntimeApp> {
         appBar: AppBar(
           title: Text(widget.branding.appName),
           bottom: widget.branding.voiceDemoMode
-              ? const PreferredSize(
-                  preferredSize: Size.fromHeight(28),
+              ? PreferredSize(
+                  preferredSize: const Size.fromHeight(28),
                   child: Align(
                     alignment: Alignment.centerLeft,
                     child: Padding(
-                      padding: EdgeInsets.fromLTRB(16, 0, 16, 8),
-                      child: Text('按住下方按钮说上海话', style: TextStyle(fontSize: 13)),
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                      child: Text(
+                        _appVersionLabel.isEmpty
+                            ? '按住下方按钮说上海话'
+                            : '按住下方按钮说上海话 · $_appVersionLabel',
+                        style: const TextStyle(fontSize: 13),
+                      ),
                     ),
                   ),
                 )

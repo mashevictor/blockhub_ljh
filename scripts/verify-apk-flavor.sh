@@ -34,11 +34,15 @@ if [ -z "$AAPT" ]; then
 fi
 
 PKG="$("$AAPT" dump badging "$APK_PATH" 2>/dev/null | sed -n "s/^package: name='\([^']*\)'.*/\1/p" | head -n1)"
+VER_CODE="$("$AAPT" dump badging "$APK_PATH" 2>/dev/null | sed -n "s/^package:.*versionCode='\([^']*\)'.*/\1/p" | head -n1)"
+VER_NAME="$("$AAPT" dump badging "$APK_PATH" 2>/dev/null | sed -n "s/^package:.*versionName='\([^']*\)'.*/\1/p" | head -n1)"
 LABEL="$("$AAPT" dump badging "$APK_PATH" 2>/dev/null | sed -n "s/^application-label:'\(.*\)'/\1/p" | head -n1)"
 
 echo "APK: $APK_PATH"
-echo "  package: $PKG"
-echo "  label:   $LABEL"
+echo "  package:     $PKG"
+echo "  versionName: $VER_NAME"
+echo "  versionCode: $VER_CODE"
+echo "  label:       $LABEL"
 
 if [ "$FLAVOR" = "shanghai" ]; then
   ok=1
