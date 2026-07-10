@@ -35,6 +35,8 @@ PY
 
 export BRANDING_JSON="$BRANDING"
 export APP_NAME="上海话语音助手"
+export APP_ID="com.blockhub.shanghai.voice"
+export TENANT_SLUG="demo"
 export API_BASE_URL="$API_BASE"
 export VOICE_DEMO=1
 export PRIMARY_COLOR="#E11D48"
@@ -51,10 +53,10 @@ echo "==> 上海话测试 APK 已就绪"
 ls -lh "$APK_DIR/shanghai-voice.apk" "$APK_DIR/default.apk"
 echo ""
 echo "==> 构建参数确认"
-echo "    APP_NAME=$APP_NAME"
-echo "    APP_ID=$APP_ID"
-echo "    API_BASE_URL=$API_BASE_URL"
-echo "    VOICE_DEMO=$VOICE_DEMO"
+echo "    APP_NAME=${APP_NAME}"
+echo "    APP_ID=${APP_ID}"
+echo "    API_BASE_URL=${API_BASE_URL}"
+echo "    VOICE_DEMO=${VOICE_DEMO}"
 echo ""
 echo "==> 语音 API 冒烟"
 if curl -sf --max-time 8 "$API_BASE/voice/config" | grep -q '"configured":true'; then
