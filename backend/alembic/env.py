@@ -1,4 +1,6 @@
 from logging.config import fileConfig
+import sys
+from pathlib import Path
 
 from alembic import context
 from sqlalchemy import engine_from_config, pool
@@ -8,6 +10,9 @@ from app.db.base import Base
 import app.db.models  # noqa: F401
 
 config = context.config
+_ALEMBIC_DIR = Path(__file__).resolve().parent
+if str(_ALEMBIC_DIR) not in sys.path:
+    sys.path.insert(0, str(_ALEMBIC_DIR))
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 

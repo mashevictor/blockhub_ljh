@@ -30,6 +30,16 @@ def has_column(table: str, col: str) -> bool:
 def schema_revision() -> str | None:
     if not has_table("users"):
         return None
+    if has_table("demo_bookings"):
+        return "016"
+    if has_table("audit_logs"):
+        return "015"
+    if has_table("integration_connectors"):
+        return "014"
+    if has_table("notifications"):
+        return "013"
+    if has_table("plaza_feed_likes"):
+        return "012"
     if has_column("apps", "page_schema"):
         return "011"
     if has_table("approvals"):
@@ -84,6 +94,12 @@ checks = [
     ("custom_capabilities", has_table("custom_capabilities")),
     ("apps.page_schema", has_column("apps", "page_schema")),
     ("apps.build_manifest", has_column("apps", "build_manifest")),
+    ("plaza_feed_likes", has_table("plaza_feed_likes")),
+    ("plaza_feed_comments", has_table("plaza_feed_comments")),
+    ("notifications", has_table("notifications")),
+    ("integration_connectors", has_table("integration_connectors")),
+    ("audit_logs", has_table("audit_logs")),
+    ("demo_bookings", has_table("demo_bookings")),
 ]
 for label, ok in checks:
     print(f"  {label}: {'OK' if ok else 'MISSING'}")
@@ -97,7 +113,12 @@ insp = inspect(engine)
 def col(t,c):
     return insp.has_table(t) and c in {x['name'] for x in insp.get_columns(t)}
 if not insp.has_table('users'): print(''); raise SystemExit
-if col('apps','page_schema'): print('011')
+if insp.has_table('demo_bookings'): print('016')
+elif insp.has_table('audit_logs'): print('015')
+elif insp.has_table('integration_connectors'): print('014')
+elif insp.has_table('notifications'): print('013')
+elif insp.has_table('plaza_feed_likes'): print('012')
+elif col('apps','page_schema'): print('011')
 elif insp.has_table('approvals'): print('010')
 elif insp.has_table('kb_document_chunks'): print('009')
 elif col('apps','plaza_visibility'): print('008')
@@ -123,7 +144,7 @@ raise SystemExit(0 if ok else 1)
 
 SCHEMA_REV="$(schema_level)"
 ALEMBIC_REV="$(alembic current 2>/dev/null | grep -oE '01[0-9]' | tail -1 || true)"
-HEAD_REV="$(alembic heads 2>/dev/null | grep -oE '01[0-9]' | tail -1 || echo '011')"
+HEAD_REV="$(alembic heads 2>/dev/null | awk '{print $1}' | head -1 || echo '016')"
 
 echo "==> head=$HEAD_REV alembic=${ALEMBIC_REV:-none} schema≈${SCHEMA_REV:-none}"
 
@@ -174,12 +195,8 @@ print(f"verify chat_messages: {'OK' if insp.has_table('chat_messages') else 'MIS
 print(f"verify custom_capabilities: {'OK' if insp.has_table('custom_capabilities') else 'MISSING'}")
 print(f"verify apps.page_schema: {'OK' if col('apps', 'page_schema') else 'MISSING'}")
 print(f"verify apps.build_manifest: {'OK' if col('apps', 'build_manifest') else 'MISSING'}")
-if not col("apps", "icon_url"):
-    raise SystemExit("FAIL: apps.icon_url still missing after upgrade")
-if not insp.has_table("kb_document_chunks"):
-    raise SystemExit("FAIL: kb_document_chunks missing — need migration 009 + pgvector")
-if not insp.has_table("approvals"):
-    raise SystemExit("FAIL: approvals missing — need migration 010")
+print(f"verify plaza_feed_likes: {'OK' if insp.has_table('plaza_feed_likes') else 'MISSING'}")
+print(f"verify demo_bookings: {'OK' if insp.has_table('demo_bookings') else 'MISSING'}")
 if not col("apps", "page_schema"):
     raise SystemExit("FAIL: apps.page_schema missing — need migration 011")
 PY

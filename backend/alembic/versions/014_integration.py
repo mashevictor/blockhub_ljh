@@ -9,6 +9,8 @@ from typing import Sequence, Union
 import sqlalchemy as sa
 from alembic import op
 
+from ops_utils import create_index_if_missing, create_table_if_missing, drop_index_if_exists, drop_table_if_exists
+
 revision: str = "014"
 down_revision: Union[str, None] = "013"
 branch_labels: Union[str, Sequence[str], None] = None
@@ -16,7 +18,7 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    op.create_table(
+    create_table_if_missing(
         "integration_connectors",
         sa.Column("id", sa.String(36), primary_key=True),
         sa.Column("tenant_id", sa.String(36), sa.ForeignKey("tenants.id"), nullable=False),
@@ -28,10 +30,10 @@ def upgrade() -> None:
         sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now()),
         sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now()),
     )
-    op.create_index("ix_integration_connectors_tenant_id", "integration_connectors", ["tenant_id"])
-    op.create_index("ix_integration_connectors_status", "integration_connectors", ["status"])
+    create_index_if_missing("ix_integration_connectors_tenant_id", "integration_connectors", ["tenant_id"])
+    create_index_if_missing("ix_integration_connectors_status", "integration_connectors", ["status"])
 
-    op.create_table(
+    create_table_if_missing(
         "etl_jobs",
         sa.Column("id", sa.String(36), primary_key=True),
         sa.Column(
@@ -48,16 +50,16 @@ def upgrade() -> None:
         sa.Column("ran_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now()),
     )
-    op.create_index("ix_etl_jobs_connector_id", "etl_jobs", ["connector_id"])
-    op.create_index("ix_etl_jobs_tenant_id", "etl_jobs", ["tenant_id"])
-    op.create_index("ix_etl_jobs_status", "etl_jobs", ["status"])
+    create_index_if_missing("ix_etl_jobs_connector_id", "etl_jobs", ["connector_id"])
+    create_index_if_missing("ix_etl_jobs_tenant_id", "etl_jobs", ["tenant_id"])
+    create_index_if_missing("ix_etl_jobs_status", "etl_jobs", ["status"])
 
 
 def downgrade() -> None:
-    op.drop_index("ix_etl_jobs_status", table_name="etl_jobs")
-    op.drop_index("ix_etl_jobs_tenant_id", table_name="etl_jobs")
-    op.drop_index("ix_etl_jobs_connector_id", table_name="etl_jobs")
-    op.drop_table("etl_jobs")
-    op.drop_index("ix_integration_connectors_status", table_name="integration_connectors")
-    op.drop_index("ix_integration_connectors_tenant_id", table_name="integration_connectors")
-    op.drop_table("integration_connectors")
+    drop_index_if_exists("ix_etl_jobs_status", "etl_jobs")
+    drop_index_if_exists("ix_etl_jobs_tenant_id", "etl_jobs")
+    drop_index_if_exists("ix_etl_jobs_connector_id", "etl_jobs")
+    drop_table_if_exists("etl_jobs")
+    drop_index_if_exists("ix_integration_connectors_status", "integration_connectors")
+    drop_index_if_exists("ix_integration_connectors_tenant_id", "integration_connectors")
+    drop_table_if_exists("integration_connectors")
