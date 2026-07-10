@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
 import { DynamicIcon, IconCheckCircle, IconX } from './icons'
+import { GENERATE_APP_LABEL, GENERATE_APP_LOADING } from '../data/publishUi'
+import { AgentButtonContent } from './AgentChevron'
 import { iconWrapStyle } from '../data/iconPalette'
 import { BRAND, LOGO } from '../data/brand'
 
@@ -195,13 +197,10 @@ export default function SelectionBox({
                 </button>
               </div>
               {onGenerate && (
-                <button
-                  type="button"
-                  className="btn-primary selbox-generate"
-                  disabled={generating}
-                  onClick={onGenerate}
-                >
-                  {generating ? '正在生成…' : '生成我的应用'}
+                <button type="button" className="btn-primary selbox-generate agent-action-btn" disabled={generating} onClick={onGenerate}>
+                  {generating ? GENERATE_APP_LOADING : (
+                    <AgentButtonContent>{GENERATE_APP_LABEL}</AgentButtonContent>
+                  )}
                 </button>
               )}
             </div>

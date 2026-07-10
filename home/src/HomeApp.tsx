@@ -1,48 +1,81 @@
-import { useEffect, useRef, useState } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { getAdminUrl, getAdminDashboardUrl, type PublishResult, type ViewMode } from './data/constants'
-import type { RoleApplyRequest } from './data/rolePresets'
-import HeroCubeStage from './components/HeroCubeStage'
-import PlatformShowcaseFooter from './components/PlatformShowcaseFooter'
-import ViewModeSwitcher from './components/ViewModeSwitcher'
-import PromptView from './views/PromptView'
-import IndustryView from './views/IndustryView'
-import ModuleView from './views/ModuleView'
+import { useEffect, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { fetchMe, logout, type AuthUser } from './auth/session'
 import { getToken } from './auth/storage'
-import {
-  IconSettings,
-  IconArrowRight,
-  IconLayers,
-} from './components/icons'
 import { BRAND } from './data/brand'
-import BrandMark from './components/BrandMark'
-import { finishPublishNavigate } from './lib/publishFlow'
-import { useMyApps } from './hooks/useMyApps'
-import { ROUTES } from './routes/paths'
+import B2BHeader from './components/b2b/B2BHeader'
+import B2BHero from './components/b2b/B2BHero'
+import B2BProductSection from './components/b2b/B2BProductSection'
+import B2BCaseSection from './components/b2b/B2BCaseSection'
+import CreateStudio from './components/b2b/CreateStudio'
+import B2BDemoForm from './components/b2b/B2BDemoForm'
+import HomeScrollRails from './components/b2b/HomeScrollRails'
+import { AgentPageProvider, useAgentPageContext } from './context/AgentPageContext'
+import { DemoBookingProvider } from './context/DemoBookingContext'
+import type { AgentContextKey } from './data/agentContext'
+import { scrollToHomeSection, useHomeActiveSection } from './hooks/useHomeActiveSection'
+import './styles/b2b-landing.css'
 
-export default function HomeApp() {
-  const [view, setView] = useState<ViewMode>('prompt')
-  const myApps = useMyApps()
-  const myAppsCount = myApps.length
-  const [roleApply, setRoleApply] = useState<RoleApplyRequest | null>(null)
-  const [user, setUser] = useState<AuthUser | null>(null)
-  const location = useLocation()
-  const navigate = useNavigate()
+const LANDING_SECTIONS: { id: string; key: AgentContextKey }[] = [
+  { id: 'hero', key: 'landing_hero' },
+  { id: 'product', key: 'landing_product' },
+  { id: 'case', key: 'landing_case' },
+]
 
-  const mainRef = useRef<HTMLElement>(null)
+function HomeScrollContext() {
+  const { setContextKey } = useAgentPageContext()
 
   useEffect(() => {
-    document.body.classList.add('cube-theme')
-    return () => document.body.classList.remove('cube-theme')
-  }, [])
+    const targets = LANDING_SECTIONS.map((s) => document.getElementById(s.id)).filter(Boolean) as HTMLElement[]
+    const contactCreate = document.getElementById('contact-create')
+    const contactDemo = document.getElementById('contact-demo')
+    if (!targets.length && !contactCreate && !contactDemo) return
 
-  const handleViewChange = (mode: ViewMode) => {
-    setView(mode)
-    requestAnimationFrame(() => {
-      mainRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    })
-  }
+    const io = new IntersectionObserver(
+      (entries) => {
+        const visible = entries.filter((e) => e.isIntersecting)
+        if (!visible.length) return
+
+        const demoEntry = visible.find((e) => e.target.id === 'contact-demo')
+        const createEntry = visible.find((e) => e.target.id === 'contact-create')
+        if (demoEntry && (!createEntry || demoEntry.intersectionRatio >= createEntry.intersectionRatio)) {
+          setContextKey('landing_booking')
+          return
+        }
+        if (createEntry) {
+          setContextKey('landing_contact')
+          return
+        }
+
+        const best = visible
+          .filter((e) => LANDING_SECTIONS.some((s) => s.id === e.target.id))
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0]
+        if (best) {
+          const hit = LANDING_SECTIONS.find((s) => s.id === best.target.id)
+          if (hit) setContextKey(hit.key)
+        }
+      },
+      { threshold: [0.15, 0.35, 0.55], rootMargin: '-80px 0px -40% 0px' },
+    )
+
+    targets.forEach((el) => io.observe(el))
+    if (contactCreate) io.observe(contactCreate)
+    if (contactDemo) io.observe(contactDemo)
+    return () => io.disconnect()
+  }, [setContextKey])
+
+  return null
+}
+
+export default function HomeApp() {
+  const [user, setUser] = useState<AuthUser | null>(null)
+  const location = useLocation()
+  const activeSection = useHomeActiveSection()
+
+  useEffect(() => {
+    document.body.classList.add('b2b-landing')
+    return () => document.body.classList.remove('b2b-landing')
+  }, [])
 
   useEffect(() => {
     if (!getToken()) {
@@ -52,101 +85,47 @@ export default function HomeApp() {
     fetchMe().then(setUser).catch(() => setUser(null))
   }, [location.pathname])
 
-  const handlePublish = (result: PublishResult) => {
-    finishPublishNavigate(navigate, result)
-  }
-
-  const handleRoleApply = (role: RoleApplyRequest['preset'], generate?: boolean) => {
-    setView('prompt')
-    setRoleApply({ preset: role, generate })
-    if (generate) {
-      requestAnimationFrame(() => {
-        mainRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-      })
-    }
-  }
+  const scrollToCreate = () => scrollToHomeSection('contact-create')
+  const scrollToDemo = () => scrollToHomeSection('contact-demo')
 
   return (
-    <div className="app">
-      <div className="ambient-bg" aria-hidden>
-        <div className="orb orb-1" />
-        <div className="orb orb-2" />
-        <div className="orb orb-3" />
-      </div>
+    <AgentPageProvider initial="landing_hero">
+      <DemoBookingProvider>
+      <HomeScrollContext />
+      <div className="b2b-app b2b-brand-scope b2b-has-floating-agent">
+      <B2BHeader
+        user={user}
+        activeSection={activeSection}
+        onCreate={scrollToCreate}
+        onBook={scrollToDemo}
+        onLogout={() => logout()}
+      />
 
-      <header className="site-header">
-        <div className="header-inner">
-          <div className="brand animate-fade-in">
-            <BrandMark size={42} />
-            <div>
-              <strong>{BRAND.nameZh}｜<em className="brand-en">{BRAND.nameEn}｜</em></strong>
-              <span>{BRAND.tagline}</span>
-            </div>
-          </div>
-          <ViewModeSwitcher value={view} onChange={handleViewChange} />
-          <div className="header-actions">
-            <Link to={ROUTES.plazaFeed} className="btn-plaza-nav">📡 应用广场</Link>
-            <Link to={ROUTES.shanghaiVoice} className="btn-plaza-nav">🎙️ 上海话语音</Link>
-            <Link to={ROUTES.plazaMyApps} className="btn-my-apps" title="查看本浏览器发布过的应用">
-              <IconLayers size={15} />
-              我的应用
-              {myAppsCount > 0 && <span className="btn-my-apps-badge">{myAppsCount}</span>}
-            </Link>
-            {user ? (
-              <>
-                <span className="header-user">{user.display_name}</span>
-                <button type="button" className="btn-login" onClick={() => logout()}>退出</button>
-                <a className="btn-advanced" href={getAdminDashboardUrl()}>
-                  <IconSettings size={15} />
-                  <span className="btn-advanced-text">管理后台</span>
-                  <IconArrowRight size={14} className="btn-arrow" />
-                </a>
-              </>
-            ) : (
-              <>
-                <a className="btn-login" href={getAdminUrl()}>登录</a>
-                <a className="btn-login btn-register" href={getAdminUrl()}>注册</a>
-              </>
-            )}
-          </div>
-        </div>
-      </header>
+      <B2BHero onBook={scrollToDemo} onTry={scrollToCreate} />
 
-      <section className="hero-banner hero-banner-cube">
-        <div className="hero-glow" aria-hidden />
-        <div className="hero-inner hero-inner-cube">
-          <HeroCubeStage onRoleApply={handleRoleApply} />
+      <B2BProductSection onTry={scrollToCreate} />
+      <B2BCaseSection />
+
+      <section id="contact" className="b2b-form-wrap">
+        <div className="b2b-section-title b2b-contact-head">
+          <span className="b2b-eyebrow">在线体验</span>
+          <h2>
+            搭积木，造应用
+          </h2>
+          <p>描述需求、选行业或搭配模块，一键生成你的专属应用</p>
         </div>
+        <div className="b2b-demo-block" id="contact-create">
+          <CreateStudio />
+        </div>
+        <B2BDemoForm />
       </section>
 
-      <main ref={mainRef} id="create-screen" className="main-content page-enter">
-        <div className={view === 'prompt' ? undefined : 'view-hidden'} aria-hidden={view !== 'prompt'}>
-          <PromptView
-            active={view === 'prompt'}
-            onPublish={handlePublish}
-            roleApply={roleApply}
-            onRoleApplyDone={() => setRoleApply(null)}
-          />
-        </div>
-        <div className={view === 'industry' ? undefined : 'view-hidden'} aria-hidden={view !== 'industry'}>
-          <IndustryView active={view === 'industry'} onPublish={handlePublish} />
-        </div>
-        <div className={view === 'module' ? undefined : 'view-hidden'} aria-hidden={view !== 'module'}>
-          <ModuleView active={view === 'module'} onPublish={handlePublish} />
-        </div>
-      </main>
-
-      <PlatformShowcaseFooter />
-
-      <footer className="site-footer">
-        <span>{BRAND.footer}</span>
-        {user && (
-          <a href={getAdminDashboardUrl()}>
-            管理后台
-            <IconArrowRight size={14} />
-          </a>
-        )}
+      <footer className="b2b-footer">
+        <p>© {new Date().getFullYear()} {BRAND.nameZh} · {BRAND.tagline}</p>
       </footer>
-    </div>
+      <HomeScrollRails />
+      </div>
+      </DemoBookingProvider>
+    </AgentPageProvider>
   )
 }

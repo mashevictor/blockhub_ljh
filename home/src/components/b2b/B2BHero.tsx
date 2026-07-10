@@ -1,0 +1,39 @@
+import { PLATFORM_STATS } from '@shared/platformStats'
+import HeroStatsPanel from './HeroStatsPanel'
+import { AgentButtonContent } from '../AgentChevron'
+import { BRAND } from '../../data/brand'
+
+interface Props {
+  onBook: () => void
+  onTry: () => void
+}
+
+export default function B2BHero({ onBook, onTry }: Props) {
+  return (
+    <section id="hero" className="b2b-hero">
+      <div className="b2b-hero-text">
+        <p className="b2b-hero-eyebrow">
+          <span className="agent-chevron-glyph" aria-hidden>&gt;&gt;</span>
+          企业级 AI 智能体平台
+        </p>
+        <h1>
+          {BRAND.nameZh}
+          <br />
+          <em>{BRAND.tagline}</em>
+        </h1>
+        <p>
+          {PLATFORM_STATS.scenarios}+ 业务场景 · 三种创建方式 · 一次发布五端可用
+        </p>
+        <div className="b2b-hero-btns">
+          <button type="button" className="b2b-btn-primary agent-action-btn" onClick={onBook}>
+            <AgentButtonContent>预约演示</AgentButtonContent>
+          </button>
+          <button type="button" className="b2b-btn-outline agent-action-btn" onClick={onTry}>
+            <AgentButtonContent>在线体验</AgentButtonContent>
+          </button>
+        </div>
+      </div>
+      <HeroStatsPanel />
+    </section>
+  )
+}

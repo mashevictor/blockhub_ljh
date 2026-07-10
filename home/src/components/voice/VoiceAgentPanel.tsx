@@ -67,7 +67,7 @@ export default function VoiceAgentPanel() {
       <div className="voice-agent-header">
         <div>
           <h2>上海话语音 Agent</h2>
-          <p>电信星辰 ASR/TTS · DeepSeek · 支持打断 · 需麦克风权限</p>
+          <p>电信星辰 ASR/TTS · 方言大模型 · 支持打断 · 需麦克风权限</p>
         </div>
         <span className={`voice-state-badge voice-state-${state}`}>{STATE_LABEL[state] || state}</span>
       </div>

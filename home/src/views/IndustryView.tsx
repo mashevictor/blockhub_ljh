@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { fetchScenarios, publishApp } from '../api/client'
 import { publishApiToResult } from '../api/publishHelpers'
 import { runLoadingPublishPipeline, finishPublishNavigate } from '../lib/publishFlow'
+import { GENERATE_APP_LABEL, GENERATE_APP_LOADING } from '../data/publishUi'
+import { AgentButtonContent } from '../components/AgentChevron'
 import { INDUSTRIES, type Audience, type PublishResult } from '../data/constants'
 import { DynamicIcon } from '../components/icons'
 import { useTheme } from '../context/ThemeContext'
@@ -297,8 +299,10 @@ export default function IndustryView({ onPublish: _onPublish, active = true }: P
           />
           <div className="step-actions">
             <button type="button" className="btn-ghost" onClick={() => setStep(2)}>上一步</button>
-            <button type="button" className="btn-primary" disabled={loading} onClick={handlePublish}>
-              {loading ? '发布中…' : '🚀 开始发布'}
+            <button type="button" className="btn-primary agent-action-btn" disabled={loading} onClick={handlePublish}>
+              {loading ? GENERATE_APP_LOADING : (
+                <AgentButtonContent>{GENERATE_APP_LABEL}</AgentButtonContent>
+              )}
             </button>
           </div>
         </>

@@ -1,5 +1,6 @@
 import type { NavigateFunction } from 'react-router-dom'
 import type { PublishResult } from '../data/constants'
+import { GENERATE_ERROR_FALLBACK } from '../data/publishUi'
 import { ROUTES } from '../routes/paths'
 import { addMyApp } from './myAppsStorage'
 
@@ -124,7 +125,7 @@ export async function runContactPublishPipeline(opts: {
   } catch (error) {
     clearOverlayTimers()
     opts.setPhase(null)
-    opts.setError(errorMessageFromApi(error, opts.errorMessage ?? '搭建失败，请稍后再试'))
+    opts.setError(errorMessageFromApi(error, opts.errorMessage ?? GENERATE_ERROR_FALLBACK))
   }
 }
 
@@ -149,6 +150,6 @@ export async function runLoadingPublishPipeline(opts: {
   } catch (error) {
     window.clearTimeout(maxTimer)
     opts.setLoading(false)
-    opts.setError(errorMessageFromApi(error, opts.errorMessage ?? '搭建失败，请稍后再试'))
+    opts.setError(errorMessageFromApi(error, opts.errorMessage ?? GENERATE_ERROR_FALLBACK))
   }
 }

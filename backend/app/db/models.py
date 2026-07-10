@@ -458,3 +458,15 @@ class AuditLog(Base):
     detail: Mapped[str] = mapped_column(Text, nullable=False, default="")
     ip_address: Mapped[str | None] = mapped_column(String(64), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), index=True)
+
+
+class DemoBooking(Base):
+    __tablename__ = "demo_bookings"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    contact_email: Mapped[str] = mapped_column(String(255), nullable=False, default="")
+    contact_phone: Mapped[str] = mapped_column(String(64), nullable=False, default="")
+    salutation: Mapped[str] = mapped_column(String(120), nullable=False, default="")
+    company_name: Mapped[str] = mapped_column(String(200), nullable=False, default="")
+    source: Mapped[str] = mapped_column(String(64), nullable=False, default="home")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

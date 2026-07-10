@@ -2,6 +2,8 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { contactsForMode, saveContactHistory } from '../auth/contactHistory'
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock'
+import { GENERATE_APP_LABEL, GENERATE_APP_LOADING } from '../data/publishUi'
+import { AgentButtonContent } from './AgentChevron'
 
 export interface ContactInfo {
   type: 'email' | 'phone'
@@ -137,18 +139,18 @@ export default function ContactGateModal({
 
   return createPortal(
     <div
-      className={`modal-overlay contact-gate-overlay${busy ? ' contact-gate-busy' : ''}`}
+      className={`modal-overlay contact-gate-overlay b2b-brand-scope${busy ? ' contact-gate-busy' : ''}`}
       onClick={(e) => !busy && e.target === e.currentTarget && onClose()}
     >
       <div className="modal-card contact-gate-card" role="dialog" aria-labelledby="contact-gate-title" aria-busy={busy}>
         <button type="button" className="modal-close" onClick={onClose} disabled={busy} aria-label="关闭">×</button>
         <h3 id="contact-gate-title">留个联系方式</h3>
-        <p className="modal-sub">搭建完成后，我们会把访问链接发到你的邮箱或手机</p>
+        <p className="modal-sub">生成完成后，我们会把访问链接发到你的邮箱或手机</p>
 
         {busy && (
           <div className="contact-gate-progress" role="status" aria-live="polite">
             <div className="contact-gate-progress-bar" aria-hidden />
-            <p>正在为你搭建，请稍候…</p>
+            <p>{GENERATE_APP_LOADING}</p>
           </div>
         )}
 
@@ -251,11 +253,13 @@ export default function ContactGateModal({
           <button type="button" className="btn-ghost" onClick={onClose} disabled={busy}>稍后再说</button>
           <button
             type="button"
-            className="btn-primary"
+            className="btn-primary agent-action-btn"
             disabled={!canSubmit || busy}
             onClick={handleConfirm}
           >
-            {busy ? '搭建中…' : '确认并搭建'}
+            {busy ? GENERATE_APP_LOADING : (
+              <AgentButtonContent>{GENERATE_APP_LABEL}</AgentButtonContent>
+            )}
           </button>
         </div>
       </div>

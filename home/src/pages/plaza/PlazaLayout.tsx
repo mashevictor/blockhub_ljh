@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import BrandMark from '../../components/BrandMark'
 import { BRAND } from '../../data/brand'
@@ -5,6 +6,22 @@ import { IconLayers } from '../../components/icons'
 import { useMyApps } from '../../hooks/useMyApps'
 import { loadPlazaFeedItems } from '../../lib/plazaFeedStorage'
 import { ROUTES } from '../../routes/paths'
+import { AgentPageProvider, useAgentPageContext } from '../../context/AgentPageContext'
+import type { AgentContextKey } from '../../data/agentContext'
+import PlazaFloatingAgent from '../../components/b2b/PlazaFloatingAgent'
+import '../../styles/b2b-landing.css'
+
+function PlazaContextSync() {
+  const { pathname } = useLocation()
+  const { setContextKey } = useAgentPageContext()
+
+  useEffect(() => {
+    const key: AgentContextKey = pathname === ROUTES.plazaMyApps ? 'plaza_my' : 'plaza_feed'
+    setContextKey(key)
+  }, [pathname, setContextKey])
+
+  return null
+}
 
 function sideLinkClass({ isActive }: { isActive: boolean }) {
   return isActive ? 'on' : ''
@@ -21,8 +38,15 @@ export default function PlazaLayout() {
   const { pathname } = useLocation()
   const onMyAppsPage = pathname === ROUTES.plazaMyApps
 
+  useEffect(() => {
+    document.body.classList.add('b2b-landing')
+    return () => document.body.classList.remove('b2b-landing')
+  }, [])
+
   return (
-    <div className="plaza-page">
+    <AgentPageProvider initial="plaza_feed">
+      <PlazaContextSync />
+      <div className="plaza-page b2b-brand-scope b2b-has-floating-agent">
       <header className="plaza-topbar">
         <Link to={ROUTES.home} className="plaza-topbar-brand">
           <BrandMark size={36} />
@@ -72,6 +96,8 @@ export default function PlazaLayout() {
           </aside>
         )}
       </div>
-    </div>
+      <PlazaFloatingAgent />
+      </div>
+    </AgentPageProvider>
   )
 }

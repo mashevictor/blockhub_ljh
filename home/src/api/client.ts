@@ -462,3 +462,26 @@ export function composeFullPrompt(opts: {
 
   return lines.join('')
 }
+
+export interface DemoBookingPayload {
+  contact: string
+  salutation?: string
+  company_name?: string
+  source?: string
+}
+
+export async function submitDemoBooking(payload: DemoBookingPayload) {
+  const res = await api.post<{ id: string; ok: boolean }>('/demo-bookings', payload)
+  return res.data
+}
+
+/** 优先后端保存，离线时落本地，避免预约区误报失败 */
+export async function submitDemoBookingWithFallback(payload: DemoBookingPayload) {
+  try {
+    return await submitDemoBooking(payload)
+  } catch {
+    const { saveDemoBookingLocal } = await import('../auth/demoBookingStorage')
+    const local = saveDemoBookingLocal(payload)
+    return { id: `local-${local.savedAt}`, ok: true, local: true as const }
+  }
+}

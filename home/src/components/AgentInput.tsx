@@ -27,6 +27,8 @@ import {
   type PromptModule,
   type TriggerContext,
 } from './agentInputLogic'
+import { useAgentPageContext } from '../context/AgentPageContext'
+import { AGENT_CONTEXTS } from '../data/agentContext'
 
 export type { AgentPick } from './agentInputLogic'
 
@@ -64,6 +66,7 @@ interface Props {
   scenarios?: ScenarioRef[]
   onPick?: (pick: AgentPick, extra?: { iconKey?: string; color?: string }) => void
   theme?: ThemeTokens
+  orbSize?: 'default' | 'large'
 }
 
 interface PanelItem {
@@ -98,6 +101,7 @@ export default forwardRef<AgentInputHandle, Props>(function AgentInput({
   scenarios = [],
   onPick,
   theme,
+  orbSize = 'default',
 }, ref) {
   const innerRef = useRef<HTMLTextAreaElement>(null)
   const wrapRef = useRef<HTMLDivElement>(null)
@@ -108,6 +112,10 @@ export default forwardRef<AgentInputHandle, Props>(function AgentInput({
   const pickedRef = useRef(false)
 
   const isMinimal = variant === 'minimal'
+  const { contextKey } = useAgentPageContext()
+  const contextCopy = AGENT_CONTEXTS[contextKey]
+  const placeholderText = isMinimal ? contextCopy.placeholder : GUIDE_PLACEHOLDER
+  const ghostText = isMinimal ? contextCopy.ghost : GUIDE_PLACEHOLDER
 
   const [focused, setFocused] = useState(false)
   const [composing, setComposing] = useState(false)
@@ -464,11 +472,12 @@ export default forwardRef<AgentInputHandle, Props>(function AgentInput({
                 }}
               >
                 <span className="agent-brand-chev" aria-hidden>&gt;&gt;</span>
+                <span className="agent-brand-chev-label">{contextCopy.chevLabel}</span>
               </button>
               <div className="agent-input-field-wrap">
                 {showGhost && (
                   <div className="agent-input-ghost" aria-hidden>
-                    输入 <code>&gt;&gt;</code> 多选模块，或直接描述需求…
+                    {ghostText}
                   </div>
                 )}
                 <textarea
@@ -476,7 +485,7 @@ export default forwardRef<AgentInputHandle, Props>(function AgentInput({
                   className="agent-input-field"
                   value={value}
                   rows={expanded ? 5 : 2}
-                  placeholder={focused ? '' : '描述需求，或输入 >> 多选模块'}
+                  placeholder={focused ? '' : placeholderText}
                   onChange={(e) => handleChange(e.target.value)}
                   onFocus={handleFocus}
                   onBlur={handleBlur}
@@ -565,6 +574,7 @@ export default forwardRef<AgentInputHandle, Props>(function AgentInput({
             count={flatItems.length}
             foot={PANEL_HINT_TEXT[panelHint]}
             theme={theme}
+            size={orbSize}
           />
         </div>
       )}

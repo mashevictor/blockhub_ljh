@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { fetchCatalogModules, publishApp } from '../api/client'
 import { publishApiToResult } from '../api/publishHelpers'
 import { runLoadingPublishPipeline, finishPublishNavigate } from '../lib/publishFlow'
+import { GENERATE_APP_LABEL, GENERATE_APP_LOADING } from '../data/publishUi'
+import { AgentButtonContent } from '../components/AgentChevron'
 import type { PublishResult } from '../data/constants'
 import { DynamicIcon } from '../components/icons'
 import { useTheme } from '../context/ThemeContext'
@@ -216,8 +218,10 @@ export default function ModuleView({ onPublish: _onPublish, active = true }: Pro
             <div><dt>界面风格</dt><dd>{device === 'app' ? '简洁单列' : '完整工作台'}</dd></div>
           </dl>
           <AppBrandingFields value={branding} onChange={setBranding} compact />
-          <button type="button" className="btn-primary full" disabled={!widgets.length || loading} onClick={handlePublish}>
-            {loading ? '发布中…' : '发布应用'}
+          <button type="button" className="btn-primary full agent-action-btn" disabled={!widgets.length || loading} onClick={handlePublish}>
+            {loading ? GENERATE_APP_LOADING : (
+              <AgentButtonContent>{GENERATE_APP_LABEL}</AgentButtonContent>
+            )}
           </button>
         </aside>
       </div>

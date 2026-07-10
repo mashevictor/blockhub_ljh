@@ -636,6 +636,20 @@ a:hover { text-decoration: underline; }
 .page-header h1 { font-size: 24px; font-weight: 700; margin-bottom: 6px; }
 .page-header p { color: var(--muted); font-size: 14px; }
 
+.shanghai-voice-embed {
+  padding: 0;
+  overflow: hidden;
+  min-height: 520px;
+}
+
+.shanghai-voice-frame {
+  display: block;
+  width: 100%;
+  min-height: 72vh;
+  border: 0;
+  background: #0f172a;
+}
+
 .filter-bar {
   display: flex;
   flex-wrap: wrap;

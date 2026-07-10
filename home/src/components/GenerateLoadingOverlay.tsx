@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock'
+import { GENERATE_APP_LABEL } from '../data/publishUi'
 
 export type GeneratePhase = 'analyze' | 'publish' | 'redirect'
 
 const STEPS: { key: Exclude<GeneratePhase, 'redirect'>; label: string }[] = [
   { key: 'analyze', label: '读懂你的需求' },
-  { key: 'publish', label: '正在为你搭建' },
+  { key: 'publish', label: '正在生成应用' },
 ]
 
 interface Props {
@@ -44,7 +45,7 @@ export default function GenerateLoadingOverlay({ phase, appName }: Props) {
           <div className="loading-progress-track" aria-hidden>
             <div className="loading-progress-fill" style={{ width: `${progress}%` }} />
           </div>
-          <p className="loading-headline">搭建完成，正在打开{nameHint}…</p>
+          <p className="loading-headline">{GENERATE_APP_LABEL}完成，正在打开「我的应用」…</p>
           <ol className="loading-steps">
             {STEPS.map((step) => (
               <li key={step.key} className="loading-step done">
@@ -62,7 +63,7 @@ export default function GenerateLoadingOverlay({ phase, appName }: Props) {
   const headline =
     phase === 'analyze'
       ? '正在理解你想做什么…'
-      : `快好了，正在搭建${nameHint}`
+      : `快好了，正在${GENERATE_APP_LABEL}${nameHint}`
 
   return createPortal(
     <div className="loading-overlay loading-overlay-portal" role="alertdialog" aria-busy="true" aria-live="polite">

@@ -3,6 +3,8 @@ import { createPortal } from 'react-dom'
 import type { RolePreset } from '../data/rolePresets'
 import { presetRole } from '../data/rolePresets'
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock'
+import { GENERATE_APP_LABEL } from '../data/publishUi'
+import { AgentButtonContent } from './AgentChevron'
 
 interface Props {
   role: RolePreset
@@ -90,11 +92,11 @@ export default function HeroRoleDialog({ role, onClose, onApply }: Props) {
           <button type="button" className="btn-ghost" onClick={onClose}>再看看</button>
           <button
             type="button"
-            className="btn-primary"
+            className="btn-primary agent-action-btn"
             disabled={!ready}
             onClick={() => onApply(role, true)}
           >
-            生成应用
+            <AgentButtonContent>{GENERATE_APP_LABEL}</AgentButtonContent>
           </button>
         </div>
       </div>

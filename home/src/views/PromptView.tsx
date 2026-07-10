@@ -14,6 +14,8 @@ import {
 } from '../data/iconPalette'
 import SelectionBox, { type SelectionItem } from '../components/SelectionBox'
 import AgentInput, { type AgentInputHandle, type AgentPick } from '../components/AgentInput'
+import { GENERATE_APP_LABEL, GENERATE_APP_LOADING } from '../data/publishUi'
+import { AgentButtonContent } from '../components/AgentChevron'
 import PromptSuggestBar from '../components/PromptSuggestBar'
 import IntentAnalysisStrip from '../components/IntentAnalysisStrip'
 import ContactGateModal, { type ContactInfo } from '../components/ContactGateModal'
@@ -30,6 +32,10 @@ import {
   resolveIndustryApiKey,
 } from '../data/showcase'
 import type { RoleApplyRequest, RolePreset } from '../data/rolePresets'
+import { useAgentPageContext } from '../context/AgentPageContext'
+import { useDemoBookingActive } from '../context/DemoBookingContext'
+import { AGENT_CONTEXTS } from '../data/agentContext'
+import FloatingAgentDock from '../components/FloatingAgentDock'
 
 interface Props {
   onPublish: (r: PublishResult) => void
@@ -69,6 +75,8 @@ function filterByIndustries(
 
 export default function PromptView({ onPublish: _onPublish, roleApply, onRoleApplyDone, active = true }: Props) {
   const navigate = useNavigate()
+  const { contextKey } = useAgentPageContext()
+  const bookingZoneActive = useDemoBookingActive()
   const { theme } = useTheme()
   const [prompt, setPrompt] = useState('')
   const [selected, setSelected] = useState<Set<string>>(new Set())
@@ -194,12 +202,11 @@ export default function PromptView({ onPublish: _onPublish, roleApply, onRoleApp
   }, [promptModules, composedFromModules])
 
   const userIntentText = useMemo(() => {
-    const raw = prompt.replace(/^>>\s*$/, '').trim()
+    const raw = prompt.replace(/^>>\s*/, '').trim()
     if (!raw) return ''
     const { suffix, base } = splitPromptText(prompt, promptModules)
-    if (suffix.trim()) return suffix.trim()
-    if (!base) return raw
-    return ''
+    const tail = suffix.trim() || (!base ? raw : '')
+    return tail.replace(/^>>\s*/, '').trim()
   }, [prompt, promptModules])
 
   const canGenerate = promptModules.length > 0
@@ -582,8 +589,8 @@ export default function PromptView({ onPublish: _onPublish, roleApply, onRoleApp
         setError: setPublishError,
         onSuccess: handlePublishSuccess,
         errorMessage: preset
-          ? '搭建失败，请确认网络正常并已填写联系方式'
-          : '搭建失败，请确认已选好功能或填写描述，且网络正常',
+          ? '生成失败，请确认网络正常并已填写联系方式'
+          : '生成失败，请确认已选好功能或填写描述，且网络正常',
         execute: async (markPhase) => {
           if (preset) {
             markPhase('publish')
@@ -694,21 +701,33 @@ export default function PromptView({ onPublish: _onPublish, roleApply, onRoleApp
     if (mod) removeModule(mod.id)
   }
 
+  const agentCopy = AGENT_CONTEXTS[contextKey]
+
   return (
-    <div className="view prompt-view prompt-view-minimal layout-sticky">
+    <div className="view prompt-view prompt-view-minimal layout-floating">
       <div className="minimal-hero">
         <img src="/design/hero-minimal.jpg" alt="" className="minimal-hero-img" width={72} height={72} />
         <h2>搭积木，造应用</h2>
         <p className="minimal-hero-hint">输入 <span className="minimal-brand-chev">&gt;&gt;</span> 编排模块，或直接描述需求</p>
       </div>
 
-      <div
-        ref={promptCardRef}
-        className={`prompt-card minimal-card${promptHighlight ? ' prompt-highlight' : ''}${promptExpanded ? ' prompt-expanded' : ''}`}
+      {!bookingZoneActive && (
+      <FloatingAgentDock
+        storageKey="tc-floating-prompt"
+        className="floating-agent-dock-prompt"
+        title="搭积木，造应用"
+        chevLabel={agentCopy.chevLabel}
+        collapsedHint={agentCopy.placeholder}
+        ariaLabel="创建应用悬浮助手"
       >
+        <div
+          ref={promptCardRef}
+          className={`prompt-card minimal-card${promptHighlight ? ' prompt-highlight' : ''}${promptExpanded ? ' prompt-expanded' : ''}`}
+        >
         <AgentInput
           ref={textareaRef}
           variant="minimal"
+          orbSize="large"
           theme={theme}
           value={prompt}
           onChange={handlePromptChange}
@@ -748,12 +767,17 @@ export default function PromptView({ onPublish: _onPublish, roleApply, onRoleApp
                 </button>
               ))}
             </div>
-            <button type="button" className="btn-primary minimal-generate" disabled={loading || !canGenerate} onClick={handleGenerate}>
-              {loading ? '搭建中…' : '开始搭建'}
+            <button type="button" className="btn-primary minimal-generate agent-action-btn" disabled={loading || !canGenerate} onClick={handleGenerate}>
+              {loading ? GENERATE_APP_LOADING : (
+                <AgentButtonContent>{GENERATE_APP_LABEL}</AgentButtonContent>
+              )}
             </button>
           </div>
         </div>
-      </div>
+        </div>
+      </FloatingAgentDock>
+      )}
+      <div className={`agent-floating-spacer${bookingZoneActive ? ' is-booking' : ''}`} aria-hidden />
 
       <div className="minimal-chips" ref={catalogRef}>
         {PROMPT_CHIPS.slice(0, 4).map((c) => (

@@ -29,13 +29,17 @@ interface Props {
   count: number
   foot: string
   theme: ThemeTokens
+  size?: 'default' | 'large'
 }
 
-export default function AgentOrbPanel({ sections, mode, query, count, foot, theme }: Props) {
+export default function AgentOrbPanel({ sections, mode, query, count, foot, theme, size = 'default' }: Props) {
   const empty = count === 0
+  const large = size === 'large'
+  const iconSize = large ? 28 : 20
+  const labelMax = large ? 8 : 6
 
   return (
-    <div className="agent-orb-panel" role="listbox" aria-label="可用模块">
+    <div className={`agent-orb-panel${large ? ' agent-orb-panel-large' : ''}`} role="listbox" aria-label="可用模块">
       <header className="agent-orb-head">
         <div className="agent-orb-brand">
           <span className="agent-orb-brand-chev" aria-hidden>&gt;&gt;</span>
@@ -79,10 +83,10 @@ export default function AgentOrbPanel({ sections, mode, query, count, foot, them
                         className="agent-orb-icon icon-themed"
                         style={iconWrapStyle(item.selected ? '#fff' : ic)}
                       >
-                        <DynamicIcon name={iconKey} size={20} color={item.selected ? '#fff' : ic} />
+                        <DynamicIcon name={iconKey} size={iconSize} color={item.selected ? '#fff' : ic} />
                       </span>
                       <span className="agent-orb-label">
-                        {item.label.length > 6 ? `${item.label.slice(0, 5)}…` : item.label}
+                        {item.label.length > labelMax ? `${item.label.slice(0, labelMax - 1)}…` : item.label}
                       </span>
                       {item.selected && <span className="agent-orb-badge">已选</span>}
                     </button>

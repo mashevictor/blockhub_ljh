@@ -16,6 +16,7 @@ import NotificationPage from './pages/NotificationPage'
 import IntegrationPage from './pages/IntegrationPage'
 import ContractPage from './pages/ContractPage'
 import TenantSettingsPage from './pages/TenantSettingsPage'
+import ShanghaiVoicePage from './pages/ShanghaiVoicePage'
 import LoginPage from './pages/LoginPage'
 
 export default function App() {
@@ -31,6 +32,7 @@ export default function App() {
           <Route path="create" element={<RoleGate allow={['admin']}><CreationWizardPage /></RoleGate>} />
           <Route path="creation" element={<Navigate to="/create" replace />} />
           <Route path="chat" element={<ChatPage />} />
+          <Route path="voice/shanghai" element={<ShanghaiVoicePage />} />
           <Route path="knowledge" element={<KnowledgePage />} />
           <Route path="kb" element={<Navigate to="/knowledge" replace />} />
           <Route path="approvals" element={<ApprovalPage />} />
