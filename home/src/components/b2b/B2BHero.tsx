@@ -14,9 +14,7 @@ export default function B2BHero({ onBook, onTry }: Props) {
     <section id="hero" className="b2b-hero">
       <div className="b2b-hero-text">
         <AgentSignLine variant="eyebrow" className="b2b-hero-eyebrow" as="p" />
-        <h1>
-          {BRAND.nameZh}
-          <br />
+        <h1 className="b2b-hero-tagline">
           <em>{BRAND.tagline}</em>
         </h1>
         <p>
