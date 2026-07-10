@@ -38,7 +38,7 @@ pip install -r requirements.txt -q
 
 echo "==> [3/9] alembic migrate (target: head)"
 bash "$ROOT/scripts/repair-db.sh" || {
-  echo "    repair-db skipped or failed; trying direct upgrade..."
+  echo "    WARN: repair-db had issues; trying direct alembic upgrade..."
   cd "$ROOT/backend"
   source .venv/bin/activate
   if ! alembic current 2>/dev/null | grep -qE '[0-9a-f]+|001|002|003|004|005'; then
@@ -71,7 +71,7 @@ if [ -f "$ROOT/scripts/blockhub-api.service" ]; then
   sudo systemctl daemon-reload
 fi
 if [ -f "$ROOT/scripts/nginx-blockhub.conf" ]; then
-  sudo cp "$ROOT/scripts/nginx-blockhub.conf" /etc/nginx/sites-available/blockhub
+  sed "s|BLOCKHUB_ROOT|$ROOT|g" "$ROOT/scripts/nginx-blockhub.conf" | sudo tee /etc/nginx/sites-available/blockhub >/dev/null
   sudo ln -sf /etc/nginx/sites-available/blockhub /etc/nginx/sites-enabled/blockhub 2>/dev/null || true
 fi
 
@@ -95,15 +95,27 @@ if [ "$API_OK" != true ]; then
 fi
 
 echo "==> [6/9] build frontends"
-cd "$ROOT/home"
-npm install --silent
-npm run build
-cd "$ROOT/frontend"
-npm install --silent
-npm run build
-cd "$ROOT/runtime-web"
-npm install --silent
-npm run build
+# shellcheck disable=SC1091
+source "$ROOT/scripts/lib/npm-build-env.sh"
+npm_prepare_build_env
+
+STOPPED_API_FOR_BUILD=false
+if npm_should_stop_api_for_build; then
+  echo "    low memory — pausing blockhub-api during frontend build"
+  if systemctl is-active --quiet blockhub-api 2>/dev/null; then
+    sudo systemctl stop blockhub-api
+    STOPPED_API_FOR_BUILD=true
+    sleep 2
+  fi
+fi
+
+npm_run_build "$ROOT/home" home
+npm_run_build "$ROOT/frontend" admin
+npm_run_build "$ROOT/runtime-web" runtime
+
+if [ "$STOPPED_API_FOR_BUILD" = true ]; then
+  npm_restart_api_after_build
+fi
 
 echo "==> [7/9] copy static files (atomic, verify bundles)"
 STAGE="$(mktemp -d /tmp/blockhub-stage.XXXXXX)"

@@ -203,11 +203,20 @@ PY
 
 echo "==> restart API"
 sudo systemctl restart blockhub-api
-sleep 2
-curl -sf --max-time 5 http://127.0.0.1:8001/api/v1/health && echo " API health OK" || {
-  echo "WARN: API health failed — journalctl -u blockhub-api -n 30"
-  exit 1
-}
+echo "    waiting for API health..."
+API_OK=false
+for i in $(seq 1 10); do
+  if curl -sf --max-time 5 http://127.0.0.1:8001/api/v1/health >/dev/null 2>&1; then
+    API_OK=true
+    echo " API health OK (attempt $i)"
+    break
+  fi
+  sleep 2
+done
+if [ "$API_OK" != true ]; then
+  echo "WARN: API health not ready after repair — deploy.sh will restart API again"
+  journalctl -u blockhub-api -n 30 --no-pager 2>/dev/null || true
+fi
 
 echo "=========================================="
 echo " Repair complete."

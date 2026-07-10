@@ -1,14 +1,13 @@
 #!/usr/bin/env bash
-# 积木仓 BlockHub — 一键部署（服务器 ~/blockhub 目录执行）
+# 积木仓 BlockHub — 网页一键部署（服务器 ~/blockhub 目录执行）
 #
-# 包含：拉代码 → 数据库迁移(含预约表) → 构建前端(自动刷新 HTML 缓存版本) → 发布到 Nginx → 重启 API
+# 包含：拉代码 → 数据库迁移 → 构建 home/admin/runtime(自动刷新 HTML 缓存版本) → Nginx → 重启 API
 #
 # 用法:
 #   bash scripts/deploy-one.sh
 #
-# 说明:
-#   - HTML 缓存版本：每次 npm run build 会生成新时间戳版本，写入 index.html / version.txt
-#   - 预约信息：无需手工往数据库写字段；迁移 016 建表后，用户提交预约时 API 自动写入 demo_bookings
+# 上海话网页+APK 请用:
+#   bash scripts/deploy-shanghai-one.sh
 #
 set -euo pipefail
 

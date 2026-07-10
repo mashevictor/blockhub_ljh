@@ -57,6 +57,7 @@ class ShanghaiVoiceService {
 
   final _stateController = StreamController<String>.broadcast();
   Stream<String> get stateStream => _stateController.stream;
+  Future<void> _playQueue = Future<void>.value();
 
   Future<VoiceClientConfig> loadConfig() async {
     final res = await _dio.get<Map<String, dynamic>>('/voice/config');
@@ -167,10 +168,14 @@ class ShanghaiVoiceService {
   }
 
   Future<void> _playPcmBase64(String b64) async {
-    final pcm = base64ToBytes(b64);
-    final wav = pcm16ToWavBytes(pcm, sampleRate: _config?.playbackSampleRate ?? 24000);
-    await _player.play(BytesSource(wav));
-    _setState('speaking');
+    final playbackRate = _config?.playbackSampleRate ?? 24000;
+    _playQueue = _playQueue.then((_) async {
+      final pcm = base64ToBytes(b64);
+      final wav = pcm16ToWavBytes(pcm, sampleRate: playbackRate);
+      await _player.play(BytesSource(wav));
+      _setState('speaking');
+    });
+    return _playQueue;
   }
 
   void _setState(String next) {

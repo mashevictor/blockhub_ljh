@@ -132,6 +132,7 @@ APP_ID="${APP_ID:-com.trackchat.runtime}"
 TENANT_SLUG="${TENANT_SLUG:-demo}"
 API_BASE_URL="${API_BASE_URL:-http://101.32.209.251/api/v1}"
 PRIMARY_COLOR="${PRIMARY_COLOR:-#4338CA}"
+VOICE_DEMO="${VOICE_DEMO:-0}"
 
 mkdir -p branding
 if [ ! -f branding/icon.png ]; then
@@ -161,6 +162,7 @@ FLUTTER_BUILD_ARGS=(
   --dart-define=TENANT_SLUG="$TENANT_SLUG"
   --dart-define=API_BASE_URL="$API_BASE_URL"
   --dart-define=PRIMARY_COLOR="$PRIMARY_COLOR"
+  --dart-define=VOICE_DEMO="$VOICE_DEMO"
 )
 case "${GRADLE_MEMORY_PROFILE:-}" in
   ultra|low)

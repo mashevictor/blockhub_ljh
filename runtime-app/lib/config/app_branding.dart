@@ -6,6 +6,7 @@ class AppBranding {
     required this.tenantSlug,
     required this.apiBaseUrl,
     required this.primaryColorHex,
+    this.voiceDemoMode = false,
   });
 
   final String appName;
@@ -13,6 +14,8 @@ class AppBranding {
   final String tenantSlug;
   final String apiBaseUrl;
   final String primaryColorHex;
+  /// 为 true 时跳过登录，直接进入上海话语音页（测试 APK 用）
+  final bool voiceDemoMode;
 
   static const AppBranding defaults = AppBranding(
     appName: 'TrackChat',
@@ -29,12 +32,16 @@ class AppBranding {
       return v.isEmpty ? fallback : v;
     }
 
+    final voiceDemoRaw = env('VOICE_DEMO', '');
+    final voiceDemo = voiceDemoRaw == '1' || voiceDemoRaw.toLowerCase() == 'true';
+
     return AppBranding(
       appName: env('APP_NAME', defaults.appName),
       appId: env('APP_ID', defaults.appId),
       tenantSlug: env('TENANT_SLUG', defaults.tenantSlug),
       apiBaseUrl: env('API_BASE_URL', defaults.apiBaseUrl),
       primaryColorHex: env('PRIMARY_COLOR', defaults.primaryColorHex),
+      voiceDemoMode: voiceDemo,
     );
   }
 

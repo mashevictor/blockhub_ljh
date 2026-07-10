@@ -5,6 +5,7 @@ import 'data/capability_manifest.dart';
 import 'models/tenant_config.dart';
 import 'pages/capability_pages.dart';
 import 'pages/login_page.dart';
+import 'pages/shanghai_voice_page.dart';
 import 'services/auth_service.dart';
 import 'services/config_service.dart';
 
@@ -81,7 +82,9 @@ class _RuntimeAppState extends State<RuntimeApp> {
       ),
       home: Scaffold(
         appBar: AppBar(title: Text(widget.branding.appName)),
-        body: !_authChecked
+        body: widget.branding.voiceDemoMode
+            ? ShanghaiVoicePage(branding: widget.branding)
+            : !_authChecked
             ? const Center(child: CircularProgressIndicator())
             : !_authService.isLoggedIn
                 ? LoginPage(branding: widget.branding, onLoggedIn: _onLoggedIn)
