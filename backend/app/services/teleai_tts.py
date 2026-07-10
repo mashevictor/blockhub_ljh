@@ -40,14 +40,14 @@ class TeleTtsClient:
             if self._dialect:
                 payload["dialect"] = self._dialect
 
-        async with websockets.connect(
-            ws_url(self._path),
-            additional_headers=headers,
-            ping_interval=None,
-            ping_timeout=None,
-            open_timeout=15,
-            close_timeout=5,
-        ) as ws:
+            async with websockets.connect(
+                ws_url(self._path),
+                additional_headers=headers,
+                ping_interval=None,
+                ping_timeout=None,
+                open_timeout=15,
+                close_timeout=5,
+            ) as ws:
                 await ws.send(json.dumps(payload, ensure_ascii=False))
                 async for raw in ws:
                     data = json.loads(raw)
