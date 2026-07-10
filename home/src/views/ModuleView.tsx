@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { fetchCatalogModules, publishApp } from '../api/client'
 import { publishApiToResult } from '../api/publishHelpers'
-import { runLoadingPublishPipeline, finishPublishNavigate } from '../lib/publishFlow'
+import { runLoadingPublishPipeline } from '../lib/publishFlow'
 import { GENERATE_APP_LABEL, GENERATE_APP_LOADING } from '../data/publishUi'
 import { AgentButtonContent } from '../components/AgentChevron'
 import type { PublishResult } from '../data/constants'
@@ -28,8 +27,7 @@ interface CapabilityGroup {
   items: Widget[]
 }
 
-export default function ModuleView({ onPublish: _onPublish, active = true }: Props) {
-  const navigate = useNavigate()
+export default function ModuleView({ onPublish, active = true }: Props) {
   const { theme } = useTheme()
   const [widgets, setWidgets] = useState<Widget[]>([])
   const [moduleGroups, setModuleGroups] = useState<CapabilityGroup[]>([])
@@ -105,7 +103,7 @@ export default function ModuleView({ onPublish: _onPublish, active = true }: Pro
       closeContact: () => setContactOpen(false),
       setLoading,
       setError: setPublishError,
-      onSuccess: (result) => finishPublishNavigate(navigate, result),
+      onSuccess: onPublish,
       execute: async () => {
         const publishedModules = buildPublishedModulesFromWidgets(widgets)
         const res = await publishApp(branding.appName || '模块组装应用', 'office', {

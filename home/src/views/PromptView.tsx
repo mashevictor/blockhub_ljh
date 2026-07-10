@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import {
   fetchIndustryScenarios,
   fetchOfficeScenarios,
@@ -7,7 +6,7 @@ import {
 } from '../api/client'
 import { publishApp, suggestModules as suggestModulesApi } from '../api/client'
 import { publishApiToResult } from '../api/publishHelpers'
-import { runContactPublishPipeline, finishPublishNavigate } from '../lib/publishFlow'
+import { runContactPublishPipeline } from '../lib/publishFlow'
 import { useTheme } from '../context/ThemeContext'
 import {
   categoryColor,
@@ -75,8 +74,7 @@ function filterByIndustries(
   return out
 }
 
-export default function PromptView({ onPublish: _onPublish, roleApply, onRoleApplyDone, active = true }: Props) {
-  const navigate = useNavigate()
+export default function PromptView({ onPublish, roleApply, onRoleApplyDone, active = true }: Props) {
   const { contextKey } = useAgentPageContext()
   const bookingZoneActive = useDemoBookingActive()
   const { theme } = useTheme()
@@ -571,8 +569,8 @@ export default function PromptView({ onPublish: _onPublish, roleApply, onRoleApp
   )
 
   const handlePublishSuccess = useCallback((result: PublishResult) => {
-    finishPublishNavigate(navigate, result)
-  }, [navigate])
+    onPublish(result)
+  }, [onPublish])
 
   const handleContactConfirm = useCallback(async (contact: ContactInfo, opts?: { appName?: string }) => {
     if (contactBusy) return

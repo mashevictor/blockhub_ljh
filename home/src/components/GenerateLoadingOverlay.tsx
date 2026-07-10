@@ -39,7 +39,7 @@ export default function GenerateLoadingOverlay({ phase, appName }: Props) {
 
   if (phase === 'redirect') {
     return createPortal(
-      <div className="loading-overlay loading-overlay-portal" role="alertdialog" aria-busy="true" aria-live="polite">
+      <div className="loading-overlay loading-overlay-portal loading-overlay-brand" role="alertdialog" aria-busy="true" aria-live="polite">
         <div className="loading-box">
           <p className="loading-progress-value">{progress}%</p>
           <div className="loading-progress-track" aria-hidden>
@@ -66,7 +66,7 @@ export default function GenerateLoadingOverlay({ phase, appName }: Props) {
       : `快好了，正在${GENERATE_APP_LABEL}${nameHint}`
 
   return createPortal(
-    <div className="loading-overlay loading-overlay-portal" role="alertdialog" aria-busy="true" aria-live="polite">
+    <div className="loading-overlay loading-overlay-portal loading-overlay-brand" role="alertdialog" aria-busy="true" aria-live="polite">
       <div className="loading-box">
         <p className="loading-progress-value">{Math.round(progress)}%</p>
         <div className="loading-progress-track" aria-hidden>

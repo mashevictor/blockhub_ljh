@@ -42,6 +42,9 @@ export VOICE_DEMO=1
 export PRIMARY_COLOR="#E11D48"
 export SKIP_DEFAULT_APK=1
 
+# 4G 小内存机：构建前停 API、仅 arm64、加大 Gradle 堆
+export GRADLE_ULTRA_MEM="${GRADLE_ULTRA_MEM:-1}"
+
 echo "==> flutter clean (ensure dart-define rebaked)"
 (cd "$ROOT/runtime-app" && flutter clean)
 

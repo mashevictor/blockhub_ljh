@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useState, type CSSProperties } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { fetchScenarios, publishApp } from '../api/client'
 import { publishApiToResult } from '../api/publishHelpers'
-import { runLoadingPublishPipeline, finishPublishNavigate } from '../lib/publishFlow'
+import { runLoadingPublishPipeline } from '../lib/publishFlow'
 import { GENERATE_APP_LABEL, GENERATE_APP_LOADING } from '../data/publishUi'
 import { AgentButtonContent } from '../components/AgentChevron'
 import { INDUSTRIES, type Audience, type PublishResult } from '../data/constants'
@@ -28,8 +27,7 @@ interface Props {
   active?: boolean
 }
 
-export default function IndustryView({ onPublish: _onPublish, active = true }: Props) {
-  const navigate = useNavigate()
+export default function IndustryView({ onPublish, active = true }: Props) {
   const { theme } = useTheme()
   const [industry, setIndustry] = useState('office')
   const [step, setStep] = useState(1)
@@ -131,7 +129,7 @@ export default function IndustryView({ onPublish: _onPublish, active = true }: P
       closeContact: () => setContactOpen(false),
       setLoading,
       setError: setPublishError,
-      onSuccess: (result) => finishPublishNavigate(navigate, result),
+      onSuccess: onPublish,
       errorMessage: '发布失败，请确认已登录后重试',
       execute: async () => {
         const scenarioNames = scenes.filter((s) => selected.has(s.id)).map((s) => s.name)

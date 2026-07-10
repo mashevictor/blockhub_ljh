@@ -78,14 +78,14 @@ apply_gradle_memory_profile() {
 
   case "$profile" in
     ultra)
-      heap="1024m"
+      heap="1536m"
       metaspace="512m"
       workers="1"
       parallel="false"
       echo "==> Gradle 超低内存模式 (RAM=${ram}MB avail=${avail}MB) heap=${heap} metaspace=${metaspace}"
       ;;
     low)
-      heap="1024m"
+      heap="1536m"
       metaspace="512m"
       workers="1"
       parallel="false"
@@ -119,7 +119,7 @@ kotlin.daemon.jvmargs=-Xmx512m -XX:MaxMetaspaceSize=256m -XX:+UseSerialGC
 kotlin.compiler.execution.strategy=in-process
 kotlin.build.report.enable=false
 android.useAndroidX=true
-android.enableJetifier=true
+android.enableJetifier=false
 android.enableR8.fullMode=false
 android.lint.checkReleaseBuilds=false
 android.lint.checkDependencies=false
@@ -149,6 +149,14 @@ gradle_preflight_check() {
 gradle_diagnose_oom() {
   local log="${1:-}"
   [ -n "$log" ] && [ -f "$log" ] || return 0
+  if grep -qi 'JetifyTransform\|Java heap space' "$log"; then
+    echo ""
+    echo ">>> Jetifier/堆内存不足：本仓库已关闭 android.enableJetifier（Flutter 原生库勿再 Jetify）。"
+    echo "    git pull 后执行:"
+    echo "    sudo systemctl stop blockhub-api"
+    echo "    GRADLE_ULTRA_MEM=1 bash scripts/build-shanghai-voice-apk.sh"
+    return 0
+  fi
   if grep -qi 'OutOfMemoryError: Metaspace\|Metaspace' "$log"; then
     echo ""
     echo ">>> Metaspace 不足（类元数据区，非堆内存）。已在本仓库禁用 release lint、提高 MaxMetaspaceSize。"

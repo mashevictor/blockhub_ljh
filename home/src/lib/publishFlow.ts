@@ -86,13 +86,24 @@ export function finishPublishNavigate(navigate: NavigateFunction, result: Publis
     console.warn('[publishFlow] missing appId/webUrl, cannot highlight new app', result)
   }
   const target = ROUTES.plazaMyApps
-  navigate(target, { replace: true })
-  // 部分环境下 react-router navigate 可能未生效，短延迟后硬跳转兜底
+
+  try {
+    navigate(target, { replace: true })
+  } catch (err) {
+    console.warn('[publishFlow] navigate failed', err)
+  }
+
+  // 首页 CreateStudio 内嵌场景下 navigate 偶发不切换路由，短延迟后硬跳转兜底
   window.setTimeout(() => {
-    if (window.location.pathname !== target) {
-      window.location.assign(target)
+    const norm = (p: string) => {
+      const x = p || '/'
+      return x.length > 1 && x.endsWith('/') ? x.slice(0, -1) : x
     }
-  }, 150)
+    if (norm(window.location.pathname) !== norm(target)) {
+      window.location.replace(target)
+    }
+  }, 50)
+
   return saved
 }
 

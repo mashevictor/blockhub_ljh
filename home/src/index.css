@@ -2817,6 +2817,41 @@ body {
   border-color: var(--ok, #16a34a);
   background: var(--ok, #16a34a);
 }
+
+/* 生成应用进度弹框 — 固定 BlockHub 蓝绿品牌色，不随主题变金 */
+.loading-overlay-brand .loading-box {
+  border: 1px solid #bfdbfe;
+  box-shadow: 0 12px 40px rgba(13, 71, 161, 0.12);
+}
+.loading-overlay-brand .loading-progress-value {
+  color: #0d47a1;
+}
+.loading-overlay-brand .loading-progress-track {
+  background: #e2e8f0;
+}
+.loading-overlay-brand .loading-progress-fill {
+  background: linear-gradient(90deg, #1976d2, #0d47a1);
+}
+.loading-overlay-brand .loading-step.active {
+  color: #0d47a1;
+}
+.loading-overlay-brand .loading-step.done {
+  color: #00b894;
+}
+.loading-overlay-brand .loading-step.active .loading-step-dot {
+  border-color: #0d47a1;
+  background: rgba(13, 71, 161, 0.18);
+  box-shadow: 0 0 0 3px rgba(13, 71, 161, 0.1);
+}
+.loading-overlay-brand .loading-step.done .loading-step-dot {
+  border-color: #00b894;
+  background: #00b894;
+}
+.cube-theme .loading-overlay-brand .loading-box {
+  border: 1px solid #bfdbfe;
+  border-radius: 16px;
+  box-shadow: 0 12px 40px rgba(13, 71, 161, 0.12);
+}
 .spinner {
   width: 44px; height: 44px; border: 3px solid var(--border);
   border-top-color: var(--pri); border-radius: 50%;
