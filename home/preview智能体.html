@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>智能体>> - 企业级AI智能体解决方案</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: "Microsoft YaHei", sans-serif;
+      color: #333;
+      background: #f9fafb;
+      line-height: 1.6;
+    }
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+    ul {
+      list-style: none;
+    }
+
+    header {
+      background: #fff;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      position: sticky;
+      top: 0;
+      z-index: 99;
+    }
+    .nav {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 70px;
+      padding: 0 20px;
+    }
+    .logo {
+      font-size: 22px;
+      font-weight: bold;
+      color: #0d47a1;
+    }
+    .nav-menu {
+      display: flex;
+      gap: 30px;
+    }
+    .nav-menu a {
+      font-size: 15px;
+      color: #555;
+      transition: color 0.3s;
+    }
+    .nav-menu a:hover {
+      color: #0d47a1;
+    }
+    .nav-btn {
+      background: #0d47a1;
+      color: #fff;
+      padding: 8px 18px;
+      border-radius: 4px;
+      font-size: 14px;
+      border: none;
+      cursor: pointer;
+    }
+
+    .hero {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 80px 20px;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 40px;
+    }
+    .hero-text {
+      flex: 1;
+      min-width: 300px;
+    }
+    .hero h1 {
+      font-size: 38px;
+      line-height: 1.3;
+      margin-bottom: 20px;
+      color: #111;
+    }
+    .hero p {
+      font-size: 16px;
+      color: #666;
+      margin-bottom: 30px;
+    }
+    .hero-btns {
+      display: flex;
+      gap: 15px;
+    }
+    .btn-primary {
+      background: #0d47a1;
+      color: #fff;
+      padding: 12px 24px;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+      font-size: 15px;
+    }
+    .btn-outline {
+      border: 1px solid #0d47a1;
+      color: #0d47a1;
+      background: transparent;
+      padding: 12px 24px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 15px;
+    }
+    .hero-img {
+      flex: 1;
+      min-width: 300px;
+      height: 280px;
+      background: #eaf2ff;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      color: #777;
+    }
+
+    .section {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 60px 20px;
+    }
+    .section-title {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .section-title h2 {
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+    .section-title p {
+      color: #666;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px,1fr));
+      gap: 30px;
+    }
+    .product-card {
+      background: #fff;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+    }
+    .product-card h3 {
+      margin-bottom: 12px;
+      font-size: 18px;
+    }
+    .product-card p {
+      color: #666;
+      font-size: 14px;
+    }
+
+    .case-wrap {
+      background: #fff;
+    }
+    .case-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px,1fr));
+      gap: 30px;
+    }
+    .case-item {
+      padding: 24px;
+      border: 1px solid #eee;
+      border-radius: 8px;
+    }
+    .case-item .name {
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+    .case-item .result {
+      color: #0d47a1;
+      font-size: 14px;
+      margin-top: 10px;
+    }
+
+    .form-wrap {
+      background: #eaf5ff;
+      padding: 60px 20px;
+    }
+    .form-box {
+      max-width: 600px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 40px;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    }
+    .form-box h3 {
+      margin-bottom: 24px;
+      text-align: center;
+    }
+    .form-group {
+      margin-bottom: 18px;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 14px;
+    }
+    .form-group input,
+    .form-group textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    .form-submit {
+      width: 100%;
+      background: #0d47a1;
+      color: #fff;
+      padding: 12px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    footer {
+      background: #1f2937;
+      color: #ccc;
+      padding: 40px 20px;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    .demo-block {
+      padding: 30px;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+    }
+  </style>
+</head>
+<body>
+
+<!-- 导航 -->
+<header>
+  <div class="nav">
+    <div class="logo">智能体>></div>
+    <ul class="nav-menu">
+      <li><a href="#product">产品能力</a></li>
+      <li><a href="#case">落地案例</a></li>
+      <li><a href="#demo">功能演示</a></li>
+      <li><a href="#contact">预约演示</a></li>
+    </ul>
+    <button class="nav-btn" onclick="scrollToContact()">联系我们</button>
+  </div>
+</header>
+
+<!-- 首屏 -->
+<section class="hero">
+  <div class="hero-text">
+    <h1>企业级AI智能体<br/>自主执行业务流程</h1>
+    <p>面向财务、供应链、人力、运营的多场景智能体，跨系统自动执行、自主决策、持续学习，帮助企业大幅降低人力成本与操作风险。</p>
+    <div class="hero-btns">
+      <button class="btn-primary" onclick="scrollToContact()">立即预约</button>
+      <button class="btn-outline" onclick="scrollToDemo()">查看演示</button>
+    </div>
+  </div>
+  <div class="hero-img">
+    智能体流程可视化面板
+  </div>
+</section>
+
+<!-- 产品能力 -->
+<section id="product" class="section">
+  <div class="section-title">
+    <h2>智能体产品能力</h2>
+    <p>开箱即用的企业级AI自动化智能体</p>
+  </div>
+  <div class="product-grid">
+    <div class="product-card">
+      <h3>财务智能体</h3>
+      <p>发票处理、三单匹配、自动对账、凭证生成、全流程无人值守。</p>
+    </div>
+    <div class="product-card">
+      <h3>供应链智能体</h3>
+      <p>物流单据自动处理、报关填报、出入库台账、供应商协同。</p>
+    </div>
+    <div class="product-card">
+      <h3>人力行政智能体</h3>
+      <p>简历筛选、考勤核算、合同管理、入职流程自动化。</p>
+    </div>
+    <div class="product-card">
+      <h3>跨系统协同中枢</h3>
+      <p>连接ERP、OA、财务、业务系统，实现数据与流程全自动流转。</p>
+    </div>
+  </div>
+</section>
+
+<!-- 案例 -->
+<section id="case" class="section case-wrap">
+  <div class="section-title">
+    <h2>客户落地案例</h2>
+    <p>已在零售、制造、物流等行业规模化应用</p>
+  </div>
+  <div class="case-grid">
+    <div class="case-item">
+      <div class="name">某连锁零售集团</div>
+      <p>全部门店对账、发票、结算智能体自动化</p>
+      <div class="result">效率提升 85%，每月节省 300+ 人天</div>
+    </div>
+    <div class="case-item">
+      <div class="name">中型制造企业</div>
+      <p>供应链单据与财务共享中心智能体落地</p>
+      <div class="result">差错率下降 90%，人力成本降低 40%</div>
+    </div>
+    <div class="case-item">
+      <div class="name">物流货代企业</div>
+      <p>运单、报价、客服应答全流程智能体值守</p>
+      <div class="result">7×24小时运行，人力减少 60%</div>
+    </div>
+  </div>
+</section>
+
+<!-- 功能演示区：你的弹幕、选择模块放这里 -->
+<section id="demo" class="section">
+  <div class="section-title">
+    <h2>在线功能演示</h2>
+    <p>直观体验智能体执行过程</p>
+  </div>
+  <div class="demo-block">
+    <!-- ============================================= -->
+    <!-- 在这里粘贴你的：弹幕代码 + 选择模块 + 交互JS   -->
+    <!-- ============================================= -->
+  </div>
+</section>
+
+<!-- 预约演示 -->
+<section id="contact" class="form-wrap">
+  <div class="form-box">
+    <h3>预约专属演示</h3>
+    <form id="demoForm">
+      <div class="form-group">
+        <label>企业名称</label>
+        <input type="text" placeholder="请输入公司名称" />
+      </div>
+      <div class="form-group">
+        <label>姓名</label>
+        <input type="text" placeholder="您的姓名" />
+      </div>
+      <div class="form-group">
+        <label>联系电话</label>
+        <input type="tel" placeholder="请输入手机号" />
+      </div>
+      <div class="form-group">
+        <label>需求场景</label>
+        <textarea rows="3" placeholder="财务/供应链/人力/运营/其他"></textarea>
+      </div>
+      <button type="submit" class="form-submit">提交预约</button>
+    </form>
+  </div>
+</section>
+
+<footer>
+  <p>© 2026 智能体>> 版权所有</p>
+</footer>
+
+<script>
+function scrollToContact() {
+  document.getElementById('contact').scrollIntoView({ behavior: 'smooth' });
+}
+function scrollToDemo() {
+  document.getElementById('demo').scrollIntoView({ behavior: 'smooth' });
+}
+
+document.getElementById('demoForm').addEventListener('submit', function(e){
+  e.preventDefault();
+  alert('已收到您的演示预约，我们将尽快与您联系！');
+});
+
+// ========== 你的原有 JS 代码写在这里 ==========
+</script>
+</body>
+</html>
