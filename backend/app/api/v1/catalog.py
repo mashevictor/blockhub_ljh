@@ -1,17 +1,35 @@
-from typing import Annotated
+from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy.exc import ProgrammingError, SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
 from app.services import catalog_store
+from app.services.catalog_seed import ensure_catalog_seeded, seed_catalog
 
 router = APIRouter(prefix="/catalog", tags=["catalog"])
 
 
 @router.get("/summary")
-def catalog_summary(db: Annotated[Session, Depends(get_db)]) -> dict:
-    return catalog_store.catalog_summary(db)
+def catalog_summary(db: Annotated[Session, Depends(get_db)]) -> dict[str, Any]:
+    try:
+        return catalog_store.catalog_summary(db)
+    except (ProgrammingError, SQLAlchemyError):
+        db.rollback()
+        try:
+            ensure_catalog_seeded(db)
+            return catalog_store.catalog_summary(db)
+        except (ProgrammingError, SQLAlchemyError) as exc:
+            db.rollback()
+            try:
+                seed_catalog(db, force=True)
+                return catalog_store.catalog_summary(db)
+            except Exception as retry_exc:
+                raise HTTPException(
+                    status_code=503,
+                    detail=f"Catalog 表未就绪: {retry_exc}. 请执行: bash scripts/fix-catalog.sh",
+                ) from exc
 
 
 @router.get("/office")

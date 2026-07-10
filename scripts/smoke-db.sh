@@ -58,6 +58,7 @@ required = [
     "knowledge_bases", "kb_documents", "kb_document_chunks",
     "approvals", "conversations", "chat_messages", "custom_capabilities",
     "plaza_feed_likes", "notifications", "demo_bookings",
+    "catalog_agents", "catalog_office_scenarios", "catalog_hero_presets",
 ]
 for t in required:
     if not insp.has_table(t):
@@ -113,7 +114,23 @@ elif [ -n "$SUMMARY" ]; then
   bad "Catalog source!=database ($SUMMARY)"
 else
   HTTP_CODE=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 15 "$API/catalog/summary" 2>/dev/null || echo "000")
-  bad "Catalog /summary no response (HTTP $HTTP_CODE) — run: bash scripts/smoke-test.sh $BASE --seed-only"
+  if [ -n "$TOKEN" ]; then
+    echo "  · catalog HTTP $HTTP_CODE — 尝试 force seed..."
+    curl -sf --max-time 60 -X POST "$API/seed" \
+      -H "Content-Type: application/json" \
+      -H "Authorization: Bearer $TOKEN" \
+      -d '{"force":true}' >/dev/null || true
+    SUMMARY=$(curl -sf --max-time 15 "$API/catalog/summary" 2>/dev/null || echo "")
+    CATALOG_SOURCE=$(json_field "$SUMMARY" "source")
+  fi
+  if [ "$CATALOG_SOURCE" = "database" ]; then
+    ok "Catalog reads PostgreSQL (after seed retry)"
+    TOTAL=$(json_field "$SUMMARY" "total")
+    HERO=$(json_field "$SUMMARY" "hero_preset_count")
+    echo "      total=${TOTAL:-?} hero_presets=${HERO:-?}"
+  else
+    bad "Catalog /summary failed (HTTP $HTTP_CODE) — run: bash scripts/fix-catalog.sh"
+  fi
 fi
 
 PUBLISH=$(curl -sf --max-time 15 -X POST "$API/creation/publish" \
@@ -138,9 +155,8 @@ echo " Result: $pass passed, $fail failed"
 if [ "$fail" -eq 0 ]; then
   echo " PostgreSQL + schema OK"
 else
-  echo " 修复: bash scripts/server-db.sh"
-  echo " 诊断: bash scripts/diagnose-api.sh"
-  echo " 补种: bash scripts/smoke-test.sh ${BASE%/} --seed-only"
+  echo " 修复: bash scripts/fix-catalog.sh"
+  echo " 或:   bash scripts/server-db.sh"
 fi
 echo "=========================================="
 [ "$fail" -eq 0 ] || exit 1

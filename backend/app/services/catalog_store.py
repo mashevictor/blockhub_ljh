@@ -48,7 +48,7 @@ def _industry_to_dict(row: CatalogIndustryScenario, *, lite: bool = False) -> di
     return {**base, "pack_color": row.pack_color, "pages": row.pages}
 
 
-def catalog_summary(db: Session) -> dict[str, int]:
+def catalog_summary(db: Session) -> dict[str, Any]:
     office = db.query(CatalogOfficeScenario).count()
     industry = db.query(CatalogIndustryScenario).count()
     hero = db.query(CatalogHeroPreset).count()
