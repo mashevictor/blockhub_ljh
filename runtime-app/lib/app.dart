@@ -81,7 +81,21 @@ class _RuntimeAppState extends State<RuntimeApp> {
         useMaterial3: true,
       ),
       home: Scaffold(
-        appBar: AppBar(title: Text(widget.branding.appName)),
+        appBar: AppBar(
+          title: Text(widget.branding.appName),
+          bottom: widget.branding.voiceDemoMode
+              ? const PreferredSize(
+                  preferredSize: Size.fromHeight(28),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Padding(
+                      padding: EdgeInsets.fromLTRB(16, 0, 16, 8),
+                      child: Text('按住下方按钮说上海话', style: TextStyle(fontSize: 13)),
+                    ),
+                  ),
+                )
+              : null,
+        ),
         body: widget.branding.voiceDemoMode
             ? ShanghaiVoicePage(branding: widget.branding)
             : !_authChecked

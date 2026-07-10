@@ -84,58 +84,106 @@ class ShanghaiVoiceService {
 
   WebSocketChannel? _channel;
   StreamSubscription<Uint8List>? _micSub;
+  StreamSubscription<dynamic>? _wsSub;
   VoiceClientConfig? _config;
   String state = 'disconnected';
   String partialText = '';
   final List<Map<String, String>> messages = [];
   String? error;
+  bool _micActive = false;
+  bool _greetingAdded = false;
+
+  Completer<void>? _readyCompleter;
+  String? _sessionId;
 
   final _stateController = StreamController<String>.broadcast();
   Stream<String> get stateStream => _stateController.stream;
   Future<void> _playQueue = Future<void>.value();
 
+  bool get isConnected =>
+      _channel != null && state != 'disconnected' && state != 'error';
+  bool get isMicActive => _micActive;
   List<VoiceDemoSample> get demoSamples => _config?.demoSamples ?? const [];
 
   Future<VoiceClientConfig> loadConfig() async {
     final res = await _dio.get<Map<String, dynamic>>('/voice/config');
     _config = VoiceClientConfig.fromJson(res.data ?? {});
-    final greeting = _config!.greeting;
-    if (greeting.isNotEmpty && messages.isEmpty) {
-      messages.add({'role': 'assistant', 'text': greeting});
-    }
+    _seedGreeting(_config!.greeting);
     return _config!;
   }
 
+  void _seedGreeting(String greeting) {
+    if (greeting.isEmpty || _greetingAdded) return;
+    messages.add({'role': 'assistant', 'text': greeting});
+    _greetingAdded = true;
+  }
+
+  Future<void> ensureConnected({required String sessionId}) async {
+    _sessionId = sessionId;
+    if (isConnected) return;
+    await connect(sessionId: sessionId);
+  }
+
   Future<void> connect({required String sessionId}) async {
+    _sessionId = sessionId;
     final config = _config ?? await loadConfig();
     if (!config.configured) {
       throw Exception('电信语音服务未配置');
     }
+
+    await _tearDownSocket();
+
     final uri = normalizeWsUri(config.wsUrl, _branding.apiBaseUrl)
         .replace(queryParameters: {'session_id': sessionId});
+    _readyCompleter = Completer<void>();
+    error = null;
     _setState('connecting');
+
     _channel = await connectWebSocket(uri);
-    _channel!.stream.listen(_onMessage, onError: (Object e) {
-      error = e.toString();
-      _setState('error');
-    }, onDone: () {
-      _setState('disconnected');
-    });
+    _wsSub = _channel!.stream.listen(
+      _onMessage,
+      onError: (Object e) {
+        error = e.toString();
+        _setState('error');
+      },
+      onDone: () {
+        _channel = null;
+        _setState('disconnected');
+      },
+    );
+
+    try {
+      await _readyCompleter!.future.timeout(const Duration(seconds: 15));
+    } catch (_) {
+      await _tearDownSocket();
+      throw Exception('连接语音服务超时，请检查网络');
+    }
   }
 
   Future<void> simulateUtterance(String text) async {
     if (_channel == null) {
-      throw Exception('请先连接语音服务');
+      throw Exception('未连接语音服务');
     }
+    error = null;
     _channel!.sink.add(jsonEncode({'type': 'simulate', 'text': text}));
     _setState('thinking');
   }
 
-  Future<void> startMic() async {
+  Future<void> holdTalkStart() async {
+    if (_micActive) return;
     final status = await Permission.microphone.request();
     if (!status.isGranted) {
       throw Exception('需要麦克风权限');
     }
+    if (_sessionId != null) {
+      await ensureConnected(sessionId: _sessionId!);
+    }
+    if (_channel == null) {
+      throw Exception('未连接语音服务');
+    }
+
+    error = null;
+    partialText = '';
     final config = _config!;
     final stream = await _recorder.startStream(
       RecordConfig(
@@ -144,6 +192,7 @@ class ShanghaiVoiceService {
         numChannels: 1,
       ),
     );
+    _micActive = true;
     _setState('listening');
     _micSub = stream.listen((chunk) {
       final b64 = base64Encode(chunk);
@@ -151,31 +200,52 @@ class ShanghaiVoiceService {
     });
   }
 
-  Future<void> stopMic() async {
+  Future<void> holdTalkEnd() async {
+    if (!_micActive) return;
+    _micActive = false;
     await _micSub?.cancel();
     _micSub = null;
     if (await _recorder.isRecording()) {
       await _recorder.stop();
     }
     _channel?.sink.add(jsonEncode({'type': 'utterance_end'}));
+    partialText = '';
     _setState('thinking');
+    _stateController.add(state);
   }
 
   Future<void> bargeIn() async {
     await _player.stop();
+    if (_micActive) {
+      await holdTalkEnd();
+    }
     _channel?.sink.add(jsonEncode({'type': 'barge_in'}));
-    _setState('listening');
+    if (!isConnected) return;
+    _setState('idle');
   }
 
   Future<void> disconnect() async {
+    if (_micActive) {
+      await holdTalkEnd();
+    }
+    await _tearDownSocket();
+    _setState('disconnected');
+  }
+
+  Future<void> _tearDownSocket() async {
     await _micSub?.cancel();
     _micSub = null;
+    await _wsSub?.cancel();
+    _wsSub = null;
     if (await _recorder.isRecording()) {
       await _recorder.stop();
     }
-    await _channel?.sink.close();
+    _micActive = false;
+    try {
+      await _channel?.sink.close();
+    } catch (_) {}
     _channel = null;
-    _setState('disconnected');
+    _readyCompleter = null;
   }
 
   void _appendAssistantDelta(String text) {
@@ -191,21 +261,20 @@ class ShanghaiVoiceService {
     final type = msg['type'] as String? ?? '';
 
     if (type == 'state') {
-      _setState(msg['state'] as String? ?? 'idle');
+      if (!_micActive || (msg['state'] as String? ?? '') != 'listening') {
+        _setState(msg['state'] as String? ?? 'idle');
+      }
     } else if (type == 'ready') {
       _setState('idle');
       final greeting = msg['greeting'] as String? ?? '';
-      if (greeting.isNotEmpty) {
-        if (messages.isEmpty) {
-          messages.add({'role': 'assistant', 'text': greeting});
-        }
+      _seedGreeting(greeting);
+      if (_readyCompleter != null && !_readyCompleter!.isCompleted) {
+        _readyCompleter!.complete();
       }
     } else if (type == 'assistant_message') {
       final text = msg['text'] as String? ?? '';
-      if (text.isNotEmpty && (messages.isEmpty || messages.last['text'] != text)) {
-        if (messages.isEmpty || messages.last['role'] != 'assistant') {
-          messages.add({'role': 'assistant', 'text': text});
-        }
+      if (text.isNotEmpty) {
+        _seedGreeting(text);
       }
       _stateController.add(state);
     } else if (type == 'asr_partial') {
@@ -230,12 +299,13 @@ class ShanghaiVoiceService {
       if (data.isNotEmpty) {
         _playPcmBase64(data);
       }
-      if (isEnd) {
+      if (isEnd && !_micActive) {
         _setState('idle');
       }
     } else if (type == 'error') {
       error = msg['message'] as String? ?? '语音会话错误';
       _setState('error');
+      _stateController.add(state);
     }
   }
 
@@ -245,7 +315,9 @@ class ShanghaiVoiceService {
       final pcm = base64ToBytes(b64);
       final wav = pcm16ToWavBytes(pcm, sampleRate: playbackRate);
       await _player.play(BytesSource(wav));
-      _setState('speaking');
+      if (!_micActive) {
+        _setState('speaking');
+      }
     });
     return _playQueue;
   }

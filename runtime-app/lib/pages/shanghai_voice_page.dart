@@ -15,166 +15,332 @@ class ShanghaiVoicePage extends StatefulWidget {
 class _ShanghaiVoicePageState extends State<ShanghaiVoicePage> {
   late final ShanghaiVoiceService _service;
   late final String _sessionId;
-  bool _started = false;
+  late final ScrollController _scrollController;
+
   bool? _voiceConfigured;
+  bool _connecting = false;
+  bool _holding = false;
   String? _bootError;
 
   @override
   void initState() {
     super.initState();
+    _scrollController = ScrollController();
     _service = ShanghaiVoiceService(branding: widget.branding);
     _sessionId = 'flutter-${DateTime.now().millisecondsSinceEpoch}';
     _service.stateStream.listen((_) {
-      if (mounted) setState(() {});
+      if (!mounted) return;
+      setState(() {});
+      _scrollToBottom();
     });
-    _service.loadConfig().then((cfg) {
+    _bootstrap();
+  }
+
+  Future<void> _bootstrap() async {
+    try {
+      final cfg = await _service.loadConfig();
       if (!mounted) return;
       setState(() => _voiceConfigured = cfg.configured);
-    }).catchError((Object e) {
+      if (cfg.configured) {
+        await _connect();
+      }
+    } catch (e) {
       if (!mounted) return;
       setState(() {
         _voiceConfigured = false;
         _bootError = '无法连接语音服务: $e';
       });
-    });
+    }
   }
 
-  @override
-  void dispose() {
-    _service.dispose();
-    super.dispose();
-  }
-
-  Future<void> _ensureConnected() async {
-    if (_channelReady) return;
-    await _service.connect(sessionId: _sessionId);
-    if (!mounted) return;
-    setState(() => _started = true);
-  }
-
-  bool get _channelReady => _started && _service.state != 'disconnected';
-
-  Future<void> _start() async {
+  Future<void> _connect() async {
+    if (_connecting || _service.isConnected) return;
     setState(() {
+      _connecting = true;
       _bootError = null;
     });
     try {
-      await _ensureConnected();
-      await _service.startMic();
+      await _service.ensureConnected(sessionId: _sessionId);
     } catch (e) {
+      if (mounted) setState(() => _bootError = e.toString());
+    } finally {
+      if (mounted) setState(() => _connecting = false);
+    }
+  }
+
+  Future<void> _onHoldStart() async {
+    if (_voiceConfigured != true || _holding) return;
+    setState(() {
+      _holding = true;
+      _bootError = null;
+    });
+    try {
+      await _service.holdTalkStart();
+    } catch (e) {
+      if (!mounted) return;
       setState(() {
-        _started = false;
+        _holding = false;
         _bootError = e.toString();
       });
     }
-    if (mounted) setState(() {});
+  }
+
+  Future<void> _onHoldEnd() async {
+    if (!_holding) return;
+    setState(() => _holding = false);
+    try {
+      await _service.holdTalkEnd();
+    } catch (e) {
+      if (mounted) setState(() => _bootError = e.toString());
+    }
   }
 
   Future<void> _runDemo(VoiceDemoSample sample) async {
     setState(() => _bootError = null);
     try {
-      await _ensureConnected();
+      await _connect();
       await _service.simulateUtterance(sample.utterance);
     } catch (e) {
-      setState(() => _bootError = e.toString());
+      if (mounted) setState(() => _bootError = e.toString());
     }
-    if (mounted) setState(() {});
   }
 
-  List<Widget> _buildDemoChips() {
-    final samples = _service.demoSamples;
-    if (samples.isEmpty) return const [];
-    return [
-      Text('试试例句（模拟 ASR + DeepSeek + 上海话 TTS）', style: Theme.of(context).textTheme.bodySmall),
-      const SizedBox(height: 6),
-      Wrap(
-        spacing: 8,
-        runSpacing: 8,
-        children: [
-          for (final sample in samples)
-            ActionChip(
-              label: Text(sample.label),
-              onPressed: _voiceConfigured == false ? null : () => _runDemo(sample),
-            ),
-        ],
-      ),
-      const SizedBox(height: 12),
-    ];
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_scrollController.hasClients) return;
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOut,
+      );
+    });
   }
 
-  List<Widget> _buildActions() {
-    if (_voiceConfigured == false) {
-      return [
-        const Text('服务器未配置 TELEAI_*，ASR/TTS 不可用', style: TextStyle(color: Colors.orange)),
-      ];
-    }
-    if (!_started) {
-      return [
-        FilledButton(onPressed: _start, child: const Text('开始说话')),
-      ];
-    }
-    return [
-      FilledButton(
-        onPressed: _service.state == 'listening'
-            ? () => _service.stopMic()
-            : () => _service.startMic(),
-        child: Text(_service.state == 'listening' ? '结束本句' : '继续说话'),
-      ),
-      OutlinedButton(onPressed: () => _service.bargeIn(), child: const Text('打断')),
-      TextButton(onPressed: () => _service.disconnect(), child: const Text('断开')),
-    ];
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    _service.dispose();
+    super.dispose();
+  }
+
+  Color get _primary => Color(widget.branding.primaryColorValue);
+
+  String get _statusLabel {
+    if (_connecting || _service.state == 'connecting') return '连接中…';
+    if (_holding || _service.isMicActive) return '正在听…';
+    if (_service.state == 'thinking') return '思考中…';
+    if (_service.state == 'speaking') return '播报中…';
+    if (_service.isConnected) return '已连接';
+    return '未连接';
   }
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisSize: MainAxisSize.max,
-        children: [
-          Text(
-            '上海话语音 · ASR + DeepSeek + TTS',
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-          const SizedBox(height: 4),
-          Text(
-            _voiceConfigured == null
-                ? '正在检查语音服务…'
-                : _voiceConfigured == true
-                    ? '方言 ASR/TTS 已就绪 · 语义理解 DeepSeek · ${widget.branding.apiBaseUrl}'
-                    : '语音服务未配置 · ${widget.branding.apiBaseUrl}',
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
-          const SizedBox(height: 8),
-          Text('状态：${_service.state}', style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(height: 8),
-          if (_service.partialText.isNotEmpty)
-            Text('识别中（上海话）：${_service.partialText}'),
-          if (_bootError != null)
-            Text(_bootError!, style: const TextStyle(color: Colors.red)),
-          if (_service.error != null)
-            Text(_service.error!, style: const TextStyle(color: Colors.red)),
-          const SizedBox(height: 12),
-          ..._buildDemoChips(),
-          Expanded(
-            child: ListView.builder(
-              itemCount: _service.messages.length,
-              itemBuilder: (context, index) {
-                final item = _service.messages[index];
-                final isUser = item['role'] == 'user';
-                return ListTile(
-                  title: Text(isUser ? '侬讲' : '助手（上海话）'),
-                  subtitle: Text(item['text'] ?? ''),
-                );
-              },
+    return Column(
+      children: [
+        _buildStatusBar(),
+        Expanded(child: _buildMessageList()),
+        if (_bootError != null || _service.error != null)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Text(
+              _bootError ?? _service.error ?? '',
+              style: const TextStyle(color: Colors.red, fontSize: 12),
             ),
           ),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: _buildActions(),
+        _buildInputBar(),
+      ],
+    );
+  }
+
+  Widget _buildStatusBar() {
+    final ok = _service.isConnected;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.5),
+      child: Row(
+        children: [
+          Container(
+            width: 8,
+            height: 8,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: ok ? Colors.green : (_connecting ? Colors.orange : Colors.grey),
+            ),
           ),
+          const SizedBox(width: 8),
+          Text(_statusLabel, style: Theme.of(context).textTheme.bodySmall),
+          const Spacer(),
+          if (_service.state == 'speaking')
+            TextButton(onPressed: () => _service.bargeIn(), child: const Text('打断')),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMessageList() {
+    if (_voiceConfigured == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (_voiceConfigured == false) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(24),
+          child: Text('语音服务未配置，请联系管理员设置 TELEAI_*', textAlign: TextAlign.center),
+        ),
+      );
+    }
+
+    final showPartial = _service.partialText.isNotEmpty;
+    final itemCount = _service.messages.length + (showPartial ? 1 : 0);
+
+    return ListView.builder(
+      controller: _scrollController,
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
+      itemCount: itemCount,
+      itemBuilder: (context, index) {
+        if (showPartial && index == itemCount - 1) {
+          return _ChatBubble(
+            text: _service.partialText,
+            isUser: true,
+            primary: _primary,
+            pending: true,
+          );
+        }
+        final item = _service.messages[index];
+        return _ChatBubble(
+          text: item['text'] ?? '',
+          isUser: item['role'] == 'user',
+          primary: _primary,
+        );
+      },
+    );
+  }
+
+  Widget _buildInputBar() {
+    final disabled = _voiceConfigured != true;
+    final samples = _service.demoSamples;
+
+    return SafeArea(
+      top: false,
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          border: Border(top: BorderSide(color: Theme.of(context).dividerColor)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (samples.isNotEmpty)
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    for (final sample in samples)
+                      Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: ActionChip(
+                          label: Text(sample.label),
+                          onPressed: disabled ? null : () => _runDemo(sample),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            if (samples.isNotEmpty) const SizedBox(height: 8),
+            Listener(
+              behavior: HitTestBehavior.opaque,
+              onPointerDown: disabled ? null : (_) => _onHoldStart(),
+              onPointerUp: disabled ? null : (_) => _onHoldEnd(),
+              onPointerCancel: disabled ? null : (_) => _onHoldEnd(),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 120),
+                height: 48,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: disabled
+                      ? Colors.grey.shade400
+                      : (_holding ? _primary.withOpacity(0.75) : _primary),
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: _holding
+                      ? [BoxShadow(color: _primary.withOpacity(0.35), blurRadius: 12)]
+                      : null,
+                ),
+                child: Text(
+                  disabled
+                      ? '语音未就绪'
+                      : (_holding ? '松开 发送' : '按住 说话'),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ChatBubble extends StatelessWidget {
+  const _ChatBubble({
+    required this.text,
+    required this.isUser,
+    required this.primary,
+    this.pending = false,
+  });
+
+  final String text;
+  final bool isUser;
+  final Color primary;
+  final bool pending;
+
+  @override
+  Widget build(BuildContext context) {
+    final bg = isUser
+        ? (pending ? primary.withOpacity(0.55) : primary)
+        : Theme.of(context).colorScheme.surfaceContainerHighest;
+    final fg = isUser ? Colors.white : Theme.of(context).colorScheme.onSurface;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Row(
+        mainAxisAlignment: isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (!isUser) ...[
+            CircleAvatar(
+              radius: 16,
+              backgroundColor: primary.withOpacity(0.15),
+              child: Icon(Icons.support_agent, size: 18, color: primary),
+            ),
+            const SizedBox(width: 8),
+          ],
+          Flexible(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: bg,
+                borderRadius: BorderRadius.only(
+                  topLeft: const Radius.circular(16),
+                  topRight: const Radius.circular(16),
+                  bottomLeft: Radius.circular(isUser ? 16 : 4),
+                  bottomRight: Radius.circular(isUser ? 4 : 16),
+                ),
+                border: pending ? Border.all(color: primary.withOpacity(0.4)) : null,
+              ),
+              child: Text(
+                text,
+                style: TextStyle(color: fg, fontSize: 15, height: 1.4),
+              ),
+            ),
+          ),
+          if (isUser) const SizedBox(width: 4),
         ],
       ),
     );
