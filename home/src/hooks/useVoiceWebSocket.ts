@@ -128,7 +128,7 @@ export function useVoiceWebSocket(sessionId: string) {
       setError(e instanceof Error ? e.message : '连接失败')
       setState('error')
     }
-  }, [appendAssistantDelta, appendMessage, connect, sessionId])
+  }, [appendAssistantDelta, appendMessage, sessionId])
 
   const simulateUtterance = useCallback(async (text: string) => {
     if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
