@@ -1,7 +1,7 @@
 name: trackchat_runtime_app
 description: TrackChat Flutter runtime — configurable app name, icon, tenant config.
 publish_to: "none"
-version: 0.1.1+2
+version: 0.1.2+3
 
 environment:
   sdk: ">=3.3.0 <4.0.0"

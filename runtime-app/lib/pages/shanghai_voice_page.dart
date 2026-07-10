@@ -158,7 +158,7 @@ class _ShanghaiVoicePageState extends State<ShanghaiVoicePage> {
     if (_connecting || _service.state == 'connecting') return '连接中…';
     if (_holding || _service.isMicActive) return '正在听…';
     if (_service.state == 'thinking') return '思考中…';
-    if (_service.state == 'speaking') return '播报中…';
+    if (_service.state == 'speaking') return '🔊 上海话播报中…';
     if (_service.isConnected) return '已连接';
     return '未连接';
   }
@@ -264,7 +264,7 @@ class _ShanghaiVoicePageState extends State<ShanghaiVoicePage> {
     return SafeArea(
       top: false,
       child: Container(
-        padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+        padding: const EdgeInsets.fromLTRB(12, 8, 12, 14),
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surface,
           border: Border(top: BorderSide(color: Theme.of(context).dividerColor)),
@@ -272,23 +272,25 @@ class _ShanghaiVoicePageState extends State<ShanghaiVoicePage> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (samples.isNotEmpty)
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    for (final sample in samples)
-                      Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: ActionChip(
-                          label: Text(sample.label),
-                          onPressed: disabled ? null : () => _runDemo(sample),
-                        ),
-                      ),
-                  ],
-                ),
+            if (samples.isNotEmpty) ...[
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text('试试例句', style: Theme.of(context).textTheme.labelMedium),
               ),
-            if (samples.isNotEmpty) const SizedBox(height: 8),
+              const SizedBox(height: 6),
+              Wrap(
+                spacing: 8,
+                runSpacing: 6,
+                children: [
+                  for (final sample in samples)
+                    ActionChip(
+                      label: Text(sample.label),
+                      onPressed: disabled ? null : () => _runDemo(sample),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 12),
+            ],
             Listener(
               behavior: HitTestBehavior.opaque,
               onPointerDown: disabled ? null : (_) => _onHoldStart(),
@@ -296,25 +298,26 @@ class _ShanghaiVoicePageState extends State<ShanghaiVoicePage> {
               onPointerCancel: disabled ? null : (_) => _onHoldEnd(),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 120),
-                height: 48,
+                height: 56,
+                width: double.infinity,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   color: disabled
                       ? Colors.grey.shade400
                       : (_holding ? _primary.withOpacity(0.75) : _primary),
-                  borderRadius: BorderRadius.circular(24),
+                  borderRadius: BorderRadius.circular(28),
                   boxShadow: _holding
                       ? [BoxShadow(color: _primary.withOpacity(0.35), blurRadius: 12)]
                       : null,
                 ),
                 child: Text(
                   disabled
-                      ? '语音未就绪'
-                      : (_holding ? '松开 发送' : '按住 说话'),
+                      ? '连接中…'
+                      : (_holding ? '松开 发送' : '按住 说上海话'),
                   style: const TextStyle(
                     color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ),

@@ -7,7 +7,9 @@ import 'pcm_wav.dart';
 
 /// 缓冲 TTS PCM 分片后顺序播放，避免 Huawei 上频繁 play() 失败。
 class PcmStreamPlayer {
-  PcmStreamPlayer({this.sampleRate = 24000});
+  PcmStreamPlayer({this.sampleRate = 24000}) {
+    _player.setReleaseMode(ReleaseMode.stop);
+  }
 
   final int sampleRate;
   final AudioPlayer _player = AudioPlayer();

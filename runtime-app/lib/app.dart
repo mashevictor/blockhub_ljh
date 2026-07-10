@@ -100,8 +100,8 @@ class _RuntimeAppState extends State<RuntimeApp> {
                       padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
                       child: Text(
                         _appVersionLabel.isEmpty
-                            ? '按住下方按钮说上海话'
-                            : '按住下方按钮说上海话 · $_appVersionLabel',
+                            ? '点例句或按住说话 · 文字+上海话播报'
+                            : '点例句或按住说话 · $_appVersionLabel',
                         style: const TextStyle(fontSize: 13),
                       ),
                     ),

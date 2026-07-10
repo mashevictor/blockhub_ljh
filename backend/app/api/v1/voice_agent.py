@@ -321,8 +321,18 @@ async def shanghai_voice_agent(ws: WebSocket, session_id: str = "default") -> No
             "greeting": SHANGHAI_GREETING,
             "demo_samples": SHANGHAI_DEMO_SAMPLES,
         })
-        await ws.send_json({"type": "assistant_message", "text": SHANGHAI_GREETING})
-        await asyncio.gather(pump_asr(), receive_browser_audio())
+
+        async def play_welcome() -> None:
+            await ws.send_json({"type": "assistant_message", "text": SHANGHAI_GREETING})
+            try:
+                await speak_reply(SHANGHAI_GREETING)
+            except Exception as exc:
+                logger.warning("Welcome TTS failed: %s", exc)
+            if state != SessionState.LISTENING:
+                await set_state(SessionState.IDLE)
+
+        welcome_task = asyncio.create_task(play_welcome())
+        await asyncio.gather(pump_asr(), receive_browser_audio(), welcome_task)
     except WebSocketDisconnect:
         pass
     except Exception as exc:
