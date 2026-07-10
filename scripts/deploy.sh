@@ -36,7 +36,7 @@ fi
 source .venv/bin/activate
 pip install -r requirements.txt -q
 
-echo "==> [3/9] alembic migrate (target: head, incl. 009 kb+pgvector)"
+echo "==> [3/9] alembic migrate (target: head)"
 bash "$ROOT/scripts/repair-db.sh" || {
   echo "    repair-db skipped or failed; trying direct upgrade..."
   cd "$ROOT/backend"
@@ -51,6 +51,19 @@ bash "$ROOT/scripts/repair-db.sh" || {
   alembic current
 }
 cd "$ROOT/backend"
+source .venv/bin/activate
+python3 <<'PY'
+from sqlalchemy import inspect
+from app.db.session import engine
+
+insp = inspect(engine)
+tables = ["demo_bookings", "plaza_feed_likes", "notifications"]
+for t in tables:
+    print(f"    table {t}: {'OK' if insp.has_table(t) else 'MISSING'}")
+if not insp.has_table("demo_bookings"):
+    raise SystemExit("ERROR: demo_bookings 表缺失 — 预约无法入库，请检查 alembic upgrade head")
+print("    预约表 demo_bookings 已就绪（用户提交时 API 自动写入，无需手工插数据）")
+PY
 
 echo "==> [4/9] systemd + nginx config (paths → $ROOT)"
 if [ -f "$ROOT/scripts/blockhub-api.service" ]; then
@@ -121,6 +134,13 @@ echo "    admin js: $(basename "$ADMIN_JS") ($(wc -c < "$ADMIN_JS") bytes)"
 echo "    home js:  $(basename "$HOME_JS") ($(wc -c < "$HOME_JS") bytes)"
 echo "    runtime js: $(basename "$RUNTIME_JS") ($(wc -c < "$RUNTIME_JS") bytes)"
 
+for app in home admin; do
+  VER_FILE="$ROOT/$app/dist/version.txt"
+  if [ -f "$VER_FILE" ]; then
+    echo "    $app html cache version: $(tr -d '\n\r' < "$VER_FILE")"
+  fi
+done
+
 sudo mkdir -p /var/www/blockhub
 sudo rm -rf /var/www/blockhub/home.old /var/www/blockhub/admin.old /var/www/blockhub/r.old
 sudo mv /var/www/blockhub/home /var/www/blockhub/home.old 2>/dev/null || true
@@ -149,20 +169,38 @@ else
   exit 1
 fi
 
+if [ -f /var/www/blockhub/home/version.txt ]; then
+  echo "    deployed home version: $(tr -d '\n\r' < /var/www/blockhub/home/version.txt)"
+  if grep -q 'app-build-version' /var/www/blockhub/home/index.html 2>/dev/null; then
+    echo "    home index.html cache meta: OK"
+  fi
+fi
+
 echo ""
-echo "==> [9/9] seed + smoke (catalog sync)"
+echo "==> [9/9] seed + smoke (catalog + demo booking API)"
 bash "$ROOT/scripts/smoke-test.sh" "${SMOKE_BASE_URL:-http://127.0.0.1}" --seed-only || {
   echo "WARN: seed-only failed; try: curl -X POST .../seed -d '{\"force\":true}'"
 }
+
+DEMO_RESP="$(curl -sf --max-time 8 -X POST http://127.0.0.1:8001/api/v1/demo-bookings \
+  -H "Content-Type: application/json" \
+  -d '{"contact":"deploy-check@blockhub.local","salutation":"部署检测","company_name":"自动验收","source":"deploy"}' 2>/dev/null || true)"
+if echo "$DEMO_RESP" | grep -q '"ok"'; then
+  echo "    demo-bookings API: OK"
+else
+  echo "WARN: demo-bookings API 未通过 — 预约可能无法入库"
+  echo "    response: ${DEMO_RESP:-empty}"
+fi
 
 echo ""
 echo "=========================================="
 echo " Deploy complete!"
 echo " Home:  http://101.32.209.251/"
 echo " Admin: http://101.32.209.251/admin/login"
+if [ -f /var/www/blockhub/home/version.txt ]; then
+  echo " HTML version: $(tr -d '\n\r' < /var/www/blockhub/home/version.txt)"
+  echo " 浏览器强刷: Ctrl+Shift+R 或访问 /version.txt 核对版本"
+fi
+echo " 预约数据表: demo_bookings (API 自动写入，无需手工 SQL)"
 echo " Full smoke: bash scripts/smoke-test.sh http://101.32.209.251"
-echo " Admin API:  bash scripts/smoke-admin-api.sh http://101.32.209.251"
-echo " W3 smoke:   bash scripts/smoke-w3.sh http://101.32.209.251"
-echo " W4 smoke:   bash scripts/smoke-w4.sh http://101.32.209.251"
-echo " W5 smoke:   bash scripts/smoke-w5.sh http://101.32.209.251"
 echo "=========================================="
