@@ -39,7 +39,10 @@ if [ -f "$ROOT/backend/.venv/bin/activate" ]; then
   cd "$ROOT/backend"
   # shellcheck disable=SC1091
   source .venv/bin/activate
-  HEAD_REV=$(alembic heads 2>/dev/null | grep -oE '01[0-9]+' | tail -1 || echo "016")
+  HEAD_REV=$(alembic heads 2>/dev/null | grep -oE '01[0-9]+' | tail -1 || true)
+  if [ -z "$HEAD_REV" ]; then
+    HEAD_REV=$(ls alembic/versions/[0-9][0-9][0-9]_*.py 2>/dev/null | sed 's|.*/||;s/_.*||' | sort -n | tail -1 || echo "017")
+  fi
   ALEMBIC_REV=$(alembic current 2>/dev/null | grep -oE '01[0-9]+' | tail -1 || echo "")
   HEAD_NUM=$((10#${HEAD_REV:-0}))
   CUR_NUM=$((10#${ALEMBIC_REV:-0}))

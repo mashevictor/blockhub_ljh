@@ -4,11 +4,14 @@ Revision ID: 017
 Revises: 016
 """
 
+import sys
+from pathlib import Path
 from typing import Sequence, Union
 
 import sqlalchemy as sa
 from alembic import op
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from ops_utils import create_index_if_missing, create_table_if_missing
 
 revision: str = "017"
