@@ -1,5 +1,19 @@
 # 部署与数据库
 
+## 部署前：确认代码已更新
+
+```bash
+cd ~/blockhub
+git pull
+git log -1 --oneline                         # 应 ≥ 60cdd14
+test -f backend/alembic/versions/017_repair_catalog_tables.py && echo "017 OK"
+cd backend && source .venv/bin/activate
+alembic heads                                # 应 017 (head)
+alembic current
+```
+
+若 **current=017 但 heads=016**：数据库比代码新，**只需 `git pull`**，不是故障。
+
 ## 一键命令
 
 ```bash

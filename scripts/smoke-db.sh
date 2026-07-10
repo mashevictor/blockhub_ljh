@@ -39,12 +39,20 @@ if [ -f "$ROOT/backend/.venv/bin/activate" ]; then
   cd "$ROOT/backend"
   # shellcheck disable=SC1091
   source .venv/bin/activate
-  HEAD_REV=$(alembic heads 2>/dev/null | awk '{print $1}' | head -1 || echo "016")
+  HEAD_REV=$(alembic heads 2>/dev/null | grep -oE '01[0-9]+' | tail -1 || echo "016")
   ALEMBIC_REV=$(alembic current 2>/dev/null | grep -oE '01[0-9]+' | tail -1 || echo "")
-  if [ -n "$ALEMBIC_REV" ] && [ "$ALEMBIC_REV" = "$HEAD_REV" ]; then
-    ok "alembic current=$ALEMBIC_REV (head)"
-  elif [ -n "$ALEMBIC_REV" ]; then
+  HEAD_NUM=$((10#${HEAD_REV:-0}))
+  CUR_NUM=$((10#${ALEMBIC_REV:-0}))
+  if [ -n "$ALEMBIC_REV" ] && [ "$CUR_NUM" -ge "$HEAD_NUM" ] && [ "$HEAD_NUM" -gt 0 ]; then
+    if [ "$CUR_NUM" -gt "$HEAD_NUM" ]; then
+      ok "alembic current=$ALEMBIC_REV (DB 超前于代码 head=$HEAD_REV — 请 git pull)"
+    else
+      ok "alembic current=$ALEMBIC_REV (head)"
+    fi
+  elif [ -n "$ALEMBIC_REV" ] && [ "$CUR_NUM" -lt "$HEAD_NUM" ]; then
     bad "alembic current=$ALEMBIC_REV (head=$HEAD_REV) — run: alembic upgrade head"
+  elif [ -n "$ALEMBIC_REV" ]; then
+    ok "alembic current=$ALEMBIC_REV"
   else
     bad "alembic current unknown — run: bash scripts/server-db.sh"
   fi
@@ -59,6 +67,7 @@ required = [
     "approvals", "conversations", "chat_messages", "custom_capabilities",
     "plaza_feed_likes", "notifications", "demo_bookings",
     "catalog_agents", "catalog_office_scenarios", "catalog_hero_presets",
+    "catalog_chip_templates",
 ]
 for t in required:
     if not insp.has_table(t):
