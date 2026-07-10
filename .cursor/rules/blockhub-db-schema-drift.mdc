@@ -1,0 +1,31 @@
+---
+description: BlockHub Alembic stamp 漂移与 catalog 表缺失的修复约定
+globs: backend/alembic/**,backend/app/services/catalog*.py,scripts/repair-db.sh,scripts/fix-catalog.sh,scripts/smoke-db.sh,scripts/deploy*.sh
+alwaysApply: false
+---
+
+# DB Schema 漂移（stamp 超前）
+
+## 识别
+
+- `alembic current` = head，但 PG 缺表（如 `catalog_chip_templates`）
+- `/catalog/summary` 500，`UndefinedTable` on seed
+
+## 修复（不要只 stamp，不要裸 create_table 在旧迁移里指望重跑）
+
+```bash
+bash scripts/fix-catalog.sh   # alembic upgrade head (017+) + force seed
+```
+
+## 写新迁移
+
+- 补可能缺失的表 → 新 revision + `create_table_if_missing`（见 017）
+- 012–017 均已幂等；003/004 历史迁移无法重跑，靠 017 repair
+
+## 部署后验收
+
+```bash
+bash scripts/smoke-db.sh http://127.0.0.1:8001
+```
+
+Skill 详情：`.cursor/skills/blockhub-db-deploy/SKILL.md`

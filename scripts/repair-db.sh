@@ -144,7 +144,7 @@ raise SystemExit(0 if ok else 1)
 
 SCHEMA_REV="$(schema_level)"
 ALEMBIC_REV="$(alembic current 2>/dev/null | grep -oE '01[0-9]' | tail -1 || true)"
-HEAD_REV="$(alembic heads 2>/dev/null | awk '{print $1}' | head -1 || echo '016')"
+HEAD_REV="$(alembic heads 2>/dev/null | awk '{print $1}' | head -1 || echo '017')"
 
 echo "==> head=$HEAD_REV alembic=${ALEMBIC_REV:-none} schema≈${SCHEMA_REV:-none}"
 
@@ -173,6 +173,29 @@ if [ "${ALEMBIC_REV:-}" != "$HEAD_REV" ] || ! has_icon_url; then
 fi
 
 alembic current
+
+echo "==> catalog 表漂移检测（alembic 已 head 但 catalog_* 缺失）"
+if ! python3 <<'PY'
+from sqlalchemy import inspect
+from app.db.session import engine
+
+CATALOG = [
+    "catalog_agents", "catalog_capabilities", "catalog_office_scenarios",
+    "catalog_industry_scenarios", "catalog_hero_presets", "catalog_chip_templates",
+    "catalog_office_groups", "catalog_industry_packs",
+]
+insp = inspect(engine)
+missing = [t for t in CATALOG if not insp.has_table(t)]
+if missing:
+    print("MISSING:", ", ".join(missing))
+    raise SystemExit(1)
+print("catalog tables OK")
+PY
+then
+  echo "    → 运行迁移 017 repair + 见 docs: .cursor/skills/blockhub-db-deploy/"
+  alembic upgrade head
+  alembic current
+fi
 
 python3 <<'PY'
 from sqlalchemy import inspect
@@ -220,6 +243,7 @@ fi
 
 echo "=========================================="
 echo " Repair complete."
-echo " Test publish: bash $ROOT/scripts/smoke-db.sh"
-echo " Full smoke:   bash $ROOT/scripts/smoke-test.sh http://101.32.209.251"
+echo " Catalog 500: bash $ROOT/scripts/fix-catalog.sh"
+echo " Test DB:     bash $ROOT/scripts/smoke-db.sh http://127.0.0.1:8001"
+echo " Runbook:     .cursor/skills/blockhub-db-deploy/reference.md"
 echo "=========================================="
