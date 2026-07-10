@@ -717,7 +717,7 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
         className="floating-agent-dock-prompt"
         title={BRAND.agentSignLine}
         chevLabel={agentCopy.chevLabel}
-        collapsedHint={agentCopy.placeholder}
+        collapsedHint="点击展开"
         ariaLabel="创建应用悬浮助手"
       >
         <div

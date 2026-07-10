@@ -2188,6 +2188,32 @@
 
 .floating-agent-dock.is-collapsed .floating-agent-dock-chrome {
   border-bottom: none;
+  cursor: default;
+}
+
+.floating-agent-dock-expand-bar {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  width: 100%;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 4px 8px 4px 4px;
+  border-radius: 8px;
+  font-family: inherit;
+  text-align: left;
+}
+
+.floating-agent-dock-expand-bar:hover {
+  background: rgba(13, 71, 161, 0.06);
+}
+
+.floating-agent-dock-expand-bar .floating-agent-dock-caret {
+  margin-left: auto;
+  flex-shrink: 0;
 }
 
 .floating-agent-dock-grip {
@@ -2198,6 +2224,12 @@
     radial-gradient(circle, #64748b 1.5px, transparent 1.5px) 0 0 / 5px 5px repeat;
   opacity: 0.75;
   pointer-events: none;
+}
+
+.floating-agent-dock.is-collapsed .floating-agent-dock-grip {
+  pointer-events: auto;
+  cursor: grab;
+  padding: 4px 2px;
 }
 
 .floating-agent-dock-drag {

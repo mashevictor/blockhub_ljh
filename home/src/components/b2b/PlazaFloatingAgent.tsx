@@ -15,7 +15,7 @@ export default function PlazaFloatingAgent() {
       className="floating-agent-dock-plaza plaza-floating-dock"
       title="应用广场"
       chevLabel={copy.chevLabel}
-      collapsedHint={copy.placeholder}
+      collapsedHint="点击展开"
       ariaLabel="智能体创建入口"
     >
       <Link to={`${ROUTES.home}#contact`} className="plaza-floating-agent-link">
