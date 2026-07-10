@@ -12,7 +12,7 @@ Dio createDio({
 }) {
   final dio = Dio(
     BaseOptions(
-      baseUrl: baseUrl,
+      baseUrl: baseUrl ?? '',
       connectTimeout: connectTimeout,
       receiveTimeout: receiveTimeout,
       headers: headers ?? const {'Accept': 'application/json'},
