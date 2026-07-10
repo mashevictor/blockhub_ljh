@@ -1,6 +1,10 @@
-import { useEffect, useMemo, useState, type CSSProperties } from 'react'
-import { fetchHeroPresets } from '../api/client'
-import { buildDanmakuLayout, mapHeroPresetFromApi, presetRole, type RolePreset } from '../data/rolePresets'
+import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react'
+import { buildDanmakuLayout, presetRole, type RolePreset } from '../data/rolePresets'
+import {
+  getInstantHeroPresets,
+  saveCachedHeroPresets,
+  syncHeroPresetsFromApi,
+} from '../lib/heroPresetsCache'
 import HeroRoleDialog from './HeroRoleDialog'
 
 const LANE_COUNT = 10
@@ -12,37 +16,56 @@ interface Props {
 }
 
 export default function HeroDanmakuCloud({ onRoleApply, integrated }: Props) {
-  const [presets, setPresets] = useState<RolePreset[]>([])
-  const [loading, setLoading] = useState(true)
-  const [loadError, setLoadError] = useState<string | null>(null)
+  const [presets, setPresets] = useState<RolePreset[]>(getInstantHeroPresets)
+  const [syncing, setSyncing] = useState(false)
+  const [syncError, setSyncError] = useState<string | null>(null)
   const items = useMemo(() => buildDanmakuLayout(presets), [presets])
   const [active, setActive] = useState<RolePreset | null>(null)
   const [paused, setPaused] = useState(false)
 
-  const loadPresets = () => {
-    setLoading(true)
-    setLoadError(null)
-    fetchHeroPresets()
+  const syncPresets = useCallback((manual = false) => {
+    if (manual) setSyncing(true)
+    setSyncError(null)
+    return syncHeroPresetsFromApi()
       .then((rows) => {
-        if (rows.length === 0) {
-          setLoadError('英雄区预设为空，请执行 POST /api/v1/seed')
-          setPresets([])
-          return
-        }
-        setPresets(rows.map((row) => mapHeroPresetFromApi({
-          ...row,
-          picks: row.picks as RolePreset['picks'],
-        })))
+        setPresets(rows)
+        saveCachedHeroPresets(rows)
       })
       .catch(() => {
-        setLoadError('无法加载英雄区预设，请稍后重试')
-        setPresets([])
+        if (presets.length === 0) {
+          setSyncError('无法加载英雄区预设，请稍后重试')
+        } else {
+          setSyncError('后台同步失败，当前为本地预设')
+        }
       })
-      .finally(() => setLoading(false))
-  }
+      .finally(() => {
+        if (manual) setSyncing(false)
+      })
+  }, [presets.length])
 
   useEffect(() => {
-    loadPresets()
+    let cancelled = false
+    setSyncing(true)
+    void syncHeroPresetsFromApi()
+      .then((rows) => {
+        if (cancelled) return
+        setPresets(rows)
+        saveCachedHeroPresets(rows)
+        setSyncError(null)
+      })
+      .catch(() => {
+        if (cancelled) return
+        if (presets.length === 0) {
+          setSyncError('无法加载英雄区预设，请稍后重试')
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setSyncing(false)
+      })
+    return () => {
+      cancelled = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 仅挂载时后台同步一次
   }, [])
 
   const handleApply = (role: RolePreset, generate?: boolean) => {
@@ -71,18 +94,20 @@ export default function HeroDanmakuCloud({ onRoleApply, integrated }: Props) {
         <header className="hero-danmaku-hud-head">
           <span className="hud-status">
             <i className="hud-pulse" aria-hidden />
-            {loading ? 'SYNC' : loadError ? 'ERR' : 'LIVE'}
+            {syncError && presets.length === 0 ? 'ERR' : syncing ? 'SYNC' : 'LIVE'}
           </span>
           <span className="hud-title">&gt;&gt; IDENTITY × SCENARIO</span>
           <span className="hud-meta">
-            {loading ? '加载 PG 预设…' : loadError ? '数据未就绪' : `${presets.length} 场景 · 点击生成`}
+            {syncing && presets.length > 0
+              ? `${presets.length} 场景 · 同步中…`
+              : `${presets.length} 场景 · 点击生成`}
           </span>
         </header>
 
-        {loadError && (
+        {syncError && presets.length === 0 && (
           <div className="hero-danmaku-error">
-            <p>{loadError}</p>
-            <button type="button" onClick={loadPresets}>重试</button>
+            <p>{syncError}</p>
+            <button type="button" onClick={() => void syncPresets(true)}>重试</button>
           </div>
         )}
 

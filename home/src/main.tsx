@@ -5,10 +5,12 @@ import { syncBuildVersion } from '@shared/syncBuildVersion'
 import { ThemeProvider } from './context/ThemeContext'
 import { BUILD_VERSION_KEY, TOKEN_KEY } from './auth/storage'
 import { applyTheme, getThemeById, loadSavedTheme } from './data/themes'
+import { prefetchHeroPresets } from './lib/heroPresetsCache'
 import App from './App'
 import './index.css'
 
 syncBuildVersion(TOKEN_KEY, BUILD_VERSION_KEY)
+prefetchHeroPresets()
 
 const initial = getThemeById(loadSavedTheme())
 if (initial) applyTheme(initial)
