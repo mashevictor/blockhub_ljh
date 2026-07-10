@@ -28,16 +28,19 @@ class AppBranding {
     primaryColorHex: '#4338CA',
   );
 
+  /// fromEnvironment 的 key 必须是编译期字面量，不能用变量传 key（否则 dart-define 全部失效）。
   factory AppBranding.fromEnvironment() {
-    String env(String key, String fallback) {
-      const empty = String.fromEnvironment('');
-      final v = String.fromEnvironment(key, defaultValue: empty);
-      return v.isEmpty ? fallback : v;
-    }
+    const empty = '';
+    const appNameRaw = String.fromEnvironment('APP_NAME', defaultValue: empty);
+    const appIdRaw = String.fromEnvironment('APP_ID', defaultValue: empty);
+    const tenantSlugRaw = String.fromEnvironment('TENANT_SLUG', defaultValue: empty);
+    const apiBaseUrlRaw = String.fromEnvironment('API_BASE_URL', defaultValue: empty);
+    const primaryColorRaw = String.fromEnvironment('PRIMARY_COLOR', defaultValue: empty);
+    const appPublicIdRaw = String.fromEnvironment('APP_PUBLIC_ID', defaultValue: empty);
+    const voiceDemoRaw = String.fromEnvironment('VOICE_DEMO', defaultValue: empty);
 
-    final appName = env('APP_NAME', defaults.appName);
-    final appId = env('APP_ID', defaults.appId);
-    final voiceDemoRaw = env('VOICE_DEMO', '');
+    final appName = appNameRaw.isEmpty ? defaults.appName : appNameRaw;
+    final appId = appIdRaw.isEmpty ? defaults.appId : appIdRaw;
     final voiceDemo = voiceDemoRaw == '1' ||
         voiceDemoRaw.toLowerCase() == 'true' ||
         appId == 'com.blockhub.shanghai.voice' ||
@@ -46,10 +49,10 @@ class AppBranding {
     return AppBranding(
       appName: appName,
       appId: appId,
-      tenantSlug: env('TENANT_SLUG', defaults.tenantSlug),
-      apiBaseUrl: env('API_BASE_URL', defaults.apiBaseUrl),
-      primaryColorHex: env('PRIMARY_COLOR', defaults.primaryColorHex),
-      appPublicId: env('APP_PUBLIC_ID', defaults.appPublicId),
+      tenantSlug: tenantSlugRaw.isEmpty ? defaults.tenantSlug : tenantSlugRaw,
+      apiBaseUrl: apiBaseUrlRaw.isEmpty ? defaults.apiBaseUrl : apiBaseUrlRaw,
+      primaryColorHex: primaryColorRaw.isEmpty ? defaults.primaryColorHex : primaryColorRaw,
+      appPublicId: appPublicIdRaw.isEmpty ? defaults.appPublicId : appPublicIdRaw,
       voiceDemoMode: voiceDemo,
     );
   }

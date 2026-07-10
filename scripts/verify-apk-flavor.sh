@@ -1,0 +1,85 @@
+#!/usr/bin/env bash
+# 验证 APK 包名与内置品牌（防止 shanghai-voice 与 default TrackChat 搞混）
+#
+# 用法:
+#   bash scripts/verify-apk-flavor.sh backend/uploads/apks/shanghai-voice.apk shanghai
+#   bash scripts/verify-apk-flavor.sh backend/uploads/apks/default.apk trackchat
+#
+set -euo pipefail
+
+APK="${1:?usage: verify-apk-flavor.sh <apk> [shanghai|trackchat]}"
+FLAVOR="${2:-shanghai}"
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+APK_PATH="$APK"
+if [[ "$APK_PATH" != /* ]]; then
+  APK_PATH="$ROOT/$APK_PATH"
+fi
+
+if [ ! -f "$APK_PATH" ]; then
+  echo "ERROR: APK not found: $APK_PATH"
+  exit 1
+fi
+
+AAPT=""
+for c in aapt aapt2 "${ANDROID_HOME:-}/build-tools/"*/aapt "${ANDROID_HOME:-}/build-tools/"*/aapt2; do
+  if [ -x "$c" ] 2>/dev/null; then
+    AAPT="$c"
+    break
+  fi
+done
+
+if [ -z "$AAPT" ]; then
+  echo "WARN: aapt not found — skip package check (install Android build-tools)"
+  exit 0
+fi
+
+PKG="$("$AAPT" dump badging "$APK_PATH" 2>/dev/null | sed -n "s/^package: name='\([^']*\)'.*/\1/p" | head -n1)"
+LABEL="$("$AAPT" dump badging "$APK_PATH" 2>/dev/null | sed -n "s/^application-label:'\(.*\)'/\1/p" | head -n1)"
+
+echo "APK: $APK_PATH"
+echo "  package: $PKG"
+echo "  label:   $LABEL"
+
+TMP="$(mktemp -d)"
+trap 'rm -rf "$TMP"' EXIT
+unzip -q "$APK_PATH" "lib/*/libapp.so" -d "$TMP" 2>/dev/null || true
+LIBAPP="$(find "$TMP" -name libapp.so | head -n1 || true)"
+HAS_VOICE=0
+HAS_TRACK=0
+if [ -n "$LIBAPP" ]; then
+  if strings "$LIBAPP" | grep -q '上海话语音'; then HAS_VOICE=1; fi
+  if strings "$LIBAPP" | grep -q 'TrackChat'; then HAS_TRACK=1; fi
+fi
+
+if [ "$FLAVOR" = "shanghai" ]; then
+  ok=1
+  if [ "$PKG" != "com.blockhub.shanghai.voice" ]; then
+    echo "  FAIL expected package com.blockhub.shanghai.voice, got: $PKG"
+    ok=0
+  fi
+  if [ "$HAS_VOICE" -ne 1 ]; then
+    echo "  FAIL libapp.so missing 上海话语音 string (dart-define likely not baked in)"
+    ok=0
+  fi
+  if [ "$ok" -eq 1 ]; then
+    echo "  OK  shanghai-voice flavor verified"
+    exit 0
+  fi
+  exit 1
+fi
+
+if [ "$FLAVOR" = "trackchat" ]; then
+  ok=1
+  if [ "$PKG" != "com.trackchat.runtime" ]; then
+    echo "  FAIL expected package com.trackchat.runtime, got: $PKG"
+    ok=0
+  fi
+  if [ "$ok" -eq 1 ]; then
+    echo "  OK  trackchat flavor verified"
+    exit 0
+  fi
+  exit 1
+fi
+
+echo "ERROR: unknown flavor $FLAVOR (use shanghai or trackchat)"
+exit 1

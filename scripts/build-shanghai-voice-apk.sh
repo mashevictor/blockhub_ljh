@@ -6,8 +6,8 @@
 #   PUBLIC_URL=http://你的域名 bash scripts/build-shanghai-voice-apk.sh
 #
 # 产物:
-#   backend/uploads/apks/shanghai-voice.apk  — 推荐测试包
-#   backend/uploads/apks/default.apk         — 下载 API 默认回退包
+#   backend/uploads/apks/shanghai-voice.apk  — 上海话专用（不覆盖 default.apk）
+#   backend/uploads/apks/default.apk         — 通用 TrackChat（仅 flutter-build-apk.sh 默认构建写入）
 #
 set -euo pipefail
 
@@ -40,6 +40,10 @@ export TENANT_SLUG="demo"
 export API_BASE_URL="$API_BASE"
 export VOICE_DEMO=1
 export PRIMARY_COLOR="#E11D48"
+export SKIP_DEFAULT_APK=1
+
+echo "==> flutter clean (ensure dart-define rebaked)"
+(cd "$ROOT/runtime-app" && flutter clean)
 
 bash "$ROOT/scripts/flutter-build-apk.sh"
 
@@ -47,10 +51,12 @@ APK_DIR="$ROOT/backend/uploads/apks"
 mkdir -p "$APK_DIR"
 OUT="$ROOT/runtime-app/build/app/outputs/flutter-apk/app-release.apk"
 cp "$OUT" "$APK_DIR/shanghai-voice.apk"
-cp "$OUT" "$APK_DIR/default.apk"
 echo ""
-echo "==> 上海话测试 APK 已就绪"
-ls -lh "$APK_DIR/shanghai-voice.apk" "$APK_DIR/default.apk"
+echo "==> 上海话测试 APK 已就绪（未覆盖 default.apk）"
+ls -lh "$APK_DIR/shanghai-voice.apk"
+if [ -f "$APK_DIR/default.apk" ]; then
+  echo "    default.apk 仍为通用包: $(ls -lh "$APK_DIR/default.apk" | awk '{print $5, $6, $7, $8}')"
+fi
 echo ""
 echo "==> 构建参数确认"
 echo "    APP_NAME=${APP_NAME}"
@@ -65,9 +71,17 @@ else
   echo "    WARN voice/config 未就绪 — 检查 backend/.env TELEAI_* 并重启 blockhub-api"
 fi
 echo ""
+echo "==> APK 风味校验"
+if bash "$ROOT/scripts/verify-apk-flavor.sh" "$APK_DIR/shanghai-voice.apk" shanghai; then
+  echo "    OK  shanghai-voice.apk 确认为上海话专用包"
+else
+  echo "    FAIL shanghai-voice.apk 校验未通过 — 请勿安装"
+  exit 1
+fi
+echo ""
 echo "下载测试:"
-echo "  直链: ${PUBLIC_URL}/api/v1/runtime/demo/download  (需 default.apk 存在)"
-echo "  或拷到手机: scp root@服务器:$APK_DIR/shanghai-voice.apk ."
+echo "  上海话专用: scp root@服务器:$APK_DIR/shanghai-voice.apk ."
+echo "  通用 TrackChat 下载 API 仍走 default.apk（与上海话包隔离）"
 echo ""
 echo "装好后: 打开 App → 允许麦克风 → 点「开始说话」→ 说上海话"
 echo "验收:   bash scripts/smoke-voice-apk.sh ${PUBLIC_URL}"
