@@ -64,4 +64,22 @@ class AppBranding {
     }
     return 0xFF4338CA;
   }
+
+  /// 运行时按 Android 包名兜底（比 libapp.so strings 更可靠）。
+  AppBranding applyAndroidPackage(String packageName) {
+    if (packageName != 'com.blockhub.shanghai.voice') {
+      return this;
+    }
+    final resolvedName =
+        appName == defaults.appName || appName == 'TrackChat' ? '上海话语音助手' : appName;
+    return AppBranding(
+      appName: resolvedName,
+      appId: packageName,
+      tenantSlug: tenantSlug,
+      apiBaseUrl: apiBaseUrl,
+      primaryColorHex: primaryColorHex,
+      appPublicId: appPublicId,
+      voiceDemoMode: true,
+    );
+  }
 }

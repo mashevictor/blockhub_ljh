@@ -65,10 +65,16 @@ echo "    API_BASE_URL=${API_BASE_URL}"
 echo "    VOICE_DEMO=${VOICE_DEMO}"
 echo ""
 echo "==> 语音 API 冒烟"
-if curl -sf --max-time 8 "$API_BASE/voice/config" | grep -q '"configured":true'; then
+VOICE_CFG="$(curl -sf --max-time 8 "$API_BASE/voice/config" 2>/dev/null || true)"
+if echo "$VOICE_CFG" | grep -q '"configured"[[:space:]]*:[[:space:]]*true'; then
   echo "    OK  voice/config configured"
 else
   echo "    WARN voice/config 未就绪 — 检查 backend/.env TELEAI_* 并重启 blockhub-api"
+  if [ -n "$VOICE_CFG" ]; then
+    echo "         response: $VOICE_CFG"
+  else
+    echo "         (curl 无响应，确认 $API_BASE/voice/config 可访问)"
+  fi
 fi
 echo ""
 echo "==> APK 风味校验"
