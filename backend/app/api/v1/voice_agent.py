@@ -185,6 +185,8 @@ async def shanghai_voice_agent(ws: WebSocket, session_id: str = "default") -> No
         nonlocal llm_task
         try:
             async for event in asr.events():
+                if event.res_status == 0:
+                    continue
                 if event.res_status == -1:
                     await ws.send_json({
                         "type": "error",

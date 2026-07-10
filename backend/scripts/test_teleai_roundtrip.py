@@ -9,6 +9,7 @@ import asyncio
 import base64
 import struct
 import sys
+import time
 
 from app.services.teleai_asr import TeleAsrClient
 from app.services.teleai_tts import TeleTtsClient
@@ -59,9 +60,16 @@ async def run_asr(pcm: bytes) -> str:
         frame = 6400
         for i in range(0, len(pcm), frame):
             await client.send_audio(pcm[i : i + frame])
+            await asyncio.sleep(0.2)
         await client.end_utterance()
 
+        deadline = time.monotonic() + 25
         async for event in client.events():
+            if time.monotonic() > deadline:
+                print("[ASR] 等待最终结果超时")
+                break
+            if event.res_status == 0:
+                continue
             if event.res_status == -1:
                 print(f"[ASR] 错误 code={event.code} msg={event.message}")
                 break

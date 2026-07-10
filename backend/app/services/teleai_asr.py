@@ -31,8 +31,10 @@ class TeleAsrClient:
         self._req_id = f"sess-{uuid.uuid4().hex[:12]}"
         self._events: asyncio.Queue[AsrEvent | None] = asyncio.Queue()
         self._reader_task: asyncio.Task[None] | None = None
+        self._ready = asyncio.Event()
 
     async def connect(self) -> None:
+        self._ready.clear()
         headers = build_ws_headers(self._path)
         self._ws = await websockets.connect(
             ws_url(self._path),
@@ -54,6 +56,11 @@ class TeleAsrClient:
             "req_id": self._req_id,
             "rec_status": 0,
         })
+        try:
+            await asyncio.wait_for(self._ready.wait(), timeout=15)
+        except asyncio.TimeoutError:
+            await self.close()
+            raise RuntimeError("ASR session start timeout (no res_status=0)")
 
     async def close(self) -> None:
         if self._reader_task:
@@ -112,6 +119,9 @@ class TeleAsrClient:
                 if results:
                     text = str(results[0].get("text") or "")
                     lang = str(results[0].get("lang") or "")
+
+                if res_status == 0:
+                    self._ready.set()
 
                 await self._events.put(AsrEvent(res_status=res_status, text=text, lang=lang, code=code))
         except asyncio.CancelledError:
