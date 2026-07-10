@@ -91,6 +91,18 @@ else
   echo "    FAIL shanghai-voice.apk 校验未通过 — 请勿安装"
   exit 1
 fi
+
+echo ""
+echo "==> 恢复 blockhub-api 并冒烟 voice/config"
+if command -v systemctl >/dev/null 2>&1; then
+  systemctl start blockhub-api 2>/dev/null || sudo systemctl start blockhub-api 2>/dev/null || true
+  sleep 2
+fi
+if bash "$ROOT/scripts/smoke-voice-apk.sh" "${PUBLIC_URL}"; then
+  echo "    OK  语音 API 就绪，App 可正常连接"
+else
+  echo "    WARN 语音 API 未就绪 — App 会显示 502/未连接，请手动: sudo systemctl start blockhub-api"
+fi
 echo ""
 echo "下载测试:"
 echo "  上海话专用: scp root@服务器:$APK_DIR/shanghai-voice.apk ."

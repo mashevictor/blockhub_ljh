@@ -198,29 +198,33 @@ export async function publishApp(
     app: CreatedApp
     runtime?: { apk_ready?: boolean; web_url?: string; download_url?: string; deliver?: string }
     notification?: { email?: string; email_sent?: boolean; email_configured?: boolean }
-  }>('/creation/publish', {
-    name,
-    industry_key: industryKey,
-    app_id: opts.appId ?? '',
-    scenario_ids: opts.scenarioIds ?? [],
-    scenario_names: opts.scenarioNames ?? [],
-    capability_keys: opts.capabilityKeys ?? [],
-    modules: (opts.modules ?? []).map((m) => ({
-      key: m.key,
-      label: m.label,
-      kind: m.kind,
-      icon_key: m.iconKey,
-      source: m.source,
-    })),
-    audience: opts.audience ?? 'both',
-    deliver: opts.deliver ?? 'both',
-    source: opts.source ?? 'industry',
-    prompt: opts.prompt ?? '',
-    contact_email: opts.contactEmail ?? '',
-    contact_phone: opts.contactPhone ?? '',
-    icon_url: opts.iconUrl ?? '',
-    primary_color: opts.primaryColor ?? '#4338ca',
-  })
+  }>(
+    '/creation/publish',
+    {
+      name,
+      industry_key: industryKey,
+      app_id: opts.appId ?? '',
+      scenario_ids: opts.scenarioIds ?? [],
+      scenario_names: opts.scenarioNames ?? [],
+      capability_keys: opts.capabilityKeys ?? [],
+      modules: (opts.modules ?? []).map((m) => ({
+        key: m.key,
+        label: m.label,
+        kind: m.kind,
+        icon_key: m.iconKey,
+        source: m.source,
+      })),
+      audience: opts.audience ?? 'both',
+      deliver: opts.deliver ?? 'both',
+      source: opts.source ?? 'industry',
+      prompt: opts.prompt ?? '',
+      contact_email: opts.contactEmail ?? '',
+      contact_phone: opts.contactPhone ?? '',
+      icon_url: opts.iconUrl ?? '',
+      primary_color: opts.primaryColor ?? '#4338ca',
+    },
+    { timeout: 90000 },
+  )
   return res.data
 }
 
@@ -331,10 +335,11 @@ export interface SuggestModulesResult {
 }
 
 export async function suggestModules(text: string, forceLlm = false): Promise<SuggestModulesResult> {
-  const res = await api.post<SuggestModulesResult>('/creation/suggest-modules', {
-    text,
-    force_llm: forceLlm,
-  })
+  const res = await api.post<SuggestModulesResult>(
+    '/creation/suggest-modules',
+    { text, force_llm: forceLlm },
+    { timeout: 60000 },
+  )
   return res.data
 }
 

@@ -22,11 +22,22 @@ function startOverlayPhaseTimers(setPhase: (phase: PublishWorkPhase | null) => v
 
 function errorMessageFromApi(error: unknown, fallback: string): string {
   if (typeof error === 'object' && error !== null && 'response' in error) {
-    const response = (error as { response?: { data?: { detail?: unknown } } }).response
+    const response = (error as { response?: { data?: { detail?: unknown }; status?: number } }).response
     const detail = response?.data?.detail
     if (typeof detail === 'string' && detail.trim()) return detail
+    if (response?.status === 502) {
+      return `${fallback}：服务器网关错误(502)，请确认 blockhub-api 已启动`
+    }
+    if (response?.status === 503) {
+      return `${fallback}：服务暂时不可用(503)，请稍后重试`
+    }
   }
-  if (error instanceof Error && error.message) return `${fallback}：${error.message}`
+  if (error instanceof Error) {
+    if (/timeout|ECONNABORTED/i.test(error.message)) {
+      return `${fallback}：请求超时，服务器处理较慢。若已填写联系方式，可到「我的应用」查看是否已生成`
+    }
+    if (error.message) return `${fallback}：${error.message}`
+  }
   return fallback
 }
 

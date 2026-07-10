@@ -1,6 +1,7 @@
 from typing import Annotated
 
 import logging
+import threading
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import Response
@@ -292,10 +293,21 @@ def publish_app(
 
         email_sent = False
         if body.contact_email and settings.publish_email_enabled:
-            try:
-                email_sent = send_publish_delivery_email(body.contact_email, app, deliver=deliver)
-            except Exception:
-                logger.exception("publish email failed for %s (app still published)", body.contact_email)
+            contact_email = body.contact_email
+            app_snapshot = dict(app)
+            deliver_snapshot = deliver
+
+            def _send_publish_email() -> None:
+                try:
+                    send_publish_delivery_email(contact_email, app_snapshot, deliver=deliver_snapshot)
+                except Exception:
+                    logger.exception("publish email failed for %s (app still published)", contact_email)
+
+            threading.Thread(
+                target=_send_publish_email,
+                name=f"publish-mail-{public_id}",
+                daemon=True,
+            ).start()
 
         return {
             "success": True,

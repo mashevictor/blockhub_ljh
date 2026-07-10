@@ -40,7 +40,10 @@ class _ShanghaiVoicePageState extends State<ShanghaiVoicePage> {
     try {
       final cfg = await _service.loadConfig();
       if (!mounted) return;
-      setState(() => _voiceConfigured = cfg.configured);
+      setState(() {
+        _voiceConfigured = cfg.configured;
+        _bootError = cfg.configured ? null : '语音服务未配置，请联系管理员设置 TELEAI_*';
+      });
       if (cfg.configured) {
         await _connect();
       }
@@ -48,9 +51,35 @@ class _ShanghaiVoicePageState extends State<ShanghaiVoicePage> {
       if (!mounted) return;
       setState(() {
         _voiceConfigured = false;
-        _bootError = '无法连接语音服务: $e';
+        _bootError = _formatBootError(e);
       });
     }
+  }
+
+  String _formatBootError(Object e) {
+    final msg = e.toString();
+    if (msg.contains('502')) {
+      return '语音服务暂时不可用（502 Bad Gateway）。\n'
+          '通常是服务器 blockhub-api 未启动，请在服务器执行：\n'
+          'sudo systemctl start blockhub-api';
+    }
+    if (msg.contains('503') || msg.contains('504')) {
+      return '语音服务网关超时，请稍后重试或联系管理员检查 blockhub-api。';
+    }
+    if (msg.contains('Connection refused') ||
+        msg.contains('Failed host lookup') ||
+        msg.contains('Network is unreachable')) {
+      return '无法连接服务器，请检查手机网络与 API 地址是否正确。';
+    }
+    return '无法连接语音服务，请稍后重试。';
+  }
+
+  Future<void> _retryBootstrap() async {
+    setState(() {
+      _voiceConfigured = null;
+      _bootError = null;
+    });
+    await _bootstrap();
   }
 
   Future<void> _connect() async {
@@ -143,9 +172,17 @@ class _ShanghaiVoicePageState extends State<ShanghaiVoicePage> {
         if (_bootError != null || _service.error != null)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Text(
-              _bootError ?? _service.error ?? '',
-              style: const TextStyle(color: Colors.red, fontSize: 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  _bootError ?? _service.error ?? '',
+                  style: const TextStyle(color: Colors.red, fontSize: 12),
+                  textAlign: TextAlign.center,
+                ),
+                if (_bootError != null)
+                  TextButton(onPressed: _retryBootstrap, child: const Text('重试连接')),
+              ],
             ),
           ),
         _buildInputBar(),
@@ -184,10 +221,12 @@ class _ShanghaiVoicePageState extends State<ShanghaiVoicePage> {
       return const Center(child: CircularProgressIndicator());
     }
     if (_voiceConfigured == false) {
-      return const Center(
+      final hint = _bootError ??
+          '语音服务未配置，请联系管理员设置 TELEAI_*';
+      return Center(
         child: Padding(
-          padding: EdgeInsets.all(24),
-          child: Text('语音服务未配置，请联系管理员设置 TELEAI_*', textAlign: TextAlign.center),
+          padding: const EdgeInsets.all(24),
+          child: Text(hint, textAlign: TextAlign.center),
         ),
       );
     }
