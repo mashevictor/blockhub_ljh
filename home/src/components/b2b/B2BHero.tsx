@@ -12,13 +12,12 @@ interface Props {
 function HeroTagline() {
   const comma = BRAND.tagline.indexOf('，')
   if (comma === -1) {
-    return <em>{BRAND.tagline}</em>
+    return <em className="b2b-hero-tagline-em">{BRAND.tagline}</em>
   }
   return (
-    <em>
-      {BRAND.tagline.slice(0, comma + 1)}
-      <wbr />
-      {BRAND.tagline.slice(comma + 1)}
+    <em className="b2b-hero-tagline-em">
+      <span className="b2b-hero-tagline-line">{BRAND.tagline.slice(0, comma + 1)}</span>
+      <span className="b2b-hero-tagline-line">{BRAND.tagline.slice(comma + 1)}</span>
     </em>
   )
 }
