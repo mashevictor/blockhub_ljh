@@ -1,14 +1,20 @@
 #!/usr/bin/env bash
-# 快速检查 PostgreSQL + 011 schema（经 API + 直连校验）
+# 快速检查 PostgreSQL + 最新 schema（经 API + 直连校验）
 # 用法:
-#   bash scripts/smoke-db.sh                          # 本机 Nginx
-#   bash scripts/smoke-db.sh http://101.32.209.251    # 外网
+#   bash scripts/smoke-db.sh                          # 本机 API :8001
+#   bash scripts/smoke-db.sh http://101.32.209.251    # 经 Nginx
 #   bash scripts/smoke-db.sh http://127.0.0.1:8001    # 直连 API
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-BASE="${1:-http://127.0.0.1}"
-API="$BASE/api/v1"
+BASE="${1:-http://127.0.0.1:8001}"
+# 兼容传入根 URL 或 :8001
+if [[ "$BASE" == *":8001"* ]] || [[ "$BASE" == *":8000"* ]]; then
+  API="${BASE%/}/api/v1"
+else
+  API="${BASE%/}/api/v1"
+fi
+
 ADMIN_EMAIL="${ADMIN_EMAIL:-admin@trackchat.local}"
 ADMIN_PASSWORD="${ADMIN_PASSWORD:-admin123}"
 
@@ -17,26 +23,43 @@ fail=0
 ok() { echo "  ✓ $1"; pass=$((pass + 1)); }
 bad() { echo "  ✗ $1"; fail=$((fail + 1)); }
 
+json_field() {
+  local json="$1" key="$2"
+  echo "$json" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('$key',''))" 2>/dev/null || echo ""
+}
+
 echo "=========================================="
 echo " BlockHub DB Smoke"
 echo " Target: $API"
 echo "=========================================="
 
 echo ""
-echo "=== Schema (011) ==="
+echo "=== Schema (alembic head) ==="
 if [ -f "$ROOT/backend/.venv/bin/activate" ]; then
   cd "$ROOT/backend"
   # shellcheck disable=SC1091
   source .venv/bin/activate
+  HEAD_REV=$(alembic heads 2>/dev/null | awk '{print $1}' | head -1 || echo "016")
   ALEMBIC_REV=$(alembic current 2>/dev/null | grep -oE '01[0-9]+' | tail -1 || echo "")
-  if [ "$ALEMBIC_REV" = "011" ]; then ok "alembic current=011"; else bad "alembic current=$ALEMBIC_REV (expected 011)"; fi
+  if [ -n "$ALEMBIC_REV" ] && [ "$ALEMBIC_REV" = "$HEAD_REV" ]; then
+    ok "alembic current=$ALEMBIC_REV (head)"
+  elif [ -n "$ALEMBIC_REV" ]; then
+    bad "alembic current=$ALEMBIC_REV (head=$HEAD_REV) — run: alembic upgrade head"
+  else
+    bad "alembic current unknown — run: bash scripts/server-db.sh"
+  fi
   if python3 <<'PY'
 from sqlalchemy import inspect, text
 from app.db.session import engine
 insp = inspect(engine)
 def col(t, c):
     return insp.has_table(t) and c in {x["name"] for x in insp.get_columns(t)}
-for t in ("knowledge_bases", "kb_documents", "kb_document_chunks", "approvals", "conversations", "chat_messages", "custom_capabilities"):
+required = [
+    "knowledge_bases", "kb_documents", "kb_document_chunks",
+    "approvals", "conversations", "chat_messages", "custom_capabilities",
+    "plaza_feed_likes", "notifications", "demo_bookings",
+]
+for t in required:
     if not insp.has_table(t):
         raise SystemExit(1)
 if not col("apps", "page_schema") or not col("apps", "build_manifest"):
@@ -46,9 +69,9 @@ with engine.connect() as conn:
         raise SystemExit(2)
 PY
   then
-    ok "tables: kb + approvals/chat + page_schema (011)"
+    ok "tables: kb + plaza + demo_bookings + page_schema"
   else
-    bad "kb tables/pgvector missing — run: bash scripts/server-db.sh"
+    bad "schema tables missing — run: bash scripts/server-db.sh"
   fi
   cd "$ROOT"
 else
@@ -57,51 +80,67 @@ fi
 
 echo ""
 echo "=== API + PG ==="
-HEALTH=$(curl -sf "$API/health" 2>/dev/null || echo "")
+HEALTH=$(curl -sf --max-time 10 "$API/health" 2>/dev/null || echo "")
 if echo "$HEALTH" | grep -q '"status"'; then ok "API /health"; else bad "API /health (is blockhub-api running?)"; fi
 
-SUMMARY=$(curl -sf "$API/catalog/summary" 2>/dev/null || echo "")
-if echo "$SUMMARY" | grep -q '"source":"database"'; then
-  ok "Catalog reads PostgreSQL"
-  echo "$SUMMARY" | python3 -c "
-import sys, json
-d = json.load(sys.stdin)
-print(f\"      agents={d.get('agent_count')} office={d.get('office_count')} total={d.get('total')}\")
-" 2>/dev/null || true
-else
-  bad "Catalog not from database ($SUMMARY)"
-fi
-
-LOGIN=$(curl -sf -X POST "$API/auth/login" \
+LOGIN=$(curl -sf --max-time 10 -X POST "$API/auth/login" \
   -H "Content-Type: application/json" \
   -d "{\"email\":\"$ADMIN_EMAIL\",\"password\":\"$ADMIN_PASSWORD\"}" 2>/dev/null || echo "")
-TOKEN=$(echo "$LOGIN" | python3 -c "import sys,json; print(json.load(sys.stdin).get('access_token',''))" 2>/dev/null || echo "")
-if [ -n "$TOKEN" ]; then ok "users table + login"; else bad "login failed — $LOGIN"; fi
+TOKEN=$(json_field "$LOGIN" "access_token")
+if [ -n "$TOKEN" ]; then ok "users table + login"; else bad "login failed — ${LOGIN:-empty}"; fi
 
-PUBLISH=$(curl -sf -X POST "$API/creation/publish" \
+# Catalog 未 seed 时 summary 可能为空或计数为 0 — 先尝试 seed
+if [ -n "$TOKEN" ]; then
+  SEED_BODY=$(curl -sf --max-time 30 -X POST "$API/seed" \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer $TOKEN" \
+    -d '{"force":false}' 2>/dev/null || echo "")
+  if echo "$SEED_BODY" | grep -q '"success"'; then
+    ok "POST /seed (catalog ready)"
+  else
+    echo "  · seed skipped or already done"
+  fi
+fi
+
+SUMMARY=$(curl -sf --max-time 15 "$API/catalog/summary" 2>/dev/null || echo "")
+CATALOG_SOURCE=$(json_field "$SUMMARY" "source")
+if [ "$CATALOG_SOURCE" = "database" ]; then
+  ok "Catalog reads PostgreSQL"
+  TOTAL=$(json_field "$SUMMARY" "total")
+  HERO=$(json_field "$SUMMARY" "hero_preset_count")
+  echo "      total=${TOTAL:-?} hero_presets=${HERO:-?}"
+elif [ -n "$SUMMARY" ]; then
+  bad "Catalog source!=database ($SUMMARY)"
+else
+  HTTP_CODE=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 15 "$API/catalog/summary" 2>/dev/null || echo "000")
+  bad "Catalog /summary no response (HTTP $HTTP_CODE) — run: bash scripts/smoke-test.sh $BASE --seed-only"
+fi
+
+PUBLISH=$(curl -sf --max-time 15 -X POST "$API/creation/publish" \
   -H "Content-Type: application/json" \
   -d '{"name":"DB冒烟探测","industry_key":"office","scenario_names":["制度政策问答"],"contact_email":"smoke@test.local"}' 2>/dev/null || echo "")
-if echo "$PUBLISH" | grep -q '"success":true'; then ok "apps table write"; else bad "apps write failed — $PUBLISH"; fi
+if echo "$PUBLISH" | grep -q '"success":true'; then ok "apps table write"; else bad "apps write failed — ${PUBLISH:-empty}"; fi
 
 if [ -n "$TOKEN" ]; then
-  KB_STATS=$(curl -sf -H "Authorization: Bearer $TOKEN" "$API/kb/stats" 2>/dev/null || echo "")
-  if echo "$KB_STATS" | grep -q '"knowledge_bases"'; then ok "GET /kb/stats (D7 tables wired)"; else bad "GET /kb/stats ($KB_STATS)"; fi
+  KB_STATS=$(curl -sf --max-time 10 -H "Authorization: Bearer $TOKEN" "$API/kb/stats" 2>/dev/null || echo "")
+  if echo "$KB_STATS" | grep -q '"knowledge_bases"'; then ok "GET /kb/stats (D7 tables wired)"; else bad "GET /kb/stats (${KB_STATS:-empty})"; fi
 
-  APPR_SUBMIT=$(curl -sf -X POST "$API/approvals" \
+  APPR_SUBMIT=$(curl -sf --max-time 10 -X POST "$API/approvals" \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer $TOKEN" \
     -d '{"title":"DB冒烟审批","type":"general","department":"QA","summary":"smoke submit"}' 2>/dev/null || echo "")
-  if echo "$APPR_SUBMIT" | grep -q '"success":true'; then ok "POST /approvals submit (010)"; else bad "POST /approvals ($APPR_SUBMIT)"; fi
+  if echo "$APPR_SUBMIT" | grep -q '"success":true'; then ok "POST /approvals submit (010)"; else bad "POST /approvals (${APPR_SUBMIT:-empty})"; fi
 fi
 
 echo ""
 echo "=========================================="
 echo " Result: $pass passed, $fail failed"
 if [ "$fail" -eq 0 ]; then
-  echo " PostgreSQL + 011 schema OK"
+  echo " PostgreSQL + schema OK"
 else
   echo " 修复: bash scripts/server-db.sh"
   echo " 诊断: bash scripts/diagnose-api.sh"
+  echo " 补种: bash scripts/smoke-test.sh ${BASE%/} --seed-only"
 fi
 echo "=========================================="
 [ "$fail" -eq 0 ] || exit 1

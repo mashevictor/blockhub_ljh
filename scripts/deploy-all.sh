@@ -144,7 +144,7 @@ post_smoke() {
   else
     echo "WARN: 公网 API 仍不可达 — bash scripts/diagnose-api.sh"
   fi
-  bash "$ROOT/scripts/smoke-db.sh" "http://127.0.0.1:8001" 2>/dev/null || echo "    (smoke-db 跳过或失败)"
+  bash "$ROOT/scripts/smoke-db.sh" "http://127.0.0.1:8001" || echo "    WARN: smoke-db 未全通过 — 见上方输出"
 }
 
 echo "=============================================="
