@@ -306,26 +306,21 @@
   transform: translateY(-1px);
 }
 
-/* Hero — 默认上下堆叠，宽屏再并排，避免标题被右侧卡片遮挡 */
+/* Hero — flex 自动换行：宽度不够时卡片掉到标题下方，杜绝重叠 */
 .b2b-hero {
   max-width: 1200px;
   margin: 0 auto;
   padding: clamp(48px, 8vw, 80px) 20px;
-  display: grid;
-  grid-template-columns: 1fr;
-  align-items: start;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
   gap: clamp(28px, 4vw, 40px);
 }
 
-@media (min-width: 1080px) {
-  .b2b-hero {
-    grid-template-columns: minmax(480px, 1fr) minmax(300px, 380px);
-    align-items: center;
-  }
-}
-
 .b2b-hero-text {
-  min-width: 0;
+  flex: 1 1 520px;
+  max-width: 100%;
   position: relative;
   z-index: 2;
 }
@@ -380,7 +375,6 @@
 
 .b2b-hero-tagline-line {
   display: block;
-  white-space: nowrap;
 }
 
 .b2b-hero-text > p {
@@ -432,10 +426,9 @@
 }
 
 .b2b-hero-panel {
-  min-width: 0;
+  flex: 0 1 380px;
   width: 100%;
-  max-width: 520px;
-  justify-self: center;
+  max-width: 420px;
   min-height: 300px;
   background: linear-gradient(145deg, #fff 0%, var(--b2b-panel) 100%);
   border: 1px solid #dbeafe;
@@ -446,13 +439,6 @@
   box-shadow: 0 8px 32px rgba(13, 71, 161, 0.08);
   position: relative;
   z-index: 1;
-}
-
-@media (min-width: 1080px) {
-  .b2b-hero-panel {
-    max-width: none;
-    justify-self: stretch;
-  }
 }
 
 .b2b-hero-panel-inner {
@@ -3431,10 +3417,6 @@
   .b2b-hero {
     padding-top: 56px;
     padding-bottom: 56px;
-  }
-
-  .b2b-hero-tagline-line {
-    white-space: normal;
   }
 }
 
