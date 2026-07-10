@@ -1,4 +1,5 @@
 import type { RolePreset } from '../data/rolePresets'
+import AgentSignLine from './AgentSignLine'
 import HeroDanmakuCloud from './HeroDanmakuCloud'
 
 interface Props {
@@ -10,17 +11,14 @@ export default function HeroCubeStage({ onRoleApply }: Props) {
     <div className="hero-e-stage hero-e-stage-focus">
       <div className="hero-e-first-screen">
         <div className="hero-e-center">
-          <div className="hero-e-agent-sign" aria-label="用符号重新定义智能体">
+          <AgentSignLine variant="hero" className="hero-e-headline" />
+
+          <div className="hero-e-agent-sign" aria-label="用符号重新定义智能体新交互">
             <div className="hero-e-sign-glow" aria-hidden />
             <div className="hero-e-sign-inner">
               <div className="hero-e-sign-flow" aria-hidden>
                 <span className="hero-e-sign-stream">&gt;&gt; &gt;&gt; &gt;&gt; &gt;&gt; &gt;&gt;</span>
                 <span className="hero-e-sign-stream">&gt;&gt; &gt;&gt; &gt;&gt; &gt;&gt; &gt;&gt;</span>
-              </div>
-              <div className="hero-e-sign-mark">
-                <p className="hero-e-sign-title">
-                  用符号<span className="hero-e-sign-inline-chev" aria-hidden>&gt;&gt;</span>重新定义智能体
-                </p>
               </div>
             </div>
             <div className="hero-e-sign-bridge" aria-hidden>

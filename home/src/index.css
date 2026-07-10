@@ -512,6 +512,55 @@ body {
   padding: 8px 0 12px;
 }
 
+.hero-e-headline {
+  margin: 0 0 14px;
+  padding: 0 12px;
+  text-align: center;
+}
+
+/* —— 全站 >> 品牌句 —— */
+.agent-sign-line {
+  margin: 0;
+  font-weight: 800;
+  line-height: 1.45;
+  color: inherit;
+}
+.agent-sign-line--hero {
+  font-size: clamp(18px, 3.2vw, 26px);
+  letter-spacing: 0.1em;
+  color: rgba(255,255,255,0.96);
+  text-shadow: 0 2px 20px rgba(0,0,0,0.45);
+}
+.agent-sign-line--section {
+  font-size: clamp(22px, 3.5vw, 30px);
+  letter-spacing: 0.06em;
+  margin-bottom: 10px;
+}
+.agent-sign-line--eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  margin-bottom: 16px;
+}
+.agent-sign-chev {
+  font-family: var(--font-mono);
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  margin: 0 0.1em;
+  background: linear-gradient(135deg, #fef08a 0%, #fde047 40%, #fbbf24 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 10px rgba(254,240,138,0.45));
+}
+.agent-sign-line--inline {
+  font-size: inherit;
+  letter-spacing: 0.04em;
+}
+
 /* —— 智能体符号 · 与弹幕一体 —— */
 .hero-e-agent-sign {
   position: relative;

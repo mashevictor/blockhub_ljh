@@ -10,6 +10,7 @@ import B2BCaseSection from './components/b2b/B2BCaseSection'
 import CreateStudio from './components/b2b/CreateStudio'
 import B2BDemoForm from './components/b2b/B2BDemoForm'
 import HomeScrollRails from './components/b2b/HomeScrollRails'
+import AgentSignLine from './components/AgentSignLine'
 import { AgentPageProvider, useAgentPageContext } from './context/AgentPageContext'
 import { DemoBookingProvider } from './context/DemoBookingContext'
 import type { AgentContextKey } from './data/agentContext'
@@ -108,11 +109,8 @@ export default function HomeApp() {
 
       <section id="contact" className="b2b-form-wrap">
         <div className="b2b-section-title b2b-contact-head">
-          <span className="b2b-eyebrow">在线体验</span>
-          <h2>
-            搭积木，造应用
-          </h2>
-          <p>描述需求、选行业或搭配模块，一键生成你的专属应用</p>
+          <AgentSignLine variant="section" />
+          <p>描述需求、选行业或搭配模块，输入 &gt;&gt; 开始智能体新交互</p>
         </div>
         <div className="b2b-demo-block" id="contact-create">
           <CreateStudio />

@@ -1,6 +1,7 @@
 import { PLATFORM_STATS } from '@shared/platformStats'
 import HeroStatsPanel from './HeroStatsPanel'
 import { AgentButtonContent } from '../AgentChevron'
+import AgentSignLine from '../AgentSignLine'
 import { BRAND } from '../../data/brand'
 
 interface Props {
@@ -12,10 +13,7 @@ export default function B2BHero({ onBook, onTry }: Props) {
   return (
     <section id="hero" className="b2b-hero">
       <div className="b2b-hero-text">
-        <p className="b2b-hero-eyebrow">
-          <span className="agent-chevron-glyph" aria-hidden>&gt;&gt;</span>
-          企业级 AI 智能体平台
-        </p>
+        <AgentSignLine variant="eyebrow" className="b2b-hero-eyebrow" as="p" />
         <h1>
           {BRAND.nameZh}
           <br />

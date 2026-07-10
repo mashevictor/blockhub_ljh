@@ -36,6 +36,8 @@ import { useAgentPageContext } from '../context/AgentPageContext'
 import { useDemoBookingActive } from '../context/DemoBookingContext'
 import { AGENT_CONTEXTS } from '../data/agentContext'
 import FloatingAgentDock from '../components/FloatingAgentDock'
+import AgentSignLine from '../components/AgentSignLine'
+import { BRAND } from '../data/brand'
 
 interface Props {
   onPublish: (r: PublishResult) => void
@@ -707,15 +709,15 @@ export default function PromptView({ onPublish: _onPublish, roleApply, onRoleApp
     <div className="view prompt-view prompt-view-minimal layout-floating">
       <div className="minimal-hero">
         <img src="/design/hero-minimal.jpg" alt="" className="minimal-hero-img" width={72} height={72} />
-        <h2>搭积木，造应用</h2>
-        <p className="minimal-hero-hint">输入 <span className="minimal-brand-chev">&gt;&gt;</span> 编排模块，或直接描述需求</p>
+        <AgentSignLine variant="section" className="minimal-hero-title" />
+        <p className="minimal-hero-hint">输入 <span className="minimal-brand-chev">&gt;&gt;</span> 编排模块，开启智能体新交互</p>
       </div>
 
       {!bookingZoneActive && (
       <FloatingAgentDock
         storageKey="tc-floating-prompt"
         className="floating-agent-dock-prompt"
-        title="搭积木，造应用"
+        title={BRAND.agentSignLine}
         chevLabel={agentCopy.chevLabel}
         collapsedHint={agentCopy.placeholder}
         ariaLabel="创建应用悬浮助手"
