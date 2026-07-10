@@ -174,8 +174,11 @@ export interface RuntimeInfo {
   schema_url: string
   icon_url?: string
   primary_color?: string
+  web_url?: string
+  download_url?: string
   web_ready: boolean
   apk_ready: boolean
+  apk_build_status?: 'pending' | 'building' | 'ready' | 'failed' | 'skipped'
   modules?: unknown[]
   capability_keys?: string[]
 }

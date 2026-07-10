@@ -129,10 +129,12 @@ fi
 
 APP_NAME="${APP_NAME:-TrackChat}"
 APP_ID="${APP_ID:-com.trackchat.runtime}"
+APP_PUBLIC_ID="${APP_PUBLIC_ID:-}"
 TENANT_SLUG="${TENANT_SLUG:-demo}"
 API_BASE_URL="${API_BASE_URL:-http://101.32.209.251/api/v1}"
 PRIMARY_COLOR="${PRIMARY_COLOR:-#4338CA}"
 VOICE_DEMO="${VOICE_DEMO:-0}"
+SKIP_DEFAULT_APK="${SKIP_DEFAULT_APK:-0}"
 
 mkdir -p branding
 if [ ! -f branding/icon.png ]; then
@@ -164,6 +166,9 @@ FLUTTER_BUILD_ARGS=(
   --dart-define=PRIMARY_COLOR="$PRIMARY_COLOR"
   --dart-define=VOICE_DEMO="$VOICE_DEMO"
 )
+if [ -n "$APP_PUBLIC_ID" ]; then
+  FLUTTER_BUILD_ARGS+=(--dart-define=APP_PUBLIC_ID="$APP_PUBLIC_ID")
+fi
 case "${GRADLE_MEMORY_PROFILE:-}" in
   ultra|low)
     FLUTTER_BUILD_ARGS+=(--target-platform android-arm64)
@@ -184,11 +189,17 @@ fi
 OUT="$APP_DIR/build/app/outputs/flutter-apk/app-release.apk"
 APK_DIR="$ROOT/backend/uploads/apks"
 mkdir -p "$APK_DIR"
-cp "$OUT" "$APK_DIR/default.apk"
+if [ "$SKIP_DEFAULT_APK" != "1" ]; then
+  cp "$OUT" "$APK_DIR/default.apk"
+fi
 if [ -n "${APP_PUBLIC_ID:-}" ]; then
   cp "$OUT" "$APK_DIR/${APP_PUBLIC_ID}.apk"
   echo "Per-app APK: $APK_DIR/${APP_PUBLIC_ID}.apk"
 fi
 echo "APK: $OUT"
-echo "Default APK for download API: $APK_DIR/default.apk"
-ls -lh "$OUT" "$APK_DIR/default.apk"
+if [ "$SKIP_DEFAULT_APK" != "1" ]; then
+  echo "Default APK for download API: $APK_DIR/default.apk"
+  ls -lh "$OUT" "$APK_DIR/default.apk"
+else
+  ls -lh "$OUT"
+fi

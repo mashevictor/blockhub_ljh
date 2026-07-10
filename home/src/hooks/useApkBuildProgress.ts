@@ -19,7 +19,7 @@ export function useApkBuildProgress(app: Pick<PublishResult, 'appId' | 'deliver'
   const needApk = showAppDeliver(app)
   const [apkReady, setApkReady] = useState(Boolean(app.apkReady))
   const [pollCount, setPollCount] = useState(0)
-  const [timedOut, setTimedOut] = useState(false)
+  const [buildFailed, setBuildFailed] = useState(false)
   const [animTick, setAnimTick] = useState(0)
   const pollCountRef = useRef(0)
 
@@ -41,8 +41,10 @@ export function useApkBuildProgress(app: Pick<PublishResult, 'appId' | 'deliver'
         if (info.apk_ready) {
           setApkReady(true)
           updateMyAppApkReady(app.appId!, true)
+        } else if (info.apk_build_status === 'failed') {
+          setBuildFailed(true)
         } else if (pollCountRef.current >= MAX_POLLS) {
-          setTimedOut(true)
+          setBuildFailed(true)
         }
       } catch {
         /* ignore transient network errors */
@@ -87,12 +89,12 @@ export function useApkBuildProgress(app: Pick<PublishResult, 'appId' | 'deliver'
           status: 'done',
           detail: '安装包已就绪，可扫码或下载',
         })
-      } else if (timedOut) {
+      } else if (buildFailed) {
         list.push({
           id: 'apk',
-          label: 'APK 仍在后台构建',
+          label: 'APK 构建未完成',
           status: 'error',
-          detail: '请稍后刷新页面，或联系管理员执行 flutter-build-apk',
+          detail: '请稍后刷新，或联系管理员查看构建日志',
         })
       } else {
         list.push({
@@ -105,7 +107,7 @@ export function useApkBuildProgress(app: Pick<PublishResult, 'appId' | 'deliver'
     }
 
     return list
-  }, [needWeb, needApk, apkReady, timedOut])
+  }, [needWeb, needApk, apkReady, buildFailed])
 
   const progress = useMemo(() => {
     if (!needApk) return 100
@@ -116,7 +118,7 @@ export function useApkBuildProgress(app: Pick<PublishResult, 'appId' | 'deliver'
     return Math.round(base + bump)
   }, [needWeb, needApk, apkReady, animTick, pollCount])
 
-  const polling = needApk && !apkReady && !timedOut
+  const polling = needApk && !apkReady && !buildFailed
 
-  return { apkReady, polling, progress, steps, timedOut, needApk, needWeb }
+  return { apkReady, polling, progress, steps, timedOut: buildFailed, needApk, needWeb }
 }

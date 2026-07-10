@@ -24,6 +24,23 @@ bash scripts/deploy-one.sh
 bash scripts/deploy-shanghai-one.sh
 ```
 
+## 发布 → 专属 APK（弹幕 / 创建区）
+
+用户点弹幕「生成应用」或 PromptView 发布后：
+
+1. 后端写入 `page_schema` + `build_manifest`（网页 `/r/{appId}` 按所选模块渲染）
+2. 自动排队 `flutter-build-from-publish.sh`，按 `capability_keys` 选择构建配置（如 `shanghai_voice` → 语音演示 APK）
+3. 产物：`backend/uploads/apks/{appId}.apk`，前端轮询 `GET /runtime/{appId}` 的 `apk_ready`
+
+上海话弹幕验收：点「上海话语音助手」→ 生成应用 → 我的应用里等 APK 打包完成 → 下载安装。
+
+手动重打某个应用：
+
+```bash
+# 需先有 .build-queue/{appId}.json（publish 时自动写入）
+bash scripts/flutter-build-from-publish.sh <appId>
+```
+
 ## Alembic stamp 漂移（常见问题）
 
 **现象**：`alembic current=016/017`，但 `catalog_chip_templates` 等表不存在 → `/catalog/summary` 500。

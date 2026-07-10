@@ -23,6 +23,7 @@ from app.services.app_store import (
     publish_app_to_plaza,
 )
 from app.services import catalog_store
+from app.services.apk_builder import enqueue_apk_build, get_apk_build_status, per_app_apk_ready
 from app.services.file_storage import read_bytes, save_app_icon_data_url, uploads_root
 from app.services.flow_module_api import generate_flow_module_apis
 from app.services.module_suggest import suggest_modules
@@ -282,10 +283,12 @@ def publish_app(
             icon_url=body.icon_url,
             primary_color=body.primary_color,
         )
-        apk_path = uploads_root() / "apks" / f"{app['id']}.apk"
-        default_apk = uploads_root() / "apks" / "default.apk"
         deliver = app.get("deliver", "both")
-        apk_ready = (apk_path.is_file() or default_apk.is_file()) and deliver in ("app", "both")
+        public_id = app["id"]
+        apk_ready = per_app_apk_ready(public_id, deliver=deliver)
+        build_status = get_apk_build_status(public_id)
+        if deliver in ("app", "both") and not apk_ready:
+            build_status = enqueue_apk_build(app)
 
         email_sent = False
         if body.contact_email and settings.publish_email_enabled:
@@ -304,6 +307,7 @@ def publish_app(
                 "download_url": app.get("download_url"),
                 "deliver": deliver,
                 "apk_ready": apk_ready,
+                "apk_build_status": build_status,
             },
             "notification": {
                 "email": body.contact_email or None,

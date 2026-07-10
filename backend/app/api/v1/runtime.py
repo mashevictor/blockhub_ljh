@@ -10,8 +10,10 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.db.models import AppRecord
 from app.db.session import get_db
+from app.services.apk_builder import get_apk_build_status, per_app_apk_path, per_app_apk_ready
 from app.services.file_storage import uploads_root
 from app.services.tenant_config import get_tenant_config
 
@@ -22,10 +24,10 @@ DEFAULT_APK = f"{APK_DIR}/default.apk"
 
 
 def _apk_path(public_id: str) -> Path:
-    root = uploads_root()
-    per_app = root / APK_DIR / f"{public_id}.apk"
+    per_app = per_app_apk_path(public_id)
     if per_app.is_file():
         return per_app
+    root = uploads_root()
     default = root / DEFAULT_APK
     if default.is_file():
         return default
@@ -111,7 +113,7 @@ def runtime_info(public_id: str, db: Session = Depends(get_db)) -> dict:
     app = db.query(AppRecord).filter(AppRecord.public_id == public_id).first()
     if not app:
         raise HTTPException(status_code=404, detail="应用不存在")
-    apk = _apk_path(public_id)
+    build_status = get_apk_build_status(public_id)
     return {
         "public_id": app.public_id,
         "name": app.name,
@@ -119,8 +121,11 @@ def runtime_info(public_id: str, db: Session = Depends(get_db)) -> dict:
         "schema_url": app.schema_url,
         "icon_url": app.icon_url,
         "primary_color": app.primary_color,
+        "web_url": f"{settings.public_base_url.rstrip('/')}/r/{app.public_id}",
+        "download_url": f"{settings.public_base_url.rstrip('/')}/r/{app.public_id}/download",
         "web_ready": app.deliver in ("web", "both"),
-        "apk_ready": apk.is_file() and app.deliver in ("app", "both"),
+        "apk_ready": per_app_apk_ready(app.public_id, deliver=app.deliver),
+        "apk_build_status": build_status,
         "modules": app.modules,
         "capability_keys": app.capability_keys,
         "page_schema": app.page_schema,

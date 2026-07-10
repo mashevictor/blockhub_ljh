@@ -47,9 +47,9 @@ class ConfigService {
     }
 
     final query = <String, dynamic>{'tenant': _branding.tenantSlug};
-    final appId = appPublicId ?? _branding.appId;
-    if (appId.isNotEmpty && appId != 'com.trackchat.runtime') {
-      query['app_id'] = appId;
+    final runtimePublicId = _branding.appPublicId;
+    if (runtimePublicId.isNotEmpty) {
+      query['app_id'] = runtimePublicId;
     }
 
     final response = await _dio.get<Map<String, dynamic>>(
@@ -65,7 +65,9 @@ class ConfigService {
     var config = TenantConfig.fromJson(data);
 
     // W5: 从 runtime API 拉 schema + manifest（与 runtime-web 同一契约）
-    final runtimeId = config.app?.id ?? (query['app_id'] as String?);
+    final runtimeId = runtimePublicId.isNotEmpty
+        ? runtimePublicId
+        : (config.app?.id ?? (query['app_id'] as String?));
     if (runtimeId != null && runtimeId.isNotEmpty && runtimeId != 'com.trackchat.runtime') {
       final contract = await fetchRuntimeContract(runtimeId);
       config = TenantConfig(

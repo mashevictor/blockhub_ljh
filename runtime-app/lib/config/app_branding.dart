@@ -6,6 +6,7 @@ class AppBranding {
     required this.tenantSlug,
     required this.apiBaseUrl,
     required this.primaryColorHex,
+    this.appPublicId = '',
     this.voiceDemoMode = false,
   });
 
@@ -14,6 +15,8 @@ class AppBranding {
   final String tenantSlug;
   final String apiBaseUrl;
   final String primaryColorHex;
+  /// Runtime app public_id from publish (8-char hex), not Android package name.
+  final String appPublicId;
   /// 为 true 时跳过登录，直接进入上海话语音页（测试 APK 用）
   final bool voiceDemoMode;
 
@@ -41,6 +44,7 @@ class AppBranding {
       tenantSlug: env('TENANT_SLUG', defaults.tenantSlug),
       apiBaseUrl: env('API_BASE_URL', defaults.apiBaseUrl),
       primaryColorHex: env('PRIMARY_COLOR', defaults.primaryColorHex),
+      appPublicId: env('APP_PUBLIC_ID', defaults.appPublicId),
       voiceDemoMode: voiceDemo,
     );
   }

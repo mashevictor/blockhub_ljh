@@ -20,7 +20,7 @@ export interface PublishApiResponse {
     flutter_pkgs?: string[]
     capability_keys?: string[]
   }
-  runtime?: { apk_ready?: boolean }
+  runtime?: { apk_ready?: boolean; apk_build_status?: string; web_url?: string; download_url?: string }
   notification?: { email?: string; email_sent?: boolean; email_configured?: boolean }
 }
 
