@@ -35,17 +35,40 @@ gradle_memory_profile() {
   echo "standard"
 }
 
-gradle_free_memory_for_build() {
+gradle_should_stop_api_for_build() {
   if [ "${BUILD_SKIP_STOP_SERVICES:-}" = "1" ]; then
+    return 1
+  fi
+  case "${GRADLE_STOP_API_FOR_BUILD:-never}" in
+    1|true|yes) return 0 ;;
+    0|false|no|never) return 1 ;;
+  esac
+  local avail total
+  avail="$(gradle_mem_available_mb)"
+  total="$(gradle_mem_total_mb)"
+  # auto：仅当可用内存极低时才暂停 API，避免 Gradle OOM；默认 never 不影响线上服务
+  if [ "$avail" -lt 1200 ]; then
     return 0
   fi
-  echo "==> 释放内存（停 API / 清 Gradle 守护进程）"
-  for svc in blockhub-api; do
-    if command -v systemctl >/dev/null 2>&1 && systemctl is-active --quiet "$svc" 2>/dev/null; then
-      systemctl stop "$svc" && GRADLE_STOPPED_SERVICES="${GRADLE_STOPPED_SERVICES} ${svc}"
-      echo "    stopped $svc"
-    fi
-  done
+  if [ "$total" -le 4096 ] && [ "$avail" -lt 1600 ]; then
+    return 0
+  fi
+  return 1
+}
+
+gradle_free_memory_for_build() {
+  echo "==> 释放构建内存（Gradle 守护进程 / 页缓存）"
+  if gradle_should_stop_api_for_build; then
+    echo "    可用内存不足 — 暂停 blockhub-api 以避免 OOM（BUILD_SKIP_STOP_SERVICES=1 可跳过）"
+    for svc in blockhub-api; do
+      if command -v systemctl >/dev/null 2>&1 && systemctl is-active --quiet "$svc" 2>/dev/null; then
+        systemctl stop "$svc" && GRADLE_STOPPED_SERVICES="${GRADLE_STOPPED_SERVICES} ${svc}"
+        echo "    stopped $svc"
+      fi
+    done
+  else
+    echo "    保持 blockhub-api 运行（GRADLE_STOP_API_FOR_BUILD=1 可强制暂停）"
+  fi
   if [ -x "${1:-}/gradlew" ]; then
     (cd "${1}" && ./gradlew --stop 2>/dev/null) || true
     echo "    gradlew --stop"
@@ -138,8 +161,8 @@ gradle_preflight_check() {
   echo "==> 系统: RAM=${ram}MB  可用=${avail}MB  swap剩余=${swap_free}MB  CPU=$(grep -c processor /proc/cpuinfo 2>/dev/null || echo '?')核  profile=${profile}"
 
   if [ "$profile" = "ultra" ] || [ "$profile" = "low" ]; then
-    echo "    小内存机：脚本将自动 systemctl stop blockhub-api"
-    echo "    若仍 OOM：GRADLE_ULTRA_MEM=1 或改用 GitHub Actions 构建 APK"
+    echo "    小内存机：默认不停 blockhub-api；若 OOM 可 GRADLE_STOP_API_FOR_BUILD=1"
+    echo "    或改用 GitHub Actions 构建 APK"
   fi
   if dmesg 2>/dev/null | tail -30 | grep -qi 'killed process'; then
     echo "WARN: 近期有进程被 OOM Killer 杀掉 — dmesg | tail -20"
@@ -153,8 +176,7 @@ gradle_diagnose_oom() {
     echo ""
     echo ">>> Jetifier/堆内存不足：本仓库已关闭 android.enableJetifier（Flutter 原生库勿再 Jetify）。"
     echo "    git pull 后执行:"
-    echo "    sudo systemctl stop blockhub-api"
-    echo "    GRADLE_ULTRA_MEM=1 bash scripts/build-shanghai-voice-apk.sh"
+    echo "    GRADLE_STOP_API_FOR_BUILD=1 GRADLE_ULTRA_MEM=1 bash scripts/build-shanghai-voice-apk.sh"
     return 0
   fi
   if grep -qi 'OutOfMemoryError: Metaspace\|Metaspace' "$log"; then
@@ -169,8 +191,7 @@ gradle_diagnose_oom() {
   if grep -qiE 'OutOfMemory|GC overhead|Killed process|ENOMEM|Cannot allocate memory|daemon disappeared|DaemonDisappearedException' "$log"; then
     echo ""
     echo ">>> 内存不足：Gradle 守护进程被系统杀掉。请:"
-    echo "    sudo systemctl stop blockhub-api"
-    echo "    GRADLE_ULTRA_MEM=1 APP_NAME=laoliu bash scripts/flutter-build-apk.sh"
+    echo "    GRADLE_STOP_API_FOR_BUILD=1 GRADLE_ULTRA_MEM=1 APP_NAME=laoliu bash scripts/flutter-build-apk.sh"
     echo "    或 GitHub → Actions → Flutter APK Build → Run workflow"
     dmesg 2>/dev/null | tail -5 | grep -i kill || true
   fi

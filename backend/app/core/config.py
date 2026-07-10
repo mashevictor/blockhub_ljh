@@ -62,6 +62,11 @@ class Settings(BaseSettings):
     teleai_tts_dialect: str = "shanghai"
     teleai_auth_expire_seconds: int = 180000
 
+    @field_validator("teleai_app_id", "teleai_app_key")
+    @classmethod
+    def strip_teleai_credentials(cls, v: str) -> str:
+        return (v or "").strip().strip('"').strip("'")
+
     # 知识库向量化（OpenAI 兼容 /embeddings；未设则回退 LLM/DeepSeek Key，再无则全文检索）
     embedding_api_key: str = ""
     embedding_base_url: str = ""

@@ -38,6 +38,8 @@ PY
 
 export SKIP_DEFAULT_APK=1
 export BUILD_PER_APP_ONLY=1
+# 由 blockhub-api 后台触发，绝不能停掉自身服务
+export BUILD_SKIP_STOP_SERVICES=1
 
 echo "=============================================="
 echo " Per-app APK build"

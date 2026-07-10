@@ -42,7 +42,7 @@ export VOICE_DEMO=1
 export PRIMARY_COLOR="#E11D48"
 export SKIP_DEFAULT_APK=1
 
-# 4G 小内存机：构建前停 API、仅 arm64、加大 Gradle 堆
+# 4G 小内存机：仅 arm64、加大 Gradle 堆；默认不停 API（见 gradle-mem-env.sh）
 export GRADLE_ULTRA_MEM="${GRADLE_ULTRA_MEM:-1}"
 
 echo "==> flutter clean (ensure dart-define rebaked)"
@@ -67,11 +67,10 @@ echo "    APP_ID=${APP_ID}"
 echo "    API_BASE_URL=${API_BASE_URL}"
 echo "    VOICE_DEMO=${VOICE_DEMO}"
 echo ""
-echo "==> 语音 API 冒烟"
-VOICE_CFG="$(curl -sf --max-time 8 "$API_BASE/voice/config" 2>/dev/null || true)"
+echo "==> 语音 API 快速检查"
+VOICE_CFG="$(curl -sf --max-time 8 "http://127.0.0.1:8001/api/v1/voice/config" 2>/dev/null || true)"
 if [ -z "$VOICE_CFG" ]; then
-  # 构建机 curl 公网 IP 可能不通，回退本机 backend
-  VOICE_CFG="$(curl -sf --max-time 8 "http://127.0.0.1:8001/api/v1/voice/config" 2>/dev/null || true)"
+  VOICE_CFG="$(curl -sf --max-time 8 "$API_BASE/voice/config" 2>/dev/null || true)"
 fi
 if echo "$VOICE_CFG" | grep -q '"configured"[[:space:]]*:[[:space:]]*true'; then
   echo "    OK  voice/config configured"
@@ -93,15 +92,11 @@ else
 fi
 
 echo ""
-echo "==> 恢复 blockhub-api 并冒烟 voice/config"
-if command -v systemctl >/dev/null 2>&1; then
-  systemctl start blockhub-api 2>/dev/null || sudo systemctl start blockhub-api 2>/dev/null || true
-  sleep 2
-fi
+echo "==> 语音 API 冒烟（优先公网，本机不可达时自动回环 127.0.0.1:8001）"
 if bash "$ROOT/scripts/smoke-voice-apk.sh" "${PUBLIC_URL}"; then
   echo "    OK  语音 API 就绪，App 可正常连接"
 else
-  echo "    WARN 语音 API 未就绪 — App 会显示 502/未连接，请手动: sudo systemctl start blockhub-api"
+  echo "    WARN 语音 API 冒烟未全通过 — 若本机 curl 127.0.0.1:8001/voice/config 正常，可忽略并继续装 APK"
 fi
 echo ""
 echo "下载测试:"

@@ -99,7 +99,7 @@ deploy_web() {
 }
 
 build_apk() {
-  log "[APK] 打包（构建前暂停 API 释放内存）"
+  log "[APK] 打包（默认保持 API 运行；内存不足时 GRADLE_STOP_API_FOR_BUILD=1）"
   export ANDROID_HOME="${ANDROID_HOME:-/root/Android}"
   export ANDROID_SDK_ROOT="${ANDROID_SDK_ROOT:-$ANDROID_HOME}"
   export JAVA_HOME="${JAVA_HOME:-/usr/lib/jvm/java-17-openjdk-amd64}"
@@ -107,30 +107,15 @@ build_apk() {
   export FLUTTER_ROOT_ALLOW_ROOT=true
   export GRADLE_LOW_MEM="${GRADLE_LOW_MEM:-1}"
 
-  API_WAS_ACTIVE=false
-  if systemctl is-active --quiet blockhub-api 2>/dev/null; then
-    API_WAS_ACTIVE=true
-    echo "    暂停 blockhub-api 以释放内存..."
-    sudo systemctl stop blockhub-api
-    sleep 2
-  fi
-
   set +e
   APP_NAME="$APP_NAME" bash "$ROOT/scripts/flutter-build-apk.sh"
   local apk_status=$?
   set -e
 
-  echo "    恢复 blockhub-api..."
-  sudo systemctl start blockhub-api
-  sleep 2
-  if ! curl -sf --max-time 5 http://127.0.0.1:8001/api/v1/health >/dev/null 2>&1; then
-    sudo systemctl restart blockhub-api
-    sleep 3
-  fi
-
   if [ "$apk_status" -ne 0 ]; then
-    echo "WARN: APK 构建失败 (exit $apk_status)，但 API 已恢复"
+    echo "WARN: APK 构建失败 (exit $apk_status)"
     echo "  日志: /tmp/flutter-apk-build.log"
+    echo "  若 OOM 可尝试: GRADLE_STOP_API_FOR_BUILD=1 bash scripts/deploy-all.sh --apk-only"
     return "$apk_status"
   fi
   echo "    APK OK → backend/uploads/apks/default.apk"

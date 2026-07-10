@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import subprocess
 import threading
 from datetime import datetime, timezone
@@ -175,12 +176,14 @@ def _run_build_job(public_id: str) -> None:
         if not script.is_file():
             raise FileNotFoundError(f"Missing build script: {script}")
 
+        env = {**os.environ, "BUILD_SKIP_STOP_SERVICES": "1"}
         proc = subprocess.run(
             ["bash", str(script), public_id],
             cwd=str(_repo_root()),
             capture_output=True,
             text=True,
             timeout=3600,
+            env=env,
         )
         log_path.write_text((proc.stdout or "") + "\n" + (proc.stderr or ""), encoding="utf-8")
 

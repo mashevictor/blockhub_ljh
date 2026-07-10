@@ -30,25 +30,10 @@ bash "$ROOT/scripts/smoke-voice-apk.sh" "$PUBLIC_URL" || {
 
 echo ""
 echo "[3/3] 构建上海话专用测试 APK（VOICE_DEMO=1，打开即语音页）..."
-if systemctl is-active --quiet blockhub-api 2>/dev/null; then
-  echo "    暂停 blockhub-api 释放内存..."
-  sudo systemctl stop blockhub-api
-  RESTART_API=1
-else
-  RESTART_API=0
-fi
-
 set +e
 PUBLIC_URL="$PUBLIC_URL" bash "$ROOT/scripts/build-shanghai-voice-apk.sh"
 APK_STATUS=$?
 set -e
-
-if [ "$RESTART_API" -eq 1 ]; then
-  echo "    恢复 blockhub-api..."
-  sudo systemctl start blockhub-api
-  sleep 3
-  curl -sf --max-time 5 http://127.0.0.1:8001/api/v1/health >/dev/null || sudo systemctl restart blockhub-api
-fi
 
 if [ "$APK_STATUS" -ne 0 ]; then
   echo "ERROR: 上海话 APK 构建失败 — 见 /tmp/flutter-apk-build.log"
