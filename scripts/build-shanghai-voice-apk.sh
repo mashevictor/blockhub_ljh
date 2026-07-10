@@ -66,6 +66,10 @@ echo "    VOICE_DEMO=${VOICE_DEMO}"
 echo ""
 echo "==> 语音 API 冒烟"
 VOICE_CFG="$(curl -sf --max-time 8 "$API_BASE/voice/config" 2>/dev/null || true)"
+if [ -z "$VOICE_CFG" ]; then
+  # 构建机 curl 公网 IP 可能不通，回退本机 backend
+  VOICE_CFG="$(curl -sf --max-time 8 "http://127.0.0.1:8001/api/v1/voice/config" 2>/dev/null || true)"
+fi
 if echo "$VOICE_CFG" | grep -q '"configured"[[:space:]]*:[[:space:]]*true'; then
   echo "    OK  voice/config configured"
 else
@@ -73,7 +77,7 @@ else
   if [ -n "$VOICE_CFG" ]; then
     echo "         response: $VOICE_CFG"
   else
-    echo "         (curl 无响应，确认 $API_BASE/voice/config 可访问)"
+    echo "         (curl 无响应；你手动 curl 若正常可忽略此 WARN)"
   fi
 fi
 echo ""

@@ -40,24 +40,6 @@ echo "APK: $APK_PATH"
 echo "  package: $PKG"
 echo "  label:   $LABEL"
 
-# libapp.so 中文字符串常被 AOT 压缩/拆分，strings 不可靠 — 仅作参考
-TMP="$(mktemp -d)"
-trap 'rm -rf "$TMP"' EXIT
-unzip -q "$APK_PATH" "lib/*/libapp.so" -d "$TMP" 2>/dev/null || true
-LIBAPP="$(find "$TMP" -name libapp.so | head -n1 || true)"
-HAS_VOICE_BIN=0
-if [ -n "$LIBAPP" ]; then
-  if python3 - <<PY
-from pathlib import Path
-data = Path("$LIBAPP").read_bytes()
-needles = ["上海话".encode("utf-8"), b"shanghai-agent", b"101.32.209.251"]
-print("yes" if any(n in data for n in needles) else "no")
-PY
-  | grep -q yes; then
-    HAS_VOICE_BIN=1
-  fi
-fi
-
 if [ "$FLAVOR" = "shanghai" ]; then
   ok=1
   if [ "$PKG" != "com.blockhub.shanghai.voice" ]; then
@@ -67,11 +49,6 @@ if [ "$FLAVOR" = "shanghai" ]; then
   if [[ "$LABEL" != *"上海话"* ]]; then
     echo "  FAIL expected label to contain 上海话, got: $LABEL"
     ok=0
-  fi
-  if [ "$HAS_VOICE_BIN" -eq 1 ]; then
-    echo "  OK  libapp.so contains shanghai/voice markers"
-  else
-    echo "  NOTE libapp.so UTF-8 markers not found (AOT 压缩常见，不影响包名/标签校验)"
   fi
   if [ "$ok" -eq 1 ]; then
     echo "  OK  shanghai-voice flavor verified (package + label)"
