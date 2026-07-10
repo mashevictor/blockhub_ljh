@@ -87,10 +87,13 @@ def voice_status() -> VoiceStatusResponse:
 
 @router.get("/auth-probe")
 async def voice_auth_probe() -> dict:
-    """验证签名与电信 WebSocket 握手。"""
+    """验证签名 + ASR 会话启动（option/rec_status=0）。"""
     if not teleai_configured():
         return {"ok": False, "detail": "TELEAI_APP_ID / TELEAI_APP_KEY 未配置"}
     try:
+        import json
+        import uuid
+
         import websockets
 
         auth = build_authorization(method="GET", path=settings.teleai_asr_path)
@@ -99,16 +102,37 @@ async def voice_auth_probe() -> dict:
             "X-APP-ID": settings.teleai_app_id,
             "Authorization": auth,
         }
-        async with websockets.connect(asr_url, additional_headers=headers, open_timeout=15):
-            handshake_ok = True
-        return {
-            "ok": True,
-            "host": settings.teleai_host,
-            "asr_url": asr_url,
-            "handshake_ok": handshake_ok,
-            "authorization_prefix": auth.split("/")[0:5],
-            "authorization_length": len(auth),
-        }
+        async with websockets.connect(
+            asr_url,
+            additional_headers=headers,
+            ping_interval=None,
+            ping_timeout=None,
+            open_timeout=15,
+        ) as ws:
+            await ws.send(json.dumps({
+                "option": {
+                    "sample_rate": 16000,
+                    "enable_punctuation": True,
+                    "enable_inverse_text_normalization": True,
+                    "enable_emendation": True,
+                    "format": "pcm",
+                    "maxendsilence": 500,
+                },
+                "req_id": f"probe-{uuid.uuid4().hex[:8]}",
+                "rec_status": 0,
+            }, ensure_ascii=False))
+            raw = await asyncio.wait_for(ws.recv(), timeout=10)
+            data = json.loads(raw)
+            started = int(data.get("code", 0)) == 10000
+            return {
+                "ok": started,
+                "host": settings.teleai_host,
+                "asr_url": asr_url,
+                "handshake_ok": True,
+                "asr_start_ok": started,
+                "asr_start_response": data,
+                "authorization_length": len(auth),
+            }
     except Exception as exc:
         return {
             "ok": False,

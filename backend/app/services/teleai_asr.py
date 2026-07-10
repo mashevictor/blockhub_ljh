@@ -36,23 +36,28 @@ class TeleAsrClient:
     async def connect(self) -> None:
         self._ready.clear()
         headers = build_ws_headers(self._path)
+        # 电信网关部分环境不支持 WebSocket ping，会触发 1002 protocol error
         self._ws = await websockets.connect(
             ws_url(self._path),
             additional_headers=headers,
-            ping_interval=20,
-            ping_timeout=20,
+            ping_interval=None,
+            ping_timeout=None,
             open_timeout=15,
+            close_timeout=5,
         )
         self._reader_task = asyncio.create_task(self._read_loop())
+        option: dict[str, Any] = {
+            "sample_rate": 16000,
+            "enable_punctuation": True,
+            "enable_inverse_text_normalization": True,
+            "enable_emendation": True,
+            "format": "pcm",
+            "maxendsilence": 500,
+        }
+        if self._hotwords:
+            option["hotwords"] = self._hotwords[:20]
         await self._send({
-            "option": {
-                "sample_rate": 16000,
-                "enable_punctuation": True,
-                "enable_inverse_text_normalization": True,
-                "enable_emendation": True,
-                "format": "pcm",
-                "hotwords": self._hotwords,
-            },
+            "option": option,
             "req_id": self._req_id,
             "rec_status": 0,
         })
@@ -102,13 +107,15 @@ class TeleAsrClient:
         await self.connect()
 
     async def send_audio(self, pcm_bytes: bytes) -> None:
-        if not self._ws:
+        if not self._ws or not pcm_bytes:
             return
         await self._send({
             "req_id": self._req_id,
             "rec_status": 1,
             "audio_stream": base64.b64encode(pcm_bytes).decode("ascii"),
         })
+        # 避免发送过快导致网关 1002
+        await asyncio.sleep(0.05)
 
     async def end_utterance(self) -> None:
         if not self._ws:
@@ -133,8 +140,10 @@ class TeleAsrClient:
             "connection",
             "closed",
             "reset",
+            "1002",
             "1011",
             "1006",
+            "protocol error",
             "temporarily",
         )
         return any(m in msg for m in transient_markers)

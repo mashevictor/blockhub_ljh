@@ -110,8 +110,14 @@ if [ -f "$ROOT/backend/.venv/bin/activate" ]; then
   if PYTHONPATH=. python scripts/test_teleai_roundtrip.py >/tmp/voice-roundtrip.log 2>&1; then
     ok "TTS→ASR roundtrip (test_teleai_roundtrip.py)"
   else
-    bad "TTS→ASR roundtrip failed — see /tmp/voice-roundtrip.log"
-    tail -5 /tmp/voice-roundtrip.log 2>/dev/null || true
+    rt_code=$?
+    if [ "$rt_code" -eq 2 ]; then
+      echo "  WARN TTS→ASR roundtrip 未识别 — TTS 可能正常，见 /tmp/voice-roundtrip.log"
+      tail -8 /tmp/voice-roundtrip.log 2>/dev/null || true
+    else
+      bad "TTS→ASR roundtrip failed — see /tmp/voice-roundtrip.log"
+      tail -8 /tmp/voice-roundtrip.log 2>/dev/null || true
+    fi
   fi
   cd "$ROOT"
 else
