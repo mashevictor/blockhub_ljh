@@ -14,6 +14,8 @@ interface VoiceWsConfig {
   capture_sample_rate: number
   playback_sample_rate: number
   frame_ms: number
+  greeting?: string
+  demo_samples?: Array<{ label: string; utterance: string }>
 }
 
 function resolveWsUrl(configUrl: string): string {
@@ -39,6 +41,17 @@ export function useVoiceWebSocket(sessionId: string) {
   const appendMessage = useCallback((role: VoiceMessage['role'], text: string) => {
     if (!text.trim()) return
     setMessages((prev) => [...prev, { role, text }])
+  }, [])
+
+  const appendAssistantDelta = useCallback((text: string) => {
+    if (!text.trim()) return
+    setMessages((prev) => {
+      const last = prev[prev.length - 1]
+      if (last?.role === 'assistant') {
+        return [...prev.slice(0, -1), { ...last, text: last.text + text }]
+      }
+      return [...prev, { role: 'assistant', text }]
+    })
   }, [])
 
   const disconnect = useCallback(() => {
@@ -79,6 +92,10 @@ export function useVoiceWebSocket(sessionId: string) {
           setState(next === 'idle' || next === 'listening' || next === 'thinking' || next === 'speaking' ? next : 'idle')
         } else if (type === 'ready') {
           setState('idle')
+          const greeting = String(msg.greeting || '')
+          if (greeting) appendMessage('assistant', greeting)
+        } else if (type === 'assistant_message') {
+          appendMessage('assistant', String(msg.text || ''))
         } else if (type === 'asr_partial') {
           setPartialText(String(msg.text || ''))
         } else if (type === 'asr_final') {
@@ -86,7 +103,7 @@ export function useVoiceWebSocket(sessionId: string) {
           setPartialText('')
           appendMessage('user', text)
         } else if (type === 'llm_delta') {
-          appendMessage('assistant', String(msg.text || ''))
+          appendAssistantDelta(String(msg.text || ''))
         } else if (type === 'tts_audio') {
           void playerRef.current?.resume()
           playerRef.current?.enqueueBase64Pcm(String(msg.data || ''), configRef.current?.playback_sample_rate)
@@ -111,7 +128,17 @@ export function useVoiceWebSocket(sessionId: string) {
       setError(e instanceof Error ? e.message : '连接失败')
       setState('error')
     }
-  }, [appendMessage, sessionId])
+  }, [appendAssistantDelta, appendMessage, connect, sessionId])
+
+  const simulateUtterance = useCallback(async (text: string) => {
+    if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+      await connect()
+    }
+    const ws = wsRef.current
+    if (!ws || ws.readyState !== WebSocket.OPEN) return
+    ws.send(JSON.stringify({ type: 'simulate', text }))
+    setState('thinking')
+  }, [connect])
 
   const startMic = useCallback(async () => {
     if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
@@ -160,5 +187,6 @@ export function useVoiceWebSocket(sessionId: string) {
     startMic,
     stopMic,
     bargeIn,
+    simulateUtterance,
   }
 }

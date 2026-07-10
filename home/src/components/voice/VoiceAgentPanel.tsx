@@ -36,14 +36,19 @@ export default function VoiceAgentPanel() {
     startMic,
     stopMic,
     bargeIn,
+    simulateUtterance,
   } = useVoiceWebSocket(sessionId)
 
   const [started, setStarted] = useState(false)
   const [voiceConfigured, setVoiceConfigured] = useState<boolean | null>(null)
+  const [demoSamples, setDemoSamples] = useState<Array<{ label: string; utterance: string }>>([])
 
   useEffect(() => {
-    api.get<{ configured: boolean }>('/voice/config')
-      .then((res) => setVoiceConfigured(res.data.configured))
+    api.get<{ configured: boolean; demo_samples?: Array<{ label: string; utterance: string }> }>('/voice/config')
+      .then((res) => {
+        setVoiceConfigured(res.data.configured)
+        setDemoSamples(res.data.demo_samples ?? [])
+      })
       .catch(() => setVoiceConfigured(false))
   }, [])
 
@@ -57,6 +62,14 @@ export default function VoiceAgentPanel() {
     stopMic()
   }
 
+  const handleDemo = async (utterance: string) => {
+    if (!started) {
+      setStarted(true)
+      await connect()
+    }
+    await simulateUtterance(utterance)
+  }
+
   const handleDisconnect = () => {
     setStarted(false)
     disconnect()
@@ -67,7 +80,7 @@ export default function VoiceAgentPanel() {
       <div className="voice-agent-header">
         <div>
           <h2>上海话语音 Agent</h2>
-          <p>电信星辰 ASR/TTS · 方言大模型 · 支持打断 · 需麦克风权限</p>
+          <p>电信星辰方言 ASR/TTS · DeepSeek 语义理解 · 支持打断</p>
         </div>
         <span className={`voice-state-badge voice-state-${state}`}>{STATE_LABEL[state] || state}</span>
       </div>
@@ -98,19 +111,37 @@ export default function VoiceAgentPanel() {
         )}
         {messages.map((m, idx) => (
           <div key={`${m.role}-${idx}`} className={`voice-msg voice-msg-${m.role}`}>
-            <strong>{m.role === 'user' ? '你' : '助手'}</strong>
+            <strong>{m.role === 'user' ? '侬讲' : '助手（上海话）'}</strong>
             <span>{m.text}</span>
           </div>
         ))}
         {partialText && (
           <div className="voice-msg voice-msg-partial">
-            <strong>识别中</strong>
+            <strong>识别中（上海话）</strong>
             <span>{partialText}</span>
           </div>
         )}
       </div>
 
       {error && <div className="voice-error">{error}</div>}
+
+      {demoSamples.length > 0 && voiceConfigured !== false && (
+        <div className="voice-agent-actions" style={{ marginBottom: 12 }}>
+          <p className="voice-empty" style={{ marginBottom: 8 }}>试试例句（模拟 ASR + DeepSeek + 上海话 TTS）</p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            {demoSamples.map((sample) => (
+              <button
+                key={sample.label}
+                type="button"
+                className="voice-btn"
+                onClick={() => void handleDemo(sample.utterance)}
+              >
+                {sample.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="voice-agent-actions">
         {!started ? (

@@ -12,6 +12,20 @@ import '../config/app_branding.dart';
 import '../utils/pcm_wav.dart';
 import 'dio_factory.dart';
 
+class VoiceDemoSample {
+  VoiceDemoSample({required this.label, required this.utterance});
+
+  final String label;
+  final String utterance;
+
+  factory VoiceDemoSample.fromJson(Map<String, dynamic> json) {
+    return VoiceDemoSample(
+      label: json['label'] as String? ?? '',
+      utterance: json['utterance'] as String? ?? '',
+    );
+  }
+}
+
 class VoiceClientConfig {
   VoiceClientConfig({
     required this.agentId,
@@ -20,6 +34,10 @@ class VoiceClientConfig {
     required this.playbackSampleRate,
     required this.frameMs,
     required this.configured,
+    this.dialect = 'shanghai',
+    this.greeting = '',
+    this.demoSamples = const [],
+    this.llmProvider = 'deepseek',
   });
 
   final String agentId;
@@ -28,8 +46,13 @@ class VoiceClientConfig {
   final int playbackSampleRate;
   final int frameMs;
   final bool configured;
+  final String dialect;
+  final String greeting;
+  final List<VoiceDemoSample> demoSamples;
+  final String llmProvider;
 
   factory VoiceClientConfig.fromJson(Map<String, dynamic> json) {
+    final rawSamples = json['demo_samples'] as List<dynamic>? ?? [];
     return VoiceClientConfig(
       agentId: json['agent_id'] as String? ?? 'shanghai_voice',
       wsUrl: json['ws_url'] as String? ?? '',
@@ -37,6 +60,14 @@ class VoiceClientConfig {
       playbackSampleRate: json['playback_sample_rate'] as int? ?? 24000,
       frameMs: json['frame_ms'] as int? ?? 200,
       configured: json['configured'] as bool? ?? false,
+      dialect: json['dialect'] as String? ?? 'shanghai',
+      greeting: json['greeting'] as String? ?? '',
+      demoSamples: rawSamples
+          .whereType<Map<String, dynamic>>()
+          .map(VoiceDemoSample.fromJson)
+          .where((s) => s.utterance.isNotEmpty)
+          .toList(),
+      llmProvider: json['llm_provider'] as String? ?? 'deepseek',
     );
   }
 }
@@ -63,9 +94,15 @@ class ShanghaiVoiceService {
   Stream<String> get stateStream => _stateController.stream;
   Future<void> _playQueue = Future<void>.value();
 
+  List<VoiceDemoSample> get demoSamples => _config?.demoSamples ?? const [];
+
   Future<VoiceClientConfig> loadConfig() async {
     final res = await _dio.get<Map<String, dynamic>>('/voice/config');
     _config = VoiceClientConfig.fromJson(res.data ?? {});
+    final greeting = _config!.greeting;
+    if (greeting.isNotEmpty && messages.isEmpty) {
+      messages.add({'role': 'assistant', 'text': greeting});
+    }
     return _config!;
   }
 
@@ -84,6 +121,14 @@ class ShanghaiVoiceService {
     }, onDone: () {
       _setState('disconnected');
     });
+  }
+
+  Future<void> simulateUtterance(String text) async {
+    if (_channel == null) {
+      throw Exception('请先连接语音服务');
+    }
+    _channel!.sink.add(jsonEncode({'type': 'simulate', 'text': text}));
+    _setState('thinking');
   }
 
   Future<void> startMic() async {
@@ -133,6 +178,14 @@ class ShanghaiVoiceService {
     _setState('disconnected');
   }
 
+  void _appendAssistantDelta(String text) {
+    if (messages.isNotEmpty && messages.last['role'] == 'assistant') {
+      messages.last['text'] = '${messages.last['text'] ?? ''}$text';
+    } else {
+      messages.add({'role': 'assistant', 'text': text});
+    }
+  }
+
   void _onMessage(dynamic event) {
     final msg = jsonDecode(event as String) as Map<String, dynamic>;
     final type = msg['type'] as String? ?? '';
@@ -141,6 +194,20 @@ class ShanghaiVoiceService {
       _setState(msg['state'] as String? ?? 'idle');
     } else if (type == 'ready') {
       _setState('idle');
+      final greeting = msg['greeting'] as String? ?? '';
+      if (greeting.isNotEmpty) {
+        if (messages.isEmpty) {
+          messages.add({'role': 'assistant', 'text': greeting});
+        }
+      }
+    } else if (type == 'assistant_message') {
+      final text = msg['text'] as String? ?? '';
+      if (text.isNotEmpty && (messages.isEmpty || messages.last['text'] != text)) {
+        if (messages.isEmpty || messages.last['role'] != 'assistant') {
+          messages.add({'role': 'assistant', 'text': text});
+        }
+      }
+      _stateController.add(state);
     } else if (type == 'asr_partial') {
       partialText = msg['text'] as String? ?? '';
       _stateController.add(state);
@@ -154,7 +221,7 @@ class ShanghaiVoiceService {
     } else if (type == 'llm_delta') {
       final text = msg['text'] as String? ?? '';
       if (text.isNotEmpty) {
-        messages.add({'role': 'assistant', 'text': text});
+        _appendAssistantDelta(text);
       }
       _stateController.add(state);
     } else if (type == 'tts_audio') {

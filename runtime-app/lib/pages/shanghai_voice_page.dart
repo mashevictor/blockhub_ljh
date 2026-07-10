@@ -45,13 +45,21 @@ class _ShanghaiVoicePageState extends State<ShanghaiVoicePage> {
     super.dispose();
   }
 
+  Future<void> _ensureConnected() async {
+    if (_channelReady) return;
+    await _service.connect(sessionId: _sessionId);
+    if (!mounted) return;
+    setState(() => _started = true);
+  }
+
+  bool get _channelReady => _started && _service.state != 'disconnected';
+
   Future<void> _start() async {
     setState(() {
-      _started = true;
       _bootError = null;
     });
     try {
-      await _service.connect(sessionId: _sessionId);
+      await _ensureConnected();
       await _service.startMic();
     } catch (e) {
       setState(() {
@@ -60,6 +68,38 @@ class _ShanghaiVoicePageState extends State<ShanghaiVoicePage> {
       });
     }
     if (mounted) setState(() {});
+  }
+
+  Future<void> _runDemo(VoiceDemoSample sample) async {
+    setState(() => _bootError = null);
+    try {
+      await _ensureConnected();
+      await _service.simulateUtterance(sample.utterance);
+    } catch (e) {
+      setState(() => _bootError = e.toString());
+    }
+    if (mounted) setState(() {});
+  }
+
+  List<Widget> _buildDemoChips() {
+    final samples = _service.demoSamples;
+    if (samples.isEmpty) return const [];
+    return [
+      Text('试试例句（模拟 ASR + DeepSeek + 上海话 TTS）', style: Theme.of(context).textTheme.bodySmall),
+      const SizedBox(height: 6),
+      Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          for (final sample in samples)
+            ActionChip(
+              label: Text(sample.label),
+              onPressed: _voiceConfigured == false ? null : () => _runDemo(sample),
+            ),
+        ],
+      ),
+      const SizedBox(height: 12),
+    ];
   }
 
   List<Widget> _buildActions() {
@@ -94,7 +134,7 @@ class _ShanghaiVoicePageState extends State<ShanghaiVoicePage> {
         mainAxisSize: MainAxisSize.max,
         children: [
           Text(
-            '上海话语音 · ASR + TTS',
+            '上海话语音 · ASR + DeepSeek + TTS',
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: 4),
@@ -102,7 +142,7 @@ class _ShanghaiVoicePageState extends State<ShanghaiVoicePage> {
             _voiceConfigured == null
                 ? '正在检查语音服务…'
                 : _voiceConfigured == true
-                    ? '语音服务已就绪 · ${widget.branding.apiBaseUrl}'
+                    ? '方言 ASR/TTS 已就绪 · 语义理解 DeepSeek · ${widget.branding.apiBaseUrl}'
                     : '语音服务未配置 · ${widget.branding.apiBaseUrl}',
             style: Theme.of(context).textTheme.bodySmall,
           ),
@@ -110,12 +150,13 @@ class _ShanghaiVoicePageState extends State<ShanghaiVoicePage> {
           Text('状态：${_service.state}', style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 8),
           if (_service.partialText.isNotEmpty)
-            Text('识别中：${_service.partialText}'),
+            Text('识别中（上海话）：${_service.partialText}'),
           if (_bootError != null)
             Text(_bootError!, style: const TextStyle(color: Colors.red)),
           if (_service.error != null)
             Text(_service.error!, style: const TextStyle(color: Colors.red)),
           const SizedBox(height: 12),
+          ..._buildDemoChips(),
           Expanded(
             child: ListView.builder(
               itemCount: _service.messages.length,
@@ -123,7 +164,7 @@ class _ShanghaiVoicePageState extends State<ShanghaiVoicePage> {
                 final item = _service.messages[index];
                 final isUser = item['role'] == 'user';
                 return ListTile(
-                  title: Text(isUser ? '你' : '助手'),
+                  title: Text(isUser ? '侬讲' : '助手（上海话）'),
                   subtitle: Text(item['text'] ?? ''),
                 );
               },

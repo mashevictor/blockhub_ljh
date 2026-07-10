@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 from collections.abc import AsyncIterator, Iterator
 
-from app.services.llm_gateway import stream_chat_deltas
+from app.services.llm_gateway import llm_configured, stream_chat_deltas
 from app.services.voice_prompts import SHANGHAI_VOICE_SYSTEM_PROMPT
 
 _SENTENCE_END = re.compile(r"[。！？；\n]")
@@ -39,5 +39,11 @@ def iter_sentences(deltas: Iterator[str]) -> Iterator[str]:
 
 
 async def stream_sentences(messages: list[dict[str, str]]) -> AsyncIterator[str]:
-    for sentence in iter_sentences(stream_chat_deltas(messages, temperature=0.6)):
+    from app.core.config import settings
+
+    # 语音 Agent 优先 DeepSeek 做语义理解
+    model = settings.deepseek_model if settings.deepseek_api_key else None
+    if not llm_configured():
+        return
+    for sentence in iter_sentences(stream_chat_deltas(messages, model=model, temperature=0.65)):
         yield sentence

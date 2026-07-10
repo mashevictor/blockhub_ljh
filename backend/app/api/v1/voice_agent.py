@@ -6,13 +6,15 @@ import logging
 from enum import Enum
 
 from fastapi import APIRouter, Request, WebSocket, WebSocketDisconnect
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from app.core.config import settings
 from app.services.teleai_asr import TeleAsrClient
 from app.services.teleai_auth import build_authorization, teleai_configured, ws_url
 from app.services.teleai_tts import TeleTtsClient
+from app.services.voice_demo import SHANGHAI_DEMO_SAMPLES, SHANGHAI_GREETING, pick_shanghai_fallback
 from app.services.voice_orchestrator import build_shanghai_messages, stream_sentences
+from app.services.llm_gateway import llm_configured
 from app.services.voice_prompts import DEFAULT_HOTWORDS
 
 logger = logging.getLogger(__name__)
@@ -45,6 +47,9 @@ class VoiceClientConfig(BaseModel):
     frame_ms: int
     dialect: str
     configured: bool
+    llm_provider: str = "deepseek"
+    greeting: str = SHANGHAI_GREETING
+    demo_samples: list[dict[str, str]] = Field(default_factory=list)
 
 
 @router.get("/config", response_model=VoiceClientConfig)
@@ -62,6 +67,9 @@ def voice_client_config(request: Request) -> VoiceClientConfig:
         frame_ms=200,
         dialect=settings.teleai_tts_dialect,
         configured=teleai_configured(),
+        llm_provider="deepseek" if settings.deepseek_api_key else "llm",
+        greeting=SHANGHAI_GREETING,
+        demo_samples=list(SHANGHAI_DEMO_SAMPLES),
     )
 
 
@@ -141,6 +149,18 @@ async def shanghai_voice_agent(ws: WebSocket, session_id: str = "default") -> No
                 pass
         llm_task = None
 
+    async def speak_reply(sentence: str) -> None:
+        await set_state(SessionState.SPEAKING)
+        async for chunk in tts.synthesize_stream(sentence):
+            if state == SessionState.LISTENING:
+                return
+            if chunk.audio_b64:
+                await ws.send_json({
+                    "type": "tts_audio",
+                    "data": chunk.audio_b64,
+                    "is_end": chunk.is_end,
+                })
+
     async def run_llm_and_tts(user_text: str) -> None:
         await set_state(SessionState.THINKING)
         messages = build_shanghai_messages(user_text, history)
@@ -148,21 +168,18 @@ async def shanghai_voice_agent(ws: WebSocket, session_id: str = "default") -> No
         reply_parts: list[str] = []
 
         try:
-            async for sentence in stream_sentences(messages):
-                if state == SessionState.LISTENING:
-                    return
-                reply_parts.append(sentence)
-                await ws.send_json({"type": "llm_delta", "text": sentence})
-                await set_state(SessionState.SPEAKING)
-                async for chunk in tts.synthesize_stream(sentence):
+            if not llm_configured():
+                reply = pick_shanghai_fallback(user_text)
+                reply_parts.append(reply)
+                await ws.send_json({"type": "llm_delta", "text": reply})
+                await speak_reply(reply)
+            else:
+                async for sentence in stream_sentences(messages):
                     if state == SessionState.LISTENING:
                         return
-                    if chunk.audio_b64:
-                        await ws.send_json({
-                            "type": "tts_audio",
-                            "data": chunk.audio_b64,
-                            "is_end": chunk.is_end,
-                        })
+                    reply_parts.append(sentence)
+                    await ws.send_json({"type": "llm_delta", "text": sentence})
+                    await speak_reply(sentence)
         except asyncio.CancelledError:
             raise
         except Exception as exc:
@@ -202,7 +219,8 @@ async def shanghai_voice_agent(ws: WebSocket, session_id: str = "default") -> No
                     await ws.send_json({
                         "type": "asr_final",
                         "text": event.text,
-                        "lang": event.lang,
+                        "lang": event.lang or "wuu",
+                        "dialect": "shanghai",
                     })
                     await cancel_llm()
                     llm_task = asyncio.create_task(run_llm_and_tts(event.text))
@@ -229,6 +247,20 @@ async def shanghai_voice_agent(ws: WebSocket, session_id: str = "default") -> No
                 await cancel_llm()
                 await set_state(SessionState.LISTENING)
 
+            elif msg_type == "simulate":
+                user_text = str(msg.get("text") or "").strip()
+                if not user_text:
+                    continue
+                await ws.send_json({
+                    "type": "asr_final",
+                    "text": user_text,
+                    "lang": "wuu",
+                    "dialect": "shanghai",
+                    "simulated": True,
+                })
+                await cancel_llm()
+                llm_task = asyncio.create_task(run_llm_and_tts(user_text))
+
             elif msg_type == "config":
                 words = msg.get("hotwords")
                 if isinstance(words, list):
@@ -237,7 +269,13 @@ async def shanghai_voice_agent(ws: WebSocket, session_id: str = "default") -> No
     try:
         await asr.connect()
         await set_state(SessionState.IDLE)
-        await ws.send_json({"type": "ready", "session_id": session_id})
+        await ws.send_json({
+            "type": "ready",
+            "session_id": session_id,
+            "greeting": SHANGHAI_GREETING,
+            "demo_samples": SHANGHAI_DEMO_SAMPLES,
+        })
+        await ws.send_json({"type": "assistant_message", "text": SHANGHAI_GREETING})
         await asyncio.gather(pump_asr(), receive_browser_audio())
     except WebSocketDisconnect:
         pass
