@@ -22,6 +22,7 @@ if (flutterVersionName == null) {
 
 // CI / scripts pass APP_NAME via gradle -PappLabel=...
 def appLabel = project.hasProperty("appLabel") ? project.property("appLabel") : "TrackChat"
+def androidAppId = project.hasProperty("androidAppId") ? project.property("androidAppId") : "com.trackchat.runtime"
 
 android {
     namespace "com.trackchat.runtime"
@@ -38,7 +39,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.trackchat.runtime"
+        applicationId androidAppId
         minSdk flutter.minSdkVersion
         targetSdk flutter.targetSdkVersion
         versionCode flutterVersionCode.toInteger()

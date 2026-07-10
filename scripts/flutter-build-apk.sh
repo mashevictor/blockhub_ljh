@@ -156,9 +156,12 @@ flutter pub get
 dart run flutter_launcher_icons
 
 echo "==> Building APK: $APP_NAME ($APP_ID)"
+echo "    API_BASE_URL=$API_BASE_URL"
+echo "    VOICE_DEMO=$VOICE_DEMO"
 FLUTTER_BUILD_ARGS=(
   --release
   -PappLabel="$APP_NAME"
+  -PandroidAppId="$APP_ID"
   --dart-define=APP_NAME="$APP_NAME"
   --dart-define=APP_ID="$APP_ID"
   --dart-define=TENANT_SLUG="$TENANT_SLUG"

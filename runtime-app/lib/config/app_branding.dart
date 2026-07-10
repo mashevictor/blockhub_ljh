@@ -24,7 +24,7 @@ class AppBranding {
     appName: 'TrackChat',
     appId: 'com.trackchat.runtime',
     tenantSlug: 'demo',
-    apiBaseUrl: 'https://101.32.209.251/api/v1',
+    apiBaseUrl: 'http://101.32.209.251/api/v1',
     primaryColorHex: '#4338CA',
   );
 
@@ -35,12 +35,17 @@ class AppBranding {
       return v.isEmpty ? fallback : v;
     }
 
+    final appName = env('APP_NAME', defaults.appName);
+    final appId = env('APP_ID', defaults.appId);
     final voiceDemoRaw = env('VOICE_DEMO', '');
-    final voiceDemo = voiceDemoRaw == '1' || voiceDemoRaw.toLowerCase() == 'true';
+    final voiceDemo = voiceDemoRaw == '1' ||
+        voiceDemoRaw.toLowerCase() == 'true' ||
+        appId == 'com.blockhub.shanghai.voice' ||
+        appName.contains('上海话');
 
     return AppBranding(
-      appName: env('APP_NAME', defaults.appName),
-      appId: env('APP_ID', defaults.appId),
+      appName: appName,
+      appId: appId,
       tenantSlug: env('TENANT_SLUG', defaults.tenantSlug),
       apiBaseUrl: env('API_BASE_URL', defaults.apiBaseUrl),
       primaryColorHex: env('PRIMARY_COLOR', defaults.primaryColorHex),

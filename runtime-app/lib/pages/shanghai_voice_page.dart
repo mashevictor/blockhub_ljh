@@ -102,8 +102,8 @@ class _ShanghaiVoicePageState extends State<ShanghaiVoicePage> {
             _voiceConfigured == null
                 ? '正在检查语音服务…'
                 : _voiceConfigured == true
-                    ? '语音服务已就绪'
-                    : '语音服务未配置',
+                    ? '语音服务已就绪 · ${widget.branding.apiBaseUrl}'
+                    : '语音服务未配置 · ${widget.branding.apiBaseUrl}',
             style: Theme.of(context).textTheme.bodySmall,
           ),
           const SizedBox(height: 8),

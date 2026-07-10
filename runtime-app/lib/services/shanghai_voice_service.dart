@@ -42,8 +42,11 @@ class VoiceClientConfig {
 }
 
 class ShanghaiVoiceService {
-  ShanghaiVoiceService({required AppBranding branding}) : _dio = createDio(baseUrl: branding.apiBaseUrl);
+  ShanghaiVoiceService({required AppBranding branding})
+      : _branding = branding,
+        _dio = createDio(baseUrl: branding.apiBaseUrl);
 
+  final AppBranding _branding;
   final Dio _dio;
   final AudioRecorder _recorder = AudioRecorder();
   final AudioPlayer _player = AudioPlayer();
@@ -71,9 +74,10 @@ class ShanghaiVoiceService {
     if (!config.configured) {
       throw Exception('电信语音服务未配置');
     }
-    final uri = Uri.parse('${config.wsUrl}?session_id=${Uri.encodeComponent(sessionId)}');
+    final uri = normalizeWsUri(config.wsUrl, _branding.apiBaseUrl)
+        .replace(queryParameters: {'session_id': sessionId});
     _setState('connecting');
-    _channel = WebSocketChannel.connect(uri);
+    _channel = await connectWebSocket(uri);
     _channel!.stream.listen(_onMessage, onError: (Object e) {
       error = e.toString();
       _setState('error');
