@@ -69,9 +69,37 @@ class TeleAsrClient:
                 await self._reader_task
             except asyncio.CancelledError:
                 pass
+            self._reader_task = None
         if self._ws:
-            await self._ws.close()
+            try:
+                await self._ws.close()
+            except Exception:
+                pass
+            self._ws = None
+        while not self._events.empty():
+            try:
+                self._events.get_nowait()
+            except asyncio.QueueEmpty:
+                break
         await self._events.put(None)
+
+    async def reconnect(self) -> None:
+        if self._reader_task:
+            self._reader_task.cancel()
+            try:
+                await self._reader_task
+            except asyncio.CancelledError:
+                pass
+            self._reader_task = None
+        if self._ws:
+            try:
+                await self._ws.close()
+            except Exception:
+                pass
+            self._ws = None
+        self._req_id = f"sess-{uuid.uuid4().hex[:12]}"
+        self._ready = asyncio.Event()
+        await self.connect()
 
     async def send_audio(self, pcm_bytes: bytes) -> None:
         if not self._ws:
@@ -93,6 +121,23 @@ class TeleAsrClient:
             if event is None:
                 break
             yield event
+
+    @staticmethod
+    def is_transient_error(event: AsrEvent) -> bool:
+        if event.res_status != -1:
+            return False
+        msg = (event.message or "").lower()
+        transient_markers = (
+            "timeout",
+            "timed out",
+            "connection",
+            "closed",
+            "reset",
+            "1011",
+            "1006",
+            "temporarily",
+        )
+        return any(m in msg for m in transient_markers)
 
     async def _send(self, payload: dict[str, Any]) -> None:
         if self._ws:

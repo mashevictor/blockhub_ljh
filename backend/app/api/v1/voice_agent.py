@@ -151,15 +151,23 @@ async def shanghai_voice_agent(ws: WebSocket, session_id: str = "default") -> No
 
     async def speak_reply(sentence: str) -> None:
         await set_state(SessionState.SPEAKING)
-        async for chunk in tts.synthesize_stream(sentence):
-            if state == SessionState.LISTENING:
-                return
-            if chunk.audio_b64:
-                await ws.send_json({
-                    "type": "tts_audio",
-                    "data": chunk.audio_b64,
-                    "is_end": chunk.is_end,
-                })
+        try:
+            async for chunk in tts.synthesize_stream(sentence):
+                if state == SessionState.LISTENING:
+                    return
+                if chunk.audio_b64:
+                    await ws.send_json({
+                        "type": "tts_audio",
+                        "data": chunk.audio_b64,
+                        "is_end": chunk.is_end,
+                    })
+        except Exception as exc:
+            logger.warning("TTS chunk failed for sentence: %s", exc)
+            await ws.send_json({
+                "type": "error",
+                "code": "TTS",
+                "message": "语音合成暂不可用，已显示文字回复",
+            })
 
     async def run_llm_and_tts(user_text: str) -> None:
         await set_state(SessionState.THINKING)
@@ -205,6 +213,12 @@ async def shanghai_voice_agent(ws: WebSocket, session_id: str = "default") -> No
                 if event.res_status == 0:
                     continue
                 if event.res_status == -1:
+                    if TeleAsrClient.is_transient_error(event):
+                        try:
+                            await asr.reconnect()
+                            continue
+                        except Exception as exc:
+                            logger.warning("ASR reconnect failed: %s", exc)
                     await ws.send_json({
                         "type": "error",
                         "code": str(event.code or "ASR"),
@@ -267,7 +281,15 @@ async def shanghai_voice_agent(ws: WebSocket, session_id: str = "default") -> No
                     hotwords = [str(w) for w in words if w]
 
     try:
-        await asr.connect()
+        for attempt in range(3):
+            try:
+                await asr.connect()
+                break
+            except Exception as exc:
+                if attempt >= 2:
+                    raise
+                logger.warning("ASR connect retry %s: %s", attempt + 1, exc)
+                await asyncio.sleep(0.5 * (attempt + 1))
         await set_state(SessionState.IDLE)
         await ws.send_json({
             "type": "ready",

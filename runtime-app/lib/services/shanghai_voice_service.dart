@@ -1,15 +1,17 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io' show Platform;
 import 'dart:typed_data';
 
-import 'package:audioplayers/audioplayers.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:record/record.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 import '../config/app_branding.dart';
-import '../utils/pcm_wav.dart';
+import '../utils/pcm_resample.dart';
+import '../utils/pcm_stream_player.dart';
 import 'dio_factory.dart';
 
 class VoiceDemoSample {
@@ -80,12 +82,13 @@ class ShanghaiVoiceService {
   final AppBranding _branding;
   final Dio _dio;
   final AudioRecorder _recorder = AudioRecorder();
-  final AudioPlayer _player = AudioPlayer();
+  late PcmStreamPlayer _ttsPlayer = PcmStreamPlayer();
 
   WebSocketChannel? _channel;
   StreamSubscription<Uint8List>? _micSub;
   StreamSubscription<dynamic>? _wsSub;
   VoiceClientConfig? _config;
+  int _deviceCaptureRate = 16000;
   String state = 'disconnected';
   String partialText = '';
   final List<Map<String, String>> messages = [];
@@ -95,10 +98,11 @@ class ShanghaiVoiceService {
 
   Completer<void>? _readyCompleter;
   String? _sessionId;
+  int _connectAttempt = 0;
+  static const _maxConnectAttempts = 3;
 
   final _stateController = StreamController<String>.broadcast();
   Stream<String> get stateStream => _stateController.stream;
-  Future<void> _playQueue = Future<void>.value();
 
   bool get isConnected =>
       _channel != null && state != 'disconnected' && state != 'error';
@@ -106,8 +110,12 @@ class ShanghaiVoiceService {
   List<VoiceDemoSample> get demoSamples => _config?.demoSamples ?? const [];
 
   Future<VoiceClientConfig> loadConfig() async {
-    final res = await _dio.get<Map<String, dynamic>>('/voice/config');
+    final res = await _dio.get<Map<String, dynamic>>(
+      '/voice/config',
+      options: Options(receiveTimeout: const Duration(seconds: 30)),
+    );
     _config = VoiceClientConfig.fromJson(res.data ?? {});
+    _ttsPlayer = PcmStreamPlayer(sampleRate: _config!.playbackSampleRate);
     _seedGreeting(_config!.greeting);
     return _config!;
   }
@@ -139,25 +147,51 @@ class ShanghaiVoiceService {
     error = null;
     _setState('connecting');
 
-    _channel = await connectWebSocket(uri);
-    _wsSub = _channel!.stream.listen(
-      _onMessage,
-      onError: (Object e) {
-        error = e.toString();
-        _setState('error');
-      },
-      onDone: () {
-        _channel = null;
-        _setState('disconnected');
-      },
-    );
-
-    try {
-      await _readyCompleter!.future.timeout(const Duration(seconds: 15));
-    } catch (_) {
-      await _tearDownSocket();
-      throw Exception('连接语音服务超时，请检查网络');
+    Object? lastError;
+    for (var attempt = 1; attempt <= _maxConnectAttempts; attempt++) {
+      _connectAttempt = attempt;
+      try {
+        _channel = await connectWebSocket(uri);
+        _wsSub = _channel!.stream.listen(
+          _onMessage,
+          onError: (Object e) {
+            debugPrint('[voice] ws error: $e');
+            error = e.toString();
+            _setState('error');
+            _scheduleReconnect();
+          },
+          onDone: () {
+            debugPrint('[voice] ws closed');
+            _channel = null;
+            _setState('disconnected');
+            _scheduleReconnect();
+          },
+        );
+        await _readyCompleter!.future.timeout(const Duration(seconds: 20));
+        _connectAttempt = 0;
+        return;
+      } catch (e) {
+        lastError = e;
+        debugPrint('[voice] connect attempt $attempt failed: $e');
+        await _tearDownSocket();
+        if (attempt < _maxConnectAttempts) {
+          await Future<void>.delayed(Duration(milliseconds: 400 * attempt));
+        }
+      }
     }
+    throw Exception(lastError ?? '连接语音服务失败，请检查网络');
+  }
+
+  void _scheduleReconnect() {
+    if (_sessionId == null || _connectAttempt >= _maxConnectAttempts) return;
+    Future<void>.delayed(const Duration(seconds: 2), () async {
+      if (_channel != null || _sessionId == null) return;
+      try {
+        await connect(sessionId: _sessionId!);
+      } catch (e) {
+        debugPrint('[voice] auto reconnect failed: $e');
+      }
+    });
   }
 
   Future<void> simulateUtterance(String text) async {
@@ -185,6 +219,9 @@ class ShanghaiVoiceService {
     error = null;
     partialText = '';
     final config = _config!;
+    _deviceCaptureRate = Platform.isAndroid
+        ? androidCaptureSampleRateHint()
+        : config.captureSampleRate;
     final stream = await _recorder.startStream(
       RecordConfig(
         encoder: AudioEncoder.pcm16bits,
@@ -195,7 +232,14 @@ class ShanghaiVoiceService {
     _micActive = true;
     _setState('listening');
     _micSub = stream.listen((chunk) {
-      final b64 = base64Encode(chunk);
+      final pcm = _deviceCaptureRate == config.captureSampleRate
+          ? chunk
+          : resamplePcm16Bytes(
+              chunk,
+              fromRate: _deviceCaptureRate,
+              toRate: config.captureSampleRate,
+            );
+      final b64 = base64Encode(pcm);
       _channel?.sink.add(jsonEncode({'type': 'audio', 'data': b64}));
     });
   }
@@ -215,7 +259,7 @@ class ShanghaiVoiceService {
   }
 
   Future<void> bargeIn() async {
-    await _player.stop();
+    await _ttsPlayer.stop();
     if (_micActive) {
       await holdTalkEnd();
     }
@@ -296,30 +340,20 @@ class ShanghaiVoiceService {
     } else if (type == 'tts_audio') {
       final data = msg['data'] as String? ?? '';
       final isEnd = msg['is_end'] as bool? ?? false;
-      if (data.isNotEmpty) {
-        _playPcmBase64(data);
+      if (data.isNotEmpty || isEnd) {
+        if (!_micActive && state != 'speaking') _setState('speaking');
+        unawaited(_ttsPlayer.enqueueBase64(data, isEnd: isEnd));
       }
       if (isEnd && !_micActive) {
-        _setState('idle');
+        unawaited(_ttsPlayer.finish().then((_) {
+          if (!_micActive) _setState('idle');
+        }));
       }
     } else if (type == 'error') {
       error = msg['message'] as String? ?? '语音会话错误';
       _setState('error');
       _stateController.add(state);
     }
-  }
-
-  Future<void> _playPcmBase64(String b64) async {
-    final playbackRate = _config?.playbackSampleRate ?? 24000;
-    _playQueue = _playQueue.then((_) async {
-      final pcm = base64ToBytes(b64);
-      final wav = pcm16ToWavBytes(pcm, sampleRate: playbackRate);
-      await _player.play(BytesSource(wav));
-      if (!_micActive) {
-        _setState('speaking');
-      }
-    });
-    return _playQueue;
   }
 
   void _setState(String next) {
@@ -331,6 +365,6 @@ class ShanghaiVoiceService {
     await disconnect();
     await _stateController.close();
     await _recorder.dispose();
-    await _player.dispose();
+    await _ttsPlayer.dispose();
   }
 }
