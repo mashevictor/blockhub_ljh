@@ -21,10 +21,12 @@ interface Props {
   className?: string
   /** 顶栏标题 */
   title?: string
-  /** 折叠后显示的摘要 */
+  /** 折叠后显示的摘要（keepInputWhenCollapsed 时忽略） */
   collapsedHint?: string
-  /** 顶栏 >> 短标签 */
+  /** 顶栏 >> 短标签，空字符串时不显示 */
   chevLabel?: string
+  /** 折叠时仍保留输入区，聚焦或输入时自动展开 */
+  keepInputWhenCollapsed?: boolean
   ariaLabel?: string
 }
 
@@ -81,6 +83,7 @@ export default function FloatingAgentDock({
   title = '智能体助手',
   collapsedHint = '点击展开',
   chevLabel = '助手',
+  keepInputWhenCollapsed = false,
   ariaLabel = '智能体悬浮面板',
 }: Props) {
   const dockRef = useRef<HTMLDivElement>(null)
@@ -169,6 +172,18 @@ export default function FloatingAgentDock({
     persistCollapsed(true)
   }, [persistCollapsed])
 
+  const maybeExpandOnInput = useCallback(() => {
+    if (keepInputWhenCollapsed && collapsed) expand()
+  }, [keepInputWhenCollapsed, collapsed, expand])
+
+  const onCompactFocusIn = useCallback(
+    (e: React.FocusEvent) => {
+      if (!keepInputWhenCollapsed || !collapsed) return
+      if (isInteractiveTarget(e.target)) maybeExpandOnInput()
+    },
+    [keepInputWhenCollapsed, collapsed, maybeExpandOnInput],
+  )
+
   const onDragStart = useCallback(
     (e: React.PointerEvent<HTMLElement>) => {
       if (!pos || e.button !== 0) return
@@ -225,22 +240,24 @@ export default function FloatingAgentDock({
   return (
     <div
       ref={dockRef}
-      className={`floating-agent-dock${collapsed ? ' is-collapsed' : ''}${dragging ? ' is-dragging' : ''} ${className}`.trim()}
+      className={`floating-agent-dock${collapsed ? ' is-collapsed' : ''}${keepInputWhenCollapsed ? ' keep-input-when-collapsed' : ''}${dragging ? ' is-dragging' : ''} ${className}`.trim()}
       style={style}
       role="complementary"
       aria-label={ariaLabel}
+      onFocusCapture={onCompactFocusIn}
+      onInputCapture={maybeExpandOnInput}
     >
       <div className="floating-agent-dock-frame">
         <div
           className="floating-agent-dock-chrome"
-          onPointerDown={collapsed ? undefined : onDragStart}
+          onPointerDown={collapsed && !keepInputWhenCollapsed ? undefined : onDragStart}
         >
           <span
             className="floating-agent-dock-grip"
             aria-hidden
             onPointerDown={collapsed ? onDragStart : undefined}
           />
-          {collapsed ? (
+          {collapsed && !keepInputWhenCollapsed ? (
             <button
               type="button"
               className="floating-agent-dock-expand-bar"
@@ -249,32 +266,43 @@ export default function FloatingAgentDock({
               aria-controls={panelId}
             >
               <span className="agent-brand-chev" aria-hidden>&gt;&gt;</span>
-              <span className="floating-agent-dock-chev-label">{chevLabel}</span>
+              {chevLabel ? (
+                <span className="floating-agent-dock-chev-label">{chevLabel}</span>
+              ) : null}
               <span className="floating-agent-dock-collapsed-hint">{collapsedHint}</span>
               <span className="floating-agent-dock-caret" aria-hidden />
             </button>
           ) : (
             <>
-              <button
-                type="button"
-                className="floating-agent-dock-brand"
-                onClick={collapse}
-                aria-expanded
-                aria-controls={panelId}
-              >
-                <span className="agent-brand-chev" aria-hidden>&gt;&gt;</span>
-                <span className="floating-agent-dock-title">{title}</span>
-                <span className="floating-agent-dock-chev-label">{chevLabel}</span>
-              </button>
+              {keepInputWhenCollapsed && collapsed ? (
+                <div className="floating-agent-dock-brand floating-agent-dock-brand-static">
+                  <span className="agent-brand-chev" aria-hidden>&gt;&gt;</span>
+                  <span className="floating-agent-dock-title">{title}</span>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  className="floating-agent-dock-brand"
+                  onClick={collapse}
+                  aria-expanded={!collapsed}
+                  aria-controls={panelId}
+                >
+                  <span className="agent-brand-chev" aria-hidden>&gt;&gt;</span>
+                  <span className="floating-agent-dock-title">{title}</span>
+                  {chevLabel ? (
+                    <span className="floating-agent-dock-chev-label">{chevLabel}</span>
+                  ) : null}
+                </button>
+              )}
               <button
                 type="button"
                 className="floating-agent-dock-toggle"
-                onClick={collapse}
-                aria-expanded
+                onClick={collapsed ? expand : collapse}
+                aria-expanded={!collapsed}
                 aria-controls={panelId}
-                aria-label="折叠悬浮框"
+                aria-label={collapsed ? '展开悬浮框' : '折叠悬浮框'}
               >
-                <span className="floating-agent-dock-caret open" aria-hidden />
+                <span className={`floating-agent-dock-caret${collapsed ? '' : ' open'}`} aria-hidden />
               </button>
             </>
           )}
@@ -282,8 +310,8 @@ export default function FloatingAgentDock({
         <div
           id={panelId}
           className="floating-agent-dock-body"
-          aria-hidden={collapsed}
-          onPointerDown={onDragStart}
+          aria-hidden={collapsed && !keepInputWhenCollapsed}
+          onPointerDown={collapsed && keepInputWhenCollapsed ? undefined : onDragStart}
         >
           {children}
         </div>

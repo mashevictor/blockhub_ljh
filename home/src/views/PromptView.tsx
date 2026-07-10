@@ -31,9 +31,7 @@ import {
   resolveIndustryApiKey,
 } from '../data/showcase'
 import type { RoleApplyRequest, RolePreset } from '../data/rolePresets'
-import { useAgentPageContext } from '../context/AgentPageContext'
 import { useDemoBookingActive } from '../context/DemoBookingContext'
-import { AGENT_CONTEXTS } from '../data/agentContext'
 import FloatingAgentDock from '../components/FloatingAgentDock'
 import AgentSignLine from '../components/AgentSignLine'
 import { BRAND } from '../data/brand'
@@ -75,7 +73,6 @@ function filterByIndustries(
 }
 
 export default function PromptView({ onPublish, roleApply, onRoleApplyDone, active = true }: Props) {
-  const { contextKey } = useAgentPageContext()
   const bookingZoneActive = useDemoBookingActive()
   const { theme } = useTheme()
   const [prompt, setPrompt] = useState('')
@@ -701,14 +698,12 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
     if (mod) removeModule(mod.id)
   }
 
-  const agentCopy = AGENT_CONTEXTS[contextKey]
-
   return (
     <div className="view prompt-view prompt-view-minimal layout-floating">
       <div className="minimal-hero">
         <img src="/design/hero-minimal.jpg" alt="" className="minimal-hero-img" width={72} height={72} />
         <AgentSignLine variant="section" className="minimal-hero-title" />
-        <p className="minimal-hero-hint">输入 <span className="minimal-brand-chev">&gt;&gt;</span> 编排模块，开启智能体新交互</p>
+        <p className="minimal-hero-hint">描述需求，或输入 <span className="minimal-brand-chev">&gt;&gt;</span> 开始智能交互</p>
       </div>
 
       {!bookingZoneActive && (
@@ -716,8 +711,7 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
         storageKey="tc-floating-prompt"
         className="floating-agent-dock-prompt"
         title={BRAND.agentSignLine}
-        chevLabel={agentCopy.chevLabel}
-        collapsedHint="点击展开"
+        keepInputWhenCollapsed
         ariaLabel="创建应用悬浮助手"
       >
         <div

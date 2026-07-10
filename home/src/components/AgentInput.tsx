@@ -463,7 +463,7 @@ export default forwardRef<AgentInputHandle, Props>(function AgentInput({
               <button
                 type="button"
                 className={`agent-brand-trigger${effectivePanelOpen ? ' active' : ''}`}
-                title="积木仓符号 · 用符号>>重新定义智能体新交互"
+                title="积木仓符号 · >>重新定义智能交互"
                 aria-label="打开模块选择"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => {
@@ -472,7 +472,9 @@ export default forwardRef<AgentInputHandle, Props>(function AgentInput({
                 }}
               >
                 <span className="agent-brand-chev" aria-hidden>&gt;&gt;</span>
-                <span className="agent-brand-chev-label">{contextCopy.chevLabel}</span>
+                {contextCopy.chevLabel ? (
+                  <span className="agent-brand-chev-label">{contextCopy.chevLabel}</span>
+                ) : null}
               </button>
               <div className="agent-input-field-wrap">
                 {showGhost && (

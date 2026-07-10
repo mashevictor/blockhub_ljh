@@ -158,6 +158,9 @@ dart run flutter_launcher_icons
 echo "==> Building APK: $APP_NAME ($APP_ID)"
 echo "    API_BASE_URL=$API_BASE_URL"
 echo "    VOICE_DEMO=$VOICE_DEMO"
+if [ -n "${FLUTTER_BUILD_NAME:-}" ] && [ -n "${FLUTTER_BUILD_NUMBER:-}" ]; then
+  echo "    VERSION=${FLUTTER_BUILD_NAME}+${FLUTTER_BUILD_NUMBER}"
+fi
 FLUTTER_BUILD_ARGS=(
   --release
   -PappLabel="$APP_NAME"
@@ -171,6 +174,12 @@ FLUTTER_BUILD_ARGS=(
 )
 if [ -n "$APP_PUBLIC_ID" ]; then
   FLUTTER_BUILD_ARGS+=(--dart-define=APP_PUBLIC_ID="$APP_PUBLIC_ID")
+fi
+if [ -n "${FLUTTER_BUILD_NAME:-}" ]; then
+  FLUTTER_BUILD_ARGS+=(--build-name="$FLUTTER_BUILD_NAME")
+fi
+if [ -n "${FLUTTER_BUILD_NUMBER:-}" ]; then
+  FLUTTER_BUILD_ARGS+=(--build-number="$FLUTTER_BUILD_NUMBER")
 fi
 case "${GRADLE_MEMORY_PROFILE:-}" in
   ultra|low)

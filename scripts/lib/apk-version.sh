@@ -1,9 +1,14 @@
 # shellcheck shell=bash
-# 从 runtime-app/pubspec.yaml 读取/递增 APK 版本
+# APK 版本：从 pubspec 读取，build 号递增写入 uploads（不修改 pubspec，避免 git pull 冲突）
 
 apk_pubspec_path() {
   local root="${1:?}"
   echo "$root/runtime-app/pubspec.yaml"
+}
+
+apk_build_counter_path() {
+  local root="${1:?}"
+  echo "$root/backend/uploads/apks/.shanghai-voice-build-code"
 }
 
 apk_read_version() {
@@ -30,25 +35,65 @@ print(int(code))
 PY
 }
 
-apk_bump_build() {
+apk_last_built_code() {
   local root="${1:?}"
-  local pubspec
-  pubspec="$(apk_pubspec_path "$root")"
+  local counter version_json
+  counter="$(apk_build_counter_path "$root")"
+  if [ -f "$counter" ]; then
+    tr -d '\n\r' < "$counter"
+    return 0
+  fi
+  version_json="$root/backend/uploads/apks/shanghai-voice.version.json"
+  if [ -f "$version_json" ]; then
+    python3 -c "import json; print(json.load(open('$version_json'))['version_code'])" 2>/dev/null || echo 0
+    return 0
+  fi
+  echo 0
+}
+
+# 解析本次构建版本：默认在已构建版本基础上 +1，不改动 pubspec.yaml
+apk_resolve_build() {
+  local root="${1:?}" bump="${2:-1}"
   python3 <<PY
-import re
+import json
 from pathlib import Path
-p = Path("$pubspec")
-text = p.read_text(encoding="utf-8")
+
+root = Path("$root")
+pubspec = root / "runtime-app/pubspec.yaml"
+text = pubspec.read_text(encoding="utf-8")
+import re
 m = re.search(r"^version:\s*(\d+)\.(\d+)\.(\d+)\+(\d+)\s*$", text, re.M)
 if not m:
-    raise SystemExit("pubspec version must be semver+build, e.g. 0.1.1+2")
-major, minor, patch, build = m.groups()
-build = str(int(build) + 1)
-new_line = f"version: {major}.{minor}.{patch}+{build}"
-text = re.sub(r"^version:\s*\S+\s*$", new_line, text, count=1, flags=re.M)
-p.write_text(text, encoding="utf-8")
-print(f"{major}.{minor}.{patch}")
-print(build)
+    raise SystemExit("pubspec version must be semver+build, e.g. 0.1.2+3")
+major, minor, patch, pub_code = m.groups()
+name = f"{major}.{minor}.{patch}"
+pub_code = int(pub_code)
+
+counter = root / "backend/uploads/apks/.shanghai-voice-build-code"
+last = 0
+if counter.is_file():
+    try:
+        last = int(counter.read_text(encoding="utf-8").strip() or "0")
+    except ValueError:
+        last = 0
+else:
+    ver_json = root / "backend/uploads/apks/shanghai-voice.version.json"
+    if ver_json.is_file():
+        try:
+            last = int(json.loads(ver_json.read_text(encoding="utf-8")).get("version_code", 0))
+        except Exception:
+            last = 0
+
+bump = "$bump" == "1"
+if bump:
+    code = max(last, pub_code) + 1
+else:
+    code = max(last, pub_code)
+
+counter.parent.mkdir(parents=True, exist_ok=True)
+counter.write_text(str(code) + "\n", encoding="utf-8")
+print(name)
+print(code)
 PY
 }
 

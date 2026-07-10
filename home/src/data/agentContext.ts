@@ -25,9 +25,9 @@ export interface AgentContextCopy {
 
 export const AGENT_CONTEXTS: Record<AgentContextKey, AgentContextCopy> = {
   landing_hero: {
-    chevLabel: '探索',
-    placeholder: '描述需求，或 >> 开始智能体新交互',
-    ghost: '输入 >> 探索智能体新交互，或直接描述需求…',
+    chevLabel: '',
+    placeholder: '描述需求，或 >> 开始智能交互',
+    ghost: '描述需求，或 >> 开始智能交互…',
   },
   landing_product: {
     chevLabel: '模板',
@@ -70,9 +70,9 @@ export const AGENT_CONTEXTS: Record<AgentContextKey, AgentContextCopy> = {
     ghost: '我们会尽快与您联系',
   },
   create_prompt: {
-    chevLabel: '多选',
-    placeholder: '描述需求，或 >> 开始智能体新交互',
-    ghost: '输入 >> 编排模块，或直接描述需求…',
+    chevLabel: '',
+    placeholder: '描述需求，或 >> 开始智能交互',
+    ghost: '描述需求，或 >> 开始智能交互…',
   },
   create_industry: {
     chevLabel: '行业',

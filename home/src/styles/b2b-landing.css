@@ -2519,8 +2519,100 @@
   }
 }
 
-.floating-agent-dock.is-collapsed .floating-agent-dock-body {
+.floating-agent-dock.is-collapsed:not(.keep-input-when-collapsed) .floating-agent-dock-body {
   display: none;
+}
+
+/* 折叠仍保留输入：标题 + 单行输入横条，聚焦/输入时 JS 自动展开 */
+.floating-agent-dock.is-collapsed.keep-input-when-collapsed .floating-agent-dock-frame {
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0 8px;
+  padding: 6px 8px 6px 10px;
+}
+
+.floating-agent-dock.is-collapsed.keep-input-when-collapsed .floating-agent-dock-chrome {
+  flex: 0 0 auto;
+  min-height: 0;
+  padding: 0;
+  gap: 6px;
+  border-bottom: none;
+  background: transparent;
+  cursor: default;
+}
+
+.floating-agent-dock.is-collapsed.keep-input-when-collapsed .floating-agent-dock-brand {
+  cursor: default;
+  padding: 2px 4px;
+}
+
+.floating-agent-dock.is-collapsed.keep-input-when-collapsed .floating-agent-dock-brand:hover {
+  background: transparent;
+}
+
+.floating-agent-dock.is-collapsed.keep-input-when-collapsed .floating-agent-dock-title {
+  font-size: 12px;
+}
+
+.floating-agent-dock.is-collapsed.keep-input-when-collapsed .floating-agent-dock-body {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0;
+  max-height: none;
+  overflow: visible;
+  cursor: auto;
+}
+
+.floating-agent-dock.is-collapsed.keep-input-when-collapsed .prompt-card {
+  padding: 0;
+  border: none;
+  box-shadow: none;
+  background: transparent;
+}
+
+.floating-agent-dock.is-collapsed.keep-input-when-collapsed .agent-brand-trigger,
+.floating-agent-dock.is-collapsed.keep-input-when-collapsed .agent-composer-modules,
+.floating-agent-dock.is-collapsed.keep-input-when-collapsed .agent-input-tip,
+.floating-agent-dock.is-collapsed.keep-input-when-collapsed .agent-orb-panel,
+.floating-agent-dock.is-collapsed.keep-input-when-collapsed .prompt-footer,
+.floating-agent-dock.is-collapsed.keep-input-when-collapsed .prompt-suggest-bar,
+.floating-agent-dock.is-collapsed.keep-input-when-collapsed .intent-analysis-strip {
+  display: none !important;
+}
+
+.floating-agent-dock.is-collapsed.keep-input-when-collapsed .agent-input-shell.composer {
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+}
+
+.floating-agent-dock.is-collapsed.keep-input-when-collapsed .agent-composer-row {
+  gap: 0;
+}
+
+.floating-agent-dock.is-collapsed.keep-input-when-collapsed .agent-input-field {
+  min-height: 28px;
+  max-height: 28px;
+  padding: 4px 8px;
+  font-size: 12px;
+  line-height: 1.35;
+  resize: none;
+  border: 1px solid #dbeafe;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.floating-agent-dock.is-collapsed.keep-input-when-collapsed .agent-input-field:focus {
+  border-color: #93c5fd;
+  box-shadow: 0 0 0 2px rgba(147, 197, 253, 0.35);
+}
+
+.floating-agent-dock.is-collapsed.keep-input-when-collapsed .agent-input-ghost {
+  font-size: 12px;
+  padding: 4px 8px;
+  line-height: 1.35;
 }
 
 .floating-agent-dock-plaza .floating-agent-dock-body {

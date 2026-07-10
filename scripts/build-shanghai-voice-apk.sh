@@ -6,8 +6,8 @@
 #   PUBLIC_URL=http://你的域名 bash scripts/build-shanghai-voice-apk.sh
 #
 # 环境变量:
-#   APK_BUMP_BUILD=1   构建前自动递增 pubspec build 号（默认 1）
-#   APK_BUMP_BUILD=0   不改动 pubspec 版本
+#   APK_BUMP_BUILD=1   在已构建版本基础上 +1（默认，不改 pubspec.yaml）
+#   APK_BUMP_BUILD=0   使用 pubspec / 已记录 build 号中较大者
 #
 # 产物:
 #   backend/uploads/apks/shanghai-voice.apk              — 最新包（下载入口）
@@ -31,15 +31,15 @@ echo " 模式: VOICE_DEMO=1（跳过登录，直达语音页）"
 echo "=============================================="
 
 if [ "${APK_BUMP_BUILD:-1}" = "1" ]; then
-  echo "==> 递增 APK build 号 (pubspec.yaml)"
-  mapfile -t _ver_parts < <(apk_bump_build "$ROOT")
-  VERSION_NAME="${_ver_parts[0]}"
-  VERSION_CODE="${_ver_parts[1]}"
+  echo "==> 解析 APK 版本（build +1，不修改 pubspec.yaml）"
+  mapfile -t _ver_parts < <(apk_resolve_build "$ROOT" 1)
 else
-  mapfile -t _ver_parts < <(apk_read_version "$ROOT")
-  VERSION_NAME="${_ver_parts[0]}"
-  VERSION_CODE="${_ver_parts[1]}"
+  mapfile -t _ver_parts < <(apk_resolve_build "$ROOT" 0)
 fi
+VERSION_NAME="${_ver_parts[0]}"
+VERSION_CODE="${_ver_parts[1]}"
+export FLUTTER_BUILD_NAME="$VERSION_NAME"
+export FLUTTER_BUILD_NUMBER="$VERSION_CODE"
 echo "    version: ${VERSION_NAME}+${VERSION_CODE}"
 
 apk_cleanup_shanghai_artifacts "$ROOT"
