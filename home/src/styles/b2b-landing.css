@@ -311,21 +311,22 @@
   max-width: 1200px;
   margin: 0 auto;
   padding: 80px 20px;
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 420px);
   align-items: center;
-  flex-wrap: wrap;
-  gap: 40px;
+  gap: clamp(28px, 4vw, 48px);
 }
 
 .b2b-hero-text {
-  flex: 1;
-  min-width: 300px;
+  min-width: 0;
 }
 
 .b2b-hero-eyebrow {
   display: inline-flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 6px;
+  max-width: 100%;
   font-size: 13px;
   font-weight: 700;
   color: var(--b2b-primary);
@@ -348,8 +349,8 @@
 }
 
 .b2b-hero h1 {
-  font-size: 38px;
-  line-height: 1.3;
+  font-size: clamp(28px, 3.6vw, 38px);
+  line-height: 1.35;
   margin-bottom: 20px;
   color: #111;
   font-weight: 700;
@@ -361,7 +362,8 @@
 }
 
 .b2b-hero-tagline {
-  white-space: nowrap;
+  text-wrap: balance;
+  max-width: 12em;
 }
 
 .b2b-hero-text > p {
@@ -413,8 +415,8 @@
 }
 
 .b2b-hero-panel {
-  flex: 1;
-  min-width: 300px;
+  min-width: 0;
+  width: 100%;
   min-height: 300px;
   background: linear-gradient(145deg, #fff 0%, var(--b2b-panel) 100%);
   border: 1px solid #dbeafe;
@@ -3394,6 +3396,18 @@
 
   .b2b-deepseek-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 960px) {
+  .b2b-hero {
+    grid-template-columns: 1fr;
+    padding-top: 56px;
+    padding-bottom: 56px;
+  }
+
+  .b2b-hero-tagline {
+    max-width: none;
   }
 }
 

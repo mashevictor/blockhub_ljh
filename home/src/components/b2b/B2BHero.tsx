@@ -9,13 +9,27 @@ interface Props {
   onTry: () => void
 }
 
+function HeroTagline() {
+  const comma = BRAND.tagline.indexOf('，')
+  if (comma === -1) {
+    return <em>{BRAND.tagline}</em>
+  }
+  return (
+    <em>
+      {BRAND.tagline.slice(0, comma + 1)}
+      <wbr />
+      {BRAND.tagline.slice(comma + 1)}
+    </em>
+  )
+}
+
 export default function B2BHero({ onBook, onTry }: Props) {
   return (
     <section id="hero" className="b2b-hero">
       <div className="b2b-hero-text">
         <AgentSignLine variant="eyebrow" className="b2b-hero-eyebrow" as="p" />
         <h1 className="b2b-hero-tagline">
-          <em>{BRAND.tagline}</em>
+          <HeroTagline />
         </h1>
         <p>
           {PLATFORM_STATS.scenarios}+ 业务场景 · 三种创建方式 · 一次发布五端可用
