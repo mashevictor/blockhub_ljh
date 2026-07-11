@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>B端AI智能体 · 完整订单转化闭环</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+  <style>
+    :root {
+      --bg: #eef2f7;
+      --surface: #ffffff;
+      --border: #c5d4e8;
+      --pri: #1e4d8c;
+      --pri-light: #dce8f8;
+      --accent: #2563eb;
+      --text: #1a202c;
+      --muted: #5a6578;
+      --ok: #047857;
+      --warn: #b45309;
+      --sans: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      --mono: ui-monospace, Consolas, monospace;
+      --visio-node: #dce8f8;
+      --visio-border: #2c5282;
+      --visio-shadow: 0 2px 6px rgba(30, 77, 140, 0.12);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      font-size: 14px;
+    }
+
+    .page {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 28px 20px 80px;
+    }
+
+    /* ── Header ── */
+    header {
+      background: linear-gradient(135deg, #1e4d8c 0%, #2563eb 55%, #3b82f6 100%);
+      color: #fff;
+      border-radius: 16px;
+      padding: 32px 36px;
+      margin-bottom: 22px;
+      box-shadow: 0 8px 32px rgba(30, 77, 140, 0.25);
+    }
+
+    header h1 {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 10px;
+    }
+
+    header .subtitle {
+      font-size: 15px;
+      opacity: 0.92;
+      max-width: 860px;
+    }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .pill {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 5px 12px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.28);
+    }
+
+    /* ── TOC ── */
+    nav.toc {
+      position: sticky;
+      top: 10px;
+      z-index: 10;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 18px;
+      margin-bottom: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 16px;
+      font-size: 13px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    }
+
+    nav.toc a {
+      color: var(--pri);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    nav.toc a:hover { color: var(--accent); text-decoration: underline; }
+
+    /* ── Sections ── */
+    section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 26px 30px;
+      margin-bottom: 18px;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+    }
+
+    section > h2 {
+      font-size: 19px;
+      font-weight: 800;
+      color: var(--pri);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    section > h2 .num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      background: var(--pri-light);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 13px;
+      color: var(--pri);
+      flex-shrink: 0;
+    }
+
+    .lead {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 18px;
+    }
+
+    /* ── Visio Flowchart Container ── */
+    .visio-canvas {
+      background: #f8fafc;
+      border: 2px solid #b8cce4;
+      border-radius: 10px;
+      padding: 36px 20px 28px;
+      overflow-x: auto;
+      margin: 16px 0;
+      position: relative;
+      cursor: zoom-in;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .visio-canvas:hover {
+      border-color: #2563eb;
+      box-shadow: 0 4px 20px rgba(37, 99, 235, 0.15);
+    }
+
+    .visio-canvas::after {
+      content: "🔍 点击放大查看大图";
+      position: absolute;
+      top: 10px;
+      right: 12px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #2563eb;
+      background: #eff6ff;
+      border: 1px solid #93c5fd;
+      border-radius: 999px;
+      padding: 4px 12px;
+      pointer-events: none;
+    }
+
+    .visio-canvas::before {
+      content: "Visio 风格流程图";
+      position: absolute;
+      top: 10px;
+      left: 12px;
+      font-size: 10px;
+      font-weight: 700;
+      color: #7a8fa8;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      pointer-events: none;
+    }
+
+    .mermaid {
+      min-width: 1100px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .mermaid svg {
+      max-width: none !important;
+      height: auto !important;
+    }
+
+    /* Mermaid htmlLabels 字体放大 */
+    .visio-canvas .mermaid svg foreignObject div,
+    .visio-canvas .mermaid svg foreignObject span,
+    .visio-canvas .mermaid svg foreignObject p {
+      font-size: 17px !important;
+      line-height: 1.5 !important;
+      font-weight: 600 !important;
+      color: #1a365d !important;
+    }
+
+    .visio-canvas .mermaid svg .nodeLabel,
+    .visio-canvas .mermaid svg .label {
+      font-size: 17px !important;
+    }
+
+    .visio-canvas .mermaid svg text {
+      font-size: 16px !important;
+      font-weight: 600 !important;
+    }
+
+    /* ── Lightbox 大图弹窗 ── */
+    .lightbox {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .lightbox.open { display: flex; }
+
+    .lightbox-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.72);
+      backdrop-filter: blur(4px);
+    }
+
+    .lightbox-panel {
+      position: relative;
+      z-index: 1;
+      width: min(96vw, 1400px);
+      height: min(92vh, 900px);
+      background: #fff;
+      border-radius: 14px;
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .lightbox-toolbar {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      background: #f8fafc;
+      border-bottom: 1px solid #dbeafe;
+    }
+
+    .lightbox-title {
+      flex: 1;
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--pri);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .lightbox-zoom {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .lightbox-zoom button {
+      width: 32px;
+      height: 32px;
+      border: 1px solid #c5d4e8;
+      background: #fff;
+      border-radius: 8px;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--pri);
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    .lightbox-zoom button:hover { background: #eff6ff; border-color: #2563eb; }
+
+    .lightbox-zoom .zoom-label {
+      min-width: 52px;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--muted);
+    }
+
+    .lightbox-close {
+      width: 36px;
+      height: 36px;
+      border: none;
+      background: #fee2e2;
+      color: #b91c1c;
+      border-radius: 8px;
+      font-size: 22px;
+      font-weight: 700;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    .lightbox-close:hover { background: #fecaca; }
+
+    .lightbox-body {
+      flex: 1;
+      overflow: auto;
+      background: #f1f5f9;
+      padding: 24px;
+    }
+
+    .lightbox-stage {
+      transform-origin: top left;
+      transition: transform 0.15s ease;
+      display: inline-block;
+      min-width: 100%;
+    }
+
+    .lightbox-stage svg {
+      display: block;
+      max-width: none !important;
+      height: auto !important;
+    }
+
+    .lightbox-stage foreignObject div,
+    .lightbox-stage foreignObject span,
+    .lightbox-stage foreignObject p {
+      font-size: 22px !important;
+      line-height: 1.55 !important;
+      font-weight: 600 !important;
+      color: #1a365d !important;
+    }
+
+    .lightbox-stage svg text {
+      font-size: 20px !important;
+      font-weight: 600 !important;
+    }
+
+    .lightbox-hint {
+      flex-shrink: 0;
+      padding: 8px 16px;
+      font-size: 12px;
+      color: var(--muted);
+      background: #f8fafc;
+      border-top: 1px solid #e2e8f0;
+      text-align: center;
+    }
+
+    /* ── Identity Cards ── */
+    .identity-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin-top: 8px;
+    }
+
+    .identity-card {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      transition: box-shadow 0.2s;
+    }
+
+    .identity-card:hover {
+      box-shadow: 0 4px 16px rgba(30, 77, 140, 0.1);
+    }
+
+    .identity-card .card-head {
+      padding: 14px 18px;
+      font-size: 15px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .identity-card .card-head .icon { font-size: 18px; }
+
+    .identity-card.biz .card-head { background: #eff6ff; color: #1d4ed8; border-bottom: 2px solid #93c5fd; }
+    .identity-card.it  .card-head { background: #f0fdf4; color: #047857; border-bottom: 2px solid #6ee7b7; }
+    .identity-card.ceo .card-head { background: #fef3c7; color: #92400e; border-bottom: 2px solid #fcd34d; }
+    .identity-card.proc .card-head { background: #fce7f3; color: #9d174d; border-bottom: 2px solid #f9a8d4; }
+
+    .identity-card ol {
+      padding: 14px 18px 16px 36px;
+      font-size: 13px;
+      color: #374151;
+    }
+
+    .identity-card ol li {
+      margin-bottom: 6px;
+      line-height: 1.5;
+    }
+
+    .identity-card ol li:last-child { margin-bottom: 0; }
+
+    /* ── Optimization Notes ── */
+    .note-list { list-style: none; margin-top: 8px; }
+
+    .note-list li {
+      display: flex;
+      gap: 14px;
+      padding: 14px 0;
+      border-bottom: 1px solid #e8edf4;
+      font-size: 13.5px;
+    }
+
+    .note-list li:last-child { border-bottom: none; }
+
+    .note-num {
+      flex-shrink: 0;
+      width: 28px;
+      height: 28px;
+      background: var(--pri-light);
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--pri);
+      margin-top: 1px;
+    }
+
+    .note-body strong {
+      color: var(--pri);
+      display: block;
+      margin-bottom: 3px;
+    }
+
+    .note-body span { color: var(--muted); }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 28px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+
+    footer blockquote {
+      font-style: italic;
+      opacity: 0.75;
+      margin-top: 6px;
+    }
+
+    @media (max-width: 860px) {
+      .identity-grid { grid-template-columns: 1fr; }
+      header h1 { font-size: 22px; }
+      section { padding: 20px 18px; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <h1>B端AI智能体 · 完整订单转化闭环</h1>
+    <p class="subtitle">网页内置 Visio 风格流程图｜双场景闭环｜四类决策身份｜官网优化要点</p>
+    <div class="meta">
+      <span class="pill">场景1 · 陌生自然流量</span>
+      <span class="pill">场景2 · 销售精准邀约</span>
+      <span class="pill">4 类决策身份</span>
+      <span class="pill">5 项官网优化</span>
+    </div>
+  </header>
+
+  <nav class="toc">
+    <a href="#scene1">场景1 自然流量</a>
+    <a href="#scene2">场景2 精准邀约</a>
+    <a href="#identity">四类决策身份</a>
+    <a href="#optimize">官网优化要点</a>
+  </nav>
+
+  <!-- 场景1 -->
+  <section id="scene1">
+    <h2><span class="num">1</span> 场景1：陌生自然流量 · 完整成交流程</h2>
+    <p class="lead">公域曝光 → AI 导购识别身份 → 千人千面浏览 → 留资转化 → 销售跟进 → 立项签约</p>
+    <div class="visio-canvas" data-title="场景1：陌生自然流量 · 完整成交流程" role="button" tabindex="0" aria-label="点击查看大图">
+      <pre class="mermaid">
+flowchart LR
+    A["公域搜索/渠道曝光"] --> B["用户进入官网"]
+    B --> C["AI导购识别岗位身份"]
+    C --> D["千人千面内容浏览<br/>业务/技术/实力/报价"]
+    D --> E["自助体验+建立信任"]
+    E --> F["官网留资/预约演示"]
+    F --> G["销售回访需求核实"]
+    G --> H["标准化产品演示"]
+    H --> I["多人协同评估<br/>艾特同事"]
+    I --> J["企业内部立项"]
+    J --> K["POC测试与方案确认"]
+    K --> L["商务报价谈判"]
+    L --> M["签约付款+交付上线"]
+
+    classDef visio fill:#dce8f8,stroke:#2c5282,stroke-width:2px,color:#1a365d
+    classDef nodeStart fill:#c6f6d5,stroke:#276749,stroke-width:2px,color:#1a4731
+    classDef nodeEnd fill:#fed7d7,stroke:#9b2c2c,stroke-width:2px,color:#742a2a
+    class A nodeStart
+    class M nodeEnd
+    class B,C,D,E,F,G,H,I,J,K,L visio
+      </pre>
+    </div>
+  </section>
+
+  <!-- 场景2 -->
+  <section id="scene2">
+    <h2><span class="num">2</span> 场景2：销售精准邀约 · 高意向成交流程</h2>
+    <p class="lead">销售建联 → 专属链接预习 → 多人协同评估 → 定制演示 → 立项比价 → POC 验收 → 签约交付</p>
+    <div class="visio-canvas" data-title="场景2：销售精准邀约 · 高意向成交流程" role="button" tabindex="0" aria-label="点击查看大图">
+      <pre class="mermaid">
+flowchart LR
+    A["销售前期建联触达"] --> B["确认痛点+预算真实性"]
+    B --> C["下发专属官网链接"]
+    C --> D["客户自主预习方案案例"]
+    D --> E["邀约IT/老板/采购协同评估"]
+    E --> F["定制化专场产品演示"]
+    F --> G["业务+技术专项答疑"]
+    G --> H["输出定制方案与精准报价"]
+    H --> I["企业正式立项比价"]
+    I --> J["落地POC实测验收"]
+    J --> K["合同磋商与合规审批"]
+    K --> L["支付预付款"]
+    L --> M["部署交付与项目结项"]
+
+    classDef visio fill:#dce8f8,stroke:#2c5282,stroke-width:2px,color:#1a365d
+    classDef nodeStart fill:#c6f6d5,stroke:#276749,stroke-width:2px,color:#1a4731
+    classDef nodeEnd fill:#fed7d7,stroke:#9b2c2c,stroke-width:2px,color:#742a2a
+    class A nodeStart
+    class M nodeEnd
+    class B,C,D,E,F,G,H,I,J,K,L visio
+      </pre>
+    </div>
+  </section>
+
+  <!-- 四类决策身份 -->
+  <section id="identity">
+    <h2><span class="num">3</span> B端四类决策身份 · 必须获取的核心信息</h2>
+    <p class="lead">官网内容须按访客岗位自动匹配，覆盖业务、技术、高管、采购四类决策链核心诉求</p>
+
+    <div class="identity-grid">
+      <div class="identity-card biz">
+        <div class="card-head"><span class="icon">✅</span> 业务负责人（判定需求价值）</div>
+        <ol>
+          <li>行业专属业务痛点解决方案</li>
+          <li>AI 自动化落地流程演示</li>
+          <li>提效、降本真实数据效果</li>
+          <li>同行业成功落地案例</li>
+          <li>操作难度、员工上手成本</li>
+          <li>日常工作减负、流程优化价值</li>
+        </ol>
+      </div>
+
+      <div class="identity-card it">
+        <div class="card-head"><span class="icon">✅</span> IT 技术负责人（判定落地可行性）</div>
+        <ol>
+          <li>SaaS / 私有化部署模式说明</li>
+          <li>数据加密、隔离、安全机制</li>
+          <li>现有系统接口兼容方案</li>
+          <li>等保资质、合规认证文件</li>
+          <li>运维成本、技术响应速度</li>
+          <li>产品迭代更新、技术稳定性</li>
+        </ol>
+      </div>
+
+      <div class="identity-card ceo">
+        <div class="card-head"><span class="icon">✅</span> 企业老板 / 高管（判定投入性价比）</div>
+        <ol>
+          <li>企业资质、团队实力、大客户背书</li>
+          <li>公司新闻、项目动态、迭代进度</li>
+          <li>项目投入成本、回本周期 ROI</li>
+          <li>落地风险、长期服务稳定性</li>
+          <li>企业数字化竞争力提升价值</li>
+          <li>长期迭代规划、售后保障体系</li>
+        </ol>
+      </div>
+
+      <div class="identity-card proc">
+        <div class="card-head"><span class="icon">✅</span> 采购负责人（判定合规采购性）</div>
+        <ol>
+          <li>产品版本套餐、标准化报价体系</li>
+          <li>项目交付周期、实施服务范围</li>
+          <li>合同条款、付款方式、发票规范</li>
+          <li>售后维保、培训、版本升级政策</li>
+          <li>招投标合规资质、评审资料</li>
+          <li>SLA 服务标准、售后响应机制</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <!-- 官网优化 -->
+  <section id="optimize">
+    <h2><span class="num">4</span> B端官网核心优化注意事项（解决转化卡点）</h2>
+    <p class="lead">针对 B 端多人决策、长周期采购的典型卡点，官网需在以下五个维度做差异化设计</p>
+
+    <ul class="note-list">
+      <li>
+        <span class="note-num">1</span>
+        <div class="note-body">
+          <strong>身份自适应刚需</strong>
+          <span>官网不能统一内容展示，必须根据访客岗位自动匹配业务、技术、老板、采购专属内容，避免精准用户流失。</span>
+        </div>
+      </li>
+      <li>
+        <span class="note-num">2</span>
+        <div class="note-body">
+          <strong>新闻动态为信任核心</strong>
+          <span>B 端大客户、IT、高管极度看重企业动态、项目落地、版本迭代，无新闻板块直接导致信任不足、立项失败。</span>
+        </div>
+      </li>
+      <li>
+        <span class="note-num">3</span>
+        <div class="note-body">
+          <strong>多人协同功能差异化</strong>
+          <span>必须保留 AI 导购 @同事 协同咨询能力，完美适配 B 端多人决策采购逻辑，是普通官网不具备的转化优势。</span>
+        </div>
+      </li>
+      <li>
+        <span class="note-num">4</span>
+        <div class="note-body">
+          <strong>全链路留资预埋</strong>
+          <span>所有浏览页面、AI 对话、案例页面均需预埋预约演示、资料下载入口，不放过任何意向流量。</span>
+        </div>
+      </li>
+      <li>
+        <span class="note-num">5</span>
+        <div class="note-body">
+          <strong>技术合规内容公开</strong>
+          <span>私有化部署、安全资质、接口文档、合规说明必须公开展示，满足 IT 评审、企业合规筛查硬性要求。</span>
+        </div>
+      </li>
+    </ul>
+  </section>
+
+  <footer>
+    <p>B端AI智能体订单闭环 · Visio 流程图网页版</p>
+    <blockquote>（注：部分内容可能由 AI 生成）</blockquote>
+  </footer>
+
+</div>
+
+<!-- 大图 Lightbox -->
+<div id="flow-lightbox" class="lightbox" aria-hidden="true">
+  <div class="lightbox-backdrop" data-close></div>
+  <div class="lightbox-panel" role="dialog" aria-modal="true" aria-labelledby="lightbox-title">
+    <div class="lightbox-toolbar">
+      <span class="lightbox-title" id="lightbox-title"></span>
+      <div class="lightbox-zoom">
+        <button type="button" data-zoom="out" title="缩小">−</button>
+        <span class="zoom-label">150%</span>
+        <button type="button" data-zoom="in" title="放大">+</button>
+        <button type="button" data-zoom="fit" title="适应窗口" style="width:auto;padding:0 10px;font-size:12px;">适应</button>
+      </div>
+      <button type="button" class="lightbox-close" data-close title="关闭">×</button>
+    </div>
+    <div class="lightbox-body">
+      <div class="lightbox-stage"></div>
+    </div>
+    <div class="lightbox-hint">滚轮缩放 · 拖拽滚动 · 按 Esc 关闭</div>
+  </div>
+</div>
+
+<script>
+  mermaid.initialize({
+    startOnLoad: false,
+    theme: 'base',
+    securityLevel: 'loose',
+    flowchart: {
+      curve: 'linear',
+      padding: 24,
+      nodeSpacing: 55,
+      rankSpacing: 85,
+      htmlLabels: true,
+      useMaxWidth: false
+    },
+    themeVariables: {
+      fontFamily: '"Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif',
+      fontSize: '18px',
+      primaryColor: '#dce8f8',
+      primaryBorderColor: '#2c5282',
+      primaryTextColor: '#1a365d',
+      lineColor: '#4a5568',
+      secondaryColor: '#e2e8f0',
+      tertiaryColor: '#f7fafc',
+      edgeLabelBackground: '#ffffff',
+      nodeBorder: '#2c5282',
+      mainBkg: '#dce8f8'
+    }
+  });
+
+  function boostFlowchartFonts(root, size) {
+    var px = size || '17px';
+    root.querySelectorAll('svg foreignObject div, svg foreignObject span, svg foreignObject p').forEach(function (el) {
+      el.style.setProperty('font-size', px, 'important');
+      el.style.setProperty('font-weight', '600', 'important');
+      el.style.setProperty('line-height', '1.5', 'important');
+    });
+    root.querySelectorAll('svg text').forEach(function (el) {
+      el.setAttribute('font-size', parseInt(px, 10) - 1);
+    });
+  }
+
+  /* ── Lightbox ── */
+  var lightbox = document.getElementById('flow-lightbox');
+  var lbTitle = lightbox.querySelector('.lightbox-title');
+  var lbStage = lightbox.querySelector('.lightbox-stage');
+  var lbZoomLabel = lightbox.querySelector('.zoom-label');
+  var lbBody = lightbox.querySelector('.lightbox-body');
+  var currentZoom = 1.5;
+  var baseWidth = 0;
+  var baseHeight = 0;
+
+  function setZoom(z) {
+    currentZoom = Math.max(0.5, Math.min(3, z));
+    lbStage.style.transform = 'scale(' + currentZoom + ')';
+    if (baseWidth && baseHeight) {
+      lbStage.style.width = (baseWidth * currentZoom) + 'px';
+      lbStage.style.height = (baseHeight * currentZoom) + 'px';
+    }
+    lbZoomLabel.textContent = Math.round(currentZoom * 100) + '%';
+  }
+
+  function openLightbox(canvas) {
+    var svg = canvas.querySelector('svg');
+    if (!svg) return;
+
+    lbTitle.textContent = canvas.getAttribute('data-title') || '流程图';
+    lbStage.innerHTML = '';
+    var clone = svg.cloneNode(true);
+    clone.removeAttribute('width');
+    clone.removeAttribute('height');
+    clone.style.width = 'auto';
+    clone.style.height = 'auto';
+    lbStage.appendChild(clone);
+    boostFlowchartFonts(lbStage, '22px');
+
+    requestAnimationFrame(function () {
+      try {
+        var bbox = clone.getBBox();
+        baseWidth = bbox.width + 48;
+        baseHeight = bbox.height + 48;
+      } catch (e) {
+        baseWidth = clone.clientWidth || 1200;
+        baseHeight = clone.clientHeight || 400;
+      }
+      currentZoom = 1.5;
+      setZoom(1.5);
+    });
+
+    lightbox.classList.add('open');
+    lightbox.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+    lbBody.scrollTop = 0;
+    lbBody.scrollLeft = 0;
+  }
+
+  function closeLightbox() {
+    lightbox.classList.remove('open');
+    lightbox.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+    lbStage.innerHTML = '';
+  }
+
+  document.querySelectorAll('.visio-canvas').forEach(function (canvas) {
+    canvas.addEventListener('click', function () { openLightbox(canvas); });
+    canvas.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openLightbox(canvas); }
+    });
+  });
+
+  lightbox.querySelectorAll('[data-close]').forEach(function (el) {
+    el.addEventListener('click', closeLightbox);
+  });
+
+  lightbox.querySelector('[data-zoom="in"]').addEventListener('click', function () { setZoom(currentZoom + 0.25); });
+  lightbox.querySelector('[data-zoom="out"]').addEventListener('click', function () { setZoom(currentZoom - 0.25); });
+  lightbox.querySelector('[data-zoom="fit"]').addEventListener('click', function () {
+    if (!baseWidth || !baseHeight) return;
+    var bw = lbBody.clientWidth - 48;
+    var bh = lbBody.clientHeight - 48;
+    setZoom(Math.min(bw / baseWidth, bh / baseHeight, 2));
+  });
+
+  lbBody.addEventListener('wheel', function (e) {
+    if (!lightbox.classList.contains('open')) return;
+    e.preventDefault();
+    setZoom(currentZoom + (e.deltaY < 0 ? 0.1 : -0.1));
+  }, { passive: false });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && lightbox.classList.contains('open')) closeLightbox();
+  });
+
+  document.addEventListener('DOMContentLoaded', function () {
+    mermaid.run().then(function () {
+      document.querySelectorAll('.visio-canvas').forEach(function (c) { boostFlowchartFonts(c, '17px'); });
+    }).catch(console.error);
+  });
+</script>
+</body>
+</html>

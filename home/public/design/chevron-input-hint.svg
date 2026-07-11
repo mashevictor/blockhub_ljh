@@ -1,0 +1,17 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 120" fill="none" role="img" aria-labelledby="title">
+  <title id="title">输入描述后键入 >> 多选模块</title>
+  <rect width="640" height="120" rx="16" fill="#f8fafc"/>
+  <rect x="24" y="36" width="200" height="48" rx="10" fill="#fff" stroke="#cbd5e1" stroke-width="1.5"/>
+  <text x="40" y="66" font-family="sans-serif" font-size="14" fill="#64748b">描述你的需求…</text>
+  <path d="M248 60h44" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
+  <path d="M278 52l12 8-12 8" stroke="#0d47a1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="300" y="66" font-family="monospace" font-size="22" font-weight="800" fill="#0d47a1">&gt;&gt;</text>
+  <path d="M368 60h44" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
+  <path d="M398 52l12 8-12 8" stroke="#0d47a1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="424" y="32" width="88" height="32" rx="8" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
+  <text x="438" y="53" font-family="sans-serif" font-size="12" font-weight="600" fill="#0d47a1">行业</text>
+  <rect x="520" y="32" width="88" height="32" rx="8" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
+  <text x="534" y="53" font-family="sans-serif" font-size="12" font-weight="600" fill="#047857">模块</text>
+  <rect x="424" y="72" width="184" height="32" rx="8" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
+  <text x="438" y="93" font-family="sans-serif" font-size="12" font-weight="600" fill="#c2410c">场景 · 能力</text>
+</svg>

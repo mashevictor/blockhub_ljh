@@ -4,6 +4,7 @@ from uuid import uuid4
 
 from sqlalchemy.orm import Session
 
+from app.data.industry_packs_all import ALL_INDUSTRY_PACKS, pack_meta
 from app.data.hero_presets import CHIP_TEMPLATES, HERO_PRESETS, preset_role
 from app.data.seed import (
     AGENTS,
@@ -222,6 +223,62 @@ def catalog_counts(db: Session) -> dict[str, int]:
     }
 
 
+def sync_industry_packs_delta(db: Session) -> int:
+    """增量同步 20 行业深度包与场景，无需 force 全量重建。"""
+    existing_packs = {row.key for row in db.query(CatalogIndustryPack.key).all()}
+    existing_scene_keys = {
+        (row.pack_key, row.name)
+        for row in db.query(CatalogIndustryScenario.pack_key, CatalogIndustryScenario.name).all()
+    }
+    added = 0
+
+    for idx, pack in enumerate(ALL_INDUSTRY_PACKS):
+        if pack["key"] not in existing_packs:
+            db.add(
+                CatalogIndustryPack(
+                    key=pack["key"],
+                    name=pack["name"],
+                    icon=pack.get("icon", ""),
+                    color=pack.get("color", ""),
+                    sort_order=idx,
+                )
+            )
+            added += 1
+
+    db.flush()
+
+    next_idx = db.query(CatalogIndustryScenario).count() + 1
+    for pack in ALL_INDUSTRY_PACKS:
+        for scene in pack.get("scenes") or []:
+            key = (pack["key"], scene["name"])
+            if key in existing_scene_keys:
+                continue
+            sid = f"industry-{next_idx:03d}"
+            while db.query(CatalogIndustryScenario).filter(CatalogIndustryScenario.id == sid).first():
+                next_idx += 1
+                sid = f"industry-{next_idx:03d}"
+            db.add(
+                CatalogIndustryScenario(
+                    id=sid,
+                    name=scene["name"],
+                    category=scene["category"],
+                    pack_key=pack["key"],
+                    pack_name=pack["name"],
+                    pack_icon=pack.get("icon", ""),
+                    pack_color=pack.get("color", ""),
+                    problem=scene.get("problem", ""),
+                    pages=scene.get("pages", ""),
+                    standard=scene.get("standard", "✓"),
+                    agent=scene.get("agent", "approval"),
+                )
+            )
+            existing_scene_keys.add(key)
+            next_idx += 1
+            added += 1
+
+    return added
+
+
 def sync_catalog_delta(db: Session) -> int:
     """增量同步 seed 中新增的 Agent/能力，无需 force 全量重建。"""
     existing_agents = {row.id for row in db.query(CatalogAgent.id).all()}
@@ -298,6 +355,9 @@ def sync_catalog_delta(db: Session) -> int:
             )
         )
         added += 1
+
+    industry_added = sync_industry_packs_delta(db)
+    added += industry_added
 
     if added:
         db.commit()

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock'
 import { GENERATE_APP_LABEL } from '../data/publishUi'
+import ChevronDotLoader from './ChevronDotLoader'
 
 export type GeneratePhase = 'analyze' | 'publish' | 'redirect'
 
@@ -41,6 +42,7 @@ export default function GenerateLoadingOverlay({ phase, appName }: Props) {
     return createPortal(
       <div className="loading-overlay loading-overlay-portal loading-overlay-brand" role="alertdialog" aria-busy="true" aria-live="polite">
         <div className="loading-box">
+          <ChevronDotLoader variant="converge" size="md" className="loading-chevron" label="完成" />
           <p className="loading-progress-value">{progress}%</p>
           <div className="loading-progress-track" aria-hidden>
             <div className="loading-progress-fill" style={{ width: `${progress}%` }} />
@@ -68,6 +70,12 @@ export default function GenerateLoadingOverlay({ phase, appName }: Props) {
   return createPortal(
     <div className="loading-overlay loading-overlay-portal loading-overlay-brand" role="alertdialog" aria-busy="true" aria-live="polite">
       <div className="loading-box">
+        <ChevronDotLoader
+          variant={phase === 'analyze' ? 'scan' : 'converge'}
+          size="md"
+          className="loading-chevron"
+          label={headline}
+        />
         <p className="loading-progress-value">{Math.round(progress)}%</p>
         <div className="loading-progress-track" aria-hidden>
           <div className="loading-progress-fill" style={{ width: `${Math.round(progress)}%` }} />

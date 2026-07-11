@@ -19,6 +19,7 @@ import {
   DEFAULT_GUIDE_TEXT,
   GUIDE_PLACEHOLDER,
   isLoneTrigger,
+  normalizeChevronInput,
   PANEL_HINT_TEXT,
   resolveInputState,
   resolvePanelHint,
@@ -28,7 +29,9 @@ import {
   type TriggerContext,
 } from './agentInputLogic'
 import { useAgentPageContext } from '../context/AgentPageContext'
+import { useFloatingDock } from '../context/FloatingDockContext'
 import { AGENT_CONTEXTS } from '../data/agentContext'
+import { ChevronDotSign } from './ChevronDotLoader'
 
 export type { AgentPick } from './agentInputLogic'
 
@@ -67,6 +70,8 @@ interface Props {
   onPick?: (pick: AgentPick, extra?: { iconKey?: string; color?: string }) => void
   theme?: ThemeTokens
   orbSize?: 'default' | 'large'
+  /** 模块选择面板开/关（用于与积木仓互斥） */
+  onPickerChange?: (open: boolean) => void
 }
 
 interface PanelItem {
@@ -102,8 +107,10 @@ export default forwardRef<AgentInputHandle, Props>(function AgentInput({
   onPick,
   theme,
   orbSize = 'default',
+  onPickerChange,
 }, ref) {
   const innerRef = useRef<HTMLTextAreaElement>(null)
+  const compactRef = useRef<HTMLInputElement>(null)
   const wrapRef = useRef<HTMLDivElement>(null)
   const panelRef = useRef<HTMLDivElement>(null)
   const composingRef = useRef(false)
@@ -112,10 +119,19 @@ export default forwardRef<AgentInputHandle, Props>(function AgentInput({
   const pickedRef = useRef(false)
 
   const isMinimal = variant === 'minimal'
+  const floatingDock = useFloatingDock()
+  const isFloatingCapsule = Boolean(
+    isMinimal && floatingDock?.variant === 'capsule' && !floatingDock.collapsed,
+  )
+  const capsuleCompact = Boolean(
+    isMinimal && floatingDock?.variant === 'capsule' && floatingDock.collapsed,
+  )
+  const textareaRows = isFloatingCapsule ? 2 : (expanded ? 5 : 2)
   const { contextKey } = useAgentPageContext()
   const contextCopy = AGENT_CONTEXTS[contextKey]
-  const placeholderText = isMinimal ? contextCopy.placeholder : GUIDE_PLACEHOLDER
-  const ghostText = isMinimal ? contextCopy.ghost : GUIDE_PLACEHOLDER
+  const placeholderText = capsuleCompact && contextCopy.placeholderCollapsed
+    ? contextCopy.placeholderCollapsed
+    : (isMinimal ? contextCopy.placeholder : GUIDE_PLACEHOLDER)
 
   const [focused, setFocused] = useState(false)
   const [composing, setComposing] = useState(false)
@@ -127,7 +143,9 @@ export default forwardRef<AgentInputHandle, Props>(function AgentInput({
   const openPickerSession = useCallback(() => {
     setPickerSession(true)
     setFocused(true)
-    requestAnimationFrame(() => innerRef.current?.focus())
+    requestAnimationFrame(() => {
+      innerRef.current?.focus({ preventScroll: true })
+    })
   }, [])
 
   const activateGuide = useCallback(() => {
@@ -138,7 +156,7 @@ export default forwardRef<AgentInputHandle, Props>(function AgentInput({
       requestAnimationFrame(() => {
         const el = innerRef.current
         if (!el) return
-        el.focus()
+        el.focus({ preventScroll: true })
         el.setSelectionRange(GUIDE_CURSOR, GUIDE_CURSOR)
         setCursor(GUIDE_CURSOR)
       })
@@ -148,10 +166,13 @@ export default forwardRef<AgentInputHandle, Props>(function AgentInput({
   }, [onChange, value, openPickerSession])
 
   useImperativeHandle(ref, () => ({
-    focus: () => innerRef.current?.focus(),
+    focus: () => {
+      const el = capsuleCompact ? compactRef.current : innerRef.current
+      el?.focus({ preventScroll: true })
+    },
     openPicker: () => openPickerSession(),
     get textarea() { return innerRef.current },
-  }), [openPickerSession])
+  }), [openPickerSession, capsuleCompact])
 
   const inputState = useMemo(
     () => resolveInputState(value, cursor, focused, guideHeld, composing),
@@ -159,6 +180,11 @@ export default forwardRef<AgentInputHandle, Props>(function AgentInput({
   )
   const { mode, ctx, panelOpen } = inputState
   const effectivePanelOpen = panelOpen || (isMinimal && pickerSession && focused)
+
+  useEffect(() => {
+    onPickerChange?.(effectivePanelOpen)
+  }, [effectivePanelOpen, onPickerChange])
+
   const filterQuery = ctx.open
     ? ctx.query.trim().toLowerCase()
     : (isMinimal && pickerSession) || mode === 'guide'
@@ -175,7 +201,7 @@ export default forwardRef<AgentInputHandle, Props>(function AgentInput({
     requestAnimationFrame(() => {
       const el = innerRef.current
       if (!el) return
-      el.focus()
+      el.focus({ preventScroll: true })
       el.setSelectionRange(pos, pos)
       setCursor(pos)
     })
@@ -236,13 +262,15 @@ export default forwardRef<AgentInputHandle, Props>(function AgentInput({
         return mk({ type: 'scenario', key: s.id, label: s.name }, { hint: s.category, iconKey, color: ic })
       })
 
+    const showFullCatalog = !isMinimal || Boolean(filterQuery) || pickerSession
+
     const out: PanelSection[] = []
     if (actionItems.length && !isMinimal) out.push({ id: 'actions', title: '快捷指令', items: actionItems })
-    if (scenarioItems.length) out.push({ id: 'scenarios', title: '业务场景', items: scenarioItems })
+    if (scenarioItems.length && showFullCatalog) out.push({ id: 'scenarios', title: '业务场景', items: scenarioItems })
     if (industryItems.length) out.push({ id: 'industries', title: '行业视角', items: industryItems.slice(0, 8) })
     if (officeItems.length) out.push({ id: 'office', title: '办公分类', items: officeItems })
     if (capItems.length) out.push({ id: 'capabilities', title: '平台能力', items: capItems.slice(0, 6) })
-    if (moduleItems.length) out.push({ id: 'modules', title: '功能模块', items: moduleItems.slice(0, 8) })
+    if (moduleItems.length && showFullCatalog) out.push({ id: 'modules', title: '功能模块', items: moduleItems.slice(0, 8) })
     return out
   }, [filterQuery, scenarios, modules, isMinimal, theme])
 
@@ -287,7 +315,7 @@ export default forwardRef<AgentInputHandle, Props>(function AgentInput({
         onChange(text)
         applyCursor(text, nextPos)
       } else {
-        innerRef.current?.focus()
+        innerRef.current?.focus({ preventScroll: true })
       }
       return
     }
@@ -301,17 +329,25 @@ export default forwardRef<AgentInputHandle, Props>(function AgentInput({
   }, [mode, ctx.open, ctx.triggerAt, value, onPick, onChange, closePanel, isMinimal])
 
   const handleFocus = () => {
+    const scrollX = window.scrollX
+    const scrollY = window.scrollY
     setFocused(true)
+    if (floatingDock?.variant === 'capsule' && floatingDock.collapsed) {
+      floatingDock.expand()
+    }
     onFocus?.()
     if (!value.trim() && isMinimal) {
       syncCursor()
+      requestAnimationFrame(() => window.scrollTo(scrollX, scrollY))
       return
     }
     if (!value.trim()) {
       activateGuide()
+      requestAnimationFrame(() => window.scrollTo(scrollX, scrollY))
       return
     }
     syncCursor()
+    requestAnimationFrame(() => window.scrollTo(scrollX, scrollY))
   }
 
   const handleBlur = () => {
@@ -324,15 +360,39 @@ export default forwardRef<AgentInputHandle, Props>(function AgentInput({
     onBlur?.()
   }
 
-  const handleChange = (text: string) => {
+  const handleChange = (rawText: string) => {
+    const scrollX = window.scrollX
+    const scrollY = window.scrollY
+    const el = capsuleCompact ? compactRef.current : innerRef.current
+    const rawCursor = el?.selectionStart ?? rawText.length
+    const { text, cursor: normCursor } = composingRef.current
+      ? { text: rawText, cursor: rawCursor }
+      : normalizeChevronInput(rawText, rawCursor)
+
     onChange(text)
+    if (floatingDock?.variant === 'capsule' && floatingDock.collapsed) {
+      floatingDock.expand()
+    }
     if (composingRef.current) return
-    const pos = innerRef.current?.selectionStart ?? text.length
-    setCursor(pos)
+
+    if (text !== rawText && el) {
+      requestAnimationFrame(() => {
+        el.setSelectionRange(normCursor, normCursor)
+        setCursor(normCursor)
+      })
+    } else {
+      setCursor(normCursor)
+    }
+
     if (text !== DEFAULT_GUIDE_TEXT) setGuideHeld(false)
-    const nextCtx = resolveInputState(text, pos, true, guideHeld && text === DEFAULT_GUIDE_TEXT, false).ctx
+    const nextCtx = resolveInputState(text, normCursor, true, guideHeld && text === DEFAULT_GUIDE_TEXT, false).ctx
     if (nextCtx.open && isMinimal) setPickerSession(true)
+    if (isMinimal && pickerSession && !nextCtx.open) {
+      const plain = text.replace(/^>>\s*/, '').trim()
+      if (plain.length >= 2) setPickerSession(false)
+    }
     updateTriggerIndex(nextCtx)
+    requestAnimationFrame(() => window.scrollTo(scrollX, scrollY))
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -421,7 +481,7 @@ export default forwardRef<AgentInputHandle, Props>(function AgentInput({
     }))
   }, [sections, activeIdx, isMinimal, theme, insertPick])
 
-  const showGhost = focused && !value.trim() && modules.length === 0
+  const showGhost = focused && !value.trim() && modules.length === 0 && !isMinimal
 
   const renderModuleButtons = () => modules.map((m) => (
     <button
@@ -460,6 +520,7 @@ export default forwardRef<AgentInputHandle, Props>(function AgentInput({
               <div className="agent-composer-modules">{renderModuleButtons()}</div>
             )}
             <div className="agent-composer-row">
+              {!capsuleCompact && (
               <button
                 type="button"
                 className={`agent-brand-trigger${effectivePanelOpen ? ' active' : ''}`}
@@ -471,23 +532,40 @@ export default forwardRef<AgentInputHandle, Props>(function AgentInput({
                   else openPickerSession()
                 }}
               >
-                <span className="agent-brand-chev" aria-hidden>&gt;&gt;</span>
+                <ChevronDotSign size="btn" />
                 {contextCopy.chevLabel ? (
                   <span className="agent-brand-chev-label">{contextCopy.chevLabel}</span>
                 ) : null}
               </button>
+              )}
               <div className="agent-input-field-wrap">
-                {showGhost && (
-                  <div className="agent-input-ghost" aria-hidden>
-                    {ghostText}
-                  </div>
-                )}
+                {capsuleCompact ? (
+                  <input
+                    ref={compactRef}
+                    type="text"
+                    className="agent-input-field agent-input-compact"
+                    value={value}
+                    placeholder={placeholderText}
+                    onChange={(e) => handleChange(e.target.value)}
+                    onFocus={handleFocus}
+                    onBlur={handleBlur}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault()
+                        floatingDock?.expand()
+                        requestAnimationFrame(() => innerRef.current?.focus({ preventScroll: true }))
+                      }
+                    }}
+                    spellCheck={false}
+                    aria-label="描述应用需求"
+                  />
+                ) : (
                 <textarea
                   ref={innerRef}
                   className="agent-input-field"
                   value={value}
-                  rows={expanded ? 5 : 2}
-                  placeholder={focused ? '' : placeholderText}
+                  rows={textareaRows}
+                  placeholder={placeholderText}
                   onChange={(e) => handleChange(e.target.value)}
                   onFocus={handleFocus}
                   onBlur={handleBlur}
@@ -505,12 +583,15 @@ export default forwardRef<AgentInputHandle, Props>(function AgentInput({
                   aria-autocomplete="list"
                   aria-expanded={effectivePanelOpen}
                 />
+                )}
               </div>
             </div>
           </>
         ) : (
           <>
-            <span className="agent-input-prefix" aria-hidden>&gt;&gt;</span>
+            <span className="agent-input-prefix" aria-hidden>
+              <ChevronDotSign size="btn" />
+            </span>
             <div className="agent-input-field-wrap">
               {showGhost && (
                 <div className="agent-input-ghost" aria-hidden>{GUIDE_PLACEHOLDER}</div>
@@ -555,12 +636,16 @@ export default forwardRef<AgentInputHandle, Props>(function AgentInput({
             </span>
           )}
           {(mode === 'guide' || (pickerSession && effectivePanelOpen)) && mode !== 'command' && (
-            <span>可多选模块 · 选完后 Esc 或直接输入描述</span>
+            <span>
+              {isMinimal
+                ? '点上方光球选模块 · 选完点「完成选模块」查看积木仓'
+                : '可多选模块 · 选完后 Esc 或直接输入描述'}
+            </span>
           )}
           {mode === 'command' && (
             <span>
               <code>&gt;&gt;</code> 编排中 · 可多选
-              {ctx.query.trim() ? ` · 筛选「${ctx.query.trim()}」` : ''}
+              {ctx.query.trim() ? ` · 筛选「${ctx.query.trim()}」` : ' · 或直接输入需求，如：游戏'}
               {pickerSession && !ctx.open ? ' · Esc 完成' : ''}
             </span>
           )}
@@ -577,6 +662,9 @@ export default forwardRef<AgentInputHandle, Props>(function AgentInput({
             foot={PANEL_HINT_TEXT[panelHint]}
             theme={theme}
             size={orbSize}
+            showDone={pickerSession}
+            selectedCount={modules.length}
+            onDone={closePanel}
           />
         </div>
       )}
@@ -613,7 +701,7 @@ export default forwardRef<AgentInputHandle, Props>(function AgentInput({
                         onMouseEnter={() => setActiveIdx(idx)}
                         onClick={() => insertPick(item)}
                       >
-                        <span className="agent-module-chevron">&gt;&gt;</span>
+                        <ChevronDotSign size="btn" />
                         {item.iconKey && item.color && (
                           <span className="agent-module-icon" style={{ color: item.color }}>
                             <DynamicIcon name={item.iconKey} size={16} color={item.color} />

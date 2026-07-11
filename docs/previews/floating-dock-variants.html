@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>悬浮输入框 · 交互方案预览</title>
+  <style>
+    :root {
+      --pri: #0d47a1;
+      --pri-light: #1565c0;
+      --accent: #2563eb;
+      --border: #dbeafe;
+      --bg: #f0f4f8;
+      --text: #0f172a;
+      --muted: #64748b;
+      --radius: 16px;
+      --shadow: 0 12px 40px rgba(13, 71, 161, 0.14), 0 2px 8px rgba(15, 23, 42, 0.06);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: linear-gradient(165deg, #e8f0fe 0%, #f8fafc 45%, #eef2ff 100%);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 32px 20px 80px;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--pri);
+      margin-bottom: 8px;
+    }
+
+    .page-desc {
+      text-align: center;
+      color: var(--muted);
+      font-size: 14px;
+      max-width: 640px;
+      margin: 0 auto 36px;
+      line-height: 1.6;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 28px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 20px;
+      border: 1px solid #e2e8f0;
+      padding: 20px;
+      box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05);
+    }
+
+    .card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      gap: 12px;
+    }
+
+    .card-head h2 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--pri);
+    }
+
+    .badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: #eff6ff;
+      color: var(--accent);
+      border: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    .card-note {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.5;
+      margin-bottom: 16px;
+    }
+
+    .demo-stage {
+      background: var(--bg);
+      border-radius: 14px;
+      padding: 24px 16px 20px;
+      min-height: 200px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .demo-stage::before {
+      content: "页面内容区";
+      position: absolute;
+      top: 12px;
+      left: 14px;
+      font-size: 11px;
+      color: #94a3b8;
+      letter-spacing: 0.04em;
+    }
+
+    /* ── 方案 A：单行胶囊（无内嵌边框） ── */
+    .dock-a {
+      width: 100%;
+      max-width: 520px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px 8px 14px;
+      background: #fff;
+      border: 1.5px solid #93c5fd;
+      border-radius: 999px;
+      box-shadow: var(--shadow);
+      transition: border-radius 0.25s ease, padding 0.25s ease;
+    }
+
+    .dock-a.expanded {
+      border-radius: 18px;
+      flex-wrap: wrap;
+      padding: 12px 14px;
+    }
+
+    .dock-a .title {
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--pri);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .dock-a .title .chev { color: var(--accent); }
+
+    .dock-a input,
+    .dock-a textarea {
+      flex: 1;
+      min-width: 120px;
+      border: none;
+      outline: none;
+      background: transparent;
+      font-size: 14px;
+      font-family: inherit;
+      color: var(--text);
+      resize: none;
+      line-height: 1.45;
+      padding: 4px 0;
+    }
+
+    .dock-a input::placeholder,
+    .dock-a textarea::placeholder { color: #94a3b8; }
+
+    .dock-a .toggle {
+      width: 32px;
+      height: 32px;
+      border: none;
+      border-radius: 50%;
+      background: #eff6ff;
+      color: var(--pri);
+      cursor: pointer;
+      flex-shrink: 0;
+      display: grid;
+      place-items: center;
+      font-size: 14px;
+      transition: transform 0.2s;
+    }
+
+    .dock-a.expanded .toggle { transform: rotate(180deg); }
+
+    .dock-a .body {
+      display: none;
+      width: 100%;
+      padding-top: 8px;
+      border-top: 1px solid #e2e8f0;
+      margin-top: 4px;
+    }
+
+    .dock-a.expanded .body { display: block; }
+
+    .dock-a .body textarea {
+      width: 100%;
+      min-height: 72px;
+      border: none;
+      padding: 0;
+    }
+
+    .dock-a .actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      margin-top: 10px;
+    }
+
+    .dock-a .chip {
+      padding: 5px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: #fff;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .dock-a .chip.on { background: var(--pri); color: #fff; border-color: var(--pri); }
+
+    .dock-a .btn-primary {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #1565c0, #0d47a1);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    /* ── 方案 B：双层卡片（折叠也清晰） ── */
+    .dock-b {
+      width: 100%;
+      max-width: 520px;
+      margin: 0 auto;
+      background: #fff;
+      border: 1.5px solid #93c5fd;
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      transition: box-shadow 0.25s;
+    }
+
+    .dock-b:focus-within { box-shadow: 0 16px 48px rgba(13, 71, 161, 0.2); }
+
+    .dock-b .head {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      background: linear-gradient(180deg, #eaf2ff, #f8fbff);
+      border-bottom: 1px solid #bfdbfe;
+    }
+
+    .dock-b .grip {
+      width: 8px;
+      height: 14px;
+      background: radial-gradient(circle, #94a3b8 1.5px, transparent 1.5px) 0 0 / 4px 4px;
+      opacity: 0.6;
+      flex-shrink: 0;
+    }
+
+    .dock-b .head-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--pri);
+    }
+
+    .dock-b .head-title .chev { margin-right: 2px; }
+
+    .dock-b .head-spacer { flex: 1; }
+
+    .dock-b .head-toggle {
+      width: 28px;
+      height: 28px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fff;
+      cursor: pointer;
+      color: var(--pri);
+    }
+
+    .dock-b .input-row {
+      padding: 10px 12px;
+    }
+
+    .dock-b .input-row input {
+      width: 100%;
+      border: none;
+      outline: none;
+      font-size: 14px;
+      font-family: inherit;
+      background: transparent;
+      color: var(--text);
+    }
+
+    .dock-b .input-row input::placeholder { color: #94a3b8; }
+
+    .dock-b .expand-body {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+    }
+
+    .dock-b.expanded .expand-body { max-height: 200px; }
+
+    .dock-b .expand-inner {
+      padding: 0 12px 12px;
+      border-top: 1px dashed #e2e8f0;
+    }
+
+    .dock-b .deliver { display: flex; gap: 6px; margin-bottom: 10px; }
+
+    .dock-b .deliver button {
+      padding: 5px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #fff;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .dock-b .deliver button.on { background: #eff6ff; border-color: #93c5fd; color: var(--pri); font-weight: 700; }
+
+    .dock-b .gen {
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #1d4ed8, #0d47a1);
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    /* ── 方案 C：命令栏 / Raycast 风 ── */
+    .dock-c-wrap {
+      width: 100%;
+      max-width: 520px;
+      margin: 0 auto;
+    }
+
+    .dock-c {
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(147, 197, 253, 0.6);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .dock-c .cmd-line {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px;
+    }
+
+    .dock-c .cmd-prefix {
+      font-weight: 900;
+      font-size: 15px;
+      color: #059669;
+      flex-shrink: 0;
+    }
+
+    .dock-c .cmd-input {
+      flex: 1;
+      border: none;
+      outline: none;
+      background: transparent;
+      font-size: 15px;
+      font-family: inherit;
+      color: var(--text);
+    }
+
+    .dock-c .cmd-input::placeholder { color: #94a3b8; }
+
+    .dock-c .cmd-hint {
+      font-size: 11px;
+      color: var(--muted);
+      padding: 0 14px 10px;
+    }
+
+    .dock-c .cmd-hint kbd {
+      padding: 1px 5px;
+      border-radius: 4px;
+      border: 1px solid #e2e8f0;
+      background: #f8fafc;
+      font-size: 10px;
+    }
+
+    .dock-c .panel {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.35s ease;
+      background: #f8fafc;
+      border-top: 1px solid #e2e8f0;
+    }
+
+    .dock-c.expanded .panel { max-height: 160px; }
+
+    .dock-c .panel-inner { padding: 10px 14px 14px; }
+
+    .dock-c .panel-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .dock-c .orbs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .dock-c .orb {
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: #fff;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .dock-c .orb:hover { border-color: #93c5fd; background: #eff6ff; }
+
+    /* ── 方案 D：底部 Chat Composer ── */
+    .dock-d {
+      width: 100%;
+      max-width: 520px;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 20px 20px 12px 12px;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 -4px 24px rgba(15, 23, 42, 0.08), var(--shadow);
+    }
+
+    .dock-d .brand-row {
+      padding: 10px 16px 0;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+    }
+
+    .dock-d .brand-row strong { color: var(--pri); }
+
+    .dock-d .composer {
+      display: flex;
+      align-items: flex-end;
+      gap: 10px;
+      padding: 10px 12px 12px;
+    }
+
+    .dock-d .composer-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      border: 1.5px solid var(--border);
+      background: #f0f9ff;
+      color: var(--pri);
+      font-weight: 900;
+      font-size: 13px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .dock-d .composer-field {
+      flex: 1;
+      min-height: 40px;
+      max-height: 120px;
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 1.5px solid #e2e8f0;
+      background: #f8fafc;
+      font-size: 14px;
+      font-family: inherit;
+      outline: none;
+      resize: none;
+      line-height: 1.45;
+      transition: border-color 0.2s, background 0.2s;
+    }
+
+    .dock-d .composer-field:focus {
+      border-color: #93c5fd;
+      background: #fff;
+    }
+
+    .dock-d .composer-field::placeholder { color: #94a3b8; }
+
+    .dock-d .composer-send {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      border: none;
+      background: var(--pri);
+      color: #fff;
+      cursor: pointer;
+      flex-shrink: 0;
+      font-size: 16px;
+    }
+
+    .dock-d .composer-footer {
+      display: none;
+      padding: 0 12px 12px;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .dock-d.expanded .composer-footer { display: flex; }
+
+    .dock-d .composer-footer .tag {
+      padding: 4px 10px;
+      border-radius: 8px;
+      background: #f1f5f9;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    /* ── 方案 E：聚焦展开（当前问题的修正版） ── */
+    .dock-e {
+      width: 100%;
+      max-width: 520px;
+      margin: 0 auto;
+      background: #fff;
+      border: 2px solid #93c5fd;
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      transition: all 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .dock-e .row1 {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      background: linear-gradient(180deg, #eaf2ff, #fff);
+      border-radius: 12px 12px 0 0;
+    }
+
+    .dock-e .row1-title {
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--pri);
+      white-space: nowrap;
+    }
+
+    .dock-e .row1-input {
+      flex: 1;
+      min-width: 0;
+      border: none;
+      outline: none;
+      background: transparent;
+      font-size: 13px;
+      font-family: inherit;
+      color: var(--text);
+      padding: 6px 0;
+    }
+
+    .dock-e .row1-input::placeholder { color: #94a3b8; }
+
+    .dock-e .row1-btn {
+      width: 30px;
+      height: 30px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fff;
+      cursor: pointer;
+      color: var(--pri);
+      flex-shrink: 0;
+    }
+
+    .dock-e .row2 {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease, padding 0.3s ease;
+      padding: 0 12px;
+    }
+
+    .dock-e.expanded .row2 {
+      max-height: 220px;
+      padding: 0 12px 12px;
+    }
+
+    .dock-e .row2 textarea {
+      width: 100%;
+      min-height: 80px;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 14px;
+      font-family: inherit;
+      resize: none;
+      outline: none;
+      line-height: 1.5;
+    }
+
+    .dock-e .row2 textarea:focus { border-color: #93c5fd; }
+
+    .dock-e .row2-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 10px;
+    }
+
+    .dock-e .row2-actions .left { display: flex; gap: 6px; }
+
+    .dock-e .row2-actions button {
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #fff;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .dock-e .row2-actions .primary {
+      background: var(--pri);
+      color: #fff;
+      border-color: var(--pri);
+      font-weight: 700;
+    }
+
+    /* ── 方案 F：极简一条线 ── */
+    .dock-f {
+      width: 100%;
+      max-width: 520px;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    .dock-f .line {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 4px;
+      border-bottom: 2px solid #cbd5e1;
+      transition: border-color 0.2s;
+    }
+
+    .dock-f:focus-within .line { border-bottom-color: var(--pri); }
+
+    .dock-f .line-label {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--pri);
+      flex-shrink: 0;
+    }
+
+    .dock-f .line-input {
+      flex: 1;
+      border: none;
+      outline: none;
+      background: transparent;
+      font-size: 15px;
+      font-family: inherit;
+      color: var(--text);
+    }
+
+    .dock-f .line-input::placeholder { color: #94a3b8; }
+
+    .dock-f .line-go {
+      padding: 6px 14px;
+      border: none;
+      border-radius: 999px;
+      background: transparent;
+      color: var(--pri);
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      opacity: 0;
+      transform: translateX(8px);
+      transition: opacity 0.2s, transform 0.2s;
+    }
+
+    .dock-f:focus-within .line-go {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .dock-f .drawer {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.35s ease;
+      background: #fff;
+      border-radius: 0 0 12px 12px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+    }
+
+    .dock-f.open .drawer { max-height: 180px; }
+
+    .dock-f .drawer-inner { padding: 12px 4px 16px; }
+
+    .tip {
+      margin-top: 48px;
+      text-align: center;
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .tip strong { color: var(--pri); }
+  </style>
+</head>
+<body>
+  <h1>悬浮输入框 · 6 种交互方案</h1>
+  <p class="page-desc">
+    点击下方各方案中的输入框体验：<strong>折叠可输入</strong>、<strong>聚焦/输入自动展开</strong>。<br />
+    当前线上问题：单行里嵌套 textarea 边框 + 浏览器 spin 按钮，视觉乱且难用。
+  </p>
+
+  <div class="grid">
+    <!-- A -->
+    <div class="card">
+      <div class="card-head">
+        <h2>方案 A · 单行胶囊</h2>
+        <span class="badge">推荐</span>
+      </div>
+      <p class="card-note">折叠 = 一条圆角胶囊，输入框无边框；展开后下方出现多行区 + 生成按钮。干净、像搜索框。</p>
+      <div class="demo-stage">
+        <div class="dock-a" id="dockA">
+          <span class="title"><span class="chev">&gt;&gt;</span> 重新定义智能交互</span>
+          <input type="text" placeholder="描述需求，或 >> 开始智能交互" id="inputA" />
+          <button type="button" class="toggle" id="toggleA" aria-label="展开">▾</button>
+          <div class="body">
+            <textarea placeholder="继续描述您的应用需求…" rows="3"></textarea>
+            <div class="actions">
+              <button type="button" class="chip on">网页</button>
+              <button type="button" class="chip">App</button>
+              <button type="button" class="chip">双端</button>
+              <button type="button" class="btn-primary">生成应用 &gt;&gt;</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- B -->
+    <div class="card">
+      <div class="card-head">
+        <h2>方案 B · 双层卡片</h2>
+        <span class="badge">结构清晰</span>
+      </div>
+      <p class="card-note">标题固定顶栏，输入永远在第 2 行。折叠时只有两行，不会出现「标题和输入挤一行」。</p>
+      <div class="demo-stage">
+        <div class="dock-b" id="dockB">
+          <div class="head">
+            <span class="grip"></span>
+            <span class="head-title"><span class="chev">&gt;&gt;</span> 重新定义智能交互</span>
+            <span class="head-spacer"></span>
+            <button type="button" class="head-toggle" id="toggleB">▾</button>
+          </div>
+          <div class="input-row">
+            <input type="text" placeholder="描述需求，或 >> 开始智能交互" id="inputB" />
+          </div>
+          <div class="expand-body">
+            <div class="expand-inner">
+              <div class="deliver">
+                <button type="button" class="on">网页</button>
+                <button type="button">App</button>
+                <button type="button">双端</button>
+              </div>
+              <button type="button" class="gen">生成应用 &gt;&gt;</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- C -->
+    <div class="card">
+      <div class="card-head">
+        <h2>方案 C · 命令栏</h2>
+        <span class="badge">极客感</span>
+      </div>
+      <p class="card-note">类似 Raycast / VS Code 命令面板。绿色 &gt;&gt; 前缀，输入 >> 时下方弹出模块光球。</p>
+      <div class="demo-stage">
+        <div class="dock-c-wrap">
+          <div class="dock-c" id="dockC">
+            <div class="cmd-line">
+              <span class="cmd-prefix">&gt;&gt;</span>
+              <input type="text" class="cmd-input" placeholder="描述需求，或 >> 开始智能交互" id="inputC" />
+            </div>
+            <p class="cmd-hint">输入 <kbd>&gt;&gt;</kbd> 选模块 · <kbd>Enter</kbd> 生成 · <kbd>Esc</kbd> 收起</p>
+            <div class="panel">
+              <div class="panel-inner">
+                <div class="panel-title">业务场景</div>
+                <div class="orbs">
+                  <span class="orb">设备报修</span>
+                  <span class="orb">审批流程</span>
+                  <span class="orb">上海话语音</span>
+                  <span class="orb">知识库</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- D -->
+    <div class="card">
+      <div class="card-head">
+        <h2>方案 D · Chat Composer</h2>
+        <span class="badge">熟悉</span>
+      </div>
+      <p class="card-note">类似 ChatGPT 底部输入：左侧 >> 模块按钮，中间圆角输入框，右侧发送。展开显示标签行。</p>
+      <div class="demo-stage">
+        <div class="dock-d" id="dockD">
+          <div class="brand-row"><strong>&gt;&gt; 重新定义智能交互</strong></div>
+          <div class="composer">
+            <button type="button" class="composer-btn">&gt;&gt;</button>
+            <textarea class="composer-field" rows="1" placeholder="描述需求，或 >> 开始智能交互" id="inputD"></textarea>
+            <button type="button" class="composer-send" title="生成">↑</button>
+          </div>
+          <div class="composer-footer">
+            <span class="tag">网页</span>
+            <span class="tag">App</span>
+            <span class="tag">双端</span>
+            <span class="tag">生成应用 >></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- E -->
+    <div class="card">
+      <div class="card-head">
+        <h2>方案 E · 聚焦展开</h2>
+        <span class="badge">修正现版</span>
+      </div>
+      <p class="card-note">保留现结构但修正：折叠时单行用 input（无 spin），展开才用 textarea + 操作区。</p>
+      <div class="demo-stage">
+        <div class="dock-e" id="dockE">
+          <div class="row1">
+            <span class="row1-title">&gt;&gt; 重新定义智能交互</span>
+            <input type="text" class="row1-input" placeholder="描述需求，或 >> 开始智能交互" id="inputE" />
+            <button type="button" class="row1-btn" id="toggleE">▾</button>
+          </div>
+          <div class="row2">
+            <textarea placeholder="详细描述应用需求…"></textarea>
+            <div class="row2-actions">
+              <div class="left">
+                <button type="button">网页</button>
+                <button type="button">App</button>
+                <button type="button">双端</button>
+              </div>
+              <button type="button" class="primary">生成应用 >></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- F -->
+    <div class="card">
+      <div class="card-head">
+        <h2>方案 F · 极简底线</h2>
+        <span class="badge">最简</span>
+      </div>
+      <p class="card-note">无框，仅一条底边线。聚焦时右侧出现「生成」；再展开抽屉显示选项。适合极简首页。</p>
+      <div class="demo-stage">
+        <div class="dock-f" id="dockF">
+          <div class="line">
+            <span class="line-label">&gt;&gt; 智能交互</span>
+            <input type="text" class="line-input" placeholder="描述需求…" id="inputF" />
+            <button type="button" class="line-go">生成 >></button>
+          </div>
+          <div class="drawer">
+            <div class="drawer-inner">
+              <div class="orbs" style="display:flex;gap:8px;flex-wrap:wrap;">
+                <span class="orb" style="padding:6px 12px;border:1px solid #dbeafe;border-radius:999px;font-size:12px;">网页</span>
+                <span class="orb" style="padding:6px 12px;border:1px solid #dbeafe;border-radius:999px;font-size:12px;">App</span>
+                <span class="orb" style="padding:6px 12px;border:1px solid #dbeafe;border-radius:999px;font-size:12px;">双端</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="tip">
+    文件路径：<strong>docs/previews/floating-dock-variants.html</strong><br />
+    本地双击打开，或 <code>npx serve docs/previews</code> 后访问。<br />
+    选定方案后告诉我编号（A–F），我再改 React 组件。
+  </p>
+
+  <script>
+    function bindExpand(dock, input, toggle, onExpand) {
+      const expand = () => {
+        dock.classList.add('expanded');
+        if (onExpand) onExpand();
+      };
+      input.addEventListener('focus', expand);
+      input.addEventListener('input', expand);
+      if (toggle) {
+        toggle.addEventListener('click', (e) => {
+          e.stopPropagation();
+          dock.classList.toggle('expanded');
+        });
+      }
+    }
+
+    bindExpand(document.getElementById('dockA'), document.getElementById('inputA'), document.getElementById('toggleA'));
+    bindExpand(document.getElementById('dockB'), document.getElementById('inputB'), document.getElementById('toggleB'));
+    bindExpand(document.getElementById('dockC'), document.getElementById('inputC'), null, () => {
+      document.getElementById('dockC').classList.add('expanded');
+    });
+    document.getElementById('inputC').addEventListener('input', (e) => {
+      if (e.target.value.includes('>>')) document.getElementById('dockC').classList.add('expanded');
+    });
+
+    const dockD = document.getElementById('dockD');
+    const inputD = document.getElementById('inputD');
+    inputD.addEventListener('focus', () => dockD.classList.add('expanded'));
+    inputD.addEventListener('input', () => {
+      dockD.classList.add('expanded');
+      inputD.style.height = 'auto';
+      inputD.style.height = Math.min(inputD.scrollHeight, 120) + 'px';
+    });
+
+    bindExpand(document.getElementById('dockE'), document.getElementById('inputE'), document.getElementById('toggleE'));
+
+    const dockF = document.getElementById('dockF');
+    const inputF = document.getElementById('inputF');
+    inputF.addEventListener('focus', () => dockF.classList.add('open'));
+    inputF.addEventListener('input', () => dockF.classList.add('open'));
+  </script>
+</body>
+</html>

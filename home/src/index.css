@@ -11,16 +11,53 @@ html.theme-transition *::after {
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
+html {
+  font-family: var(--font-sans);
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* 全站继承 Apple 字体栈；仅代码块使用 SF Mono */
+*, *::before, *::after {
+  font-family: inherit;
+}
+
 body {
   font-family: var(--font-sans);
   background: var(--bg);
   color: var(--text);
   font-size: var(--fs-base);
-  line-height: 1.6;
+  line-height: var(--bh-lh-body);
+  font-weight: var(--bh-fw-normal);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
   font-feature-settings: "kern" 1, "liga" 1;
   transition: background-color 0.45s ease, color 0.35s ease;
+}
+
+button,
+input,
+textarea,
+select,
+optgroup {
+  font: inherit;
+  letter-spacing: inherit;
+}
+
+code, kbd, pre, samp,
+.font-mono,
+[class*='-mono'],
+[class*='mono-'] {
+  font-family: var(--font-mono);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  font-weight: var(--bh-fw-semibold);
+  line-height: var(--bh-lh-tight);
+  letter-spacing: -0.02em;
 }
 
 .app { min-height: 100vh; display: flex; flex-direction: column; position: relative; overflow-x: hidden; }
@@ -532,9 +569,12 @@ body {
   text-shadow: 0 2px 20px rgba(0,0,0,0.45);
 }
 .agent-sign-line--section {
-  font-size: clamp(22px, 3.5vw, 30px);
-  letter-spacing: 0.06em;
-  margin-bottom: 10px;
+  font-family: var(--bh-font-display, var(--font-display, inherit));
+  font-size: clamp(28px, 5vw, 48px);
+  font-weight: var(--bh-fw-bold, 700);
+  letter-spacing: -0.025em;
+  line-height: var(--bh-lh-tight, 1.15);
+  margin-bottom: 12px;
 }
 .agent-sign-line--eyebrow {
   display: inline-flex;
@@ -888,7 +928,7 @@ body {
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 .hero-e-cmd-prefix {
-  font-family: ui-monospace, monospace;
+  font-family: var(--font-mono);
   margin-right: 8px;
   font-size: 1.08em;
   animation: heroECmdPulse 2.5s ease-in-out infinite;
@@ -905,7 +945,7 @@ body {
   font-weight: 500;
 }
 .hero-e-role-hint strong {
-  font-family: ui-monospace, monospace;
+  font-family: var(--font-mono);
   color: var(--hero-accent, #fef08a);
   font-weight: 800;
 }
@@ -1008,7 +1048,7 @@ body {
   gap: 12px;
   padding: 12px 20px 10px;
   border-bottom: 1px solid rgba(6, 182, 212, 0.2);
-  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -1075,7 +1115,7 @@ body {
   right: 8%;
   top: 50%;
   transform: translateY(-50%) skewX(-12deg);
-  font-family: ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-size: clamp(72px, 14vw, 120px);
   font-weight: 900;
   line-height: 0.85;
@@ -1230,7 +1270,7 @@ body {
   font-weight: 800;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  font-family: ui-monospace, monospace;
+  font-family: var(--font-mono);
   background: linear-gradient(135deg, color-mix(in srgb, var(--dm-color) 65%, #fff), color-mix(in srgb, var(--dm-color) 45%, rgba(0,0,0,0.4)));
   border: 1px solid color-mix(in srgb, var(--dm-color) 70%, transparent);
   color: #fff;
@@ -1248,7 +1288,7 @@ body {
   font-weight: 400;
 }
 .hero-danmaku-prefix {
-  font-family: ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-size: 12px;
   font-weight: 900;
   background: linear-gradient(90deg, #fef08a, #fde047, #fff, #fef08a);
@@ -1297,7 +1337,7 @@ body {
   gap: 10px;
   padding: 10px 16px 14px;
   border-top: 1px solid rgba(6, 182, 212, 0.15);
-  font-family: ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-size: 10px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -1394,7 +1434,7 @@ body {
   font-weight: 800;
   color: #fff;
   border: 1px solid rgba(0,0,0,0.35);
-  font-family: ui-monospace, monospace;
+  font-family: var(--font-mono);
   letter-spacing: 0.04em;
 }
 .hero-role-badge.role {
@@ -1428,7 +1468,7 @@ body {
   background: rgba(0,0,0,0.25);
 }
 .hero-role-cmd-prefix {
-  font-family: ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-size: 18px;
   font-weight: 900;
   color: var(--hero-accent, #fef08a);
@@ -1436,7 +1476,7 @@ body {
 }
 .hero-role-cmd-flow {
   flex: 1;
-  font-family: ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-size: 12px;
   color: rgba(254,240,138,0.35);
   overflow: hidden;
@@ -1451,7 +1491,7 @@ body {
 .hero-role-flow {
   padding: 14px 16px 16px;
   min-height: 120px;
-  font-family: ui-monospace, monospace;
+  font-family: var(--font-mono);
 }
 .hero-role-line {
   margin: 0 0 8px;
@@ -2241,14 +2281,11 @@ body {
 }
 .agent-input-prefix {
   flex-shrink: 0;
-  padding: 16px 0 0 18px;
-  font-size: 18px;
-  font-weight: 700;
-  letter-spacing: -0.04em;
-  color: var(--pri);
-  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+  display: flex;
+  align-items: flex-start;
+  padding: 14px 0 0 12px;
   user-select: none;
-  line-height: 1.6;
+  line-height: 1;
 }
 .agent-input-field {
   flex: 1;
@@ -2332,7 +2369,7 @@ body {
   font-size: 14px;
   font-weight: 700;
   color: var(--pri);
-  font-family: ui-monospace, monospace;
+  font-family: var(--font-mono);
 }
 .agent-module-icon {
   flex-shrink: 0;
@@ -2375,7 +2412,7 @@ body {
   color: var(--muted-strong, var(--muted));
 }
 .agent-input-tip code {
-  font-family: ui-monospace, monospace;
+  font-family: var(--font-mono);
   color: var(--pri);
   background: var(--pri-soft);
   padding: 1px 5px;
@@ -2411,7 +2448,7 @@ body {
   background: color-mix(in srgb, var(--bg) 60%, var(--surface));
 }
 .agent-module-empty code {
-  font-family: ui-monospace, monospace;
+  font-family: var(--font-mono);
   color: var(--pri);
 }
 .prompt-suggest-bar {
@@ -2433,8 +2470,13 @@ body {
   margin-bottom: 10px;
   flex-wrap: wrap;
 }
+.prompt-suggest-prefix-chev {
+  flex-shrink: 0;
+  vertical-align: middle;
+  margin-right: 2px;
+}
 .prompt-suggest-prefix {
-  font-family: ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-weight: 700;
   color: var(--pri);
   font-size: 14px;
@@ -2537,7 +2579,7 @@ body {
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--pri) 25%, transparent);
 }
 .prompt-suggest-chevron {
-  font-family: ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
   color: var(--pri);
   font-weight: 700;
@@ -2551,13 +2593,64 @@ body {
   font-size: 11px;
   color: var(--pri-dark);
 }
+.prompt-suggest-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.prompt-suggest-group-title {
+  margin: 0 0 6px;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--pri-dark, var(--pri));
+  letter-spacing: 0.03em;
+}
+.prompt-suggest-clarify {
+  margin: 0 0 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--muted) 8%, var(--surface));
+  font-size: 12px;
+  color: var(--muted-strong, var(--muted));
+  line-height: 1.5;
+}
+.prompt-suggest-clarify p { margin: 0 0 6px; }
+.prompt-suggest-clarify ul {
+  margin: 0 0 8px;
+  padding-left: 18px;
+}
+.prompt-suggest-clarify code {
+  font-family: var(--font-mono);
+  color: var(--pri);
+}
+.prompt-suggest-bar.is-invalid {
+  border-color: color-mix(in srgb, #dc2626 35%, var(--border));
+}
+.prompt-suggest-reject {
+  background: color-mix(in srgb, #dc2626 6%, var(--surface));
+  border: 1px solid color-mix(in srgb, #dc2626 18%, transparent);
+}
+.prompt-suggest-guidance {
+  color: var(--text-secondary, var(--muted-strong));
+}
+.prompt-suggest-intent-summary,
+.prompt-suggest-registered {
+  margin: 0 0 10px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted-strong, var(--muted));
+}
+.prompt-suggest-registered {
+  color: var(--pri);
+}
 .prompt-suggest-empty {
   margin: 0 0 10px;
   font-size: 12px;
   color: var(--muted);
 }
 .prompt-suggest-empty code {
-  font-family: ui-monospace, monospace;
+  font-family: var(--font-mono);
   color: var(--pri);
   background: var(--pri-soft);
   padding: 1px 5px;
@@ -4618,7 +4711,7 @@ body.modal-scroll-lock {
 .login-demo-pick:hover:not(:disabled) { border-color: var(--pri-light); background: var(--pri-soft); }
 .login-demo-pick:disabled { opacity: 0.6; cursor: wait; }
 .login-demo-pick strong { display: block; font-size: 13px; color: var(--text); }
-.login-demo-pick span { display: block; font-size: 11px; color: var(--muted-strong, var(--muted)); font-family: Consolas, monospace; }
+.login-demo-pick span { display: block; font-size: 11px; color: var(--muted-strong, var(--muted)); font-family: var(--font-mono); }
 .otp-code-row .otp-code-inputs {
   display: flex; gap: 8px; margin-top: 6px;
 }
@@ -5778,7 +5871,7 @@ a.btn-my-apps:hover { border-color: var(--pri-light); color: var(--pri); }
 .minimal-hero h2 { font-size: var(--bh-fs-xl); font-weight: 300; letter-spacing: -.02em; margin-bottom: var(--bh-space-2); }
 .minimal-hero-hint { font-size: var(--bh-fs-xs); color: var(--muted); }
 .minimal-brand-chev {
-  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+  font-family: var(--font-mono);
   font-weight: 700; color: var(--pri); letter-spacing: -.04em;
 }
 
@@ -5804,7 +5897,9 @@ a.btn-my-apps:hover { border-color: var(--pri-light); color: var(--pri); }
 .agent-brand-trigger {
   flex-shrink: 0; border: none; cursor: pointer; font-family: inherit;
   display: inline-flex; align-items: center; justify-content: center;
-  padding: 6px 10px; border-radius: var(--bh-radius-md);
+  flex-direction: row;
+  min-height: 36px;
+  padding: 0 10px; border-radius: var(--bh-radius-md);
   background: color-mix(in srgb, var(--pri) 10%, var(--surface));
   border: 1px solid color-mix(in srgb, var(--pri) 28%, transparent);
   transition: background .15s, border-color .15s, box-shadow .15s, transform .15s;
@@ -5819,7 +5914,7 @@ a.btn-my-apps:hover { border-color: var(--pri-light); color: var(--pri); }
 .agent-brand-chev {
   font-size: 16px; font-weight: 800; letter-spacing: -.06em;
   color: var(--pri);
-  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+  font-family: var(--font-mono);
 }
 .agent-inline-module {
   display: inline-flex; align-items: center; gap: 5px;
@@ -5839,14 +5934,14 @@ a.btn-my-apps:hover { border-color: var(--pri-light); color: var(--pri); }
 .agent-inline-module-label { max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .agent-inline-module-x { opacity: .45; font-size: 13px; line-height: 1; margin-left: 2px; }
 .agent-input-wrap.minimal .agent-composer-row .agent-input-field {
-  padding: 8px 0 !important; min-height: 36px !important; font-size: 15px; width: 100%;
+  padding: 0 !important; min-height: 36px !important; line-height: 36px; font-size: 15px; width: 100%;
 }
 .agent-input-wrap.minimal .agent-composer-row .agent-input-ghost {
-  left: 0; top: 8px; right: 0; font-size: 14px;
+  left: 0; top: 0; right: 0; line-height: 36px; font-size: 14px;
 }
-.agent-input-wrap.minimal .agent-composer-row .agent-input-field-wrap { flex: 1; min-width: 0; }
+.agent-input-wrap.minimal .agent-composer-row .agent-input-field-wrap { flex: 1; min-width: 0; display: flex; align-items: flex-start; }
 .agent-input-wrap.minimal .agent-input-ghost code {
-  font-family: ui-monospace, monospace; color: var(--pri); font-weight: 700;
+  font-family: var(--font-mono); color: var(--pri); font-weight: 700;
 }
 .agent-input-wrap.minimal .agent-input-tip {
   text-align: center; padding: 8px 0 4px;
@@ -5866,7 +5961,7 @@ a.btn-my-apps:hover { border-color: var(--pri-light); color: var(--pri); }
 .agent-orb-brand { display: flex; align-items: flex-start; gap: 10px; text-align: left; }
 .agent-orb-brand-chev {
   flex-shrink: 0; font-size: 20px; font-weight: 800; letter-spacing: -.06em;
-  color: var(--pri); font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+  color: var(--pri); font-family: var(--font-mono);
   line-height: 1.2;
 }
 .agent-orb-brand-copy { display: flex; flex-direction: column; gap: 2px; }
@@ -5919,7 +6014,7 @@ a.btn-my-apps:hover { border-color: var(--pri-light); color: var(--pri); }
   font-size: var(--bh-fs-sm); color: var(--muted);
 }
 .agent-orb-empty code {
-  font-family: ui-monospace, monospace; color: var(--pri); font-weight: 700;
+  font-family: var(--font-mono); color: var(--pri); font-weight: 700;
 }
 .agent-orb-foot {
   margin-top: var(--bh-space-4); padding-top: var(--bh-space-3);

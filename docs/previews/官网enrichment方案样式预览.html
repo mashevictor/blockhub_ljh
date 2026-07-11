@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="b2b-brand-scope">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BlockHub 官网 enrichment · 方案样式预览（基于现有设计）</title>
+  <link rel="stylesheet" href="../../home/src/index.css" />
+  <link rel="stylesheet" href="../../home/src/styles/b2b-landing.css" />
+  <style>
+    :root { --font-sans: var(--bh-font-sans); }
+
+    /* ── 预览器 chrome（非官网部分）── */
+    body.preview-body { background: #e2e8f0; }
+    .preview-chrome {
+      position: sticky; top: 0; z-index: 200;
+      background: #0f172a; color: #e2e8f0; padding: 12px 20px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+    }
+    .preview-chrome h1 { font-size: 15px; font-weight: 800; margin-bottom: 10px; }
+    .preview-chrome p { font-size: 12px; opacity: 0.75; margin-bottom: 10px; }
+    .scheme-switch {
+      display: flex; flex-wrap: wrap; gap: 8px;
+    }
+    .scheme-switch button {
+      padding: 8px 16px; border-radius: 999px; border: 1px solid #475569;
+      background: transparent; color: #e2e8f0; font-size: 13px; font-weight: 700;
+      cursor: pointer; font-family: inherit; transition: all 0.2s;
+    }
+    .scheme-switch button:hover { border-color: #93c5fd; background: #1e293b; }
+    .scheme-switch button.on {
+      background: linear-gradient(135deg, #0d47a1, #1976d2); border-color: transparent; color: #fff;
+    }
+    .scheme-switch button.rec::after { content: " ★"; color: #4ade80; }
+
+    .sub-switch { margin-top: 8px; display: none; gap: 6px; flex-wrap: wrap; }
+    .sub-switch.show { display: flex; }
+    .sub-switch button {
+      padding: 5px 12px; border-radius: 8px; border: 1px solid #64748b;
+      background: #334155; color: #cbd5e1; font-size: 11px; font-weight: 600; cursor: pointer;
+    }
+    .sub-switch button.on { background: #00b894; border-color: #00b894; color: #fff; }
+
+    .scheme-view { display: none; }
+    .scheme-view.on { display: block; }
+
+    .mock-frame {
+      max-width: 1440px; margin: 16px auto 40px; border-radius: 16px; overflow: hidden;
+      box-shadow: 0 20px 60px rgba(13,71,161,0.15); border: 1px solid #dbeafe;
+    }
+    .mock-label {
+      background: #1e293b; color: #94a3b8; font-size: 11px; font-weight: 700;
+      padding: 8px 16px; letter-spacing: 0.05em;
+    }
+    .mock-label strong { color: #4ade80; }
+
+    /* ── 新增区块样式（沿用 b2b 令牌）── */
+    .mock-section-new {
+      position: relative;
+      outline: 2px dashed rgba(0, 184, 148, 0.55);
+      outline-offset: -2px;
+    }
+    .mock-badge-new {
+      position: absolute; top: 12px; right: 12px; z-index: 2;
+      font-size: 10px; font-weight: 800; padding: 3px 10px; border-radius: 999px;
+      background: #00b894; color: #fff; letter-spacing: 0.04em;
+    }
+
+    .mock-trust-strip {
+      max-width: 1200px; margin: 0 auto; padding: 28px 20px 36px;
+      background: linear-gradient(180deg, #fff 0%, #eaf2ff 100%);
+      border-bottom: 1px solid #dbeafe;
+    }
+    .mock-trust-inner {
+      display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: center;
+    }
+    .mock-trust-inner h3 { font-size: 20px; font-weight: 800; color: #0d47a1; margin-bottom: 8px; }
+    .mock-trust-inner p { font-size: 14px; color: #666; max-width: 560px; }
+    .mock-trust-dl {
+      display: flex; flex-wrap: wrap; gap: 10px;
+    }
+    .mock-dl-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: 600;
+      background: #fff; border: 1px solid #93c5fd; color: #0d47a1; cursor: pointer;
+      text-decoration: none; transition: all 0.2s;
+    }
+    .mock-dl-btn:hover { background: #eff6ff; box-shadow: 0 4px 12px rgba(13,71,161,0.1); }
+    .mock-dl-btn .chev { color: #00b894; font-weight: 800; font-size: 11px; }
+
+    .mock-pricing-bar {
+      background: #f8fafc; border-top: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0;
+      padding: 48px 20px;
+    }
+    .mock-pricing-grid {
+      max-width: 1000px; margin: 0 auto;
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;
+    }
+    .mock-tier {
+      background: #fff; border: 1px solid #dbeafe; border-radius: 12px; padding: 24px;
+    }
+    .mock-tier.featured { border-color: #0d47a1; box-shadow: 0 8px 28px rgba(13,71,161,0.12); }
+    .mock-tier h4 { font-size: 16px; font-weight: 800; color: #0d47a1; margin-bottom: 8px; }
+    .mock-tier .range { font-size: 22px; font-weight: 800; color: #111; margin: 12px 0; }
+    .mock-tier ul { font-size: 13px; color: #666; margin-left: 16px; }
+
+    .mock-news-section { background: #fff; padding: 60px 20px; }
+    .mock-news-grid {
+      max-width: 1200px; margin: 0 auto;
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;
+    }
+    .mock-news-card {
+      border: 1px solid #e8edf3; border-radius: 12px; overflow: hidden;
+      transition: box-shadow 0.2s; cursor: pointer;
+    }
+    .mock-news-card:hover { box-shadow: 0 8px 24px rgba(13,71,161,0.1); }
+    .mock-news-thumb {
+      height: 120px; background: linear-gradient(135deg, #0d47a1, #1976d2);
+      display: flex; align-items: center; justify-content: center;
+      color: rgba(255,255,255,0.9); font-size: 11px; font-weight: 700;
+    }
+    .mock-news-body { padding: 16px; }
+    .mock-news-cat {
+      font-size: 10px; font-weight: 800; color: #00b894; text-transform: uppercase; letter-spacing: 0.06em;
+    }
+    .mock-news-body h4 { font-size: 15px; font-weight: 700; color: #111; margin: 6px 0; line-height: 1.4; }
+    .mock-news-date { font-size: 12px; color: #999; }
+
+    .mock-case-featured {
+      max-width: 1200px; margin: 0 auto;
+      display: grid; grid-template-columns: 1.2fr 1fr; gap: 24px;
+    }
+    .mock-case-long {
+      background: #fff; border: 1px solid #dbeafe; border-radius: 14px; padding: 28px;
+    }
+    .mock-case-long h3 { font-size: 18px; font-weight: 800; color: #0d47a1; margin-bottom: 12px; }
+    .mock-case-metrics {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 16px 0;
+    }
+    .mock-metric {
+      background: #eaf2ff; border-radius: 10px; padding: 14px; text-align: center;
+    }
+    .mock-metric strong { display: block; font-size: 22px; color: #0d47a1; }
+    .mock-metric span { font-size: 11px; color: #666; }
+    .mock-fail-tag {
+      display: inline-block; font-size: 11px; font-weight: 700; padding: 4px 10px;
+      background: #fef3c7; color: #92400e; border-radius: 999px; margin-bottom: 10px;
+    }
+
+    .mock-nav-extra .b2b-nav-pill.is-new {
+      position: relative;
+    }
+    .mock-nav-extra .b2b-nav-pill.is-new::after {
+      content: ""; position: absolute; top: 6px; right: 6px;
+      width: 6px; height: 6px; background: #00b894; border-radius: 50%;
+    }
+
+    /* 子页面 mock */
+    .subpage-mock { display: none; padding: 0; }
+    .subpage-mock.on { display: block; }
+    .mock-trust-page {
+      background: #f9fafb; min-height: 600px;
+    }
+    .mock-trust-hero {
+      background: linear-gradient(135deg, #0d47a1 0%, #1976d2 100%);
+      color: #fff; padding: 48px 40px;
+    }
+    .mock-trust-hero h2 { font-size: 28px; font-weight: 800; margin-bottom: 8px; }
+    .mock-trust-hero p { opacity: 0.9; font-size: 15px; max-width: 640px; }
+    .mock-trust-grid {
+      max-width: 1100px; margin: -32px auto 0; padding: 0 20px 48px;
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; position: relative; z-index: 1;
+    }
+    .mock-trust-card {
+      background: #fff; border: 1px solid #dbeafe; border-radius: 12px; padding: 22px;
+      box-shadow: 0 4px 20px rgba(13,71,161,0.08);
+    }
+    .mock-trust-card h4 { font-size: 15px; font-weight: 800; color: #0d47a1; margin-bottom: 8px; }
+    .mock-trust-card p { font-size: 13px; color: #666; margin-bottom: 12px; }
+    .mock-trust-agent {
+      margin-top: 32px; max-width: 1100px; margin-left: auto; margin-right: auto;
+      padding: 0 20px 48px;
+    }
+    .mock-agent-bar {
+      background: #fff; border: 1px solid #dbeafe; border-radius: 14px; padding: 20px 24px;
+      display: flex; align-items: center; gap: 16px;
+    }
+    .mock-agent-bar .chev-big { font-size: 24px; font-weight: 800; color: #00b894; }
+    .mock-agent-bar input {
+      flex: 1; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 16px;
+      font-size: 14px; font-family: inherit;
+    }
+
+    .mock-news-page { background: #fff; padding: 40px 20px 60px; }
+    .mock-news-tabs {
+      max-width: 900px; margin: 0 auto 32px; display: flex; gap: 8px;
+      background: #f1f5f9; padding: 5px; border-radius: 999px; width: fit-content;
+    }
+    .mock-news-tabs button {
+      padding: 10px 20px; border: none; border-radius: 999px; font-size: 14px; font-weight: 600;
+      cursor: pointer; background: transparent; color: #475569; font-family: inherit;
+    }
+    .mock-news-tabs button.on {
+      background: linear-gradient(135deg, #0d47a1, #1976d2); color: #fff;
+    }
+    .mock-news-list { max-width: 900px; margin: 0 auto; }
+    .mock-news-row {
+      display: flex; gap: 20px; padding: 20px 0; border-bottom: 1px solid #e8edf3;
+      align-items: flex-start;
+    }
+    .mock-news-row .date { font-size: 13px; color: #999; min-width: 90px; }
+    .mock-news-row h4 { font-size: 16px; font-weight: 700; color: #111; margin-bottom: 4px; }
+    .mock-news-row p { font-size: 13px; color: #666; }
+
+    .mock-phase-tag {
+      display: inline-block; font-size: 10px; font-weight: 800; padding: 3px 8px;
+      border-radius: 6px; margin-left: 8px; vertical-align: middle;
+    }
+    .phase-1 { background: #dcfce7; color: #047857; }
+    .phase-2 { background: #fef3c7; color: #92400e; }
+
+    .mock-placeholder-product {
+      background: linear-gradient(180deg, #fff 0%, #f8fafc 100%);
+      padding: 48px 20px; text-align: center; color: #94a3b8; font-size: 13px;
+      border-top: 1px solid #e8edf3;
+    }
+    .mock-placeholder-product span { display: block; font-weight: 700; color: #64748b; margin-bottom: 4px; }
+
+    .b2b-hero-body { opacity: 1 !important; transform: none !important; display: contents !important; }
+    .b2b-hero { min-height: auto; padding-bottom: 32px; }
+    @media (min-width: 960px) {
+      .b2b-hero { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 768px) {
+      .mock-trust-inner, .mock-case-featured, .mock-pricing-grid, .mock-news-grid, .mock-trust-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body class="preview-body b2b-landing">
+
+<!-- 预览器顶栏 -->
+<div class="preview-chrome">
+  <h1>BlockHub 官网 enrichment · 方案样式预览（基于现有 b2b-landing 设计）</h1>
+  <p>下方为真实 CSS 渲染效果 · 绿色虚线框 = 新增区块 · 切换方案查看导航与页面差异</p>
+  <div class="scheme-switch">
+    <button type="button" class="on" data-scheme="current">现状</button>
+    <button type="button" data-scheme="a">方案 A · 首页加厚</button>
+    <button type="button" data-scheme="b" class="rec">方案 B · 子站群</button>
+    <button type="button" data-scheme="mix">折中 · 分两期</button>
+  </div>
+  <div class="sub-switch" id="sub-switch">
+    <button type="button" class="on" data-sub="home">首页</button>
+    <button type="button" data-sub="trust">/trust 子页</button>
+    <button type="button" data-sub="news">/news 子页</button>
+    <button type="button" data-sub="case">/cases 详情</button>
+  </div>
+</div>
+
+<!-- ═══════════ 现状 ═══════════ -->
+<div class="scheme-view on" id="view-current">
+  <div class="mock-frame">
+    <div class="mock-label">当前官网 · <strong>单页 B2B</strong> · 产品 | 案例 | 体验 | 预约</div>
+    <div class="b2b-app">
+      <header class="b2b-header">
+        <div class="b2b-header-accent"></div>
+        <div class="b2b-nav">
+          <a class="b2b-logo" href="#">
+            <img src="../../home/public/logo-mark.svg" width="42" height="42" alt="" />
+            <span class="b2b-logo-text"><strong>积木仓</strong><em>BLOCKHUB</em></span>
+          </a>
+          <nav class="b2b-nav-rail"><ul class="b2b-nav-menu">
+            <li><button type="button" class="b2b-nav-pill on"><span class="b2b-nav-chev">&gt;&gt;</span><span class="b2b-nav-label">产品能力</span></button></li>
+            <li><button type="button" class="b2b-nav-pill"><span class="b2b-nav-chev">&gt;&gt;</span><span class="b2b-nav-label">落地案例</span></button></li>
+            <li><button type="button" class="b2b-nav-pill"><span class="b2b-nav-chev">&gt;&gt;</span><span class="b2b-nav-label">在线体验</span></button></li>
+          </ul></nav>
+          <div class="b2b-nav-actions">
+            <a class="b2b-nav-btn b2b-nav-btn-link" href="#"><span class="b2b-nav-chev">&gt;&gt;</span> 应用广场</a>
+            <button type="button" class="b2b-nav-btn"><span class="b2b-nav-chev">&gt;&gt;</span> 预约演示</button>
+          </div>
+        </div>
+      </header>
+      <section class="b2b-hero hero-ready">
+        <div class="b2b-hero-body is-visible">
+          <div class="b2b-hero-text">
+            <p class="b2b-hero-eyebrow"><span class="agent-sign-chev">&gt;&gt;</span> 企业 AI 智能体 PaaS</p>
+            <h1 class="b2b-hero-tagline"><em>搭积木一样构建企业 AI 应用</em></h1>
+            <p>115+ 业务场景 · 三种创建方式 · 一次发布五端可用</p>
+            <div class="b2b-hero-btns">
+              <button type="button" class="b2b-btn-primary agent-action-btn"><span class="b2b-nav-chev">&gt;&gt;</span> 预约演示</button>
+              <button type="button" class="b2b-btn-outline agent-action-btn"><span class="b2b-nav-chev">&gt;&gt;</span> 在线体验</button>
+            </div>
+          </div>
+          <aside class="b2b-hero-panel">
+            <div class="b2b-hero-panel-inner">
+              <div class="b2b-hero-panel-title">平台能力 <span class="b2b-hero-panel-tag">LIVE</span></div>
+              <strong>43</strong><p>原子能力模块</p>
+              <strong>12</strong><p>开箱 Agent</p>
+              <strong>20</strong><p>行业方案包</p>
+            </div>
+          </aside>
+        </div>
+      </section>
+      <div class="mock-placeholder-product"><span>产品能力区（现有 B2BProductSection）</span>9 套 AI 模板 · 模块积木 · 20 行业 · LLM Agent</div>
+      <section class="b2b-section b2b-case-wrap">
+        <div class="b2b-section-title">
+          <span class="b2b-eyebrow">落地案例</span>
+          <h2>客户实践</h2>
+          <p>3 条静态卡片 · 无详情页 · 无 POC 过程 · 无下载</p>
+        </div>
+        <div class="b2b-case-grid">
+          <article class="b2b-case-item"><div class="b2b-case-name">连锁零售 · 智慧办公</div><p>请假审批、制度问答</p><div class="b2b-case-result">5 分钟上线</div></article>
+          <article class="b2b-case-item"><div class="b2b-case-name">中型制造企业</div><p>设备报修、SOP 问答</p><div class="b2b-case-result">五端发布</div></article>
+          <article class="b2b-case-item"><div class="b2b-case-name">物流与货代</div><p>运单跟踪、客服问答</p><div class="b2b-case-result">7×24 值守</div></article>
+        </div>
+      </section>
+      <div class="mock-placeholder-product"><span>在线体验 + 预约演示（现有）</span>CreateStudio · FloatingAgentDock · DemoBooking</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ 方案 A ═══════════ -->
+<div class="scheme-view" id="view-a">
+  <div class="mock-frame">
+    <div class="mock-label">方案 A · <strong>首页加厚 + /trust + /news</strong> · 2–3 周</div>
+    <div class="b2b-app">
+      <header class="b2b-header mock-nav-extra">
+        <div class="b2b-header-accent"></div>
+        <div class="b2b-nav">
+          <a class="b2b-logo" href="#"><img src="../../home/public/logo-mark.svg" width="42" height="42" alt="" /><span class="b2b-logo-text"><strong>积木仓</strong><em>BLOCKHUB</em></span></a>
+          <nav class="b2b-nav-rail"><ul class="b2b-nav-menu">
+            <li><button type="button" class="b2b-nav-pill on"><span class="b2b-nav-chev">&gt;&gt;</span><span class="b2b-nav-label">产品</span></button></li>
+            <li><button type="button" class="b2b-nav-pill"><span class="b2b-nav-chev">&gt;&gt;</span><span class="b2b-nav-label">案例</span></button></li>
+            <li><button type="button" class="b2b-nav-pill is-new"><span class="b2b-nav-chev">&gt;&gt;</span><span class="b2b-nav-label">信任合规</span></button></li>
+            <li><button type="button" class="b2b-nav-pill is-new"><span class="b2b-nav-chev">&gt;&gt;</span><span class="b2b-nav-label">新闻</span></button></li>
+            <li><button type="button" class="b2b-nav-pill"><span class="b2b-nav-chev">&gt;&gt;</span><span class="b2b-nav-label">体验</span></button></li>
+          </ul></nav>
+          <div class="b2b-nav-actions"><button type="button" class="b2b-nav-btn"><span class="b2b-nav-chev">&gt;&gt;</span> 预约演示</button></div>
+        </div>
+      </header>
+      <section class="b2b-hero hero-ready">
+        <div class="b2b-hero-body is-visible">
+          <div class="b2b-hero-text">
+            <p class="b2b-hero-eyebrow"><span class="agent-sign-chev">&gt;&gt;</span> 企业 AI 智能体 PaaS</p>
+            <h1 class="b2b-hero-tagline"><em>搭积木一样构建企业 AI 应用</em></h1>
+            <p>115+ 业务场景 · 三种创建方式 · 一次发布五端可用</p>
+            <div class="b2b-hero-btns">
+              <button type="button" class="b2b-btn-primary agent-action-btn"><span class="b2b-nav-chev">&gt;&gt;</span> 预约演示</button>
+              <button type="button" class="b2b-btn-outline agent-action-btn"><span class="b2b-nav-chev">&gt;&gt;</span> 在线体验</button>
+            </div>
+          </div>
+          <aside class="b2b-hero-panel"><div class="b2b-hero-panel-inner"><div class="b2b-hero-panel-title">平台能力</div><strong>43</strong><p>原子能力</p></div></aside>
+        </div>
+      </section>
+
+      <div class="mock-section-new mock-trust-strip">
+        <span class="mock-badge-new">新增</span>
+        <div class="mock-trust-inner">
+          <div>
+          <span class="b2b-eyebrow">&gt;&gt; 安全合规资料</span>
+          <h3>安全合规 · 可下载 · 给信息部门过审</h3>
+            <p>等保对齐说明 · 数据流图 · 集成清单 — 首页 Trust Strip，详情跳转 /trust</p>
+          </div>
+          <div class="mock-trust-dl">
+            <a class="mock-dl-btn" href="#"><span class="chev">&gt;&gt;</span> 安全白皮书</a>
+            <a class="mock-dl-btn" href="#"><span class="chev">&gt;&gt;</span> 集成清单</a>
+            <a class="mock-dl-btn" href="#"><span class="chev">&gt;&gt;</span> DPA 摘要</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="mock-placeholder-product"><span>产品能力（保持）</span></div>
+
+      <section class="b2b-section mock-section-new" style="background:#f8fafc">
+        <span class="mock-badge-new">新增</span>
+        <div class="b2b-section-title">
+          <span class="b2b-eyebrow">&gt;&gt; 对内转发材料</span>
+          <h2>深度案例 · 可转发</h2>
+          <p>制造完整案例（含试点调整后成功）+ 2 短案例 + 一页纸方案摘要下载</p>
+        </div>
+        <div class="mock-case-featured">
+          <div class="mock-case-long">
+            <span class="mock-fail-tag">含试点调整过程 · 真实可信</span>
+            <h3>800 人制造企业 · 销售线索快速响应</h3>
+            <p style="font-size:14px;color:#666;margin-bottom:12px">第一次全自动外呼试点被否 → 改人工确认版 → 平均首响由约 3.2 小时缩短至 28 分钟</p>
+            <div class="mock-case-metrics">
+              <div class="mock-metric"><strong>72%</strong><span>一线采纳率</span></div>
+              <div class="mock-metric"><strong>28min</strong><span>平均首响</span></div>
+              <div class="mock-metric"><strong>80万</strong><span>首年合同</span></div>
+            </div>
+            <button type="button" class="b2b-btn-primary agent-action-btn" style="margin-top:8px"><span class="b2b-nav-chev">&gt;&gt;</span> 下载一页纸方案摘要</button>
+          </div>
+          <div class="b2b-case-grid" style="grid-template-columns:1fr">
+            <article class="b2b-case-item"><div class="b2b-case-name">连锁零售</div><p>智慧办公</p></article>
+            <article class="b2b-case-item"><div class="b2b-case-name">物流货代</div><p>运单跟踪</p></article>
+          </div>
+        </div>
+      </section>
+
+      <div class="mock-pricing-bar mock-section-new">
+        <span class="mock-badge-new">新增</span>
+        <div class="b2b-section-title">
+          <span class="b2b-eyebrow">&gt;&gt; 价格说明</span>
+          <h2>定价框架</h2>
+          <p>不写死价格 · 说明影响因素 · 大多数客户 80–150 万/年</p>
+        </div>
+        <div class="mock-pricing-grid">
+          <div class="mock-tier"><h4>SaaS 标准</h4><div class="range">按坐席</div><ul><li>快速上线</li><li>标准集成</li></ul></div>
+          <div class="mock-tier featured"><h4>混合部署</h4><div class="range">80–120万</div><ul><li>业务系统对接</li><li>数据不出境</li></ul></div>
+          <div class="mock-tier"><h4>私有化</h4><div class="range">定制报价</div><ul><li>等保对齐</li><li>专属智能体</li></ul></div>
+        </div>
+      </div>
+
+      <section class="mock-news-section mock-section-new">
+        <span class="mock-badge-new">新增</span>
+        <div class="b2b-section-title">
+          <span class="b2b-eyebrow">新闻动态</span>
+          <h2>公司在迭代 · 建立 B2B 信任</h2>
+          <p>最新 3 条 · 查看全部 → /news</p>
+        </div>
+        <div class="mock-news-grid">
+          <article class="mock-news-card"><div class="mock-news-thumb">产品发布</div><div class="mock-news-body"><span class="mock-news-cat">产品发布</span><h4>积木仓 1.2：意图识别 + 20 个行业方案</h4><span class="mock-news-date">2026-07-08</span></div></article>
+          <article class="mock-news-card"><div class="mock-news-thumb">客户动态</div><div class="mock-news-body"><span class="mock-news-cat">客户动态</span><h4>制造企业试点验收通过</h4><span class="mock-news-date">2026-06-20</span></div></article>
+          <article class="mock-news-card"><div class="mock-news-thumb">行业洞察</div><div class="mock-news-body"><span class="mock-news-cat">行业洞察</span><h4>企业智能体选型清单</h4><span class="mock-news-date">2026-06-01</span></div></article>
+        </div>
+      </section>
+
+      <div class="mock-placeholder-product"><span>在线体验 + 预约（保持）</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ 方案 B ═══════════ -->
+<div class="scheme-view" id="view-b">
+  <div class="mock-frame" id="b-home">
+    <div class="mock-label">方案 B · <strong>采购闭环子站群</strong> · 顶栏 Agent 版 · 4–6 周</div>
+    <div class="b2b-app">
+      <header class="b2b-header mock-nav-extra">
+        <div class="b2b-header-accent"></div>
+        <div class="b2b-nav">
+          <a class="b2b-logo" href="#"><img src="../../home/public/logo-mark.svg" width="42" height="42" alt="" /><span class="b2b-logo-text"><strong>积木仓</strong><em>BLOCKHUB</em></span></a>
+          <nav class="b2b-nav-rail"><ul class="b2b-nav-menu">
+            <li><button type="button" class="b2b-nav-pill"><span class="b2b-nav-chev">&gt;&gt;</span><span class="b2b-nav-label">诊断</span></button></li>
+            <li><button type="button" class="b2b-nav-pill"><span class="b2b-nav-chev">&gt;&gt;</span><span class="b2b-nav-label">架构</span></button></li>
+            <li><button type="button" class="b2b-nav-pill on is-new"><span class="b2b-nav-chev">&gt;&gt;</span><span class="b2b-nav-label">安全</span></button></li>
+            <li><button type="button" class="b2b-nav-pill is-new"><span class="b2b-nav-chev">&gt;&gt;</span><span class="b2b-nav-label">案例</span></button></li>
+            <li><button type="button" class="b2b-nav-pill is-new"><span class="b2b-nav-chev">&gt;&gt;</span><span class="b2b-nav-label">定价</span></button></li>
+            <li><button type="button" class="b2b-nav-pill is-new"><span class="b2b-nav-chev">&gt;&gt;</span><span class="b2b-nav-label">新闻</span></button></li>
+          </ul></nav>
+          <div class="b2b-nav-actions">
+            <button type="button" class="b2b-btn-outline agent-action-btn" style="padding:9px 14px;font-size:14px"><span class="b2b-nav-chev">&gt;&gt;</span> 体验</button>
+            <button type="button" class="b2b-nav-btn"><span class="b2b-nav-chev">&gt;&gt;</span> 预约</button>
+          </div>
+        </div>
+      </header>
+      <section class="b2b-hero hero-ready" style="padding-bottom:24px">
+        <div class="b2b-hero-body is-visible">
+          <div class="b2b-hero-text">
+            <p class="b2b-hero-eyebrow"><span class="agent-sign-chev">&gt;&gt;</span> 预约即体验智能体协作</p>
+            <h1 class="b2b-hero-tagline"><em>您预约演示的过程，就是智能体帮您整理资料的过程</em></h1>
+            <p>告诉智能体您的需求 · 3 分钟生成可转发的材料</p>
+            <div class="b2b-hero-btns">
+              <button type="button" class="b2b-btn-primary agent-action-btn"><span class="b2b-nav-chev">&gt;&gt;</span> 生成试点清单</button>
+              <button type="button" class="b2b-btn-outline agent-action-btn"><span class="b2b-nav-chev">&gt;&gt;</span> 安全合规问答</button>
+            </div>
+          </div>
+          <aside class="b2b-hero-panel">
+            <div class="b2b-hero-panel-inner">
+              <div class="b2b-hero-panel-title">&gt;&gt; 协作流程 <span class="b2b-hero-panel-tag">7 步</span></div>
+              <p style="font-size:13px;color:#666;line-height:1.6">诊断 → 方案 → 清单 → 材料 → 安全 → 试点 → 预算</p>
+            </div>
+          </aside>
+        </div>
+      </section>
+      <div style="background:#0f172a;color:#94a3b8;font-size:12px;text-align:center;padding:10px">
+        独立子站：<code style="color:#4ade80">/trust</code> <code style="color:#4ade80">/cases/:slug</code> <code style="color:#4ade80">/pricing</code> <code style="color:#4ade80">/for/it</code> <code style="color:#4ade80">/news</code> · 用顶栏「子页」Tab 预览样式
+      </div>
+    </div>
+  </div>
+
+  <!-- B 子页：Trust -->
+  <div class="mock-frame subpage-mock" id="b-trust">
+    <div class="mock-label">方案 B · 子页 <strong>/trust</strong> · 信任与合规中心</div>
+    <div class="mock-trust-page">
+      <header class="b2b-header"><div class="b2b-header-accent"></div>
+        <div class="b2b-nav" style="min-height:58px">
+          <a class="b2b-logo" href="#"><img src="../../home/public/logo-mark.svg" width="36" height="36" alt="" /><span class="b2b-logo-text"><strong>积木仓</strong></span></a>
+          <span style="font-size:14px;font-weight:700;color:#0d47a1;margin-left:auto">信任与合规</span>
+        </div>
+      </header>
+      <div class="mock-trust-hero">
+        <span class="b2b-eyebrow" style="background:rgba(255,255,255,0.2);color:#fff">&gt;&gt; 安全合规助手</span>
+        <h2>安全 · 合规 · 架构 · 可审计</h2>
+        <p>信息部门过审一站式：数据流图、部署方式、对接清单、安全问卷预填、操作日志样例</p>
+      </div>
+      <div class="mock-trust-grid">
+        <div class="mock-trust-card"><h4>数据流与存储</h4><p>客户数据不出境 · 30 天删除 · 不进训练</p><a class="mock-dl-btn" href="#"><span class="chev">&gt;&gt;</span> 下载 PDF</a></div>
+        <div class="mock-trust-card"><h4>部署模式</h4><p>SaaS / 混合 / 私有化对比表</p><a class="mock-dl-btn" href="#"><span class="chev">&gt;&gt;</span> 下载 PDF</a></div>
+        <div class="mock-trust-card"><h4>安全问卷预填</h4><p>50 题常见 42 题预填 · 带来源页码</p><a class="mock-dl-btn" href="#"><span class="chev">&gt;&gt;</span> 下载 ZIP</a></div>
+      </div>
+      <div class="mock-trust-agent">
+        <div class="mock-agent-bar">
+          <span class="chev-big">&gt;&gt;</span>
+          <input type="text" readonly value="客户数据会不会用于训练？删数据流程是什么？" />
+          <button type="button" class="b2b-nav-btn">&gt;&gt; 智能体解答</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- B 子页：News -->
+  <div class="mock-frame subpage-mock" id="b-news">
+    <div class="mock-label">方案 B · 子页 <strong>/news</strong> · Markdown 内容库（B2 推荐）</div>
+    <div class="mock-news-page">
+      <header class="b2b-header"><div class="b2b-header-accent"></div>
+        <div class="b2b-nav" style="min-height:58px">
+          <a class="b2b-logo" href="#"><img src="../../home/public/logo-mark.svg" width="36" height="36" alt="" /></a>
+          <span style="font-size:14px;font-weight:700;color:#0d47a1;margin-left:24px">新闻与动态</span>
+        </div>
+      </header>
+      <div class="b2b-section-title" style="margin-top:32px">
+        <span class="b2b-eyebrow">产品发布 · 客户动态 · 行业洞察</span>
+        <h2>公司在迭代</h2>
+      </div>
+      <div class="mock-news-tabs">
+        <button type="button" class="on">全部</button>
+        <button type="button">产品发布</button>
+        <button type="button">客户动态</button>
+        <button type="button">行业洞察</button>
+      </div>
+      <div class="mock-news-list">
+        <div class="mock-news-row"><span class="date">2026-07-08</span><div><span class="mock-news-cat">产品发布</span><h4>积木仓 1.2：意图识别 + 20 个行业方案站</h4><p>能力目录升级 · 行业方案丰富 · 全站智能体助手</p></div></div>
+        <div class="mock-news-row"><span class="date">2026-06-20</span><div><span class="mock-news-cat">客户动态</span><h4>制造企业：线索首响试点验收通过</h4><p>200 条真实线索 · 平均首响 28 分钟 · 人工确认版</p></div></div>
+        <div class="mock-news-row"><span class="date">2026-06-01</span><div><span class="mock-news-cat">行业洞察</span><h4>2026 企业智能体选型清单（制造版）</h4><p>先定约束 · 试点 7–14 天 · 保留人工确认路径</p></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- B 子页：Case -->
+  <div class="mock-frame subpage-mock" id="b-case">
+    <div class="mock-label">方案 B · 子页 <strong>/cases/mfg-leads</strong> · 案例详情</div>
+    <div class="b2b-app" style="background:#f9fafb">
+      <section class="b2b-section" style="padding-top:40px">
+        <span class="mock-fail-tag">含试点调整过程 · 建立专业信任</span>
+        <h2 style="font-size:26px;font-weight:800;color:#0d47a1;margin:12px 0">800 人制造企业 · 销售线索快速响应</h2>
+        <div class="mock-case-metrics" style="max-width:600px">
+          <div class="mock-metric"><strong>3.2h→28m</strong><span>平均首响</span></div>
+          <div class="mock-metric"><strong>72%</strong><span>采纳率</span></div>
+          <div class="mock-metric"><strong>28 周</strong><span>采购周期</span></div>
+        </div>
+        <p style="font-size:15px;color:#666;max-width:720px;margin:20px 0;line-height:1.7">
+          第一次试点选「全自动外呼」→ 销售抵制 + 合规顾虑 → 4 周后叫停。<br>
+          第二次改为「智能体草拟话术 + 人工确认发送」→ 200 条真实线索验证 → 立项通过。
+        </p>
+        <button type="button" class="b2b-btn-primary agent-action-btn"><span class="b2b-nav-chev">&gt;&gt;</span> 下载对内转发材料包</button>
+      </section>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ 折中 ═══════════ -->
+<div class="scheme-view" id="view-mix">
+  <div class="mock-frame">
+    <div class="mock-label">折中方案 · <strong>B 结构分两期</strong> · 4 周 · 绿=一期 · 黄=二期</div>
+    <div class="b2b-app">
+      <header class="b2b-header mock-nav-extra">
+        <div class="b2b-header-accent"></div>
+        <div class="b2b-nav">
+          <a class="b2b-logo" href="#"><img src="../../home/public/logo-mark.svg" width="42" height="42" alt="" /><span class="b2b-logo-text"><strong>积木仓</strong><em>BLOCKHUB</em></span></a>
+          <nav class="b2b-nav-rail"><ul class="b2b-nav-menu">
+            <li><button type="button" class="b2b-nav-pill"><span class="b2b-nav-chev">&gt;&gt;</span><span class="b2b-nav-label">产品</span></button></li>
+            <li><button type="button" class="b2b-nav-pill is-new"><span class="b2b-nav-chev">&gt;&gt;</span><span class="b2b-nav-label">案例</span></button></li>
+            <li><button type="button" class="b2b-nav-pill on is-new"><span class="b2b-nav-chev">&gt;&gt;</span><span class="b2b-nav-label">信任</span></button></li>
+            <li><button type="button" class="b2b-nav-pill is-new"><span class="b2b-nav-chev">&gt;&gt;</span><span class="b2b-nav-label">新闻</span></button></li>
+            <li><button type="button" class="b2b-nav-pill" style="opacity:0.45"><span class="b2b-nav-chev">&gt;&gt;</span><span class="b2b-nav-label">定价</span></button></li>
+            <li><button type="button" class="b2b-nav-pill" style="opacity:0.45"><span class="b2b-nav-chev">&gt;&gt;</span><span class="b2b-nav-label">角色</span></button></li>
+            <li><button type="button" class="b2b-nav-pill"><span class="b2b-nav-chev">&gt;&gt;</span><span class="b2b-nav-label">体验</span></button></li>
+          </ul></nav>
+          <div class="b2b-nav-actions"><button type="button" class="b2b-nav-btn"><span class="b2b-nav-chev">&gt;&gt;</span> 预约</button></div>
+        </div>
+      </header>
+      <p style="text-align:center;padding:12px;font-size:12px;color:#64748b;background:#f1f5f9">
+        顶栏半透明项 = 第二期上线 · 一期先解信息部门（信任页）+ 业务同事（案例）+ 公司动态（新闻）
+      </p>
+      <section class="b2b-hero hero-ready">
+        <div class="b2b-hero-body is-visible">
+          <div class="b2b-hero-text">
+            <p class="b2b-hero-eyebrow"><span class="agent-sign-chev">&gt;&gt;</span> 企业 AI 智能体 PaaS</p>
+            <h1 class="b2b-hero-tagline"><em>搭积木一样构建企业 AI 应用</em></h1>
+            <div class="b2b-hero-btns"><button type="button" class="b2b-btn-primary agent-action-btn"><span class="b2b-nav-chev">&gt;&gt;</span> 预约演示</button></div>
+          </div>
+        </div>
+      </section>
+      <div class="mock-section-new mock-trust-strip">
+        <span class="mock-badge-new">一期</span>
+        <div class="mock-trust-inner"><div><h3>信任与合规完整页 /trust</h3><p>安全问卷 · 架构说明 · 资料下载</p></div>
+          <a class="mock-dl-btn" href="#"><span class="chev">&gt;&gt;</span> 进入信任中心</a></div>
+      </div>
+      <section class="b2b-section mock-section-new">
+        <span class="mock-badge-new">一期</span>
+        <div class="b2b-section-title"><span class="b2b-eyebrow">案例</span><h2>1 个制造长案例 + /cases 列表</h2></div>
+        <div class="mock-case-long" style="max-width:800px;margin:0 auto"><h3>制造企业 · 试点调整后成功</h3><div class="mock-case-metrics"><div class="mock-metric"><strong>28min</strong><span>首响</span></div></div></div>
+      </section>
+      <section class="mock-news-section mock-section-new">
+        <span class="mock-badge-new">一期</span>
+        <div class="b2b-section-title"><span class="b2b-eyebrow">新闻</span><h2>/news · Markdown B2</h2></div>
+        <div class="mock-news-grid" style="grid-template-columns:repeat(3,1fr)">
+          <article class="mock-news-card"><div class="mock-news-body"><span class="mock-news-cat">产品</span><h4>1.2 发布</h4></div></article>
+          <article class="mock-news-card"><div class="mock-news-body"><span class="mock-news-cat">客户</span><h4>制造试点</h4></div></article>
+          <article class="mock-news-card"><div class="mock-news-body"><span class="mock-news-cat">洞察</span><h4>选型清单</h4></div></article>
+        </div>
+      </section>
+      <div class="mock-pricing-bar mock-section-new" style="opacity:0.55;position:relative">
+        <span class="mock-badge-new" style="background:#f59e0b">二期</span>
+        <div class="b2b-section-title"><h2>/pricing + /for/it 等 4 个角色页</h2><p>顶栏六类采购入口（第二期）</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  var schemeBtns = document.querySelectorAll('.scheme-switch button');
+  var views = document.querySelectorAll('.scheme-view');
+  var subSwitch = document.getElementById('sub-switch');
+  var subBtns = subSwitch.querySelectorAll('button');
+
+  function showScheme(id) {
+    schemeBtns.forEach(function (b) { b.classList.toggle('on', b.dataset.scheme === id); });
+    views.forEach(function (v) { v.classList.toggle('on', v.id === 'view-' + id); });
+    subSwitch.classList.toggle('show', id === 'b');
+    if (id !== 'b') showSub('home');
+  }
+
+  function showSub(sub) {
+    subBtns.forEach(function (b) { b.classList.toggle('on', b.dataset.sub === sub); });
+    document.getElementById('b-home').style.display = sub === 'home' ? 'block' : 'none';
+    ['trust','news','case'].forEach(function (s) {
+      var el = document.getElementById('b-' + s);
+      if (el) el.classList.toggle('on', sub === s);
+    });
+  }
+
+  schemeBtns.forEach(function (btn) {
+    btn.addEventListener('click', function () { showScheme(btn.dataset.scheme); });
+  });
+  subBtns.forEach(function (btn) {
+    btn.addEventListener('click', function () { showSub(btn.dataset.sub); });
+  });
+</script>
+</body>
+</html>

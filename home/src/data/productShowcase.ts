@@ -299,8 +299,8 @@ const EXTENDED_SOLUTIONS: Record<string, string[]> = {
   auto: ['试驾预约', '售后工单', '配件申购', '保养提醒', '客户回访', '事故报案', '二手车评估', '门店客流', '试驾反馈', '延保销售'],
 }
 
-function solutionsForIndustry(key: string, baseKey?: string): string[] {
-  const scenes = SCENES[key] ?? (baseKey ? SCENES[baseKey] : undefined)
+function solutionsForIndustry(key: string): string[] {
+  const scenes = SCENES[key]
   if (scenes?.length) return scenes
   return EXTENDED_SOLUTIONS[key] ?? []
 }
@@ -313,8 +313,8 @@ export const INDUSTRY_SOLUTIONS: IndustrySolution[] = INDUSTRIES_SHOWCASE.map((i
   color: ind.color,
   count: ind.count,
   tagline: ind.desc,
-  solutions: solutionsForIndustry(ind.key, ind.baseKey),
-  fullPack: ind.fullPack,
+  solutions: solutionsForIndustry(ind.key),
+  fullPack: ind.fullPack ?? true,
 }))
 
 /** AI 智能体原子能力 */

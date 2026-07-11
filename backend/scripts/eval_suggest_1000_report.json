@@ -1,0 +1,119 @@
+{
+  "total": 1000,
+  "keyword_passed": 995,
+  "intent_rules_passed": 995,
+  "pipeline_passed": 995,
+  "pipeline_invalid_blocked": 0,
+  "intent_invalid_count": 3,
+  "keyword_empty": 9,
+  "elapsed_sec": 205.12,
+  "deepseek_configured": true,
+  "by_category": {
+    "seed": {
+      "pass": 95,
+      "total": 100
+    },
+    "edge": {
+      "pass": 2,
+      "total": 2
+    },
+    "negative": {
+      "pass": 3,
+      "total": 3
+    },
+    "game": {
+      "pass": 1,
+      "total": 1
+    },
+    "industry_random": {
+      "pass": 774,
+      "total": 774
+    },
+    "capability_random": {
+      "pass": 80,
+      "total": 80
+    },
+    "combo_random": {
+      "pass": 40,
+      "total": 40
+    }
+  },
+  "game_hit": {
+    "pass": 119,
+    "total": 119
+  },
+  "failures": [
+    {
+      "input": "蓝牙打印小票",
+      "category": "seed",
+      "expect_any": [
+        "custom_"
+      ],
+      "expect_status": null,
+      "got_kw": [],
+      "got_pipe": [],
+      "pipe_status": null
+    },
+    {
+      "input": "区块链存证合同",
+      "category": "seed",
+      "expect_any": [
+        "custom_"
+      ],
+      "expect_status": null,
+      "got_kw": [
+        "sales",
+        "财务法务",
+        "chart_funnel",
+        "approval_flow"
+      ],
+      "got_pipe": [
+        "sales",
+        "财务法务",
+        "chart_funnel",
+        "approval_flow"
+      ],
+      "pipe_status": "valid"
+    },
+    {
+      "input": "直播带货下单",
+      "category": "seed",
+      "expect_any": [
+        "custom_",
+        "chart_dashboard"
+      ],
+      "expect_status": null,
+      "got_kw": [],
+      "got_pipe": [],
+      "pipe_status": null
+    },
+    {
+      "input": "NFT数字藏品展示",
+      "category": "seed",
+      "expect_any": [
+        "custom_"
+      ],
+      "expect_status": null,
+      "got_kw": [],
+      "got_pipe": [],
+      "pipe_status": null
+    },
+    {
+      "input": "AI绘画生成头像",
+      "category": "seed",
+      "expect_any": [
+        "custom_",
+        "chat_qa"
+      ],
+      "expect_status": null,
+      "got_kw": [],
+      "got_pipe": [],
+      "pipe_status": null
+    }
+  ],
+  "llm_sample": {
+    "sample_size": 50,
+    "passed": 49,
+    "used_llm_count": 50
+  }
+}

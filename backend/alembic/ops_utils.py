@@ -38,3 +38,16 @@ def drop_index_if_exists(index_name: str, table: str) -> None:
 def drop_table_if_exists(name: str) -> None:
     if has_table(name):
         op.drop_table(name)
+
+
+def has_column(table: str, column: str) -> bool:
+    bind = op.get_bind()
+    insp = inspect(bind)
+    if not insp.has_table(table):
+        return False
+    return column in {c["name"] for c in insp.get_columns(table)}
+
+
+def add_column_if_missing(table: str, column: sa.Column) -> None:
+    if has_table(table) and not has_column(table, column.name):
+        op.add_column(table, column)

@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
-import { PLATFORM_STATS } from '@shared/platformStats'
+import { HERO_PLATFORM_INTRO, HERO_PLATFORM_STATS, type HeroStatModule } from '../../data/heroPlatformHighlights'
+import { scrollToHomeSection } from '../../hooks/useHomeActiveSection'
+import { AgentChevronGlyph } from '../AgentChevron'
 
 function useCountUp(target: number, active: boolean, duration = 1400) {
   const [value, setValue] = useState(0)
@@ -24,28 +26,24 @@ function useCountUp(target: number, active: boolean, duration = 1400) {
   return value
 }
 
-function StatCard({
+function StatModule({
   target,
   suffix,
   label,
   sub,
   active,
-}: {
-  target: number
-  suffix?: string
-  label: string
-  sub: string
-  active: boolean
-}) {
+}: HeroStatModule & { active: boolean }) {
   const n = useCountUp(target, active)
   return (
-    <div className="b2b-stat-card">
-      <div className="b2b-stat-num" aria-live="polite">
+    <div className="b2b-stat-module">
+      <div className="b2b-stat-module-num" aria-live="polite">
         <span className="b2b-stat-value">{n}</span>
         {suffix && <span className="b2b-stat-suffix">{suffix}</span>}
       </div>
-      <div className="b2b-stat-label">{label}</div>
-      <div className="b2b-stat-sub">{sub}</div>
+      <div className="b2b-stat-module-text">
+        <div className="b2b-stat-label">{label}</div>
+        <div className="b2b-stat-sub">{sub}</div>
+      </div>
     </div>
   )
 }
@@ -70,35 +68,24 @@ export default function HeroStatsPanel() {
   return (
     <div className="b2b-hero-panel" ref={ref}>
       <div className="b2b-hero-panel-inner">
-        <span className="b2b-hero-panel-tag">平台能力一览</span>
-        <div className="b2b-stat-grid">
-          <StatCard
-            target={PLATFORM_STATS.scenarios}
-            suffix="+"
-            label="业务场景"
-            sub="典型流程开箱即用"
-            active={active}
-          />
-          <StatCard
-            target={3}
-            label="创建方式"
-            sub="描述 · 行业 · 模块"
-            active={active}
-          />
-          <StatCard
-            target={PLATFORM_STATS.platforms}
-            label="端交付"
-            sub="Web · 移动 · 桌面"
-            active={active}
-          />
-          <StatCard
-            target={PLATFORM_STATS.industryPacks}
-            label="行业方案"
-            sub="办公 · 制造 · 销售 · 医疗…"
-            active={active}
-          />
+        <span className="b2b-hero-panel-tag">智能体 PaaS · 规模一览</span>
+        <h2 className="b2b-hero-panel-title">平台能力一览</h2>
+        <p className="b2b-hero-panel-intro">{HERO_PLATFORM_INTRO}</p>
+
+        <div className="b2b-hero-panel-stats-grid" aria-label="平台能力指标">
+          {HERO_PLATFORM_STATS.map((item) => (
+            <StatModule key={item.label} {...item} active={active} />
+          ))}
         </div>
-        <p className="b2b-hero-panel-foot">一次发布 · 跨端同步执行业务流程</p>
+
+        <button
+          type="button"
+          className="b2b-hero-panel-more"
+          onClick={() => scrollToHomeSection('product')}
+        >
+          <AgentChevronGlyph size="xs" className="b2b-hero-panel-more-chev" />
+          查看完整产品能力
+        </button>
       </div>
     </div>
   )

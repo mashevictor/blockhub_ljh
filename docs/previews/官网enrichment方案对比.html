@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BlockHub 官网 enrichment 方案对比</title>
+  <style>
+    :root {
+      --bg: #eef2f7;
+      --surface: #fff;
+      --border: #c5d4e8;
+      --pri: #1e4d8c;
+      --pri-light: #dce8f8;
+      --accent: #2563eb;
+      --text: #1a202c;
+      --muted: #5a6578;
+      --ok: #047857;
+      --warn: #b45309;
+      --sans: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--sans); background: var(--bg); color: var(--text); line-height: 1.6; font-size: 14px; }
+    .page { max-width: 1280px; margin: 0 auto; padding: 28px 20px 80px; }
+
+    header {
+      background: linear-gradient(135deg, #0f3460, #1e4d8c 50%, #2563eb);
+      color: #fff; border-radius: 16px; padding: 32px 36px; margin-bottom: 24px;
+      box-shadow: 0 8px 32px rgba(15,52,96,0.25);
+    }
+    header h1 { font-size: 26px; font-weight: 800; margin-bottom: 8px; }
+    header p { opacity: 0.92; max-width: 880px; font-size: 15px; }
+    .meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+    .pill {
+      font-size: 11px; font-weight: 700; padding: 5px 12px; border-radius: 999px;
+      background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.28);
+    }
+
+    /* 方案 Tab */
+    .scheme-tabs {
+      display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;
+    }
+    .scheme-tab {
+      flex: 1; min-width: 200px; padding: 16px 20px; border: 2px solid var(--border);
+      border-radius: 14px; background: var(--surface); cursor: pointer;
+      transition: all 0.2s; text-align: left;
+    }
+    .scheme-tab:hover { border-color: #93c5fd; box-shadow: 0 4px 16px rgba(37,99,235,0.1); }
+    .scheme-tab.active { border-color: var(--accent); background: #eff6ff; box-shadow: 0 4px 20px rgba(37,99,235,0.15); }
+    .scheme-tab .label { font-size: 11px; font-weight: 800; color: var(--accent); letter-spacing: 0.06em; }
+    .scheme-tab .name { font-size: 17px; font-weight: 800; color: var(--pri); margin: 4px 0; }
+    .scheme-tab .time { font-size: 12px; color: var(--muted); }
+    .scheme-tab.recommended { position: relative; }
+    .scheme-tab.recommended::after {
+      content: "推荐"; position: absolute; top: -8px; right: 12px;
+      background: #059669; color: #fff; font-size: 10px; font-weight: 800;
+      padding: 2px 8px; border-radius: 999px;
+    }
+
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    section {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+      padding: 24px 28px; margin-bottom: 16px;
+    }
+    section h2 { font-size: 17px; font-weight: 800; color: var(--pri); margin-bottom: 12px; }
+    section h3 { font-size: 14px; font-weight: 800; color: var(--pri); margin: 18px 0 8px; }
+    .lead { color: var(--muted); font-size: 13px; margin-bottom: 14px; }
+
+    /* 路由树 */
+    .route-tree {
+      font-family: ui-monospace, Consolas, monospace; font-size: 13px;
+      background: #0f172a; color: #e2e8f0; padding: 20px 24px; border-radius: 10px;
+      line-height: 1.8; overflow-x: auto;
+    }
+    .route-tree .new { color: #4ade80; font-weight: 700; }
+    .route-tree .keep { color: #94a3b8; }
+    .route-tree .comment { color: #64748b; }
+
+    /* 首页线框 */
+    .wireframe {
+      border: 2px dashed #b8cce4; border-radius: 12px; padding: 16px; background: #f8fafc;
+    }
+    .wf-block {
+      padding: 12px 16px; margin: 8px 0; border-radius: 8px; font-size: 12px; font-weight: 600;
+      text-align: center; border: 1px solid var(--border);
+    }
+    .wf-block.new-block { background: #dcfce7; border-color: #86efac; color: #14532d; }
+    .wf-block.existing { background: #fff; color: var(--pri); }
+    .wf-block.nav { background: var(--pri); color: #fff; font-size: 11px; }
+    .wf-row { display: grid; gap: 8px; }
+    .wf-row.cols-2 { grid-template-columns: 1fr 1fr; }
+    .wf-row.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+
+    /* 表格 */
+    table { width: 100%; border-collapse: collapse; font-size: 12px; margin: 12px 0; }
+    th, td { border: 1px solid #e2e8f0; padding: 10px 12px; text-align: left; vertical-align: top; }
+    th { background: #f8fafc; color: var(--pri); font-weight: 700; }
+    tr:nth-child(even) td { background: #fafbfc; }
+    .yes { color: var(--ok); font-weight: 700; }
+    .partial { color: var(--warn); font-weight: 700; }
+    .no { color: #b91c1c; font-weight: 700; }
+
+    /* 新闻子方案卡片 */
+    .news-options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 12px; }
+    .news-card {
+      border: 1px solid var(--border); border-radius: 12px; padding: 16px;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .news-card:hover { border-color: #93c5fd; }
+    .news-card.selected { border-color: var(--accent); background: #eff6ff; }
+    .news-card h4 { font-size: 14px; font-weight: 800; color: var(--pri); margin-bottom: 6px; }
+    .news-card .sub { font-size: 11px; color: var(--muted); margin-bottom: 8px; }
+    .news-card ul { font-size: 12px; color: var(--muted); margin-left: 16px; }
+    .news-card li { margin-bottom: 4px; }
+
+    /* 对比矩阵 */
+    .compare-matrix { overflow-x: auto; }
+    .compare-matrix th:first-child { min-width: 140px; }
+    .score-bar {
+      height: 8px; background: #e2e8f0; border-radius: 999px; overflow: hidden; margin-top: 4px;
+    }
+    .score-bar span { display: block; height: 100%; background: linear-gradient(90deg, #2563eb, #3b82f6); border-radius: 999px; }
+
+    .pros-cons { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 12px; }
+    .pros, .cons {
+      padding: 14px 16px; border-radius: 10px; font-size: 13px;
+    }
+    .pros { background: #ecfdf5; border: 1px solid #86efac; }
+    .cons { background: #fef2f2; border: 1px solid #fca5a5; }
+    .pros h4 { color: var(--ok); font-size: 12px; font-weight: 800; margin-bottom: 8px; }
+    .cons h4 { color: #b91c1c; font-size: 12px; font-weight: 800; margin-bottom: 8px; }
+    .pros ul, .cons ul { margin-left: 18px; color: #374151; }
+
+    .callout {
+      padding: 14px 18px; border-radius: 10px; background: #eff6ff;
+      border-left: 4px solid var(--accent); font-size: 13px; margin-top: 14px;
+    }
+    .callout strong { color: var(--pri); }
+
+    .gap-table td:first-child { font-weight: 600; white-space: nowrap; }
+
+    /* 分期 */
+    .phases { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .phase {
+      border: 1px solid var(--border); border-radius: 12px; overflow: hidden;
+    }
+    .phase-head {
+      padding: 10px 14px; font-weight: 800; font-size: 13px;
+      background: var(--pri-light); color: var(--pri);
+    }
+    .phase-body { padding: 12px 14px; font-size: 12px; color: var(--muted); }
+    .phase-body li { margin: 4px 0 4px 16px; }
+
+    footer { text-align: center; color: var(--muted); font-size: 12px; margin-top: 28px; }
+
+    @media (max-width: 900px) {
+      .news-options, .pros-cons, .phases, .wf-row.cols-2, .wf-row.cols-3 { grid-template-columns: 1fr; }
+      .scheme-tab { min-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <h1>BlockHub 官网内容 enrichment · 方案对比预览</h1>
+    <p>基于 Agent 原生 B2B 采购闭环，在现有首页 + 行业站 + CreateStudio 基础上，如何丰富内容并新增公司新闻动态。点击 Tab 切换方案查看详情。</p>
+    <div class="meta">
+      <span class="pill">现状：单页 B2B + /industry/*</span>
+      <span class="pill">缺口：Trust / 定价 / 新闻 / 角色页</span>
+      <span class="pill">3 套主方案 + 3 套新闻子方案</span>
+    </div>
+  </header>
+
+  <!-- 现状缺口 -->
+  <section>
+    <h2>当前官网 vs 采购闭环缺口</h2>
+    <table class="gap-table">
+      <thead>
+        <tr><th>采购阶段</th><th>现有</th><th>缺失</th><th>对应 Agent</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>S1 问题识别</td><td>Hero + 行业页</td><td class="no">白皮书下载、行业基准</td><td>Diagnostic Agent</td></tr>
+        <tr><td>S2 方案探索</td><td>产品能力 + 20 行业</td><td class="no">Trust Center、集成清单</td><td>Architect / Trust Agent</td></tr>
+        <tr><td>S3–S6 POC</td><td>在线体验 + 预约</td><td class="partial">案例详情、POC 模板</td><td>Scope / Proof Agent</td></tr>
+        <tr><td>S7–S8 立项合同</td><td>—</td><td class="no">定价框架、SLA、资质包</td><td>ROI / Procurement Agent</td></tr>
+        <tr><td>committee 分发</td><td>—</td><td class="no">角色页、Share 资料包</td><td>Champion Agent</td></tr>
+        <tr><td>信任 / 续费</td><td>—</td><td class="no">新闻动态、Changelog</td><td>—</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 方案 Tab -->
+  <div class="scheme-tabs">
+    <div class="scheme-tab active" data-scheme="a">
+      <div class="label">方案 A</div>
+      <div class="name">首页加厚 + 2 路由</div>
+      <div class="time">2–3 周 · 动刀最小</div>
+    </div>
+    <div class="scheme-tab recommended" data-scheme="b">
+      <div class="label">方案 B</div>
+      <div class="name">采购闭环子站群</div>
+      <div class="time">4–6 周 · 推荐</div>
+    </div>
+    <div class="scheme-tab" data-scheme="c">
+      <div class="label">方案 C</div>
+      <div class="name">Agent 工件 + Share Link</div>
+      <div class="time">8–10 周 · 与产品深度绑定</div>
+    </div>
+    <div class="scheme-tab" data-scheme="mix">
+      <div class="label">折中</div>
+      <div class="name">B 结构 · 分两期上线</div>
+      <div class="time">4 周 · 风险最低</div>
+    </div>
+  </div>
+
+  <!-- ===== 方案 A ===== -->
+  <div class="panel active" id="panel-a">
+    <section>
+      <h2>方案 A：首页加厚 + /trust + /news</h2>
+      <p class="lead">不大改信息架构，在现有 HomeApp 单页加 4 个新区块，另开 2 个轻量子站。</p>
+
+      <h3>新增路由（仅 2 个）</h3>
+      <div class="route-tree">
+        <span class="keep">/</span> <span class="comment">← 首页（加厚，锚点增加）</span><br>
+        <span class="keep">/industry/*</span> <span class="comment">← 保持</span><br>
+        <span class="keep">/plaza</span> <span class="comment">← 保持</span><br>
+        <span class="new">/trust</span> <span class="comment">← 新建 Trust Center</span><br>
+        <span class="new">/news</span> <span class="comment">← 新建新闻列表</span><br>
+        <span class="new">/news/:slug</span> <span class="comment">← 新闻详情</span>
+      </div>
+
+      <h3>首页线框（新增区块标绿）</h3>
+      <div class="wireframe">
+        <div class="wf-block nav">顶栏：产品 | 案例 | 体验 | <strong>信任与合规</strong> | <strong>新闻</strong> | 预约</div>
+        <div class="wf-block existing">Hero（保持）</div>
+        <div class="wf-block new-block">★ Trust Strip — 等保说明 + 3 个下载（安全白皮书 / 集成清单 / DPA 摘要）</div>
+        <div class="wf-block existing">产品能力（保持）</div>
+        <div class="wf-block new-block">★ 深度案例 2+1 — 制造完整案例（含 POC 失败回环）+ 下载 Executive 1-pager</div>
+        <div class="wf-block new-block">★ 定价框架条 — 影响因素 FAQ，不写死价格</div>
+        <div class="wf-block existing">在线体验 CreateStudio（保持）</div>
+        <div class="wf-block new-block">★ 新闻动态 — 最新 3 条 + 查看全部 → /news</div>
+        <div class="wf-block existing">预约演示（保持）</div>
+      </div>
+
+      <h3>新闻动态（方案 A 固定：静态 JSON）</h3>
+      <div class="callout">数据源：<code>home/src/data/news.ts</code> · 与 productShowcase 同模式 · 改内容需发版</div>
+      <table>
+        <thead><tr><th>栏目</th><th>用途</th><th>首发条数</th></tr></thead>
+        <tbody>
+          <tr><td>产品发布</td><td>版本、Changelog</td><td>2</td></tr>
+          <tr><td>客户动态</td><td>签约/上线（脱敏）</td><td>2</td></tr>
+          <tr><td>行业洞察</td><td>白皮书摘要、选型 checklist</td><td>4</td></tr>
+        </tbody>
+      </table>
+
+      <div class="pros-cons">
+        <div class="pros"><h4>优点</h4><ul><li>2–3 周可上线</li><li>改动文件少，风险低</li><li>不依赖后端</li><li>Trust + 新闻先补齐最大缺口</li></ul></div>
+        <div class="cons"><h4>缺点</h4><ul><li>无独立案例详情页</li><li>无角色页 / Share Link</li><li>新闻改代码发版</li><li>committee 转发能力弱</li></ul></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ===== 方案 B ===== -->
+  <div class="panel" id="panel-b">
+    <section>
+      <h2>方案 B：采购闭环子站群（推荐）</h2>
+      <p class="lead">按 Buying Jobs 拆 5 类独立路由，新闻作为内容中心一环，URL 可微信转发给 committee。</p>
+
+      <h3>完整路由结构</h3>
+      <div class="route-tree">
+        <span class="keep">/</span> <span class="comment">← 首页 Hub（精简 + Agent 编排动画）</span><br>
+        <span class="new">/trust</span> <span class="comment">← 安全/合规/架构/审计样例/问卷预填</span><br>
+        <span class="new">/cases</span> <span class="comment">← 案例列表</span><br>
+        <span class="new">/cases/:slug</span> <span class="comment">← 案例详情 + 量化指标 + POC 过程</span><br>
+        <span class="new">/pricing</span> <span class="comment">← 定价框架 + SLA + 招标资质下载</span><br>
+        <span class="new">/for/:role</span> <span class="comment">← sales-ops | it | finance | procurement</span><br>
+        <span class="new">/news</span> <span class="comment">← 新闻中心（三栏目 Tab）</span><br>
+        <span class="new">/news/:slug</span><br>
+        <span class="keep">/industry/*</span> <span class="comment">← 底部挂 Trust + News + 相关案例</span><br>
+        <span class="keep">/plaza</span>
+      </div>
+
+      <h3>各子站必备内容</h3>
+      <table>
+        <thead><tr><th>页面</th><th>必备内容</th><th>Buying Job</th></tr></thead>
+        <tbody>
+          <tr><td>/trust</td><td>数据流图、部署对比、集成清单、FAQ 20 题、安全 ZIP 下载</td><td>S2 / S5</td></tr>
+          <tr><td>/cases/:slug</td><td>量化指标、POC 失败→成功、Executive 1-pager 下载</td><td>S4 / S6</td></tr>
+          <tr><td>/pricing</td><td>三档框架、TCO 说明、付款 FAQ → 预约表单</td><td>S7 / S8</td></tr>
+          <tr><td>/for/it 等</td><td>角色 Top5 问题 + 3 下载 + 专属 Agent 文案</td><td>committee</td></tr>
+          <tr><td>/news</td><td>产品发布 | 客户动态 | 行业洞察</td><td>信任 / 续费</td></tr>
+        </tbody>
+      </table>
+
+      <h3>顶栏两种风格（二选一）</h3>
+      <div class="wf-row cols-2">
+        <div class="wireframe">
+          <div class="wf-block nav">传统版：产品 | 案例 | 信任 | 定价 | 新闻 | 体验 | 预约</div>
+        </div>
+        <div class="wireframe">
+          <div class="wf-block nav">Agent 版：>> 诊断 >> 架构 >> 安全 >> 案例 >> 定价 >> 新闻</div>
+        </div>
+      </div>
+
+      <h3>新闻动态 · 三选一（点击卡片高亮）</h3>
+      <div class="news-options">
+        <div class="news-card" data-news="b1">
+          <h4>B1 · 静态 JSON</h4>
+          <div class="sub">+0.5 周 · 团队小、月更 ≤4 篇</div>
+          <ul><li>data/news.ts</li><li>构建时更新</li><li>与方案 A 相同</li></ul>
+        </div>
+        <div class="news-card selected" data-news="b2">
+          <h4>B2 · Markdown 库 ★</h4>
+          <div class="sub">+1 周 · 运营能写 MD</div>
+          <ul><li>content/news/*.md</li><li>frontmatter 分类</li><li>行业页可关联</li></ul>
+        </div>
+        <div class="news-card" data-news="b3">
+          <h4>B3 · 后端 API</h4>
+          <div class="sub">+2–3 周 · 运营自助发稿</div>
+          <ul><li>PG site_news 表</li><li>管理后台编辑</li><li>/api/v1/news</li></ul>
+        </div>
+      </div>
+      <div class="callout" id="news-detail-b2"><strong>推荐 B2：</strong> frontmatter 含 title / date / category / industryKeys[] / summary · 首发 12 条模板（2 产品 + 2 客户 + 4 洞察 + …）</div>
+
+      <div class="pros-cons">
+        <div class="pros"><h4>优点</h4><ul><li>覆盖 committee 21–35 份材料</li><li>每个 URL 可转发</li><li>与 Agent 原生 HTML 85% 对齐</li><li>行业页形成内容闭环</li></ul></div>
+        <div class="cons"><h4>缺点</h4><ul><li>需写齐 Trust/案例/定价内容</li><li>4–6 周研发</li><li>B3 新闻需后端</li></ul></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ===== 方案 C ===== -->
+  <div class="panel" id="panel-c">
+    <section>
+      <h2>方案 C：采购即 Demo · Agent 工件版</h2>
+      <p class="lead">在方案 B 全部页面上，每页不止阅读——Agent 产出 PDF/打包下载，并加 Share Link。</p>
+
+      <h3>在 B 基础上增加</h3>
+      <table>
+        <thead><tr><th>能力</th><th>说明</th><th>感知</th></tr></thead>
+        <tbody>
+          <tr><td>/share/:token</td><td>销售生成客户资料包（案例+Trust+定价）</td><td>committee 各见各 Agent</td></tr>
+          <tr><td>Artifact Panel</td><td>每页右侧可下载 PDF/Excel</td><td>Agent 在干活</td></tr>
+          <tr><td>Trust Agent RAG</td><td>安全页对话，引用文档页码</td><td>IT 当场答疑</td></tr>
+          <tr><td>新闻摘要 Agent</td><td>长文 → 1 页 Executive 摘要下载</td><td>Champion 转发</td></tr>
+        </tbody>
+      </table>
+
+      <h3>路由（B + 新增）</h3>
+      <div class="route-tree">
+        <span class="comment"># 方案 B 全部路由 +</span><br>
+        <span class="new">/share/:token</span> <span class="comment">← Deal Room 资料包</span><br>
+        <span class="comment"># 各页内置 Artifact Panel + Agent 对话</span>
+      </div>
+
+      <h3>新闻</h3>
+      <div class="callout">建议 <strong>B3 后端 API</strong> + 管理后台 · 每条新闻自动生成 og:image、摘要、是否进 Share 包</div>
+
+      <div class="pros-cons">
+        <div class="pros"><h4>优点</h4><ul><li>最强「全流程是 Agent」感知</li><li>与销售闭环一致</li><li>100% 对齐 Agent 原生设计</li></ul></div>
+        <div class="cons"><h4>缺点</h4><ul><li>8–10 周研发</li><li>需 backend + Agent 工具链</li><li>内容运营压力最大</li></ul></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ===== 折中方案 ===== -->
+  <div class="panel" id="panel-mix">
+    <section>
+      <h2>折中：B 的内容结构 · 分两期上线（4 周，风险最低）</h2>
+      <p class="lead">第一期先解 committee 最急缺的 Trust + 新闻 + 案例；第二期补定价 + 角色页。</p>
+      <div class="phases">
+        <div class="phase">
+          <div class="phase-head">第一期 · 2 周</div>
+          <div class="phase-body">
+            <ul>
+              <li>/trust Trust Center 完整页</li>
+              <li>/news + /news/:slug（B2 Markdown）</li>
+              <li>首页：Trust Strip + 新闻 3 条</li>
+              <li>/cases 列表 + 1 个制造长案例详情</li>
+              <li>顶栏加：信任 | 新闻</li>
+              <li>行业页底部：相关新闻 2 条</li>
+            </ul>
+          </div>
+        </div>
+        <div class="phase">
+          <div class="phase-head">第二期 · 2 周</div>
+          <div class="phase-body">
+            <ul>
+              <li>/pricing 定价框架 + SLA</li>
+              <li>/for/it /for/finance 等 4 角色页</li>
+              <li>案例扩到 3 个长案例</li>
+              <li>Buying Job 六入口（顶栏 Agent 版）</li>
+              <li>可选：B3 新闻 API 替换 Markdown</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="callout"><strong>为什么推荐折中：</strong> 61% 卡 ROI、44% 卡安全——第一期 Trust + 案例直接解 IT 和 Champion；新闻建立「公司在迭代」信任；第二期再补定价和角色页，不堵第一期上线。</div>
+    </section>
+  </div>
+
+  <!-- 总对比矩阵 -->
+  <section>
+    <h2>三方案总对比</h2>
+    <div class="compare-matrix">
+      <table>
+        <thead>
+          <tr><th>维度</th><th>A 首页加厚</th><th>B 子站群 ★</th><th>C Agent 工件</th><th>折中 B 分期</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>周期</td><td>2–3 周</td><td>4–6 周</td><td>8–10 周</td><td>4 周（两期）</td></tr>
+          <tr><td>Trust Center</td><td class="partial">轻量子页</td><td class="yes">完整</td><td class="yes">完整+RAG</td><td class="yes">第一期</td></tr>
+          <tr><td>案例详情</td><td class="partial">首页卡片</td><td class="yes">独立页</td><td class="yes">+PDF</td><td class="yes">第一期</td></tr>
+          <tr><td>定价 / SLA</td><td class="partial">首页条</td><td class="yes">独立页</td><td class="yes">+下载</td><td class="partial">第二期</td></tr>
+          <tr><td>新闻动态</td><td class="yes">JSON</td><td class="yes">MD/API</td><td class="yes">API</td><td class="yes">MD 第一期</td></tr>
+          <tr><td>角色页</td><td class="no">无</td><td class="yes">4 页</td><td class="yes">+Agent</td><td class="partial">第二期</td></tr>
+          <tr><td>Share Link</td><td class="no">无</td><td class="no">无</td><td class="yes">有</td><td class="no">无</td></tr>
+          <tr><td>committee 转发</td><td>弱</td><td class="yes">强</td><td class="yes">最强</td><td class="yes">中→强</td></tr>
+          <tr><td>Agent 原生对齐</td><td>60%</td><td class="yes">85%</td><td class="yes">100%</td><td class="yes">80%→85%</td></tr>
+          <tr><td>后端依赖</td><td class="no">无</td><td class="partial">可选</td><td class="yes">需要</td><td class="partial">可选</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 style="margin-top:20px">决策建议</h3>
+    <table>
+      <thead><tr><th>如果你…</th><th>选</th></tr></thead>
+      <tbody>
+        <tr><td>要尽快有 Trust + 新闻，少动代码</td><td><strong>方案 A</strong></td></tr>
+        <tr><td>要做完整 B2B 采购内容库，4–6 周可投入</td><td><strong>方案 B + B2 Markdown 新闻</strong></td></tr>
+        <tr><td>要销售 Share Link、Artifact 下载、Trust RAG</td><td><strong>方案 C</strong></td></tr>
+        <tr><td>想平衡风险与完整度</td><td><strong>折中 B 分期</strong>（最推荐）</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 改动文件清单 -->
+  <section>
+    <h2>选定方案后 · 主要改动文件（现有代码库）</h2>
+    <div class="route-tree" style="background:#1e293b;font-size:12px">
+      home/src/routes/paths.ts &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; # 新路由<br>
+      home/src/App.tsx &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; # 注册页面<br>
+      home/src/components/b2b/B2BHeader.tsx &nbsp;&nbsp; # 顶栏导航<br>
+      home/src/HomeApp.tsx &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; # 首页新区块<br>
+      home/src/pages/TrustCenterPage.tsx &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; # 新建<br>
+      home/src/pages/NewsIndexPage.tsx &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; # 新建<br>
+      home/src/pages/NewsDetailPage.tsx &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; # 新建<br>
+      home/src/data/news.ts 或 content/news/*.md &nbsp; # 新闻数据<br>
+      home/src/data/trustDocs.ts &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; # Trust 内容<br>
+      home/src/pages/IndustryDetailPage.tsx &nbsp;&nbsp;&nbsp; # 底部相关新闻<br>
+      home/src/data/agentContext.ts &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; # 各页 Agent 文案<br>
+      backend/.../site_news &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; # 仅 B3/C 需要
+    </div>
+  </section>
+
+  <footer>
+    BlockHub 官网 enrichment 方案对比 · 供决策选用 · 关联 Agent 原生完整版 HTML
+  </footer>
+</div>
+
+<script>
+  document.querySelectorAll('.scheme-tab').forEach(function (tab) {
+    tab.addEventListener('click', function () {
+      document.querySelectorAll('.scheme-tab').forEach(function (t) { t.classList.remove('active'); });
+      document.querySelectorAll('.panel').forEach(function (p) { p.classList.remove('active'); });
+      tab.classList.add('active');
+      document.getElementById('panel-' + tab.dataset.scheme).classList.add('active');
+    });
+  });
+
+  var newsDetails = {
+    b1: '<strong>B1 静态 JSON：</strong> home/src/data/news.ts · 构建时更新 · 最快但运营需改代码',
+    b2: '<strong>推荐 B2 Markdown：</strong> content/news/*.md · frontmatter 分类 · 运营友好 · +1 周',
+    b3: '<strong>B3 后端 API：</strong> PG site_news + 管理后台 · 运营自助发稿 · +2–3 周'
+  };
+  document.querySelectorAll('.news-card').forEach(function (card) {
+    card.addEventListener('click', function () {
+      document.querySelectorAll('.news-card').forEach(function (c) { c.classList.remove('selected'); });
+      card.classList.add('selected');
+      var el = document.getElementById('news-detail-b2');
+      if (el && newsDetails[card.dataset.news]) el.innerHTML = newsDetails[card.dataset.news];
+    });
+  });
+</script>
+</body>
+</html>

@@ -1,7 +1,10 @@
 import { useEffect, useRef } from 'react'
 import { useDemoBooking } from '../../context/DemoBookingContext'
 import { BOOKING_FIELDS } from '../../data/demoBookingFlow'
+import { AgentChevronGlyph } from '../AgentChevron'
 import DemoBookingFlowDiagram from './DemoBookingFlowDiagram'
+import DemoBookingSuccess from './DemoBookingSuccess'
+import DemoBookingDeliveryLoading from './DemoBookingDeliveryLoading'
 
 /** 预约区：流程 + 底部悬浮输入 */
 export default function DemoBookingComposer() {
@@ -9,6 +12,8 @@ export default function DemoBookingComposer() {
   const {
     stepIndex,
     submitted,
+    submitting,
+    delivery,
     filledCount,
     setInView,
     focusFloatingInput,
@@ -32,7 +37,7 @@ export default function DemoBookingComposer() {
     <div className={`demo-booking-composer${submitted ? ' submitted' : ''}`} ref={wrapRef} id="contact-demo">
       <div className="demo-booking-head">
         <span className="agent-brand-trigger mini" aria-hidden>
-          <span className="agent-brand-chev">&gt;&gt;</span>
+          <AgentChevronGlyph size="xs" className="agent-brand-chev" />
           <span className="agent-brand-chev-label">预约</span>
         </span>
         <span className="demo-booking-title">预约演示</span>
@@ -45,6 +50,16 @@ export default function DemoBookingComposer() {
         stepIndex={stepIndex}
         submitted={submitted}
       />
+
+      {submitted && submitting && <DemoBookingDeliveryLoading />}
+
+      {submitted && !submitting && delivery && (
+        <DemoBookingSuccess delivery={delivery} />
+      )}
+
+      {submitted && !submitting && !delivery && (
+        <p className="demo-booking-success-offline">提交状态未知，请滚动到底部悬浮框重试。</p>
+      )}
 
       {!submitted && (
         <p className="demo-booking-float-hint">

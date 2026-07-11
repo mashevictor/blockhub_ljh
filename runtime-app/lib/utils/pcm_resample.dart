@@ -28,4 +28,5 @@ Uint8List resamplePcm16Bytes(
   return Uint8List.view(out.buffer);
 }
 
-int androidCaptureSampleRateHint() => 48000;
+/// Android 录音采样率：优先使用 ASR 要求的 16k，避免误按 48k 重采样导致识别异常。
+int androidCaptureSampleRateHint() => 16000;

@@ -4,6 +4,9 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
+from app.data.industry_packs_all import pack_meta, scene_count_for_pack
+from app.services.industry_enrich import enrich_industry_pack
+from app.services.industry_site import build_site_config, list_all_sites
 from app.db.models import (
     CatalogAgent,
     CatalogCapability,
@@ -134,26 +137,187 @@ def list_industry_packs(db: Session) -> list[dict[str, Any]]:
     ]
 
 
-def get_industry_pack_detail(db: Session, pack_key: str) -> dict[str, Any] | None:
+def get_industry_pack_detail(
+    db: Session,
+    pack_key: str,
+    *,
+    enrich: bool = False,
+) -> dict[str, Any] | None:
+    meta = pack_meta(pack_key)
     pack = db.query(CatalogIndustryPack).filter(CatalogIndustryPack.key == pack_key).first()
-    if not pack:
-        return None
-    scenes = (
-        db.query(CatalogIndustryScenario)
-        .filter(CatalogIndustryScenario.pack_key == pack_key)
-        .order_by(CatalogIndustryScenario.id)
-        .all()
-    )
-    return {
-        "pack": {
-            "key": pack.key,
-            "name": pack.name,
-            "icon": pack.icon,
-            "color": pack.color,
-        },
-        "scenes": [_industry_to_dict(s) for s in scenes],
-        "total": len(scenes),
+
+    if pack_key == "office":
+        office_rows = db.query(CatalogOfficeScenario).order_by(CatalogOfficeScenario.id).all()
+        scene_dicts = [
+            {
+                "id": row.id,
+                "name": row.name,
+                "category": row.category,
+                "problem": f"{row.category}标准办公场景",
+                "pages": "approval+chat",
+                "standard": "✓",
+                "agent": row.agent.split("+")[0] if row.agent else "approval",
+                "type": "office",
+            }
+            for row in office_rows
+        ]
+        pack_info = {
+            "key": "office",
+            "name": meta["name"] if meta else "通用办公",
+            "icon": meta.get("icon", "🏢") if meta else "🏢",
+            "color": meta.get("color", "#6366f1") if meta else "#6366f1",
+            "tagline": meta.get("tagline", "") if meta else "",
+        }
+    else:
+        if not pack:
+            meta_fb = pack_meta(pack_key)
+            if not meta_fb:
+                return None
+            pack_info = {
+                "key": pack_key,
+                "name": meta_fb["name"],
+                "icon": meta_fb.get("icon", ""),
+                "color": meta_fb.get("color", ""),
+                "tagline": meta_fb.get("tagline", ""),
+            }
+            scene_dicts = [
+                {
+                    "id": f"{pack_key}-{i:02d}",
+                    "name": s["name"],
+                    "category": s["category"],
+                    "problem": s.get("problem", ""),
+                    "pages": s.get("pages", ""),
+                    "standard": s.get("standard", "✓"),
+                    "agent": s.get("agent", "approval"),
+                    "type": "industry",
+                }
+                for i, s in enumerate(meta_fb.get("scenes") or [], start=1)
+            ]
+        else:
+            industry_rows = (
+                db.query(CatalogIndustryScenario)
+                .filter(CatalogIndustryScenario.pack_key == pack_key)
+                .order_by(CatalogIndustryScenario.id)
+                .all()
+            )
+            scene_dicts = [_industry_to_dict(s) for s in industry_rows]
+            pack_info = {
+                "key": pack.key,
+                "name": pack.name,
+                "icon": pack.icon,
+                "color": pack.color,
+                "tagline": meta.get("tagline", "") if meta else "",
+            }
+            if not scene_dicts and meta:
+                scene_dicts = [
+                    {
+                        "id": f"{pack_key}-{i:02d}",
+                        "name": s["name"],
+                        "category": s["category"],
+                        "problem": s.get("problem", ""),
+                        "pages": s.get("pages", ""),
+                        "standard": s.get("standard", "✓"),
+                        "agent": s.get("agent", "approval"),
+                        "type": "industry",
+                    }
+                    for i, s in enumerate(meta.get("scenes") or [], start=1)
+                ]
+
+    grouped: dict[str, list[dict[str, Any]]] = {}
+    for s in scene_dicts:
+        cat = s.get("category") or "其他"
+        grouped.setdefault(cat, []).append(s)
+
+    detail: dict[str, Any] = {
+        "pack": pack_info,
+        "scenes": scene_dicts,
+        "groups": [{"category": k, "items": v} for k, v in grouped.items()],
+        "total": len(scene_dicts),
+        "full_pack": True,
+        "site": build_site_config(pack_key, pack_info),
     }
+
+    if enrich:
+        detail["enrichment"] = enrich_industry_pack(
+            pack_key,
+            scenes=scene_dicts,
+            force_llm=True,
+        )
+    else:
+        detail["enrichment"] = enrich_industry_pack(pack_key, scenes=scene_dicts, force_llm=False)
+
+    return detail
+
+
+def get_industry_pack_detail_static(
+    pack_key: str,
+    *,
+    enrich: bool = False,
+) -> dict[str, Any] | None:
+    """无 PostgreSQL 时从 industry_packs_all / seed 静态构建独立站详情。"""
+    from app.data.seed import OFFICE_SCENARIOS
+
+    meta = pack_meta(pack_key)
+    if not meta:
+        return None
+
+    pack_info = {
+        "key": pack_key,
+        "name": meta["name"],
+        "icon": meta.get("icon", ""),
+        "color": meta.get("color", ""),
+        "tagline": meta.get("tagline", ""),
+    }
+
+    if pack_key == "office":
+        scene_dicts = [
+            {
+                "id": row["id"],
+                "name": row["name"],
+                "category": row["category"],
+                "problem": f"{row['category']}标准办公场景",
+                "pages": "approval+chat",
+                "standard": "✓",
+                "agent": row["agent"].split("+")[0] if row.get("agent") else "approval",
+                "type": "office",
+            }
+            for row in OFFICE_SCENARIOS
+        ]
+    else:
+        scene_dicts = [
+            {
+                "id": f"{pack_key}-{i:02d}",
+                "name": s["name"],
+                "category": s["category"],
+                "problem": s.get("problem", ""),
+                "pages": s.get("pages", ""),
+                "standard": s.get("standard", "✓"),
+                "agent": s.get("agent", "approval"),
+                "type": "industry",
+            }
+            for i, s in enumerate(meta.get("scenes") or [], start=1)
+        ]
+
+    grouped: dict[str, list[dict[str, Any]]] = {}
+    for s in scene_dicts:
+        cat = s.get("category") or "其他"
+        grouped.setdefault(cat, []).append(s)
+
+    detail: dict[str, Any] = {
+        "pack": pack_info,
+        "scenes": scene_dicts,
+        "groups": [{"category": k, "items": v} for k, v in grouped.items()],
+        "total": len(scene_dicts),
+        "full_pack": True,
+        "site": build_site_config(pack_key, pack_info),
+        "source": "static",
+    }
+    detail["enrichment"] = enrich_industry_pack(
+        pack_key,
+        scenes=scene_dicts,
+        force_llm=enrich,
+    )
+    return detail
 
 
 def list_all_scenarios(

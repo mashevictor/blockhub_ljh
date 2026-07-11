@@ -8,6 +8,7 @@ import { applyTheme, getThemeById, loadSavedTheme } from './data/themes'
 import { prefetchHeroPresets } from './lib/heroPresetsCache'
 import App from './App'
 import './index.css'
+import './styles/chevron-dot-loader.css'
 
 syncBuildVersion(TOKEN_KEY, BUILD_VERSION_KEY)
 prefetchHeroPresets()

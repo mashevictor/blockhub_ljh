@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from app.db.session import get_db
 from app.services import catalog_store
 from app.services.catalog_seed import ensure_catalog_seeded, seed_catalog
+from app.services.industry_site import list_all_sites
 
 router = APIRouter(prefix="/catalog", tags=["catalog"])
 
@@ -68,9 +69,31 @@ def list_industry(
     return {"total": total, "items": items[offset:offset + limit], "packs": packs, "limit": limit, "offset": offset}
 
 
+@router.get("/industry-sites")
+def industry_sites_index(db: Annotated[Session, Depends(get_db)]) -> dict:
+    """20 个行业深度包独立站索引。"""
+    packs: list[dict[str, Any]] = []
+    try:
+        packs = catalog_store.list_industry_packs(db)
+    except SQLAlchemyError:
+        db.rollback()
+    items = list_all_sites(packs)
+    return {"total": len(items), "items": items, "source": "database" if packs else "static"}
+
+
 @router.get("/industry/{pack_key}")
-def industry_pack_detail(pack_key: str, db: Annotated[Session, Depends(get_db)]) -> dict:
-    detail = catalog_store.get_industry_pack_detail(db, pack_key)
+def industry_pack_detail(
+    pack_key: str,
+    db: Annotated[Session, Depends(get_db)],
+    enrich: bool = Query(False, description="使用 DeepSeek 丰富行业方案文案"),
+) -> dict:
+    detail: dict[str, Any] | None = None
+    try:
+        detail = catalog_store.get_industry_pack_detail(db, pack_key, enrich=enrich)
+    except SQLAlchemyError:
+        db.rollback()
+    if not detail:
+        detail = catalog_store.get_industry_pack_detail_static(pack_key, enrich=enrich)
     if not detail:
         raise HTTPException(status_code=404, detail=f"Industry pack '{pack_key}' not found")
     return detail

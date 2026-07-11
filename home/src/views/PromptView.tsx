@@ -4,7 +4,7 @@ import {
   fetchOfficeScenarios,
   type CatalogScenario,
 } from '../api/client'
-import { publishApp, suggestModules as suggestModulesApi } from '../api/client'
+import { publishApp, suggestModules as suggestModulesApi, type SuggestValidation } from '../api/client'
 import { publishApiToResult } from '../api/publishHelpers'
 import { runContactPublishPipeline } from '../lib/publishFlow'
 import { useTheme } from '../context/ThemeContext'
@@ -15,32 +15,52 @@ import SelectionBox, { type SelectionItem } from '../components/SelectionBox'
 import AgentInput, { type AgentInputHandle, type AgentPick } from '../components/AgentInput'
 import { GENERATE_APP_LABEL, GENERATE_APP_LOADING } from '../data/publishUi'
 import { AgentButtonContent } from '../components/AgentChevron'
+import PromptHeroGuide from '../components/b2b/PromptHeroGuide'
 import PromptSuggestBar from '../components/PromptSuggestBar'
 import IntentAnalysisStrip from '../components/IntentAnalysisStrip'
 import ContactGateModal, { type ContactInfo } from '../components/ContactGateModal'
 import GenerateLoadingOverlay, { type GeneratePhase } from '../components/GenerateLoadingOverlay'
 import { deriveDefaultAppName, emptyBranding, resolveAppName } from '../data/appBranding'
 import { moduleId, pickToModule, type PromptModule } from '../components/agentInputLogic'
-import { PROMPT_CHIPS, type PublishResult } from '../data/constants'
-import { findChipTemplate, pickWithMeta, resolveAppBundle, composeLogicalPrompt, mergePromptText, splitPromptText } from '../data/appAssembly'
+import { type PublishResult } from '../data/constants'
+import { pickWithMeta, resolveAppBundle, composeLogicalPrompt, mergePromptText, splitPromptText } from '../data/appAssembly'
 import { buildPublishedModulesFromBundle } from '../data/publishDisplay'
 import { resolvePublishBundle } from '../data/intentPublish'
-import { enhanceSimplePrompt, suggestModulesFromText, type SuggestItem } from '../data/promptSuggest'
+import {
+  canAutoApplySuggestions,
+  enhanceSimplePrompt,
+  hasStructuredPicks,
+  mapSuggestApiItem,
+  metaForSuggestItem,
+  suggestModulesFromText,
+  type SuggestItem,
+} from '../data/promptSuggest'
 import {
   resolveCategoryIcon,
   resolveIndustryApiKey,
 } from '../data/showcase'
 import type { RoleApplyRequest, RolePreset } from '../data/rolePresets'
 import { useDemoBookingActive } from '../context/DemoBookingContext'
+import { usePromptDraft } from '../context/PromptDraftContext'
 import FloatingAgentDock from '../components/FloatingAgentDock'
-import AgentSignLine from '../components/AgentSignLine'
-import { BRAND } from '../data/brand'
+import AnimatedChevTitle from '../components/AnimatedChevTitle'
+import HeroDockIntentBrief from '../components/b2b/HeroDockIntentBrief'
+import { useHomeActiveSection } from '../hooks/useHomeActiveSection'
+import {
+  buildHeroDockDemoModules,
+  buildHeroDockDemoSuggestions,
+  dismissHeroDockDemo,
+  HERO_DOCK_DEMO_ENHANCED,
+  HERO_DOCK_DEMO_PROMPT,
+  HERO_DOCK_DEMO_VALIDATION,
+  isHeroDockDemoDismissed,
+} from '../data/heroDockDemo'
 
 interface Props {
   onPublish: (r: PublishResult) => void
   roleApply?: RoleApplyRequest | null
   onRoleApplyDone?: () => void
-  /** 当前是否为「描述需求」Tab（隐藏时收起弹层与积木仓） */
+  /** 当前是否为「描述需求」Tab */
   active?: boolean
 }
 
@@ -74,6 +94,14 @@ function filterByIndustries(
 
 export default function PromptView({ onPublish, roleApply, onRoleApplyDone, active = true }: Props) {
   const bookingZoneActive = useDemoBookingActive()
+  const activeSection = useHomeActiveSection()
+  const inFloatingZone =
+    activeSection === 'hero' ||
+    activeSection === 'product' ||
+    activeSection === 'case' ||
+    activeSection === 'contact-create'
+  const showPromptDock = active && !bookingZoneActive && inFloatingZone
+  const { draft, setDraft } = usePromptDraft()
   const { theme } = useTheme()
   const [prompt, setPrompt] = useState('')
   const [selected, setSelected] = useState<Set<string>>(new Set())
@@ -91,7 +119,8 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
   const [officeAll, setOfficeAll] = useState<CatalogScenario[]>([])
   const [industryAll, setIndustryAll] = useState<CatalogScenario[]>([])
   const [promptHighlight, setPromptHighlight] = useState(false)
-  const [promptExpanded, setPromptExpanded] = useState(false)
+  const [promptExpanded, setPromptExpanded] = useState(() => !isHeroDockDemoDismissed())
+  const [heroDemoActive, setHeroDemoActive] = useState(false)
   const [promptModules, setPromptModules] = useState<PromptModule[]>([])
   const [lastAddedId, setLastAddedId] = useState<string | null>(null)
   const [debouncedIntent, setDebouncedIntent] = useState('')
@@ -99,21 +128,91 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
   const [suggestSourceLabel, setSuggestSourceLabel] = useState('')
   const [suggestUsedAi, setSuggestUsedAi] = useState(false)
   const [suggestFetching, setSuggestFetching] = useState(false)
+  const [suggestConfidence, setSuggestConfidence] = useState(0)
+  const [suggestValidation, setSuggestValidation] = useState<SuggestValidation | null>(null)
+  const [suggestRegistered, setSuggestRegistered] = useState<{ industries: string[]; capabilities: string[]; scenes: string[] } | undefined>()
   const [analysisProgress, setAnalysisProgress] = useState(0)
   const [analysisPhase, setAnalysisPhase] = useState<'idle' | 'debounce' | 'fetch' | 'done'>('idle')
   const [publishError, setPublishError] = useState<string | null>(null)
 
   const promptCardRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<AgentInputHandle>(null)
-  const catalogRef = useRef<HTMLDivElement>(null)
   const [boxOpenSignal, setBoxOpenSignal] = useState(0)
+  const [dockExpandSignal, setDockExpandSignal] = useState(0)
+  const [modulePickerOpen, setModulePickerOpen] = useState(false)
   const userSuffixRef = useRef('')
   const skipSyncRef = useRef(false)
+  const draftHydratedRef = useRef(false)
+  const heroDemoAppliedRef = useRef(false)
+
+  const exitHeroDemo = useCallback(() => {
+    if (!heroDemoActive) return
+    setHeroDemoActive(false)
+    heroDemoAppliedRef.current = false
+    dismissHeroDockDemo()
+  }, [heroDemoActive])
+
+  const applyHeroDockDemo = useCallback(() => {
+    if (heroDemoAppliedRef.current || isHeroDockDemoDismissed()) return
+    heroDemoAppliedRef.current = true
+    setHeroDemoActive(true)
+
+    const modules = buildHeroDockDemoModules()
+    userSuffixRef.current = HERO_DOCK_DEMO_PROMPT
+    skipSyncRef.current = true
+    setPrompt(HERO_DOCK_DEMO_PROMPT)
+    setDebouncedIntent(HERO_DOCK_DEMO_PROMPT)
+    setPromptExpanded(true)
+    setPromptModules(modules)
+    setIndustryKeys(new Set(['mfg']))
+    setOfficeCats(new Set(['流程审批']))
+    setSelected(new Set(['hero-demo-inventory']))
+    setPromptSuggestions(buildHeroDockDemoSuggestions())
+    setSuggestValidation(HERO_DOCK_DEMO_VALIDATION)
+    setSuggestSourceLabel('意图 Agent · 演示')
+    setSuggestUsedAi(true)
+    setSuggestConfidence(0.88)
+    setSuggestFetching(false)
+    setAnalysisPhase('idle')
+    setAnalysisProgress(0)
+    lastAutoSuggestSigRef.current = `${HERO_DOCK_DEMO_PROMPT}::${modules.map((m) => m.id).join(',')}`
+    setDockExpandSignal((n) => n + 1)
+    window.setTimeout(() => setBoxOpenSignal((n) => n + 1), 120)
+  }, [])
+
+  useEffect(() => {
+    if (!showPromptDock || activeSection !== 'hero' || isHeroDockDemoDismissed()) return
+    if (draft.trim() && !heroDemoActive) return
+    if (prompt.replace(/^>>\s*$/, '').trim() && !heroDemoActive) return
+    applyHeroDockDemo()
+  }, [showPromptDock, activeSection, draft, prompt, heroDemoActive, applyHeroDockDemo])
+
+  useEffect(() => {
+    if (!showPromptDock) {
+      draftHydratedRef.current = false
+      return
+    }
+    if (!draftHydratedRef.current) {
+      draftHydratedRef.current = true
+      if (draft.trim() && !prompt.replace(/^>>\s*$/, '').trim()) {
+        userSuffixRef.current = draft
+        skipSyncRef.current = true
+        setPrompt(draft)
+        setPromptExpanded(true)
+        requestAnimationFrame(() => textareaRef.current?.focus())
+      }
+      return
+    }
+    setDraft(prompt)
+  }, [showPromptDock, draft, prompt, setDraft])
 
   const flashAdded = useCallback((id: string) => {
     setLastAddedId(id)
     window.setTimeout(() => setLastAddedId(null), 900)
   }, [])
+
+  const dismissedSuggestRef = useRef<Set<string>>(new Set())
+  const lastAutoSuggestSigRef = useRef('')
 
   const applyModuleToFilters = useCallback((pick: AgentPick, add: boolean) => {
     if (pick.type === 'industry') {
@@ -141,12 +240,63 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
     }
   }, [])
 
+  const clearSuggestModules = useCallback(() => {
+    setPromptModules((prev) => {
+      for (const m of prev) {
+        if (m.source === 'suggest') {
+          applyModuleToFilters({ type: m.type, key: m.key, label: m.label }, false)
+        }
+      }
+      return prev.filter((m) => m.source !== 'suggest')
+    })
+  }, [applyModuleToFilters])
+
+  const applySuggestModules = useCallback((items: SuggestItem[], intentText: string) => {
+    const sig = `${intentText}::${items.map((s) => moduleId(s.pick)).join(',')}`
+    if (!sig || sig === '::' || lastAutoSuggestSigRef.current === sig) return
+    lastAutoSuggestSigRef.current = sig
+
+    const toApply = items
+      .filter((s) => s.pick.type === 'industry' || s.pick.type === 'module' || s.pick.type === 'capability' || s.pick.type === 'supplement')
+      .slice(0, 12)
+
+    setPromptModules((prev) => {
+      const manual = prev.filter((m) => m.source === 'user')
+      const oldSuggest = prev.filter((m) => m.source === 'suggest')
+      const manualIds = new Set(manual.map((m) => m.id))
+      const nextSuggest: PromptModule[] = []
+      for (const s of toApply) {
+        const mod = {
+          ...pickToModule(s.pick, { iconKey: s.iconKey, color: s.color }),
+          source: 'suggest' as const,
+        }
+        if (dismissedSuggestRef.current.has(mod.id) || manualIds.has(mod.id)) continue
+        nextSuggest.push(mod)
+      }
+      const nextIds = new Set(nextSuggest.map((m) => m.id))
+      for (const old of oldSuggest) {
+        if (!nextIds.has(old.id)) {
+          applyModuleToFilters({ type: old.type, key: old.key, label: old.label }, false)
+        }
+      }
+      return [...manual, ...nextSuggest]
+    })
+
+    for (const s of toApply) {
+      const id = moduleId(s.pick)
+      if (dismissedSuggestRef.current.has(id)) continue
+      applyModuleToFilters(s.pick, true)
+    }
+  }, [applyModuleToFilters])
+
   const upsertModule = useCallback((pick: AgentPick, extra?: { iconKey?: string; color?: string }) => {
     if (pick.type === 'action') return
     const mod = { ...pickToModule(pick, extra), source: 'user' as const }
     setPromptModules((prev) => {
       const exists = prev.some((m) => m.id === mod.id)
       if (exists) {
+        const removing = prev.find((m) => m.id === mod.id)
+        if (removing?.source === 'suggest') dismissedSuggestRef.current.add(mod.id)
         applyModuleToFilters(pick, false)
         return prev.filter((m) => m.id !== mod.id)
       }
@@ -186,6 +336,9 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
 
   const handlePromptChange = useCallback((value: string) => {
     const stripped = value.replace(/^>>\s*$/, '').trim()
+    if (heroDemoActive && stripped !== HERO_DOCK_DEMO_PROMPT.trim()) {
+      exitHeroDemo()
+    }
     if (!stripped && promptModules.length > 0) {
       userSuffixRef.current = ''
       skipSyncRef.current = false
@@ -196,7 +349,7 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
     userSuffixRef.current = suffix
     skipSyncRef.current = true
     setPrompt(value)
-  }, [promptModules, composedFromModules])
+  }, [promptModules, composedFromModules, heroDemoActive, exitHeroDemo])
 
   const userIntentText = useMemo(() => {
     const raw = prompt.replace(/^>>\s*/, '').trim()
@@ -253,44 +406,82 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
   }, [intentAnalyzable, analysisPhase])
 
   useEffect(() => {
+    if (heroDemoActive && debouncedIntent.trim() === HERO_DOCK_DEMO_PROMPT.trim()) return
+    dismissedSuggestRef.current = new Set()
+    lastAutoSuggestSigRef.current = ''
+    clearSuggestModules()
+  }, [debouncedIntent, clearSuggestModules, heroDemoActive])
+
+  useEffect(() => {
+    if (heroDemoActive && debouncedIntent.trim() === HERO_DOCK_DEMO_PROMPT.trim()) return
     const text = debouncedIntent.trim()
     if (text.length < 2) {
+      clearSuggestModules()
       setPromptSuggestions([])
       setSuggestSourceLabel('')
       setSuggestUsedAi(false)
+      setSuggestConfidence(0)
+      setSuggestValidation(null)
+      setSuggestRegistered(undefined)
       setSuggestFetching(false)
       return
     }
     let cancelled = false
     setSuggestFetching(true)
-    suggestModulesApi(text)
+    suggestModulesApi(text, true)
       .then((res) => {
         if (cancelled) return
-        const hasDeepSeek = res.used_llm || res.items.some((it) => it.source.startsWith('deepseek'))
-        setSuggestUsedAi(hasDeepSeek)
-        if (hasDeepSeek) {
-          setSuggestSourceLabel(res.confidence >= 0.7 ? `智能推荐 · ${Math.round(res.confidence * 100)}%` : '智能推荐')
+        const validation = res.validation ?? null
+        setSuggestValidation(validation)
+        setSuggestRegistered(res.registered)
+        const hasAgent = res.used_llm || res.agent === 'intent_agent' || res.items.some((it) => it.source.startsWith('deepseek'))
+        setSuggestUsedAi(hasAgent)
+        setSuggestConfidence(res.confidence)
+
+        if (validation?.status === 'invalid') {
+          clearSuggestModules()
+          setPromptSuggestions([])
+          setSuggestSourceLabel('意图 Agent · 已拦截')
+          setAnalysisProgress(100)
+          setAnalysisPhase('done')
+          window.setTimeout(() => {
+            if (!cancelled) {
+              setAnalysisPhase('idle')
+              setAnalysisProgress(0)
+            }
+          }, 700)
+          return
+        }
+
+        if (hasAgent) {
+          setSuggestSourceLabel(
+            validation?.status === 'unclear'
+              ? '意图 Agent · 需补充'
+              : res.confidence >= 0.7
+                ? `意图 Agent · ${Math.round(res.confidence * 100)}%`
+                : '意图 Agent',
+          )
         } else if (res.items.length > 0) {
-          setSuggestSourceLabel('为你匹配')
+          setSuggestSourceLabel(res.confidence >= 0.5 ? `为你匹配 · ${Math.round(res.confidence * 100)}%` : '为你匹配')
         } else {
           setSuggestSourceLabel('')
         }
-        setPromptSuggestions(res.items.map((it) => ({
-          pick: {
-            type: it.type === 'industry' ? 'industry' as const
-              : it.type === 'supplement' ? 'module' as const
-              : it.type === 'module' ? 'module' as const
-              : 'module' as const,
-            key: it.key,
-            label: it.label,
-          },
+        const mapped = res.items.map((it) => ({
+          pick: mapSuggestApiItem(it),
           score: it.score,
-          reason: it.source.startsWith('deepseek')
+          reason: it.source.startsWith('deepseek') || it.source.startsWith('intent') || it.source === 'industry_pack'
             ? `${it.reason} · AI`
             : it.flutter_pkg
               ? `${it.reason} · ${it.flutter_pkg}`
               : it.reason,
-        })))
+          ...metaForSuggestItem(it),
+        }))
+        setPromptSuggestions(mapped)
+        if (canAutoApplySuggestions(validation, mapped)) {
+          applySuggestModules(mapped, text)
+        } else {
+          clearSuggestModules()
+        }
         const pct = res.confidence > 0 ? Math.round(res.confidence * 100) : 100
         setAnalysisProgress(pct)
         setAnalysisPhase('done')
@@ -305,7 +496,16 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
         if (!cancelled) {
           setSuggestUsedAi(false)
           setSuggestSourceLabel('关键词匹配')
-          setPromptSuggestions(suggestModulesFromText(text, catalogScenarios))
+          setSuggestConfidence(0)
+          setSuggestValidation(null)
+          setSuggestRegistered(undefined)
+          const mapped = suggestModulesFromText(text, catalogScenarios)
+          setPromptSuggestions(mapped)
+          if (canAutoApplySuggestions(null, mapped)) {
+            applySuggestModules(mapped, text)
+          } else {
+            clearSuggestModules()
+          }
           setAnalysisProgress(100)
           setAnalysisPhase('done')
           window.setTimeout(() => {
@@ -318,7 +518,15 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
         if (!cancelled) setSuggestFetching(false)
       })
     return () => { cancelled = true }
-  }, [debouncedIntent, catalogScenarios])
+  }, [debouncedIntent, catalogScenarios, applySuggestModules, clearSuggestModules, heroDemoActive])
+
+  const displaySuggestions = useMemo(() => {
+    if (heroDemoActive) return buildHeroDockDemoSuggestions()
+    if (suggestValidation?.status !== 'unclear') return promptSuggestions
+    return promptSuggestions.filter(
+      (s) => s.score >= 5.5 && !String(s.reason).includes('· AI'),
+    )
+  }, [heroDemoActive, promptSuggestions, suggestValidation?.status])
 
   const selectedModuleIds = useMemo(
     () => new Set(promptModules.map((m) => m.id)),
@@ -330,17 +538,27 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
     for (const m of promptModules) {
       map.set(m.id, { type: m.type, key: m.key, label: m.label })
     }
-    for (const s of promptSuggestions) {
-      const id = moduleId(s.pick)
-      if (!map.has(id)) map.set(id, s.pick)
+    const mergeSuggestions =
+      suggestValidation?.status === 'valid'
+      || (suggestValidation?.status !== 'invalid' && suggestValidation?.status !== 'unclear')
+    if (mergeSuggestions) {
+      const threshold = suggestUsedAi ? 5 : 4
+      for (const s of promptSuggestions) {
+        if (s.score < threshold) continue
+        const id = moduleId(s.pick)
+        if (!map.has(id)) map.set(id, s.pick)
+      }
     }
     return [...map.values()]
-  }, [promptModules, promptSuggestions])
+  }, [promptModules, promptSuggestions, suggestUsedAi, suggestValidation?.status])
 
-  const enhancedPreview = useMemo(
-    () => (debouncedIntent.trim().length >= 2 ? enhanceSimplePrompt(debouncedIntent, previewPicks) : ''),
-    [debouncedIntent, previewPicks],
-  )
+  const enhancedPreview = useMemo(() => {
+    if (heroDemoActive) return HERO_DOCK_DEMO_ENHANCED
+    if (debouncedIntent.trim().length < 2) return ''
+    if (suggestValidation?.status === 'invalid' || suggestValidation?.status === 'unclear') return ''
+    if (!hasStructuredPicks(previewPicks) && suggestValidation?.status !== 'valid') return ''
+    return enhanceSimplePrompt(debouncedIntent, previewPicks, suggestValidation)
+  }, [heroDemoActive, debouncedIntent, previewPicks, suggestValidation])
 
   const applyEnhancedPreview = useCallback(() => {
     if (!enhancedPreview) return
@@ -351,7 +569,6 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
 
   const focusPrompt = useCallback(() => {
     requestAnimationFrame(() => {
-      promptCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
       setPromptHighlight(true)
       setPromptExpanded(true)
       textareaRef.current?.focus()
@@ -458,29 +675,6 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
     return list
   }, [tab, officeAll, industryAll, officeCats, industryKeys])
 
-  const handleChip = (text: string) => {
-    userSuffixRef.current = ''
-    const tpl = findChipTemplate(text)
-    if (tpl) {
-      setPromptModules(tpl.picks.map((p) => pickWithMeta(p)))
-      setIndustryKeys(new Set(tpl.picks.filter((p) => p.type === 'industry').map((p) => p.key)))
-      setOfficeCats(new Set(tpl.picks.filter((p) => p.type === 'office').map((p) => p.key)))
-      setSelected(new Set())
-      setTab('all')
-      userSuffixRef.current = ''
-      skipSyncRef.current = true
-      setPrompt(tpl.prompt)
-    } else {
-      setPromptModules([])
-      setSelected(new Set())
-      setIndustryKeys(new Set())
-      setOfficeCats(new Set())
-      setPrompt(text)
-      userSuffixRef.current = text
-    }
-    focusPrompt()
-  }
-
   const catalogNames = useMemo(() => {
     const map = new Map<string, string>()
     for (const s of [...officeAll, ...industryAll]) map.set(s.id, s.name)
@@ -488,6 +682,7 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
   }, [officeAll, industryAll])
 
   const clearAll = useCallback(() => {
+    exitHeroDemo()
     userSuffixRef.current = ''
     skipSyncRef.current = false
     setDebouncedIntent('')
@@ -496,8 +691,9 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
     setIndustryKeys(new Set())
     setOfficeCats(new Set())
     setPrompt('')
+    setDraft('')
     setLastAddedId(null)
-  }, [])
+  }, [setDraft, exitHeroDemo])
 
   const runPublish = useCallback(async (
     bundle: ReturnType<typeof resolveAppBundle>,
@@ -698,55 +894,86 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
     if (mod) removeModule(mod.id)
   }
 
+  const handlePickerChange = useCallback((open: boolean) => {
+    setModulePickerOpen(open)
+    if (!open && promptModules.length > 0) {
+      setBoxOpenSignal((n) => n + 1)
+    }
+  }, [promptModules.length])
+
+  const handleDockExpand = useCallback(() => {
+    setPromptExpanded(true)
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        textareaRef.current?.openPicker()
+        textareaRef.current?.focus()
+      })
+    })
+  }, [])
+
   return (
     <div className="view prompt-view prompt-view-minimal layout-floating">
-      <div className="minimal-hero">
-        <img src="/design/hero-minimal.jpg" alt="" className="minimal-hero-img" width={72} height={72} />
-        <AgentSignLine variant="section" className="minimal-hero-title" />
-        <p className="minimal-hero-hint">描述需求，或输入 <span className="minimal-brand-chev">&gt;&gt;</span> 开始智能交互</p>
-      </div>
+      <PromptHeroGuide />
 
-      {!bookingZoneActive && (
+      {showPromptDock && (
       <FloatingAgentDock
-        storageKey="tc-floating-prompt"
-        className="floating-agent-dock-prompt"
-        title={BRAND.agentSignLine}
-        keepInputWhenCollapsed
-        ariaLabel="创建应用悬浮助手"
+        storageKey="tc-floating-home"
+        className="floating-agent-dock-prompt home-floating-agent"
+        title={<AnimatedChevTitle />}
+        variant="capsule"
+        showDockToggle
+        defaultExpanded={activeSection === 'hero'}
+        defaultAnchorSelector={activeSection === 'hero' ? '#hero-float-anchor' : '#hero .b2b-hero-btns'}
+        anchorAlign={activeSection === 'hero' ? 'right' : 'left'}
+        expandSignal={dockExpandSignal}
+        closedAnchorSelector=".b2b-header .brand-mark"
+        ariaLabel="生成应用悬浮助手"
+        snapBottomOnExpand
+        onExpand={handleDockExpand}
       >
         <div
           ref={promptCardRef}
           className={`prompt-card minimal-card${promptHighlight ? ' prompt-highlight' : ''}${promptExpanded ? ' prompt-expanded' : ''}`}
         >
-        <AgentInput
-          ref={textareaRef}
-          variant="minimal"
-          orbSize="large"
-          theme={theme}
-          value={prompt}
-          onChange={handlePromptChange}
-          onFocus={() => setPromptExpanded(true)}
-          expanded={promptExpanded || promptHighlight}
-          modules={promptModules}
-          onRemoveModule={removeModule}
-          scenarios={panelScenarios}
-          onPick={handleAgentPick}
-        />
-        <IntentAnalysisStrip
-          visible={intentAnalyzable}
-          progress={analysisProgress}
-          phase={analysisPhase}
-        />
-        <PromptSuggestBar
-          userIntent={userIntentText}
-          suggestions={promptSuggestions}
-          enhancedPreview={enhancedPreview}
-          selectedIds={selectedModuleIds}
-          onToggle={upsertModule}
-          onApplyPreview={applyEnhancedPreview}
-          sourceLabel={suggestSourceLabel}
-          loading={suggestFetching || isIntentDebouncing}
-        />
+        <div className="prompt-card-scroll">
+          <AgentInput
+            ref={textareaRef}
+            variant="minimal"
+            orbSize="large"
+            theme={theme}
+            value={prompt}
+            onChange={handlePromptChange}
+            onFocus={() => setPromptExpanded(true)}
+            expanded={promptExpanded || promptHighlight}
+            modules={promptModules}
+            onRemoveModule={removeModule}
+            scenarios={panelScenarios}
+            onPick={handleAgentPick}
+            onPickerChange={handlePickerChange}
+          />
+          <HeroDockIntentBrief visible={heroDemoActive} />
+          <IntentAnalysisStrip
+            visible={intentAnalyzable}
+            progress={analysisProgress}
+            phase={analysisPhase}
+          />
+          <PromptSuggestBar
+            userIntent={heroDemoActive ? HERO_DOCK_DEMO_PROMPT : userIntentText}
+            suggestions={displaySuggestions}
+            enhancedPreview={enhancedPreview}
+            selectedIds={selectedModuleIds}
+            onToggle={(pick, extra) => {
+              if (heroDemoActive) exitHeroDemo()
+              upsertModule(pick, extra)
+            }}
+            onApplyPreview={applyEnhancedPreview}
+            sourceLabel={suggestSourceLabel}
+            confidence={suggestConfidence}
+            loading={suggestFetching || isIntentDebouncing}
+            validation={suggestValidation}
+            registered={suggestRegistered}
+          />
+        </div>
         <div className="prompt-footer minimal-footer">
           <div className="prompt-meta">
             {(promptModules.length > 0 || prompt.trim()) && (
@@ -773,12 +1000,6 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
       )}
       <div className={`agent-floating-spacer${bookingZoneActive ? ' is-booking' : ''}`} aria-hidden />
 
-      <div className="minimal-chips" ref={catalogRef}>
-        {PROMPT_CHIPS.slice(0, 4).map((c) => (
-          <button key={c} type="button" className="minimal-chip" onClick={() => handleChip(c)}>{c}</button>
-        ))}
-      </div>
-
       {active && (
         <SelectionBox
           items={selectionItems}
@@ -789,6 +1010,7 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
           generating={loading}
           lastAddedId={lastAddedId}
           openSignal={boxOpenSignal}
+          dormant={modulePickerOpen}
         />
       )}
 

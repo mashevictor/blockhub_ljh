@@ -114,8 +114,8 @@ class TeleAsrClient:
             "rec_status": 1,
             "audio_stream": base64.b64encode(pcm_bytes).decode("ascii"),
         })
-        # 避免发送过快导致网关 1002
-        await asyncio.sleep(0.05)
+        # 避免发送过快导致网关 1002（略缩短以降低 ASR partial 延迟）
+        await asyncio.sleep(0.02)
 
     async def end_utterance(self) -> None:
         if not self._ws:

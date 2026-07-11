@@ -26,6 +26,8 @@ interface Props {
   generating?: boolean
   lastAddedId?: string | null
   openSignal?: number
+  /** 选模块面板打开时隐藏，避免与 >> 面板抢焦点 */
+  dormant?: boolean
 }
 
 const KIND_LABEL: Record<SelectionItem['kind'], string> = {
@@ -82,6 +84,7 @@ export default function SelectionBox({
   generating = false,
   lastAddedId,
   openSignal = 0,
+  dormant = false,
 }: Props) {
   const [open, setOpen] = useState(false)
   const [pulse, setPulse] = useState(false)
@@ -92,6 +95,13 @@ export default function SelectionBox({
     if (openSignal > 0) setOpen(true)
   }, [openSignal])
 
+  useEffect(() => {
+    if (!dormant) return
+    setOpen(false)
+    setPulse(false)
+    setToast(null)
+  }, [dormant])
+
   const userItems = items.filter((i) => !i.auto)
   const autoItems = items.filter((i) => i.auto)
   const count = userItems.length
@@ -99,6 +109,7 @@ export default function SelectionBox({
   const lastItem = lastAddedId ? items.find((i) => i.id === lastAddedId) : undefined
 
   useEffect(() => {
+    if (dormant) return
     if (count > prevCount.current) {
       setPulse(true)
       setOpen(true)
@@ -118,7 +129,7 @@ export default function SelectionBox({
       setOpen(false)
       setToast(null)
     }
-  }, [count, lastItem, autoItems.length])
+  }, [count, lastItem, autoItems.length, dormant])
 
   const handleClear = () => {
     onClear()
@@ -132,9 +143,10 @@ export default function SelectionBox({
 
   const ui = (
     <div
-      className={`selbox selbox-warehouse wh-portal${open ? ' open' : ''}${pulse ? ' pulse' : ''}`}
+      className={`selbox selbox-warehouse wh-portal${open ? ' open' : ''}${pulse ? ' pulse' : ''}${dormant ? ' is-dormant' : ''}`}
       role="region"
       aria-label="积木仓"
+      aria-hidden={dormant}
     >
       {toast && (
         <div key={toast.id} className="warehouse-toast" aria-live="polite">

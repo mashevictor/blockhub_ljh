@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   AGENT_TEMPLATES,
   ATOMIC_AI_CAPABILITIES,
@@ -6,6 +7,8 @@ import {
   LLM_POWERED_AGENTS,
   INDUSTRY_SOLUTIONS,
 } from '../../data/productShowcase'
+import { ROUTES } from '../../routes/paths'
+import { industryAssets } from '../../data/industryAssets'
 import { PLATFORM_STATS } from '@shared/platformStats'
 import { CAPABILITY_ICONS, INDUSTRY_ICONS, IconSparkles } from '../icons'
 import { AgentButtonContent } from '../AgentChevron'
@@ -39,6 +42,16 @@ function SectionBlock({
 }
 
 export default function B2BProductSection({ onTry }: Props) {
+  const navigate = useNavigate()
+
+  const openIndustryDetail = (key: string) => {
+    navigate(ROUTES.industryDetail(key))
+  }
+
+  const openIndustryHub = () => {
+    navigate(ROUTES.industryHub)
+  }
+
   return (
     <section id="product" className="b2b-section b2b-product-section">
       <div className="b2b-section-title b2b-product-head">
@@ -147,9 +160,14 @@ export default function B2BProductSection({ onTry }: Props) {
       {/* ── 全行业方案 ── */}
       <SectionBlock
         eyebrow="行业方案"
-        title={`${INDUSTRY_SOLUTIONS.length} 个行业 · 解决方案全景`}
-        desc="覆盖办公、制造、销售、医疗及延伸行业，点选场景即可生成应用"
+        title={`${INDUSTRY_SOLUTIONS.length} 个行业 · 独立方案站`}
+        desc="覆盖 20 个行业深度包，每项有独立方案站与贴合行业配图，点选即可查看详情并创建"
       >
+        <p className="b2b-industry-hub-link">
+          <button type="button" className="link-btn" onClick={openIndustryHub}>
+            浏览 20 个行业独立站 →
+          </button>
+        </p>
         <div className="b2b-industry-grid">
           {INDUSTRY_SOLUTIONS.map((ind) => {
             const Icon = INDUSTRY_ICONS[ind.iconKey] ?? IconSparkles
@@ -159,6 +177,15 @@ export default function B2BProductSection({ onTry }: Props) {
                 className="b2b-industry-card"
                 style={{ '--ind-color': ind.color } as CSSProperties}
               >
+                <div
+                  className="b2b-industry-visual"
+                  style={{ backgroundImage: `url(${industryAssets(ind.key).hero})` }}
+                  role="img"
+                  aria-label={`${ind.name}行业特性配图`}
+                >
+                  <span className="b2b-industry-visual-count">{ind.count} 场景</span>
+                </div>
+                <div className="b2b-industry-body">
                 <header className="b2b-industry-head">
                   <span className="b2b-industry-icon" aria-hidden>
                     <Icon size={20} />
@@ -170,16 +197,16 @@ export default function B2BProductSection({ onTry }: Props) {
                     </h4>
                     <p className="b2b-industry-tagline">{ind.tagline}</p>
                   </div>
-                  <span className="b2b-industry-count">{ind.count} 场景</span>
                 </header>
                 <ul className="b2b-industry-solutions">
                   {ind.solutions.map((s) => (
                     <li key={s}>{s}</li>
                   ))}
                 </ul>
-                <button type="button" className="b2b-industry-cta" onClick={onTry}>
-                  选用行业 →
+                <button type="button" className="b2b-industry-cta" onClick={() => openIndustryDetail(ind.key)}>
+                  进入独立站 →
                 </button>
+                </div>
               </article>
             )
           })}

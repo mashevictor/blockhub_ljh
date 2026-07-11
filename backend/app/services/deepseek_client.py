@@ -62,11 +62,16 @@ def suggest_with_deepseek(user_text: str) -> dict | None:
     """返回 { items: [{key,label,reason,score,source}], supplemented: [...] }"""
     catalog = capability_catalog_for_llm()
     system = (
-        "你是积木仓 BlockHub 的应用架构师。根据用户需求，从已有能力 catalog 中选择 1~5 个最匹配的 module key。"
-        "注意：娱乐/游戏/创意类需求（如小游戏、宠物、动画）不要推荐办公模块（审批流、知识库、待办中心等），"
-        "应优先 game 行业或 custom_ 扩展能力（如 custom_game_engine、custom_sprite_battle）。"
-        "若 catalog 无法覆盖，可在 supplemented 数组中提议 1~2 个新能力（key 以 custom_ 开头，含 name/category/flutter_pkg/reason）。"
-        "只返回 JSON：{\"items\":[{\"key\":\"...\",\"name\":\"中文名\",\"reason\":\"...\",\"score\":0-10}],"
+        "你是积木仓 BlockHub 的应用架构师。根据用户需求，判断行业、办公场景与能力模块。"
+        "若需求含糊、无意义或信息不足（如乱码、单字、无法判断场景），返回 confidence<=0.3 且 items 为空。"
+        "若能判断，从 catalog 选 1~5 个 module key，并给出 industries（行业 key: mfg/sales/med/game/office/retail/edu 等）、"
+        "offices（办公分类：人事行政/财务法务/流程审批/知识协同/数据报表/消息通知 等）。"
+        "娱乐/游戏类不要推荐办公模块（审批流、知识库），应优先 game 行业或 custom_ 扩展能力。"
+        "只返回 JSON："
+        "{\"confidence\":0-1,\"intent_summary\":\"一句话理解\","
+        "\"industries\":[{\"key\":\"sales\",\"label\":\"销售行业\",\"reason\":\"...\"}],"
+        "\"offices\":[{\"key\":\"流程审批\",\"label\":\"流程审批\",\"reason\":\"...\"}],"
+        "\"items\":[{\"key\":\"...\",\"name\":\"中文名\",\"reason\":\"...\",\"score\":0-10}],"
         "\"supplemented\":[{\"key\":\"custom_xxx\",\"name\":\"...\",\"category\":\"...\","
         "\"flutter_pkg\":\"...\",\"reason\":\"...\"}]}"
     )
@@ -90,6 +95,34 @@ def suggest_with_deepseek(user_text: str) -> dict | None:
 def merge_llm_items(parsed: dict) -> tuple[list[dict], list[dict]]:
     items: list[dict] = []
     supplemented: list[dict] = []
+
+    for ind in parsed.get("industries") or []:
+        key = str(ind.get("key", "")).strip()
+        if not key:
+            continue
+        items.append({
+            "key": key,
+            "label": str(ind.get("label", key)),
+            "type": "industry",
+            "score": float(ind.get("score", 8)),
+            "reason": str(ind.get("reason", "AI 判断行业")),
+            "source": "deepseek_industry",
+            "flutter_pkg": "",
+        })
+
+    for off in parsed.get("offices") or []:
+        key = str(off.get("key", off.get("label", ""))).strip()
+        if not key:
+            continue
+        items.append({
+            "key": key,
+            "label": str(off.get("label", key)),
+            "type": "office",
+            "score": float(off.get("score", 7)),
+            "reason": str(off.get("reason", "AI 判断办公场景")),
+            "source": "deepseek_office",
+            "flutter_pkg": "",
+        })
 
     for it in parsed.get("items") or []:
         key = str(it.get("key", "")).strip()

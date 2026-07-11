@@ -4,6 +4,54 @@
  * 颜色运行时由 shared/themes.ts → applyTheme() 注入；此处为默认回退（白金商务）
  */
 
+/* 本地已安装的 Apple 字体（macOS/iOS 及 Windows 已安装 PingFang / SF Pro 时生效） */
+@font-face {
+  font-family: "PingFang SC";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src:
+    local("PingFang SC"),
+    local("PingFangSC-Regular"),
+    local("PingFangSC-Light"),
+    local("PingFangSC-Medium"),
+    local("PingFangSC-Semibold"),
+    local(".PingFang SC");
+}
+
+@font-face {
+  font-family: "SF Pro Text";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src:
+    local("SF Pro Text"),
+    local("SFProText-Regular"),
+    local(".SF NS Text");
+}
+
+@font-face {
+  font-family: "SF Pro Display";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src:
+    local("SF Pro Display"),
+    local("SFProDisplay-Regular"),
+    local(".SF NS Display");
+}
+
+@font-face {
+  font-family: "SF Mono";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src:
+    local("SF Mono"),
+    local("SFMono-Regular"),
+    local(".SF NS Mono");
+}
+
 :root {
   /* —— 品牌色（默认：白金商务 / 黑金）—— */
   --bh-brand: #b8860b;
@@ -28,32 +76,40 @@
   --bh-fail: #ef4444;
   --bh-info: #0284c7;
 
-  /* —— 字体 —— */
-  --bh-font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC",
-    "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif;
-  --bh-font-mono: "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  /* —— 字体（Apple HIG Typography · SF Pro / PingFang 系统字体栈）——
+   * macOS/iOS：SF Pro Text / SF Pro Display / PingFang SC
+   * 中文优先 PingFang SC；等宽为 SF Mono
+   */
+  --bh-font-sans: "PingFang SC", "SF Pro SC", "SF Pro Text", -apple-system, BlinkMacSystemFont,
+    "SF Pro Display", "Hiragino Sans GB", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --bh-font-display: "PingFang SC", "SF Pro SC", "SF Pro Display", -apple-system, BlinkMacSystemFont,
+    "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --bh-font-mono: "SF Mono", SFMono-Regular, ui-monospace, Menlo, Monaco, Consolas, monospace;
 
-  /* —— 字号 —— */
-  --bh-fs-2xs: 11px;
-  --bh-fs-xs: 12px;
-  --bh-fs-sm: 13px;
-  --bh-fs-base: 15px;
-  --bh-fs-md: 17px;
-  --bh-fs-lg: 20px;
-  --bh-fs-xl: 24px;
-  --bh-fs-2xl: 28px;
+  /* —— 字号（对齐 iOS/macOS Dynamic Type 刻度）—— */
+  --bh-fs-2xs: 11px;   /* Caption 2 */
+  --bh-fs-xs: 12px;    /* Caption 1 */
+  --bh-fs-sm: 13px;    /* Footnote */
+  --bh-fs-base: 15px;  /* Subhead（Web 正文略收，避免布局抖动） */
+  --bh-fs-md: 17px;    /* Body / Headline */
+  --bh-fs-lg: 20px;    /* Title 3 */
+  --bh-fs-xl: 22px;    /* Title 2 */
+  --bh-fs-2xl: 28px;   /* Title 1 */
+  --bh-fs-display: 34px; /* Large Title */
 
-  /* —— 字重 —— */
+  /* —— 字重（SF Pro 标准字重）—— */
   --bh-fw-normal: 400;
   --bh-fw-medium: 500;
   --bh-fw-semibold: 600;
   --bh-fw-bold: 700;
   --bh-fw-extrabold: 800;
 
-  /* —— 行高 —— */
-  --bh-lh-tight: 1.35;
-  --bh-lh-normal: 1.6;
-  --bh-lh-relaxed: 1.75;
+  /* —— 行高（Apple 推荐比例：字号 + 5~7px）—— */
+  --bh-lh-tight: 1.25;
+  --bh-lh-normal: 1.47059; /* 17→25 约等于 Body */
+  --bh-lh-relaxed: 1.6;
+  --bh-lh-body: 1.46667;   /* 15→22 Subhead */
+  --bh-lh-headline: 1.29412; /* 17→22 Headline */
 
   /* —— 间距（4px 网格）—— */
   --bh-space-1: 4px;
@@ -88,6 +144,14 @@
   --bh-duration-fast: 0.15s;
   --bh-duration-normal: 0.25s;
 
+  /* —— >> 品牌符号 · 方案 A 标准描边 —— */
+  --chev-color: #0d47a1;
+  --chev-stroke: 2.2;
+  --chev-size-sign-w: 44px;
+  --chev-size-sign-h: 18px;
+  --chev-size-btn-w: 22px;
+  --chev-size-btn-h: 11px;
+
   /* —— 运行时主题别名（applyTheme 会覆盖）—— */
   --pri: var(--bh-brand);
   --pri-light: var(--bh-brand-light);
@@ -112,6 +176,7 @@
   --shadow: var(--bh-shadow-md);
   --shadow-lg: var(--bh-shadow-lg);
   --font-sans: var(--bh-font-sans);
+  --font-display: var(--bh-font-display);
   --font-mono: var(--bh-font-mono);
   --fs-base: var(--bh-fs-base);
   --fs-sm: var(--bh-fs-sm);

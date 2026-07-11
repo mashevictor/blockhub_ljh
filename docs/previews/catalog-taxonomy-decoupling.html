@@ -1,0 +1,1156 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>积木仓 · 能力体系与 Web/Flutter 解耦说明</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --surface: #ffffff;
+      --border: #dbeafe;
+      --pri: #0d47a1;
+      --pri-light: #1565c0;
+      --accent: #2563eb;
+      --text: #0f172a;
+      --muted: #64748b;
+      --warn: #b45309;
+      --ok: #047857;
+      --danger: #b91c1c;
+      --mono: ui-monospace, "Cascadia Code", "SF Mono", Consolas, monospace;
+      --sans: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      --radius: 14px;
+      --shadow: 0 8px 32px rgba(13, 71, 161, 0.1);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      font-size: 15px;
+    }
+
+    .page {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 32px 20px 80px;
+    }
+
+    header.hero {
+      background: linear-gradient(135deg, #0d47a1 0%, #1565c0 55%, #1e88e5 100%);
+      color: #fff;
+      border-radius: 20px;
+      padding: 36px 40px;
+      margin-bottom: 28px;
+      box-shadow: var(--shadow);
+    }
+
+    header.hero h1 {
+      font-size: clamp(24px, 4vw, 34px);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 10px;
+    }
+
+    header.hero p {
+      opacity: 0.92;
+      max-width: 720px;
+      font-size: 15px;
+    }
+
+    .meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .meta-pill {
+      font-size: 12px;
+      font-weight: 700;
+      padding: 5px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.14);
+      border: 1px solid rgba(255,255,255,0.25);
+    }
+
+    nav.toc {
+      position: sticky;
+      top: 12px;
+      z-index: 10;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      margin-bottom: 24px;
+      box-shadow: 0 2px 12px rgba(15,23,42,0.06);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 14px;
+      font-size: 13px;
+    }
+
+    nav.toc a {
+      color: var(--pri);
+      text-decoration: none;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    nav.toc a:hover { text-decoration: underline; }
+
+    section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px 32px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(15,23,42,0.04);
+    }
+
+    section h2 {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--pri);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    section h2 .num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: #eaf2ff;
+      color: var(--pri);
+      font-size: 13px;
+      flex-shrink: 0;
+    }
+
+    section .lead {
+      color: var(--muted);
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+
+    h3 {
+      font-size: 16px;
+      font-weight: 700;
+      margin: 22px 0 10px;
+      color: var(--text);
+    }
+
+    h4 {
+      font-size: 14px;
+      font-weight: 700;
+      margin: 16px 0 8px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    p { margin-bottom: 12px; }
+
+    ul, ol { margin: 0 0 14px 22px; }
+    li { margin-bottom: 6px; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      margin: 14px 0;
+    }
+
+    th, td {
+      border: 1px solid #e2e8f0;
+      padding: 10px 12px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: #f8fafc;
+      font-weight: 700;
+      color: var(--pri);
+      white-space: nowrap;
+    }
+
+    tr:nth-child(even) td { background: #fafbfc; }
+
+    code, .path {
+      font-family: var(--mono);
+      font-size: 12px;
+      background: #f1f5f9;
+      border: 1px solid #e2e8f0;
+      border-radius: 5px;
+      padding: 1px 6px;
+      color: #334155;
+    }
+
+    .path { display: inline-block; margin: 2px 0; }
+
+    .badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 999px;
+      margin-right: 4px;
+      white-space: nowrap;
+    }
+
+    .badge-ssot { background: #dcfce7; color: var(--ok); border: 1px solid #86efac; }
+    .badge-ui   { background: #dbeafe; color: var(--pri); border: 1px solid #93c5fd; }
+    .badge-mkt  { background: #fef3c7; color: var(--warn); border: 1px solid #fcd34d; }
+    .badge-dup  { background: #fee2e2; color: var(--danger); border: 1px solid #fca5a5; }
+    .badge-api  { background: #ede9fe; color: #5b21b6; border: 1px solid #c4b5fd; }
+
+    .callout {
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin: 14px 0;
+      font-size: 14px;
+      border-left: 4px solid;
+    }
+
+    .callout.info  { background: #eff6ff; border-color: var(--accent); }
+    .callout.warn  { background: #fffbeb; border-color: #f59e0b; }
+    .callout.ok    { background: #ecfdf5; border-color: #10b981; }
+    .callout.danger{ background: #fef2f2; border-color: #ef4444; }
+
+    .callout strong { display: block; margin-bottom: 4px; }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 16px 0;
+    }
+
+    @media (max-width: 760px) {
+      .grid-2 { grid-template-columns: 1fr; }
+      section { padding: 20px 18px; }
+    }
+
+    .card {
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 16px;
+      background: #fafbfc;
+    }
+
+    .card h4 { margin-top: 0; text-transform: none; letter-spacing: 0; color: var(--pri); }
+
+    .layer-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin: 16px 0;
+    }
+
+    .layer {
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      border: 1px solid;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .layer-l5 { background: #fef3c7; border-color: #fcd34d; color: #92400e; }
+    .layer-l4 { background: #dbeafe; border-color: #93c5fd; color: #1e3a8a; }
+    .layer-l3 { background: #ede9fe; border-color: #c4b5fd; color: #4c1d95; }
+    .layer-l2 { background: #dcfce7; border-color: #86efac; color: #14532d; }
+    .layer-l1 { background: #f1f5f9; border-color: #cbd5e1; color: #334155; }
+    .layer-l0 { background: #0f172a; border-color: #334155; color: #e2e8f0; }
+
+    .layer span:last-child { font-weight: 400; font-size: 12px; opacity: 0.85; }
+
+    .mermaid-wrap {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 16px;
+      margin: 16px 0;
+      overflow-x: auto;
+    }
+
+    .flow-arrow {
+      text-align: center;
+      color: var(--muted);
+      font-size: 20px;
+      margin: 4px 0;
+    }
+
+    .compare-cols {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+      margin: 16px 0;
+    }
+
+    @media (max-width: 900px) {
+      .compare-cols { grid-template-columns: 1fr; }
+    }
+
+    .compare-cols .card { border-top: 3px solid; }
+    .col-web   .card { border-top-color: #2563eb; }
+    .col-api   .card { border-top-color: #7c3aed; }
+    .col-flutter .card { border-top-color: #047857; }
+
+    footer {
+      text-align: center;
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 32px;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="hero">
+      <h1>积木仓 · 能力体系划分与解耦方案</h1>
+      <p>
+        本文档梳理 <code>&gt;&gt;</code> 模块选择器、首页说明区、弹幕预设、模板与运行时之间的关系，
+        并说明 Web 创建端与 Flutter 运行时当前如何耦合、应如何解耦。
+        打开本文件即可在浏览器中阅读，无需启动服务。
+      </p>
+      <div class="meta-row">
+        <span class="meta-pill">43 能力 · 12 Agent · 145 场景</span>
+        <span class="meta-pill">5 维 AgentPick 编排</span>
+        <span class="meta-pill">capability_key 为运行时契约</span>
+        <span class="meta-pill">生成时间：2026-07-11</span>
+      </div>
+    </header>
+
+    <nav class="toc">
+      <a href="#summary">一句话结论</a>
+      <a href="#layers">五层模型</a>
+      <a href="#concepts">概念词典</a>
+      <a href="#taxonomy">>> 五维分类</a>
+      <a href="#templates">四种「模板」</a>
+      <a href="#danmaku">弹幕体系</a>
+      <a href="#homepage">首页说明区</a>
+      <a href="#publish">发布管线</a>
+      <a href="#decouple">解耦方案</a>
+      <a href="#web-flutter">Web ↔ Flutter</a>
+      <a href="#files">文件索引</a>
+    </nav>
+
+    <!-- ── 1. 结论 ── -->
+    <section id="summary">
+      <h2><span class="num">1</span>一句话结论</h2>
+      <p class="lead">现在的问题不是「缺概念」，而是「同一概念在多处重复定义、命名不统一」。</p>
+
+      <div class="callout ok">
+        <strong>应确立的唯一技术主键</strong>
+        运行时只认 <code>capability_key</code>（如 <code>chat_qa</code>、<code>approval_flow</code>）。
+        行业、办公、场景、模板、弹幕、首页卡片，都是<strong>编排层 UX</strong>，最终都要映射到 capability_keys。
+      </div>
+
+      <div class="callout warn">
+        <strong>当前最大耦合风险</strong>
+        同一数据在 3～4 处静态维护：<code>capability_registry.py</code>、<code>MODULES</code>、<code>CAPABILITIES_SHOWCASE</code>、<code>ROLE_PRESETS</code>、PG Catalog。
+        改一个能力名，要改多处，容易漂移。
+      </div>
+
+      <div class="callout info">
+        <strong>解耦原则（推荐）</strong>
+        <ol>
+          <li><strong>SSOT 下沉</strong>：能力注册表 + Catalog API 为唯一数据源；前端 showcase / 弹幕 / chip 模板只存「引用 ID」</li>
+          <li><strong>编排与运行时分离</strong>：Web 负责「选什么」；后端负责「解析成 capability_keys + build_manifest」；Flutter/Web Runtime 只消费 manifest</li>
+          <li><strong>营销与产品分离</strong>：B2B 原子能力、AI 模板卡片不参与发布管线，不得与 capability 混用同一枚举</li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- ── 2. 五层模型 ── -->
+    <section id="layers">
+      <h2><span class="num">2</span>五层模型：从营销到 APK</h2>
+      <p class="lead">自上而下，每层只依赖下一层的 ID，不跨层硬编码实现细节。</p>
+
+      <div class="layer-stack">
+        <div class="layer layer-l5">
+          <span>L5 · 营销展示层</span>
+          <span>B2B 落地页、原子能力卡片、AI 模板九宫格 — 不参与发布</span>
+        </div>
+        <div class="flow-arrow">↓ 点击 CTA 可跳转创建区，携带 prompt 草稿</div>
+        <div class="layer layer-l4">
+          <span>L4 · 快捷编排层</span>
+          <span>弹幕预设、Chip 模板、悬浮框 placeholder — 产出 picks[] + prompt</span>
+        </div>
+        <div class="flow-arrow">↓ picks 注入 AgentInput，显示为 chip</div>
+        <div class="layer layer-l3">
+          <span>L3 · 交互编排层（>> 五维）</span>
+          <span>行业 / 办公 / 平台能力 / 功能模块 / 业务场景 — AgentPick 多选</span>
+        </div>
+        <div class="flow-arrow">↓ resolveAppBundle() + suggest-modules API</div>
+        <div class="layer layer-l2">
+          <span>L2 · 解析与契约层</span>
+          <span>scenario_templates 推导、capability_resolver、build_manifest、page_schema</span>
+        </div>
+        <div class="flow-arrow">↓ 写入 apps 表，Runtime API 读取</div>
+        <div class="layer layer-l1">
+          <span>L1 · 共享清单层</span>
+          <span>capability-manifest（codegen 三端同步：TS / JSON / Dart）</span>
+        </div>
+        <div class="flow-arrow">↓ capability_key 查表渲染</div>
+        <div class="layer layer-l0">
+          <span>L0 · 运行时实现层</span>
+          <span>runtime-web 页面包 + Flutter capability_pages — 各自独立实现</span>
+        </div>
+      </div>
+
+      <div class="mermaid-wrap">
+        <pre class="mermaid">
+flowchart TB
+  subgraph L5["L5 营销展示"]
+    B2B["B2BProductSection\n原子能力 / AI模板"]
+  end
+  subgraph L4["L4 快捷编排"]
+    DM["英雄弹幕 ROLE_PRESETS"]
+    CHIP["Chip 模板"]
+    PH["页面 placeholder"]
+  end
+  subgraph L3["L3 >> 五维编排"]
+    ORB["AgentOrbPanel\nindustry / office / capability\nmodule / scenario"]
+    INPUT["AgentInput chips"]
+  end
+  subgraph L2["L2 解析契约"]
+    RES["capability_resolver"]
+    TMPL["schema_templates"]
+    BM["build_manifest"]
+    PS["page_schema"]
+  end
+  subgraph L1["L1 共享清单"]
+    REG["capability_registry.py"]
+    MAN["shared/capability-manifest.*"]
+  end
+  subgraph L0["L0 运行时"]
+    WEB["runtime-web"]
+    FL["Flutter runtime-app"]
+  end
+
+  B2B -.->|CTA 跳转| INPUT
+  DM -->|picks + prompt| INPUT
+  CHIP -->|picks + prompt| INPUT
+  PH --> INPUT
+  ORB --> INPUT
+  INPUT -->|publish| RES
+  RES --> TMPL
+  RES --> BM
+  RES --> PS
+  REG -->|codegen| MAN
+  BM --> WEB
+  BM --> FL
+  MAN --> WEB
+  MAN --> FL
+        </pre>
+      </div>
+    </section>
+
+    <!-- ── 3. 概念词典 ── -->
+    <section id="concepts">
+      <h2><span class="num">3</span>概念词典：易混名词对照</h2>
+      <p class="lead">同一个中文词在不同文件里含义不同，下表是权威定义。</p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>中文名</th>
+            <th>英文 / 代码类型</th>
+            <th>是什么</th>
+            <th>权威数据源</th>
+            <th>是否进发布管线</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>能力</strong></td>
+            <td><code>Capability</code><br><code>capability_key</code></td>
+            <td>可组装、可发布的<strong>技术单元</strong>。有 widget、agent、web_pkg、flutter_pkg、route。</td>
+            <td><span class="badge badge-ssot">SSOT</span><code>backend/app/data/capability_registry.py</code><br>→ codegen → <code>shared/capability-manifest.ts</code></td>
+            <td>✅ 是（核心）</td>
+          </tr>
+          <tr>
+            <td><strong>功能模块</strong></td>
+            <td><code>AgentPick.type = 'module'</code></td>
+            <td>创建向导里用户点的「积木」。<strong>key 通常 = capability_key</strong>，只是 UX 分组叫「模块」。</td>
+            <td><span class="badge badge-dup">重复</span><code>home/src/data/constants.ts</code> → <code>MODULES</code><br>应改为 Catalog API 子集</td>
+            <td>✅ 是（解析为 capability_key）</td>
+          </tr>
+          <tr>
+            <td><strong>平台能力</strong></td>
+            <td><code>AgentPick.type = 'capability'</code></td>
+            <td>首页展示的<strong>产品级标签</strong>（智能创建、多端门户、知识库…）。10 项 showcase。</td>
+            <td><span class="badge badge-ui">UI</span><code>home/src/data/showcase.ts</code> → <code>CAPABILITIES_SHOWCASE</code></td>
+            <td>✅ 是（key 映射到 capability）</td>
+          </tr>
+          <tr>
+            <td><strong>行业</strong></td>
+            <td><code>AgentPick.type = 'industry'</code></td>
+            <td>行业包视角。展示 20 个，API 深度包 5 个（office/mfg/sales/med/game）。</td>
+            <td><span class="badge badge-api">API</span>PG <code>catalog_industry_*</code> + <code>INDUSTRIES_SHOWCASE</code></td>
+            <td>✅ 是（推导默认 capability + 场景）</td>
+          </tr>
+          <tr>
+            <td><strong>办公分类</strong></td>
+            <td><code>AgentPick.type = 'office'</code></td>
+            <td>8 类办公域（人事行政、财务法务、流程审批…）。</td>
+            <td><span class="badge badge-api">API</span>PG <code>catalog_office_*</code></td>
+            <td>✅ 是（推荐 + 场景筛选）</td>
+          </tr>
+          <tr>
+            <td><strong>业务场景</strong></td>
+            <td><code>AgentPick.type = 'scenario'</code></td>
+            <td>具体用例（设备报修、请假、排班…）。145 条，可触发模板推导。</td>
+            <td><span class="badge badge-api">API</span>PG 场景表 + <code>schema_templates.py</code></td>
+            <td>✅ 是（scenario_names → capability_keys）</td>
+          </tr>
+          <tr>
+            <td><strong>智能体 Agent</strong></td>
+            <td><code>catalog_agents</code></td>
+            <td>编排层概念：一个 Agent 绑定多个 capability_keys（如 approval agent）。</td>
+            <td><span class="badge badge-api">API</span>PG <code>catalog_agents</code></td>
+            <td>✅ 间接（写入 build_manifest.agents）</td>
+          </tr>
+          <tr>
+            <td><strong>原子能力</strong></td>
+            <td><code>AtomicCapability</code></td>
+            <td><strong>纯营销卡片</strong>（智能问答、沪语语音、NL2SQL…）。不是 DB 实体。</td>
+            <td><span class="badge badge-mkt">营销</span><code>productShowcase.ts</code> → <code>ATOMIC_AI_CAPABILITIES</code></td>
+            <td>❌ 否</td>
+          </tr>
+          <tr>
+            <td><strong>AI 模板</strong></td>
+            <td><code>AgentTemplate</code></td>
+            <td>B2B 落地页「开箱场景」九宫格。与 Chip 模板、场景模板是<strong>不同东西</strong>。</td>
+            <td><span class="badge badge-mkt">营销</span><code>productShowcase.ts</code> → <code>AGENT_TEMPLATES</code></td>
+            <td>❌ 否</td>
+          </tr>
+          <tr>
+            <td><strong>Chip 模板</strong></td>
+            <td><code>ChipTemplate</code></td>
+            <td>创建区快捷示例：一段文案 + picks[] + scenarioNames[]。</td>
+            <td><span class="badge badge-api">API</span>PG <code>catalog_chip_templates</code> + 静态兜底</td>
+            <td>✅ 是（通过 picks 进入发布）</td>
+          </tr>
+          <tr>
+            <td><strong>场景模板</strong></td>
+            <td><code>SCENARIO_TEMPLATES</code></td>
+            <td>后端规则：场景名子串匹配 → 默认 capability_keys。</td>
+            <td><span class="badge badge-ssot">SSOT</span><code>schema_templates.py</code></td>
+            <td>✅ 是（发布时自动推导）</td>
+          </tr>
+          <tr>
+            <td><strong>弹幕预设</strong></td>
+            <td><code>RolePreset</code></td>
+            <td>英雄区 30 条「身份 × 场景」快捷入口：label + prompt + picks[] + flowLines[]。</td>
+            <td><span class="badge badge-api">API</span>PG <code>catalog_hero_presets</code> + <code>rolePresets.ts</code></td>
+            <td>✅ 是（点击后注入 picks）</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout danger">
+        <strong>「模块」一词在代码里有三种含义</strong>
+        <ul>
+          <li><code>PromptModule</code>：输入框里的 chip（任意 AgentPick 类型）</li>
+          <li><code>MODULES</code> 常量：功能模块列表（≈ capability 子集）</li>
+          <li><code>modules[]</code> 发布字段：带 kind 的已选条目（user/suggest/auto 来源）</li>
+        </ul>
+        建议对外文案统一：chip = 已选条目；功能模块 = capability 的 UX 别名；modules[] = 发布 payload。
+      </div>
+    </section>
+
+    <!-- ── 4. >> 五维分类 ── -->
+    <section id="taxonomy">
+      <h2><span class="num">4</span><code>&gt;&gt;</code> 模块选择器：五维分类体系</h2>
+      <p class="lead">用户在光球面板（AgentOrbPanel）中浏览的五个维度，类型定义在 <code>agentInputLogic.ts</code>。</p>
+
+      <pre style="background:#0f172a;color:#e2e8f0;padding:16px;border-radius:10px;font-size:13px;overflow-x:auto;margin:14px 0;"><code>export type AgentPick =
+  | { type: 'action';     key: string; label: string }
+  | { type: 'industry';   key: string; label: string }  // 行业视角
+  | { type: 'office';     key: string; label: string }  // 办公分类
+  | { type: 'capability'; key: string; label: string }  // 平台能力（showcase）
+  | { type: 'module';     key: string; label: string }  // 功能模块（≈ capability）
+  | { type: 'scenario';   key: string; label: string }  // 业务场景</code></pre>
+
+      <h3>推荐与展示顺序</h3>
+      <p><code>promptSuggest.ts</code> 中 <code>SUGGEST_KIND_ORDER</code> 规定 AI 推荐条分组顺序：</p>
+      <p style="font-family:var(--mono);font-size:14px;background:#f1f5f9;padding:10px 14px;border-radius:8px;">
+        industry → office → capability → module → scenario
+      </p>
+
+      <h3>五维之间的关系（不是互斥，是不同视角）</h3>
+      <table>
+        <thead>
+          <tr><th>维度</th><th>回答的问题</th><th>典型 key 示例</th><th>与 capability 关系</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>industry</td>
+            <td>「我是哪个行业的？」</td>
+            <td><code>mfg</code> <code>sales</code> <code>med</code></td>
+            <td>触发 <code>INDUSTRY_EXTRA</code> 默认模块；筛选行业场景</td>
+          </tr>
+          <tr>
+            <td>office</td>
+            <td>「属于哪类办公域？」</td>
+            <td><code>人事行政</code> <code>流程审批</code></td>
+            <td>筛选 96 条办公场景；推荐时分组展示</td>
+          </tr>
+          <tr>
+            <td>capability</td>
+            <td>「平台提供什么产品能力？」</td>
+            <td><code>portal</code> <code>creation</code> <code>kb</code></td>
+            <td>showcase 10 项；部分 key = capability_key</td>
+          </tr>
+          <tr>
+            <td>module</td>
+            <td>「App 里装什么功能积木？」</td>
+            <td><code>chat_qa</code> <code>approval_flow</code></td>
+            <td><strong>key 即 capability_key</strong></td>
+          </tr>
+          <tr>
+            <td>scenario</td>
+            <td>「解决什么业务用例？」</td>
+            <td><code>设备报修</code> <code>请假申请</code></td>
+            <td>发布时经 schema_templates 推导 capability_keys</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout info">
+        <strong>面板默认展示策略（当前实现）</strong>
+        折叠展开后默认只显示：行业(8) + 办公(8) + 平台能力(6)。
+        用户输入筛选词后才显示场景 / 功能模块 — 避免一次展示过多选项。
+        见 <code>AgentOrbPanel.tsx</code> 与 <code>FloatingAgentDock.tsx</code>。
+      </div>
+    </section>
+
+    <!-- ── 5. 四种模板 ── -->
+    <section id="templates">
+      <h2><span class="num">5</span>「模板」的四种含义 — 必须分开管理</h2>
+      <p class="lead">代码里至少有 4 种 Template，互不替代。混用是解耦失败的主因。</p>
+
+      <div class="grid-2">
+        <div class="card">
+          <h4>① 场景模板 SCENARIO_TEMPLATES</h4>
+          <p><span class="badge badge-ssot">后端 SSOT</span></p>
+          <p>12 条规则：场景名包含「报修」→ 自动加 <code>approval_flow</code> + <code>form_submit</code> 等。</p>
+          <p class="path">backend/app/data/schema_templates.py</p>
+          <p>函数：<code>resolve_capability_keys()</code>、<code>match_template()</code></p>
+        </div>
+        <div class="card">
+          <h4>② Chip 模板 CHIP_TEMPLATES</h4>
+          <p><span class="badge badge-api">Catalog API</span> + 静态兜底</p>
+          <p>创建区快捷示例：「制造业设备报修 + SOP 问答」→ 一组 picks + prompt。</p>
+          <p class="path">home/src/data/appAssembly.ts</p>
+          <p class="path">GET /catalog/chip-templates</p>
+        </div>
+        <div class="card">
+          <h4>③ 英雄弹幕预设 ROLE_PRESETS</h4>
+          <p><span class="badge badge-api">Catalog API</span> + 静态兜底</p>
+          <p>30 条身份×场景弹幕：点击注入 prompt + picks，带 flowLines 流程说明。</p>
+          <p class="path">home/src/data/rolePresets.ts</p>
+          <p class="path">GET /catalog/hero-presets</p>
+        </div>
+        <div class="card">
+          <h4>④ B2B AI 模板 AGENT_TEMPLATES</h4>
+          <p><span class="badge badge-mkt">纯营销</span></p>
+          <p>落地页九宫格：智能问答、审批助手、数据看板… 仅展示，<strong>不参与发布</strong>。</p>
+          <p class="path">home/src/data/productShowcase.ts</p>
+        </div>
+      </div>
+
+      <h3>模板 vs 能力：数据流对比</h3>
+      <table>
+        <thead>
+          <tr><th>模板类型</th><th>存储内容</th><th>点击后发生什么</th><th>最终产物</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>场景模板</td>
+            <td>规则（场景名 → keys）</td>
+            <td>发布时自动执行，用户不可见</td>
+            <td>capability_keys[]</td>
+          </tr>
+          <tr>
+            <td>Chip 模板</td>
+            <td>text + picks[] + scenarioNames[]</td>
+            <td>填充输入框 + chip</td>
+            <td>用户可编辑后发布</td>
+          </tr>
+          <tr>
+            <td>弹幕预设</td>
+            <td>label + prompt + picks[] + flowLines[]</td>
+            <td>HeroRoleDialog → 注入 PromptView</td>
+            <td>用户可编辑后发布</td>
+          </tr>
+          <tr>
+            <td>AI 模板</td>
+            <td>name + features + preview 类型</td>
+            <td>跳转创建区（仅 CTA）</td>
+            <td>无（不传 picks）</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ── 6. 弹幕 ── -->
+    <section id="danmaku">
+      <h2><span class="num">6</span>弹幕体系：不是独立协议，是快捷编排入口</h2>
+      <p class="lead">英雄区弹幕 = 带 picks[] 的 RolePreset，与 >> 选择器共享同一 AgentPick 类型。</p>
+
+      <h3>组件链路</h3>
+      <p style="font-family:var(--mono);font-size:13px;background:#f8fafc;padding:12px;border-radius:8px;border:1px solid #e2e8f0;">
+        HeroCubeStage → HeroDanmakuCloud → 点击弹幕 → HeroRoleDialog → PromptView.onRoleApply(preset)
+      </p>
+
+      <h3>RolePreset 数据结构</h3>
+      <table>
+        <thead><tr><th>字段</th><th>用途</th><th>示例</th></tr></thead>
+        <tbody>
+          <tr><td><code>label</code></td><td>弹幕显示文字</td><td>「上海话语音助手」</td></tr>
+          <tr><td><code>hint</code></td><td>副标题</td><td>「方言 · 交互」</td></tr>
+          <tr><td><code>role</code></td><td>身份标签</td><td>HR、销售、制造…</td></tr>
+          <tr><td><code>prompt</code></td><td>注入输入框的描述</td><td>「用上海话实时语音对话…」</td></tr>
+          <tr><td><code>picks[]</code></td><td>预选 AgentPick 列表</td><td>industry + module + scenario</td></tr>
+          <tr><td><code>flowLines[]</code></td><td>弹窗内流程说明</td><td>3～4 步用户故事</td></tr>
+        </tbody>
+      </table>
+
+      <h3>弹幕与 >> 面板的分工</h3>
+      <div class="grid-2">
+        <div class="card">
+          <h4>弹幕（L4 快捷层）</h4>
+          <ul>
+            <li>预设好的「身份 × 场景」故事</li>
+            <li>降低冷启动成本</li>
+            <li>数据来自 hero-presets API</li>
+            <li>点击 = 一键填充，仍可修改</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h4>>> 光球面板（L3 编排层）</h4>
+          <ul>
+            <li>用户自由组合五维选项</li>
+            <li>支持搜索筛选</li>
+            <li>数据来自 Catalog scenarios + MODULES + showcase</li>
+            <li>多选后显示为 chip</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="callout ok">
+        <strong>解耦建议：弹幕不应有自己的「模块类型」</strong>
+        弹幕 preset 的 <code>picks[]</code> 应只引用 Catalog 已有 ID（industry key、scenario id、capability key），
+        不单独维护一套弹幕专用模块表。
+      </div>
+    </section>
+
+    <!-- ── 7. 首页说明区 ── -->
+    <section id="homepage">
+      <h2><span class="num">7</span>首页说明区：营销叙事 vs 产品编排</h2>
+      <p class="lead">首页多处介绍「能力」「模块」「行业」，但服务于不同目标，不应共用一套数据。</p>
+
+      <table>
+        <thead>
+          <tr><th>首页区域</th><th>组件</th><th>数据文件</th><th>层级</th><th>应与 >> 同步？</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>英雄区弹幕</td>
+            <td><code>HeroDanmakuCloud</code></td>
+            <td><code>rolePresets.ts</code> / API</td>
+            <td>L4 快捷编排</td>
+            <td>✅ picks 引用 Catalog ID</td>
+          </tr>
+          <tr>
+            <td>平台能力一览</td>
+            <td><code>B2BStatsPanel</code> / Hero 右侧</td>
+            <td><code>showcase.ts</code> + <code>platformStats.ts</code></td>
+            <td>L3/L5 混合</td>
+            <td>⚠️ 数字可同步，文案可营销化</td>
+          </tr>
+          <tr>
+            <td>产品能力区块</td>
+            <td><code>B2BProductSection</code></td>
+            <td><code>productShowcase.ts</code></td>
+            <td>L5 营销</td>
+            <td>❌ 独立叙事，不直接映射 capability</td>
+          </tr>
+          <tr>
+            <td>原子 AI 能力</td>
+            <td>ProductSection 子卡片</td>
+            <td><code>ATOMIC_AI_CAPABILITIES</code></td>
+            <td>L5 营销</td>
+            <td>❌ 可加「对应 capability」脚注，非 SSOT</td>
+          </tr>
+          <tr>
+            <td>AI 模板九宫格</td>
+            <td><code>AGENT_TEMPLATES</code></td>
+            <td><code>productShowcase.ts</code></td>
+            <td>L5 营销</td>
+            <td>❌ CTA 跳转即可</td>
+          </tr>
+          <tr>
+            <td>行业方案</td>
+            <td><code>INDUSTRY_SOLUTIONS</code></td>
+            <td><code>productShowcase.ts</code></td>
+            <td>L5 营销</td>
+            <td>⚠️ key 应对齐 <code>INDUSTRIES_SHOWCASE</code></td>
+          </tr>
+          <tr>
+            <td>在线体验 · 描述需求</td>
+            <td><code>PromptView</code> + 悬浮框</td>
+            <td>Catalog API + AgentInput</td>
+            <td>L3 编排</td>
+            <td>✅ 必须跟 capability_registry 一致</td>
+          </tr>
+          <tr>
+            <td>选行业 / 搭模块 Tab</td>
+            <td><code>IndustryView</code> <code>ModuleView</code></td>
+            <td>Catalog API</td>
+            <td>L3 编排</td>
+            <td>✅ 必须跟 Catalog 一致</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout warn">
+        <strong>首页说明与 >> 面板的正确关系</strong>
+        首页负责「讲故事、建立信任」；>> 面板负责「精确选积木」。
+        首页卡片可以比 >> 面板更粗粒度，但<strong>一旦涉及可选/可发布</strong>，必须引用 Catalog 主键，不能各写各的。
+      </div>
+    </section>
+
+    <!-- ── 8. 发布管线 ── -->
+    <section id="publish">
+      <h2><span class="num">8</span>发布管线：从 picks 到 APK</h2>
+      <p class="lead">无论用户从弹幕、chip 模板还是 >> 面板进入，最终都走同一条发布链路。</p>
+
+      <div class="mermaid-wrap">
+        <pre class="mermaid">
+sequenceDiagram
+  participant U as 用户
+  participant W as Web AgentInput
+  participant A as resolveAppBundle
+  participant API as POST /creation/publish
+  participant R as capability_resolver
+  participant T as schema_templates
+  participant B as build_manifest
+  participant DB as apps 表
+  participant F as Flutter ConfigService
+
+  U->>W: 选 picks / 输入 prompt
+  W->>A: PromptModule[] + scenarioNames
+  A->>API: modules + industry + scenarios
+  API->>R: 合并显式 key
+  R->>T: scenario_names 推导
+  T-->>R: 补充 capability_keys
+  R->>B: 生成 manifest
+  B->>DB: 持久化
+  F->>DB: GET /runtime/{id}/manifest
+  F->>F: capabilityPages[key] 渲染
+        </pre>
+      </div>
+
+      <h3>发布 payload 关键字段</h3>
+      <table>
+        <thead><tr><th>字段</th><th>来源</th><th>说明</th></tr></thead>
+        <tbody>
+          <tr><td><code>modules[]</code></td><td>AgentInput chips</td><td>含 type/key/label/kind/source/order</td></tr>
+          <tr><td><code>scenario_ids[]</code></td><td>IndustryView / picks</td><td>PG 场景主键</td></tr>
+          <tr><td><code>scenario_names[]</code></td><td>chip 模板 / 用户输入</td><td>触发 schema_templates 推导</td></tr>
+          <tr><td><code>capability_keys[]</code></td><td>resolver 输出</td><td><strong>运行时唯一契约</strong></td></tr>
+          <tr><td><code>build_manifest</code></td><td>build_manifest.py</td><td>web_pkgs, flutter_pkgs, routes, agents</td></tr>
+          <tr><td><code>page_schema</code></td><td>schema_generator.py</td><td>menu + root schema</td></tr>
+        </tbody>
+      </table>
+
+      <h3>底座自动补齐（用户未选也会加）</h3>
+      <p><code>appAssembly.ts</code> → <code>BASELINE_PICKS</code>：portal、chat_qa、approval_flow、kb_document、notify_inapp、rbac_page</p>
+      <p>按行业追加 <code>INDUSTRY_EXTRA</code>：如 mfg → chart_dashboard，sales → chart_funnel</p>
+    </section>
+
+    <!-- ── 9. 解耦方案 ── -->
+    <section id="decouple">
+      <h2><span class="num">9</span>推荐解耦方案</h2>
+      <p class="lead">分三个阶段，从「能跑」到「可维护」到「可扩展」。</p>
+
+      <h3>阶段 A · 立即做（低成本）</h3>
+      <table>
+        <thead><tr><th>动作</th><th>现状问题</th><th>目标</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>统一命名文档（本文）</td>
+            <td>模块/能力/模板混称</td>
+            <td>团队共用词汇表</td>
+          </tr>
+          <tr>
+            <td>营销数据加 <code>mapsToCapability?</code> 可选字段</td>
+            <td>原子能力与 capability 无映射</td>
+            <td>脚注展示，不参与发布</td>
+          </tr>
+          <tr>
+            <td>弹幕 / chip 模板只存 ID 引用</td>
+            <td>picks 里 label 硬编码</td>
+            <td>label 从 Catalog 实时解析</td>
+          </tr>
+          <tr>
+            <td>删除或标注 <code>MODULES</code> 静态常量</td>
+            <td>与 registry 43 项漂移</td>
+            <td>改读 <code>GET /catalog/modules</code></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>阶段 B · 中期（Catalog 为编排 SSOT）</h3>
+      <div class="mermaid-wrap">
+        <pre class="mermaid">
+flowchart LR
+  REG["capability_registry.py\n(SSOT)"]
+  SEED["catalog_seed.py"]
+  PG["PostgreSQL Catalog"]
+  API["/catalog/* API"]
+  WEB["home 创建端"]
+  MKT["营销 showcase\n(只存 ID + 文案)"]
+
+  REG -->|codegen| MAN["capability-manifest"]
+  REG --> SEED --> PG --> API
+  API --> WEB
+  MKT -.->|引用 key| API
+        </pre>
+      </div>
+
+      <ul>
+        <li><strong>>> 面板五维</strong>：全部从 Catalog API 拉取，本地仅缓存</li>
+        <li><strong>promptSuggest 本地 fallback</strong>：keywords 改读 manifest，不维护独立 KEYWORD_HINTS</li>
+        <li><strong>hero-presets / chip-templates</strong>：DB 为 SSOT，静态文件仅冷启动兜底</li>
+        <li><strong>productShowcase 营销</strong>：独立 JSON，通过 <code>capabilityKey?</code> 软关联</li>
+      </ul>
+
+      <h3>阶段 C · 长期（运行时插件化）</h3>
+      <ul>
+        <li>Web：<code>@blockhub/web-capability-*</code> 包按 manifest.web_pkg 动态加载</li>
+        <li>Flutter：<code>capability_pages.dart</code> 改为注册表 + 延迟加载 flutter_pkg</li>
+        <li>未实现能力：统一「建设中」占位，读取 manifest.name 显示中文名</li>
+        <li>新增能力流程：只改 registry → codegen → 实现 runtime 页面，不改 home 常量</li>
+      </ul>
+
+      <h3>解耦边界清单</h3>
+      <table>
+        <thead><tr><th>层</th><th>应该知道</th><th>不应该知道</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>营销展示 (L5)</td>
+            <td>capability key（可选引用）、行业 key、用户故事</td>
+            <td>web_pkg、flutter_pkg、widget 名、路由实现</td>
+          </tr>
+          <tr>
+            <td>快捷编排 (L4)</td>
+            <td>AgentPick picks[]、prompt 模板</td>
+            <td>build_manifest 结构、DB schema</td>
+          </tr>
+          <tr>
+            <td>交互编排 (L3)</td>
+            <td>Catalog 五维数据、chip UI 状态</td>
+            <td>Flutter 页面类名、APK 打包逻辑</td>
+          </tr>
+          <tr>
+            <td>解析契约 (L2)</td>
+            <td>capability_registry、模板规则、manifest 生成</td>
+            <td>React 组件、Dart Widget</td>
+          </tr>
+          <tr>
+            <td>运行时 (L0)</td>
+            <td>capability_key、manifest、page_schema</td>
+            <td>行业营销文案、弹幕 label、B2B 模板</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ── 10. Web ↔ Flutter ── -->
+    <section id="web-flutter">
+      <h2><span class="num">10</span>Web 与 Flutter 的设计解耦</h2>
+      <p class="lead">两端不共享 UI 代码，只共享契约（manifest + schema + capability_key）。</p>
+
+      <div class="compare-cols">
+        <div class="col-web">
+          <div class="card">
+            <h4>Web 创建端 (home/)</h4>
+            <p><strong>职责</strong>：编排、推荐、发布、预览</p>
+            <ul>
+              <li><code>AgentInput</code> / <code>AgentOrbPanel</code> — 五维选择</li>
+              <li><code>PromptView</code> — 发布主流程</li>
+              <li><code>appAssembly.ts</code> — 组装 bundle</li>
+              <li><code>api/client.ts</code> — 调 Catalog / Creation API</li>
+            </ul>
+            <p><strong>不依赖</strong> Flutter widget、Dart 路由</p>
+          </div>
+        </div>
+        <div class="col-api">
+          <div class="card">
+            <h4>后端契约层 (backend/)</h4>
+            <p><strong>职责</strong>：解析、生成 manifest、持久化</p>
+            <ul>
+              <li><code>capability_registry.py</code> — 能力 SSOT</li>
+              <li><code>capability_resolver.py</code> — picks → keys</li>
+              <li><code>build_manifest.py</code> — keys → pkgs/routes</li>
+              <li><code>schema_generator.py</code> — page_schema</li>
+              <li><code>/runtime/{id}/manifest</code> — 运行时读取</li>
+            </ul>
+            <p><strong>两端共同依赖的唯一中间层</strong></p>
+          </div>
+        </div>
+        <div class="col-flutter">
+          <div class="card">
+            <h4>Flutter 运行时 (runtime-app/)</h4>
+            <p><strong>职责</strong>：按 manifest 渲染已发布 App</p>
+            <ul>
+              <li><code>ConfigService</code> — 拉 tenant config + manifest</li>
+              <li><code>TenantConfig.resolvedCapabilityKeys</code></li>
+              <li><code>capability_manifest.dart</code> — codegen 元数据</li>
+              <li><code>capability_pages.dart</code> — key → Widget 注册</li>
+            </ul>
+            <p><strong>不依赖</strong> AgentPick、弹幕、B2B 文案</p>
+          </div>
+        </div>
+      </div>
+
+      <h3>共享契约：codegen 三端同步</h3>
+      <p>单一来源 <code>capability_registry.py</code>，脚本生成：</p>
+      <table>
+        <thead><tr><th>产物</th><th>消费方</th><th>用途</th></tr></thead>
+        <tbody>
+          <tr><td><code>shared/capability-manifest.ts</code></td><td>home、scripts</td><td>TS 类型 + 能力列表</td></tr>
+          <tr><td><code>shared/capability-manifest.json</code></td><td>CI、文档</td><td>中性 JSON</td></tr>
+          <tr><td><code>runtime-app/lib/data/capability_manifest.dart</code></td><td>Flutter</td><td>中文名、route、flutter_pkg</td></tr>
+        </tbody>
+      </table>
+      <p class="path">scripts/codegen-capability-manifest.py</p>
+
+      <h3>Flutter 解析优先级</h3>
+      <p><code>tenant_config.dart</code> → <code>resolvedCapabilityKeys</code>：</p>
+      <ol>
+        <li><code>build_manifest.capability_keys</code>（优先）</li>
+        <li><code>page_schema.capability_keys</code></li>
+        <li><code>app.capability_keys</code>（兜底）</li>
+      </ol>
+
+      <h3>当前实现差距（需知晓）</h3>
+      <div class="callout warn">
+        <strong>Registry 声明 43 项，Flutter 已实现页面约 4 个</strong>
+        <code>capability_pages.dart</code> 仅注册：shanghai_voice、chat、approval、report。
+        其余 key 显示 manifest 中文名 +「建设中」— 这是正常的渐进式实现，不是架构缺陷。
+      </div>
+
+      <h3>Web Runtime vs Flutter Runtime</h3>
+      <table>
+        <thead><tr><th></th><th>Web Runtime</th><th>Flutter Runtime</th></tr></thead>
+        <tbody>
+          <tr><td>入口</td><td>runtime-web 包</td><td>runtime-app APK</td></tr>
+          <tr><td>能力实现</td><td><code>@blockhub/web-capability-*</code> npm 包</td><td><code>capability_*</code> Dart 页面</td></tr>
+          <tr><td>读取契约</td><td>同 <code>/runtime/{id}/schema</code></td><td>同 <code>/runtime/{id}/manifest</code></td></tr>
+          <tr><td>菜单驱动</td><td>page_schema.menu</td><td>ChoiceChip + capabilityPages</td></tr>
+          <tr><td>创建端耦合</td><td>无直接依赖</td><td>无直接依赖</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout ok">
+        <strong>解耦验收标准</strong>
+        新增一个 capability（如 <code>inventory_scan</code>）时：
+        <ol>
+          <li>只改 <code>capability_registry.py</code> + 运行 codegen</li>
+          <li>后端发布自动生成 manifest 条目</li>
+          <li>Web 创建端从 Catalog API 自动出现该模块 — <strong>无需改 MODULES 常量</strong></li>
+          <li>Flutter 加一页注册 — <strong>无需改 home 任何文件</strong></li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- ── 11. 文件索引 ── -->
+    <section id="files">
+      <h2><span class="num">11</span>关键文件索引</h2>
+      <p class="lead">按职责分组，方便对照代码。</p>
+
+      <h4>类型与编排（Web）</h4>
+      <table>
+        <thead><tr><th>文件</th><th>职责</th></tr></thead>
+        <tbody>
+          <tr><td><code>home/src/components/agentInputLogic.ts</code></td><td>AgentPick 六类型、PromptModule、>> 解析</td></tr>
+          <tr><td><code>home/src/components/AgentInput.tsx</code></td><td>输入框 + chip + 打开光球面板</td></tr>
+          <tr><td><code>home/src/components/AgentOrbPanel.tsx</code></td><td>>> 五维多选面板</td></tr>
+          <tr><td><code>home/src/data/promptSuggest.ts</code></td><td>本地推荐 + 分组顺序</td></tr>
+          <tr><td><code>home/src/data/appAssembly.ts</code></td><td>BASELINE_PICKS、CHIP_TEMPLATES、resolveAppBundle</td></tr>
+          <tr><td><code>home/src/data/constants.ts</code></td><td>MODULES、SCENES 静态兜底 ⚠️</td></tr>
+          <tr><td><code>home/src/data/showcase.ts</code></td><td>CAPABILITIES_SHOWCASE、INDUSTRIES_SHOWCASE</td></tr>
+          <tr><td><code>home/src/data/rolePresets.ts</code></td><td>ROLE_PRESETS 弹幕 30 条</td></tr>
+          <tr><td><code>home/src/data/productShowcase.ts</code></td><td>AGENT_TEMPLATES、ATOMIC_AI_CAPABILITIES 营销</td></tr>
+          <tr><td><code>home/src/views/PromptView.tsx</code></td><td>创建主视图 + 悬浮框 + 发布</td></tr>
+        </tbody>
+      </table>
+
+      <h4>Catalog 与发布（Backend）</h4>
+      <table>
+        <thead><tr><th>文件</th><th>职责</th></tr></thead>
+        <tbody>
+          <tr><td><code>backend/app/data/capability_registry.py</code></td><td>★ 能力 SSOT（43 项）</td></tr>
+          <tr><td><code>backend/app/data/schema_templates.py</code></td><td>场景名 → capability_keys 规则</td></tr>
+          <tr><td><code>backend/app/api/v1/catalog.py</code></td><td>Catalog REST API</td></tr>
+          <tr><td><code>backend/app/services/module_suggest.py</code></td><td>关键词 + DeepSeek 推荐</td></tr>
+          <tr><td><code>backend/app/services/capability_resolver.py</code></td><td>发布时 picks → keys</td></tr>
+          <tr><td><code>backend/app/services/build_manifest.py</code></td><td>keys → web/flutter pkgs</td></tr>
+          <tr><td><code>backend/app/api/v1/runtime.py</code></td><td>Flutter/Web 运行时读取</td></tr>
+          <tr><td><code>scripts/codegen-capability-manifest.py</code></td><td>三端 manifest 同步</td></tr>
+        </tbody>
+      </table>
+
+      <h4>运行时（Flutter）</h4>
+      <table>
+        <thead><tr><th>文件</th><th>职责</th></tr></thead>
+        <tbody>
+          <tr><td><code>runtime-app/lib/models/tenant_config.dart</code></td><td>BuildManifest、PageSchema、resolvedKeys</td></tr>
+          <tr><td><code>runtime-app/lib/services/config_service.dart</code></td><td>拉取 /tenant/config + /runtime/manifest</td></tr>
+          <tr><td><code>runtime-app/lib/data/capability_manifest.dart</code></td><td>codegen 能力元数据</td></tr>
+          <tr><td><code>runtime-app/lib/pages/capability_pages.dart</code></td><td>key → Widget 注册表</td></tr>
+          <tr><td><code>runtime-app/lib/app.dart</code></td><td>菜单导航 + 页面切换</td></tr>
+        </tbody>
+      </table>
+
+      <h4>共享契约</h4>
+      <table>
+        <thead><tr><th>文件</th><th>职责</th></tr></thead>
+        <tbody>
+          <tr><td><code>shared/capability-manifest.ts</code></td><td>Web/脚本用能力清单</td></tr>
+          <tr><td><code>shared/platformStats.ts</code></td><td>43 能力 / 145 场景 展示数字</td></tr>
+          <tr><td><code>packages/web-core/src/types.ts</code></td><td>PageSchema、BuildManifest 类型</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <footer>
+      积木仓 cozecode · docs/previews/catalog-taxonomy-decoupling.html · 在浏览器直接打开本文件即可阅读
+    </footer>
+  </div>
+
+  <script>
+    mermaid.initialize({ startOnLoad: true, theme: 'neutral', securityLevel: 'loose' });
+  </script>
+</body>
+</html>

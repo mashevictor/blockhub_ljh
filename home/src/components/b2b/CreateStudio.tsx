@@ -11,14 +11,27 @@ import PromptView from '../../views/PromptView'
 import IndustryView from '../../views/IndustryView'
 import ModuleView from '../../views/ModuleView'
 import { finishPublishNavigate } from '../../lib/publishFlow'
+import { parseCreateDeepLink } from '../../lib/createDeepLink'
 
 export default function CreateStudio() {
   const [view, setView] = useState<ViewMode>('prompt')
+  const [initialIndustry, setInitialIndustry] = useState<string | undefined>()
   const [roleApply, setRoleApply] = useState<RoleApplyRequest | null>(null)
   const mainRef = useRef<HTMLDivElement>(null)
   const navigate = useNavigate()
   const { setContextKey } = useAgentPageContext()
   const bookingZoneActive = useDemoBookingActive()
+
+  useEffect(() => {
+    const applyDeepLink = () => {
+      const { mode, pack } = parseCreateDeepLink()
+      if (mode) setView(mode)
+      if (pack && mode === 'industry') setInitialIndustry(pack)
+    }
+    applyDeepLink()
+    window.addEventListener('hashchange', applyDeepLink)
+    return () => window.removeEventListener('hashchange', applyDeepLink)
+  }, [])
 
   useEffect(() => {
     const createEl = document.getElementById('contact-create')
@@ -89,7 +102,11 @@ export default function CreateStudio() {
           />
         </div>
         <div className={view === 'industry' ? undefined : 'view-hidden'} aria-hidden={view !== 'industry'}>
-          <IndustryView active={view === 'industry'} onPublish={handlePublish} />
+          <IndustryView
+            active={view === 'industry'}
+            onPublish={handlePublish}
+            initialIndustry={initialIndustry}
+          />
         </div>
         <div className={view === 'module' ? undefined : 'view-hidden'} aria-hidden={view !== 'module'}>
           <ModuleView active={view === 'module'} onPublish={handlePublish} />

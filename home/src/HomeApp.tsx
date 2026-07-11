@@ -6,15 +6,20 @@ import { BRAND } from './data/brand'
 import B2BHeader from './components/b2b/B2BHeader'
 import B2BHero from './components/b2b/B2BHero'
 import B2BProductSection from './components/b2b/B2BProductSection'
-import B2BCaseSection from './components/b2b/B2BCaseSection'
+import B2BTrustStrip from './components/b2b/enrichment/B2BTrustStrip'
+import B2BCaseEnrichedSection from './components/b2b/enrichment/B2BCaseEnrichedSection'
+import B2BPricingSection from './components/b2b/enrichment/B2BPricingSection'
+import B2BNewsSection from './components/b2b/enrichment/B2BNewsSection'
 import CreateStudio from './components/b2b/CreateStudio'
 import B2BDemoForm from './components/b2b/B2BDemoForm'
 import HomeScrollRails from './components/b2b/HomeScrollRails'
 import AgentSignLine from './components/AgentSignLine'
 import { AgentPageProvider, useAgentPageContext } from './context/AgentPageContext'
+import { PromptDraftProvider } from './context/PromptDraftContext'
 import { DemoBookingProvider } from './context/DemoBookingContext'
 import type { AgentContextKey } from './data/agentContext'
 import { scrollToHomeSection, useHomeActiveSection } from './hooks/useHomeActiveSection'
+import { parseCreateDeepLink } from './lib/createDeepLink'
 import './styles/b2b-landing.css'
 
 const LANDING_SECTIONS: { id: string; key: AgentContextKey }[] = [
@@ -43,8 +48,8 @@ function HomeScrollContext() {
           setContextKey('landing_booking')
           return
         }
-        if (createEntry) {
-          setContextKey('landing_contact')
+        if (createEntry && createEntry.intersectionRatio > 0.2) {
+          /* CreateStudio 负责 create_prompt / create_industry / create_module */
           return
         }
 
@@ -86,18 +91,25 @@ export default function HomeApp() {
     fetchMe().then(setUser).catch(() => setUser(null))
   }, [location.pathname])
 
+  useEffect(() => {
+    const { mode } = parseCreateDeepLink()
+    if (mode) {
+      requestAnimationFrame(() => scrollToHomeSection('contact-create'))
+    }
+  }, [location.hash])
+
   const scrollToCreate = () => scrollToHomeSection('contact-create')
   const scrollToDemo = () => scrollToHomeSection('contact-demo')
 
   return (
     <AgentPageProvider initial="landing_hero">
+      <PromptDraftProvider>
       <DemoBookingProvider>
       <HomeScrollContext />
       <div className="b2b-app b2b-brand-scope b2b-has-floating-agent">
       <B2BHeader
         user={user}
         activeSection={activeSection}
-        onCreate={scrollToCreate}
         onBook={scrollToDemo}
         onLogout={() => logout()}
       />
@@ -105,7 +117,10 @@ export default function HomeApp() {
       <B2BHero onBook={scrollToDemo} onTry={scrollToCreate} />
 
       <B2BProductSection onTry={scrollToCreate} />
-      <B2BCaseSection />
+      <B2BTrustStrip />
+      <B2BCaseEnrichedSection />
+      <B2BPricingSection />
+      <B2BNewsSection />
 
       <section id="contact" className="b2b-form-wrap">
         <div className="b2b-section-title b2b-contact-head">
@@ -124,6 +139,7 @@ export default function HomeApp() {
       <HomeScrollRails />
       </div>
       </DemoBookingProvider>
+      </PromptDraftProvider>
     </AgentPageProvider>
   )
 }

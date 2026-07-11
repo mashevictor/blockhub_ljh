@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Catalog 全量清单 · 阶段 B 迁移底稿</title>
+  <style>
+    :root {
+      --bg:#f4f7fb; --surface:#fff; --border:#dbeafe;
+      --pri:#0d47a1; --text:#0f172a; --muted:#64748b;
+      --ok:#047857; --warn:#b45309; --danger:#b91c1c;
+      --mono:ui-monospace,Consolas,monospace;
+      --sans:"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:var(--sans);background:var(--bg);color:var(--text);line-height:1.6;font-size:14px}
+    .page{max-width:1200px;margin:0 auto;padding:28px 18px 80px}
+    header{background:linear-gradient(135deg,#0d47a1,#1565c0);color:#fff;border-radius:16px;padding:28px 32px;margin-bottom:20px}
+    header h1{font-size:26px;font-weight:800;margin-bottom:8px}
+    header p{opacity:.92;max-width:800px}
+    .meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+    .pill{font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25)}
+    nav.toc{position:sticky;top:10px;z-index:5;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 16px;margin-bottom:18px;display:flex;flex-wrap:wrap;gap:6px 12px;font-size:12px}
+    nav.toc a{color:var(--pri);text-decoration:none;font-weight:600}
+    section{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px 26px;margin-bottom:16px}
+    section>h2{font-size:18px;font-weight:800;color:var(--pri);margin-bottom:4px}
+    .lead{color:var(--muted);font-size:13px;margin-bottom:14px}
+    h3{font-size:15px;font-weight:700;margin:18px 0 8px}
+    table{width:100%;border-collapse:collapse;font-size:12px;margin:10px 0 16px}
+    th,td{border:1px solid #e2e8f0;padding:7px 9px;text-align:left;vertical-align:top}
+    th{background:#f8fafc;color:var(--pri);font-weight:700;white-space:nowrap}
+    tr:nth-child(even) td{background:#fafbfc}
+    code,.path{font-family:var(--mono);font-size:11px;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:1px 5px}
+    .badge{display:inline-block;font-size:10px;font-weight:700;padding:1px 7px;border-radius:999px;margin-right:3px}
+    .b-ssot{background:#dcfce7;color:var(--ok);border:1px solid #86efac}
+    .b-api{background:#ede9fe;color:#5b21b6;border:1px solid #c4b5fd}
+    .b-ui{background:#dbeafe;color:var(--pri);border:1px solid #93c5fd}
+    .b-mkt{background:#fef3c7;color:var(--warn);border:1px solid #fcd34d}
+    .b-drift{background:#fee2e2;color:var(--danger);border:1px solid #fca5a5}
+    .callout{border-radius:8px;padding:12px 14px;margin:12px 0;font-size:13px;border-left:4px solid}
+    .c-info{background:#eff6ff;border-color:#2563eb}
+    .c-warn{background:#fffbeb;border-color:#f59e0b}
+    .c-ok{background:#ecfdf5;border-color:#10b981}
+    details{margin:10px 0;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden}
+    summary{padding:10px 14px;font-weight:700;cursor:pointer;background:#f8fafc;color:var(--pri)}
+    details .inner{padding:12px 14px}
+    .count{font-weight:400;color:var(--muted);font-size:12px}
+    .phase-b{background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:14px 16px;margin-top:14px}
+    .phase-b h4{color:var(--ok);margin-bottom:8px}
+    footer{text-align:center;color:var(--muted);font-size:11px;margin-top:24px}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    @media(max-width:800px){.grid2{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+<div class="page">
+
+<header>
+  <h1>Catalog 全量清单</h1>
+  <p>阶段 B 目标：以下 <span class="badge b-ssot">PG Catalog + API</span> 为唯一编排数据源；<span class="badge b-ui">home 静态常量</span> 逐步废弃。本文档从 <code>backend/app/data/seed.py</code>、<code>hero_presets.py</code>、<code>capability_registry.py</code> 等源码整理，与线上一致性以 DB seed 为准。</p>
+  <div class="meta">
+    <span class="pill">9 张 PG 表</span>
+    <span class="pill">8 个 API 端点</span>
+    <span class="pill">43 能力 · 12 Agent</span>
+    <span class="pill">66 办公场景 + 49 行业场景</span>
+    <span class="pill">32 弹幕 · 6 Chip 模板</span>
+    <span class="pill">12 场景推导模板</span>
+  </div>
+</header>
+
+<nav class="toc">
+  <a href="#api">API 端点</a>
+  <a href="#tables">PG 表</a>
+  <a href="#agents">12 Agent</a>
+  <a href="#capabilities">43 能力</a>
+  <a href="#office">办公 8 组 66 场景</a>
+  <a href="#industry">行业 5 包 49 场景</a>
+  <a href="#showcase">展示层 20 行业</a>
+  <a href="#hero">32 弹幕</a>
+  <a href="#chip">6 Chip</a>
+  <a href="#templates">12 场景模板</a>
+  <a href="#drift">漂移对照</a>
+  <a href="#phase-b">阶段 B 清单</a>
+</nav>
+
+<!-- API -->
+<section id="api">
+  <h2>Catalog API 端点 <span class="count">（阶段 B 创建端统一读这些）</span></h2>
+  <p class="lead">路由前缀 <code>/api/v1/catalog</code>，实现于 <span class="path">backend/app/api/v1/catalog.py</span></p>
+  <table>
+    <thead><tr><th>端点</th><th>返回</th><th>阶段 B 替代谁</th></tr></thead>
+    <tbody>
+      <tr><td><code>GET /summary</code></td><td>各表计数汇总</td><td><code>platformStats.ts</code> 数字</td></tr>
+      <tr><td><code>GET /office</code></td><td>办公场景列表 + groups</td><td>—</td></tr>
+      <tr><td><code>GET /office/groups</code></td><td>8 组办公分类</td><td><code>OFFICE_CATS</code> in promptSuggest</td></tr>
+      <tr><td><code>GET /industry</code></td><td>行业场景列表 + packs</td><td><code>SCENES</code> in constants.ts</td></tr>
+      <tr><td><code>GET /industry/{pack}</code></td><td>单包详情</td><td>IndustryView 深度数据</td></tr>
+      <tr><td><code>GET /scenarios</code></td><td>全部场景（office+industry）</td><td>AgentOrbPanel 场景维</td></tr>
+      <tr><td><code>GET /modules</code></td><td>43 能力 + by_category</td><td><code>MODULES</code> in constants.ts</td></tr>
+      <tr><td><code>GET /hero-presets</code></td><td>32 弹幕预设</td><td><code>ROLE_PRESETS</code> in rolePresets.ts</td></tr>
+      <tr><td><code>GET /chip-templates</code></td><td>6 快捷示例</td><td><code>CHIP_TEMPLATES</code> in appAssembly.ts</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- Tables -->
+<section id="tables">
+  <h2>PostgreSQL Catalog 表结构</h2>
+  <table>
+    <thead><tr><th>表名</th><th>行数（seed）</th><th>主键 / 关键字段</th><th>阶段 B 角色</th></tr></thead>
+    <tbody>
+      <tr><td><code>catalog_capabilities</code></td><td>43</td><td>key, name, category, widget, agent_id</td><td><span class="badge b-ssot">能力 SSOT</span></td></tr>
+      <tr><td><code>catalog_agents</code></td><td>12</td><td>id, name, capability_keys(JSON), pipeline</td><td>Agent 编排元数据</td></tr>
+      <tr><td><code>catalog_office_groups</code></td><td>8</td><td>category, icon, items(JSON)</td><td>>> office 维分组</td></tr>
+      <tr><td><code>catalog_office_scenarios</code></td><td>66</td><td>id, name, category, agent</td><td>>> scenario 维（办公）</td></tr>
+      <tr><td><code>catalog_industry_packs</code></td><td>4</td><td>key(mfg/sales/med/game), name, icon</td><td>深度行业包</td></tr>
+      <tr><td><code>catalog_industry_scenarios</code></td><td>49</td><td>id, name, pack_key, category, agent</td><td>>> scenario 维（行业）</td></tr>
+      <tr><td><code>catalog_hero_presets</code></td><td>32</td><td>id, label, prompt, picks(JSON)</td><td>弹幕快捷编排</td></tr>
+      <tr><td><code>catalog_chip_templates</code></td><td>6</td><td>text, prompt, picks(JSON)</td><td>创建区快捷示例</td></tr>
+    </tbody>
+  </table>
+  <div class="callout c-warn"><strong>注意：</strong>营销文案写「96 办公场景」，但 seed 实际只种了 <strong>66</strong> 条办公场景。展示数字与 DB 有漂移，阶段 B 应以 DB 为准并修正文案。</div>
+</section>
+
+<!-- Agents -->
+<section id="agents">
+  <h2>12 个 Catalog Agent</h2>
+  <p class="lead">来源 <span class="path">backend/app/data/seed.py → AGENTS</span>，表 <code>catalog_agents</code></p>
+  <table>
+    <thead><tr><th>id</th><th>名称</th><th>绑定 capability_keys</th><th>pipeline</th></tr></thead>
+    <tbody>
+      <tr><td><code>creation</code></td><td>智能创建</td><td>creation, form_widget, list_widget, rbac_page</td><td>需求→研判→澄清→Schema→编排→发布</td></tr>
+      <tr><td><code>chat_qa</code></td><td>智能问答</td><td>chat_qa, chat_voice, multi_agent, chat_summary</td><td>接收→检索→Prompt→LLM→SSE→会话</td></tr>
+      <tr><td><code>shanghai_voice</code></td><td>上海话语音</td><td>shanghai_voice, shanghai_voice_stream, chat_qa</td><td>听→识别→LLM→合成→说</td></tr>
+      <tr><td><code>kb</code></td><td>知识库</td><td>kb_document, kb_search</td><td>上传→解析→切片→向量→索引→检索</td></tr>
+      <tr><td><code>approval</code></td><td>审批流程</td><td>approval_flow, approval_inbox, approval_countersign, approval_conditional, approval_remind, approval_esign</td><td>提交→工作流→路由→状态→通知→归档</td></tr>
+      <tr><td><code>contract_esign</code></td><td>合同盖章</td><td>contract_editor, contract_sign, contract_seal, contract_pdf, approval_esign, chat_qa</td><td>选模板→编辑→AI审阅→签名盖章→PDF归档</td></tr>
+      <tr><td><code>report</code></td><td>数据报表</td><td>chart_dashboard, chart_basic, chart_funnel, chart_kpi_card, data_nl_query, report_scheduled, data_export</td><td>选指标→聚合→图表→NL查数→导出</td></tr>
+      <tr><td><code>notify</code></td><td>消息通知</td><td>notify_inapp, notify_email, notify_im, announce_board</td><td>触发器→规则→模板→发送→确认</td></tr>
+      <tr><td><code>integration</code></td><td>系统对接</td><td>integration, erp_connector, oa_connector, auth_sso, it_helpdesk, asset_manage, meeting_booking</td><td>Discover→Extract→Map→Load→Sync→Serve</td></tr>
+      <tr><td><code>workflow</code></td><td>流程编排</td><td>approval_conditional, form_widget, list_widget</td><td>拖拽→节点→连线→预览→发布</td></tr>
+      <tr><td><code>security</code></td><td>安全合规</td><td>rbac_page, security_mask, audit_log, auth_sso</td><td>角色→策略→脱敏→审计→告警</td></tr>
+      <tr><td><code>portal</code></td><td>多端门户</td><td>creation, form_widget, rbac_page</td><td>Schema→Web→Flutter→Electron→分发</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- Capabilities -->
+<section id="capabilities">
+  <h2>43 个 Catalog 能力（capability_key）</h2>
+  <p class="lead">来源 <span class="path">seed.py → CAPABILITIES</span>，API <code>GET /catalog/modules</code>。运行时契约中心。</p>
+
+  <h3>智能交互（6）</h3>
+  <table><thead><tr><th>key</th><th>名称</th><th>widget</th><th>agent_id</th></tr></thead><tbody>
+    <tr><td>chat_qa</td><td>智能问答</td><td>ChatWidget</td><td>chat_qa</td></tr>
+    <tr><td>chat_voice</td><td>语音问答</td><td>VoiceWidget</td><td>chat_qa</td></tr>
+    <tr><td>shanghai_voice</td><td>上海话语音交互</td><td>ShanghaiVoiceWidget</td><td>shanghai_voice</td></tr>
+    <tr><td>shanghai_voice_stream</td><td>实时语音流</td><td>VoiceStreamWidget</td><td>shanghai_voice</td></tr>
+    <tr><td>multi_agent</td><td>多助手切换</td><td>MultiAgentWidget</td><td>chat_qa</td></tr>
+    <tr><td>chat_summary</td><td>对话摘要</td><td>SummaryWidget</td><td>chat_qa</td></tr>
+  </tbody></table>
+
+  <h3>流程审批（6）</h3>
+  <table><thead><tr><th>key</th><th>名称</th><th>widget</th><th>agent_id</th></tr></thead><tbody>
+    <tr><td>approval_flow</td><td>通用审批流</td><td>FormWidget</td><td>approval</td></tr>
+    <tr><td>approval_inbox</td><td>待办/已办中心</td><td>ListWidget</td><td>approval</td></tr>
+    <tr><td>approval_countersign</td><td>会签/或签</td><td>WorkflowWidget</td><td>approval</td></tr>
+    <tr><td>approval_conditional</td><td>条件分支审批</td><td>WorkflowWidget</td><td>approval</td></tr>
+    <tr><td>approval_remind</td><td>超时催办</td><td>NotifyWidget</td><td>approval</td></tr>
+    <tr><td>approval_esign</td><td>电子签批</td><td>EsignWidget</td><td>approval</td></tr>
+  </tbody></table>
+
+  <h3>合同签章（4）</h3>
+  <table><thead><tr><th>key</th><th>名称</th><th>widget</th><th>agent_id</th></tr></thead><tbody>
+    <tr><td>contract_editor</td><td>合同编辑器</td><td>ContractEditorWidget</td><td>contract_esign</td></tr>
+    <tr><td>contract_sign</td><td>手写签名</td><td>SignWidget</td><td>contract_esign</td></tr>
+    <tr><td>contract_seal</td><td>电子公章</td><td>SealWidget</td><td>contract_esign</td></tr>
+    <tr><td>contract_pdf</td><td>合同 PDF</td><td>PdfWidget</td><td>contract_esign</td></tr>
+  </tbody></table>
+
+  <h3>知识数据（5）</h3>
+  <table><thead><tr><th>key</th><th>名称</th><th>widget</th><th>agent_id</th></tr></thead><tbody>
+    <tr><td>kb_document</td><td>文档知识库</td><td>KBUploadWidget</td><td>kb</td></tr>
+    <tr><td>kb_search</td><td>语义检索</td><td>KBSearchWidget</td><td>kb</td></tr>
+    <tr><td>data_nl_query</td><td>自然语言查数</td><td>NLQueryWidget</td><td>report</td></tr>
+    <tr><td>report_scheduled</td><td>定时报表</td><td>ReportWidget</td><td>report</td></tr>
+    <tr><td>data_export</td><td>数据导出</td><td>ExportWidget</td><td>report</td></tr>
+  </tbody></table>
+
+  <h3>可视化（4）</h3>
+  <table><thead><tr><th>key</th><th>名称</th><th>widget</th><th>agent_id</th></tr></thead><tbody>
+    <tr><td>chart_dashboard</td><td>数据看板</td><td>DashboardWidget</td><td>report</td></tr>
+    <tr><td>chart_basic</td><td>折线/柱状图</td><td>ChartWidget</td><td>report</td></tr>
+    <tr><td>chart_funnel</td><td>漏斗图</td><td>FunnelWidget</td><td>report</td></tr>
+    <tr><td>chart_kpi_card</td><td>KPI 卡片</td><td>KpiCardWidget</td><td>report</td></tr>
+  </tbody></table>
+
+  <h3>通知集成（5）</h3>
+  <table><thead><tr><th>key</th><th>名称</th><th>widget</th><th>agent_id</th></tr></thead><tbody>
+    <tr><td>notify_inapp</td><td>站内消息</td><td>InboxWidget</td><td>notify</td></tr>
+    <tr><td>schedule_alarm</td><td>定时闹钟</td><td>AlarmWidget</td><td>notify</td></tr>
+    <tr><td>notify_email</td><td>邮件通知</td><td>EmailWidget</td><td>notify</td></tr>
+    <tr><td>notify_im</td><td>企微/钉钉</td><td>IMWidget</td><td>notify</td></tr>
+    <tr><td>announce_board</td><td>公告栏</td><td>BannerWidget</td><td>notify</td></tr>
+  </tbody></table>
+
+  <h3>权限安全（4）</h3>
+  <table><thead><tr><th>key</th><th>名称</th><th>widget</th><th>agent_id</th></tr></thead><tbody>
+    <tr><td>rbac_page</td><td>角色可见范围</td><td>RBACWidget</td><td>creation</td></tr>
+    <tr><td>security_mask</td><td>数据脱敏展示</td><td>MaskWidget</td><td>creation</td></tr>
+    <tr><td>audit_log</td><td>操作审计日志</td><td>AuditWidget</td><td>creation</td></tr>
+    <tr><td>auth_sso</td><td>SSO 单点登录</td><td>SSOWidget</td><td>integration</td></tr>
+  </tbody></table>
+
+  <h3>平台能力（3）</h3>
+  <table><thead><tr><th>key</th><th>名称</th><th>widget</th><th>agent_id</th></tr></thead><tbody>
+    <tr><td>creation</td><td>智能创建</td><td>CreationWizard</td><td>creation</td></tr>
+    <tr><td>form_widget</td><td>表单组件</td><td>FormWidget</td><td>creation</td></tr>
+    <tr><td>list_widget</td><td>列表组件</td><td>ListWidget</td><td>creation</td></tr>
+  </tbody></table>
+
+  <h3>外部集成（6）</h3>
+  <table><thead><tr><th>key</th><th>名称</th><th>widget</th><th>agent_id</th></tr></thead><tbody>
+    <tr><td>integration</td><td>外部数据对接</td><td>ConnectorWidget</td><td>integration</td></tr>
+    <tr><td>erp_connector</td><td>ERP 连接器</td><td>ERPWidget</td><td>integration</td></tr>
+    <tr><td>oa_connector</td><td>OA 连接器</td><td>OAWidget</td><td>integration</td></tr>
+    <tr><td>it_helpdesk</td><td>IT 报障</td><td>HelpdeskWidget</td><td>integration</td></tr>
+    <tr><td>asset_manage</td><td>资产管理</td><td>AssetWidget</td><td>integration</td></tr>
+    <tr><td>meeting_booking</td><td>会议室预约</td><td>MeetingWidget</td><td>integration</td></tr>
+  </tbody></table>
+
+  <details>
+    <summary>capability_registry.py 额外 14 个 Flutter 工具能力（在 registry 但部分未入 PG seed）</summary>
+    <div class="inner">
+      <p>来源 <span class="path">backend/app/data/capability_registry.py → FLUTTER_CAPABILITIES</span>。MODULES 常量包含这些；PG catalog 仅种了 <code>schedule_alarm</code>，其余 13 项阶段 B 应补种或合并。</p>
+      <table><thead><tr><th>key</th><th>名称</th><th>flutter_pkg</th></tr></thead><tbody>
+        <tr><td>schedule_alarm</td><td>定时闹钟</td><td>flutter_local_notifications+zonedSchedule</td></tr>
+        <tr><td>flutter_push</td><td>移动推送</td><td>flutter_local_notifications / TPNS</td></tr>
+        <tr><td>flutter_scan_qr</td><td>扫码识别</td><td>mobile_scanner</td></tr>
+        <tr><td>flutter_geolocation</td><td>定位签到</td><td>geolocator</td></tr>
+        <tr><td>flutter_camera</td><td>拍照上传</td><td>image_picker / camera</td></tr>
+        <tr><td>flutter_map</td><td>地图导航</td><td>tencent_map_flutter / amap</td></tr>
+        <tr><td>flutter_offline</td><td>离线缓存</td><td>hive / sqflite</td></tr>
+        <tr><td>flutter_biometric</td><td>生物识别</td><td>local_auth</td></tr>
+        <tr><td>flutter_signature</td><td>手写签名</td><td>signature</td></tr>
+        <tr><td>flutter_speech</td><td>语音交互</td><td>record + audioplayers + web_socket_channel</td></tr>
+        <tr><td>flutter_file_picker</td><td>文件选择</td><td>file_picker</td></tr>
+        <tr><td>flutter_pdf</td><td>PDF预览</td><td>flutter_pdfview</td></tr>
+        <tr><td>flutter_webview</td><td>内嵌网页</td><td>webview_flutter</td></tr>
+        <tr><td>flutter_chart</td><td>移动图表</td><td>fl_chart</td></tr>
+      </tbody></table>
+    </div>
+  </details>
+</section>
+
+<!-- Office -->
+<section id="office">
+  <h2>办公场景：8 组 · 66 条</h2>
+  <p class="lead">表 <code>catalog_office_scenarios</code>，ID 格式 <code>office-001</code> … <code>office-066</code></p>
+
+  <details open><summary>👥 人事行政（12）</summary><div class="inner"><table><thead><tr><th>id</th><th>名称</th><th>agent</th></tr></thead><tbody>
+    <tr><td>office-001</td><td>制度政策问答</td><td>chat_qa+approval</td></tr>
+    <tr><td>office-002</td><td>请假申请</td><td>chat_qa+approval</td></tr>
+    <tr><td>office-003</td><td>加班申请</td><td>chat_qa+approval</td></tr>
+    <tr><td>office-004</td><td>出差申请</td><td>chat_qa+approval</td></tr>
+    <tr><td>office-005</td><td>报销审批</td><td>chat_qa+approval</td></tr>
+    <tr><td>office-006</td><td>入职办理</td><td>chat_qa+approval</td></tr>
+    <tr><td>office-007</td><td>离职交接</td><td>chat_qa+approval</td></tr>
+    <tr><td>office-008</td><td>用印申请</td><td>chat_qa+approval</td></tr>
+    <tr><td>office-009</td><td>会议室预约</td><td>chat_qa+approval</td></tr>
+    <tr><td>office-010</td><td>考勤查询</td><td>chat_qa+approval</td></tr>
+    <tr><td>office-011</td><td>福利政策咨询</td><td>chat_qa+approval</td></tr>
+    <tr><td>office-012</td><td>员工手册问答</td><td>chat_qa+approval</td></tr>
+  </tbody></table></div></details>
+
+  <details><summary>💼 财务法务（10）</summary><div class="inner"><table><thead><tr><th>id</th><th>名称</th></tr></thead><tbody>
+    <tr><td>office-013</td><td>费用报销</td></tr><tr><td>office-014</td><td>借款申请</td></tr>
+    <tr><td>office-015</td><td>合同审批</td></tr><tr><td>office-016</td><td>合同电子签章</td></tr>
+    <tr><td>office-017</td><td>发票核验</td></tr><tr><td>office-018</td><td>预算查询</td></tr>
+    <tr><td>office-019</td><td>付款申请</td></tr><tr><td>office-020</td><td>法务咨询问答</td></tr>
+    <tr><td>office-021</td><td>合规制度库</td></tr><tr><td>office-022</td><td>审计资料检索</td></tr>
+  </tbody></table></div></details>
+
+  <details><summary>📚 知识协同（8）</summary><div class="inner"><table><thead><tr><th>id</th><th>名称</th></tr></thead><tbody>
+    <tr><td>office-023</td><td>制度文档库</td></tr><tr><td>office-024</td><td>SOP作业指导</td></tr>
+    <tr><td>office-025</td><td>培训资料库</td></tr><tr><td>office-026</td><td>项目文档共享</td></tr>
+    <tr><td>office-027</td><td>会议纪要检索</td></tr><tr><td>office-028</td><td>新人onboarding</td></tr>
+    <tr><td>office-029</td><td>内部FAQ</td></tr><tr><td>office-030</td><td>最佳实践库</td></tr>
+  </tbody></table></div></details>
+
+  <details><summary>📋 流程审批（8）</summary><div class="inner"><table><thead><tr><th>id</th><th>名称</th></tr></thead><tbody>
+    <tr><td>office-031</td><td>通用审批</td></tr><tr><td>office-032</td><td>多级会签</td></tr>
+    <tr><td>office-033</td><td>待办中心</td></tr><tr><td>office-034</td><td>已办查询</td></tr>
+    <tr><td>office-035</td><td>代理审批</td></tr><tr><td>office-036</td><td>超时催办</td></tr>
+    <tr><td>office-037</td><td>审批统计</td></tr><tr><td>office-038</td><td>条件分支</td></tr>
+  </tbody></table></div></details>
+
+  <details><summary>📊 数据报表（8）</summary><div class="inner"><table><thead><tr><th>id</th><th>名称</th></tr></thead><tbody>
+    <tr><td>office-039</td><td>部门看板</td></tr><tr><td>office-040</td><td>考勤统计</td></tr>
+    <tr><td>office-041</td><td>审批效率</td></tr><tr><td>office-042</td><td>费用汇总</td></tr>
+    <tr><td>office-043</td><td>自定义报表</td></tr><tr><td>office-044</td><td>定时推送</td></tr>
+    <tr><td>office-045</td><td>数据导出Excel</td></tr><tr><td>office-046</td><td>自然语言查数</td></tr>
+  </tbody></table></div></details>
+
+  <details><summary>🔔 消息通知（7）</summary><div class="inner"><table><thead><tr><th>id</th><th>名称</th></tr></thead><tbody>
+    <tr><td>office-047</td><td>审批提醒</td></tr><tr><td>office-048</td><td>公告推送</td></tr>
+    <tr><td>office-049</td><td>待办@提醒</td></tr><tr><td>office-050</td><td>邮件/短信</td></tr>
+    <tr><td>office-051</td><td>企微/钉钉</td></tr><tr><td>office-052</td><td>订阅消息</td></tr>
+    <tr><td>office-053</td><td>到期提醒</td></tr>
+  </tbody></table></div></details>
+
+  <details><summary>🛠 IT与资产（7）</summary><div class="inner"><table><thead><tr><th>id</th><th>名称</th></tr></thead><tbody>
+    <tr><td>office-054</td><td>IT报障</td></tr><tr><td>office-055</td><td>账号权限申请</td></tr>
+    <tr><td>office-056</td><td>软件安装申请</td></tr><tr><td>office-057</td><td>资产领用</td></tr>
+    <tr><td>office-058</td><td>资产盘点</td></tr><tr><td>office-059</td><td>网络/VPN申请</td></tr>
+    <tr><td>office-060</td><td>IT知识库</td></tr>
+  </tbody></table></div></details>
+
+  <details><summary>🔗 外部对接（6）</summary><div class="inner"><table><thead><tr><th>id</th><th>名称</th></tr></thead><tbody>
+    <tr><td>office-061</td><td>对接SAP/用友</td></tr><tr><td>office-062</td><td>对接OA</td></tr>
+    <tr><td>office-063</td><td>对接CRM</td></tr><tr><td>office-064</td><td>对接HR系统</td></tr>
+    <tr><td>office-065</td><td>单点登录SSO</td></tr><tr><td>office-066</td><td>数据双向同步</td></tr>
+  </tbody></table></div></details>
+</section>
+
+<!-- Industry -->
+<section id="industry">
+  <h2>行业场景：4 深度包 · 49 条</h2>
+  <p class="lead">表 <code>catalog_industry_packs</code> + <code>catalog_industry_scenarios</code>，ID <code>industry-001</code> … <code>industry-049</code></p>
+
+  <details open><summary>🏭 mfg 传统制造（12）</summary><div class="inner"><table><thead><tr><th>id</th><th>名称</th><th>子类</th><th>agent</th></tr></thead><tbody>
+    <tr><td>industry-001</td><td>设备报修</td><td>设备管理</td><td>approval</td></tr>
+    <tr><td>industry-002</td><td>SOP/工艺问答</td><td>知识管理</td><td>chat_qa</td></tr>
+    <tr><td>industry-003</td><td>生产日报/OEE</td><td>生产管理</td><td>report</td></tr>
+    <tr><td>industry-004</td><td>质检审批</td><td>质量管理</td><td>approval</td></tr>
+    <tr><td>industry-005</td><td>物料领用</td><td>物料管理</td><td>approval</td></tr>
+    <tr><td>industry-006</td><td>安环隐患上报</td><td>安全管理</td><td>approval</td></tr>
+    <tr><td>industry-007</td><td>排班/考勤</td><td>人事管理</td><td>approval</td></tr>
+    <tr><td>industry-008</td><td>保养计划提醒</td><td>设备管理</td><td>notify</td></tr>
+    <tr><td>industry-009</td><td>图纸/BOM检索</td><td>知识管理</td><td>kb</td></tr>
+    <tr><td>industry-010</td><td>对接MES/ERP</td><td>系统集成</td><td>integration</td></tr>
+    <tr><td>industry-011</td><td>能耗/碳排统计</td><td>绿色制造</td><td>report</td></tr>
+    <tr><td>industry-012</td><td>技能培训记录</td><td>人事管理</td><td>kb</td></tr>
+  </tbody></table></div></details>
+
+  <details><summary>📈 sales 销售行业（12）</summary><div class="inner"><table><thead><tr><th>id</th><th>名称</th><th>子类</th></tr></thead><tbody>
+    <tr><td>industry-013</td><td>产品/话术问答</td><td>知识管理</td></tr>
+    <tr><td>industry-014</td><td>报价/折扣审批</td><td>审批流程</td></tr>
+    <tr><td>industry-015</td><td>销售漏斗看板</td><td>数据分析</td></tr>
+    <tr><td>industry-016</td><td>客户跟进记录</td><td>客户管理</td></tr>
+    <tr><td>industry-017</td><td>合同审批</td><td>审批流程</td></tr>
+    <tr><td>industry-018</td><td>商机到期提醒</td><td>消息通知</td></tr>
+    <tr><td>industry-019</td><td>业绩排行/提成</td><td>数据分析</td></tr>
+    <tr><td>industry-020</td><td>案例/方案库</td><td>知识管理</td></tr>
+    <tr><td>industry-021</td><td>样品/礼品申请</td><td>审批流程</td></tr>
+    <tr><td>industry-022</td><td>对接Salesforce/纷享</td><td>系统集成</td></tr>
+    <tr><td>industry-023</td><td>外勤签到</td><td>客户管理</td></tr>
+    <tr><td>industry-024</td><td>区域销售分析</td><td>数据分析</td></tr>
+  </tbody></table></div></details>
+
+  <details><summary>🏥 med 医疗健康（12）</summary><div class="inner"><table><thead><tr><th>id</th><th>名称</th><th>子类</th></tr></thead><tbody>
+    <tr><td>industry-025</td><td>诊疗指南/药品库</td><td>临床知识</td></tr>
+    <tr><td>industry-026</td><td>内部制度/合规问答</td><td>合规管理</td></tr>
+    <tr><td>industry-027</td><td>排班/调班申请</td><td>人事管理</td></tr>
+    <tr><td>industry-028</td><td>耗材/设备申购</td><td>物资管理</td></tr>
+    <tr><td>industry-029</td><td>患者宣教资料</td><td>患者服务</td></tr>
+    <tr><td>industry-030</td><td>数据脱敏/权限</td><td>数据安全</td></tr>
+    <tr><td>industry-031</td><td>不良事件上报</td><td>医疗安全</td></tr>
+    <tr><td>industry-032</td><td>科室运营看板</td><td>数据分析</td></tr>
+    <tr><td>industry-033</td><td>继续教育/考核</td><td>培训管理</td></tr>
+    <tr><td>industry-034</td><td>对接HIS/LIS</td><td>系统集成</td></tr>
+    <tr><td>industry-035</td><td>智能导诊(对外)</td><td>患者服务</td></tr>
+    <tr><td>industry-036</td><td>会诊/转诊申请</td><td>临床管理</td></tr>
+  </tbody></table></div></details>
+
+  <details><summary>🎮 game 游戏行业（13）</summary><div class="inner"><table><thead><tr><th>id</th><th>名称</th><th>子类</th></tr></thead><tbody>
+    <tr><td>industry-037</td><td>玩家FAQ/攻略</td><td>玩家服务</td></tr>
+    <tr><td>industry-038</td><td>客服工单</td><td>客服管理</td></tr>
+    <tr><td>industry-039</td><td>版本/活动规则库</td><td>知识管理</td></tr>
+    <tr><td>industry-040</td><td>留存/ARPU看板</td><td>数据分析</td></tr>
+    <tr><td>industry-041</td><td>版号/合规审查</td><td>合规管理</td></tr>
+    <tr><td>industry-042</td><td>活动上线通知</td><td>消息通知</td></tr>
+    <tr><td>industry-043</td><td>NPC/角色对话(C端)</td><td>C端功能</td></tr>
+    <tr><td>industry-044</td><td>外包验收审批</td><td>审批流程</td></tr>
+    <tr><td>industry-045</td><td>渠道投放分析</td><td>数据分析</td></tr>
+    <tr><td>industry-046</td><td>对接游戏后台</td><td>系统集成</td></tr>
+    <tr><td>industry-047</td><td>敏感词/内容风控</td><td>安全合规</td></tr>
+    <tr><td>industry-048</td><td>内购/订阅(C端)</td><td>C端功能</td></tr>
+    <tr><td>industry-049</td><td>公会/社区管理</td><td>社区管理</td></tr>
+  </tbody></table></div></details>
+</section>
+
+<!-- Showcase -->
+<section id="showcase">
+  <h2>展示层：20 行业 + 10 平台能力 <span class="badge b-mkt">营销/UX，非 PG 全量</span></h2>
+  <p class="lead">来源 <span class="path">home/src/data/showcase.ts</span>。阶段 B 保留但改为引用 Catalog ID + 独立文案。</p>
+
+  <h3>CAPABILITIES_SHOWCASE（10 项 → >> capability 维）</h3>
+  <table><thead><tr><th>id</th><th>名称</th><th>映射 agent_id</th></tr></thead><tbody>
+    <tr><td>creation</td><td>智能创建</td><td>creation</td></tr>
+    <tr><td>chat_qa</td><td>智能问答</td><td>chat_qa</td></tr>
+    <tr><td>kb</td><td>知识库</td><td>kb</td></tr>
+    <tr><td>approval</td><td>审批流程</td><td>approval</td></tr>
+    <tr><td>report</td><td>数据报表</td><td>report</td></tr>
+    <tr><td>notify</td><td>消息通知</td><td>notify</td></tr>
+    <tr><td>integration</td><td>系统对接</td><td>integration</td></tr>
+    <tr><td>workflow</td><td>流程编排</td><td>workflow</td></tr>
+    <tr><td>security</td><td>安全合规</td><td>security</td></tr>
+    <tr><td>portal</td><td>多端门户</td><td>portal</td></tr>
+  </tbody></table>
+
+  <h3>INDUSTRIES_SHOWCASE（20 项 → >> industry 维）</h3>
+  <table><thead><tr><th>key</th><th>名称</th><th>场景数(展示)</th><th>baseKey</th><th>fullPack</th></tr></thead><tbody>
+    <tr><td>office</td><td>通用办公</td><td>96⚠️</td><td>—</td><td>✓</td></tr>
+    <tr><td>mfg</td><td>传统制造</td><td>12</td><td>—</td><td>✓</td></tr>
+    <tr><td>sales</td><td>销售行业</td><td>12</td><td>—</td><td>✓</td></tr>
+    <tr><td>med</td><td>医疗健康</td><td>12</td><td>—</td><td>✓</td></tr>
+    <tr><td>game</td><td>游戏娱乐</td><td>13</td><td>—</td><td>✓</td></tr>
+    <tr><td>retail</td><td>零售电商</td><td>10</td><td>sales</td><td></td></tr>
+    <tr><td>edu</td><td>教育培训</td><td>9</td><td>office</td><td></td></tr>
+    <tr><td>finance</td><td>金融服务</td><td>11</td><td>office</td><td></td></tr>
+    <tr><td>logistics</td><td>物流仓储</td><td>10</td><td>mfg</td><td></td></tr>
+    <tr><td>realestate</td><td>房地产</td><td>9</td><td>sales</td><td></td></tr>
+    <tr><td>hotel</td><td>酒店餐饮</td><td>8</td><td>office</td><td></td></tr>
+    <tr><td>energy</td><td>能源电力</td><td>10</td><td>mfg</td><td></td></tr>
+    <tr><td>gov</td><td>政务公用</td><td>11</td><td>office</td><td></td></tr>
+    <tr><td>legal</td><td>法律服务</td><td>8</td><td>office</td><td></td></tr>
+    <tr><td>hr</td><td>人力资源</td><td>12</td><td>office</td><td></td></tr>
+    <tr><td>marketing</td><td>市场营销</td><td>9</td><td>sales</td><td></td></tr>
+    <tr><td>construction</td><td>建筑工程</td><td>10</td><td>mfg</td><td></td></tr>
+    <tr><td>agriculture</td><td>农业</td><td>7</td><td>office</td><td></td></tr>
+    <tr><td>media</td><td>传媒内容</td><td>9</td><td>game</td><td></td></tr>
+    <tr><td>auto</td><td>汽车交通</td><td>10</td><td>sales</td><td></td></tr>
+  </tbody></table>
+  <p>API 深度包仅 5 个：<code>office, mfg, sales, med, game</code>（<code>resolveIndustryApiKey()</code> 将展示行业映射到 baseKey）。</p>
+</section>
+
+<!-- Hero -->
+<section id="hero">
+  <h2>32 条英雄弹幕预设</h2>
+  <p class="lead">表 <code>catalog_hero_presets</code>，API <code>GET /hero-presets</code></p>
+  <table>
+    <thead><tr><th>id</th><th>label</th><th>hint</th><th>role</th><th>主要 picks</th></tr></thead>
+    <tbody>
+      <tr><td>s00</td><td>上海话语音助手</td><td>方言·交互</td><td>沪语用户</td><td>office + shanghai_voice</td></tr>
+      <tr><td>s01</td><td>请假审批</td><td>人事·流程</td><td>HR</td><td>office + 人事行政 + 请假 + approval_flow</td></tr>
+      <tr><td>s02</td><td>报销记账</td><td>财务·票据</td><td>财务</td><td>office + 财务法务 + approval_flow</td></tr>
+      <tr><td>s03</td><td>制度问答</td><td>知识·自助</td><td>使用者</td><td>office + 知识协同 + kb + chat_qa</td></tr>
+      <tr><td>s04</td><td>招聘入职</td><td>HR·人才</td><td>HR</td><td>office + 人事行政 + approval_flow</td></tr>
+      <tr><td>s05</td><td>销售线索</td><td>CRM·跟进</td><td>销售</td><td>sales + chart_funnel</td></tr>
+      <tr><td>s06</td><td>报价合同</td><td>销售·签单</td><td>销售</td><td>sales + approval_flow</td></tr>
+      <tr><td>s07</td><td>经营看板</td><td>老板·决策</td><td>老板</td><td>office + 数据报表 + chart_dashboard</td></tr>
+      <tr><td>s08</td><td>设备报修</td><td>制造·运维</td><td>制造</td><td>mfg + approval_flow</td></tr>
+      <tr><td>s09</td><td>质检SOP</td><td>制造·工艺</td><td>质检</td><td>mfg + kb + chat_qa</td></tr>
+      <tr><td>s10</td><td>库存盘点</td><td>零售·仓储</td><td>零售</td><td>retail + chart_dashboard</td></tr>
+      <tr><td>s11</td><td>会员营销</td><td>零售·运营</td><td>运营</td><td>retail + notify_inapp</td></tr>
+      <tr><td>s12</td><td>医疗导诊</td><td>医院·患者</td><td>医护</td><td>med + chat_qa</td></tr>
+      <tr><td>s13</td><td>护士排班</td><td>医院·排班</td><td>护士</td><td>med + approval_flow</td></tr>
+      <tr><td>s14</td><td>玩家FAQ</td><td>游戏·客服</td><td>玩家</td><td>game + chat_qa</td></tr>
+      <tr><td>s15</td><td>家校通知</td><td>教育·家长</td><td>家长</td><td>edu + notify_inapp</td></tr>
+      <tr><td>s16</td><td>作业答疑</td><td>教育·学生</td><td>学生</td><td>edu + chat_qa</td></tr>
+      <tr><td>s17</td><td>课表查询</td><td>校园·日程</td><td>学生</td><td>edu + chat_qa</td></tr>
+      <tr><td>s18</td><td>活动运营</td><td>市场·活动</td><td>运营</td><td>marketing + notify_inapp</td></tr>
+      <tr><td>s19</td><td>物业报修</td><td>生活·社区</td><td>业主</td><td>realestate + approval_flow</td></tr>
+      <tr><td>s20</td><td>看房签约</td><td>房产·销售</td><td>销售</td><td>realestate + chart_funnel</td></tr>
+      <tr><td>s21</td><td>酒店预订</td><td>餐饮·预订</td><td>酒店</td><td>hotel + approval_flow</td></tr>
+      <tr><td>s22</td><td>外卖配送</td><td>生活·配送</td><td>骑手</td><td>logistics + notify_inapp</td></tr>
+      <tr><td>s23</td><td>健身打卡</td><td>生活·健康</td><td>会员</td><td>office + chat_qa</td></tr>
+      <tr><td>s24</td><td>旅行攻略</td><td>生活·出行</td><td>旅行</td><td>office + chat_qa</td></tr>
+      <tr><td>s25</td><td>婚礼筹备</td><td>生活·庆典</td><td>新人</td><td>office + approval_flow</td></tr>
+      <tr><td>s26</td><td>装修选材</td><td>生活·家装</td><td>业主</td><td>construction + approval_flow</td></tr>
+      <tr><td>s27</td><td>宠物问诊</td><td>生活·宠物</td><td>宠主</td><td>med + chat_qa</td></tr>
+      <tr><td>s28</td><td>巡检打卡</td><td>能源·安全</td><td>巡检</td><td>energy + approval_flow</td></tr>
+      <tr><td>s29</td><td>政务办事</td><td>政务·便民</td><td>市民</td><td>gov + chat_qa</td></tr>
+      <tr><td>s30</td><td>法务合同</td><td>法务·合规</td><td>法务</td><td>legal + kb_document</td></tr>
+      <tr><td>s31</td><td>上海话语音助手</td><td>方言·语音</td><td>全员</td><td>office + shanghai_voice + chat_qa</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- Chip -->
+<section id="chip">
+  <h2>6 条 Chip 快捷模板</h2>
+  <p class="lead">表 <code>catalog_chip_templates</code>，API <code>GET /chip-templates</code></p>
+  <table>
+    <thead><tr><th>#</th><th>text</th><th>scenario_names</th><th>主要 picks</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>制造业设备报修 + SOP 问答</td><td>设备报修, SOP/工艺问答</td><td>mfg + approval_flow</td></tr>
+      <tr><td>2</td><td>销售团队 CRM + 审批 + 漏斗看板</td><td>—</td><td>sales + chart_funnel + approval_flow</td></tr>
+      <tr><td>3</td><td>医院内部制度问答 + 排班申请</td><td>内部制度/合规问答, 排班/调班申请</td><td>med</td></tr>
+      <tr><td>4</td><td>游戏玩家 FAQ + 客服工单</td><td>玩家FAQ/攻略, 客服工单</td><td>game</td></tr>
+      <tr><td>5</td><td>全员请假报销 + 知识库 + 企微通知</td><td>请假申请, 报销审批</td><td>office + kb + notify_im</td></tr>
+      <tr><td>6</td><td>上海话语音助手 · 开口即说</td><td>上海话语音</td><td>office + shanghai_voice</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- Templates -->
+<section id="templates">
+  <h2>12 条场景推导模板（发布时自动匹配）</h2>
+  <p class="lead">来源 <span class="path">backend/app/data/schema_templates.py</span>，不进 PG，阶段 B 可迁入 Catalog 或保持后端 SSOT。</p>
+  <table>
+    <thead><tr><th>id</th><th>名称</th><th>行业</th><th>匹配词</th><th>→ capability_keys</th></tr></thead>
+    <tbody>
+      <tr><td>tpl-office-policy-qa</td><td>制度政策问答</td><td>office</td><td>制度政策, 政策问答, 员工手册</td><td>chat_qa, kb_document</td></tr>
+      <tr><td>tpl-office-leave</td><td>请假申请</td><td>office</td><td>请假, 年假, 调休</td><td>approval_flow, chat_qa</td></tr>
+      <tr><td>tpl-office-expense</td><td>报销审批</td><td>office</td><td>报销, 费用报销</td><td>approval_flow, kb_document</td></tr>
+      <tr><td>tpl-office-onboard</td><td>入职办理</td><td>office</td><td>入职, onboarding, 新人</td><td>approval_flow, kb_document, notify_inapp</td></tr>
+      <tr><td>tpl-office-seal</td><td>用印申请</td><td>office</td><td>用印, 盖章</td><td>approval_flow</td></tr>
+      <tr><td>tpl-office-general-approval</td><td>通用审批</td><td>office</td><td>通用审批, 多级会签, 会签</td><td>approval_flow, approval_inbox</td></tr>
+      <tr><td>tpl-office-inbox</td><td>待办中心</td><td>office</td><td>待办, 已办</td><td>approval_inbox, approval_flow</td></tr>
+      <tr><td>tpl-office-dashboard</td><td>部门看板</td><td>office</td><td>部门看板, 考勤统计, 数据报表</td><td>chart_dashboard, notify_inapp</td></tr>
+      <tr><td>tpl-mfg-repair</td><td>设备报修</td><td>mfg</td><td>设备报修, 报修, IT报障</td><td>approval_flow, chat_qa, notify_inapp</td></tr>
+      <tr><td>tpl-mfg-sop</td><td>SOP工艺问答</td><td>mfg</td><td>SOP, 工艺, 作业指导, BOM</td><td>kb_document, chat_qa</td></tr>
+      <tr><td>tpl-mfg-oee</td><td>生产日报/OEE</td><td>mfg</td><td>生产日报, OEE, 产量</td><td>chart_dashboard, data_nl_query</td></tr>
+      <tr><td>tpl-mfg-qc</td><td>质检审批</td><td>mfg</td><td>质检, 安环, 隐患</td><td>approval_flow, chart_dashboard</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- Drift -->
+<section id="drift">
+  <h2>当前漂移对照 <span class="badge b-drift">阶段 B 要消灭</span></h2>
+  <table>
+    <thead><tr><th>数据</th><th>PG Catalog</th><th>capability_registry</th><th>home 静态</th><th>问题</th></tr></thead>
+    <tbody>
+      <tr><td>能力总数</td><td>43</td><td>36 (CORE+FLUTTER)</td><td>MODULES 27 项</td><td>三处数量不一致</td></tr>
+      <tr><td>办公场景</td><td>66</td><td>—</td><td>展示写 96</td><td>营销数字与 DB 不符</td></tr>
+      <tr><td>行业场景</td><td>49</td><td>—</td><td>SCENES 约 40 条兜底</td><td>静态兜底不完整</td></tr>
+      <tr><td>弹幕</td><td>32</td><td>—</td><td>ROLE_PRESETS 32</td><td>已同步，但 picks label 硬编码</td></tr>
+      <tr><td>Chip 模板</td><td>6</td><td>—</td><td>CHIP_TEMPLATES 6</td><td>已同步，scenario key 部分虚构</td></tr>
+      <tr><td>平台能力</td><td>—</td><td>—</td><td>CAPABILITIES_SHOWCASE 10</td><td>映射 agent_id 非 capability_key</td></tr>
+      <tr><td>原子能力</td><td>—</td><td>—</td><td>ATOMIC 11 项</td><td>纯营销，无 DB</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- Phase B -->
+<section id="phase-b">
+  <h2>阶段 B 执行清单（按本 Catalog 逐项迁移）</h2>
+
+  <div class="phase-b">
+    <h4>第 1 周 · 能力 & 模块</h4>
+    <ol>
+      <li>合并 <code>capability_registry</code> 与 <code>seed.CAPABILITIES</code> → PG 统一 43+14=57 或明确裁剪</li>
+      <li><code>AgentOrbPanel</code> module 维改读 <code>GET /catalog/modules</code></li>
+      <li>删除 <code>home/src/data/constants.ts → MODULES</code></li>
+      <li>跑 <code>codegen-capability-manifest.py</code> 同步三端</li>
+    </ol>
+  </div>
+
+  <div class="phase-b">
+    <h4>第 2 周 · 场景 & 行业</h4>
+    <ol>
+      <li><code>PromptView</code> 场景加载改纯 API（已有 fetch，去掉 SCENES 兜底）</li>
+      <li><code>INDUSTRIES_SHOWCASE</code> 保留文案，count 改读 <code>/catalog/summary</code></li>
+      <li>办公 96 → 修正为 66（或补种 30 条办公场景）</li>
+      <li>弹幕/Chip picks 的 label 运行时从 Catalog 解析</li>
+    </ol>
+  </div>
+
+  <div class="phase-b">
+    <h4>第 3 周 · 推荐 & 校验</h4>
+    <ol>
+      <li><code>promptSuggest.ts</code> KEYWORD_HINTS 改读 manifest keywords</li>
+      <li>新增 CI：seed 与 registry 与 MODULES 零漂移检查</li>
+      <li>营销层 <code>ATOMIC_AI_CAPABILITIES</code> 加 <code>mapsToCapability</code> 脚注</li>
+    </ol>
+  </div>
+
+  <div class="callout c-ok">
+    <strong>阶段 B 完成标准：</strong>创建端（>> 面板、弹幕、推荐、Chip）除 showcase 营销文案外，<strong>零静态模块/场景列表</strong>；所有可选 ID 来自 Catalog API；<code>capability_key</code> 全链路唯一。
+  </div>
+</section>
+
+<footer>积木仓 cozecode · docs/previews/catalog-full-inventory.html · 浏览器直接打开</footer>
+</div>
+</body>
+</html>

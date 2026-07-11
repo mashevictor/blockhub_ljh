@@ -83,6 +83,94 @@ export interface IndustryScenario {
   type: 'industry'
 }
 
+export interface IndustryPackScene {
+  id: string
+  name: string
+  category: string
+  problem?: string
+  pages?: string
+  standard?: string
+  agent?: string
+  type: 'office' | 'industry'
+}
+
+export interface IndustryPackEnrichment {
+  overview: string
+  highlights?: string[]
+  recommended_modules?: string[]
+  scene_tips?: Array<{ name: string; tip: string }>
+  source?: 'deepseek' | 'static' | 'generated'
+}
+
+export interface IndustryPackSite {
+  slug: string
+  title: string
+  description: string
+  keywords?: string
+  assets: {
+    hero: string
+    og: string
+    thumb: string
+  }
+  theme: {
+    primary: string
+    gradient_to?: string
+  }
+  stats: {
+    scenes: number
+    platforms: number
+    delivery: string
+  }
+  cta: {
+    create_label: string
+    create_href: string
+  }
+  site_url: string
+}
+
+export interface IndustryPackDetail {
+  pack: {
+    key: string
+    name: string
+    icon: string
+    color: string
+    tagline: string
+  }
+  scenes: IndustryPackScene[]
+  groups: Array<{ category: string; items: IndustryPackScene[] }>
+  total: number
+  full_pack: boolean
+  site: IndustryPackSite
+  enrichment?: IndustryPackEnrichment
+}
+
+export interface IndustrySiteSummary {
+  key: string
+  name: string
+  icon: string
+  color: string
+  tagline: string
+  scenes: number
+  site_url: string
+  assets: IndustryPackSite['assets']
+  theme: IndustryPackSite['theme']
+}
+
+export async function fetchIndustrySites() {
+  const res = await api.get<{ total: number; items: IndustrySiteSummary[] }>('/catalog/industry-sites')
+  return res.data.items
+}
+
+export async function fetchIndustryPackDetail(
+  packKey: string,
+  options?: { enrich?: boolean },
+) {
+  const res = await api.get<IndustryPackDetail>(`/catalog/industry/${packKey}`, {
+    params: { enrich: options?.enrich ? true : undefined },
+  })
+  return res.data
+}
+
 export type CatalogScenario =
   | (OfficeScenario & { kind: 'office' })
   | (IndustryScenario & { kind: 'industry' })
@@ -326,15 +414,26 @@ export interface SuggestModuleItem {
   flutter_pkg?: string
 }
 
+export interface SuggestValidation {
+  status: 'valid' | 'unclear' | 'invalid'
+  confidence: number
+  intent_summary?: string
+  rejection_reason?: string
+  guidance?: string
+}
+
 export interface SuggestModulesResult {
   items: SuggestModuleItem[]
   confidence: number
   used_llm: boolean
+  agent?: string
   supplemented: Array<{ key: string; label: string; flutter_pkg?: string; reason: string }>
+  registered?: { industries: string[]; capabilities: string[]; scenes: string[] }
+  validation?: SuggestValidation | null
   top_score: number
 }
 
-export async function suggestModules(text: string, forceLlm = false): Promise<SuggestModulesResult> {
+export async function suggestModules(text: string, forceLlm = true): Promise<SuggestModulesResult> {
   const res = await api.post<SuggestModulesResult>(
     '/creation/suggest-modules',
     { text, force_llm: forceLlm },
@@ -478,18 +577,103 @@ export interface DemoBookingPayload {
   source?: string
 }
 
-export async function submitDemoBooking(payload: DemoBookingPayload) {
-  const res = await api.post<{ id: string; ok: boolean }>('/demo-bookings', payload)
-  return res.data
+export interface DemoBookingDelivery {
+  id: string
+  shareToken: string
+  shareUrl: string
+  agentSummary: string
+  contactEmail: string
+  contactPhoneMasked: string
+  emailSent: boolean
+  smsSent: boolean
+  local?: boolean
+}
+
+export interface ShareArtifact {
+  id: string
+  title: string
+  description: string
+  href: string
+}
+
+export interface SharePack {
+  token: string
+  salutation: string
+  company_name: string
+  agent_summary: string
+  artifacts: ShareArtifact[]
+  created_at: string
+}
+
+function normalizeShareUrl(token: string, apiUrl: string): string {
+  if (!token) return apiUrl
+  if (typeof window !== 'undefined' && window.location?.origin) {
+    return `${window.location.origin}/share/${encodeURIComponent(token)}`
+  }
+  return apiUrl
+}
+
+function mapBookingResponse(data: {
+  id: string
+  ok?: boolean
+  share_token?: string
+  share_url?: string
+  agent_summary?: string
+  contact_email?: string
+  contact_phone_masked?: string
+  email_sent?: boolean
+  sms_sent?: boolean
+}): DemoBookingDelivery {
+  const shareToken = data.share_token ?? ''
+  return {
+    id: data.id,
+    shareToken,
+    shareUrl: normalizeShareUrl(shareToken, data.share_url ?? ''),
+    agentSummary: data.agent_summary ?? '',
+    contactEmail: data.contact_email ?? '',
+    contactPhoneMasked: data.contact_phone_masked ?? '',
+    emailSent: Boolean(data.email_sent),
+    smsSent: Boolean(data.sms_sent),
+  }
+}
+
+export async function submitDemoBooking(payload: DemoBookingPayload): Promise<DemoBookingDelivery> {
+  const res = await api.post<{
+    id: string
+    ok: boolean
+    share_token: string
+    share_url: string
+    agent_summary: string
+    contact_email: string
+    contact_phone_masked: string
+    email_sent: boolean
+    sms_sent: boolean
+  }>('/demo-bookings', payload)
+  return mapBookingResponse(res.data)
 }
 
 /** 优先后端保存，离线时落本地，避免预约区误报失败 */
-export async function submitDemoBookingWithFallback(payload: DemoBookingPayload) {
+export async function submitDemoBookingWithFallback(payload: DemoBookingPayload): Promise<DemoBookingDelivery> {
   try {
     return await submitDemoBooking(payload)
   } catch {
     const { saveDemoBookingLocal } = await import('../auth/demoBookingStorage')
     const local = saveDemoBookingLocal(payload)
-    return { id: `local-${local.savedAt}`, ok: true, local: true as const }
+    return {
+      id: `local-${local.savedAt}`,
+      shareToken: '',
+      shareUrl: '',
+      agentSummary: '',
+      contactEmail: payload.contact.includes('@') ? payload.contact : '',
+      contactPhoneMasked: payload.contact.includes('@') ? '' : payload.contact,
+      emailSent: false,
+      smsSent: false,
+      local: true,
+    }
   }
+}
+
+export async function fetchSharePack(token: string): Promise<SharePack> {
+  const res = await api.get<SharePack>(`/share/${encodeURIComponent(token)}`)
+  return res.data
 }

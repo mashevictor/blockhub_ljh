@@ -14,6 +14,7 @@ import GenerateLoadingOverlay from '../components/GenerateLoadingOverlay'
 import AppBrandingFields from '../components/AppBrandingFields'
 import { emptyBranding } from '../data/appBranding'
 import SelectionBox, { type SelectionItem } from '../components/SelectionBox'
+import { ChevronDotLoadingRow } from '../components/ChevronDotLoader'
 
 interface Props {
   onPublish: (r: PublishResult) => void
@@ -140,7 +141,9 @@ export default function ModuleView({ onPublish, active = true }: Props) {
         <aside className="builder-palette cube-panel-inner">
           <h3>功能模块</h3>
           <p className="palette-hint">点击添加到右侧 · 来自平台能力库</p>
-          {modulesLoading && <p className="catalog-loading">加载能力模块…</p>}
+          {modulesLoading && (
+            <ChevronDotLoadingRow variant="scan" size="sm" text="加载能力模块…" className="catalog-loading" />
+          )}
           {modulesError && (
             <div className="catalog-error">
               <p>{modulesError}</p>

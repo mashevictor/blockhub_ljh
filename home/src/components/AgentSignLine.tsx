@@ -1,6 +1,15 @@
 import { BRAND } from '../data/brand'
+import { ChevronDotSign } from './ChevronDotLoader'
+import type { ChevronDotSize } from '../data/chevronDotGrid'
 
 type Variant = 'hero' | 'eyebrow' | 'section' | 'inline'
+
+const SIGN_SIZE: Record<Variant, ChevronDotSize> = {
+  hero: 'md',
+  eyebrow: 'btn',
+  section: 'sm',
+  inline: 'btn',
+}
 
 interface Props {
   /** hero：英雄区主标题；eyebrow：顶栏胶囊；section：区块标题；inline：行内短句 */
@@ -21,7 +30,8 @@ export default function AgentSignLine({
       className={`agent-sign-line agent-sign-line--${variant} ${className}`.trim()}
       aria-label={aria}
     >
-      <span className="agent-sign-chev" aria-hidden>&gt;&gt;</span>{BRAND.agentSignLine}
+      <ChevronDotSign size={SIGN_SIZE[variant]} className="agent-sign-chev-dot" />
+      {BRAND.agentSignLine}
     </Tag>
   )
 }

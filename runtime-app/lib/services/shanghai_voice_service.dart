@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io' show Platform;
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
@@ -126,6 +125,10 @@ class ShanghaiVoiceService {
     _greetingAdded = true;
   }
 
+  void _notifyUi() {
+    _stateController.add(state);
+  }
+
   Future<void> ensureConnected({required String sessionId}) async {
     _sessionId = sessionId;
     if (isConnected) return;
@@ -199,6 +202,7 @@ class ShanghaiVoiceService {
       throw Exception('未连接语音服务');
     }
     error = null;
+    await _ttsPlayer.stop();
     _channel!.sink.add(jsonEncode({'type': 'simulate', 'text': text}));
     _setState('thinking');
   }
@@ -217,11 +221,14 @@ class ShanghaiVoiceService {
     }
 
     error = null;
+    await _ttsPlayer.stop();
+    if (state == 'speaking') {
+      _channel!.sink.add(jsonEncode({'type': 'barge_in'}));
+    }
+
     partialText = '';
     final config = _config!;
-    _deviceCaptureRate = Platform.isAndroid
-        ? androidCaptureSampleRateHint()
-        : config.captureSampleRate;
+    _deviceCaptureRate = config.captureSampleRate;
     final stream = await _recorder.startStream(
       RecordConfig(
         encoder: AudioEncoder.pcm16bits,
@@ -253,9 +260,9 @@ class ShanghaiVoiceService {
       await _recorder.stop();
     }
     _channel?.sink.add(jsonEncode({'type': 'utterance_end'}));
-    partialText = '';
+    // 保留 partialText 直到 asr_final，避免松手后文字空白
     _setState('thinking');
-    _stateController.add(state);
+    _notifyUi();
   }
 
   Future<void> bargeIn() async {
@@ -300,6 +307,19 @@ class ShanghaiVoiceService {
     }
   }
 
+  void _appendAssistantMessage(String text) {
+    if (text.isEmpty) return;
+    final last = messages.isNotEmpty ? messages.last : null;
+    if (last != null && last['role'] == 'assistant' && last['text'] == text) {
+      return;
+    }
+    if (!_greetingAdded) {
+      _seedGreeting(text);
+      return;
+    }
+    _appendAssistantDelta(text);
+  }
+
   void _onMessage(dynamic event) {
     final msg = jsonDecode(event as String) as Map<String, dynamic>;
     final type = msg['type'] as String? ?? '';
@@ -316,27 +336,27 @@ class ShanghaiVoiceService {
         _readyCompleter!.complete();
       }
     } else if (type == 'assistant_message') {
-      final text = msg['text'] as String? ?? '';
-      if (text.isNotEmpty) {
-        _seedGreeting(text);
-      }
-      _stateController.add(state);
+      _appendAssistantMessage(msg['text'] as String? ?? '');
+      _notifyUi();
     } else if (type == 'asr_partial') {
       partialText = msg['text'] as String? ?? '';
-      _stateController.add(state);
+      if (_micActive) _setState('listening');
+      _notifyUi();
     } else if (type == 'asr_final') {
       final text = msg['text'] as String? ?? '';
       partialText = '';
       if (text.isNotEmpty) {
         messages.add({'role': 'user', 'text': text});
       }
-      _stateController.add(state);
+      _setState('thinking');
+      _notifyUi();
     } else if (type == 'llm_delta') {
       final text = msg['text'] as String? ?? '';
       if (text.isNotEmpty) {
         _appendAssistantDelta(text);
       }
-      _stateController.add(state);
+      if (!_micActive) _setState('thinking');
+      _notifyUi();
     } else if (type == 'tts_audio') {
       final data = msg['data'] as String? ?? '';
       final isEnd = msg['is_end'] as bool? ?? false;
@@ -346,13 +366,14 @@ class ShanghaiVoiceService {
       }
       if (isEnd && !_micActive) {
         unawaited(_ttsPlayer.finish().then((_) {
-          if (!_micActive) _setState('idle');
+          if (!_micActive && state == 'speaking') _setState('idle');
         }));
       }
+      _notifyUi();
     } else if (type == 'error') {
       error = msg['message'] as String? ?? '语音会话错误';
       _setState('error');
-      _stateController.add(state);
+      _notifyUi();
     }
   }
 

@@ -8,7 +8,7 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import { submitDemoBookingWithFallback } from '../api/client'
+import { submitDemoBookingWithFallback, type DemoBookingDelivery } from '../api/client'
 import { useAgentPageContext } from './AgentPageContext'
 import {
   BOOKING_FIELDS,
@@ -26,6 +26,7 @@ interface Value {
   stepIndex: number
   submitted: boolean
   submitting: boolean
+  delivery: DemoBookingDelivery | null
   fieldError: string | null
   inView: boolean
   draft: string
@@ -57,6 +58,7 @@ export function DemoBookingProvider({ children }: { children: ReactNode }) {
   const [stepIndex, setStepIndex] = useState(0)
   const [submitted, setSubmitted] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [delivery, setDelivery] = useState<DemoBookingDelivery | null>(null)
   const [fieldError, setFieldError] = useState<string | null>(null)
   const [inView, setInView] = useState(false)
   const [draft, setDraft] = useState('')
@@ -102,9 +104,14 @@ export function DemoBookingProvider({ children }: { children: ReactNode }) {
       setFieldError(null)
       setSubmitting(true)
       try {
-        await submitDemoBookingWithFallback(toPayload(nextValues))
+        const result = await submitDemoBookingWithFallback(toPayload(nextValues))
+        setDelivery(result)
+        requestAnimationFrame(() => {
+          document.getElementById('contact-demo')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        })
       } catch {
         setFieldError('保存失败，请稍后重试')
+        setSubmitted(false)
       } finally {
         setSubmitting(false)
       }
@@ -117,7 +124,8 @@ export function DemoBookingProvider({ children }: { children: ReactNode }) {
     setSubmitting(true)
     setFieldError(null)
     try {
-      await submitDemoBookingWithFallback(toPayload(values))
+      const result = await submitDemoBookingWithFallback(toPayload(values))
+      setDelivery(result)
     } catch {
       setFieldError('保存失败，请稍后重试')
     } finally {
@@ -181,6 +189,7 @@ export function DemoBookingProvider({ children }: { children: ReactNode }) {
       stepIndex,
       submitted,
       submitting,
+      delivery,
       fieldError,
       inView,
       draft,
@@ -200,6 +209,7 @@ export function DemoBookingProvider({ children }: { children: ReactNode }) {
       stepIndex,
       submitted,
       submitting,
+      delivery,
       fieldError,
       inView,
       draft,
@@ -224,6 +234,7 @@ export function useDemoBooking() {
       inView: false,
       submitted: false,
       submitting: false,
+      delivery: null,
       values: {} as Partial<Record<BookingFieldKey, string>>,
       stepIndex: 0,
       fieldError: null,

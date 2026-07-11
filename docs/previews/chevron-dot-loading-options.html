@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>积木仓 · >> 点阵 Loading 动画方案选型</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --surface: #fff;
+      --border: #dbeafe;
+      --pri: #0d47a1;
+      --accent: #db2777;
+      --accent2: #9333ea;
+      --text: #0f172a;
+      --muted: #64748b;
+      --sans: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      --mono: ui-monospace, Consolas, monospace;
+      --radius: 16px;
+      --shadow: 0 10px 40px rgba(13, 71, 161, 0.1);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    .page { max-width: 1100px; margin: 0 auto; padding: 32px 20px 80px; }
+
+    .hero {
+      background: linear-gradient(135deg, #0d47a1, #1565c0 50%, #7c3aed);
+      color: #fff;
+      border-radius: 20px;
+      padding: 36px 32px;
+      margin-bottom: 28px;
+      box-shadow: var(--shadow);
+    }
+
+    .hero h1 { font-size: clamp(22px, 4vw, 32px); margin-bottom: 8px; }
+    .hero p { opacity: 0.92; max-width: 680px; font-size: 14px; }
+
+    .pills { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+    .pill {
+      font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 999px;
+      background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25);
+    }
+
+    .intro {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      margin-bottom: 24px;
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .intro strong { color: var(--text); }
+
+    .option {
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 24px;
+      overflow: hidden;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .option:hover { border-color: #93c5fd; box-shadow: var(--shadow); }
+    .option.recommended { border-color: var(--accent); }
+
+    .option-head {
+      display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+      padding: 18px 22px 12px;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    .option-head h2 { font-size: 18px; display: flex; align-items: center; gap: 10px; }
+    .badge {
+      font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 6px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff;
+    }
+    .badge.gray { background: #e2e8f0; color: #475569; }
+
+    .option-desc { font-size: 13px; color: var(--muted); padding: 0 22px 14px; }
+
+    .sizes {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr 0.8fr;
+      gap: 0;
+      border-top: 1px solid #f1f5f9;
+    }
+
+    @media (max-width: 800px) {
+      .sizes { grid-template-columns: 1fr; }
+    }
+
+    .size-cell {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 160px;
+      border-right: 1px solid #f1f5f9;
+    }
+
+    .size-cell:last-child { border-right: none; }
+    .size-label {
+      font-size: 11px; font-weight: 700; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px;
+    }
+
+    .stage {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f8fafc;
+      border-radius: 12px;
+      border: 1px dashed #e2e8f0;
+    }
+
+    .stage-hero { width: 100%; max-width: 320px; height: 120px; }
+    .stage-dock { width: 200px; height: 72px; background: #fff; }
+    .stage-inline { width: 88px; height: 36px; }
+
+    .chev-stage { position: relative; }
+
+    /* ── 共用点阵容器 ── */
+    .dot-chev {
+      position: relative;
+      display: inline-block;
+    }
+
+    .dot-chev .dot {
+      position: absolute;
+      width: var(--ds, 6px);
+      height: var(--ds, 6px);
+      border-radius: 50%;
+      background: var(--dot-color, var(--accent));
+      transform: translate(-50%, -50%);
+      opacity: 0.72;
+      box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 25%, transparent);
+    }
+
+    /* 静止参照：无动画，验证字形 */
+    .scheme-static .dot {
+      opacity: 0.95;
+      animation: none;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+    }
+
+    .glyph-compare {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 24px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      margin-bottom: 24px;
+    }
+
+    .glyph-ref {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .glyph-ref-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .glyph-ref-text {
+      font-family: var(--mono);
+      font-size: 42px;
+      font-weight: 900;
+      letter-spacing: -0.12em;
+      line-height: 1;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .glyph-note {
+      flex: 1 1 200px;
+      font-size: 13px;
+      color: var(--muted);
+      margin: 0;
+    }
+
+    .glyph-note code {
+      font-family: var(--mono);
+      color: var(--pri);
+    }
+
+    /* ═══ 方案 A：粒子汇聚（轻汇聚，字形不散） ═══ */
+    .scheme-a .dot {
+      animation: converge 2.4s ease-in-out infinite;
+      animation-delay: calc(var(--i) * 0.025s);
+    }
+
+    @keyframes converge {
+      0%, 100% {
+        opacity: 0.55;
+        transform: translate(calc(-50% + var(--sx, 0px)), calc(-50% + var(--sy, 0px))) scale(0.85);
+      }
+      48%, 52% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1.08);
+        box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 55%, transparent);
+      }
+    }
+
+    /* ═══ 方案 B：扫描流光（沿 >> 笔画顺序） ═══ */
+    .scheme-b .dot {
+      opacity: 0.5;
+      animation: scan 2s linear infinite;
+      animation-delay: calc(var(--order, 0) * 0.055s);
+    }
+
+    @keyframes scan {
+      0%, 25% { opacity: 0.45; transform: translate(-50%, -50%) scale(0.9); }
+      40% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); background: var(--accent2); }
+      55%, 100% { opacity: 0.5; transform: translate(-50%, -50%) scale(0.95); }
+    }
+
+    /* ═══ 方案 C：脉冲呼吸 ═══ */
+    .scheme-c .dot {
+      opacity: 0.65;
+      animation: pulse 1.4s ease-in-out infinite;
+      animation-delay: calc(var(--order, 0) * 0.04s);
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.55; transform: translate(-50%, -50%) scale(0.88); }
+      50% { opacity: 1; transform: translate(-50%, -50%) scale(1.15); }
+    }
+
+    /* ═══ 方案 D：轨迹拖尾（沿笔画顺序） ═══ */
+    .scheme-d .dot {
+      opacity: 0.42;
+      animation: trail 2.2s ease-in-out infinite;
+      animation-delay: calc(var(--order, 0) * 0.07s);
+    }
+
+    @keyframes trail {
+      0%, 100% { opacity: 0.4; transform: translate(-50%, -50%) scale(0.82); }
+      12% { opacity: 1; transform: translate(-50%, -50%) scale(1.35); background: #fff; box-shadow: 0 0 12px var(--accent); }
+      28% { opacity: 0.55; transform: translate(-50%, -50%) scale(1); }
+    }
+
+    /* ═══ 方案 E：矩阵解码 ═══ */
+    .scheme-e .dot {
+      animation: decode 2.8s steps(1) infinite;
+      animation-delay: calc(var(--order, 0) * 0.018s);
+    }
+
+    @keyframes decode {
+      0%, 38% {
+        opacity: 0.12;
+        background: #cbd5e1;
+        transform: translate(-50%, -50%) scale(0.5);
+      }
+      39% { opacity: 0.85; background: var(--accent); transform: translate(-50%, -50%) scale(1.1); }
+      52%, 100% { opacity: 0.88; transform: translate(-50%, -50%) scale(1); }
+    }
+
+    .pros {
+      padding: 12px 22px 18px;
+      font-size: 12px;
+      color: var(--muted);
+      border-top: 1px solid #f1f5f9;
+    }
+
+    .pros ul { margin: 6px 0 0 18px; }
+    .pros li { margin: 2px 0; }
+
+    .pick-bar {
+      position: sticky;
+      bottom: 0;
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(8px);
+      border-top: 1px solid var(--border);
+      padding: 14px 20px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+      font-size: 13px;
+      margin: 0 -20px;
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.06);
+    }
+
+    .pick-bar code {
+      font-family: var(--mono);
+      background: #f1f5f9;
+      padding: 2px 8px;
+      border-radius: 6px;
+      color: var(--pri);
+    }
+
+    .compare-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      margin-top: 28px;
+      background: var(--surface);
+      border-radius: var(--radius);
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .compare-table th, .compare-table td {
+      padding: 10px 14px;
+      text-align: left;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    .compare-table th { background: #f8fafc; color: var(--muted); font-weight: 700; }
+    .compare-table tr:last-child td { border-bottom: none; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="hero">
+      <h1>>> 点阵 Loading 动画 · 五套方案</h1>
+      <p>
+        由多个点组成 <code style="font-family:var(--mono);background:rgba(0,0,0,0.2);padding:2px 6px;border-radius:4px">&gt;&gt;</code>
+        形状，作为首页品牌动效 + 全站统一 Loading。每套含三种尺寸：Hero 展示区 / 悬浮输入框 / 行内 Loading。
+      </p>
+      <div class="pills">
+        <span class="pill">品牌色 #db2777 · #9333ea</span>
+        <span class="pill">与 >> 智能交互符号一致</span>
+        <span class="pill">纯 CSS 可实现</span>
+      </div>
+    </header>
+
+    <p class="intro">
+      <strong>字形优先：</strong>点阵按标准 <strong>&gt;&gt;</strong> 双尖括号排布，动画全程保持符号可辨认（最低透明度 ≥45%）。
+      页顶有字体与点阵对照。看完五套后回复方案编号（如「选 A」或「A+B」）。
+    </p>
+
+    <div class="glyph-compare">
+      <div class="glyph-ref">
+        <span class="glyph-ref-label">字体参照</span>
+        <span class="glyph-ref-text">&gt;&gt;</span>
+      </div>
+      <div class="glyph-ref">
+        <span class="glyph-ref-label">点阵静止态</span>
+        <div class="stage stage-inline chev-stage" data-scheme="static" data-size="md"></div>
+      </div>
+      <p class="glyph-note">右侧为无动画点阵，应与左侧 <code>&gt;&gt;</code> 轮廓一致——两个尖括号清晰分离。</p>
+    </div>
+
+    <!-- A -->
+    <article class="option recommended" id="scheme-a">
+      <div class="option-head">
+        <h2><span class="badge">推荐</span> 方案 A · 粒子汇聚</h2>
+        <span class="badge gray">Hero + 全屏 Loading</span>
+      </div>
+      <p class="option-desc">
+        散点从四周飞向中心，聚合成 <strong>&gt;&gt;</strong> 后短暂稳定，再散开循环。仪式感强，适合首页主视觉与「正在生成应用」全屏遮罩。
+      </p>
+      <div class="sizes">
+        <div class="size-cell">
+          <span class="size-label">Hero 大</span>
+          <div class="stage stage-hero chev-stage" data-scheme="a" data-size="lg"></div>
+        </div>
+        <div class="size-cell">
+          <span class="size-label">悬浮框</span>
+          <div class="stage stage-dock chev-stage" data-scheme="a" data-size="md"></div>
+        </div>
+        <div class="size-cell">
+          <span class="size-label">行内</span>
+          <div class="stage stage-inline chev-stage" data-scheme="a" data-size="sm"></div>
+        </div>
+      </div>
+      <div class="pros">
+        <ul>
+          <li>品牌记忆点最强，与「积木汇聚成应用」叙事一致</li>
+          <li>大尺寸效果好；小尺寸需减少散点偏移避免糊成一团</li>
+        </ul>
+      </div>
+    </article>
+
+    <!-- B -->
+    <article class="option" id="scheme-b">
+      <div class="option-head">
+        <h2>方案 B · 扫描流光</h2>
+        <span class="badge gray">意图分析 / 进度条</span>
+      </div>
+      <p class="option-desc">
+        <strong>&gt;&gt;</strong> 点阵固定，亮点从左向右扫过，像进度在「读懂需求」。节奏稳定，不抢眼，适合输入框下方的意图 Agent 分析条。
+      </p>
+      <div class="sizes">
+        <div class="size-cell">
+          <span class="size-label">Hero 大</span>
+          <div class="stage stage-hero chev-stage" data-scheme="b" data-size="lg"></div>
+        </div>
+        <div class="size-cell">
+          <span class="size-label">悬浮框</span>
+          <div class="stage stage-dock chev-stage" data-scheme="b" data-size="md"></div>
+        </div>
+        <div class="size-cell">
+          <span class="size-label">行内</span>
+          <div class="stage stage-inline chev-stage" data-scheme="b" data-size="sm"></div>
+        </div>
+      </div>
+      <div class="pros">
+        <ul>
+          <li>与「正在分析…」语义最贴</li>
+          <li>三种尺寸都清晰，性能友好</li>
+        </ul>
+      </div>
+    </article>
+
+    <!-- C -->
+    <article class="option" id="scheme-c">
+      <div class="option-head">
+        <h2>方案 C · 脉冲呼吸</h2>
+        <span class="badge gray">按钮 / 轻量 Loading</span>
+      </div>
+      <p class="option-desc">
+        组成 <strong>&gt;&gt;</strong> 的每个点按顺序明暗起伏，整体缓慢呼吸。克制、优雅，适合按钮内 loading、卡片角标。
+      </p>
+      <div class="sizes">
+        <div class="size-cell">
+          <span class="size-label">Hero 大</span>
+          <div class="stage stage-hero chev-stage" data-scheme="c" data-size="lg"></div>
+        </div>
+        <div class="size-cell">
+          <span class="size-label">悬浮框</span>
+          <div class="stage stage-dock chev-stage" data-scheme="c" data-size="md"></div>
+        </div>
+        <div class="size-cell">
+          <span class="size-label">行内</span>
+          <div class="stage stage-inline chev-stage" data-scheme="c" data-size="sm"></div>
+        </div>
+      </div>
+      <div class="pros">
+        <ul>
+          <li>最不打扰阅读，适合长时间等待</li>
+          <li>Hero 大场景略平淡，建议作辅助而非主视觉</li>
+        </ul>
+      </div>
+    </article>
+
+    <!-- D -->
+    <article class="option" id="scheme-d">
+      <div class="option-head">
+        <h2>方案 D · 轨迹拖尾</h2>
+        <span class="badge gray">品牌符号 / 输入框左侧</span>
+      </div>
+      <p class="option-desc">
+        光点沿 <strong>&gt;&gt;</strong> 笔画顺序跑动，带拖尾熄灭。与悬浮框左侧 <code>&gt;&gt;</code> 输入触发符联动感最好。
+      </p>
+      <div class="sizes">
+        <div class="size-cell">
+          <span class="size-label">Hero 大</span>
+          <div class="stage stage-hero chev-stage" data-scheme="d" data-size="lg"></div>
+        </div>
+        <div class="size-cell">
+          <span class="size-label">悬浮框</span>
+          <div class="stage stage-dock chev-stage" data-scheme="d" data-size="md"></div>
+        </div>
+        <div class="size-cell">
+          <span class="size-label">行内</span>
+          <div class="stage stage-inline chev-stage" data-scheme="d" data-size="sm"></div>
+        </div>
+      </div>
+      <div class="pros">
+        <ul>
+          <li>和现有「输入 &gt;&gt; 多选模块」交互语义一致</li>
+          <li>小尺寸需控制拖尾点数，否则看不清字形</li>
+        </ul>
+      </div>
+    </article>
+
+    <!-- E -->
+    <article class="option" id="scheme-e">
+      <div class="option-head">
+        <h2>方案 E · 矩阵解码</h2>
+        <span class="badge gray">AI 理解 / DeepSeek 阶段</span>
+      </div>
+      <p class="option-desc">
+        点阵先随机闪烁（像解码），再锁定为 <strong>&gt;&gt;</strong>。强调 AI 从模糊到清晰，适合意图 Agent、DeepSeek 丰富行业方案时。
+      </p>
+      <div class="sizes">
+        <div class="size-cell">
+          <span class="size-label">Hero 大</span>
+          <div class="stage stage-hero chev-stage" data-scheme="e" data-size="lg"></div>
+        </div>
+        <div class="size-cell">
+          <span class="size-label">悬浮框</span>
+          <div class="stage stage-dock chev-stage" data-scheme="e" data-size="md"></div>
+        </div>
+        <div class="size-cell">
+          <span class="size-label">行内</span>
+          <div class="stage stage-inline chev-stage" data-scheme="e" data-size="sm"></div>
+        </div>
+      </div>
+      <div class="pros">
+        <ul>
+          <li>与 DeepSeek / 意图 Agent 叙事一致</li>
+          <li>节奏略慢，不适合极速反馈场景</li>
+        </ul>
+      </div>
+    </article>
+
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th>方案</th>
+          <th>首页 Hero</th>
+          <th>全屏生成 Loading</th>
+          <th>意图分析条</th>
+          <th>输入框 &gt;&gt;</th>
+          <th>推荐组合</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>A 粒子汇聚</strong></td><td>★★★★★</td><td>★★★★★</td><td>★★★</td><td>★★</td><td>主视觉 + 发布 Loading</td></tr>
+        <tr><td><strong>B 扫描流光</strong></td><td>★★★</td><td>★★★</td><td>★★★★★</td><td>★★★★</td><td>分析进度统一</td></tr>
+        <tr><td><strong>C 脉冲呼吸</strong></td><td>★★</td><td>★★★</td><td>★★★★</td><td>★★★★★</td><td>按钮 / 轻等待</td></tr>
+        <tr><td><strong>D 轨迹拖尾</strong></td><td>★★★★</td><td>★★★</td><td>★★★</td><td>★★★★★</td><td>悬浮框左侧符号</td></tr>
+        <tr><td><strong>E 矩阵解码</strong></td><td>★★★★</td><td>★★★★</td><td>★★★★★</td><td>★★★</td><td>AI / DeepSeek 阶段</td></tr>
+      </tbody>
+    </table>
+
+    <p class="intro" style="margin-top:24px">
+      <strong>组合建议（若不想只选一套）：</strong><br>
+      · <strong>A + B</strong>：Hero/发布用汇聚，输入分析用扫描（最常见）<br>
+      · <strong>D + E</strong>：输入框用拖尾，Agent 思考用解码<br>
+      · <strong>A + D + B</strong>：三层分工，品牌感最强但实现量略大
+    </p>
+
+    <div class="pick-bar">
+      <span>确定后回复：</span>
+      <code>选 A</code>
+      <code>选 B</code>
+      <code>选 A+B</code>
+      <code>选 D</code>
+      <span style="color:var(--muted)">或描述你想要的变体</span>
+    </div>
+  </div>
+
+  <script>
+    /**
+     * 清晰 >> 点阵（8×5）— 双 chevron 尖端朝右，无竖条
+     * ##..##..
+     * .#...#..
+     * ..#...#.
+     * .#...#..
+     * ##..##..
+     */
+    const GRID = [
+      '##..##..',
+      '.#...#..',
+      '..#...#.',
+      '.#...#..',
+      '##..##..',
+    ];
+
+    function buildChevronDots() {
+      const rows = GRID.length;
+      const cols = GRID[0].length;
+      const dots = [];
+      const strokeOrder = [];
+
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          if (GRID[r][c] !== '#') continue;
+          const nx = (c + 0.5) / cols;
+          const ny = 1 - (r + 0.5) / rows;
+          dots.push([nx, ny]);
+        }
+      }
+
+      // 笔画顺序：左 > 自上而下再右 >
+      function armOrder(chevronStart) {
+        const order = [];
+        for (let r = 0; r < rows; r++) {
+          for (let c = chevronStart; c < chevronStart + 4; c++) {
+            if (GRID[r][c] !== '#') continue;
+            order.push({ r, c, key: r * cols + c, sort: r + (c - chevronStart) * 0.2 });
+          }
+        }
+        order.sort((a, b) => a.sort - b.sort);
+        return order.map((o) => o.key);
+      }
+
+      const leftArm = armOrder(2);
+      const rightArm = armOrder(8);
+      const indexMap = new Map();
+      dots.forEach(([nx, ny], i) => {
+        const r = Math.round((1 - ny) * rows - 0.5);
+        const c = Math.round(nx * cols - 0.5);
+        indexMap.set(r * cols + c, i);
+      });
+
+      let seq = 0;
+      [...leftArm, ...rightArm].forEach((key) => {
+        const idx = indexMap.get(key);
+        if (idx !== undefined) strokeOrder[idx] = seq++;
+      });
+      dots.forEach((_, i) => {
+        if (strokeOrder[i] === undefined) strokeOrder[i] = seq++;
+      });
+
+      return { dots, strokeOrder };
+    }
+
+    const { dots: CHEVRON_DOTS, strokeOrder: STROKE_ORDER } = buildChevronDots();
+
+    const SCATTER = CHEVRON_DOTS.map(([nx, ny], i) => {
+      const arm = i < CHEVRON_DOTS.length / 2 ? -1 : 1;
+      return [
+        nx + arm * 0.06 * Math.sin(i * 1.7),
+        ny + 0.04 * Math.cos(i * 2.1),
+      ];
+    });
+
+    const SIZES = {
+      lg: { w: 156, h: 60, ds: 8 },
+      md: { w: 104, h: 40, ds: 6 },
+      sm: { w: 52, h: 20, ds: 4 },
+    };
+
+    function mountChevron(container) {
+      const scheme = container.dataset.scheme;
+      const sizeKey = container.dataset.size || 'md';
+      const { w, h, ds } = SIZES[sizeKey];
+      const wrap = document.createElement('div');
+      wrap.className = `dot-chev scheme-${scheme}`;
+      wrap.style.width = w + 'px';
+      wrap.style.height = h + 'px';
+      wrap.style.setProperty('--ds', ds + 'px');
+      wrap.setAttribute('aria-label', '>>');
+      wrap.setAttribute('role', 'img');
+
+      CHEVRON_DOTS.forEach(([nx, ny], i) => {
+        const dot = document.createElement('span');
+        dot.className = 'dot';
+        dot.style.left = (nx * w) + 'px';
+        dot.style.top = ((1 - ny) * h) + 'px';
+        dot.style.setProperty('--i', i);
+        dot.style.setProperty('--order', STROKE_ORDER[i] ?? i);
+
+        if (scheme === 'a') {
+          const [sx, sy] = SCATTER[i];
+          dot.style.setProperty('--sx', ((sx - nx) * w * 0.35) + 'px');
+          dot.style.setProperty('--sy', (((1 - sy) - (1 - ny)) * h * 0.35) + 'px');
+        }
+        wrap.appendChild(dot);
+      });
+
+      container.appendChild(wrap);
+    }
+
+    document.querySelectorAll('.chev-stage').forEach(mountChevron);
+  </script>
+</body>
+</html>

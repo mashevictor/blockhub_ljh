@@ -127,7 +127,7 @@ export default function PlazaMyAppsPage() {
         <div className="plaza-my-empty">
           <p>还没有发布过应用</p>
           <p className="plaza-my-empty-hint">在首页创建并发布后，会自动跳转到这里</p>
-          <Link to={ROUTES.home} className="btn-primary plaza-my-empty-cta">去创建应用</Link>
+          <Link to={ROUTES.home} className="btn-primary plaza-my-empty-cta">去生成应用</Link>
         </div>
       )}
 

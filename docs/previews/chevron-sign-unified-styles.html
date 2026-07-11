@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>积木仓 · &gt;&gt; 统一样式选型</title>
+  <style>
+    :root {
+      --bg: #eef2f7;
+      --surface: #fff;
+      --border: #dbeafe;
+      --pri: #0d47a1;
+      --pri-light: #1976d2;
+      --pri-hover: #1565c0;
+      --text: #0f172a;
+      --muted: #64748b;
+      --sans: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      --mono: ui-monospace, "Cascadia Code", Consolas, monospace;
+      --radius: 16px;
+      --shadow: 0 10px 36px rgba(13, 71, 161, 0.1);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+    }
+
+    .page { max-width: 1140px; margin: 0 auto; padding: 28px 18px 72px; }
+
+    .hero {
+      background: linear-gradient(135deg, #0d47a1, #1565c0 55%, #1976d2);
+      color: #fff;
+      border-radius: 18px;
+      padding: 32px 28px;
+      margin-bottom: 22px;
+      box-shadow: var(--shadow);
+    }
+
+    .hero h1 { font-size: clamp(20px, 3.5vw, 28px); margin-bottom: 8px; }
+    .hero p { font-size: 14px; opacity: 0.92; max-width: 720px; }
+
+    .intro {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 22px;
+      margin-bottom: 22px;
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .intro strong { color: var(--text); }
+
+    .scheme {
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 22px;
+      overflow: hidden;
+    }
+
+    .scheme.rec { border-color: #00b894; box-shadow: 0 0 0 1px #00b89433; }
+
+    .scheme-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 16px 20px;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    .scheme-head h2 { font-size: 17px; display: flex; align-items: center; gap: 10px; }
+
+    .badge {
+      font-size: 10px;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: #dcfce7;
+      color: #047857;
+    }
+
+    .badge.gray { background: #e2e8f0; color: #475569; }
+
+    .tokens {
+      font-size: 11px;
+      font-family: var(--mono);
+      color: var(--muted);
+      text-align: right;
+      line-height: 1.7;
+    }
+
+    .scheme-desc {
+      padding: 0 20px 14px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .glyph-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 28px;
+      padding: 20px;
+      background: #f8fafc;
+      border-top: 1px solid #f1f5f9;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    .glyph-cell {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .glyph-label {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .contexts {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+    }
+
+    @media (max-width: 820px) {
+      .contexts { grid-template-columns: 1fr; }
+    }
+
+    .ctx {
+      padding: 18px 20px;
+      border-right: 1px solid #f1f5f9;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    .ctx:nth-child(2n) { border-right: none; }
+    .ctx-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+
+    /* ── 模拟真实页面组件 ── */
+    .mock-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--pri);
+      background: #eaf2ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 999px;
+      padding: 6px 14px 6px 10px;
+    }
+
+    .mock-btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 11px 22px;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 700;
+      color: #fff;
+      background: linear-gradient(135deg, var(--pri), var(--pri-light));
+      cursor: default;
+      font-family: inherit;
+    }
+
+    .mock-btn-outline {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 11px 22px;
+      border: 1px solid var(--pri);
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--pri);
+      background: #fff;
+      cursor: default;
+      font-family: inherit;
+    }
+
+    .mock-dock {
+      background: #fff;
+      border: 2px solid #93c5fd;
+      border-radius: 12px;
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      max-width: 320px;
+      box-shadow: 0 6px 24px rgba(13, 71, 161, 0.12);
+    }
+
+    .mock-dock-label { font-size: 12px; font-weight: 700; color: var(--pri); }
+
+    .mock-input-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      background: #f8fafc;
+      border: 1px solid #dbeafe;
+      border-radius: 10px;
+      max-width: 360px;
+    }
+
+    .mock-input-row span { font-size: 13px; color: var(--muted); flex: 1; }
+
+    .mock-hero-dark {
+      background: linear-gradient(135deg, #0a1628, #0d47a1);
+      border-radius: 12px;
+      padding: 20px;
+      color: #fff;
+    }
+
+    .mock-hero-dark .mock-eyebrow {
+      background: rgba(255,255,255,0.12);
+      border-color: rgba(255,255,255,0.25);
+      color: #fff;
+    }
+
+    .mock-loading {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .chev-svg { display: inline-block; vertical-align: middle; flex-shrink: 0; }
+
+    .chev-text {
+      font-family: var(--mono);
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -0.08em;
+      vertical-align: middle;
+    }
+
+    /* 点阵 loading（与 SVG 同几何） */
+    .chev-dots {
+      position: relative;
+      display: inline-block;
+      flex-shrink: 0;
+      vertical-align: middle;
+    }
+
+    .chev-dots .dot {
+      position: absolute;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      animation: chev-scan 2s linear infinite;
+      animation-delay: calc(var(--order) * 0.06s);
+    }
+
+    @keyframes chev-scan {
+      0%, 30% { opacity: 0.4; transform: translate(-50%, -50%) scale(0.85); }
+      45% { opacity: 1; transform: translate(-50%, -50%) scale(1.15); }
+      60%, 100% { opacity: 0.45; transform: translate(-50%, -50%) scale(0.9); }
+    }
+
+    .compare-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      margin-top: 8px;
+      background: var(--surface);
+      border-radius: var(--radius);
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .compare-table th, .compare-table td {
+      padding: 10px 14px;
+      text-align: left;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    .compare-table th { background: #f8fafc; color: var(--muted); }
+
+    .pick-bar {
+      position: sticky;
+      bottom: 0;
+      background: rgba(255,255,255,0.96);
+      backdrop-filter: blur(8px);
+      border-top: 1px solid var(--border);
+      padding: 12px 18px;
+      font-size: 13px;
+      margin: 0 -18px;
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.06);
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="hero">
+      <h1>&gt;&gt; 统一样式 · 颜色 · 粗细 · 选型预览</h1>
+      <p>
+        全站所有 &gt;&gt;（胶囊标题、按钮、悬浮框、Loading、输入框前缀）应使用<strong>同一套设计令牌</strong>。
+        下方 6 套方案均基于 V 形几何；静态场景用 SVG，Loading 用同几何点阵动画。
+      </p>
+    </header>
+
+    <div class="intro">
+      <strong>选型维度：</strong>渲染方式（描边 / 填充 / 等宽字）、颜色（纯色 / 渐变）、线宽（2.0–3.0px @ sign 尺寸）、
+      以及按钮/深色背景上的 <code>currentColor</code> 继承是否一致。
+      打开本文件路径：<code>docs/previews/chevron-sign-unified-styles.html</code>
+    </div>
+
+    <div id="schemes"></div>
+
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th>方案</th>
+          <th>渲染</th>
+          <th>颜色</th>
+          <th>线宽 sign</th>
+          <th>全站统一难度</th>
+          <th>适合</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>A 标准描边</strong></td><td>SVG stroke</td><td>#0d47a1</td><td>2.2px</td><td>★★★★★</td><td>默认推荐 · 清晰克制</td></tr>
+        <tr><td><strong>B 加粗描边</strong></td><td>SVG stroke</td><td>#0d47a1</td><td>2.8px</td><td>★★★★★</td><td>小尺寸/投影屏更醒目</td></tr>
+        <tr><td><strong>C 渐变描边</strong></td><td>SVG stroke + gradient</td><td>#0d47a1→#1976d2</td><td>2.4px</td><td>★★★★☆</td><td>与主按钮渐变呼应</td></tr>
+        <tr><td><strong>D 实心填充</strong></td><td>SVG fill</td><td>#0d47a1</td><td>—</td><td>★★★★☆</td><td>块面感强 · 像 logo 标</td></tr>
+        <tr><td><strong>E 等宽字符</strong></td><td>font &gt;&gt;</td><td>inherit / #0d47a1</td><td>字重 800</td><td>★★★★★</td><td>实现最简单 · 与 SVG 略不同形</td></tr>
+        <tr><td><strong>F 描边+尖端点</strong></td><td>SVG + 2 dot</td><td>蓝 + #00b894 点</td><td>2.2px</td><td>★★★☆☆</td><td>品牌感最强 · 略复杂</td></tr>
+      </tbody>
+    </table>
+
+    <div class="pick-bar">
+      选中后告诉我方案字母（A–F），我会写入 <code>shared/design-tokens</code> + <code>ChevronDotSign</code> 全站统一。
+    </div>
+  </div>
+
+  <script>
+    const UNIT = [
+      { lx: 0, ly: 0 }, { lx: 0.45, ly: 0.22 }, { lx: 1, ly: 0.5 },
+      { lx: 0.45, ly: 0.78 }, { lx: 0, ly: 1 },
+    ];
+    const CW = 0.42, GAP = 0.12, VW = 48, VH = 24;
+
+    function paths() {
+      const totalW = CW * 2 + GAP;
+      return [0, 1].map(function (chev) {
+        const ox = chev * (CW + GAP);
+        const pts = UNIT.map(function (p) {
+          return {
+            x: ((ox + p.lx * CW) / totalW) * VW,
+            y: p.ly * VH,
+          };
+        });
+        return 'M ' + pts.map(function (p) { return p.x + ' ' + p.y; }).join(' L ');
+      });
+    }
+
+    function buildDots(w, h) {
+      const totalW = CW * 2 + GAP;
+      const dots = [];
+      for (var chev = 0; chev < 2; chev++) {
+        var ox = chev * (CW + GAP);
+        UNIT.forEach(function (p, i) {
+          dots.push({
+            nx: (ox + p.lx * CW) / totalW,
+            ny: p.ly,
+            order: chev * 5 + i,
+          });
+        });
+      }
+      return dots.map(function (d) {
+        return '<span class="dot" style="left:' + (d.nx * w) + 'px;top:' + (d.ny * h) + 'px;width:var(--dot);height:var(--dot);background:var(--chev-color);--order:' + d.order + '"></span>';
+      }).join('');
+    }
+
+    function svgChev(id, w, h, stroke, mode, color, extra) {
+      var ps = paths();
+      var defs = '';
+      var strokeAttr = 'stroke="' + color + '" stroke-width="' + stroke + '" stroke-linecap="round" stroke-linejoin="round"';
+      var inner = '';
+      if (mode === 'gradient') {
+        defs = '<defs><linearGradient id="g' + id + '" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#0d47a1"/><stop offset="100%" stop-color="#1976d2"/></linearGradient></defs>';
+        strokeAttr = 'stroke="url(#g' + id + ')" stroke-width="' + stroke + '" stroke-linecap="round" stroke-linejoin="round"';
+      }
+      if (mode === 'fill') {
+        inner = ps.map(function (d) {
+          return '<path d="' + d + ' Z" fill="' + color + '"/>';
+        }).join('');
+      } else if (mode === 'stroke-dots') {
+        inner = ps.map(function (d) {
+          return '<path d="' + d + '" fill="none" ' + strokeAttr + '/>';
+        }).join('');
+        var tips = paths().map(function (d) {
+          var parts = d.split(' ');
+          var tipX = parts[6], tipY = parts[7];
+          return '<circle cx="' + tipX + '" cy="' + tipY + '" r="1.8" fill="#00b894"/>';
+        }).join('');
+        inner += tips;
+      } else {
+        inner = ps.map(function (d) {
+          return '<path d="' + d + '" fill="none" ' + strokeAttr + '/>';
+        }).join('');
+      }
+      return '<svg class="chev-svg" width="' + w + '" height="' + h + '" viewBox="0 0 48 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="color:' + color + '">' + defs + inner + (extra || '') + '</svg>';
+    }
+
+    function textChev(size, color) {
+      return '<span class="chev-text" style="font-size:' + size + 'px;color:' + color + '">&gt;&gt;</span>';
+    }
+
+    function dotChev(w, h, color, dot) {
+      return '<span class="chev-dots" style="width:' + w + 'px;height:' + h + 'px;--dot:' + dot + 'px;--chev-color:' + color + '">' + buildDots(w, h) + '</span>';
+    }
+
+    function renderChev(scheme, ctx, w, h) {
+      var id = scheme.id + ctx;
+      if (scheme.type === 'text') return textChev(scheme.textSize || h, scheme.color);
+      if (scheme.type === 'dots-only') return dotChev(w, h, scheme.color, scheme.dot || 4);
+      return svgChev(id, w, h, scheme.stroke, scheme.mode, scheme.color);
+    }
+
+    var SCHEMES = [
+      {
+        id: 'a', rec: true, implemented: true, name: '方案 A · 标准描边（推荐 · 已落地）',
+        desc: 'SVG V 形折线 · 品牌蓝纯色 · 线宽 2.2px。静态/按钮/胶囊同一组件，Loading 同几何点阵。',
+        tokens: '--chev-color: #0d47a1<br/>--chev-stroke: 2.2<br/>--chev-size-sign: 44×18',
+        type: 'svg', mode: 'stroke', color: '#0d47a1', stroke: 2.2,
+      },
+      {
+        id: 'b', rec: false, name: '方案 B · 加粗描边',
+        desc: '与 A 同色，线宽 2.8px。小字号胶囊、手机端更易辨认。',
+        tokens: '--chev-color: #0d47a1<br/>--chev-stroke: 2.8<br/>--chev-size-sign: 44×18',
+        type: 'svg', mode: 'stroke', color: '#0d47a1', stroke: 2.8,
+      },
+      {
+        id: 'c', rec: false, name: '方案 C · 渐变描边',
+        desc: '描边渐变 #0d47a1→#1976d2，与主按钮 gradient 一致。按钮白字场景用 currentColor 降级为纯色。',
+        tokens: '--chev-gradient: pri→pri-light<br/>--chev-stroke: 2.4',
+        type: 'svg', mode: 'gradient', color: '#0d47a1', stroke: 2.4,
+      },
+      {
+        id: 'd', rec: false, name: '方案 D · 实心填充',
+        desc: '两枚 > 填充实心，无描边。识别度最高，但按钮内略「重」。',
+        tokens: '--chev-fill: #0d47a1<br/>render: fill',
+        type: 'svg', mode: 'fill', color: '#0d47a1', stroke: 0,
+      },
+      {
+        id: 'e', rec: false, name: '方案 E · 等宽字符 &gt;&gt;',
+        desc: 'Monospace 字重 800 · letter-spacing -0.08em。实现成本最低，但与 SVG 字形微差。',
+        tokens: 'font: var(--font-mono)<br/>weight: 800<br/>letter-spacing: -0.08em',
+        type: 'text', color: '#0d47a1', textSize: 16,
+      },
+      {
+        id: 'f', rec: false, name: '方案 F · 描边 + 绿色尖端点',
+        desc: 'A 描边 + 两枚尖端 #00b894 圆点（智能体「在干活」）。Loading 时亮点扫描。',
+        tokens: '--chev-stroke: 2.2<br/>--chev-tip: #00b894',
+        type: 'svg', mode: 'stroke-dots', color: '#0d47a1', stroke: 2.2,
+      },
+    ];
+
+    var root = document.getElementById('schemes');
+
+    SCHEMES.forEach(function (s) {
+      var chevSign = renderChev(s, 's', 44, 18);
+      var chevLg = renderChev(s, 'l', 56, 24);
+      var chevSm = renderChev(s, 'm', 32, 14);
+      var chevBtn = renderChev(s, 'b', 18, 14);
+      var chevLoad = s.type === 'text'
+        ? textChev(14, s.color)
+        : dotChev(40, 18, s.color, 4);
+
+      var btnPrimaryChev = s.type === 'svg' && s.mode === 'gradient'
+        ? svgChev(s.id + 'wp', 16, 14, 2.2, 'stroke', '#ffffff')
+        : (s.type === 'text' ? textChev(14, '#fff') : renderChev(s, 'bp', 16, 14));
+
+      var html = '<article class="scheme' + (s.rec ? ' rec' : '') + '">' +
+        '<div class="scheme-head">' +
+          '<h2>' + s.name + (s.rec ? ' <span class="badge">推荐</span>' : ' <span class="badge gray">备选</span>') + '</h2>' +
+          '<div class="tokens">' + s.tokens + '</div>' +
+        '</div>' +
+        '<p class="scheme-desc">' + s.desc + '</p>' +
+        '<div class="glyph-row">' +
+          '<div class="glyph-cell"><span class="glyph-label">sign 44×18</span>' + chevSign + '</div>' +
+          '<div class="glyph-cell"><span class="glyph-label">md 56×24</span>' + chevLg + '</div>' +
+          '<div class="glyph-cell"><span class="glyph-label">xs 32×14</span>' + chevSm + '</div>' +
+          '<div class="glyph-cell"><span class="glyph-label">放大参照</span>' +
+            renderChev(s, 'x', 88, 36) + '</div>' +
+        '</div>' +
+        '<div class="contexts">' +
+          '<div class="ctx"><div class="ctx-title">① 胶囊 · 重新定义智能交互</div>' +
+            '<div class="mock-eyebrow">' + chevSign + '重新定义智能交互</div></div>' +
+          '<div class="ctx"><div class="ctx-title">② 主按钮 · 预约演示</div>' +
+            '<button type="button" class="mock-btn-primary">' + btnPrimaryChev + ' 预约演示</button></div>' +
+          '<div class="ctx"><div class="ctx-title">③ 描边按钮 · 在线体验</div>' +
+            '<button type="button" class="mock-btn-outline">' + chevBtn + ' 在线体验</button></div>' +
+          '<div class="ctx"><div class="ctx-title">④ 悬浮框前缀</div>' +
+            '<div class="mock-dock">' + chevSm + '<span class="mock-dock-label">创建</span></div></div>' +
+          '<div class="ctx"><div class="ctx-title">⑤ 输入框前缀</div>' +
+            '<div class="mock-input-row">' + chevSm + '<span>描述你的需求…</span></div></div>' +
+          '<div class="ctx"><div class="ctx-title">⑥ Loading 行内</div>' +
+            '<div class="mock-loading">' + chevLoad + '<span>正在分析意图…</span></div></div>' +
+          '<div class="ctx"><div class="ctx-title">⑦ 深色 Hero 背景</div>' +
+            '<div class="mock-hero-dark"><div class="mock-eyebrow">' + chevSign + '重新定义智能交互</div></div></div>' +
+          '<div class="ctx"><div class="ctx-title">⑧ 成功页按钮</div>' +
+            '<button type="button" class="mock-btn-primary" style="width:100%;max-width:280px;justify-content:center">' +
+              chevBtn + ' 打开我的专属资料包</button></div>' +
+        '</div></article>';
+
+      root.insertAdjacentHTML('beforeend', html);
+
+      /* 深色 hero：符号改白 */
+      var heroEyebrow = root.lastElementChild.querySelector('.mock-hero-dark .mock-eyebrow');
+      if (heroEyebrow && s.type === 'svg') {
+        var white = svgChev(s.id + 'hd', 44, 18, s.stroke, s.mode === 'fill' ? 'fill' : (s.mode === 'gradient' ? 'gradient' : 'stroke'), '#ffffff');
+        heroEyebrow.innerHTML = white + '重新定义智能交互';
+      } else if (heroEyebrow && s.type === 'text') {
+        heroEyebrow.innerHTML = textChev(16, '#fff') + '重新定义智能交互';
+      }
+    });
+  </script>
+</body>
+</html>

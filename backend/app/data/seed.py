@@ -1,4 +1,8 @@
-"""L3 Catalog seed: 96 office + 49 industry scenarios, 43 capabilities, 12 agents."""
+"""L3 Catalog seed: office + industry scenarios, 43 capabilities, 12 agents."""
+
+from app.data.industry_packs_all import ALL_INDUSTRY_PACKS
+
+INDUSTRY_PACKS = ALL_INDUSTRY_PACKS
 
 AGENTS = [
     {
@@ -348,90 +352,6 @@ OFFICE_GROUPS = [
     },
 ]
 
-INDUSTRY_PACKS = [
-    {
-        "key": "mfg",
-        "name": "传统制造业",
-        "icon": "🏭",
-        "color": "#254b9c",
-        "scenes": [
-            {"name": "设备报修", "category": "设备管理", "problem": "产线故障报修派工", "pages": "approval+form", "standard": "✓", "agent": "approval"},
-            {"name": "SOP/工艺问答", "category": "知识管理", "problem": "作业指导书检索", "pages": "chat+kb", "standard": "✓", "agent": "chat_qa"},
-            {"name": "生产日报/OEE", "category": "生产管理", "problem": "车间产量稼动率", "pages": "chart", "standard": "部分", "agent": "report"},
-            {"name": "质检审批", "category": "质量管理", "problem": "来料成品质检", "pages": "approval", "standard": "✓", "agent": "approval"},
-            {"name": "物料领用", "category": "物料管理", "problem": "生产领退料", "pages": "approval", "standard": "✓", "agent": "approval"},
-            {"name": "安环隐患上报", "category": "安全管理", "problem": "安全隐患拍照", "pages": "form+approval", "standard": "✓", "agent": "approval"},
-            {"name": "排班/考勤", "category": "人事管理", "problem": "班次查询申诉", "pages": "list+approval", "standard": "✓", "agent": "approval"},
-            {"name": "保养计划提醒", "category": "设备管理", "problem": "设备保养到期", "pages": "notify", "standard": "✓", "agent": "notify"},
-            {"name": "图纸/BOM检索", "category": "知识管理", "problem": "工程文档问答", "pages": "kb", "standard": "✓", "agent": "kb"},
-            {"name": "对接MES/ERP", "category": "系统集成", "problem": "制造系统打通", "pages": "integration", "standard": "定制", "agent": "integration"},
-            {"name": "能耗/碳排统计", "category": "绿色制造", "problem": "绿色制造指标", "pages": "chart", "standard": "部分", "agent": "report"},
-            {"name": "技能培训记录", "category": "人事管理", "problem": "上岗证培训档案", "pages": "list+kb", "standard": "✓", "agent": "kb"},
-        ],
-    },
-    {
-        "key": "sales",
-        "name": "销售行业",
-        "icon": "📈",
-        "color": "#dc2626",
-        "scenes": [
-            {"name": "产品/话术问答", "category": "知识管理", "problem": "产品参数竞品话术", "pages": "chat+kb", "standard": "✓", "agent": "chat_qa"},
-            {"name": "报价/折扣审批", "category": "审批流程", "problem": "超权限折扣", "pages": "approval", "standard": "✓", "agent": "approval"},
-            {"name": "销售漏斗看板", "category": "数据分析", "problem": "线索商机转化", "pages": "chart_funnel", "standard": "部分", "agent": "report"},
-            {"name": "客户跟进记录", "category": "客户管理", "problem": "拜访纪要", "pages": "form+list", "standard": "✓", "agent": "approval"},
-            {"name": "合同审批", "category": "审批流程", "problem": "法务财务会签", "pages": "approval", "standard": "✓", "agent": "approval"},
-            {"name": "商机到期提醒", "category": "消息通知", "problem": "长期未跟进", "pages": "notify", "standard": "✓", "agent": "notify"},
-            {"name": "业绩排行/提成", "category": "数据分析", "problem": "团队PK", "pages": "chart", "standard": "部分", "agent": "report"},
-            {"name": "案例/方案库", "category": "知识管理", "problem": "成功案例检索", "pages": "kb", "standard": "✓", "agent": "kb"},
-            {"name": "样品/礼品申请", "category": "审批流程", "problem": "市场物料领用", "pages": "approval", "standard": "✓", "agent": "approval"},
-            {"name": "对接Salesforce/纷享", "category": "系统集成", "problem": "CRM同步", "pages": "integration", "standard": "定制", "agent": "integration"},
-            {"name": "外勤签到", "category": "客户管理", "problem": "拜访定位", "pages": "form+map", "standard": "部分", "agent": "approval"},
-            {"name": "区域销售分析", "category": "数据分析", "problem": "按区产品线", "pages": "chart", "standard": "✓", "agent": "report"},
-        ],
-    },
-    {
-        "key": "med",
-        "name": "医疗行业",
-        "icon": "🏥",
-        "color": "#059669",
-        "scenes": [
-            {"name": "诊疗指南/药品库", "category": "临床知识", "problem": "临床用药参考", "pages": "kb+chat", "standard": "部分", "agent": "kb"},
-            {"name": "内部制度/合规问答", "category": "合规管理", "problem": "院感质量制度", "pages": "chat", "standard": "✓", "agent": "chat_qa"},
-            {"name": "排班/调班申请", "category": "人事管理", "problem": "医护排班", "pages": "list+approval", "standard": "✓", "agent": "approval"},
-            {"name": "耗材/设备申购", "category": "物资管理", "problem": "科室采购", "pages": "approval", "standard": "✓", "agent": "approval"},
-            {"name": "患者宣教资料", "category": "患者服务", "problem": "出院指导科普", "pages": "kb", "standard": "✓", "agent": "kb"},
-            {"name": "数据脱敏/权限", "category": "数据安全", "problem": "敏感信息保护", "pages": "rbac+mask", "standard": "✓", "agent": "creation"},
-            {"name": "不良事件上报", "category": "医疗安全", "problem": "医疗安全事件", "pages": "form+approval", "standard": "✓", "agent": "approval"},
-            {"name": "科室运营看板", "category": "数据分析", "problem": "门诊量床位", "pages": "chart", "standard": "部分", "agent": "report"},
-            {"name": "继续教育/考核", "category": "培训管理", "problem": "培训题库", "pages": "kb+form", "standard": "✓", "agent": "kb"},
-            {"name": "对接HIS/LIS", "category": "系统集成", "problem": "医院信息系统", "pages": "integration", "standard": "定制", "agent": "integration"},
-            {"name": "智能导诊(对外)", "category": "患者服务", "problem": "患者预问诊", "pages": "chat", "standard": "部分", "agent": "chat_qa"},
-            {"name": "会诊/转诊申请", "category": "临床管理", "problem": "跨科室会诊", "pages": "approval", "standard": "✓", "agent": "approval"},
-        ],
-    },
-    {
-        "key": "game",
-        "name": "游戏行业",
-        "icon": "🎮",
-        "color": "#7c3aed",
-        "scenes": [
-            {"name": "玩家FAQ/攻略", "category": "玩家服务", "problem": "活动规则问答", "pages": "chat", "standard": "✓", "agent": "chat_qa"},
-            {"name": "客服工单", "category": "客服管理", "problem": "玩家问题流转", "pages": "approval+list", "standard": "✓", "agent": "approval"},
-            {"name": "版本/活动规则库", "category": "知识管理", "problem": "策划文档检索", "pages": "kb", "standard": "✓", "agent": "kb"},
-            {"name": "留存/ARPU看板", "category": "数据分析", "problem": "运营数据监控", "pages": "chart", "standard": "部分", "agent": "report"},
-            {"name": "版号/合规审查", "category": "合规管理", "problem": "内容合规自检", "pages": "approval", "standard": "✓", "agent": "approval"},
-            {"name": "活动上线通知", "category": "消息通知", "problem": "开服活动推送", "pages": "notify", "standard": "✓", "agent": "notify"},
-            {"name": "NPC/角色对话(C端)", "category": "C端功能", "problem": "游戏内AI角色", "pages": "chat", "standard": "✓", "agent": "chat_qa"},
-            {"name": "外包验收审批", "category": "审批流程", "problem": "美术音效验收", "pages": "approval", "standard": "✓", "agent": "approval"},
-            {"name": "渠道投放分析", "category": "数据分析", "problem": "CAC/ROI", "pages": "chart", "standard": "部分", "agent": "report"},
-            {"name": "对接游戏后台", "category": "系统集成", "problem": "GM/数据中台", "pages": "integration", "standard": "定制", "agent": "integration"},
-            {"name": "敏感词/内容风控", "category": "安全合规", "problem": "UGC过滤", "pages": "security", "standard": "✓", "agent": "creation"},
-            {"name": "内购/订阅(C端)", "category": "C端功能", "problem": "会员道具付费", "pages": "C端", "standard": "部分", "agent": "—"},
-            {"name": "公会/社区管理", "category": "社区管理", "problem": "公告举报处理", "pages": "list+approval", "standard": "✓", "agent": "approval"},
-        ],
-    },
-]
-
 
 def build_office_scenarios() -> list[dict]:
     scenarios = []
@@ -457,7 +377,7 @@ def build_industry_scenarios() -> list[dict]:
     scenarios = []
     idx = 1
     for pack in INDUSTRY_PACKS:
-        for scene in pack["scenes"]:
+        for scene in pack.get("scenes") or []:
             scenarios.append(
                 {
                     "id": f"industry-{idx:03d}",

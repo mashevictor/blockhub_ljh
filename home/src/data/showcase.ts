@@ -16,7 +16,6 @@ export interface IndustryItem {
   desc: string
   color: string
   fullPack?: boolean
-  baseKey?: string
 }
 
 export interface PlatformItem {
@@ -42,26 +41,26 @@ export const CAPABILITIES_SHOWCASE: CapabilityItem[] = [
 ]
 
 export const INDUSTRIES_SHOWCASE: IndustryItem[] = [
-  { key: 'office', name: '通用办公', iconKey: 'office', count: 96, desc: '人事、财务、审批、知识库', color: '#6366f1', fullPack: true },
+  { key: 'office', name: '通用办公', iconKey: 'office', count: 66, desc: '人事、财务、审批、知识库', color: '#6366f1', fullPack: true },
   { key: 'mfg', name: '传统制造', iconKey: 'mfg', count: 12, desc: '报修、SOP、质检、MES', color: '#3b82f6', fullPack: true },
   { key: 'sales', name: '销售行业', iconKey: 'sales', count: 12, desc: '话术、漏斗、合同、CRM', color: '#ef4444', fullPack: true },
   { key: 'med', name: '医疗健康', iconKey: 'med', count: 12, desc: '指南、排班、导诊、HIS', color: '#10b981', fullPack: true },
   { key: 'game', name: '游戏娱乐', iconKey: 'game', count: 13, desc: '玩家 FAQ、客服、活动通知', color: '#a855f7', fullPack: true },
-  { key: 'retail', name: '零售电商', iconKey: 'retail', count: 10, desc: '库存、会员、促销、订单', color: '#f97316', baseKey: 'sales' },
-  { key: 'edu', name: '教育培训', iconKey: 'edu', count: 9, desc: '课程、题库、排课、家校', color: '#2563eb', baseKey: 'office' },
-  { key: 'finance', name: '金融服务', iconKey: 'finance', count: 11, desc: '合规、风控、理财、尽调', color: '#0284c7', baseKey: 'office' },
-  { key: 'logistics', name: '物流仓储', iconKey: 'logistics', count: 10, desc: '运单、仓储、调度、签收', color: '#ca8a04', baseKey: 'mfg' },
-  { key: 'realestate', name: '房地产', iconKey: 'realestate', count: 9, desc: '看房、签约、物业、报修', color: '#78716c', baseKey: 'sales' },
-  { key: 'hotel', name: '酒店餐饮', iconKey: 'hotel', count: 8, desc: '预订、排班、客诉、巡检', color: '#ec4899', baseKey: 'office' },
-  { key: 'energy', name: '能源电力', iconKey: 'energy', count: 10, desc: '巡检、工单、能耗、安全', color: '#eab308', baseKey: 'mfg' },
-  { key: 'gov', name: '政务公用', iconKey: 'gov', count: 11, desc: '办事指南、诉求、审批', color: '#475569', baseKey: 'office' },
-  { key: 'legal', name: '法律服务', iconKey: 'legal', count: 8, desc: '案件、合同、法规检索', color: '#334155', baseKey: 'office' },
-  { key: 'hr', name: '人力资源', iconKey: 'hr', count: 12, desc: '招聘、绩效、培训、薪酬', color: '#8b5cf6', baseKey: 'office' },
-  { key: 'marketing', name: '市场营销', iconKey: 'marketing', count: 9, desc: '活动、线索、内容、投放', color: '#fb923c', baseKey: 'sales' },
-  { key: 'construction', name: '建筑工程', iconKey: 'construction', count: 10, desc: '进度、安全、材料、验收', color: '#b45309', baseKey: 'mfg' },
-  { key: 'agriculture', name: '农业', iconKey: 'agriculture', count: 7, desc: '溯源、巡检、补贴、产销', color: '#65a30d', baseKey: 'office' },
-  { key: 'media', name: '传媒内容', iconKey: 'media', count: 9, desc: '选题、审核、版权、分发', color: '#d946ef', baseKey: 'game' },
-  { key: 'auto', name: '汽车交通', iconKey: 'auto', count: 10, desc: '售后、试驾、配件、工单', color: '#06b6d4', baseKey: 'sales' },
+  { key: 'retail', name: '零售电商', iconKey: 'retail', count: 10, desc: '库存、会员、促销、订单', color: '#f97316', fullPack: true },
+  { key: 'edu', name: '教育培训', iconKey: 'edu', count: 9, desc: '课程、题库、排课、家校', color: '#2563eb', fullPack: true },
+  { key: 'finance', name: '金融服务', iconKey: 'finance', count: 11, desc: '合规、风控、理财、尽调', color: '#0284c7', fullPack: true },
+  { key: 'logistics', name: '物流仓储', iconKey: 'logistics', count: 10, desc: '运单、仓储、调度、签收', color: '#ca8a04', fullPack: true },
+  { key: 'realestate', name: '房地产', iconKey: 'realestate', count: 9, desc: '看房、签约、物业、报修', color: '#78716c', fullPack: true },
+  { key: 'hotel', name: '酒店餐饮', iconKey: 'hotel', count: 8, desc: '预订、排班、客诉、巡检', color: '#ec4899', fullPack: true },
+  { key: 'energy', name: '能源电力', iconKey: 'energy', count: 10, desc: '巡检、工单、能耗、安全', color: '#eab308', fullPack: true },
+  { key: 'gov', name: '政务公用', iconKey: 'gov', count: 11, desc: '办事指南、诉求、审批', color: '#475569', fullPack: true },
+  { key: 'legal', name: '法律服务', iconKey: 'legal', count: 8, desc: '案件、合同、法规检索', color: '#334155', fullPack: true },
+  { key: 'hr', name: '人力资源', iconKey: 'hr', count: 12, desc: '招聘、绩效、培训、薪酬', color: '#8b5cf6', fullPack: true },
+  { key: 'marketing', name: '市场营销', iconKey: 'marketing', count: 9, desc: '活动、线索、内容、投放', color: '#fb923c', fullPack: true },
+  { key: 'construction', name: '建筑工程', iconKey: 'construction', count: 10, desc: '进度、安全、材料、验收', color: '#b45309', fullPack: true },
+  { key: 'agriculture', name: '农业', iconKey: 'agriculture', count: 7, desc: '溯源、巡检、补贴、产销', color: '#65a30d', fullPack: true },
+  { key: 'media', name: '传媒内容', iconKey: 'media', count: 9, desc: '选题、审核、版权、分发', color: '#d946ef', fullPack: true },
+  { key: 'auto', name: '汽车交通', iconKey: 'auto', count: 10, desc: '售后、试驾、配件、工单', color: '#06b6d4', fullPack: true },
 ]
 
 export const PLATFORMS_SHOWCASE: PlatformItem[] = [
@@ -91,12 +90,11 @@ export const OFFICE_CATEGORY_ICON: Record<string, string> = {
   '外部对接': 'integration',
 }
 
-export const API_INDUSTRY_KEYS = new Set(['office', 'mfg', 'sales', 'med', 'game'])
+export const API_INDUSTRY_KEYS = new Set(INDUSTRIES_SHOWCASE.map((i) => i.key))
 
 export function resolveIndustryApiKey(key: string): string {
   if (API_INDUSTRY_KEYS.has(key)) return key
-  const ind = INDUSTRIES_SHOWCASE.find((i) => i.key === key)
-  return ind?.baseKey && API_INDUSTRY_KEYS.has(ind.baseKey) ? ind.baseKey : 'office'
+  return 'office'
 }
 
 export function resolveCategoryIcon(category: string, kind: 'office' | 'industry'): string {

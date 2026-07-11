@@ -5,6 +5,7 @@ export type AgentPick =
   | { type: 'capability'; key: string; label: string }
   | { type: 'module'; key: string; label: string }
   | { type: 'scenario'; key: string; label: string }
+  | { type: 'supplement'; key: string; label: string }
 
 /** 输入框内模块 chip：一次 `>>` 选择对应一条 */
 export interface PromptModule {
@@ -99,6 +100,42 @@ export function resolveInputState(
   return { mode: 'free', ctx, panelOpen: false }
 }
 
+export function normalizeChevronInput(text: string, cursor: number): { text: string; cursor: number } {
+  if (!text) return { text, cursor }
+
+  let out = ''
+  let newCursor = cursor
+
+  for (let i = 0; i < text.length; i += 1) {
+    const ch = text[i]
+    const next = text[i + 1]
+    const prev = out[out.length - 1]
+
+    if (ch === '》' && next === '》') {
+      out += TRIGGER_TOKEN
+      if (cursor > i + 1) newCursor = out.length
+      else if (cursor > i) newCursor = out.length - 1
+      i += 1
+      continue
+    }
+
+    const isChev = ch === '》' || ch === '>'
+    if (isChev && next !== '>' && next !== '》' && prev !== '>') {
+      const atBoundary = out.length === 0 || TOKEN_BOUNDARY.test(prev)
+      if (atBoundary) {
+        out += TRIGGER_TOKEN
+        if (cursor > i) newCursor += 1
+        continue
+      }
+    }
+
+    out += ch
+    if (cursor === i + 1) newCursor = out.length
+  }
+
+  return { text: out, cursor: Math.min(Math.max(0, newCursor), out.length) }
+}
+
 export function normalizeSpaces(text: string): string {
   return text.replace(/\s{2,}/g, ' ').replace(/^\s+/, '')
 }
@@ -137,7 +174,7 @@ export function resolvePanelHint(
 
 export const PANEL_HINT_TEXT: Record<PanelHint, string> = {
   guide: '可多选模块 · 选完后 Esc 或直接输入描述',
-  browse: '点击光球多选 · ↑↓ Enter 添加 · Esc 完成编排',
+  browse: '点上方光球多选 · 选完点「完成选模块」',
   filtering: '继续筛选 · 点击或 Enter 添加 · Esc 完成',
   empty: '无匹配，Esc 关闭选模块',
   free: '自由描述中；需要模块时在空格后输入 >>',

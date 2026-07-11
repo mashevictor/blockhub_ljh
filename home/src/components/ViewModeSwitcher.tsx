@@ -37,7 +37,7 @@ export default function ViewModeSwitcher({ value, onChange }: Props) {
             onClick={() => onChange(m.id)}
           >
             <span className="view-mode-icon">
-              <ModeIcon size={15} />
+              <ModeIcon size={18} />
             </span>
             <span className="view-mode-label">{m.label}</span>
             {m.badge && <em className="view-mode-badge">{m.badge}</em>}

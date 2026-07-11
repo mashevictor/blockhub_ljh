@@ -5,7 +5,18 @@ import RedirectToAdminLogin from './components/RedirectToAdminLogin'
 import PlazaLayout from './pages/plaza/PlazaLayout'
 import PlazaFeedPage from './pages/plaza/PlazaFeedPage'
 import PlazaMyAppsPage from './pages/plaza/PlazaMyAppsPage'
+import IndustryDetailPage from './pages/IndustryDetailPage'
+import IndustrySitesIndexPage from './pages/IndustrySitesIndexPage'
+import SharePackPage from './pages/SharePackPage'
+import ShareShortRedirect from './pages/ShareShortRedirect'
 import ShanghaiVoicePage from './pages/ShanghaiVoicePage'
+import TrustCenterPage from './pages/enrichment/TrustCenterPage'
+import CasesIndexPage from './pages/enrichment/CasesIndexPage'
+import CaseDetailPage from './pages/enrichment/CaseDetailPage'
+import PricingPage from './pages/enrichment/PricingPage'
+import NewsIndexPage from './pages/enrichment/NewsIndexPage'
+import NewsDetailPage from './pages/enrichment/NewsDetailPage'
+import RolePage from './pages/enrichment/RolePage'
 import { ROUTES } from './routes/paths'
 
 export default function App() {
@@ -17,9 +28,60 @@ export default function App() {
         <Route index element={<PlazaFeedPage />} />
         <Route path="my" element={<PlazaMyAppsPage />} />
       </Route>
+      <Route path={ROUTES.industryHub} element={
+        <ErrorBoundary fallbackTitle="行业方案站加载失败">
+          <IndustrySitesIndexPage />
+        </ErrorBoundary>
+      } />
+      <Route path="/industry/:key" element={
+        <ErrorBoundary fallbackTitle="行业详情页加载失败">
+          <IndustryDetailPage />
+        </ErrorBoundary>
+      } />
       <Route path={ROUTES.shanghaiVoice} element={
         <ErrorBoundary fallbackTitle="上海话语音页加载失败">
           <ShanghaiVoicePage />
+        </ErrorBoundary>
+      } />
+      <Route path="/share/:token" element={
+        <ErrorBoundary fallbackTitle="资料包加载失败">
+          <SharePackPage />
+        </ErrorBoundary>
+      } />
+      <Route path="/s/:token" element={<ShareShortRedirect />} />
+      <Route path={ROUTES.trust} element={
+        <ErrorBoundary fallbackTitle="信任中心加载失败">
+          <TrustCenterPage />
+        </ErrorBoundary>
+      } />
+      <Route path={ROUTES.cases} element={
+        <ErrorBoundary fallbackTitle="案例页加载失败">
+          <CasesIndexPage />
+        </ErrorBoundary>
+      } />
+      <Route path="/cases/:slug" element={
+        <ErrorBoundary fallbackTitle="案例详情加载失败">
+          <CaseDetailPage />
+        </ErrorBoundary>
+      } />
+      <Route path={ROUTES.pricing} element={
+        <ErrorBoundary fallbackTitle="定价页加载失败">
+          <PricingPage />
+        </ErrorBoundary>
+      } />
+      <Route path={ROUTES.news} element={
+        <ErrorBoundary fallbackTitle="新闻页加载失败">
+          <NewsIndexPage />
+        </ErrorBoundary>
+      } />
+      <Route path="/news/:slug" element={
+        <ErrorBoundary fallbackTitle="新闻详情加载失败">
+          <NewsDetailPage />
+        </ErrorBoundary>
+      } />
+      <Route path="/for/:role" element={
+        <ErrorBoundary fallbackTitle="角色页加载失败">
+          <RolePage />
         </ErrorBoundary>
       } />
       <Route path="/" element={<HomeApp />} />

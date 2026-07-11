@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type CSSProperties } from 'react'
+import { Link } from 'react-router-dom'
 import { fetchScenarios, publishApp } from '../api/client'
 import { publishApiToResult } from '../api/publishHelpers'
 import { runLoadingPublishPipeline } from '../lib/publishFlow'
@@ -9,12 +10,14 @@ import { DynamicIcon } from '../components/icons'
 import { useTheme } from '../context/ThemeContext'
 import { categoryColor, industryColor, iconWrapStyle } from '../data/iconPalette'
 import { resolveCategoryIcon, resolveIndustryApiKey } from '../data/showcase'
+import { ROUTES } from '../routes/paths'
 import { buildPublishedModulesFromIndustry } from '../data/publishDisplay'
 import ContactGateModal, { type ContactInfo } from '../components/ContactGateModal'
 import GenerateLoadingOverlay from '../components/GenerateLoadingOverlay'
 import AppBrandingFields from '../components/AppBrandingFields'
 import { emptyBranding, resolveAppName } from '../data/appBranding'
 import SelectionBox, { type SelectionItem } from '../components/SelectionBox'
+import { ChevronDotLoadingRow } from '../components/ChevronDotLoader'
 
 interface SceneItem {
   id: string
@@ -25,11 +28,12 @@ interface SceneItem {
 interface Props {
   onPublish: (r: PublishResult) => void
   active?: boolean
+  initialIndustry?: string
 }
 
-export default function IndustryView({ onPublish, active = true }: Props) {
+export default function IndustryView({ onPublish, active = true, initialIndustry }: Props) {
   const { theme } = useTheme()
-  const [industry, setIndustry] = useState('office')
+  const [industry, setIndustry] = useState(initialIndustry ?? 'office')
   const [step, setStep] = useState(1)
   const [audience, setAudience] = useState<Audience>('b')
   const [scenes, setScenes] = useState<SceneItem[]>([])
@@ -66,6 +70,10 @@ export default function IndustryView({ onPublish, active = true }: Props) {
       })
       .finally(() => setScenesLoading(false))
   }
+
+  useEffect(() => {
+    if (initialIndustry) setIndustry(initialIndustry)
+  }, [initialIndustry])
 
   useEffect(() => {
     if (!active) return
@@ -171,7 +179,7 @@ export default function IndustryView({ onPublish, active = true }: Props) {
     <div className="view industry-view">
       <div className="view-hero compact cube-panel">
         <h2>选择您的行业</h2>
-        <p>共 <strong>{INDUSTRIES.length}</strong> 个行业模板 · 5 个深度场景包 + 15 个快速模板 · 您可再按需增减</p>
+        <p>共 <strong>{INDUSTRIES.length}</strong> 个行业深度包 · 每项含完整场景清单 · 您可再按需增减</p>
       </div>
 
       <div className="step-bar">
@@ -196,16 +204,19 @@ export default function IndustryView({ onPublish, active = true }: Props) {
                 onClick={() => setIndustry(p.key)}
               >
                 <span className="ind-count">{p.count} 场景</span>
-                {p.fullPack ? (
-                  <span className="ind-full">深度包</span>
-                ) : (
-                  <span className="ind-template">模板</span>
-                )}
+                <span className="ind-full">深度包</span>
                 <div className="ind-icon icon-themed" style={iconWrapStyle(ic)}>
                   <DynamicIcon name={p.iconKey} size={28} color={ic} />
                 </div>
                 <strong>{p.name}</strong>
                 <span>{p.desc}</span>
+                <Link
+                  to={ROUTES.industryDetail(p.key)}
+                  className="ind-detail-link"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  进入独立站
+                </Link>
               </button>
               )
             })}
@@ -216,7 +227,9 @@ export default function IndustryView({ onPublish, active = true }: Props) {
 
       {step === 2 && (
         <>
-          {scenesLoading && <p className="catalog-loading">正在加载场景…</p>}
+          {scenesLoading && (
+            <ChevronDotLoadingRow variant="scan" size="sm" text="正在加载场景…" className="catalog-loading" />
+          )}
           {sceneError && (
             <div className="catalog-error">
               <p>{sceneError}</p>

@@ -220,17 +220,23 @@ def get_capabilities(db: Session = Depends(get_db)) -> dict:
 
 
 @router.post("/suggest-modules")
-def suggest_modules_api(body: SuggestModulesRequest) -> dict:
+def suggest_modules_api(
+    body: SuggestModulesRequest,
+    db: Session = Depends(get_db),
+) -> dict:
     text = (body.text or "").strip()
     if len(text) < 2:
         return {
             "items": [],
             "confidence": 0.0,
             "used_llm": False,
+            "agent": "",
             "supplemented": [],
+            "registered": {"industries": [], "capabilities": [], "scenes": []},
+            "validation": None,
             "top_score": 0.0,
         }
-    return suggest_modules(text, force_llm=body.force_llm)
+    return suggest_modules(text, force_llm=body.force_llm, db=db)
 
 
 @router.post("/flow-module-apis")

@@ -13,7 +13,7 @@ from app.services.teleai_asr import TeleAsrClient
 from app.services.teleai_auth import build_authorization, teleai_configured, ws_url
 from app.services.teleai_tts import TeleTtsClient
 from app.services.voice_demo import SHANGHAI_DEMO_SAMPLES, SHANGHAI_GREETING, pick_shanghai_fallback
-from app.services.voice_orchestrator import build_shanghai_messages, stream_sentences
+from app.services.voice_orchestrator import build_shanghai_messages, iter_llm_stream
 from app.services.llm_gateway import llm_configured
 from app.services.voice_prompts import DEFAULT_HOTWORDS
 
@@ -174,24 +174,41 @@ async def shanghai_voice_agent(ws: WebSocket, session_id: str = "default") -> No
         llm_task = None
 
     async def speak_reply(sentence: str) -> None:
+        text = sentence.strip()
+        if not text:
+            return
         await set_state(SessionState.SPEAKING)
-        try:
-            async for chunk in tts.synthesize_stream(sentence):
-                if state == SessionState.LISTENING:
+        got_audio = False
+        for attempt in range(2):
+            try:
+                async for chunk in tts.synthesize_stream(text):
+                    if state == SessionState.LISTENING:
+                        return
+                    if chunk.audio_b64:
+                        got_audio = True
+                        await ws.send_json({
+                            "type": "tts_audio",
+                            "data": chunk.audio_b64,
+                            "is_end": chunk.is_end,
+                        })
+                    if chunk.is_end:
+                        if not chunk.audio_b64:
+                            await ws.send_json({"type": "tts_audio", "data": "", "is_end": True})
+                        return
+                if got_audio:
+                    await ws.send_json({"type": "tts_audio", "data": "", "is_end": True})
                     return
-                if chunk.audio_b64:
+            except Exception as exc:
+                logger.warning("TTS attempt %s failed for %r: %s", attempt + 1, text[:40], exc)
+                if attempt >= 1:
                     await ws.send_json({
-                        "type": "tts_audio",
-                        "data": chunk.audio_b64,
-                        "is_end": chunk.is_end,
+                        "type": "error",
+                        "code": "TTS",
+                        "message": "语音合成暂不可用，已显示文字回复",
                     })
-        except Exception as exc:
-            logger.warning("TTS chunk failed for sentence: %s", exc)
-            await ws.send_json({
-                "type": "error",
-                "code": "TTS",
-                "message": "语音合成暂不可用，已显示文字回复",
-            })
+                    await ws.send_json({"type": "tts_audio", "data": "", "is_end": True})
+                    return
+                await asyncio.sleep(0.35)
 
     async def run_llm_and_tts(user_text: str) -> None:
         await set_state(SessionState.THINKING)
@@ -206,24 +223,25 @@ async def shanghai_voice_agent(ws: WebSocket, session_id: str = "default") -> No
                 await ws.send_json({"type": "llm_delta", "text": reply})
                 await speak_reply(reply)
             else:
-                async for sentence in stream_sentences(messages):
+                for event in iter_llm_stream(messages):
                     if state == SessionState.LISTENING:
                         return
-                    reply_parts.append(sentence)
-                    await ws.send_json({"type": "llm_delta", "text": sentence})
-                    await speak_reply(sentence)
+                    if event.delta:
+                        await ws.send_json({"type": "llm_delta", "text": event.delta})
+                    if event.sentence:
+                        reply_parts.append(event.sentence)
+                        await speak_reply(event.sentence)
         except asyncio.CancelledError:
             raise
         except Exception as exc:
             logger.exception("LLM/TTS pipeline failed")
             msg = str(exc)
-            # TTS 在电信网关被按 AppID 拒权(1002)或返回非 10000 时，给出可读提示，
-            # 文字回复已经通过 llm_delta 展示，不阻断对话。
             if "tts" in msg.lower() or "1002" in msg or "10000" in msg:
                 user_msg = "语音合成(TTS)暂不可用，已为你显示文字回复（待开通 TTS 能力）。"
             else:
                 user_msg = f"语音处理出错：{msg}"
             await ws.send_json({"type": "error", "code": "PIPELINE", "message": user_msg})
+            await ws.send_json({"type": "tts_audio", "data": "", "is_end": True})
             return
 
         if reply_parts:
@@ -328,6 +346,12 @@ async def shanghai_voice_agent(ws: WebSocket, session_id: str = "default") -> No
                 await speak_reply(SHANGHAI_GREETING)
             except Exception as exc:
                 logger.warning("Welcome TTS failed: %s", exc)
+                await ws.send_json({
+                    "type": "error",
+                    "code": "TTS",
+                    "message": "欢迎语语音播报失败，文字已显示",
+                })
+                await ws.send_json({"type": "tts_audio", "data": "", "is_end": True})
             if state != SessionState.LISTENING:
                 await set_state(SessionState.IDLE)
 

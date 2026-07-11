@@ -20,6 +20,8 @@ export interface AgentContextCopy {
   /** >> 按钮内短标签 */
   chevLabel: string
   placeholder: string
+  /** 折叠胶囊态占位（左侧已有 >>，文案更短） */
+  placeholderCollapsed?: string
   ghost: string
 }
 
@@ -27,6 +29,7 @@ export const AGENT_CONTEXTS: Record<AgentContextKey, AgentContextCopy> = {
   landing_hero: {
     chevLabel: '',
     placeholder: '描述需求，或 >> 开始智能交互',
+    placeholderCollapsed: '描述需求，或输入>>开始智能交互',
     ghost: '描述需求，或 >> 开始智能交互…',
   },
   landing_product: {
@@ -72,6 +75,7 @@ export const AGENT_CONTEXTS: Record<AgentContextKey, AgentContextCopy> = {
   create_prompt: {
     chevLabel: '',
     placeholder: '描述需求，或 >> 开始智能交互',
+    placeholderCollapsed: '描述需求，或输入>>开始智能交互',
     ghost: '描述需求，或 >> 开始智能交互…',
   },
   create_industry: {

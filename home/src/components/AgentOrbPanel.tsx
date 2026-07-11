@@ -30,13 +30,28 @@ interface Props {
   foot: string
   theme: ThemeTokens
   size?: 'default' | 'large'
+  /** 显示「完成选模块」按钮（悬浮框 minimal 模式） */
+  showDone?: boolean
+  selectedCount?: number
+  onDone?: () => void
 }
 
-export default function AgentOrbPanel({ sections, mode, query, count, foot, theme, size = 'default' }: Props) {
+export default function AgentOrbPanel({
+  sections,
+  mode,
+  query,
+  count,
+  foot,
+  theme,
+  size = 'default',
+  showDone = false,
+  selectedCount = 0,
+  onDone,
+}: Props) {
   const empty = count === 0
   const large = size === 'large'
-  const iconSize = large ? 28 : 20
-  const labelMax = large ? 8 : 6
+  const iconSize = large ? 22 : 20
+  const labelMax = large ? 10 : 6
 
   return (
     <div className={`agent-orb-panel${large ? ' agent-orb-panel-large' : ''}`} role="listbox" aria-label="可用模块">
@@ -98,7 +113,14 @@ export default function AgentOrbPanel({ sections, mode, query, count, foot, them
         )}
       </div>
 
-      <footer className="agent-orb-foot">{foot}</footer>
+      <footer className="agent-orb-foot">
+        <span className="agent-orb-foot-hint">{foot}</span>
+        {showDone && onDone ? (
+          <button type="button" className="agent-orb-done-btn" onClick={onDone}>
+            完成选模块{selectedCount > 0 ? ` · ${selectedCount} 项` : ''}
+          </button>
+        ) : null}
+      </footer>
     </div>
   )
 }

@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>B端 AI 智能体订单闭环 · 问题说明与 Agent 原生 Visio 流程</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+  <style>
+    :root {
+      --bg: #eef2f7;
+      --surface: #fff;
+      --border: #c5d4e8;
+      --pri: #1e4d8c;
+      --pri-light: #dce8f8;
+      --accent: #2563eb;
+      --text: #1a202c;
+      --muted: #5a6578;
+      --ok: #047857;
+      --warn: #b45309;
+      --danger: #b91c1c;
+      --sans: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--sans); background: var(--bg); color: var(--text); line-height: 1.65; font-size: 14px; }
+    .page { max-width: 1320px; margin: 0 auto; padding: 28px 20px 80px; }
+
+    header {
+      background: linear-gradient(135deg, #0f3460 0%, #1e4d8c 40%, #2563eb 100%);
+      color: #fff; border-radius: 16px; padding: 32px 36px; margin-bottom: 22px;
+      box-shadow: 0 8px 32px rgba(15, 52, 96, 0.3);
+    }
+    header h1 { font-size: 26px; font-weight: 800; margin-bottom: 10px; }
+    header .subtitle { font-size: 15px; opacity: 0.92; max-width: 920px; }
+    header .thesis {
+      margin-top: 16px; padding: 14px 18px; background: rgba(255,255,255,0.12);
+      border-radius: 10px; border-left: 4px solid #93c5fd; font-size: 14px; font-weight: 600;
+    }
+    .meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+    .pill {
+      font-size: 11px; font-weight: 700; padding: 5px 12px; border-radius: 999px;
+      background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.28);
+    }
+
+    nav.toc {
+      position: sticky; top: 10px; z-index: 10; background: var(--surface);
+      border: 1px solid var(--border); border-radius: 12px; padding: 12px 18px;
+      margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+    nav.toc a { color: var(--pri); text-decoration: none; font-weight: 600; }
+    nav.toc a:hover { color: var(--accent); text-decoration: underline; }
+
+    section {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+      padding: 26px 28px; margin-bottom: 18px; box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    }
+    section > h2 {
+      font-size: 18px; font-weight: 800; color: var(--pri); margin-bottom: 8px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    section > h2 .tag {
+      font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 6px;
+      text-transform: uppercase; letter-spacing: 0.04em;
+    }
+    .tag-problem { background: #fee2e2; color: var(--danger); }
+    .tag-fix { background: #dcfce7; color: var(--ok); }
+    .tag-flow { background: var(--pri-light); color: var(--pri); }
+    .lead { color: var(--muted); font-size: 13px; margin-bottom: 16px; }
+
+    /* 四重误判卡片 */
+    .critique-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-top: 8px;
+    }
+    .critique-card {
+      border: 1px solid var(--border); border-radius: 12px; overflow: hidden;
+    }
+    .critique-card .head {
+      padding: 12px 16px; font-weight: 800; font-size: 14px;
+    }
+    .critique-card:nth-child(1) .head { background: #fef2f2; color: #991b1b; }
+    .critique-card:nth-child(2) .head { background: #fff7ed; color: #9a3412; }
+    .critique-card:nth-child(3) .head { background: #fefce8; color: #854d0e; }
+    .critique-card:nth-child(4) .head { background: #fdf2f8; color: #9d174d; }
+    .critique-card .body { padding: 14px 16px; font-size: 13px; }
+    .critique-card .wrong { color: var(--danger); font-weight: 600; margin-bottom: 6px; }
+    .critique-card .right { color: var(--ok); font-weight: 600; margin-top: 10px; }
+    .critique-card ul { margin: 8px 0 0 18px; color: var(--muted); }
+    .critique-card li { margin-bottom: 4px; }
+
+    /* 对比表 */
+    table { width: 100%; border-collapse: collapse; font-size: 12px; margin: 12px 0; }
+    th, td { border: 1px solid #e2e8f0; padding: 10px 12px; text-align: left; vertical-align: top; }
+    th { background: #f8fafc; color: var(--pri); font-weight: 700; }
+    tr:nth-child(even) td { background: #fafbfc; }
+    .col-bad { color: var(--danger); }
+    .col-good { color: var(--ok); font-weight: 600; }
+
+    /* Visio 画布 */
+    .visio-canvas {
+      background: #f8fafc; border: 2px solid #b8cce4; border-radius: 10px;
+      padding: 40px 16px 24px; overflow: auto; margin: 14px 0; position: relative;
+      cursor: zoom-in; transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .visio-canvas:hover { border-color: #2563eb; box-shadow: 0 4px 20px rgba(37,99,235,0.12); }
+    .visio-canvas::after {
+      content: "点击放大查看"; position: absolute; top: 10px; right: 12px;
+      font-size: 11px; font-weight: 700; color: #2563eb; background: #eff6ff;
+      border: 1px solid #93c5fd; border-radius: 999px; padding: 4px 12px; pointer-events: none;
+    }
+    .visio-canvas::before {
+      content: attr(data-label); position: absolute; top: 10px; left: 12px;
+      font-size: 10px; font-weight: 700; color: #64748b; letter-spacing: 0.05em;
+    }
+    .visio-canvas.wide .mermaid { min-width: 1400px; }
+    .visio-canvas.tall .mermaid { min-width: 700px; }
+    .mermaid { display: flex; justify-content: center; }
+    .mermaid svg { max-width: none !important; height: auto !important; }
+
+    .visio-canvas svg foreignObject div,
+    .visio-canvas svg foreignObject span,
+    .visio-canvas svg foreignObject p {
+      font-size: 15px !important; line-height: 1.45 !important; font-weight: 600 !important;
+    }
+
+    /* 四座山 */
+    .mountains {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 16px 0;
+    }
+    .mountain {
+      text-align: center; padding: 16px 10px; border-radius: 12px; border: 1px solid var(--border);
+      background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
+    }
+    .mountain .pct { font-size: 28px; font-weight: 800; color: var(--danger); }
+    .mountain .name { font-size: 13px; font-weight: 800; color: var(--pri); margin: 6px 0; }
+    .mountain .agent { font-size: 11px; color: var(--ok); font-weight: 700; margin-top: 8px; }
+    .mountain .quote { font-size: 11px; color: var(--muted); margin-top: 6px; line-height: 1.4; }
+
+    .callout {
+      border-radius: 10px; padding: 14px 18px; margin: 14px 0; font-size: 13px;
+      border-left: 4px solid var(--accent); background: #eff6ff;
+    }
+    .callout strong { color: var(--pri); }
+
+    .artifact-list {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 12px;
+    }
+    .artifact {
+      padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px;
+      font-size: 12px; background: #fafbfc;
+    }
+    .artifact .agent-name { font-weight: 800; color: var(--accent); font-size: 11px; margin-bottom: 4px; }
+
+    footer {
+      text-align: center; color: var(--muted); font-size: 12px;
+      margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border);
+    }
+
+    /* Lightbox */
+    .lightbox { position: fixed; inset: 0; z-index: 9999; display: none; align-items: center; justify-content: center; }
+    .lightbox.open { display: flex; }
+    .lightbox-backdrop { position: absolute; inset: 0; background: rgba(15,23,42,0.75); backdrop-filter: blur(4px); }
+    .lightbox-panel {
+      position: relative; z-index: 1; width: min(96vw, 1500px); height: min(92vh, 920px);
+      background: #fff; border-radius: 14px; box-shadow: 0 24px 80px rgba(0,0,0,0.35);
+      display: flex; flex-direction: column; overflow: hidden;
+    }
+    .lightbox-toolbar {
+      flex-shrink: 0; display: flex; align-items: center; gap: 12px;
+      padding: 12px 16px; background: #f8fafc; border-bottom: 1px solid #dbeafe;
+    }
+    .lightbox-title { flex: 1; font-size: 15px; font-weight: 800; color: var(--pri); }
+    .lightbox-zoom { display: flex; align-items: center; gap: 6px; }
+    .lightbox-zoom button {
+      width: 32px; height: 32px; border: 1px solid #c5d4e8; background: #fff;
+      border-radius: 8px; font-size: 18px; font-weight: 700; color: var(--pri); cursor: pointer;
+    }
+    .lightbox-zoom .zoom-label { min-width: 52px; text-align: center; font-size: 13px; font-weight: 700; color: var(--muted); }
+    .lightbox-close {
+      width: 36px; height: 36px; border: none; background: #fee2e2; color: #b91c1c;
+      border-radius: 8px; font-size: 22px; font-weight: 700; cursor: pointer;
+    }
+    .lightbox-body { flex: 1; overflow: auto; background: #f1f5f9; padding: 24px; }
+    .lightbox-stage { transform-origin: top left; transition: transform 0.15s ease; display: inline-block; }
+    .lightbox-stage svg { display: block; max-width: none !important; }
+    .lightbox-stage foreignObject div,
+    .lightbox-stage foreignObject span { font-size: 18px !important; font-weight: 600 !important; line-height: 1.5 !important; }
+    .lightbox-hint { flex-shrink: 0; padding: 8px 16px; font-size: 12px; color: var(--muted); background: #f8fafc; border-top: 1px solid #e2e8f0; text-align: center; }
+
+    @media (max-width: 900px) {
+      .critique-grid, .mountains, .artifact-list { grid-template-columns: 1fr; }
+      header h1 { font-size: 22px; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <h1>B端 AI 智能体 · 订单闭环问题说明与 Agent 原生 Visio 流程</h1>
+    <p class="subtitle">原「线性 13 步 + 千人千面」不符合真实 B2B 采购；本文用 Gartner 六 Buying Jobs、真实卡单数据、800 人制造案例，给出可落地的 Agent 原生全流程。</p>
+    <div class="thesis">核心主张：采购即 Demo —— 客户采购 BlockHub 的过程，本身就是 Multi-Agent 编排的缩影；committee 每人跟不同 Specialist Agent 完成 Buying Job，而非逛换皮首页。</div>
+    <div class="meta">
+      <span class="pill">四重误判</span>
+      <span class="pill">6 张 Visio 流程图</span>
+      <span class="pill">非线性回环</span>
+      <span class="pill">28 周真实案例</span>
+    </div>
+  </header>
+
+  <nav class="toc">
+    <a href="#critique">四重误判</a>
+    <a href="#compare">话术对照</a>
+    <a href="#fig-old">图1 旧版线性</a>
+    <a href="#fig-jobs">图2 六 Jobs 回环</a>
+    <a href="#fig-agents">图3 七 Agent 编排</a>
+    <a href="#fig-stalls">图4 四座山卡点</a>
+    <a href="#fig-case">图5 真实案例 28 周</a>
+    <a href="#fig-committee">图6 Committee Link</a>
+    <a href="#artifacts">Agent 工件</a>
+  </nav>
+
+  <!-- 四重误判 -->
+  <section id="critique">
+    <h2><span class="tag tag-problem">问题</span> 原 Visio 流程的四重误判（AI 智能体品类下更严重）</h2>
+    <p class="lead">Starr Conspiracy 2024–2025 · Gartner B2B Buying Jobs · AgentScout Enterprise AI Playbook</p>
+    <div class="critique-grid">
+      <div class="critique-card">
+        <div class="head">① 线性 13 步 vs 非线性六 Jobs</div>
+        <div class="body">
+          <div class="wrong">原流程：公域 → 留资 → 演示 → POC → 签约，一条直线</div>
+          <ul>
+            <li>真实采购在 6 个 Buying Job 间<strong>循环跳转</strong></li>
+            <li>Agent 品类多 3 条回环：POC 失败重定场景、安全与 POC 并行、ROI 被否重算</li>
+            <li>失败回退是<strong>降低自主级别</strong>（全自动→人工确认→仅建议）</li>
+          </ul>
+          <div class="right">→ 流程图必须画回环，节点是 Agent + Job</div>
+        </div>
+      </div>
+      <div class="critique-card">
+        <div class="head">② 千人千面 vs 千任务千 Agent</div>
+        <div class="body">
+          <div class="wrong">原流程：AI 识别岗位 → 首页换皮</div>
+          <ul>
+            <li>匿名访客岗位<strong>无法可靠识别</strong></li>
+            <li>6–10 人 committee 看 21–35 份<strong>不同材料</strong></li>
+            <li>CFO 不逛官网，Champion 微信转 PDF</li>
+          </ul>
+          <div class="right">→ 同一 Deal Room URL，Orchestrator 路由不同 Specialist Agent</div>
+        </div>
+      </div>
+      <div class="critique-card">
+        <div class="head">③ 逛官网 vs 工件建立信任</div>
+        <div class="body">
+          <div class="wrong">原流程：自助体验建立信任</div>
+          <ul>
+            <li>Agent 信任 = <strong>可控的自主性</strong>（audit log、降级路径）</li>
+            <li>企业软件不在官网完成核心体验</li>
+            <li>信任来自 POC 报告、安全问卷预填、ROI 模型</li>
+          </ul>
+          <div class="right">→ 每阶段 Agent 交付可转发 PDF/Excel（Artifact Panel）</div>
+        </div>
+      </div>
+      <div class="critique-card">
+        <div class="head">④ 卡单位置写错</div>
+        <div class="body">
+          <div class="wrong">原流程：死在「选供应商演示」</div>
+          <ul>
+            <li><strong>61%</strong> 死在业务 Case / 财务否 ROI</li>
+            <li><strong>44%</strong> 死在安全 / DPA 审查</li>
+            <li><strong>63%</strong> AI PoC 不转付费；~35% 自主性恐惧</li>
+          </ul>
+          <div class="right">→ 主战场是 ROI / Trust / Governance / Production 四个 Agent</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 话术对照 -->
+  <section id="compare">
+    <h2><span class="tag tag-fix">修正</span> 原话术 → Agent 原生话术</h2>
+    <table>
+      <thead>
+        <tr><th>原 Visio / 销售话术</th><th>问题</th><th>Agent 原生话术（可落地）</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="col-bad">AI 导购识别岗位</td><td>猜不准，IT 识破</td><td class="col-good">告诉 Agent 你要完成什么 Buying Job</td></tr>
+        <tr><td class="col-bad">千人千面内容</td><td>首页换皮</td><td class="col-good">同一 Deal，不同 Specialist Agent 协作</td></tr>
+        <tr><td class="col-bad">自助体验建立信任</td><td>无工件</td><td class="col-good">3 分钟 Agent 生成可转发诊断报告</td></tr>
+        <tr><td class="col-bad">预约演示</td><td>被动</td><td class="col-good">Proof Agent 带做 15 分钟场景诊断</td></tr>
+        <tr><td class="col-bad">艾特同事协同浏览</td><td>假功能</td><td class="col-good">Committee Link：IT/财务各见各 Agent</td></tr>
+        <tr><td class="col-bad">建立信任</td><td>空洞</td><td class="col-good">Trust Agent 引用原文答安全题，带页码</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 图1 旧版线性 -->
+  <section id="fig-old">
+    <h2><span class="tag tag-flow">Visio 图1</span> 旧版线性 13 步（问题示意 — 不符合真实采购）</h2>
+    <p class="lead">看似完整，实则省略了 committee 并行、POC 失败回退、安全/财务卡单。红色节点为常见「幻觉环节」。</p>
+    <div class="visio-canvas wide" data-label="FIG-01 · LEGACY LINEAR" data-title="图1：旧版线性 13 步（问题示意）" role="button" tabindex="0">
+      <pre class="mermaid">
+flowchart LR
+    A["公域搜索曝光"] --> B["进入官网"]
+    B --> C["AI识别岗位"]
+    C --> D["千人千面浏览"]
+    D --> E["自助体验"]
+    E --> F["留资预约"]
+    F --> G["销售回访"]
+    G --> H["产品演示"]
+    H --> I["艾特同事评估"]
+    I --> J["内部立项"]
+    J --> K["POC测试"]
+    K --> L["商务谈判"]
+    L --> M["签约交付"]
+
+    classDef bad fill:#fee2e2,stroke:#b91c1c,stroke-width:2px,color:#7f1d1d
+    classDef ok fill:#dce8f8,stroke:#2c5282,stroke-width:2px,color:#1a365d
+    class C,D,E,I bad
+    class A,B,F,G,H,J,K,L,M ok
+      </pre>
+    </div>
+    <div class="callout"><strong>为何错误：</strong> 无安全预审并行、无 POC 失败分支、无 ROI 被否回环、无 autonomy 降级。Buyer 83% 时间不在供应商接触中。</div>
+  </section>
+
+  <!-- 图2 六 Jobs 回环 -->
+  <section id="fig-jobs">
+    <h2><span class="tag tag-flow">Visio 图2</span> Gartner 六 Buying Jobs · Agent 原生非线性全流程（含三条回环）</h2>
+    <p class="lead">节点 = Buying Job + Specialist Agent。虚线 = 回环重规划。阻断 = 真实卡单及对应 Agent。</p>
+    <div class="visio-canvas tall" data-label="FIG-02 · NONLINEAR JOBS" data-title="图2：Gartner 六 Buying Jobs 非线性全流程" role="button" tabindex="0">
+      <pre class="mermaid">
+flowchart TB
+    START(["触发：竞品压力 / 管理层问询"]) --> J1
+
+    J1["Job1 问题识别<br/>Diagnostic Agent<br/>输出：问题诊断 1-pager"]
+    J2["Job2 方案探索<br/>Architect Agent<br/>输出：架构图+集成清单"]
+    J3["Job3 需求构建<br/>Scope Agent<br/>输出：POC Scope 签字版"]
+    J4["Job4 供应商选择<br/>Champion Agent<br/>输出：内部推销资料包"]
+    J5["Job5 验证·安全<br/>Trust Agent<br/>输出：安全问卷预填"]
+    J6["Job5 验证·POC<br/>Proof Agent<br/>输出：POC 验收报告"]
+    J7["Job6 共识·立项<br/>ROI Agent<br/>输出：ROI 保守版"]
+    J8["Job6 共识·合同<br/>Procurement Agent<br/>输出：SLA+资质包"]
+    DONE(["交付：客户侧 Agent 上线"])
+
+    J1 --> J2 --> J3 --> J4
+    J4 --> J5
+    J4 --> J6
+    J5 <-->|并行审查| J6
+    J5 --> J6
+    J6 -->|POC失败/场景错误| J3
+    J6 -->|POC成功| J7
+    J7 -->|ROI被财务否决| J6
+    J7 --> J8 --> DONE
+
+    J5 -->|安全阻断| G1["Governance Agent 介入<br/>权限白名单+审计样例"]
+    J7 -->|自主性恐惧| G2["Governance Agent<br/>人工确认节点说明"]
+    J6 -->|63% PoC不转付费| G3["Production Agent<br/>Pilot-to-Production 函"]
+
+    G1 -.-> J5
+    G2 -.-> J7
+    G3 -.-> J6
+
+    classDef job fill:#dce8f8,stroke:#2c5282,stroke-width:2px,color:#1a365d
+    classDef loop fill:#fef3c7,stroke:#b45309,stroke-width:2px,stroke-dasharray:5 5,color:#92400e
+    classDef block fill:#fee2e2,stroke:#b91c1c,stroke-width:2px,color:#991b1b
+    classDef terminal fill:#dcfce7,stroke:#047857,stroke-width:2px,color:#14532d
+
+    class J1,J2,J3,J4,J5,J6,J7,J8 job
+    class G1,G2,G3 block
+    class START,DONE terminal
+      </pre>
+    </div>
+  </section>
+
+  <!-- 图3 七 Agent 编排 -->
+  <section id="fig-agents">
+    <h2><span class="tag tag-flow">Visio 图3</span> Deal Room Orchestrator · 七 Specialist Agent 编排</h2>
+    <p class="lead">采购即 Demo：客户经历的 Agent 编排 = 将来在 BlockHub 上搭建 Agent 的缩影。</p>
+    <div class="visio-canvas tall" data-label="FIG-03 · AGENT ORCHESTRATION" data-title="图3：Deal Room 七 Agent 编排" role="button" tabindex="0">
+      <pre class="mermaid">
+flowchart TB
+    ORCH["Deal Room Orchestrator<br/>记住 deal_id · 阶段 · committee"]
+
+    ORCH --> D1["Diagnostic Agent<br/>S1 问题识别"]
+    ORCH --> D2["Architect Agent<br/>S2 方案探索"]
+    ORCH --> D3["Scope Agent<br/>S3 需求构建"]
+    ORCH --> D4["Champion Agent<br/>S4 短名单"]
+
+    D1 --> D2 --> D3 --> D4
+
+    D4 --> T1["Trust Agent<br/>S5 安全合规"]
+    D4 --> T2["Proof Agent<br/>S6 POC验证"]
+
+    T1 <-->|并行| T2
+
+    T1 --> R1["ROI Agent<br/>S7 立项"]
+    T2 --> R1
+    R1 --> R2["Procurement Agent<br/>S8 合同"]
+    R2 --> OUT["客户 Production Agent 上线"]
+
+    T2 -->|失败回环| D3
+
+    classDef orch fill:#1e4d8c,stroke:#0f3460,stroke-width:2px,color:#fff
+    classDef agent fill:#dce8f8,stroke:#2c5282,stroke-width:2px,color:#1a365d
+    classDef outcome fill:#dcfce7,stroke:#047857,stroke-width:2px,color:#14532d
+
+    class ORCH orch
+    class D1,D2,D3,D4,T1,T2,R1,R2 agent
+    class OUT outcome
+      </pre>
+    </div>
+  </section>
+
+  <!-- 图4 四座山 -->
+  <section id="fig-stalls">
+    <h2><span class="tag tag-flow">Visio 图4</span> 四座山 · 真实卡单位置（演示只是小山）</h2>
+    <p class="lead">交易不是死在「产品演示」，而是死在 committee 内部共识。每个山顶对应一个 Specialist Agent。</p>
+    <div class="mountains">
+      <div class="mountain">
+        <div class="pct">61%</div>
+        <div class="name">财务否 ROI</div>
+        <div class="quote">「AI 提效 30% 从哪来？POC 只验证了首响」</div>
+        <div class="agent">→ ROI Agent 保守版</div>
+      </div>
+      <div class="mountain">
+        <div class="pct">44%</div>
+        <div class="name">安全 / DPA</div>
+        <div class="quote">「Agent 能调哪些 API？数据删得干净吗？」</div>
+        <div class="agent">→ Trust Agent RAG</div>
+      </div>
+      <div class="mountain">
+        <div class="pct">35%</div>
+        <div class="name">自主性恐惧</div>
+        <div class="quote">「销售怕 AI 乱承诺；法务怕乱发条款」</div>
+        <div class="agent">→ Governance Agent</div>
+      </div>
+      <div class="mountain">
+        <div class="pct">63%</div>
+        <div class="name">PoC 不转付费</div>
+        <div class="quote">「Demo 好看，没人接 Production 运维」</div>
+        <div class="agent">→ Production Agent</div>
+      </div>
+    </div>
+    <div class="visio-canvas tall" data-label="FIG-04 · STALL MOUNTAINS" data-title="图4：四座山卡点与 Agent 应对" role="button" tabindex="0">
+      <pre class="mermaid">
+flowchart LR
+    DEMO["产品演示<br/>小山·非主战场"] --> M1["61% 财务否ROI"]
+    DEMO --> M2["44% 安全DPA"]
+    DEMO --> M3["35% 自主性恐惧"]
+    DEMO --> M4["63% PoC不转付费"]
+
+    M1 --> A1["ROI Agent<br/>仅已验证指标"]
+    M2 --> A2["Trust Agent<br/>问卷预填+引用"]
+    M3 --> A3["Governance Agent<br/>人工确认节点"]
+    M4 --> A4["Production Agent<br/>Pilot转Production函"]
+
+    A1 --> WIN["签约"]
+    A2 --> WIN
+    A3 --> WIN
+    A4 --> WIN
+
+    classDef demo fill:#e2e8f0,stroke:#64748b,stroke-width:2px,color:#334155
+    classDef mountain fill:#fee2e2,stroke:#b91c1c,stroke-width:2px,color:#991b1b
+    classDef agent fill:#dcfce7,stroke:#047857,stroke-width:2px,color:#14532d
+    classDef win fill:#1e4d8c,stroke:#0f3460,stroke-width:2px,color:#fff
+
+    class DEMO demo
+    class M1,M2,M3,M4 mountain
+    class A1,A2,A3,A4 agent
+    class WIN win
+      </pre>
+    </div>
+  </section>
+
+  <!-- 图5 真实案例 -->
+  <section id="fig-case">
+    <h2><span class="tag tag-flow">Visio 图5</span> 真实案例 · 800 人制造企业 · 28 周非线性（含 POC 失败回环）</h2>
+    <p class="lead">预算 80–120 万 · 用友 CRM · 等保二级 · 三家比价 · 第一次 POC（全自动外呼）失败 → 换人工确认版成功</p>
+    <div class="visio-canvas wide" data-label="FIG-05 · REAL CASE 28W" data-title="图5：800人制造企业 28周真实流程" role="button" tabindex="0">
+      <pre class="mermaid">
+flowchart LR
+    W1["W1-3 问题触发<br/>Diagnostic Agent<br/>行业白皮书"] --> W2["W4-7 方案探索<br/>Architect Agent<br/>Trust Center"]
+    W2 --> W3["W8-11 需求对齐<br/>Scope Agent<br/>POC清单3条"]
+    W3 --> W4["W12-14 三家比价<br/>Champion Agent<br/>Share资料包"]
+    W4 --> W5["W15-18 安全预审<br/>Trust Agent<br/>问卷往返"]
+    W4 --> W6A["W19-22 POC失败<br/>Proof Agent<br/>全自动外呼被否"]
+    W6A -->|回环| W3
+    W3 --> W6B["W23-24 POC成功<br/>Proof Agent<br/>200条线索验证"]
+    W5 --> W6B
+    W6B --> W7["W25-27 立项招标<br/>ROI Agent<br/>财务二报才过"]
+    W7 --> W8["W28-30 签约预付<br/>Procurement Agent<br/>30/40/30"]
+    W8 --> W9["W31-38 交付验收<br/>Production Agent<br/>灰度上线"]
+
+    classDef phase fill:#dce8f8,stroke:#2c5282,stroke-width:2px,color:#1a365d
+    classDef fail fill:#fee2e2,stroke:#b91c1c,stroke-width:2px,color:#991b1b
+    classDef ok fill:#dcfce7,stroke:#047857,stroke-width:2px,color:#14532d
+
+    class W1,W2,W3,W4,W5,W7,W8,W9 phase
+    class W6A fail
+    class W6B ok
+      </pre>
+    </div>
+    <table>
+      <thead><tr><th>角色</th><th>人物</th><th>一票否决</th><th>真实关切</th></tr></thead>
+      <tbody>
+        <tr><td>Champion</td><td>销售运营 李某</td><td>无 Champion 项目死</td><td>首响 4h→30min 能否量化</td></tr>
+        <tr><td>经济买家</td><td>VP Sales 陈某</td><td>预算</td><td>人效、赢单率，不要 IT 玩具</td></tr>
+        <tr><td>技术买家</td><td>信息部 王某</td><td>安全审查</td><td>用友接口、数据出境、审计</td></tr>
+        <tr><td>采购</td><td>集团采购 赵某</td><td>流程合规</td><td>招标、SLA、退出条款</td></tr>
+        <tr><td>财务</td><td>财务经理</td><td>ROI 模型</td><td>3 年 TCO、付款节奏</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 图6 Committee -->
+  <section id="fig-committee">
+    <h2><span class="tag tag-flow">Visio 图6</span> Committee Link · 同一 Deal 不同 Agent（诚实版个性化）</h2>
+    <p class="lead">URL 相同：`blockhub.com/deal/{token}` · Orchestrator 按打开者路由 · 不是猜岗位，是明确任务分流</p>
+    <div class="visio-canvas tall" data-label="FIG-06 · COMMITTEE LINK" data-title="图6：Committee Link 同一 Deal 不同 Agent" role="button" tabindex="0">
+      <pre class="mermaid">
+flowchart TB
+    LINK["Committee Share Link<br/>blockhub.com/deal/token"]
+    ORCH["Deal Room Orchestrator<br/>同一 deal_id 上下文"]
+
+    LINK --> ORCH
+
+    ORCH -->|销售运营打开| C1["Champion Agent<br/>POC进度+内部话术"]
+    ORCH -->|IT打开| C2["Trust Agent<br/>安全问卷+架构图"]
+    ORCH -->|财务打开| C3["ROI Agent<br/>TCO保守版可编辑"]
+    ORCH -->|采购打开| C4["Procurement Agent<br/>SLA+招标资质包"]
+    ORCH -->|销售主管打开| C5["Proof Agent<br/>录屏+人工确认节点"]
+
+    C1 --> ART["Artifact Panel<br/>可下载PDF/Excel<br/>带 BlockHub 水印"]
+    C2 --> ART
+    C3 --> ART
+    C4 --> ART
+    C5 --> ART
+
+    classDef link fill:#1e4d8c,stroke:#0f3460,stroke-width:2px,color:#fff
+    classDef orch fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e40af
+    classDef agent fill:#dce8f8,stroke:#2c5282,stroke-width:2px,color:#1a365d
+    classDef art fill:#dcfce7,stroke:#047857,stroke-width:2px,color:#14532d
+
+    class LINK link
+    class ORCH orch
+    class C1,C2,C3,C4,C5 agent
+    class ART art
+      </pre>
+    </div>
+  </section>
+
+  <!-- 工件清单 -->
+  <section id="artifacts">
+    <h2><span class="tag tag-fix">落地</span> 各阶段 Agent 交付工件（信任载体，非逛页面）</h2>
+    <div class="artifact-list">
+      <div class="artifact"><div class="agent-name">Diagnostic Agent</div>《制造·线索首响·问题诊断 1-pager》</div>
+      <div class="artifact"><div class="agent-name">Architect Agent</div>《用友 CRM 集成架构说明》</div>
+      <div class="artifact"><div class="agent-name">Scope Agent</div>《POC Scope v2 人工确认版》</div>
+      <div class="artifact"><div class="agent-name">Trust Agent</div>《安全问卷预填 42/50》</div>
+      <div class="artifact"><div class="agent-name">Proof Agent</div>《POC 验收报告·200 条线索》</div>
+      <div class="artifact"><div class="agent-name">ROI Agent</div>《ROI 保守版·仅已验证指标》</div>
+    </div>
+    <div class="callout" style="margin-top:16px">
+      <strong>一句话对齐：</strong> 我们不是用 AI 装饰官网，我们把 B2B 采购本身做成 BlockHub 的第一个 Multi-Agent 应用 —— 客户签约前已经历过一条 Agent 编排链路。
+    </div>
+  </section>
+
+  <footer>
+    <p>BlockHub · B端 AI 智能体订单闭环 · Agent 原生 Visio 完整版</p>
+    <p style="margin-top:6px;opacity:0.75">关联文档：真实案例版.md · Agent原生体验设计.md</p>
+  </footer>
+</div>
+
+<!-- Lightbox -->
+<div id="flow-lightbox" class="lightbox" aria-hidden="true">
+  <div class="lightbox-backdrop" data-close></div>
+  <div class="lightbox-panel" role="dialog" aria-modal="true">
+    <div class="lightbox-toolbar">
+      <span class="lightbox-title" id="lightbox-title"></span>
+      <div class="lightbox-zoom">
+        <button type="button" data-zoom="out">−</button>
+        <span class="zoom-label">150%</span>
+        <button type="button" data-zoom="in">+</button>
+        <button type="button" data-zoom="fit" style="width:auto;padding:0 10px;font-size:12px;">适应</button>
+      </div>
+      <button type="button" class="lightbox-close" data-close>×</button>
+    </div>
+    <div class="lightbox-body"><div class="lightbox-stage"></div></div>
+    <div class="lightbox-hint">滚轮缩放 · 拖拽滚动 · Esc 关闭</div>
+  </div>
+</div>
+
+<script>
+  mermaid.initialize({
+    startOnLoad: false,
+    theme: 'base',
+    securityLevel: 'loose',
+    flowchart: { curve: 'linear', padding: 20, nodeSpacing: 45, rankSpacing: 70, htmlLabels: true, useMaxWidth: false },
+    themeVariables: {
+      fontFamily: '"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif',
+      fontSize: '16px',
+      primaryColor: '#dce8f8',
+      primaryBorderColor: '#2c5282',
+      primaryTextColor: '#1a365d',
+      lineColor: '#475569'
+    }
+  });
+
+  function boostFonts(root, px) {
+    root.querySelectorAll('svg foreignObject div, svg foreignObject span, svg foreignObject p').forEach(function (el) {
+      el.style.setProperty('font-size', px, 'important');
+      el.style.setProperty('font-weight', '600', 'important');
+      el.style.setProperty('line-height', '1.45', 'important');
+    });
+  }
+
+  var lightbox = document.getElementById('flow-lightbox');
+  var lbTitle = document.getElementById('lightbox-title');
+  var lbStage = lightbox.querySelector('.lightbox-stage');
+  var lbZoomLabel = lightbox.querySelector('.zoom-label');
+  var lbBody = lightbox.querySelector('.lightbox-body');
+  var currentZoom = 1.5, baseW = 0, baseH = 0;
+
+  function setZoom(z) {
+    currentZoom = Math.max(0.4, Math.min(3.5, z));
+    lbStage.style.transform = 'scale(' + currentZoom + ')';
+    if (baseW && baseH) {
+      lbStage.style.width = (baseW * currentZoom) + 'px';
+      lbStage.style.height = (baseH * currentZoom) + 'px';
+    }
+    lbZoomLabel.textContent = Math.round(currentZoom * 100) + '%';
+  }
+
+  function openLightbox(canvas) {
+    var svg = canvas.querySelector('svg');
+    if (!svg) return;
+    lbTitle.textContent = canvas.getAttribute('data-title') || '流程图';
+    lbStage.innerHTML = '';
+    var clone = svg.cloneNode(true);
+    clone.removeAttribute('width');
+    clone.removeAttribute('height');
+    lbStage.appendChild(clone);
+    boostFonts(lbStage, '18px');
+    requestAnimationFrame(function () {
+      try {
+        var b = clone.getBBox();
+        baseW = b.width + 48;
+        baseH = b.height + 48;
+      } catch (e) {
+        baseW = 1200; baseH = 600;
+      }
+      setZoom(1.5);
+    });
+    lightbox.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    lbBody.scrollTop = lbBody.scrollLeft = 0;
+  }
+
+  function closeLightbox() {
+    lightbox.classList.remove('open');
+    document.body.style.overflow = '';
+    lbStage.innerHTML = '';
+  }
+
+  document.querySelectorAll('.visio-canvas').forEach(function (c) {
+    c.addEventListener('click', function () { openLightbox(c); });
+    c.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openLightbox(c); }
+    });
+  });
+
+  lightbox.querySelectorAll('[data-close]').forEach(function (el) { el.addEventListener('click', closeLightbox); });
+  lightbox.querySelector('[data-zoom="in"]').addEventListener('click', function () { setZoom(currentZoom + 0.25); });
+  lightbox.querySelector('[data-zoom="out"]').addEventListener('click', function () { setZoom(currentZoom - 0.25); });
+  lightbox.querySelector('[data-zoom="fit"]').addEventListener('click', function () {
+    if (!baseW) return;
+    setZoom(Math.min((lbBody.clientWidth - 48) / baseW, (lbBody.clientHeight - 48) / baseH, 2));
+  });
+  lbBody.addEventListener('wheel', function (e) {
+    if (!lightbox.classList.contains('open')) return;
+    e.preventDefault();
+    setZoom(currentZoom + (e.deltaY < 0 ? 0.1 : -0.1));
+  }, { passive: false });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeLightbox(); });
+
+  document.addEventListener('DOMContentLoaded', function () {
+    mermaid.run().then(function () {
+      document.querySelectorAll('.visio-canvas').forEach(function (c) { boostFonts(c, '15px'); });
+    }).catch(console.error);
+  });
+</script>
+</body>
+</html>

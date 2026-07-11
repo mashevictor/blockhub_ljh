@@ -1,119 +1,218 @@
-"""模块推荐：关键词匹配 + DeepSeek 补全。"""
+"""模块推荐：意图 Agent（DeepSeek 验证）优先，关键词兜底。"""
 
 from __future__ import annotations
 
 import re
+from typing import Any
+
+from sqlalchemy.orm import Session
 
 from app.core.config import settings
-from app.data.capability_registry import ALL_CAPABILITIES, INDUSTRY_HINTS
-from app.services.deepseek_client import merge_llm_items, suggest_with_deepseek
-
-# 置信度阈值：低于此值或零结果时尝试 DeepSeek
-LLM_FALLBACK_MAX_SCORE = 4.0
-LLM_FALLBACK_MIN_ITEMS = 1
-
-
-def _norm(text: str) -> str:
-    return text.strip().lower()
-
-
-def _score_keywords(q: str, keywords: tuple[str, ...]) -> float:
-    score = 0.0
-    for w in keywords:
-        wn = w.lower()
-        if wn in q or w in q:
-            score += 3.0 if len(wn) >= 3 else 1.5
-    return score
+from app.data.capability_registry import ALL_CAPABILITIES
+from app.services.deepseek_client import merge_llm_items
+from app.services.intent_agent import AGENT_ID, analyze_intent
+from app.services.intent_registry import register_from_intent
+from app.services.keyword_match import (
+    filter_spurious_modules,
+    industry_pack_modules,
+    industry_pack_scenes,
+    match_modules_keyword,
+    merge_keyword_with_llm,
+    top_industry_hit,
+)
 
 
 def suggest_modules_keyword(user_text: str) -> list[dict]:
-    q = _norm(user_text)
-    if len(q) < 2:
-        return []
+    """兼容旧调用方。"""
+    return match_modules_keyword(user_text)
 
-    seen: set[str] = set()
-    out: list[dict] = []
 
-    def push(
-        key: str,
-        score: float,
-        reason: str,
-        *,
-        pick_type: str = "module",
-        label: str = "",
-    ) -> None:
-        if key in seen or score <= 0:
-            return
-        seen.add(key)
-        cap = ALL_CAPABILITIES.get(key)
-        out.append({
+def _slug(key: str) -> str:
+    k = key.strip().lower().replace(" ", "_").replace("-", "_")
+    return re.sub(r"[^a-z0-9_]", "", k)[:32]
+
+
+def _enrich_parsed_with_registered(parsed: dict[str, Any], registered: dict[str, list[str]]) -> None:
+    """把刚注册的行业/能力并入推荐列表。"""
+    for raw in parsed.get("new_industries") or []:
+        key = _slug(str(raw.get("key", "")))
+        if key not in registered.get("industries", []):
+            continue
+        parsed.setdefault("industries", []).append({
             "key": key,
-            "label": label or (cap.name if cap else key),
-            "type": pick_type,
-            "score": score,
-            "reason": reason,
-            "source": "keyword",
-            "flutter_pkg": cap.flutter_pkg if cap else "",
+            "label": str(raw.get("name", key)),
+            "reason": str(raw.get("reason", "AI 识别新行业，已自动注册")),
+            "score": 7.5,
         })
 
-    for cap in ALL_CAPABILITIES.values():
-        s = _score_keywords(q, cap.keywords)
-        if s > 0:
-            push(cap.key, s, f"匹配能力「{cap.name}」")
-
-    # 名称直接命中
-    for cap in ALL_CAPABILITIES.values():
-        if cap.name in user_text:
-            push(cap.key, 5.0, f"描述含「{cap.name}」")
-
-    # 行业
-    for words, key, label in INDUSTRY_HINTS:
-        s = _score_keywords(q, words)
-        if s > 0:
-            push(key, s + 2, f"匹配行业「{label}」", pick_type="industry", label=label)
-
-    # 去除误匹配：闹钟场景不应优先企微；用户明确不要钉钉/企微
-    if any(w in q for w in ("闹钟", "alarm", "cron")) and "notify_im" in seen:
-        out = [x for x in out if x["key"] != "notify_im"]
-    if ("不要" in q or "仅" in q) and any(w in q for w in ("钉钉", "企微", "飞书")):
-        out = [x for x in out if x["key"] != "notify_im"]
-
-    out.sort(key=lambda x: x["score"], reverse=True)
-    return out[:10]
+    for raw in parsed.get("new_capabilities") or []:
+        key = _slug(str(raw.get("key", "")))
+        if not key.startswith("custom_"):
+            key = f"custom_{key}"
+        if key not in registered.get("capabilities", []):
+            continue
+        entry = {
+            "key": key,
+            "name": str(raw.get("name", key)),
+            "category": str(raw.get("category", "扩展能力")),
+            "flutter_pkg": str(raw.get("flutter_pkg", "")),
+            "reason": str(raw.get("reason", "AI 补充能力，已自动注册")),
+        }
+        parsed.setdefault("supplemented", []).append(entry)
 
 
-def suggest_modules(user_text: str, *, force_llm: bool = False) -> dict:
+def _validation_payload(parsed: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "status": parsed.get("status", "unclear"),
+        "confidence": float(parsed.get("confidence", 0)),
+        "intent_summary": parsed.get("intent_summary", ""),
+        "rejection_reason": parsed.get("rejection_reason", ""),
+        "guidance": parsed.get("guidance", ""),
+    }
+
+
+def suggest_modules(
+    user_text: str,
+    *,
+    force_llm: bool = False,
+    use_intent_agent: bool | None = None,
+    db: Session | None = None,
+) -> dict:
     text = user_text.strip()
-    keyword_items = suggest_modules_keyword(text)
-    top_score = keyword_items[0]["score"] if keyword_items else 0.0
+    empty = {
+        "items": [],
+        "confidence": 0.0,
+        "used_llm": False,
+        "agent": "",
+        "supplemented": [],
+        "registered": {"industries": [], "capabilities": [], "scenes": []},
+        "validation": None,
+        "top_score": 0.0,
+    }
+    if len(text) < 2:
+        return empty
+
+    keyword_items = match_modules_keyword(text)
     used_llm = False
     supplemented: list[dict] = []
+    registered: dict[str, list[str]] = {"industries": [], "capabilities": [], "scenes": []}
+    validation: dict[str, Any] | None = None
+    parsed: dict[str, Any] | None = None
+    llm_items: list[dict] = []
 
-    module_like = [x for x in keyword_items if x.get("type") in ("module", "supplement")]
-    need_llm = force_llm or (
-        settings.deepseek_api_key
-        and (len(module_like) < 1 or top_score < LLM_FALLBACK_MAX_SCORE)
+    use_agent = (
+        use_intent_agent
+        if use_intent_agent is not None
+        else (force_llm or bool(settings.deepseek_api_key))
     )
-
-    if need_llm and len(text) >= 2:
-        parsed = suggest_with_deepseek(text)
+    if use_agent:
+        parsed = analyze_intent(text, db=db)
         if parsed:
-            llm_items, supplemented = merge_llm_items(parsed)
-            if llm_items:
-                used_llm = True
-                # LLM 结果优先，关键词结果补位
-                seen = {x["key"] for x in llm_items}
-                merged = llm_items + [x for x in keyword_items if x["key"] not in seen]
-                keyword_items = merged[:10]
+            used_llm = bool(settings.deepseek_api_key)
+            validation = _validation_payload(parsed)
 
+            if parsed.get("status") == "invalid":
+                industry_hit = top_industry_hit(text)
+                if industry_hit and industry_hit["score"] >= 3.0:
+                    top = industry_hit
+                    validation = {
+                        "status": "valid",
+                        "confidence": min(0.85, top["score"] / 10),
+                        "intent_summary": f"识别为{top['label']}相关应用需求",
+                        "rejection_reason": "",
+                        "guidance": f"已匹配「{top['label']}」及相关模块，可继续补充具体场景。",
+                    }
+                    keyword_items = match_modules_keyword(text)
+                else:
+                    return {
+                        **empty,
+                        "used_llm": used_llm,
+                        "agent": AGENT_ID,
+                        "validation": validation,
+                        "confidence": validation["confidence"],
+                    }
+
+            if db and (parsed.get("new_industries") or parsed.get("new_capabilities") or parsed.get("new_scenes")):
+                try:
+                    registered = register_from_intent(db, parsed)
+                except Exception:
+                    registered = {"industries": [], "capabilities": [], "scenes": []}
+
+            _enrich_parsed_with_registered(parsed, registered)
+            llm_items, supplemented = merge_llm_items(parsed)
+
+    keyword_items = merge_keyword_with_llm(keyword_items, llm_items, limit=20)
+    keyword_items = filter_spurious_modules(text, keyword_items)
+
+    # 命中行业时：用 20 行业深度包的 scenes + 能力模块补齐（LLM 只猜 2～3 个时仍展开完整包）
+    ind_keys = {x["key"] for x in keyword_items if x.get("type") == "industry"}
+    if parsed:
+        for ind in parsed.get("industries") or []:
+            k = str(ind.get("key", "")).strip()
+            if k:
+                ind_keys.add(k)
+    if ind_keys:
+        ind_scores = {
+            x["key"]: float(x["score"])
+            for x in keyword_items
+            if x.get("type") == "industry"
+        }
+        seen_keys = {x["key"] for x in keyword_items}
+        extras: list[dict] = []
+        for ind_key in ind_keys:
+            pack_score = max(7.0, ind_scores.get(ind_key, 5.0))
+            for mod_key, mod_name, mod_reason in industry_pack_modules(ind_key):
+                if mod_key in seen_keys:
+                    continue
+                cap = ALL_CAPABILITIES.get(mod_key)
+                extras.append({
+                    "key": mod_key,
+                    "label": mod_name,
+                    "type": "module",
+                    "score": round(pack_score - 0.3, 1),
+                    "reason": mod_reason,
+                    "source": "industry_pack",
+                    "flutter_pkg": cap.flutter_pkg if cap else "",
+                })
+                seen_keys.add(mod_key)
+            for scene_key, scene_name, scene_cat in industry_pack_scenes(ind_key):
+                if scene_key in seen_keys:
+                    continue
+                extras.append({
+                    "key": scene_key,
+                    "label": scene_name,
+                    "type": "scenario",
+                    "score": round(pack_score - 0.6, 1),
+                    "reason": f"行业深度包 · {scene_cat}",
+                    "source": "industry_pack_scene",
+                    "flutter_pkg": "",
+                })
+                seen_keys.add(scene_key)
+        if extras:
+            keyword_items = merge_keyword_with_llm(keyword_items, extras, limit=24)
+            keyword_items = filter_spurious_modules(text, keyword_items)
+
+    if validation and validation.get("status") in ("valid", "unclear") and keyword_items:
+        if not validation.get("intent_summary") and keyword_items:
+            ind = next((x for x in keyword_items if x.get("type") == "industry"), None)
+            if ind:
+                validation = {
+                    **validation,
+                    "intent_summary": f"识别为{ind['label']}相关应用需求",
+                }
+
+    top_score = keyword_items[0]["score"] if keyword_items else 0.0
     confidence = min(1.0, top_score / 10.0) if keyword_items else 0.0
-    if used_llm:
-        confidence = max(confidence, 0.72)
+    if validation:
+        confidence = max(confidence, float(validation.get("confidence", 0)))
 
     return {
         "items": keyword_items,
         "confidence": round(confidence, 2),
         "used_llm": used_llm,
+        "agent": AGENT_ID if parsed else "",
         "supplemented": supplemented,
+        "registered": registered,
+        "validation": validation,
         "top_score": top_score,
     }

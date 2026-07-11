@@ -53,7 +53,7 @@ export default function PlazaLayout() {
           <span>{BRAND.nameZh} {BRAND.nameEn}</span>
         </Link>
         <nav className="plaza-topbar-nav">
-          <Link to={ROUTES.home}>创建应用</Link>
+          <Link to={ROUTES.home}>生成应用</Link>
           <NavLink to={ROUTES.plazaFeed} end className={topLinkClass}>
             📡 应用广场
           </NavLink>
@@ -71,7 +71,7 @@ export default function PlazaLayout() {
       <div className="plaza-layout">
         <aside className="plaza-side" aria-label="应用广场导航">
           <h4>导航</h4>
-          <Link to={ROUTES.home}>🏠 创建应用</Link>
+          <Link to={ROUTES.home}>🏠 生成应用</Link>
           <NavLink to={ROUTES.plazaFeed} end className={sideLinkClass}>
             📡 应用广场
             {publicFeedCount > 0 && <span className="plaza-side-count">{publicFeedCount}</span>}

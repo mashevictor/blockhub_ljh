@@ -1,0 +1,122 @@
+[
+  {
+    "key": "office",
+    "hero": "/industry/office/hero.jpg",
+    "og": "/industry/office/og.png",
+    "thumb": "/industry/office/thumb.jpg"
+  },
+  {
+    "key": "mfg",
+    "hero": "/industry/mfg/hero.jpg",
+    "og": "/industry/mfg/og.png",
+    "thumb": "/industry/mfg/thumb.jpg"
+  },
+  {
+    "key": "sales",
+    "hero": "/industry/sales/hero.jpg",
+    "og": "/industry/sales/og.png",
+    "thumb": "/industry/sales/thumb.jpg"
+  },
+  {
+    "key": "med",
+    "hero": "/industry/med/hero.jpg",
+    "og": "/industry/med/og.png",
+    "thumb": "/industry/med/thumb.jpg"
+  },
+  {
+    "key": "game",
+    "hero": "/industry/game/hero.jpg",
+    "og": "/industry/game/og.png",
+    "thumb": "/industry/game/thumb.jpg"
+  },
+  {
+    "key": "retail",
+    "hero": "/industry/retail/hero.jpg",
+    "og": "/industry/retail/og.png",
+    "thumb": "/industry/retail/thumb.jpg"
+  },
+  {
+    "key": "edu",
+    "hero": "/industry/edu/hero.jpg",
+    "og": "/industry/edu/og.png",
+    "thumb": "/industry/edu/thumb.jpg"
+  },
+  {
+    "key": "finance",
+    "hero": "/industry/finance/hero.jpg",
+    "og": "/industry/finance/og.png",
+    "thumb": "/industry/finance/thumb.jpg"
+  },
+  {
+    "key": "logistics",
+    "hero": "/industry/logistics/hero.jpg",
+    "og": "/industry/logistics/og.png",
+    "thumb": "/industry/logistics/thumb.jpg"
+  },
+  {
+    "key": "realestate",
+    "hero": "/industry/realestate/hero.jpg",
+    "og": "/industry/realestate/og.png",
+    "thumb": "/industry/realestate/thumb.jpg"
+  },
+  {
+    "key": "hotel",
+    "hero": "/industry/hotel/hero.jpg",
+    "og": "/industry/hotel/og.png",
+    "thumb": "/industry/hotel/thumb.jpg"
+  },
+  {
+    "key": "energy",
+    "hero": "/industry/energy/hero.jpg",
+    "og": "/industry/energy/og.png",
+    "thumb": "/industry/energy/thumb.jpg"
+  },
+  {
+    "key": "gov",
+    "hero": "/industry/gov/hero.jpg",
+    "og": "/industry/gov/og.png",
+    "thumb": "/industry/gov/thumb.jpg"
+  },
+  {
+    "key": "legal",
+    "hero": "/industry/legal/hero.jpg",
+    "og": "/industry/legal/og.png",
+    "thumb": "/industry/legal/thumb.jpg"
+  },
+  {
+    "key": "hr",
+    "hero": "/industry/hr/hero.jpg",
+    "og": "/industry/hr/og.png",
+    "thumb": "/industry/hr/thumb.jpg"
+  },
+  {
+    "key": "marketing",
+    "hero": "/industry/marketing/hero.jpg",
+    "og": "/industry/marketing/og.png",
+    "thumb": "/industry/marketing/thumb.jpg"
+  },
+  {
+    "key": "construction",
+    "hero": "/industry/construction/hero.jpg",
+    "og": "/industry/construction/og.png",
+    "thumb": "/industry/construction/thumb.jpg"
+  },
+  {
+    "key": "agriculture",
+    "hero": "/industry/agriculture/hero.jpg",
+    "og": "/industry/agriculture/og.png",
+    "thumb": "/industry/agriculture/thumb.jpg"
+  },
+  {
+    "key": "media",
+    "hero": "/industry/media/hero.jpg",
+    "og": "/industry/media/og.png",
+    "thumb": "/industry/media/thumb.jpg"
+  },
+  {
+    "key": "auto",
+    "hero": "/industry/auto/hero.jpg",
+    "og": "/industry/auto/og.png",
+    "thumb": "/industry/auto/thumb.jpg"
+  }
+]

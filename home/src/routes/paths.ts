@@ -1,6 +1,8 @@
 /** Home SPA 路由常量 */
 export const ROUTES = {
   home: '/',
+  industryHub: '/industry',
+  industryDetail: (key: string) => `/industry/${key}`,
   shanghaiVoice: '/agents/shanghai-voice',
   login: '/login',
   register: '/register',
@@ -9,4 +11,16 @@ export const ROUTES = {
   /** 我的应用 — 本浏览器创建者发布的应用 */
   plazaMyApps: '/plaza/my',
   plazaApps: '/plaza',
+  /** 预约资料包专属页 */
+  share: (token: string) => `/share/${token}`,
+  shareShort: (token: string) => `/s/${token}`,
+  /** 官网 enrichment 子站 */
+  trust: '/trust',
+  cases: '/cases',
+  caseDetail: (slug: string) => `/cases/${slug}`,
+  pricing: '/pricing',
+  news: '/news',
+  newsDetail: (slug: string) => `/news/${slug}`,
+  rolePage: (role: string) => `/for/${role}`,
+  contactDemo: '/#contact-demo',
 } as const
