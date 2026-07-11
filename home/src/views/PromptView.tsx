@@ -41,6 +41,7 @@ import {
 } from '../data/showcase'
 import type { RoleApplyRequest, RolePreset } from '../data/rolePresets'
 import { useDemoBookingActive } from '../context/DemoBookingContext'
+import { useHomePageReady } from '../context/HomePageReadyContext'
 import { usePromptDraft } from '../context/PromptDraftContext'
 import FloatingAgentDock from '../components/FloatingAgentDock'
 import AnimatedChevTitle from '../components/AnimatedChevTitle'
@@ -49,11 +50,12 @@ import { useHomeActiveSection } from '../hooks/useHomeActiveSection'
 import {
   buildHeroDockDemoModules,
   buildHeroDockDemoSuggestions,
-  dismissHeroDockDemo,
   HERO_DOCK_DEMO_ENHANCED,
   HERO_DOCK_DEMO_PROMPT,
   HERO_DOCK_DEMO_VALIDATION,
-  isHeroDockDemoDismissed,
+  HERO_DOCK_TYPING_CHAR_MS,
+  isHeroDockTypingDemoSeen,
+  markHeroDockTypingDemoSeen,
 } from '../data/heroDockDemo'
 
 interface Props {
@@ -94,13 +96,15 @@ function filterByIndustries(
 
 export default function PromptView({ onPublish, roleApply, onRoleApplyDone, active = true }: Props) {
   const bookingZoneActive = useDemoBookingActive()
+  const pageReady = useHomePageReady()
   const activeSection = useHomeActiveSection()
   const inFloatingZone =
     activeSection === 'hero' ||
     activeSection === 'product' ||
     activeSection === 'case' ||
     activeSection === 'contact-create'
-  const showPromptDock = active && !bookingZoneActive && inFloatingZone
+  const showPromptDock = active && pageReady && !bookingZoneActive && inFloatingZone
+  const [dockReposition, setDockReposition] = useState(0)
   const { draft, setDraft } = usePromptDraft()
   const { theme } = useTheme()
   const [prompt, setPrompt] = useState('')
@@ -119,8 +123,9 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
   const [officeAll, setOfficeAll] = useState<CatalogScenario[]>([])
   const [industryAll, setIndustryAll] = useState<CatalogScenario[]>([])
   const [promptHighlight, setPromptHighlight] = useState(false)
-  const [promptExpanded, setPromptExpanded] = useState(() => !isHeroDockDemoDismissed())
+  const [promptExpanded, setPromptExpanded] = useState(false)
   const [heroDemoActive, setHeroDemoActive] = useState(false)
+  const [heroDemoTyping, setHeroDemoTyping] = useState(false)
   const [promptModules, setPromptModules] = useState<PromptModule[]>([])
   const [lastAddedId, setLastAddedId] = useState<string | null>(null)
   const [debouncedIntent, setDebouncedIntent] = useState('')
@@ -138,54 +143,144 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
   const promptCardRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<AgentInputHandle>(null)
   const [boxOpenSignal, setBoxOpenSignal] = useState(0)
-  const [dockExpandSignal, setDockExpandSignal] = useState(0)
   const [modulePickerOpen, setModulePickerOpen] = useState(false)
   const userSuffixRef = useRef('')
   const skipSyncRef = useRef(false)
   const draftHydratedRef = useRef(false)
   const heroDemoAppliedRef = useRef(false)
+  const heroTypingTimerRef = useRef<number | null>(null)
+  const heroTypingSkipRef = useRef(false)
 
-  const exitHeroDemo = useCallback(() => {
-    if (!heroDemoActive) return
-    setHeroDemoActive(false)
-    heroDemoAppliedRef.current = false
-    dismissHeroDockDemo()
-  }, [heroDemoActive])
+  const heroTypingDemoEligible =
+    showPromptDock &&
+    activeSection === 'hero' &&
+    !isHeroDockTypingDemoSeen()
 
-  const applyHeroDockDemo = useCallback(() => {
-    if (heroDemoAppliedRef.current || isHeroDockDemoDismissed()) return
+  const cancelHeroTypingDemo = useCallback((markSeen = false) => {
+    if (heroTypingTimerRef.current !== null) {
+      window.clearTimeout(heroTypingTimerRef.current)
+      heroTypingTimerRef.current = null
+    }
+    setHeroDemoTyping(false)
+    heroTypingSkipRef.current = false
+    if (markSeen) markHeroDockTypingDemoSeen()
+  }, [])
+
+  useEffect(() => () => cancelHeroTypingDemo(false), [cancelHeroTypingDemo])
+
+  const applyHeroDockDemoMatches = useCallback(() => {
     heroDemoAppliedRef.current = true
     setHeroDemoActive(true)
 
     const modules = buildHeroDockDemoModules()
     userSuffixRef.current = HERO_DOCK_DEMO_PROMPT
     skipSyncRef.current = true
-    setPrompt(HERO_DOCK_DEMO_PROMPT)
     setDebouncedIntent(HERO_DOCK_DEMO_PROMPT)
-    setPromptExpanded(true)
     setPromptModules(modules)
-    setIndustryKeys(new Set(['mfg']))
-    setOfficeCats(new Set(['流程审批']))
-    setSelected(new Set(['hero-demo-inventory']))
+    setIndustryKeys(new Set(['office']))
+    setOfficeCats(new Set(['知识协同']))
+    setSelected(new Set(['hero-demo-create']))
     setPromptSuggestions(buildHeroDockDemoSuggestions())
     setSuggestValidation(HERO_DOCK_DEMO_VALIDATION)
-    setSuggestSourceLabel('意图 Agent · 演示')
+    setSuggestSourceLabel('意图 Agent · 品牌识别')
     setSuggestUsedAi(true)
     setSuggestConfidence(0.88)
     setSuggestFetching(false)
     setAnalysisPhase('idle')
     setAnalysisProgress(0)
     lastAutoSuggestSigRef.current = `${HERO_DOCK_DEMO_PROMPT}::${modules.map((m) => m.id).join(',')}`
-    setDockExpandSignal((n) => n + 1)
     window.setTimeout(() => setBoxOpenSignal((n) => n + 1), 120)
   }, [])
 
+  const startHeroTypingDemo = useCallback(() => {
+    if (
+      !heroTypingDemoEligible ||
+      heroDemoTyping ||
+      heroDemoActive ||
+      heroDemoAppliedRef.current ||
+      prompt.replace(/^>>\s*$/, '').trim() ||
+      draft.trim()
+    ) {
+      return
+    }
+
+    const reducedMotion = typeof window !== 'undefined'
+      && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+    setHeroDemoTyping(true)
+    setPromptExpanded(true)
+    heroTypingSkipRef.current = true
+    setPrompt('')
+    userSuffixRef.current = ''
+
+    const finish = () => {
+      heroTypingSkipRef.current = true
+      skipSyncRef.current = true
+      setPrompt(HERO_DOCK_DEMO_PROMPT)
+      userSuffixRef.current = HERO_DOCK_DEMO_PROMPT
+      setHeroDemoTyping(false)
+      markHeroDockTypingDemoSeen()
+      applyHeroDockDemoMatches()
+    }
+
+    if (reducedMotion) {
+      finish()
+      return
+    }
+
+    const text = HERO_DOCK_DEMO_PROMPT
+    let i = 0
+    const tick = () => {
+      i += 1
+      const partial = text.slice(0, i)
+      heroTypingSkipRef.current = true
+      skipSyncRef.current = true
+      setPrompt(partial)
+      userSuffixRef.current = partial
+      if (i < text.length) {
+        heroTypingTimerRef.current = window.setTimeout(tick, HERO_DOCK_TYPING_CHAR_MS)
+      } else {
+        heroTypingTimerRef.current = null
+        finish()
+      }
+    }
+    heroTypingTimerRef.current = window.setTimeout(tick, 180)
+  }, [
+    heroTypingDemoEligible,
+    heroDemoTyping,
+    heroDemoActive,
+    prompt,
+    draft,
+    applyHeroDockDemoMatches,
+  ])
+
   useEffect(() => {
-    if (!showPromptDock || activeSection !== 'hero' || isHeroDockDemoDismissed()) return
-    if (draft.trim() && !heroDemoActive) return
-    if (prompt.replace(/^>>\s*$/, '').trim() && !heroDemoActive) return
-    applyHeroDockDemo()
-  }, [showPromptDock, activeSection, draft, prompt, heroDemoActive, applyHeroDockDemo])
+    if (showPromptDock && activeSection === 'hero') {
+      setPromptExpanded(true)
+    }
+  }, [showPromptDock, activeSection])
+
+  useEffect(() => {
+    if (!pageReady) return
+    requestAnimationFrame(() => {
+      setDockReposition((n) => n + 1)
+    })
+    const t = window.setTimeout(() => setDockReposition((n) => n + 1), 850)
+    return () => window.clearTimeout(t)
+  }, [pageReady])
+
+  const handleAgentInputFocus = useCallback(() => {
+    setPromptExpanded(true)
+    startHeroTypingDemo()
+  }, [startHeroTypingDemo])
+
+  const exitHeroDemo = useCallback(() => {
+    cancelHeroTypingDemo(true)
+    if (!heroDemoActive) return
+    setHeroDemoActive(false)
+    heroDemoAppliedRef.current = false
+    markHeroDockTypingDemoSeen()
+  }, [heroDemoActive, cancelHeroTypingDemo])
 
   useEffect(() => {
     if (!showPromptDock) {
@@ -335,10 +430,14 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
   }, [composedFromModules])
 
   const handlePromptChange = useCallback((value: string) => {
-    const stripped = value.replace(/^>>\s*$/, '').trim()
-    if (heroDemoActive && stripped !== HERO_DOCK_DEMO_PROMPT.trim()) {
+    if (heroDemoTyping) {
+      cancelHeroTypingDemo(true)
+    } else if (heroTypingSkipRef.current) {
+      heroTypingSkipRef.current = false
+    } else if (heroDemoActive && value.replace(/^>>\s*$/, '').trim() !== HERO_DOCK_DEMO_PROMPT.trim()) {
       exitHeroDemo()
     }
+    const stripped = value.replace(/^>>\s*$/, '').trim()
     if (!stripped && promptModules.length > 0) {
       userSuffixRef.current = ''
       skipSyncRef.current = false
@@ -349,7 +448,7 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
     userSuffixRef.current = suffix
     skipSyncRef.current = true
     setPrompt(value)
-  }, [promptModules, composedFromModules, heroDemoActive, exitHeroDemo])
+  }, [promptModules, composedFromModules, heroDemoActive, heroDemoTyping, exitHeroDemo, cancelHeroTypingDemo])
 
   const userIntentText = useMemo(() => {
     const raw = prompt.replace(/^>>\s*/, '').trim()
@@ -923,9 +1022,10 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
         variant="capsule"
         showDockToggle
         defaultExpanded={activeSection === 'hero'}
-        defaultAnchorSelector={activeSection === 'hero' ? '#hero-float-anchor' : '#hero .b2b-hero-btns'}
+        defaultAnchorSelector={activeSection === 'hero' ? '#hero-dock-anchor' : '#hero .b2b-hero-btns'}
         anchorAlign={activeSection === 'hero' ? 'right' : 'left'}
-        expandSignal={dockExpandSignal}
+        anchorVerticalAlign={activeSection === 'hero' ? 'top' : 'below'}
+        repositionSignal={dockReposition}
         closedAnchorSelector=".b2b-header .brand-mark"
         ariaLabel="生成应用悬浮助手"
         snapBottomOnExpand
@@ -933,7 +1033,7 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
       >
         <div
           ref={promptCardRef}
-          className={`prompt-card minimal-card${promptHighlight ? ' prompt-highlight' : ''}${promptExpanded ? ' prompt-expanded' : ''}`}
+          className={`prompt-card minimal-card${promptHighlight ? ' prompt-highlight' : ''}${promptExpanded ? ' prompt-expanded' : ''}${heroDemoTyping ? ' hero-dock-typing-demo' : ''}`}
         >
         <div className="prompt-card-scroll">
           <AgentInput
@@ -943,8 +1043,10 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
             theme={theme}
             value={prompt}
             onChange={handlePromptChange}
-            onFocus={() => setPromptExpanded(true)}
+            onFocus={handleAgentInputFocus}
             expanded={promptExpanded || promptHighlight}
+            guideOnEmptyFocus={!heroTypingDemoEligible}
+            inputLocked={heroDemoTyping}
             modules={promptModules}
             onRemoveModule={removeModule}
             scenarios={panelScenarios}

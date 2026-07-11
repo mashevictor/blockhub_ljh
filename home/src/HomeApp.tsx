@@ -13,7 +13,9 @@ import B2BNewsSection from './components/b2b/enrichment/B2BNewsSection'
 import CreateStudio from './components/b2b/CreateStudio'
 import B2BDemoForm from './components/b2b/B2BDemoForm'
 import HomeScrollRails from './components/b2b/HomeScrollRails'
+import HomePageIntro, { shouldSkipHomePageIntro } from './components/b2b/HomePageIntro'
 import AgentSignLine from './components/AgentSignLine'
+import { HomePageReadyProvider } from './context/HomePageReadyContext'
 import { AgentPageProvider, useAgentPageContext } from './context/AgentPageContext'
 import { PromptDraftProvider } from './context/PromptDraftContext'
 import { DemoBookingProvider } from './context/DemoBookingContext'
@@ -75,6 +77,7 @@ function HomeScrollContext() {
 
 export default function HomeApp() {
   const [user, setUser] = useState<AuthUser | null>(null)
+  const [pageReady, setPageReady] = useState(shouldSkipHomePageIntro)
   const location = useLocation()
   const activeSection = useHomeActiveSection()
 
@@ -105,8 +108,10 @@ export default function HomeApp() {
     <AgentPageProvider initial="landing_hero">
       <PromptDraftProvider>
       <DemoBookingProvider>
+      <HomePageReadyProvider ready={pageReady}>
+      {!pageReady && <HomePageIntro onDone={() => setPageReady(true)} />}
       <HomeScrollContext />
-      <div className="b2b-app b2b-brand-scope b2b-has-floating-agent">
+      <div className={`b2b-app b2b-brand-scope b2b-has-floating-agent${pageReady ? ' is-page-ready' : ' is-page-intro'}`}>
       <B2BHeader
         user={user}
         activeSection={activeSection}
@@ -138,6 +143,7 @@ export default function HomeApp() {
       </footer>
       <HomeScrollRails />
       </div>
+      </HomePageReadyProvider>
       </DemoBookingProvider>
       </PromptDraftProvider>
     </AgentPageProvider>

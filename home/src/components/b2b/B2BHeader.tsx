@@ -118,6 +118,7 @@ export default function B2BHeader({ user, activeSection, onBook, onLogout }: Pro
           </div>
         </div>
       </div>
+      <div id="header-float-anchor" className="b2b-header-float-anchor" aria-hidden />
     </header>
   )
 }

@@ -1,45 +1,61 @@
-/** 首页 Hero 悬浮框 · 默认演示（积木仓 + 意图匹配） */
+/** 首页 Hero 悬浮框 · 首次输入打字演示（积木仓 → 平台能力匹配） */
 
+import { BRAND } from '@shared/brand'
+import { PLATFORM_STATS } from '@shared/platformStats'
 import type { SuggestValidation } from '../api/client'
 import { pickToModule, type PromptModule } from '../components/agentInputLogic'
 import type { SuggestItem } from './promptSuggest'
 import { CAPABILITIES_SHOWCASE, INDUSTRIES_SHOWCASE } from './showcase'
 
-export const HERO_DOCK_DEMO_SESSION_KEY = 'tc-hero-dock-demo-dismissed'
+/** 持久标记：用户已看过一次打字演示 */
+export const HERO_DOCK_TYPING_DEMO_KEY = 'tc-hero-dock-typing-demo-seen'
 
-export const HERO_DOCK_DEMO_PROMPT =
-  '积木仓：制造工厂库存盘点，入库出库走审批，异常要通知车间和财务'
+export const HERO_DOCK_DEMO_PROMPT = BRAND.nameZh
+
+/** 逐字打字间隔（毫秒） */
+export const HERO_DOCK_TYPING_CHAR_MS = 140
 
 export const HERO_DOCK_DEMO_PROBLEM = {
-  title: '问题理解',
-  body: '制造工厂需要定期做库存盘点，入库出库要有审批留痕；出现缺货、超储等异常时，要能及时通知车间主管和财务对账。',
-  foot: '意图 Agent 已根据描述自动匹配行业、场景、能力与模块 — 可点击取消勾选，或继续修改描述。',
+  title: '平台理解',
+  body: `${BRAND.nameZh} ${BRAND.nameEn} 是企业智能应用 PaaS——描述需求、选行业、搭模块，${PLATFORM_STATS.scenarios}+ 场景 · ${PLATFORM_STATS.capabilities} 项能力 · ${PLATFORM_STATS.industryPacks} 个行业包 · 五端发布。${BRAND.tagline}。`,
+  foot: '意图 Agent 已识别品牌并匹配平台核心能力 — 可继续描述业务场景，或输入 >> 手动选模块。',
 }
 
-export function isHeroDockDemoDismissed(): boolean {
+export function isHeroDockTypingDemoSeen(): boolean {
   try {
-    return sessionStorage.getItem(HERO_DOCK_DEMO_SESSION_KEY) === '1'
+    return localStorage.getItem(HERO_DOCK_TYPING_DEMO_KEY) === '1'
   } catch {
     return false
   }
 }
 
-export function dismissHeroDockDemo(): void {
+export function markHeroDockTypingDemoSeen(): void {
   try {
-    sessionStorage.setItem(HERO_DOCK_DEMO_SESSION_KEY, '1')
+    localStorage.setItem(HERO_DOCK_TYPING_DEMO_KEY, '1')
   } catch {
     /* ignore */
   }
 }
 
-const mfg = INDUSTRIES_SHOWCASE.find((i) => i.key === 'mfg')!
-const logistics = INDUSTRIES_SHOWCASE.find((i) => i.key === 'logistics')!
-const formCap = CAPABILITIES_SHOWCASE.find((c) => c.id === 'workflow')
+/** @deprecated 与 markHeroDockTypingDemoSeen 相同 */
+export function dismissHeroDockDemo(): void {
+  markHeroDockTypingDemoSeen()
+}
+
+export function isHeroDockDemoDismissed(): boolean {
+  return isHeroDockTypingDemoSeen()
+}
+
+const office = INDUSTRIES_SHOWCASE.find((i) => i.key === 'office')!
+const creation = CAPABILITIES_SHOWCASE.find((c) => c.id === 'creation')!
+const chatQa = CAPABILITIES_SHOWCASE.find((c) => c.id === 'chat_qa')!
+const approval = CAPABILITIES_SHOWCASE.find((c) => c.id === 'approval')!
+const portal = CAPABILITIES_SHOWCASE.find((c) => c.id === 'portal')!
 
 export const HERO_DOCK_DEMO_VALIDATION: SuggestValidation = {
   status: 'valid',
-  confidence: 0.88,
-  intent_summary: '制造业库存盘点与出入库审批，需异常消息推送给车间与财务',
+  confidence: 0.92,
+  intent_summary: `识别为「${BRAND.nameZh}」平台本体查询，推荐智能创建、行业方案与核心模块组合`,
   guidance: '',
   rejection_reason: '',
 }
@@ -47,64 +63,65 @@ export const HERO_DOCK_DEMO_VALIDATION: SuggestValidation = {
 export function buildHeroDockDemoModules(): PromptModule[] {
   return [
     {
-      ...pickToModule({ type: 'industry', key: 'mfg', label: '传统制造' }, { iconKey: mfg.iconKey, color: mfg.color }),
+      ...pickToModule({ type: 'industry', key: 'office', label: '通用办公' }, { iconKey: office.iconKey, color: office.color }),
       source: 'suggest',
       order: 0,
     },
     {
-      ...pickToModule({ type: 'office', key: '流程审批', label: '流程审批' }, { iconKey: 'approval', color: '#6366f1' }),
+      ...pickToModule({ type: 'capability', key: 'creation', label: '智能创建' }, { iconKey: creation.iconKey, color: creation.color }),
       source: 'suggest',
       order: 1,
     },
     {
-      ...pickToModule({ type: 'module', key: 'approval_flow', label: '审批流' }, { iconKey: 'approval', color: '#f59e0b' }),
+      ...pickToModule({ type: 'module', key: 'chat_qa', label: '智能问答' }, { iconKey: 'chat_qa', color: chatQa.color }),
       source: 'suggest',
       order: 2,
     },
     {
-      ...pickToModule({ type: 'module', key: 'notify_inapp', label: '站内信' }, { iconKey: 'notify', color: '#f59e0b' }),
+      ...pickToModule({ type: 'module', key: 'approval_flow', label: '审批流' }, { iconKey: 'approval', color: approval.color }),
       source: 'suggest',
       order: 3,
     },
     {
-      ...pickToModule({ type: 'module', key: 'chart_dashboard', label: '数据看板' }, { iconKey: 'chart-dashboard', color: '#f59e0b' }),
+      ...pickToModule({ type: 'module', key: 'kb_document', label: '知识库' }, { iconKey: 'kb', color: '#059669' }),
       source: 'suggest',
       order: 4,
     },
     {
-      ...pickToModule(
-        { type: 'capability', key: 'workflow', label: '流程编排' },
-        { iconKey: formCap?.iconKey ?? 'workflow', color: formCap?.color ?? '#8b5cf6' },
-      ),
+      ...pickToModule({ type: 'office', key: '知识协同', label: '知识协同' }, { iconKey: 'kb', color: '#059669' }),
       source: 'suggest',
       order: 5,
     },
     {
-      ...pickToModule({ type: 'scenario', key: 'hero-demo-inventory', label: '库存盘点' }, { iconKey: 'logistics', color: logistics.color }),
+      ...pickToModule(
+        { type: 'capability', key: 'portal', label: '多端门户' },
+        { iconKey: portal.iconKey, color: portal.color },
+      ),
       source: 'suggest',
       order: 6,
+    },
+    {
+      ...pickToModule({ type: 'scenario', key: 'hero-demo-create', label: '描述创建' }, { iconKey: 'creation', color: creation.color }),
+      source: 'suggest',
+      order: 7,
     },
   ]
 }
 
 export function buildHeroDockDemoSuggestions(): SuggestItem[] {
   return [
-    { pick: { type: 'industry', key: 'mfg', label: '传统制造' }, score: 8, reason: '匹配制造与库存描述', iconKey: mfg.iconKey, color: mfg.color },
-    { pick: { type: 'industry', key: 'logistics', label: '物流仓储' }, score: 6, reason: '涉及仓储盘点场景', iconKey: logistics.iconKey, color: logistics.color },
-    { pick: { type: 'office', key: '流程审批', label: '流程审批' }, score: 7, reason: '出入库需审批', iconKey: 'approval', color: '#6366f1' },
-    { pick: { type: 'module', key: 'approval_flow', label: '审批流' }, score: 8, reason: '核心流程能力', iconKey: 'approval', color: '#f59e0b' },
-    { pick: { type: 'module', key: 'notify_inapp', label: '站内信' }, score: 7, reason: '异常通知触达', iconKey: 'notify', color: '#f59e0b' },
-    { pick: { type: 'module', key: 'chart_dashboard', label: '数据看板' }, score: 6, reason: '库存数据可视化', iconKey: 'chart-dashboard', color: '#f59e0b' },
-    {
-      pick: { type: 'capability', key: 'workflow', label: '流程编排' },
-      score: 5,
-      reason: '盘点与审批流程编排',
-      iconKey: formCap?.iconKey ?? 'workflow',
-      color: formCap?.color ?? '#8b5cf6',
-    },
-    { pick: { type: 'scenario', key: 'hero-demo-inventory', label: '库存盘点' }, score: 7, reason: '典型业务场景', iconKey: 'logistics', color: logistics.color },
+    { pick: { type: 'industry', key: 'office', label: '通用办公' }, score: 9, reason: `${BRAND.nameZh} 核心场景库`, iconKey: office.iconKey, color: office.color },
+    { pick: { type: 'capability', key: 'creation', label: '智能创建' }, score: 9, reason: '平台主入口 · 描述即创建', iconKey: creation.iconKey, color: creation.color },
+    { pick: { type: 'capability', key: 'portal', label: '多端门户' }, score: 8, reason: `${PLATFORM_STATS.platforms} 端一次发布`, iconKey: portal.iconKey, color: portal.color },
+    { pick: { type: 'capability', key: 'approval', label: '审批流程' }, score: 7, reason: '高频办公能力', iconKey: approval.iconKey, color: approval.color },
+    { pick: { type: 'office', key: '知识协同', label: '知识协同' }, score: 7, reason: '制度 · 文档 · 问答', iconKey: 'kb', color: '#059669' },
+    { pick: { type: 'module', key: 'chat_qa', label: '智能问答' }, score: 8, reason: 'RAG 知识库问答', iconKey: 'chat_qa', color: chatQa.color },
+    { pick: { type: 'module', key: 'approval_flow', label: '审批流' }, score: 8, reason: '请假 · 报销 · 通用审批', iconKey: 'approval', color: approval.color },
+    { pick: { type: 'module', key: 'kb_document', label: '知识库' }, score: 7, reason: '文档切片与检索', iconKey: 'kb', color: '#059669' },
+    { pick: { type: 'scenario', key: 'hero-demo-create', label: '描述创建' }, score: 8, reason: '三种创建方式之一', iconKey: 'creation', color: creation.color },
+    { pick: { type: 'supplement', key: 'llm-intent', label: '意图解析' }, score: 8, reason: '大模型拆解需求', iconKey: 'creation', color: '#1d4ed8' },
   ]
 }
 
 export const HERO_DOCK_DEMO_ENHANCED =
-  '为制造工厂搭建库存盘点应用：支持入库/出库审批流，库存异常通过站内信通知车间主管与财务，并以数据看板展示库存态势。'
+  `${BRAND.nameZh} ${BRAND.nameEn}：企业智能应用 PaaS，支持描述需求创建、${PLATFORM_STATS.industryPacks} 个行业深度包、${PLATFORM_STATS.scenarios}+ 业务场景与 ${PLATFORM_STATS.capabilities} 项能力模块自由组合，一次发布 Web · iOS · Android · Windows · macOS 五端可用。`

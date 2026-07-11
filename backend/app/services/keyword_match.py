@@ -77,6 +77,8 @@ INDUSTRY_DEFAULT_MODULES: dict[str, list[tuple[str, str, str]]] = {
     ],
 }
 
+_BRAND_HINTS = ("积木仓", "blockhub")
+
 # 办公场景关键词
 OFFICE_HINTS: list[tuple[tuple[str, ...], str]] = [
     (("人事", "行政", "请假", "入职", "考勤", "排班"), "人事行政"),
@@ -226,6 +228,14 @@ def match_modules_keyword(user_text: str) -> list[dict]:
             "source": "keyword",
             "flutter_pkg": cap.flutter_pkg if cap else "",
         })
+
+    if any(h in text or h in q_lower for h in _BRAND_HINTS):
+        push("office", 9.0, "识别为积木仓平台本体", pick_type="industry", label="通用办公")
+        push("chat_qa", 8.5, "平台高频 AI 模块")
+        push("approval_flow", 8.0, "平台高频审批模块")
+        push("kb_document", 7.5, "知识库 · 制度与文档")
+        push("知识协同", 7.0, "积木仓核心办公分类", pick_type="office", label="知识协同")
+        matched_industries.append(("office", "通用办公", 9.0))
 
     for cap in ALL_CAPABILITIES.values():
         s = score_keywords(text, cap.keywords)

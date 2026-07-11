@@ -17,6 +17,16 @@ interface DockPosition {
   y: number
 }
 
+interface StoredDockPosition extends DockPosition {
+  anchor?: string
+  userMoved?: boolean
+}
+
+function anchorStorageKey(selector: string | undefined, vertical: 'below' | 'top'): string | undefined {
+  if (!selector) return undefined
+  return `${selector}|${vertical}`
+}
+
 interface Props {
   children: ReactNode
   /** localStorage 键前缀，区分不同页面悬浮框 */
@@ -51,6 +61,10 @@ interface Props {
   anchorAlign?: 'left' | 'right'
   /** 递增时强制展开（如首页演示注入） */
   expandSignal?: number
+  /** below：锚点下方；top：与锚点顶对齐 */
+  anchorVerticalAlign?: 'below' | 'top'
+  /** 递增时重新对齐锚点（如首页 intro 结束后） */
+  repositionSignal?: number
 }
 
 const DOCK_WIDTH = 720
@@ -58,16 +72,28 @@ const MARGIN = 16
 const ANCHOR_GAP = 16
 const INTERACTIVE_SELECTOR = 'button, input, textarea, select, a, label, [contenteditable="true"]'
 
-function loadPosition(key: string): DockPosition | null {
+function loadStoredPosition(key: string): StoredDockPosition | null {
   try {
     const raw = localStorage.getItem(`${key}:pos`)
     if (!raw) return null
-    const parsed = JSON.parse(raw) as DockPosition
+    const parsed = JSON.parse(raw) as StoredDockPosition
     if (typeof parsed.x === 'number' && typeof parsed.y === 'number') return parsed
   } catch {
     /* ignore */
   }
   return null
+}
+
+function loadPosition(key: string, expectedAnchor?: string): DockPosition | null {
+  const stored = loadStoredPosition(key)
+  if (!stored) return null
+  if (stored.userMoved) return stored
+  if (expectedAnchor && stored.anchor !== expectedAnchor) return null
+  return stored
+}
+
+function isUserMovedPosition(key: string): boolean {
+  return loadStoredPosition(key)?.userMoved === true
 }
 
 function loadCollapsed(key: string): boolean {
@@ -96,17 +122,20 @@ function defaultPosition(width: number, height: number): DockPosition {
   return { x, y }
 }
 
-function positionBelowAnchor(
+function positionAtAnchor(
   anchor: DOMRect,
   dockW: number,
   dockH: number,
   align: 'left' | 'right' = 'left',
+  vertical: 'below' | 'top' = 'below',
 ): DockPosition {
   const w = Math.min(dockW, window.innerWidth - MARGIN * 2)
   const x = align === 'right'
     ? Math.max(MARGIN, anchor.right - w)
     : Math.max(MARGIN, anchor.left)
-  const y = anchor.bottom + ANCHOR_GAP
+  const y = vertical === 'top'
+    ? anchor.top
+    : anchor.bottom + ANCHOR_GAP
   return clampPosition({ x, y }, w, dockH)
 }
 
@@ -125,13 +154,15 @@ function resolveInitialPosition(
   dockW: number,
   dockH: number,
   anchorAlign: 'left' | 'right' = 'left',
+  anchorVerticalAlign: 'below' | 'top' = 'below',
 ): DockPosition {
-  const stored = loadPosition(storageKey)
+  const anchorKey = anchorStorageKey(anchorSelector, anchorVerticalAlign)
+  const stored = loadPosition(storageKey, anchorKey)
   if (stored) return stored
   if (anchorSelector && typeof document !== 'undefined') {
     const anchor = document.querySelector(anchorSelector)
     if (anchor) {
-      return positionBelowAnchor(anchor.getBoundingClientRect(), dockW, dockH, anchorAlign)
+      return positionAtAnchor(anchor.getBoundingClientRect(), dockW, dockH, anchorAlign, anchorVerticalAlign)
     }
   }
   return defaultPosition(dockW, dockH)
@@ -161,6 +192,8 @@ export default function FloatingAgentDock({
   defaultExpanded = false,
   anchorAlign = 'left',
   expandSignal = 0,
+  anchorVerticalAlign = 'below',
+  repositionSignal = 0,
 }: Props) {
   const variant: FloatingDockVariant = variantProp === 'default' && keepInputWhenCollapsed ? 'capsule' : variantProp
   const isCapsule = variant === 'capsule'
@@ -177,9 +210,17 @@ export default function FloatingAgentDock({
   const panelId = useId()
 
   const persistPos = useCallback(
-    (next: DockPosition) => {
+    (next: DockPosition, meta?: Pick<StoredDockPosition, 'anchor' | 'userMoved'>) => {
       try {
-        localStorage.setItem(`${storageKey}:pos`, JSON.stringify(next))
+        const prev = loadStoredPosition(storageKey)
+        localStorage.setItem(
+          `${storageKey}:pos`,
+          JSON.stringify({
+            ...next,
+            anchor: meta?.anchor ?? prev?.anchor,
+            userMoved: meta?.userMoved ?? prev?.userMoved,
+          }),
+        )
       } catch {
         /* ignore */
       }
@@ -232,7 +273,7 @@ export default function FloatingAgentDock({
   }, [isCapsule, persistPos])
 
   const snapToAnchor = useCallback(
-    (selector: string | undefined, persist = false) => {
+    (selector: string | undefined, persist = false, vertical = anchorVerticalAlign) => {
       if (!selector || typeof document === 'undefined') return false
       const anchor = document.querySelector(selector)
       const el = dockRef.current
@@ -241,15 +282,20 @@ export default function FloatingAgentDock({
       const dockH = rect.height || (isCapsule ? 48 : 180)
       const dockW = rect.width || DOCK_WIDTH
       const next = clampPosition(
-        positionBelowAnchor(anchor.getBoundingClientRect(), dockW, dockH, anchorAlign),
+        positionAtAnchor(anchor.getBoundingClientRect(), dockW, dockH, anchorAlign, vertical),
         dockW,
         dockH,
       )
       setPos(next)
-      if (persist) persistPos(next)
+      if (persist) {
+        persistPos(next, {
+          anchor: anchorStorageKey(selector, vertical),
+          userMoved: false,
+        })
+      }
       return true
     },
-    [isCapsule, persistPos, anchorAlign],
+    [isCapsule, persistPos, anchorAlign, anchorVerticalAlign],
   )
 
   const snapToClosedAnchor = useCallback(() => {
@@ -260,14 +306,15 @@ export default function FloatingAgentDock({
     const el = dockRef.current
     const dockH = el?.getBoundingClientRect().height || (isCapsule ? 48 : 180)
     const dockW = el?.getBoundingClientRect().width || DOCK_WIDTH
-    const stored = loadPosition(storageKey)
+    const anchorKey = anchorStorageKey(defaultAnchorSelector, anchorVerticalAlign)
+    const stored = loadPosition(storageKey, anchorKey)
     if (stored) {
       setPos(clampPosition(stored, dockW, dockH))
       return
     }
-    if (snapToAnchor(defaultAnchorSelector)) return
+    if (snapToAnchor(defaultAnchorSelector, true)) return
     setPos(defaultPosition(dockW, dockH))
-  }, [storageKey, defaultAnchorSelector, isCapsule, snapToAnchor])
+  }, [storageKey, defaultAnchorSelector, isCapsule, snapToAnchor, anchorVerticalAlign])
 
   const fitPanelInViewport = useCallback(() => {
     const scrollY = window.scrollY
@@ -298,11 +345,24 @@ export default function FloatingAgentDock({
       snapToAnchor(closedAnchorSelector)
       return
     }
-    const initial = resolveInitialPosition(storageKey, defaultAnchorSelector, dockW, dockH, anchorAlign)
+    const anchorKey = anchorStorageKey(defaultAnchorSelector, anchorVerticalAlign)
+    const initial = resolveInitialPosition(
+      storageKey,
+      defaultAnchorSelector,
+      dockW,
+      dockH,
+      anchorAlign,
+      anchorVerticalAlign,
+    )
     const next = clampPosition(initial, dockW, dockH)
     setPos(next)
-    if (!loadPosition(storageKey)) persistPos(next)
-  }, [storageKey, persistPos, isCapsule, defaultAnchorSelector, dockEnabled, closedAnchorSelector, snapToAnchor, anchorAlign])
+    if (!loadPosition(storageKey, anchorKey)) {
+      persistPos(next, {
+        anchor: anchorKey,
+        userMoved: false,
+      })
+    }
+  }, [storageKey, persistPos, isCapsule, defaultAnchorSelector, dockEnabled, closedAnchorSelector, snapToAnchor, anchorAlign, anchorVerticalAlign])
 
   useLayoutEffect(() => {
     if (!dockEnabled) {
@@ -323,21 +383,18 @@ export default function FloatingAgentDock({
     }
   }, [dockEnabled, closedAnchorSelector, snapToClosedAnchor])
 
-  /** 首页开场动画结束后重新对齐锚点（仅无手动拖拽记录时） */
+  /** intro 结束等时机重新对齐锚点（用户未手动拖拽时） */
   useEffect(() => {
-    if (loadPosition(storageKey) || !defaultAnchorSelector || !dockEnabled) return
-    const recalc = () => {
-      const anchor = document.querySelector(defaultAnchorSelector)
-      if (!anchor) return
-      const el = dockRef.current
-      const dockH = el?.getBoundingClientRect().height || (isCapsule ? 48 : 180)
-      const dockW = el?.getBoundingClientRect().width || DOCK_WIDTH
-      const next = positionBelowAnchor(anchor.getBoundingClientRect(), dockW, dockH, anchorAlign)
-      setPos(next)
+    if (!repositionSignal || !defaultAnchorSelector || !dockEnabled || isUserMovedPosition(storageKey)) return
+    const run = () => snapToAnchor(defaultAnchorSelector, true)
+    requestAnimationFrame(run)
+    const t = window.setTimeout(run, 120)
+    const t2 = window.setTimeout(run, 780)
+    return () => {
+      window.clearTimeout(t)
+      window.clearTimeout(t2)
     }
-    const t = window.setTimeout(recalc, 2700)
-    return () => window.clearTimeout(t)
-  }, [storageKey, defaultAnchorSelector, isCapsule, dockEnabled, anchorAlign])
+  }, [repositionSignal, storageKey, defaultAnchorSelector, dockEnabled, snapToAnchor])
 
   useLayoutEffect(() => {
     ensureVisible()
@@ -470,7 +527,10 @@ export default function FloatingAgentDock({
           setPos((prev) => {
             if (!prev) return prev
             const next = clampPosition(prev, rect.width, rect.height)
-            persistPos(next)
+            persistPos(next, {
+              anchor: anchorStorageKey(defaultAnchorSelector, anchorVerticalAlign),
+              userMoved: true,
+            })
             return next
           })
         }
@@ -481,7 +541,7 @@ export default function FloatingAgentDock({
       window.addEventListener('pointermove', onMove)
       window.addEventListener('pointerup', onUp)
     },
-    [pos, persistPos, collapsed, dockEnabled],
+    [pos, persistPos, collapsed, dockEnabled, defaultAnchorSelector, anchorVerticalAlign],
   )
 
   const dockContext = useMemo(

@@ -35,6 +35,9 @@ export const SUGGEST_KIND_LABEL: Record<string, string> = {
 }
 
 const KEYWORD_HINTS: { words: string[]; pick: AgentPick; reason: string }[] = [
+  { words: ['积木仓', 'blockhub', 'BlockHub'], pick: { type: 'capability', key: 'creation', label: '智能创建' }, reason: '识别为积木仓平台本体' },
+  { words: ['积木仓', 'blockhub'], pick: { type: 'industry', key: 'office', label: '通用办公' }, reason: '积木仓核心办公场景库' },
+  { words: ['积木仓', 'blockhub'], pick: { type: 'module', key: 'chat_qa', label: '智能问答' }, reason: '平台高频 AI 模块' },
   { words: ['制造', '工厂', '产线', '设备', '报修', 'SOP', '质检', 'MES'], pick: { type: 'industry', key: 'mfg', label: '传统制造' }, reason: '匹配制造相关描述' },
   { words: ['销售', 'CRM', '客户', '报价', '漏斗', '商机', '合同'], pick: { type: 'industry', key: 'sales', label: '销售行业' }, reason: '匹配销售相关描述' },
   { words: ['医院', '医疗', '患者', '排班', '合规', 'HIS', '导诊'], pick: { type: 'industry', key: 'med', label: '医疗健康' }, reason: '匹配医疗相关描述' },

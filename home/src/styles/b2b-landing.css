@@ -96,6 +96,21 @@
   transition: box-shadow 0.25s ease, background 0.25s ease;
 }
 
+.b2b-header-float-anchor {
+  position: absolute;
+  right: clamp(24px, 5vw, 72px);
+  bottom: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+@media (max-width: 768px) {
+  .b2b-header-float-anchor {
+    right: 16px;
+  }
+}
+
 .b2b-header.is-compact {
   box-shadow: 0 4px 20px rgba(13, 71, 161, 0.1);
 }
@@ -413,6 +428,62 @@ a.b2b-nav-btn-link {
 .b2b-hero-body.is-visible .b2b-hero-btns { animation-delay: 0.32s; }
 .b2b-hero-body.is-visible .b2b-hero-panel { animation-delay: 0.2s; }
 
+/* Hero 左右顶对齐：左文案 + 右悬浮框锚点 */
+.b2b-hero-top {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(28px, 4vw, 40px);
+  align-items: start;
+  width: 100%;
+}
+
+.b2b-hero-dock-anchor {
+  width: 100%;
+  min-height: 1px;
+  align-self: start;
+  pointer-events: none;
+}
+
+@media (min-width: 1024px) {
+  .b2b-hero-top {
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 720px);
+    column-gap: clamp(32px, 5vw, 56px);
+  }
+}
+
+/* 全页开场 >> loading：置顶，结束后才显示页面 */
+.home-page-intro {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: clamp(56px, 14vh, 128px);
+  background: #fff;
+  pointer-events: all;
+}
+
+.home-page-intro.is-exiting {
+  opacity: 0;
+  transition: opacity 0.32s ease;
+}
+
+.b2b-app.is-page-intro {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.b2b-app.is-page-ready {
+  visibility: visible;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-page-intro.is-exiting {
+    transition: none;
+  }
+}
+
 @keyframes hero-stagger-in {
   from {
     opacity: 0;
@@ -507,23 +578,6 @@ a.b2b-nav-btn-link {
 
 .b2b-hero-text {
   min-width: 0;
-}
-
-.b2b-hero-float-anchor {
-  position: absolute;
-  right: clamp(24px, 5vw, 72px);
-  top: clamp(108px, 16vh, 168px);
-  width: 0;
-  height: 0;
-  pointer-events: none;
-}
-
-@media (max-width: 768px) {
-  .b2b-hero-float-anchor {
-    right: 16px;
-    top: auto;
-    bottom: 24px;
-  }
 }
 
 .b2b-hero-eyebrow {
@@ -3764,6 +3818,53 @@ a.b2b-nav-btn-link {
   width: min(720px, calc(100vw - 24px));
 }
 
+/* 首页 Hero 悬浮框：锚在 Hero 右侧顶对齐，高度可撑开以露出「生成应用」 */
+.b2b-brand-scope .home-floating-agent.floating-agent-dock-capsule.is-expanded .floating-agent-dock-frame {
+  max-height: min(calc(100dvh - 76px - 12px), 720px);
+}
+
+.b2b-brand-scope .home-floating-agent.floating-agent-dock-capsule.is-expanded .floating-agent-dock-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.b2b-brand-scope .home-floating-agent.floating-agent-dock-capsule.is-expanded .prompt-card {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: 100%;
+  overflow: hidden;
+}
+
+.b2b-brand-scope .home-floating-agent.floating-agent-dock-capsule.is-expanded .prompt-card-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.b2b-brand-scope .home-floating-agent.floating-agent-dock-capsule.is-expanded .minimal-footer {
+  flex-shrink: 0;
+  margin-top: auto;
+  padding-top: 10px;
+  padding-bottom: 2px;
+  border-top: 1px solid #e2e8f0;
+  background: #fff;
+}
+
+.b2b-brand-scope .home-floating-agent.floating-agent-dock-capsule.is-expanded .prompt-suggest-bar {
+  max-height: min(36vh, 280px);
+}
+
+.b2b-brand-scope .home-floating-agent.floating-agent-dock-capsule.is-expanded .prompt-suggest-preview-body {
+  max-height: 120px;
+}
+
 .b2b-form-wrap .prompt-view-minimal.layout-floating .prompt-card,
 .b2b-brand-scope .prompt-view-minimal.layout-floating .prompt-card,
 .b2b-brand-scope .home-floating-agent .prompt-card {
@@ -4019,6 +4120,39 @@ a.b2b-nav-btn-link {
   font-size: 11px;
   line-height: 1.45;
   color: var(--b2b-muted);
+}
+
+.hero-dock-typing-demo .agent-input-field-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.hero-dock-typing-demo .agent-input-field,
+.hero-dock-typing-demo .agent-input-compact {
+  caret-color: transparent;
+}
+
+.hero-dock-typing-demo .agent-input-field-wrap::after {
+  content: '';
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  margin-left: 1px;
+  vertical-align: text-bottom;
+  background: var(--b2b-primary);
+  animation: hero-dock-caret-blink 0.9s step-end infinite;
+}
+
+@keyframes hero-dock-caret-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-dock-typing-demo .agent-input-field-wrap::after {
+    animation: none;
+  }
 }
 
 .b2b-brand-scope .home-floating-agent.floating-agent-dock-capsule.is-collapsed .floating-agent-dock-chrome {

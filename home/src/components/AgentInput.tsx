@@ -72,6 +72,10 @@ interface Props {
   orbSize?: 'default' | 'large'
   /** 模块选择面板开/关（用于与积木仓互斥） */
   onPickerChange?: (open: boolean) => void
+  /** 空内容聚焦时是否自动插入 >> 引导（首页打字演示时关闭） */
+  guideOnEmptyFocus?: boolean
+  /** 演示打字时锁定输入 */
+  inputLocked?: boolean
 }
 
 interface PanelItem {
@@ -108,6 +112,8 @@ export default forwardRef<AgentInputHandle, Props>(function AgentInput({
   theme,
   orbSize = 'default',
   onPickerChange,
+  guideOnEmptyFocus = true,
+  inputLocked = false,
 }, ref) {
   const innerRef = useRef<HTMLTextAreaElement>(null)
   const compactRef = useRef<HTMLInputElement>(null)
@@ -342,7 +348,7 @@ export default forwardRef<AgentInputHandle, Props>(function AgentInput({
       return
     }
     if (!value.trim()) {
-      activateGuide()
+      if (guideOnEmptyFocus) activateGuide()
       requestAnimationFrame(() => window.scrollTo(scrollX, scrollY))
       return
     }
@@ -546,6 +552,7 @@ export default forwardRef<AgentInputHandle, Props>(function AgentInput({
                     className="agent-input-field agent-input-compact"
                     value={value}
                     placeholder={placeholderText}
+                    readOnly={inputLocked}
                     onChange={(e) => handleChange(e.target.value)}
                     onFocus={handleFocus}
                     onBlur={handleBlur}
@@ -566,6 +573,7 @@ export default forwardRef<AgentInputHandle, Props>(function AgentInput({
                   value={value}
                   rows={textareaRows}
                   placeholder={placeholderText}
+                  readOnly={inputLocked}
                   onChange={(e) => handleChange(e.target.value)}
                   onFocus={handleFocus}
                   onBlur={handleBlur}
