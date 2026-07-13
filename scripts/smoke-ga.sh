@@ -14,6 +14,12 @@ bash "$ROOT/scripts/regression-114.sh" "$BASE"
 bash "$ROOT/scripts/smoke-custom-capability.sh" "$BASE"
 bash "$ROOT/scripts/load-10vu.sh" "$BASE" 10
 
+if [ "${SKIP_APK:-0}" != "1" ] && [ -f "$ROOT/backend/uploads/apks/default.apk" ]; then
+  echo ""
+  echo "=== APK Smoke ==="
+  bash "$ROOT/scripts/smoke-apk.sh" "$BASE" || true
+fi
+
 if [ -d "$ROOT/e2e" ]; then
   echo ""
   echo "=== Playwright E2E ==="
@@ -27,3 +33,4 @@ fi
 
 echo ""
 echo " GA smoke suite passed"
+echo " Sign-off: bash scripts/ga-checklist.sh $BASE"

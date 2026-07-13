@@ -42,8 +42,11 @@ from sqlalchemy import inspect
 from app.db.session import engine
 
 required = [
-    "users", "custom_capabilities", "catalog_scenarios",
+    "users", "custom_capabilities",
+    "catalog_office_scenarios", "catalog_industry_scenarios",
+    "catalog_hero_presets", "catalog_chip_templates",
     "notifications", "demo_bookings", "plaza_feed_likes",
+    "knowledge_bases", "kb_documents", "approvals",
 ]
 insp = inspect(engine)
 missing = [t for t in required if not insp.has_table(t)]

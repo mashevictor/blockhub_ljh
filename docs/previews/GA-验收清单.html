@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>积木仓 BlockHub · GA 验收清单</title>
+  <style>
+    :root { --pri:#0d47a1; --ok:#059669; --warn:#d97706; --todo:#94a3b8; --bg:#f4f7fb; --surface:#fff; --text:#1e293b; --muted:#64748b; --border:#dbeafe; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:"Segoe UI","PingFang SC",sans-serif; background:var(--bg); color:var(--text); line-height:1.55; font-size:14px; }
+    .topbar { background:linear-gradient(135deg,#0d47a1,#1976d2); color:#fff; padding:28px 32px; }
+    .topbar h1 { margin:0 0 8px; font-size:24px; }
+    .wrap { max-width:960px; margin:0 auto; padding:24px 20px 64px; }
+    section { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:22px 24px; margin-bottom:20px; }
+    h2 { margin:0 0 12px; color:var(--pri); font-size:18px; }
+    table { width:100%; border-collapse:collapse; font-size:13px; }
+    th,td { border:1px solid var(--border); padding:10px 12px; text-align:left; vertical-align:top; }
+    th { background:#eff6ff; }
+    .done { color:var(--ok); font-weight:600; }
+    .wip { color:var(--warn); font-weight:600; }
+    .todo { color:var(--todo); }
+    pre { background:#0f172a; color:#e2e8f0; padding:14px 16px; border-radius:10px; overflow-x:auto; font-size:12px; }
+    .cmd { margin-top:8px; }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <h1>GA 总验收八项</h1>
+    <p>服务器验证完成后，按顺序执行脚本 → 浏览器签字。更新：2026-07-13</p>
+  </div>
+  <div class="wrap">
+
+    <section>
+      <h2>一键命令（服务器 ~/blockhub）</h2>
+      <pre class="cmd"># 全量冒烟 + E2E
+bash scripts/smoke-ga.sh http://101.32.209.251
+
+# GA 八项对照（签字前）
+bash scripts/ga-checklist.sh http://101.32.209.251
+
+# 未构建 APK 时先跳过第 6 项
+SKIP_APK=1 bash scripts/ga-checklist.sh http://101.32.209.251
+
+# 构建并验收 APK
+bash scripts/flutter-build-apk.sh
+bash scripts/smoke-apk.sh http://101.32.209.251</pre>
+    </section>
+
+    <section>
+      <h2>八项清单</h2>
+      <table>
+        <thead><tr><th>#</th><th>项</th><th>验收标准</th><th>脚本/路径</th><th>状态</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>Catalog PostgreSQL</td><td>source=database · total≥114 · 分页正常</td><td>regression-114.sh · smoke-test.sh</td><td class="done">✅ 服务器已通过</td></tr>
+          <tr><td>2</td><td>七 Agent 非 Mock</td><td>问答/知识库/审批/报表/通知/集成/语音/合同</td><td>smoke-test.sh · /agents</td><td class="done">✅</td></tr>
+          <tr><td>3</td><td>发布闭环</td><td>发布→runtime schema/manifest→广场 feed</td><td>e2e/publish-runtime-plaza.spec.ts</td><td class="done">✅ E2E 已绿</td></tr>
+          <tr><td>4</td><td>RAG pgvector</td><td>上传文档→索引→检索 citation</td><td>smoke-test.sh D7/D8</td><td class="done">✅</td></tr>
+          <tr><td>5</td><td>审批 + 通知</td><td>PG 状态机 · 通知列表</td><td>smoke-test.sh W2</td><td class="done">✅</td></tr>
+          <tr><td>6</td><td>Flutter APK</td><td>default.apk · /runtime/{id}/download 200</td><td>flutter-build-apk.sh · smoke-apk.sh</td><td class="wip">🔶 待构建</td></tr>
+          <tr><td>7</td><td>公网 HTTPS</td><td>API health · Home/Admin SPA · SSE 不断</td><td>curl · 浏览器</td><td class="wip">🔶 自签 443</td></tr>
+          <tr><td>8</td><td>文档 + 脚本</td><td>deploy · smoke · migrate · GA 清单</td><td>scripts/* · 本文档</td><td class="done">✅</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>本周已完成（P0/P1）</h2>
+      <table>
+        <thead><tr><th>任务</th><th>交付物</th></tr></thead>
+        <tbody>
+          <tr><td>Custom Capability 审核台</td><td>/admin/capabilities/review · smoke-custom-capability.sh</td></tr>
+          <tr><td>Playwright E2E</td><td>e2e/tests/*.spec.ts</td></tr>
+          <tr><td>114 回归 / 10 并发</td><td>regression-114.sh · load-10vu.sh</td></tr>
+          <tr><td>Docker/Redis 运维</td><td>server-docker-redis.sh · docker-compose.prod.yml</td></tr>
+          <tr><td>腾讯云 DB 迁移</td><td>migrate-tencentdb.sh · .env.tencent.example</td></tr>
+          <tr><td>行业站 / 广场主题</td><td>秒开 · thumb 配图 · plaza-theme.css</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>剩余工作（按优先级）</h2>
+      <table>
+        <thead><tr><th>优先级</th><th>任务</th><th>操作</th></tr></thead>
+        <tbody>
+          <tr><td>P1</td><td>Flutter APK 打包验证</td><td>bash scripts/setup-flutter-android.sh && bash scripts/flutter-build-apk.sh</td></tr>
+          <tr><td>P1</td><td>腾讯云 DB 迁移（可选）</td><td>cp backend/.env.tencent.example → 配置 DATABASE_URL → migrate-tencentdb.sh</td></tr>
+          <tr><td>P2</td><td>正式 HTTPS 证书</td><td>Let's Encrypt 或腾讯云 SSL 替换自签</td></tr>
+          <tr><td>P2</td><td>GA 签字</td><td>ga-checklist.sh 8/8 通过后 tag v0.2.0-ga-rc1</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>手动签字项（浏览器）</h2>
+      <ul>
+        <li>Admin → <strong>能力审核</strong>：待审核 → 通过/拒绝</li>
+        <li>Home → 行业 <strong>进入独立站</strong>：首屏秒开</li>
+        <li>发布应用 → Runtime Web → 广场可见</li>
+        <li>（APK 构建后）手机安装 default.apk → 登录 → 问答/审批</li>
+      </ul>
+    </section>
+  </div>
+</body>
+</html>
