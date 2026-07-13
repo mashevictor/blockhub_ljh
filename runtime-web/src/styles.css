@@ -70,3 +70,5 @@ label { display: block; margin-bottom: 12px; font-size: 13px; }
 .funnel-bar { height: 100%; border-radius: 6px; }
 .funnel-label, .funnel-value { font-size: 13px; }
 .list-card.unread { border-color: var(--accent); background: #fafafa; }
+.integration-samples { list-style: none; padding: 0; margin: 12px 0 0; }
+.integration-samples .list-card { display: flex; gap: 8px; align-items: flex-start; }

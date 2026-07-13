@@ -50,6 +50,17 @@ def _def_from_seed_item(item: dict) -> CapabilityDef:
         web_pkg = "@blockhub/web-capability-dashboard"
         route = "/notifications"
         menu_icon = "bell"
+    elif key in (
+        "erp_connector",
+        "meeting_booking",
+        "it_helpdesk",
+        "asset_manage",
+        "notify_im",
+        "rbac_page",
+    ) or key.startswith("custom_"):
+        web_pkg = "@blockhub/web-capability-integration"
+        route = f"/{key.replace('_', '-')}"
+        menu_icon = "integration"
     return CapabilityDef(
         key=key,
         name=str(item.get("name") or key),

@@ -130,6 +130,11 @@ post_smoke() {
     echo "WARN: 公网 API 仍不可达 — bash scripts/diagnose-api.sh"
   fi
   bash "$ROOT/scripts/smoke-db.sh" "http://127.0.0.1:8001" || echo "    WARN: smoke-db 未全通过 — 见上方输出"
+  if [ "${SKIP_CAPABILITY_SMOKE:-0}" != "1" ]; then
+    bash "$ROOT/scripts/smoke-capability-contract.sh" "http://127.0.0.1:8001" \
+      && echo "    capability contract: OK" \
+      || echo "    WARN: smoke-capability-contract 未通过"
+  fi
 }
 
 echo "=============================================="
@@ -176,5 +181,6 @@ if [ "$APK_ERR" -ne 0 ]; then
   echo " APK:   构建失败，见 /tmp/flutter-apk-build.log"
 fi
 echo " 修 502: bash scripts/deploy-all.sh --restart-api"
+echo " 能力验收: bash scripts/server-capability-test.sh $PUBLIC_URL"
 echo "=============================================="
 exit "$APK_ERR"

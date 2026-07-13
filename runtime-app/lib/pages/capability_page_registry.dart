@@ -38,6 +38,13 @@ Widget buildCapabilityPage({
       case 'EmailWidget':
       case 'MobileChartWidget':
         return ReportPage(branding: branding);
+      case 'ERPWidget':
+      case 'MeetingWidget':
+      case 'HelpdeskWidget':
+      case 'AssetWidget':
+      case 'IMWidget':
+      case 'RBACWidget':
+        return ReportPage(branding: branding);
     }
   }
 

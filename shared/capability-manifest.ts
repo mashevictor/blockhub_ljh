@@ -112,9 +112,9 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     "category": "外部集成",
     "widget": "AssetWidget",
     "agent_id": "integration",
-    "web_pkg": "@blockhub/web-capability-asset-manage",
+    "web_pkg": "@blockhub/web-capability-integration",
     "flutter_pkg": "capability_asset_manage",
-    "route": "/asset-manage",
+    "route": "/assets",
     "keywords": [
       "资产",
       "领用",
@@ -333,9 +333,9 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     "category": "外部集成",
     "widget": "ERPWidget",
     "agent_id": "integration",
-    "web_pkg": "@blockhub/web-capability-erp-connector",
+    "web_pkg": "@blockhub/web-capability-integration",
     "flutter_pkg": "capability_erp_connector",
-    "route": "/erp-connector",
+    "route": "/erp",
     "keywords": [
       "erp",
       "sap",
@@ -349,7 +349,7 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     "category": "Flutter工具",
     "widget": "BioWidget",
     "agent_id": "security",
-    "web_pkg": "@blockhub/web-capability-flutter-biometric",
+    "web_pkg": null,
     "flutter_pkg": "local_auth",
     "route": "/flutter-biometric",
     "keywords": [
@@ -366,7 +366,7 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     "category": "Flutter工具",
     "widget": "CameraWidget",
     "agent_id": "integration",
-    "web_pkg": "@blockhub/web-capability-flutter-camera",
+    "web_pkg": null,
     "flutter_pkg": "image_picker",
     "route": "/flutter-camera",
     "keywords": [
@@ -385,7 +385,7 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     "category": "Flutter工具",
     "widget": "MobileChartWidget",
     "agent_id": "report",
-    "web_pkg": "@blockhub/web-capability-flutter-chart",
+    "web_pkg": null,
     "flutter_pkg": "fl_chart",
     "route": "/flutter-chart",
     "keywords": [
@@ -401,7 +401,7 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     "category": "Flutter工具",
     "widget": "FileWidget",
     "agent_id": "kb",
-    "web_pkg": "@blockhub/web-capability-flutter-file-picker",
+    "web_pkg": null,
     "flutter_pkg": "file_picker",
     "route": "/flutter-file-picker",
     "keywords": [
@@ -418,7 +418,7 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     "category": "Flutter工具",
     "widget": "GeoWidget",
     "agent_id": "integration",
-    "web_pkg": "@blockhub/web-capability-flutter-geolocation",
+    "web_pkg": null,
     "flutter_pkg": "geolocator",
     "route": "/flutter-geolocation",
     "keywords": [
@@ -437,7 +437,7 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     "category": "Flutter工具",
     "widget": "MapWidget",
     "agent_id": "integration",
-    "web_pkg": "@blockhub/web-capability-flutter-map",
+    "web_pkg": null,
     "flutter_pkg": "tencent_map_flutter",
     "route": "/flutter-map",
     "keywords": [
@@ -455,7 +455,7 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     "category": "Flutter工具",
     "widget": "OfflineWidget",
     "agent_id": "integration",
-    "web_pkg": "@blockhub/web-capability-flutter-offline",
+    "web_pkg": null,
     "flutter_pkg": "hive",
     "route": "/flutter-offline",
     "keywords": [
@@ -472,7 +472,7 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     "category": "Flutter工具",
     "widget": "PdfWidget",
     "agent_id": "kb",
-    "web_pkg": "@blockhub/web-capability-flutter-pdf",
+    "web_pkg": null,
     "flutter_pkg": "flutter_pdfview",
     "route": "/flutter-pdf",
     "keywords": [
@@ -487,7 +487,7 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     "category": "Flutter工具",
     "widget": "PushWidget",
     "agent_id": "notify",
-    "web_pkg": "@blockhub/web-capability-flutter-push",
+    "web_pkg": null,
     "flutter_pkg": "flutter_local_notifications",
     "route": "/flutter-push",
     "keywords": [
@@ -503,7 +503,7 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     "category": "Flutter工具",
     "widget": "ScanWidget",
     "agent_id": "integration",
-    "web_pkg": "@blockhub/web-capability-flutter-scan-qr",
+    "web_pkg": null,
     "flutter_pkg": "mobile_scanner",
     "route": "/flutter-scan-qr",
     "keywords": [
@@ -520,7 +520,7 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     "category": "Flutter工具",
     "widget": "SignWidget",
     "agent_id": "approval",
-    "web_pkg": "@blockhub/web-capability-flutter-signature",
+    "web_pkg": null,
     "flutter_pkg": "signature",
     "route": "/flutter-signature",
     "keywords": [
@@ -536,7 +536,7 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     "category": "Flutter工具",
     "widget": "SpeechWidget",
     "agent_id": "chat_qa",
-    "web_pkg": "@blockhub/web-capability-flutter-speech",
+    "web_pkg": null,
     "flutter_pkg": "record",
     "route": "/flutter-speech",
     "keywords": [
@@ -553,7 +553,7 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     "category": "Flutter工具",
     "widget": "WebViewWidget",
     "agent_id": "integration",
-    "web_pkg": "@blockhub/web-capability-flutter-webview",
+    "web_pkg": null,
     "flutter_pkg": "webview_flutter",
     "route": "/flutter-webview",
     "keywords": [
@@ -599,9 +599,9 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     "category": "外部集成",
     "widget": "HelpdeskWidget",
     "agent_id": "integration",
-    "web_pkg": "@blockhub/web-capability-it-helpdesk",
+    "web_pkg": "@blockhub/web-capability-integration",
     "flutter_pkg": "capability_it_helpdesk",
-    "route": "/it-helpdesk",
+    "route": "/helpdesk",
     "keywords": [
       "报障",
       "it工单",
@@ -661,9 +661,9 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     "category": "外部集成",
     "widget": "MeetingWidget",
     "agent_id": "integration",
-    "web_pkg": "@blockhub/web-capability-meeting-booking",
+    "web_pkg": "@blockhub/web-capability-integration",
     "flutter_pkg": "capability_meeting_booking",
-    "route": "/meeting-booking",
+    "route": "/meeting",
     "keywords": [
       "会议室",
       "预约会议",
@@ -709,9 +709,9 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     "category": "通知集成",
     "widget": "IMWidget",
     "agent_id": "notify",
-    "web_pkg": "@blockhub/web-capability-notify-im",
+    "web_pkg": "@blockhub/web-capability-integration",
     "flutter_pkg": "capability_notify_im",
-    "route": "/notify-im",
+    "route": "/im",
     "keywords": [
       "企微",
       "钉钉",
@@ -752,9 +752,9 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     "category": "权限安全",
     "widget": "RBACWidget",
     "agent_id": "creation",
-    "web_pkg": "@blockhub/web-capability-rbac-page",
+    "web_pkg": "@blockhub/web-capability-integration",
     "flutter_pkg": "go_router",
-    "route": "/rbac-page",
+    "route": "/rbac",
     "keywords": [
       "权限",
       "角色",
@@ -779,7 +779,7 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     "category": "Flutter工具",
     "widget": "AlarmWidget",
     "agent_id": "notify",
-    "web_pkg": "@blockhub/web-capability-schedule-alarm",
+    "web_pkg": null,
     "flutter_pkg": "flutter_local_notifications",
     "route": "/schedule-alarm",
     "keywords": [

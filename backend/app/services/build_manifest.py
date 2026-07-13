@@ -15,6 +15,9 @@ def _web_pkg(key: str) -> str | None:
     cap = ALL_CAPABILITIES.get(key)
     if not cap or not cap.widget:
         return None
+    # Flutter 工具能力默认无 Web 包，避免 manifest 列出不存在的 web-capability-flutter-*
+    if cap.category == "Flutter工具" and cap.flutter_pkg:
+        return None
     # 优先用注册表显式字段；留空走约定 web-capability-{slug}
     if cap.web_pkg:
         return cap.web_pkg
