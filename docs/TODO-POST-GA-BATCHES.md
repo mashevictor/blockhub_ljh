@@ -11,7 +11,7 @@
 | # | 任务 | 负责 | 验收命令 |
 |---|------|------|----------|
 | 0.1 | 服务器 `git pull` + 重启 API | 运维 | `systemctl restart blockhub-api` |
-| 0.2 | GA signoff 全绿 | 运维 | `SKIP_APK=1 bash blockhub.sh signoff http://101.32.209.251` |
+| 0.2 | GA signoff / 批次0 全绿 | 运维 | `bash blockhub.sh batch0 http://101.32.209.251` |
 | 0.3 | GA#9 裁剪 E2E | 运维 | `npx playwright test ga9-manifest-crop.spec.ts` |
 | 0.4 | GA 截图 / 输出归档 | 运维 | 保存 signoff 日志 |
 
