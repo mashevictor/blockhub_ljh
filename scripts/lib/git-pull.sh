@@ -61,7 +61,12 @@ blockhub_git_pull() {
     return 0
   fi
 
-  git checkout -- home/package-lock.json runtime-app/pubspec.lock 2>/dev/null || true
+  git checkout -- \
+    home/package-lock.json \
+    runtime-app/pubspec.lock \
+    docs/previews/flutter-parity-matrix.html \
+    docs/previews/template-industry-ui-check.html \
+    2>/dev/null || true
 
   local origin_url ssh_url
   origin_url="$(git remote get-url origin 2>/dev/null || echo "")"

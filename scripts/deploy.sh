@@ -22,7 +22,7 @@ echo " BlockHub Deploy"
 echo " Git: $(git rev-parse --short HEAD 2>/dev/null || echo unknown)"
 echo "=========================================="
 
-echo "==> [1/9] git pull (discard local lockfile drift)"
+echo "==> [1/9] git pull (discard local lockfile & generated preview drift)"
 # shellcheck disable=SC1091
 source "$ROOT/scripts/lib/git-pull.sh"
 blockhub_git_pull main
