@@ -41,14 +41,23 @@
 
 **目标**：M12 稳定「发布 → 后台构建 → 200 下载」。
 
-| # | 任务 | 类型 | 验收 |
+| # | 任务 | 类型 | 状态 |
 |---|------|------|------|
-| 2.1 | E2E：publish → poll ready → GET /download 200 | 代码 | 新 spec + CI |
-| 2.2 | 构建失败重试 / 状态机 UI（Home） | 代码 | pending/building/failed 可见 |
-| 2.3 | `smoke-apk.sh` 纳入 signoff（可选 SKIP_APK） | 脚本 | 服务器 APK 构建绿 |
-| 2.4 | build-queue 日志与 `.build-status` 文档 | 文档 | 排障手册 |
+| 2.1 | E2E：publish → poll ready → GET /download 200 | 代码 | ✅ `publish-apk-download.spec.ts` |
+| 2.2 | 构建状态 UI（Home） | 代码 | ✅ `DeliveryProgress` 接入发布成功页 |
+| 2.3 | `batch2-verify.sh` + `blockhub.sh batch2` | 脚本 | ✅ |
+| 2.4 | build-queue 排障文档 | 文档 | ✅ `docs/APK-BUILD-TROUBLESHOOTING.md` |
 
-**批次完成标准**：deliver=app 发布 → 30min 内 download 200（或 CI mock 超时策略）
+**批次完成标准**：`bash blockhub.sh batch2 http://101.32.209.251` 全绿（默认等 APK 构建最多 30 分钟）
+
+**服务器验收**：
+
+```bash
+cd /root/blockhub && git pull
+bash scripts/deploy-all.sh --web-only   # Home DeliveryProgress 更新
+systemctl restart blockhub-api
+bash blockhub.sh batch2 http://101.32.209.251 2>&1 | tee /tmp/batch2.log
+```
 
 ---
 

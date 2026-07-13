@@ -67,4 +67,49 @@ export function runtimeAppUrl(appId: string): string {
   return `${base}/r/${appId}`
 }
 
+export type RuntimePollInfo = {
+  apk_ready?: boolean
+  apk_build_status?: string
+  download_url?: string
+}
+
+export async function pollApkReady(
+  appId: string,
+  opts: { timeoutMs?: number; intervalMs?: number } = {},
+): Promise<RuntimePollInfo> {
+  const timeoutMs = opts.timeoutMs ?? 30 * 60 * 1000
+  const intervalMs = opts.intervalMs ?? 10_000
+  const deadline = Date.now() + timeoutMs
+  let last: RuntimePollInfo = {}
+
+  while Date.now() < deadline) {
+    last = await apiGet<RuntimePollInfo>(`/runtime/${appId}`)
+    if (last.apk_ready || last.apk_build_status === 'ready') {
+      return last
+    }
+    if (last.apk_build_status === 'failed') {
+      throw new Error(`APK build failed for ${appId}`)
+    }
+    await new Promise((r) => setTimeout(r, intervalMs))
+  }
+
+  throw new Error(
+    `APK not ready within ${timeoutMs}ms (last status=${last.apk_build_status ?? 'unknown'})`,
+  )
+}
+
+export async function probeDownload(path: string): Promise<{
+  status: number
+  contentType: string
+  bytes: number
+}> {
+  const res = await fetch(`${API}${path}`, { method: 'GET' })
+  const buf = res.ok ? await res.arrayBuffer() : new ArrayBuffer(0)
+  return {
+    status: res.status,
+    contentType: res.headers.get('content-type') || '',
+    bytes: buf.byteLength,
+  }
+}
+
 export { API, BASE, ADMIN_EMAIL, ADMIN_PASSWORD }

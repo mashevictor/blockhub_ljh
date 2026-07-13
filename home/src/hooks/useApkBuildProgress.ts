@@ -20,6 +20,7 @@ export function useApkBuildProgress(app: Pick<PublishResult, 'appId' | 'deliver'
   const [apkReady, setApkReady] = useState(Boolean(app.apkReady))
   const [pollCount, setPollCount] = useState(0)
   const [buildFailed, setBuildFailed] = useState(false)
+  const [buildStatus, setBuildStatus] = useState<string | undefined>()
   const [animTick, setAnimTick] = useState(0)
   const pollCountRef = useRef(0)
 
@@ -46,6 +47,7 @@ export function useApkBuildProgress(app: Pick<PublishResult, 'appId' | 'deliver'
         } else if (pollCountRef.current >= MAX_POLLS) {
           setBuildFailed(true)
         }
+        setBuildStatus(info.apk_build_status)
       } catch {
         /* ignore transient network errors */
       }
@@ -97,17 +99,23 @@ export function useApkBuildProgress(app: Pick<PublishResult, 'appId' | 'deliver'
           detail: '请稍后刷新，或联系管理员查看构建日志',
         })
       } else {
+        const statusHint =
+          buildStatus === 'building'
+            ? 'Gradle 打包中，请稍候…'
+            : buildStatus === 'pending'
+              ? '已排队，等待后台构建…'
+              : '后台异步构建，完成后自动更新下载链接'
         list.push({
           id: 'apk',
           label: 'Flutter APK 打包中',
           status: 'active',
-          detail: '后台异步构建，完成后自动更新下载链接',
+          detail: statusHint,
         })
       }
     }
 
     return list
-  }, [needWeb, needApk, apkReady, buildFailed])
+  }, [needWeb, needApk, apkReady, buildFailed, buildStatus])
 
   const progress = useMemo(() => {
     if (!needApk) return 100

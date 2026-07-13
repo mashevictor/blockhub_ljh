@@ -50,6 +50,9 @@ case "$CMD" in
   batch0|verify-batch0)
     run batch0-verify.sh "$@"
     ;;
+  batch2|verify-batch2)
+    run batch2-verify.sh "$@"
+    ;;
   build-apk|apk-from-publish)
     run flutter-build-from-publish.sh "$@"
     ;;
@@ -72,6 +75,7 @@ BlockHub CLI · 仓库根: $ROOT
   blockhub.sh pg-backup                             PostgreSQL 备份
   blockhub.sh health-watch [BASE_URL] [--strict]    健康检查（cron/告警）
   blockhub.sh batch0 [BASE_URL]                     批次0 基线验收（GA 9/9）
+  blockhub.sh batch2 [BASE_URL]                     批次2 APK 全链路（publish→download 200）
   blockhub.sh migrate-tencent                       腾讯云 PG 迁移（需真实 DATABASE_URL）
 
 示例:

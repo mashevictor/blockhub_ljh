@@ -12,7 +12,8 @@ import { ROUTES } from '../routes/paths'
 import PlazaAudiencePicker from './PlazaAudiencePicker'
 import PublishDeliveryLinks from './PublishDeliveryLinks'
 import { DynamicIcon } from './icons'
-import { deliverLabel, normalizeDeliver, showWebDeliver } from '../data/deliverDisplay'
+import { deliverLabel, normalizeDeliver, showAppDeliver, showWebDeliver } from '../data/deliverDisplay'
+import DeliveryProgress from './DeliveryProgress'
 
 interface Props {
   result: PublishResult
@@ -143,6 +144,10 @@ export default function PublishSuccessCard({
       )}
 
       <div className="publish-result-scroll">
+        {showAppDeliver(result) && (
+          <DeliveryProgress app={result} compact />
+        )}
+
         {result.buildManifest?.web_pkgs && result.buildManifest.web_pkgs.length > 0 && (
           <div className="publish-manifest-strip" role="status" style={{ marginBottom: 12, fontSize: 13, color: 'var(--muted)' }}>
             <DynamicIcon name="layers" size={14} />
