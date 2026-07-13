@@ -83,7 +83,7 @@ export default function PlazaOrchestrationOverlay({ app, user, onClose, onRemove
               <IconGlobe size={14} /> 打开
             </a>
             <button type="button" className="btn-ghost plaza-my-remove" onClick={onRemove}>移除</button>
-            <button type="button" className="btn-primary plaza-orch-close" onClick={onClose}>完成</button>
+            <button type="button" className="btn-primary plaza-orch-close" onClick={onClose}>关闭</button>
           </div>
         </header>
 

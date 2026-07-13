@@ -1,7 +1,6 @@
 from typing import Annotated
 
 import logging
-import threading
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import Response
@@ -299,22 +298,20 @@ def publish_app(
             build_status = enqueue_apk_build(app)
 
         email_sent = False
-        if body.contact_email and settings.publish_email_enabled:
-            contact_email = body.contact_email
-            app_snapshot = dict(app)
-            deliver_snapshot = deliver
-
-            def _send_publish_email() -> None:
-                try:
-                    send_publish_delivery_email(contact_email, app_snapshot, deliver=deliver_snapshot)
-                except Exception:
-                    logger.exception("publish email failed for %s (app still published)", contact_email)
-
-            threading.Thread(
-                target=_send_publish_email,
-                name=f"publish-mail-{public_id}",
-                daemon=True,
-            ).start()
+        email_configured = smtp_configured()
+        if body.contact_email and settings.publish_email_enabled and email_configured:
+            try:
+                email_sent = send_publish_delivery_email(
+                    body.contact_email.strip(),
+                    dict(app),
+                    deliver=deliver,
+                )
+            except Exception:
+                logger.exception(
+                    "publish email failed for %s (app still published)",
+                    body.contact_email,
+                )
+                email_sent = False
 
         return {
             "success": True,
@@ -332,7 +329,7 @@ def publish_app(
             "notification": {
                 "email": body.contact_email or None,
                 "email_sent": email_sent,
-                "email_configured": smtp_configured(),
+                "email_configured": email_configured,
             },
         }
     except HTTPException:

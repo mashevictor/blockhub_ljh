@@ -6270,12 +6270,14 @@ a.btn-my-apps:hover { border-color: var(--pri-light); color: var(--pri); }
   z-index: 1;
   width: min(980px, 100%);
   max-height: 100vh;
+  height: 100vh;
   margin: 0 auto;
   background: var(--surface);
   display: flex;
   flex-direction: column;
   box-shadow: 0 24px 80px rgba(15, 23, 42, 0.25);
   animation: plazaOrchIn 0.22s ease-out;
+  overflow: hidden;
 }
 @keyframes plazaOrchIn {
   from { opacity: 0; transform: translateY(12px); }
@@ -6290,6 +6292,7 @@ a.btn-my-apps:hover { border-color: var(--pri-light); color: var(--pri); }
   padding: 20px 22px 16px;
   border-bottom: 1px solid var(--border);
   background: linear-gradient(180deg, color-mix(in srgb, var(--pri-soft) 40%, var(--surface)), var(--surface));
+  flex-shrink: 0;
 }
 .plaza-orch-head-main {
   display: flex;
@@ -6345,7 +6348,11 @@ a.btn-my-apps:hover { border-color: var(--pri-light); color: var(--pri); }
 }
 .plaza-orch-body {
   flex: 1;
-  overflow: auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
   padding: 16px 22px 24px;
   display: flex;
   flex-direction: column;
@@ -6480,6 +6487,7 @@ a.btn-my-apps:hover { border-color: var(--pri-light); color: var(--pri); }
   border-radius: 12px;
   padding: 0 14px 12px;
   background: var(--surface-alt);
+  flex-shrink: 0;
 }
 .plaza-orch-share summary {
   cursor: pointer;
@@ -6504,6 +6512,13 @@ a.btn-my-apps:hover { border-color: var(--pri-light); color: var(--pri); }
   box-shadow: none;
   padding: 0;
   background: transparent;
+  min-height: 0;
+}
+.publish-success-card.orchestration .publish-result-scroll {
+  max-height: none;
+  overflow: visible;
+  flex: none;
+  min-height: auto;
 }
 .publish-success-card.orchestration .publish-success-foot {
   padding-top: 8px;
@@ -6513,6 +6528,7 @@ a.btn-my-apps:hover { border-color: var(--pri-light); color: var(--pri); }
   .plaza-orch-sheet {
     width: 100%;
     max-height: 100vh;
+    height: 100vh;
     border-radius: 0;
   }
   .plaza-orch-title { font-size: 22px; }
