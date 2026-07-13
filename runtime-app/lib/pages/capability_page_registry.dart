@@ -1,10 +1,12 @@
+import 'package:blockhub_flutter_core/blockhub_flutter_core.dart';
+import 'package:capability_approval_flow/capability_approval_flow.dart';
+import 'package:capability_audit_log/capability_audit_log.dart';
+import 'package:capability_chat_qa/capability_chat_qa.dart';
 import 'package:flutter/material.dart';
 
 import '../config/app_branding.dart';
 import '../data/capability_manifest.dart';
-import 'approval_page.dart';
-import 'audit_log_page.dart';
-import 'chat_page.dart';
+import '../melos_capability_registry.dart';
 import 'capability_pages.dart';
 import 'integration_hub_page.dart';
 import 'nl_query_page.dart';
@@ -17,6 +19,9 @@ Widget buildCapabilityPage({
   required String key,
   required AppBranding branding,
 }) {
+  final fromMelos = buildMelosCapabilityPage(key: key, branding: branding);
+  if (fromMelos != null) return fromMelos;
+
   final explicit = capabilityPages[key];
   if (explicit != null) return explicit(branding);
 
@@ -30,11 +35,11 @@ Widget buildCapabilityPage({
       case 'VoiceWidget':
       case 'MultiAgentWidget':
       case 'SummaryWidget':
-        return ChatPage(branding: branding);
+        return const ChatQaModule().buildPage(branding);
       case 'FormWidget':
       case 'ListWidget':
       case 'ApprovalInboxWidget':
-        return ApprovalPage(branding: branding);
+        return const ApprovalFlowModule().buildPage(branding);
       case 'DashboardWidget':
       case 'FunnelWidget':
       case 'InboxWidget':
@@ -53,7 +58,7 @@ Widget buildCapabilityPage({
       case 'SSOWidget':
         return IntegrationHubPage(branding: branding, capabilityKey: key);
       case 'AuditWidget':
-        return AuditLogPage(branding: branding);
+        return const AuditLogModule().buildPage(branding);
       case 'MaskWidget':
         return SecurityMaskPage(branding: branding);
     }

@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
-import 'config/app_branding.dart';
+import 'package:blockhub_flutter_core/blockhub_flutter_core.dart';
+
+import 'melos_capability_registry.dart';
+import 'pages/login_page.dart';
 import 'models/tenant_config.dart';
 import 'pages/capability_page_registry.dart';
-import 'pages/login_page.dart';
 import 'pages/shanghai_voice_page.dart';
 import 'router/capability_shell_router.dart';
 import 'services/auth_service.dart';
@@ -34,6 +36,9 @@ class _RuntimeAppState extends State<RuntimeApp> {
     _configService = ConfigService(branding: widget.branding);
     _authService = AuthService(apiBaseUrl: widget.branding.apiBaseUrl);
     authService = _authService;
+    runtimeAuthToken = () => _authService.token;
+    runtimeAuthedDio = () => _authService.authedDio();
+    registerMelosCapabilityBridges();
     PackageInfo.fromPlatform().then((info) {
       if (!mounted) return;
       setState(() {

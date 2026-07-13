@@ -1,3 +1,3 @@
-library;
+library capability_shanghai_voice;
 
-const String capabilityKey = 'shanghai_voice';
+export 'shanghai_voice_module.dart';

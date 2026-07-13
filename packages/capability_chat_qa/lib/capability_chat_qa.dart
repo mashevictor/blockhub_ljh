@@ -1,4 +1,4 @@
-/// M10 模块化骨架：chat_qa 能力包（页面仍由 runtime-app registry 渲染）。
-library;
+library capability_chat_qa;
 
-const String capabilityKey = 'chat_qa';
+export 'chat_page.dart';
+export 'chat_qa_module.dart';

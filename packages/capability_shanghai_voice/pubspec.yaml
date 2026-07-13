@@ -1,9 +1,13 @@
 name: capability_shanghai_voice
-description: BlockHub capability module skeleton — shanghai_voice (M10)
+description: BlockHub capability module — shanghai_voice (M10 Melos bridge)
 version: 0.1.0
 publish_to: none
 
 environment:
-  sdk: ">=3.5.0 <4.0.0"
+  sdk: ">=3.3.0 <4.0.0"
 
-resolution: workspace
+dependencies:
+  flutter:
+    sdk: flutter
+  blockhub_flutter_core:
+    path: ../blockhub_flutter_core

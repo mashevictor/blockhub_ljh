@@ -1,3 +1,4 @@
-library;
+library capability_audit_log;
 
-const String capabilityKey = 'audit_log';
+export 'audit_log_module.dart';
+export 'audit_log_page.dart';

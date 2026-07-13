@@ -1,0 +1,13 @@
+name: blockhub_flutter_core
+description: BlockHub Flutter runtime shared core (branding, auth bridge, SSE, capability module)
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ">=3.3.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  dio: ^5.7.0
+  web_socket_channel: ^3.0.2

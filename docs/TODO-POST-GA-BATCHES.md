@@ -81,7 +81,22 @@ bash blockhub.sh batch-all http://101.32.209.251 2>&1 | tee /tmp/batch-all.log
 
 ---
 
-## 批次 6–7
+## 批次 6 · P3（D31 / D32 / M10 深化）
+
+| # | 任务 | 状态 |
+|---|------|------|
+| 6.1 | D32 chat SSE 10 VU 压测 | ✅ `load-chat-sse.sh` |
+| 6.2 | D31 12 模板 × 12 行业 UI 检查 | ✅ `check-template-industry-ui.py` |
+| 6.3 | M10 Melos 真拆包（core + 4 capability） | ✅ |
+| 6.4 | batch6 联跑 | ✅ |
+
+```bash
+bash blockhub.sh batch6 http://101.32.209.251
+bash blockhub.sh load-chat-sse http://101.32.209.251   # 仅 D32
+bash blockhub.sh check-template-ui                    # 仅 D31
+```
+
+## 批次 7
 
 详见 **`docs/ROADMAP-P2-P3.md`**
 
@@ -97,6 +112,7 @@ bash blockhub.sh batch-all http://101.32.209.251 2>&1 | tee /tmp/batch-all.log
 | 3 | ✅ | 🔶 Secret |
 | 4 | ✅ | 🔶 batch4+GA9 |
 | 5 | ✅ | 🔶 batch5 |
-| 6–7 | 📋 路线图 | — |
+| 6 | ✅ | 🔶 batch6 待绿 |
+| 7 | 📋 路线图 | — |
 
 **最新修复**：`cf2ab64` APK 后台 `/bin/bash` · `02b401c` pg-backup / manifest codegen

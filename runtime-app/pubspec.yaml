@@ -9,6 +9,16 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  blockhub_flutter_core:
+    path: ../packages/blockhub_flutter_core
+  capability_chat_qa:
+    path: ../packages/capability_chat_qa
+  capability_approval_flow:
+    path: ../packages/capability_approval_flow
+  capability_audit_log:
+    path: ../packages/capability_audit_log
+  capability_shanghai_voice:
+    path: ../packages/capability_shanghai_voice
   dio: ^5.7.0
   http: ^1.2.2
   shared_preferences: ^2.3.3

@@ -3,6 +3,7 @@ repository: https://github.com/mashevictor/blockhub
 
 packages:
   - runtime-app
+  - packages/blockhub_flutter_core
   - packages/capability_*
 
 command:

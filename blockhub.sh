@@ -65,6 +65,15 @@ case "$CMD" in
   batch5|verify-batch5)
     run batch5-verify.sh "$@"
     ;;
+  batch6|verify-batch6)
+    run batch6-verify.sh "$@"
+    ;;
+  load-chat-sse)
+    run load-chat-sse.sh "$@"
+    ;;
+  check-template-ui)
+    run check-template-industry-ui.sh "$@"
+    ;;
   batch-all|verify-all)
     run batch-all-verify.sh "$@"
     ;;
@@ -103,7 +112,9 @@ BlockHub CLI · 仓库根: $ROOT
   blockhub.sh batch2 [BASE_URL]                     批次2 APK 全链路（publish→download 200）
   blockhub.sh batch3                                批次3 CI / staging E2E 清单
   blockhub.sh batch4                                批次4 Flutter go_router + Melos
-  blockhub.sh batch5                                批次5 Web 渲染覆盖率
+  blockhub.sh batch6 [BASE_URL]                  P3: SSE压测+模板UI+Melos
+  blockhub.sh load-chat-sse [BASE_URL]            D32 chat SSE 10 VU
+  blockhub.sh check-template-ui                   D31 12×12 模板 UI 检查
   blockhub.sh batch-all [BASE_URL]                  批次0–5 联跑（Post-GA）
   blockhub.sh sync-systemd                          同步 API systemd PATH
   blockhub.sh web-coverage                          manifest Web 包清单

@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 
+import 'package:blockhub_flutter_core/blockhub_flutter_core.dart';
+import 'package:capability_audit_log/capability_audit_log.dart';
+import 'package:capability_chat_qa/capability_chat_qa.dart';
+
 import '../config/app_branding.dart';
 import 'approval_page.dart';
-import 'chat_page.dart';
 import 'integration_hub_page.dart';
 import 'nl_query_page.dart';
 import 'report_page.dart';
-import 'shanghai_voice_page.dart';
-import 'audit_log_page.dart';
 import 'security_mask_page.dart';
+import 'shanghai_voice_page.dart';
 
 /// 能力页面注册表：capability_key -> 页面构造器。
 ///
