@@ -1,0 +1,9 @@
+name: capability_approval_flow
+description: BlockHub capability module skeleton — approval_flow (M10)
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ">=3.5.0 <4.0.0"
+
+resolution: workspace

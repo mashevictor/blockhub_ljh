@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 import '../config/app_branding.dart';
 import '../data/capability_manifest.dart';
 import 'approval_page.dart';
+import 'audit_log_page.dart';
 import 'chat_page.dart';
 import 'capability_pages.dart';
 import 'integration_hub_page.dart';
 import 'nl_query_page.dart';
 import 'report_page.dart';
+import 'security_mask_page.dart';
 import 'shanghai_voice_page.dart';
 
 /// 按 manifest.widget 类型解析页面，补充 capabilityPages 别名表。
@@ -50,6 +52,10 @@ Widget buildCapabilityPage({
       case 'OAWidget':
       case 'SSOWidget':
         return IntegrationHubPage(branding: branding, capabilityKey: key);
+      case 'AuditWidget':
+        return AuditLogPage(branding: branding);
+      case 'MaskWidget':
+        return SecurityMaskPage(branding: branding);
     }
   }
 

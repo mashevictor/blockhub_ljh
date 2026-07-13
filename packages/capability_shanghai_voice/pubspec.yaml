@@ -1,0 +1,9 @@
+name: capability_shanghai_voice
+description: BlockHub capability module skeleton — shanghai_voice (M10)
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ">=3.5.0 <4.0.0"
+
+resolution: workspace

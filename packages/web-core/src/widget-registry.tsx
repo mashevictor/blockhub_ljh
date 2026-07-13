@@ -41,6 +41,9 @@ export function resolveWidgetName(node: SchemaNode): string {
     dashboard: 'DashboardWidget',
     kbupload: 'KBUploadWidget',
     kbdocument: 'KBUploadWidget',
+    audit: 'AuditWidget',
+    mask: 'MaskWidget',
+    securitymask: 'MaskWidget',
   }
   return map[type] || 'ListWidget'
 }
@@ -53,9 +56,10 @@ export function WidgetHost({ node, ctx }: { node: SchemaNode; ctx: RuntimeContex
     const menuLabel = ctx.schema.menu.find((m) => m.key === capKey)?.label
     const displayName = menuLabel || capKey || name
     return (
-      <div className="widget-missing">
+      <div className="widget-missing" role="status">
+        <div className="widget-missing-icon" aria-hidden>◇</div>
         <strong>{displayName}</strong>
-        <p>Web 端开发中</p>
+        <p>该能力在 Web 端尚未接入，请使用移动端 App 或联系管理员。</p>
         <small>
           组件 <code>{name}</code>
           {capKey ? ` · capability: ${capKey}` : ''}

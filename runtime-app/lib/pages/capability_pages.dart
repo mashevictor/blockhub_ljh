@@ -7,6 +7,8 @@ import 'integration_hub_page.dart';
 import 'nl_query_page.dart';
 import 'report_page.dart';
 import 'shanghai_voice_page.dart';
+import 'audit_log_page.dart';
+import 'security_mask_page.dart';
 
 /// 能力页面注册表：capability_key -> 页面构造器。
 ///
@@ -65,4 +67,6 @@ final Map<String, CapabilityPageBuilder> capabilityPages = {
   'im_connector': (b) => _integration(b, 'im_connector'),
   'rbac_page': (b) => _integration(b, 'rbac_page'),
   'auth_sso': (b) => _integration(b, 'auth_sso'),
+  'audit_log': (b) => AuditLogPage(branding: b),
+  'security_mask': (b) => SecurityMaskPage(branding: b),
 };

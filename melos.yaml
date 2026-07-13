@@ -1,0 +1,10 @@
+name: blockhub_flutter
+repository: https://github.com/mashevictor/blockhub
+
+packages:
+  - runtime-app
+  - packages/capability_*
+
+command:
+  bootstrap:
+    runPubGetInParallel: true

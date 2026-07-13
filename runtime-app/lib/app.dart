@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import 'config/app_branding.dart';
-import 'config/modular_capabilities.g.dart';
 import 'models/tenant_config.dart';
 import 'pages/capability_page_registry.dart';
 import 'pages/login_page.dart';
 import 'pages/shanghai_voice_page.dart';
+import 'router/capability_shell_router.dart';
 import 'services/auth_service.dart';
 import 'services/config_service.dart';
 
@@ -131,7 +132,7 @@ class _RuntimeAppState extends State<RuntimeApp> {
     if (_config == null) {
       return const Center(child: CircularProgressIndicator());
     }
-    return _HomeBody(
+    return _CapabilityRouterHost(
       config: _config!,
       branding: widget.branding,
       onLogout: _logout,
@@ -139,104 +140,43 @@ class _RuntimeAppState extends State<RuntimeApp> {
   }
 }
 
-class _HomeBody extends StatefulWidget {
-  const _HomeBody({required this.config, required this.branding, required this.onLogout});
+/// M11：manifest menu → go_router Shell（/cap/:key 深链）
+class _CapabilityRouterHost extends StatefulWidget {
+  const _CapabilityRouterHost({
+    required this.config,
+    required this.branding,
+    required this.onLogout,
+  });
 
   final TenantConfig config;
   final AppBranding branding;
   final VoidCallback onLogout;
 
   @override
-  State<_HomeBody> createState() => _HomeBodyState();
+  State<_CapabilityRouterHost> createState() => _CapabilityRouterHostState();
 }
 
-class _HomeBodyState extends State<_HomeBody> {
-  late String? _selectedKey;
-
-  List<MenuItem> get _visibleMenu {
-    final menu = widget.config.menu;
-    final buildKeys = widget.branding.capabilityKeys;
-    final manifestKeys = widget.config.resolvedCapabilityKeys;
-    final allowed = buildKeys.isNotEmpty
-        ? buildKeys.toSet()
-        : (manifestKeys.isNotEmpty ? manifestKeys.toSet() : <String>{});
-    if (allowed.isEmpty) return menu;
-    final filtered = menu.where((m) => allowed.contains(m.key)).toList();
-    return filtered.isNotEmpty ? filtered : menu;
-  }
+class _CapabilityRouterHostState extends State<_CapabilityRouterHost> {
+  late final GoRouter _router;
 
   @override
   void initState() {
     super.initState();
-    final menu = _visibleMenu;
-    final keys = menu.map((m) => m.key).toList();
-    _selectedKey = pickInitialCapabilityKey(
-      manifestKeys: widget.config.resolvedCapabilityKeys,
-      menuKeys: keys,
-      buildKeys: widget.branding.capabilityKeys,
+    _router = createCapabilityShellRouter(
+      config: widget.config,
+      branding: widget.branding,
+      onLogout: widget.onLogout,
     );
   }
 
-  Widget _buildPage(String key) {
-    return buildCapabilityPage(key: key, branding: widget.branding);
-  }
-
-  String _menuSubtitle() {
-    final base = widget.config.tenantName;
-    final buildKeys = widget.branding.capabilityKeys;
-    if (buildKeys.isNotEmpty) {
-      return '$base · 已裁剪 ${buildKeys.length} 项能力';
-    }
-    if (modularCapabilityKeys.isNotEmpty) {
-      return '$base · 模块化 ${modularCapabilityKeys.length} 项';
-    }
-    return base;
+  @override
+  void dispose() {
+    _router.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final menu = _visibleMenu;
-    return Column(
-      children: [
-        ListTile(
-          leading: CircleAvatar(
-            backgroundColor: Color(widget.branding.primaryColorValue),
-            child: Text(widget.config.appName.characters.first),
-          ),
-          title: Text(widget.config.appName, style: Theme.of(context).textTheme.titleLarge),
-          subtitle: Text(_menuSubtitle()),
-          trailing: IconButton(
-            icon: const Icon(Icons.logout),
-            tooltip: '退出登录',
-            onPressed: widget.onLogout,
-          ),
-        ),
-        const SizedBox(height: 12),
-        // 顶部导航：菜单项可点，选中即在「主区」就地切换页面（不再单独 push 一个页面）
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Row(
-            children: [
-              for (final item in menu)
-                Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: ChoiceChip(
-                    label: Text(item.label),
-                    selected: _selectedKey == item.key,
-                    onSelected: (_) => setState(() => _selectedKey = item.key),
-                  ),
-                ),
-            ],
-          ),
-        ),
-        const Divider(height: 24),
-        Expanded(
-          child: _selectedKey == null
-              ? const Center(child: Text('暂无页面'))
-              : _buildPage(_selectedKey!),
-        ),
-      ],
-    );
+    return Router.withConfig(config: _router);
   }
 }

@@ -1,0 +1,9 @@
+name: capability_chat_qa
+description: BlockHub capability module skeleton — chat_qa (M10)
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ">=3.5.0 <4.0.0"
+
+resolution: workspace
