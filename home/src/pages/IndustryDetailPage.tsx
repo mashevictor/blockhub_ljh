@@ -22,7 +22,12 @@ export default function IndustryDetailPage() {
   const [error, setError] = useState<string | null>(null)
   const [enriching, setEnriching] = useState(false)
 
-  const load = (withEnrich = true) => {
+  const showcaseMeta = useMemo(
+    () => INDUSTRIES_SHOWCASE.find((i) => i.key === key),
+    [key],
+  )
+
+  const load = (withEnrich = false) => {
     if (!key) return
     setLoading(true)
     setError(null)
@@ -33,7 +38,7 @@ export default function IndustryDetailPage() {
   }
 
   useEffect(() => {
-    load(true)
+    load(false)
     fetchIndustrySites()
       .then((items) => setOthers(items.filter((s) => s.key !== key).slice(0, 6)))
       .catch(() => {
@@ -78,9 +83,28 @@ export default function IndustryDetailPage() {
   }
 
   if (loading && !detail) {
+    const accent = showcaseMeta?.color ?? '#0d47a1'
     return (
-      <IndustrySiteShell theme={{ primary: '#0d47a1' }}>
-        <ChevronDotLoadingRow variant="converge" size="md" text="正在加载行业独立站…" />
+      <IndustrySiteShell theme={{ primary: accent }} industryName={showcaseMeta?.name}>
+        <section
+          className="industry-site-hero-banner industry-site-hero-skeleton"
+          style={{
+            backgroundImage: showcaseMeta
+              ? `linear-gradient(105deg, color-mix(in srgb, ${accent} 88%, #0f172a) 0%, #0f172a 55%), url(${industryAssets(key).hero})`
+              : undefined,
+          } as CSSProperties}
+        >
+          <div className="industry-site-hero-content">
+            {showcaseMeta ? (
+              <>
+                <span className="industry-detail-badge">独立方案站 · 深度包</span>
+                <h1>{showcaseMeta.name}</h1>
+                <p className="industry-detail-tagline">{showcaseMeta.desc}</p>
+              </>
+            ) : null}
+            <ChevronDotLoadingRow variant="converge" size="md" text="正在加载行业独立站…" />
+          </div>
+        </section>
       </IndustrySiteShell>
     )
   }
@@ -119,14 +143,14 @@ export default function IndustryDetailPage() {
           <div className="industry-site-stats-row">
             <div><strong>{total}</strong><span>业务场景</span></div>
             <div><strong>{site.stats.platforms}</strong><span>端交付</span></div>
-            <div><strong>AI</strong><span>DeepSeek 方案</span></div>
+            <div><strong>AI</strong><span>大模型方案</span></div>
           </div>
           <div className="industry-detail-actions">
             <button type="button" className="btn-primary" onClick={handleUseIndustry}>
               {site.cta.create_label} →
             </button>
             <button type="button" className="btn-ghost industry-site-ghost" disabled={enriching} onClick={handleReEnrich}>
-              {enriching ? 'DeepSeek 丰富中…' : 'DeepSeek 重新丰富'}
+              {enriching ? '大模型丰富中…' : '大模型重新丰富'}
             </button>
           </div>
         </div>
@@ -157,7 +181,7 @@ export default function IndustryDetailPage() {
         ) : null}
         {enrichment?.source ? (
           <span className="industry-detail-source">
-            文案来源：{enrichment.source === 'deepseek' ? 'DeepSeek' : enrichment.source === 'static' ? '精选模板' : '自动生成'}
+            文案来源：{enrichment.source === 'deepseek' ? '大模型' : enrichment.source === 'static' ? '精选模板' : '自动生成'}
           </span>
         ) : null}
       </section>

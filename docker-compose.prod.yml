@@ -1,0 +1,83 @@
+# BlockHub 生产编排（PostgreSQL + Redis + API）
+# 用法:
+#   cp backend/.env.example backend/.env   # 按需修改 DATABASE_URL / JWT_SECRET
+#   docker compose -f docker-compose.prod.yml up -d
+#   docker compose -f docker-compose.prod.yml exec api alembic upgrade head
+#
+# 若使用腾讯云 PostgreSQL，可只启动 redis + api，并在 .env 中设置外部 DATABASE_URL
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: blockhub-postgres-prod
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-trackchat}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-trackchat}
+    volumes:
+      - blockhub_pg_prod:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-trackchat} -d ${POSTGRES_DB:-trackchat}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - blockhub
+
+  redis:
+    image: redis:7-alpine
+    container_name: blockhub-redis-prod
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - blockhub_redis_prod:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - blockhub
+
+  api:
+    image: python:3.12-slim
+    container_name: blockhub-api-prod
+    restart: unless-stopped
+    working_dir: /app
+    volumes:
+      - ./backend:/app
+      - blockhub_uploads:/app/uploads
+    env_file:
+      - ./backend/.env
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg2://trackchat:${POSTGRES_PASSWORD}@postgres:5432/trackchat}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+    command: >
+      bash -c "pip install -q -r requirements.txt &&
+      alembic upgrade head &&
+      uvicorn app.main:app --host 0.0.0.0 --port 8001 --workers 2"
+    ports:
+      - '${API_PORT:-8001}:8001'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD-SHELL', 'python -c "import urllib.request; urllib.request.urlopen(\"http://127.0.0.1:8001/api/v1/health\")"']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - blockhub
+
+volumes:
+  blockhub_pg_prod:
+  blockhub_redis_prod:
+  blockhub_uploads:
+
+networks:
+  blockhub:
+    driver: bridge

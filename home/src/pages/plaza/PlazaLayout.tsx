@@ -10,6 +10,7 @@ import { AgentPageProvider, useAgentPageContext } from '../../context/AgentPageC
 import type { AgentContextKey } from '../../data/agentContext'
 import PlazaFloatingAgent from '../../components/b2b/PlazaFloatingAgent'
 import '../../styles/b2b-landing.css'
+import '../../styles/plaza-theme.css'
 
 function PlazaContextSync() {
   const { pathname } = useLocation()

@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>积木仓 BlockHub · 业务架构大纲 v2.0（三源合成版）</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+:root{--primary:#1e1b4b;--accent:#4338ca;--gold:#b8860b;--ok:#10b981;--warn:#f59e0b;--no:#ef4444;--bg:#f1f5f9;--card:#fff;--text:#1e293b;--muted:#64748b;--border:#e2e8f0;--sidebar-w:260px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Microsoft YaHei","PingFang SC",sans-serif;background:var(--bg);color:var(--text);line-height:1.55;font-size:13px}
+.sidebar{position:fixed;top:0;left:0;width:var(--sidebar-w);height:100vh;background:linear-gradient(180deg,#0f172a,#1e1b4b);color:#fff;overflow-y:auto;padding:16px 0;z-index:100}
+.sidebar-logo{padding:0 16px 14px;border-bottom:1px solid rgba(255,255,255,.12);margin-bottom:8px}
+.sidebar-logo h2{font-size:14px}.sidebar-logo p{font-size:10px;opacity:.65;margin-top:4px}
+.sidebar a{display:block;padding:6px 16px;color:rgba(255,255,255,.88);text-decoration:none;font-size:12px;border-left:3px solid transparent}
+.sidebar a:hover,.sidebar a.active{background:rgba(255,255,255,.1);border-left-color:#a5b4fc}
+.nav-g{padding:8px 16px 2px;font-size:9px;opacity:.45}
+.main{margin-left:var(--sidebar-w);padding:24px 32px 60px;max-width:1200px}
+.hero{background:linear-gradient(135deg,#0f172a,#4338ca,#96700a);color:#fff;border-radius:14px;padding:28px 32px;margin-bottom:22px}
+.hero h1{font-size:22px;margin-bottom:6px}.hero p{opacity:.9;font-size:13px;max-width:960px;line-height:1.7}
+.stats{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+.stat{background:rgba(255,255,255,.12);padding:10px 16px;border-radius:8px;min-width:90px}
+.stat .n{font-size:22px;font-weight:700}.stat .l{font-size:10px;opacity:.75}
+section{margin-bottom:32px;scroll-margin-top:16px}
+.section-title{font-size:17px;color:var(--accent);margin-bottom:12px;padding-bottom:4px;border-bottom:2px solid var(--accent)}
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:12px}
+.card h3{font-size:14px;color:var(--accent);margin-bottom:8px}
+.diagram-box{background:#fafbfc;border:1px solid var(--border);border-radius:8px;padding:14px;overflow-x:auto;margin:10px 0}
+.arch{font-family:ui-monospace,Consolas,monospace;font-size:12px;background:#0f172a;color:#93c5fd;padding:14px 16px;border-radius:10px;overflow-x:auto;line-height:1.6;margin:12px 0}
+.diagram-legend{display:flex;flex-wrap:wrap;gap:12px;font-size:10px;margin-top:12px;padding-top:12px;border-top:1px dashed var(--border);color:var(--muted)}
+.diagram-legend span{display:flex;align-items:center;gap:4px}
+.dot-user{width:10px;height:10px;border-radius:50%;background:#4338ca}
+.dot-admin{width:10px;height:10px;border-radius:50%;background:#059669}
+.dot-internal{width:10px;height:10px;border-radius:50%;background:#94a3b8}
+table{width:100%;border-collapse:collapse;font-size:11px}
+th{background:var(--accent);color:#fff;padding:7px 9px;text-align:left}
+td{padding:7px 9px;border-bottom:1px solid var(--border);vertical-align:top}
+tr:nth-child(even) td{background:#f8fafc}
+.path-box{background:#eff6ff;border:1px solid #c7d2fe;border-radius:8px;padding:12px;margin-bottom:10px;font-size:12px}
+.path-box strong{color:var(--accent)}
+.agent-block{border:1px solid var(--border);border-radius:10px;margin-bottom:12px;overflow:hidden}
+.agent-head{padding:12px 16px;color:#fff;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.agent-body{padding:14px 16px;font-size:11px;background:#fff}
+.agent-body .cols{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.note{background:#eff6ff;border:1px solid #93c5fd;border-radius:8px;padding:12px;font-size:12px;margin-bottom:14px;line-height:1.75}
+.note-warn{background:#fffbeb;border-color:#fde68a}
+.tag-ok{color:#047857;background:#dcfce7;padding:1px 6px;border-radius:3px;font-size:10px}
+.tag-warn{color:#b45309;background:#fef3c7;padding:1px 6px;border-radius:3px;font-size:10px}
+.tag-no{color:#b91c1c;background:#fee2e2;padding:1px 6px;border-radius:3px;font-size:10px}
+.tag-done{color:#047857;background:#dcfce7;padding:1px 6px;border-radius:3px;font-size:10px}
+.outline-tree{font-size:12px;line-height:1.7}
+.outline-tree .lv1{font-weight:700;color:var(--accent);margin-top:10px}
+.outline-tree .lv2{margin-left:16px;color:var(--text)}
+.outline-tree .lv3{margin-left:32px;color:var(--muted);font-size:11px}
+.doc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
+.doc-card{border:1px solid var(--border);border-radius:8px;padding:12px;background:#fff;border-left:4px solid var(--c,#4338ca)}
+.doc-card h4{font-size:13px;color:var(--c);margin-bottom:4px}
+.doc-card p{font-size:11px;color:var(--muted);margin-bottom:6px}
+.doc-card a{font-size:11px;color:var(--accent);text-decoration:none;font-weight:600}
+.footer{text-align:center;color:var(--muted);font-size:11px;margin-top:32px;padding-top:12px;border-top:1px solid var(--border)}
+@media(max-width:900px){.sidebar{display:none}.main{margin-left:0;padding:16px}.agent-body .cols{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<nav class="sidebar">
+  <div class="sidebar-logo"><h2>BlockHub 架构中心</h2><p>v2.0 · 三源合成 · 2026-07-13</p></div>
+  <a href="#overview">最终实现全景</a>
+  <a href="#layers">五层模型</a>
+  <a href="#contract">契约驱动</a>
+  <a href="#tech">技术拓扑</a>
+  <a href="#lifecycle">全流程</a>
+  <a href="#seven-agents">7 Agent</a>
+  <a href="#industry-packs">行业 49 场景</a>
+  <a href="#office-scenarios">办公 65 场景</a>
+  <a href="#plaza">广场与受众</a>
+  <a href="#custom">定制五级</a>
+  <a href="#read-paths">阅读路径</a>
+  <a href="#checklist">实现检查清单</a>
+  <a href="功能清单-v2.0.html" style="color:#a5f3fc">功能清单 v2.0</a>
+  <a href="项目计划-v2.0.html" style="color:#fcd34d">项目计划 v2.0</a>
+</nav>
+
+<div class="main">
+<div class="hero" id="overview">
+  <h1>积木仓 BlockHub · 业务架构大纲 v2.0</h1>
+  <p>从<strong>最终实现</strong>反推：7 PaaS Agent 承载 43 Capability，驱动 65 办公场景 + 49 行业场景 + 20 行业独立站，经智能创建生成 Schema，Runtime 双端平行渲染交付。
+  合成自架构母版、6 周攻坚范围与 07-13 代码库进度（整体 ~82%）。</p>
+  <div class="stats">
+    <div class="stat"><div class="n">7</div><div class="l">PaaS Agent</div></div>
+    <div class="stat"><div class="n">43</div><div class="l">Capability</div></div>
+    <div class="stat"><div class="n">114</div><div class="l">Catalog 场景</div></div>
+    <div class="stat"><div class="n">20</div><div class="l">行业独立站</div></div>
+    <div class="stat"><div class="n">5</div><div class="l">架构层级</div></div>
+    <div class="stat"><div class="n">3</div><div class="l">端交付</div></div>
+    <div class="stat"><div class="n">12</div><div class="l">page_schema 模板</div></div>
+  </div>
+</div>
+
+<section id="layers">
+  <h2 class="section-title">一、最终实现五层模型（自底向上）</h2>
+  <div class="diagram-box"><pre class="mermaid">
+flowchart TB
+  subgraph L5["L5 Runtime · 用户直接使用"]
+    RW[runtime-web /r/:appId]
+    FA[Flutter runtime-app]
+    RW --> WidgetHost
+    FA --> FRegistry[WidgetRegistry]
+  end
+  subgraph L4["L4 创建 · 管理员创建时"]
+    CW[7步创建向导]
+    SG[SchemaGenerator]
+    PB[publish → webUrl]
+    CW --> SG --> PB
+  end
+  subgraph L3["L3 Catalog · 中文场景名"]
+    OF[65 办公场景]
+    IN[49 行业场景]
+    IS[20 行业独立站]
+  end
+  subgraph L2["L2 Capability · 后台映射"]
+    REG[43 capability_key]
+    MAN[build_manifest]
+    REG --> MAN
+  end
+  subgraph L1["L1 Agent · 编排层"]
+    A1[智能创建] & A2[问答] & A3[知识库] & A4[审批] & A5[报表] & A6[通知] & A7[集成]
+  end
+  subgraph L0["L0 Infra"]
+    PG[(PostgreSQL)] & RD[(Redis)] & COS[COS] & VEC[pgvector] & LLM[LLM Gateway]
+  end
+  L4 --> L3
+  L4 --> L2
+  L2 --> L1
+  L1 --> L0
+  L4 --> L5
+  </pre></div>
+  <div class="diagram-legend" style="background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:12px">
+    <span><i class="dot-user"></i> L5/L4/L3 用户可感知</span>
+    <span><i class="dot-internal"></i> L2/L1/L0 后台实现</span>
+    <span>用户只接触 L5 + L4 + L3（中文场景名）</span>
+  </div>
+  <div class="card">
+    <table>
+      <thead><tr><th>层级</th><th>交付物（最终实现）</th><th>谁维护</th><th>用户感知</th><th>当前状态</th></tr></thead>
+      <tbody>
+        <tr><td><strong>L5 Runtime</strong></td><td>员工端 Web/App、ChatWidget、审批页、看板、语音</td><td>schema-renderer / Flutter</td><td>✅ 直接使用</td><td><span class="tag-warn">🔶</span> Web ✅ · App APK 待验</td></tr>
+        <tr><td><strong>L4 创建</strong></td><td>7 步向导、可行性报告、Page Schema JSON、发布 URL</td><td>creation-service</td><td>✅ 创建时</td><td><span class="tag-done">✅</span> 三入口发布闭环</td></tr>
+        <tr><td><strong>L3 Catalog</strong></td><td>办公/行业/模块清单、form_schema、workflow seed、行业独立站</td><td>产品+后端 seed</td><td>✅ 中文场景名</td><td><span class="tag-done">✅</span> 114 PG + 20 独立站</td></tr>
+        <tr><td><strong>L2 Capability</strong></td><td>43 capability_key、Widget 映射、API 绑定、manifest</td><td>Registry + 研发</td><td>❌ 后台自动映射</td><td><span class="tag-done">✅</span> codegen TS/Dart</td></tr>
+        <tr><td><strong>L1 Agent</strong></td><td>7 套 Pipeline 服务、独立 DB 表、管理端调试 UI</td><td>各 Agent 服务</td><td>❌ 编排层</td><td><span class="tag-warn">🔶</span> custom 审核 UI 缺</td></tr>
+        <tr><td><strong>L0 Infra</strong></td><td>LLM 网关、RBAC、tenant_id、Docker、腾讯云</td><td>运维+平台</td><td>❌</td><td><span class="tag-warn">🔶</span> prod compose 待交付</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="card" style="background:#eff6ff;border-color:#93c5fd">
+    <strong>关键结论：</strong>用户只接触 <strong>L5 + L4 + L3（中文场景名）</strong>。
+    「7 大 Agent」是 L1 实现单元；「43 Capability」是 L2 组合积木；「65+49 场景」是 L3 可售清单。
+    行业方案包<strong>必须对用户可见</strong>——创建向导「维度三」整包展示，选行业后预勾选场景，用户可删减再研判。
+  </div>
+</section>
+
+<section id="contract">
+  <h2 class="section-title">二、契约驱动 · Web/Flutter 解耦</h2>
+  <div class="note">
+    <strong>核心原则：</strong>后端只产出两份契约——<code>page_schema</code>（UI 树）与 <code>build_manifest</code>（包清单），二者都由同一份能力注册表派生。
+    Web（runtime-web）与 Flutter（runtime-app）各自实现 Widget 注册表，按 <code>capability_key</code> 渲染，互不依赖对方代码。
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+    <div class="card">
+      <h3>① 单一能力源（后端）</h3>
+      <ul style="margin-left:16px;font-size:11px;line-height:1.85;color:var(--muted)">
+        <li><code>capability_registry.py</code> → ALL_CAPABILITIES</li>
+        <li>每条含：widget · web_pkg · flutter_pkg · route · agent_id</li>
+        <li>43 Capability 入库即注册，是全部 UI 的唯一真相源</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>② 契约生成（后端）</h3>
+      <ul style="margin-left:16px;font-size:11px;line-height:1.85;color:var(--muted)">
+        <li><code>schema_generator.py</code>：keys → page_schema JSON</li>
+        <li><code>build_manifest.py</code>：keys → web_pkg[] + flutter_pkg[]</li>
+        <li><code>GET /runtime/{id}/schema|manifest</code> 两端共用</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>③ Web 端（runtime-web）</h3>
+      <ul style="margin-left:16px;font-size:11px;line-height:1.85;color:var(--muted)">
+        <li><code>packages/web-core</code> WidgetHost 按 key 渲染</li>
+        <li>5 包：chat · approval · dashboard · kb · voice</li>
+        <li>manifest 动态 lazy import 裁剪</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>④ Flutter 端（runtime-app）</h3>
+      <ul style="margin-left:16px;font-size:11px;line-height:1.85;color:var(--muted)">
+        <li>自建 WidgetRegistry，按同一 capability_key 映射</li>
+        <li>Dio+SSE 拉同一 schema/manifest</li>
+        <li>login · chat · approval · report · voice 已落地</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="tech">
+  <h2 class="section-title">三、技术拓扑（cozecode 主工程）</h2>
+  <pre class="arch">shared/          品牌 · 主题 · capability-manifest.ts（codegen）
+home/     :5173   B2B 落地页 · 三入口创建 · /plaza · 20 行业独立站
+frontend/ :5174   Admin 工作台 · RBAC · 七 Agent 能力页
+backend/  :8001   FastAPI · PG · Alembic 001–018 · JWT · SSE · 发布/广场/报表
+runtime-web/      /r/:appId 按 page_schema 渲染 · web-capability-* 包
+runtime-app/      Flutter · WidgetRegistry · login/chat/approval/report/voice
+packages/web-core schema-renderer · WidgetHost
+staging           101.32.209.251 · 自签 HTTPS 443</pre>
+  <table>
+    <thead><tr><th>组件</th><th>技术选型</th><th>职责</th></tr></thead>
+    <tbody>
+      <tr><td>后端</td><td>FastAPI + SQLAlchemy + Alembic</td><td>7 Agent Pipeline · REST + SSE · RBAC</td></tr>
+      <tr><td>数据</td><td>PostgreSQL + Redis + COS + pgvector</td><td>114 Catalog · RAG 向量 · 限流 · 文件</td></tr>
+      <tr><td>前端</td><td>React + Vite 双 SPA（Home + Admin）</td><td>创建门户 · 管理后台 · 广场</td></tr>
+      <tr><td>Runtime Web</td><td>React + WidgetHost + 能力包</td><td>员工端 schema 驱动渲染</td></tr>
+      <tr><td>Runtime App</td><td>Flutter + Dio + SSE</td><td>员工端移动端</td></tr>
+      <tr><td>LLM</td><td>通义/豆包 Gateway</td><td>Chat SSE · RAG · 研判 · 行业 enrich</td></tr>
+      <tr><td>部署</td><td>Docker Compose + Nginx + 腾讯云 CVM</td><td>staging · prod 模板</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="lifecycle">
+  <h2 class="section-title">四、端到端生命周期</h2>
+  <div class="diagram-box"><pre class="mermaid">
+sequenceDiagram
+  participant Admin as 管理员
+  participant Home as Home :5173
+  participant API as API :8001
+  participant RW as runtime-web
+  participant App as Flutter App
+  participant Emp as 员工
+
+  Admin->>Home: 三入口勾选场景/capability
+  Home->>API: POST /creation/feasibility
+  API-->>Home: 研判报告 + 推荐 keys
+  Admin->>Home: 发布 deliver web/app/both
+  Home->>API: POST /creation/publish
+  API-->>Home: appId · webUrl · page_schema · build_manifest
+  Note over API: @受众 → feed_posts（广场）
+  Emp->>RW: 打开 /r/:appId
+  RW->>API: GET /runtime/{id}/schema|manifest
+  API-->>RW: 契约 JSON
+  RW-->>Emp: Chat + 审批 + 看板
+  Emp->>App: 同 appId 登录
+  App->>API: 同一 schema/manifest
+  App-->>Emp: 问答/审批/报表
+  </pre></div>
+  <div class="card">
+    <h3>10 分钟 Demo 主路径（W3 里程碑 · 当前 ~90%）</h3>
+    <ol style="margin-left:18px;font-size:12px;line-height:1.9">
+      <li>管理员登录 Home/Admin</li>
+      <li>描述需求或按行业勾选「智能问答 + 请假审批」</li>
+      <li>研判 → 发布 → 获得 webUrl + App 深链</li>
+      <li>员工 Web：runtime 问答（PDF citation）+ 提交请假</li>
+      <li>主管：待办 Inbox 通过 → 通知触发</li>
+      <li>可选：@公开 发布到广场 · 点赞评论</li>
+      <li>同 appId Flutter APK 复现主路径</li>
+    </ol>
+  </div>
+</section>
+
+<section id="seven-agents">
+  <h2 class="section-title">五、7 PaaS Agent × 43 Capability × 114 场景</h2>
+  <p style="font-size:12px;color:var(--muted);margin-bottom:12px">每个 Agent 是一组 Capability 的运行时 + Pipeline + 场景模板集合。下表为最终实现必须覆盖的范围。</p>
+  <div id="agentBlocks"></div>
+  <div class="card">
+    <h3>汇总矩阵</h3>
+    <table id="agentSummaryTable">
+      <thead><tr><th>Agent</th><th>承载 Capability</th><th>办公</th><th>行业</th><th>Pipeline</th><th>状态</th></tr></thead>
+      <tbody id="agentSummaryBody"></tbody>
+    </table>
+  </div>
+</section>
+
+<section id="industry-packs">
+  <h2 class="section-title">六、行业方案包 4 套 · 49 场景全明细</h2>
+  <p style="font-size:12px;color:var(--muted);margin-bottom:10px">创建向导「选行业 → 预填推荐场景 → 可增减 → 研判生成」。全部露出给用户勾选。</p>
+  <div id="industryDetail"></div>
+  <div class="note note-warn">
+    <strong>20 行业独立站（扩展）：</strong>除 4 核心包外，Home <code>/industry</code> 提供 20 个深度行业落地页（制造/零售/物流/医疗/游戏等），含大模型方案文案、场景清单、配图，与 Catalog 元数据联动。
+  </div>
+</section>
+
+<section id="office-scenarios">
+  <h2 class="section-title">七、办公场景 65 项 · 8 大类全明细</h2>
+  <div id="officeDetail"></div>
+</section>
+
+<section id="plaza">
+  <h2 class="section-title">八、应用广场与 @ 受众（方案 B 三栏）</h2>
+  <div class="card">
+    <table>
+      <thead><tr><th>概念</th><th>含义</th><th>实现</th><th>状态</th></tr></thead>
+      <tbody>
+        <tr><td><code>&gt;&gt;</code></td><td>创建流 Agent 输入符号</td><td>Home CreateStudio 模块芯片</td><td><span class="tag-done">✅</span></td></tr>
+        <tr><td><code>@</code></td><td>发布受众范围</td><td>@公开 / @部门 / @角色 · audience_type 字段</td><td><span class="tag-done">✅</span></td></tr>
+        <tr><td><code>/plaza</code></td><td>应用广场 Newsfeed</td><td>feed_posts · reactions · comments · 三栏桌面布局</td><td><span class="tag-warn">🔶</span> localStorage 回退待清</td></tr>
+        <tr><td>模块数据流</td><td>发布应用的 Pipeline 可视化</td><td>/plaza/my · Reorder · API 拨通面板</td><td><span class="tag-done">✅</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="custom">
+  <h2 class="section-title">九、定制化扩展 · L1–L5 五级</h2>
+  <table>
+    <thead><tr><th>级别</th><th>名称</th><th>6 周范围</th><th>状态</th></tr></thead>
+    <tbody>
+      <tr><td>L1</td><td>租户 Config JSON</td><td>theme/menu/capabilities 热更新</td><td><span class="tag-done">✅</span></td></tr>
+      <tr><td>L2</td><td>自定义 Capability</td><td>用户提交 → 审核台 → 入库 Registry</td><td><span class="tag-warn">🔶</span> API ✅ · UI 本周</td></tr>
+      <tr><td>L3</td><td>行业深度包</td><td>4 包 49 场景 + 20 独立站</td><td><span class="tag-done">✅</span></td></tr>
+      <tr><td>L4</td><td>外部系统集成</td><td>REST connector Demo + ETL 6 阶段骨架</td><td><span class="tag-done">✅</span> Demo 级</td></tr>
+      <tr><td>L5</td><td>私有化部署</td><td>Docker Compose 包 · K8s Helm 骨架</td><td><span class="tag-warn">🔶</span> prod compose 本周</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="read-paths">
+  <h2 class="section-title">十、推荐阅读路径</h2>
+  <div class="path-box"><strong>🎯 研发负责人（本周）</strong><br>
+    本文档五层模型 → <a href="功能清单-v2.0.html">功能清单 v2.0</a> → <a href="项目计划-v2.0.html">项目计划 v2.0</a> 本周攻坚 → smoke 脚本验收</div>
+  <div class="path-box"><strong>💰 投资方 / 路演（20 分钟）</strong><br>
+    本文档「五层模型」→ 10 分钟 Demo 主路径 → 行业 49 场景 → GA 八项验收</div>
+  <div class="path-box"><strong>👨‍💻 前端</strong><br>
+    契约驱动章节 → schema-renderer Widget 表 → Playwright E2E → 广场方案 B</div>
+  <div class="path-box"><strong>⚙️ 后端</strong><br>
+    Capability Registry → 7 Agent Pipeline → Catalog seed → 腾讯云迁移脚本</div>
+  <div class="path-box"><strong>🤝 交付 / 销售</strong><br>
+    行业 49 场景表 + 20 独立站 → 定制五级 → 6 周 GA 清单</div>
+</section>
+
+<section id="checklist">
+  <h2 class="section-title">十一、最终实现检查清单</h2>
+  <div class="card outline-tree">
+    <div class="lv1">□ L3 Catalog</div>
+    <div class="lv2">✅ 65 办公 + 49 行业 seed 入库（count=114）</div>
+    <div class="lv2">✅ 20 行业独立站 /industry/:key</div>
+    <div class="lv1">□ L2 Registry</div>
+    <div class="lv2">✅ 43 Capability 注册 + Widget 映射 + manifest codegen</div>
+    <div class="lv1">□ L1 Agent</div>
+    <div class="lv2">✅ 7 Pipeline 服务联调通过</div>
+    <div class="lv2">🔶 custom 审核台 Admin UI（本周 P0）</div>
+    <div class="lv1">□ L4 创建</div>
+    <div class="lv2">✅ 三维度勾选 → 研判 → 生成 → 发布闭环</div>
+    <div class="lv2">🔶 Playwright E2E 全链（本周 P0）</div>
+    <div class="lv1">□ L5 Runtime</div>
+    <div class="lv2">✅ Web schema 渲染 · 5 能力包</div>
+    <div class="lv2">🔶 Flutter APK 主 Demo 路径（本周四）</div>
+    <div class="lv1">□ L0 Infra</div>
+    <div class="lv2">✅ PG + Redis + COS + pgvector + JWT</div>
+    <div class="lv2">🔶 腾讯云 DB + prod compose + 公网 HTTPS</div>
+    <div class="lv1">□ GA 验收</div>
+    <div class="lv2">8/8 项可签字 · 114 回归 · 10 并发压测 · 部署文档</div>
+  </div>
+</section>
+
+<div class="footer">
+  积木仓 BlockHub · 业务架构大纲 v2.0（三源合成版）· 2026-07-13<br>
+  合成自：01-TrackChat-文档总目录与业务架构大纲 · 16-TrackChat-6周全量攻坚计划 · 项目全景与本周攻坚清单<br>
+  关联：<a href="功能清单-v2.0.html">功能清单 v2.0</a> · <a href="项目计划-v2.0.html">项目计划 v2.0</a> ·
+  <a href="../../功能/14-TrackChat-技术架构选型.html">技术架构选型</a>
+</div>
+</div>
+
+<script>
+mermaid.initialize({startOnLoad:true,theme:'default',securityLevel:'loose'});
+
+const AGENTS = [
+  { id:'creation', name:'✨ 智能创建', color:'#6366f1', caps:['creation','form_widget','list_widget','rbac_page'],
+    office:'（元 Agent）编排全部 65 办公 + 49 行业场景', officeN:0, industryN:49,
+    industry:'全量：选行业→预填→研判→生成 Schema',
+    fe:'FE-B 创建向导 · FE-RW Runtime', be:'BE-E Registry·Schema·Feasibility·Publish',
+    pipeline:'需求→研判→澄清→Schema→编排→发布', status:'done' },
+  { id:'chat_qa', name:'💬 智能问答', color:'#4338ca', caps:['chat_qa','chat_voice','multi_agent','chat_summary'],
+    office:'制度政策问答·员工手册·福利咨询·法务咨询·新人 onboarding·内部 FAQ·审计检索·IT 知识库 等',
+    officeN:18, industryN:12,
+    industry:'产品话术问答·SOP工艺问答·诊疗指南·玩家FAQ·智能导诊·NPC对话',
+    fe:'FE-CHAT* · ChatWidget Runtime', be:'BE-CHAT* · RAG Pipeline',
+    pipeline:'接收→检索→Prompt→LLM→SSE→会话', status:'done' },
+  { id:'kb', name:'📚 知识库', color:'#059669', caps:['kb_document','kb_search'],
+    office:'制度文档库·SOP·培训资料·项目文档·会议纪要·合规制度库·最佳实践库',
+    officeN:14, industryN:10,
+    industry:'SOP/工艺·案例方案库·版本规则库·诊疗指南库·患者宣教·图纸BOM',
+    fe:'FE-KB* · 上传/切片/检索', be:'BE-KB* · 向量化索引',
+    pipeline:'上传→解析→切片→向量→索引→检索', status:'done' },
+  { id:'approval', name:'✅ 审批流程', color:'#dc2626', caps:['approval_flow','approval_inbox','approval_countersign','approval_conditional','approval_remind','approval_esign'],
+    office:'请假·加班·出差·报销·入职离职·用印·借款·合同·付款·通用审批·待办已办·会签·条件分支 等',
+    officeN:22, industryN:14,
+    industry:'质检审批·物料领用·报价折扣·合同审批·耗材申购·不良事件·客服工单·版号审查·外包验收',
+    fe:'FE-APPR* · FormWidget·Timeline', be:'BE-APPR* · 工作流状态机',
+    pipeline:'提交→工作流→路由→状态→通知→归档', status:'done' },
+  { id:'report', name:'📊 数据报表', color:'#0ea5e9', caps:['chart_dashboard','chart_basic','chart_funnel','chart_kpi_card','data_nl_query','report_scheduled','data_export'],
+    office:'部门看板·考勤·审批效率·费用汇总·NL查数·定时推送·Excel导出·预算查询',
+    officeN:12, industryN:11,
+    industry:'生产日报/OEE·销售漏斗·业绩排行·科室运营·留存ARPU·渠道ROI·能耗碳排',
+    fe:'FE-CHART* · Dashboard·NLQuery', be:'BE-CHART* · 聚合·NL2SQL',
+    pipeline:'选指标→聚合→图表→NL查数→导出', status:'wip' },
+  { id:'notify', name:'🔔 消息通知', color:'#f59e0b', caps:['notify_inapp','notify_email','notify_im','announce_board'],
+    office:'审批提醒·公告·待办@·邮件短信·企微钉钉·订阅·到期提醒·超时催办',
+    officeN:10, industryN:6,
+    industry:'保养计划提醒·商机到期·活动上线通知',
+    fe:'FE-NOTIFY* · Inbox·Banner', be:'BE-NOTIFY* · 多渠道 Adapter',
+    pipeline:'触发器→规则→模板→发送→确认', status:'done' },
+  { id:'integration', name:'🔌 外部数据', color:'#0f766e', caps:['integration','erp_connector','oa_connector','auth_sso','it_helpdesk','asset_manage','meeting_booking'],
+    office:'SAP/用友·OA·CRM·HR·SSO·双向同步·IT报障·资产领用·会议室预约',
+    officeN:13, industryN:4,
+    industry:'MES/ERP·Salesforce/纷享·HIS/LIS·游戏后台（均为定制优先）',
+    fe:'FE-INT* · 连接器向导', be:'BE-INT* · ETL 6 阶段',
+    pipeline:'Discover→Extract→Map→Load→Sync→Serve', status:'done' },
+  { id:'voice', name:'🎙 上海话语音', color:'#7c3aed', caps:['shanghai_voice'],
+    office:'方言语音扩展 Demo', officeN:0, industryN:0,
+    industry:'—', fe:'VoiceWidget · runtime-web/App', be:'TeleAI ASR/TTS WS',
+    pipeline:'PCM→ASR→LLM→TTS→播放', status:'ahead' },
+];
+
+const INDUSTRY_PACKS = [
+  { key:'mfg', name:'🏭 传统制造业', color:'#254b9c', scenes:[
+    ['设备报修','产线故障报修派工','approval+form','✓','approval'],['SOP/工艺问答','作业指导书检索','chat+kb','✓','chat_qa'],
+    ['生产日报/OEE','车间产量稼动率','chart','部分','report'],['质检审批','来料成品质检','approval','✓','approval'],
+    ['物料领用','生产领退料','approval','✓','approval'],['安环隐患上报','安全隐患拍照','form+approval','✓','approval'],
+    ['排班/考勤','班次查询申诉','list+approval','✓','approval'],['保养计划提醒','设备保养到期','notify','✓','notify'],
+    ['图纸/BOM检索','工程文档问答','kb','✓','kb'],['对接MES/ERP','制造系统打通','integration','定制','integration'],
+    ['能耗/碳排统计','绿色制造指标','chart','部分','report'],['技能培训记录','上岗证培训档案','list+kb','✓','kb'],
+  ]},
+  { key:'sales', name:'📈 销售行业', color:'#dc2626', scenes:[
+    ['产品/话术问答','产品参数竞品话术','chat+kb','✓','chat_qa'],['报价/折扣审批','超权限折扣','approval','✓','approval'],
+    ['销售漏斗看板','线索商机转化','chart_funnel','部分','report'],['客户跟进记录','拜访纪要','form+list','✓','approval'],
+    ['合同审批','法务财务会签','approval','✓','approval'],['商机到期提醒','长期未跟进','notify','✓','notify'],
+    ['业绩排行/提成','团队PK','chart','部分','report'],['案例/方案库','成功案例检索','kb','✓','kb'],
+    ['样品/礼品申请','市场物料领用','approval','✓','approval'],['对接Salesforce/纷享','CRM同步','integration','定制','integration'],
+    ['外勤签到','拜访定位','form+map','部分','approval'],['区域销售分析','按区产品线','chart','✓','report'],
+  ]},
+  { key:'med', name:'🏥 医疗行业', color:'#059669', scenes:[
+    ['诊疗指南/药品库','临床用药参考','kb+chat','部分','kb'],['内部制度/合规问答','院感质量制度','chat','✓','chat_qa'],
+    ['排班/调班申请','医护排班','list+approval','✓','approval'],['耗材/设备申购','科室采购','approval','✓','approval'],
+    ['患者宣教资料','出院指导科普','kb','✓','kb'],['数据脱敏/权限','敏感信息保护','rbac+mask','✓','creation'],
+    ['不良事件上报','医疗安全事件','form+approval','✓','approval'],['科室运营看板','门诊量床位','chart','部分','report'],
+    ['继续教育/考核','培训题库','kb+form','✓','kb'],['对接HIS/LIS','医院信息系统','integration','定制','integration'],
+    ['智能导诊(对外)','患者预问诊','chat','部分','chat_qa'],['会诊/转诊申请','跨科室会诊','approval','✓','approval'],
+  ]},
+  { key:'game', name:'🎮 游戏行业', color:'#7c3aed', scenes:[
+    ['玩家FAQ/攻略','活动规则问答','chat','✓','chat_qa'],['客服工单','玩家问题流转','approval+list','✓','approval'],
+    ['版本/活动规则库','策划文档检索','kb','✓','kb'],['留存/ARPU看板','运营数据监控','chart','部分','report'],
+    ['版号/合规审查','内容合规自检','approval','✓','approval'],['活动上线通知','开服活动推送','notify','✓','notify'],
+    ['NPC/角色对话(C端)','游戏内AI角色','chat','✓','chat_qa'],['外包验收审批','美术音效验收','approval','✓','approval'],
+    ['渠道投放分析','CAC/ROI','chart','部分','report'],['对接游戏后台','GM/数据中台','integration','定制','integration'],
+    ['敏感词/内容风控','UGC过滤','security','✓','creation'],['内购/订阅(C端)','会员道具付费','C端','部分','—'],
+    ['公会/社区管理','公告举报处理','list+approval','✓','approval'],
+  ]},
+];
+
+const OFFICE_GROUPS = [
+  { cat:'👥 人事行政', items:['制度政策问答','请假申请','加班申请','出差申请','报销审批','入职办理','离职交接','用印申请','会议室预约','考勤查询','福利政策咨询','员工手册问答'], agent:'chat_qa+approval' },
+  { cat:'💼 财务法务', items:['费用报销','借款申请','合同审批','发票核验','预算查询','付款申请','法务咨询问答','合规制度库','审计资料检索'], agent:'approval+kb+report' },
+  { cat:'📚 知识协同', items:['制度文档库','SOP作业指导','培训资料库','项目文档共享','会议纪要检索','新人onboarding','内部FAQ','最佳实践库'], agent:'kb+chat_qa' },
+  { cat:'📋 流程审批', items:['通用审批','多级会签','待办中心','已办查询','代理审批','超时催办','审批统计','条件分支'], agent:'approval+notify' },
+  { cat:'📊 数据报表', items:['部门看板','考勤统计','审批效率','费用汇总','自定义报表','定时推送','数据导出Excel','自然语言查数'], agent:'report' },
+  { cat:'🔔 消息通知', items:['审批提醒','公告推送','待办@提醒','邮件/短信','企微/钉钉','订阅消息','到期提醒'], agent:'notify' },
+  { cat:'🛠 IT与资产', items:['IT报障','账号权限申请','软件安装申请','资产领用','资产盘点','网络/VPN申请','IT知识库'], agent:'integration+approval+kb' },
+  { cat:'🔗 外部对接', items:['对接SAP/用友','对接OA','对接CRM','对接HR系统','单点登录SSO','数据双向同步'], agent:'integration' },
+];
+
+const statusTag = s => s==='done'?'<span class="tag-done">✅</span>':s==='wip'?'<span class="tag-warn">🔶</span>':s==='ahead'?'<span class="tag-ok">🔵</span>':'<span class="tag-no">⬜</span>';
+const stdTag = s => `<span class="tag-${s==='✓'?'ok':s==='部分'?'warn':'no'}">${s}</span>`;
+
+document.getElementById('agentBlocks').innerHTML = AGENTS.map(a => `
+  <div class="agent-block">
+    <div class="agent-head" style="background:${a.color}">
+      <span><strong>${a.name}</strong> · ${a.pipeline}</span>
+      <span style="font-size:11px;opacity:.9">Capability ${a.caps.length} · 办公~${a.officeN} · 行业~${a.industryN} · ${statusTag(a.status)}</span>
+    </div>
+    <div class="agent-body"><div class="cols">
+      <div><strong>承载 Capability：</strong><code>${a.caps.join('</code> · <code>')}</code><br><br>
+      <strong>办公场景：</strong>${a.office}<br><br><strong>行业场景：</strong>${a.industry}</div>
+      <div><strong>前端：</strong>${a.fe}<br><br><strong>后端：</strong>${a.be}</div>
+    </div></div>
+  </div>`).join('');
+
+document.getElementById('agentSummaryBody').innerHTML = AGENTS.map(a =>
+  `<tr><td>${a.name}</td><td><code>${a.caps.join('</code> <code>')}</code></td><td>~${a.officeN}</td><td>~${a.industryN}</td><td>${a.pipeline}</td><td>${statusTag(a.status)}</td></tr>`
+).join('');
+
+document.getElementById('industryDetail').innerHTML = INDUSTRY_PACKS.map(p => `
+  <div class="card" style="border-left:4px solid ${p.color}">
+    <h3>${p.name} <span style="font-size:11px;color:var(--muted)">${p.scenes.length} 场景 · pack=${p.key}</span></h3>
+    <table><thead><tr><th>#</th><th>场景名</th><th>解决什么问题</th><th>预置页面</th><th>标准版</th><th>主责 Agent</th></tr></thead>
+    <tbody>${p.scenes.map((s,i)=>`<tr><td>${i+1}</td><td><strong>${s[0]}</strong></td><td>${s[1]}</td><td>${s[2]}</td><td>${stdTag(s[3])}</td><td>${s[4]}</td></tr>`).join('')}</tbody></table>
+  </div>`).join('');
+
+document.getElementById('officeDetail').innerHTML = OFFICE_GROUPS.map(g => `
+  <div class="card"><h3>${g.cat} <span style="font-size:11px;color:var(--muted)">${g.items.length} 项 · 主责 ${g.agent}</span></h3>
+  <table><thead><tr><th>#</th><th>场景名</th><th>主责 Agent</th><th>自动生成</th></tr></thead>
+  <tbody>${g.items.map((item,i)=>`<tr><td>${i+1}</td><td>${item}</td><td><code>${g.agent}</code></td><td>FormWidget / ChatWidget / ListWidget + workflow seed</td></tr>`).join('')}</tbody></table></div>`).join('');
+</script>
+</body>
+</html>

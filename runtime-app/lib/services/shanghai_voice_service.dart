@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io' show Platform;
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
@@ -88,6 +89,11 @@ class ShanghaiVoiceService {
   StreamSubscription<dynamic>? _wsSub;
   VoiceClientConfig? _config;
   int _deviceCaptureRate = 16000;
+  final List<int> _pcmFrameBuffer = [];
+  final List<int> _captureProbeBuffer = [];
+  bool _captureRateReady = false;
+  DateTime? _captureProbeStart;
+  int _captureProbeBytes = 0;
   String state = 'disconnected';
   String partialText = '';
   final List<Map<String, String>> messages = [];
@@ -228,7 +234,7 @@ class ShanghaiVoiceService {
 
     partialText = '';
     final config = _config!;
-    _deviceCaptureRate = config.captureSampleRate;
+    _resetCapturePipeline(config);
     final stream = await _recorder.startStream(
       RecordConfig(
         encoder: AudioEncoder.pcm16bits,
@@ -238,17 +244,107 @@ class ShanghaiVoiceService {
     );
     _micActive = true;
     _setState('listening');
-    _micSub = stream.listen((chunk) {
-      final pcm = _deviceCaptureRate == config.captureSampleRate
-          ? chunk
-          : resamplePcm16Bytes(
-              chunk,
-              fromRate: _deviceCaptureRate,
-              toRate: config.captureSampleRate,
-            );
-      final b64 = base64Encode(pcm);
-      _channel?.sink.add(jsonEncode({'type': 'audio', 'data': b64}));
-    });
+    _micSub = stream.listen((chunk) => _onMicChunk(chunk, config));
+  }
+
+  void _resetCapturePipeline(VoiceClientConfig config) {
+    _pcmFrameBuffer.clear();
+    _captureProbeBuffer.clear();
+    _captureRateReady = false;
+    _captureProbeStart = null;
+    _captureProbeBytes = 0;
+    _deviceCaptureRate = config.captureSampleRate;
+  }
+
+  int _frameBytesFor(VoiceClientConfig config) =>
+      (config.captureSampleRate * config.frameMs ~/ 1000) * 2;
+
+  int _snapSampleRate(int measured, {required int target}) {
+    const common = [8000, 11025, 12000, 16000, 22050, 24000, 44100, 48000];
+    if (measured <= 0) return target;
+    if ((measured - target).abs() <= (target * 0.12).round()) return target;
+    var best = common.first;
+    var bestDiff = (best - measured).abs();
+    for (final rate in common.skip(1)) {
+      final diff = (rate - measured).abs();
+      if (diff < bestDiff) {
+        best = rate;
+        bestDiff = diff;
+      }
+    }
+    return best;
+  }
+
+  void _detectCaptureRate(VoiceClientConfig config) {
+    final probeStart = _captureProbeStart;
+    if (probeStart == null || _captureRateReady) return;
+    final elapsedMs = DateTime.now().difference(probeStart).inMilliseconds;
+    if (elapsedMs < 250) return;
+
+    final measured = ((_captureProbeBytes / 2) / (elapsedMs / 1000)).round();
+    _deviceCaptureRate = _snapSampleRate(
+      measured,
+      target: config.captureSampleRate,
+    );
+    _captureRateReady = true;
+    debugPrint(
+      '[voice] capture probe measured=${measured}Hz using=${_deviceCaptureRate}Hz '
+      '(target=${config.captureSampleRate} platform=${Platform.operatingSystem})',
+    );
+  }
+
+  Uint8List _normalizeCaptureChunk(Uint8List chunk, VoiceClientConfig config) {
+    if (_deviceCaptureRate == config.captureSampleRate) return chunk;
+    return resamplePcm16Bytes(
+      chunk,
+      fromRate: _deviceCaptureRate,
+      toRate: config.captureSampleRate,
+    );
+  }
+
+  void _enqueueCaptureFrames(Uint8List pcm, VoiceClientConfig config) {
+    _pcmFrameBuffer.addAll(pcm);
+    final frameBytes = _frameBytesFor(config);
+    while (_pcmFrameBuffer.length >= frameBytes) {
+      final frame = Uint8List.fromList(_pcmFrameBuffer.sublist(0, frameBytes));
+      _pcmFrameBuffer.removeRange(0, frameBytes);
+      _sendAudioFrame(frame);
+    }
+  }
+
+  void _flushCaptureFrames(VoiceClientConfig config) {
+    if (_pcmFrameBuffer.isEmpty) return;
+    _sendAudioFrame(Uint8List.fromList(_pcmFrameBuffer));
+    _pcmFrameBuffer.clear();
+  }
+
+  void _sendAudioFrame(Uint8List frame) {
+    if (frame.isEmpty || _channel == null) return;
+    _channel!.sink.add(jsonEncode({
+      'type': 'audio',
+      'data': base64Encode(frame),
+    }));
+  }
+
+  void _onMicChunk(Uint8List chunk, VoiceClientConfig config) {
+    if (!_captureRateReady) {
+      _captureProbeStart ??= DateTime.now();
+      _captureProbeBytes += chunk.length;
+      _captureProbeBuffer.addAll(chunk);
+      _detectCaptureRate(config);
+      if (!_captureRateReady) return;
+
+      final probePcm = _normalizeCaptureChunk(
+        Uint8List.fromList(_captureProbeBuffer),
+        config,
+      );
+      _captureProbeBuffer.clear();
+      _enqueueCaptureFrames(probePcm, config);
+      return;
+    }
+
+    final pcm = _normalizeCaptureChunk(chunk, config);
+    _enqueueCaptureFrames(pcm, config);
   }
 
   Future<void> holdTalkEnd() async {
@@ -258,6 +354,20 @@ class ShanghaiVoiceService {
     _micSub = null;
     if (await _recorder.isRecording()) {
       await _recorder.stop();
+    }
+    final config = _config;
+    if (config != null) {
+      if (!_captureRateReady && _captureProbeBuffer.isNotEmpty) {
+        _deviceCaptureRate = config.captureSampleRate;
+        _captureRateReady = true;
+        final probePcm = _normalizeCaptureChunk(
+          Uint8List.fromList(_captureProbeBuffer),
+          config,
+        );
+        _captureProbeBuffer.clear();
+        _enqueueCaptureFrames(probePcm, config);
+      }
+      _flushCaptureFrames(config);
     }
     _channel?.sink.add(jsonEncode({'type': 'utterance_end'}));
     // 保留 partialText 直到 asr_final，避免松手后文字空白
@@ -342,6 +452,9 @@ class ShanghaiVoiceService {
       partialText = msg['text'] as String? ?? '';
       if (_micActive) _setState('listening');
       _notifyUi();
+    } else if (type == 'asr_speech_start') {
+      if (_micActive) _setState('listening');
+      _notifyUi();
     } else if (type == 'asr_final') {
       final text = msg['text'] as String? ?? '';
       partialText = '';
@@ -364,10 +477,8 @@ class ShanghaiVoiceService {
         if (!_micActive && state != 'speaking') _setState('speaking');
         unawaited(_ttsPlayer.enqueueBase64(data, isEnd: isEnd));
       }
-      if (isEnd && !_micActive) {
-        unawaited(_ttsPlayer.finish().then((_) {
-          if (!_micActive && state == 'speaking') _setState('idle');
-        }));
+      if (isEnd) {
+        unawaited(_ttsPlayer.finish());
       }
       _notifyUi();
     } else if (type == 'error') {

@@ -8,7 +8,7 @@ import {
   INDUSTRY_SOLUTIONS,
 } from '../../data/productShowcase'
 import { ROUTES } from '../../routes/paths'
-import { industryAssets } from '../../data/industryAssets'
+import { industryAssets, industryCardImage } from '../../data/industryAssets'
 import { PLATFORM_STATS } from '@shared/platformStats'
 import { CAPABILITY_ICONS, INDUSTRY_ICONS, IconSparkles } from '../icons'
 import { AgentButtonContent } from '../AgentChevron'
@@ -179,7 +179,7 @@ export default function B2BProductSection({ onTry }: Props) {
               >
                 <div
                   className="b2b-industry-visual"
-                  style={{ backgroundImage: `url(${industryAssets(ind.key).hero})` }}
+                  style={{ backgroundImage: `url(${industryCardImage(ind.key)})` }}
                   role="img"
                   aria-label={`${ind.name}行业特性配图`}
                 >

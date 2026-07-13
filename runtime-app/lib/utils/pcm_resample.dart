@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 import 'dart:typed_data';
 
-/// 线性重采样 16-bit PCM（Android 常实际录 48k，ASR 需 16k）。
+/// 线性重采样 16-bit PCM（Android 实际采样率可能与请求值不一致，ASR 需 16k）。
 Uint8List resamplePcm16Bytes(
   Uint8List pcm,
   {
@@ -27,6 +27,3 @@ Uint8List resamplePcm16Bytes(
 
   return Uint8List.view(out.buffer);
 }
-
-/// Android 录音采样率：优先使用 ASR 要求的 16k，避免误按 48k 重采样导致识别异常。
-int androidCaptureSampleRateHint() => 16000;

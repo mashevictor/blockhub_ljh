@@ -1022,13 +1022,12 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
         variant="capsule"
         showDockToggle
         defaultExpanded={activeSection === 'hero'}
-        defaultAnchorSelector={activeSection === 'hero' ? '#hero-dock-anchor' : '#hero .b2b-hero-btns'}
-        anchorAlign={activeSection === 'hero' ? 'right' : 'left'}
-        anchorVerticalAlign={activeSection === 'hero' ? 'top' : 'below'}
+        defaultAnchorSelector="#hero-dock-anchor"
+        anchorAlign="right"
+        anchorVerticalAlign="top"
         repositionSignal={dockReposition}
         closedAnchorSelector=".b2b-header .brand-mark"
         ariaLabel="生成应用悬浮助手"
-        snapBottomOnExpand
         onExpand={handleDockExpand}
       >
         <div

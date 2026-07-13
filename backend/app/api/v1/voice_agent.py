@@ -115,8 +115,7 @@ async def voice_auth_probe() -> dict:
                     "enable_punctuation": True,
                     "enable_inverse_text_normalization": True,
                     "enable_emendation": True,
-                    "format": "pcm",
-                    "maxendsilence": 500,
+                    "max_end_silence": 500,
                 },
                 "req_id": f"probe-{uuid.uuid4().hex[:8]}",
                 "rec_status": 0,
@@ -155,6 +154,10 @@ async def shanghai_voice_agent(ws: WebSocket, session_id: str = "default") -> No
     hotwords = list(DEFAULT_HOTWORDS)
     history: list[dict[str, str]] = []
     llm_task: asyncio.Task[None] | None = None
+    asr_final_sent = False
+    asr_reconnect_task: asyncio.Task[None] | None = None
+    asr_ready = asyncio.Event()
+    asr_ready.set()
     asr = TeleAsrClient(hotwords=hotwords)
     tts = TeleTtsClient()
 
@@ -248,16 +251,34 @@ async def shanghai_voice_agent(ws: WebSocket, session_id: str = "default") -> No
             history.append({"role": "assistant", "content": "".join(reply_parts)})
         await set_state(SessionState.IDLE)
 
+    async def prepare_next_asr_turn() -> None:
+        nonlocal asr_reconnect_task, asr_final_sent
+        asr_ready.clear()
+        try:
+            await asr.reconnect()
+            asr_final_sent = False
+        except Exception as exc:
+            logger.warning("ASR prepare next turn failed: %s", exc)
+        finally:
+            asr_ready.set()
+
+    async def schedule_asr_reconnect() -> None:
+        nonlocal asr_reconnect_task
+        if asr_reconnect_task and not asr_reconnect_task.done():
+            return
+        asr_reconnect_task = asyncio.create_task(prepare_next_asr_turn())
+
     async def pump_asr() -> None:
-        nonlocal llm_task
+        nonlocal llm_task, asr_final_sent
         try:
             async for event in asr.events():
                 if event.res_status == 0:
                     continue
                 if event.res_status == -1:
-                    if TeleAsrClient.is_transient_error(event):
+                    if event.code in (10007, 10005, 10002) or TeleAsrClient.is_transient_error(event):
                         try:
                             await asr.reconnect()
+                            asr_final_sent = False
                             continue
                         except Exception as exc:
                             logger.warning("ASR reconnect failed: %s", exc)
@@ -268,10 +289,14 @@ async def shanghai_voice_agent(ws: WebSocket, session_id: str = "default") -> No
                     })
                     continue
 
+                if event.res_status == 1:
+                    await ws.send_json({"type": "asr_speech_start"})
+
                 if event.res_status == 2 and event.text:
                     await ws.send_json({"type": "asr_partial", "text": event.text})
 
-                if event.res_status in (3, 4) and event.text:
+                if event.res_status in (3, 4) and event.text and not asr_final_sent:
+                    asr_final_sent = True
                     await ws.send_json({
                         "type": "asr_final",
                         "text": event.text,
@@ -280,11 +305,14 @@ async def shanghai_voice_agent(ws: WebSocket, session_id: str = "default") -> No
                     })
                     await cancel_llm()
                     llm_task = asyncio.create_task(run_llm_and_tts(event.text))
+
+                if event.res_status == 4:
+                    await schedule_asr_reconnect()
         except asyncio.CancelledError:
             raise
 
     async def receive_browser_audio() -> None:
-        nonlocal hotwords, llm_task
+        nonlocal hotwords, llm_task, asr_final_sent
         while True:
             msg = await ws.receive_json()
             msg_type = msg.get("type")
@@ -292,11 +320,14 @@ async def shanghai_voice_agent(ws: WebSocket, session_id: str = "default") -> No
             if msg_type == "audio":
                 pcm_b64 = msg.get("data") or ""
                 if pcm_b64:
+                    await asr_ready.wait()
                     if state in (SessionState.IDLE, SessionState.SPEAKING):
                         await set_state(SessionState.LISTENING)
+                    asr_final_sent = False
                     await asr.send_audio(base64.b64decode(pcm_b64))
 
             elif msg_type == "utterance_end":
+                await asr_ready.wait()
                 await asr.end_utterance()
 
             elif msg_type == "barge_in":
@@ -321,6 +352,8 @@ async def shanghai_voice_agent(ws: WebSocket, session_id: str = "default") -> No
                 words = msg.get("hotwords")
                 if isinstance(words, list):
                     hotwords = [str(w) for w in words if w]
+                    asr.set_hotwords(hotwords)
+                    await schedule_asr_reconnect()
 
     try:
         for attempt in range(3):
@@ -367,4 +400,10 @@ async def shanghai_voice_agent(ws: WebSocket, session_id: str = "default") -> No
             pass
     finally:
         await cancel_llm()
+        if asr_reconnect_task and not asr_reconnect_task.done():
+            asr_reconnect_task.cancel()
+            try:
+                await asr_reconnect_task
+            except asyncio.CancelledError:
+                pass
         await asr.close()

@@ -5546,6 +5546,7 @@ a.b2b-nav-btn-link {
   height: 168px;
   background-size: cover;
   background-position: center;
+  background-repeat: no-repeat;
   border-bottom: 3px solid var(--card-accent, #6366f1);
 }
 
@@ -5830,9 +5831,10 @@ a.b2b-nav-btn-link {
 
 .b2b-industry-visual {
   position: relative;
-  height: 128px;
+  height: 148px;
   background-size: cover;
   background-position: center;
+  background-repeat: no-repeat;
   border-bottom: 3px solid var(--ind-color, #6366f1);
 }
 

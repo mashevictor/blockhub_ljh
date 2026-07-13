@@ -164,7 +164,8 @@ def list_custom_capabilities_api(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> dict:
-    items = list_custom_capabilities(db, current_user.tenant_id, status=status)
+    st = None if status in (None, "", "all") else status
+    items = list_custom_capabilities(db, current_user.tenant_id, status=st)
     return {"total": len(items), "items": items}
 
 

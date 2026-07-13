@@ -11,6 +11,7 @@ import CreationWizardPage from './pages/CreationWizardPage'
 import ChatPage from './pages/ChatPage'
 import KnowledgePage from './pages/KnowledgePage'
 import ApprovalPage from './pages/ApprovalPage'
+import CustomCapabilityPage from './pages/CustomCapabilityPage'
 import ReportPage from './pages/ReportPage'
 import NotificationPage from './pages/NotificationPage'
 import IntegrationPage from './pages/IntegrationPage'
@@ -36,6 +37,7 @@ export default function App() {
           <Route path="knowledge" element={<KnowledgePage />} />
           <Route path="kb" element={<Navigate to="/knowledge" replace />} />
           <Route path="approvals" element={<ApprovalPage />} />
+          <Route path="capabilities/review" element={<RoleGate allow={['admin']}><CustomCapabilityPage /></RoleGate>} />
           <Route path="contracts" element={<RoleGate allow={['admin']}><ContractPage /></RoleGate>} />
           <Route path="approval" element={<Navigate to="/approvals" replace />} />
           <Route path="reports" element={<RoleGate allow={['admin']}><ReportPage /></RoleGate>} />

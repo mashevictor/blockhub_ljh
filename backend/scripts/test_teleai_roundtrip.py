@@ -61,8 +61,8 @@ async def run_asr(pcm: bytes, *, attempt: int = 1) -> str:
         # 按 200ms 一帧分片发送（16k * 2bytes * 0.2s = 6400 字节/帧）
         frame = 6400
         for i in range(0, len(pcm), frame):
-            await client.send_audio(pcm[i : i + frame])
-            await asyncio.sleep(0.15)
+            chunk = pcm[i : i + frame]
+            await client.send_audio(chunk, pace=True)
         await client.end_utterance()
 
         deadline = time.monotonic() + 25

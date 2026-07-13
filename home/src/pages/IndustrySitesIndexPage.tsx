@@ -2,7 +2,7 @@ import { useEffect, useState, type CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
 import { fetchIndustrySites, type IndustrySiteSummary } from '../api/client'
 import { INDUSTRIES_SHOWCASE } from '../data/showcase'
-import { industryAssets } from '../data/industryAssets'
+import { industryAssets, industryCardImage } from '../data/industryAssets'
 import { usePageMeta } from '../hooks/usePageMeta'
 import { ROUTES } from '../routes/paths'
 import IndustrySiteShell from '../components/industry/IndustrySiteShell'
@@ -80,7 +80,7 @@ export default function IndustrySitesIndexPage() {
               >
                 <div
                   className="industry-hub-feature-img"
-                  style={{ backgroundImage: `url(${site.assets.hero})` }}
+                  style={{ backgroundImage: `url(${industryCardImage(site.key)})` }}
                   role="img"
                   aria-label={`${site.name}行业特性配图`}
                 >

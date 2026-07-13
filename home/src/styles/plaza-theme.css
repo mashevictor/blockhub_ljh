@@ -1,0 +1,366 @@
+/**
+ * 应用广场 / 我的应用 — 统一 B2B 蓝绿主题
+ * 覆盖 index.css 中遗留的金色商务 / 青色硬编码
+ */
+
+.b2b-brand-scope.plaza-page {
+  color: var(--b2b-text, #333);
+}
+
+/* —— 排版 —— */
+.b2b-brand-scope .plaza-side h4,
+.b2b-brand-scope .plaza-right h4 {
+  font-size: var(--bh-fs-2xs, 11px);
+  color: var(--b2b-muted, #666);
+  letter-spacing: 0.05em;
+}
+
+.b2b-brand-scope .plaza-side a {
+  font-size: var(--bh-fs-sm, 13px);
+  color: var(--b2b-text, #333);
+}
+
+.b2b-brand-scope .plaza-side-note {
+  font-size: var(--bh-fs-2xs, 11px);
+  color: var(--b2b-muted, #666);
+  line-height: 1.55;
+}
+
+.b2b-brand-scope .plaza-main-head h1 {
+  font-size: var(--bh-fs-lg, 20px);
+  font-weight: var(--bh-fw-bold, 700);
+  color: var(--b2b-text, #333);
+}
+
+.b2b-brand-scope .plaza-main-hint {
+  font-size: var(--bh-fs-sm, 13px);
+  color: var(--b2b-muted, #666);
+}
+
+.b2b-brand-scope .plaza-filters button {
+  font-size: var(--bh-fs-sm, 13px);
+  color: var(--b2b-muted, #666);
+}
+
+.b2b-brand-scope .plaza-filters button.on {
+  color: var(--b2b-primary);
+  background: var(--b2b-panel);
+  border-color: #93c5fd;
+}
+
+.b2b-brand-scope .plaza-feed-meta strong {
+  font-size: var(--bh-fs-sm, 13px);
+  color: var(--b2b-text, #333);
+}
+
+.b2b-brand-scope .plaza-feed-meta span,
+.b2b-brand-scope .plaza-feed-desc,
+.b2b-brand-scope .plaza-stats,
+.b2b-brand-scope .plaza-trend {
+  font-size: var(--bh-fs-sm, 13px);
+  color: var(--b2b-muted, #666);
+}
+
+.b2b-brand-scope .plaza-feed-app h4 {
+  font-size: var(--bh-fs-base, 15px);
+  color: var(--b2b-text, #333);
+}
+
+.b2b-brand-scope .plaza-feed-act {
+  font-size: var(--bh-fs-2xs, 11px);
+}
+
+.b2b-brand-scope .plaza-my-meta {
+  font-size: var(--bh-fs-sm, 13px);
+}
+
+.b2b-brand-scope .plaza-my-item-main strong {
+  font-size: var(--bh-fs-base, 15px);
+  color: var(--b2b-text, #333);
+}
+
+.b2b-brand-scope .plaza-my-create-btn {
+  font-size: var(--bh-fs-sm, 13px);
+  color: var(--b2b-primary);
+  border-color: #bfdbfe;
+}
+
+.b2b-brand-scope .plaza-my-create-btn:hover {
+  background: var(--b2b-panel);
+}
+
+.b2b-brand-scope .plaza-my-count {
+  background: var(--b2b-panel);
+  color: var(--b2b-primary);
+}
+
+.b2b-brand-scope .plaza-my-remove {
+  color: var(--warn, #b45309) !important;
+}
+
+.b2b-brand-scope .plaza-my-success-banner {
+  background: linear-gradient(135deg, #eaf2ff, #ecfdf5);
+  border-color: #93c5fd;
+  color: var(--b2b-text, #333);
+}
+
+.b2b-brand-scope .plaza-my-at-badge {
+  background: var(--b2b-panel);
+  color: var(--b2b-primary);
+}
+
+.b2b-brand-scope .plaza-flow-strip-text {
+  font-size: var(--bh-fs-sm, 13px);
+  letter-spacing: 0.04em;
+}
+
+/* —— 发布 / 受众（去青色）—— */
+.b2b-brand-scope .plaza-audience-picker {
+  border-color: #93c5fd;
+  background: linear-gradient(180deg, #f8fbff, #fff);
+}
+
+.b2b-brand-scope .plaza-audience-opt:hover {
+  border-color: var(--b2b-primary);
+  background: var(--b2b-panel);
+}
+
+.b2b-brand-scope .plaza-audience-opt.selected {
+  border-color: var(--b2b-primary);
+  background: linear-gradient(135deg, #eaf2ff, #f0f7ff);
+  box-shadow: 0 0 0 2px rgba(13, 71, 161, 0.1);
+}
+
+.b2b-brand-scope .plaza-audience-opt input {
+  accent-color: var(--b2b-primary);
+}
+
+.b2b-brand-scope .plaza-audience-dept-chips button.on {
+  border-color: var(--b2b-primary);
+  background: var(--b2b-panel);
+  color: var(--b2b-primary);
+}
+
+.b2b-brand-scope .plaza-audience-badge {
+  background: var(--b2b-panel);
+  color: var(--b2b-primary);
+}
+
+/* —— 模块数据流（去金色）—— */
+.b2b-brand-scope .plaza-mflow-head {
+  background: linear-gradient(180deg, #f8fbff 0%, #fff 100%);
+}
+
+.b2b-brand-scope .plaza-mflow-capability-icon {
+  border-color: #bfdbfe;
+  box-shadow: 0 2px 8px rgba(13, 71, 161, 0.08);
+}
+
+.b2b-brand-scope .plaza-mflow-capability-title {
+  color: var(--b2b-primary);
+}
+
+.b2b-brand-scope .plaza-mflow-capability-cat {
+  border-color: #bfdbfe;
+  color: var(--b2b-primary);
+}
+
+.b2b-brand-scope .plaza-mflow-capability-desc {
+  color: var(--b2b-muted, #666);
+}
+
+.b2b-brand-scope .plaza-mflow-capability-flow {
+  color: var(--b2b-primary);
+}
+
+.b2b-brand-scope .plaza-mflow-add-module-btn,
+.b2b-brand-scope .plaza-mflow-dial-btn {
+  background: linear-gradient(135deg, var(--b2b-primary) 0%, #1976d2 100%) !important;
+  color: #fff !important;
+  border-color: #93c5fd !important;
+}
+
+.b2b-brand-scope .plaza-mflow-picker {
+  border-color: #bfdbfe;
+}
+
+.b2b-brand-scope .plaza-mflow-picker-item:hover {
+  border-color: #93c5fd;
+  box-shadow: 0 4px 12px rgba(13, 71, 161, 0.1);
+}
+
+.b2b-brand-scope .plaza-mflow-reorder {
+  background: linear-gradient(135deg, #eaf2ff 0%, #f0f7ff 100%);
+  border-color: #93c5fd;
+}
+
+.b2b-brand-scope .plaza-mflow-reorder-head {
+  color: var(--b2b-primary);
+}
+
+.b2b-brand-scope .plaza-mflow-reorder-head strong {
+  color: var(--b2b-primary);
+}
+
+.b2b-brand-scope .plaza-mflow-reorder-head em {
+  color: #1976d2;
+}
+
+.b2b-brand-scope .plaza-mflow-reorder-chip {
+  border-color: #bfdbfe;
+}
+
+.b2b-brand-scope .plaza-mflow-reorder-chip.active,
+.b2b-brand-scope .plaza-mflow-reorder-chip.drag-over {
+  border-color: var(--b2b-primary);
+  box-shadow: 0 0 0 2px rgba(13, 71, 161, 0.15);
+}
+
+.b2b-brand-scope .plaza-mflow-reorder-chip.dragging {
+  border-color: #93c5fd;
+  box-shadow: 0 8px 20px rgba(13, 71, 161, 0.12);
+}
+
+.b2b-brand-scope .plaza-mflow-reorder-grip {
+  border-right-color: #dbeafe;
+  background: var(--b2b-panel);
+  color: var(--b2b-primary);
+}
+
+.b2b-brand-scope .plaza-mflow-reorder-grip:active {
+  background: #dbeafe;
+}
+
+.b2b-brand-scope .plaza-mflow-reorder-num {
+  color: var(--b2b-primary);
+  background: #dbeafe;
+}
+
+.b2b-brand-scope .plaza-mflow-zone--out {
+  background: linear-gradient(145deg, #f8fbff 0%, #eaf2ff 100%);
+  border-color: #bfdbfe;
+}
+
+.b2b-brand-scope .plaza-mflow-zone--out .plaza-mflow-zone-label {
+  color: var(--b2b-primary);
+}
+
+.b2b-brand-scope .plaza-mflow-hub-line {
+  background: linear-gradient(180deg, transparent, var(--b2b-primary), transparent);
+}
+
+.b2b-brand-scope .plaza-mflow-hub-badge {
+  color: var(--b2b-primary);
+  border-color: #93c5fd;
+  box-shadow: 0 2px 8px rgba(13, 71, 161, 0.1);
+}
+
+.b2b-brand-scope .plaza-mflow-zone--out .plaza-mflow-pipe-arrow {
+  color: var(--b2b-primary);
+}
+
+.b2b-brand-scope .plaza-mflow-pipe-endpoint:not(:disabled):hover,
+.b2b-brand-scope .plaza-mflow-pipe-endpoint.active {
+  border-color: var(--b2b-primary);
+  background: var(--b2b-panel);
+  box-shadow: 0 0 0 2px rgba(13, 71, 161, 0.12);
+}
+
+.b2b-brand-scope .plaza-mflow-pipe-endpoint--out {
+  border-color: #bfdbfe;
+  background: var(--b2b-panel);
+}
+
+.b2b-brand-scope .plaza-mflow-pipe-node.dragging,
+.b2b-brand-scope .plaza-mflow-pipe-node.drag-over,
+.b2b-brand-scope .plaza-mflow-pipe-node.active {
+  border-color: var(--b2b-primary);
+  background: var(--b2b-panel);
+  box-shadow: 0 0 0 2px rgba(13, 71, 161, 0.12);
+}
+
+.b2b-brand-scope .plaza-mflow-pipe-node:hover .plaza-mflow-drag-handle {
+  color: var(--b2b-primary);
+}
+
+.b2b-brand-scope .plaza-mflow-api-active {
+  border-color: #bfdbfe;
+  background: var(--b2b-panel);
+}
+
+.b2b-brand-scope .plaza-mflow-api-active-title {
+  color: var(--b2b-primary);
+}
+
+.b2b-brand-scope .plaza-mflow-api-tag {
+  color: var(--b2b-primary);
+}
+
+.b2b-brand-scope .plaza-mflow-api-path {
+  background: #0a1628;
+  color: #93c5fd;
+}
+
+.b2b-brand-scope .plaza-mflow-api-list li.on {
+  border-color: #93c5fd;
+  background: var(--b2b-panel);
+}
+
+.b2b-brand-scope .plaza-mflow-api-panel {
+  background: linear-gradient(180deg, #f8fbff 0%, #fff 100%);
+}
+
+@media (max-width: 720px) {
+  .b2b-brand-scope .plaza-mflow-hub-line {
+    background: linear-gradient(90deg, transparent, var(--b2b-primary), transparent);
+  }
+}
+
+/* —— 卡片 / 按钮统一 —— */
+.b2b-brand-scope .plaza-my-item-actions .btn-ghost {
+  font-size: var(--bh-fs-sm, 13px);
+  border-color: #dbeafe;
+  color: var(--b2b-text, #333);
+}
+
+.b2b-brand-scope .plaza-my-item-actions .btn-ghost:hover {
+  border-color: #93c5fd;
+  color: var(--b2b-primary);
+  background: var(--b2b-panel);
+}
+
+.b2b-brand-scope .plaza-my-item.expanded {
+  border-color: #93c5fd;
+  box-shadow: 0 4px 16px rgba(13, 71, 161, 0.06);
+}
+
+.b2b-brand-scope .publish-success-card {
+  border-color: #dbeafe;
+  background: #fff;
+}
+
+.b2b-brand-scope .plaza-vis-badge.vis-public {
+  background: var(--b2b-panel);
+  color: var(--b2b-primary);
+}
+
+.b2b-brand-scope .plaza-vis-badge.vis-role {
+  background: color-mix(in srgb, var(--b2b-accent) 12%, #fff);
+  color: #047857;
+}
+
+.b2b-brand-scope .plaza-feed-mod {
+  background: var(--b2b-panel);
+  color: var(--b2b-primary);
+  font-size: var(--bh-fs-2xs, 11px);
+}
+
+.b2b-brand-scope .plaza-mflow-panel {
+  border-color: #dbeafe;
+  box-shadow: 0 2px 12px rgba(13, 71, 161, 0.05);
+}
+
+.b2b-brand-scope .plaza-mflow-badge {
+  background: var(--b2b-panel);
+  color: var(--b2b-primary);
+}

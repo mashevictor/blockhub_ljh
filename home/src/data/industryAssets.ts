@@ -13,3 +13,8 @@ export function industryAssets(key: string): IndustryAssetSet {
     og: `${base}/og.png`,
   }
 }
+
+/** 首页/列表卡片用小图，避免 hero 宽图裁切错位 */
+export function industryCardImage(key: string): string {
+  return industryAssets(key).thumb
+}

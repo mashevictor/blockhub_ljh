@@ -22,11 +22,13 @@ import {
   IconStamp,
   IconLayers,
   IconSettings,
+  IconGrid,
 } from './icons'
 
 const NAV: Array<{ to: string; label: string; icon: typeof IconHome; end?: boolean; roles: AppRole[] }> = [
   { to: '/', label: '工作台', icon: IconHome, end: true, roles: ['admin', 'employee'] },
   { to: '/agents', label: '能力中心', icon: IconBot, roles: ['admin'] },
+  { to: '/capabilities/review', label: '能力审核', icon: IconGrid, roles: ['admin'] },
   { to: '/scenarios', label: '业务场景', icon: IconList, roles: ['admin'] },
   { to: '/create', label: '创建应用', icon: IconSparkles, roles: ['admin'] },
   { to: '/chat', label: '智能问答', icon: IconMessage, roles: ['admin', 'employee'] },

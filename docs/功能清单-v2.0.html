@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>积木仓 BlockHub · 功能清单 v2.0（三源合成版）</title>
+<style>
+:root{--gold:#b8860b;--gold-l:#d4af37;--gold-s:#fef9e7;--navy:#0a1628;--navy-m:#1e3a5f;--pri:#4338ca;--text:#1c1917;--muted:#78716c;--border:#e8dfc0;--bg:#faf9f7;--card:#fff;--ok:#047857;--warn:#b45309;--plan:#64748b;--ahead:#1d4ed8}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.6}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;background:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(212,175,55,.12),transparent)}
+.wrap{max-width:1280px;margin:0 auto;padding:36px 24px 80px}
+.hero{background:linear-gradient(135deg,var(--navy) 0%,var(--navy-m) 50%,#96700a 100%);color:#fffdf8;border-radius:20px;padding:36px 40px;margin-bottom:28px;box-shadow:0 20px 60px rgba(184,134,11,.18)}
+.hero h1{font-size:26px;margin-bottom:6px}.hero h1 em{color:var(--gold-l);font-style:normal}
+.hero .meta{opacity:.9;font-size:13px;margin-bottom:20px;max-width:1000px;line-height:1.75}
+.stats{display:flex;flex-wrap:wrap;gap:12px}
+.stat{background:rgba(255,255,255,.1);border:1px solid rgba(212,175,55,.35);border-radius:12px;padding:12px 16px;min-width:90px}
+.stat .n{font-size:22px;font-weight:700;color:#fef3c7}.stat .l{font-size:11px;opacity:.85}
+.pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.pill{font-size:11px;padding:5px 12px;border-radius:20px;background:rgba(254,243,199,.15);border:1px solid rgba(212,175,55,.4);color:#fef3c7}
+nav.toc{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:24px;position:sticky;top:0;z-index:10;background:rgba(250,249,247,.95);backdrop-filter:blur(8px);padding:12px 0;border-bottom:1px solid var(--border)}
+nav.toc a{font-size:12px;padding:6px 14px;border-radius:8px;background:var(--card);border:1px solid var(--border);color:var(--muted);text-decoration:none}
+nav.toc a:hover{color:var(--gold);border-color:var(--gold-l)}
+section{margin-bottom:40px;scroll-margin-top:72px}
+.section-title{font-size:20px;font-weight:700;color:var(--navy);margin-bottom:6px;padding-bottom:8px;border-bottom:2px solid var(--gold-l)}
+.section-desc{color:var(--muted);font-size:13px;margin-bottom:14px}
+.legend{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:18px;font-size:11px}
+.tag{display:inline-block;font-size:10px;padding:2px 8px;border-radius:4px;font-weight:600;white-space:nowrap}
+.tag-done{background:#dcfce7;color:#166534}
+.tag-wip{background:#fef3c7;color:#92400e}
+.tag-mock{background:#e0e7ff;color:#3730a3}
+.tag-plan{background:#f1f5f9;color:#475569}
+.tag-ahead{background:#dbeafe;color:#1e40af}
+.tag-p0{background:#fee2e2;color:#b91c1c}
+.tag-week{background:#fef9e7;color:#96700a;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:13px;background:var(--card);border-radius:12px;overflow:hidden;border:1px solid var(--border);margin-bottom:16px;box-shadow:0 4px 16px rgba(184,134,11,.05)}
+th{background:linear-gradient(135deg,var(--navy),var(--navy-m));color:#fef3c7;padding:10px 12px;text-align:left;font-size:12px}
+td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:top}
+tr:last-child td{border-bottom:none}tr:hover td{background:var(--gold-s)}
+td code{font-size:11px;background:#f5f5f4;padding:2px 6px;border-radius:4px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+@media(max-width:900px){.grid2,.grid3,.grid4{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;box-shadow:0 4px 16px rgba(184,134,11,.05)}
+.card h3{font-size:15px;color:var(--gold);margin-bottom:10px}
+.card ul{padding-left:18px;color:var(--muted);font-size:13px}
+.card li{margin-bottom:6px}
+.note{background:var(--gold-s);border:1px solid var(--border);border-radius:10px;padding:14px 16px;font-size:12px;margin-bottom:16px;line-height:1.75}
+.note-warn{background:#fffbeb;border-color:#fcd34d}
+.note-info{background:#eff6ff;border-color:#93c5fd}
+.progress-bar{height:8px;background:#e7e5e4;border-radius:4px;overflow:hidden;margin-top:6px}
+.progress-bar span{display:block;height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-l))}
+.arch{font-family:ui-monospace,Consolas,monospace;font-size:12px;background:#0f172a;color:#93c5fd;padding:14px 16px;border-radius:10px;overflow-x:auto;line-height:1.6;margin:12px 0}
+.footer{margin-top:48px;padding-top:20px;border-top:1px solid var(--border);font-size:12px;color:var(--muted)}
+.footer a{color:var(--gold)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <h1>积木仓 <em>BlockHub</em> · 功能清单 v2.0</h1>
+  <p class="meta">
+    <strong>三源合成版</strong> · 2026-07-13 刷新 · 合并
+    <code>16-TrackChat-6周全量攻坚计划</code>（交付范围）+
+    <code>01-文档总目录与业务架构大纲</code>（7 Agent × 114 场景）+
+    <code>项目全景与本周攻坚清单</code>（代码库进度快照）。<br>
+    契约驱动主线：<strong>capability_keys → page_schema + build_manifest → runtime-web / Flutter 平行渲染</strong>。
+    整体完成度 <strong>~82%</strong>，本周（07-13~07-19）聚焦 GA 收口 8 项硬门槛。
+  </p>
+  <div class="stats">
+    <div class="stat"><div class="n">~82%</div><div class="l">整体进度</div></div>
+    <div class="stat"><div class="n">114</div><div class="l">场景 Catalog</div></div>
+    <div class="stat"><div class="n">43</div><div class="l">Capability</div></div>
+    <div class="stat"><div class="n">7</div><div class="l">PaaS Agent</div></div>
+    <div class="stat"><div class="n">5</div><div class="l">Web 能力包</div></div>
+    <div class="stat"><div class="n">018</div><div class="l">Alembic 迁移</div></div>
+    <div class="stat"><div class="n">3</div><div class="l">端交付</div></div>
+  </div>
+  <div class="pills">
+    <span class="pill">cozecode 主仓</span>
+    <span class="pill">Home :5173 · Admin :5174 · API :8001</span>
+    <span class="pill">staging 101.32.209.251</span>
+    <span class="pill">12 模板 page_schema</span>
+    <span class="pill">20 行业独立站</span>
+  </div>
+</header>
+
+<nav class="toc">
+  <a href="#model">交付模型</a>
+  <a href="#progress">进度快照</a>
+  <a href="#layers">五层功能域</a>
+  <a href="#agents">7 Agent</a>
+  <a href="#home">Home</a>
+  <a href="#admin">Admin</a>
+  <a href="#backend">后端</a>
+  <a href="#runtime">Runtime</a>
+  <a href="#flutter">Flutter</a>
+  <a href="#plaza">广场</a>
+  <a href="#industry">行业站</a>
+  <a href="#infra">基建</a>
+  <a href="#scripts">脚本</a>
+  <a href="#week">本周 P0</a>
+  <a href="#ga">GA 验收</a>
+  <a href="#cut">不做项</a>
+</nav>
+
+<div class="legend">
+  <span><span class="tag tag-done">✅ 完成</span></span>
+  <span><span class="tag tag-wip">🔶 部分</span></span>
+  <span><span class="tag tag-plan">⬜ 未做</span></span>
+  <span><span class="tag tag-ahead">🔵 超前</span></span>
+  <span><span class="tag tag-p0">P0 本周必关</span></span>
+</div>
+
+<section id="model">
+  <h2 class="section-title">一、交付模型 · 契约驱动模块化</h2>
+  <p class="section-desc">用户勾选 capability_keys 后，系统生成三份产物并驱动双端渲染。后端永不直接写死某端 UI。</p>
+  <div class="grid2">
+    <div class="card">
+      <h3>6 周 IN（必须真跑）</h3>
+      <ul>
+        <li><strong>L0</strong>：PG + Redis + COS + pgvector + JWT/RBAC + tenant_id</li>
+        <li><strong>L1</strong>：7 Agent API 全非 Mock + 上海话语音扩展</li>
+        <li><strong>L2</strong>：43 Capability Registry + manifest codegen（TS/Dart）</li>
+        <li><strong>L3</strong>：114 场景 PG + 12 模板 → page_schema</li>
+        <li><strong>L4</strong>：三入口创建 → publish → webUrl + @受众 + /plaza</li>
+        <li><strong>L5 Web</strong>：web-capability-* 包 + runtime-web WidgetHost</li>
+        <li><strong>L5 App</strong>：Flutter WidgetRegistry + login/chat/approval/report</li>
+        <li>LLM + RAG（PDF→向量→SSE+citation）</li>
+        <li>审批完整流 + 报表看板 + 通知 + 集成 Demo 连接器</li>
+        <li>腾讯云 staging + docker-compose.prod + 部署文档</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>简化但不砍</h3>
+      <ul>
+        <li>NL2SQL → 预置 SQL 模板 + 参数</li>
+        <li>集成 Agent → 1 个 REST 只读连接器</li>
+        <li>114 UI → 12 模板映射，行业包各精选 3 场景 Demo</li>
+        <li>压测 → 10 并发 smoke，非 100 并发 SLA</li>
+        <li>私有化 → Docker Compose 包，K8s Helm 仅骨架</li>
+        <li>编排 React Flow → Admin 菜单占位 + API 预留</li>
+      </ul>
+    </div>
+  </div>
+  <pre class="arch">shared/          品牌 · 主题 · capability-manifest.ts（codegen）
+home/     :5173   B2B 落地页 · 三入口创建 · /plaza · 20 行业独立站
+frontend/ :5174   Admin 工作台 · RBAC · 七 Agent 能力页
+backend/  :8001   FastAPI · PG · Alembic 001–018 · JWT · SSE · 发布/广场/报表
+runtime-web/      /r/:appId 按 page_schema 渲染 · web-capability-* 包
+runtime-app/      Flutter · WidgetRegistry · login/chat/approval/report/voice
+packages/web-core schema-renderer · WidgetHost</pre>
+</section>
+
+<section id="progress">
+  <h2 class="section-title">二、进度快照（2026-07-13 · D12）</h2>
+  <div class="note note-info">
+    <strong>合成依据：</strong>对照代码库 + git 提交 + smoke 脚本。W1–W4 核心已超前完成；W5/W6 待收口（APK、prod compose、E2E、回归、压测、云 DB）。
+  </div>
+  <table>
+    <thead><tr><th>周次</th><th>主题</th><th>完成度</th><th>里程碑</th><th>关键证据</th></tr></thead>
+    <tbody>
+      <tr><td><span class="tag tag-week">W1</span></td><td>基建与鉴权</td><td><span class="tag tag-done">100%</span></td><td>M1</td><td>PG+JWT+114 Catalog+SSE+发布落库 · smoke 28/28</td></tr>
+      <tr><td><span class="tag tag-week">W2</span></td><td>Agent 核心</td><td><span class="tag tag-wip">~90%</span></td><td>M2</td><td>RAG/KB/审批/语音已通 · 缺 custom 审核台 UI</td></tr>
+      <tr><td><span class="tag tag-week">W3</span></td><td>发布闭环</td><td><span class="tag tag-wip">~90%</span></td><td>M3</td><td>schema/manifest/runtime/plaza PG · 缺 Playwright E2E</td></tr>
+      <tr><td><span class="tag tag-week">W4</span></td><td>七 Agent + Catalog</td><td><span class="tag tag-wip">~90%</span></td><td>M4</td><td>报表/通知/集成/114 分页/租户 Config 超前完成</td></tr>
+      <tr><td><span class="tag tag-week">W5</span></td><td>Flutter + 云</td><td><span class="tag tag-wip">~65%</span></td><td>M5</td><td>Flutter 四页+SSE 已落地 · 云 DB/APK/prod 待收口</td></tr>
+      <tr><td><span class="tag tag-week">W6</span></td><td>GA 回归</td><td><span class="tag tag-plan">~40%</span></td><td>M6</td><td>回归/压测/文档签字待本周完成</td></tr>
+    </tbody>
+  </table>
+  <div class="grid3">
+    <div class="card"><h3>W1 基建</h3><div class="progress-bar"><span style="width:100%"></span></div></div>
+    <div class="card"><h3>W2–W4 Agent+闭环</h3><div class="progress-bar"><span style="width:90%"></span></div></div>
+    <div class="card"><h3>W5–W6 GA</h3><div class="progress-bar"><span style="width:55%"></span></div></div>
+  </div>
+</section>
+
+<section id="layers">
+  <h2 class="section-title">三、五层功能域总览</h2>
+  <table>
+    <thead><tr><th>层级</th><th>交付物</th><th>谁维护</th><th>用户感知</th><th>6 周状态</th></tr></thead>
+    <tbody>
+      <tr><td><strong>L5 Runtime</strong></td><td>员工端 Web/App、ChatWidget、审批页、看板、语音</td><td>schema-renderer / Flutter</td><td>✅ 直接使用</td><td><span class="tag tag-wip">🔶</span> Web 真渲染 · App 待 APK 验</td></tr>
+      <tr><td><strong>L4 创建</strong></td><td>7 步向导、可行性报告、Page Schema、发布 URL</td><td>creation-service</td><td>✅ 创建时</td><td><span class="tag tag-done">✅</span> 三入口发布闭环</td></tr>
+      <tr><td><strong>L3 Catalog</strong></td><td>办公/行业/模块清单、form_schema、workflow seed</td><td>产品+后端 seed</td><td>✅ 中文场景名</td><td><span class="tag tag-done">✅</span> 114 PG count=114</td></tr>
+      <tr><td><strong>L2 Capability</strong></td><td>43 capability_key、Widget 映射、API 绑定</td><td>Registry + 研发</td><td>❌ 后台映射</td><td><span class="tag tag-done">✅</span> manifest codegen</td></tr>
+      <tr><td><strong>L1 Agent</strong></td><td>7 Pipeline 服务、独立 DB 表、管理端调试 UI</td><td>各 Agent 服务</td><td>❌ 编排层</td><td><span class="tag tag-wip">🔶</span> 缺 custom 审核 UI</td></tr>
+      <tr><td><strong>L0 Infra</strong></td><td>LLM 网关、RBAC、tenant_id、Docker/K8s</td><td>运维+平台</td><td>❌</td><td><span class="tag tag-wip">🔶</span> prod compose 待交付</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="agents">
+  <h2 class="section-title">四、7 PaaS Agent × 43 Capability × 114 场景</h2>
+  <table>
+    <thead><tr><th>Agent</th><th>承载 Capability</th><th>办公~</th><th>行业~</th><th>Pipeline</th><th>状态</th></tr></thead>
+    <tbody>
+      <tr><td>✨ 智能创建</td><td><code>creation</code> <code>form_widget</code> <code>list_widget</code> <code>rbac_page</code></td><td>元 Agent</td><td>49</td><td>需求→研判→Schema→发布</td><td><span class="tag tag-done">✅</span></td></tr>
+      <tr><td>💬 智能问答</td><td><code>chat_qa</code> <code>chat_voice</code> <code>multi_agent</code> <code>chat_summary</code></td><td>18</td><td>12</td><td>检索→Prompt→LLM→SSE</td><td><span class="tag tag-done">✅</span></td></tr>
+      <tr><td>📚 知识库</td><td><code>kb_document</code> <code>kb_search</code></td><td>14</td><td>10</td><td>上传→切片→向量→检索</td><td><span class="tag tag-done">✅</span></td></tr>
+      <tr><td>✅ 审批流程</td><td><code>approval_flow</code> <code>approval_inbox</code> …</td><td>22</td><td>14</td><td>提交→工作流→通知</td><td><span class="tag tag-done">✅</span></td></tr>
+      <tr><td>📊 数据报表</td><td><code>chart_dashboard</code> <code>data_nl_query</code> …</td><td>12</td><td>11</td><td>聚合→图表→NL查数</td><td><span class="tag tag-wip">🔶</span> nl-query 部分 stub</td></tr>
+      <tr><td>🔔 消息通知</td><td><code>notify_inapp</code> <code>notify_email</code> …</td><td>10</td><td>6</td><td>触发器→模板→发送</td><td><span class="tag tag-done">✅</span></td></tr>
+      <tr><td>🔌 外部数据</td><td><code>integration</code> <code>erp_connector</code> …</td><td>13</td><td>4</td><td>Discover→Extract→Sync</td><td><span class="tag tag-done">✅</span> Demo 连接器</td></tr>
+      <tr><td>🎙 上海话语音</td><td><code>shanghai_voice</code></td><td>扩展</td><td>—</td><td>TeleAI ASR/TTS WS</td><td><span class="tag tag-ahead">🔵</span> 超前完成</td></tr>
+    </tbody>
+  </table>
+  <div class="note">办公 65 项（8 大类）+ 行业 49 项（4 包：制造/销售/医疗/游戏）全部 PG 元数据入库；UI 由 12 套模板映射，非 114 套手工页面。</div>
+</section>
+
+<section id="home">
+  <h2 class="section-title">五、Home 创建端（:5173）</h2>
+  <table>
+    <thead><tr><th>模块</th><th>状态</th><th>功能点</th><th>计划周</th></tr></thead>
+    <tbody>
+      <tr><td>B2B 落地页</td><td><span class="tag tag-done">✅</span></td><td>Hero · 平台能力 · 预约演示 · 点阵 loading · 悬浮框锚定</td><td>Day0</td></tr>
+      <tr><td>三入口创建</td><td><span class="tag tag-done">✅</span></td><td>描述需求 / 按行业 / 自由搭配 · CreateStudio</td><td>W3</td></tr>
+      <tr><td>Agent 输入</td><td><span class="tag tag-done">✅</span></td><td>&gt;&gt; 符号 · 模块芯片 · 意图分析 · 提示词优化</td><td>W3</td></tr>
+      <tr><td>114 场景目录</td><td><span class="tag tag-done">✅</span></td><td>办公/行业筛选 · Catalog API</td><td>W1</td></tr>
+      <tr><td>发布流程</td><td><span class="tag tag-done">✅</span></td><td>联系方式门禁 · deliver web/app/both · 发布成功页 · build_manifest 预览</td><td>W3</td></tr>
+      <tr><td>预约演示</td><td><span class="tag tag-done">✅</span></td><td>DemoBooking · 资料包 share · 邮件/短信</td><td>W4</td></tr>
+      <tr><td>20 行业独立站</td><td><span class="tag tag-done">✅</span></td><td>/industry · /industry/:key · 大模型方案 · 秒开</td><td>W4</td></tr>
+      <tr><td>应用广场 /plaza</td><td><span class="tag tag-wip">🔶</span></td><td>Feed PG · 点赞评论 · 我的应用 · 模块数据流 · localStorage 回退待清</td><td>W3–W4</td></tr>
+      <tr><td>上海话语音页</td><td><span class="tag tag-done">✅</span></td><td>/shanghai-voice · TeleAI ASR/TTS</td><td>扩展</td></tr>
+      <tr><td>增强内容页</td><td><span class="tag tag-done">✅</span></td><td>信任中心 · 案例 · 定价 · 新闻 · 角色页</td><td>W4</td></tr>
+      <tr><td>@ 受众选择</td><td><span class="tag tag-done">✅</span></td><td>PublishModal · @公开/部门/角色 · 写 feed</td><td>W3</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="admin">
+  <h2 class="section-title">六、Admin 工作台（:5174）</h2>
+  <table>
+    <thead><tr><th>页面</th><th>状态</th><th>能力</th><th>计划周</th></tr></thead>
+    <tbody>
+      <tr><td>OverviewPage</td><td><span class="tag tag-done">✅</span></td><td>仪表盘 · 趋势 · 已创建应用</td><td>W1</td></tr>
+      <tr><td>AuthPage / LoginPage</td><td><span class="tag tag-done">✅</span></td><td>JWT · RBAC admin/employee · 统一 /admin/login</td><td>W1</td></tr>
+      <tr><td>ChatPage</td><td><span class="tag tag-done">✅</span></td><td>SSE 真流 · RAG citation</td><td>W1–W2</td></tr>
+      <tr><td>KnowledgePage</td><td><span class="tag tag-done">✅</span></td><td>KB 上传 · 切片 · 检索</td><td>W2</td></tr>
+      <tr><td>ApprovalPage</td><td><span class="tag tag-done">✅</span></td><td>请假/报销审批 PG 状态机 · 通知联动</td><td>W2</td></tr>
+      <tr><td>ReportPage</td><td><span class="tag tag-done">✅</span></td><td>报表聚合 · Chart · nl-query 部分 stub</td><td>W4</td></tr>
+      <tr><td>NotificationPage</td><td><span class="tag tag-done">✅</span></td><td>通知列表 · 审批触发</td><td>W4</td></tr>
+      <tr><td>IntegrationPage</td><td><span class="tag tag-done">✅</span></td><td>REST connector · ETL jobs · Timeline</td><td>W4</td></tr>
+      <tr><td>ScenarioCatalogPage</td><td><span class="tag tag-done">✅</span></td><td>114 场景只读分页 count=114</td><td>W4</td></tr>
+      <tr><td>CreationWizardPage</td><td><span class="tag tag-done">✅</span></td><td>分步创建向导 7 步</td><td>W3–W4</td></tr>
+      <tr><td>TenantSettingsPage</td><td><span class="tag tag-done">✅</span></td><td>租户 theme/menu Config</td><td>W4</td></tr>
+      <tr><td>ShanghaiVoicePage</td><td><span class="tag tag-done">✅</span></td><td>方言语音 Agent 演示</td><td>扩展</td></tr>
+      <tr><td>AgentCenterPage</td><td><span class="tag tag-done">✅</span></td><td>能力中心浏览 · AgentDetail</td><td>W4</td></tr>
+      <tr><td><strong>Custom Capability 审核</strong></td><td><span class="tag tag-p0">⬜ P0</span></td><td>后端 API 就绪 · UI 缺失 · 本周一必交付</td><td>W2 收口</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="backend">
+  <h2 class="section-title">七、后端 API（:8001）</h2>
+  <table>
+    <thead><tr><th>域</th><th>状态</th><th>端点 / 模块</th></tr></thead>
+    <tbody>
+      <tr><td>鉴权</td><td><span class="tag tag-done">✅</span></td><td>/auth/login · JWT · /me · RBAC</td></tr>
+      <tr><td>Catalog</td><td><span class="tag tag-done">✅</span></td><td>/catalog/office · /industry · /summary · industry-sites · 114+43</td></tr>
+      <tr><td>Creation</td><td><span class="tag tag-done">✅</span></td><td>/creation/publish · suggest · custom-capabilities · feasibility</td></tr>
+      <tr><td>Chat</td><td><span class="tag tag-done">✅</span></td><td>SSE · LLM Gateway · intent_agent</td></tr>
+      <tr><td>KB / RAG</td><td><span class="tag tag-done">✅</span></td><td>/kb/upload · /search · pgvector · citation</td></tr>
+      <tr><td>审批</td><td><span class="tag tag-done">✅</span></td><td>/approvals CRUD · 状态机 · demo seed</td></tr>
+      <tr><td>报表</td><td><span class="tag tag-wip">🔶</span></td><td>/reports 聚合 · nl-query/export 部分 stub</td></tr>
+      <tr><td>通知</td><td><span class="tag tag-done">✅</span></td><td>/notifications · 审批触发</td></tr>
+      <tr><td>集成</td><td><span class="tag tag-done">✅</span></td><td>/integration · etl_jobs</td></tr>
+      <tr><td>Runtime 契约</td><td><span class="tag tag-done">✅</span></td><td>/runtime/{id}/schema · /manifest · /config</td></tr>
+      <tr><td>广场</td><td><span class="tag tag-done">✅</span></td><td>/plaza/feed · like · comment</td></tr>
+      <tr><td>租户</td><td><span class="tag tag-done">✅</span></td><td>/tenant/config GET/PUT</td></tr>
+      <tr><td>预约演示</td><td><span class="tag tag-done">✅</span></td><td>demo_bookings · share pack · 018 迁移</td></tr>
+      <tr><td>语音</td><td><span class="tag tag-ahead">🔵</span></td><td>TeleAI WS · /shanghai-agent</td></tr>
+      <tr><td>限流</td><td><span class="tag tag-done">✅</span></td><td>Redis rate limit（可降级）</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="runtime">
+  <h2 class="section-title">八、Runtime 运行时</h2>
+  <table>
+    <thead><tr><th>组件</th><th>状态</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td>runtime-web /r/:appId</td><td><span class="tag tag-done">✅</span></td><td>page_schema 真渲染 · 菜单驱动</td></tr>
+      <tr><td>web-core WidgetHost</td><td><span class="tag tag-done">✅</span></td><td>按 capability_key 注册</td></tr>
+      <tr><td>web-capability 包（5）</td><td><span class="tag tag-done">✅</span></td><td>chat · approval · dashboard · kb · voice</td></tr>
+      <tr><td>schema_generator</td><td><span class="tag tag-done">✅</span></td><td>12+ 模板 · capability_resolver</td></tr>
+      <tr><td>build_manifest</td><td><span class="tag tag-done">✅</span></td><td>web/flutter 包清单 · 动态 lazy import</td></tr>
+      <tr><td>codegen TS/Dart</td><td><span class="tag tag-done">✅</span></td><td>scripts/codegen-capability-manifest.py</td></tr>
+      <tr><td>deliver web/app/both</td><td><span class="tag tag-wip">🔶</span></td><td>Web 已通 · App APK 待验</td></tr>
+      <tr><td>Playwright E2E</td><td><span class="tag tag-p0">⬜ P0</span></td><td>发布→runtime→plaza 全链 spec</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="flutter">
+  <h2 class="section-title">九、Flutter App（runtime-app）</h2>
+  <table>
+    <thead><tr><th>模块</th><th>状态</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td>登录 auth</td><td><span class="tag tag-done">✅</span></td><td>login_page · Dio JWT</td></tr>
+      <tr><td>问答 chat</td><td><span class="tag tag-done">✅</span></td><td>SSE 流式 · chat_page</td></tr>
+      <tr><td>审批 approval</td><td><span class="tag tag-done">✅</span></td><td>approval_page · 状态机</td></tr>
+      <tr><td>报表 report</td><td><span class="tag tag-done">✅</span></td><td>fl_chart · report_page</td></tr>
+      <tr><td>WidgetRegistry</td><td><span class="tag tag-done">✅</span></td><td>manifest 驱动路由</td></tr>
+      <tr><td>上海话语音</td><td><span class="tag tag-done">✅</span></td><td>PCM 流 · resample · TTS</td></tr>
+      <tr><td>APK 打包</td><td><span class="tag tag-p0">⬜ P0</span></td><td>workflow/脚本有 · 产物待验 · 本周四</td></tr>
+      <tr><td>同 appId 三端一致</td><td><span class="tag tag-wip">🔶</span></td><td>smoke 已纳入 · 真机待验</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="plaza">
+  <h2 class="section-title">十、应用广场（方案 B 三栏）</h2>
+  <table>
+    <thead><tr><th>功能</th><th>状态</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td>/plaza Feed</td><td><span class="tag tag-done">✅</span></td><td>PG feed_posts · @公开/部门/角色</td></tr>
+      <tr><td>点赞 / 评论</td><td><span class="tag tag-done">✅</span></td><td>reactions · comments API · 刷新不丢</td></tr>
+      <tr><td>/plaza/my 我的应用</td><td><span class="tag tag-done">✅</span></td><td>发布记录 · 模块数据流 · 受众选择</td></tr>
+      <tr><td>模块数据流 UI</td><td><span class="tag tag-done">✅</span></td><td>Pipeline · Reorder · API 拨通面板</td></tr>
+      <tr><td>B2B 主题统一</td><td><span class="tag tag-done">✅</span></td><td>plaza-theme.css · 蓝绿品牌</td></tr>
+      <tr><td>localStorage 回退</td><td><span class="tag tag-wip">🔶</span></td><td>API 失败仍写本地 mock · 本周六清理</td></tr>
+      <tr><td>热门 @ 标签 · @我 筛选</td><td><span class="tag tag-plan">⬜</span></td><td>W6 GA Demo 含广场路径</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="industry">
+  <h2 class="section-title">十一、行业独立站（20 深度包）</h2>
+  <table>
+    <thead><tr><th>功能</th><th>状态</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td>/industry 索引</td><td><span class="tag tag-done">✅</span></td><td>20 行业卡片 · 进入独立站</td></tr>
+      <tr><td>/industry/:key 详情</td><td><span class="tag tag-done">✅</span></td><td>场景清单 · 大模型方案 · 秒开 enrich=false</td></tr>
+      <tr><td>行业配图</td><td><span class="tag tag-done">✅</span></td><td>hero/thumb/og · generate-industry-assets.py</td></tr>
+      <tr><td>首页行业卡片</td><td><span class="tag tag-done">✅</span></td><td>B2BProductSection · thumb 裁切</td></tr>
+      <tr><td>行业 enrich API</td><td><span class="tag tag-done">✅</span></td><td>大模型丰富 · 静态兜底</td></tr>
+      <tr><td>4 核心行业包（49 场景）</td><td><span class="tag tag-done">✅</span></td><td>制造/销售/医疗/游戏 · 创建向导维度三预填</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="infra">
+  <h2 class="section-title">十二、基建与部署</h2>
+  <table>
+    <thead><tr><th>项</th><th>状态</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td>PostgreSQL + Alembic</td><td><span class="tag tag-done">✅</span></td><td>001–018 迁移链</td></tr>
+      <tr><td>Redis</td><td><span class="tag tag-done">✅</span></td><td>限流 · docker-compose</td></tr>
+      <tr><td>COS + pgvector</td><td><span class="tag tag-done">✅</span></td><td>KB 文件 · 向量检索</td></tr>
+      <tr><td>docker-compose.yml</td><td><span class="tag tag-done">✅</span></td><td>PG + Redis 本地基建</td></tr>
+      <tr><td>docker-compose.prod</td><td><span class="tag tag-p0">⬜ P0</span></td><td>backend+nginx+env 一键起 · 本周四</td></tr>
+      <tr><td>deploy.sh · nginx-blockhub.conf</td><td><span class="tag tag-wip">🔶</span></td><td>CVM 裸机 · 自签 HTTPS 443</td></tr>
+      <tr><td>腾讯云 TencentDB</td><td><span class="tag tag-p0">⬜ P0</span></td><td>本周三迁移 · migrate-tencentdb.sh</td></tr>
+      <tr><td>公网 HTTPS 证书</td><td><span class="tag tag-plan">⬜</span></td><td>自签已通 · 正式证书待换</td></tr>
+      <tr><td>GitHub Actions</td><td><span class="tag tag-wip">🔶</span></td><td>flutter-apk workflow 有 · E2E 无</td></tr>
+      <tr><td>共享设计令牌</td><td><span class="tag tag-done">✅</span></td><td>shared/design-tokens.css · themes</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="scripts">
+  <h2 class="section-title">十三、脚本与验收</h2>
+  <table>
+    <thead><tr><th>脚本</th><th>状态</th><th>覆盖</th></tr></thead>
+    <tbody>
+      <tr><td>scripts/smoke-test.sh</td><td><span class="tag tag-done">✅</span></td><td>28/28 综合冒烟</td></tr>
+      <tr><td>scripts/smoke-db.sh</td><td><span class="tag tag-done">✅</span></td><td>DB + catalog 表</td></tr>
+      <tr><td>scripts/smoke-w3.sh</td><td><span class="tag tag-done">✅</span></td><td>发布 · runtime · plaza</td></tr>
+      <tr><td>scripts/smoke-w4.sh</td><td><span class="tag tag-done">✅</span></td><td>报表 · 通知 · 集成</td></tr>
+      <tr><td>scripts/smoke-w5.sh</td><td><span class="tag tag-done">✅</span></td><td>114 count · tenant</td></tr>
+      <tr><td>scripts/smoke-admin-api.sh</td><td><span class="tag tag-done">✅</span></td><td>Admin 28 API</td></tr>
+      <tr><td>scripts/codegen-capability-manifest.py</td><td><span class="tag tag-done">✅</span></td><td>TS + Dart manifest</td></tr>
+      <tr><td>scripts/generate-industry-assets.py</td><td><span class="tag tag-done">✅</span></td><td>20 行业配图</td></tr>
+      <tr><td>scripts/flutter-build-apk.sh</td><td><span class="tag tag-wip">🔶</span></td><td>有脚本 · 待跑通</td></tr>
+      <tr><td><strong>scripts/regression-114.sh</strong></td><td><span class="tag tag-p0">⬜</span></td><td>本周五</td></tr>
+      <tr><td><strong>scripts/load-10vu.sh</strong></td><td><span class="tag tag-p0">⬜</span></td><td>10 VU · P95/错误率 · 本周五</td></tr>
+      <tr><td><strong>Playwright E2E</strong></td><td><span class="tag tag-p0">⬜</span></td><td>本周二–三</td></tr>
+      <tr><td><strong>scripts/smoke-ga.sh</strong></td><td><span class="tag tag-plan">⬜</span></td><td>本周六汇总</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="week">
+  <h2 class="section-title">十四、本周必关清单（2026-07-13 ~ 07-19）</h2>
+  <div class="note note-warn"><strong>8 项硬门槛</strong>：关闭 W2/W3/W5/W6 剩余债务，不可滑到下周。</div>
+  <table>
+    <thead><tr><th>优先级</th><th>任务</th><th>归属</th><th>验收标准</th><th>计划日</th></tr></thead>
+    <tbody>
+      <tr><td><span class="tag tag-p0">P0</span></td><td>custom 审核台 Admin UI</td><td>W2</td><td>列表+审核+API 闭环 · smoke 一条过</td><td>周一 7/13</td></tr>
+      <tr><td><span class="tag tag-p0">P0</span></td><td>Playwright E2E 全链</td><td>W3</td><td>发布→runtime→plaza 1 条 spec 绿</td><td>周二–三</td></tr>
+      <tr><td>P1</td><td>腾讯云 DB 迁移</td><td>D26</td><td>云 PG 连通 · alembic head · smoke-db</td><td>周三 7/15</td></tr>
+      <tr><td>P1</td><td>docker-compose.prod</td><td>W6</td><td>backend+nginx+env 一键起</td><td>周四 7/16</td></tr>
+      <tr><td>P1</td><td>Flutter APK 成功构建</td><td>W5</td><td>dist-apk 或 CI Release 产物</td><td>周四 7/16</td></tr>
+      <tr><td>P1</td><td>114 回归脚本</td><td>W6</td><td>scripts/regression-114.sh</td><td>周五 7/17</td></tr>
+      <tr><td>P1</td><td>10 并发压测</td><td>W6</td><td>scripts/load-10vu.sh + P95 报告</td><td>周五 7/17</td></tr>
+      <tr><td>P2</td><td>GA 文档收口</td><td>W6</td><td>Checklist 8/8 可签字</td><td>周日 7/19</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="ga">
+  <h2 class="section-title">十五、GA 总验收八项</h2>
+  <table>
+    <thead><tr><th>#</th><th>验收项</th><th>标准</th><th>当前</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>114 Catalog</td><td>PG count=114 · Admin 分页</td><td><span class="tag tag-done">✅</span></td></tr>
+      <tr><td>2</td><td>七 Agent 非 Mock</td><td>问答/KB/审批/报表/通知/集成/语音</td><td><span class="tag tag-done">✅</span></td></tr>
+      <tr><td>3</td><td>发布闭环</td><td>三入口 → webUrl + App 同 appId</td><td><span class="tag tag-wip">🔶</span> Web 已通 · APK 待验</td></tr>
+      <tr><td>4</td><td>RAG</td><td>pgvector + citation · SSE 稳定</td><td><span class="tag tag-done">✅</span></td></tr>
+      <tr><td>5</td><td>审批</td><td>员工→主管→通知</td><td><span class="tag tag-done">✅</span></td></tr>
+      <tr><td>6</td><td>Flutter APK</td><td>主 Demo 路径可完成</td><td><span class="tag tag-wip">🔶</span></td></tr>
+      <tr><td>7</td><td>腾讯云 HTTPS</td><td>staging 三域名 · SSE 不断</td><td><span class="tag tag-wip">🔶</span> 自签 443</td></tr>
+      <tr><td>8</td><td>文档</td><td>部署手册 + Demo 脚本 + GA 签字</td><td><span class="tag tag-wip">🔶</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="cut">
+  <h2 class="section-title">十六、6 周内明确不做</h2>
+  <table>
+    <thead><tr><th>能力</th><th>原因</th><th>后续</th></tr></thead>
+    <tbody>
+      <tr><td>43 个 capability 全部物理拆包</td><td>6 周内做 5–8 个样板 + registry 机制</td><td>GA 后按需扩展</td></tr>
+      <tr><td>114 套独立手工 page_schema</td><td>12 模板映射</td><td>试点后扩展</td></tr>
+      <tr><td>100 并发 SLA 压测</td><td>10 并发 smoke 即可</td><td>签约后专项</td></tr>
+      <tr><td>钉钉/企微生产级对接</td><td>Demo 连接器即可</td><td>签约 +2 周</td></tr>
+      <tr><td>K8s Helm 完整方案</td><td>Docker Compose 包优先</td><td>私有化二期</td></tr>
+      <tr><td>任意 NL2SQL</td><td>预置 SQL 模板</td><td>L2 定制</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<footer class="footer">
+  <strong>积木仓 BlockHub</strong> · 功能清单 v2.0（三源合成版）· 2026-07-13<br>
+  合成自：16-TrackChat-6周全量攻坚计划 · 01-文档总目录与业务架构大纲 · 项目全景与本周攻坚清单<br>
+  关联：<a href="项目计划-v2.0.html">项目计划 v2.0</a> ·
+  <a href="业务架构大纲-v2.0.html">业务架构大纲 v2.0</a> ·
+  <a href="技术架构-v1.2.html">技术架构 v1.2</a>
+</footer>
+</div>
+</body>
+</html>

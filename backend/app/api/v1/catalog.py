@@ -85,7 +85,7 @@ def industry_sites_index(db: Annotated[Session, Depends(get_db)]) -> dict:
 def industry_pack_detail(
     pack_key: str,
     db: Annotated[Session, Depends(get_db)],
-    enrich: bool = Query(False, description="使用 DeepSeek 丰富行业方案文案"),
+    enrich: bool = Query(False, description="使用大模型丰富行业方案文案"),
 ) -> dict:
     detail: dict[str, Any] | None = None
     try:

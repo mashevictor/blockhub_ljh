@@ -259,6 +259,37 @@ export const submitApproval = (payload: {
 export const approvalAction = (id: string, action: 'approve' | 'reject', comment = '') =>
   api.post(`/approvals/${id}/action`, { action, comment }).then((r) => r.data)
 
+// ── 自定义能力审核 ──
+export interface CustomCapabilityItem {
+  id: string
+  key: string
+  name: string
+  category: string
+  description: string
+  keywords: string[]
+  status: 'pending' | 'approved' | 'rejected'
+  proposed_by_id: string
+  created_at: string
+}
+
+export const fetchCustomCapabilities = (status?: string) =>
+  api
+    .get<{ total: number; items: CustomCapabilityItem[] }>('/creation/custom-capabilities', {
+      params: { status: status ?? 'all' },
+    })
+    .then((r) => r.data)
+
+export const proposeCustomCapability = (payload: {
+  key: string
+  name: string
+  category?: string
+  description?: string
+  keywords?: string[]
+}) => api.post('/creation/custom-capabilities', payload).then((r) => r.data)
+
+export const reviewCustomCapability = (id: string, action: 'approve' | 'reject') =>
+  api.post(`/creation/custom-capabilities/${id}/review`, { action }).then((r) => r.data)
+
 // ── 报表 ──
 export const fetchReportDashboard = () => api.get('/reports/dashboard').then((r) => r.data)
 export const nlQuery = (question: string) =>
