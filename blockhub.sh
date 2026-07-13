@@ -74,6 +74,9 @@ case "$CMD" in
   batch8|verify-batch8)
     run batch8-verify.sh "$@"
     ;;
+  batch9|verify-batch9)
+    run batch9-verify.sh "$@"
+    ;;
   apk-size-compare)
     run apk-size-compare.sh "$@"
     ;;
@@ -134,7 +137,8 @@ BlockHub CLI · 仓库根: $ROOT
   blockhub.sh batch4                                批次4 Flutter go_router + Melos
   blockhub.sh batch6 [BASE_URL]                  P3: SSE压测+模板UI+Melos
   blockhub.sh batch7                              P1: Flutter parity + pubspec sync
-  blockhub.sh batch8                              P2: deferred + flutter_tools
+  blockhub.sh batch8                              P2: deferred + flutter_tools stub
+  blockhub.sh batch9                              P2: flutter_tools 真设备 API
   blockhub.sh apk-size-compare                    P2 pubspec/APK 体积对比
   blockhub.sh flutter-parity                      P1 parity 矩阵报告
   blockhub.sh flutter-sync-pubspec --keys ...     P1 按 keys 同步 pubspec

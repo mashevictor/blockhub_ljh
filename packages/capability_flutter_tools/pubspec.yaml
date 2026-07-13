@@ -1,6 +1,6 @@
 name: capability_flutter_tools
-description: BlockHub Flutter native tool capabilities stub (P2)
-version: 0.1.0
+description: BlockHub Flutter native tool capabilities (real device APIs)
+version: 0.2.0
 publish_to: none
 
 environment:
@@ -11,3 +11,19 @@ dependencies:
     sdk: flutter
   blockhub_flutter_core:
     path: ../blockhub_flutter_core
+  permission_handler: ^11.3.1
+  mobile_scanner: ^6.0.2
+  geolocator: ^13.0.2
+  image_picker: ^1.1.2
+  file_picker: ^8.1.4
+  local_auth: ^2.3.0
+  webview_flutter: ^4.10.0
+  flutter_local_notifications: ^18.0.1
+  timezone: ^0.10.0
+  shared_preferences: ^2.3.3
+  signature: ^5.5.0
+  flutter_pdfview: ^1.4.0
+  fl_chart: ^0.70.2
+  flutter_map: ^7.0.2
+  latlong2: ^0.9.1
+  path: ^1.9.0
