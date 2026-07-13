@@ -7,6 +7,7 @@ from typing import Any
 from sqlalchemy.orm import Session
 
 from app.db.models import CustomCapability, User
+from app.services.effective_capability_registry import register_custom_capability
 
 
 def _to_dict(row: CustomCapability) -> dict[str, Any]:
@@ -87,6 +88,7 @@ def review_capability(
         return None
     if action == "approve":
         row.status = "approved"
+        register_custom_capability(db, row)
     elif action == "reject":
         row.status = "rejected"
     row.reviewed_by_id = reviewer.id

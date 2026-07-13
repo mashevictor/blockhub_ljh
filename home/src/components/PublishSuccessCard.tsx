@@ -154,6 +154,26 @@ export default function PublishSuccessCard({
           </div>
         )}
 
+        {result.capabilityAssembly?.dropped_details && result.capabilityAssembly.dropped_details.length > 0 && (
+          <div className="publish-save-warn" role="alert" style={{ marginBottom: 12 }}>
+            <strong>以下能力未纳入发布契约（已跳过）：</strong>
+            {' '}
+            {result.capabilityAssembly.dropped_details.map((d) => d.name || d.key).join('、')}
+          </div>
+        )}
+
+        {result.capabilityAssembly?.resolved_keys && result.capabilityAssembly.resolved_keys.length > 0 && (
+          <div className="publish-manifest-strip" role="status" style={{ marginBottom: 12, fontSize: 13, color: 'var(--muted)' }}>
+            <DynamicIcon name="approval" size={14} />
+            <span style={{ marginLeft: 6 }}>
+              契约已确认 {result.capabilityAssembly.resolved_keys.length} 项能力
+              {result.capabilityAssembly.scenario_added_keys && result.capabilityAssembly.scenario_added_keys.length > 0
+                ? `（含场景自动补充 ${result.capabilityAssembly.scenario_added_keys.length} 项）`
+                : ''}
+            </span>
+          </div>
+        )}
+
         {visibleChips.length > 0 && (
           <ul className="publish-module-list" aria-label="已包含模块与能力">
             {visibleChips.map((m) => (

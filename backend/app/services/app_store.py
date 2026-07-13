@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from app.db.models import AppRecord, PublishRecord, Tenant, User
 from app.services.app_urls import app_download_url, app_qr_payload, app_web_url
 from app.services.build_manifest import build_manifest
-from app.services.capability_resolver import resolve_publish_capability_keys
+from app.services.capability_resolver import resolve_publish_capability_keys_detailed
 from app.services.db_seed import DEFAULT_TENANT_SLUG
 from app.services.schema_generator import generate_page_schema, validate_page_schema
 
@@ -141,12 +141,16 @@ def persist_published_app(
     app_id: str = "",
 ) -> dict[str, Any]:
     existing = get_app_by_public_id(db, app_id) if app_id else None
-    keys = resolve_publish_capability_keys(
+    tenant_id = user.tenant_id if user else None
+    assembly = resolve_publish_capability_keys_detailed(
         scenario_names=scenarios,
         capability_keys=capability_keys,
         modules=modules,
         industry_key=industry_key,
+        db=db,
+        tenant_id=tenant_id,
     )
+    keys = assembly.resolved_keys
     page_schema = generate_page_schema(
         app_id=app_id or "pending",
         app_name=name,
@@ -184,7 +188,9 @@ def persist_published_app(
         )
         db.commit()
         db.refresh(existing)
-        return app_record_to_dict(existing)
+        out = app_record_to_dict(existing)
+        out["capability_assembly"] = assembly.to_dict()
+        return out
 
     tenant = user.tenant if user else _default_tenant(db)
     public_id = uuid4().hex[:8]
@@ -223,7 +229,9 @@ def persist_published_app(
     )
     db.commit()
     db.refresh(record)
-    return app_record_to_dict(record)
+    out = app_record_to_dict(record)
+    out["capability_assembly"] = assembly.to_dict()
+    return out
 
 
 def publish_app_to_plaza(

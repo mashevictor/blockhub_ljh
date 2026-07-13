@@ -8,6 +8,7 @@ class AppBranding {
     required this.primaryColorHex,
     this.appPublicId = '',
     this.voiceDemoMode = false,
+    this.capabilityKeys = const [],
   });
 
   final String appName;
@@ -19,6 +20,8 @@ class AppBranding {
   final String appPublicId;
   /// 为 true 时跳过登录，直接进入上海话语音页（测试 APK 用）
   final bool voiceDemoMode;
+  /// 构建时注入的 capability_key 列表；非空时裁剪底部/顶部 Tab。
+  final List<String> capabilityKeys;
 
   static const AppBranding defaults = AppBranding(
     appName: 'TrackChat',
@@ -38,6 +41,7 @@ class AppBranding {
     const primaryColorRaw = String.fromEnvironment('PRIMARY_COLOR', defaultValue: empty);
     const appPublicIdRaw = String.fromEnvironment('APP_PUBLIC_ID', defaultValue: empty);
     const voiceDemoRaw = String.fromEnvironment('VOICE_DEMO', defaultValue: empty);
+    const capabilityKeysRaw = String.fromEnvironment('CAPABILITY_KEYS', defaultValue: empty);
 
     final appName = appNameRaw.isEmpty ? defaults.appName : appNameRaw;
     final appId = appIdRaw.isEmpty ? defaults.appId : appIdRaw;
@@ -45,6 +49,13 @@ class AppBranding {
         voiceDemoRaw.toLowerCase() == 'true' ||
         appId == 'com.blockhub.shanghai.voice' ||
         appName.contains('上海话');
+    final capabilityKeys = capabilityKeysRaw.isEmpty
+        ? const <String>[]
+        : capabilityKeysRaw
+            .split(',')
+            .map((s) => s.trim())
+            .where((s) => s.isNotEmpty)
+            .toList();
 
     return AppBranding(
       appName: appName,
@@ -54,6 +65,7 @@ class AppBranding {
       primaryColorHex: primaryColorRaw.isEmpty ? defaults.primaryColorHex : primaryColorRaw,
       appPublicId: appPublicIdRaw.isEmpty ? defaults.appPublicId : appPublicIdRaw,
       voiceDemoMode: voiceDemo,
+      capabilityKeys: capabilityKeys,
     );
   }
 
@@ -80,6 +92,7 @@ class AppBranding {
       primaryColorHex: primaryColorHex,
       appPublicId: appPublicId,
       voiceDemoMode: true,
+      capabilityKeys: capabilityKeys,
     );
   }
 }

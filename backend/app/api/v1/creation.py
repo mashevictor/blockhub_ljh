@@ -319,6 +319,7 @@ def publish_app(
         return {
             "success": True,
             "app": app,
+            "capability_assembly": app.get("capability_assembly"),
             "page_schema": app.get("page_schema"),
             "build_manifest": app.get("build_manifest"),
             "runtime": {

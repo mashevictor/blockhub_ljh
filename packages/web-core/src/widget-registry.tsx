@@ -38,9 +38,17 @@ export function WidgetHost({ node, ctx }: { node: SchemaNode; ctx: RuntimeContex
   const name = resolveWidgetName(node)
   const Comp = getWidget(name)
   if (!Comp) {
+    const capKey = String(node.props?.capability_key ?? node.id ?? '')
+    const menuLabel = ctx.schema.menu.find((m) => m.key === capKey)?.label
+    const displayName = menuLabel || capKey || name
     return (
       <div className="widget-missing">
-        未注册组件 <code>{name}</code>（capability: {String(node.props?.capability_key ?? node.id)}）
+        <strong>{displayName}</strong>
+        <p>Web 端开发中</p>
+        <small>
+          组件 <code>{name}</code>
+          {capKey ? ` · capability: ${capKey}` : ''}
+        </small>
       </div>
     )
   }

@@ -134,6 +134,7 @@ TENANT_SLUG="${TENANT_SLUG:-demo}"
 API_BASE_URL="${API_BASE_URL:-http://101.32.209.251/api/v1}"
 PRIMARY_COLOR="${PRIMARY_COLOR:-#4338CA}"
 VOICE_DEMO="${VOICE_DEMO:-0}"
+CAPABILITY_KEYS="${CAPABILITY_KEYS:-}"
 SKIP_DEFAULT_APK="${SKIP_DEFAULT_APK:-0}"
 
 mkdir -p branding
@@ -158,6 +159,9 @@ dart run flutter_launcher_icons
 echo "==> Building APK: $APP_NAME ($APP_ID)"
 echo "    API_BASE_URL=$API_BASE_URL"
 echo "    VOICE_DEMO=$VOICE_DEMO"
+if [ -n "${CAPABILITY_KEYS:-}" ]; then
+  echo "    CAPABILITY_KEYS=$CAPABILITY_KEYS"
+fi
 if [ -n "${FLUTTER_BUILD_NAME:-}" ] && [ -n "${FLUTTER_BUILD_NUMBER:-}" ]; then
   echo "    VERSION=${FLUTTER_BUILD_NAME}+${FLUTTER_BUILD_NUMBER}"
 fi
@@ -172,6 +176,9 @@ FLUTTER_BUILD_ARGS=(
   --dart-define=PRIMARY_COLOR="$PRIMARY_COLOR"
   --dart-define=VOICE_DEMO="$VOICE_DEMO"
 )
+if [ -n "$CAPABILITY_KEYS" ]; then
+  FLUTTER_BUILD_ARGS+=(--dart-define=CAPABILITY_KEYS="$CAPABILITY_KEYS")
+fi
 if [ -n "$APP_PUBLIC_ID" ]; then
   FLUTTER_BUILD_ARGS+=(--dart-define=APP_PUBLIC_ID="$APP_PUBLIC_ID")
 fi

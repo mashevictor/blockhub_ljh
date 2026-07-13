@@ -111,6 +111,14 @@ export interface PublishResult {
     flutter_pkgs?: string[]
     capability_keys?: string[]
   }
+  /** 阶段1：发布契约对齐反馈 */
+  capabilityAssembly?: {
+    requested_keys?: string[]
+    resolved_keys?: string[]
+    dropped_keys?: string[]
+    dropped_details?: Array<{ key: string; name: string }>
+    scenario_added_keys?: string[]
+  }
   pageSchema?: Record<string, unknown>
 }
 

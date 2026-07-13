@@ -29,6 +29,8 @@ fields = {
     "VOICE_DEMO": "1" if spec.get("voice_demo") else "0",
     "ICON_URL": spec.get("icon_url") or "",
 }
+cap_keys = spec.get("capability_keys") or []
+fields["CAPABILITY_KEYS"] = ",".join(str(k) for k in cap_keys if k)
 for key, val in fields.items():
     safe = str(val).replace("'", "'\\''")
     print(f"export {key}='{safe}'")
@@ -47,6 +49,7 @@ echo " public_id: $APP_PUBLIC_ID"
 echo " profile:   ${BUILD_PROFILE:-generic}"
 echo " name:      $APP_NAME"
 echo " voice:     VOICE_DEMO=$VOICE_DEMO"
+echo " caps:      CAPABILITY_KEYS=${CAPABILITY_KEYS:-<all>}"
 echo "=============================================="
 
 bash "$ROOT/scripts/flutter-build-apk.sh"

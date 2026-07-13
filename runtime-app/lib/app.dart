@@ -143,18 +143,28 @@ class _HomeBody extends StatefulWidget {
 class _HomeBodyState extends State<_HomeBody> {
   late String? _selectedKey;
 
+  List<MenuItem> get _visibleMenu {
+    final menu = widget.config.menu;
+    final buildKeys = widget.branding.capabilityKeys;
+    if (buildKeys.isEmpty) return menu;
+    final allowed = buildKeys.toSet();
+    final filtered = menu.where((m) => allowed.contains(m.key)).toList();
+    return filtered.isNotEmpty ? filtered : menu;
+  }
+
   @override
   void initState() {
     super.initState();
-    final keys = widget.config.menu.map((m) => m.key).toList();
-    // 契约 manifest 优先；否则菜单驱动（W5 与 runtime-web 对齐）
+    final menu = _visibleMenu;
+    final keys = menu.map((m) => m.key).toList();
     final manifestKeys = widget.config.resolvedCapabilityKeys;
-    final preferred = manifestKeys.contains('shanghai_voice')
-        ? 'shanghai_voice'
-        : (keys.contains('shanghai_voice')
-            ? 'shanghai_voice'
-            : (manifestKeys.isNotEmpty ? manifestKeys.first : keys.firstOrNull));
-    _selectedKey = preferred;
+    final buildKeys = widget.branding.capabilityKeys;
+    final effectiveKeys = buildKeys.isEmpty
+        ? manifestKeys
+        : manifestKeys.where((k) => buildKeys.contains(k)).toList();
+    _selectedKey = effectiveKeys.isNotEmpty
+        ? effectiveKeys.first
+        : (keys.isNotEmpty ? keys.first : null);
   }
 
   Widget _buildPage(String key) {
@@ -175,7 +185,7 @@ class _HomeBodyState extends State<_HomeBody> {
 
   @override
   Widget build(BuildContext context) {
-    final menu = widget.config.menu;
+    final menu = _visibleMenu;
     return Column(
       children: [
         ListTile(

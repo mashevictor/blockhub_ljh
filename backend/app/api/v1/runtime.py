@@ -14,24 +14,16 @@ from app.core.config import settings
 from app.db.models import AppRecord
 from app.db.session import get_db
 from app.services.apk_builder import get_apk_build_status, per_app_apk_path, per_app_apk_ready
-from app.services.file_storage import uploads_root
 from app.services.tenant_config import get_tenant_config
 
 router = APIRouter(prefix="/runtime", tags=["runtime"])
 
 APK_DIR = "apks"
-DEFAULT_APK = f"{APK_DIR}/default.apk"
 
 
 def _apk_path(public_id: str) -> Path:
-    per_app = per_app_apk_path(public_id)
-    if per_app.is_file():
-        return per_app
-    root = uploads_root()
-    default = root / DEFAULT_APK
-    if default.is_file():
-        return default
-    return per_app
+    """仅返回 per-app APK 路径，不再回退 default.apk。"""
+    return per_app_apk_path(public_id)
 
 
 def _mock_flow_response(
@@ -135,7 +127,7 @@ def runtime_info(public_id: str, db: Session = Depends(get_db)) -> dict:
 
 @router.get("/{public_id}/download")
 def download_apk(public_id: str, db: Session = Depends(get_db)) -> FileResponse:
-    """下载 Android APK（优先 per-app 包，回退 default.apk）。"""
+    """下载 Android APK（仅 per-app 包，不存在则 503）。"""
     app = db.query(AppRecord).filter(AppRecord.public_id == public_id).first()
     if not app:
         raise HTTPException(status_code=404, detail="应用不存在")
@@ -146,7 +138,7 @@ def download_apk(public_id: str, db: Session = Depends(get_db)) -> FileResponse:
     if not apk.is_file():
         raise HTTPException(
             status_code=503,
-            detail="APK 正在构建中，请稍后重试或联系管理员执行 flutter-build-apk",
+            detail="专属 APK 尚未构建完成，请稍后重试或联系管理员执行 flutter-build-from-publish",
         )
 
     filename = f"{app.name.replace(' ', '_')}.apk"

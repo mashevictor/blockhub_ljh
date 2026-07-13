@@ -42,8 +42,8 @@ export default function PublishDeliveryLinks({ result }: Props) {
         {showApp && (
           <p className="publish-apk-hint">
             {result.apkReady
-              ? 'APK 已就绪，可直接下载安装。'
-              : '安装包正在后台生成，完成后此链接即可下载。'}
+              ? '专属 APK 已就绪，可直接下载安装。'
+              : '专属安装包正在后台生成，完成后此链接即可下载（不会使用通用 default.apk）。'}
           </p>
         )}
       </div>

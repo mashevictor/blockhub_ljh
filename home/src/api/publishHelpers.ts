@@ -13,7 +13,8 @@ export interface PublishResultOptions {
 }
 
 export interface PublishApiResponse {
-  app: CreatedApp
+  app: CreatedApp & { capability_assembly?: PublishResult['capabilityAssembly'] }
+  capability_assembly?: PublishResult['capabilityAssembly']
   page_schema?: Record<string, unknown>
   build_manifest?: {
     web_pkgs?: string[]
@@ -72,5 +73,6 @@ export function publishApiToResult(res: PublishApiResponse, opts: PublishResultO
     ...base,
     buildManifest: res.build_manifest ?? res.app.build_manifest,
     pageSchema: res.page_schema ?? res.app.page_schema,
+    capabilityAssembly: res.capability_assembly ?? res.app.capability_assembly,
   }
 }

@@ -8,14 +8,48 @@ import 'shanghai_voice_page.dart';
 
 /// 能力页面注册表：capability_key -> 页面构造器。
 ///
-/// 解耦核心：新增一个 Flutter 能力模块，只需在本文件加 1 行映射，
-/// 外壳（app.dart / _HomeBody）永远不再改动。
+/// key 与 backend capability_registry / page_schema.menu 对齐（含别名）。
 typedef CapabilityPageBuilder = Widget Function(AppBranding branding);
 
+Widget _chat(AppBranding b) => ChatPage(branding: b);
+Widget _approval(AppBranding b) => ApprovalPage(branding: b);
+Widget _report(AppBranding b) => ReportPage(branding: b);
+Widget _voice(AppBranding b) => ShanghaiVoicePage(branding: b);
+
 final Map<String, CapabilityPageBuilder> capabilityPages = {
-  'shanghai_voice': (branding) => ShanghaiVoicePage(branding: branding),
-  'chat': (branding) => ChatPage(branding: branding),
-  'approval': (branding) => ApprovalPage(branding: branding),
-  'report': (branding) => ReportPage(branding: branding),
-  // 未单独建页的能力回退到「建设中」占位（见 app.dart）。
+  // 语音
+  'shanghai_voice': _voice,
+  'shanghai_voice_stream': _voice,
+  'chat_voice': _voice,
+  'flutter_speech': _voice,
+  // 问答
+  'chat_qa': _chat,
+  'chat': _chat,
+  'multi_agent': _chat,
+  'chat_summary': _chat,
+  'kb_document': _chat,
+  'kb_search': _chat,
+  'data_nl_query': _chat,
+  // 审批
+  'approval_flow': _approval,
+  'approval_inbox': _approval,
+  'approval': _approval,
+  'approval_countersign': _approval,
+  'approval_conditional': _approval,
+  'approval_remind': _approval,
+  'approval_esign': _approval,
+  'contract_editor': _approval,
+  'contract_esign': _approval,
+  // 报表 / 看板
+  'chart_dashboard': _report,
+  'chart_line': _report,
+  'chart_bar': _report,
+  'report_scheduled': _report,
+  'data_export': _report,
+  'report': _report,
+  'notify_inapp': _report,
+  'notify_email': _report,
+  'notify_sms': _report,
+  'announce_board': _report,
+  'schedule_alarm': _report,
 };
