@@ -29,6 +29,86 @@ _STATIC_ENRICH: dict[str, dict[str, Any]] = {
         "highlights": ["智能排课与调课", "在线答疑助手", "成绩趋势预警", "家校通知触达"],
         "recommended_modules": ["approval_flow", "kb_document", "chat_qa", "notify_inapp", "chart_dashboard"],
     },
+    "med": {
+        "overview": "医疗健康深度包覆盖临床知识、排班调班、不良事件上报与 HIS 协同，让医护在移动端完成制度问答与工单闭环。",
+        "highlights": ["诊疗指南智能检索", "医护排班调班", "不良事件移动上报", "科室运营数据看板"],
+        "recommended_modules": ["kb_document", "chat_qa", "approval_flow", "chart_dashboard", "notify_inapp"],
+    },
+    "game": {
+        "overview": "游戏娱乐深度包聚焦玩家 FAQ、客服工单、活动通知与版号合规，帮助运营团队快速搭建玩家服务与内控应用。",
+        "highlights": ["玩家攻略智能问答", "客服工单流转", "活动上线多渠道通知", "版号合规审查"],
+        "recommended_modules": ["chat_qa", "approval_flow", "notify_inapp", "kb_document", "chart_dashboard"],
+    },
+    "finance": {
+        "overview": "金融服务深度包覆盖合规审查、风控预警、理财问答与授信审批，满足金融场景对合规与审计的严格要求。",
+        "highlights": ["合规审查清单", "异常交易实时预警", "产品说明智能解读", "授信多级审批"],
+        "recommended_modules": ["approval_flow", "kb_document", "chat_qa", "chart_dashboard", "notify_inapp"],
+    },
+    "logistics": {
+        "overview": "物流仓储深度包打通运单跟踪、仓储盘点、车辆调度与签收确认，实现全链路可视与异常闭环。",
+        "highlights": ["在途运单实时跟踪", "周期盘点任务派发", "配送路线优化", "冷链温湿度告警"],
+        "recommended_modules": ["notify_inapp", "approval_flow", "chart_dashboard", "chat_qa"],
+    },
+    "realestate": {
+        "overview": "房地产深度包覆盖看房预约、签约审批、物业报修与租金收缴，连接销售、物业与业主服务全场景。",
+        "highlights": ["看房档期智能预约", "认购签约流程审批", "业主报修工单", "租金账单自动催收"],
+        "recommended_modules": ["approval_flow", "notify_inapp", "chat_qa", "chart_dashboard"],
+    },
+    "hotel": {
+        "overview": "酒店餐饮深度包聚焦客房预订、排班调班、客诉处理与品质巡检，提升前台运营与客房服务效率。",
+        "highlights": ["客房预订排房", "餐饮客房排班", "客诉登记回访", "公区品质巡检"],
+        "recommended_modules": ["approval_flow", "notify_inapp", "kb_document", "chart_dashboard"],
+    },
+    "energy": {
+        "overview": "能源电力深度包覆盖设备巡检、缺陷工单、能耗监测与安全告警，支撑电力运维数字化与绿色能源管理。",
+        "highlights": ["变电站线路巡检", "缺陷工单派工闭环", "能耗异常分析预警", "两票安全管理"],
+        "recommended_modules": ["approval_flow", "chart_dashboard", "notify_inapp", "kb_document"],
+    },
+    "gov": {
+        "overview": "政务公用深度包提供办事指南问答、诉求受理、在线审批与政策解读，助力数字政务便民服务落地。",
+        "highlights": ["事项材料智能问答", "群众诉求登记分派", "行政审批在线受理", "政务数据决策看板"],
+        "recommended_modules": ["chat_qa", "kb_document", "approval_flow", "chart_dashboard"],
+    },
+    "legal": {
+        "overview": "法律服务深度包覆盖案件管理、合同审查、律师协作与法务知识库，提升律所与法务团队协同效率。",
+        "highlights": ["案件进度跟踪", "合同条款智能审查", "律师任务协作", "法规案例知识检索"],
+        "recommended_modules": ["approval_flow", "kb_document", "chat_qa", "notify_inapp"],
+    },
+    "hr": {
+        "overview": "人力资源深度包聚焦招聘面试、入职离职、绩效考核与培训档案，打通 HR 全生命周期管理。",
+        "highlights": ["招聘面试流程管理", "入离职在线办理", "绩效目标与评估", "培训档案智能检索"],
+        "recommended_modules": ["approval_flow", "kb_document", "notify_inapp", "chart_dashboard"],
+    },
+    "marketing": {
+        "overview": "市场营销深度包覆盖活动策划、线索管理、投放分析与内容审核，帮助市场团队快速搭建增长应用。",
+        "highlights": ["营销活动审批上线", "线索培育与分配", "投放 ROI 分析", "内容合规审核"],
+        "recommended_modules": ["approval_flow", "chart_funnel", "notify_inapp", "chart_dashboard"],
+    },
+    "construction": {
+        "overview": "建筑工程深度包覆盖施工安全、质量验收、材料申购与进度汇报，让工地管理移动化、可视化。",
+        "highlights": ["安全隐患移动上报", "质量验收签字", "材料申购审批", "施工进度日报"],
+        "recommended_modules": ["approval_flow", "notify_inapp", "chart_dashboard", "kb_document"],
+    },
+    "agriculture": {
+        "overview": "农业深度包聚焦产销溯源、农事记录、补贴申报与气象预警，助力农业数字化与品牌溯源。",
+        "highlights": ["农产品溯源查询", "农事作业记录", "补贴在线申报", "气象灾害预警推送"],
+        "recommended_modules": ["kb_document", "approval_flow", "notify_inapp", "chart_dashboard"],
+    },
+    "media": {
+        "overview": "传媒内容深度包覆盖选题策划、内容审核、版权管理与发布排期，加速内容团队协同与合规生产。",
+        "highlights": ["选题策划协同", "内容多级审核", "版权素材管理", "多平台发布排期"],
+        "recommended_modules": ["approval_flow", "kb_document", "notify_inapp", "chat_qa"],
+    },
+    "auto": {
+        "overview": "汽车交通深度包覆盖售后工单、试驾预约、配件管理与客户跟进，连接 4S 店销售与服务全链路。",
+        "highlights": ["售后维修工单", "试驾档期预约", "配件库存预警", "客户跟进智能助手"],
+        "recommended_modules": ["approval_flow", "chat_qa", "notify_inapp", "chart_dashboard"],
+    },
+    "sales": {
+        "overview": "销售行业深度包打通话术问答、报价审批、漏斗看板与 CRM 对接，让销售团队在移动端高效作战。",
+        "highlights": ["产品话术智能问答", "超权限折扣审批", "销售漏斗转化分析", "外勤拜访签到"],
+        "recommended_modules": ["chat_qa", "approval_flow", "chart_funnel", "kb_document", "notify_inapp"],
+    },
 }
 
 

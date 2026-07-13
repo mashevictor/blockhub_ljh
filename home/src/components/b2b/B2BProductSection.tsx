@@ -174,8 +174,17 @@ export default function B2BProductSection({ onTry }: Props) {
             return (
               <article
                 key={ind.key}
-                className="b2b-industry-card"
+                className="b2b-industry-card b2b-industry-card-clickable"
                 style={{ '--ind-color': ind.color } as CSSProperties}
+                role="link"
+                tabIndex={0}
+                onClick={() => openIndustryDetail(ind.key)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault()
+                    openIndustryDetail(ind.key)
+                  }
+                }}
               >
                 <div
                   className="b2b-industry-visual"
@@ -203,7 +212,14 @@ export default function B2BProductSection({ onTry }: Props) {
                     <li key={s}>{s}</li>
                   ))}
                 </ul>
-                <button type="button" className="b2b-industry-cta" onClick={() => openIndustryDetail(ind.key)}>
+                <button
+                  type="button"
+                  className="b2b-industry-cta"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    openIndustryDetail(ind.key)
+                  }}
+                >
                   进入独立站 →
                 </button>
                 </div>

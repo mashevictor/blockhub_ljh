@@ -40,6 +40,30 @@ MOTIFS: dict[str, str] = {
     "auto": "pulse",
 }
 
+# 每行业独立视觉参数：副色、构图偏移、水印图标
+INDUSTRY_PROFILE: dict[str, dict] = {
+    "office": {"secondary": "#818cf8", "ox": 0.38, "icon": "🏢"},
+    "mfg": {"secondary": "#60a5fa", "ox": 0.52, "icon": "🏭"},
+    "sales": {"secondary": "#f87171", "ox": 0.44, "icon": "📈"},
+    "med": {"secondary": "#34d399", "ox": 0.48, "icon": "🏥"},
+    "game": {"secondary": "#c084fc", "ox": 0.40, "icon": "🎮"},
+    "retail": {"secondary": "#fb923c", "ox": 0.46, "icon": "🛒"},
+    "edu": {"secondary": "#60a5fa", "ox": 0.42, "icon": "🎓"},
+    "finance": {"secondary": "#38bdf8", "ox": 0.50, "icon": "💰"},
+    "logistics": {"secondary": "#facc15", "ox": 0.36, "icon": "📦"},
+    "realestate": {"secondary": "#a8a29e", "ox": 0.54, "icon": "🏠"},
+    "hotel": {"secondary": "#f472b6", "ox": 0.43, "icon": "🏨"},
+    "energy": {"secondary": "#fde047", "ox": 0.47, "icon": "⚡"},
+    "gov": {"secondary": "#94a3b8", "ox": 0.41, "icon": "🏛"},
+    "legal": {"secondary": "#64748b", "ox": 0.49, "icon": "⚖"},
+    "hr": {"secondary": "#a78bfa", "ox": 0.45, "icon": "👥"},
+    "marketing": {"secondary": "#f472b6", "ox": 0.51, "icon": "📣"},
+    "construction": {"secondary": "#fbbf24", "ox": 0.39, "icon": "🏗"},
+    "agriculture": {"secondary": "#4ade80", "ox": 0.53, "icon": "🌾"},
+    "media": {"secondary": "#e879f9", "ox": 0.37, "icon": "📺"},
+    "auto": {"secondary": "#22d3ee", "ox": 0.55, "icon": "🚗"},
+}
+
 
 def _hex_rgb(hex_color: str) -> tuple[int, int, int]:
     h = hex_color.lstrip("#")
@@ -88,19 +112,39 @@ def _radial_glow(size: tuple[int, int], cx: float, cy: float, radius: float, col
     return layer
 
 
-def _base_canvas(size: tuple[int, int], accent: str) -> Image.Image:
+def _base_canvas(size: tuple[int, int], accent: str, secondary: str | None = None) -> Image.Image:
     w, h = size
     dark = (10, 22, 40)
     mid = _hex_rgb(_shift(accent, 0.35))
+    sec = _hex_rgb(secondary or _shift(accent, 0.55))
     img = Image.new("RGB", size, dark)
     for y in range(h):
         t = y / max(h - 1, 1)
-        row = _lerp(dark, mid, t * 0.55)
+        row = _lerp(dark, _lerp(mid, sec, t * 0.4), t * 0.55)
         for x in range(w):
             img.putpixel((x, y), row)
     glow = _radial_glow(size, w * 0.72, h * 0.42, min(w, h) * 0.55, accent, 95)
     img = Image.alpha_composite(img.convert("RGBA"), glow).convert("RGB")
+    if secondary:
+        glow2 = _radial_glow(size, w * 0.25, h * 0.65, min(w, h) * 0.35, secondary, 55)
+        img = Image.alpha_composite(img.convert("RGBA"), glow2).convert("RGB")
     return img
+
+
+def _draw_icon_watermark(img: Image.Image, icon: str, accent: str) -> Image.Image:
+    """右侧大号行业图标水印，增强辨识度。"""
+    w, h = img.size
+    overlay = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(overlay)
+    font = _load_font(int(min(w, h) * 0.22), bold=True)
+    bbox = draw.textbbox((0, 0), icon, font=font)
+    tw, th = bbox[2] - bbox[0], bbox[3] - bbox[1]
+    x = int(w * 0.72) - tw // 2
+    y = int(h * 0.42) - th // 2
+    rgb = _hex_rgb(accent)
+    draw.text((x + 2, y + 2), icon, font=font, fill=(*rgb, 40))
+    draw.text((x, y), icon, font=font, fill=(255, 255, 255, 55))
+    return Image.alpha_composite(img.convert("RGBA"), overlay).convert("RGB")
 
 
 def _draw_mesh(draw: ImageDraw.ImageDraw, w: int, h: int, color: str, ox: float) -> None:
@@ -202,16 +246,18 @@ def _draw_scanlines(overlay: Image.Image, alpha: int = 18) -> Image.Image:
     return overlay
 
 
-def _render_thumb(size: tuple[int, int], *, color: str, motif: str) -> Image.Image:
+def _render_thumb(size: tuple[int, int], *, color: str, motif: str, secondary: str, ox: float, icon: str) -> Image.Image:
     """卡片专用：纯视觉氛围，无文字，避免首页裁切错位。"""
     w, h = size
-    base = _base_canvas(size, color)
+    base = _base_canvas(size, color, secondary)
     overlay = Image.new("RGBA", size, (0, 0, 0, 0))
-    _draw_motif(ImageDraw.Draw(overlay), motif, w, h, _shift(color, 1.35), ox=0.08)
+    _draw_motif(ImageDraw.Draw(overlay), motif, w, h, _shift(color, 1.35), ox=ox * 0.2)
+    _draw_motif(ImageDraw.Draw(overlay), motif, w, h, _shift(secondary, 1.1), ox=ox)
     glow = _radial_glow(size, w * 0.78, h * 0.35, min(w, h) * 0.65, color, 80)
     overlay = Image.alpha_composite(overlay, glow)
     overlay = _draw_scanlines(overlay, 12)
     out = Image.alpha_composite(base.convert("RGBA"), overlay).convert("RGB")
+    out = _draw_icon_watermark(out, icon, color)
     draw = ImageDraw.Draw(out)
     _draw_accent_bar(draw, w, color)
     # 底部暗角，与卡片文案区过渡
@@ -233,14 +279,19 @@ def _render_hero(
     motif: str,
     subtitle: str = "积木仓 BlockHub · 行业深度包",
     layout: str = "hero",
+    secondary: str = "#6366f1",
+    ox: float = 0.38,
+    icon: str = "📦",
 ) -> Image.Image:
     w, h = size
-    base = _base_canvas(size, color)
+    base = _base_canvas(size, color, secondary)
     overlay = Image.new("RGBA", size, (0, 0, 0, 0))
-    _draw_motif(ImageDraw.Draw(overlay), motif, w, h, _shift(color, 1.25), ox=0.38 if layout == "hero" else 0.32)
+    _draw_motif(ImageDraw.Draw(overlay), motif, w, h, _shift(color, 1.25), ox=ox)
+    _draw_motif(ImageDraw.Draw(overlay), motif, w, h, _shift(secondary, 1.05), ox=max(0.1, ox - 0.18))
     overlay = Image.alpha_composite(overlay, _radial_glow(size, w * 0.82, h * 0.45, min(w, h) * 0.5, color, 70))
     overlay = _draw_scanlines(overlay, 10)
     img = Image.alpha_composite(base.convert("RGBA"), overlay).convert("RGB")
+    img = _draw_icon_watermark(img, icon, color)
     draw = ImageDraw.Draw(img)
     _draw_accent_bar(draw, w, color)
 
@@ -277,9 +328,13 @@ def generate_for_pack(pack: dict) -> dict[str, str]:
     tagline = pack.get("tagline", name)
     color = pack.get("color", "#6366f1")
     motif = MOTIFS.get(key, "mesh")
+    profile = INDUSTRY_PROFILE.get(key, {})
+    secondary = profile.get("secondary", _shift(color, 0.75))
+    ox = profile.get("ox", 0.42)
+    icon = profile.get("icon", pack.get("icon", "📦"))
     kw = INDUSTRY_VISUAL_KEYWORDS.get(key, name)
 
-    hero = _render_hero((1440, 520), name=name, tagline=tagline, color=color, motif=motif, layout="hero")
+    hero = _render_hero((1440, 520), name=name, tagline=tagline, color=color, motif=motif, layout="hero", secondary=secondary, ox=ox, icon=icon)
     og = _render_hero(
         (1200, 630),
         name=name,
@@ -288,8 +343,11 @@ def generate_for_pack(pack: dict) -> dict[str, str]:
         motif=motif,
         layout="og",
         subtitle=f"{kw} · BlockHub",
+        secondary=secondary,
+        ox=ox,
+        icon=icon,
     )
-    thumb = _render_thumb((640, 360), color=color, motif=motif)
+    thumb = _render_thumb((640, 360), color=color, motif=motif, secondary=secondary, ox=ox, icon=icon)
 
     hero_path = out_dir / "hero.jpg"
     og_path = out_dir / "og.png"

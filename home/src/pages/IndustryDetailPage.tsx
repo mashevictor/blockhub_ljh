@@ -9,6 +9,8 @@ import { useTheme } from '../context/ThemeContext'
 import { categoryColor, iconWrapStyle } from '../data/iconPalette'
 import { resolveCategoryIcon, INDUSTRIES_SHOWCASE } from '../data/showcase'
 import { industryAssets } from '../data/industryAssets'
+import { buildIndustryPageTemplates } from '../data/industryPageTemplates'
+import IndustryPageTemplateGallery from '../components/industry/IndustryPageTemplateGallery'
 import { ROUTES } from '../routes/paths'
 import '../styles/b2b-landing.css'
 
@@ -69,6 +71,12 @@ export default function IndustryDetailPage() {
   const sceneTips = useMemo(() => {
     const tips = detail?.enrichment?.scene_tips ?? []
     return new Map(tips.map((t) => [t.name, t.tip]))
+  }, [detail])
+
+  const pageTemplates = useMemo(() => {
+    if (!detail) return []
+    const flat = detail.groups.flatMap((g) => g.items)
+    return buildIndustryPageTemplates(detail.pack.name, flat)
   }, [detail])
 
   const handleUseIndustry = () => {
@@ -185,6 +193,14 @@ export default function IndustryDetailPage() {
           </span>
         ) : null}
       </section>
+
+      {pageTemplates.length > 0 ? (
+        <IndustryPageTemplateGallery
+          templates={pageTemplates}
+          accent={accent}
+          packName={pack.name}
+        />
+      ) : null}
 
       <section className="industry-detail-scenes industry-site-section industry-site-panel">
         <div className="b2b-section-title industry-site-section-head">
