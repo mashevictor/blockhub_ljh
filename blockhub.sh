@@ -44,6 +44,9 @@ case "$CMD" in
   pg-backup)
     run pg-backup.sh "$@"
     ;;
+  migrate-tencent|tencentdb)
+    run migrate-tencentdb.sh "$@"
+    ;;
   help|-h|--help|*)
     cat <<EOF
 BlockHub CLI · 仓库根: $ROOT
