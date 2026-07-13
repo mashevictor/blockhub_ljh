@@ -178,6 +178,7 @@ for f in \
   scripts/smoke-ga.sh \
   scripts/smoke-capability-contract.sh \
   scripts/server-capability-test.sh \
+  scripts/server-ga-signoff.sh \
   scripts/migrate-tencentdb.sh \
   .github/workflows/ci-smoke.yml \
   docker-compose.prod.yml \

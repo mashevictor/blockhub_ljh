@@ -32,6 +32,9 @@ case "$CMD" in
   server-test)
     run server-capability-test.sh "$@"
     ;;
+  signoff|ga-signoff)
+    run server-ga-signoff.sh "$@"
+    ;;
   help|-h|--help|*)
     cat <<EOF
 BlockHub CLI · 仓库根: $ROOT
@@ -41,6 +44,7 @@ BlockHub CLI · 仓库根: $ROOT
   blockhub.sh smoke-ga [BASE_URL]                   全量冒烟
   blockhub.sh e2e-prep                              安装 Playwright 浏览器
   blockhub.sh server-test [BASE_URL]                能力全链路验收
+  blockhub.sh signoff [BASE_URL]                    GA 签字一键套件
 
 示例:
   bash $ROOT/blockhub.sh flutter-build chat_qa,approval_flow --name "测试" --public-id t001

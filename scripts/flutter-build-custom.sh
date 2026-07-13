@@ -37,9 +37,18 @@ list_keys() {
   python3 <<PY
 import json
 from pathlib import Path
+
+def caps(raw):
+    if isinstance(raw, list):
+        return raw
+    if isinstance(raw, dict):
+        return raw.get("capabilities") or raw.get("items") or []
+    return []
+
 data = json.loads(Path("$MANIFEST").read_text(encoding="utf-8"))
+items = caps(data)
 by_cat: dict[str, list] = {}
-for c in data:
+for c in items:
     by_cat.setdefault(c.get("category", "?"), []).append(c)
 for cat in sorted(by_cat):
     print(f"\n[{cat}]")
@@ -93,12 +102,21 @@ fi
 python3 <<PY
 import json, sys
 from pathlib import Path
+
+def caps(raw):
+    if isinstance(raw, list):
+        return raw
+    if isinstance(raw, dict):
+        return raw.get("capabilities") or raw.get("items") or []
+    return []
+
 keys = [k.strip() for k in "$CAP_KEYS".split(",") if k.strip()]
-manifest = {c["key"] for c in json.loads(Path("$MANIFEST").read_text(encoding="utf-8"))}
+raw = json.loads(Path("$MANIFEST").read_text(encoding="utf-8"))
+manifest = {c["key"] for c in caps(raw)}
 bad = [k for k in keys if k not in manifest]
 if bad:
     print("ERROR: 未知 capability_key:", ", ".join(bad), file=sys.stderr)
-    print("提示: bash scripts/flutter-build-custom.sh --list", file=sys.stderr)
+    print("提示: bash blockhub.sh flutter-build --list", file=sys.stderr)
     sys.exit(1)
 print("OK:", len(keys), "keys")
 PY
