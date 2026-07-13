@@ -28,7 +28,11 @@ def _web_pkg(key: str) -> str | None:
 def _flutter_pkg(key: str) -> str:
     cap = ALL_CAPABILITIES.get(key)
     if cap and cap.flutter_pkg:
-        return cap.flutter_pkg.split("+")[0].strip().split()[0]
+        raw = cap.flutter_pkg.split("+")[0].strip().split()[0]
+        # registry.flutter_pkg 多为 pub 依赖列表；物理包名走 capability_{key} 约定
+        if "+" in cap.flutter_pkg or "/" in cap.flutter_pkg or not raw.startswith("capability_"):
+            return f"capability_{key}"
+        return raw
     return f"capability_{key}"
 
 

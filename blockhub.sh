@@ -60,6 +60,7 @@ BlockHub CLI · 仓库根: $ROOT
   blockhub.sh web-packages                          校验 13 个 Web 包
   blockhub.sh secrets-check                         JWT/生产密钥检查
   blockhub.sh pg-backup                             PostgreSQL 备份
+  blockhub.sh migrate-tencent                       腾讯云 PG 迁移（需真实 DATABASE_URL）
 
 示例:
   bash $ROOT/blockhub.sh flutter-build chat_qa,approval_flow --name "测试" --public-id t001

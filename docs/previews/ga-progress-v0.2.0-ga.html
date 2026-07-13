@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BlockHub · GA 进度看板 v0.2.0-ga（2026-07-13）</title>
+<style>
+:root{--gold:#b8860b;--gold-l:#d4af37;--gold-s:#fef9e7;--navy:#0a1628;--navy-m:#1e3a5f;--text:#1c1917;--muted:#78716c;--border:#e8dfc0;--bg:#faf9f7;--card:#fff;--ok:#047857;--warn:#b45309}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.6}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;background:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(212,175,55,.12),transparent)}
+.wrap{max-width:1180px;margin:0 auto;padding:36px 24px 80px}
+.hero{background:linear-gradient(135deg,var(--navy) 0%,var(--navy-m) 55%,#96700a 100%);color:#fffdf8;border-radius:20px;padding:36px 40px;margin-bottom:28px;box-shadow:0 20px 60px rgba(184,134,11,.18)}
+.hero h1{font-size:26px;margin-bottom:6px}.hero h1 em{color:var(--gold-l);font-style:normal}
+.hero .meta{opacity:.9;font-size:13px;max-width:920px;line-height:1.75}
+.stats{display:flex;flex-wrap:wrap;gap:12px;margin-top:18px}
+.stat{background:rgba(255,255,255,.1);border:1px solid rgba(212,175,55,.35);border-radius:12px;padding:12px 16px;min-width:110px}
+.stat .n{font-size:22px;font-weight:700;color:#fef3c7}.stat .l{font-size:11px;opacity:.85}
+.pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.pill{font-size:11px;padding:5px 12px;border-radius:20px;background:rgba(254,243,199,.15);border:1px solid rgba(212,175,55,.4);color:#fef3c7}
+nav.toc{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:24px;position:sticky;top:0;z-index:10;background:rgba(250,249,247,.92);backdrop-filter:blur(8px);padding:12px 0;border-bottom:1px solid var(--border)}
+nav.toc a{font-size:12px;padding:6px 14px;border-radius:8px;background:var(--card);border:1px solid var(--border);color:var(--muted);text-decoration:none}
+nav.toc a:hover{color:var(--gold);border-color:var(--gold-l)}
+section{margin-bottom:36px;scroll-margin-top:72px}
+.section-title{font-size:20px;font-weight:700;color:var(--navy);margin-bottom:6px;padding-bottom:8px;border-bottom:2px solid var(--gold-l)}
+.section-desc{color:var(--muted);font-size:13px;margin-bottom:14px}
+.tag{display:inline-block;font-size:10px;padding:2px 8px;border-radius:4px;font-weight:600;white-space:nowrap}
+.tag-done{background:#dcfce7;color:#166534}
+.tag-wip{background:#fef3c7;color:#92400e}
+.tag-plan{background:#f1f5f9;color:#475569}
+.tag-ahead{background:#dbeafe;color:#1e40af}
+.tag-now{background:#fce7f3;color:#9d174d;border:1px solid #f9a8d4}
+table{width:100%;border-collapse:collapse;font-size:13px;background:var(--card);border-radius:12px;overflow:hidden;border:1px solid var(--border);margin-bottom:16px;box-shadow:0 4px 16px rgba(184,134,11,.05)}
+th{background:linear-gradient(135deg,var(--navy),var(--navy-m));color:#fef3c7;padding:10px 12px;text-align:left;font-size:12px}
+td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:top}
+tr:last-child td{border-bottom:none}tr:hover td{background:var(--gold-s)}
+td code{font-size:11px;background:#f5f5f4;padding:2px 6px;border-radius:4px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@media(max-width:860px){.grid2,.grid3{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;box-shadow:0 4px 16px rgba(184,134,11,.05)}
+.card h3{font-size:15px;color:var(--gold);margin-bottom:10px}
+.card ul{padding-left:18px;color:var(--muted);font-size:13px}
+.card li{margin-bottom:6px}
+.note{background:var(--gold-s);border:1px solid var(--border);border-radius:10px;padding:14px 16px;font-size:12px;margin-bottom:16px;line-height:1.75}
+.note-warn{background:#fffbeb;border-color:#fcd34d}
+.note-info{background:#eff6ff;border-color:#93c5fd}
+.note-now{background:#fdf2f8;border-color:#f9a8d4}
+.flow{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:12px;color:var(--muted);margin:12px 0}
+.flow span{padding:6px 10px;background:var(--card);border:1px solid var(--border);border-radius:8px}
+.flow .arrow{color:var(--gold);font-weight:700}
+.footer{margin-top:48px;padding-top:20px;border-top:1px solid var(--border);font-size:12px;color:var(--muted)}
+.footer a{color:var(--gold)}
+.highlight-row td{background:#fdf2f8 !important}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <h1>积木仓 <em>BlockHub</em> · GA 进度看板</h1>
+  <p class="meta">
+    生成时间：2026-07-13 · 目标版本 <strong>v0.2.0-ga</strong> · staging <code>101.32.209.251</code><br>
+    本页说明：<strong>当前 Agent 按哪几份清单推进</strong>、<strong>本轮刚做了什么</strong>、<strong>还剩什么</strong>。
+  </p>
+  <div class="stats">
+    <div class="stat"><div class="n">3</div><div class="l">对照清单</div></div>
+    <div class="stat"><div class="n">9/9</div><div class="l">GA 验收项</div></div>
+    <div class="stat"><div class="n">13</div><div class="l">Web 能力包</div></div>
+    <div class="stat"><div class="n">5</div><div class="l">P1 运维待办</div></div>
+    <div class="stat"><div class="n">4</div><div class="l">P2 产品待办</div></div>
+  </div>
+  <div class="pills">
+    <span class="pill">GA 收口</span>
+    <span class="pill">GA#9 裁剪 E2E</span>
+    <span class="pill">文档同步</span>
+    <span class="pill">P1 生产正式化</span>
+    <span class="pill">腾讯云 PG 跳过</span>
+  </div>
+</header>
+
+<nav class="toc">
+  <a href="#sources">对照哪份清单</a>
+  <a href="#session">本轮在做什么</a>
+  <a href="#ga">GA 9 项</a>
+  <a href="#modular">M1–M13</a>
+  <a href="#p1">P1 运维</a>
+  <a href="#p2">P2 产品</a>
+  <a href="#verify">验收命令</a>
+</nav>
+
+<section id="sources">
+  <h2 class="section-title">一、Agent 当前对照的三份清单</h2>
+  <p class="section-desc">你说「按照项目和计划做」时，执行顺序是：先 GA 收口 → 再 P1 运维 → 再 P2 产品。</p>
+  <table>
+    <thead><tr><th>优先级</th><th>文档</th><th>用途</th><th>Agent 当前阶段</th></tr></thead>
+    <tbody>
+      <tr class="highlight-row">
+        <td><span class="tag tag-now">主清单</span></td>
+        <td><code>docs/功能清单-v1.2.html</code></td>
+        <td>模块化交付 M1–M13、GA 验收 #1–#9、W1–W6 功能域</td>
+        <td><span class="tag tag-wip">🔶 GA 收口 + 文档同步</span></td>
+      </tr>
+      <tr class="highlight-row">
+        <td><span class="tag tag-now">排期母版</span></td>
+        <td><code>docs/项目计划-合成版v1.3.md</code></td>
+        <td>D1–D36 日计划、W6 GA 窗口、GA 后 P1–P3 路线图</td>
+        <td><span class="tag tag-wip">🔶 刷新进度快照</span></td>
+      </tr>
+      <tr>
+        <td><span class="tag tag-ahead">执行 Todo</span></td>
+        <td><code>docs/TODO-GA-2026-07.md</code></td>
+        <td>可勾选待办、服务器验收命令、变更记录</td>
+        <td><span class="tag tag-done">✅ 已更新 v0.2.0-ga</span></td>
+      </tr>
+      <tr>
+        <td>Release</td>
+        <td><code>docs/RELEASE-v0.2.0-ga.md</code></td>
+        <td>正式版说明（相对 RC1 增量）</td>
+        <td><span class="tag tag-done">✅ 已新建</span></td>
+      </tr>
+      <tr>
+        <td>部署</td>
+        <td><code>docs/PRODUCTION-DEPLOYMENT.md</code> §九</td>
+        <td>GA 自动化脚本 + 运维待办</td>
+        <td><span class="tag tag-done">✅ 已补 GA#9 / cron</span></td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="note note-now">
+    <strong>结论：</strong>不是从零写新计划，而是在<strong>功能清单 v1.2 的 GA#9 + M12/M13</strong> 和<strong>项目计划 v1.3 的 W6 GA 收口</strong>上继续推进；腾讯云 PG 按你要求<strong>暂不测</strong>。
+  </div>
+</section>
+
+<section id="session">
+  <h2 class="section-title">二、本轮 Agent 刚做的任务（对应清单条目）</h2>
+  <div class="flow">
+    <span>功能清单 GA#9 / M13</span><span class="arrow">→</span>
+    <span>ga9-manifest-crop.spec.ts</span><span class="arrow">→</span>
+    <span>ga-checklist 第 9 项</span><span class="arrow">→</span>
+    <span>RELEASE v0.2.0-ga</span><span class="arrow">→</span>
+    <span>三份文档同步</span>
+  </div>
+  <table>
+    <thead><tr><th>清单条目</th><th>产出文件</th><th>状态</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td>GA #9 模块化裁剪</td><td><code>e2e/tests/ga9-manifest-crop.spec.ts</code></td><td><span class="tag tag-wip">🔶 待服务器 pull 后验</span></td><td>只勾 shanghai_voice → manifest/schema 仅语音包；双模块 chat+voice 断言</td></tr>
+      <tr><td>GA checklist 扩展</td><td><code>scripts/ga-checklist.sh</code></td><td><span class="tag tag-done">✅</span></td><td>8 项 → 8+1 项，新增 [9/9] 裁剪 E2E</td></tr>
+      <tr><td>Signoff 标签</td><td><code>scripts/server-ga-signoff.sh</code></td><td><span class="tag tag-done">✅</span></td><td>输出 Tag 改为 v0.2.0-ga</td></tr>
+      <tr><td>M12 per-app APK</td><td><code>docs/功能清单-v1.2.html</code></td><td><span class="tag tag-done">✅ 标记完成</span></td><td>blockhub.sh flutter-build + build-queue 已有</td></tr>
+      <tr><td>build_manifest 修复</td><td><code>backend/app/services/build_manifest.py</code></td><td><span class="tag tag-wip">🔶 本地已改</span></td><td>flutter_pkg 字段存 pub 依赖时回退 <code>capability_{key}</code></td></tr>
+      <tr><td>正式 Release</td><td><code>docs/RELEASE-v0.2.0-ga.md</code></td><td><span class="tag tag-done">✅</span></td><td>相对 RC1 的增量说明</td></tr>
+      <tr><td>P1 PG 备份 cron</td><td><code>scripts/cron-pg-backup.example</code></td><td><span class="tag tag-done">✅ 示例</span></td><td>运维复制到 crontab 即可</td></tr>
+      <tr><td>进度文档同步</td><td>功能清单 / 项目计划 / TODO</td><td><span class="tag tag-done">✅</span></td><td>13 Web 包、GA 9/9、W6 提前完成</td></tr>
+      <tr><td>Git tag v0.2.0-ga</td><td>—</td><td><span class="tag tag-plan">⬜ 未打</span></td><td>等你确认 signoff 全绿后再打 tag</td></tr>
+    </tbody>
+  </table>
+  <div class="note note-warn">
+    <strong>待你服务器确认：</strong>本轮代码需 <code>git pull</code> + 重启 API 后，再跑 GA#9 E2E；staging 上旧版 build_manifest 会把 flutter_pkg 解析成 <code>record</code> 而非 <code>capability_shanghai_voice</code>。
+  </div>
+</section>
+
+<section id="ga">
+  <h2 class="section-title">三、GA 验收 9 项（功能清单 §十一）</h2>
+  <table>
+    <thead><tr><th>#</th><th>验收项</th><th>自动化</th><th>当前</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>114 Catalog PG</td><td><code>ga-checklist</code> #1</td><td><span class="tag tag-done">✅</span></td></tr>
+      <tr><td>2</td><td>7 Agent 非 Mock</td><td><code>ga-checklist</code> #2</td><td><span class="tag tag-done">✅</span></td></tr>
+      <tr><td>3</td><td>发布闭环 Web+App</td><td><code>publish-runtime-plaza</code> + <code>home-publish</code></td><td><span class="tag tag-done">✅</span></td></tr>
+      <tr><td>4</td><td>RAG pgvector</td><td><code>ga-checklist</code> #4</td><td><span class="tag tag-ahead">🔵 基本可用</span></td></tr>
+      <tr><td>5</td><td>审批 + 通知</td><td><code>ga-checklist</code> #5</td><td><span class="tag tag-done">✅</span></td></tr>
+      <tr><td>6</td><td>Flutter APK</td><td><code>smoke-apk</code> / <code>flutter-build-custom</code></td><td><span class="tag tag-done">✅</span> signoff 常 SKIP_APK=1</td></tr>
+      <tr><td>7</td><td>公网 HTTPS</td><td><code>ga-checklist</code> #7</td><td><span class="tag tag-wip">🔶 IP 可达 · 正式证书待配</span></td></tr>
+      <tr><td>8</td><td>文档 + 脚本</td><td><code>ga-checklist</code> #8</td><td><span class="tag tag-done">✅</span></td></tr>
+      <tr class="highlight-row"><td>9</td><td><strong>模块化裁剪</strong></td><td><code>ga9-manifest-crop.spec.ts</code></td><td><span class="tag tag-wip">🔶 代码就绪 · 待 deploy 验证</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="modular">
+  <h2 class="section-title">四、模块化任务 M1–M13（功能清单 §三）</h2>
+  <table>
+    <thead><tr><th>#</th><th>任务</th><th>状态</th><th>备注</th></tr></thead>
+    <tbody>
+      <tr><td>M1–M9</td><td>契约 codegen / schema / manifest / Web 包 / lazy 加载</td><td><span class="tag tag-done">✅ 全部完成</span></td><td>13 Web 包</td></tr>
+      <tr><td>M10</td><td>Melos 物理拆包</td><td><span class="tag tag-wip">🔶 GA 后</span></td><td>菜单 CAPABILITY_KEYS 裁剪已就绪</td></tr>
+      <tr><td>M11</td><td>go_router + Registry</td><td><span class="tag tag-wip">🔶 GA 后</span></td><td>Registry 已消费 manifest</td></tr>
+      <tr><td>M12</td><td>flutter-build-from-publish</td><td><span class="tag tag-done">✅</span></td><td>blockhub.sh flutter-build</td></tr>
+      <tr class="highlight-row"><td>M13</td><td>GA#9 裁剪验收</td><td><span class="tag tag-wip">🔶 E2E 已写</span></td><td>本轮重点</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="p1">
+  <h2 class="section-title">五、P1 生产正式化（项目计划 §7 · TODO 下一阶段）</h2>
+  <p class="section-desc">GA 代码完成后，按项目计划进入运维正式化；脚本大多已就绪，需人工/运维执行。</p>
+  <table>
+    <thead><tr><th>项</th><th>脚本 / 参考</th><th>状态</th></tr></thead>
+    <tbody>
+      <tr><td>域名 + HTTPS</td><td>Nginx + Let's Encrypt</td><td><span class="tag tag-plan">⬜ 运维</span></td></tr>
+      <tr><td>JWT / 默认密码轮换</td><td><code>blockhub.sh secrets-check</code></td><td><span class="tag tag-plan">⬜ 改 .env</span></td></tr>
+      <tr><td>PG 每日备份</td><td><code>scripts/cron-pg-backup.example</code></td><td><span class="tag tag-plan">⬜ 写 crontab</span></td></tr>
+      <tr><td>监控告警</td><td><code>/api/v1/health</code> + 5xx</td><td><span class="tag tag-plan">⬜ 运维</span></td></tr>
+      <tr><td>腾讯云 PG 迁移</td><td><code>migrate-tencentdb.sh</code></td><td><span class="tag tag-plan">⬜ 你要求跳过</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="p2">
+  <h2 class="section-title">六、P2 产品（GA 后 · 功能清单 v0.2 方向）</h2>
+  <div class="grid3">
+    <div class="card">
+      <h3>Flutter</h3>
+      <ul>
+        <li>Melos deferred import 物理拆包</li>
+        <li>go_router 替换硬编码</li>
+        <li>Flavor 白标 / Shorebird</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Web / CI</h3>
+      <ul>
+        <li>再补 Web 能力包（目标 ~70% 真渲染）</li>
+        <li>CI browser E2E 挂 PR 门禁</li>
+        <li>E2E_HOME_URL secret</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>增长 P3</h3>
+      <ul>
+        <li>多租户运营</li>
+        <li>Catalog CRUD</li>
+        <li>插件 SDK / 国际化</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="verify">
+  <h2 class="section-title">七、服务器验收命令</h2>
+  <div class="note note-info">
+<pre style="margin:0;font-size:12px;line-height:1.6;white-space:pre-wrap">cd /root/blockhub && git pull
+bash scripts/deploy-all.sh --web-only    # 或 restart API 使 build_manifest 修复生效
+systemctl restart blockhub-api           # 如适用
+
+# 全套 GA 签字（8+1 项）
+SKIP_APK=1 bash /root/blockhub/blockhub.sh signoff http://101.32.209.251
+
+# 单项 GA#9
+cd e2e && E2E_API_URL=http://101.32.209.251/api/v1 E2E_BASE_URL=http://101.32.209.251 \
+  npx playwright test tests/ga9-manifest-crop.spec.ts --reporter=line</pre>
+  </div>
+</section>
+
+<footer class="footer">
+  <strong>积木仓 BlockHub</strong> · GA 进度看板 · 2026-07-13<br>
+  对照：<a href="../功能清单-v1.2.html">功能清单-v1.2.html</a> ·
+  <a href="../项目计划-合成版v1.3.md">项目计划-合成版v1.3.md</a> ·
+  <a href="../TODO-GA-2026-07.md">TODO-GA-2026-07.md</a> ·
+  <a href="../RELEASE-v0.2.0-ga.md">RELEASE-v0.2.0-ga.md</a>
+</footer>
+
+</div>
+</body>
+</html>

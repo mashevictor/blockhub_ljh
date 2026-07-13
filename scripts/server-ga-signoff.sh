@@ -48,7 +48,7 @@ run_step "rotate-secrets-check" \
 run_step "load-10vu (P95)" \
   bash "$ROOT/scripts/load-10vu.sh" "$BASE" 10
 
-run_step "ga-checklist (8 items)" \
+run_step "ga-checklist (8+1 items)" \
   bash "$ROOT/scripts/ga-checklist.sh" "$BASE"
 
 if [ "${SKIP_BROWSER_E2E:-0}" != "1" ]; then
@@ -72,7 +72,7 @@ echo ""
 echo "=============================================="
 if [ "$FAIL" -eq 0 ]; then
   echo " ✅ GA Sign-off: ALL PASSED"
-  echo " Tag: v0.2.0-ga-rc1"
+  echo " Tag: v0.2.0-ga"
   echo " 可归档本输出 + ga-checklist 结果作为签字附件"
 else
   echo " ⚠ GA Sign-off: $FAIL step(s) failed"

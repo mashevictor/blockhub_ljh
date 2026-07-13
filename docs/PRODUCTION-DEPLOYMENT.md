@@ -212,11 +212,11 @@ server {
 
 ### 自动化脚本
 
-- [x] `bash blockhub.sh ga-checklist` 八项（`SKIP_APK=1`）
+- [x] `bash blockhub.sh ga-checklist` 八项 + GA#9（`SKIP_APK=1`）
 - [x] `bash blockhub.sh server-test` 能力全链路
 - [x] `bash scripts/smoke-w5.sh` 契约/审计
 - [x] `bash scripts/load-10vu.sh` P95 压测
-- [x] Playwright：`home-publish` / `publish-runtime-plaza` / `runtime-mobile-h5`
+- [x] Playwright：`home-publish` / `publish-runtime-plaza` / `runtime-mobile-h5` / `ga9-manifest-crop`
 
 ### 功能
 
@@ -228,12 +228,15 @@ server {
 - [x] per-app APK build-queue + 503 下载语义
 - [x] Flutter 自选能力：`bash blockhub.sh flutter-build --list`
 
+- [x] GA#9 模块化裁剪（只勾 shanghai_voice → manifest 仅语音包）
+
 ### 运维待办（生产正式化）
 
 - [ ] 域名 + HTTPS 全站
-- [ ] JWT_SECRET / 默认密码轮换
-- [ ] PG 每日备份 + 监控告警
-- [ ] 腾讯云 PG 可选迁移（`migrate-tencentdb.sh`）
+- [ ] JWT_SECRET / 默认密码轮换（`bash blockhub.sh secrets-check`）
+- [ ] PG 每日备份：参考 `scripts/cron-pg-backup.example` 写入 crontab
+- [ ] 监控告警（health + 5xx）
+- [ ] 腾讯云 PG 可选迁移（`migrate-tencentdb.sh`，**当前跳过**）
 
 ### CLI 提示
 

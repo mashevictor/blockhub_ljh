@@ -19,7 +19,7 @@ no()  { echo "  ✗ GA#$1 $2"; FAIL=$((FAIL + 1)); }
 skip(){ echo "  · GA#$1 $2 (skipped)"; SKIP=$((SKIP + 1)); }
 
 echo "=============================================="
-echo " GA Checklist (8 items) · $BASE"
+echo " GA Checklist (8+1 items) · $BASE"
 echo " $(date '+%Y-%m-%d %H:%M %Z' 2>/dev/null || date)"
 echo "=============================================="
 
@@ -186,13 +186,34 @@ for f in \
   .github/workflows/ci-smoke.yml \
   docker-compose.prod.yml \
   docs/previews/GA-验收清单.html \
-  docs/RELEASE-v0.2.0-ga-rc1.md; do
+  docs/RELEASE-v0.2.0-ga.md; do
   [ -f "$ROOT/$f" ] || { DOC_OK=1; echo "  missing: $f"; }
 done
 if [ "$DOC_OK" -eq 0 ]; then
   ok 8 "deploy/smoke/GA docs present"
 else
   no 8 "missing doc/script files"
+fi
+
+# ── 9. 模块化裁剪 GA#9 ──
+echo ""
+echo "[9/9] Modular crop (GA#9)"
+if [ "${SKIP_GA9:-0}" = "1" ]; then
+  skip 9 "SKIP_GA9=1"
+else
+  GA9_OK=0
+  if [ -d "$ROOT/e2e" ]; then
+    (cd "$ROOT/e2e" && npm install --silent 2>/dev/null || true)
+    if (cd "$ROOT/e2e" && E2E_API_URL="$API" E2E_BASE_URL="$BASE" \
+      npx playwright test tests/ga9-manifest-crop.spec.ts --reporter=line 2>/dev/null); then
+      GA9_OK=1
+    fi
+  fi
+  if [ "$GA9_OK" -eq 1 ]; then
+    ok 9 "voice-only manifest crop"
+  else
+    no 9 "ga9-manifest-crop E2E (API publish + /runtime manifest)"
+  fi
 fi
 
 echo ""
