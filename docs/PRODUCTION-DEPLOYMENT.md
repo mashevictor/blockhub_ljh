@@ -206,6 +206,46 @@ server {
 
 ---
 
+## 九、GA 验收（2026-07 · 101.32.209.251 已验）
+
+> 单机 IP 部署已跑通以下项；域名/HTTPS 仍为生产正式化待办。
+
+### 自动化脚本
+
+- [x] `bash blockhub.sh ga-checklist` 八项（`SKIP_APK=1`）
+- [x] `bash blockhub.sh server-test` 能力全链路
+- [x] `bash scripts/smoke-w5.sh` 契约/审计
+- [x] `bash scripts/load-10vu.sh` P95 压测
+- [x] Playwright：`home-publish` / `publish-runtime-plaza` / `runtime-mobile-h5`
+
+### 功能
+
+- [x] Catalog PostgreSQL ≥114
+- [x] 7 Agent 注册
+- [x] 发布 → runtime `/r/{id}` → plaza
+- [x] RAG pgvector + 审批 PG
+- [x] Home 三视图发布 API + UI E2E
+- [x] per-app APK build-queue + 503 下载语义
+- [x] Flutter 自选能力：`bash blockhub.sh flutter-build --list`
+
+### 运维待办（生产正式化）
+
+- [ ] 域名 + HTTPS 全站
+- [ ] JWT_SECRET / 默认密码轮换
+- [ ] PG 每日备份 + 监控告警
+- [ ] 腾讯云 PG 可选迁移（`migrate-tencentdb.sh`）
+
+### CLI 提示
+
+若在 `e2e/` 子目录执行脚本报 `No such file`，请用仓库根目录 CLI：
+
+```bash
+bash /root/blockhub/blockhub.sh flutter-build --list
+bash /root/blockhub/blockhub.sh ga-checklist http://101.32.209.251
+```
+
+---
+
 ## 六、端口与角色对照（开发 vs 生产）
 
 | 角色 | 开发地址 | 生产域名 |

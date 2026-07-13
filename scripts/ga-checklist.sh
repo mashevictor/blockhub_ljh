@@ -171,7 +171,9 @@ echo ""
 echo "[8/8] Docs + deploy scripts"
 DOC_OK=0
 for f in \
+  blockhub.sh \
   scripts/deploy-all.sh \
+  scripts/flutter-build-custom.sh \
   scripts/server-docker-redis.sh \
   scripts/smoke-ga.sh \
   scripts/smoke-capability-contract.sh \
@@ -179,7 +181,8 @@ for f in \
   scripts/migrate-tencentdb.sh \
   .github/workflows/ci-smoke.yml \
   docker-compose.prod.yml \
-  docs/previews/GA-验收清单.html; do
+  docs/previews/GA-验收清单.html \
+  docs/RELEASE-v0.2.0-ga-rc1.md; do
   [ -f "$ROOT/$f" ] || { DOC_OK=1; echo "  missing: $f"; }
 done
 if [ "$DOC_OK" -eq 0 ]; then
