@@ -15,7 +15,7 @@ interface Props {
   theme: IndustrySiteTheme
   children: ReactNode
   industryName?: string
-  /** 行业差异化视觉：layout + pattern，见 industryVisualThemes.ts */
+  /** 12 套样式包 + pattern 叠加，见 industryStylePacks.ts / industryVisualThemes.ts */
   layoutClass?: string
 }
 

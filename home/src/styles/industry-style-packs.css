@@ -1,0 +1,726 @@
+/**
+ * 12 套行业独立站效果样式包 — 整页差异化（Hero / 面板 / 场景卡 / CTA / 页脚）
+ * 由 industryStylePacks.ts 映射；类名 industry-site--pack-{id}
+ */
+
+/* ═══ 共用：Hero 结构变体 ═══ */
+.industry-hero-split {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 24px;
+  align-items: center;
+  max-width: 1080px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+.industry-hero-split-reverse {
+  grid-template-columns: 0.85fr 1.15fr;
+}
+
+.industry-hero-split-visual {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+}
+
+.industry-hero-split-visual .industry-hero-motif {
+  position: static;
+  font-size: clamp(80px, 12vw, 140px);
+  opacity: 0.35;
+}
+
+.industry-hero--soft-card .industry-hero-card {
+  background: rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 20px;
+  padding: 28px 24px;
+  max-width: 640px;
+}
+
+.industry-hero--stacked-dark .industry-hero-motif-bg {
+  position: absolute;
+  right: 5%;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: clamp(100px, 18vw, 200px);
+  opacity: 0.12;
+  pointer-events: none;
+}
+
+.industry-hero-stacked-stats .industry-site-stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.industry-hero-stacked-stats .industry-site-stats-row div {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 14px;
+  text-align: center;
+}
+
+.industry-hero-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.industry-hero-bar-text {
+  flex: 1;
+  min-width: 200px;
+}
+
+.industry-hero-bar-text h1 {
+  margin: 4px 0 0;
+}
+
+.industry-hero-motif-sm {
+  font-size: 48px;
+  opacity: 0.5;
+  position: static;
+}
+
+.industry-hero-bar-tagline {
+  margin-top: 12px;
+  max-width: 720px;
+}
+
+@media (max-width: 768px) {
+  .industry-hero-split,
+  .industry-hero-split-reverse {
+    grid-template-columns: 1fr;
+  }
+
+  .industry-hero-split-visual {
+    min-height: 80px;
+  }
+
+  .industry-hero-stacked-stats .industry-site-stats-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ═══ 01 classic · 经典商务蓝 ═══ */
+.industry-site--pack-classic {
+  --ind-panel-bg: #fff;
+  --ind-panel-border: #dbeafe;
+  --ind-text: #1e293b;
+  --ind-muted: #64748b;
+  background: linear-gradient(180deg, #f4f7fb 0%, #fff 40%);
+}
+
+.industry-site--pack-classic .industry-site-header {
+  background: #fff;
+  border-bottom: 2px solid #0d47a1;
+}
+
+.industry-site--pack-classic .industry-hero--centered .industry-site-hero-content {
+  text-align: center;
+}
+
+.industry-site--pack-classic .industry-hero--centered .industry-site-hero-row {
+  flex-direction: column;
+  align-items: center;
+}
+
+.industry-site--pack-classic .industry-site-stats-row {
+  justify-content: center;
+}
+
+.industry-site--pack-classic .industry-site-panel {
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(13, 71, 161, 0.08);
+}
+
+.industry-site--pack-classic .industry-detail-scene-card {
+  border-left: 4px solid var(--site-primary);
+}
+
+.industry-site--pack-classic .industry-site-cta-band {
+  background: linear-gradient(135deg, #0d47a1, #1976d2);
+  border-radius: 16px;
+  color: #fff;
+}
+
+/* ═══ 02 industrial · 工业钢铁 ═══ */
+.industry-site--pack-industrial {
+  --ind-panel-bg: #1a2332;
+  --ind-panel-border: #334155;
+  --ind-text: #e2e8f0;
+  --ind-muted: #94a3b8;
+  background: #0f1419;
+  color: #e2e8f0;
+}
+
+.industry-site--pack-industrial .industry-site-header {
+  background: #0a0e12;
+  border-bottom: 3px solid var(--site-primary);
+}
+
+.industry-site--pack-industrial .b2b-logo-text strong,
+.industry-site--pack-industrial .b2b-nav-label {
+  color: #f1f5f9;
+}
+
+.industry-site--pack-industrial .industry-site-hero-banner {
+  border-left: 8px solid var(--site-primary);
+  border-radius: 0;
+  clip-path: none;
+}
+
+.industry-site--pack-industrial .industry-site-stats-row strong {
+  font-family: ui-monospace, Consolas, monospace;
+  color: #fbbf24;
+}
+
+.industry-site--pack-industrial .industry-site-panel {
+  background: var(--ind-panel-bg);
+  border: 1px solid var(--ind-panel-border);
+  border-radius: 4px;
+  color: var(--ind-text);
+}
+
+.industry-site--pack-industrial .industry-site-section-head h2,
+.industry-site--pack-industrial .b2b-eyebrow {
+  color: #93c5fd;
+}
+
+.industry-site--pack-industrial .industry-detail-scene-card {
+  background: #141c28;
+  border: 1px solid #334155;
+  border-radius: 2px;
+}
+
+.industry-site--pack-industrial .industry-site-footer {
+  background: #0a0e12;
+  color: #64748b;
+  border-color: #334155;
+}
+
+.industry-site--pack-industrial .industry-tpl-gallery {
+  background: #141c28;
+  border: 1px solid #334155;
+}
+
+/* ═══ 03 velocity · 增长斜切红 ═══ */
+.industry-site--pack-velocity {
+  background: #1a0a0a;
+  color: #fecaca;
+}
+
+.industry-site--pack-velocity .industry-site-header {
+  background: linear-gradient(90deg, #7f1d1d, #991b1b);
+}
+
+.industry-site--pack-velocity .b2b-nav-pill.on {
+  background: #fff;
+  color: #991b1b;
+}
+
+.industry-site--pack-velocity .industry-site-hero-banner {
+  clip-path: polygon(0 0, 100% 0, 100% 88%, 0 100%);
+  margin-bottom: 40px;
+}
+
+.industry-site--pack-velocity .industry-detail-badge {
+  background: #fef2f2;
+  color: #991b1b;
+  border: none;
+  font-weight: 800;
+}
+
+.industry-site--pack-velocity .industry-site-panel {
+  background: linear-gradient(145deg, #2a1515, #1a0a0a);
+  border: 1px solid #7f1d1d;
+  border-radius: 0;
+  transform: skewX(-1deg);
+  color: #fecaca;
+}
+
+.industry-site--pack-velocity .industry-detail-scene-card {
+  background: #2a1515;
+  border-top: 3px solid #ef4444;
+  border-radius: 0;
+}
+
+.industry-site--pack-velocity .btn-primary {
+  transform: skewX(-2deg);
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+.industry-site--pack-velocity .industry-site-cta-band {
+  background: #ef4444;
+  clip-path: polygon(0 8%, 100% 0, 100% 100%, 0 100%);
+  padding-top: 48px;
+}
+
+/* ═══ 04 serenity · 清新医疗绿 ═══ */
+.industry-site--pack-serenity {
+  background: linear-gradient(180deg, #f0fdf4 0%, #ecfdf5 50%, #fff 100%);
+}
+
+.industry-site--pack-serenity .industry-site-header {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(8px);
+}
+
+.industry-site--pack-serenity .industry-site-hero-banner {
+  border-radius: 0 0 40px 40px;
+  padding: 52px 32px;
+}
+
+.industry-site--pack-serenity .industry-site-panel {
+  border-radius: 24px;
+  border: none;
+  box-shadow: 0 4px 24px rgba(16, 185, 129, 0.1);
+  background: #fff;
+}
+
+.industry-site--pack-serenity .industry-detail-scene-card {
+  border-radius: 20px;
+  background: #fff;
+  border: 1px solid #a7f3d0;
+}
+
+.industry-site--pack-serenity .industry-detail-highlights li::marker {
+  color: #10b981;
+}
+
+.industry-site--pack-serenity .industry-site-cta-band {
+  border-radius: 32px;
+  background: linear-gradient(135deg, #059669, #10b981);
+}
+
+/* ═══ 05 cyber · 赛博霓虹紫 ═══ */
+.industry-site--pack-cyber {
+  background: #0c0a14;
+  color: #e9d5ff;
+}
+
+.industry-site--pack-cyber .industry-site-header {
+  background: rgba(12, 10, 20, 0.95);
+  border-bottom: 1px solid #a855f7;
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.3);
+}
+
+.industry-site--pack-cyber .industry-site-hero-banner {
+  box-shadow: 0 0 80px color-mix(in srgb, var(--site-primary) 45%, transparent);
+  border: 1px solid rgba(168, 85, 247, 0.4);
+}
+
+.industry-site--pack-cyber .industry-site-hero-banner::before {
+  background-image: radial-gradient(rgba(168, 85, 247, 0.25) 1px, transparent 1px);
+  background-size: 20px 20px;
+  opacity: 0.6;
+}
+
+.industry-site--pack-cyber .industry-detail-badge {
+  text-shadow: 0 0 12px rgba(255, 255, 255, 0.6);
+  box-shadow: 0 0 16px var(--site-primary);
+}
+
+.industry-site--pack-cyber .industry-site-panel {
+  background: rgba(30, 20, 50, 0.75);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(168, 85, 247, 0.35);
+  color: #e9d5ff;
+}
+
+.industry-site--pack-cyber .industry-detail-scene-card {
+  background: rgba(40, 25, 65, 0.8);
+  border: 1px solid #7c3aed;
+  box-shadow: 0 0 12px rgba(124, 58, 237, 0.2);
+}
+
+.industry-site--pack-cyber .industry-tpl-preview-panel {
+  border-color: #7c3aed;
+}
+
+/* ═══ 06 market · 商超暖橙 ═══ */
+.industry-site--pack-market {
+  background: #fff7ed;
+}
+
+.industry-site--pack-market .industry-site-stats-row div {
+  background: #fff;
+  border: 2px solid #fed7aa;
+  border-radius: 14px;
+  padding: 12px 18px;
+  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.12);
+}
+
+.industry-site--pack-market .industry-site-panel {
+  background: #fff;
+  border-radius: 18px;
+  border: 2px solid #ffedd5;
+}
+
+.industry-site--pack-market .industry-detail-scene-grid {
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+}
+
+.industry-site--pack-market .industry-detail-scene-card {
+  border-radius: 16px;
+  background: linear-gradient(180deg, #fff, #fff7ed);
+  border: 1px solid #fdba74;
+  text-align: center;
+}
+
+.industry-site--pack-market .industry-site-cta-band {
+  background: linear-gradient(90deg, #ea580c, #f97316, #fb923c);
+  border-radius: 20px;
+}
+
+/* ═══ 07 campus · 学院条纹蓝 ═══ */
+.industry-site--pack-campus {
+  background: #eff6ff;
+  background-image: repeating-linear-gradient(
+    90deg,
+    transparent,
+    transparent 48px,
+    rgba(37, 99, 235, 0.04) 48px,
+    rgba(37, 99, 235, 0.04) 49px
+  );
+}
+
+.industry-site--pack-campus .industry-site-section-head h2 {
+  border-left: 6px solid var(--site-primary);
+  padding-left: 14px;
+  background: linear-gradient(90deg, rgba(37, 99, 235, 0.08), transparent);
+}
+
+.industry-site--pack-campus .industry-site-panel {
+  border-radius: 8px;
+  border: 1px solid #bfdbfe;
+  border-top: 4px solid var(--site-primary);
+}
+
+.industry-site--pack-campus .industry-detail-scene-card {
+  border-radius: 6px;
+  border-left: 5px solid #2563eb;
+}
+
+.industry-site--pack-campus .industry-site-module-chips code {
+  background: #dbeafe;
+  color: #1e40af;
+  border-radius: 4px;
+}
+
+/* ═══ 08 vault · 金融金库深蓝 ═══ */
+.industry-site--pack-vault {
+  background: #0c1929;
+  color: #cbd5e1;
+}
+
+.industry-site--pack-vault .industry-site-header {
+  background: #071018;
+  border-bottom: 1px solid #d4af37;
+}
+
+.industry-site--pack-vault .industry-site-hero-banner h1 {
+  letter-spacing: 0.03em;
+  font-weight: 700;
+}
+
+.industry-site--pack-vault .industry-site-stats-row strong {
+  color: #d4af37;
+}
+
+.industry-site--pack-vault .industry-site-panel {
+  background: #0f2137;
+  border: 1px solid #1e3a5f;
+  border-radius: 0;
+  border-top: 3px solid #d4af37;
+  color: #e2e8f0;
+}
+
+.industry-site--pack-vault .industry-detail-scene-card {
+  background: #0f2137;
+  border: 1px solid #334155;
+  border-radius: 0;
+}
+
+.industry-site--pack-vault .industry-site-cta-band {
+  background: linear-gradient(135deg, #0f2137, #1e3a5f);
+  border: 1px solid #d4af37;
+  border-radius: 0;
+}
+
+.industry-site--pack-vault .industry-site-footer {
+  background: #071018;
+  border-color: #1e3a5f;
+}
+
+/* ═══ 09 freight · 物流琥珀路线 ═══ */
+.industry-site--pack-freight {
+  background: #fffbeb;
+}
+
+.industry-site--pack-freight .industry-site-hero-banner {
+  border-bottom: 4px dashed #ca8a04;
+  border-radius: 0;
+}
+
+.industry-site--pack-freight .industry-site-stats-row {
+  border-top: 2px dashed #eab308;
+  padding-top: 18px;
+  gap: 0;
+}
+
+.industry-site--pack-freight .industry-site-stats-row div {
+  flex: 1;
+  text-align: center;
+  border-right: 1px dashed #fde68a;
+  padding: 8px;
+}
+
+.industry-site--pack-freight .industry-site-stats-row div:last-child {
+  border-right: none;
+}
+
+.industry-site--pack-freight .industry-site-panel {
+  border: 2px dashed #ca8a04;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.industry-site--pack-freight .industry-detail-scene-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.industry-site--pack-freight .industry-detail-scene-card {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 12px;
+  align-items: center;
+  border-left: 6px solid #ca8a04;
+  border-radius: 4px;
+}
+
+.industry-site--pack-freight .industry-site-hero-banner::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, transparent, #fbbf24, transparent);
+}
+
+/* ═══ 10 horizon · 地平线分栏 ═══ */
+.industry-site--pack-horizon {
+  background: #fafaf9;
+}
+
+.industry-site--pack-horizon .industry-site-main {
+  max-width: 1280px;
+}
+
+.industry-site--pack-horizon .industry-hero--split-right .industry-hero-split-text {
+  padding: 20px;
+}
+
+.industry-site--pack-horizon .industry-site-panel {
+  border-radius: 20px;
+  overflow: hidden;
+  border: none;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+}
+
+.industry-site--pack-horizon .industry-detail-scene-grid {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.industry-site--pack-horizon .industry-detail-scene-card {
+  min-height: 140px;
+  background-size: cover;
+  background: linear-gradient(135deg, #fff 60%, color-mix(in srgb, var(--site-primary) 8%, #fff));
+  border-radius: 16px;
+  border: 1px solid #e7e5e4;
+}
+
+.industry-site--pack-horizon .industry-site-cta-band {
+  background: #44403c;
+  color: #fff;
+  border-radius: 24px;
+}
+
+/* ═══ 11 people · 人资紫色 bento ═══ */
+.industry-site--pack-people {
+  background: linear-gradient(160deg, #faf5ff 0%, #f3e8ff 40%, #fff 100%);
+}
+
+.industry-site--pack-people .industry-site-panel {
+  border-radius: 28px;
+  background: #fff;
+  border: 2px solid #e9d5ff;
+}
+
+.industry-site--pack-people .industry-detail-highlights {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  list-style: none;
+  margin-left: 0;
+  padding: 0;
+}
+
+.industry-site--pack-people .industry-detail-highlights li {
+  background: linear-gradient(135deg, #f3e8ff, #fff);
+  border: 1px solid #d8b4fe;
+  border-radius: 16px;
+  padding: 14px 16px;
+  font-size: 13px;
+}
+
+.industry-site--pack-people .industry-detail-scene-grid {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.industry-site--pack-people .industry-detail-scene-card {
+  border-radius: 20px;
+  background: #fff;
+  border: 2px solid #e9d5ff;
+  text-align: center;
+}
+
+.industry-site--pack-people .industry-site-module-chips {
+  justify-content: center;
+}
+
+.industry-site--pack-people .industry-site-module-chips code {
+  border-radius: 999px;
+  background: #8b5cf6;
+  color: #fff;
+  padding: 6px 14px;
+}
+
+/* ═══ 12 broadcast · 传媒洋红波段 ═══ */
+.industry-site--pack-broadcast {
+  background: #1a0a1a;
+  color: #fce7f3;
+}
+
+.industry-site--pack-broadcast .industry-site-header {
+  background: linear-gradient(180deg, #831843, #1a0a1a);
+}
+
+.industry-site--pack-broadcast .industry-site-hero-banner {
+  position: relative;
+  overflow: hidden;
+}
+
+.industry-site--pack-broadcast .industry-site-hero-banner::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 6px;
+  background: repeating-linear-gradient(
+    90deg,
+    #ec4899,
+    #ec4899 20px,
+    #d946ef 20px,
+    #d946ef 40px,
+    #a855f7 40px,
+    #a855f7 60px
+  );
+}
+
+.industry-site--pack-broadcast .industry-site-panel {
+  background: rgba(60, 20, 60, 0.6);
+  backdrop-filter: blur(10px);
+  border: 1px solid #ec4899;
+  color: #fce7f3;
+}
+
+.industry-site--pack-broadcast .industry-detail-scene-card {
+  background: rgba(80, 25, 80, 0.5);
+  border-left: 4px solid #ec4899;
+  border-radius: 0 12px 12px 0;
+}
+
+.industry-site--pack-broadcast .industry-tpl-gallery {
+  border-top: 4px solid #ec4899;
+  background: rgba(40, 15, 40, 0.8);
+}
+
+.industry-site--pack-broadcast .industry-site-cta-band {
+  background: linear-gradient(90deg, #be185d, #d946ef, #be185d);
+  background-size: 200% 100%;
+  animation: ind-broadcast-shift 6s ease infinite;
+}
+
+@keyframes ind-broadcast-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+/* ═══ 深色包：页脚/导航文字 ═══ */
+.industry-site--pack-industrial .industry-site-footer a,
+.industry-site--pack-vault .industry-site-footer a,
+.industry-site--pack-cyber .industry-site-footer a,
+.industry-site--pack-broadcast .industry-site-footer a,
+.industry-site--pack-velocity .industry-site-footer a {
+  color: #93c5fd;
+}
+
+.industry-site--pack-industrial .industry-detail-overview-text,
+.industry-site--pack-vault .industry-detail-overview-text,
+.industry-site--pack-cyber .industry-detail-overview-text,
+.industry-site--pack-broadcast .industry-detail-overview-text {
+  color: var(--ind-muted, #94a3b8);
+}
+
+@media (max-width: 768px) {
+  .industry-site--pack-horizon .industry-detail-scene-grid,
+  .industry-site--pack-people .industry-detail-scene-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .industry-site--pack-velocity .industry-site-panel {
+    transform: none;
+  }
+}
+
+/* ═══ 全局可读性：Hero 白字高对比（覆盖各样式包浅色 badge）═══ */
+.industry-site .industry-site-hero-banner .industry-detail-badge {
+  background: rgba(0, 0, 0, 0.42) !important;
+  color: #fff !important;
+  border: 1px solid rgba(255, 255, 255, 0.38) !important;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.4);
+}
+
+.industry-site .industry-site-panel {
+  color: var(--ind-text, #1e293b);
+}
+
+.industry-site .industry-site-panel .industry-detail-group h3 {
+  color: var(--ind-text, #111);
+}
+
+.industry-site .industry-detail-scene-card strong {
+  color: var(--ind-text, #111);
+}
+
+.industry-site .industry-detail-scene-card .ind-scene-problem,
+.industry-site .industry-detail-scene-card .ind-scene-pages,
+.industry-site .industry-detail-scene-card .ind-scene-agent,
+.industry-site .industry-detail-scene-card .ind-scene-tip {
+  color: var(--ind-muted, #475569);
+}
+
+.industry-site .industry-detail-scene-card code {
+  color: var(--ind-text, #334155);
+  background: color-mix(in srgb, var(--site-primary, #0d47a1) 8%, transparent);
+}

@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { fetchIndustryPackDetail, fetchIndustrySites, type IndustryPackDetail, type IndustrySiteSummary } from '../api/client'
 import IndustrySiteShell from '../components/industry/IndustrySiteShell'
-import { ChevronDotLoadingRow } from '../components/ChevronDotLoader'
 import { DynamicIcon, INDUSTRY_ICONS, IconSparkles } from '../components/icons'
 import { usePageMeta } from '../hooks/usePageMeta'
 import { useTheme } from '../context/ThemeContext'
@@ -10,18 +9,22 @@ import { categoryColor, iconWrapStyle } from '../data/iconPalette'
 import { resolveCategoryIcon, INDUSTRIES_SHOWCASE } from '../data/showcase'
 import { industryAssets } from '../data/industryAssets'
 import { buildIndustryPageTemplates } from '../data/industryPageTemplates'
+import { buildIndustryPackDetailFallback } from '../data/industryDetailFallback'
 import { getIndustryVisualTheme } from '../data/industryVisualThemes'
+import { getIndustryStylePack, getStylePackMeta, industrySitePackClass } from '../data/industryStylePacks'
+import IndustryHeroSection from '../components/industry/IndustryHeroSection'
 import IndustryPageTemplateGallery from '../components/industry/IndustryPageTemplateGallery'
 import { ROUTES } from '../routes/paths'
 import '../styles/b2b-landing.css'
+import '../styles/industry-style-packs.css'
 
 export default function IndustryDetailPage() {
   const { key = '' } = useParams<{ key: string }>()
   const navigate = useNavigate()
   const { theme } = useTheme()
-  const [detail, setDetail] = useState<IndustryPackDetail | null>(null)
+  const fallbackDetail = useMemo(() => buildIndustryPackDetailFallback(key), [key])
+  const [detail, setDetail] = useState<IndustryPackDetail | null>(fallbackDetail)
   const [others, setOthers] = useState<IndustrySiteSummary[]>([])
-  const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [enriching, setEnriching] = useState(false)
 
@@ -31,20 +34,27 @@ export default function IndustryDetailPage() {
   )
 
   const visualTheme = useMemo(() => getIndustryVisualTheme(key), [key])
-  const layoutClass = `industry-site--${visualTheme.layout} industry-site--pattern-${visualTheme.pattern}`
-
-  const load = (withEnrich = false) => {
-    if (!key) return
-    setLoading(true)
-    setError(null)
-    fetchIndustryPackDetail(key, { enrich: withEnrich })
-      .then(setDetail)
-      .catch(() => setError('无法加载行业深度包，请稍后重试'))
-      .finally(() => setLoading(false))
-  }
+  const stylePack = useMemo(() => getIndustryStylePack(key), [key])
+  const stylePackMeta = useMemo(() => getStylePackMeta(stylePack), [stylePack])
+  const layoutClass = `${industrySitePackClass(key)} industry-site--pattern-${visualTheme.pattern}`
 
   useEffect(() => {
-    load(false)
+    const fb = buildIndustryPackDetailFallback(key)
+    setDetail(fb)
+    setError(fb ? null : '行业包不存在')
+    if (!key || !fb) return
+
+    fetchIndustryPackDetail(key, { enrich: false })
+      .then((next) => {
+        setDetail(next)
+        setError(null)
+      })
+      .catch(() => {
+        /* 保留本地 fallback，不阻断页面 */
+      })
+  }, [key])
+
+  useEffect(() => {
     fetchIndustrySites()
       .then((items) => setOthers(items.filter((s) => s.key !== key).slice(0, 6)))
       .catch(() => {
@@ -70,6 +80,10 @@ export default function IndustryDetailPage() {
     description: site.description,
     ogImage: site.assets.og,
     ogUrl: typeof window !== 'undefined' ? `${window.location.origin}${site.site_url}` : undefined,
+  } : showcaseMeta ? {
+    title: `${showcaseMeta.name} · 行业深度包`,
+    description: showcaseMeta.desc,
+    ogImage: industryAssets(key).og,
   } : null)
 
   const sceneTips = useMemo(() => {
@@ -94,33 +108,6 @@ export default function IndustryDetailPage() {
       .finally(() => setEnriching(false))
   }
 
-  if (loading && !detail) {
-    const accent = showcaseMeta?.color ?? '#0d47a1'
-    return (
-      <IndustrySiteShell theme={{ primary: accent }} industryName={showcaseMeta?.name} layoutClass={layoutClass}>
-        <section
-          className="industry-site-hero-banner industry-site-hero-skeleton"
-          style={{
-            backgroundImage: showcaseMeta
-              ? `linear-gradient(105deg, color-mix(in srgb, ${accent} 88%, #0f172a) 0%, #0f172a 55%), url(${industryAssets(key).hero})`
-              : undefined,
-          } as CSSProperties}
-        >
-          <div className="industry-site-hero-content">
-            {showcaseMeta ? (
-              <>
-                <span className="industry-detail-badge">独立方案站 · 深度包</span>
-                <h1>{showcaseMeta.name}</h1>
-                <p className="industry-detail-tagline">{showcaseMeta.desc}</p>
-              </>
-            ) : null}
-            <ChevronDotLoadingRow variant="converge" size="md" text="正在加载行业独立站…" />
-          </div>
-        </section>
-      </IndustrySiteShell>
-    )
-  }
-
   if (error || !detail || !site) {
     return (
       <IndustrySiteShell theme={{ primary: '#0d47a1' }}>
@@ -136,38 +123,28 @@ export default function IndustryDetailPage() {
 
   return (
     <IndustrySiteShell theme={site.theme} industryName={pack.name} layoutClass={layoutClass}>
-      <section
-        className="industry-site-hero-banner"
-        style={{ backgroundImage: `linear-gradient(105deg, color-mix(in srgb, ${accent} 88%, #0f172a) 0%, color-mix(in srgb, ${site.theme.gradient_to ?? accent} 55%, #0f172a) 55%), url(${site.assets.hero})` } as CSSProperties}
-      >
-        <div className="industry-site-hero-content">
-          <Link to={ROUTES.industryHub} className="industry-detail-back">← 全部行业方案</Link>
-          <div className="industry-site-hero-row">
-            <span className="industry-detail-icon" aria-hidden>
-              <Icon size={40} />
-            </span>
-            <div>
-              <span className="industry-detail-badge">独立方案站 · 深度包 · {total} 场景</span>
-              <h1>{pack.name}</h1>
-              <p className="industry-detail-tagline">{visualTheme.heroPitch ?? pack.tagline}</p>
-            </div>
-            <span className="industry-hero-motif" aria-hidden>{visualTheme.motif}</span>
-          </div>
-          <div className="industry-site-stats-row">
-            {visualTheme.stats.map((s) => (
-              <div key={s.label}><strong>{s.value}</strong><span>{s.label}</span></div>
-            ))}
-          </div>
-          <div className="industry-detail-actions">
-            <button type="button" className="btn-primary" onClick={handleUseIndustry}>
-              {site.cta.create_label} →
-            </button>
-            <button type="button" className="btn-ghost industry-site-ghost" disabled={enriching} onClick={handleReEnrich}>
-              {enriching ? '大模型丰富中…' : '大模型重新丰富'}
-            </button>
-          </div>
-        </div>
-      </section>
+      <IndustryHeroSection
+        variant={stylePackMeta.heroVariant}
+        accent={accent}
+        gradientTo={site.theme.gradient_to}
+        heroImage={site.assets.hero}
+        motif={visualTheme.motif}
+        badge={`独立方案站 · ${stylePackMeta.label} · ${total} 场景`}
+        title={pack.name}
+        tagline={visualTheme.heroPitch ?? pack.tagline}
+        stats={visualTheme.stats}
+        icon={<Icon size={40} />}
+        ctaPrimary={
+          <button type="button" className="btn-primary" onClick={handleUseIndustry}>
+            {site.cta.create_label} →
+          </button>
+        }
+        ctaSecondary={
+          <button type="button" className="btn-ghost industry-site-ghost" disabled={enriching} onClick={handleReEnrich}>
+            {enriching ? '大模型丰富中…' : '大模型重新丰富'}
+          </button>
+        }
+      />
 
       <section className="industry-detail-overview industry-site-section industry-site-panel">
         <div className="b2b-section-title industry-site-section-head">
@@ -188,9 +165,9 @@ export default function IndustryDetailPage() {
             ))}
           </div>
         </div>
-        {enrichment?.source ? (
+        {enrichment?.source && enrichment.source !== 'static' ? (
           <span className="industry-detail-source">
-            文案来源：{enrichment.source === 'deepseek' ? '大模型' : enrichment.source === 'static' ? '精选模板' : '自动生成'}
+            文案来源：{enrichment.source === 'deepseek' ? '大模型' : '自动生成'}
           </span>
         ) : null}
       </section>
