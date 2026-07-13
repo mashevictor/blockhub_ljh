@@ -8,6 +8,7 @@ import { HOME_URL } from './helpers'
 test.describe('Home browser publish', () => {
   test('industry flow publishes app to plaza/my', async ({ page }) => {
     test.skip(!process.env.E2E_HOME_URL && !process.env.CI, 'set E2E_HOME_URL to run browser home publish test')
+    test.skip(process.env.SKIP_HOME_E2E === '1', 'SKIP_HOME_E2E=1')
 
     const appName = `E2E-UI-${Date.now()}`
     const email = `e2e-ui-${Date.now()}@example.com`
@@ -21,12 +22,13 @@ test.describe('Home browser publish', () => {
 
     await page.getByRole('button', { name: '下一步：选择受众' }).click()
 
-    await page.getByLabel('应用名称').fill(appName)
-    await page.getByRole('button', { name: '生成应用' }).first().click()
+    // 仅点行业视图内的按钮；应用名称在联系方式弹窗填写（避免与 SelectionBox 侧栏重复）
+    await page.locator('.industry-view').getByRole('button', { name: '生成应用' }).click()
 
     const contactDialog = page.getByRole('dialog', { name: /留个联系方式/ })
     await expect(contactDialog).toBeVisible({ timeout: 10_000 })
-    await page.getByLabel('电子邮箱').fill(email)
+    await contactDialog.locator('#contact-gate-appname').fill(appName)
+    await contactDialog.getByLabel('电子邮箱').fill(email)
     await contactDialog.getByRole('button', { name: '生成应用' }).click()
 
     await expect(page).toHaveURL(/\/plaza\/my/, { timeout: 120_000 })
