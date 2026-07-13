@@ -6522,4 +6522,265 @@ a.btn-my-apps:hover { border-color: var(--pri-light); color: var(--pri); }
   .plaza-my-card-actions { width: 100%; justify-content: flex-end; }
   .plaza-orch-dock { flex-direction: column; align-items: stretch; }
   .plaza-orch-dock-actions { justify-content: flex-end; }
+  .plaza-dual-rail-grid { grid-template-columns: 1fr !important; }
+  .plaza-dual-rail-bridge { display: none; }
+}
+
+/* ── 方案 C · 广场底部双轨编排 ── */
+.plaza-dual-rail-dock.floating-agent-dock.is-expanded {
+  width: min(960px, calc(100vw - 24px)) !important;
+}
+.plaza-dual-rail-dock.floating-agent-dock.is-collapsed .floating-agent-dock-title-custom {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.plaza-dual-rail-dock-title .plaza-mflow-chev {
+  font-family: var(--font-mono);
+  font-weight: 900;
+  color: var(--pri);
+  letter-spacing: -2px;
+}
+.plaza-dual-rail-dock-name {
+  font-weight: 800;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.plaza-dual-rail-dock-meta {
+  font-weight: 500;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+.plaza-dual-rail-dock-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: min(52vh, 420px);
+  overflow: auto;
+}
+.plaza-dual-rail-dock-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+.plaza-dual-rail-dock-toolbar-title {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--text);
+}
+.plaza-dual-rail-dock-tools {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.plaza-dual-rail-tool {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--text);
+  text-decoration: none;
+  cursor: pointer;
+}
+.plaza-dual-rail-tool:hover { border-color: var(--pri-light); color: var(--pri); }
+.plaza-dual-rail-menu-wrap { position: relative; }
+.plaza-dual-rail-menu {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 6px);
+  min-width: 160px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: var(--shadow-lg);
+  padding: 4px;
+  z-index: 10;
+}
+.plaza-dual-rail-menu button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px 10px;
+  border: none;
+  background: none;
+  font-size: 12px;
+  cursor: pointer;
+  border-radius: 6px;
+}
+.plaza-dual-rail-menu button:hover { background: var(--pri-soft); }
+.plaza-dual-rail-dock-foot {
+  padding-top: 6px;
+  border-top: 1px dashed var(--border);
+}
+.plaza-dual-rail-empty {
+  font-size: 12px;
+  color: var(--muted);
+  padding: 12px 0;
+}
+
+.plaza-dual-rail-panel { display: flex; flex-direction: column; gap: 8px; }
+.plaza-dual-rail-grid {
+  display: grid;
+  grid-template-columns: 1fr 12px 1fr;
+  gap: 8px;
+  align-items: stretch;
+}
+.plaza-dual-rail-col {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 10px;
+  min-height: 200px;
+}
+.plaza-dual-rail-col.data-col {
+  background: #fffbeb;
+  border-color: #fde68a;
+}
+.plaza-dual-rail-col-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--pri);
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 2px solid var(--accent);
+}
+.plaza-dual-rail-col-hint {
+  margin-left: auto;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.plaza-dual-rail-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+}
+.plaza-dual-rail-connector {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+.plaza-dual-rail-vline {
+  width: 2px;
+  height: 10px;
+  background: var(--accent);
+  margin: 0 auto;
+  opacity: 0.45;
+}
+.plaza-dual-rail-vline.data { background: #d97706; }
+.plaza-dual-rail-node-wrap {
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
+}
+.plaza-dual-rail-node-wrap.dragging { opacity: 0.55; }
+.plaza-dual-rail-node-wrap.drag-over .plaza-dual-rail-node { border-color: var(--pri-light); transform: translateY(-2px); }
+.plaza-dual-rail-grip {
+  flex-shrink: 0;
+  width: 22px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  cursor: grab;
+  font-size: 14px;
+  padding: 0;
+}
+.plaza-dual-rail-node {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1.5px solid var(--visio-border, #2c5282);
+  background: var(--visio-fill, #dce8f8);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+.plaza-dual-rail-node.func { background: var(--visio-fill, #dce8f8); }
+.plaza-dual-rail-node.data {
+  background: #fef3c7;
+  border-color: #d97706;
+  font-family: var(--font-mono);
+}
+.plaza-dual-rail-node.active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+}
+.plaza-dual-rail-node-label { font-size: 12px; font-weight: 700; color: var(--text); }
+.plaza-dual-rail-node-sub { font-size: 10px; color: var(--muted); line-height: 1.35; }
+.plaza-dual-rail-method {
+  font-size: 9px;
+  font-weight: 800;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: #fff;
+  color: #92400e;
+}
+.plaza-dual-rail-method.method-post { color: #1d4ed8; }
+.plaza-dual-rail-method.method-get { color: #047857; }
+.plaza-dual-rail-path {
+  font-size: 9px;
+  color: #78350f;
+  word-break: break-all;
+  line-height: 1.35;
+}
+.plaza-dual-rail-bridge {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  padding: 28px 0;
+}
+.plaza-dual-rail-link {
+  display: block;
+  height: 2px;
+  background: transparent;
+  border-top: 1px dashed #cbd5e1;
+  margin: 8px 0;
+  transition: border-color 0.15s, background 0.15s;
+}
+.plaza-dual-rail-link.active {
+  border-top-color: var(--accent);
+  background: rgba(37, 99, 235, 0.15);
+}
+.plaza-dual-rail-cross-hint {
+  font-size: 10px;
+  color: var(--muted);
+  text-align: center;
+  margin: 0;
+  padding: 4px 8px;
+  background: #f8fafc;
+  border-radius: 8px;
+}
+.plaza-dual-rail-edit {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+.plaza-dual-rail-edit input {
+  flex: 1;
+  min-width: 140px;
+  font-size: 12px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+.plaza-dual-rail-panel .plaza-orch-dock {
+  margin-top: 4px;
+  position: relative;
+  bottom: auto;
 }

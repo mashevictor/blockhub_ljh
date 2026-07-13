@@ -101,6 +101,7 @@ export default function PlazaMyAppsPage() {
       appName: focusApp.appName,
       webUrl: focusApp.webUrl,
       moduleCount: focusApp.moduleCount,
+      moduleLabels: focusApp.modules?.map((m) => m.label) ?? focusApp.scenarios,
       plazaLabel: focusApp.plaza?.label,
       isCreator: true,
       source: 'my',
@@ -142,7 +143,7 @@ export default function PlazaMyAppsPage() {
         <div>
           <h1><span className="plaza-mflow-chev chev-hero" aria-hidden>&gt;&gt;</span> 我的应用</h1>
           <p className="plaza-my-head-sub">
-            点击 <strong>编排</strong> 进入完整数据流，在 <span className="plaza-mflow-chev">&gt;&gt;</span> 悬浮框中调整模块
+            点击应用卡片 · 底部 <span className="plaza-mflow-chev">&gt;&gt;</span> 展开双轨编排（功能 + 数据 Visio）
           </p>
         </div>
         <Link to={ROUTES.home} className="plaza-my-create-btn">+ 继续创建</Link>

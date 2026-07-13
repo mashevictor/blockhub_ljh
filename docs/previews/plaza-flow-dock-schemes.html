@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>广场 >> 模块流编排 · 四方案交互预览</title>
+  <style>
+    :root {
+      --pri: #0d47a1;
+      --pri-soft: #eff6ff;
+      --accent: #2563eb;
+      --border: #dbeafe;
+      --bg: #f0f4f8;
+      --surface: #fff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --ok: #047857;
+      --warn: #b45309;
+      --visio-fill: #dce8f8;
+      --visio-border: #2c5282;
+      --radius: 16px;
+      --mono: ui-monospace, Consolas, monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: linear-gradient(165deg, #e8f0fe 0%, #f8fafc 45%, #eef2ff 100%);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 28px 16px 120px;
+    }
+    h1 { text-align: center; font-size: 22px; font-weight: 800; color: var(--pri); margin-bottom: 6px; }
+    .page-desc {
+      text-align: center; color: var(--muted); font-size: 14px; max-width: 720px;
+      margin: 0 auto 24px; line-height: 1.65;
+    }
+    .legend {
+      display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;
+      margin-bottom: 28px; font-size: 12px;
+    }
+    .legend span {
+      padding: 4px 10px; border-radius: 999px; background: #fff;
+      border: 1px solid #e2e8f0; color: var(--muted);
+    }
+    .grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 24px; max-width: 1280px; margin: 0 auto;
+    }
+    .scheme-card {
+      background: var(--surface); border-radius: 20px; border: 2px solid #e2e8f0;
+      overflow: hidden; transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .scheme-card.selected {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15);
+    }
+    .scheme-head {
+      padding: 16px 18px 12px; border-bottom: 1px solid #f1f5f9;
+      display: flex; align-items: flex-start; justify-content: space-between; gap: 10px;
+    }
+    .scheme-head h2 { font-size: 16px; font-weight: 800; color: var(--pri); }
+    .scheme-head .tag {
+      font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 999px;
+      background: var(--pri-soft); color: var(--accent); white-space: nowrap;
+    }
+    .scheme-note { padding: 0 18px 12px; font-size: 12px; color: var(--muted); line-height: 1.55; }
+    .scheme-meta {
+      padding: 0 18px 14px; display: flex; flex-wrap: wrap; gap: 6px;
+    }
+    .chip {
+      font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 6px;
+      background: #f8fafc; border: 1px solid #e2e8f0; color: var(--muted);
+    }
+    .chip.rec { background: #ecfdf5; border-color: #a7f3d0; color: var(--ok); }
+
+    /* demo stage */
+    .demo-stage {
+      margin: 0 14px 14px; background: var(--bg); border-radius: 14px;
+      min-height: 320px; position: relative; overflow: hidden;
+      display: flex; flex-direction: column; justify-content: flex-end;
+    }
+    .demo-bg {
+      position: absolute; inset: 0; padding: 14px; pointer-events: none;
+    }
+    .demo-bg-label {
+      font-size: 11px; color: #94a3b8; letter-spacing: 0.04em; margin-bottom: 8px;
+    }
+    .fake-list {
+      display: flex; flex-direction: column; gap: 6px; opacity: 0.55;
+    }
+    .fake-row {
+      height: 36px; background: #fff; border-radius: 10px; border: 1px solid #e2e8f0;
+    }
+    .demo-controls {
+      position: absolute; top: 10px; right: 10px; display: flex; gap: 6px; z-index: 5;
+    }
+    .demo-controls button {
+      font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 8px;
+      border: 1px solid var(--border); background: #fff; cursor: pointer; color: var(--pri);
+    }
+    .demo-controls button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+    /* shared chevron */
+    .chev { font-family: var(--mono); font-weight: 900; color: var(--accent); letter-spacing: -2px; }
+    .chev-lg { font-size: 22px; }
+    .chev-sm { font-size: 14px; }
+
+    /* collapsed dock */
+    .dock-collapsed {
+      margin: 12px; padding: 10px 16px; background: #fff; border-radius: 999px;
+      border: 2px solid var(--pri); box-shadow: 0 8px 28px rgba(13, 71, 161, 0.12);
+      display: flex; align-items: center; gap: 10px; cursor: pointer;
+      font-size: 13px; font-weight: 600; z-index: 2; position: relative;
+    }
+    .dock-collapsed .hint { color: var(--muted); font-weight: 500; flex: 1; }
+    .dock-collapsed .toggle-icon {
+      width: 28px; height: 28px; border-radius: 50%; background: var(--pri-soft);
+      display: grid; place-items: center; font-size: 12px; color: var(--pri);
+    }
+
+    /* expanded panels */
+    .dock-expanded { display: none; margin: 12px; z-index: 2; position: relative; }
+    .demo-stage.expanded .dock-collapsed { display: none; }
+    .demo-stage.expanded .dock-expanded { display: block; }
+
+    /* ── Scheme A: drawer ── */
+    .dock-a-expanded {
+      background: #fff; border-radius: 16px 16px 12px 12px; border: 2px solid var(--pri);
+      box-shadow: 0 -8px 40px rgba(13, 71, 161, 0.15); max-height: 260px; overflow: hidden;
+      display: flex; flex-direction: column;
+    }
+    .dock-a-bar {
+      padding: 8px 12px; background: linear-gradient(180deg, var(--pri-soft), #fff);
+      border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px;
+      font-size: 12px; font-weight: 700;
+    }
+    .dock-a-body { padding: 10px 12px; overflow-y: auto; flex: 1; }
+    .flow-row {
+      display: flex; align-items: center; gap: 4px; overflow-x: auto; padding-bottom: 8px;
+      margin-bottom: 8px;
+    }
+    .flow-node {
+      flex-shrink: 0; padding: 6px 10px; border-radius: 10px; font-size: 11px; font-weight: 600;
+      background: var(--visio-fill); border: 1.5px solid var(--visio-border); cursor: grab;
+    }
+    .flow-node.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .flow-node.ep { background: #f0fdf4; border-color: #86efac; color: #166534; }
+    .flow-arrow { color: var(--accent); font-weight: 900; font-size: 12px; flex-shrink: 0; }
+    .visio-swim {
+      background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 10px; padding: 8px;
+      font-size: 10px;
+    }
+    .swim-lanes { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-top: 6px; }
+    .lane {
+      background: #fff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 6px 4px; text-align: center;
+    }
+    .lane-title { font-weight: 700; color: var(--visio-border); font-size: 9px; margin-bottom: 4px; }
+    .lane-api { font-family: var(--mono); font-size: 8px; color: var(--muted); word-break: break-all; }
+    .dock-a-tabs { display: flex; gap: 4px; margin-top: 6px; }
+    .dock-a-tabs span {
+      font-size: 10px; padding: 3px 8px; border-radius: 6px; background: #e2e8f0; color: var(--muted);
+    }
+    .dock-a-tabs span.on { background: var(--accent); color: #fff; }
+    .dock-a-foot {
+      padding: 8px 12px; border-top: 1px solid var(--border); display: flex; gap: 6px; align-items: center;
+      font-size: 11px; background: #fafbff;
+    }
+    .dock-a-foot .act {
+      padding: 4px 10px; border-radius: 8px; border: 1px solid var(--border);
+      background: #fff; font-size: 10px; font-weight: 600; cursor: pointer;
+    }
+    .dock-a-foot .act.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+    /* ── Scheme B: orb panel ── */
+    .dock-b-expanded { position: relative; }
+    .orb-panel {
+      position: absolute; bottom: 56px; left: 0; right: 0;
+      background: #fff; border-radius: 16px; border: 2px solid var(--pri);
+      box-shadow: 0 12px 48px rgba(13, 71, 161, 0.18); padding: 12px;
+    }
+    .orb-chips {
+      display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0;
+    }
+    .orb-chip {
+      padding: 5px 10px; border-radius: 999px; font-size: 11px; font-weight: 600;
+      background: var(--pri-soft); border: 1px solid var(--border); cursor: pointer;
+    }
+    .orb-chip.on { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .orb-preview {
+      background: #f8fafc; border-radius: 10px; padding: 10px; margin-top: 8px;
+      border: 1px solid #e2e8f0;
+    }
+    .orb-tabs { display: flex; gap: 4px; margin-top: 8px; }
+    .orb-tabs button {
+      flex: 1; font-size: 10px; padding: 5px; border-radius: 8px; border: 1px solid var(--border);
+      background: #fff; cursor: pointer; font-weight: 600;
+    }
+    .orb-tabs button.on { background: var(--pri-soft); color: var(--pri); border-color: var(--accent); }
+
+    /* ── Scheme C: dual rail ── */
+    .dock-c-expanded {
+      background: #fff; border-radius: 14px; border: 2px solid var(--pri);
+      box-shadow: 0 -6px 32px rgba(13, 71, 161, 0.12); padding: 10px;
+    }
+    .dual-rail { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .rail {
+      background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 8px;
+      min-height: 180px;
+    }
+    .rail-title {
+      font-size: 10px; font-weight: 800; color: var(--pri); margin-bottom: 8px;
+      padding-bottom: 4px; border-bottom: 2px solid var(--accent);
+    }
+    .rail-stack { display: flex; flex-direction: column; gap: 4px; align-items: center; }
+    .rail-node {
+      width: 100%; padding: 6px 8px; border-radius: 8px; font-size: 10px; font-weight: 600;
+      text-align: center; background: var(--visio-fill); border: 1.5px solid var(--visio-border);
+    }
+    .rail-node.data { background: #fef3c7; border-color: #d97706; font-family: var(--mono); font-size: 9px; }
+    .rail-vline { width: 2px; height: 8px; background: var(--accent); }
+    .cross-link {
+      margin-top: 6px; font-size: 9px; color: var(--muted); text-align: center;
+      padding: 4px; background: #fff; border-radius: 6px; border: 1px dashed #cbd5e1;
+    }
+
+    /* ── Scheme D: inline canvas ── */
+    .dock-d-expanded {
+      background: #fff; border-radius: 14px; border: 2px solid var(--pri);
+      box-shadow: 0 -6px 32px rgba(13, 71, 161, 0.12); padding: 10px 12px;
+    }
+    .view-switch { display: flex; gap: 4px; margin-bottom: 8px; }
+    .view-switch button {
+      font-size: 10px; font-weight: 700; padding: 4px 10px; border-radius: 8px;
+      border: 1px solid var(--border); background: #fff; cursor: pointer;
+    }
+    .view-switch button.on { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .hybrid-nodes { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
+    .hybrid-node {
+      flex-shrink: 0; width: 88px; border-radius: 10px; overflow: hidden;
+      border: 1.5px solid var(--visio-border); cursor: grab;
+    }
+    .hybrid-node .top {
+      background: var(--visio-fill); padding: 8px 6px; font-size: 11px; font-weight: 700; text-align: center;
+    }
+    .hybrid-node .bot {
+      background: #fef9c3; padding: 5px 4px; font-family: var(--mono); font-size: 7px;
+      text-align: center; color: #92400e; border-top: 1px solid #fde68a;
+    }
+    .hybrid-node.active { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(37,99,235,0.2); }
+    .inline-tools { display: flex; gap: 6px; margin-top: 8px; font-size: 10px; }
+    .inline-tools span {
+      padding: 4px 8px; border-radius: 6px; background: #f1f5f9; border: 1px solid #e2e8f0;
+      cursor: pointer;
+    }
+
+    /* pick bar */
+    .pick-bar {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+      background: #fff; border-top: 2px solid var(--accent);
+      padding: 14px 20px; display: flex; align-items: center; justify-content: center;
+      gap: 16px; box-shadow: 0 -8px 32px rgba(15, 23, 42, 0.1);
+      transform: translateY(100%); transition: transform 0.25s;
+    }
+    .pick-bar.visible { transform: translateY(0); }
+    .pick-bar strong { font-size: 14px; color: var(--pri); }
+    .pick-bar span { font-size: 13px; color: var(--muted); }
+    .pick-bar button {
+      padding: 8px 20px; border-radius: 10px; border: none; background: var(--accent);
+      color: #fff; font-weight: 700; font-size: 13px; cursor: pointer;
+    }
+    .scheme-pick {
+      margin: 0 14px 14px; width: calc(100% - 28px); padding: 10px;
+      border-radius: 10px; border: 2px solid var(--border); background: #fff;
+      font-size: 13px; font-weight: 700; color: var(--pri); cursor: pointer;
+      transition: all 0.15s;
+    }
+    .scheme-pick:hover { border-color: var(--accent); background: var(--pri-soft); }
+    .scheme-card.selected .scheme-pick { background: var(--accent); color: #fff; border-color: var(--accent); }
+  </style>
+</head>
+<body>
+  <h1>广场底部 <span class="chev chev-lg">&gt;&gt;</span> 模块流编排 · 四方案预览</h1>
+  <p class="page-desc">
+    折叠态只保留 <strong>&gt;&gt;</strong> 胶囊（与首页一致）；展开后显示完整模块流程，支持增删移与功能/数据 Visio 图。
+    点击各方案内的「折叠 / 展开」切换状态，点「选择此方案」确认偏好。
+  </p>
+  <div class="legend">
+    <span>📥 业务输入</span>
+    <span>📤 触达输出</span>
+    <span>功能流 = 用户可见模块</span>
+    <span>数据流 = API / 存储 / 推送</span>
+    <span>示例应用：积木仓 · 9 项能力</span>
+  </div>
+
+  <div class="grid">
+    <!-- A -->
+    <article class="scheme-card" data-scheme="A">
+      <div class="scheme-head">
+        <h2>方案 A · 底部抽屉画布</h2>
+        <span class="tag">推荐</span>
+      </div>
+      <p class="scheme-note">点击 &gt;&gt; 上滑展开约 65vh。上：功能流水线（拖序）；中：Visio 数据泳道；下：&gt;&gt; 操作条（添加/删除/说明）。交付进度从右上角「全屏」进入。</p>
+      <div class="scheme-meta">
+        <span class="chip rec">最易落地</span>
+        <span class="chip">复用现有 Pipeline</span>
+        <span class="chip">不挡整页</span>
+      </div>
+      <div class="demo-stage" id="stage-a">
+        <div class="demo-bg">
+          <div class="demo-bg-label">我的应用 · 列表区</div>
+          <div class="fake-list"><div class="fake-row"></div><div class="fake-row"></div><div class="fake-row"></div></div>
+        </div>
+        <div class="demo-controls">
+          <button type="button" class="active" data-mode="collapsed" data-target="stage-a">折叠</button>
+          <button type="button" data-mode="expanded" data-target="stage-a">展开</button>
+        </div>
+        <div class="dock-collapsed" onclick="toggleStage('stage-a', true)">
+          <span class="chev chev-sm">&gt;&gt;</span>
+          <span class="hint">积木仓 · 9项</span>
+          <span class="toggle-icon">▲</span>
+        </div>
+        <div class="dock-expanded dock-a-expanded">
+          <div class="dock-a-bar">
+            <span class="chev chev-sm">&gt;&gt;</span> 积木仓 · 功能编排
+            <span style="margin-left:auto;font-size:10px;color:var(--muted)">全屏 ↗</span>
+          </div>
+          <div class="dock-a-body">
+            <div class="flow-row" id="flow-a">
+              <span class="flow-node ep">📥 输入</span>
+              <span class="flow-arrow">&gt;&gt;</span>
+              <span class="flow-node active" draggable="true">智能问答</span>
+              <span class="flow-arrow">&gt;&gt;</span>
+              <span class="flow-node" draggable="true">审批流</span>
+              <span class="flow-arrow">&gt;&gt;</span>
+              <span class="flow-node" draggable="true">知识库</span>
+              <span class="flow-arrow">&gt;&gt;</span>
+              <span class="flow-node ep">📤 输出</span>
+              <span class="flow-node" style="background:#ecfdf5;border-color:#86efac;color:#166534">+ 插入</span>
+            </div>
+            <div class="visio-swim">
+              <strong style="font-size:10px;color:var(--visio-border)">数据流 Visio · 自动生成</strong>
+              <div class="swim-lanes">
+                <div class="lane"><div class="lane-title">用户</div><div class="lane-api">POST message</div></div>
+                <div class="lane"><div class="lane-title">API</div><div class="lane-api">/chat/stream</div></div>
+                <div class="lane"><div class="lane-title">模块</div><div class="lane-api">chat_qa</div></div>
+                <div class="lane"><div class="lane-title">推送</div><div class="lane-api">notify</div></div>
+              </div>
+            </div>
+            <div class="dock-a-tabs">
+              <span class="on">功能图</span><span>数据图</span><span>API 拨通</span>
+            </div>
+          </div>
+          <div class="dock-a-foot">
+            <span class="chev chev-sm">&gt;&gt;</span>
+            <span>选中 <strong>智能问答</strong></span>
+            <button type="button" class="act primary">添加</button>
+            <button type="button" class="act">编辑</button>
+            <button type="button" class="act">删除</button>
+          </div>
+        </div>
+      </div>
+      <button type="button" class="scheme-pick" data-pick="A">选择方案 A</button>
+    </article>
+
+    <!-- B -->
+    <article class="scheme-card" data-scheme="B">
+      <div class="scheme-head">
+        <h2>方案 B · 光球编排面板</h2>
+        <span class="tag">首页同源</span>
+      </div>
+      <p class="scheme-note">&gt;&gt; 上方弹出光球面板（同首页选模块）。从 catalog 多选添加；下方实时预览流程；Tab 切换功能/数据 Visio。</p>
+      <div class="scheme-meta">
+        <span class="chip">添加模块最顺</span>
+        <span class="chip">Visio 区域较小</span>
+      </div>
+      <div class="demo-stage" id="stage-b">
+        <div class="demo-bg">
+          <div class="demo-bg-label">应用广场 · 卡片</div>
+          <div class="fake-list"><div class="fake-row"></div><div class="fake-row"></div></div>
+        </div>
+        <div class="demo-controls">
+          <button type="button" class="active" data-mode="collapsed" data-target="stage-b">折叠</button>
+          <button type="button" data-mode="expanded" data-target="stage-b">展开</button>
+        </div>
+        <div class="dock-collapsed" onclick="toggleStage('stage-b', true)">
+          <span class="chev chev-sm">&gt;&gt;</span>
+          <span class="hint">积木仓 · 9项</span>
+          <span class="toggle-icon">▲</span>
+        </div>
+        <div class="dock-expanded dock-b-expanded">
+          <div class="orb-panel">
+            <div style="font-size:12px;font-weight:800"><span class="chev chev-sm">&gt;&gt;</span> 编排 · 积木仓</div>
+            <div class="orb-chips">
+              <span class="orb-chip on">智能问答</span>
+              <span class="orb-chip on">审批流</span>
+              <span class="orb-chip">知识库</span>
+              <span class="orb-chip">报表</span>
+              <span class="orb-chip">+ 更多</span>
+            </div>
+            <div class="orb-preview">
+              <div style="font-size:10px;color:var(--muted);margin-bottom:6px">当前流程预览</div>
+              <div class="flow-row" style="margin:0;padding:0">
+                <span class="flow-node ep" style="font-size:10px">📥</span>
+                <span class="flow-arrow">&gt;&gt;</span>
+                <span class="flow-node active" style="font-size:10px">问答</span>
+                <span class="flow-arrow">&gt;&gt;</span>
+                <span class="flow-node" style="font-size:10px">审批</span>
+                <span class="flow-arrow">&gt;&gt;</span>
+                <span class="flow-node ep" style="font-size:10px">📤</span>
+              </div>
+            </div>
+            <div class="orb-tabs">
+              <button type="button" class="on">功能 Visio</button>
+              <button type="button">数据 Visio</button>
+            </div>
+          </div>
+          <div class="dock-collapsed" style="margin:0">
+            <span class="chev chev-sm">&gt;&gt;</span>
+            <span class="hint">积木仓 · 9项</span>
+            <span class="toggle-icon">▼</span>
+          </div>
+        </div>
+      </div>
+      <button type="button" class="scheme-pick" data-pick="B">选择方案 B</button>
+    </article>
+
+    <!-- C -->
+    <article class="scheme-card" data-scheme="C">
+      <div class="scheme-head">
+        <h2>方案 C · IDE 双轨分屏</h2>
+        <span class="tag">Visio 最强</span>
+      </div>
+      <p class="scheme-note">底栏拉高，左轨功能编排（可编辑），右轨数据/API 自动生成。跨轨虚线关联，最接近 Visio 交付图。</p>
+      <div class="scheme-meta">
+        <span class="chip">B 端演示最佳</span>
+        <span class="chip">开发量最大</span>
+      </div>
+      <div class="demo-stage" id="stage-c">
+        <div class="demo-bg">
+          <div class="demo-bg-label">页面内容（上方可继续浏览）</div>
+          <div class="fake-list"><div class="fake-row"></div></div>
+        </div>
+        <div class="demo-controls">
+          <button type="button" class="active" data-mode="collapsed" data-target="stage-c">折叠</button>
+          <button type="button" data-mode="expanded" data-target="stage-c">展开</button>
+        </div>
+        <div class="dock-collapsed" onclick="toggleStage('stage-c', true)">
+          <span class="chev chev-sm">&gt;&gt;</span>
+          <span class="hint">积木仓 · 9项</span>
+          <span class="toggle-icon">▲</span>
+        </div>
+        <div class="dock-expanded dock-c-expanded">
+          <div style="font-size:11px;font-weight:800;margin-bottom:8px"><span class="chev chev-sm">&gt;&gt;</span> 双轨编排 · 积木仓</div>
+          <div class="dual-rail">
+            <div class="rail">
+              <div class="rail-title">功能编排轨 · 可拖序</div>
+              <div class="rail-stack">
+                <div class="rail-node" style="background:#f0fdf4;border-color:#86efac">📥 用户意图</div>
+                <div class="rail-vline"></div>
+                <div class="rail-node">智能问答</div>
+                <div class="rail-vline"></div>
+                <div class="rail-node">审批流</div>
+                <div class="rail-vline"></div>
+                <div class="rail-node">知识库</div>
+                <div class="rail-vline"></div>
+                <div class="rail-node" style="background:#f0fdf4;border-color:#86efac">📤 网页+App</div>
+              </div>
+            </div>
+            <div class="rail">
+              <div class="rail-title">数据编排轨 · 只读</div>
+              <div class="rail-stack">
+                <div class="rail-node data">POST /ingress</div>
+                <div class="rail-vline"></div>
+                <div class="rail-node data">/chat/stream</div>
+                <div class="rail-vline"></div>
+                <div class="rail-node data">/approvals</div>
+                <div class="rail-vline"></div>
+                <div class="rail-node data">/kb/search</div>
+                <div class="rail-vline"></div>
+                <div class="rail-node data">/r/…/download</div>
+              </div>
+            </div>
+          </div>
+          <div class="cross-link">↔ 点击节点 · 跨轨高亮关联 · ⠿ 拖序 · + 插入 · 🗑 删除</div>
+        </div>
+      </div>
+      <button type="button" class="scheme-pick" data-pick="C">选择方案 C</button>
+    </article>
+
+    <!-- D -->
+    <article class="scheme-card" data-scheme="D">
+      <div class="scheme-head">
+        <h2>方案 D · 内嵌混合画布</h2>
+        <span class="tag">路径最短</span>
+      </div>
+      <p class="scheme-note">取消全屏编排层，所有操作在 &gt;&gt; 底栏完成。三视图：功能 / 数据 / 混合（节点上功能名、下 API）。</p>
+      <div class="scheme-meta">
+        <span class="chip">无全屏跳转</span>
+        <span class="chip">交付/分享需二级入口</span>
+      </div>
+      <div class="demo-stage" id="stage-d">
+        <div class="demo-bg">
+          <div class="demo-bg-label">我的应用</div>
+          <div class="fake-list"><div class="fake-row"></div><div class="fake-row"></div></div>
+        </div>
+        <div class="demo-controls">
+          <button type="button" class="active" data-mode="collapsed" data-target="stage-d">折叠</button>
+          <button type="button" data-mode="expanded" data-target="stage-d">展开</button>
+        </div>
+        <div class="dock-collapsed" onclick="toggleStage('stage-d', true)">
+          <span class="chev chev-sm">&gt;&gt;</span>
+          <span class="hint">积木仓 · 9项</span>
+          <span class="toggle-icon">▲</span>
+        </div>
+        <div class="dock-expanded dock-d-expanded">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+            <span style="font-size:12px;font-weight:800"><span class="chev chev-sm">&gt;&gt;</span> 积木仓</span>
+            <div class="view-switch">
+              <button type="button">功能</button>
+              <button type="button">数据</button>
+              <button type="button" class="on">混合</button>
+            </div>
+          </div>
+          <div class="hybrid-nodes">
+            <div class="hybrid-node">
+              <div class="top" style="background:#f0fdf4;font-size:10px">📥</div>
+              <div class="bot">ingress</div>
+            </div>
+            <div class="hybrid-node active">
+              <div class="top">智能问答</div>
+              <div class="bot">/chat/stream</div>
+            </div>
+            <div class="hybrid-node">
+              <div class="top">审批流</div>
+              <div class="bot">/approvals</div>
+            </div>
+            <div class="hybrid-node">
+              <div class="top">知识库</div>
+              <div class="bot">/kb/search</div>
+            </div>
+            <div class="hybrid-node">
+              <div class="top" style="background:#f0fdf4;font-size:10px">📤</div>
+              <div class="bot">download</div>
+            </div>
+          </div>
+          <div class="inline-tools">
+            <span>⠿ 拖动</span><span style="background:#dbeafe;color:var(--accent)">+ 插入</span><span>🗑 删除</span><span>··· 交付/分享</span>
+          </div>
+        </div>
+      </div>
+      <button type="button" class="scheme-pick" data-pick="D">选择方案 D</button>
+    </article>
+  </div>
+
+  <div class="pick-bar" id="pick-bar">
+    <strong id="pick-label">未选择</strong>
+    <span id="pick-desc">点击上方「选择方案 X」</span>
+    <button type="button" id="pick-copy">复制选择结果</button>
+  </div>
+
+  <script>
+    const labels = {
+      A: { name: '方案 A · 底部抽屉画布', desc: '推荐 · 最易落地 · 复用现有 Pipeline + Visio 泳道' },
+      B: { name: '方案 B · 光球编排面板', desc: '首页同源 · 多选添加模块 · Tab 切换 Visio' },
+      C: { name: '方案 C · IDE 双轨分屏', desc: 'Visio 最强 · 功能/数据双轨 · B 端演示最佳' },
+      D: { name: '方案 D · 内嵌混合画布', desc: '路径最短 · 三视图 · 取消全屏编排层' },
+    };
+    let selected = null;
+
+    function toggleStage(id, expand) {
+      const stage = document.getElementById(id);
+      if (!stage) return;
+      stage.classList.toggle('expanded', expand);
+      const btns = stage.querySelectorAll('.demo-controls button');
+      btns.forEach(b => b.classList.toggle('active', b.dataset.mode === (expand ? 'expanded' : 'collapsed')));
+    }
+
+    document.querySelectorAll('.demo-controls button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        toggleStage(btn.dataset.target, btn.dataset.mode === 'expanded');
+      });
+    });
+
+    document.querySelectorAll('.scheme-pick').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const key = btn.dataset.pick;
+        selected = key;
+        document.querySelectorAll('.scheme-card').forEach(c => c.classList.toggle('selected', c.dataset.scheme === key));
+        const info = labels[key];
+        document.getElementById('pick-label').textContent = '已选：' + info.name;
+        document.getElementById('pick-desc').textContent = info.desc;
+        document.getElementById('pick-bar').classList.add('visible');
+      });
+    });
+
+    document.getElementById('pick-copy').addEventListener('click', () => {
+      if (!selected) return;
+      const text = '我选择：' + labels[selected].name + ' — ' + labels[selected].desc;
+      navigator.clipboard.writeText(text).then(() => {
+        document.getElementById('pick-copy').textContent = '已复制 ✓';
+        setTimeout(() => { document.getElementById('pick-copy').textContent = '复制选择结果'; }, 2000);
+      });
+    });
+
+    /* 简易拖序演示（方案 A） */
+    document.querySelectorAll('#flow-a .flow-node[draggable]').forEach(node => {
+      node.addEventListener('click', () => {
+        document.querySelectorAll('#flow-a .flow-node').forEach(n => n.classList.remove('active'));
+        node.classList.add('active');
+      });
+    });
+
+    document.querySelectorAll('.hybrid-node').forEach(node => {
+      node.addEventListener('click', () => {
+        document.querySelectorAll('.hybrid-node').forEach(n => n.classList.remove('active'));
+        node.classList.add('active');
+      });
+    });
+
+    document.querySelectorAll('.orb-chip').forEach(chip => {
+      chip.addEventListener('click', () => chip.classList.toggle('on'));
+    });
+  </script>
+</body>
+</html>

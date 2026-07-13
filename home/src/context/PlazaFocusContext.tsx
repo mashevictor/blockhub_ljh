@@ -5,6 +5,7 @@ export interface PlazaFocusTarget {
   appName: string
   webUrl: string
   moduleCount: number
+  moduleLabels?: string[]
   plazaLabel?: string
   isCreator: boolean
   source: 'feed' | 'my'

@@ -220,6 +220,7 @@ export default function PlazaFeedPage() {
       appName: selected.appName,
       webUrl: selected.webUrl,
       moduleCount: selected.modules.length,
+      moduleLabels: selected.modules,
       plazaLabel: selected.atLabel,
       isCreator: isFeedCreator(selected),
       source: 'feed',
