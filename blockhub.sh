@@ -35,6 +35,15 @@ case "$CMD" in
   signoff|ga-signoff)
     run server-ga-signoff.sh "$@"
     ;;
+  web-packages)
+    run smoke-web-packages.sh "$@"
+    ;;
+  secrets-check)
+    run rotate-secrets-check.sh "$@"
+    ;;
+  pg-backup)
+    run pg-backup.sh "$@"
+    ;;
   help|-h|--help|*)
     cat <<EOF
 BlockHub CLI · 仓库根: $ROOT
@@ -45,6 +54,9 @@ BlockHub CLI · 仓库根: $ROOT
   blockhub.sh e2e-prep                              安装 Playwright 浏览器
   blockhub.sh server-test [BASE_URL]                能力全链路验收
   blockhub.sh signoff [BASE_URL]                    GA 签字一键套件
+  blockhub.sh web-packages                          校验 13 个 Web 包
+  blockhub.sh secrets-check                         JWT/生产密钥检查
+  blockhub.sh pg-backup                             PostgreSQL 备份
 
 示例:
   bash $ROOT/blockhub.sh flutter-build chat_qa,approval_flow --name "测试" --public-id t001

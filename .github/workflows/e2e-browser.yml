@@ -1,0 +1,35 @@
+name: E2E Browser (staging)
+
+on:
+  workflow_dispatch:
+    inputs:
+      home_url:
+        description: Home SPA URL (e.g. http://101.32.209.251)
+        required: true
+        default: http://101.32.209.251
+      api_base:
+        description: API base (no /api/v1 suffix)
+        required: true
+        default: http://101.32.209.251
+
+jobs:
+  browser-e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install + browsers
+        run: bash scripts/e2e-prep-browsers.sh
+
+      - name: Home publish E2E
+        env:
+          E2E_HOME_URL: ${{ github.event.inputs.home_url }}
+          E2E_BASE_URL: ${{ github.event.inputs.api_base }}
+          E2E_API_URL: ${{ github.event.inputs.api_base }}/api/v1
+        run: |
+          cd e2e
+          npx playwright test tests/home-publish.spec.ts tests/runtime-mobile-h5.spec.ts --project=chromium --project=mobile-chrome --reporter=list

@@ -13,6 +13,7 @@ bash "$ROOT/scripts/smoke-test.sh" "$BASE"
 bash "$ROOT/scripts/regression-114.sh" "$BASE"
 bash "$ROOT/scripts/smoke-custom-capability.sh" "$BASE"
 bash "$ROOT/scripts/smoke-capability-contract.sh" "$BASE"
+bash "$ROOT/scripts/smoke-web-packages.sh"
 bash "$ROOT/scripts/load-10vu.sh" "$BASE" 10
 
 if [ "${SKIP_APK:-0}" != "1" ]; then

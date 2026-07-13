@@ -39,6 +39,12 @@ run_step "server-capability-test" \
 run_step "smoke-w5 (契约/审计)" \
   bash "$ROOT/scripts/smoke-w5.sh" "$BASE"
 
+run_step "smoke-web-packages (13 包)" \
+  bash "$ROOT/scripts/smoke-web-packages.sh"
+
+run_step "rotate-secrets-check" \
+  bash "$ROOT/scripts/rotate-secrets-check.sh" "$ROOT/backend/.env" || true
+
 run_step "load-10vu (P95)" \
   bash "$ROOT/scripts/load-10vu.sh" "$BASE" 10
 

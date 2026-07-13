@@ -179,6 +179,9 @@ for f in \
   scripts/smoke-capability-contract.sh \
   scripts/server-capability-test.sh \
   scripts/server-ga-signoff.sh \
+  scripts/smoke-web-packages.sh \
+  scripts/pg-backup.sh \
+  scripts/rotate-secrets-check.sh \
   scripts/migrate-tencentdb.sh \
   .github/workflows/ci-smoke.yml \
   docker-compose.prod.yml \

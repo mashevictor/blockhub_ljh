@@ -61,4 +61,11 @@ if [ -f scripts/smoke-test.sh ]; then
   bash scripts/smoke-test.sh "${SMOKE_BASE:-http://127.0.0.1:8001}" --seed-only || true
 fi
 
+if [ -n "${SMOKE_BASE:-}" ] && [ -f scripts/smoke-db.sh ]; then
+  echo "==> Post-migrate smoke-db @ $SMOKE_BASE"
+  bash scripts/smoke-db.sh "$SMOKE_BASE" || true
+fi
+
 echo "==> Done. Update backend/.env DATABASE_URL and restart API."
+echo "    Backup: bash scripts/pg-backup.sh"
+echo "    Secrets: bash scripts/rotate-secrets-check.sh backend/.env"
