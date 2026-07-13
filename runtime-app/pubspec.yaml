@@ -19,6 +19,18 @@ dependencies:
     path: ../packages/capability_audit_log
   capability_shanghai_voice:
     path: ../packages/capability_shanghai_voice
+  capability_kb:
+    path: ../packages/capability_kb
+  capability_dashboard:
+    path: ../packages/capability_dashboard
+  capability_data_nl_query:
+    path: ../packages/capability_data_nl_query
+  capability_integration:
+    path: ../packages/capability_integration
+  capability_multi_agent:
+    path: ../packages/capability_multi_agent
+  capability_security_mask:
+    path: ../packages/capability_security_mask
   dio: ^5.7.0
   http: ^1.2.2
   shared_preferences: ^2.3.3

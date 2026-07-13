@@ -3,16 +3,15 @@ import 'dart:convert';
 import 'dart:io' show Platform;
 import 'dart:typed_data';
 
+import 'package:blockhub_flutter_core/blockhub_flutter_core.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:record/record.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
-import '../config/app_branding.dart';
-import '../utils/pcm_resample.dart';
-import '../utils/pcm_stream_player.dart';
-import 'dio_factory.dart';
+import 'pcm_resample.dart';
+import 'pcm_stream_player.dart';
 
 class VoiceDemoSample {
   VoiceDemoSample({required this.label, required this.utterance});

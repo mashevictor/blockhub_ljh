@@ -1,20 +1,9 @@
 import 'package:blockhub_flutter_core/blockhub_flutter_core.dart';
-import 'package:capability_approval_flow/capability_approval_flow.dart';
-import 'package:capability_audit_log/capability_audit_log.dart';
-import 'package:capability_chat_qa/capability_chat_qa.dart';
 import 'package:flutter/material.dart';
 
-import '../config/app_branding.dart';
-import '../data/capability_manifest.dart';
 import '../melos_capability_registry.dart';
-import 'capability_pages.dart';
-import 'integration_hub_page.dart';
-import 'nl_query_page.dart';
-import 'report_page.dart';
-import 'security_mask_page.dart';
-import 'shanghai_voice_page.dart';
 
-/// 按 manifest.widget 类型解析页面，补充 capabilityPages 别名表。
+/// 按 manifest / capability_key 解析 Melos 能力页。
 Widget buildCapabilityPage({
   required String key,
   required AppBranding branding,
@@ -22,49 +11,7 @@ Widget buildCapabilityPage({
   final fromMelos = buildMelosCapabilityPage(key: key, branding: branding);
   if (fromMelos != null) return fromMelos;
 
-  final explicit = capabilityPages[key];
-  if (explicit != null) return explicit(branding);
-
-  final entry = capabilityManifestByKey[key];
-  if (entry != null) {
-    switch (entry.widget) {
-      case 'ShanghaiVoiceWidget':
-      case 'VoiceStreamWidget':
-        return ShanghaiVoicePage(branding: branding);
-      case 'ChatWidget':
-      case 'VoiceWidget':
-      case 'MultiAgentWidget':
-      case 'SummaryWidget':
-        return const ChatQaModule().buildPage(branding);
-      case 'FormWidget':
-      case 'ListWidget':
-      case 'ApprovalInboxWidget':
-        return const ApprovalFlowModule().buildPage(branding);
-      case 'DashboardWidget':
-      case 'FunnelWidget':
-      case 'InboxWidget':
-      case 'EmailWidget':
-      case 'MobileChartWidget':
-        return ReportPage(branding: branding);
-      case 'NLQueryWidget':
-        return NLQueryPage(branding: branding);
-      case 'ERPWidget':
-      case 'MeetingWidget':
-      case 'HelpdeskWidget':
-      case 'AssetWidget':
-      case 'IMWidget':
-      case 'RBACWidget':
-      case 'OAWidget':
-      case 'SSOWidget':
-        return IntegrationHubPage(branding: branding, capabilityKey: key);
-      case 'AuditWidget':
-        return const AuditLogModule().buildPage(branding);
-      case 'MaskWidget':
-        return SecurityMaskPage(branding: branding);
-    }
-  }
-
-  final label = entry?.name ?? key;
+  final label = key;
   return Center(
     child: Padding(
       padding: const EdgeInsets.all(24),

@@ -1,0 +1,15 @@
+name: capability_multi_agent
+description: BlockHub capability module — multi_agent (P1 Melos)
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ">=3.3.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  blockhub_flutter_core:
+    path: ../blockhub_flutter_core
+  capability_chat_qa:
+    path: ../capability_chat_qa

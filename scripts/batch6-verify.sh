@@ -32,7 +32,7 @@ step "chat SSE load (10 VU)" bash "$ROOT/scripts/load-chat-sse.sh" "$BASE"
 
 echo ""
 echo ">>> [Melos packages]"
-for pkg in blockhub_flutter_core capability_chat_qa capability_approval_flow capability_audit_log capability_shanghai_voice; do
+for pkg in blockhub_flutter_core capability_chat_qa capability_approval_flow capability_audit_log capability_shanghai_voice capability_kb capability_dashboard capability_data_nl_query capability_integration capability_multi_agent capability_security_mask; do
   if [ -f "$ROOT/packages/$pkg/pubspec.yaml" ]; then
     echo "  ✓ packages/$pkg"
   else

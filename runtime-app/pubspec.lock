@@ -117,6 +117,48 @@ packages:
       relative: true
     source: path
     version: "0.1.0"
+  capability_dashboard:
+    dependency: "direct main"
+    description:
+      path: "../packages/capability_dashboard"
+      relative: true
+    source: path
+    version: "0.1.0"
+  capability_data_nl_query:
+    dependency: "direct main"
+    description:
+      path: "../packages/capability_data_nl_query"
+      relative: true
+    source: path
+    version: "0.1.0"
+  capability_integration:
+    dependency: "direct main"
+    description:
+      path: "../packages/capability_integration"
+      relative: true
+    source: path
+    version: "0.1.0"
+  capability_kb:
+    dependency: "direct main"
+    description:
+      path: "../packages/capability_kb"
+      relative: true
+    source: path
+    version: "0.1.0"
+  capability_multi_agent:
+    dependency: "direct main"
+    description:
+      path: "../packages/capability_multi_agent"
+      relative: true
+    source: path
+    version: "0.1.0"
+  capability_security_mask:
+    dependency: "direct main"
+    description:
+      path: "../packages/capability_security_mask"
+      relative: true
+    source: path
+    version: "0.1.0"
   capability_shanghai_voice:
     dependency: "direct main"
     description:

@@ -1,17 +1,17 @@
 import 'package:blockhub_flutter_core/blockhub_flutter_core.dart';
 import 'package:flutter/material.dart';
 
-class AuditLogPage extends StatefulWidget {
-  const AuditLogPage({super.key, required this.branding});
+class KbPage extends StatefulWidget {
+  const KbPage({super.key, required this.branding});
 
   final AppBranding branding;
 
   @override
-  State<AuditLogPage> createState() => _AuditLogPageState();
+  State<KbPage> createState() => _KbPageState();
 }
 
-class _AuditLogPageState extends State<AuditLogPage> {
-  List<Map<String, dynamic>> _items = [];
+class _KbPageState extends State<KbPage> {
+  List<Map<String, dynamic>> _docs = [];
   bool _loading = true;
   String? _error;
 
@@ -26,14 +26,13 @@ class _AuditLogPageState extends State<AuditLogPage> {
     try {
       final dio = getRuntimeAuthedDio();
       final resp = await dio.get<Map<String, dynamic>>(
-        '${widget.branding.apiBaseUrl}/audit/logs',
-        queryParameters: {'limit': 50},
+        '${widget.branding.apiBaseUrl}/kb/documents',
       );
       final items = resp.data?['items'] as List<dynamic>? ?? [];
-      _items = items.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+      _docs = items.map((e) => Map<String, dynamic>.from(e as Map)).toList();
       _error = null;
     } catch (e) {
-      _error = '加载审计日志失败（需管理员权限）: $e';
+      _error = '加载知识库失败: $e';
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -43,42 +42,35 @@ class _AuditLogPageState extends State<AuditLogPage> {
   Widget build(BuildContext context) {
     final color = Color(widget.branding.primaryColorValue);
     if (_loading) return const Center(child: CircularProgressIndicator());
-
     return RefreshIndicator(
       onRefresh: _load,
       child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          Text('操作审计日志', style: Theme.of(context).textTheme.titleLarge),
+          Text('知识库', style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: 8),
-          Text('最近操作记录（管理员可见）', style: TextStyle(color: Colors.grey.shade600)),
+          Text('制度、手册与 SOP 文档', style: TextStyle(color: Colors.grey.shade600)),
           if (_error != null) ...[
             const SizedBox(height: 12),
             Text(_error!, style: const TextStyle(color: Colors.red)),
           ],
           const SizedBox(height: 16),
-          if (_items.isEmpty && _error == null)
+          if (_docs.isEmpty)
             const Card(
               child: ListTile(
-                leading: Icon(Icons.history),
-                title: Text('暂无审计记录'),
+                leading: Icon(Icons.folder_open),
+                title: Text('暂无文档'),
+                subtitle: Text('可在 Web 端上传 PDF / Markdown'),
               ),
             )
           else
-            ..._items.map(
-              (row) => Card(
+            ..._docs.map(
+              (doc) => Card(
                 margin: const EdgeInsets.only(bottom: 8),
                 child: ListTile(
-                  leading: CircleAvatar(
-                    backgroundColor: color.withValues(alpha: 0.12),
-                    child: Icon(Icons.history, color: color, size: 20),
-                  ),
-                  title: Text(row['action']?.toString() ?? '操作'),
-                  subtitle: Text('${row['actor'] ?? ''} · ${row['detail'] ?? ''}'),
-                  trailing: Text(
-                    row['created_at']?.toString() ?? '',
-                    style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
-                  ),
+                  leading: Icon(Icons.description, color: color),
+                  title: Text(doc['title']?.toString() ?? doc['filename']?.toString() ?? '文档'),
+                  subtitle: Text(doc['status']?.toString() ?? ''),
                 ),
               ),
             ),

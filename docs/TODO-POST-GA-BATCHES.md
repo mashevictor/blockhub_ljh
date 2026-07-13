@@ -100,9 +100,9 @@ bash blockhub.sh check-template-ui                    # 仅 D31
 
 | # | 任务 | 状态 |
 |---|------|------|
-| 7.0 | parity 矩阵 + `flutter-sync-pubspec` | ✅ 脚本 |
-| 7.1～7.10 | 6 个新 capability 包迁入 | ⬜ |
-| 7.11 | registry 收口 + per-app 构建 | 🔶 publish 已 hook sync |
+| 7.0 | parity 矩阵 + `flutter-sync-pubspec` | ✅ |
+| 7.1～7.10 | 6 个新 capability 包迁入 | ✅ |
+| 7.11 | registry 收口 + per-app 构建 | ✅ |
 
 ```bash
 bash blockhub.sh batch7
@@ -129,7 +129,7 @@ python scripts/flutter-sync-pubspec-from-manifest.py --keys chat_qa,approval_flo
 | 4 | ✅ | 🔶 batch4+GA9 |
 | 5 | ✅ | 🔶 batch5 |
 | 6 | ✅ | 🔶 batch6 待绿 |
-| 7 | 🔶 P1 进行中 | 🔶 batch7 |
+| 7 | ✅ | 🔶 batch7 |
 | 8+ | 📋 路线图 | — |
 
 **最新修复**：`cf2ab64` APK 后台 `/bin/bash` · `02b401c` pg-backup / manifest codegen

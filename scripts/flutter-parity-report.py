@@ -178,9 +178,9 @@ def main() -> int:
     print(f"App parity: {report['app_ok']}/{report['app_total']} ({report['app_pct']}%)")
     print(f"HTML: {HTML_OUT}")
 
-    # P1 start baseline: ≥4/10 ok (existing packages)
-    if report["app_ok"] < 4:
-        print("FAIL: app_ok < 4 baseline")
+    # P1 完成：10/10 业务 App 包 ok
+    if report["app_ok"] < report["app_total"]:
+        print(f"FAIL: app_ok {report['app_ok']}/{report['app_total']} < 100%")
         return 1
     return 0
 
