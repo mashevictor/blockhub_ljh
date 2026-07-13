@@ -1,8 +1,13 @@
 #!/usr/bin/env bash
 # 批次 4 · Flutter 模块化 / go_router 验收
+#
+# 用法:
+#   bash blockhub.sh batch4
+#   bash blockhub.sh batch4 http://101.32.209.251   # 含 GA#9 API E2E
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+BASE="${1:-}"
 FAIL=0
 
 check() {
@@ -10,6 +15,19 @@ check() {
     echo "  ✓ $1"
   else
     echo "  ✗ missing $1"
+    FAIL=$((FAIL + 1))
+  fi
+}
+
+step() {
+  local name="$1"
+  shift
+  echo ""
+  echo ">>> [$name]"
+  if "$@"; then
+    echo ">>> ✓ $name"
+  else
+    echo ">>> ✗ $name"
     FAIL=$((FAIL + 1))
   fi
 }
@@ -33,7 +51,43 @@ else
   FAIL=$((FAIL + 1))
 fi
 
-echo ""
-echo "可选: cd runtime-app && flutter analyze lib/app.dart lib/router/"
+step "apk build profiles (voice-only / dual-module)" \
+  env PYTHONPATH="$ROOT/backend" \
+  bash -c '
+PY="$0/backend/.venv/bin/python"
+[ -x "$PY" ] || PY=python3
+"$PY" - <<PY
+from app.services.apk_build_profiles import resolve_apk_build_profile
 
-[ "$FAIL" -eq 0 ]
+v = resolve_apk_build_profile(["shanghai_voice"])
+assert v.voice_demo and v.profile_id == "shanghai_voice", v
+d = resolve_apk_build_profile(["chat_qa", "approval_flow"])
+assert not d.voice_demo and d.profile_id == "generic", d
+print("voice-only →", v.profile_id, "voice_demo=", v.voice_demo)
+print("dual-module →", d.profile_id, "voice_demo=", d.voice_demo)
+PY
+' "$ROOT"
+
+if [ -n "$BASE" ]; then
+  API="$BASE/api/v1"
+  (cd "$ROOT/e2e" && npm install --silent 2>/dev/null || true)
+  step "GA#9 manifest crop (API E2E)" \
+    env E2E_API_URL="$API" E2E_BASE_URL="$BASE" \
+      bash -c "cd '$ROOT/e2e' && npx playwright test tests/ga9-manifest-crop.spec.ts --reporter=line"
+fi
+
+if command -v flutter >/dev/null 2>&1; then
+  step "flutter analyze (router)" \
+    bash -c "cd '$ROOT/runtime-app' && flutter analyze --no-fatal-infos lib/app.dart lib/router/ lib/pages/audit_log_page.dart lib/pages/security_mask_page.dart"
+else
+  echo ""
+  echo ">>> · flutter CLI 未安装，跳过 analyze"
+fi
+
+echo ""
+if [ "$FAIL" -eq 0 ]; then
+  echo "✅ Batch 4 OK"
+else
+  echo "⚠ Batch 4: $FAIL failed"
+fi
+exit "$FAIL"

@@ -93,6 +93,10 @@ echo ""
 bash "$ROOT/scripts/smoke-web-packages.sh" || FAIL=1
 
 echo ""
+bash "$ROOT/scripts/web-coverage-report.sh" || true
+OUT="$ROOT/docs/previews/web-coverage-report.html" bash "$ROOT/scripts/web-coverage-report.sh" 2>/dev/null || true
+
+echo ""
 if [ "$FAIL" -eq 0 ]; then
   echo "✅ Batch 5 scripts OK"
 else

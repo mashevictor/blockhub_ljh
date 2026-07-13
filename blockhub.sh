@@ -65,6 +65,15 @@ case "$CMD" in
   batch5|verify-batch5)
     run batch5-verify.sh "$@"
     ;;
+  batch-all|verify-all)
+    run batch-all-verify.sh "$@"
+    ;;
+  sync-systemd|systemd-api)
+    run sync-systemd-api.sh "$@"
+    ;;
+  web-coverage)
+    run web-coverage-report.sh "$@"
+    ;;
   build-apk|apk-from-publish)
     run flutter-build-from-publish.sh "$@"
     ;;
@@ -92,6 +101,9 @@ BlockHub CLI · 仓库根: $ROOT
   blockhub.sh batch3                                批次3 CI / staging E2E 清单
   blockhub.sh batch4                                批次4 Flutter go_router + Melos
   blockhub.sh batch5                                批次5 Web 渲染覆盖率
+  blockhub.sh batch-all [BASE_URL]                  批次0–5 联跑（Post-GA）
+  blockhub.sh sync-systemd                          同步 API systemd PATH
+  blockhub.sh web-coverage                          manifest Web 包清单
   blockhub.sh migrate-tencent                       腾讯云 PG 迁移（需真实 DATABASE_URL）
 
 示例:

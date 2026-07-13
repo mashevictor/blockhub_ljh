@@ -68,7 +68,7 @@ td code{font-size:11px;background:#f5f5f4;padding:2px 6px;border-radius:4px}
     <div class="stat"><div class="n">9/9</div><div class="l">GA 验收项</div></div>
     <div class="stat"><div class="n">13</div><div class="l">Web 能力包</div></div>
     <div class="stat"><div class="n">5</div><div class="l">P1 运维待办</div></div>
-    <div class="stat"><div class="n">4</div><div class="l">P2 产品待办</div></div>
+    <div class="stat"><div class="n">6</div><div class="l">Post-GA 批次脚本</div></div>
   </div>
   <div class="pills">
     <span class="pill">GA 收口</span>
@@ -184,8 +184,8 @@ td code{font-size:11px;background:#f5f5f4;padding:2px 6px;border-radius:4px}
     <thead><tr><th>#</th><th>任务</th><th>状态</th><th>备注</th></tr></thead>
     <tbody>
       <tr><td>M1–M9</td><td>契约 codegen / schema / manifest / Web 包 / lazy 加载</td><td><span class="tag tag-done">✅ 全部完成</span></td><td>13 Web 包</td></tr>
-      <tr><td>M10</td><td>Melos 物理拆包</td><td><span class="tag tag-wip">🔶 GA 后</span></td><td>菜单 CAPABILITY_KEYS 裁剪已就绪</td></tr>
-      <tr><td>M11</td><td>go_router + Registry</td><td><span class="tag tag-wip">🔶 GA 后</span></td><td>Registry 已消费 manifest</td></tr>
+      <tr><td>M10</td><td>Melos 物理拆包</td><td><span class="tag tag-done">✅ 骨架</span></td><td>4× capability_* + melos.yaml</td></tr>
+      <tr><td>M11</td><td>go_router + Registry</td><td><span class="tag tag-done">✅</span></td><td>capability_shell_router · /cap/:key</td></tr>
       <tr><td>M12</td><td>flutter-build-from-publish</td><td><span class="tag tag-done">✅</span></td><td>blockhub.sh flutter-build</td></tr>
       <tr class="highlight-row"><td>M13</td><td>GA#9 裁剪验收</td><td><span class="tag tag-wip">🔶 E2E 已写</span></td><td>本轮重点</td></tr>
     </tbody>
@@ -200,8 +200,8 @@ td code{font-size:11px;background:#f5f5f4;padding:2px 6px;border-radius:4px}
     <tbody>
       <tr><td>域名 + HTTPS</td><td>Nginx + Let's Encrypt</td><td><span class="tag tag-plan">⬜ 运维</span></td></tr>
       <tr><td>JWT / 默认密码轮换</td><td><code>blockhub.sh secrets-check</code></td><td><span class="tag tag-plan">⬜ 改 .env</span></td></tr>
-      <tr><td>PG 每日备份</td><td><code>scripts/cron-pg-backup.example</code></td><td><span class="tag tag-plan">⬜ 写 crontab</span></td></tr>
-      <tr><td>监控告警</td><td><code>/api/v1/health</code> + 5xx</td><td><span class="tag tag-plan">⬜ 运维</span></td></tr>
+      <tr><td>PG 每日备份</td><td><code>setup-p1-cron.sh</code> · <code>pg-backup.sh</code></td><td><span class="tag tag-done">✅ 脚本</span></td></tr>
+      <tr><td>监控告警</td><td><code>health-watch.sh</code> cron</td><td><span class="tag tag-done">✅ 脚本</span></td></tr>
       <tr><td>腾讯云 PG 迁移</td><td><code>migrate-tencentdb.sh</code></td><td><span class="tag tag-plan">⬜ 你要求跳过</span></td></tr>
     </tbody>
   </table>
@@ -241,15 +241,16 @@ td code{font-size:11px;background:#f5f5f4;padding:2px 6px;border-radius:4px}
   <h2 class="section-title">七、服务器验收命令</h2>
   <div class="note note-info">
 <pre style="margin:0;font-size:12px;line-height:1.6;white-space:pre-wrap">cd /root/blockhub && git pull
-bash scripts/deploy-all.sh --web-only    # 或 restart API 使 build_manifest 修复生效
-systemctl restart blockhub-api           # 如适用
+bash blockhub.sh sync-systemd              # APK 后台 bash PATH（cf2ab64）
+bash blockhub.sh batch-all http://101.32.209.251 2>&1 | tee /tmp/batch-all.log
 
-# 全套 GA 签字（8+1 项）
-SKIP_APK=1 bash /root/blockhub/blockhub.sh signoff http://101.32.209.251
+# 或分批：
+bash blockhub.sh batch0 http://101.32.209.251   # SKIP_APK=1 可选
+bash blockhub.sh batch2 http://101.32.209.251   # APK 全链路 ~30min
+bash blockhub.sh batch4 http://101.32.209.251   # GA#9 + go_router
+bash blockhub.sh batch5                         # Web 覆盖率
 
-# 单项 GA#9
-cd e2e && E2E_API_URL=http://101.32.209.251/api/v1 E2E_BASE_URL=http://101.32.209.251 \
-  npx playwright test tests/ga9-manifest-crop.spec.ts --reporter=line</pre>
+清单：docs/TODO-POST-GA-BATCHES.md</pre>
   </div>
 </section>
 
@@ -257,7 +258,7 @@ cd e2e && E2E_API_URL=http://101.32.209.251/api/v1 E2E_BASE_URL=http://101.32.20
   <strong>积木仓 BlockHub</strong> · GA 进度看板 · 2026-07-13<br>
   对照：<a href="../功能清单-v1.2.html">功能清单-v1.2.html</a> ·
   <a href="../项目计划-合成版v1.3.md">项目计划-合成版v1.3.md</a> ·
-  <a href="../TODO-GA-2026-07.md">TODO-GA-2026-07.md</a> ·
+  <a href="../TODO-POST-GA-BATCHES.md">TODO-POST-GA-BATCHES.md</a> ·
   <a href="../RELEASE-v0.2.0-ga.md">RELEASE-v0.2.0-ga.md</a>
 </footer>
 

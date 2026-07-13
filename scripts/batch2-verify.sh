@@ -40,6 +40,22 @@ step() {
 
   git -C "$ROOT" log -1 --oneline
 
+  echo ""
+  echo ">>> [preflight] APK build environment"
+  if [ -x /bin/bash ]; then
+    echo "  ✓ /bin/bash exists"
+  else
+    echo "  ✗ /bin/bash missing"
+    FAIL=$((FAIL + 1))
+  fi
+  if [ -f /etc/systemd/system/blockhub-api.service ]; then
+    if grep -qE '/usr/bin:/bin|/bin:/usr/bin' /etc/systemd/system/blockhub-api.service 2>/dev/null; then
+      echo "  ✓ systemd PATH includes system bins"
+    else
+      echo "  · WARN systemd PATH 过窄 — 运行: bash scripts/sync-systemd-api.sh"
+    fi
+  fi
+
   if ! curl -sf --max-time 10 "$API/health" >/dev/null 2>&1; then
     echo "WARN: API health failed at $API/health — check systemctl restart blockhub-api"
   fi

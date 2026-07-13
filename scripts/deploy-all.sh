@@ -43,9 +43,16 @@ done
 log() { echo ""; echo ">>> $*"; }
 
 ensure_api_up() {
-  log "确保 blockhub-api 运行"
-  sudo systemctl enable blockhub-api 2>/dev/null || true
-  sudo systemctl restart blockhub-api
+  log "同步 systemd + 确保 blockhub-api 运行"
+  if [ -f "$ROOT/scripts/sync-systemd-api.sh" ]; then
+    bash "$ROOT/scripts/sync-systemd-api.sh" || {
+      sudo systemctl enable blockhub-api 2>/dev/null || true
+      sudo systemctl restart blockhub-api
+    }
+  else
+    sudo systemctl enable blockhub-api 2>/dev/null || true
+    sudo systemctl restart blockhub-api
+  fi
   local ok=false
   for i in $(seq 1 15); do
     if curl -sf --max-time 3 http://127.0.0.1:8001/api/v1/health >/dev/null 2>&1; then
