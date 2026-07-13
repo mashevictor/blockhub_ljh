@@ -85,6 +85,9 @@ case "$CMD" in
     [ -x "$PY" ] || PY=python3
     exec "$PY" "$ROOT/scripts/flutter-sync-pubspec-from-manifest.py" "$@"
     ;;
+  flutter-dev-reset)
+    run flutter-dev-reset.sh "$@"
+    ;;
   load-chat-sse)
     run load-chat-sse.sh "$@"
     ;;
@@ -135,6 +138,7 @@ BlockHub CLI · 仓库根: $ROOT
   blockhub.sh apk-size-compare                    P2 pubspec/APK 体积对比
   blockhub.sh flutter-parity                      P1 parity 矩阵报告
   blockhub.sh flutter-sync-pubspec --keys ...     P1 按 keys 同步 pubspec
+  blockhub.sh flutter-dev-reset                    恢复完整 pubspec + registry
   blockhub.sh load-chat-sse [BASE_URL]            D32 chat SSE 10 VU
   blockhub.sh check-template-ui                   D31 12×12 模板 UI 检查
   blockhub.sh batch-all [BASE_URL]                  批次0–5 联跑（Post-GA）

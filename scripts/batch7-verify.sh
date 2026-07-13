@@ -36,9 +36,9 @@ step "pubspec sync dry-run (chat_qa+approval_flow)" \
   "$PY" "$ROOT/scripts/flutter-sync-pubspec-from-manifest.py" --keys chat_qa,approval_flow --dry-run
 
 if command -v flutter >/dev/null 2>&1; then
-  step "flutter pub get" bash -c "cd '$ROOT/runtime-app' && flutter pub get"
+  step "flutter dev reset + pub get" bash "$ROOT/scripts/flutter-dev-reset.sh"
   step "flutter analyze registry" bash -c \
-    "cd '$ROOT/runtime-app' && flutter analyze --no-fatal-infos lib/melos_capability_registry.dart lib/pages/capability_page_registry.dart"
+    "cd '$ROOT/runtime-app' && flutter analyze --no-fatal-infos lib/melos_capability_registry.dart lib/melos_capability_registry.g.dart lib/capability_deferred_loader.g.dart lib/pages/capability_page_registry.dart"
 else
   echo ""
   echo ">>> · flutter CLI 未安装，跳过 pub get / analyze"

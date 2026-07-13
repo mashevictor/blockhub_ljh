@@ -41,16 +41,17 @@ for pkg in blockhub_flutter_core capability_chat_qa capability_approval_flow cap
   fi
 done
 
-if grep -q 'melosCapabilityModules' "$ROOT/runtime-app/lib/melos_capability_registry.dart" 2>/dev/null; then
-  echo "  ✓ runtime-app melos_capability_registry.dart"
+if grep -q "melos_capability_registry.g.dart" "$ROOT/runtime-app/lib/melos_capability_registry.dart" 2>/dev/null \
+  && [ -f "$ROOT/runtime-app/lib/melos_capability_registry.g.dart" ]; then
+  echo "  ✓ runtime-app melos registry (.dart + .g.dart)"
 else
-  echo "  ✗ melos registry missing"
+  echo "  ✗ melos registry missing — run: bash blockhub.sh flutter-dev-reset"
   FAIL=$((FAIL + 1))
 fi
 
 if command -v flutter >/dev/null 2>&1; then
-  step "flutter pub get (runtime-app)" bash -c "cd '$ROOT/runtime-app' && flutter pub get"
-  step "flutter analyze melos" bash -c "cd '$ROOT/runtime-app' && flutter analyze --no-fatal-infos lib/melos_capability_registry.dart lib/pages/capability_page_registry.dart"
+  step "flutter dev reset + pub get" bash "$ROOT/scripts/flutter-dev-reset.sh"
+  step "flutter analyze melos" bash -c "cd '$ROOT/runtime-app' && flutter analyze --no-fatal-infos lib/melos_capability_registry.dart lib/melos_capability_registry.g.dart lib/capability_deferred_loader.g.dart lib/pages/capability_page_registry.dart"
 else
   echo ""
   echo ">>> · flutter CLI 未安装，跳过 pub get / analyze"

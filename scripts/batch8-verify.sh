@@ -39,9 +39,9 @@ step "build-from-publish restore trap" bash -c \
   "grep -q '_restore_build_artifacts' '$ROOT/scripts/flutter-build-from-publish.sh'"
 
 if command -v flutter >/dev/null 2>&1; then
-  step "flutter pub get" bash -c "cd '$ROOT/runtime-app' && flutter pub get"
+  step "flutter dev reset + pub get" bash "$ROOT/scripts/flutter-dev-reset.sh"
   step "flutter analyze P2" bash -c \
-    "cd '$ROOT/runtime-app' && flutter analyze --no-fatal-infos lib/melos_capability_registry.dart lib/capability_deferred_host.dart lib/pages/capability_page_registry.dart"
+    "cd '$ROOT/runtime-app' && flutter analyze --no-fatal-infos lib/melos_capability_registry.dart lib/melos_capability_registry.g.dart lib/capability_deferred_loader.g.dart lib/capability_deferred_host.dart lib/pages/capability_page_registry.dart"
 else
   echo ""
   echo ">>> · flutter CLI 未安装，跳过 pub get / analyze"
