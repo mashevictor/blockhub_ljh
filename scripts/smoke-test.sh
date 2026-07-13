@@ -46,15 +46,36 @@ echo "=========================================="
 
 echo ""
 echo "=== Auth + Seed ==="
-TOKEN=$(curl -sf -X POST "$API/auth/login" \
-  -H "Content-Type: application/json" \
-  -d "{\"email\":\"$ADMIN_EMAIL\",\"password\":\"$ADMIN_PASSWORD\"}" \
-  | python3 -c "import sys,json; print(json.load(sys.stdin).get('access_token',''))" 2>/dev/null || echo "")
+HEALTH=$(curl -sf "$API/health" 2>/dev/null || echo "")
+if [ -n "$HEALTH" ]; then
+  ok "GET /health"
+else
+  bad "GET /health (API 不可达: $API)"
+fi
+
+login_once() {
+  curl -sf -X POST "$API/auth/login" \
+    -H "Content-Type: application/json" \
+    -d "{\"email\":\"$ADMIN_EMAIL\",\"password\":\"$ADMIN_PASSWORD\"}" \
+    | python3 -c "import sys,json; print(json.load(sys.stdin).get('access_token',''))" 2>/dev/null || echo ""
+}
+
+TOKEN=$(login_once)
+
+if [ -z "$TOKEN" ]; then
+  echo "  … login failed, trying demo-bootstrap (empty DB)…"
+  BOOT=$(curl -sf -X POST "$API/auth/demo-bootstrap" -H "Content-Type: application/json" -d '{}' 2>/dev/null || echo "")
+  if echo "$BOOT" | grep -q '"success":true'; then
+    ok "POST /auth/demo-bootstrap"
+    TOKEN=$(login_once)
+  fi
+fi
 
 if [ -n "$TOKEN" ]; then
   ok "POST /auth/login"
 else
   bad "POST /auth/login"
+  echo "  hint: bash scripts/repair-auth.sh  或确认 PostgreSQL 已启动"
 fi
 
 if [ -n "$TOKEN" ]; then

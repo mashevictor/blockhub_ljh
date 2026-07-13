@@ -53,3 +53,20 @@ label { display: block; margin-bottom: 12px; font-size: 13px; }
 
 .status-msg { color: #047857; font-size: 13px; }
 .widget-missing { padding: 16px; background: #fff7ed; border-radius: 8px; }
+.widget-missing p { margin: 6px 0; color: var(--muted); }
+
+.agent-picker { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.agent-chip { padding: 6px 12px; border-radius: 999px; border: 1px solid var(--border); background: #fff; cursor: pointer; font: inherit; font-size: 13px; }
+.agent-chip.active { font-weight: 600; }
+.agent-desc { margin-top: -4px; margin-bottom: 12px; }
+
+.nl-suggestions { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.nl-suggest-btn { font-size: 12px; padding: 6px 10px; }
+.nl-result { margin-top: 12px; padding: 12px; border: 1px solid var(--border); border-radius: 10px; background: #f8fafc; }
+
+.funnel-stages { display: flex; flex-direction: column; gap: 10px; }
+.funnel-row { display: grid; grid-template-columns: 64px 1fr 48px; gap: 8px; align-items: center; }
+.funnel-bar-wrap { background: #f1f5f9; border-radius: 6px; height: 10px; overflow: hidden; }
+.funnel-bar { height: 100%; border-radius: 6px; }
+.funnel-label, .funnel-value { font-size: 13px; }
+.list-card.unread { border-color: var(--accent); background: #fafafa; }

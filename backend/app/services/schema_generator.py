@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from app.data.capability_registry import ALL_CAPABILITIES
+from app.services import effective_capability_registry as _effective_registry  # noqa: F401 — bootstrap seed caps
 
 
 def _route_for(key: str) -> str:

@@ -165,6 +165,25 @@ def login(body: LoginRequest, db: Annotated[Session, Depends(get_db)]) -> LoginR
     return LoginResponse(access_token=token, user=_user_out(user))
 
 
+@router.post("/demo-bootstrap")
+def demo_bootstrap(db: Annotated[Session, Depends(get_db)]) -> dict:
+    """空库时创建演示账号（部署/冒烟用；已有用户则拒绝）。"""
+    from app.services.db_seed import ensure_seed_data
+
+    count = db.query(User).count()
+    if count > 0:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="已有用户，请直接 login 或 bash scripts/repair-auth.sh",
+        )
+    ensure_seed_data(db)
+    return {
+        "success": True,
+        "message": "demo users created",
+        "accounts": ["admin@trackchat.local / admin123", "employee@trackchat.local / emp123"],
+    }
+
+
 @router.get("/me", response_model=UserOut)
 def me(current_user: Annotated[User, Depends(get_current_user)]) -> UserOut:
     return _user_out(current_user)

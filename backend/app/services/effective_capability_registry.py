@@ -18,10 +18,18 @@ def _def_from_seed_item(item: dict) -> CapabilityDef:
     web_pkg = ""
     route = ""
     menu_icon = "module"
-    if key in ("chat_qa", "chat_voice"):
+    if key in ("chat_qa", "chat_voice", "chat_summary"):
         web_pkg = "@blockhub/web-capability-chat"
-        route = "/chat"
+        route = "/chat" if key != "chat_summary" else "/summary"
         menu_icon = "chat"
+    elif key == "multi_agent":
+        web_pkg = "@blockhub/web-capability-multi-agent"
+        route = "/multi-agent"
+        menu_icon = "chat"
+    elif key == "data_nl_query":
+        web_pkg = "@blockhub/web-capability-data-nl-query"
+        route = "/nl-query"
+        menu_icon = "chart"
     elif key.startswith("shanghai_voice"):
         web_pkg = "@blockhub/web-capability-voice"
         route = "/voice"
@@ -30,9 +38,9 @@ def _def_from_seed_item(item: dict) -> CapabilityDef:
         web_pkg = "@blockhub/web-capability-approval"
         route = "/approval" if "inbox" not in key else "/inbox"
         menu_icon = "approval" if "flow" in key else "inbox"
-    elif key.startswith("kb_") or key == "data_nl_query":
-        web_pkg = "@blockhub/web-capability-kb" if key.startswith("kb_") else ""
-        route = "/kb" if key.startswith("kb_") else f"/{key.replace('_', '-')}"
+    elif key.startswith("kb_"):
+        web_pkg = "@blockhub/web-capability-kb"
+        route = "/kb"
         menu_icon = "book"
     elif key.startswith("chart_") or key in ("report_scheduled", "data_export"):
         web_pkg = "@blockhub/web-capability-dashboard"
