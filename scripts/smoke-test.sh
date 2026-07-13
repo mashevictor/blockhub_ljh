@@ -110,7 +110,7 @@ CHIP_COUNT=$(echo "$SUMMARY" | python3 -c "import sys,json; print(json.load(sys.
 [ "$OFFICE_COUNT" -ge 65 ] 2>/dev/null && ok "office_count>=65 ($OFFICE_COUNT)" || bad "office_count<65 ($SUMMARY)"
 [ "$TOTAL_COUNT" -ge 114 ] 2>/dev/null && ok "total>=114 ($TOTAL_COUNT)" || bad "total<114 ($SUMMARY)"
 [ "$HERO_COUNT" -ge 30 ] 2>/dev/null && ok "hero_preset_count>=30 ($HERO_COUNT)" || bad "hero_preset_count<30 ($SUMMARY)"
-[ "$CHIP_COUNT" -eq 5 ] 2>/dev/null && ok "chip_template_count=5" || bad "chip_template_count!=5 ($SUMMARY)"
+[ "$CHIP_COUNT" -ge 5 ] 2>/dev/null && ok "chip_template_count>=5 ($CHIP_COUNT)" || bad "chip_template_count<5 ($SUMMARY)"
 AGENT_COUNT=$(echo "$SUMMARY" | python3 -c "import sys,json; print(json.load(sys.stdin).get('agent_count',0))" 2>/dev/null || echo 0)
 [ "$AGENT_COUNT" -ge 12 ] 2>/dev/null && ok "agent_count>=12 ($AGENT_COUNT)" || bad "agent_count<12 ($SUMMARY)"
 

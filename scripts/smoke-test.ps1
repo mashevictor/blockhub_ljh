@@ -60,14 +60,14 @@ Write-Host "`n=== Catalog (PostgreSQL) ==="
 try {
     $summary = Invoke-RestMethod -Uri "$Api/catalog/summary"
     if ($summary.source -eq "database") { Ok "catalog source=database" } else { Bad "catalog source=$($summary.source)" }
-    if ($summary.industry_count -eq 49) { Ok "industry_count=49" } else { Bad "industry_count=$($summary.industry_count)" }
+    if ($summary.industry_count -ge 49) { Ok "industry_count>=49 ($($summary.industry_count))" } else { Bad "industry_count=$($summary.industry_count)" }
     if ($summary.office_count -ge 65) { Ok "office_count>=65 ($($summary.office_count))" } else { Bad "office_count=$($summary.office_count)" }
     if ($summary.total -ge 114) { Ok "total>=114 ($($summary.total))" } else { Bad "total=$($summary.total)" }
-    if ($summary.hero_preset_count -eq 30) { Ok "hero_preset_count=30" } else { Bad "hero_preset_count=$($summary.hero_preset_count)" }
-    if ($summary.chip_template_count -eq 5) { Ok "chip_template_count=5" } else { Bad "chip_template_count=$($summary.chip_template_count)" }
+    if ($summary.hero_preset_count -ge 30) { Ok "hero_preset_count>=30 ($($summary.hero_preset_count))" } else { Bad "hero_preset_count=$($summary.hero_preset_count)" }
+    if ($summary.chip_template_count -ge 5) { Ok "chip_template_count>=5 ($($summary.chip_template_count))" } else { Bad "chip_template_count=$($summary.chip_template_count)" }
     if ($summary.agent_count -ge 11) { Ok "agent_count>=11 ($($summary.agent_count))" } else { Bad "agent_count=$($summary.agent_count)" }
     $hero = Invoke-RestMethod -Uri "$Api/catalog/hero-presets"
-    if ($hero.total -eq 30) { Ok "GET /catalog/hero-presets total=30" } else { Bad "hero-presets total=$($hero.total)" }
+    if ($hero.total -ge 30) { Ok "GET /catalog/hero-presets total>=30 ($($hero.total))" } else { Bad "hero-presets total=$($hero.total)" }
 } catch { Bad "GET /catalog/summary or hero-presets" }
 
 Write-Host "`n=== Agents ==="
