@@ -11,6 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "backend"))
 
 from app.data.capability_registry import ALL_CAPABILITIES  # noqa: E402
+from app.services import effective_capability_registry as _eff  # noqa: F401 — bootstrap seed
 from app.services.build_manifest import _route_for, _web_pkg, _flutter_pkg
 
 

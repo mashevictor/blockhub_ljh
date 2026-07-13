@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import 'config/app_branding.dart';
-import 'data/capability_manifest.dart';
 import 'models/tenant_config.dart';
-import 'pages/capability_pages.dart';
+import 'pages/capability_page_registry.dart';
 import 'pages/login_page.dart';
 import 'pages/shanghai_voice_page.dart';
 import 'services/auth_service.dart';
@@ -109,22 +108,32 @@ class _RuntimeAppState extends State<RuntimeApp> {
                 )
               : null,
         ),
-        body: widget.branding.voiceDemoMode
-            ? ShanghaiVoicePage(branding: widget.branding)
-            : !_authChecked
-            ? const Center(child: CircularProgressIndicator())
-            : !_authService.isLoggedIn
-                ? LoginPage(branding: widget.branding, onLoggedIn: _onLoggedIn)
-                : _error != null
-                    ? Center(child: Text('加载失败: $_error'))
-                    : _config == null
-                        ? const Center(child: CircularProgressIndicator())
-                        : _HomeBody(
-                            config: _config!,
-                            branding: widget.branding,
-                            onLogout: _logout,
-                          ),
+        body: _buildBody(primary),
       ),
+    );
+  }
+
+  Widget _buildBody(Color primary) {
+    final manifestKeys = _config?.resolvedCapabilityKeys ?? [];
+    if (shouldUseVoiceDemoShell(widget.branding, manifestKeys)) {
+      return ShanghaiVoicePage(branding: widget.branding);
+    }
+    if (!_authChecked) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (!_authService.isLoggedIn) {
+      return LoginPage(branding: widget.branding, onLoggedIn: _onLoggedIn);
+    }
+    if (_error != null) {
+      return Center(child: Text('加载失败: $_error'));
+    }
+    if (_config == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    return _HomeBody(
+      config: _config!,
+      branding: widget.branding,
+      onLogout: _logout,
     );
   }
 }
@@ -146,8 +155,11 @@ class _HomeBodyState extends State<_HomeBody> {
   List<MenuItem> get _visibleMenu {
     final menu = widget.config.menu;
     final buildKeys = widget.branding.capabilityKeys;
-    if (buildKeys.isEmpty) return menu;
-    final allowed = buildKeys.toSet();
+    final manifestKeys = widget.config.resolvedCapabilityKeys;
+    final allowed = buildKeys.isNotEmpty
+        ? buildKeys.toSet()
+        : (manifestKeys.isNotEmpty ? manifestKeys.toSet() : <String>{});
+    if (allowed.isEmpty) return menu;
     final filtered = menu.where((m) => allowed.contains(m.key)).toList();
     return filtered.isNotEmpty ? filtered : menu;
   }
@@ -157,30 +169,15 @@ class _HomeBodyState extends State<_HomeBody> {
     super.initState();
     final menu = _visibleMenu;
     final keys = menu.map((m) => m.key).toList();
-    final manifestKeys = widget.config.resolvedCapabilityKeys;
-    final buildKeys = widget.branding.capabilityKeys;
-    final effectiveKeys = buildKeys.isEmpty
-        ? manifestKeys
-        : manifestKeys.where((k) => buildKeys.contains(k)).toList();
-    _selectedKey = effectiveKeys.isNotEmpty
-        ? effectiveKeys.first
-        : (keys.isNotEmpty ? keys.first : null);
+    _selectedKey = pickInitialCapabilityKey(
+      manifestKeys: widget.config.resolvedCapabilityKeys,
+      menuKeys: keys,
+      buildKeys: widget.branding.capabilityKeys,
+    );
   }
 
   Widget _buildPage(String key) {
-    final builder = capabilityPages[key];
-    if (builder != null) {
-      return builder(widget.branding);
-    }
-    // 回退占位：优先用 codegen 生成的契约名（capability_manifest.dart），
-    // 再退化到菜单 label，保证「建设中」提示始终有可读中文名。
-    final label = capabilityManifestByKey[key]?.name ??
-        widget.config.menu
-            .firstWhere((m) => m.key == key, orElse: () => MenuItem(key: key, label: key, icon: ''))
-            .label;
-    return Center(
-      child: Text('「$label」页面建设中', style: Theme.of(context).textTheme.titleMedium),
-    );
+    return buildCapabilityPage(key: key, branding: widget.branding);
   }
 
   @override

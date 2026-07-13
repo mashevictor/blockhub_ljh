@@ -2,6 +2,50 @@
   "version": 1,
   "capabilities": [
     {
+      "key": "announce_board",
+      "name": "公告栏",
+      "category": "通知集成",
+      "widget": "BannerWidget",
+      "agent_id": "notify",
+      "web_pkg": "@blockhub/web-capability-dashboard",
+      "flutter_pkg": "capability_announce_board",
+      "route": "/notifications",
+      "keywords": []
+    },
+    {
+      "key": "approval_conditional",
+      "name": "条件分支审批",
+      "category": "流程审批",
+      "widget": "WorkflowWidget",
+      "agent_id": "approval",
+      "web_pkg": "@blockhub/web-capability-approval",
+      "flutter_pkg": "capability_approval_conditional",
+      "route": "/approval",
+      "keywords": []
+    },
+    {
+      "key": "approval_countersign",
+      "name": "会签/或签",
+      "category": "流程审批",
+      "widget": "WorkflowWidget",
+      "agent_id": "approval",
+      "web_pkg": "@blockhub/web-capability-approval",
+      "flutter_pkg": "capability_approval_countersign",
+      "route": "/approval",
+      "keywords": []
+    },
+    {
+      "key": "approval_esign",
+      "name": "电子签批",
+      "category": "流程审批",
+      "widget": "EsignWidget",
+      "agent_id": "approval",
+      "web_pkg": "@blockhub/web-capability-approval",
+      "flutter_pkg": "capability_approval_esign",
+      "route": "/approval",
+      "keywords": []
+    },
+    {
       "key": "approval_flow",
       "name": "审批流",
       "category": "流程审批",
@@ -42,6 +86,17 @@
       ]
     },
     {
+      "key": "approval_remind",
+      "name": "超时催办",
+      "category": "流程审批",
+      "widget": "NotifyWidget",
+      "agent_id": "approval",
+      "web_pkg": "@blockhub/web-capability-approval",
+      "flutter_pkg": "capability_approval_remind",
+      "route": "/approval",
+      "keywords": []
+    },
+    {
       "key": "asset_manage",
       "name": "资产管理",
       "category": "外部集成",
@@ -55,6 +110,39 @@
         "领用",
         "固定资产"
       ]
+    },
+    {
+      "key": "audit_log",
+      "name": "操作审计日志",
+      "category": "权限安全",
+      "widget": "AuditWidget",
+      "agent_id": "creation",
+      "web_pkg": "@blockhub/web-capability-audit-log",
+      "flutter_pkg": "capability_audit_log",
+      "route": "/audit-log",
+      "keywords": []
+    },
+    {
+      "key": "auth_sso",
+      "name": "SSO 单点登录",
+      "category": "权限安全",
+      "widget": "SSOWidget",
+      "agent_id": "integration",
+      "web_pkg": "@blockhub/web-capability-auth-sso",
+      "flutter_pkg": "capability_auth_sso",
+      "route": "/auth-sso",
+      "keywords": []
+    },
+    {
+      "key": "chart_basic",
+      "name": "折线/柱状图",
+      "category": "可视化",
+      "widget": "ChartWidget",
+      "agent_id": "report",
+      "web_pkg": "@blockhub/web-capability-dashboard",
+      "flutter_pkg": "capability_chart_basic",
+      "route": "/dashboard",
+      "keywords": []
     },
     {
       "key": "chart_dashboard",
@@ -89,6 +177,17 @@
       ]
     },
     {
+      "key": "chart_kpi_card",
+      "name": "KPI 卡片",
+      "category": "可视化",
+      "widget": "KpiCardWidget",
+      "agent_id": "report",
+      "web_pkg": "@blockhub/web-capability-dashboard",
+      "flutter_pkg": "capability_chart_kpi_card",
+      "route": "/dashboard",
+      "keywords": []
+    },
+    {
       "key": "chat_qa",
       "name": "智能问答",
       "category": "智能交互",
@@ -106,6 +205,21 @@
       ]
     },
     {
+      "key": "chat_summary",
+      "name": "对话摘要",
+      "category": "智能交互",
+      "widget": "SummaryWidget",
+      "agent_id": "chat_qa",
+      "web_pkg": "@blockhub/web-capability-chat",
+      "flutter_pkg": "capability_chat_summary",
+      "route": "/summary",
+      "keywords": [
+        "摘要",
+        "总结",
+        "会议纪要"
+      ]
+    },
+    {
       "key": "chat_voice",
       "name": "语音问答",
       "category": "智能交互",
@@ -120,6 +234,72 @@
       ]
     },
     {
+      "key": "contract_editor",
+      "name": "合同编辑器",
+      "category": "合同签章",
+      "widget": "ContractEditorWidget",
+      "agent_id": "contract_esign",
+      "web_pkg": "@blockhub/web-capability-approval",
+      "flutter_pkg": "capability_contract_editor",
+      "route": "/approval",
+      "keywords": []
+    },
+    {
+      "key": "contract_pdf",
+      "name": "合同 PDF",
+      "category": "合同签章",
+      "widget": "PdfWidget",
+      "agent_id": "contract_esign",
+      "web_pkg": "@blockhub/web-capability-approval",
+      "flutter_pkg": "capability_contract_pdf",
+      "route": "/approval",
+      "keywords": []
+    },
+    {
+      "key": "contract_seal",
+      "name": "电子公章",
+      "category": "合同签章",
+      "widget": "SealWidget",
+      "agent_id": "contract_esign",
+      "web_pkg": "@blockhub/web-capability-approval",
+      "flutter_pkg": "capability_contract_seal",
+      "route": "/approval",
+      "keywords": []
+    },
+    {
+      "key": "contract_sign",
+      "name": "手写签名",
+      "category": "合同签章",
+      "widget": "SignWidget",
+      "agent_id": "contract_esign",
+      "web_pkg": "@blockhub/web-capability-approval",
+      "flutter_pkg": "capability_contract_sign",
+      "route": "/approval",
+      "keywords": []
+    },
+    {
+      "key": "creation",
+      "name": "智能创建",
+      "category": "平台能力",
+      "widget": "CreationWizard",
+      "agent_id": "creation",
+      "web_pkg": "@blockhub/web-capability-creation",
+      "flutter_pkg": "capability_creation",
+      "route": "/creation",
+      "keywords": []
+    },
+    {
+      "key": "data_export",
+      "name": "数据导出",
+      "category": "知识数据",
+      "widget": "ExportWidget",
+      "agent_id": "report",
+      "web_pkg": "@blockhub/web-capability-dashboard",
+      "flutter_pkg": "capability_data_export",
+      "route": "/dashboard",
+      "keywords": []
+    },
+    {
       "key": "data_nl_query",
       "name": "智能问数",
       "category": "知识数据",
@@ -127,7 +307,7 @@
       "agent_id": "report",
       "web_pkg": "@blockhub/web-capability-data-nl-query",
       "flutter_pkg": "capability_data_nl_query",
-      "route": "/data-nl-query",
+      "route": "/nl-query",
       "keywords": [
         "问数",
         "自然语言查数",
@@ -381,9 +561,9 @@
       "category": "平台能力",
       "widget": "FormWidget",
       "agent_id": "creation",
-      "web_pkg": "@blockhub/web-capability-form-widget",
+      "web_pkg": "@blockhub/web-capability-approval",
       "flutter_pkg": "flutter_form_builder",
-      "route": "/form-widget",
+      "route": "/form",
       "keywords": [
         "表单",
         "问卷",
@@ -391,6 +571,17 @@
         "登记",
         "填写"
       ]
+    },
+    {
+      "key": "integration",
+      "name": "外部数据对接",
+      "category": "外部集成",
+      "widget": "ConnectorWidget",
+      "agent_id": "integration",
+      "web_pkg": "@blockhub/web-capability-integration",
+      "flutter_pkg": "capability_integration",
+      "route": "/integration",
+      "keywords": []
     },
     {
       "key": "it_helpdesk",
@@ -428,14 +619,25 @@
       ]
     },
     {
+      "key": "kb_search",
+      "name": "语义检索",
+      "category": "知识数据",
+      "widget": "KBSearchWidget",
+      "agent_id": "kb",
+      "web_pkg": "@blockhub/web-capability-kb",
+      "flutter_pkg": "capability_kb_search",
+      "route": "/kb",
+      "keywords": []
+    },
+    {
       "key": "list_widget",
       "name": "列表组件",
       "category": "平台能力",
       "widget": "ListWidget",
       "agent_id": "creation",
-      "web_pkg": "@blockhub/web-capability-list-widget",
+      "web_pkg": "@blockhub/web-capability-approval",
       "flutter_pkg": "capability_list_widget",
-      "route": "/list-widget",
+      "route": "/list",
       "keywords": [
         "列表",
         "清单",
@@ -482,9 +684,9 @@
       "category": "通知集成",
       "widget": "EmailWidget",
       "agent_id": "notify",
-      "web_pkg": "@blockhub/web-capability-notify-email",
+      "web_pkg": "@blockhub/web-capability-dashboard",
       "flutter_pkg": "capability_notify_email",
-      "route": "/notify-email",
+      "route": "/email",
       "keywords": [
         "邮件",
         "email",
@@ -524,6 +726,17 @@
       ]
     },
     {
+      "key": "oa_connector",
+      "name": "OA 连接器",
+      "category": "外部集成",
+      "widget": "OAWidget",
+      "agent_id": "integration",
+      "web_pkg": "@blockhub/web-capability-oa-connector",
+      "flutter_pkg": "capability_oa_connector",
+      "route": "/oa-connector",
+      "keywords": []
+    },
+    {
       "key": "rbac_page",
       "name": "角色权限",
       "category": "权限安全",
@@ -538,6 +751,17 @@
         "rbac",
         "可见范围"
       ]
+    },
+    {
+      "key": "report_scheduled",
+      "name": "定时报表",
+      "category": "知识数据",
+      "widget": "ReportWidget",
+      "agent_id": "report",
+      "web_pkg": "@blockhub/web-capability-dashboard",
+      "flutter_pkg": "capability_report_scheduled",
+      "route": "/dashboard",
+      "keywords": []
     },
     {
       "key": "schedule_alarm",
@@ -560,6 +784,17 @@
         "计时器",
         "倒计时"
       ]
+    },
+    {
+      "key": "security_mask",
+      "name": "数据脱敏展示",
+      "category": "权限安全",
+      "widget": "MaskWidget",
+      "agent_id": "creation",
+      "web_pkg": "@blockhub/web-capability-security-mask",
+      "flutter_pkg": "capability_security_mask",
+      "route": "/security-mask",
+      "keywords": []
     },
     {
       "key": "shanghai_voice",

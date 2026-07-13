@@ -1,17 +1,15 @@
 #!/usr/bin/env bash
-# APK 验收：本地产物 + runtime 下载接口
+# APK 验收：per-app 下载语义 + 契约一致性（不再依赖 default.apk 回退）
 #
 # 用法:
-#   bash scripts/smoke-apk.sh                          # 检查 default.apk + 下载 API
 #   bash scripts/smoke-apk.sh http://101.32.209.251
-#   WITH_BUILD=1 bash scripts/smoke-apk.sh             # 无 APK 时尝试构建（需 Flutter/Android SDK）
+#   WITH_BUILD=1 bash scripts/smoke-apk.sh http://127.0.0.1:8001  # 构建 per-app APK
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 BASE="${1:-http://101.32.209.251}"
 API="$BASE/api/v1"
 APK_DIR="$ROOT/backend/uploads/apks"
-DEFAULT_APK="$APK_DIR/default.apk"
 PASS=0
 FAIL=0
 
@@ -22,74 +20,96 @@ echo "=========================================="
 echo " APK Smoke · $BASE"
 echo "=========================================="
 
-if [ ! -f "$DEFAULT_APK" ]; then
-  if [ "${WITH_BUILD:-0}" = "1" ] && command -v flutter >/dev/null 2>&1; then
-    echo ">>> default.apk 缺失，尝试构建..."
-    bash "$ROOT/scripts/flutter-build-apk.sh"
-  else
-    no "default.apk 不存在 ($DEFAULT_APK)"
-    echo ""
-    echo "  构建命令:"
-    echo "    sudo bash scripts/setup-flutter-android.sh   # 首次"
-    echo "    bash scripts/flutter-build-apk.sh"
-    echo "  或: WITH_BUILD=1 bash scripts/smoke-apk.sh"
-    echo "=========================================="
-    exit 1
-  fi
-fi
+login_once() {
+  curl -sf -X POST "$API/auth/login" \
+    -H "Content-Type: application/json" \
+    -d '{"email":"admin@trackchat.local","password":"admin123"}' \
+    | python3 -c "import sys,json; print(json.load(sys.stdin).get('access_token',''))" 2>/dev/null || echo ""
+}
 
-if [ -f "$DEFAULT_APK" ]; then
-  SIZE=$(wc -c < "$DEFAULT_APK" | tr -d ' ')
-  if [ "$SIZE" -gt 500000 ] 2>/dev/null; then
-    ok "default.apk exists ($(numfmt --to=iec-i --suffix=B "$SIZE" 2>/dev/null || echo "${SIZE} bytes"))"
-  else
-    no "default.apk too small ($SIZE bytes)"
-  fi
-else
-  no "default.apk still missing after build attempt"
+TOKEN=$(login_once)
+if [ -z "$TOKEN" ]; then
+  curl -sf -X POST "$API/auth/demo-bootstrap" -H "Content-Type: application/json" -d '{}' >/dev/null 2>&1 || true
+  TOKEN=$(login_once)
 fi
-
-# 上海话 APK（可选）
-if [ -f "$APK_DIR/shanghai-voice.apk" ]; then
-  ok "shanghai-voice.apk present"
-else
-  echo "  · shanghai-voice.apk optional (bash scripts/build-shanghai-voice-apk.sh)"
-fi
-
-if command -v aapt >/dev/null 2>&1 || ls "${ANDROID_HOME:-}/build-tools/"*/aapt >/dev/null 2>&1; then
-  if bash "$ROOT/scripts/verify-apk-flavor.sh" "$DEFAULT_APK" trackchat 2>/dev/null; then
-    ok "aapt package com.trackchat.runtime"
-  else
-    no "aapt verify failed"
-  fi
-else
-  echo "  · aapt skip (install Android build-tools for package verify)"
-fi
-
-TOKEN=$(curl -sf -X POST "$API/auth/login" \
-  -H "Content-Type: application/json" \
-  -d '{"email":"admin@trackchat.local","password":"admin123"}' \
-  | python3 -c "import sys,json; print(json.load(sys.stdin).get('access_token',''))" 2>/dev/null || echo "")
 
 if [ -n "$TOKEN" ]; then
-  PUB=$(curl -sf -X POST "$API/creation/publish" \
-    -H "Content-Type: application/json" \
-    -H "Authorization: Bearer $TOKEN" \
-    -d '{"name":"APK验收探测","industry_key":"office","scenario_names":["制度政策问答"],"deliver":"both","source":"industry"}' 2>/dev/null || echo "")
-  APP_ID=$(echo "$PUB" | python3 -c "import sys,json; print(json.load(sys.stdin).get('app',{}).get('id',''))" 2>/dev/null || echo "")
-  if [ -n "$APP_ID" ]; then
-    ok "publish app for APK download ($APP_ID)"
-    CODE=$(curl -s -o /dev/null -w "%{http_code}" "$API/runtime/$APP_ID/download" 2>/dev/null || echo "000")
-    if [ "$CODE" = "200" ]; then
-      ok "GET /runtime/{id}/download HTTP 200"
+  ok "admin login"
+else
+  no "admin login"
+  echo "=========================================="
+  exit 1
+fi
+AUTH="Authorization: Bearer $TOKEN"
+
+PUB=$(curl -sf -X POST "$API/creation/publish" \
+  -H "Content-Type: application/json" \
+  -H "$AUTH" \
+  -d '{"name":"APK验收探测","industry_key":"office","scenario_names":["制度政策问答"],"capability_keys":["chat_qa","approval_flow"],"deliver":"both","source":"industry"}' 2>/dev/null || echo "")
+
+APP_ID=$(echo "$PUB" | python3 -c "import sys,json; print(json.load(sys.stdin).get('app',{}).get('id',''))" 2>/dev/null || echo "")
+if [ -n "$APP_ID" ]; then
+  ok "publish app for APK ($APP_ID)"
+else
+  no "publish for APK test"
+  echo "=========================================="
+  exit 1
+fi
+
+echo "$PUB" | python3 -c '
+import sys, json
+d = json.load(sys.stdin)
+asm = d.get("capability_assembly") or {}
+resolved = asm.get("resolved_keys") or []
+assert "chat_qa" in resolved and "approval_flow" in resolved
+' && ok "capability_assembly includes chat_qa + approval_flow" || no "capability_assembly"
+
+PER_APK="$APK_DIR/${APP_ID}.apk"
+CODE=$(curl -s -o /dev/null -w "%{http_code}" "$API/runtime/$APP_ID/download" 2>/dev/null || echo "000")
+
+if [ -f "$PER_APK" ]; then
+  SIZE=$(wc -c < "$PER_APK" | tr -d ' ')
+  ok "per-app APK exists (${SIZE} bytes)"
+  if [ "$CODE" = "200" ]; then
+    ok "GET /runtime/{id}/download HTTP 200"
+  else
+    no "GET /runtime/{id}/download HTTP $CODE (file exists)"
+  fi
+elif [ "$CODE" = "503" ]; then
+  ok "download HTTP 503 (专属 APK 未构建，符合不回退 default.apk)"
+  if [ "${WITH_BUILD:-0}" = "1" ] && command -v flutter >/dev/null 2>&1; then
+    echo ">>> building per-app APK via flutter-build-from-publish..."
+    bash "$ROOT/scripts/flutter-build-from-publish.sh" "$APP_ID"
+    if [ -f "$PER_APK" ]; then
+      ok "per-app APK built"
+      CODE2=$(curl -s -o /dev/null -w "%{http_code}" "$API/runtime/$APP_ID/download" 2>/dev/null || echo "000")
+      [ "$CODE2" = "200" ] && ok "download HTTP 200 after build" || no "download HTTP $CODE2 after build"
     else
-      no "GET /runtime/{id}/download HTTP $CODE"
+      no "per-app APK build failed"
     fi
   else
-    no "publish for APK test ($PUB)"
+    echo "  · hint: WITH_BUILD=1 bash scripts/smoke-apk.sh $BASE"
   fi
 else
-  no "admin login for download test"
+  no "download HTTP $CODE (expected 503 or 200)"
+fi
+
+# 可选：检查构建队列 spec 含 capability_keys
+SPEC="$APK_DIR/.build-queue/${APP_ID}.json"
+if [ -f "$SPEC" ]; then
+  python3 -c "
+import json
+from pathlib import Path
+spec = json.loads(Path('$SPEC').read_text(encoding='utf-8'))
+keys = spec.get('capability_keys') or []
+assert 'chat_qa' in keys, keys
+print('spec_keys', keys)
+" && ok "build queue spec has capability_keys" || no "build queue spec missing keys"
+fi
+
+# default.apk 仅作通用构建产物，download API 不应依赖它
+if [ -f "$APK_DIR/default.apk" ]; then
+  echo "  · default.apk present (generic build artifact, not used for per-app download)"
 fi
 
 echo ""

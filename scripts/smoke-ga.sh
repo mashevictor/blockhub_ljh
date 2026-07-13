@@ -12,9 +12,10 @@ echo "=========================================="
 bash "$ROOT/scripts/smoke-test.sh" "$BASE"
 bash "$ROOT/scripts/regression-114.sh" "$BASE"
 bash "$ROOT/scripts/smoke-custom-capability.sh" "$BASE"
+bash "$ROOT/scripts/smoke-capability-contract.sh" "$BASE"
 bash "$ROOT/scripts/load-10vu.sh" "$BASE" 10
 
-if [ "${SKIP_APK:-0}" != "1" ] && [ -f "$ROOT/backend/uploads/apks/default.apk" ]; then
+if [ "${SKIP_APK:-0}" != "1" ]; then
   echo ""
   echo "=== APK Smoke ==="
   bash "$ROOT/scripts/smoke-apk.sh" "$BASE" || true

@@ -32,6 +32,12 @@ PUB=$(curl -sf -X POST "$API/creation/publish" -H "$AUTH" -H 'Content-Type: appl
 if [ -n "$PUB" ]; then
   APP_ID=$(echo "$PUB" | python3 -c 'import sys,json;a=json.load(sys.stdin).get("app",{});print(a.get("id",""))')
   ok "publish app for runtime ($APP_ID)"
+  echo "$PUB" | python3 -c '
+import sys, json
+d = json.load(sys.stdin)
+asm = d.get("capability_assembly") or {}
+assert asm.get("resolved_keys"), asm
+' && ok "publish capability_assembly present" || no "capability_assembly missing"
   SCHEMA=$(curl -sf "$API/runtime/$APP_ID/schema")
   echo "$SCHEMA" | python3 -c 'import sys,json;d=json.load(sys.stdin);assert "page_schema" in d and d["page_schema"]' \
     && ok "GET /runtime/{id}/schema" || no "runtime schema"

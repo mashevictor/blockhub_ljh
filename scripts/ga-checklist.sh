@@ -153,6 +153,7 @@ for f in \
   scripts/deploy-all.sh \
   scripts/server-docker-redis.sh \
   scripts/smoke-ga.sh \
+  scripts/smoke-capability-contract.sh \
   scripts/migrate-tencentdb.sh \
   docker-compose.prod.yml \
   docs/previews/GA-验收清单.html; do
