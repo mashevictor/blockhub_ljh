@@ -7,6 +7,7 @@
     "test": "playwright test",
     "test:api": "playwright test publish-runtime-plaza custom-capability plaza-interactions",
     "test:browser": "playwright test admin-login runtime-web-render runtime-mobile-h5 home-shell home-publish",
+    "prepare:browsers": "playwright install chromium",
     "test:all": "playwright test",
     "test:headed": "playwright test --headed",
     "test:ui": "playwright test --ui",

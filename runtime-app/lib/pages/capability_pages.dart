@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../config/app_branding.dart';
 import 'approval_page.dart';
 import 'chat_page.dart';
+import 'integration_hub_page.dart';
 import 'nl_query_page.dart';
 import 'report_page.dart';
 import 'shanghai_voice_page.dart';
@@ -17,6 +18,7 @@ Widget _approval(AppBranding b) => ApprovalPage(branding: b);
 Widget _report(AppBranding b) => ReportPage(branding: b);
 Widget _voice(AppBranding b) => ShanghaiVoicePage(branding: b);
 Widget _nlQuery(AppBranding b) => NLQueryPage(branding: b);
+Widget _integration(AppBranding b, String key) => IntegrationHubPage(branding: b, capabilityKey: key);
 
 final Map<String, CapabilityPageBuilder> capabilityPages = {
   // 语音
@@ -54,4 +56,13 @@ final Map<String, CapabilityPageBuilder> capabilityPages = {
   'notify_sms': _report,
   'announce_board': _report,
   'schedule_alarm': _report,
+  // 集成
+  'erp_connector': (b) => _integration(b, 'erp_connector'),
+  'oa_connector': (b) => _integration(b, 'oa_connector'),
+  'meeting_booking': (b) => _integration(b, 'meeting_booking'),
+  'it_helpdesk': (b) => _integration(b, 'it_helpdesk'),
+  'asset_manage': (b) => _integration(b, 'asset_manage'),
+  'im_connector': (b) => _integration(b, 'im_connector'),
+  'rbac_page': (b) => _integration(b, 'rbac_page'),
+  'auth_sso': (b) => _integration(b, 'auth_sso'),
 };

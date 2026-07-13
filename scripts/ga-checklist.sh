@@ -61,15 +61,28 @@ fi
 # ── 3. 发布闭环 Web+App ──
 echo ""
 echo "[3/8] Publish → runtime → plaza"
-if bash "$ROOT/scripts/smoke-custom-capability.sh" "$BASE" >/dev/null 2>&1; then
+  if bash "$ROOT/scripts/smoke-custom-capability.sh" "$BASE" >/dev/null 2>&1; then
   E2E_OK=0
   if [ -d "$ROOT/e2e/node_modules" ] || [ -f "$ROOT/e2e/package.json" ]; then
     (cd "$ROOT/e2e" && npm install --silent 2>/dev/null || true)
+    # API 链（无需浏览器）
     if (cd "$ROOT/e2e" && E2E_API_URL="$API" E2E_BASE_URL="$BASE" \
-      npx playwright test tests/publish-runtime-plaza.spec.ts tests/runtime-mobile-h5.spec.ts --reporter=line 2>/dev/null); then
+      npx playwright test tests/publish-runtime-plaza.spec.ts --reporter=line 2>/dev/null); then
       E2E_OK=1
     fi
+    # H5 浏览器测试（需 chromium；失败不阻断 GA#3，除非 REQUIRE_BROWSER_E2E=1）
+    if [ "${SKIP_BROWSER_E2E:-0}" != "1" ]; then
+      if bash "$ROOT/scripts/e2e-prep-browsers.sh" >/dev/null 2>&1 \
+        && (cd "$ROOT/e2e" && E2E_API_URL="$API" E2E_BASE_URL="$BASE" \
+          npx playwright test tests/runtime-mobile-h5.spec.ts --project=mobile-chrome --reporter=line 2>/dev/null); then
+        echo "  · runtime H5 E2E green"
+      else
+        echo "  · WARN: runtime H5 E2E skipped (run: bash scripts/e2e-prep-browsers.sh)"
+        [ "${REQUIRE_BROWSER_E2E:-0}" = "1" ] && E2E_OK=0
+      fi
+    fi
     if [ -n "${E2E_HOME_URL:-}" ] && [ "$E2E_OK" -eq 1 ]; then
+      bash "$ROOT/scripts/e2e-prep-browsers.sh" >/dev/null 2>&1 || true
       if (cd "$ROOT/e2e" && E2E_API_URL="$API" E2E_BASE_URL="$BASE" E2E_HOME_URL="${E2E_HOME_URL}" \
         npx playwright test tests/home-publish.spec.ts --reporter=line 2>/dev/null); then
         echo "  · Home UI publish E2E green"

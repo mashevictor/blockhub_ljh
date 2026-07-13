@@ -5,6 +5,7 @@ import '../data/capability_manifest.dart';
 import 'approval_page.dart';
 import 'chat_page.dart';
 import 'capability_pages.dart';
+import 'integration_hub_page.dart';
 import 'nl_query_page.dart';
 import 'report_page.dart';
 import 'shanghai_voice_page.dart';
@@ -46,7 +47,9 @@ Widget buildCapabilityPage({
       case 'AssetWidget':
       case 'IMWidget':
       case 'RBACWidget':
-        return ReportPage(branding: branding);
+      case 'OAWidget':
+      case 'SSOWidget':
+        return IntegrationHubPage(branding: branding, capabilityKey: key);
     }
   }
 

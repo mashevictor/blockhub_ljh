@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import 'config/app_branding.dart';
+import 'config/modular_capabilities.g.dart';
 import 'models/tenant_config.dart';
 import 'pages/capability_page_registry.dart';
 import 'pages/login_page.dart';
@@ -180,6 +181,18 @@ class _HomeBodyState extends State<_HomeBody> {
     return buildCapabilityPage(key: key, branding: widget.branding);
   }
 
+  String _menuSubtitle() {
+    final base = widget.config.tenantName;
+    final buildKeys = widget.branding.capabilityKeys;
+    if (buildKeys.isNotEmpty) {
+      return '$base · 已裁剪 ${buildKeys.length} 项能力';
+    }
+    if (modularCapabilityKeys.isNotEmpty) {
+      return '$base · 模块化 ${modularCapabilityKeys.length} 项';
+    }
+    return base;
+  }
+
   @override
   Widget build(BuildContext context) {
     final menu = _visibleMenu;
@@ -191,7 +204,7 @@ class _HomeBodyState extends State<_HomeBody> {
             child: Text(widget.config.appName.characters.first),
           ),
           title: Text(widget.config.appName, style: Theme.of(context).textTheme.titleLarge),
-          subtitle: Text(widget.config.tenantName),
+          subtitle: Text(_menuSubtitle()),
           trailing: IconButton(
             icon: const Icon(Icons.logout),
             tooltip: '退出登录',

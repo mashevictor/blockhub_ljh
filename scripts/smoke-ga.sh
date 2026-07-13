@@ -24,9 +24,7 @@ fi
 if [ -d "$ROOT/e2e" ]; then
   echo ""
   echo "=== Playwright E2E ==="
-  if [ ! -d "$ROOT/e2e/node_modules" ]; then
-    (cd "$ROOT/e2e" && npm install --silent)
-  fi
+  bash "$ROOT/scripts/e2e-prep-browsers.sh"
   E2E_API_URL="$BASE/api/v1" E2E_BASE_URL="$BASE" \
     (cd "$ROOT/e2e" && npx playwright test --reporter=list) \
     && echo "  ✓ playwright e2e" || { echo "  ✗ playwright e2e"; exit 1; }

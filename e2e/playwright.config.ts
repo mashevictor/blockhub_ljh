@@ -20,6 +20,7 @@ export default defineConfig({
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
+      testIgnore: /runtime-mobile-h5\.spec\.ts/,
     },
     {
       name: 'mobile-chrome',

@@ -1,10 +1,8 @@
 import { test, expect } from '@playwright/test'
 import { adminToken, apiPost, runtimeAppUrl } from './helpers'
 
-/** D16：runtime-web 窄屏 H5 — 底部 Tab 导航与主内容可见 */
+/** D16：runtime-web 窄屏 H5 — 底部 Tab 导航与主内容可见（mobile-chrome 项目已设 Pixel 5 视口） */
 test.describe('runtime-web mobile H5', () => {
-  test.use({ viewport: { width: 390, height: 844 } })
-
   test('narrow viewport shows bottom nav and widget', async ({ page }) => {
     const token = await adminToken()
     const appName = `E2E-H5-${Date.now()}`

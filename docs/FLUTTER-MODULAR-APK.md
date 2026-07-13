@@ -16,16 +16,34 @@ POST /creation/publish
 ## 构建命令
 
 ```bash
+# 列出全部 capability_key
+bash scripts/flutter-build-custom.sh --list
+
+# 自选能力打包（本地/运维）
+bash scripts/flutter-build-custom.sh chat_qa,approval_flow \
+  --name "门店助手" --color "#2563EB" --public-id abc12345
+
 # 通用演示 APK
 bash scripts/flutter-build-apk.sh
 
-# 按发布队列构建 per-app APK（推荐）
+# 按发布队列构建 per-app APK（推荐，与 Home 发布一致）
 bash scripts/flutter-build-from-publish.sh <public_id>
 
 # 手动指定能力集
 CAPABILITY_KEYS=chat_qa,data_nl_query BUILD_PER_APP_ONLY=1 \
   APP_PUBLIC_ID=demo1 bash scripts/flutter-build-apk.sh
 ```
+
+## 能否自选模块？样式会不一样吗？
+
+| 维度 | 行为 |
+|------|------|
+| **能力自选** | ✅ 可以。Home 发布时勾选的模块 → `capability_keys` → 自动写入 build-queue；也可用 `flutter-build-custom.sh` 手动指定 |
+| **Tab / 页面** | 不同。选 `chat_qa+approval` 只有问答+审批两个 Tab；选 `shanghai_voice` 仅语音全屏壳 |
+| **App 样式** | 整 App 统一：`PRIMARY_COLOR` 主题色、`APP_NAME` 名称、图标 —— **不是每个模块一套皮肤** |
+| **特殊布局** | 仅 `shanghai_voice` 类能力会进入全屏语音 UI（与普通 Tab 壳不同） |
+
+简单说：**模块决定「有什么功能、看到哪些 Tab」；品牌色/名称决定「整 App 长什么样」。**
 
 ## 模块化机制
 
