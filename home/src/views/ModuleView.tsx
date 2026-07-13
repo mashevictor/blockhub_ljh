@@ -15,6 +15,8 @@ import AppBrandingFields from '../components/AppBrandingFields'
 import { emptyBranding } from '../data/appBranding'
 import SelectionBox, { type SelectionItem } from '../components/SelectionBox'
 import { ChevronDotLoadingRow } from '../components/ChevronDotLoader'
+import DeliverTargetPicker from '../components/DeliverTargetPicker'
+import { deliverToPlatforms, platformsToDeliver, type PlatformId } from '../data/deliverTargets'
 
 interface Props {
   onPublish: (r: PublishResult) => void
@@ -34,7 +36,8 @@ export default function ModuleView({ onPublish, active = true }: Props) {
   const [moduleGroups, setModuleGroups] = useState<CapabilityGroup[]>([])
   const [modulesLoading, setModulesLoading] = useState(true)
   const [modulesError, setModulesError] = useState<string | null>(null)
-  const [device, setDevice] = useState<'web' | 'app' | 'both'>('web')
+  const [platforms, setPlatforms] = useState<PlatformId[]>(() => deliverToPlatforms('web'))
+  const device = platformsToDeliver(platforms)
   const [boxOpenSignal, setBoxOpenSignal] = useState(0)
   const [lastAddedId, setLastAddedId] = useState<string | null>(null)
 
@@ -179,13 +182,7 @@ export default function ModuleView({ onPublish, active = true }: Props) {
         <div className="builder-canvas cube-panel-inner">
           <div className="canvas-toolbar">
             <h3>您的应用</h3>
-            <div className="device-tabs">
-              {(['web', 'app', 'both'] as const).map((d) => (
-                <button key={d} type="button" className={device === d ? 'on' : ''} onClick={() => setDevice(d)}>
-                  {d === 'web' ? 'Web' : d === 'app' ? 'App' : '双端'}
-                </button>
-              ))}
-            </div>
+            <DeliverTargetPicker value={platforms} onChange={setPlatforms} />
           </div>
           <div className="canvas-drop">
             {!widgets.length && (

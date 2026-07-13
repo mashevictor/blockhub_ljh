@@ -42,7 +42,16 @@ export default function B2BHeader({ user, activeSection = 'hero', onLogout }: Pr
     <header className={`b2b-header${compact ? ' is-compact' : ''}`}>
       <div className="b2b-header-accent" aria-hidden />
       <div className="b2b-nav">
-        <Link to={ROUTES.home} className="b2b-logo" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+        <Link
+          to={ROUTES.home}
+          className="b2b-logo"
+          onClick={(e) => {
+            if (isHome) {
+              e.preventDefault()
+              scrollToHomeSection('hero')
+            }
+          }}
+        >
           <BrandMark size={compact ? 36 : 42} />
           <span className="b2b-logo-text">
             <strong>{BRAND.nameZh}</strong>

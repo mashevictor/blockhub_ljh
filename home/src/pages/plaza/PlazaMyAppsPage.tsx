@@ -156,7 +156,7 @@ export default function PlazaMyAppsPage() {
       )}
 
       {justPublishedId && apps.some((a) => appKey(a) === justPublishedId) && (
-        <p className="plaza-my-success-banner">🎉 发布成功 — 已为你打开编排层，可在数据流中拖动模块</p>
+        <p className="plaza-my-success-banner">🎉 发布成功 — 请确认交付进度与分享链接，模块编排可稍后展开</p>
       )}
 
       {apps.length === 0 && (
@@ -225,6 +225,7 @@ export default function PlazaMyAppsPage() {
         <PlazaOrchestrationOverlay
           app={orchApp}
           user={user}
+          justPublished={justPublishedId === appKey(orchApp)}
           onClose={closeOrchestration}
           onRemove={() => handleRemove(orchApp)}
           onPlazaPublished={(meta) => setOrchApp((prev) => (prev ? { ...prev, plaza: meta } : null))}

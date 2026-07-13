@@ -19,7 +19,11 @@ import { AgentPageProvider, useAgentPageContext } from './context/AgentPageConte
 import { PromptDraftProvider } from './context/PromptDraftContext'
 import { DemoBookingProvider } from './context/DemoBookingContext'
 import type { AgentContextKey } from './data/agentContext'
-import { scrollToHomeSection, useHomeActiveSection } from './hooks/useHomeActiveSection'
+import {
+  HOME_HASH_NAV_DELAY_MS,
+  scrollToHomeSection,
+  useHomeActiveSection,
+} from './hooks/useHomeActiveSection'
 import { parseCreateDeepLink } from './lib/createDeepLink'
 import './styles/b2b-landing.css'
 
@@ -96,7 +100,7 @@ export default function HomeApp() {
   useEffect(() => {
     const { mode } = parseCreateDeepLink()
     if (mode) {
-      requestAnimationFrame(() => scrollToHomeSection('contact-create'))
+      scrollToHomeSection('contact-create', HOME_HASH_NAV_DELAY_MS)
     }
   }, [location.hash])
 
@@ -104,9 +108,7 @@ export default function HomeApp() {
     const hash = location.hash.replace('#', '')
     const sectionIds = ['product', 'case', 'contact-create', 'contact-demo', 'hero']
     if (location.pathname === '/' && hash && sectionIds.includes(hash)) {
-      requestAnimationFrame(() => {
-        window.setTimeout(() => scrollToHomeSection(hash), 80)
-      })
+      scrollToHomeSection(hash, HOME_HASH_NAV_DELAY_MS)
     }
   }, [location.pathname, location.hash])
 

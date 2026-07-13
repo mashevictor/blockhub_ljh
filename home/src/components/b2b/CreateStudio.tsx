@@ -13,6 +13,8 @@ import IndustryView from '../../views/IndustryView'
 import ModuleView from '../../views/ModuleView'
 import { finishPublishNavigate } from '../../lib/publishFlow'
 import { parseCreateDeepLink } from '../../lib/createDeepLink'
+import { scrollToHomeSection } from '../../hooks/useHomeActiveSection'
+import DemoBookingComposer from './DemoBookingComposer'
 
 export default function CreateStudio() {
   const [view, setView] = useState<ViewMode>('prompt')
@@ -66,19 +68,13 @@ export default function CreateStudio() {
 
   const handleViewChange = (mode: ViewMode) => {
     setView(mode)
-    requestAnimationFrame(() => {
-      mainRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    })
+    scrollToHomeSection('contact-create')
   }
 
   const handleRoleApply = (role: RoleApplyRequest['preset'], generate?: boolean) => {
     setView('prompt')
     setRoleApply({ preset: role, generate })
-    if (generate) {
-      requestAnimationFrame(() => {
-        mainRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-      })
-    }
+    if (generate) scrollToHomeSection('contact-create')
   }
 
   const handlePublish = (result: PublishResult) => {
@@ -95,6 +91,9 @@ export default function CreateStudio() {
       </div>
       <div className="b2b-create-hero">
         <HeroCubeStage onRoleApply={handleRoleApply} showTitle={false} />
+      </div>
+      <div className="b2b-create-booking">
+        <DemoBookingComposer />
       </div>
       <div ref={mainRef} className="b2b-create-main">
         <div className={view === 'prompt' ? undefined : 'view-hidden'} aria-hidden={view !== 'prompt'}>

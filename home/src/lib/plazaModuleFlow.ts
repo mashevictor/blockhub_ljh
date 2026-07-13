@@ -99,6 +99,10 @@ export function insertFlowStepAfter(
     note: note?.trim() || defaultNote(trimmed),
     order: 0,
   }
+  if (afterStepId === FLOW_INGRESS_ID) {
+    const steps = [step, ...flow.steps]
+    return saveModuleFlow({ ...flow, steps: steps.map((s, i) => ({ ...s, order: i })) })
+  }
   if (!afterStepId) {
     return saveModuleFlow({ ...flow, steps: [...flow.steps, step].map((s, i) => ({ ...s, order: i })) })
   }

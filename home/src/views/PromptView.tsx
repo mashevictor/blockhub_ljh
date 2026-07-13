@@ -19,6 +19,8 @@ import PromptSuggestBar from '../components/PromptSuggestBar'
 import IntentAnalysisStrip from '../components/IntentAnalysisStrip'
 import ContactGateModal, { type ContactInfo } from '../components/ContactGateModal'
 import GenerateLoadingOverlay, { type GeneratePhase } from '../components/GenerateLoadingOverlay'
+import DeliverTargetPicker from '../components/DeliverTargetPicker'
+import { ALL_PLATFORMS, platformsToDeliver, type PlatformId } from '../data/deliverTargets'
 import { deriveDefaultAppName, emptyBranding, resolveAppName } from '../data/appBranding'
 import { moduleId, pickToModule, type PromptModule } from '../components/agentInputLogic'
 import { type PublishResult } from '../data/constants'
@@ -117,7 +119,8 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
   const [contactBusy, setContactBusy] = useState(false)
   const [pendingPreset, setPendingPreset] = useState<RolePreset | null>(null)
   const [catalogLoading, setCatalogLoading] = useState(true)
-  const [deliver, setDeliver] = useState<'web' | 'app' | 'both'>('both')
+  const [platforms, setPlatforms] = useState<PlatformId[]>(() => [...ALL_PLATFORMS])
+  const deliver = useMemo(() => platformsToDeliver(platforms), [platforms])
   const [branding, setBranding] = useState(() => emptyBranding())
   const [officeAll, setOfficeAll] = useState<CatalogScenario[]>([])
   const [industryAll, setIndustryAll] = useState<CatalogScenario[]>([])
@@ -1079,13 +1082,7 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
             )}
           </div>
           <div className="prompt-footer-right">
-            <div className="deliver-select minimal-deliver">
-              {(['web', 'app', 'both'] as const).map((d) => (
-                <button key={d} type="button" className={`deliver-btn${deliver === d ? ' on' : ''}`} onClick={() => setDeliver(d)}>
-                  {d === 'web' ? '网页' : d === 'app' ? 'App' : '双端'}
-                </button>
-              ))}
-            </div>
+            <DeliverTargetPicker value={platforms} onChange={setPlatforms} compact className="minimal-deliver" />
             <button type="button" className="btn-primary minimal-generate agent-action-btn" disabled={loading || !canGenerate} onClick={handleGenerate}>
               {loading ? GENERATE_APP_LOADING : (
                 <AgentButtonContent>{GENERATE_APP_LABEL}</AgentButtonContent>

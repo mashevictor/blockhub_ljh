@@ -9,8 +9,8 @@ export function normalizeDeliver(value?: string): DeliverMode {
 
 export function deliverLabel(mode: DeliverMode): string {
   if (mode === 'web') return '网页版'
-  if (mode === 'app') return 'Android App'
-  return '网页 + App 双端'
+  if (mode === 'app') return 'App 版'
+  return '五端发布'
 }
 
 export function showWebDeliver(result: Pick<PublishResult, 'deliver'>): boolean {

@@ -12,6 +12,7 @@ import { showAppDeliver } from '../../data/deliverDisplay'
 interface Props {
   app: StoredMyApp
   user: AuthUser | null
+  justPublished?: boolean
   onClose: () => void
   onRemove: () => void
   onPlazaPublished?: (meta: PlazaAudienceMeta) => void
@@ -30,7 +31,14 @@ function moduleLabels(app: StoredMyApp): string[] {
   return app.scenarios?.slice(0, 6) ?? []
 }
 
-export default function PlazaOrchestrationOverlay({ app, user, onClose, onRemove, onPlazaPublished }: Props) {
+export default function PlazaOrchestrationOverlay({
+  app,
+  user,
+  justPublished = false,
+  onClose,
+  onRemove,
+  onPlazaPublished,
+}: Props) {
   const appKey = app.appId || app.webUrl
   const showDelivery = showAppDeliver(app)
 
@@ -40,14 +48,21 @@ export default function PlazaOrchestrationOverlay({ app, user, onClose, onRemove
     }
     window.addEventListener('keydown', onKey)
     document.body.style.overflow = 'hidden'
+    document.body.classList.add('plaza-orch-open')
     return () => {
       window.removeEventListener('keydown', onKey)
       document.body.style.overflow = ''
+      document.body.classList.remove('plaza-orch-open')
     }
   }, [onClose])
 
   return (
-    <div className="plaza-orch-overlay" role="dialog" aria-modal="true" aria-label={`编排 ${app.appName}`}>
+    <div
+      className={`plaza-orch-overlay${justPublished ? ' is-just-published' : ''}`}
+      role="dialog"
+      aria-modal="true"
+      aria-label={justPublished ? `发布成功 ${app.appName}` : `编排 ${app.appName}`}
+    >
       <div className="plaza-orch-backdrop" onClick={onClose} aria-hidden />
       <div className="plaza-orch-sheet">
         <header className="plaza-orch-head">
@@ -88,37 +103,80 @@ export default function PlazaOrchestrationOverlay({ app, user, onClose, onRemove
         </header>
 
         <div className="plaza-orch-body">
-          {showDelivery && (
-            <div className="plaza-orch-delivery">
-              <DeliveryProgress app={app} compact />
-            </div>
+          {justPublished ? (
+            <>
+              {showDelivery && (
+                <div className="plaza-orch-delivery">
+                  <DeliveryProgress app={app} compact />
+                </div>
+              )}
+
+              <section className="plaza-orch-publish-primary" aria-label="交付与分享">
+                <h3 className="plaza-orch-section-title">
+                  <span className="plaza-mflow-chev" aria-hidden>&gt;&gt;</span> 交付与分享
+                </h3>
+                <PublishSuccessCard
+                  result={app}
+                  showAdminLink={!!user}
+                  compact
+                  orchestration
+                  plazaMeta={app.plaza}
+                  onPlazaPublished={(meta) => {
+                    setMyAppPlazaAudience(appKey, meta)
+                    onPlazaPublished?.(meta)
+                  }}
+                />
+              </section>
+
+              <details className="plaza-orch-flow-collapsed">
+                <summary>
+                  <span className="plaza-mflow-chev">&gt;&gt;</span> 模块数据流编排
+                  <span className="plaza-orch-share-hint">可选 · 拖序与添加模块</span>
+                </summary>
+                <PlazaModuleFlowPanel
+                  appKey={appKey}
+                  appName={app.appName}
+                  moduleLabels={moduleLabels(app)}
+                  isCreator
+                  orchestration
+                />
+              </details>
+            </>
+          ) : (
+            <>
+              {showDelivery && (
+                <div className="plaza-orch-delivery">
+                  <DeliveryProgress app={app} compact />
+                </div>
+              )}
+
+              <PlazaModuleFlowPanel
+                appKey={appKey}
+                appName={app.appName}
+                moduleLabels={moduleLabels(app)}
+                isCreator
+                orchestration
+              />
+
+              <details className="plaza-orch-share">
+                <summary>
+                  <span className="plaza-mflow-chev">&gt;&gt;</span> 分享与发布
+                  <span className="plaza-orch-share-hint">默认 @公开 · 全体可见</span>
+                </summary>
+                <PublishSuccessCard
+                  result={app}
+                  showAdminLink={!!user}
+                  compact
+                  orchestration
+                  plazaMeta={app.plaza}
+                  onPlazaPublished={(meta) => {
+                    setMyAppPlazaAudience(appKey, meta)
+                    onPlazaPublished?.(meta)
+                  }}
+                />
+              </details>
+            </>
           )}
-
-          <PlazaModuleFlowPanel
-            appKey={appKey}
-            appName={app.appName}
-            moduleLabels={moduleLabels(app)}
-            isCreator
-            orchestration
-          />
-
-          <details className="plaza-orch-share" open>
-            <summary>
-              <span className="plaza-mflow-chev">&gt;&gt;</span> 分享与发布
-              <span className="plaza-orch-share-hint">默认 @公开 · 全体可见</span>
-            </summary>
-            <PublishSuccessCard
-              result={app}
-              showAdminLink={!!user}
-              compact
-              orchestration
-              plazaMeta={app.plaza}
-              onPlazaPublished={(meta) => {
-                setMyAppPlazaAudience(appKey, meta)
-                onPlazaPublished?.(meta)
-              }}
-            />
-          </details>
         </div>
       </div>
     </div>

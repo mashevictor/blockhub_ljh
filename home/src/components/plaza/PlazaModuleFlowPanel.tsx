@@ -92,13 +92,6 @@ export default function PlazaModuleFlowPanel({
     setActiveNodeId(next.steps[next.steps.length - 1]?.id ?? null)
   }
 
-  const scrollToApi = () => {
-    setShowAdvanced(true)
-    requestAnimationFrame(() => {
-      apiRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
-    })
-  }
-
   return (
     <section
       className={`plaza-mflow-panel${compact ? ' compact' : ''}${orchestration ? ' orchestration' : ''}`}
@@ -153,6 +146,8 @@ export default function PlazaModuleFlowPanel({
           <FlowOrchestrationDock
             activeNodeId={activeNodeId}
             activeStep={activeStep}
+            activeApiNode={null}
+            activeApiSide={null}
             isCreator={isCreator}
             pickerOpen={pickerAfterStepId === activeNodeId && !!activeStep}
             availableModules={availableModules}
@@ -169,7 +164,6 @@ export default function PlazaModuleFlowPanel({
             }}
             onPickModule={(mod) => handleAddFromCatalog(mod, activeStep?.id ?? null)}
             onClosePicker={() => setPickerAfterStepId(null)}
-            onDialHint={scrollToApi}
           />
 
           <div className="plaza-orch-advanced">

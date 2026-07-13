@@ -1,10 +1,14 @@
 import type { ModuleFlowStep } from '../../lib/plazaModuleFlow'
 import { FLOW_EGRESS_ID, FLOW_INGRESS_ID } from '../../lib/plazaModuleFlow'
 import { getModuleCapability, type ModuleCapability } from '../../data/moduleCatalog'
+import type { FlowApiNode } from '../../lib/flowModuleApis'
+import FlowApiEndpointRow from './FlowApiEndpointRow'
 
 interface Props {
   activeNodeId: string | null
   activeStep: ModuleFlowStep | null
+  activeApiNode: FlowApiNode | null
+  activeApiSide: 'input' | 'output' | null
   isCreator: boolean
   pickerOpen: boolean
   availableModules: ModuleCapability[]
@@ -13,12 +17,13 @@ interface Props {
   onDelete: () => void
   onPickModule: (mod: ModuleCapability) => void
   onClosePicker: () => void
-  onDialHint?: () => void
 }
 
 export default function FlowOrchestrationDock({
   activeNodeId,
   activeStep,
+  activeApiNode,
+  activeApiSide,
   isCreator,
   pickerOpen,
   availableModules,
@@ -27,20 +32,21 @@ export default function FlowOrchestrationDock({
   onDelete,
   onPickModule,
   onClosePicker,
-  onDialHint,
 }: Props) {
-  const isEndpoint = activeNodeId === FLOW_INGRESS_ID || activeNodeId === FLOW_EGRESS_ID
+  const isIngress = activeNodeId === FLOW_INGRESS_ID
+  const isEgress = activeNodeId === FLOW_EGRESS_ID
+  const isEndpoint = isIngress || isEgress
   const cap = activeStep ? getModuleCapability(activeStep.label) : null
 
   let title = '点击数据流中的模块'
   let desc = '在上方完整数据流里选择节点，在此编排添加、编辑与拨通'
 
-  if (activeNodeId === FLOW_INGRESS_ID) {
+  if (isIngress) {
     title = '业务输入'
-    desc = '外部请求由此进入应用数据流'
-  } else if (activeNodeId === FLOW_EGRESS_ID) {
+    desc = '外部请求由此进入应用数据流 · 下方可测试 IN/OUT 接口'
+  } else if (isEgress) {
     title = '触达输出'
-    desc = '处理结果推送到网页、手机或消息通知'
+    desc = '处理结果推送到网页、手机或消息通知 · 下方可测试 IN/OUT 接口'
   } else if (activeStep) {
     title = activeStep.label
     desc = cap?.desc ?? activeStep.note
@@ -53,6 +59,13 @@ export default function FlowOrchestrationDock({
         <strong>{title}</strong>
         <span>{desc}</span>
       </div>
+      {isCreator && isIngress && (
+        <div className="plaza-orch-dock-actions">
+          <button type="button" className="btn-primary-sm" onClick={onAddModule}>
+            <span className="plaza-mflow-chev">&gt;</span> 添加首模块
+          </button>
+        </div>
+      )}
       {isCreator && activeStep && !isEndpoint && (
         <div className="plaza-orch-dock-actions">
           <button type="button" className="btn-primary-sm" onClick={onAddModule}>
@@ -62,8 +75,24 @@ export default function FlowOrchestrationDock({
           <button type="button" className="btn-ghost-sm" onClick={onDelete}>删除</button>
         </div>
       )}
-      {isCreator && isEndpoint && onDialHint && (
-        <button type="button" className="btn-ghost-sm" onClick={onDialHint}>查看 API</button>
+
+      {activeApiNode && (
+        <div className="plaza-orch-dock-api">
+          <FlowApiEndpointRow
+            title="IN"
+            api={activeApiNode.input_api}
+            variant="input"
+            highlighted={activeApiSide === 'input'}
+            compact
+          />
+          <FlowApiEndpointRow
+            title="OUT"
+            api={activeApiNode.output_api}
+            variant="output"
+            highlighted={activeApiSide === 'output'}
+            compact
+          />
+        </div>
       )}
 
       {pickerOpen && (

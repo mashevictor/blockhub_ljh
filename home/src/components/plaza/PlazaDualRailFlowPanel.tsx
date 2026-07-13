@@ -10,6 +10,7 @@ import {
   buildFallbackFlowApis,
   dialFlowModuleApis,
   loadCachedFlowApis,
+  type FlowApiEndpoint,
   type FlowApiNode,
 } from '../../lib/flowModuleApis'
 import type { AppModuleFlow } from '../../lib/plazaModuleFlow'
@@ -25,6 +26,7 @@ import {
   updateFlowStep,
 } from '../../lib/plazaModuleFlow'
 import FlowOrchestrationDock from './FlowOrchestrationDock'
+import PlazaRunControls from './PlazaRunControls'
 
 interface Props {
   appKey: string
@@ -93,32 +95,53 @@ function FuncNode({
   )
 }
 
-function DataNode({
-  id,
-  method,
-  path,
+function DataNodePair({
+  nodeId,
+  inputApi,
+  outputApi,
   active,
+  activeSide,
   running,
   onSelect,
 }: {
-  id: string
-  method: string
-  path: string
+  nodeId: string
+  inputApi?: FlowApiEndpoint
+  outputApi?: FlowApiEndpoint
   active: boolean
+  activeSide: 'input' | 'output' | null
   running?: boolean
-  onSelect: () => void
+  onSelect: (side: 'input' | 'output') => void
 }) {
   return (
-    <button
-      type="button"
-      className={`plaza-dual-rail-node data${active ? ' active' : ''}${running ? ' running' : ''}`}
-      data-node-id={id}
-      onClick={onSelect}
-      aria-pressed={active}
+    <div
+      className={`plaza-dual-rail-data-pair${active ? ' active' : ''}${running ? ' running' : ''}`}
+      data-node-id={nodeId}
     >
-      <span className={`plaza-dual-rail-method method-${method.toLowerCase()}`}>{method}</span>
-      <span className="plaza-dual-rail-path">{path}</span>
-    </button>
+      <button
+        type="button"
+        className={`plaza-dual-rail-node data io-input${active && activeSide === 'input' ? ' side-active' : ''}`}
+        onClick={() => onSelect('input')}
+        aria-pressed={active && activeSide === 'input'}
+      >
+        <span className="plaza-dual-rail-io-tag input">IN</span>
+        <span className={`plaza-dual-rail-method method-${(inputApi?.method ?? '—').toLowerCase()}`}>
+          {inputApi?.method ?? '—'}
+        </span>
+        <span className="plaza-dual-rail-path">{inputApi?.path ?? '—'}</span>
+      </button>
+      <button
+        type="button"
+        className={`plaza-dual-rail-node data io-output${active && activeSide === 'output' ? ' side-active' : ''}`}
+        onClick={() => onSelect('output')}
+        aria-pressed={active && activeSide === 'output'}
+      >
+        <span className="plaza-dual-rail-io-tag output">OUT</span>
+        <span className={`plaza-dual-rail-method method-${(outputApi?.method ?? '—').toLowerCase()}`}>
+          {outputApi?.method ?? '—'}
+        </span>
+        <span className="plaza-dual-rail-path">{outputApi?.path ?? '—'}</span>
+      </button>
+    </div>
   )
 }
 
@@ -131,6 +154,7 @@ export default function PlazaDualRailFlowPanel({
   const [flow, setFlow] = useState<AppModuleFlow>(() => loadModuleFlow(appKey, moduleLabels))
   const run = usePlazaFlowRun()
   const [activeNodeId, setActiveNodeId] = useState<string | null>(FLOW_INGRESS_ID)
+  const [activeApiSide, setActiveApiSide] = useState<'input' | 'output' | null>('input')
   const [pickerAfterStepId, setPickerAfterStepId] = useState<string | null>(null)
   const [editNote, setEditNote] = useState('')
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -159,6 +183,7 @@ export default function PlazaDualRailFlowPanel({
     const loaded = loadModuleFlow(appKey, moduleLabels)
     setFlow(loaded)
     setActiveNodeId(FLOW_INGRESS_ID)
+    setActiveApiSide('input')
     setEditingId(null)
     setPickerAfterStepId(null)
   }, [appKey, moduleLabels.join('|')])
@@ -220,27 +245,39 @@ export default function PlazaDualRailFlowPanel({
     }
   }, [dragIndex, finishDrag])
 
-  const handleAddFromCatalog = (mod: ModuleCapability) => {
-    const afterId = activeStep?.id ?? flow.steps[flow.steps.length - 1]?.id ?? null
+  const selectNode = (nodeId: string, side: 'input' | 'output' = 'input') => {
+    setActiveNodeId(nodeId)
+    setActiveApiSide(side)
+    setEditingId(null)
+    setPickerAfterStepId(null)
+  }
+
+  const handleAddFromCatalog = (mod: ModuleCapability, afterId: string | null) => {
     const next = insertFlowStepAfter(flow, afterId, mod.label, mod.flowHint)
     setFlow(next)
-    const idx = afterId ? next.steps.findIndex((s) => s.id === afterId) : -1
-    const newId = idx >= 0 ? next.steps[idx + 1]?.id : next.steps[next.steps.length - 1]?.id
-    setActiveNodeId(newId ?? null)
+    const idx =
+      afterId === FLOW_INGRESS_ID
+        ? 0
+        : afterId
+          ? next.steps.findIndex((s) => s.id === afterId)
+          : -1
+    const newId = idx >= 0 ? next.steps[idx + 1]?.id ?? next.steps[idx]?.id : next.steps[next.steps.length - 1]?.id
+    if (newId) selectNode(newId, 'input')
     setPickerAfterStepId(null)
   }
 
   const dataRows = useMemo(() => {
     return buildFlowApiNodeList(flow.steps).map((n) => {
       const api = apiNodes.get(n.node_id)
-      const ep = api?.output_api ?? api?.input_api
       return {
         id: n.node_id,
-        method: ep?.method ?? '—',
-        path: ep?.path ?? '—',
+        input: api?.input_api,
+        output: api?.output_api,
       }
     })
   }, [flow.steps, apiNodes])
+
+  const activeApiNode = activeNodeId ? apiNodes.get(activeNodeId) ?? null : null
 
   const startEdit = () => {
     if (!activeStep || !isCreator) return
@@ -279,7 +316,7 @@ export default function PlazaDualRailFlowPanel({
               active={activeNodeId === FLOW_INGRESS_ID}
               running={runningNodeId === FLOW_INGRESS_ID}
               readOnly={!isCreator}
-              onSelect={() => setActiveNodeId(FLOW_INGRESS_ID)}
+              onSelect={() => selectNode(FLOW_INGRESS_ID, 'input')}
             />
             {flow.steps.map((step, i) => (
               <div key={step.id} className="plaza-dual-rail-connector" aria-hidden>
@@ -295,11 +332,7 @@ export default function PlazaDualRailFlowPanel({
                   isDragOver={overIndex === i && dragIndex !== null && dragIndex !== i}
                   stepIndex={i}
                   readOnly={!isCreator}
-                  onSelect={() => {
-                    setActiveNodeId(step.id)
-                    setEditingId(null)
-                    setPickerAfterStepId(null)
-                  }}
+                  onSelect={() => selectNode(step.id, 'input')}
                   onGripDown={(e) => {
                     if (e.button !== 0) return
                     e.preventDefault()
@@ -320,7 +353,7 @@ export default function PlazaDualRailFlowPanel({
                 active={activeNodeId === FLOW_EGRESS_ID}
                 running={runningNodeId === FLOW_EGRESS_ID}
                 readOnly={!isCreator}
-                onSelect={() => setActiveNodeId(FLOW_EGRESS_ID)}
+                onSelect={() => selectNode(FLOW_EGRESS_ID, 'output')}
               />
             </div>
           </div>
@@ -338,24 +371,29 @@ export default function PlazaDualRailFlowPanel({
         <div className="plaza-dual-rail-col data-col">
           <div className="plaza-dual-rail-col-head">
             <span className="plaza-mflow-chev">&gt;&gt;</span> 数据编排轨
-            <span className="plaza-dual-rail-col-hint">自动生成 · 只读</span>
+            <span className="plaza-dual-rail-col-hint">IN 入站 · OUT 出站 · 只读</span>
           </div>
           <div className="plaza-dual-rail-stack">
             {dataRows.map((row, i) => (
               <div key={row.id} className="plaza-dual-rail-connector data">
                 {i > 0 && <span className="plaza-dual-rail-vline data" />}
-                <DataNode
-                  id={row.id}
-                  method={row.method}
-                  path={row.path}
+                <DataNodePair
+                  nodeId={row.id}
+                  inputApi={row.input}
+                  outputApi={row.output}
                   active={activeNodeId === row.id}
+                  activeSide={activeNodeId === row.id ? activeApiSide : null}
                   running={runningNodeId === row.id}
-                  onSelect={() => setActiveNodeId(row.id)}
+                  onSelect={(side) => selectNode(row.id, side)}
                 />
               </div>
             ))}
           </div>
         </div>
+      </div>
+
+      <div className="plaza-dual-rail-run-bar">
+        <PlazaRunControls />
       </div>
 
       <p className="plaza-dual-rail-cross-hint">
@@ -379,15 +417,24 @@ export default function PlazaDualRailFlowPanel({
         <FlowOrchestrationDock
           activeNodeId={activeNodeId}
           activeStep={activeStep}
+          activeApiNode={activeApiNode}
+          activeApiSide={activeApiSide}
           isCreator={isCreator}
-          pickerOpen={pickerAfterStepId === activeNodeId && !!activeStep}
+          pickerOpen={
+            pickerAfterStepId === activeNodeId
+            || (pickerAfterStepId === FLOW_INGRESS_ID && activeNodeId === FLOW_INGRESS_ID)
+          }
           availableModules={availableModules}
           onAddModule={() => {
+            if (activeNodeId === FLOW_INGRESS_ID) {
+              setPickerAfterStepId(FLOW_INGRESS_ID)
+              return
+            }
             if (activeStep) {
               setPickerAfterStepId(pickerAfterStepId === activeStep.id ? null : activeStep.id)
             } else if (flow.steps.length > 0) {
               const last = flow.steps[flow.steps.length - 1]
-              setActiveNodeId(last.id)
+              selectNode(last.id, 'input')
               setPickerAfterStepId(last.id)
             }
           }}
@@ -396,10 +443,16 @@ export default function PlazaDualRailFlowPanel({
             if (!activeStep) return
             const next = removeFlowStep(flow, activeStep.id)
             setFlow(next)
-            setActiveNodeId(next.steps[0]?.id ?? FLOW_INGRESS_ID)
+            selectNode(next.steps[0]?.id ?? FLOW_INGRESS_ID, 'input')
             setPickerAfterStepId(null)
           }}
-          onPickModule={handleAddFromCatalog}
+          onPickModule={(mod) => {
+            const afterId =
+              activeNodeId === FLOW_INGRESS_ID
+                ? FLOW_INGRESS_ID
+                : activeStep?.id ?? flow.steps[flow.steps.length - 1]?.id ?? null
+            handleAddFromCatalog(mod, afterId)
+          }}
           onClosePicker={() => setPickerAfterStepId(null)}
         />
       )}

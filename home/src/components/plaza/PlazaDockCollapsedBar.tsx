@@ -4,22 +4,10 @@ import { usePlazaFlowRun, type PlazaRunPhase } from '../../context/PlazaFlowRunC
 import type { PlazaFocusTarget } from '../../context/PlazaFocusContext'
 import { usePlazaChevActions } from '../../hooks/usePlazaChevActions'
 import PlazaChevTrigger from './PlazaChevTrigger'
+import PlazaRunControls, { runPhaseUi } from './PlazaRunControls'
 
 function statusDotClass(phase: PlazaRunPhase): string {
-  switch (phase) {
-    case 'running':
-      return 'is-running'
-    case 'paused':
-      return 'is-paused'
-    case 'completed':
-      return 'is-done'
-    case 'error':
-      return 'is-error'
-    case 'stopped':
-      return 'is-stopped'
-    default:
-      return 'is-idle'
-  }
+  return runPhaseUi(phase, 0, 1).badgeClass
 }
 
 interface Props {
@@ -63,44 +51,7 @@ export default function PlazaDockCollapsedBar({
           <span>{summary}</span>
         </button>
 
-        <div className="plaza-dock-run-controls">
-          {run.phase === 'running' && (
-            <>
-              <button type="button" className="plaza-dock-run-btn" onClick={() => run.pause()} title="暂停">
-                暂停
-              </button>
-              <button type="button" className="plaza-dock-run-btn danger" onClick={() => run.stop()} title="停止">
-                停止
-              </button>
-            </>
-          )}
-          {run.phase === 'paused' && (
-            <>
-              <button type="button" className="plaza-dock-run-btn primary" onClick={() => run.resume()} title="继续">
-                继续
-              </button>
-              <button type="button" className="plaza-dock-run-btn danger" onClick={() => run.stop()} title="停止">
-                停止
-              </button>
-            </>
-          )}
-          {(run.phase === 'idle' || run.phase === 'completed' || run.phase === 'stopped') && (
-            <button
-              type="button"
-              className="plaza-dock-run-btn primary"
-              onClick={() => run.start()}
-              disabled={!run.steps.length}
-              title="试运行"
-            >
-              试运行
-            </button>
-          )}
-          {run.phase === 'error' && (
-            <button type="button" className="plaza-dock-run-btn primary" onClick={() => run.retry()} title="重试">
-              重试
-            </button>
-          )}
-        </div>
+        <PlazaRunControls compact showBadge={false} />
       </div>
     </div>
   )

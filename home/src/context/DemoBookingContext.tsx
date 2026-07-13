@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from 'react'
 import { submitDemoBookingWithFallback, type DemoBookingDelivery } from '../api/client'
+import { scrollToHomeSection } from '../hooks/useHomeActiveSection'
 import { useAgentPageContext } from './AgentPageContext'
 import {
   BOOKING_FIELDS,
@@ -108,9 +109,7 @@ export function DemoBookingProvider({ children }: { children: ReactNode }) {
       try {
         const result = await submitDemoBookingWithFallback(toPayload(nextValues))
         setDelivery(result)
-        requestAnimationFrame(() => {
-          document.getElementById('contact-demo')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
-        })
+        scrollToHomeSection('contact-demo')
       } catch {
         setFieldError('保存失败，请稍后重试')
         setSubmitted(false)
