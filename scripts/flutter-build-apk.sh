@@ -180,9 +180,23 @@ FLUTTER_BUILD_ARGS=(
 if [ -n "$CAPABILITY_KEYS" ]; then
   FLUTTER_BUILD_ARGS+=(--dart-define=CAPABILITY_KEYS="$CAPABILITY_KEYS")
 fi
-if [ "${BUILD_PER_APP_ONLY:-0}" = "1" ] || [ -n "$CAPABILITY_KEYS" ]; then
+# split-per-abi 与 --target-platform android-arm64 互斥（Gradle abiFilters 冲突）
+USE_SPLIT_ABI=0
+USE_ARM64_ONLY=0
+case "${GRADLE_MEMORY_PROFILE:-}" in
+  ultra|low)
+    USE_ARM64_ONLY=1
+    ;;
+esac
+if [ "$USE_ARM64_ONLY" -eq 0 ] && { [ "${BUILD_PER_APP_ONLY:-0}" = "1" ] || [ -n "$CAPABILITY_KEYS" ]; }; then
+  USE_SPLIT_ABI=1
+fi
+if [ "$USE_SPLIT_ABI" -eq 1 ]; then
   FLUTTER_BUILD_ARGS+=(--split-per-abi)
   echo "    Modular build: split-per-abi enabled"
+elif [ "$USE_ARM64_ONLY" -eq 1 ]; then
+  FLUTTER_BUILD_ARGS+=(--target-platform android-arm64)
+  echo "    小内存模式：仅构建 arm64-v8a（无 split-per-abi）"
 fi
 if [ -n "$APP_PUBLIC_ID" ]; then
   FLUTTER_BUILD_ARGS+=(--dart-define=APP_PUBLIC_ID="$APP_PUBLIC_ID")
@@ -193,12 +207,6 @@ fi
 if [ -n "${FLUTTER_BUILD_NUMBER:-}" ]; then
   FLUTTER_BUILD_ARGS+=(--build-number="$FLUTTER_BUILD_NUMBER")
 fi
-case "${GRADLE_MEMORY_PROFILE:-}" in
-  ultra|low)
-    FLUTTER_BUILD_ARGS+=(--target-platform android-arm64)
-    echo "    小内存模式：仅构建 arm64-v8a"
-    ;;
-esac
 set +e
 flutter build apk "${FLUTTER_BUILD_ARGS[@]}" 2>&1 | tee "$BUILD_LOG"
 build_status=${PIPESTATUS[0]}
@@ -210,7 +218,22 @@ if [ "$build_status" -ne 0 ]; then
   exit "$build_status"
 fi
 
-OUT="$APP_DIR/build/app/outputs/flutter-apk/app-release.apk"
+APK_OUT_DIR="$APP_DIR/build/app/outputs/flutter-apk"
+OUT="$APK_OUT_DIR/app-release.apk"
+if [ ! -f "$OUT" ]; then
+  for candidate in app-arm64-v8a-release.apk app-armeabi-v7a-release.apk; do
+    if [ -f "$APK_OUT_DIR/$candidate" ]; then
+      OUT="$APK_OUT_DIR/$candidate"
+      echo "==> Using split APK: $(basename "$OUT")"
+      break
+    fi
+  done
+fi
+if [ ! -f "$OUT" ]; then
+  echo "ERROR: APK output not found under $APK_OUT_DIR"
+  ls -la "$APK_OUT_DIR" 2>/dev/null || true
+  exit 1
+fi
 APK_DIR="$ROOT/backend/uploads/apks"
 mkdir -p "$APK_DIR"
 if [ "$SKIP_DEFAULT_APK" != "1" ]; then

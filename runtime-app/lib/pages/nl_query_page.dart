@@ -16,7 +16,7 @@ class NLQueryPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = branding.primaryColor;
+    final color = Color(branding.primaryColorValue);
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
