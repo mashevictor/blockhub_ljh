@@ -68,6 +68,17 @@ case "$CMD" in
   batch6|verify-batch6)
     run batch6-verify.sh "$@"
     ;;
+  batch7|verify-batch7)
+    run batch7-verify.sh "$@"
+    ;;
+  flutter-parity)
+    run flutter-parity-report.sh "$@"
+    ;;
+  flutter-sync-pubspec)
+    PY="$ROOT/backend/.venv/bin/python"
+    [ -x "$PY" ] || PY=python3
+    exec "$PY" "$ROOT/scripts/flutter-sync-pubspec-from-manifest.py" "$@"
+    ;;
   load-chat-sse)
     run load-chat-sse.sh "$@"
     ;;
@@ -113,6 +124,9 @@ BlockHub CLI · 仓库根: $ROOT
   blockhub.sh batch3                                批次3 CI / staging E2E 清单
   blockhub.sh batch4                                批次4 Flutter go_router + Melos
   blockhub.sh batch6 [BASE_URL]                  P3: SSE压测+模板UI+Melos
+  blockhub.sh batch7                              P1: Flutter parity + pubspec sync
+  blockhub.sh flutter-parity                      P1 parity 矩阵报告
+  blockhub.sh flutter-sync-pubspec --keys ...     P1 按 keys 同步 pubspec
   blockhub.sh load-chat-sse [BASE_URL]            D32 chat SSE 10 VU
   blockhub.sh check-template-ui                   D31 12×12 模板 UI 检查
   blockhub.sh batch-all [BASE_URL]                  批次0–5 联跑（Post-GA）

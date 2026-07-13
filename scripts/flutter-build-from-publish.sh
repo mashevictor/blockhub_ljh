@@ -43,6 +43,13 @@ export BUILD_PER_APP_ONLY=1
 # 由 blockhub-api 后台触发，绝不能停掉自身服务
 export BUILD_SKIP_STOP_SERVICES=1
 
+PY="$ROOT/backend/.venv/bin/python"
+[ -x "$PY" ] || PY=python3
+if [ -f "$ROOT/scripts/flutter-sync-pubspec-from-manifest.py" ]; then
+  echo "==> Sync pubspec from publish spec..."
+  "$PY" "$ROOT/scripts/flutter-sync-pubspec-from-manifest.py" --spec "$SPEC"
+fi
+
 echo "=============================================="
 echo " Per-app APK build"
 echo " public_id: $APP_PUBLIC_ID"

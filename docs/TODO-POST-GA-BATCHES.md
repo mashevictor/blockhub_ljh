@@ -96,7 +96,23 @@ bash blockhub.sh load-chat-sse http://101.32.209.251   # 仅 D32
 bash blockhub.sh check-template-ui                    # 仅 D31
 ```
 
-## 批次 7
+## 批次 7 · P1 Flutter Parity（进行中）
+
+| # | 任务 | 状态 |
+|---|------|------|
+| 7.0 | parity 矩阵 + `flutter-sync-pubspec` | ✅ 脚本 |
+| 7.1～7.10 | 6 个新 capability 包迁入 | ⬜ |
+| 7.11 | registry 收口 + per-app 构建 | 🔶 publish 已 hook sync |
+
+```bash
+bash blockhub.sh batch7
+bash blockhub.sh flutter-parity
+python scripts/flutter-sync-pubspec-from-manifest.py --keys chat_qa,approval_flow --dry-run
+```
+
+详见 **`docs/P1-FLUTTER-PARITY-ISSUES.md`**
+
+## 批次 8+
 
 详见 **`docs/ROADMAP-P2-P3.md`**
 
@@ -113,6 +129,7 @@ bash blockhub.sh check-template-ui                    # 仅 D31
 | 4 | ✅ | 🔶 batch4+GA9 |
 | 5 | ✅ | 🔶 batch5 |
 | 6 | ✅ | 🔶 batch6 待绿 |
-| 7 | 📋 路线图 | — |
+| 7 | 🔶 P1 进行中 | 🔶 batch7 |
+| 8+ | 📋 路线图 | — |
 
 **最新修复**：`cf2ab64` APK 后台 `/bin/bash` · `02b401c` pg-backup / manifest codegen

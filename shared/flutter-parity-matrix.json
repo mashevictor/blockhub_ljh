@@ -1,0 +1,134 @@
+{
+  "version": 1,
+  "description": "Web 物理包 → Flutter 物理包 SSOT（P1 parity）",
+  "rows": [
+    {
+      "web_pkg": "@blockhub/web-capability-chat",
+      "web_folder": "web-capability-chat",
+      "flutter_pkg": "capability_chat_qa",
+      "p1_scope": "app",
+      "status_target": "ok",
+      "capability_keys": ["chat_qa", "chat_voice", "chat_summary"],
+      "module_class": "ChatQaModule",
+      "dart_import": "package:capability_chat_qa/capability_chat_qa.dart"
+    },
+    {
+      "web_pkg": "@blockhub/web-capability-voice",
+      "web_folder": "web-capability-voice",
+      "flutter_pkg": "capability_shanghai_voice",
+      "p1_scope": "app",
+      "status_target": "bridge",
+      "capability_keys": ["shanghai_voice", "shanghai_voice_stream"],
+      "module_class": "ShanghaiVoiceModule",
+      "dart_import": "package:capability_shanghai_voice/capability_shanghai_voice.dart"
+    },
+    {
+      "web_pkg": "@blockhub/web-capability-approval",
+      "web_folder": "web-capability-approval",
+      "flutter_pkg": "capability_approval_flow",
+      "p1_scope": "app",
+      "status_target": "ok",
+      "capability_keys": ["approval_flow", "approval_inbox", "form_widget", "list_widget"],
+      "module_class": "ApprovalFlowModule",
+      "dart_import": "package:capability_approval_flow/capability_approval_flow.dart"
+    },
+    {
+      "web_pkg": "@blockhub/web-capability-audit-log",
+      "web_folder": "web-capability-audit-log",
+      "flutter_pkg": "capability_audit_log",
+      "p1_scope": "app",
+      "status_target": "stub",
+      "capability_keys": ["audit_log"],
+      "module_class": "AuditLogModule",
+      "dart_import": "package:capability_audit_log/capability_audit_log.dart"
+    },
+    {
+      "web_pkg": "@blockhub/web-capability-kb",
+      "web_folder": "web-capability-kb",
+      "flutter_pkg": "capability_kb",
+      "p1_scope": "app",
+      "status_target": "missing",
+      "capability_keys": ["kb_document"],
+      "module_class": "KbModule",
+      "dart_import": "package:capability_kb/capability_kb.dart"
+    },
+    {
+      "web_pkg": "@blockhub/web-capability-dashboard",
+      "web_folder": "web-capability-dashboard",
+      "flutter_pkg": "capability_dashboard",
+      "p1_scope": "app",
+      "status_target": "missing",
+      "capability_keys": ["chart_dashboard", "chart_funnel", "notify_inapp", "notify_email"],
+      "module_class": "DashboardModule",
+      "dart_import": "package:capability_dashboard/capability_dashboard.dart",
+      "runtime_pages": ["report_page.dart"]
+    },
+    {
+      "web_pkg": "@blockhub/web-capability-data-nl-query",
+      "web_folder": "web-capability-data-nl-query",
+      "flutter_pkg": "capability_data_nl_query",
+      "p1_scope": "app",
+      "status_target": "missing",
+      "capability_keys": ["data_nl_query"],
+      "module_class": "DataNlQueryModule",
+      "dart_import": "package:capability_data_nl_query/capability_data_nl_query.dart",
+      "runtime_pages": ["nl_query_page.dart"]
+    },
+    {
+      "web_pkg": "@blockhub/web-capability-integration",
+      "web_folder": "web-capability-integration",
+      "flutter_pkg": "capability_integration",
+      "p1_scope": "app",
+      "status_target": "missing",
+      "capability_keys": ["erp_connector", "meeting_booking", "it_helpdesk", "asset_manage", "notify_im", "rbac_page"],
+      "module_class": "IntegrationModule",
+      "dart_import": "package:capability_integration/capability_integration.dart",
+      "runtime_pages": ["integration_hub_page.dart"]
+    },
+    {
+      "web_pkg": "@blockhub/web-capability-multi-agent",
+      "web_folder": "web-capability-multi-agent",
+      "flutter_pkg": "capability_multi_agent",
+      "p1_scope": "app",
+      "status_target": "missing",
+      "capability_keys": ["multi_agent"],
+      "module_class": "MultiAgentModule",
+      "dart_import": "package:capability_multi_agent/capability_multi_agent.dart"
+    },
+    {
+      "web_pkg": "@blockhub/web-capability-security-mask",
+      "web_folder": "web-capability-security-mask",
+      "flutter_pkg": "capability_security_mask",
+      "p1_scope": "app",
+      "status_target": "missing",
+      "capability_keys": ["security_mask"],
+      "module_class": "SecurityMaskModule",
+      "dart_import": "package:capability_security_mask/capability_security_mask.dart",
+      "runtime_pages": ["security_mask_page.dart"]
+    },
+    {
+      "web_pkg": "@blockhub/web-capability-auth-sso",
+      "web_folder": "web-capability-auth-sso",
+      "flutter_pkg": null,
+      "p1_scope": "web_only",
+      "status_target": "web_only",
+      "capability_keys": ["auth_sso"]
+    },
+    {
+      "web_pkg": "@blockhub/web-capability-creation",
+      "web_folder": "web-capability-creation",
+      "flutter_pkg": null,
+      "p1_scope": "web_only",
+      "status_target": "web_only",
+      "capability_keys": ["creation"]
+    },
+    {
+      "web_pkg": "@blockhub/web-capability-oa-connector",
+      "web_folder": "web-capability-oa-connector",
+      "flutter_pkg": "capability_integration",
+      "p1_scope": "web_only",
+      "status_target": "web_only",
+      "capability_keys": ["oa_connector"]
+    }
+  ]
+}
