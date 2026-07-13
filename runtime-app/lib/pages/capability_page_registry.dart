@@ -1,21 +1,25 @@
 import 'package:blockhub_flutter_core/blockhub_flutter_core.dart';
 import 'package:flutter/material.dart';
 
+import '../capability_deferred_host.dart';
 import '../melos_capability_registry.dart';
 
-/// 按 manifest / capability_key 解析 Melos 能力页。
+/// 按 manifest / capability_key 解析 Melos 能力页（P2 支持 deferred）。
 Widget buildCapabilityPage({
   required String key,
   required AppBranding branding,
 }) {
+  if (shouldDeferCapabilityKey(key)) {
+    return DeferredCapabilityHost(capabilityKey: key, branding: branding);
+  }
+
   final fromMelos = buildMelosCapabilityPage(key: key, branding: branding);
   if (fromMelos != null) return fromMelos;
 
-  final label = key;
   return Center(
     child: Padding(
       padding: const EdgeInsets.all(24),
-      child: Text('「$label」页面建设中', textAlign: TextAlign.center),
+      child: Text('「$key」页面建设中', textAlign: TextAlign.center),
     ),
   );
 }

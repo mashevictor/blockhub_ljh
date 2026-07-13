@@ -13,12 +13,12 @@ dependencies:
     path: ../packages/blockhub_flutter_core
   capability_chat_qa:
     path: ../packages/capability_chat_qa
+  capability_shanghai_voice:
+    path: ../packages/capability_shanghai_voice
   capability_approval_flow:
     path: ../packages/capability_approval_flow
   capability_audit_log:
     path: ../packages/capability_audit_log
-  capability_shanghai_voice:
-    path: ../packages/capability_shanghai_voice
   capability_kb:
     path: ../packages/capability_kb
   capability_dashboard:
@@ -31,6 +31,8 @@ dependencies:
     path: ../packages/capability_multi_agent
   capability_security_mask:
     path: ../packages/capability_security_mask
+  capability_flutter_tools:
+    path: ../packages/capability_flutter_tools
   dio: ^5.7.0
   http: ^1.2.2
   shared_preferences: ^2.3.3

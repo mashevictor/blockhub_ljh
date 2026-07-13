@@ -131,6 +131,13 @@ packages:
       relative: true
     source: path
     version: "0.1.0"
+  capability_flutter_tools:
+    dependency: "direct main"
+    description:
+      path: "../packages/capability_flutter_tools"
+      relative: true
+    source: path
+    version: "0.1.0"
   capability_integration:
     dependency: "direct main"
     description:

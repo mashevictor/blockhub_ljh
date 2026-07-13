@@ -9,6 +9,16 @@ set -euo pipefail
 PUBLIC_ID="${1:?usage: flutter-build-from-publish.sh <public_id>}"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SPEC="$ROOT/backend/uploads/apks/.build-queue/${PUBLIC_ID}.json"
+RESTORE_FILES=0
+
+_restore_build_artifacts() {
+  if [ "$RESTORE_FILES" != "1" ]; then return 0; fi
+  echo "==> Restore pubspec/registry after build..."
+  git -C "$ROOT" checkout -- runtime-app/pubspec.yaml \
+    runtime-app/lib/melos_capability_registry.g.dart \
+    runtime-app/lib/capability_deferred_loader.g.dart 2>/dev/null || true
+}
+trap _restore_build_artifacts EXIT
 
 if [ ! -f "$SPEC" ]; then
   echo "ERROR: build spec not found: $SPEC"
@@ -47,6 +57,7 @@ PY="$ROOT/backend/.venv/bin/python"
 [ -x "$PY" ] || PY=python3
 if [ -f "$ROOT/scripts/flutter-sync-pubspec-from-manifest.py" ]; then
   echo "==> Sync pubspec from publish spec..."
+  RESTORE_FILES=1
   "$PY" "$ROOT/scripts/flutter-sync-pubspec-from-manifest.py" --spec "$SPEC"
 fi
 

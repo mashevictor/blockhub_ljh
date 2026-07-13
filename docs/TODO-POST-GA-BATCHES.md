@@ -112,7 +112,25 @@ python scripts/flutter-sync-pubspec-from-manifest.py --keys chat_qa,approval_flo
 
 详见 **`docs/P1-FLUTTER-PARITY-ISSUES.md`**
 
-## 批次 8+
+---
+
+## 批次 8 · P2（deferred + flutter_tools）
+
+| # | 任务 | 状态 |
+|---|------|------|
+| 8.1 | registry.g.dart 完整 codegen | ✅ |
+| 8.2 | deferred import（voice/dashboard） | ✅ |
+| 8.3 | capability_flutter_tools 13 stub | ✅ |
+| 8.4 | publish 构建后 pubspec 还原 | ✅ |
+| 8.5 | apk-size-compare 脚本 | ✅ |
+
+```bash
+bash blockhub.sh batch8
+bash blockhub.sh apk-size-compare
+WITH_BUILD=1 bash blockhub.sh apk-size-compare   # 实际 APK 对比
+```
+
+## 批次 9+
 
 详见 **`docs/ROADMAP-P2-P3.md`**
 
@@ -130,6 +148,7 @@ python scripts/flutter-sync-pubspec-from-manifest.py --keys chat_qa,approval_flo
 | 5 | ✅ | 🔶 batch5 |
 | 6 | ✅ | 🔶 batch6 待绿 |
 | 7 | ✅ | 🔶 batch7 |
-| 8+ | 📋 路线图 | — |
+| 8 | ✅ | 🔶 batch8 |
+| 9+ | 📋 路线图 | — |
 
 **最新修复**：`cf2ab64` APK 后台 `/bin/bash` · `02b401c` pg-backup / manifest codegen

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""P1-2 · Sync runtime-app pubspec + melos registry from capability_keys / manifest."""
+"""P1/P2 · Sync runtime-app pubspec + melos registry + deferred loader from capability_keys."""
 
 from __future__ import annotations
 
@@ -13,6 +13,48 @@ ROOT = Path(__file__).resolve().parents[1]
 MATRIX_PATH = ROOT / "shared" / "flutter-parity-matrix.json"
 PUBSPEC = ROOT / "runtime-app" / "pubspec.yaml"
 REGISTRY_G = ROOT / "runtime-app" / "lib" / "melos_capability_registry.g.dart"
+DEFERRED_G = ROOT / "runtime-app" / "lib" / "capability_deferred_loader.g.dart"
+
+# P2 · 重组件优先 deferred（需在 pubspec 中存在才生成 import）
+DEFERRED_PACKAGES = {
+    "capability_shanghai_voice": {
+        "prefix": "def_voice",
+        "import": "package:capability_shanghai_voice/capability_shanghai_voice.dart",
+        "keys": ["shanghai_voice", "shanghai_voice_stream", "flutter_speech", "chat_voice"],
+        "builder": "ShanghaiVoicePage(branding: branding)",
+    },
+    "capability_dashboard": {
+        "prefix": "def_dashboard",
+        "import": "package:capability_dashboard/capability_dashboard.dart",
+        "keys": [
+            "chart_dashboard",
+            "chart_funnel",
+            "chart_line",
+            "chart_bar",
+            "notify_inapp",
+            "notify_email",
+            "report_scheduled",
+            "data_export",
+            "announce_board",
+        ],
+        "builder": "DashboardPage(branding: branding)",
+    },
+}
+
+EXTRA_KEY_ALIASES: dict[str, str] = {
+    "chat": "capability_chat_qa",
+    "kb_search": "capability_kb",
+    "approval": "capability_approval_flow",
+    "audit_log": "capability_audit_log",
+    "oa_connector": "capability_integration",
+    "auth_sso": "capability_integration",
+    "contract_editor": "capability_approval_flow",
+    "contract_esign": "capability_approval_flow",
+    "approval_countersign": "capability_approval_flow",
+    "approval_conditional": "capability_approval_flow",
+    "approval_remind": "capability_approval_flow",
+    "approval_esign": "capability_approval_flow",
+}
 
 
 def _load_matrix() -> dict:
@@ -27,6 +69,7 @@ def _key_to_flutter(matrix: dict) -> dict[str, str]:
             continue
         for key in row.get("capability_keys") or []:
             out[key] = fp
+    out.update(EXTRA_KEY_ALIASES)
     return out
 
 
@@ -39,6 +82,7 @@ def _package_meta(matrix: dict) -> dict[str, dict]:
         out[fp] = {
             "module_class": row.get("module_class", ""),
             "dart_import": row.get("dart_import", ""),
+            "keys": list(row.get("capability_keys") or []),
         }
     return out
 
@@ -70,6 +114,7 @@ def resolve_flutter_packages(keys: list[str], matrix: dict) -> list[str]:
     if len(pkgs) == 1 and not keys:
         for row in matrix.get("rows", []):
             _add(row.get("flutter_pkg"))
+        _add("capability_flutter_tools")
     return pkgs
 
 
@@ -91,8 +136,8 @@ def patch_pubspec(packages: list[str], *, dry_run: bool = False) -> str:
         if row.get("flutter_pkg"):
             cap_names.add(row["flutter_pkg"])
     cap_names.add("blockhub_flutter_core")
+    cap_names.add("capability_flutter_tools")
 
-    # Remove existing capability path deps
     lines = text.splitlines()
     out: list[str] = []
     i = 0
@@ -107,10 +152,9 @@ def patch_pubspec(packages: list[str], *, dry_run: bool = False) -> str:
         out.append(line)
         i += 1
 
-    # Insert capability deps after "dependencies:" and flutter sdk block
     inserted = False
     final: list[str] = []
-    for idx, line in enumerate(out):
+    for line in out:
         final.append(line)
         if not inserted and line.strip() == "sdk: flutter":
             final.extend(_capability_dep_lines(packages))
@@ -124,16 +168,55 @@ def patch_pubspec(packages: list[str], *, dry_run: bool = False) -> str:
     return new_text
 
 
+def _integration_builder(key: str) -> str:
+    return f"IntegrationModule(capabilityKey: '{key}').buildPage(branding)"
+
+
 def write_registry_g(packages: list[str], *, dry_run: bool = False) -> str:
     matrix = _load_matrix()
     meta = _package_meta(matrix)
+    key_map = _key_to_flutter(matrix)
+
     imports: list[str] = ["import 'package:blockhub_flutter_core/blockhub_flutter_core.dart';"]
-    module_lines: list[str] = []
     seen_import: set[str] = set()
+    map_lines: list[str] = []
+    module_instances: list[str] = []
+    module_vars: dict[str, str] = {}
 
     for pkg in packages:
         if pkg == "blockhub_flutter_core":
             continue
+        if pkg == "capability_integration":
+            if "package:capability_integration/capability_integration.dart" not in seen_import:
+                imports.append("import 'package:capability_integration/capability_integration.dart';")
+                seen_import.add("package:capability_integration/capability_integration.dart")
+            for key in meta.get("capability_integration", {}).get("keys", []):
+                map_lines.append(f"    '{key}': IntegrationModule(capabilityKey: '{key}'),")
+            continue
+        if pkg == "capability_flutter_tools":
+            if "package:capability_flutter_tools/capability_flutter_tools.dart" not in seen_import:
+                imports.append("import 'package:capability_flutter_tools/capability_flutter_tools.dart';")
+                seen_import.add("package:capability_flutter_tools/capability_flutter_tools.dart")
+            for key in sorted(
+                {
+                    "schedule_alarm",
+                    "flutter_push",
+                    "flutter_scan_qr",
+                    "flutter_geolocation",
+                    "flutter_camera",
+                    "flutter_map",
+                    "flutter_offline",
+                    "flutter_biometric",
+                    "flutter_signature",
+                    "flutter_file_picker",
+                    "flutter_pdf",
+                    "flutter_webview",
+                    "flutter_chart",
+                }
+            ):
+                map_lines.append(f"    '{key}': const FlutterToolsModule(capabilityKey: '{key}'),")
+            continue
+
         m = meta.get(pkg, {})
         dart_import = m.get("dart_import") or f"package:{pkg}/{pkg}.dart"
         module_class = m.get("module_class")
@@ -142,17 +225,33 @@ def write_registry_g(packages: list[str], *, dry_run: bool = False) -> str:
         if dart_import not in seen_import:
             imports.append(f"import '{dart_import}';")
             seen_import.add(dart_import)
-        module_lines.append(f"  const {module_class}(),")
+        var = f"_mod_{pkg.replace('capability_', '')}"
+        if var not in module_vars:
+            module_vars[var] = module_class
+            module_instances.append(f"final {var} = const {module_class}();")
 
+    for key, fp in sorted(key_map.items()):
+        if fp not in packages or fp in ("capability_integration", "capability_flutter_tools"):
+            continue
+        var = f"_mod_{fp.replace('capability_', '')}"
+        if var in module_vars:
+            map_lines.append(f"    '{key}': {var},")
+
+    modules_list = ", ".join(module_vars.keys()) or ""
     body = "\n".join(
         [
             "// Auto-generated by scripts/flutter-sync-pubspec-from-manifest.py — do not edit.",
             *imports,
             "",
-            "/// Manifest-selected Melos modules (build-time).",
+            *module_instances,
+            "",
             "List<CapabilityModule> get generatedMelosCapabilityModules => [",
-            *module_lines,
+            *[f"  {v}," for v in module_vars.keys()],
             "];",
+            "",
+            "final Map<String, CapabilityModule> generatedMelosModuleByKey = {",
+            *map_lines,
+            "};",
             "",
         ]
     )
@@ -162,12 +261,63 @@ def write_registry_g(packages: list[str], *, dry_run: bool = False) -> str:
     return body
 
 
+def write_deferred_loader_g(packages: list[str], *, dry_run: bool = False) -> str:
+    imports: list[str] = [
+        "import 'package:blockhub_flutter_core/blockhub_flutter_core.dart';",
+        "import 'package:flutter/material.dart';",
+    ]
+    key_set: list[str] = []
+    cases: list[str] = []
+
+    for pkg, spec in DEFERRED_PACKAGES.items():
+        if pkg not in packages:
+            continue
+        prefix = spec["prefix"]
+        imports.append(f"import '{spec['import']}' deferred as {prefix};")
+        for key in spec["keys"]:
+            key_set.append(key)
+            cases.append(f"    case '{key}':")
+        cases.append(f"      await {prefix}.loadLibrary();")
+        cases.append(f"      return {prefix}.{spec['builder']};")
+
+    keys_literal = ", ".join(f"'{k}'" for k in sorted(set(key_set)))
+    body = "\n".join(
+        [
+            "// Auto-generated by scripts/flutter-sync-pubspec-from-manifest.py — do not edit.",
+            *imports,
+            "",
+            "const deferredCapabilityKeys = {",
+            *[f"  '{k}'," for k in sorted(set(key_set))],
+            "};",
+            "",
+            "bool isDeferredCapabilityKey(String key) => deferredCapabilityKeys.contains(key);",
+            "",
+            "Future<Widget?> buildDeferredCapabilityPage({",
+            "  required String key,",
+            "  required AppBranding branding,",
+            "}) async {",
+            "  switch (key) {",
+            *cases,
+            "    default:",
+            "      return null;",
+            "  }",
+            "}",
+            "",
+        ]
+    )
+    if not dry_run:
+        DEFERRED_G.parent.mkdir(parents=True, exist_ok=True)
+        DEFERRED_G.write_text(body, encoding="utf-8")
+    return body
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="Sync Flutter pubspec from capability keys")
     ap.add_argument("--keys", help="Comma-separated capability_keys")
     ap.add_argument("--spec", type=Path, help="Publish build queue JSON")
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--skip-registry", action="store_true")
+    ap.add_argument("--skip-deferred", action="store_true")
     args = ap.parse_args()
 
     if not MATRIX_PATH.is_file():
@@ -192,6 +342,9 @@ def main() -> int:
         if not args.skip_registry:
             print("\n--- melos_capability_registry.g.dart ---")
             print(write_registry_g(packages, dry_run=True))
+        if not args.skip_deferred:
+            print("\n--- capability_deferred_loader.g.dart ---")
+            print(write_deferred_loader_g(packages, dry_run=True))
         return 0
 
     patch_pubspec(packages, dry_run=False)
@@ -199,6 +352,9 @@ def main() -> int:
     if not args.skip_registry:
         write_registry_g(packages, dry_run=False)
         print(f"wrote {REGISTRY_G}")
+    if not args.skip_deferred:
+        write_deferred_loader_g(packages, dry_run=False)
+        print(f"wrote {DEFERRED_G}")
     return 0
 
 
