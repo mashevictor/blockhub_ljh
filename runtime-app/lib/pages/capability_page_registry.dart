@@ -5,6 +5,7 @@ import '../data/capability_manifest.dart';
 import 'approval_page.dart';
 import 'chat_page.dart';
 import 'capability_pages.dart';
+import 'nl_query_page.dart';
 import 'report_page.dart';
 import 'shanghai_voice_page.dart';
 
@@ -33,11 +34,12 @@ Widget buildCapabilityPage({
         return ApprovalPage(branding: branding);
       case 'DashboardWidget':
       case 'FunnelWidget':
-      case 'NLQueryWidget':
       case 'InboxWidget':
       case 'EmailWidget':
       case 'MobileChartWidget':
         return ReportPage(branding: branding);
+      case 'NLQueryWidget':
+        return NLQueryPage(branding: branding);
       case 'ERPWidget':
       case 'MeetingWidget':
       case 'HelpdeskWidget':

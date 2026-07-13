@@ -65,9 +65,17 @@ if bash "$ROOT/scripts/smoke-custom-capability.sh" "$BASE" >/dev/null 2>&1; then
   E2E_OK=0
   if [ -d "$ROOT/e2e/node_modules" ] || [ -f "$ROOT/e2e/package.json" ]; then
     (cd "$ROOT/e2e" && npm install --silent 2>/dev/null || true)
-    if E2E_API_URL="$API" E2E_BASE_URL="$BASE" \
-      (cd "$ROOT/e2e" && npx playwright test tests/publish-runtime-plaza.spec.ts --reporter=line 2>/dev/null); then
+    if (cd "$ROOT/e2e" && E2E_API_URL="$API" E2E_BASE_URL="$BASE" \
+      npx playwright test tests/publish-runtime-plaza.spec.ts tests/runtime-mobile-h5.spec.ts --reporter=line 2>/dev/null); then
       E2E_OK=1
+    fi
+    if [ -n "${E2E_HOME_URL:-}" ] && [ "$E2E_OK" -eq 1 ]; then
+      if (cd "$ROOT/e2e" && E2E_API_URL="$API" E2E_BASE_URL="$BASE" E2E_HOME_URL="${E2E_HOME_URL}" \
+        npx playwright test tests/home-publish.spec.ts --reporter=line 2>/dev/null); then
+        echo "  · Home UI publish E2E green"
+      else
+        echo "  · WARN: Home UI publish E2E failed (E2E_HOME_URL=$E2E_HOME_URL)"
+      fi
     fi
   fi
   if [ "$E2E_OK" -eq 1 ]; then
@@ -156,6 +164,7 @@ for f in \
   scripts/smoke-capability-contract.sh \
   scripts/server-capability-test.sh \
   scripts/migrate-tencentdb.sh \
+  .github/workflows/ci-smoke.yml \
   docker-compose.prod.yml \
   docs/previews/GA-验收清单.html; do
   [ -f "$ROOT/$f" ] || { DOC_OK=1; echo "  missing: $f"; }

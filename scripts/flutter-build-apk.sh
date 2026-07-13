@@ -154,6 +154,7 @@ PY
 fi
 
 flutter pub get
+dart run tool/generate_modular_config.dart 2>/dev/null || true
 dart run flutter_launcher_icons
 
 echo "==> Building APK: $APP_NAME ($APP_ID)"
@@ -178,6 +179,10 @@ FLUTTER_BUILD_ARGS=(
 )
 if [ -n "$CAPABILITY_KEYS" ]; then
   FLUTTER_BUILD_ARGS+=(--dart-define=CAPABILITY_KEYS="$CAPABILITY_KEYS")
+fi
+if [ "${BUILD_PER_APP_ONLY:-0}" = "1" ] || [ -n "$CAPABILITY_KEYS" ]; then
+  FLUTTER_BUILD_ARGS+=(--split-per-abi)
+  echo "    Modular build: split-per-abi enabled"
 fi
 if [ -n "$APP_PUBLIC_ID" ]; then
   FLUTTER_BUILD_ARGS+=(--dart-define=APP_PUBLIC_ID="$APP_PUBLIC_ID")

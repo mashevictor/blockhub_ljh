@@ -72,3 +72,71 @@ label { display: block; margin-bottom: 12px; font-size: 13px; }
 .list-card.unread { border-color: var(--accent); background: #fafafa; }
 .integration-samples { list-style: none; padding: 0; margin: 12px 0 0; }
 .integration-samples .list-card { display: flex; gap: 8px; align-items: flex-start; }
+
+/* ── Mobile H5（D16）：窄屏底部 Tab + safe-area ── */
+@media (max-width: 640px) {
+  .runtime-shell {
+    max-width: 100%;
+    padding: 12px 12px calc(72px + env(safe-area-inset-bottom, 0px));
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .runtime-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .brand h1 { font-size: 18px; }
+
+  .runtime-nav {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 20;
+    margin: 0;
+    padding: 8px 10px calc(8px + env(safe-area-inset-bottom, 0px));
+    background: rgba(255, 255, 255, 0.96);
+    border-top: 1px solid var(--border);
+    backdrop-filter: blur(8px);
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    gap: 6px;
+  }
+
+  .nav-btn {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    padding: 10px 12px;
+    font-size: 13px;
+    min-height: 44px;
+  }
+
+  .runtime-main {
+    flex: 1;
+    padding: 14px;
+    min-height: 240px;
+    margin-bottom: 8px;
+  }
+
+  .runtime-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .runtime-footer .btn {
+    width: 100%;
+    text-align: center;
+  }
+
+  .chat-messages { max-height: 50dvh; }
+  .chat-input-row { flex-direction: column; }
+  .chat-input-row .btn { width: 100%; }
+
+  .stat-grid { grid-template-columns: repeat(2, 1fr); }
+  .funnel-row { grid-template-columns: 48px 1fr 40px; }
+}

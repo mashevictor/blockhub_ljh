@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../config/app_branding.dart';
 import 'approval_page.dart';
 import 'chat_page.dart';
+import 'nl_query_page.dart';
 import 'report_page.dart';
 import 'shanghai_voice_page.dart';
 
@@ -15,6 +16,7 @@ Widget _chat(AppBranding b) => ChatPage(branding: b);
 Widget _approval(AppBranding b) => ApprovalPage(branding: b);
 Widget _report(AppBranding b) => ReportPage(branding: b);
 Widget _voice(AppBranding b) => ShanghaiVoicePage(branding: b);
+Widget _nlQuery(AppBranding b) => NLQueryPage(branding: b);
 
 final Map<String, CapabilityPageBuilder> capabilityPages = {
   // 语音
@@ -29,7 +31,7 @@ final Map<String, CapabilityPageBuilder> capabilityPages = {
   'chat_summary': _chat,
   'kb_document': _chat,
   'kb_search': _chat,
-  'data_nl_query': _chat,
+  'data_nl_query': _nlQuery,
   // 审批
   'approval_flow': _approval,
   'approval_inbox': _approval,

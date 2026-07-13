@@ -182,7 +182,7 @@ export default function App() {
           <button type="button" className="btn btn-ghost" onClick={handleLogout}>退出</button>
         </header>
 
-        <nav className="runtime-nav">
+        <nav className="runtime-nav runtime-nav-mobile">
           {menu.map((item) => (
             <button
               key={item.key}

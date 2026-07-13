@@ -1,0 +1,108 @@
+name: CI Smoke + E2E
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  api-smoke:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: trackchat
+          POSTGRES_PASSWORD: trackchat
+          POSTGRES_DB: trackchat
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U trackchat -d trackchat"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install backend deps
+        working-directory: backend
+        run: |
+          python -m venv .venv
+          . .venv/bin/activate
+          pip install -r requirements.txt
+
+      - name: Migrate database
+        working-directory: backend
+        env:
+          DATABASE_URL: postgresql+psycopg2://trackchat:trackchat@localhost:5432/trackchat
+          REDIS_URL: redis://localhost:6379/0
+          JWT_SECRET: ci-test-secret
+          PUBLIC_BASE_URL: http://127.0.0.1:8001
+        run: |
+          . .venv/bin/activate
+          alembic upgrade head
+
+      - name: Start API
+        working-directory: backend
+        env:
+          DATABASE_URL: postgresql+psycopg2://trackchat:trackchat@localhost:5432/trackchat
+          REDIS_URL: redis://localhost:6379/0
+          JWT_SECRET: ci-test-secret
+          PUBLIC_BASE_URL: http://127.0.0.1:8001
+        run: |
+          . .venv/bin/activate
+          nohup uvicorn app.main:app --host 127.0.0.1 --port 8001 > /tmp/blockhub-api.log 2>&1 &
+          for i in $(seq 1 30); do
+            curl -sf http://127.0.0.1:8001/api/v1/health && break
+            sleep 2
+          done
+          curl -sf http://127.0.0.1:8001/api/v1/health
+
+      - name: Smoke + regression + load (P95)
+        env:
+          SKIP_APK: "1"
+        run: |
+          bash scripts/smoke-test.sh http://127.0.0.1:8001
+          bash scripts/regression-114.sh http://127.0.0.1:8001
+          bash scripts/smoke-custom-capability.sh http://127.0.0.1:8001
+          bash scripts/smoke-capability-contract.sh http://127.0.0.1:8001
+          bash scripts/load-10vu.sh http://127.0.0.1:8001 10
+
+      - name: Playwright API E2E
+        env:
+          E2E_API_URL: http://127.0.0.1:8001/api/v1
+          E2E_BASE_URL: http://127.0.0.1:8001
+          CI: "true"
+        run: |
+          cd e2e
+          npm ci
+          npx playwright install chromium --with-deps
+          npm run test:api
+
+      - name: GA checklist (API, skip APK)
+        env:
+          SKIP_APK: "1"
+        run: bash scripts/ga-checklist.sh http://127.0.0.1:8001
+
+      - name: Upload API log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-log
+          path: /tmp/blockhub-api.log
