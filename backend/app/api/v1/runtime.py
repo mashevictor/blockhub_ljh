@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.db.models import AppRecord
 from app.db.session import get_db
-from app.services.apk_builder import get_apk_build_status, per_app_apk_path, per_app_apk_ready
+from app.services.apk_builder import get_apk_build_detail, get_apk_build_status, per_app_apk_path, per_app_apk_ready
 from app.services.tenant_config import get_tenant_config
 
 router = APIRouter(prefix="/runtime", tags=["runtime"])
@@ -106,6 +106,7 @@ def runtime_info(public_id: str, db: Session = Depends(get_db)) -> dict:
     if not app:
         raise HTTPException(status_code=404, detail="应用不存在")
     build_status = get_apk_build_status(public_id)
+    build_detail = get_apk_build_detail(public_id)
     return {
         "public_id": app.public_id,
         "name": app.name,
@@ -118,6 +119,8 @@ def runtime_info(public_id: str, db: Session = Depends(get_db)) -> dict:
         "web_ready": app.deliver in ("web", "both"),
         "apk_ready": per_app_apk_ready(app.public_id, deliver=app.deliver),
         "apk_build_status": build_status,
+        "apk_build_error": build_detail.get("error"),
+        "apk_build_log": build_detail.get("log"),
         "modules": app.modules,
         "capability_keys": app.capability_keys,
         "page_schema": app.page_schema,

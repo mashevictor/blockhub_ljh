@@ -3,7 +3,10 @@
 #
 # 用法:
 #   bash /root/blockhub/blockhub.sh batch2 http://101.32.209.251
-#   E2E_APK_POLL_MS=600000 bash scripts/batch2-verify.sh http://101.32.209.251  # 10 分钟超时
+#   E2E_APK_POLL_MS=600000 bash scripts/batch2-verify.sh http://101.32.209.251
+#
+# 注意: 默认不跑 smoke-apk WITH_BUILD，避免与 E2E 后台构建抢 Gradle（小内存机）
+#   WITH_BUILD=1 bash scripts/batch2-verify.sh ...  # 额外跑一遍手动构建冒烟
 #
 set -euo pipefail
 
@@ -45,15 +48,10 @@ step() {
     echo "WARN: flutter not in PATH — background APK build may fail"
   fi
 
-  step "smoke-apk (503 semantic)" bash "$ROOT/scripts/smoke-apk.sh" "$BASE"
-
-  if [ "${WITH_BUILD:-1}" = "1" ]; then
-    step "smoke-apk WITH_BUILD" env WITH_BUILD=1 bash "$ROOT/scripts/smoke-apk.sh" "$BASE"
-  fi
-
   (cd "$ROOT/e2e" && npm install --silent 2>/dev/null || true)
   bash "$ROOT/scripts/e2e-prep-browsers.sh" >/dev/null 2>&1 || true
 
+  # 先跑 E2E（单次后台构建），避免与 smoke-apk WITH_BUILD 并发
   step "E2E publish-apk-status" \
     env E2E_API_URL="$API" E2E_BASE_URL="$BASE" \
       bash -c "cd '$ROOT/e2e' && npx playwright test tests/publish-apk-status.spec.ts --reporter=line"
@@ -62,6 +60,15 @@ step() {
     env E2E_API_URL="$API" E2E_BASE_URL="$BASE" E2E_APK_POLL_MS="$POLL_MS" \
       bash -c "cd '$ROOT/e2e' && npx playwright test tests/publish-apk-download.spec.ts --reporter=line"
 
+  step "smoke-apk (503 semantic)" bash "$ROOT/scripts/smoke-apk.sh" "$BASE"
+
+  if [ "${WITH_BUILD:-0}" = "1" ]; then
+    step "smoke-apk WITH_BUILD (optional)" env WITH_BUILD=1 bash "$ROOT/scripts/smoke-apk.sh" "$BASE"
+  else
+    echo ""
+    echo ">>> · WITH_BUILD=0，跳过第二次 Gradle 构建（E2E 已覆盖全链路）"
+  fi
+
   echo ""
   echo "=============================================="
   if [ "$FAIL" -eq 0 ]; then
@@ -69,6 +76,7 @@ step() {
   else
     echo " ⚠ Batch 2: $FAIL step(s) failed"
     echo " 排障: docs/APK-BUILD-TROUBLESHOOTING.md"
+    echo " 查看: cat backend/uploads/apks/.build-status/<APP_ID>.log"
   fi
   echo " 日志: $LOG"
   echo "=============================================="

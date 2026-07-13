@@ -47,7 +47,8 @@ E2E_APK_POLL_MS=600000 bash blockhub.sh batch2 http://101.32.209.251
 | 现象 | 原因 | 处理 |
 |------|------|------|
 | 长期 pending/building | Flutter 构建慢或卡住 | 看 `.log`；`ps aux \| grep flutter` |
-| status=failed | Gradle/内存/依赖 | 读 `.build-status/*.log`；小内存用 `GRADLE_MEMORY_PROFILE=ultra` |
+| status=failed | Gradle/内存/依赖或**并发构建** | 读 `.build-status/*.log`；勿同时跑 batch2 WITH_BUILD 与 E2E |
+| 两个构建同时跑 | smoke-apk WITH_BUILD + publish 后台 | batch2 默认 WITH_BUILD=0；全局锁 `/tmp/blockhub-flutter-apk.lock` |
 | download 503 但文件存在 | API 路径或权限 | `ls -la backend/uploads/apks/<id>.apk` |
 | 503 符合预期 | 未构建 | `WITH_BUILD=1 bash scripts/smoke-apk.sh` |
 | E2E 超时 | 构建 >30min | 增大 `E2E_APK_POLL_MS` 或先 `build-apk` 再测 download |

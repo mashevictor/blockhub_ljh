@@ -12,11 +12,20 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 APP_DIR="$ROOT/runtime-app"
 BUILD_LOG="${BUILD_LOG:-/tmp/flutter-apk-build.log}"
+APK_LOCK_FILE="${BLOCKHUB_APK_LOCK:-/tmp/blockhub-flutter-apk.lock}"
 # shellcheck source=lib/android-sdk-env.sh
 source "$ROOT/scripts/lib/android-sdk-env.sh"
 # shellcheck source=lib/gradle-mem-env.sh
 source "$ROOT/scripts/lib/gradle-mem-env.sh"
 cd "$APP_DIR"
+
+# 全局互斥：API 后台构建与 smoke-apk 手动构建不可并行（小内存 Gradle OOM）
+if command -v flock >/dev/null 2>&1; then
+  exec 200>"$APK_LOCK_FILE"
+  echo "==> Waiting for APK build lock ($APK_LOCK_FILE)..."
+  flock -x 200
+  echo "==> APK build lock acquired"
+fi
 
 if ! command -v flutter >/dev/null 2>&1; then
   for d in /opt/flutter /root/flutter /usr/local/flutter; do

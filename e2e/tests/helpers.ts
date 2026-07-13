@@ -70,6 +70,8 @@ export function runtimeAppUrl(appId: string): string {
 export type RuntimePollInfo = {
   apk_ready?: boolean
   apk_build_status?: string
+  apk_build_error?: string
+  apk_build_log?: string
   download_url?: string
 }
 
@@ -88,7 +90,8 @@ export async function pollApkReady(
       return last
     }
     if (last.apk_build_status === 'failed') {
-      throw new Error(`APK build failed for ${appId}`)
+      const hint = last.apk_build_error || last.apk_build_log || 'unknown'
+      throw new Error(`APK build failed for ${appId}: ${hint}`)
     }
     await new Promise((r) => setTimeout(r, intervalMs))
   }

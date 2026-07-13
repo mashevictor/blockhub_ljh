@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 BuildStatus = Literal["pending", "building", "ready", "failed", "skipped"]
 
 _BUILD_LOCK = threading.Lock()
+_GRADLE_BUILD_LOCK = threading.Lock()
 _ACTIVE_BUILDS: set[str] = set()
 
 STATUS_DIR_NAME = ".build-status"
@@ -71,6 +72,20 @@ def get_apk_build_status(public_id: str) -> BuildStatus:
         if status in ("pending", "building", "ready", "failed", "skipped"):
             return status  # type: ignore[return-value]
     return "pending"
+
+
+def get_apk_build_detail(public_id: str) -> dict[str, Any]:
+    """Status payload for runtime UI / E2E (includes error + log path when failed)."""
+    if per_app_apk_path(public_id).is_file():
+        return {
+            "status": "ready",
+            "public_id": public_id,
+            "apk_bytes": per_app_apk_path(public_id).stat().st_size,
+        }
+    raw = _read_status(public_id)
+    if raw:
+        return raw
+    return {"status": "pending", "public_id": public_id}
 
 
 def _read_status(public_id: str) -> dict[str, Any] | None:
@@ -177,14 +192,15 @@ def _run_build_job(public_id: str) -> None:
             raise FileNotFoundError(f"Missing build script: {script}")
 
         env = {**os.environ, "BUILD_SKIP_STOP_SERVICES": "1"}
-        proc = subprocess.run(
-            ["bash", str(script), public_id],
-            cwd=str(_repo_root()),
-            capture_output=True,
-            text=True,
-            timeout=3600,
-            env=env,
-        )
+        with _GRADLE_BUILD_LOCK:
+            proc = subprocess.run(
+                ["bash", str(script), public_id],
+                cwd=str(_repo_root()),
+                capture_output=True,
+                text=True,
+                timeout=3600,
+                env=env,
+            )
         log_path.write_text((proc.stdout or "") + "\n" + (proc.stderr or ""), encoding="utf-8")
 
         if proc.returncode != 0:
