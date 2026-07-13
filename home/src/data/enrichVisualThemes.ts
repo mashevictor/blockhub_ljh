@@ -26,11 +26,11 @@ export function caseIndustryTheme(industry: string): EnrichCardTheme {
   return CASE_INDUSTRY_THEMES[industry] ?? DEFAULT_THEME
 }
 
-/** 新闻 · 按分类一色 */
+/** 新闻 · 按分类一色（万兴风格：企业新闻 / 品牌活动 / 产品动态） */
 export const NEWS_CATEGORY_THEMES: Record<NewsCategory, EnrichCardTheme> = {
-  product: { color: '#0d47a1', from: '#eff6ff', to: '#dbeafe', icon: '🚀' },
-  customer: { color: '#00b894', from: '#ecfdf5', to: '#d1fae5', icon: '🤝' },
-  insight: { color: '#7c3aed', from: '#f5f3ff', to: '#ede9fe', icon: '💡' },
+  enterprise: { color: '#0d47a1', from: '#eff6ff', to: '#dbeafe', icon: '🏢' },
+  brand: { color: '#7c3aed', from: '#f5f3ff', to: '#ede9fe', icon: '🎤' },
+  product: { color: '#059669', from: '#ecfdf5', to: '#d1fae5', icon: '🚀' },
 }
 
 /** 信任资料 · 按文档一色 */
@@ -49,7 +49,7 @@ export function trustDocTheme(id: string): EnrichCardTheme {
 
 /** 定价 · 按套餐一色 */
 export const PRICING_TIER_THEMES: Record<string, EnrichCardTheme> = {
-  saas: { color: '#64748b', from: '#f8fafc', to: '#f1f5f9', icon: '☁' },
+  paas: { color: '#64748b', from: '#f8fafc', to: '#f1f5f9', icon: '☁' },
   hybrid: { color: '#0d47a1', from: '#eff6ff', to: '#dbeafe', icon: '⭐' },
   private: { color: '#7c3aed', from: '#f5f3ff', to: '#ede9fe', icon: '🏢' },
 }

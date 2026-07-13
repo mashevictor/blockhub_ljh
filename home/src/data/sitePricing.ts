@@ -18,8 +18,8 @@ export const PRICING_INTRO =
 
 export const PRICING_TIERS: PricingTier[] = [
   {
-    id: 'saas',
-    name: 'SaaS 标准',
+    id: 'paas',
+    name: 'PaaS 标准',
     range: '按坐席',
     features: ['快速上线', '标准集成', '适合 50 人以下团队试点'],
   },
@@ -41,7 +41,7 @@ export const PRICING_TIERS: PricingTier[] = [
 export const PRICING_FAQ: PricingFaq[] = [
   {
     q: '价格由哪些因素决定？',
-    a: '坐席数量、部署方式（SaaS/混合/私有化）、集成复杂度、是否需要定制能力与专属 SLA。',
+    a: '坐席数量、部署方式（PaaS/混合/私有化）、集成复杂度、是否需要定制能力与专属 SLA。',
   },
   {
     q: '有没有隐藏费用？',
