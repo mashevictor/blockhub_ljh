@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.db.models import AppRecord, ApprovalRecord, Tenant, User
+from app.services.apk_builder import get_apk_build_status, per_app_apk_ready
 from app.services.db_seed import DEFAULT_TENANT_SLUG
 
 DEFAULT_TENANT_CONFIG: dict[str, Any] = {
@@ -88,15 +89,29 @@ def get_tenant_config(
             .first()
         )
         if app:
+            deliver = app.deliver or "both"
+            base_url = settings.public_base_url.rstrip("/")
+            apk_status = get_apk_build_status(app.public_id)
+            apk_ready = per_app_apk_ready(app.public_id, deliver=deliver)
             payload["app"] = {
                 "id": app.public_id,
                 "name": app.name,
                 "schema_url": app.schema_url,
+                "deliver": deliver,
                 "modules": app.modules,
                 "capability_keys": app.capability_keys,
                 "page_schema": app.page_schema,
                 "build_manifest": app.build_manifest,
+                "web_url": f"{base_url}/r/{app.public_id}",
+                "download_url": f"{base_url}/r/{app.public_id}/download",
+                "apk_ready": apk_ready,
+                "apk_build_status": apk_status,
             }
+            payload["deliver"] = deliver
+            payload["web_url"] = f"{base_url}/r/{app.public_id}"
+            payload["download_url"] = f"{base_url}/r/{app.public_id}/download"
+            payload["apk_ready"] = apk_ready
+            payload["apk_build_status"] = apk_status
             payload["app_name"] = app.name
             if app.icon_url:
                 payload["app_icon_url"] = app.icon_url
