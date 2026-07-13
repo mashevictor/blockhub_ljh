@@ -154,6 +154,7 @@ for f in \
   scripts/server-docker-redis.sh \
   scripts/smoke-ga.sh \
   scripts/smoke-capability-contract.sh \
+  scripts/server-capability-test.sh \
   scripts/migrate-tencentdb.sh \
   docker-compose.prod.yml \
   docs/previews/GA-验收清单.html; do

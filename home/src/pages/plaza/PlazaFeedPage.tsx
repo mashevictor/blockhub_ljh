@@ -249,6 +249,11 @@ export default function PlazaFeedPage() {
       )}
 
       <div className="plaza-feed-list">
+        {!loading && filtered.length === 0 && (
+          <p className="plaza-main-hint">
+            暂无 @公开 应用。在首页创建应用并发布到应用广场后，将显示在这里。
+          </p>
+        )}
         {filtered.map((item) => (
           <FeedCard
             key={item.id}

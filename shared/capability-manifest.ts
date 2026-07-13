@@ -349,7 +349,7 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     "category": "Flutter工具",
     "widget": "BioWidget",
     "agent_id": "security",
-    "web_pkg": null,
+    "web_pkg": "",
     "flutter_pkg": "local_auth",
     "route": "/flutter-biometric",
     "keywords": [
@@ -366,7 +366,7 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     "category": "Flutter工具",
     "widget": "CameraWidget",
     "agent_id": "integration",
-    "web_pkg": null,
+    "web_pkg": "",
     "flutter_pkg": "image_picker",
     "route": "/flutter-camera",
     "keywords": [
@@ -385,7 +385,7 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     "category": "Flutter工具",
     "widget": "MobileChartWidget",
     "agent_id": "report",
-    "web_pkg": null,
+    "web_pkg": "",
     "flutter_pkg": "fl_chart",
     "route": "/flutter-chart",
     "keywords": [
@@ -401,7 +401,7 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     "category": "Flutter工具",
     "widget": "FileWidget",
     "agent_id": "kb",
-    "web_pkg": null,
+    "web_pkg": "",
     "flutter_pkg": "file_picker",
     "route": "/flutter-file-picker",
     "keywords": [
@@ -418,7 +418,7 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     "category": "Flutter工具",
     "widget": "GeoWidget",
     "agent_id": "integration",
-    "web_pkg": null,
+    "web_pkg": "",
     "flutter_pkg": "geolocator",
     "route": "/flutter-geolocation",
     "keywords": [
@@ -437,7 +437,7 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     "category": "Flutter工具",
     "widget": "MapWidget",
     "agent_id": "integration",
-    "web_pkg": null,
+    "web_pkg": "",
     "flutter_pkg": "tencent_map_flutter",
     "route": "/flutter-map",
     "keywords": [
@@ -455,7 +455,7 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     "category": "Flutter工具",
     "widget": "OfflineWidget",
     "agent_id": "integration",
-    "web_pkg": null,
+    "web_pkg": "",
     "flutter_pkg": "hive",
     "route": "/flutter-offline",
     "keywords": [
@@ -472,7 +472,7 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     "category": "Flutter工具",
     "widget": "PdfWidget",
     "agent_id": "kb",
-    "web_pkg": null,
+    "web_pkg": "",
     "flutter_pkg": "flutter_pdfview",
     "route": "/flutter-pdf",
     "keywords": [
@@ -487,7 +487,7 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     "category": "Flutter工具",
     "widget": "PushWidget",
     "agent_id": "notify",
-    "web_pkg": null,
+    "web_pkg": "",
     "flutter_pkg": "flutter_local_notifications",
     "route": "/flutter-push",
     "keywords": [
@@ -503,7 +503,7 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     "category": "Flutter工具",
     "widget": "ScanWidget",
     "agent_id": "integration",
-    "web_pkg": null,
+    "web_pkg": "",
     "flutter_pkg": "mobile_scanner",
     "route": "/flutter-scan-qr",
     "keywords": [
@@ -520,7 +520,7 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     "category": "Flutter工具",
     "widget": "SignWidget",
     "agent_id": "approval",
-    "web_pkg": null,
+    "web_pkg": "",
     "flutter_pkg": "signature",
     "route": "/flutter-signature",
     "keywords": [
@@ -536,7 +536,7 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     "category": "Flutter工具",
     "widget": "SpeechWidget",
     "agent_id": "chat_qa",
-    "web_pkg": null,
+    "web_pkg": "",
     "flutter_pkg": "record",
     "route": "/flutter-speech",
     "keywords": [
@@ -553,7 +553,7 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     "category": "Flutter工具",
     "widget": "WebViewWidget",
     "agent_id": "integration",
-    "web_pkg": null,
+    "web_pkg": "",
     "flutter_pkg": "webview_flutter",
     "route": "/flutter-webview",
     "keywords": [
@@ -779,7 +779,7 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     "category": "Flutter工具",
     "widget": "AlarmWidget",
     "agent_id": "notify",
-    "web_pkg": null,
+    "web_pkg": "",
     "flutter_pkg": "flutter_local_notifications",
     "route": "/schedule-alarm",
     "keywords": [

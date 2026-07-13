@@ -1,10 +1,10 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import BrandMark from '../../components/BrandMark'
 import { BRAND } from '../../data/brand'
 import { IconLayers } from '../../components/icons'
 import { useMyApps } from '../../hooks/useMyApps'
-import { loadPlazaFeedItems } from '../../lib/plazaFeedStorage'
+import { loadPlazaFeedItemsAsync } from '../../lib/plazaFeedStorage'
 import { ROUTES } from '../../routes/paths'
 import { AgentPageProvider, useAgentPageContext } from '../../context/AgentPageContext'
 import type { AgentContextKey } from '../../data/agentContext'
@@ -35,9 +35,13 @@ function topLinkClass({ isActive }: { isActive: boolean }) {
 export default function PlazaLayout() {
   const myApps = useMyApps()
   const myAppsCount = myApps.length
-  const publicFeedCount = loadPlazaFeedItems().length
+  const [publicFeedCount, setPublicFeedCount] = useState(0)
   const { pathname } = useLocation()
   const onMyAppsPage = pathname === ROUTES.plazaMyApps
+
+  useEffect(() => {
+    void loadPlazaFeedItemsAsync().then((items) => setPublicFeedCount(items.length))
+  }, [pathname])
 
   useEffect(() => {
     document.body.classList.add('b2b-landing')

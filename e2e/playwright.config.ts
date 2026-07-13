@@ -12,7 +12,7 @@ export default defineConfig({
   reporter: [['list']],
   timeout: 120_000,
   use: {
-    baseURL,
+    baseURL: process.env.E2E_BASE_URL || 'http://127.0.0.1:8001',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
   },

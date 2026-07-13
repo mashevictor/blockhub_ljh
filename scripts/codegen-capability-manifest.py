@@ -26,7 +26,7 @@ def main() -> None:
                 "category": cap.category,
                 "widget": cap.widget,
                 "agent_id": cap.agent_id,
-                "web_pkg": _web_pkg(cap.key),
+                "web_pkg": _web_pkg(cap.key) or "",
                 "flutter_pkg": _flutter_pkg(cap.key),
                 "route": _route_for(cap.key, cap.widget),
                 "keywords": list(cap.keywords),

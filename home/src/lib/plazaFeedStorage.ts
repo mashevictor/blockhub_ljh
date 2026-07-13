@@ -2,7 +2,6 @@ import type { PublishResult } from '../data/constants'
 import type { AudienceSelection } from '../data/plazaAudience'
 import { audienceAtLabel } from '../data/plazaAudience'
 import type { PlazaFeedItem } from '../data/plazaMock'
-import { PLAZA_MOCK_FEED } from '../data/plazaMock'
 import { publishAppToPlaza, fetchPlazaFeed, type PlazaFeedApiItem } from '../api/client'
 import type { PlazaAudienceMeta } from '../lib/myAppsStorage'
 import { setMyAppPlazaAudience } from '../lib/myAppsStorage'
@@ -157,35 +156,28 @@ export async function publishToPlazaFeed(
   return entry
 }
 
-/** 从服务端加载广场 Feed，失败时回退本地 + 演示数据 */
+/** 从服务端加载广场 Feed；失败时仅回退本浏览器已发布缓存（不含演示 mock） */
 export async function loadPlazaFeedItemsAsync(): Promise<PlazaFeedItem[]> {
   try {
     const apiItems = await fetchPlazaFeed()
     const fromApi = apiItems
       .filter((item) => item.plaza_visibility === 'public' || item.visibility === 'public')
       .map(apiItemToFeedItem)
-    if (fromApi.length > 0) {
-      const apiIds = new Set(fromApi.map((i) => i.id))
-      const mock = PLAZA_MOCK_FEED.filter((m) => m.visibility === 'public' && !apiIds.has(m.id))
-      return [...fromApi, ...mock]
-    }
+    if (fromApi.length > 0) return fromApi
   } catch (err) {
     console.warn('[plaza] feed API failed, using local cache', err)
   }
   return loadPlazaFeedItems()
 }
 
-/** 应用广场 Feed：仅 @公开 的应用（用户发布 + 演示数据） */
+/** 本浏览器已 @公开 发布的缓存（API 不可用时的兜底，不再注入 PLAZA_MOCK_FEED） */
 export function loadPlazaFeedItems(): PlazaFeedItem[] {
-  const userPosts = loadStoredPlazaPosts()
+  return loadStoredPlazaPosts()
     .filter((p) => p.audienceType === 'public')
     .map((p) => ({
       ...p,
       timeLabel: formatTimeLabel(p.savedAt),
     }))
-  const mockIds = new Set(userPosts.map((p) => p.id))
-  const mock = PLAZA_MOCK_FEED.filter((m) => m.visibility === 'public' && !mockIds.has(m.id))
-  return [...userPosts, ...mock]
 }
 
 export function toAudienceMeta(post: StoredPlazaPost): PlazaAudienceMeta {
