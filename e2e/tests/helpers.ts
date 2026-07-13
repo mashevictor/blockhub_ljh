@@ -82,7 +82,7 @@ export async function pollApkReady(
   const deadline = Date.now() + timeoutMs
   let last: RuntimePollInfo = {}
 
-  while Date.now() < deadline) {
+  while (Date.now() < deadline) {
     last = await apiGet<RuntimePollInfo>(`/runtime/${appId}`)
     if (last.apk_ready || last.apk_build_status === 'ready') {
       return last

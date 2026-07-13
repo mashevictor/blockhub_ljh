@@ -27,7 +27,16 @@ login_once() {
     | python3 -c "import sys,json; print(json.load(sys.stdin).get('access_token',''))" 2>/dev/null || echo ""
 }
 
-TOKEN=$(login_once)
+TOKEN=""
+for attempt in 1 2 3; do
+  TOKEN=$(login_once)
+  if [ -n "$TOKEN" ]; then
+    break
+  fi
+  echo "  · login attempt $attempt failed, retrying..."
+  sleep 2
+done
+
 if [ -z "$TOKEN" ]; then
   curl -sf -X POST "$API/auth/demo-bootstrap" -H "Content-Type: application/json" -d '{}' >/dev/null 2>&1 || true
   TOKEN=$(login_once)
@@ -36,7 +45,7 @@ fi
 if [ -n "$TOKEN" ]; then
   ok "admin login"
 else
-  no "admin login"
+  no "admin login (check: curl -sf $API/health && curl -X POST $API/auth/login ...)"
   echo "=========================================="
   exit 1
 fi

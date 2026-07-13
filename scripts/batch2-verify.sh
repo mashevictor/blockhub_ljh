@@ -37,6 +37,10 @@ step() {
 
   git -C "$ROOT" log -1 --oneline
 
+  if ! curl -sf --max-time 10 "$API/health" >/dev/null 2>&1; then
+    echo "WARN: API health failed at $API/health — check systemctl restart blockhub-api"
+  fi
+
   if ! command -v flutter >/dev/null 2>&1; then
     echo "WARN: flutter not in PATH — background APK build may fail"
   fi
