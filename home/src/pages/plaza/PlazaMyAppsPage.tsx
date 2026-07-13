@@ -1,10 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import PublishSuccessCard from '../../components/PublishSuccessCard'
-import DeliveryProgress from '../../components/DeliveryProgress'
-import PlazaModuleFlowPanel from '../../components/plaza/PlazaModuleFlowPanel'
-import { IconGlobe, IconLayers } from '../../components/icons'
+import { IconGlobe } from '../../components/icons'
 import AppIconAvatar from '../../components/AppIconAvatar'
+import PlazaOrchestrationOverlay from '../../components/plaza/PlazaOrchestrationOverlay'
 import { showAppDeliver } from '../../data/deliverDisplay'
 import { fetchMe, type AuthUser } from '../../auth/session'
 import { getToken } from '../../auth/storage'
@@ -19,7 +17,7 @@ import {
 
 function formatWhen(iso: string) {
   try {
-    return new Date(iso).toLocaleString('zh-CN')
+    return new Date(iso).toLocaleString('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })
   } catch {
     return iso
   }
@@ -29,9 +27,14 @@ function appKey(app: StoredMyApp) {
   return app.appId || app.webUrl
 }
 
-function moduleLabels(app: StoredMyApp): string[] {
-  if (app.modules?.length) return app.modules.map((m) => m.label)
-  return app.scenarios?.slice(0, 6) ?? []
+function statusLine(app: StoredMyApp, isNew: boolean): string {
+  const parts: string[] = [`${app.moduleCount} 项`]
+  if (isNew) parts.push('刚发布')
+  if (showAppDeliver(app) && !app.apkReady) parts.push('APK 构建中')
+  else if (app.apkReady) parts.push('APK 就绪')
+  if (app.plaza) parts.push(app.plaza.label)
+  parts.push(formatWhen(app.savedAt))
+  return parts.join(' · ')
 }
 
 export default function PlazaMyAppsPage() {
@@ -41,9 +44,7 @@ export default function PlazaMyAppsPage() {
   )
   const saveFailed = Boolean(publishHint?.saveFailed)
   const apps = useMyApps()
-  const [expandedKey, setExpandedKey] = useState<string | null>(
-    () => publishHint?.appKey ?? null,
-  )
+  const [orchApp, setOrchApp] = useState<StoredMyApp | null>(null)
   const [user, setUser] = useState<AuthUser | null>(null)
   const scrolledRef = useRef(false)
 
@@ -74,44 +75,34 @@ export default function PlazaMyAppsPage() {
     fetchMe().then(setUser).catch(() => setUser(null))
   }, [])
 
+  useEffect(() => {
+    if (!justPublishedId || orchApp) return
+    const app = apps.find((a) => appKey(a) === justPublishedId)
+    if (app) setOrchApp(app)
+  }, [justPublishedId, apps, orchApp])
+
   const handleRemove = (app: StoredMyApp) => {
     const key = appKey(app)
     removeMyApp(key)
-    if (expandedKey === key) setExpandedKey(null)
+    if (orchApp && appKey(orchApp) === key) setOrchApp(null)
     if (justPublishedId === key) setJustPublishedId(null)
   }
 
-  const renderAppFlow = (app: StoredMyApp, compact?: boolean) => (
-    <PlazaModuleFlowPanel
-      appKey={appKey(app)}
-      appName={app.appName}
-      moduleLabels={moduleLabels(app)}
-      isCreator
-      compact={compact}
-    />
-  )
+  const openOrchestration = (app: StoredMyApp) => {
+    setOrchApp(app)
+  }
 
   return (
     <main className="plaza-main plaza-my-main">
-      <div className="plaza-main-head">
-        <h1><IconLayers size={20} /> 我的应用</h1>
+      <div className="plaza-main-head plaza-my-head-slim">
+        <div>
+          <h1><span className="plaza-mflow-chev chev-hero" aria-hidden>&gt;&gt;</span> 我的应用</h1>
+          <p className="plaza-my-head-sub">
+            点击 <strong>编排</strong> 进入完整数据流，在 <span className="plaza-mflow-chev">&gt;&gt;</span> 悬浮框中调整模块
+          </p>
+        </div>
         <Link to={ROUTES.home} className="plaza-my-create-btn">+ 继续创建</Link>
       </div>
-      <p className="plaza-main-hint">
-        你是这些应用的<strong>创建者</strong>，可编辑模块数据流、发布到应用广场 @ 受众。
-        {user ? ` 已登录 ${user.email}` : ' 未登录时数据仅存本设备。'}
-      </p>
-
-      {apps.length > 0 && (
-        <div className="plaza-my-guide" role="note">
-          <strong>快速上手</strong>
-          <ul>
-            <li><span>①</span> 点应用右侧 <strong>「管理模块」</strong> 展开详情</li>
-            <li><span>②</span> 在<strong>模块顺序</strong>栏按住 ⠿ 拖动调整顺序</li>
-            <li><span>③</span> <strong>「复制链接」</strong> 分享给团队，<strong>「打开」</strong> 预览网页版</li>
-          </ul>
-        </div>
-      )}
 
       {saveFailed && (
         <p className="publish-save-warn" role="alert">
@@ -120,94 +111,77 @@ export default function PlazaMyAppsPage() {
       )}
 
       {justPublishedId && apps.some((a) => appKey(a) === justPublishedId) && (
-        <p className="plaza-my-success-banner">🎉 发布成功，已保存到「我的应用」</p>
+        <p className="plaza-my-success-banner">🎉 发布成功 — 已为你打开编排层，可在数据流中拖动模块</p>
       )}
 
       {apps.length === 0 && (
         <div className="plaza-my-empty">
           <p>还没有发布过应用</p>
-          <p className="plaza-my-empty-hint">在首页创建并发布后，会自动跳转到这里</p>
+          <p className="plaza-my-empty-hint">在首页创建并发布后，会自动出现在这里</p>
           <Link to={ROUTES.home} className="btn-primary plaza-my-empty-cta">去生成应用</Link>
         </div>
       )}
 
       {apps.length > 0 && (
         <section className="plaza-my-history">
-          <h2>全部应用 <span className="plaza-my-count">{apps.length}</span></h2>
-          <ul className="plaza-my-list">
+          <h2 className="plaza-my-history-label">
+            全部应用 <span className="plaza-my-count">{apps.length}</span>
+          </h2>
+          <ul className="plaza-my-list plaza-my-list-d">
             {apps.map((app) => {
               const key = appKey(app)
               const isNew = justPublishedId === key
-              const expanded = expandedKey === key || isNew
-              const showDelivery = showAppDeliver(app) || isNew
 
               return (
                 <li
                   key={key}
                   id={appDomId(key)}
-                  className={`plaza-my-item${expanded ? ' expanded' : ''}${isNew ? ' just-published' : ''}`}
+                  className={`plaza-my-card${isNew ? ' just-published' : ''}`}
                 >
-                  <div className="plaza-my-item-row">
-                    <AppIconAvatar
-                      name={app.appName}
-                      iconUrl={app.iconUrl}
-                      primaryColor={app.primaryColor}
-                      size={44}
-                    />
-                    <div className="plaza-my-item-main">
-                      <strong>{app.appName}</strong>
-                      <span className="plaza-my-meta">
-                        {app.moduleCount} 项功能 · {formatWhen(app.savedAt)}
-                        {isNew && <span className="plaza-my-new-badge">刚发布</span>}
-                        <span className="plaza-creator-badge">创建者</span>
-                        {app.plaza && (
-                          <span className="plaza-my-at-badge">{app.plaza.label}</span>
-                        )}
-                        {showAppDeliver(app) && !app.apkReady && (
-                          <span className="plaza-my-apk-pending">APK 构建中</span>
-                        )}
-                      </span>
-                    </div>
-                    <div className="plaza-my-item-actions">
-                      <button
-                        type="button"
-                        className={`btn-ghost${expanded ? ' on' : ''}`}
-                        onClick={() => setExpandedKey(expanded && !isNew ? null : key)}
-                      >
-                        {expanded ? '收起详情' : '管理模块'}
-                      </button>
-                      <button
-                        type="button"
-                        className="btn-ghost"
-                        onClick={() => navigator.clipboard.writeText(app.webUrl)}
-                      >
-                        复制链接
-                      </button>
-                      <a className="btn-ghost" href={app.webUrl} target="_blank" rel="noreferrer">
-                        <IconGlobe size={14} /> 打开
-                      </a>
-                      <button type="button" className="btn-ghost plaza-my-remove" onClick={() => handleRemove(app)}>
-                        移除
-                      </button>
-                    </div>
+                  <AppIconAvatar
+                    name={app.appName}
+                    iconUrl={app.iconUrl}
+                    primaryColor={app.primaryColor}
+                    size={44}
+                  />
+                  <div className="plaza-my-card-main">
+                    <strong>{app.appName}</strong>
+                    <span className="plaza-my-card-meta">{statusLine(app, isNew)}</span>
                   </div>
-                  {expanded && (
-                    <div className="plaza-my-item-detail">
-                      {showDelivery && <DeliveryProgress app={app} compact />}
-                      {renderAppFlow(app, true)}
-                      <PublishSuccessCard
-                        result={app}
-                        showAdminLink={!!user}
-                        compact
-                        plazaMeta={app.plaza}
-                      />
-                    </div>
-                  )}
+                  <div className="plaza-my-card-actions">
+                    <button
+                      type="button"
+                      className="btn-primary plaza-my-orch-btn"
+                      onClick={() => openOrchestration(app)}
+                    >
+                      <span className="plaza-mflow-chev">&gt;&gt;</span> 编排
+                    </button>
+                    <a className="btn-ghost plaza-my-card-icon-btn" href={app.webUrl} target="_blank" rel="noreferrer" title="打开">
+                      <IconGlobe size={16} />
+                    </a>
+                    <button
+                      type="button"
+                      className="btn-ghost plaza-my-card-icon-btn"
+                      title="复制链接"
+                      onClick={() => navigator.clipboard.writeText(app.webUrl)}
+                    >
+                      链接
+                    </button>
+                  </div>
                 </li>
               )
             })}
           </ul>
         </section>
+      )}
+
+      {orchApp && (
+        <PlazaOrchestrationOverlay
+          app={orchApp}
+          user={user}
+          onClose={() => setOrchApp(null)}
+          onRemove={() => handleRemove(orchApp)}
+        />
       )}
     </main>
   )

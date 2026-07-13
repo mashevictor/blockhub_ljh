@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>我的应用 · 5 套重设计方案预览</title>
+  <style>
+    :root {
+      --pri: #0d47a1;
+      --accent: #2563eb;
+      --rose: #e11d48;
+      --border: #e2e8f0;
+      --bg: #f1f5f9;
+      --text: #0f172a;
+      --muted: #64748b;
+      --chev: #1565c0;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: #eef2f7;
+      color: var(--text);
+      padding: 28px 16px 64px;
+    }
+    .page-head { text-align: center; max-width: 720px; margin: 0 auto 32px; }
+    .page-head h1 { font-size: 22px; font-weight: 800; color: var(--pri); margin-bottom: 8px; }
+    .page-head p { font-size: 14px; color: var(--muted); line-height: 1.65; }
+    .page-head ul { text-align: left; margin: 14px auto 0; max-width: 520px; font-size: 13px; color: var(--muted); line-height: 1.7; }
+    .tabs {
+      display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;
+      max-width: 960px; margin: 0 auto 24px;
+    }
+    .tab {
+      border: 1px solid var(--border); background: #fff; color: var(--muted);
+      padding: 8px 14px; border-radius: 999px; font-size: 13px; font-weight: 600;
+      cursor: pointer; transition: .15s;
+    }
+    .tab.on { background: var(--pri); color: #fff; border-color: var(--pri); }
+    .scheme { display: none; max-width: 980px; margin: 0 auto; }
+    .scheme.on { display: block; }
+    .scheme-label {
+      display: flex; align-items: baseline; gap: 10px; margin-bottom: 10px;
+    }
+    .scheme-label h2 { font-size: 17px; font-weight: 800; color: var(--pri); }
+    .scheme-label span { font-size: 12px; color: var(--muted); }
+    .scheme-note {
+      font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 16px;
+      padding: 10px 14px; background: #fff; border-radius: 10px; border: 1px solid var(--border);
+    }
+    .scheme-note strong { color: var(--text); }
+    .mock {
+      background: #fff; border-radius: 18px; border: 1px solid var(--border);
+      overflow: hidden; min-height: 520px; position: relative;
+      box-shadow: 0 8px 32px rgba(15,23,42,.06);
+    }
+    .chev { font-family: "Courier New", monospace; font-weight: 900; color: var(--chev); letter-spacing: -2px; }
+    .chev-lg { font-size: 22px; }
+    .chev-md { font-size: 16px; }
+    .chev-sm { font-size: 13px; }
+
+    /* shared flow node */
+    .node {
+      display: inline-flex; flex-direction: column; align-items: center; gap: 4px;
+      padding: 10px 12px; border-radius: 12px; border: 2px solid var(--border);
+      background: #fff; min-width: 72px; cursor: grab; user-select: none;
+      transition: .15s; position: relative;
+    }
+    .node:active { cursor: grabbing; }
+    .node.on { border-color: var(--accent); background: #eff6ff; box-shadow: 0 0 0 3px rgba(37,99,235,.15); }
+    .node.dragging { opacity: .55; transform: scale(.96); }
+    .node .ico { font-size: 20px; }
+    .node .lbl { font-size: 11px; font-weight: 700; text-align: center; max-width: 72px; line-height: 1.2; }
+    .node .grip { position: absolute; top: 4px; left: 4px; font-size: 10px; color: #94a3b8; }
+    .arrow { color: var(--chev); font-weight: 900; font-size: 18px; flex-shrink: 0; }
+    .zone-tag {
+      font-size: 10px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase;
+      color: var(--muted); display: flex; align-items: center; gap: 4px; margin-bottom: 8px;
+    }
+
+    /* scheme A */
+    .a-top {
+      padding: 20px 22px 12px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
+    }
+    .a-title { font-size: 26px; font-weight: 900; letter-spacing: -.02em; line-height: 1.15; }
+    .a-title .chev { margin-right: 6px; }
+    .a-sub { font-size: 12px; color: var(--muted); margin-top: 6px; }
+    .a-actions { display: flex; gap: 8px; flex-shrink: 0; }
+    .btn { font-size: 12px; font-weight: 700; padding: 7px 12px; border-radius: 8px; border: 1px solid var(--border); background: #fff; cursor: pointer; }
+    .btn-pri { background: var(--pri); color: #fff; border-color: var(--pri); }
+    .a-body { padding: 16px 22px 80px; }
+    .a-flow-head { font-size: 13px; font-weight: 800; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+    .a-flow {
+      display: flex; align-items: center; flex-wrap: wrap; gap: 6px;
+      padding: 16px; background: var(--bg); border-radius: 14px;
+    }
+    .a-endpoint { font-size: 10px; color: var(--muted); padding: 8px; border: 1px dashed #cbd5e1; border-radius: 10px; }
+    .a-float {
+      position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%);
+      width: calc(100% - 32px); max-width: 560px;
+      background: #fff; border: 2px solid var(--pri); border-radius: 16px;
+      padding: 12px 16px; display: flex; align-items: center; gap: 12px;
+      box-shadow: 0 12px 40px rgba(13,71,161,.18);
+    }
+    .a-float-chev { font-size: 28px; font-weight: 900; color: var(--pri); line-height: 1; font-family: monospace; }
+    .a-float-body { flex: 1; }
+    .a-float-body strong { font-size: 13px; display: block; margin-bottom: 2px; }
+    .a-float-body span { font-size: 11px; color: var(--muted); }
+    .a-pills { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+    .pill { font-size: 10px; padding: 2px 8px; border-radius: 999px; background: #f1f5f9; color: var(--muted); }
+
+    /* scheme B */
+    .b-layout { display: grid; grid-template-columns: 1fr 280px; min-height: 520px; }
+    .b-main { padding: 18px 20px; border-right: 1px solid var(--border); }
+    .b-side { padding: 18px 16px; background: #f8fafc; }
+    .b-name { font-size: 22px; font-weight: 900; margin-bottom: 4px; }
+    .b-status { font-size: 11px; color: var(--muted); margin-bottom: 16px; }
+    .b-flow-row { display: flex; align-items: center; gap: 4px; overflow-x: auto; padding-bottom: 8px; }
+    .b-zone { margin-bottom: 14px; }
+    .b-side-panel {
+      background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: 14px;
+    }
+    .b-side-panel h4 { font-size: 12px; font-weight: 800; margin-bottom: 8px; display: flex; align-items: center; gap: 4px; }
+    .b-side-panel p { font-size: 11px; color: var(--muted); line-height: 1.55; }
+
+    /* scheme C */
+    .c-hero { padding: 24px; text-align: center; background: linear-gradient(180deg,#eff6ff,#fff); }
+    .c-hero h2 { font-size: 32px; font-weight: 900; }
+    .c-hero h2 .chev { font-size: 36px; vertical-align: -2px; }
+    .c-spine { display: flex; flex-direction: column; align-items: center; padding: 8px 24px 100px; gap: 0; }
+    .c-spine-seg { display: flex; flex-direction: column; align-items: center; }
+    .c-spine-chev { font-size: 24px; font-weight: 900; color: var(--chev); font-family: monospace; line-height: 1; padding: 4px 0; }
+    .c-dock {
+      position: absolute; bottom: 20px; right: 20px; width: 300px;
+      border: 2px solid var(--pri); border-radius: 16px; background: #fff;
+      padding: 14px; box-shadow: 0 16px 48px rgba(13,71,161,.2);
+    }
+    .c-dock-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+    .c-dock-head .chev { font-size: 24px; }
+    .c-dock-head strong { font-size: 13px; }
+    .c-dock p { font-size: 11px; color: var(--muted); line-height: 1.5; }
+
+    /* scheme D */
+    .d-list { padding: 16px; }
+    .d-card {
+      display: flex; align-items: center; gap: 14px; padding: 14px 16px;
+      border: 1px solid var(--border); border-radius: 14px; margin-bottom: 10px;
+    }
+    .d-icon { width: 44px; height: 44px; border-radius: 12px; background: #fce7f3; display: grid; place-items: center; font-size: 20px; }
+    .d-card-main { flex: 1; }
+    .d-card-main strong { font-size: 16px; font-weight: 800; }
+    .d-card-main span { font-size: 11px; color: var(--muted); display: block; margin-top: 2px; }
+    .d-overlay {
+      position: absolute; inset: 0; background: rgba(15,23,42,.45);
+      display: flex; align-items: center; justify-content: center; padding: 20px;
+    }
+    .d-modal {
+      background: #fff; border-radius: 18px; width: 100%; max-width: 720px;
+      max-height: 90%; overflow: auto; padding: 20px; position: relative;
+    }
+    .d-modal h3 { font-size: 20px; font-weight: 900; margin-bottom: 12px; }
+    .d-modal h3 .chev { margin-right: 4px; }
+
+    /* scheme E */
+    .e-split { display: flex; flex-direction: column; height: 520px; }
+    .e-top {
+      flex: 0 0 auto; padding: 16px 20px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .e-top-left strong { font-size: 24px; font-weight: 900; }
+    .e-top-left span { font-size: 11px; color: var(--muted); display: block; margin-top: 2px; }
+    .e-canvas {
+      flex: 1; background: #0f172a; position: relative; overflow: hidden;
+      display: flex; align-items: center; justify-content: center; padding: 24px;
+    }
+    .e-canvas .a-flow { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12); }
+    .e-canvas .node { background: rgba(255,255,255,.95); }
+    .e-canvas .arrow, .e-canvas .chev { color: #60a5fa; }
+    .e-glass {
+      position: absolute; bottom: 16px; left: 16px; right: 16px;
+      background: rgba(255,255,255,.92); backdrop-filter: blur(12px);
+      border-radius: 14px; padding: 14px 16px; border: 1px solid rgba(255,255,255,.5);
+      display: flex; gap: 12px; align-items: flex-start;
+    }
+    .e-glass .chev-lg { color: var(--pri); }
+
+    @media (max-width: 720px) {
+      .b-layout { grid-template-columns: 1fr; }
+      .b-side { border-top: 1px solid var(--border); }
+      .c-dock { width: calc(100% - 32px); left: 16px; right: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page-head">
+    <h1>我的应用页 · 5 套重设计方案</h1>
+    <p>针对 <code>/plaza/my</code> 的层级简化、数据流内直接拖拽、突出 <strong>&gt;&gt;</strong> 符号与悬浮编排框。</p>
+    <ul>
+      <li><strong>共性</strong>：去掉独立「模块顺序」条，拖拽只在完整数据流节点上完成</li>
+      <li><strong>&gt;&gt;</strong>：作为品牌级流向符号，出现在标题、分区、悬浮框</li>
+      <li><strong>次要信息</strong>（契约警告、Web 包清单、邮件状态）下沉或折叠</li>
+    </ul>
+  </div>
+
+  <div class="tabs" role="tablist">
+    <button class="tab on" data-scheme="a">A · 标题优先</button>
+    <button class="tab" data-scheme="b">B · 双栏编排</button>
+    <button class="tab" data-scheme="c">C · 脊柱 + 悬浮框</button>
+    <button class="tab" data-scheme="d">D · 列表 + 全屏编排</button>
+    <button class="tab" data-scheme="e">E · 暗色画布</button>
+  </div>
+
+  <!-- A -->
+  <section class="scheme on" id="scheme-a">
+    <div class="scheme-label"><h2>方案 A · 标题优先 + 底部 &gt;&gt; 悬浮编排条</h2><span>推荐默认</span></div>
+    <div class="scheme-note">
+      <strong>层级</strong>：应用名 26px 置顶，元信息收成 3 个小 pill（APK / 创建者 / 时间）。<br>
+      <strong>拖拽</strong>：直接在数据流节点上拖 ⠿，无「模块顺序」条。<br>
+      <strong>&gt;&gt;</strong>：标题前缀 + 底部悬浮框左侧大号符号，强调「从这里继续编排」。
+    </div>
+    <div class="mock" data-flow="a">
+      <div class="a-top">
+        <div>
+          <div class="a-title"><span class="chev chev-lg">&gt;&gt;</span>材料管理</div>
+          <div class="a-sub">9 项能力 · 创建者</div>
+          <div class="a-pills">
+            <span class="pill">APK 构建中 44%</span>
+            <span class="pill">@ 应用广场</span>
+            <span class="pill">13:12 发布</span>
+          </div>
+        </div>
+        <div class="a-actions">
+          <button class="btn">复制链接</button>
+          <button class="btn btn-pri">打开</button>
+        </div>
+      </div>
+      <div class="a-body">
+        <div class="a-flow-head"><span class="chev chev-sm">&gt;&gt;</span> 完整数据流 · 按住节点拖动排序</div>
+        <div class="a-flow" data-track="a">
+          <span class="a-endpoint">📥 输入</span>
+          <span class="arrow chev">&gt;&gt;</span>
+          <div class="node on" draggable="true" data-i="0"><span class="grip">⠿</span><span class="ico">🏗️</span><span class="lbl">建筑工程</span></div>
+          <span class="arrow chev">&gt;&gt;</span>
+          <div class="node" draggable="true" data-i="1"><span class="grip">⠿</span><span class="ico">📦</span><span class="lbl">材料管理</span></div>
+          <span class="arrow chev">&gt;&gt;</span>
+          <div class="node" draggable="true" data-i="2"><span class="grip">⠿</span><span class="ico">✅</span><span class="lbl">审批流</span></div>
+          <span class="arrow chev">&gt;&gt;</span>
+          <div class="node" draggable="true" data-i="3"><span class="grip">⠿</span><span class="ico">💬</span><span class="lbl">智能问答</span></div>
+          <span class="arrow chev">&gt;&gt;</span>
+          <span class="a-endpoint">📤 触达</span>
+        </div>
+      </div>
+      <div class="a-float">
+        <div class="a-float-chev">&gt;&gt;</div>
+        <div class="a-float-body">
+          <strong>正在编排：智能问答</strong>
+          <span>悬浮框承接节点详情 · 添加模块 · 拨通 API · 编辑数据流说明</span>
+        </div>
+        <button class="btn btn-pri">添加模块</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- B -->
+  <section class="scheme" id="scheme-b">
+    <div class="scheme-label"><h2>方案 B · 左流右详情（双栏）</h2><span>信息密度适中</span></div>
+    <div class="scheme-note">
+      <strong>层级</strong>：左栏只有「名 + 状态 + 数据流」；右栏固定为选中节点的悬浮详情。<br>
+      <strong>拖拽</strong>：左栏 flow 节点可拖；右栏不抢视觉。<br>
+      <strong>次要信息</strong>：契约警告、manifest 等放右栏底部折叠区「高级 ▸」。
+    </div>
+    <div class="mock" data-flow="b">
+      <div class="b-layout">
+        <div class="b-main">
+          <div class="b-name"><span class="chev chev-md">&gt;&gt;</span> 材料管理</div>
+          <div class="b-status">● 已连接 · APK 构建中</div>
+          <div class="b-zone">
+            <div class="zone-tag"><span class="chev chev-sm">&gt;&gt;</span> 输入链</div>
+            <div class="b-flow-row" data-track="b-in">
+              <div class="node on" draggable="true" data-i="0"><span class="grip">⠿</span><span class="ico">📦</span><span class="lbl">材料管理</span></div>
+              <span class="arrow chev">&gt;&gt;</span>
+              <div class="node" draggable="true" data-i="1"><span class="grip">⠿</span><span class="ico">💬</span><span class="lbl">智能问答</span></div>
+            </div>
+          </div>
+          <div class="b-zone">
+            <div class="zone-tag"><span class="chev chev-sm">&gt;&gt;</span> 输出链</div>
+            <div class="b-flow-row" data-track="b-out">
+              <div class="node" draggable="true" data-i="2"><span class="grip">⠿</span><span class="ico">📋</span><span class="lbl">审批流</span></div>
+              <span class="arrow chev">&gt;&gt;</span>
+              <div class="node" draggable="true" data-i="3"><span class="grip">⠿</span><span class="ico">🔔</span><span class="lbl">站内信</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="b-side">
+          <div class="b-side-panel">
+            <h4><span class="chev chev-sm">&gt;&gt;</span> 节点详情 · 智能问答</h4>
+            <p>用户提问 → 检索知识库 → 返回答案。在此配置 API 拨通与流入流出。</p>
+            <div style="margin-top:12px;display:flex;flex-direction:column;gap:6px;">
+              <button class="btn btn-pri" style="width:100%">拨通模块</button>
+              <button class="btn" style="width:100%">编辑说明</button>
+              <button class="btn" style="width:100%;color:#94a3b8">高级 ▸ 契约 / manifest</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- C -->
+  <section class="scheme" id="scheme-c">
+    <div class="scheme-label"><h2>方案 C · 纵向脊柱 + 节点悬浮 &gt;&gt; 框</h2><span>最突出符号</span></div>
+    <div class="scheme-note">
+      <strong>层级</strong>：超大标题居中，其余全部让位给「>> 脊柱」视觉。<br>
+      <strong>拖拽</strong>：沿脊柱拖节点，>> 符号作为连接符放大显示。<br>
+      <strong>悬浮框</strong>：右下角固定，复用首页编排体验，选中节点时弹出详情。
+    </div>
+    <div class="mock" data-flow="c">
+      <div class="c-hero">
+        <h2><span class="chev">&gt;&gt;</span> 材料管理</h2>
+        <p style="font-size:12px;color:var(--muted);margin-top:6px;">拖脊柱上的模块 · 在悬浮框里编排</p>
+      </div>
+      <div class="c-spine" data-track="c">
+        <div class="c-spine-seg"><div class="node" draggable="true" data-i="0"><span class="grip">⠿</span><span class="ico">📥</span><span class="lbl">业务输入</span></div></div>
+        <div class="c-spine-chev">&gt;&gt;</div>
+        <div class="c-spine-seg"><div class="node on" draggable="true" data-i="1"><span class="grip">⠿</span><span class="ico">📦</span><span class="lbl">材料管理</span></div></div>
+        <div class="c-spine-chev">&gt;&gt;</div>
+        <div class="c-spine-seg"><div class="node" draggable="true" data-i="2"><span class="grip">⠿</span><span class="ico">💬</span><span class="lbl">智能问答</span></div></div>
+        <div class="c-spine-chev">&gt;&gt;</div>
+        <div class="c-spine-seg"><div class="node" draggable="true" data-i="3"><span class="grip">⠿</span><span class="ico">📤</span><span class="lbl">触达输出</span></div></div>
+      </div>
+      <div class="c-dock">
+        <div class="c-dock-head"><span class="chev">&gt;&gt;</span><strong>编排应用</strong></div>
+        <p>与首页悬浮框同一语言：在此添加模块、调整顺序、生成下一版。当前选中 <strong>材料管理</strong>。</p>
+        <button class="btn btn-pri" style="margin-top:10px;width:100%">继续编排 →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- D -->
+  <section class="scheme" id="scheme-d">
+    <div class="scheme-label"><h2>方案 D · 极简列表 + 全屏编排层</h2><span>多应用场景</span></div>
+    <div class="scheme-note">
+      <strong>层级</strong>：列表页只显示「图标 + 名 + 一行状态」，零噪音。<br>
+      <strong>编排</strong>：点「编排」进入全屏层，层内只有数据流 + 悬浮框，无 PublishSuccessCard 重复信息。<br>
+      <strong>适合</strong>：应用数量多、需要快速扫视时。
+    </div>
+    <div class="mock">
+      <div class="d-list">
+        <div class="d-card">
+          <div class="d-icon">📦</div>
+          <div class="d-card-main"><strong>材料管理</strong><span>9 项 · APK 构建中</span></div>
+          <button class="btn btn-pri">编排</button>
+        </div>
+        <div class="d-card" style="opacity:.5">
+          <div class="d-icon">🎤</div>
+          <div class="d-card-main"><strong>上海话语音</strong><span>3 项 · 已就绪</span></div>
+          <button class="btn">编排</button>
+        </div>
+      </div>
+      <div class="d-overlay">
+        <div class="d-modal">
+          <h3><span class="chev chev-md">&gt;&gt;</span> 编排 · 材料管理</h3>
+          <div class="a-flow" data-track="d" style="margin-bottom:14px">
+            <div class="node on" draggable="true" data-i="0"><span class="grip">⠿</span><span class="ico">📦</span><span class="lbl">材料</span></div>
+            <span class="arrow chev">&gt;&gt;</span>
+            <div class="node" draggable="true" data-i="1"><span class="grip">⠿</span><span class="ico">💬</span><span class="lbl">问答</span></div>
+            <span class="arrow chev">&gt;&gt;</span>
+            <div class="node" draggable="true" data-i="2"><span class="grip">⠿</span><span class="ico">✅</span><span class="lbl">审批</span></div>
+          </div>
+          <div class="a-float" style="position:static;transform:none;width:100%;box-shadow:none;border-width:1px">
+            <div class="a-float-chev">&gt;&gt;</div>
+            <div class="a-float-body"><strong>悬浮编排框</strong><span>全屏层内固定底部，与首页体验一致</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- E -->
+  <section class="scheme" id="scheme-e">
+    <div class="scheme-label"><h2>方案 E · 暗色画布 + 玻璃悬浮详情</h2><span>专业感</span></div>
+    <div class="scheme-note">
+      <strong>层级</strong>：顶部 20% 放标题与操作；下方 80% 全是可交互数据流画布。<br>
+      <strong>拖拽</strong>：画布内节点自由拖排（横向 flow）。<br>
+      <strong>&gt;&gt;</strong>：在暗底上用亮蓝色放大，玻璃态悬浮条展示节点 API 与编排动作。
+    </div>
+    <div class="mock" data-flow="e">
+      <div class="e-split">
+        <div class="e-top">
+          <div class="e-top-left">
+            <strong><span class="chev chev-md">&gt;&gt;</span> 材料管理</strong>
+            <span>创建者 · 拖动画布中的节点</span>
+          </div>
+          <div class="a-actions">
+            <button class="btn">分享</button>
+            <button class="btn btn-pri">打开应用</button>
+          </div>
+        </div>
+        <div class="e-canvas">
+          <div class="a-flow" data-track="e">
+            <div class="node on" draggable="true" data-i="0"><span class="grip">⠿</span><span class="ico">📦</span><span class="lbl">材料</span></div>
+            <span class="arrow chev">&gt;&gt;</span>
+            <div class="node" draggable="true" data-i="1"><span class="grip">⠿</span><span class="ico">💬</span><span class="lbl">问答</span></div>
+            <span class="arrow chev">&gt;&gt;</span>
+            <div class="node" draggable="true" data-i="2"><span class="grip">⠿</span><span class="ico">📚</span><span class="lbl">知识库</span></div>
+            <span class="arrow chev">&gt;&gt;</span>
+            <div class="node" draggable="true" data-i="3"><span class="grip">⠿</span><span class="ico">🔔</span><span class="lbl">通知</span></div>
+          </div>
+          <div class="e-glass">
+            <span class="chev chev-lg">&gt;&gt;</span>
+            <div>
+              <strong style="font-size:13px">智能问答 · 编排面板</strong>
+              <p style="font-size:11px;color:var(--muted);margin-top:4px;line-height:1.5">拨通 API · 编辑流入流出 · 在此添加下一节点。契约/manifest 等次要信息默认隐藏。</p>
+            </div>
+            <button class="btn btn-pri">拨通</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    // tab switch
+    document.querySelectorAll('.tab').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
+        document.querySelectorAll('.scheme').forEach(s => s.classList.remove('on'));
+        btn.classList.add('on');
+        document.getElementById('scheme-' + btn.dataset.scheme).classList.add('on');
+      });
+    });
+
+    // simple drag reorder demo on flow tracks
+    document.querySelectorAll('[data-track]').forEach(track => {
+      let dragEl = null;
+      track.querySelectorAll('.node[draggable]').forEach(node => {
+        node.addEventListener('click', () => {
+          track.querySelectorAll('.node').forEach(n => n.classList.remove('on'));
+          node.classList.add('on');
+        });
+        node.addEventListener('dragstart', e => {
+          dragEl = node;
+          node.classList.add('dragging');
+          e.dataTransfer.effectAllowed = 'move';
+        });
+        node.addEventListener('dragend', () => {
+          node.classList.remove('dragging');
+          dragEl = null;
+        });
+        node.addEventListener('dragover', e => {
+          e.preventDefault();
+          if (!dragEl || dragEl === node) return;
+          const nodes = [...track.querySelectorAll('.node')];
+          const from = nodes.indexOf(dragEl);
+          const to = nodes.indexOf(node);
+          if (from < 0 || to < 0) return;
+          if (from < to) node.after(dragEl);
+          else node.before(dragEl);
+        });
+      });
+    });
+  </script>
+</body>
+</html>

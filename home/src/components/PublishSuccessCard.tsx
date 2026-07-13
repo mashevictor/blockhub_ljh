@@ -19,6 +19,7 @@ interface Props {
   result: PublishResult
   showAdminLink?: boolean
   compact?: boolean
+  orchestration?: boolean
   plazaMeta?: PlazaAudienceMeta | null
   onPlazaPublished?: (meta: PlazaAudienceMeta) => void
 }
@@ -37,6 +38,7 @@ export default function PublishSuccessCard({
   result,
   showAdminLink = false,
   compact = false,
+  orchestration = false,
   plazaMeta: plazaMetaProp,
   onPlazaPublished,
 }: Props) {
@@ -101,22 +103,24 @@ export default function PublishSuccessCard({
   }
 
   return (
-    <article className={`publish-success-card${compact ? ' compact' : ''}`}>
-      <header className="publish-result-head">
-        <AppIconAvatar
-          name={result.appName}
-          iconUrl={result.iconUrl}
-          primaryColor={result.primaryColor}
-          size={36}
-          className="publish-result-logo"
-        />
-        <div>
-          <h3>{compact ? result.appName : '发布成功'}</h3>
-          <p className="modal-sub publish-result-sub">
-            {result.appName} · {result.moduleCount} 项功能 · {deliverLabel(deliverMode)}
-          </p>
-        </div>
-      </header>
+    <article className={`publish-success-card${compact ? ' compact' : ''}${orchestration ? ' orchestration' : ''}`}>
+      {!orchestration && (
+        <header className="publish-result-head">
+          <AppIconAvatar
+            name={result.appName}
+            iconUrl={result.iconUrl}
+            primaryColor={result.primaryColor}
+            size={36}
+            className="publish-result-logo"
+          />
+          <div>
+            <h3>{compact ? result.appName : '发布成功'}</h3>
+            <p className="modal-sub publish-result-sub">
+              {result.appName} · {result.moduleCount} 项功能 · {deliverLabel(deliverMode)}
+            </p>
+          </div>
+        </header>
+      )}
 
       {result.contactEmail && (
         <div className={`publish-email-strip${result.emailSent ? ' sent' : ''}`} role="status">
@@ -144,11 +148,11 @@ export default function PublishSuccessCard({
       )}
 
       <div className="publish-result-scroll">
-        {showAppDeliver(result) && (
+        {showAppDeliver(result) && !orchestration && (
           <DeliveryProgress app={result} compact />
         )}
 
-        {result.buildManifest?.web_pkgs && result.buildManifest.web_pkgs.length > 0 && (
+        {!orchestration && result.buildManifest?.web_pkgs && result.buildManifest.web_pkgs.length > 0 && (
           <div className="publish-manifest-strip" role="status" style={{ marginBottom: 12, fontSize: 13, color: 'var(--muted)' }}>
             <DynamicIcon name="layers" size={14} />
             <span style={{ marginLeft: 6 }}>
@@ -159,7 +163,7 @@ export default function PublishSuccessCard({
           </div>
         )}
 
-        {result.capabilityAssembly?.dropped_details && result.capabilityAssembly.dropped_details.length > 0 && (
+        {!orchestration && result.capabilityAssembly?.dropped_details && result.capabilityAssembly.dropped_details.length > 0 && (
           <div className="publish-save-warn" role="alert" style={{ marginBottom: 12 }}>
             <strong>以下能力未纳入发布契约（已跳过）：</strong>
             {' '}
@@ -167,7 +171,7 @@ export default function PublishSuccessCard({
           </div>
         )}
 
-        {result.capabilityAssembly?.resolved_keys && result.capabilityAssembly.resolved_keys.length > 0 && (
+        {!orchestration && result.capabilityAssembly?.resolved_keys && result.capabilityAssembly.resolved_keys.length > 0 && (
           <div className="publish-manifest-strip" role="status" style={{ marginBottom: 12, fontSize: 13, color: 'var(--muted)' }}>
             <DynamicIcon name="approval" size={14} />
             <span style={{ marginLeft: 6 }}>
@@ -179,7 +183,7 @@ export default function PublishSuccessCard({
           </div>
         )}
 
-        {visibleChips.length > 0 && (
+        {!orchestration && visibleChips.length > 0 && (
           <ul className="publish-module-list" aria-label="已包含模块与能力">
             {visibleChips.map((m) => (
               <li
@@ -196,37 +200,39 @@ export default function PublishSuccessCard({
           </ul>
         )}
 
-        <div className="publish-result-preview-row">
-          <div className="phone-preview phone-preview-compact">
-            <div className="phone-screen" style={{ '--phone-accent': result.primaryColor || '#4338ca' } as React.CSSProperties}>
-              <div className="phone-title-row">
-                <AppIconAvatar name={result.appName} iconUrl={result.iconUrl} primaryColor={result.primaryColor} size={22} />
-                <div className="phone-title">{result.appName}</div>
+        {!orchestration && (
+          <div className="publish-result-preview-row">
+            <div className="phone-preview phone-preview-compact">
+              <div className="phone-screen" style={{ '--phone-accent': result.primaryColor || '#4338ca' } as React.CSSProperties}>
+                <div className="phone-title-row">
+                  <AppIconAvatar name={result.appName} iconUrl={result.iconUrl} primaryColor={result.primaryColor} size={22} />
+                  <div className="phone-title">{result.appName}</div>
+                </div>
+                {phoneWidgets.length > 0 ? (
+                  phoneWidgets.map((m, i) => (
+                    <div
+                      key={`${m.kind}:${m.key}`}
+                      className="phone-widget"
+                      style={{ '--widget-bg': widgetTint(i) } as React.CSSProperties}
+                    >
+                      <DynamicIcon name={m.iconKey} size={12} />
+                      {m.label}
+                    </div>
+                  ))
+                ) : (
+                  <>
+                    <div className="phone-bar" />
+                    <div className="phone-bar short" />
+                  </>
+                )}
               </div>
-              {phoneWidgets.length > 0 ? (
-                phoneWidgets.map((m, i) => (
-                  <div
-                    key={`${m.kind}:${m.key}`}
-                    className="phone-widget"
-                    style={{ '--widget-bg': widgetTint(i) } as React.CSSProperties}
-                  >
-                    <DynamicIcon name={m.iconKey} size={12} />
-                    {m.label}
-                  </div>
-                ))
-              ) : (
-                <>
-                  <div className="phone-bar" />
-                  <div className="phone-bar short" />
-                </>
-              )}
+            </div>
+            <div className="publish-qr-block">
+              <img className="publish-qr-img" src={qrImageUrl(qrTarget)} alt={`${result.appName} 二维码`} width={88} height={88} />
+              <span>{showWebDeliver(result) ? '扫码打开网页' : '扫码下载 App'}</span>
             </div>
           </div>
-          <div className="publish-qr-block">
-            <img className="publish-qr-img" src={qrImageUrl(qrTarget)} alt={`${result.appName} 二维码`} width={88} height={88} />
-            <span>{showWebDeliver(result) ? '扫码打开网页' : '扫码下载 App'}</span>
-          </div>
-        </div>
+        )}
 
         <PublishDeliveryLinks result={result} />
       </div>
@@ -245,9 +251,11 @@ export default function PublishSuccessCard({
       )}
 
       <footer className="publish-success-foot">
-        <a className="btn-ghost" href={result.webUrl} target="_blank" rel="noreferrer">
-          打开应用 →
-        </a>
+        {!orchestration && (
+          <a className="btn-ghost" href={result.webUrl} target="_blank" rel="noreferrer">
+            打开应用 →
+          </a>
+        )}
         {!plazaMeta && !showPicker && (
           <button
             type="button"

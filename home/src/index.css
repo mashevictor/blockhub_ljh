@@ -6151,3 +6151,361 @@ a.btn-my-apps:hover { border-color: var(--pri-light); color: var(--pri); }
 .voice-btn-primary { background: linear-gradient(135deg, #96700a, #d4af37); color: #1a1612; border-color: #d4af37; }
 .voice-btn-danger { background: #7f1d1d; border-color: #f87171; }
 .voice-btn-ghost { background: transparent; }
+
+/* —— 我的应用 · D 极简列表 + A 全屏编排 —— */
+.plaza-mflow-chev.chev-hero {
+  font-size: 1.15em;
+  margin-right: 4px;
+  letter-spacing: -3px;
+}
+.plaza-my-head-slim {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+.plaza-my-head-sub {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.5;
+  max-width: 520px;
+}
+.plaza-my-history-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  margin: 20px 0 10px;
+  letter-spacing: 0.04em;
+}
+.plaza-my-list-d {
+  gap: 8px !important;
+}
+.plaza-my-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.plaza-my-card:hover {
+  border-color: color-mix(in srgb, var(--pri-light) 45%, var(--border));
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--pri) 6%, transparent);
+}
+.plaza-my-card.just-published {
+  border-color: color-mix(in srgb, var(--pri-light) 50%, var(--border));
+  background: linear-gradient(135deg, color-mix(in srgb, var(--pri-soft) 60%, var(--surface)), var(--surface));
+}
+.plaza-my-card-main {
+  flex: 1;
+  min-width: 0;
+}
+.plaza-my-card-main strong {
+  display: block;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 3px;
+}
+.plaza-my-card-meta {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+.plaza-my-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.plaza-my-orch-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 14px !important;
+  border-radius: 10px !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+}
+.plaza-my-orch-btn .plaza-mflow-chev {
+  font-size: 12px;
+  letter-spacing: -2px;
+}
+.plaza-my-card-icon-btn {
+  padding: 6px 10px !important;
+  font-size: 12px !important;
+  min-width: auto;
+}
+
+/* 全屏编排层 */
+.plaza-orch-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  padding: 0;
+}
+.plaza-orch-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.52);
+  backdrop-filter: blur(4px);
+}
+.plaza-orch-sheet {
+  position: relative;
+  z-index: 1;
+  width: min(980px, 100%);
+  max-height: 100vh;
+  margin: 0 auto;
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.25);
+  animation: plazaOrchIn 0.22s ease-out;
+}
+@keyframes plazaOrchIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.plaza-orch-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 20px 22px 16px;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--pri-soft) 40%, var(--surface)), var(--surface));
+}
+.plaza-orch-head-main {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  flex: 1;
+  min-width: 0;
+}
+.plaza-orch-title {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: var(--text);
+}
+.plaza-orch-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+.plaza-orch-pill {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--surface-alt);
+  color: var(--muted);
+  border: 1px solid var(--border);
+}
+.plaza-orch-pill.warn {
+  background: color-mix(in srgb, var(--warn) 12%, var(--surface));
+  color: var(--warn);
+  border-color: color-mix(in srgb, var(--warn) 30%, var(--border));
+}
+.plaza-orch-pill.ok {
+  background: #ecfdf5;
+  color: #047857;
+  border-color: #a7f3d0;
+}
+.plaza-orch-pill.muted { opacity: 0.85; }
+.plaza-orch-head-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.plaza-orch-close {
+  padding: 8px 18px !important;
+  border-radius: 10px !important;
+  font-weight: 700 !important;
+}
+.plaza-orch-body {
+  flex: 1;
+  overflow: auto;
+  padding: 16px 22px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.plaza-orch-delivery { margin-bottom: 4px; }
+
+/* 编排模式数据流 */
+.plaza-mflow-panel.orchestration {
+  border: none;
+  box-shadow: none;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+}
+.plaza-mflow-stage.orchestration {
+  padding: 0;
+  background: transparent;
+}
+.plaza-mflow-pipeline.orchestration .plaza-mflow-pipeline-head strong {
+  font-size: 15px;
+}
+.plaza-mflow-pipe-seg-wrap.drag-over .plaza-mflow-pipe-node {
+  border-color: var(--pri-light);
+  transform: translateY(-3px);
+}
+
+/* 底部 >> 悬浮编排框 */
+.plaza-orch-dock {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 2px solid var(--pri);
+  background: var(--surface);
+  box-shadow: 0 12px 40px color-mix(in srgb, var(--pri) 18%, transparent);
+}
+.plaza-orch-dock-chev {
+  font-family: var(--font-mono);
+  font-size: 28px;
+  font-weight: 900;
+  color: var(--pri);
+  line-height: 1;
+  letter-spacing: -3px;
+  flex-shrink: 0;
+}
+.plaza-orch-dock-body {
+  flex: 1;
+  min-width: 160px;
+}
+.plaza-orch-dock-body strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+.plaza-orch-dock-body span {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.45;
+}
+.plaza-orch-dock-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.plaza-orch-dock-picker {
+  width: 100%;
+  margin-top: 8px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--border);
+}
+.plaza-orch-dock-picker-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+.plaza-orch-dock-picker-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.plaza-orch-dock-picker-grid .plaza-mflow-picker-item {
+  flex: 1 1 100px;
+  min-width: 90px;
+  padding: 8px 10px;
+}
+
+.plaza-orch-inline-edit {
+  margin-top: 8px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface-alt);
+}
+.plaza-orch-advanced {
+  margin-top: 4px;
+}
+.plaza-orch-advanced-toggle {
+  border: none;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 6px 0;
+  font-family: inherit;
+}
+.plaza-orch-advanced-toggle:hover { color: var(--pri); }
+.plaza-orch-advanced-body {
+  margin-top: 8px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface-alt);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.plaza-orch-share {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 0 14px 12px;
+  background: var(--surface-alt);
+}
+.plaza-orch-share summary {
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  padding: 12px 0;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.plaza-orch-share summary::-webkit-details-marker { display: none; }
+.publish-success-card.orchestration {
+  border: none;
+  box-shadow: none;
+  padding: 0;
+  background: transparent;
+}
+.publish-success-card.orchestration .publish-success-foot {
+  padding-top: 8px;
+}
+
+@media (max-width: 720px) {
+  .plaza-orch-sheet {
+    width: 100%;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+  .plaza-orch-title { font-size: 22px; }
+  .plaza-orch-head { padding: 16px; }
+  .plaza-orch-body { padding: 12px 16px 20px; }
+  .plaza-my-card { flex-wrap: wrap; }
+  .plaza-my-card-actions { width: 100%; justify-content: flex-end; }
+  .plaza-orch-dock { flex-direction: column; align-items: stretch; }
+  .plaza-orch-dock-actions { justify-content: flex-end; }
+}
