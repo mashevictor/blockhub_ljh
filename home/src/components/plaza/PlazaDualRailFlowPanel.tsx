@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { usePlazaFlowRun } from '../../context/PlazaFlowRunContext'
 import {
   getModuleCapability,
   modulesAvailableToAdd,
@@ -37,6 +38,7 @@ function FuncNode({
   label,
   sub,
   active,
+  running,
   draggable,
   isDragging,
   isDragOver,
@@ -49,6 +51,7 @@ function FuncNode({
   label: string
   sub?: string
   active: boolean
+  running?: boolean
   draggable?: boolean
   isDragging?: boolean
   isDragOver?: boolean
@@ -78,7 +81,7 @@ function FuncNode({
       )}
       <button
         type="button"
-        className={`plaza-dual-rail-node func${active ? ' active' : ''}${draggable ? ' draggable' : ''}`}
+        className={`plaza-dual-rail-node func${active ? ' active' : ''}${running ? ' running' : ''}${draggable ? ' draggable' : ''}`}
         onClick={onSelect}
         disabled={readOnly}
         aria-pressed={active}
@@ -95,18 +98,20 @@ function DataNode({
   method,
   path,
   active,
+  running,
   onSelect,
 }: {
   id: string
   method: string
   path: string
   active: boolean
+  running?: boolean
   onSelect: () => void
 }) {
   return (
     <button
       type="button"
-      className={`plaza-dual-rail-node data${active ? ' active' : ''}`}
+      className={`plaza-dual-rail-node data${active ? ' active' : ''}${running ? ' running' : ''}`}
       data-node-id={id}
       onClick={onSelect}
       aria-pressed={active}
@@ -124,6 +129,7 @@ export default function PlazaDualRailFlowPanel({
   isCreator,
 }: Props) {
   const [flow, setFlow] = useState<AppModuleFlow>(() => loadModuleFlow(appKey, moduleLabels))
+  const run = usePlazaFlowRun()
   const [activeNodeId, setActiveNodeId] = useState<string | null>(FLOW_INGRESS_ID)
   const [pickerAfterStepId, setPickerAfterStepId] = useState<string | null>(null)
   const [editNote, setEditNote] = useState('')
@@ -139,6 +145,15 @@ export default function PlazaDualRailFlowPanel({
   })
 
   overIndexRef.current = overIndex
+
+  useEffect(() => {
+    if (run.phase === 'running' || run.phase === 'paused') {
+      if (run.currentStep?.id) setActiveNodeId(run.currentStep.id)
+    }
+  }, [run.phase, run.currentStep?.id, run.stepIndex])
+
+  const runningNodeId =
+    run.phase === 'running' || run.phase === 'paused' ? run.currentStep?.id ?? null : null
 
   useEffect(() => {
     const loaded = loadModuleFlow(appKey, moduleLabels)
@@ -246,7 +261,15 @@ export default function PlazaDualRailFlowPanel({
         <div className="plaza-dual-rail-col">
           <div className="plaza-dual-rail-col-head">
             <span className="plaza-mflow-chev">&gt;&gt;</span> 功能编排轨
-            <span className="plaza-dual-rail-col-hint">{isCreator ? '可拖序 · 点击选中' : '只读'}</span>
+            <span className="plaza-dual-rail-col-hint">
+              {run.phase === 'running'
+                ? '执行中'
+                : run.phase === 'paused'
+                  ? '已暂停'
+                  : isCreator
+                    ? '可拖序 · 点击选中'
+                    : '只读'}
+            </span>
           </div>
           <div className="plaza-dual-rail-stack">
             <FuncNode
@@ -254,6 +277,7 @@ export default function PlazaDualRailFlowPanel({
               label="📥 用户意图"
               sub="业务请求进入"
               active={activeNodeId === FLOW_INGRESS_ID}
+              running={runningNodeId === FLOW_INGRESS_ID}
               readOnly={!isCreator}
               onSelect={() => setActiveNodeId(FLOW_INGRESS_ID)}
             />
@@ -265,6 +289,7 @@ export default function PlazaDualRailFlowPanel({
                   label={step.label}
                   sub={getModuleCapability(step.label)?.desc ?? step.note}
                   active={activeNodeId === step.id}
+                  running={runningNodeId === step.id}
                   draggable={isCreator}
                   isDragging={dragIndex === i}
                   isDragOver={overIndex === i && dragIndex !== null && dragIndex !== i}
@@ -293,6 +318,7 @@ export default function PlazaDualRailFlowPanel({
                 label="📤 网页 + App"
                 sub="触达输出"
                 active={activeNodeId === FLOW_EGRESS_ID}
+                running={runningNodeId === FLOW_EGRESS_ID}
                 readOnly={!isCreator}
                 onSelect={() => setActiveNodeId(FLOW_EGRESS_ID)}
               />
@@ -323,6 +349,7 @@ export default function PlazaDualRailFlowPanel({
                   method={row.method}
                   path={row.path}
                   active={activeNodeId === row.id}
+                  running={runningNodeId === row.id}
                   onSelect={() => setActiveNodeId(row.id)}
                 />
               </div>

@@ -34,7 +34,7 @@ export const TRUST_DOCS: TrustDoc[] = [
   {
     id: 'deployment',
     title: '部署模式对比',
-    description: 'SaaS / 混合 / 私有化 · 网络边界与运维责任',
+    description: 'PaaS / 混合 / 私有化 · 网络边界与运维责任',
     downloadPath: '/downloads/deployment-modes.html',
   },
   {

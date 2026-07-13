@@ -1,5 +1,7 @@
 /** B2B 官网 · 新闻与动态（万兴新闻中心风格 · DeepSeek + 生成封面） */
 
+import type { EnrichBlock } from './enrichBlocks'
+
 export type NewsCategory = 'enterprise' | 'brand' | 'product'
 
 export interface NewsArticle {
@@ -246,4 +248,14 @@ export function getFeaturedNews(limit = 3): NewsArticle[] {
   const featured = NEWS_ARTICLES.filter((a) => a.featured)
   if (featured.length >= limit) return featured.slice(0, limit)
   return NEWS_ARTICLES.slice(0, limit)
+}
+
+export function resolveArticleBlocks(article: NewsArticle): EnrichBlock[] {
+  const blocks: EnrichBlock[] = [
+    { type: 'image', src: article.coverImage, alt: article.title },
+  ]
+  for (const text of article.body) {
+    blocks.push({ type: 'p', text })
+  }
+  return blocks
 }

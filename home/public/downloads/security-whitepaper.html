@@ -2,17 +2,21 @@
 <html lang="zh-CN"><head><meta charset="UTF-8"/><title>安全白皮书 · 积木仓</title>
 <style>
 @page { margin: 18mm; }
-body { font-family: "PingFang SC","Microsoft YaHei",sans-serif; max-width: 800px; margin: 0 auto; padding: 32px 24px; color: #1e293b; line-height: 1.7; }
-h1 { color: #0d47a1; font-size: 24px; margin-bottom: 4px; }
+body { font-family: "PingFang SC","Microsoft YaHei",sans-serif; max-width: 820px; margin: 0 auto; padding: 32px 24px; color: #1e293b; line-height: 1.75; background: #f8fafc; }
+.brand { background: linear-gradient(90deg,#0d47a1,#1976d2); color:#fff; padding:14px 20px; border-radius:10px; margin-bottom:24px; font-size:13px; }
+.brand strong { font-size:16px; display:block; margin-bottom:4px; }
+h1 { color: #0d47a1; font-size: 24px; margin: 0 0 6px; }
 .sub { color: #64748b; font-size: 13px; margin-bottom: 28px; }
-h2 { color: #0d47a1; font-size: 16px; margin: 24px 0 8px; border-left: 4px solid #00b894; padding-left: 10px; }
+.panel { background:#fff; border:1px solid #e2e8f0; border-top:4px solid #0d47a1; border-radius:10px; padding:18px 20px; margin-bottom:18px; }
+.panel h2 { color: #0d47a1; font-size: 16px; margin: 0 0 10px; border-left: 4px solid #00b894; padding-left: 10px; }
 p { font-size: 14px; margin: 0 0 10px; }
-.footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid #e2e8f0; font-size: 11px; color: #94a3b8; }
-@media print { .noprint { display: none; } }
+.footer { margin-top: 32px; padding-top: 16px; border-top: 1px solid #e2e8f0; font-size: 11px; color: #94a3b8; }
+@media print { .noprint { display: none; } body { background:#fff; } }
 </style></head><body>
-<p class="noprint" style="background:#eff6ff;padding:10px;border-radius:8px;font-size:13px;">&gt;&gt; 积木仓资料 · 浏览器打印为 PDF（Ctrl+P）</p>
+<p class="noprint" style="background:#eff6ff;padding:10px;border-radius:8px;font-size:13px;">&gt;&gt; 积木仓资料 · 浏览器打印为 PDF（Ctrl+P）· 与官网 <a href="/trust/security-whitepaper">在线版</a> 同步</p>
+<div class="brand"><strong>积木仓 BlockHub</strong>五分钟搭好，打开就能用 · 信任与合规资料</div>
 <h1>安全白皮书</h1>
-<p class="sub">数据流 · 加密 · 访问控制 · 删除承诺 · 积木仓 BlockHub · 2026</p>
-<h2>数据存储与出境</h2><p>客户业务数据默认存储于中国大陆境内数据中心。</p><p>未经客户书面授权，数据不会用于模型训练或第三方共享。</p><h2>传输与加密</h2><p>全链路 HTTPS/TLS 1.2+。静态数据 AES-256 加密存储。</p><h2>访问控制</h2><p>基于角色的权限管理（RBAC）。操作日志全量留存，支持导出审计。</p><h2>删除承诺</h2><p>合同终止或客户书面请求后 30 天内完成数据删除，并提供删除确认函。</p>
-<div class="footer">© 积木仓 · 本资料仅供预约客户内部评估使用</div>
+<p class="sub">数据流与存储 · 加密与访问控制 · 30 天删除承诺 · 2026</p>
+<div class="panel"><h2>文档说明</h2><p>本白皮书面向企业信息部门与安全团队，概述积木仓 BlockHub 在数据存储、传输加密、访问控制与删除承诺方面的实践。</p><p>内容可与 <a href="/trust">信任与合规中心</a> 在线资料对照；如需完整 DPA 与等保对齐说明，请 <a href="/#contact-demo">预约演示</a> 获取资质包。</p></div><div class="panel"><h2>数据存储与出境</h2><p>客户业务数据（应用配置、知识库文档、业务表单等）默认存储于<strong>中国大陆境内</strong>数据中心。</p><p>未经客户书面授权，客户数据<strong>不会用于</strong>大模型训练、也不会向第三方营销共享。</p><p>跨境访问需客户明确开通并签署补充条款；默认关闭境外管理员登录。</p></div><div class="panel"><h2>传输与加密</h2><p>管理端与员工端全链路 <strong>HTTPS/TLS 1.2+</strong>；API 调用支持 mTLS（混合/私有化可选）。</p><p>静态数据采用 <strong>AES-256</strong> 加密存储；密钥由云 KMS 或客户 HSM 托管（私有化可选）。</p><p>敏感字段（手机号、身份证等）支持列级脱敏展示与导出控制。</p></div><div class="panel"><h2>访问控制与审计</h2><p>基于角色的权限管理（RBAC），支持组织/部门/门店多级隔离。</p><p>关键操作（登录、权限变更、数据导出、智能体发布）<strong>全量操作日志</strong>留存，默认 180 天，可延长至 1 年。</p><p>支持 CSV/JSON 导出，字段说明见 <a href="/trust/audit-log">操作日志样例</a>。</p></div><div class="panel"><h2>删除与退出</h2><p>合同终止或客户书面请求后 <strong>30 个自然日内</strong>完成数据删除，并提供删除确认函。</p><p>备份卷按滚动策略清除；子处理器同步删除确认可一并提供。</p></div>
+<div class="footer">© 积木仓 · 本资料仅供预约客户内部评估使用 · DeepSeek 辅助生成</div>
 </body></html>

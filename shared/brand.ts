@@ -14,13 +14,20 @@ export const BRAND = {
 } as const
 
 /** Home 用 / ，Admin 用 /admin/ — 静态资源必须带 BASE_URL */
+function readBuildVersion(): string {
+  if (typeof document === 'undefined') return ''
+  return document.querySelector('meta[name="app-build-version"]')?.getAttribute('content') ?? ''
+}
+
 function asset(path: string): string {
   const base =
     typeof import.meta !== 'undefined' && import.meta.env?.BASE_URL
       ? import.meta.env.BASE_URL
       : '/'
   const normalized = `${base}${path.replace(/^\//, '')}`.replace(/\/{2,}/g, '/')
-  return normalized.startsWith('/') ? normalized : `/${normalized}`
+  const url = normalized.startsWith('/') ? normalized : `/${normalized}`
+  const version = readBuildVersion()
+  return version ? `${url}?v=${version}` : url
 }
 
 export const LOGO = {

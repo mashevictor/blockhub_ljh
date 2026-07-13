@@ -3,7 +3,7 @@ import type { CSSProperties } from 'react'
 import MarketingSiteShell from '../../components/b2b/enrichment/MarketingSiteShell'
 import EnrichCardVisual from '../../components/b2b/enrichment/EnrichCardVisual'
 import { AgentButtonContent, AgentChevronGlyph } from '../../components/AgentChevron'
-import { PRICING_FAQ, PRICING_INTRO, PRICING_TIERS } from '../../data/sitePricing'
+import { PRICING_FAQ, PRICING_TIERS } from '../../data/sitePricing'
 import { enrichCardStyle, pricingTierTheme } from '../../data/enrichVisualThemes'
 import { ROLE_PAGES } from '../../data/siteRoles'
 import { ROUTES } from '../../routes/paths'
@@ -12,11 +12,11 @@ import { usePageMeta } from '../../hooks/usePageMeta'
 export default function PricingPage() {
   usePageMeta({
     title: '定价说明 · 积木仓',
-    description: PRICING_INTRO,
+    description: 'PaaS、混合部署与私有化定价框架',
   })
 
   return (
-    <MarketingSiteShell pageTitle="定价框架" pageEyebrow="定价说明" pageLead={PRICING_INTRO}>
+    <MarketingSiteShell pageTitle="定价框架" pageEyebrow="定价说明">
       <div className="enrich-pricing-grid enrich-pricing-grid--page">
         {PRICING_TIERS.map((tier) => {
           const theme = pricingTierTheme(tier.id)
@@ -74,7 +74,7 @@ export default function PricingPage() {
         </div>
       </section>
 
-      <div className="enrich-section-foot">
+      <div className="enrich-section-foot enrich-detail-actions">
         <a href={ROUTES.contactDemo} className="b2b-btn-primary agent-action-btn">
           <AgentButtonContent>预约演示 · 获取专属报价说明</AgentButtonContent>
         </a>

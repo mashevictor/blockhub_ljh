@@ -36,6 +36,44 @@ CATEGORY_COLORS = {
     "product": ("#059669", "#10b981", "#6ee7b7"),
 }
 
+# 封面配色池：相邻新闻不得同色（与分类弱关联，优先分类色）
+COVER_PALETTES: list[tuple[str, str, str]] = [
+    CATEGORY_COLORS["enterprise"],
+    CATEGORY_COLORS["brand"],
+    CATEGORY_COLORS["product"],
+    ("#c2410c", "#ea580c", "#fdba74"),  # 橙
+    ("#0891b2", "#06b6d4", "#67e8f9"),  # 青
+    ("#be123c", "#e11d48", "#fda4af"),  # 玫红
+    ("#4f46e5", "#6366f1", "#a5b4fc"),  # 靛蓝
+    ("#b45309", "#d97706", "#fcd34d"),  # 琥珀
+]
+
+CATEGORY_PALETTE_INDEX = {
+    "enterprise": 0,
+    "brand": 1,
+    "product": 2,
+}
+
+
+def assign_cover_palettes(articles: list[dict]) -> dict[str, tuple[str, str, str]]:
+    """按展示顺序（日期降序）分配封面色，保证相邻条目颜色不同。"""
+    ordered = sorted(articles, key=lambda a: a["date"], reverse=True)
+    slug_palette: dict[str, tuple[str, str, str]] = {}
+    prev_idx = -1
+    n = len(COVER_PALETTES)
+    for article in ordered:
+        preferred = CATEGORY_PALETTE_INDEX.get(article["category"], 0)
+        idx = preferred if preferred != prev_idx else (preferred + 1) % n
+        if idx == prev_idx:
+            for offset in range(n):
+                candidate = (preferred + offset) % n
+                if candidate != prev_idx:
+                    idx = candidate
+                    break
+        slug_palette[article["slug"]] = COVER_PALETTES[idx]
+        prev_idx = idx
+    return slug_palette
+
 EXISTING_SLUGS = {
     "blockhub-1-2",
     "mfg-pilot-acceptance",
@@ -63,10 +101,15 @@ def _font(size: int, bold: bool = False) -> ImageFont.FreeTypeFont | ImageFont.I
     return ImageFont.load_default()
 
 
-def draw_cover(slug: str, title: str, category: str, date_str: str) -> Path:
+def draw_cover(
+    slug: str,
+    category: str,
+    date_str: str,
+    palette: tuple[str, str, str] | None = None,
+) -> Path:
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     w, h = 960, 540
-    c0, c1, c2 = CATEGORY_COLORS.get(category, CATEGORY_COLORS["product"])
+    c0, c1, c2 = palette or CATEGORY_COLORS.get(category, CATEGORY_COLORS["product"])
     rng = random.Random(slug)
 
     img = Image.new("RGB", (w, h), c0)
@@ -99,18 +142,10 @@ def draw_cover(slug: str, title: str, category: str, date_str: str) -> Path:
     draw.rectangle((0, 0, w, 6), fill=c2)
 
     cat_font = _font(22, bold=True)
-    title_font = _font(34, bold=True)
     meta_font = _font(18)
 
     draw.text((40, 36), CATEGORY_LABELS.get(category, "新闻"), fill="#ffffff", font=cat_font)
     draw.text((40, 72), "BlockHub 积木仓", fill=(255, 255, 255, 200), font=meta_font)
-
-    wrapped = textwrap.wrap(title, width=16)[:3]
-    y = h - 200
-    for line in wrapped:
-        draw.text((40, y), line, fill="#ffffff", font=title_font)
-        y += 44
-
     draw.text((40, h - 48), date_str, fill=(255, 255, 255, 210), font=meta_font)
 
     out = OUT_DIR / f"{slug}.jpg"
@@ -507,8 +542,9 @@ def main() -> None:
             item["date"] = date.today().isoformat()
         merged.append(item)
 
+    palettes = assign_cover_palettes(merged)
     for a in merged:
-        draw_cover(a["slug"], a["title"], a["category"], a["date"])
+        draw_cover(a["slug"], a["category"], a["date"], palettes[a["slug"]])
 
     write_site_news_ts(merged)
     print(f"[news] generated {len(merged)} covers in {OUT_DIR}")

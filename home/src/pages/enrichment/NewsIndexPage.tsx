@@ -18,7 +18,7 @@ export default function NewsIndexPage() {
     <MarketingSiteShell
       pageTitle="新闻动态"
       pageEyebrow="公司动态"
-      pageLead={`公司在迭代 · 建立 B2B 信任 · 最新 ${NEWS_ARTICLES.length} 条`}
+      pageLead="产品发布 · 企业新闻 · 品牌活动"
     >
       <div className="enrich-news-list">
         {NEWS_ARTICLES.map((item) => {
@@ -30,7 +30,13 @@ export default function NewsIndexPage() {
               className="enrich-card enrich-news-list-card"
               style={enrichCardStyle(theme) as CSSProperties}
             >
-              <EnrichCardVisual icon={theme.icon} label={catLabel} sublabel={item.date} />
+              <EnrichCardVisual
+                icon={theme.icon}
+                label={catLabel}
+                sublabel={item.date}
+                imageUrl={item.coverImage}
+                photoOverlay="badge"
+              />
               <div className="enrich-card-body">
                 <span className="enrich-news-cat">{catLabel}</span>
                 <h2>

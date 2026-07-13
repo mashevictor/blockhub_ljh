@@ -1,11 +1,129 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAgentPageContext } from '../../context/AgentPageContext'
-import { usePlazaFocus } from '../../context/PlazaFocusContext'
+import { PlazaFlowRunProvider } from '../../context/PlazaFlowRunContext'
+import { usePlazaFocus, type PlazaFocusTarget } from '../../context/PlazaFocusContext'
 import { AGENT_CONTEXTS } from '../../data/agentContext'
+import { usePlazaChevActions } from '../../hooks/usePlazaChevActions'
 import { ROUTES } from '../../routes/paths'
 import FloatingAgentDock from '../FloatingAgentDock'
+import PlazaChevTrigger from '../plaza/PlazaChevTrigger'
+import PlazaDockCollapsedBar from '../plaza/PlazaDockCollapsedBar'
 import PlazaDualRailFlowPanel from '../plaza/PlazaDualRailFlowPanel'
+
+function PlazaFocusDockBody({
+  focus,
+  moduleLabels,
+  menuOpen,
+  setMenuOpen,
+  onOrchestration,
+}: {
+  focus: PlazaFocusTarget
+  moduleLabels: string[]
+  menuOpen: boolean
+  setMenuOpen: (v: boolean | ((prev: boolean) => boolean)) => void
+  onOrchestration: (appKey: string) => void
+}) {
+  const openApp = () => window.open(focus.webUrl, '_blank', 'noopener,noreferrer')
+  const copyLink = () => void navigator.clipboard.writeText(focus.webUrl)
+  const chevActions = usePlazaChevActions(focus, {
+    onOpenApp: openApp,
+    onFullscreen: () => onOrchestration(focus.appKey),
+    onCopyLink: copyLink,
+  })
+
+  return (
+    <>
+      <PlazaDockCollapsedBar
+        focus={focus}
+        onOpenApp={openApp}
+        onFullscreen={() => onOrchestration(focus.appKey)}
+        onCopyLink={copyLink}
+      />
+      <div className="plaza-dual-rail-dock-body plaza-dual-rail-dock-expanded">
+        <div className="plaza-dual-rail-dock-toolbar is-dock-drag-surface">
+          <PlazaChevTrigger actions={chevActions} className="plaza-dock-chev-toolbar" />
+          <span className="plaza-dual-rail-dock-toolbar-title">
+            {focus.appName}
+            {focus.plazaLabel ? ` · ${focus.plazaLabel}` : ''}
+          </span>
+          <div className="plaza-dual-rail-dock-tools">
+            {focus.source === 'my' && focus.isCreator && !focus.inOrchestration && (
+              <button
+                type="button"
+                className="plaza-dual-rail-tool"
+                onClick={() => onOrchestration(focus.appKey)}
+              >
+                全屏
+              </button>
+            )}
+            <a
+              className="plaza-dual-rail-tool"
+              href={focus.webUrl}
+              target="_blank"
+              rel="noreferrer"
+            >
+              打开
+            </a>
+            <div className="plaza-dual-rail-menu-wrap">
+              <button
+                type="button"
+                className="plaza-dual-rail-tool"
+                aria-expanded={menuOpen}
+                onClick={() => setMenuOpen((v) => !v)}
+              >
+                ···
+              </button>
+              {menuOpen && (
+                <div className="plaza-dual-rail-menu" role="menu">
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      void navigator.clipboard.writeText(focus.webUrl)
+                      setMenuOpen(false)
+                    }}
+                  >
+                    复制网页链接
+                  </button>
+                  {focus.source === 'my' && focus.isCreator && (
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={() => {
+                        onOrchestration(focus.appKey)
+                        setMenuOpen(false)
+                      }}
+                    >
+                      全屏编排 / 分享发布
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {moduleLabels.length > 0 ? (
+          <PlazaDualRailFlowPanel
+            appKey={focus.appKey}
+            appName={focus.appName}
+            moduleLabels={moduleLabels}
+            isCreator={focus.isCreator && focus.source === 'my'}
+          />
+        ) : (
+          <p className="plaza-dual-rail-empty">暂无模块信息，请从「我的应用」进入全屏编排</p>
+        )}
+
+        <div className="plaza-dual-rail-dock-foot">
+          <Link to={ROUTES.home} className="plaza-floating-create">
+            <span className="agent-chevron-glyph">&gt;&gt;</span> 继续创建应用
+          </Link>
+        </div>
+      </div>
+    </>
+  )
+}
 
 /** 广场页底部 >> 双轨编排（方案 C） */
 export default function PlazaFloatingAgent() {
@@ -44,90 +162,20 @@ export default function PlazaFloatingAgent() {
       ariaLabel="应用广场双轨编排"
       variant="capsule"
       showDockToggle
+      collapseToggleInTail
       snapBottomOnExpand
       defaultExpanded={false}
     >
       {focus ? (
-        <div className="plaza-dual-rail-dock-body">
-          <div className="plaza-dual-rail-dock-toolbar">
-            <span className="plaza-dual-rail-dock-toolbar-title">
-              <span className="plaza-mflow-chev">&gt;&gt;</span> {focus.appName}
-              {focus.plazaLabel ? ` · ${focus.plazaLabel}` : ''}
-            </span>
-            <div className="plaza-dual-rail-dock-tools">
-              {focus.source === 'my' && focus.isCreator && !focus.inOrchestration && (
-                <button
-                  type="button"
-                  className="plaza-dual-rail-tool"
-                  onClick={() => requestOrchestration(focus.appKey)}
-                >
-                  全屏
-                </button>
-              )}
-              <a
-                className="plaza-dual-rail-tool"
-                href={focus.webUrl}
-                target="_blank"
-                rel="noreferrer"
-              >
-                打开
-              </a>
-              <div className="plaza-dual-rail-menu-wrap">
-                <button
-                  type="button"
-                  className="plaza-dual-rail-tool"
-                  aria-expanded={menuOpen}
-                  onClick={() => setMenuOpen((v) => !v)}
-                >
-                  ···
-                </button>
-                {menuOpen && (
-                  <div className="plaza-dual-rail-menu" role="menu">
-                    <button
-                      type="button"
-                      role="menuitem"
-                      onClick={() => {
-                        void navigator.clipboard.writeText(focus.webUrl)
-                        setMenuOpen(false)
-                      }}
-                    >
-                      复制网页链接
-                    </button>
-                    {focus.source === 'my' && focus.isCreator && (
-                      <button
-                        type="button"
-                        role="menuitem"
-                        onClick={() => {
-                          requestOrchestration(focus.appKey)
-                          setMenuOpen(false)
-                        }}
-                      >
-                        全屏编排 / 分享发布
-                      </button>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {moduleLabels.length > 0 ? (
-            <PlazaDualRailFlowPanel
-              appKey={focus.appKey}
-              appName={focus.appName}
-              moduleLabels={moduleLabels}
-              isCreator={focus.isCreator && focus.source === 'my'}
-            />
-          ) : (
-            <p className="plaza-dual-rail-empty">暂无模块信息，请从「我的应用」进入全屏编排</p>
-          )}
-
-          <div className="plaza-dual-rail-dock-foot">
-            <Link to={ROUTES.home} className="plaza-floating-create">
-              <span className="agent-chevron-glyph">&gt;&gt;</span> 继续创建应用
-            </Link>
-          </div>
-        </div>
+        <PlazaFlowRunProvider appKey={focus.appKey} moduleLabels={moduleLabels}>
+          <PlazaFocusDockBody
+            focus={focus}
+            moduleLabels={moduleLabels}
+            menuOpen={menuOpen}
+            setMenuOpen={setMenuOpen}
+            onOrchestration={requestOrchestration}
+          />
+        </PlazaFlowRunProvider>
       ) : (
         <Link to={`${ROUTES.home}#contact`} className="plaza-floating-agent-link">
           <span className="agent-brand-trigger mini" aria-hidden>

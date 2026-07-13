@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { AgentButtonContent, AgentChevronGlyph } from '../../AgentChevron'
-import { PRICING_INTRO, PRICING_TIERS } from '../../../data/sitePricing'
+import { PRICING_TIERS } from '../../../data/sitePricing'
 import { ROUTES } from '../../../routes/paths'
 
 export default function B2BPricingSection() {
@@ -13,7 +13,6 @@ export default function B2BPricingSection() {
             价格说明
           </span>
           <h2 id="enrich-pricing-title">定价框架</h2>
-          <p>{PRICING_INTRO}</p>
         </div>
         <div className="enrich-pricing-grid">
           {PRICING_TIERS.map((tier) => (

@@ -4,14 +4,16 @@ import HeroDanmakuCloud from './HeroDanmakuCloud'
 
 interface Props {
   onRoleApply?: (role: RolePreset, generate?: boolean) => void
+  /** 标题与 Tab 由外层 CreateStudio 渲染时设为 false */
+  showTitle?: boolean
 }
 
-export default function HeroCubeStage({ onRoleApply }: Props) {
+export default function HeroCubeStage({ onRoleApply, showTitle = true }: Props) {
   return (
     <div className="hero-e-stage hero-e-stage-focus">
       <div className="hero-e-first-screen">
         <div className="hero-e-center">
-          <AgentSignLine variant="hero" className="hero-e-headline" />
+          {showTitle ? <AgentSignLine variant="hero" className="hero-e-headline" /> : null}
 
           <div className="hero-e-agent-sign" aria-label="用符号重新定义智能体新交互">
             <div className="hero-e-sign-glow" aria-hidden />

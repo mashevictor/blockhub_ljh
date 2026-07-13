@@ -12,6 +12,7 @@ import SharePackPage from './pages/SharePackPage'
 import ShareShortRedirect from './pages/ShareShortRedirect'
 import ShanghaiVoicePage from './pages/ShanghaiVoicePage'
 import TrustCenterPage from './pages/enrichment/TrustCenterPage'
+import TrustDocDetailPage from './pages/enrichment/TrustDocDetailPage'
 import CasesIndexPage from './pages/enrichment/CasesIndexPage'
 import CaseDetailPage from './pages/enrichment/CaseDetailPage'
 import PricingPage from './pages/enrichment/PricingPage'
@@ -48,6 +49,11 @@ export default function App() {
         </ErrorBoundary>
       } />
       <Route path="/s/:token" element={<ShareShortRedirect />} />
+      <Route path={`${ROUTES.trust}/:docId`} element={
+        <ErrorBoundary fallbackTitle="信任资料加载失败">
+          <TrustDocDetailPage />
+        </ErrorBoundary>
+      } />
       <Route path={ROUTES.trust} element={
         <ErrorBoundary fallbackTitle="信任中心加载失败">
           <TrustCenterPage />

@@ -15,7 +15,6 @@ import SelectionBox, { type SelectionItem } from '../components/SelectionBox'
 import AgentInput, { type AgentInputHandle, type AgentPick } from '../components/AgentInput'
 import { GENERATE_APP_LABEL, GENERATE_APP_LOADING } from '../data/publishUi'
 import { AgentButtonContent } from '../components/AgentChevron'
-import PromptHeroGuide from '../components/b2b/PromptHeroGuide'
 import PromptSuggestBar from '../components/PromptSuggestBar'
 import IntentAnalysisStrip from '../components/IntentAnalysisStrip'
 import ContactGateModal, { type ContactInfo } from '../components/ContactGateModal'
@@ -1012,8 +1011,6 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
 
   return (
     <div className="view prompt-view prompt-view-minimal layout-floating">
-      <PromptHeroGuide />
-
       {showPromptDock && (
       <FloatingAgentDock
         storageKey="tc-floating-home"

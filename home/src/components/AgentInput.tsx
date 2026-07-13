@@ -135,8 +135,8 @@ export default forwardRef<AgentInputHandle, Props>(function AgentInput({
   const textareaRows = isFloatingCapsule ? 2 : (expanded ? 5 : 2)
   const { contextKey } = useAgentPageContext()
   const contextCopy = AGENT_CONTEXTS[contextKey]
-  const placeholderText = capsuleCompact && contextCopy.placeholderCollapsed
-    ? contextCopy.placeholderCollapsed
+  const placeholderText = capsuleCompact
+    ? (contextCopy.placeholderCollapsed ?? contextCopy.placeholder)
     : (isMinimal ? contextCopy.placeholder : GUIDE_PLACEHOLDER)
 
   const [focused, setFocused] = useState(false)

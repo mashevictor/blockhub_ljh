@@ -2,17 +2,21 @@
 <html lang="zh-CN"><head><meta charset="UTF-8"/><title>系统集成清单 · 积木仓</title>
 <style>
 @page { margin: 18mm; }
-body { font-family: "PingFang SC","Microsoft YaHei",sans-serif; max-width: 800px; margin: 0 auto; padding: 32px 24px; color: #1e293b; line-height: 1.7; }
-h1 { color: #0d47a1; font-size: 24px; margin-bottom: 4px; }
+body { font-family: "PingFang SC","Microsoft YaHei",sans-serif; max-width: 820px; margin: 0 auto; padding: 32px 24px; color: #1e293b; line-height: 1.75; background: #f8fafc; }
+.brand { background: linear-gradient(90deg,#0d47a1,#1976d2); color:#fff; padding:14px 20px; border-radius:10px; margin-bottom:24px; font-size:13px; }
+.brand strong { font-size:16px; display:block; margin-bottom:4px; }
+h1 { color: #0d47a1; font-size: 24px; margin: 0 0 6px; }
 .sub { color: #64748b; font-size: 13px; margin-bottom: 28px; }
-h2 { color: #0d47a1; font-size: 16px; margin: 24px 0 8px; border-left: 4px solid #00b894; padding-left: 10px; }
+.panel { background:#fff; border:1px solid #e2e8f0; border-top:4px solid #0d47a1; border-radius:10px; padding:18px 20px; margin-bottom:18px; }
+.panel h2 { color: #0d47a1; font-size: 16px; margin: 0 0 10px; border-left: 4px solid #00b894; padding-left: 10px; }
 p { font-size: 14px; margin: 0 0 10px; }
-.footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid #e2e8f0; font-size: 11px; color: #94a3b8; }
-@media print { .noprint { display: none; } }
+.footer { margin-top: 32px; padding-top: 16px; border-top: 1px solid #e2e8f0; font-size: 11px; color: #94a3b8; }
+@media print { .noprint { display: none; } body { background:#fff; } }
 </style></head><body>
-<p class="noprint" style="background:#eff6ff;padding:10px;border-radius:8px;font-size:13px;">&gt;&gt; 积木仓资料 · 浏览器打印为 PDF（Ctrl+P）</p>
+<p class="noprint" style="background:#eff6ff;padding:10px;border-radius:8px;font-size:13px;">&gt;&gt; 积木仓资料 · 浏览器打印为 PDF（Ctrl+P）· 与官网 <a href="/trust/integration">在线版</a> 同步</p>
+<div class="brand"><strong>积木仓 BlockHub</strong>五分钟搭好，打开就能用 · 信任与合规资料</div>
 <h1>系统集成清单</h1>
-<p class="sub">常见 ERP/CRM/协同办公对接说明 · 积木仓 BlockHub · 2026</p>
-<h2>已支持系统</h2><p>用友 U8/YonSuite · 金蝶云星空 · 钉钉 · 企业微信 · 飞书 · Salesforce（API）</p><h2>对接方式</h2><p>REST API / Webhook / 数据库只读视图 / 中间件同步，按客户 IT 规范选型。</p><h2>数据流</h2><p>智能体仅读取业务所需字段；写回操作需配置审批或人工确认节点。</p><h2>实施周期</h2><p>标准对接 2–4 周；复杂定制按里程碑评估。</p>
-<div class="footer">© 积木仓 · 本资料仅供预约客户内部评估使用</div>
+<p class="sub">用友 / 金蝶 / 钉钉 / 企业微信等常见对接说明 · 2026</p>
+<div class="panel"><h2>集成原则</h2><p>积木仓采用「标准 API + 可选 Webhook」与现有 ERP/CRM/OA 对接，避免替换核心系统。</p><p>常见模式：只读同步主数据、线索/工单双向同步、单点登录（SSO）、消息通知回写。</p></div><div class="panel"><h2>已验证系统</h2><p><strong>ERP/财务</strong>：用友 U8/YonBIP、金蝶云星空（REST/中间表）。</p><p><strong>CRM</strong>：纷享销客、销售易、自建 CRM（Webhook + 自定义字段映射）。</p><p><strong>协同</strong>：钉钉、企业微信、飞书（通讯录同步、消息卡片、审批回调）。</p><p><strong>身份</strong>：Azure AD、企业微信扫码、LDAP（私有化）。</p></div><div class="panel"><h2>典型对接场景</h2><p>制造：CRM 新线索 → 积木仓智能体草拟话术 → 销售确认后回写跟进记录。</p><p>零售：HR 制度 PDF → 知识库 → 门店员工自然语言问答。</p><p>物流：TMS 运单状态 API → 智能体 7×24 查询与异常推送。</p></div><div class="panel"><h2>实施周期</h2><p>标准 REST 对接：<strong>5–10 个工作日</strong>（含联调与 UAT）。</p><p>复杂 ERP 中间表：<strong>2–4 周</strong>；需客户方 DBA/集成商配合。</p><p>详细接口清单与字段映射模板可在 <a href="/#contact-demo">预约演示</a> 后获取。</p></div>
+<div class="footer">© 积木仓 · 本资料仅供预约客户内部评估使用 · DeepSeek 辅助生成</div>
 </body></html>

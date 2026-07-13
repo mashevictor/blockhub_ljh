@@ -6,6 +6,7 @@ import { viewModeToContext } from '../../data/agentContext'
 import { useAgentPageContext } from '../../context/AgentPageContext'
 import { useDemoBookingActive } from '../../context/DemoBookingContext'
 import HeroCubeStage from '../HeroCubeStage'
+import AgentSignLine from '../AgentSignLine'
 import ViewModeSwitcher from '../ViewModeSwitcher'
 import PromptView from '../../views/PromptView'
 import IndustryView from '../../views/IndustryView'
@@ -86,11 +87,14 @@ export default function CreateStudio() {
 
   return (
     <div className="b2b-create-studio">
-      <div className="b2b-create-hero">
-        <HeroCubeStage onRoleApply={handleRoleApply} />
+      <div className="b2b-create-head">
+        <AgentSignLine variant="hero" className="hero-e-headline" />
+        <div className="b2b-create-toolbar">
+          <ViewModeSwitcher value={view} onChange={handleViewChange} />
+        </div>
       </div>
-      <div className="b2b-create-toolbar">
-        <ViewModeSwitcher value={view} onChange={handleViewChange} />
+      <div className="b2b-create-hero">
+        <HeroCubeStage onRoleApply={handleRoleApply} showTitle={false} />
       </div>
       <div ref={mainRef} className="b2b-create-main">
         <div className={view === 'prompt' ? undefined : 'view-hidden'} aria-hidden={view !== 'prompt'}>

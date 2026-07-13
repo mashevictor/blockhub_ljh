@@ -42,13 +42,13 @@ export const ROLE_PAGES: RolePage[] = [
     topQuestions: [
       '数据存在哪里？会不会出境？',
       '如何对接现有 CRM/ERP？',
-      'SaaS 和私有化怎么选？',
+      'PaaS 和私有化怎么选？',
       '安全问卷有没有预填版？',
       '操作日志能否导出审计？',
     ],
     downloads: [
-      { title: '安全白皮书', path: '/downloads/security-whitepaper.html' },
-      { title: '系统集成清单', path: '/downloads/integration-checklist.html' },
+      { title: '安全白皮书', path: '/trust/security-whitepaper' },
+      { title: '系统集成清单', path: '/trust/integration' },
       { title: '信任与合规中心', path: '/trust' },
     ],
     cta: '进入信任与合规中心',
@@ -82,8 +82,8 @@ export const ROLE_PAGES: RolePage[] = [
       '供应商准入需要哪些文件？',
     ],
     downloads: [
-      { title: 'DPA 摘要', path: '/downloads/dpa-summary.html' },
-      { title: '部署模式对比', path: '/downloads/deployment-modes.html' },
+      { title: 'DPA 摘要', path: '/trust/dpa' },
+      { title: '部署模式对比', path: '/trust/deployment' },
       { title: '定价与 SLA 说明', path: '/pricing' },
     ],
     cta: '预约演示 · 获取资质包',

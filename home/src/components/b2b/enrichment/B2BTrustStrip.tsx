@@ -20,16 +20,14 @@ export default function B2BTrustStrip() {
         </div>
         <div className="enrich-trust-dl">
           {TRUST_STRIP_DOWNLOADS.map((item) => (
-            <a
+            <Link
               key={item.id}
-              href={item.downloadPath}
-              target="_blank"
-              rel="noopener noreferrer"
+              to={ROUTES.trustDoc(item.id)}
               className="enrich-dl-btn"
             >
               <AgentChevronGlyph size="sm" className="enrich-dl-chev" />
               {item.title}
-            </a>
+            </Link>
           ))}
         </div>
       </div>

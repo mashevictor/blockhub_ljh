@@ -16,6 +16,7 @@ export const ROUTES = {
   shareShort: (token: string) => `/s/${token}`,
   /** 官网 enrichment 子站 */
   trust: '/trust',
+  trustDoc: (docId: string) => `/trust/${docId}`,
   cases: '/cases',
   caseDetail: (slug: string) => `/cases/${slug}`,
   pricing: '/pricing',

@@ -39,14 +39,17 @@ export default function TrustCenterPage() {
                   <EnrichCardVisual icon={theme.icon} label={doc.title} />
                   <div className="enrich-card-body enrich-card-body--compact">
                     <p>{doc.description}</p>
+                    <Link to={ROUTES.trustDoc(doc.id)} className="enrich-link-btn agent-action-btn">
+                      <AgentButtonContent>在线阅读</AgentButtonContent>
+                    </Link>
                     <a
                       href={doc.downloadPath}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="enrich-dl-btn"
+                      className="enrich-dl-btn enrich-dl-btn--secondary"
                     >
                       <AgentChevronGlyph size="sm" className="enrich-dl-chev" />
-                      下载 / 打印 PDF
+                      打印 PDF
                     </a>
                   </div>
                 </article>

@@ -22,9 +22,15 @@ export default function DemoBookingComposer() {
   useEffect(() => {
     const el = wrapRef.current
     if (!el) return
+    let visible = false
     const io = new IntersectionObserver(
-      ([entry]) => setInView(Boolean(entry?.isIntersecting && entry.intersectionRatio > 0.2)),
-      { threshold: [0.2, 0.45, 0.7], rootMargin: '-60px 0px -35% 0px' },
+      ([entry]) => {
+        const ratio = entry?.intersectionRatio ?? 0
+        if (ratio >= 0.22) visible = true
+        else if (ratio <= 0.08) visible = false
+        setInView(visible)
+      },
+      { threshold: [0, 0.08, 0.22, 0.45], rootMargin: '-72px 0px -28% 0px' },
     )
     io.observe(el)
     return () => {

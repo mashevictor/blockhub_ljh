@@ -65,6 +65,8 @@ interface Props {
   anchorVerticalAlign?: 'below' | 'top'
   /** 递增时重新对齐锚点（如首页 intro 结束后） */
   repositionSignal?: number
+  /** 胶囊折叠时在 tail 显示展开/折叠按钮（广场等非输入型 dock） */
+  collapseToggleInTail?: boolean
 }
 
 const DOCK_WIDTH = 720
@@ -96,12 +98,18 @@ function isUserMovedPosition(key: string): boolean {
   return loadStoredPosition(key)?.userMoved === true
 }
 
-function loadCollapsed(key: string): boolean {
+function loadCollapsed(key: string): boolean | null {
   try {
-    return localStorage.getItem(`${key}:collapsed`) === '1'
+    const raw = localStorage.getItem(`${key}:collapsed`)
+    if (raw === null) return null
+    return raw === '1'
   } catch {
-    return false
+    return null
   }
+}
+
+function isMobileViewport(): boolean {
+  return typeof window !== 'undefined' && window.matchMedia('(max-width: 768px)').matches
 }
 
 function loadDockEnabled(key: string): boolean {
@@ -156,6 +164,9 @@ function resolveInitialPosition(
   anchorAlign: 'left' | 'right' = 'left',
   anchorVerticalAlign: 'below' | 'top' = 'below',
 ): DockPosition {
+  if (isMobileViewport()) {
+    return defaultPosition(dockW, dockH)
+  }
   const anchorKey = anchorStorageKey(anchorSelector, anchorVerticalAlign)
   const stored = loadPosition(storageKey, anchorKey)
   if (stored) return stored
@@ -187,13 +198,14 @@ export default function FloatingAgentDock({
   snapBottomOnExpand = false,
   showDockToggle = false,
   defaultAnchorSelector,
-  collapsedWidthSelector = '.b2b-hero-tagline em',
+  collapsedWidthSelector: _collapsedWidthSelector = '.b2b-hero-tagline em',
   closedAnchorSelector,
   defaultExpanded = false,
   anchorAlign = 'left',
   expandSignal = 0,
   anchorVerticalAlign = 'below',
   repositionSignal = 0,
+  collapseToggleInTail = false,
 }: Props) {
   const variant: FloatingDockVariant = variantProp === 'default' && keepInputWhenCollapsed ? 'capsule' : variantProp
   const isCapsule = variant === 'capsule'
@@ -201,8 +213,11 @@ export default function FloatingAgentDock({
   const dockRef = useRef<HTMLDivElement>(null)
   const dragOffset = useRef({ x: 0, y: 0 })
   const [collapsed, setCollapsed] = useState(() => {
-    if (defaultExpanded && !loadCollapsed(storageKey)) return false
-    return loadCollapsed(storageKey)
+    if (isMobileViewport()) return true
+    const saved = loadCollapsed(storageKey)
+    if (saved !== null) return saved
+    if (defaultExpanded) return false
+    return true
   })
   const [dockEnabled, setDockEnabled] = useState(() => loadDockEnabled(storageKey))
   const [pos, setPos] = useState<DockPosition | null>(null)
@@ -306,6 +321,10 @@ export default function FloatingAgentDock({
     const el = dockRef.current
     const dockH = el?.getBoundingClientRect().height || (isCapsule ? 48 : 180)
     const dockW = el?.getBoundingClientRect().width || DOCK_WIDTH
+    if (isMobileViewport()) {
+      setPos(defaultPosition(dockW, dockH))
+      return
+    }
     const anchorKey = anchorStorageKey(defaultAnchorSelector, anchorVerticalAlign)
     const stored = loadPosition(storageKey, anchorKey)
     if (stored) {
@@ -386,6 +405,13 @@ export default function FloatingAgentDock({
   /** intro 结束等时机重新对齐锚点（用户未手动拖拽时） */
   useEffect(() => {
     if (!repositionSignal || !defaultAnchorSelector || !dockEnabled || isUserMovedPosition(storageKey)) return
+    if (isMobileViewport()) {
+      const el = dockRef.current
+      const dockH = el?.getBoundingClientRect().height || (isCapsule ? 48 : 180)
+      const dockW = el?.getBoundingClientRect().width || DOCK_WIDTH
+      setPos(defaultPosition(dockW, dockH))
+      return
+    }
     const run = () => snapToAnchor(defaultAnchorSelector, true)
     requestAnimationFrame(run)
     const t = window.setTimeout(run, 120)
@@ -399,30 +425,6 @@ export default function FloatingAgentDock({
   useLayoutEffect(() => {
     ensureVisible()
   }, [children, collapsed, ensureVisible])
-
-  /** 折叠胶囊宽度对齐 hero 主标题「五分钟搭好，打开就能用」 */
-  useLayoutEffect(() => {
-    const dock = dockRef.current
-    if (!dock || !isCapsule || !collapsed || !dockEnabled) {
-      dock?.style.removeProperty('--dock-collapsed-width')
-      return
-    }
-    const syncWidth = () => {
-      const anchor = collapsedWidthSelector
-        ? document.querySelector(collapsedWidthSelector)
-        : null
-      if (!anchor || !dockRef.current) return
-      const w = Math.ceil(anchor.getBoundingClientRect().width)
-      dockRef.current.style.setProperty('--dock-collapsed-width', `${w}px`)
-    }
-    syncWidth()
-    const t = window.setTimeout(syncWidth, 2800)
-    window.addEventListener('resize', syncWidth)
-    return () => {
-      window.clearTimeout(t)
-      window.removeEventListener('resize', syncWidth)
-    }
-  }, [isCapsule, collapsed, dockEnabled, collapsedWidthSelector])
 
   useLayoutEffect(() => {
     if (collapsed || !dockEnabled) return
@@ -496,8 +498,20 @@ export default function FloatingAgentDock({
       if (!pos || e.button !== 0) return
       const gripOnly = collapsed || !dockEnabled
       if (gripOnly) {
-        if (!(e.target instanceof Element) || !e.target.closest('.floating-agent-dock-grip')) return
-      } else if (isInteractiveTarget(e.target)) {
+        if (!(e.target instanceof Element)) return
+        const onDragSurface = e.target.closest('.is-dock-drag-surface')
+        if (isMobileViewport()) {
+          if (
+            e.target.closest('button, input, textarea, select, a, label, [contenteditable="true"]')
+            && !onDragSurface
+          ) return
+        } else if (!e.target.closest('.floating-agent-dock-grip') && !onDragSurface) {
+          return
+        }
+        if (onDragSurface && e.target.closest('button, input, textarea, select, a, label, [contenteditable="true"]')) {
+          return
+        }
+      } else if (isInteractiveTarget(e.target) && !(e.target instanceof Element && e.target.closest('.is-dock-drag-surface'))) {
         return
       }
       e.preventDefault()
@@ -635,7 +649,8 @@ export default function FloatingAgentDock({
           <div className="floating-agent-dock-chrome">
             <span
               className="floating-agent-dock-grip"
-              aria-hidden
+              aria-label="拖动悬浮框"
+              title="拖动"
               onPointerDown={onDragStart}
             />
             {titleBlock}
@@ -683,7 +698,8 @@ export default function FloatingAgentDock({
           >
             <span
               className="floating-agent-dock-grip"
-              aria-hidden
+              aria-label="拖动悬浮框"
+              title="拖动"
               onPointerDown={collapsed ? onDragStart : undefined}
             />
             {collapsed && !isCapsule ? (
@@ -701,12 +717,7 @@ export default function FloatingAgentDock({
                 <span className="floating-agent-dock-collapsed-hint">{collapsedHint}</span>
                 <span className="floating-agent-dock-caret" aria-hidden />
               </button>
-            ) : isCapsule && collapsed ? (
-              <>
-                {titleBlock}
-                {dockToggle}
-              </>
-            ) : (
+            ) : isCapsule && collapsed ? null : (
               <>
                 {!isCapsule ? (
                   <button
@@ -738,6 +749,12 @@ export default function FloatingAgentDock({
           >
             {children}
           </div>
+          {isCapsule && collapsed && (dockToggle || collapseToggleInTail) ? (
+            <div className="floating-agent-dock-tail">
+              {dockToggle}
+              {collapseToggleInTail ? toggleBtn : null}
+            </div>
+          ) : null}
         </div>
       </div>
     </FloatingDockProvider>

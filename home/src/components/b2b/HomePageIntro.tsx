@@ -7,7 +7,9 @@ const INTRO_MS = 2200
 export function shouldSkipHomePageIntro(): boolean {
   if (typeof window === 'undefined') return true
   if (sessionStorage.getItem(INTRO_KEY) === '1') return true
-  return window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return true
+  if (window.matchMedia('(max-width: 768px)').matches) return true
+  return false
 }
 
 interface Props {

@@ -13,9 +13,6 @@ export interface PricingFaq {
   a: string
 }
 
-export const PRICING_INTRO =
-  '不写死价格 · 说明影响因素 · 大多数制造/零售客户首年 80–150 万 · 预约后提供专属报价说明'
-
 export const PRICING_TIERS: PricingTier[] = [
   {
     id: 'paas',

@@ -13,8 +13,8 @@ export default function B2BNewsSection() {
           <AgentChevronGlyph size="btn" className="enrich-eyebrow-chev" />
           新闻动态
         </span>
-        <h2 id="enrich-news-title">公司在迭代 · 建立 B2B 信任</h2>
-        <p>最新 3 条 · 查看全部新闻</p>
+        <h2 id="enrich-news-title">最新动态</h2>
+        <p>产品发布 · 企业新闻 · 品牌活动</p>
       </div>
       <div className="enrich-news-grid">
         {latest.map((item) => (
@@ -23,7 +23,12 @@ export default function B2BNewsSection() {
             to={ROUTES.newsDetail(item.slug)}
             className="enrich-news-card"
           >
-            <div className="enrich-news-thumb">{NEWS_CATEGORY_LABELS[item.category]}</div>
+            <div
+              className="enrich-news-thumb enrich-news-thumb--photo"
+              style={{ backgroundImage: `url(${item.coverImage})` }}
+              role="img"
+              aria-label={item.title}
+            />
             <div className="enrich-news-body">
               <span className="enrich-news-cat">{NEWS_CATEGORY_LABELS[item.category]}</span>
               <h4>{item.title}</h4>

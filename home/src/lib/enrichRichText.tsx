@@ -1,6 +1,11 @@
-/** 将 **粗体** 转为 HTML 段落 */
+/** 将 **粗体**、[链接](url) 转为 HTML 段落 */
 export function renderRichParagraph(text: string): string {
-  return text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+  return text
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(
+      /\[([^\]]+)\]\(([^)]+)\)/g,
+      '<a href="$2" class="enrich-inline-link">$1</a>',
+    )
 }
 
 export function RichParagraph({ text }: { text: string }) {

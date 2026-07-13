@@ -29,22 +29,25 @@ export const AGENT_CONTEXTS: Record<AgentContextKey, AgentContextCopy> = {
   landing_hero: {
     chevLabel: '',
     placeholder: '描述需求，或 >> 开始智能交互',
-    placeholderCollapsed: '描述需求，或输入>>开始智能交互',
+    placeholderCollapsed: '>> 描述需求…',
     ghost: '描述需求，或 >> 开始智能交互…',
   },
   landing_product: {
     chevLabel: '模板',
     placeholder: '>> 选 AI 模板，或描述业务场景',
+    placeholderCollapsed: '>> 选模板或描述…',
     ghost: '输入 >> 浏览模板，或描述要落地的场景…',
   },
   landing_case: {
     chevLabel: '案例',
     placeholder: '>> 参考案例，或描述您的需求',
+    placeholderCollapsed: '>> 参考案例或描述…',
     ghost: '输入 >> 查看行业案例，或描述应用想法…',
   },
   landing_contact: {
     chevLabel: '多选',
     placeholder: '描述需求，或 >> 开始智能体新交互',
+    placeholderCollapsed: '>> 描述需求…',
     ghost: '输入 >> 编排模块，或直接描述需求…',
   },
   landing_booking: {
@@ -75,7 +78,7 @@ export const AGENT_CONTEXTS: Record<AgentContextKey, AgentContextCopy> = {
   create_prompt: {
     chevLabel: '',
     placeholder: '描述需求，或 >> 开始智能交互',
-    placeholderCollapsed: '描述需求，或输入>>开始智能交互',
+    placeholderCollapsed: '>> 描述需求…',
     ghost: '描述需求，或 >> 开始智能交互…',
   },
   create_industry: {

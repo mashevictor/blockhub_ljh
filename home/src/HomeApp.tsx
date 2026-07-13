@@ -14,7 +14,6 @@ import CreateStudio from './components/b2b/CreateStudio'
 import B2BDemoForm from './components/b2b/B2BDemoForm'
 import HomeScrollRails from './components/b2b/HomeScrollRails'
 import HomePageIntro, { shouldSkipHomePageIntro } from './components/b2b/HomePageIntro'
-import AgentSignLine from './components/AgentSignLine'
 import { HomePageReadyProvider } from './context/HomePageReadyContext'
 import { AgentPageProvider, useAgentPageContext } from './context/AgentPageContext'
 import { PromptDraftProvider } from './context/PromptDraftContext'
@@ -137,10 +136,6 @@ export default function HomeApp() {
       <B2BNewsSection />
 
       <section id="contact" className="b2b-form-wrap">
-        <div className="b2b-section-title b2b-contact-head">
-          <AgentSignLine variant="section" />
-          <p>描述需求、选行业或搭配模块，输入 &gt;&gt; 开始智能体新交互</p>
-        </div>
         <div className="b2b-demo-block" id="contact-create">
           <CreateStudio />
         </div>

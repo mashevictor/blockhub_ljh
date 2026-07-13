@@ -30,11 +30,9 @@ export default function BookingFloatingAgent() {
   } = useDemoBooking()
 
   useEffect(() => {
-    registerFloatingInput(inputRef.current)
+    registerFloatingInput(inView ? inputRef.current : null)
     return () => registerFloatingInput(null)
   }, [registerFloatingInput, inView, stepIndex, currentField?.key, submitted])
-
-  if (!inView) return null
 
   const isLastStep = currentField?.key === 'company'
   const chevLabel = submitted ? '预约' : (currentField?.chevLabel ?? '预约')
@@ -53,93 +51,97 @@ export default function BookingFloatingAgent() {
   return (
     <FloatingAgentDock
       storageKey="tc-floating-booking"
-      className="floating-agent-dock-booking"
+      className={`floating-agent-dock-booking${inView ? ' is-booking-active' : ' is-booking-idle'}`}
       title={dockTitle}
       chevLabel={chevLabel}
       collapsedHint={collapsedHint}
       ariaLabel="预约信息悬浮输入"
     >
-      <div className="booking-float-composer">
-        {!submitted && (
-          <div className="booking-float-status">
-            <span className="booking-float-progress">{filledCount}/{BOOKING_FIELDS.length}</span>
-            {missingHint && (
-              <span className="booking-float-missing">{missingHint}</span>
-            )}
-          </div>
-        )}
-
-        {!submitted && currentField && (
-          <>
-            <div className="booking-float-input-row">
-              <span className="booking-float-prefix" aria-hidden>
-                <AgentChevronGlyph size="xs" /> {currentField.label}
-              </span>
-              <input
-                ref={inputRef}
-                type="text"
-                inputMode={currentField.key === 'contact' ? 'email' : 'text'}
-                className="booking-float-input"
-                value={draft}
-                onChange={(e) => setDraft(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder={currentField.hint}
-                aria-label={currentField.label}
-                disabled={submitting}
-              />
-              <button type="button" className="booking-float-go" onClick={submitDraft} disabled={submitting}>
-                {submitting && isLastStep ? (
-                  BOOK_DEMO_LOADING
-                ) : (
-                  <AgentButtonContent trailing={false}>
-                    {isLastStep ? '提交' : '确认'}
-                  </AgentButtonContent>
-                )}
-              </button>
+      {!inView ? (
+        <div className="booking-float-composer" aria-hidden />
+      ) : (
+        <div className="booking-float-composer">
+          {!submitted && (
+            <div className="booking-float-status">
+              <span className="booking-float-progress">{filledCount}/{BOOKING_FIELDS.length}</span>
+              {missingHint && (
+                <span className="booking-float-missing">{missingHint}</span>
+              )}
             </div>
-            {currentField.ghost && !submitting && (
-              <p className="booking-float-ghost">{currentField.ghost}</p>
-            )}
-            {!currentField.required && !submitting && (
-              <button type="button" className="booking-float-skip" onClick={skipOptional}>
-                跳过
-              </button>
-            )}
-          </>
-        )}
+          )}
 
-        {submitted && (
-          <>
-            {submitting && <DemoBookingDeliveryLoading compact />}
-            {delivery && !submitting && <DemoBookingSuccess delivery={delivery} compact />}
-            {!delivery && !submitting && (
-              <ul className="booking-float-review-list" aria-label="已提交的预约信息">
-                {BOOKING_FIELDS.map((field) => {
-                  const value = values[field.key]?.trim()
-                  return (
-                    <li key={field.key} className={!value ? 'is-empty' : ''}>
-                      <span>{field.label}</span>
-                      <strong>{value || '未填写'}</strong>
-                    </li>
-                  )
-                })}
-              </ul>
-            )}
-          </>
-        )}
+          {!submitted && currentField && (
+            <>
+              <div className="booking-float-input-row">
+                <span className="booking-float-prefix" aria-hidden>
+                  <AgentChevronGlyph size="xs" /> {currentField.label}
+                </span>
+                <input
+                  ref={inputRef}
+                  type="text"
+                  inputMode={currentField.key === 'contact' ? 'email' : 'text'}
+                  className="booking-float-input"
+                  value={draft}
+                  onChange={(e) => setDraft(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder={currentField.hint}
+                  aria-label={currentField.label}
+                  disabled={submitting}
+                />
+                <button type="button" className="booking-float-go" onClick={submitDraft} disabled={submitting}>
+                  {submitting && isLastStep ? (
+                    BOOK_DEMO_LOADING
+                  ) : (
+                    <AgentButtonContent trailing={false}>
+                      {isLastStep ? '提交' : '确认'}
+                    </AgentButtonContent>
+                  )}
+                </button>
+              </div>
+              {currentField.ghost && !submitting && (
+                <p className="booking-float-ghost">{currentField.ghost}</p>
+              )}
+              {!currentField.required && !submitting && (
+                <button type="button" className="booking-float-skip" onClick={skipOptional}>
+                  跳过
+                </button>
+              )}
+            </>
+          )}
 
-        {fieldError && (
-          <p className="booking-float-error" role="alert">
-            <AgentChevronGlyph size="xs" />
-            {fieldError}
-            {submitted && !submitting && (
-              <button type="button" className="booking-float-retry" onClick={retrySubmit}>
-                重试
-              </button>
-            )}
-          </p>
-        )}
-      </div>
+          {submitted && (
+            <>
+              {submitting && <DemoBookingDeliveryLoading compact />}
+              {delivery && !submitting && <DemoBookingSuccess delivery={delivery} compact />}
+              {!delivery && !submitting && (
+                <ul className="booking-float-review-list" aria-label="已提交的预约信息">
+                  {BOOKING_FIELDS.map((field) => {
+                    const value = values[field.key]?.trim()
+                    return (
+                      <li key={field.key} className={!value ? 'is-empty' : ''}>
+                        <span>{field.label}</span>
+                        <strong>{value || '未填写'}</strong>
+                      </li>
+                    )
+                  })}
+                </ul>
+              )}
+            </>
+          )}
+
+          {fieldError && (
+            <p className="booking-float-error" role="alert">
+              <AgentChevronGlyph size="xs" />
+              {fieldError}
+              {submitted && !submitting && (
+                <button type="button" className="booking-float-retry" onClick={retrySubmit}>
+                  重试
+                </button>
+              )}
+            </p>
+          )}
+        </div>
+      )}
     </FloatingAgentDock>
   )
 }

@@ -25,7 +25,7 @@ if (-not (Test-Path "$homeDir\node_modules")) {
     Set-Location $homeDir
     npm install
 }
-Start-Process powershell -ArgumentList "-NoExit", "-Command", "Set-Location '$homeDir'; npm run dev -- --host 127.0.0.1 --port 5173"
+Start-Process powershell -ArgumentList "-NoExit", "-Command", "Set-Location '$homeDir'; npm run dev -- --host 0.0.0.0 --port 5173"
 
 # Admin (5174)
 $frontendDir = Join-Path $root "frontend"

@@ -86,7 +86,9 @@ export function DemoBookingProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!inView || submitted || stepIndex >= BOOKING_FIELDS.length) return
-    requestAnimationFrame(() => floatingInputRef.current?.focus())
+    requestAnimationFrame(() => {
+      floatingInputRef.current?.focus({ preventScroll: true })
+    })
   }, [inView, stepIndex, submitted])
 
   const finalizeBooking = useCallback(
@@ -107,7 +109,7 @@ export function DemoBookingProvider({ children }: { children: ReactNode }) {
         const result = await submitDemoBookingWithFallback(toPayload(nextValues))
         setDelivery(result)
         requestAnimationFrame(() => {
-          document.getElementById('contact-demo')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          document.getElementById('contact-demo')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
         })
       } catch {
         setFieldError('保存失败，请稍后重试')
@@ -180,7 +182,7 @@ export function DemoBookingProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const focusFloatingInput = useCallback(() => {
-    floatingInputRef.current?.focus()
+    floatingInputRef.current?.focus({ preventScroll: true })
   }, [])
 
   const value = useMemo(
