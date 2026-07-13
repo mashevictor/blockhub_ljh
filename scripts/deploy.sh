@@ -23,6 +23,11 @@ echo " Git: $(git rev-parse --short HEAD 2>/dev/null || echo unknown)"
 echo "=========================================="
 
 echo "==> [1/9] git pull (discard local lockfile & generated preview drift)"
+# 未跟踪 codegen 会阻塞 pull（远程已纳入版本库）；部署机可直接删
+rm -f \
+  runtime-app/lib/melos_capability_registry.g.dart \
+  runtime-app/lib/capability_deferred_loader.g.dart \
+  2>/dev/null || true
 # shellcheck disable=SC1091
 source "$ROOT/scripts/lib/git-pull.sh"
 blockhub_git_pull main
