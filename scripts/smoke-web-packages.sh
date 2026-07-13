@@ -14,13 +14,14 @@ echo "=========================================="
 echo " Web Package Inventory"
 echo "=========================================="
 
-python3 <<PY
+python3 - "$ROOT" "$MANIFEST" <<'PY'
 import json, sys
 from pathlib import Path
 
-root = Path("$ROOT")
-raw = json.loads(Path("$MANIFEST").read_text(encoding="utf-8"))
-caps = raw.get("capabilities") or raw if isinstance(raw, list) else []
+root = Path(sys.argv[1])
+manifest_path = Path(sys.argv[2])
+raw = json.loads(manifest_path.read_text(encoding="utf-8"))
+caps = raw.get("capabilities") if isinstance(raw, dict) else (raw if isinstance(raw, list) else [])
 pkgs = sorted({c.get("web_pkg") for c in caps if c.get("web_pkg")})
 
 missing = []

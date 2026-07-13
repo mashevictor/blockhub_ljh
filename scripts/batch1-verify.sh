@@ -49,7 +49,7 @@ warn_step() {
   warn_step "secrets-check (生产需 0 fail)" \
     bash "$ROOT/scripts/rotate-secrets-check.sh" "$ROOT/backend/.env" 2>/dev/null || true
 
-  step "pg-backup dry-run" bash "$ROOT/scripts/pg-backup.sh" || true
+  step "pg-backup dry-run" env DRY_RUN=1 bash "$ROOT/scripts/pg-backup.sh"
 
   if [ -f "$ROOT/scripts/nginx-ssl-example.conf" ]; then
     echo ""

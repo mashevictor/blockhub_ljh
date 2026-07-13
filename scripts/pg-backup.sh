@@ -14,9 +14,25 @@ BACKUP_DIR="${BACKUP_DIR:-$ROOT/backups/postgres}"
 RETENTION_DAYS="${RETENTION_DAYS:-7}"
 STAMP=$(date +%Y%m%d_%H%M%S)
 
+# 仅解析 DATABASE_URL，避免 source 整份 .env 时未加引号的值（如 App 名称）被 shell 执行
 if [ -f "$ROOT/backend/.env" ]; then
-  # shellcheck disable=SC1091
-  set -a; source "$ROOT/backend/.env"; set +a
+  DATABASE_URL="$(ENV_FILE="$ROOT/backend/.env" python3 <<'PY'
+import os
+from pathlib import Path
+
+p = Path(os.environ["ENV_FILE"])
+for line in p.read_text(encoding="utf-8", errors="replace").splitlines():
+    line = line.strip()
+    if not line or line.startswith("#"):
+        continue
+    if line.startswith("DATABASE_URL="):
+        val = line.split("=", 1)[1].strip()
+        if len(val) >= 2 and val[0] == val[-1] and val[0] in "\"'":
+            val = val[1:-1]
+        print(val)
+        break
+PY
+)"
 fi
 
 DATABASE_URL="${DATABASE_URL:-postgresql+psycopg2://trackchat:trackchat@127.0.0.1:5432/trackchat}"
@@ -37,6 +53,11 @@ print(f"export PGPORT='{port}'")
 print(f"export PGDATABASE='{db}'")
 PY
 )"
+
+if [ "${DRY_RUN:-0}" = "1" ]; then
+  echo "==> DRY_RUN: parsed $PGDATABASE @ $PGHOST:$PGPORT (skip pg_dump)"
+  exit 0
+fi
 
 mkdir -p "$BACKUP_DIR"
 OUT="$BACKUP_DIR/trackchat_${STAMP}.sql.gz"
