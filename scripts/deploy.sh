@@ -193,6 +193,12 @@ if [ -f /var/www/blockhub/home/version.txt ]; then
   fi
 fi
 
+if [ -f /var/www/blockhub/home/downloads/one-pager-mfg.html ]; then
+  echo "    downloads/one-pager-mfg.html: OK"
+else
+  echo "WARN: home/downloads/ 缺失 — 请确认 home 构建包含 public/downloads"
+fi
+
 echo ""
 echo "==> [9/9] seed + smoke (catalog + demo booking API)"
 bash "$ROOT/scripts/smoke-test.sh" "${SMOKE_BASE_URL:-http://127.0.0.1}" --seed-only || {
