@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { IconGlobe } from '../../components/icons'
 import AppIconAvatar from '../../components/AppIconAvatar'
@@ -9,6 +9,7 @@ import { getToken } from '../../auth/storage'
 import { removeMyApp, type StoredMyApp } from '../../lib/myAppsStorage'
 import { useMyApps } from '../../hooks/useMyApps'
 import { ROUTES } from '../../routes/paths'
+import { usePlazaFocus } from '../../context/PlazaFocusContext'
 import {
   appDomId,
   clearJustPublished,
@@ -45,8 +46,11 @@ export default function PlazaMyAppsPage() {
   const saveFailed = Boolean(publishHint?.saveFailed)
   const apps = useMyApps()
   const [orchApp, setOrchApp] = useState<StoredMyApp | null>(null)
+  const [focusKey, setFocusKey] = useState<string | null>(null)
   const [user, setUser] = useState<AuthUser | null>(null)
   const scrolledRef = useRef(false)
+  const orchDismissedRef = useRef(false)
+  const { setFocus, registerOrchestrationHandler } = usePlazaFocus()
 
   useEffect(() => {
     if (!justPublishedId) return
@@ -76,20 +80,60 @@ export default function PlazaMyAppsPage() {
   }, [])
 
   useEffect(() => {
-    if (!justPublishedId || orchApp) return
+    if (!justPublishedId || orchApp || orchDismissedRef.current) return
     const app = apps.find((a) => appKey(a) === justPublishedId)
     if (app) setOrchApp(app)
   }, [justPublishedId, apps, orchApp])
+
+  const focusApp = orchApp
+    ?? (focusKey ? apps.find((a) => appKey(a) === focusKey) : null)
+    ?? apps[0]
+    ?? null
+
+  useEffect(() => {
+    if (!focusApp) {
+      setFocus(null)
+      return
+    }
+    const key = appKey(focusApp)
+    setFocus({
+      appKey: key,
+      appName: focusApp.appName,
+      webUrl: focusApp.webUrl,
+      moduleCount: focusApp.moduleCount,
+      plazaLabel: focusApp.plaza?.label,
+      isCreator: true,
+      source: 'my',
+      inOrchestration: Boolean(orchApp && appKey(orchApp) === key),
+    })
+  }, [focusApp, orchApp, setFocus])
+
+  const openOrchestration = useCallback((app: StoredMyApp) => {
+    orchDismissedRef.current = false
+    setFocusKey(appKey(app))
+    setOrchApp(app)
+  }, [])
+
+  const closeOrchestration = useCallback(() => {
+    orchDismissedRef.current = true
+    setOrchApp(null)
+    setJustPublishedId(null)
+    clearJustPublished()
+  }, [])
+
+  useEffect(() => {
+    registerOrchestrationHandler((key: string) => {
+      const app = apps.find((a) => appKey(a) === key)
+      if (app) openOrchestration(app)
+    })
+    return () => registerOrchestrationHandler(null)
+  }, [apps, openOrchestration, registerOrchestrationHandler])
 
   const handleRemove = (app: StoredMyApp) => {
     const key = appKey(app)
     removeMyApp(key)
     if (orchApp && appKey(orchApp) === key) setOrchApp(null)
     if (justPublishedId === key) setJustPublishedId(null)
-  }
-
-  const openOrchestration = (app: StoredMyApp) => {
-    setOrchApp(app)
   }
 
   return (
@@ -136,7 +180,8 @@ export default function PlazaMyAppsPage() {
                 <li
                   key={key}
                   id={appDomId(key)}
-                  className={`plaza-my-card${isNew ? ' just-published' : ''}`}
+                  className={`plaza-my-card${isNew ? ' just-published' : ''}${focusApp && appKey(focusApp) === key ? ' focused' : ''}`}
+                  onClick={() => setFocusKey(key)}
                 >
                   <AppIconAvatar
                     name={app.appName}
@@ -179,8 +224,9 @@ export default function PlazaMyAppsPage() {
         <PlazaOrchestrationOverlay
           app={orchApp}
           user={user}
-          onClose={() => setOrchApp(null)}
+          onClose={closeOrchestration}
           onRemove={() => handleRemove(orchApp)}
+          onPlazaPublished={(meta) => setOrchApp((prev) => (prev ? { ...prev, plaza: meta } : null))}
         />
       )}
     </main>

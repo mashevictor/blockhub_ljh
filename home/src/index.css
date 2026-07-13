@@ -5589,13 +5589,17 @@ a.btn-my-apps:hover { border-color: var(--pri-light); color: var(--pri); }
   transform: translateY(-3px); background: var(--pri-soft);
 }
 .plaza-mflow-drag-handle {
-  position: absolute; top: 3px; right: 4px;
-  font-size: 8px; font-weight: 900; letter-spacing: -1px;
+  position: absolute; top: -6px; left: 50%; transform: translateX(-50%); z-index: 2;
+  font-size: 10px; font-weight: 900; letter-spacing: -1px;
   color: var(--muted); line-height: 1; cursor: grab;
-  padding: 2px 3px; border-radius: 4px;
-  background: color-mix(in srgb, var(--surface-alt) 80%, transparent);
+  padding: 2px 6px; border-radius: 6px; border: 1px solid var(--border);
+  background: var(--surface);
+  touch-action: none;
 }
-.plaza-mflow-pipe-node:hover .plaza-mflow-drag-handle { color: var(--pri-dark); }
+.plaza-mflow-drag-handle:active { cursor: grabbing; }
+.plaza-mflow-pipe-seg-wrap { position: relative; }
+.plaza-mflow-pipe-seg-wrap:hover .plaza-mflow-drag-handle,
+.plaza-mflow-pipe-seg-wrap.dragging .plaza-mflow-drag-handle { color: var(--pri-dark); border-color: var(--pri-light); }
 .plaza-mflow-pipe-node:hover {
   border-color: var(--pri-light); transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
@@ -6200,6 +6204,10 @@ a.btn-my-apps:hover { border-color: var(--pri-light); color: var(--pri); }
   border-color: color-mix(in srgb, var(--pri-light) 50%, var(--border));
   background: linear-gradient(135deg, color-mix(in srgb, var(--pri-soft) 60%, var(--surface)), var(--surface));
 }
+.plaza-my-card.focused {
+  border-color: var(--pri-light);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--pri-light) 25%, transparent);
+}
 .plaza-my-card-main {
   flex: 1;
   min-width: 0;
@@ -6485,6 +6493,12 @@ a.btn-my-apps:hover { border-color: var(--pri-light); color: var(--pri); }
   gap: 6px;
 }
 .plaza-orch-share summary::-webkit-details-marker { display: none; }
+.plaza-orch-share-hint {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+}
 .publish-success-card.orchestration {
   border: none;
   box-shadow: none;

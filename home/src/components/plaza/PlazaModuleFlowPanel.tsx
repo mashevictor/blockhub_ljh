@@ -126,7 +126,7 @@ export default function PlazaModuleFlowPanel({
           readOnly={!isCreator}
           draggable={isCreator}
           orchestration={orchestration}
-          onReorder={(from, to) => setFlow(reorderFlowSteps(flow, from, to))}
+          onReorder={(from, to) => setFlow((prev) => reorderFlowSteps(prev, from, to))}
         />
       </div>
 

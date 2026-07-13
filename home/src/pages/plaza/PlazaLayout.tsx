@@ -7,6 +7,7 @@ import { useMyApps } from '../../hooks/useMyApps'
 import { loadPlazaFeedItemsAsync } from '../../lib/plazaFeedStorage'
 import { ROUTES } from '../../routes/paths'
 import { AgentPageProvider, useAgentPageContext } from '../../context/AgentPageContext'
+import { PlazaFocusProvider } from '../../context/PlazaFocusContext'
 import type { AgentContextKey } from '../../data/agentContext'
 import PlazaFloatingAgent from '../../components/b2b/PlazaFloatingAgent'
 import '../../styles/b2b-landing.css'
@@ -50,6 +51,7 @@ export default function PlazaLayout() {
 
   return (
     <AgentPageProvider initial="plaza_feed">
+      <PlazaFocusProvider>
       <PlazaContextSync />
       <div className="plaza-page b2b-brand-scope b2b-has-floating-agent">
       <header className="plaza-topbar">
@@ -103,6 +105,7 @@ export default function PlazaLayout() {
       </div>
       <PlazaFloatingAgent />
       </div>
+      </PlazaFocusProvider>
     </AgentPageProvider>
   )
 }

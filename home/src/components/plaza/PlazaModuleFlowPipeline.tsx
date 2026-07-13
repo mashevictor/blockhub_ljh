@@ -83,7 +83,7 @@ function StepNode({
   draggable?: boolean
   isDragging?: boolean
   isDragOver?: boolean
-  onGripDown?: (e: React.PointerEvent) => void
+  onGripDown?: (e: React.PointerEvent<HTMLButtonElement>) => void
 }) {
   const cap = getModuleCapability(step.label)
   return (
@@ -91,6 +91,19 @@ function StepNode({
       className={`plaza-mflow-pipe-seg-wrap${isDragging ? ' dragging' : ''}${isDragOver ? ' drag-over' : ''}`}
       data-step-index={globalIndex}
     >
+      {draggable && (
+        <button
+          type="button"
+          className="plaza-mflow-drag-handle"
+          aria-label={`拖动 ${step.label}`}
+          onPointerDown={(e) => {
+            e.stopPropagation()
+            onGripDown?.(e)
+          }}
+        >
+          ⠿
+        </button>
+      )}
       <button
         type="button"
         className={`plaza-mflow-pipe-node${active ? ' active' : ''}${draggable ? ' draggable' : ''}${isDragging ? ' dragging' : ''}${isDragOver ? ' drag-over' : ''}`}
@@ -99,18 +112,6 @@ function StepNode({
         aria-pressed={active}
         title={step.note}
       >
-        {draggable && (
-          <span
-            className="plaza-mflow-drag-handle"
-            aria-hidden
-            onPointerDown={(e) => {
-              e.stopPropagation()
-              onGripDown?.(e)
-            }}
-          >
-            ⠿
-          </span>
-        )}
         <span className="plaza-mflow-pipe-node-num">{displayIndex}</span>
         <span className="plaza-mflow-pipe-node-icon" aria-hidden>{cap?.icon ?? '🧩'}</span>
         <span className="plaza-mflow-pipe-node-label">{step.label}</span>
@@ -152,6 +153,7 @@ export default function PlazaModuleFlowPipeline({
   const [dragIndex, setDragIndex] = useState<number | null>(null)
   const [overIndex, setOverIndex] = useState<number | null>(null)
   const overIndexRef = useRef<number | null>(null)
+  const dragPointerIdRef = useRef<number | null>(null)
   overIndexRef.current = overIndex
 
   const finishDrag = useCallback((from: number, to: number) => {
@@ -166,6 +168,7 @@ export default function PlazaModuleFlowPipeline({
     if (dragIndex === null) return
 
     const onMove = (e: PointerEvent) => {
+      if (dragPointerIdRef.current !== null && e.pointerId !== dragPointerIdRef.current) return
       const el = document.elementFromPoint(e.clientX, e.clientY)
       const wrap = el?.closest('[data-step-index]')
       if (wrap) {
@@ -174,8 +177,10 @@ export default function PlazaModuleFlowPipeline({
       }
     }
 
-    const onUp = () => {
+    const onUp = (e: PointerEvent) => {
+      if (dragPointerIdRef.current !== null && e.pointerId !== dragPointerIdRef.current) return
       finishDrag(dragIndex, overIndexRef.current ?? dragIndex)
+      dragPointerIdRef.current = null
     }
 
     window.addEventListener('pointermove', onMove)
@@ -216,6 +221,8 @@ export default function PlazaModuleFlowPipeline({
         onGripDown={(e) => {
           if (e.button !== 0) return
           e.preventDefault()
+          e.currentTarget.setPointerCapture(e.pointerId)
+          dragPointerIdRef.current = e.pointerId
           setDragIndex(globalIndex)
           setOverIndex(globalIndex)
         }}

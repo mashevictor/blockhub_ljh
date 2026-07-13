@@ -5,7 +5,8 @@ import DeliveryProgress from '../DeliveryProgress'
 import PublishSuccessCard from '../PublishSuccessCard'
 import PlazaModuleFlowPanel from './PlazaModuleFlowPanel'
 import type { AuthUser } from '../../auth/session'
-import type { StoredMyApp } from '../../lib/myAppsStorage'
+import type { PlazaAudienceMeta, StoredMyApp } from '../../lib/myAppsStorage'
+import { setMyAppPlazaAudience } from '../../lib/myAppsStorage'
 import { showAppDeliver } from '../../data/deliverDisplay'
 
 interface Props {
@@ -13,6 +14,7 @@ interface Props {
   user: AuthUser | null
   onClose: () => void
   onRemove: () => void
+  onPlazaPublished?: (meta: PlazaAudienceMeta) => void
 }
 
 function formatWhen(iso: string) {
@@ -28,7 +30,7 @@ function moduleLabels(app: StoredMyApp): string[] {
   return app.scenarios?.slice(0, 6) ?? []
 }
 
-export default function PlazaOrchestrationOverlay({ app, user, onClose, onRemove }: Props) {
+export default function PlazaOrchestrationOverlay({ app, user, onClose, onRemove, onPlazaPublished }: Props) {
   const appKey = app.appId || app.webUrl
   const showDelivery = showAppDeliver(app)
 
@@ -100,9 +102,10 @@ export default function PlazaOrchestrationOverlay({ app, user, onClose, onRemove
             orchestration
           />
 
-          <details className="plaza-orch-share">
+          <details className="plaza-orch-share" open>
             <summary>
               <span className="plaza-mflow-chev">&gt;&gt;</span> 分享与发布
+              <span className="plaza-orch-share-hint">默认 @公开 · 全体可见</span>
             </summary>
             <PublishSuccessCard
               result={app}
@@ -110,6 +113,10 @@ export default function PlazaOrchestrationOverlay({ app, user, onClose, onRemove
               compact
               orchestration
               plazaMeta={app.plaza}
+              onPlazaPublished={(meta) => {
+                setMyAppPlazaAudience(appKey, meta)
+                onPlazaPublished?.(meta)
+              }}
             />
           </details>
         </div>

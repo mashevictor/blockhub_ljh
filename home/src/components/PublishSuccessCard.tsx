@@ -42,7 +42,12 @@ export default function PublishSuccessCard({
   plazaMeta: plazaMetaProp,
   onPlazaPublished,
 }: Props) {
-  const [showPicker, setShowPicker] = useState(false)
+  const [showPicker, setShowPicker] = useState(() => {
+    if (!orchestration) return false
+    if (plazaMetaProp) return false
+    const stored = getPlazaPostForApp(appKey(result))
+    return !stored
+  })
   const [plazaBusy, setPlazaBusy] = useState(false)
   const [plazaError, setPlazaError] = useState<string | null>(null)
   const [plazaMeta, setPlazaMeta] = useState<PlazaAudienceMeta | null>(() => {
@@ -244,6 +249,7 @@ export default function PublishSuccessCard({
       {showPicker && (
         <PlazaAudiencePicker
           appName={result.appName}
+          initial={{ type: 'public' }}
           onConfirm={(sel) => { void handlePlazaConfirm(sel) }}
           onCancel={() => setShowPicker(false)}
           busy={plazaBusy}
@@ -256,13 +262,22 @@ export default function PublishSuccessCard({
             打开应用 →
           </a>
         )}
-        {!plazaMeta && !showPicker && (
+        {!orchestration && !plazaMeta && !showPicker && (
           <button
             type="button"
             className="btn-ghost btn-plaza-publish"
             onClick={() => setShowPicker(true)}
           >
             📡 发布到应用广场
+          </button>
+        )}
+        {orchestration && !plazaMeta && !showPicker && (
+          <button
+            type="button"
+            className="btn-ghost btn-plaza-publish"
+            onClick={() => setShowPicker(true)}
+          >
+            📡 发布到 @公开
           </button>
         )}
         {plazaMeta && !showPicker && (

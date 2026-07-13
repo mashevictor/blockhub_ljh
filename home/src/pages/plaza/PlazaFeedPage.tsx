@@ -6,6 +6,7 @@ import {
 } from '../../api/client'
 import { loadPlazaFeedItemsAsync, PLAZA_FEED_UPDATED_EVENT } from '../../lib/plazaFeedStorage'
 import type { PlazaFeedItem } from '../../data/plazaMock'
+import { usePlazaFocus } from '../../context/PlazaFocusContext'
 import { feedAppKey, isFeedCreator } from '../../lib/plazaAppUtils'
 import PlazaModuleFlowPanel from '../../components/plaza/PlazaModuleFlowPanel'
 
@@ -165,6 +166,7 @@ export default function PlazaFeedPage() {
   const [items, setItems] = useState<PlazaFeedItem[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedId, setSelectedId] = useState<string | null>(null)
+  const { setFocus } = usePlazaFocus()
 
   const refresh = useCallback(() => {
     setLoading(true)
@@ -207,6 +209,22 @@ export default function PlazaFeedPage() {
       setSelectedId(filtered[0].id)
     }
   }, [filtered, selectedId])
+
+  useEffect(() => {
+    if (!selected) {
+      setFocus(null)
+      return
+    }
+    setFocus({
+      appKey: feedAppKey(selected),
+      appName: selected.appName,
+      webUrl: selected.webUrl,
+      moduleCount: selected.modules.length,
+      plazaLabel: selected.atLabel,
+      isCreator: isFeedCreator(selected),
+      source: 'feed',
+    })
+  }, [selected, setFocus])
 
   return (
     <main className="plaza-main">
