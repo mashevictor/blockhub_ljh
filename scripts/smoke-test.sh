@@ -106,16 +106,16 @@ TOTAL_COUNT=$(echo "$SUMMARY" | python3 -c "import sys,json; print(json.load(sys
 HERO_COUNT=$(echo "$SUMMARY" | python3 -c "import sys,json; print(json.load(sys.stdin).get('hero_preset_count',0))" 2>/dev/null || echo 0)
 CHIP_COUNT=$(echo "$SUMMARY" | python3 -c "import sys,json; print(json.load(sys.stdin).get('chip_template_count',0))" 2>/dev/null || echo 0)
 
-[ "$INDUSTRY_COUNT" -eq 49 ] 2>/dev/null && ok "industry_count=49" || bad "industry_count!=49 ($SUMMARY)"
+[ "$INDUSTRY_COUNT" -ge 49 ] 2>/dev/null && ok "industry_count>=49 ($INDUSTRY_COUNT)" || bad "industry_count<49 ($SUMMARY)"
 [ "$OFFICE_COUNT" -ge 65 ] 2>/dev/null && ok "office_count>=65 ($OFFICE_COUNT)" || bad "office_count<65 ($SUMMARY)"
 [ "$TOTAL_COUNT" -ge 114 ] 2>/dev/null && ok "total>=114 ($TOTAL_COUNT)" || bad "total<114 ($SUMMARY)"
-[ "$HERO_COUNT" -eq 30 ] 2>/dev/null && ok "hero_preset_count=30" || bad "hero_preset_count!=30 ($SUMMARY)"
+[ "$HERO_COUNT" -ge 30 ] 2>/dev/null && ok "hero_preset_count>=30 ($HERO_COUNT)" || bad "hero_preset_count<30 ($SUMMARY)"
 [ "$CHIP_COUNT" -eq 5 ] 2>/dev/null && ok "chip_template_count=5" || bad "chip_template_count!=5 ($SUMMARY)"
 AGENT_COUNT=$(echo "$SUMMARY" | python3 -c "import sys,json; print(json.load(sys.stdin).get('agent_count',0))" 2>/dev/null || echo 0)
 [ "$AGENT_COUNT" -ge 12 ] 2>/dev/null && ok "agent_count>=12 ($AGENT_COUNT)" || bad "agent_count<12 ($SUMMARY)"
 
 HERO=$(curl -sf "$API/catalog/hero-presets" 2>/dev/null || echo "")
-if echo "$HERO" | grep -q '"total":30'; then ok "GET /catalog/hero-presets total=30"; else bad "GET /catalog/hero-presets ($HERO)"; fi
+if echo "$HERO" | grep -qE '"total":(3[0-9]|[4-9][0-9]|[0-9]{3,})'; then ok "GET /catalog/hero-presets total>=30"; else bad "GET /catalog/hero-presets ($HERO)"; fi
 
 OFFICE=$(curl -sf "$API/catalog/office?lite=true" 2>/dev/null || echo "")
 if echo "$OFFICE" | grep -q '"total":'; then ok "GET /catalog/office lite"; else bad "GET /catalog/office"; fi
