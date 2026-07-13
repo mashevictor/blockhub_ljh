@@ -1,12 +1,13 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import ErrorBoundary from './components/ErrorBoundary'
+import ScrollToTop from './components/ScrollToTop'
+import IndustryHubRedirect from './components/IndustryHubRedirect'
 import HomeApp from './HomeApp'
 import RedirectToAdminLogin from './components/RedirectToAdminLogin'
 import PlazaLayout from './pages/plaza/PlazaLayout'
 import PlazaFeedPage from './pages/plaza/PlazaFeedPage'
 import PlazaMyAppsPage from './pages/plaza/PlazaMyAppsPage'
 import IndustryDetailPage from './pages/IndustryDetailPage'
-import IndustrySitesIndexPage from './pages/IndustrySitesIndexPage'
 import SharePackPage from './pages/SharePackPage'
 import ShareShortRedirect from './pages/ShareShortRedirect'
 import ShanghaiVoicePage from './pages/ShanghaiVoicePage'
@@ -21,23 +22,21 @@ import { ROUTES } from './routes/paths'
 
 export default function App() {
   return (
-    <Routes>
+    <>
+      <ScrollToTop />
+      <Routes>
       <Route path="/login" element={<RedirectToAdminLogin />} />
       <Route path="/register" element={<RedirectToAdminLogin />} />
       <Route path="/plaza" element={<PlazaLayout />}>
         <Route index element={<PlazaFeedPage />} />
         <Route path="my" element={<PlazaMyAppsPage />} />
       </Route>
-      <Route path={ROUTES.industryHub} element={
-        <ErrorBoundary fallbackTitle="行业方案站加载失败">
-          <IndustrySitesIndexPage />
-        </ErrorBoundary>
-      } />
       <Route path="/industry/:key" element={
         <ErrorBoundary fallbackTitle="行业详情页加载失败">
           <IndustryDetailPage />
         </ErrorBoundary>
       } />
+      <Route path={ROUTES.industryHub} element={<IndustryHubRedirect />} />
       <Route path={ROUTES.shanghaiVoice} element={
         <ErrorBoundary fallbackTitle="上海话语音页加载失败">
           <ShanghaiVoicePage />
@@ -87,5 +86,6 @@ export default function App() {
       <Route path="/" element={<HomeApp />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    </>
   )
 }

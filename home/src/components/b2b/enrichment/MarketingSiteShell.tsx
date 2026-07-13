@@ -1,19 +1,12 @@
-import type { ReactNode } from 'react'
-import { Link, useLocation } from 'react-router-dom'
-import BrandMark from '../../BrandMark'
-import { AgentChevronGlyph } from '../../AgentChevron'
+import { useEffect, useState, type ReactNode } from 'react'
+import { Link } from 'react-router-dom'
+import B2BHeader from '../B2BHeader'
 import { BRAND } from '../../../data/brand'
 import { ROUTES } from '../../../routes/paths'
+import { homeSectionHref } from '../../../data/homeNav'
+import { fetchMe, logout, type AuthUser } from '../../../auth/session'
+import { getToken } from '../../../auth/storage'
 import '../../../styles/b2b-landing.css'
-
-const NAV_ITEMS = [
-  { label: '平台首页', to: ROUTES.home, hash: false },
-  { label: '行业方案', to: ROUTES.industryHub, hash: false },
-  { label: '信任合规', to: ROUTES.trust, hash: false },
-  { label: '客户案例', to: ROUTES.cases, hash: false },
-  { label: '定价说明', to: ROUTES.pricing, hash: false },
-  { label: '新闻动态', to: ROUTES.news, hash: false },
-] as const
 
 interface Props {
   children: ReactNode
@@ -22,69 +15,49 @@ interface Props {
   pageLead?: string
 }
 
+/** 案例 / 信任 / 定价 / 新闻等子站 — 与首页共用 B2BHeader + b2b-section 视觉 */
 export default function MarketingSiteShell({ children, pageTitle, pageEyebrow, pageLead }: Props) {
-  const { pathname } = useLocation()
+  const [user, setUser] = useState<AuthUser | null>(null)
+
+  useEffect(() => {
+    document.body.classList.add('b2b-landing')
+    return () => document.body.classList.remove('b2b-landing')
+  }, [])
+
+  useEffect(() => {
+    if (!getToken()) {
+      setUser(null)
+      return
+    }
+    fetchMe().then(setUser).catch(() => setUser(null))
+  }, [])
 
   return (
     <div className="b2b-app b2b-landing marketing-site b2b-brand-scope">
-      <header className="b2b-header marketing-site-header">
-        <div className="b2b-header-accent" aria-hidden />
-        <div className="b2b-nav marketing-site-nav-row">
-          <Link to={ROUTES.home} className="b2b-logo">
-            <BrandMark size={40} />
-            <span className="b2b-logo-text">
-              <strong>{BRAND.nameZh}</strong>
-              <em>{BRAND.nameEn}</em>
-            </span>
-          </Link>
-          <nav className="b2b-nav-rail" aria-label="官网导航">
-            <ul className="b2b-nav-menu marketing-site-nav-menu">
-              {NAV_ITEMS.map((item) => {
-                const active = pathname === item.to || (item.to !== ROUTES.home && pathname.startsWith(item.to))
-                return (
-                  <li key={item.label}>
-                    <Link
-                      to={item.to}
-                      className={`b2b-nav-pill${active ? ' on' : ''}`}
-                      aria-current={active ? 'page' : undefined}
-                    >
-                      <AgentChevronGlyph size="nav" className="b2b-nav-chev" />
-                      <span className="b2b-nav-label">{item.label}</span>
-                    </Link>
-                  </li>
-                )
-              })}
-              <li>
-                <a href={ROUTES.contactDemo} className="b2b-nav-pill marketing-site-nav-cta">
-                  <AgentChevronGlyph size="nav" className="b2b-nav-chev" />
-                  <span className="b2b-nav-label">预约演示</span>
-                </a>
-              </li>
-            </ul>
-          </nav>
-        </div>
-      </header>
+      <B2BHeader user={user} onLogout={() => logout()} />
+
       <main className="marketing-site-main">
-        {pageTitle ? (
-          <div className="b2b-section-title marketing-site-page-head">
-            {pageEyebrow ? <span className="b2b-eyebrow">{pageEyebrow}</span> : null}
-            <h1>{pageTitle}</h1>
-            {pageLead ? <p>{pageLead}</p> : null}
-          </div>
-        ) : null}
-        <div className="marketing-site-content">{children}</div>
+        <section className="b2b-section b2b-product-section marketing-site-section">
+          {pageTitle ? (
+            <div className="b2b-section-title b2b-product-head marketing-site-page-head">
+              {pageEyebrow ? <span className="b2b-eyebrow">{pageEyebrow}</span> : null}
+              <h1>{pageTitle}</h1>
+              {pageLead ? <p>{pageLead}</p> : null}
+            </div>
+          ) : null}
+          <div className="b2b-product-block marketing-site-content">{children}</div>
+        </section>
       </main>
-      <footer className="marketing-site-footer">
-        <p>
-          © {new Date().getFullYear()} {BRAND.nameZh} · {BRAND.tagline}
-        </p>
+
+      <footer className="b2b-footer marketing-site-footer">
+        <p>© {new Date().getFullYear()} {BRAND.nameZh} · {BRAND.tagline}</p>
         <div className="marketing-site-footer-links">
-          <Link to={ROUTES.industryHub}>20 个行业方案</Link>
-          <Link to={ROUTES.trust}>信任与合规</Link>
-          <Link to={ROUTES.cases}>客户案例</Link>
+          <Link to={homeSectionHref('product')}>20 个行业方案</Link>
+          <Link to={ROUTES.cases}>落地案例</Link>
+          <Link to={ROUTES.trust}>信任合规</Link>
           <Link to={ROUTES.pricing}>定价说明</Link>
           <Link to={ROUTES.news}>新闻动态</Link>
-          <a href={ROUTES.contactDemo}>预约演示</a>
+          <Link to={homeSectionHref('contact-demo')}>预约演示</Link>
         </div>
       </footer>
     </div>

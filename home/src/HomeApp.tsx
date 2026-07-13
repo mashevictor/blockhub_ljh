@@ -101,6 +101,16 @@ export default function HomeApp() {
     }
   }, [location.hash])
 
+  useEffect(() => {
+    const hash = location.hash.replace('#', '')
+    const sectionIds = ['product', 'case', 'contact-create', 'contact-demo', 'hero']
+    if (location.pathname === '/' && hash && sectionIds.includes(hash)) {
+      requestAnimationFrame(() => {
+        window.setTimeout(() => scrollToHomeSection(hash), 80)
+      })
+    }
+  }, [location.pathname, location.hash])
+
   const scrollToCreate = () => scrollToHomeSection('contact-create')
   const scrollToDemo = () => scrollToHomeSection('contact-demo')
 
@@ -115,7 +125,6 @@ export default function HomeApp() {
       <B2BHeader
         user={user}
         activeSection={activeSection}
-        onBook={scrollToDemo}
         onLogout={() => logout()}
       />
 

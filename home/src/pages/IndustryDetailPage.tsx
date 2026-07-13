@@ -7,7 +7,7 @@ import { usePageMeta } from '../hooks/usePageMeta'
 import { useTheme } from '../context/ThemeContext'
 import { categoryColor, iconWrapStyle } from '../data/iconPalette'
 import { resolveCategoryIcon, INDUSTRIES_SHOWCASE } from '../data/showcase'
-import { industryAssets } from '../data/industryAssets'
+import { industryAssets, industryCardImage } from '../data/industryAssets'
 import { buildIndustryPageTemplates } from '../data/industryPageTemplates'
 import { buildIndustryPackDetailFallback } from '../data/industryDetailFallback'
 import { getIndustryVisualTheme } from '../data/industryVisualThemes'
@@ -112,7 +112,7 @@ export default function IndustryDetailPage() {
     return (
       <IndustrySiteShell theme={{ primary: '#0d47a1' }}>
         <p className="industry-detail-error">{error ?? '行业包不存在'}</p>
-        <Link to={ROUTES.industryHub} className="btn-secondary">返回行业索引</Link>
+        <Link to={`${ROUTES.home}#product`} className="btn-secondary">返回首页行业方案</Link>
       </IndustrySiteShell>
     )
   }
@@ -129,7 +129,7 @@ export default function IndustryDetailPage() {
         gradientTo={site.theme.gradient_to}
         heroImage={site.assets.hero}
         motif={visualTheme.motif}
-        badge={`独立方案站 · ${stylePackMeta.label} · ${total} 场景`}
+        badge={`独立方案站 · ${total} 场景`}
         title={pack.name}
         tagline={visualTheme.heroPitch ?? pack.tagline}
         stats={visualTheme.stats}
@@ -228,7 +228,9 @@ export default function IndustryDetailPage() {
                 className="industry-hub-card"
                 style={{ '--card-accent': s.color } as CSSProperties}
               >
-                <div className="industry-hub-thumb" style={{ backgroundImage: `url(${s.assets.hero})` }} />
+                <div className="industry-hub-thumb" style={{ backgroundImage: `url(${industryCardImage(s.key)})` }}>
+                  <span className="industry-card-visual-title">{s.name}</span>
+                </div>
                 <div className="industry-hub-body">
                   <h3>{s.name}</h3>
                   <p>{s.scenes} 场景</p>

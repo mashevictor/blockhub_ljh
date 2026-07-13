@@ -1,6 +1,9 @@
 /**
- * 12 套行业独立站「效果样式包」— 整页视觉完全不同（非统一模板微调）
+ * 12 套行业独立站「效果样式包」— 整页视觉略有差异（非统一模板微调）
  * 20 行业映射到 12 套；每套含独立 hero 结构 + 面板/场景/CTA 形态
+ *
+ * 导航栏 SSOT：与首页白底毛玻璃一致，行业差异仅体现在 --site-primary（顶栏 accent + 激活 pill）
+ * 见 industry-style-packs.css 末尾 `.industry-site .industry-site-header` 统一块
  */
 
 export type IndustryStylePack =
@@ -50,28 +53,28 @@ export const STYLE_PACK_META: Record<IndustryStylePack, StylePackMeta> = {
   broadcast: { id: 'broadcast', label: '传媒波段', heroVariant: 'stacked-dark', pageBg: '#1a0a1a', panelShape: 'glass' },
 }
 
-/** 20 行业 → 12 样式包 */
+/** 20 行业 → 统一 edu 学院风模板（差异仅 --site-primary） */
 export const INDUSTRY_STYLE_PACK: Record<string, IndustryStylePack> = {
-  office: 'classic',
-  gov: 'classic',
-  mfg: 'industrial',
-  construction: 'industrial',
-  sales: 'velocity',
-  marketing: 'velocity',
-  med: 'serenity',
-  hotel: 'serenity',
-  game: 'cyber',
-  retail: 'market',
-  agriculture: 'market',
+  office: 'campus',
+  gov: 'campus',
+  mfg: 'campus',
+  construction: 'campus',
+  sales: 'campus',
+  marketing: 'campus',
+  med: 'campus',
+  hotel: 'campus',
+  game: 'campus',
+  retail: 'campus',
+  agriculture: 'campus',
   edu: 'campus',
-  finance: 'vault',
-  legal: 'vault',
-  logistics: 'freight',
-  auto: 'freight',
-  realestate: 'horizon',
-  energy: 'horizon',
-  hr: 'people',
-  media: 'broadcast',
+  finance: 'campus',
+  legal: 'campus',
+  logistics: 'campus',
+  auto: 'campus',
+  realestate: 'campus',
+  energy: 'campus',
+  hr: 'campus',
+  media: 'campus',
 }
 
 export function getIndustryStylePack(key: string): IndustryStylePack {

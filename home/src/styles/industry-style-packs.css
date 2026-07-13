@@ -213,15 +213,8 @@
 .industry-site--pack-velocity {
   background: #1a0a0a;
   color: #fecaca;
-}
-
-.industry-site--pack-velocity .industry-site-header {
-  background: linear-gradient(90deg, #7f1d1d, #991b1b);
-}
-
-.industry-site--pack-velocity .b2b-nav-pill.on {
-  background: #fff;
-  color: #991b1b;
+  --ind-text: #f8fafc;
+  --ind-muted: #e2e8f0;
 }
 
 .industry-site--pack-velocity .industry-site-hero-banner {
@@ -302,6 +295,8 @@
 .industry-site--pack-cyber {
   background: #0c0a14;
   color: #e9d5ff;
+  --ind-text: #f5f3ff;
+  --ind-muted: #ddd6fe;
 }
 
 .industry-site--pack-cyber .industry-site-header {
@@ -417,6 +412,8 @@
 .industry-site--pack-vault {
   background: #0c1929;
   color: #cbd5e1;
+  --ind-text: #f8fafc;
+  --ind-muted: #e2e8f0;
 }
 
 .industry-site--pack-vault .industry-site-header {
@@ -504,16 +501,6 @@
   align-items: center;
   border-left: 6px solid #ca8a04;
   border-radius: 4px;
-}
-
-.industry-site--pack-freight .industry-site-hero-banner::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, transparent, #fbbf24, transparent);
 }
 
 /* ═══ 10 horizon · 地平线分栏 ═══ */
@@ -608,6 +595,8 @@
 .industry-site--pack-broadcast {
   background: #1a0a1a;
   color: #fce7f3;
+  --ind-text: #fdf2f8;
+  --ind-muted: #fbcfe8;
 }
 
 .industry-site--pack-broadcast .industry-site-header {
@@ -617,16 +606,8 @@
 .industry-site--pack-broadcast .industry-site-hero-banner {
   position: relative;
   overflow: hidden;
-}
-
-.industry-site--pack-broadcast .industry-site-hero-banner::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 6px;
-  background: repeating-linear-gradient(
+  border-bottom: 6px solid transparent;
+  border-image: repeating-linear-gradient(
     90deg,
     #ec4899,
     #ec4899 20px,
@@ -634,7 +615,7 @@
     #d946ef 40px,
     #a855f7 40px,
     #a855f7 60px
-  );
+  ) 1;
 }
 
 .industry-site--pack-broadcast .industry-site-panel {
@@ -676,10 +657,63 @@
 }
 
 .industry-site--pack-industrial .industry-detail-overview-text,
+.industry-site--pack-velocity .industry-detail-overview-text,
 .industry-site--pack-vault .industry-detail-overview-text,
 .industry-site--pack-cyber .industry-detail-overview-text,
 .industry-site--pack-broadcast .industry-detail-overview-text {
-  color: var(--ind-muted, #94a3b8);
+  color: var(--ind-muted, #cbd5e1);
+}
+
+/* 深色包：方案总述 / 场景清单面板内标题与列表 */
+.industry-site--pack-industrial .industry-site-panel .industry-site-section-head h2,
+.industry-site--pack-velocity .industry-site-panel .industry-site-section-head h2,
+.industry-site--pack-vault .industry-site-panel .industry-site-section-head h2,
+.industry-site--pack-cyber .industry-site-panel .industry-site-section-head h2,
+.industry-site--pack-broadcast .industry-site-panel .industry-site-section-head h2 {
+  color: var(--ind-text, #f8fafc) !important;
+}
+
+.industry-site--pack-industrial .industry-site-panel .industry-detail-highlights,
+.industry-site--pack-velocity .industry-site-panel .industry-detail-highlights,
+.industry-site--pack-vault .industry-site-panel .industry-detail-highlights,
+.industry-site--pack-cyber .industry-site-panel .industry-detail-highlights,
+.industry-site--pack-broadcast .industry-site-panel .industry-detail-highlights {
+  color: var(--ind-text, #f1f5f9) !important;
+}
+
+.industry-site--pack-industrial .industry-site-panel .industry-site-modules h3,
+.industry-site--pack-velocity .industry-site-panel .industry-site-modules h3,
+.industry-site--pack-vault .industry-site-panel .industry-site-modules h3,
+.industry-site--pack-cyber .industry-site-panel .industry-site-modules h3,
+.industry-site--pack-broadcast .industry-site-panel .industry-site-modules h3 {
+  color: var(--ind-text, #f8fafc) !important;
+}
+
+.industry-site--pack-industrial .industry-site-panel .industry-detail-source,
+.industry-site--pack-velocity .industry-site-panel .industry-detail-source,
+.industry-site--pack-vault .industry-site-panel .industry-detail-source,
+.industry-site--pack-cyber .industry-site-panel .industry-detail-source,
+.industry-site--pack-broadcast .industry-site-panel .industry-detail-source {
+  color: var(--ind-muted, #94a3b8) !important;
+}
+
+.industry-site--pack-velocity .industry-site-panel .b2b-eyebrow,
+.industry-site--pack-vault .industry-site-panel .b2b-eyebrow,
+.industry-site--pack-cyber .industry-site-panel .b2b-eyebrow,
+.industry-site--pack-broadcast .industry-site-panel .b2b-eyebrow {
+  background: rgba(255, 255, 255, 0.12);
+  color: #f8fafc;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+}
+
+.industry-site--pack-velocity .industry-site-module-chips code,
+.industry-site--pack-vault .industry-site-module-chips code,
+.industry-site--pack-cyber .industry-site-module-chips code,
+.industry-site--pack-broadcast .industry-site-module-chips code,
+.industry-site--pack-industrial .industry-site-module-chips code {
+  background: rgba(255, 255, 255, 0.1);
+  color: #f8fafc;
+  border-color: rgba(255, 255, 255, 0.22);
 }
 
 @media (max-width: 768px) {
@@ -694,6 +728,47 @@
 }
 
 /* ═══ 全局可读性：Hero 白字高对比（覆盖各样式包浅色 badge）═══ */
+.industry-site .industry-hero-readable {
+  position: relative;
+  z-index: 1;
+  background: rgba(6, 12, 24, 0.5);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.28);
+}
+
+.industry-site .industry-hero--split-left .industry-hero-readable,
+.industry-site .industry-hero--split-right .industry-hero-readable {
+  padding: 20px 24px;
+}
+
+.industry-site .industry-hero--centered .industry-hero-readable,
+.industry-site .industry-hero--minimal-bar .industry-hero-readable,
+.industry-site .industry-hero--stacked-dark .industry-hero-readable,
+.industry-site .industry-hero--soft-card .industry-hero-readable {
+  padding: 24px 28px;
+}
+
+.industry-site .industry-site-hero-banner h1,
+.industry-site .industry-site-hero-banner .industry-detail-tagline,
+.industry-site .industry-site-hero-banner .industry-detail-back {
+  color: #fff !important;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.68), 0 0 1px rgba(0, 0, 0, 0.85) !important;
+}
+
+.industry-site .industry-site-hero-banner .industry-detail-tagline {
+  color: #f8fafc !important;
+  opacity: 1 !important;
+}
+
+.industry-site .industry-site-hero-banner .industry-site-stats-row strong,
+.industry-site .industry-site-hero-banner .industry-site-stats-row span {
+  color: #fff !important;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6) !important;
+}
+
 .industry-site .industry-site-hero-banner .industry-detail-badge {
   background: rgba(0, 0, 0, 0.42) !important;
   color: #fff !important;
@@ -723,4 +798,157 @@
 .industry-site .industry-detail-scene-card code {
   color: var(--ind-text, #334155);
   background: color-mix(in srgb, var(--site-primary, #0d47a1) 8%, transparent);
+}
+
+/* ═══ SSOT · 行业站导航与首页统一（20 行业共用，差异仅 --site-primary）═══ */
+.industry-site .b2b-header {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 2px 16px rgba(13, 71, 161, 0.06);
+  border-bottom: none;
+}
+
+.industry-site .b2b-header .b2b-header-accent {
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--site-primary, #0d47a1) 72%, #fff) 0%,
+    var(--site-primary, #0d47a1) 100%
+  );
+}
+
+.industry-site .b2b-header .b2b-logo-text strong {
+  color: var(--b2b-primary, #0d47a1);
+}
+
+.industry-site .b2b-header .b2b-logo-text em {
+  color: var(--b2b-muted, #64748b);
+}
+
+.industry-site .b2b-header .b2b-nav-label {
+  color: inherit;
+}
+
+.industry-site .b2b-header .b2b-nav-menu {
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+}
+
+.industry-site .b2b-header .b2b-nav-pill {
+  color: #475569;
+  background: transparent;
+  border-color: transparent;
+}
+
+.industry-site .b2b-header .b2b-nav-pill:hover {
+  color: var(--site-primary, var(--b2b-primary, #0d47a1));
+  background: rgba(255, 255, 255, 0.92);
+  border-color: color-mix(in srgb, var(--site-primary, #0d47a1) 22%, #dbeafe);
+}
+
+.industry-site .b2b-header .b2b-nav-pill.on,
+.industry-site .b2b-header .b2b-nav-pill.on:hover {
+  color: #fff;
+  background: linear-gradient(
+    135deg,
+    var(--site-primary, #0d47a1) 0%,
+    color-mix(in srgb, var(--site-primary, #0d47a1) 38%, #1976d2) 100%
+  );
+  border-color: transparent;
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--site-primary, #0d47a1) 28%, transparent);
+}
+
+.industry-site .b2b-header .b2b-nav-chev {
+  color: var(--site-primary, var(--b2b-primary, #0d47a1));
+}
+
+.industry-site .b2b-header .b2b-nav-pill.on .b2b-nav-chev {
+  color: #fff;
+}
+
+/* ═══ SSOT · 20 行业统一 edu 学院风（覆盖各 pack 深色/斜切差异）═══ */
+.industry-site {
+  background: #eff6ff;
+  background-image: repeating-linear-gradient(
+    90deg,
+    transparent,
+    transparent 48px,
+    color-mix(in srgb, var(--site-primary, #2563eb) 6%, transparent) 48px,
+    color-mix(in srgb, var(--site-primary, #2563eb) 6%, transparent) 49px
+  );
+  color: #1e293b;
+  --ind-text: #1e293b;
+  --ind-muted: #475569;
+  --ind-panel-bg: #fff;
+  --ind-panel-border: #bfdbfe;
+}
+
+.industry-site .industry-site-section-head h2 {
+  border-left: 6px solid var(--site-primary, #2563eb);
+  padding-left: 14px;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--site-primary, #2563eb) 8%, transparent),
+    transparent
+  );
+  color: var(--ind-text, #111);
+}
+
+.industry-site .industry-site-panel {
+  border-radius: 8px;
+  border: 1px solid #bfdbfe;
+  border-top: 4px solid var(--site-primary, #2563eb);
+  background: #fff;
+  color: var(--ind-text, #1e293b);
+}
+
+.industry-site .industry-detail-scene-card {
+  border-radius: 6px;
+  border-left: 5px solid color-mix(in srgb, var(--site-primary, #2563eb) 72%, #2563eb);
+  background: #fff;
+  color: var(--ind-text, #1e293b);
+}
+
+.industry-site .industry-site-module-chips code {
+  background: color-mix(in srgb, var(--site-primary, #2563eb) 12%, #dbeafe);
+  color: color-mix(in srgb, var(--site-primary, #2563eb) 78%, #1e40af);
+  border-radius: 4px;
+}
+
+.industry-site .industry-site-cta-band {
+  text-align: center;
+  padding: 44px 28px;
+  border-radius: var(--bh-radius-md, 16px);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--site-primary, #0d47a1) 10%, #fff) 0%,
+    #fff 55%,
+    color-mix(in srgb, var(--b2b-accent, #00b894) 8%, #fff) 100%
+  );
+  border: 1px solid var(--theme-card-border, #dbeafe);
+  box-shadow: var(--theme-card-shadow, 0 4px 24px rgba(13, 71, 161, 0.06));
+  clip-path: none;
+  transform: none;
+  color: inherit;
+}
+
+.industry-site .industry-site-cta-band h2 {
+  margin: 0 0 10px;
+  font-size: 24px;
+  color: #111;
+}
+
+.industry-site .industry-site-cta-band p {
+  color: var(--b2b-muted, #666);
+  margin: 0 0 22px;
+  font-size: 14px;
+}
+
+.industry-site .btn-primary {
+  transform: none;
+  background: linear-gradient(
+    135deg,
+    var(--site-primary, #0d47a1) 0%,
+    color-mix(in srgb, var(--site-primary, #0d47a1) 38%, #1976d2) 100%
+  );
 }

@@ -15,7 +15,7 @@ export default function B2BCaseEnrichedSection() {
           对内转发材料
         </span>
         <h2 id="enrich-case-title">深度案例 · 可转发</h2>
-        <p>制造完整案例（含试点调整后成功）+ 2 短案例 + 一页纸方案摘要下载</p>
+        <p>制造深度案例 + 2 短案例 + 一页纸摘要下载</p>
       </div>
       <div className="enrich-case-featured">
         <article className="enrich-case-long">

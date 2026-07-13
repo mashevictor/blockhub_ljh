@@ -1,9 +1,11 @@
-import type { CSSProperties, ReactNode } from 'react'
-import { Link, useLocation } from 'react-router-dom'
-import BrandMark from '../BrandMark'
-import { AgentChevronGlyph } from '../AgentChevron'
+import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
+import { Link } from 'react-router-dom'
+import B2BHeader from '../b2b/B2BHeader'
 import { BRAND } from '../../data/brand'
 import { ROUTES } from '../../routes/paths'
+import { homeSectionHref } from '../../data/homeNav'
+import { fetchMe, logout, type AuthUser } from '../../auth/session'
+import { getToken } from '../../auth/storage'
 import '../../styles/b2b-landing.css'
 
 export interface IndustrySiteTheme {
@@ -19,10 +21,22 @@ interface Props {
   layoutClass?: string
 }
 
+/** 行业独立站 — 与首页 / 案例 / 定价等子站共用 B2BHeader */
 export default function IndustrySiteShell({ theme, children, industryName, layoutClass }: Props) {
-  const { pathname } = useLocation()
-  const onHub = pathname === ROUTES.industryHub
-  const onDetail = pathname.startsWith('/industry/') && !onHub
+  const [user, setUser] = useState<AuthUser | null>(null)
+
+  useEffect(() => {
+    document.body.classList.add('b2b-landing')
+    return () => document.body.classList.remove('b2b-landing')
+  }, [])
+
+  useEffect(() => {
+    if (!getToken()) {
+      setUser(null)
+      return
+    }
+    fetchMe().then(setUser).catch(() => setUser(null))
+  }, [])
 
   return (
     <div
@@ -33,59 +47,23 @@ export default function IndustrySiteShell({ theme, children, industryName, layou
         '--ind-accent': theme.primary,
       } as CSSProperties}
     >
-      <header className="b2b-header industry-site-header">
-        <div className="b2b-header-accent" aria-hidden />
-        <div className="b2b-nav industry-site-nav-row">
-          <Link to={ROUTES.home} className="b2b-logo">
-            <BrandMark size={40} />
-            <span className="b2b-logo-text">
-              <strong>{BRAND.nameZh}</strong>
-              <em>{BRAND.nameEn}</em>
-            </span>
-          </Link>
-          <nav className="b2b-nav-rail" aria-label="行业站导航">
-            <ul className="b2b-nav-menu industry-site-nav-menu">
-              <li>
-                <Link
-                  to={ROUTES.industryHub}
-                  className={`b2b-nav-pill${onHub ? ' on' : ''}`}
-                  aria-current={onHub ? 'page' : undefined}
-                >
-                  <AgentChevronGlyph size="nav" className="b2b-nav-chev" />
-                  <span className="b2b-nav-label">全部行业</span>
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to={ROUTES.home}
-                  className={`b2b-nav-pill${!onHub && !onDetail ? ' on' : ''}`}
-                >
-                  <AgentChevronGlyph size="nav" className="b2b-nav-chev" />
-                  <span className="b2b-nav-label">平台首页</span>
-                </Link>
-              </li>
-              {industryName ? (
-                <li>
-                  <span className="b2b-nav-pill on industry-site-nav-current" aria-current="page">
-                    <AgentChevronGlyph size="nav" className="b2b-nav-chev" />
-                    <span className="b2b-nav-label">{industryName}</span>
-                  </span>
-                </li>
-              ) : null}
-            </ul>
-          </nav>
-        </div>
-      </header>
+      <B2BHeader user={user} onLogout={() => logout()} />
+
       <main className="industry-site-main">{children}</main>
-      <footer className="industry-site-footer">
+
+      <footer className="b2b-footer industry-site-footer">
         <p>
           © {new Date().getFullYear()} {BRAND.nameZh}
           {industryName ? ` · ${industryName} 行业深度包` : ' · 20 个行业深度包'}
           {' · '}{BRAND.tagline}
         </p>
-        <div className="industry-site-footer-links">
-          <Link to={ROUTES.industryHub}>浏览 20 个行业方案</Link>
-          <Link to={ROUTES.home}>返回首页创建</Link>
+        <div className="industry-site-footer-links marketing-site-footer-links">
+          <Link to={homeSectionHref('product')}>20 个行业方案</Link>
+          <Link to={ROUTES.cases}>落地案例</Link>
+          <Link to={ROUTES.trust}>信任合规</Link>
+          <Link to={ROUTES.pricing}>定价说明</Link>
+          <Link to={ROUTES.news}>新闻动态</Link>
+          <Link to={homeSectionHref('contact-demo')}>预约演示</Link>
         </div>
       </footer>
     </div>

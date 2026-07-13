@@ -8,6 +8,7 @@ import {
   INDUSTRY_SOLUTIONS,
 } from '../../data/productShowcase'
 import { ROUTES } from '../../routes/paths'
+import { homeSectionHref } from '../../data/homeNav'
 import { industryCardImage } from '../../data/industryAssets'
 import { PLATFORM_STATS } from '@shared/platformStats'
 import { CAPABILITY_ICONS, INDUSTRY_ICONS, IconSparkles } from '../icons'
@@ -45,11 +46,12 @@ export default function B2BProductSection({ onTry }: Props) {
   const navigate = useNavigate()
 
   const openIndustryDetail = (key: string) => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
     navigate(ROUTES.industryDetail(key))
   }
 
   const openIndustryHub = () => {
-    navigate(ROUTES.industryHub)
+    navigate(homeSectionHref('product'))
   }
 
   return (
@@ -192,6 +194,7 @@ export default function B2BProductSection({ onTry }: Props) {
                   role="img"
                   aria-label={`${ind.name}行业特性配图`}
                 >
+                  <span className="industry-card-visual-title">{ind.name}</span>
                   <span className="b2b-industry-visual-count">{ind.count} 场景</span>
                 </div>
                 <div className="b2b-industry-body">

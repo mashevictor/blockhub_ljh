@@ -4,6 +4,7 @@ import { fetchSharePack, type ShareArtifact, type SharePack } from '../api/clien
 import BrandMark from '../components/BrandMark'
 import { AgentButtonContent, AgentChevronGlyph } from '../components/AgentChevron'
 import { ROUTES } from '../routes/paths'
+import { homeSectionHref } from '../data/homeNav'
 import { usePageMeta } from '../hooks/usePageMeta'
 import '../styles/b2b-landing.css'
 
@@ -95,7 +96,7 @@ export default function SharePackPage() {
                 </Link>
               </li>
               <li>
-                <Link to={ROUTES.industryHub} className="b2b-nav-pill">
+                <Link to={homeSectionHref('product')} className="b2b-nav-pill">
                   <AgentChevronGlyph size="nav" className="b2b-nav-chev" />
                   <span className="b2b-nav-label">行业方案</span>
                 </Link>

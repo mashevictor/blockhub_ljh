@@ -24,7 +24,7 @@ export const CASE_STUDIES: CaseStudy[] = [
     slug: 'mfg-leads',
     name: '800 人制造企业 · 销售线索快速响应',
     industry: '制造',
-    tag: '含试点调整过程 · 真实可信',
+    tag: '试点实录',
     summary:
       '第一次全自动外呼试点被否 → 改人工确认版 → 平均首响由约 3.2 小时缩短至 28 分钟',
     metrics: [

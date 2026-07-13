@@ -84,6 +84,7 @@ export default function IndustrySitesIndexPage() {
                   role="img"
                   aria-label={`${site.name}行业特性配图`}
                 >
+                  <span className="industry-card-visual-title">{site.name}</span>
                   <span className="industry-hub-feature-icon" aria-hidden>
                     <Icon size={22} />
                   </span>
