@@ -83,9 +83,15 @@ export async function pollApkReady(
   const intervalMs = opts.intervalMs ?? 10_000
   const deadline = Date.now() + timeoutMs
   let last: RuntimePollInfo = {}
+  let polls = 0
 
   while (Date.now() < deadline) {
     last = await apiGet<RuntimePollInfo>(`/runtime/${appId}`)
+    polls += 1
+    const elapsed = Math.round((Date.now() - (deadline - timeoutMs)) / 1000)
+    console.log(
+      `[pollApkReady] ${appId} #${polls} ${elapsed}s status=${last.apk_build_status ?? '?'} ready=${!!last.apk_ready}`,
+    )
     if (last.apk_ready || last.apk_build_status === 'ready') {
       return last
     }

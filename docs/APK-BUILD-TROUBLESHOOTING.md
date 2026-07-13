@@ -46,7 +46,8 @@ E2E_APK_POLL_MS=600000 bash blockhub.sh batch2 http://101.32.209.251
 
 | 现象 | 原因 | 处理 |
 |------|------|------|
-| 长期 pending/building | Flutter 构建慢或卡住 | 看 `.log`；`ps aux \| grep flutter` |
+| 长期 pending/building | Gradle 输出 pipe 死锁或构建慢 | `git pull` 最新 apk_builder；`watch-apk-build.sh <id> --follow` |
+| 长期 building 无 log 增长 | 旧版 capture_output 卡死 | 重启 API + `pkill -f gradle` + 重跑 batch2 |
 | status=failed, `No such file or directory: 'bash'` | systemd PATH 仅 venv | `apk_builder` 用 `/bin/bash` + 补 PATH；更新 `blockhub-api.service` 后 `daemon-reload` |
 | status=failed | Gradle/内存/依赖或**并发构建** | 读 `.build-status/*.log`；勿同时跑 batch2 WITH_BUILD 与 E2E |
 | 两个构建同时跑 | smoke-apk WITH_BUILD + publish 后台 | batch2 默认 WITH_BUILD=0；全局锁 `/tmp/blockhub-flutter-apk.lock` |

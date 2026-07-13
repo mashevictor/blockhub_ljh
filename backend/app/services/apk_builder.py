@@ -234,19 +234,22 @@ def _run_build_job(public_id: str) -> None:
             raise FileNotFoundError(f"Missing build script: {script}")
 
         env = _subprocess_env()
+        log_path.parent.mkdir(parents=True, exist_ok=True)
         with _GRADLE_BUILD_LOCK:
-            proc = subprocess.run(
-                [_bash_executable(), str(script), public_id],
-                cwd=str(_repo_root()),
-                capture_output=True,
-                text=True,
-                timeout=3600,
-                env=env,
-            )
-        log_path.write_text((proc.stdout or "") + "\n" + (proc.stderr or ""), encoding="utf-8")
+            # 勿用 capture_output=True — Gradle 输出量大时会填满 pipe 导致子进程永久阻塞
+            with open(log_path, "w", encoding="utf-8") as log_f:
+                proc = subprocess.run(
+                    [_bash_executable(), str(script), public_id],
+                    cwd=str(_repo_root()),
+                    stdout=log_f,
+                    stderr=subprocess.STDOUT,
+                    timeout=3600,
+                    env=env,
+                )
 
         if proc.returncode != 0:
-            raise RuntimeError(f"flutter-build-from-publish exited {proc.returncode}")
+            tail = log_path.read_text(encoding="utf-8", errors="replace")[-4000:]
+            raise RuntimeError(f"flutter-build-from-publish exited {proc.returncode}\n{tail}")
 
         if not per_app_apk_path(public_id).is_file():
             raise RuntimeError("Build finished but APK file missing")

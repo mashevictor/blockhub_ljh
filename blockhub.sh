@@ -74,6 +74,9 @@ case "$CMD" in
   web-coverage)
     run web-coverage-report.sh "$@"
     ;;
+  watch-apk|apk-watch)
+    run watch-apk-build.sh "$@"
+    ;;
   build-apk|apk-from-publish)
     run flutter-build-from-publish.sh "$@"
     ;;
