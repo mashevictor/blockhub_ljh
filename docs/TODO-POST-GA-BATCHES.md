@@ -15,7 +15,7 @@
 | 0.3 | GA#9 裁剪 E2E | 运维 | `npx playwright test ga9-manifest-crop.spec.ts` |
 | 0.4 | GA 截图 / 输出归档 | 运维 | 保存 signoff 日志 |
 
-**批次完成标准**：signoff 0 fail · GA 9/9 绿
+**批次 0 状态（2026-07-13）**：✅ GA 8+1、GA#9、全部 E2E 已通过；`smoke-build-manifest` venv 问题已修（需 pull `main` 最新）
 
 ---
 

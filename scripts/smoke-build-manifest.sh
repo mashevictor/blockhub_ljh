@@ -3,9 +3,13 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-cd "$ROOT/backend"
+PY="python3"
+if [ -x "$ROOT/backend/.venv/bin/python" ]; then
+  PY="$ROOT/backend/.venv/bin/python"
+fi
 
-python3 <<'PY'
+cd "$ROOT/backend"
+"$PY" <<'PY'
 from app.services.build_manifest import build_manifest
 
 voice = build_manifest(["shanghai_voice"])
