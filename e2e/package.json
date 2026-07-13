@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "test": "playwright test",
-    "test:api": "playwright test publish-runtime-plaza custom-capability plaza-interactions",
+    "test:api": "playwright test publish-runtime-plaza custom-capability plaza-interactions ga9-manifest-crop publish-apk-status",
     "test:browser": "playwright test admin-login runtime-web-render runtime-mobile-h5 home-shell home-publish",
     "prepare:browsers": "playwright install chromium",
     "test:all": "playwright test",

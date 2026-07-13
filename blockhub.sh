@@ -44,6 +44,12 @@ case "$CMD" in
   pg-backup)
     run pg-backup.sh "$@"
     ;;
+  health-watch|health)
+    run health-watch.sh "$@"
+    ;;
+  build-apk|apk-from-publish)
+    run flutter-build-from-publish.sh "$@"
+    ;;
   migrate-tencent|tencentdb)
     run migrate-tencentdb.sh "$@"
     ;;
@@ -52,7 +58,8 @@ case "$CMD" in
 BlockHub CLI · 仓库根: $ROOT
 
   blockhub.sh flutter-build [--list | keys [选项]]  自选能力 APK
-  blockhub.sh ga-checklist [BASE_URL]               GA 八项
+  blockhub.sh build-apk <public_id>                 按 publish 队列构建 per-app APK
+  blockhub.sh ga-checklist [BASE_URL]               GA 八项 + GA#9
   blockhub.sh smoke-ga [BASE_URL]                   全量冒烟
   blockhub.sh e2e-prep                              安装 Playwright 浏览器
   blockhub.sh server-test [BASE_URL]                能力全链路验收
@@ -60,6 +67,7 @@ BlockHub CLI · 仓库根: $ROOT
   blockhub.sh web-packages                          校验 13 个 Web 包
   blockhub.sh secrets-check                         JWT/生产密钥检查
   blockhub.sh pg-backup                             PostgreSQL 备份
+  blockhub.sh health-watch [BASE_URL] [--strict]    健康检查（cron/告警）
   blockhub.sh migrate-tencent                       腾讯云 PG 迁移（需真实 DATABASE_URL）
 
 示例:

@@ -83,6 +83,7 @@ jobs:
           bash scripts/smoke-custom-capability.sh http://127.0.0.1:8001
           bash scripts/smoke-capability-contract.sh http://127.0.0.1:8001
           bash scripts/smoke-web-packages.sh
+          bash scripts/smoke-build-manifest.sh
           bash scripts/load-10vu.sh http://127.0.0.1:8001 10
 
       - name: Playwright API E2E

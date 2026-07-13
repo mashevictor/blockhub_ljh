@@ -1,0 +1,40 @@
+name: E2E Staging (PR optional)
+
+# P2：PR 可选挂 staging 浏览器 E2E（需在 repo Secrets 配置 E2E_STAGING_BASE）
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  staging-browser:
+    runs-on: ubuntu-latest
+    if: ${{ secrets.E2E_STAGING_BASE != '' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install + browsers
+        run: bash scripts/e2e-prep-browsers.sh
+
+      - name: Staging browser E2E
+        env:
+          E2E_HOME_URL: ${{ secrets.E2E_STAGING_BASE }}
+          E2E_BASE_URL: ${{ secrets.E2E_STAGING_BASE }}
+          E2E_API_URL: ${{ secrets.E2E_STAGING_BASE }}/api/v1
+        run: |
+          cd e2e
+          npm ci
+          npx playwright test tests/home-publish.spec.ts tests/runtime-mobile-h5.spec.ts \
+            --project=chromium --project=mobile-chrome --reporter=list
+
+      - name: GA#9 manifest crop (API)
+        env:
+          E2E_API_URL: ${{ secrets.E2E_STAGING_BASE }}/api/v1
+          E2E_BASE_URL: ${{ secrets.E2E_STAGING_BASE }}
+        run: |
+          cd e2e
+          npx playwright test tests/ga9-manifest-crop.spec.ts --reporter=line
