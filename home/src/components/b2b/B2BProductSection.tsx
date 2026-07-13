@@ -8,7 +8,7 @@ import {
   INDUSTRY_SOLUTIONS,
 } from '../../data/productShowcase'
 import { ROUTES } from '../../routes/paths'
-import { industryAssets, industryCardImage } from '../../data/industryAssets'
+import { industryCardImage } from '../../data/industryAssets'
 import { PLATFORM_STATS } from '@shared/platformStats'
 import { CAPABILITY_ICONS, INDUSTRY_ICONS, IconSparkles } from '../icons'
 import { AgentButtonContent } from '../AgentChevron'

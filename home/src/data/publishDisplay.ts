@@ -13,7 +13,7 @@ function iconForModuleKey(key: string, fallback = 'creation'): string {
 function promptModuleToPublished(m: PromptModule): PublishedModuleItem | null {
   if (m.type === 'action') return null
   let iconKey = m.iconKey ?? 'office'
-  if (m.type === 'module' || m.type === 'capability') {
+  if (m.type === 'module' || m.type === 'capability' || m.type === 'supplement') {
     iconKey = iconForModuleKey(m.key, m.iconKey ?? 'creation')
   } else if (m.type === 'scenario') {
     iconKey = 'workflow'
@@ -27,7 +27,7 @@ function promptModuleToPublished(m: PromptModule): PublishedModuleItem | null {
     key: m.key,
     label: m.label,
     iconKey,
-    kind: m.type === 'module' ? 'module' : m.type,
+    kind: m.type === 'module' || m.type === 'supplement' ? 'module' : m.type,
     source: m.source,
   }
 }
