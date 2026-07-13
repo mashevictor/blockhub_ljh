@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import shutil
 import subprocess
 import threading
 from datetime import datetime, timezone
@@ -29,6 +30,47 @@ QUEUE_DIR_NAME = ".build-queue"
 
 def _repo_root() -> Path:
     return Path(__file__).resolve().parents[3]
+
+
+def _bash_executable() -> str:
+    for candidate in ("/bin/bash", "/usr/bin/bash"):
+        if os.path.isfile(candidate) and os.access(candidate, os.X_OK):
+            return candidate
+    found = shutil.which("bash")
+    if found:
+        return found
+    return "/bin/bash"
+
+
+def _subprocess_path() -> str:
+    """systemd 仅暴露 venv/bin 时，子进程仍需 /usr/bin、flutter 等。"""
+    repo = _repo_root()
+    parts = [
+        str(repo / "backend" / ".venv" / "bin"),
+        "/root/flutter/bin",
+        "/opt/flutter/bin",
+        "/usr/local/sbin",
+        "/usr/local/bin",
+        "/usr/sbin",
+        "/usr/bin",
+        "/sbin",
+        "/bin",
+    ]
+    seen: set[str] = set()
+    ordered: list[str] = []
+    for p in parts + os.environ.get("PATH", "").split(":"):
+        if p and p not in seen:
+            seen.add(p)
+            ordered.append(p)
+    return ":".join(ordered)
+
+
+def _subprocess_env() -> dict[str, str]:
+    return {
+        **os.environ,
+        "PATH": _subprocess_path(),
+        "BUILD_SKIP_STOP_SERVICES": "1",
+    }
 
 
 def _apk_dir() -> Path:
@@ -191,10 +233,10 @@ def _run_build_job(public_id: str) -> None:
         if not script.is_file():
             raise FileNotFoundError(f"Missing build script: {script}")
 
-        env = {**os.environ, "BUILD_SKIP_STOP_SERVICES": "1"}
+        env = _subprocess_env()
         with _GRADLE_BUILD_LOCK:
             proc = subprocess.run(
-                ["bash", str(script), public_id],
+                [_bash_executable(), str(script), public_id],
                 cwd=str(_repo_root()),
                 capture_output=True,
                 text=True,

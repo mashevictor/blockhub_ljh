@@ -6,7 +6,7 @@ After=network.target postgresql.service
 User=root
 WorkingDirectory=BLOCKHUB_ROOT/backend
 EnvironmentFile=BLOCKHUB_ROOT/backend/.env
-Environment=PATH=BLOCKHUB_ROOT/backend/.venv/bin
+Environment=PATH=BLOCKHUB_ROOT/backend/.venv/bin:/root/flutter/bin:/opt/flutter/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 ExecStart=BLOCKHUB_ROOT/backend/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8001 --workers 1
 Restart=always
 RestartSec=3
