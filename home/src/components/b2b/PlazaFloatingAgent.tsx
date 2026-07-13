@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAgentPageContext } from '../../context/AgentPageContext'
-import { PlazaFlowRunProvider } from '../../context/PlazaFlowRunContext'
 import { usePlazaFocus, type PlazaFocusTarget } from '../../context/PlazaFocusContext'
 import { AGENT_CONTEXTS } from '../../data/agentContext'
 import { usePlazaChevActions } from '../../hooks/usePlazaChevActions'
@@ -167,15 +166,13 @@ export default function PlazaFloatingAgent() {
       defaultExpanded={false}
     >
       {focus ? (
-        <PlazaFlowRunProvider appKey={focus.appKey} moduleLabels={moduleLabels}>
-          <PlazaFocusDockBody
+        <PlazaFocusDockBody
             focus={focus}
             moduleLabels={moduleLabels}
             menuOpen={menuOpen}
             setMenuOpen={setMenuOpen}
             onOrchestration={requestOrchestration}
           />
-        </PlazaFlowRunProvider>
       ) : (
         <Link to={`${ROUTES.home}#contact`} className="plaza-floating-agent-link">
           <span className="agent-brand-trigger mini" aria-hidden>

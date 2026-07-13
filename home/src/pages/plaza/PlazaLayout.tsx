@@ -10,6 +10,8 @@ import { AgentPageProvider, useAgentPageContext } from '../../context/AgentPageC
 import { PlazaFocusProvider } from '../../context/PlazaFocusContext'
 import type { AgentContextKey } from '../../data/agentContext'
 import PlazaFloatingAgent from '../../components/b2b/PlazaFloatingAgent'
+import B2BSiteFooter from '../../components/b2b/B2BSiteFooter'
+import PlazaRunBridge from '../../components/plaza/PlazaRunBridge'
 import '../../styles/b2b-landing.css'
 import '../../styles/plaza-theme.css'
 
@@ -52,6 +54,7 @@ export default function PlazaLayout() {
   return (
     <AgentPageProvider initial="plaza_feed">
       <PlazaFocusProvider>
+      <PlazaRunBridge>
       <PlazaContextSync />
       <div className="plaza-page b2b-brand-scope b2b-has-floating-agent">
       <header className="plaza-topbar">
@@ -103,8 +106,10 @@ export default function PlazaLayout() {
           </aside>
         )}
       </div>
+      <B2BSiteFooter variant="light" className="plaza-site-footer" />
       <PlazaFloatingAgent />
       </div>
+      </PlazaRunBridge>
       </PlazaFocusProvider>
     </AgentPageProvider>
   )

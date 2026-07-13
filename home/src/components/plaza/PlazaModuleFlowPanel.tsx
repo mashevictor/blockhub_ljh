@@ -149,9 +149,16 @@ export default function PlazaModuleFlowPanel({
             activeApiNode={null}
             activeApiSide={null}
             isCreator={isCreator}
-            pickerOpen={pickerAfterStepId === activeNodeId && !!activeStep}
+            pickerOpen={
+              (pickerAfterStepId === FLOW_INGRESS_ID && activeNodeId === FLOW_INGRESS_ID)
+              || (pickerAfterStepId === activeNodeId && !!activeStep)
+            }
             availableModules={availableModules}
             onAddModule={() => {
+              if (activeNodeId === FLOW_INGRESS_ID) {
+                setPickerAfterStepId(FLOW_INGRESS_ID)
+                return
+              }
               if (activeStep) setPickerAfterStepId(pickerAfterStepId === activeStep.id ? null : activeStep.id)
             }}
             onEditNote={() => activeStep && startEdit(activeStep)}
@@ -162,7 +169,12 @@ export default function PlazaModuleFlowPanel({
               setActiveNodeId(next.steps[0]?.id ?? FLOW_INGRESS_ID)
               setPickerAfterStepId(null)
             }}
-            onPickModule={(mod) => handleAddFromCatalog(mod, activeStep?.id ?? null)}
+            onPickModule={(mod) => {
+              const afterId = activeNodeId === FLOW_INGRESS_ID
+                ? FLOW_INGRESS_ID
+                : activeStep?.id ?? null
+              handleAddFromCatalog(mod, afterId)
+            }}
             onClosePicker={() => setPickerAfterStepId(null)}
           />
 

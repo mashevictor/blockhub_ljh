@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom'
 import { IconGlobe } from '../../components/icons'
 import AppIconAvatar from '../../components/AppIconAvatar'
 import PlazaOrchestrationOverlay from '../../components/plaza/PlazaOrchestrationOverlay'
-import { showAppDeliver } from '../../data/deliverDisplay'
+import PlazaPublishButton from '../../components/plaza/PlazaPublishButton'
+import PlazaAppStatusButton from '../../components/plaza/PlazaAppStatusButton'
 import { fetchMe, type AuthUser } from '../../auth/session'
 import { getToken } from '../../auth/storage'
 import { removeMyApp, type StoredMyApp } from '../../lib/myAppsStorage'
@@ -31,9 +32,6 @@ function appKey(app: StoredMyApp) {
 function statusLine(app: StoredMyApp, isNew: boolean): string {
   const parts: string[] = [`${app.moduleCount} 项`]
   if (isNew) parts.push('刚发布')
-  if (showAppDeliver(app) && !app.apkReady) parts.push('APK 构建中')
-  else if (app.apkReady) parts.push('APK 就绪')
-  if (app.plaza) parts.push(app.plaza.label)
   parts.push(formatWhen(app.savedAt))
   return parts.join(' · ')
 }
@@ -143,7 +141,7 @@ export default function PlazaMyAppsPage() {
         <div>
           <h1><span className="plaza-mflow-chev chev-hero" aria-hidden>&gt;&gt;</span> 我的应用</h1>
           <p className="plaza-my-head-sub">
-            点击应用卡片 · 底部 <span className="plaza-mflow-chev">&gt;&gt;</span> 展开双轨编排（功能 + 数据 Visio）
+            点击应用卡片切换底部 <span className="plaza-mflow-chev">&gt;&gt;</span> 悬浮框 · 每个应用独立双轨编排与试运营
           </p>
         </div>
         <Link to={ROUTES.home} className="plaza-my-create-btn">+ 继续创建</Link>
@@ -193,8 +191,22 @@ export default function PlazaMyAppsPage() {
                   <div className="plaza-my-card-main">
                     <strong>{app.appName}</strong>
                     <span className="plaza-my-card-meta">{statusLine(app, isNew)}</span>
+                    {focusApp && appKey(focusApp) === key && (
+                      <span className="plaza-my-card-dock-hint">
+                        <span className="plaza-mflow-chev">&gt;&gt;</span> 底部悬浮框已切换到此应用
+                      </span>
+                    )}
                   </div>
-                  <div className="plaza-my-card-actions">
+                  <div className="plaza-my-card-status" onClick={(e) => e.stopPropagation()}>
+                    <PlazaAppStatusButton
+                      app={app}
+                      isNew={isNew}
+                      isFocused={Boolean(focusApp && appKey(focusApp) === key)}
+                      onOpenDetail={() => openOrchestration(app)}
+                    />
+                  </div>
+                  <div className="plaza-my-card-actions" onClick={(e) => e.stopPropagation()}>
+                    <PlazaPublishButton app={app} />
                     <button
                       type="button"
                       className="btn-primary plaza-my-orch-btn"

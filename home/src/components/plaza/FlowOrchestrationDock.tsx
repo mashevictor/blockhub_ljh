@@ -1,8 +1,11 @@
+import { useMemo, useState } from 'react'
 import type { ModuleFlowStep } from '../../lib/plazaModuleFlow'
 import { FLOW_EGRESS_ID, FLOW_INGRESS_ID } from '../../lib/plazaModuleFlow'
 import { getModuleCapability, type ModuleCapability } from '../../data/moduleCatalog'
 import type { FlowApiNode } from '../../lib/flowModuleApis'
 import FlowApiEndpointRow from './FlowApiEndpointRow'
+import PlazaChevTrigger from './PlazaChevTrigger'
+import type { PlazaChevAction } from './PlazaChevMenu'
 
 interface Props {
   activeNodeId: string | null
@@ -33,6 +36,9 @@ export default function FlowOrchestrationDock({
   onPickModule,
   onClosePicker,
 }: Props) {
+  const [testInputTrigger, setTestInputTrigger] = useState(0)
+  const [testOutputTrigger, setTestOutputTrigger] = useState(0)
+
   const isIngress = activeNodeId === FLOW_INGRESS_ID
   const isEgress = activeNodeId === FLOW_EGRESS_ID
   const isEndpoint = isIngress || isEgress
@@ -43,7 +49,7 @@ export default function FlowOrchestrationDock({
 
   if (isIngress) {
     title = '业务输入'
-    desc = '外部请求由此进入应用数据流 · 下方可测试 IN/OUT 接口'
+    desc = '外部请求由此进入应用数据流 · 下方可测试 IN/OUT 接口 · 用 >> 插入或调用模块'
   } else if (isEgress) {
     title = '触达输出'
     desc = '处理结果推送到网页、手机或消息通知 · 下方可测试 IN/OUT 接口'
@@ -52,29 +58,67 @@ export default function FlowOrchestrationDock({
     desc = cap?.desc ?? activeStep.note
   }
 
+  const chevActions = useMemo((): PlazaChevAction[] => {
+    if (!isCreator) return []
+    const items: PlazaChevAction[] = []
+
+    if (!isEgress) {
+      items.push({
+        id: 'insert',
+        label: isIngress ? '插入首模块' : '插入模块',
+        onClick: onAddModule,
+        disabled: availableModules.length === 0,
+      })
+    }
+
+    if (activeApiNode) {
+      items.push({
+        id: 'invoke-in',
+        label: isEgress ? '调用输出接口' : '调用模块',
+        onClick: () => {
+          if (isEgress) setTestOutputTrigger((n) => n + 1)
+          else setTestInputTrigger((n) => n + 1)
+        },
+      })
+      if (!isEndpoint) {
+        items.push({
+          id: 'invoke-out',
+          label: '调用输出接口',
+          onClick: () => setTestOutputTrigger((n) => n + 1),
+        })
+      }
+    }
+
+    if (activeStep && !isEndpoint) {
+      items.push({ id: 'edit', label: '编辑说明', onClick: onEditNote })
+      items.push({ id: 'delete', label: '删除模块', onClick: onDelete })
+    }
+
+    return items
+  }, [
+    isCreator,
+    isEgress,
+    isIngress,
+    isEndpoint,
+    activeApiNode,
+    activeStep,
+    availableModules.length,
+    onAddModule,
+    onEditNote,
+    onDelete,
+  ])
+
   return (
     <div className="plaza-orch-dock" role="complementary" aria-label="编排悬浮框">
-      <div className="plaza-orch-dock-chev" aria-hidden>&gt;&gt;</div>
+      {isCreator && chevActions.length > 0 ? (
+        <PlazaChevTrigger actions={chevActions} className="plaza-orch-dock-chev-trigger" />
+      ) : (
+        <div className="plaza-orch-dock-chev" aria-hidden>&gt;&gt;</div>
+      )}
       <div className="plaza-orch-dock-body">
         <strong>{title}</strong>
         <span>{desc}</span>
       </div>
-      {isCreator && isIngress && (
-        <div className="plaza-orch-dock-actions">
-          <button type="button" className="btn-primary-sm" onClick={onAddModule}>
-            <span className="plaza-mflow-chev">&gt;</span> 添加首模块
-          </button>
-        </div>
-      )}
-      {isCreator && activeStep && !isEndpoint && (
-        <div className="plaza-orch-dock-actions">
-          <button type="button" className="btn-primary-sm" onClick={onAddModule}>
-            <span className="plaza-mflow-chev">&gt;</span> 添加模块
-          </button>
-          <button type="button" className="btn-ghost-sm" onClick={onEditNote}>编辑说明</button>
-          <button type="button" className="btn-ghost-sm" onClick={onDelete}>删除</button>
-        </div>
-      )}
 
       {activeApiNode && (
         <div className="plaza-orch-dock-api">
@@ -84,6 +128,7 @@ export default function FlowOrchestrationDock({
             variant="input"
             highlighted={activeApiSide === 'input'}
             compact
+            testTrigger={testInputTrigger}
           />
           <FlowApiEndpointRow
             title="OUT"
@@ -91,6 +136,7 @@ export default function FlowOrchestrationDock({
             variant="output"
             highlighted={activeApiSide === 'output'}
             compact
+            testTrigger={testOutputTrigger}
           />
         </div>
       )}
@@ -99,7 +145,7 @@ export default function FlowOrchestrationDock({
         <div className="plaza-orch-dock-picker">
           <div className="plaza-orch-dock-picker-head">
             <span className="plaza-mflow-chev">&gt;&gt;</span>
-            <strong>选择模块</strong>
+            <strong>{isIngress ? '插入首模块' : '插入模块'}</strong>
             <button type="button" className="plaza-mflow-picker-close" onClick={onClosePicker} aria-label="关闭">×</button>
           </div>
           {availableModules.length === 0 ? (

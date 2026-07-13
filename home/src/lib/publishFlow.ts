@@ -1,6 +1,10 @@
 import type { NavigateFunction } from 'react-router-dom'
 import type { PublishResult } from '../data/constants'
-import { GENERATE_ERROR_FALLBACK } from '../data/publishUi'
+import {
+  GENERATE_ERROR_FALLBACK,
+  PUBLISH_ANALYZE_PHASE_MS,
+  PUBLISH_OVERLAY_PROGRESS_MS,
+} from '../data/publishUi'
 import { ROUTES } from '../routes/paths'
 import { addMyApp } from './myAppsStorage'
 
@@ -8,10 +12,11 @@ export const JUST_PUBLISHED_STORAGE_KEY = 'blockhub:just-published'
 
 export type PublishWorkPhase = 'analyze' | 'publish' | 'redirect'
 
-/** 发布 loading 遮罩最长展示时间（含「理解需求」「生成应用」两步） */
-export const PUBLISH_OVERLAY_MAX_MS = 2000
-/** analyze 步自动切到 publish 的时长 */
-export const PUBLISH_ANALYZE_PHASE_MS = 600
+export { PUBLISH_OVERLAY_PROGRESS_MS, PUBLISH_ANALYZE_PHASE_MS }
+
+function waitMs(ms: number): Promise<void> {
+  return new Promise((resolve) => window.setTimeout(resolve, ms))
+}
 
 function startOverlayPhaseTimers(setPhase: (phase: PublishWorkPhase | null) => void): () => void {
   const analyzeTimer = window.setTimeout(() => setPhase('publish'), PUBLISH_ANALYZE_PHASE_MS)
@@ -137,10 +142,12 @@ export async function runContactPublishPipeline(opts: {
   opts.setPhase('analyze')
   opts.closeContact()
   const clearOverlayTimers = startOverlayPhaseTimers(opts.setPhase)
+  const progressGate = waitMs(PUBLISH_OVERLAY_PROGRESS_MS)
   try {
-    const result = await opts.execute((phase) => {
+    const resultPromise = opts.execute((phase) => {
       if (phase === 'publish') opts.setPhase('publish')
     })
+    const [result] = await Promise.all([resultPromise, progressGate])
     clearOverlayTimers()
     opts.setPhase('redirect')
     opts.onSuccess(result)
@@ -163,14 +170,13 @@ export async function runLoadingPublishPipeline(opts: {
   opts.setError(null)
   opts.setLoading(true)
   opts.closeContact()
-  const maxTimer = window.setTimeout(() => opts.setLoading(false), PUBLISH_OVERLAY_MAX_MS)
+  const progressGate = waitMs(PUBLISH_OVERLAY_PROGRESS_MS)
   try {
-    const result = await opts.execute()
-    window.clearTimeout(maxTimer)
+    const resultPromise = opts.execute()
+    const [result] = await Promise.all([resultPromise, progressGate])
     opts.setLoading(false)
     opts.onSuccess(result)
   } catch (error) {
-    window.clearTimeout(maxTimer)
     opts.setLoading(false)
     opts.setError(errorMessageFromApi(error, opts.errorMessage ?? GENERATE_ERROR_FALLBACK))
   }

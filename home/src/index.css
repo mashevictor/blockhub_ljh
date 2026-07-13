@@ -5063,7 +5063,8 @@ body.modal-scroll-lock {
   color: var(--pri-dark); text-decoration: none; font-weight: 600;
 }
 .btn-plaza-nav:hover { border-color: var(--pri); color: var(--pri); }
-.plaza-page { min-height: 100vh; background: var(--bg); color: var(--text); }
+.plaza-page { min-height: 100vh; background: var(--bg); color: var(--text); display: flex; flex-direction: column; }
+.plaza-page > .plaza-layout { flex: 1; }
 .plaza-topbar {
   display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
   padding: 12px 20px; border-bottom: 1px solid var(--border); background: var(--surface);
@@ -6319,11 +6320,163 @@ a.btn-my-apps:hover { border-color: var(--pri-light); color: var(--pri); }
   color: var(--muted);
   line-height: 1.4;
 }
+.plaza-my-card-dock-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--pri);
+}
+.plaza-my-card-status {
+  flex-shrink: 0;
+  margin-left: auto;
+}
+.plaza-app-status-wrap {
+  position: relative;
+}
+.plaza-app-status-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  min-width: 108px;
+}
+.plaza-app-status-btn:hover,
+.plaza-app-status-wrap.is-open .plaza-app-status-btn {
+  border-color: color-mix(in srgb, var(--pri-light) 55%, var(--border));
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--pri) 8%, transparent);
+}
+.plaza-app-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: #94a3b8;
+}
+.plaza-app-status-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.plaza-app-status-text strong {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.plaza-app-status-text em {
+  font-size: 10px;
+  font-style: normal;
+  color: var(--muted);
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.plaza-app-status-btn.variant-building .plaza-app-status-dot {
+  background: #f59e0b;
+  animation: plaza-status-pulse 1.2s ease-in-out infinite;
+}
+.plaza-app-status-btn.variant-new .plaza-app-status-dot { background: var(--pri); }
+.plaza-app-status-btn.variant-ready .plaza-app-status-dot { background: #10b981; }
+.plaza-app-status-btn.variant-plaza .plaza-app-status-dot { background: #6366f1; }
+.plaza-app-status-btn.variant-pending .plaza-app-status-dot { background: #94a3b8; }
+.plaza-app-status-btn.variant-error .plaza-app-status-dot { background: #ef4444; }
+.plaza-app-status-btn.variant-run-running .plaza-app-status-dot {
+  background: #10b981;
+  animation: plaza-status-pulse 1s ease-in-out infinite;
+}
+.plaza-app-status-btn.variant-run-paused .plaza-app-status-dot { background: #f59e0b; }
+.plaza-app-status-btn.variant-run-done .plaza-app-status-dot { background: #0ea5e9; }
+.plaza-app-status-btn.variant-run-error .plaza-app-status-dot { background: #ef4444; }
+.plaza-app-status-btn.variant-run-stopped .plaza-app-status-dot { background: #64748b; }
+.plaza-app-status-btn.variant-building { border-color: #fcd34d; background: #fffbeb; }
+.plaza-app-status-btn.variant-new { border-color: color-mix(in srgb, var(--pri-light) 50%, var(--border)); background: color-mix(in srgb, var(--pri-soft) 40%, var(--surface)); }
+.plaza-app-status-btn.variant-plaza { border-color: #c7d2fe; background: #eef2ff; }
+.plaza-app-status-btn.variant-run-running { border-color: #a7f3d0; background: #ecfdf5; }
+.plaza-app-status-btn.variant-run-paused { border-color: #fcd34d; background: #fffbeb; }
+@keyframes plaza-status-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.55; transform: scale(0.85); }
+}
+.plaza-app-status-popover {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 50;
+  width: min(280px, calc(100vw - 32px));
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.14);
+}
+.plaza-app-status-run {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.plaza-app-status-run strong {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+.plaza-app-status-run p {
+  margin: 0;
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+.plaza-app-status-detail {
+  width: 100%;
+  margin-top: 10px;
+  justify-content: center;
+}
 .plaza-my-card-actions {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 6px;
   flex-shrink: 0;
+}
+.plaza-my-plaza-btn {
+  font-size: 12px;
+  padding: 6px 10px;
+  white-space: nowrap;
+}
+.plaza-publish-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(3px);
+}
+.plaza-publish-modal {
+  width: min(480px, 100%);
+  max-height: min(90vh, 640px);
+  overflow: auto;
+  padding: 4px;
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: 0 24px 64px rgba(15, 23, 42, 0.22);
 }
 .plaza-my-orch-btn {
   display: inline-flex;
@@ -6563,6 +6716,33 @@ body.plaza-orch-open .plaza-dual-rail-dock {
   letter-spacing: -3px;
   flex-shrink: 0;
 }
+.plaza-orch-dock-chev-trigger.plaza-dock-chev-wrap {
+  flex-shrink: 0;
+  position: relative;
+}
+.plaza-orch-dock-chev-trigger .plaza-dock-chev-btn {
+  width: auto;
+  min-width: 44px;
+  height: 44px;
+  padding: 0 6px;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+}
+.plaza-orch-dock-chev-trigger .plaza-mflow-chev {
+  font-family: var(--font-mono);
+  font-size: 28px;
+  font-weight: 900;
+  letter-spacing: -3px;
+  line-height: 1;
+}
+.plaza-orch-dock-chev-trigger .plaza-dock-chev-menu {
+  left: 0;
+  right: auto;
+  bottom: calc(100% + 8px);
+  top: auto;
+  min-width: 168px;
+}
 .plaza-orch-dock-body {
   flex: 1;
   min-width: 160px;
@@ -6693,7 +6873,8 @@ body.plaza-orch-open .plaza-dual-rail-dock {
   .plaza-orch-head { padding: 16px; }
   .plaza-orch-body { padding: 12px 16px 20px; }
   .plaza-my-card { flex-wrap: wrap; }
-  .plaza-my-card-actions { width: 100%; justify-content: flex-end; }
+  .plaza-my-card-status { margin-left: 0; width: 100%; order: 3; }
+  .plaza-my-card-actions { width: 100%; justify-content: flex-end; order: 4; }
   .plaza-orch-dock { flex-direction: column; align-items: stretch; }
   .plaza-orch-dock-actions { justify-content: flex-end; }
   .plaza-dual-rail-grid { grid-template-columns: 1fr !important; }

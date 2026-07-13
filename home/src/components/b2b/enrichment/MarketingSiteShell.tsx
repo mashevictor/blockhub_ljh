@@ -1,11 +1,8 @@
 import { useEffect, useState, type ReactNode } from 'react'
-import { Link } from 'react-router-dom'
 import B2BHeader from '../B2BHeader'
-import { BRAND } from '../../../data/brand'
-import { ROUTES } from '../../../routes/paths'
-import { homeSectionHref } from '../../../data/homeNav'
 import { fetchMe, logout, type AuthUser } from '../../../auth/session'
 import { getToken } from '../../../auth/storage'
+import B2BSiteFooter from '../B2BSiteFooter'
 import '../../../styles/b2b-landing.css'
 
 interface Props {
@@ -49,17 +46,7 @@ export default function MarketingSiteShell({ children, pageTitle, pageEyebrow, p
         </section>
       </main>
 
-      <footer className="b2b-footer marketing-site-footer">
-        <p>© {new Date().getFullYear()} {BRAND.nameZh} · {BRAND.tagline}</p>
-        <div className="marketing-site-footer-links">
-          <Link to={homeSectionHref('product')}>20 个行业方案</Link>
-          <Link to={ROUTES.cases}>落地案例</Link>
-          <Link to={ROUTES.trust}>信任合规</Link>
-          <Link to={ROUTES.pricing}>定价说明</Link>
-          <Link to={ROUTES.news}>新闻动态</Link>
-          <Link to={homeSectionHref('contact-demo')}>预约演示</Link>
-        </div>
-      </footer>
+      <B2BSiteFooter variant="light" />
     </div>
   )
 }

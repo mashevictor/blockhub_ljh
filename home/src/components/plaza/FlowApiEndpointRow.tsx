@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   buildApiCurl,
   testFlowApi,
@@ -12,6 +12,8 @@ interface Props {
   variant: 'input' | 'output'
   highlighted?: boolean
   compact?: boolean
+  /** 外部触发测试（如 >> 菜单「调用模块」） */
+  testTrigger?: number
 }
 
 export default function FlowApiEndpointRow({
@@ -20,6 +22,7 @@ export default function FlowApiEndpointRow({
   variant,
   highlighted = false,
   compact = false,
+  testTrigger = 0,
 }: Props) {
   const [testing, setTesting] = useState(false)
   const [testResult, setTestResult] = useState<ApiTestResult | null>(null)
@@ -39,6 +42,12 @@ export default function FlowApiEndpointRow({
       setTesting(false)
     }
   }
+
+  useEffect(() => {
+    if (!testTrigger) return
+    void runTest()
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 仅随 testTrigger 脉冲触发
+  }, [testTrigger])
 
   return (
     <div

@@ -397,7 +397,7 @@ export default function PlazaDualRailFlowPanel({
       </div>
 
       <p className="plaza-dual-rail-cross-hint">
-        ↔ 点击节点跨轨高亮 · {isCreator ? '⠿ 拖动排序 · + 添加 · 编辑 · 删除' : '创建者可编辑功能轨'}
+        ↔ 点击节点跨轨高亮 · {isCreator ? '>> 插入/调用模块 · ⠿ 拖动排序' : '创建者可编辑功能轨'}
       </p>
 
       {editingId && activeStep && (

@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { fetchMe, logout, type AuthUser } from './auth/session'
 import { getToken } from './auth/storage'
-import { BRAND } from './data/brand'
 import B2BHeader from './components/b2b/B2BHeader'
 import B2BHero from './components/b2b/B2BHero'
 import B2BProductSection from './components/b2b/B2BProductSection'
@@ -10,6 +9,7 @@ import B2BTrustStrip from './components/b2b/enrichment/B2BTrustStrip'
 import B2BCaseEnrichedSection from './components/b2b/enrichment/B2BCaseEnrichedSection'
 import B2BPricingSection from './components/b2b/enrichment/B2BPricingSection'
 import B2BNewsSection from './components/b2b/enrichment/B2BNewsSection'
+import B2BSiteFooter from './components/b2b/B2BSiteFooter'
 import CreateStudio from './components/b2b/CreateStudio'
 import B2BDemoForm from './components/b2b/B2BDemoForm'
 import HomeScrollRails from './components/b2b/HomeScrollRails'
@@ -144,9 +144,7 @@ export default function HomeApp() {
         <B2BDemoForm />
       </section>
 
-      <footer className="b2b-footer">
-        <p>© {new Date().getFullYear()} {BRAND.nameZh} · {BRAND.tagline}</p>
-      </footer>
+      <B2BSiteFooter />
       <HomeScrollRails />
       </div>
       </HomePageReadyProvider>
