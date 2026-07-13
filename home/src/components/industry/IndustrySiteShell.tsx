@@ -15,16 +15,18 @@ interface Props {
   theme: IndustrySiteTheme
   children: ReactNode
   industryName?: string
+  /** 行业差异化视觉：layout + pattern，见 industryVisualThemes.ts */
+  layoutClass?: string
 }
 
-export default function IndustrySiteShell({ theme, children, industryName }: Props) {
+export default function IndustrySiteShell({ theme, children, industryName, layoutClass }: Props) {
   const { pathname } = useLocation()
   const onHub = pathname === ROUTES.industryHub
   const onDetail = pathname.startsWith('/industry/') && !onHub
 
   return (
     <div
-      className="b2b-app b2b-landing industry-site b2b-brand-scope"
+      className={`b2b-app b2b-landing industry-site b2b-brand-scope${layoutClass ? ` ${layoutClass}` : ''}`}
       style={{
         '--site-primary': theme.primary,
         '--site-gradient-to': theme.gradient_to ?? theme.primary,

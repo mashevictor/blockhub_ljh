@@ -10,6 +10,7 @@ import { categoryColor, iconWrapStyle } from '../data/iconPalette'
 import { resolveCategoryIcon, INDUSTRIES_SHOWCASE } from '../data/showcase'
 import { industryAssets } from '../data/industryAssets'
 import { buildIndustryPageTemplates } from '../data/industryPageTemplates'
+import { getIndustryVisualTheme } from '../data/industryVisualThemes'
 import IndustryPageTemplateGallery from '../components/industry/IndustryPageTemplateGallery'
 import { ROUTES } from '../routes/paths'
 import '../styles/b2b-landing.css'
@@ -28,6 +29,9 @@ export default function IndustryDetailPage() {
     () => INDUSTRIES_SHOWCASE.find((i) => i.key === key),
     [key],
   )
+
+  const visualTheme = useMemo(() => getIndustryVisualTheme(key), [key])
+  const layoutClass = `industry-site--${visualTheme.layout} industry-site--pattern-${visualTheme.pattern}`
 
   const load = (withEnrich = false) => {
     if (!key) return
@@ -93,7 +97,7 @@ export default function IndustryDetailPage() {
   if (loading && !detail) {
     const accent = showcaseMeta?.color ?? '#0d47a1'
     return (
-      <IndustrySiteShell theme={{ primary: accent }} industryName={showcaseMeta?.name}>
+      <IndustrySiteShell theme={{ primary: accent }} industryName={showcaseMeta?.name} layoutClass={layoutClass}>
         <section
           className="industry-site-hero-banner industry-site-hero-skeleton"
           style={{
@@ -131,7 +135,7 @@ export default function IndustryDetailPage() {
   const accent = site.theme.primary
 
   return (
-    <IndustrySiteShell theme={site.theme} industryName={pack.name}>
+    <IndustrySiteShell theme={site.theme} industryName={pack.name} layoutClass={layoutClass}>
       <section
         className="industry-site-hero-banner"
         style={{ backgroundImage: `linear-gradient(105deg, color-mix(in srgb, ${accent} 88%, #0f172a) 0%, color-mix(in srgb, ${site.theme.gradient_to ?? accent} 55%, #0f172a) 55%), url(${site.assets.hero})` } as CSSProperties}
@@ -145,13 +149,14 @@ export default function IndustryDetailPage() {
             <div>
               <span className="industry-detail-badge">独立方案站 · 深度包 · {total} 场景</span>
               <h1>{pack.name}</h1>
-              <p className="industry-detail-tagline">{pack.tagline}</p>
+              <p className="industry-detail-tagline">{visualTheme.heroPitch ?? pack.tagline}</p>
             </div>
+            <span className="industry-hero-motif" aria-hidden>{visualTheme.motif}</span>
           </div>
           <div className="industry-site-stats-row">
-            <div><strong>{total}</strong><span>业务场景</span></div>
-            <div><strong>{site.stats.platforms}</strong><span>端交付</span></div>
-            <div><strong>AI</strong><span>大模型方案</span></div>
+            {visualTheme.stats.map((s) => (
+              <div key={s.label}><strong>{s.value}</strong><span>{s.label}</span></div>
+            ))}
           </div>
           <div className="industry-detail-actions">
             <button type="button" className="btn-primary" onClick={handleUseIndustry}>
@@ -170,23 +175,19 @@ export default function IndustryDetailPage() {
           <h2>{pack.name} · 行业智能应用方案</h2>
         </div>
         <p className="industry-detail-overview-text">{enrichment?.overview}</p>
-        {enrichment?.highlights?.length ? (
-          <ul className="industry-detail-highlights">
-            {enrichment.highlights.map((h) => (
-              <li key={h}>{h}</li>
+        <ul className="industry-detail-highlights">
+          {(enrichment?.highlights?.length ? enrichment.highlights : visualTheme.highlights).map((h) => (
+            <li key={h}>{h}</li>
+          ))}
+        </ul>
+        <div className="industry-site-modules">
+          <h3>推荐模块</h3>
+          <div className="industry-site-module-chips">
+            {(enrichment?.recommended_modules?.length ? enrichment.recommended_modules : visualTheme.focusModules).map((m) => (
+              <code key={m}>{m}</code>
             ))}
-          </ul>
-        ) : null}
-        {enrichment?.recommended_modules?.length ? (
-          <div className="industry-site-modules">
-            <h3>推荐模块</h3>
-            <div className="industry-site-module-chips">
-              {enrichment.recommended_modules.map((m) => (
-                <code key={m}>{m}</code>
-              ))}
-            </div>
           </div>
-        ) : null}
+        </div>
         {enrichment?.source ? (
           <span className="industry-detail-source">
             文案来源：{enrichment.source === 'deepseek' ? '大模型' : enrichment.source === 'static' ? '精选模板' : '自动生成'}

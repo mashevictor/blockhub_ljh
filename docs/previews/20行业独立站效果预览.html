@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>积木仓 · 20 行业独立站效果预览（合并版）</title>
+<style>
+:root{--pri:#0d47a1;--accent:#00b894;--bg:#e8edf3;--card:#fff;--text:#1e293b;--muted:#64748b;--border:#dbeafe}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.55}
+.chrome{position:sticky;top:0;z-index:100;background:#0f172a;color:#e2e8f0;padding:14px 20px;box-shadow:0 4px 24px rgba(0,0,0,.2)}
+.chrome h1{font-size:16px;margin-bottom:6px}
+.chrome p{font-size:12px;opacity:.8;margin-bottom:10px;max-width:900px}
+.nav{display:flex;flex-wrap:wrap;gap:6px;max-height:120px;overflow-y:auto}
+.nav a{font-size:11px;padding:5px 10px;border-radius:999px;background:#334155;color:#e2e8f0;text-decoration:none}
+.nav a:hover,.nav a.on{background:linear-gradient(135deg,#0d47a1,#1976d2)}
+.wrap{max-width:1100px;margin:0 auto;padding:20px 16px 60px}
+.note{background:#eff6ff;border:1px solid #93c5fd;border-radius:10px;padding:12px 14px;font-size:12px;margin-bottom:20px;line-height:1.7}
+.ind-block{margin-bottom:48px;scroll-margin-top:140px}
+.ind-label{font-size:11px;font-weight:700;color:var(--muted);margin-bottom:8px;letter-spacing:.05em}
+.ind-frame{border-radius:16px;overflow:hidden;box-shadow:0 16px 48px rgba(13,71,161,.12);border:1px solid var(--border);background:var(--card)}
+.ind-meta{display:flex;justify-content:space-between;align-items:center;padding:8px 14px;background:#1e293b;color:#94a3b8;font-size:11px}
+.ind-meta a{color:#67e8f9;text-decoration:none;font-weight:600}
+.ind-page{--accent:var(--ind-color);background:#f9fafb}
+.ind-hero{position:relative;padding:36px 28px 32px;color:#fff;background-size:cover;background-position:center;overflow:hidden}
+.ind-hero::before{content:'';position:absolute;inset:0;opacity:.35;pointer-events:none}
+.ind-page.pattern-grid .ind-hero::before{background-image:linear-gradient(rgba(255,255,255,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.06) 1px,transparent 1px);background-size:28px 28px}
+.ind-page.pattern-circuit .ind-hero::before{background-image:radial-gradient(circle at 20% 30%,rgba(255,255,255,.12) 0 2px,transparent 3px);background-size:48px 48px}
+.ind-page.pattern-dots .ind-hero::before{background-image:radial-gradient(rgba(255,255,255,.14) 1px,transparent 1px);background-size:16px 16px}
+.ind-page.pattern-diagonal .ind-hero::before{background:repeating-linear-gradient(-45deg,transparent,transparent 12px,rgba(255,255,255,.05) 12px,rgba(255,255,255,.05) 24px)}
+.ind-page.pattern-waves .ind-hero::before{background:radial-gradient(ellipse 80% 50% at 50% 120%,rgba(255,255,255,.15),transparent 60%)}
+.ind-page.pattern-blueprint .ind-hero::before{background-image:linear-gradient(rgba(255,255,255,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.08) 1px,transparent 1px);background-size:20px 20px}
+.ind-page.pattern-organic .ind-hero::before{background:radial-gradient(circle at 10% 20%,rgba(255,255,255,.12),transparent 40%)}
+.ind-page.pattern-minimal .ind-hero::before{opacity:.15}
+.ind-hero-inner{position:relative;z-index:1;max-width:720px}
+.ind-badge{display:inline-block;font-size:10px;padding:3px 10px;border-radius:999px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.28);margin-bottom:8px}
+.ind-hero h2{font-size:26px;font-weight:800;margin-bottom:8px}
+.ind-hero p{font-size:14px;opacity:.92;line-height:1.6}
+.ind-motif{position:absolute;right:24px;top:20px;font-size:64px;opacity:.2}
+.ind-stats{display:flex;flex-wrap:wrap;gap:20px;margin-top:18px}
+.ind-stats div strong{display:block;font-size:22px}
+.ind-stats div span{font-size:11px;opacity:.85}
+.ind-body{padding:24px 28px 28px}
+.ind-body h3{font-size:15px;color:var(--ind-color);margin-bottom:10px}
+.ind-body ul{margin:0 0 16px 18px;font-size:13px;color:var(--muted)}
+.ind-body li{margin-bottom:4px}
+.ind-scenes{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.ind-scene{border:1px solid var(--border);border-radius:10px;padding:12px;font-size:12px;background:#fff}
+.ind-scene strong{display:block;margin-bottom:4px;color:var(--text)}
+.ind-scene em{font-size:10px;color:var(--muted);font-style:normal}
+.layout-corporate .ind-hero-inner{text-align:center;margin:0 auto}
+.layout-corporate .ind-stats{justify-content:center}
+.layout-industrial .ind-hero{border-left:6px solid rgba(255,255,255,.5)}
+.layout-bold .ind-hero{clip-path:polygon(0 0,100% 0,100% 92%,0 100%)}
+.layout-neon .ind-frame{box-shadow:0 0 40px color-mix(in srgb,var(--ind-color) 35%,transparent)}
+.layout-hospitality .ind-hero{border-radius:0 0 28px 28px}
+.layout-blueprint .ind-body{border-top:1px dashed color-mix(in srgb,var(--ind-color) 40%,#cbd5e1)}
+.layout-motion .ind-hero{border-bottom:3px solid rgba(255,255,255,.35)}
+.footer{text-align:center;font-size:12px;color:var(--muted);padding:24px}
+</style>
+</head>
+<body>
+<header class="chrome">
+  <h1>积木仓 BlockHub · 20 行业独立站效果预览</h1>
+  <p>合并现有 Catalog 场景数据 + 20 套差异化视觉主题（layout / pattern / hero）。线上路由 <code>/industry/:key</code> 已接入相同主题类名。豆包对话设计参考：<a href="https://www.doubao.com/thread/xbda891e4f55583ed89e33a97412bf64d" style="color:#67e8f9">对话链接</a>（需登录查看原稿，本页按项目数据落地）。</p>
+  <nav class="nav" id="nav"></nav>
+</header>
+<div class="wrap">
+  <div class="note">
+    <strong>使用说明：</strong>下方每块为一套行业独立站迷你效果（Hero + 亮点 + 场景卡片）。
+    启动 Home <code>npm run dev</code> 后访问 <code>http://localhost:5173/industry/mfg</code> 等查看完整页（含 10 套模板 Gallery + API 场景清单）。
+  </div>
+  <div id="root"></div>
+</div>
+<footer class="footer">生成于脚本 generate-industry-preview-html.py · 数据来自 industry_packs_all.py</footer>
+<script>
+const DATA = [{"key": "office", "name": "通用办公", "icon": "🏢", "color": "#6366f1", "tagline": "人事、财务、审批、知识库一体化", "total": 66, "layout": "corporate", "pattern": "grid", "motif": "🏢", "heroPitch": "集团级数字办公中枢 · 从制度问答到全流程审批", "highlights": ["人事财务审批知识库一站打通", "制度问答 + 请假报销主路径十分钟上线", "适合集团总部与多部门协同"], "scenes": []}, {"key": "mfg", "name": "传统制造", "icon": "🏭", "color": "#3b82f6", "tagline": "报修、SOP、质检、MES 打通", "total": 12, "layout": "industrial", "pattern": "circuit", "motif": "🏭", "heroPitch": "智能制造现场 · 报修、SOP、质检、MES 一体", "highlights": ["设备报修派工 · SOP 工艺问答 · 质检审批闭环", "产线异常到保养提醒全链路", "图纸 BOM 检索 + 能耗碳排统计"], "scenes": [{"name": "设备报修", "problem": "产线故障报修派工", "agent": "approval"}, {"name": "SOP/工艺问答", "problem": "作业指导书检索", "agent": "chat_qa"}, {"name": "生产日报/OEE", "problem": "车间产量稼动率", "agent": "report"}, {"name": "质检审批", "problem": "来料成品质检", "agent": "approval"}, {"name": "物料领用", "problem": "生产领退料", "agent": "approval"}, {"name": "安环隐患上报", "problem": "安全隐患拍照上报", "agent": "approval"}]}, {"key": "sales", "name": "销售行业", "icon": "📈", "color": "#ef4444", "tagline": "话术、漏斗、合同、CRM 一体", "total": 12, "layout": "bold", "pattern": "diagonal", "motif": "📈", "heroPitch": "销售增长引擎 · 话术、漏斗、合同、CRM", "highlights": ["产品话术问答 · 报价折扣审批 · 销售漏斗看板", "外勤签到 + 区域分析助力一线", "合同会签与商机到期提醒"], "scenes": [{"name": "产品/话术问答", "problem": "产品参数竞品话术", "agent": "chat_qa"}, {"name": "报价/折扣审批", "problem": "超权限折扣", "agent": "approval"}, {"name": "销售漏斗看板", "problem": "线索商机转化", "agent": "report"}, {"name": "客户跟进记录", "problem": "拜访纪要", "agent": "approval"}, {"name": "合同审批", "problem": "法务财务会签", "agent": "approval"}, {"name": "商机到期提醒", "problem": "长期未跟进", "agent": "notify"}]}, {"key": "med", "name": "医疗健康", "icon": "🏥", "color": "#10b981", "tagline": "指南、排班、导诊、HIS 协同", "total": 12, "layout": "clinical", "pattern": "minimal", "motif": "🏥", "heroPitch": "智慧医院协同 · 指南、排班、导诊、HIS", "highlights": ["诊疗指南药品库 · 排班调班 · 不良事件上报", "患者宣教与智能导诊", "科室运营看板 + 会诊转诊"], "scenes": [{"name": "诊疗指南/药品库", "problem": "临床用药参考", "agent": "kb"}, {"name": "内部制度/合规问答", "problem": "院感质量制度", "agent": "chat_qa"}, {"name": "排班/调班申请", "problem": "医护排班", "agent": "approval"}, {"name": "耗材/设备申购", "problem": "科室采购", "agent": "approval"}, {"name": "患者宣教资料", "problem": "出院指导科普", "agent": "kb"}, {"name": "数据脱敏/权限", "problem": "敏感信息保护", "agent": "creation"}]}, {"key": "game", "name": "游戏娱乐", "icon": "🎮", "color": "#a855f7", "tagline": "玩家 FAQ、客服、活动通知", "total": 13, "layout": "neon", "pattern": "dots", "motif": "🎮", "heroPitch": "游戏运营中台 · 玩家 FAQ、客服、活动通知", "highlights": ["玩家 FAQ/攻略 · 客服工单 · 活动上线通知", "版号合规审查 · NPC 角色对话", "留存 ARPU 看板 + 渠道 ROI"], "scenes": [{"name": "玩家FAQ/攻略", "problem": "活动规则问答", "agent": "chat_qa"}, {"name": "客服工单", "problem": "玩家问题流转", "agent": "approval"}, {"name": "版本/活动规则库", "problem": "策划文档检索", "agent": "kb"}, {"name": "留存/ARPU看板", "problem": "运营数据监控", "agent": "report"}, {"name": "版号/合规审查", "problem": "内容合规自检", "agent": "approval"}, {"name": "活动上线通知", "problem": "开服活动推送", "agent": "notify"}]}, {"key": "retail", "name": "零售电商", "icon": "🛒", "color": "#f97316", "tagline": "库存、会员、促销、订单全链路", "total": 10, "layout": "commerce", "pattern": "waves", "motif": "🛒", "heroPitch": "全渠道零售 · 库存、会员、促销、订单", "highlights": ["库存预警 · 促销审批 · 订单全渠道跟踪", "退换货工单 · 供应商对账", "陈列检查与价格变更审批"], "scenes": [{"name": "库存预警", "problem": "低库存自动提醒补货", "agent": "notify"}, {"name": "会员营销", "problem": "积分促销触达", "agent": "notify"}, {"name": "促销审批", "problem": "折扣活动多级审批", "agent": "approval"}, {"name": "订单跟踪", "problem": "全渠道订单状态查询", "agent": "chat_qa"}, {"name": "门店巡检", "problem": "陈列卫生拍照巡检", "agent": "approval"}, {"name": "退换货处理", "problem": "退换货工单流转", "agent": "approval"}]}, {"key": "edu", "name": "教育培训", "icon": "🎓", "color": "#2563eb", "tagline": "课程、题库、排课、家校互通", "total": 9, "layout": "academic", "pattern": "grid", "motif": "🎓", "heroPitch": "智慧校园 · 课程、题库、排课、家校", "highlights": ["课程排课 · 题库练习 · 家校通知", "成绩分析预警 · 在线答疑", "学费收缴与考勤统计"], "scenes": [{"name": "课程排课", "problem": "班级课表智能编排", "agent": "approval"}, {"name": "题库练习", "problem": "知识点题库练习", "agent": "kb"}, {"name": "家校通知", "problem": "通知公告精准推送", "agent": "notify"}, {"name": "成绩分析", "problem": "成绩趋势与预警", "agent": "report"}, {"name": "请假审批", "problem": "学生请假在线审批", "agent": "approval"}, {"name": "教材管理", "problem": "教材版本与发放", "agent": "kb"}]}, {"key": "finance", "name": "金融服务", "icon": "💰", "color": "#0284c7", "tagline": "合规、风控、理财、尽调闭环", "total": 11, "layout": "institutional", "pattern": "minimal", "motif": "💰", "heroPitch": "金融科技合规 · 风控、理财、尽调闭环", "highlights": ["合规审查 · 风控预警 · 理财智能问答", "尽调报告协同 · 授信审批", "监管报送与投后管理"], "scenes": [{"name": "合规审查", "problem": "业务合规自检清单", "agent": "approval"}, {"name": "风控预警", "problem": "异常交易实时预警", "agent": "notify"}, {"name": "理财问答", "problem": "产品说明智能问答", "agent": "chat_qa"}, {"name": "尽调报告", "problem": "尽调材料协同撰写", "agent": "kb"}, {"name": "合同审批", "problem": "金融合同多级会签", "agent": "approval"}, {"name": "反洗钱监测", "problem": "可疑交易识别上报", "agent": "report"}]}, {"key": "logistics", "name": "物流仓储", "icon": "📦", "color": "#ca8a04", "tagline": "运单、仓储、调度、签收可视", "total": 10, "layout": "logistics", "pattern": "diagonal", "motif": "📦", "heroPitch": "智慧物流 · 运单、仓储、调度、签收", "highlights": ["运单跟踪 · 仓储盘点 · 车辆调度", "签收确认 · 运费结算", "路线优化与装卸排队"], "scenes": [{"name": "运单跟踪", "problem": "在途运单实时可视", "agent": "notify"}, {"name": "仓储盘点", "problem": "周期盘点任务派发", "agent": "approval"}, {"name": "车辆调度", "problem": "车辆路线智能调度", "agent": "report"}, {"name": "签收确认", "problem": "电子签收与异常登记", "agent": "approval"}, {"name": "异常上报", "problem": "延误破损异常工单", "agent": "approval"}, {"name": "路线优化", "problem": "配送路线成本优化", "agent": "report"}]}, {"key": "realestate", "name": "房地产", "icon": "🏠", "color": "#78716c", "tagline": "看房、签约、物业、报修一体", "total": 9, "layout": "estate", "pattern": "waves", "motif": "🏠", "heroPitch": "地产全周期 · 看房、签约、物业、报修", "highlights": ["看房预约 · 签约审批 · 物业报修", "租金收缴 · 装修验收", "房源上架与业主投诉闭环"], "scenes": [{"name": "看房预约", "problem": "客户看房档期预约", "agent": "approval"}, {"name": "签约审批", "problem": "认购签约流程审批", "agent": "approval"}, {"name": "物业报修", "problem": "业主报修工单处理", "agent": "approval"}, {"name": "租金收缴", "problem": "租金账单与催收", "agent": "notify"}, {"name": "客户跟进", "problem": "意向客户跟进记录", "agent": "chat_qa"}, {"name": "房源上架", "problem": "房源信息审核上架", "agent": "approval"}]}, {"key": "hotel", "name": "酒店餐饮", "icon": "🏨", "color": "#ec4899", "tagline": "预订、排班、客诉、巡检", "total": 8, "layout": "hospitality", "pattern": "organic", "motif": "🏨", "heroPitch": "酒店餐饮运营 · 预订、排班、客诉、巡检", "highlights": ["客房预订排房 · 排班调班 · 客诉处理", "巡检打卡 · 食材申购", "会员积分与卫生检查"], "scenes": [{"name": "客房预订", "problem": "客房预订与排房", "agent": "approval"}, {"name": "排班调班", "problem": "客房餐饮排班调班", "agent": "approval"}, {"name": "客诉处理", "problem": "客诉登记与回访", "agent": "approval"}, {"name": "巡检打卡", "problem": "客房公区巡检", "agent": "approval"}, {"name": "食材申购", "problem": "厨房食材采购申请", "agent": "approval"}, {"name": "会员积分", "problem": "会员积分与权益", "agent": "kb"}]}, {"key": "energy", "name": "能源电力", "icon": "⚡", "color": "#eab308", "tagline": "巡检、工单、能耗、安全合规", "total": 10, "layout": "energy", "pattern": "circuit", "motif": "⚡", "heroPitch": "能源电力运维 · 巡检、工单、能耗、安全", "highlights": ["设备巡检 · 工单派发 · 能耗监测", "安全告警 · 两票管理", "应急演练与运行日志检索"], "scenes": [{"name": "设备巡检", "problem": "变电站线路巡检", "agent": "approval"}, {"name": "工单派发", "problem": "缺陷工单派工闭环", "agent": "approval"}, {"name": "能耗监测", "problem": "能耗异常分析预警", "agent": "report"}, {"name": "安全告警", "problem": "安全事件实时告警", "agent": "notify"}, {"name": "缺陷上报", "problem": "设备缺陷拍照上报", "agent": "approval"}, {"name": "两票管理", "problem": "工作票操作票管理", "agent": "approval"}]}, {"key": "gov", "name": "政务公用", "icon": "🏛", "color": "#475569", "tagline": "办事指南、诉求、审批便民", "total": 11, "layout": "civic", "pattern": "grid", "motif": "🏛", "heroPitch": "数字政务便民 · 办事指南、诉求、审批", "highlights": ["办事指南 · 诉求受理 · 在线审批", "政策问答 · 督查督办", "证照申领与政务数据看板"], "scenes": [{"name": "办事指南", "problem": "事项材料智能问答", "agent": "chat_qa"}, {"name": "诉求受理", "problem": "群众诉求登记分派", "agent": "approval"}, {"name": "在线审批", "problem": "事项在线受理审批", "agent": "approval"}, {"name": "政策问答", "problem": "政策解读智能问答", "agent": "chat_qa"}, {"name": "信息公开", "problem": "信息公开申请处理", "agent": "kb"}, {"name": "督查督办", "problem": "督办事项跟踪", "agent": "approval"}]}, {"key": "legal", "name": "法律服务", "icon": "⚖️", "color": "#334155", "tagline": "案件、合同、法规检索", "total": 8, "layout": "judicial", "pattern": "minimal", "motif": "⚖️", "heroPitch": "律所数字化 · 案件、合同、法规检索", "highlights": ["案件进度管理 · 合同风险审查", "法规判例智能检索", "立案登记 · 庭审提醒"], "scenes": [{"name": "案件管理", "problem": "案件进度与材料管理", "agent": "kb"}, {"name": "合同审查", "problem": "合同条款风险审查", "agent": "kb"}, {"name": "法规检索", "problem": "法规判例智能检索", "agent": "chat_qa"}, {"name": "律师排期", "problem": "庭审会议排期", "agent": "approval"}, {"name": "立案登记", "problem": "立案材料登记", "agent": "approval"}, {"name": "证据归档", "problem": "证据链归档检索", "agent": "kb"}]}, {"key": "hr", "name": "人力资源", "icon": "👥", "color": "#8b5cf6", "tagline": "招聘、绩效、培训、薪酬", "total": 12, "layout": "people", "pattern": "organic", "motif": "👥", "heroPitch": "人力资源数智化 · 招聘、绩效、培训、薪酬", "highlights": ["招聘面试 · 绩效评估 · 培训计划", "薪酬核算 · 入离职办理", "人才盘点与员工自助问答"], "scenes": [{"name": "招聘面试", "problem": "简历筛选面试安排", "agent": "approval"}, {"name": "绩效评估", "problem": "绩效目标与评估", "agent": "approval"}, {"name": "培训计划", "problem": "培训计划与签到", "agent": "kb"}, {"name": "薪酬核算", "problem": "薪酬核算审批发放", "agent": "approval"}, {"name": "入职办理", "problem": "入职材料一站式", "agent": "approval"}, {"name": "离职交接", "problem": "离职交接清单", "agent": "approval"}]}, {"key": "marketing", "name": "市场营销", "icon": "📣", "color": "#fb923c", "tagline": "活动、线索、内容、投放", "total": 9, "layout": "campaign", "pattern": "diagonal", "motif": "📣", "heroPitch": "增长营销中枢 · 活动、线索、内容、投放", "highlights": ["活动策划审批 · 线索智能分配", "内容合规审核 · 投放分析", "竞品监测与效果复盘"], "scenes": [{"name": "活动策划", "problem": "营销活动策划审批", "agent": "approval"}, {"name": "线索分配", "problem": "线索智能分配销售", "agent": "approval"}, {"name": "内容审核", "problem": "营销内容合规审核", "agent": "approval"}, {"name": "投放分析", "problem": "投放ROI分析看板", "agent": "report"}, {"name": "竞品监测", "problem": "竞品动态知识库", "agent": "kb"}, {"name": "素材库", "problem": "营销素材统一管理", "agent": "kb"}]}, {"key": "construction", "name": "建筑工程", "icon": "🏗", "color": "#b45309", "tagline": "进度、安全、材料、验收", "total": 10, "layout": "blueprint", "pattern": "blueprint", "motif": "🏗", "heroPitch": "智慧工地 · 进度、安全、材料、验收", "highlights": ["进度日报 · 安全检查 · 材料申购", "分项验收电子签字 · 图纸变更", "劳务考勤与竣工归档"], "scenes": [{"name": "进度填报", "problem": "施工进度日报填报", "agent": "approval"}, {"name": "安全检查", "problem": "安全隐患检查整改", "agent": "approval"}, {"name": "材料申购", "problem": "建材申购审批", "agent": "approval"}, {"name": "验收签字", "problem": "分项验收电子签字", "agent": "approval"}, {"name": "图纸变更", "problem": "设计变更审批留痕", "agent": "approval"}, {"name": "劳务考勤", "problem": "工地劳务考勤", "agent": "approval"}]}, {"key": "agriculture", "name": "农业", "icon": "🌾", "color": "#65a30d", "tagline": "溯源、巡检、补贴、产销", "total": 7, "layout": "organic", "pattern": "organic", "motif": "🌾", "heroPitch": "数字农业 · 溯源、巡检、补贴、产销", "highlights": ["产销全程溯源 · 田间巡检", "补贴在线申报 · 气象预警", "病虫害识别与合作社管理"], "scenes": [{"name": "产销溯源", "problem": "农产品全程溯源", "agent": "kb"}, {"name": "田间巡检", "problem": "田间作业巡检记录", "agent": "approval"}, {"name": "补贴申报", "problem": "农业补贴在线申报", "agent": "approval"}, {"name": "农资采购", "problem": "农资采购审批", "agent": "approval"}, {"name": "气象预警", "problem": "灾害气象预警推送", "agent": "notify"}, {"name": "病虫害上报", "problem": "病虫害识别上报", "agent": "chat_qa"}]}, {"key": "media", "name": "传媒内容", "icon": "📺", "color": "#d946ef", "tagline": "选题、审核、版权、分发", "total": 9, "layout": "broadcast", "pattern": "waves", "motif": "📺", "heroPitch": "传媒内容中台 · 选题、审核、版权、分发", "highlights": ["选题策划 · 内容多级审核", "版权登记授权 · 分发排期", "舆情监测与阅读量分析"], "scenes": [{"name": "选题策划", "problem": "选题立项审批", "agent": "approval"}, {"name": "内容审核", "problem": "内容合规多级审核", "agent": "approval"}, {"name": "版权管理", "problem": "版权登记与授权", "agent": "kb"}, {"name": "分发排期", "problem": "多平台分发排期", "agent": "notify"}, {"name": "舆情监测", "problem": "舆情预警与分析", "agent": "report"}, {"name": "素材库", "problem": "音视频素材管理", "agent": "kb"}]}, {"key": "auto", "name": "汽车交通", "icon": "🚗", "color": "#06b6d4", "tagline": "售后、试驾、配件、工单", "total": 10, "layout": "motion", "pattern": "diagonal", "motif": "🚗", "heroPitch": "汽车服务数字化 · 售后、试驾、配件、工单", "highlights": ["试驾预约 · 售后维修工单", "保养到期提醒 · 事故报案引导", "门店客流与延保推介"], "scenes": [{"name": "试驾预约", "problem": "试驾档期在线预约", "agent": "approval"}, {"name": "售后工单", "problem": "维修保养工单", "agent": "approval"}, {"name": "配件申购", "problem": "配件采购申请", "agent": "approval"}, {"name": "保养提醒", "problem": "保养到期自动提醒", "agent": "notify"}, {"name": "客户回访", "problem": "交车回访记录", "agent": "chat_qa"}, {"name": "事故报案", "problem": "事故报案流程引导", "agent": "chat_qa"}]}];
+const root = document.getElementById('root');
+const nav = document.getElementById('nav');
+DATA.forEach((ind, i) => {
+  const a = document.createElement('a');
+  a.href = '#ind-' + ind.key;
+  a.textContent = ind.icon + ' ' + ind.name;
+  if (i === 0) a.classList.add('on');
+  nav.appendChild(a);
+});
+root.innerHTML = DATA.map(ind => {
+  const grad = `linear-gradient(105deg, color-mix(in srgb, ${ind.color} 88%, #0f172a) 0%, #0f172a 60%)`;
+  const scenes = ind.scenes.map(s => `<div class="ind-scene"><strong>${s.name}</strong><em>${s.problem}</em></div>`).join('');
+  const hl = ind.highlights.map(h => `<li>${h}</li>`).join('');
+  return `<section class="ind-block" id="ind-${ind.key}">
+    <div class="ind-label">${ind.layout.toUpperCase()} · pattern-${ind.pattern} · ${ind.total} 场景</div>
+    <div class="ind-frame">
+      <div class="ind-meta"><span>${ind.key} · ${ind.name}</span><a href="/industry/${ind.key}" target="_blank">打开线上页 →</a></div>
+      <div class="ind-page layout-${ind.layout} pattern-${ind.pattern}" style="--ind-color:${ind.color}">
+        <div class="ind-hero" style="background-image:${grad}">
+          <span class="ind-motif">${ind.motif}</span>
+          <div class="ind-hero-inner">
+            <span class="ind-badge">独立方案站 · 深度包 · ${ind.total} 场景</span>
+            <h2>${ind.name}</h2>
+            <p>${ind.heroPitch || ind.tagline}</p>
+            <div class="ind-stats">
+              <div><strong>${ind.total}</strong><span>业务场景</span></div>
+              <div><strong>5</strong><span>端交付</span></div>
+              <div><strong>AI</strong><span>大模型方案</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="ind-body">
+          <h3>方案亮点</h3>
+          <ul>${hl}</ul>
+          <h3>精选场景（前 6 项）</h3>
+          <div class="ind-scenes">${scenes || '<p style="color:#94a3b8">办公场景见 Catalog 办公包</p>'}</div>
+        </div>
+      </div>
+    </div>
+  </section>`;
+}).join('');
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (!e.isIntersecting) return;
+    const id = e.target.id.replace('ind-', '');
+    nav.querySelectorAll('a').forEach(a => a.classList.toggle('on', a.getAttribute('href') === '#ind-' + id));
+  });
+}, { rootMargin: '-40% 0px -50% 0px' });
+document.querySelectorAll('.ind-block').forEach(el => obs.observe(el));
+</script>
+</body>
+</html>
