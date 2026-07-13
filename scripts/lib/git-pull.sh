@@ -68,6 +68,16 @@ blockhub_git_pull() {
     docs/previews/template-industry-ui-check.html \
     2>/dev/null || true
 
+  # 本地 codegen 未跟踪文件会阻塞 pull（远程已纳入版本库）
+  for f in \
+    runtime-app/lib/melos_capability_registry.g.dart \
+    runtime-app/lib/capability_deferred_loader.g.dart; do
+    if [ -f "$f" ] && ! git ls-files --error-unmatch "$f" >/dev/null 2>&1; then
+      rm -f "$f"
+      echo "    removed untracked $f (would block pull)"
+    fi
+  done
+
   local origin_url ssh_url
   origin_url="$(git remote get-url origin 2>/dev/null || echo "")"
 
