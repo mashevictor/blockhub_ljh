@@ -29,6 +29,7 @@ export interface PublishApiResponse {
     download_url?: string
     web_template_id?: string
     app_ui_id?: string
+    android_app_id?: string
   }
   notification?: { email?: string; email_sent?: boolean; email_configured?: boolean }
 }
@@ -46,6 +47,9 @@ export function createdAppToPublishResult(app: CreatedApp, opts: PublishResultOp
   const webUrl = app.web_url || `${PUBLIC_BASE_URL}/r/${id}`
   const downloadUrl = app.download_url || `${PUBLIC_BASE_URL}/r/${id}/download`
   const appQr = app.app_qr || webUrl
+  const androidAppId =
+    app.android_app_id
+    || (id ? `com.blockhub.app.${/^[0-9]/.test(id) ? `a${id}` : id}` : undefined)
 
   return {
     appName: app.name,
@@ -65,6 +69,7 @@ export function createdAppToPublishResult(app: CreatedApp, opts: PublishResultOp
     emailSent: opts.emailSent,
     emailConfigured: opts.emailConfigured,
     apkReady: opts.apkReady,
+    androidAppId,
   }
 }
 
@@ -85,5 +90,6 @@ export function publishApiToResult(res: PublishApiResponse, opts: PublishResultO
     codegenJobId: res.codegen_job_id || undefined,
     webTemplateId: res.runtime?.web_template_id,
     appUiId: res.runtime?.app_ui_id,
+    androidAppId: res.runtime?.android_app_id ?? base.androidAppId,
   }
 }

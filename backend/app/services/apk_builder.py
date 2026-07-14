@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
 import os
@@ -13,7 +14,7 @@ from pathlib import Path
 from typing import Any, Literal
 
 from app.core.config import settings
-from app.services.apk_build_profiles import resolve_apk_build_profile
+from app.services.apk_build_profiles import android_app_id_for_public_id, resolve_apk_build_profile
 from app.services.file_storage import uploads_root
 
 logger = logging.getLogger(__name__)
@@ -118,16 +119,21 @@ def get_apk_build_status(public_id: str) -> BuildStatus:
 
 def get_apk_build_detail(public_id: str) -> dict[str, Any]:
     """Status payload for runtime UI / E2E (includes error + log path when failed)."""
+    app_id = android_app_id_for_public_id(public_id)
     if per_app_apk_path(public_id).is_file():
+        raw = _read_status(public_id) or {}
         return {
             "status": "ready",
             "public_id": public_id,
+            "android_app_id": raw.get("android_app_id") or app_id,
+            "build_fingerprint": raw.get("build_fingerprint"),
             "apk_bytes": per_app_apk_path(public_id).stat().st_size,
         }
     raw = _read_status(public_id)
     if raw:
+        raw.setdefault("android_app_id", app_id)
         return raw
-    return {"status": "pending", "public_id": public_id}
+    return {"status": "pending", "public_id": public_id, "android_app_id": app_id}
 
 
 def _read_status(public_id: str) -> dict[str, Any] | None:
@@ -145,17 +151,31 @@ def _write_status(public_id: str, payload: dict[str, Any]) -> None:
     path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
+def _spec_fingerprint(spec: dict[str, Any]) -> str:
+    payload = {
+        "android_app_id": spec.get("android_app_id"),
+        "capability_keys": sorted(spec.get("capability_keys") or []),
+        "app_ui_id": spec.get("app_ui_id"),
+        "app_name": spec.get("app_name"),
+        "voice_demo": bool(spec.get("voice_demo")),
+        "primary_color": spec.get("primary_color"),
+    }
+    raw = json.dumps(payload, sort_keys=True, ensure_ascii=False)
+    return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:16]
+
+
 def build_spec_from_app(app: dict[str, Any]) -> dict[str, Any]:
     keys = list(app.get("capability_keys") or [])
+    public_id = str(app.get("id") or "")
     app_ui = (
         app.get("app_ui_id")
         or (app.get("build_manifest") or {}).get("meta", {}).get("app_ui_id")
         or (app.get("page_schema") or {}).get("meta", {}).get("app_ui_id")
     )
-    profile = resolve_apk_build_profile(keys, app_ui_id=app_ui)
+    profile = resolve_apk_build_profile(keys, app_ui_id=app_ui, public_id=public_id)
     api_base = f"{settings.public_base_url.rstrip('/')}{settings.api_prefix}"
     return {
-        "public_id": app["id"],
+        "public_id": public_id,
         "app_name": app.get("name") or "积木仓应用",
         "icon_url": app.get("icon_url") or "",
         "primary_color": app.get("primary_color") or "#4338ca",
@@ -168,28 +188,50 @@ def build_spec_from_app(app: dict[str, Any]) -> dict[str, Any]:
         "android_app_id": profile.android_app_id,
         "tenant_slug": profile.tenant_slug,
         "api_base_url": api_base,
+        "build_fingerprint": "",  # filled in write_build_queue_spec
     }
 
 
 def write_build_queue_spec(app: dict[str, Any]) -> Path:
     spec = build_spec_from_app(app)
+    spec["build_fingerprint"] = _spec_fingerprint(spec)
     path = _queue_dir() / f"{spec['public_id']}.json"
     path.write_text(json.dumps(spec, ensure_ascii=False, indent=2), encoding="utf-8")
     return path
 
 
+def _invalidate_stale_apk(public_id: str) -> None:
+    path = per_app_apk_path(public_id)
+    if path.is_file():
+        try:
+            path.unlink()
+            logger.info("Removed stale APK for rebuild: %s", public_id)
+        except OSError:
+            logger.exception("Failed to remove stale APK %s", path)
+
+
 def should_enqueue_apk_build(app: dict[str, Any]) -> bool:
+    """Enqueue when no APK, or when publish fingerprint no longer matches last ready build."""
     deliver = app.get("deliver") or "both"
     if deliver not in ("app", "both"):
         return False
     public_id = app.get("id") or ""
     if not public_id:
         return False
-    if per_app_apk_path(public_id).is_file():
+
+    raw = _read_status(public_id)
+    if raw and raw.get("status") == "building":
         return False
-    status = get_apk_build_status(public_id)
-    if status == "building":
+
+    spec = build_spec_from_app(app)
+    fingerprint = _spec_fingerprint(spec)
+    apk_exists = per_app_apk_path(public_id).is_file()
+    if apk_exists and raw and raw.get("build_fingerprint") == fingerprint:
         return False
+    if apk_exists and (not raw or raw.get("build_fingerprint") != fingerprint):
+        # 旧包（无 fingerprint / 选型变更）→ 删掉后重建
+        _invalidate_stale_apk(public_id)
+        return True
     return True
 
 
@@ -201,11 +243,24 @@ def enqueue_apk_build(app: dict[str, Any]) -> BuildStatus:
             return "ready"
         return get_apk_build_status(public_id)
 
-    write_build_queue_spec(app)
+    profile = resolve_apk_build_profile(
+        app.get("capability_keys") or [],
+        app_ui_id=app.get("app_ui_id"),
+        public_id=public_id,
+    )
+    path = write_build_queue_spec(app)
+    try:
+        spec = json.loads(path.read_text(encoding="utf-8"))
+        fingerprint = spec.get("build_fingerprint") or ""
+    except Exception:
+        fingerprint = ""
+
     _write_status(public_id, {
         "status": "pending",
         "public_id": public_id,
-        "profile_id": resolve_apk_build_profile(app.get("capability_keys") or []).profile_id,
+        "profile_id": profile.profile_id,
+        "android_app_id": profile.android_app_id,
+        "build_fingerprint": fingerprint,
         "queued_at": datetime.now(timezone.utc).isoformat(),
     })
 
@@ -226,9 +281,22 @@ def _run_build_job(public_id: str) -> None:
         _ACTIVE_BUILDS.add(public_id)
 
     started = datetime.now(timezone.utc).isoformat()
+    queue_path = _queue_dir() / f"{public_id}.json"
+    android_id = android_app_id_for_public_id(public_id)
+    fingerprint = ""
+    try:
+        if queue_path.is_file():
+            q = json.loads(queue_path.read_text(encoding="utf-8"))
+            android_id = str(q.get("android_app_id") or android_id)
+            fingerprint = str(q.get("build_fingerprint") or "")
+    except Exception:
+        pass
+
     _write_status(public_id, {
         "status": "building",
         "public_id": public_id,
+        "android_app_id": android_id,
+        "build_fingerprint": fingerprint,
         "started_at": started,
     })
 
@@ -263,11 +331,13 @@ def _run_build_job(public_id: str) -> None:
         _write_status(public_id, {
             "status": "ready",
             "public_id": public_id,
+            "android_app_id": android_id,
+            "build_fingerprint": fingerprint,
             "started_at": started,
             "finished_at": datetime.now(timezone.utc).isoformat(),
             "apk_bytes": per_app_apk_path(public_id).stat().st_size,
         })
-        logger.info("APK build ready for %s", public_id)
+        logger.info("APK build ready for %s android_app_id=%s", public_id, android_id)
     except Exception as exc:
         logger.exception("APK build failed for %s", public_id)
         _write_status(public_id, {

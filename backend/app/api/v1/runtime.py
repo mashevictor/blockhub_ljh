@@ -105,6 +105,8 @@ def runtime_info(public_id: str, db: Session = Depends(get_db)) -> dict:
     app = db.query(AppRecord).filter(AppRecord.public_id == public_id).first()
     if not app:
         raise HTTPException(status_code=404, detail="应用不存在")
+    from app.services.apk_build_profiles import android_app_id_for_public_id
+
     build_status = get_apk_build_status(public_id)
     build_detail = get_apk_build_detail(public_id)
     return {
@@ -121,6 +123,8 @@ def runtime_info(public_id: str, db: Session = Depends(get_db)) -> dict:
         "apk_build_status": build_status,
         "apk_build_error": build_detail.get("error"),
         "apk_build_log": build_detail.get("log"),
+        "android_app_id": build_detail.get("android_app_id")
+        or android_app_id_for_public_id(app.public_id),
         "modules": app.modules,
         "capability_keys": app.capability_keys,
         "page_schema": app.page_schema,
@@ -152,16 +156,46 @@ def download_apk(public_id: str, db: Session = Depends(get_db)) -> FileResponse:
     )
 
 
+@router.api_route("/{app_slug}/ingress", methods=["GET", "POST", "PUT"])
+async def mock_ingress_root_api(app_slug: str, request: Request) -> dict:
+    """兼容大模型生成的裸 /ingress（无 action）→ 等同 webhook。"""
+    body = await _read_body(request)
+    return _mock_flow_response(
+        app_slug=app_slug,
+        path="ingress/webhook",
+        method=request.method,
+        body=body,
+        node_hint="ingress",
+    )
+
+
 @router.api_route("/{app_slug}/ingress/{action}", methods=["GET", "POST", "PUT"])
 async def mock_ingress_api(app_slug: str, action: str, request: Request) -> dict:
     """模块数据流 — 业务输入节点 mock。"""
     body = await _read_body(request)
+    # 常见误写：/ingress/output、/ingress/input
+    mapped = {"input": "webhook", "in": "webhook", "output": "dispatch", "out": "dispatch"}.get(
+        action.lower(), action
+    )
     return _mock_flow_response(
         app_slug=app_slug,
-        path=f"ingress/{action}",
+        path=f"ingress/{mapped}",
         method=request.method,
         body=body,
         node_hint="ingress",
+    )
+
+
+@router.api_route("/{app_slug}/egress", methods=["GET", "POST", "PUT"])
+async def mock_egress_root_api(app_slug: str, request: Request) -> dict:
+    """兼容裸 /egress → 等同 collect。"""
+    body = await _read_body(request)
+    return _mock_flow_response(
+        app_slug=app_slug,
+        path="egress/collect",
+        method=request.method,
+        body=body,
+        node_hint="egress",
     )
 
 
@@ -169,9 +203,12 @@ async def mock_ingress_api(app_slug: str, action: str, request: Request) -> dict
 async def mock_egress_api(app_slug: str, action: str, request: Request) -> dict:
     """模块数据流 — 触达输出节点 mock。"""
     body = await _read_body(request)
+    mapped = {"input": "collect", "in": "collect", "output": "deliver", "out": "deliver"}.get(
+        action.lower(), action
+    )
     return _mock_flow_response(
         app_slug=app_slug,
-        path=f"egress/{action}",
+        path=f"egress/{mapped}",
         method=request.method,
         body=body,
         node_hint="egress",

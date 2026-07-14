@@ -111,7 +111,7 @@ export function ModuleApiPanel({ appKey, appName, steps, activeNodeId }: Props) 
   useEffect(() => {
     if (steps.length === 0) return
     const cached = loadCachedFlowApis(appKey, fingerprint)
-    // 无缓存或仅有规则模拟时，强制走服务端 DeepSeek
+    // 无缓存或仅有规则模拟时，强制走服务端大模型
     if (!cached || cached.source !== 'deepseek') {
       void dial(Boolean(cached && cached.source !== 'deepseek'))
     }
@@ -127,11 +127,11 @@ export function ModuleApiPanel({ appKey, appName, steps, activeNodeId }: Props) 
           <strong>模块数据接口</strong>
           <span className="plaza-mflow-api-source">
             {loading
-              ? 'DeepSeek 生成中…'
+              ? '大模型生成中…'
               : result?.source === 'deepseek'
-                ? 'DeepSeek 智能生成'
+                ? '大模型智能生成'
                 : result
-                  ? (result.llm_configured === false ? '未配置 Key · 规则模拟' : '规则模拟（DeepSeek 失败）')
+                  ? (result.llm_configured === false ? '未配置密钥 · 规则模拟' : '规则模拟（大模型失败）')
                   : '拨通中…'}
           </span>
         </div>

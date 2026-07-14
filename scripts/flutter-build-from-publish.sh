@@ -32,7 +32,7 @@ spec = json.loads(Path("$SPEC").read_text(encoding="utf-8"))
 fields = {
     "APP_PUBLIC_ID": spec["public_id"],
     "APP_NAME": spec.get("app_name", "积木仓应用"),
-    "APP_ID": spec.get("android_app_id", "com.blockhub.runtime"),
+    "APP_ID": spec.get("android_app_id") or f"com.blockhub.app.{spec['public_id']}",
     "TENANT_SLUG": spec.get("tenant_slug", "demo"),
     "API_BASE_URL": spec.get("api_base_url", "http://101.32.209.251/api/v1"),
     "PRIMARY_COLOR": spec.get("primary_color", "#4338CA"),
@@ -65,6 +65,7 @@ fi
 echo "=============================================="
 echo " Per-app APK build"
 echo " public_id: $APP_PUBLIC_ID"
+echo " app_id:    $APP_ID"
 echo " profile:   ${BUILD_PROFILE:-generic}"
 echo " name:      $APP_NAME"
 echo " voice:     VOICE_DEMO=$VOICE_DEMO"

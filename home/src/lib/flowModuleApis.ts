@@ -28,7 +28,69 @@ export interface FlowApiResult {
   llm_configured: boolean
 }
 
-const CACHE_PREFIX = 'blockhub_flow_apis_'
+const CACHE_PREFIX = 'blockhub_flow_apis_v2_'
+
+/** 纠正大模型生成的不完整路径，避免测试 404 */
+export function canonicalizeFlowApiPath(
+  path: string,
+  kind: string,
+  side: 'input' | 'output',
+  appKey: string,
+): string {
+  const slug = appSlug(appKey)
+  const base = `/api/v1/runtime/${slug}`
+  let p = (path || '').split('?')[0].trim()
+  if (!p.startsWith('/')) p = `/${p}`
+  p = p.replace(/\/+$/, '') || '/'
+  p = p.replace(/^\/api\/v1\/runtime\/[^/]+/, base)
+
+  if (kind === 'ingress') {
+    if (p === `${base}/ingress` || p.endsWith('/ingress')) {
+      return side === 'input' ? `${base}/ingress/webhook` : `${base}/ingress/dispatch`
+    }
+    const m = p.match(new RegExp(`^${base.replace(/\//g, '\\/')}/ingress/([a-zA-Z0-9_-]+)$`))
+    if (m) {
+      const a = m[1].toLowerCase()
+      if (side === 'input' && ['output', 'out', 'dispatch'].includes(a)) return `${base}/ingress/webhook`
+      if (side === 'output' && ['input', 'in', 'webhook'].includes(a)) return `${base}/ingress/dispatch`
+      if (side === 'input' && ['input', 'in', 'receive'].includes(a)) return `${base}/ingress/webhook`
+      if (side === 'output' && ['output', 'out'].includes(a)) return `${base}/ingress/dispatch`
+      return p
+    }
+    return side === 'input' ? `${base}/ingress/webhook` : `${base}/ingress/dispatch`
+  }
+  if (kind === 'egress') {
+    if (p === `${base}/egress` || p.endsWith('/egress')) {
+      return side === 'input' ? `${base}/egress/collect` : `${base}/egress/deliver`
+    }
+    if (new RegExp(`^${base.replace(/\//g, '\\/')}/egress/[a-zA-Z0-9_-]+$`).test(p)) return p
+    return side === 'input' ? `${base}/egress/collect` : `${base}/egress/deliver`
+  }
+  const mod = p.match(new RegExp(`^${base.replace(/\//g, '\\/')}/modules/([a-zA-Z0-9_-]+)(?:/(.*))?$`))
+  if (mod) {
+    return side === 'input'
+      ? `${base}/modules/${mod[1]}/input`
+      : `${base}/modules/${mod[1]}/output`
+  }
+  return p
+}
+
+function sanitizeFlowApiResult(appKey: string, result: FlowApiResult): FlowApiResult {
+  return {
+    ...result,
+    nodes: result.nodes.map((n) => ({
+      ...n,
+      input_api: {
+        ...n.input_api,
+        path: canonicalizeFlowApiPath(n.input_api.path, n.kind, 'input', appKey),
+      },
+      output_api: {
+        ...n.output_api,
+        path: canonicalizeFlowApiPath(n.output_api.path, n.kind, 'output', appKey),
+      },
+    })),
+  }
+}
 
 function cacheKey(appKey: string) {
   return `${CACHE_PREFIX}${appKey}`
@@ -224,15 +286,16 @@ export async function dialFlowModuleApis(opts: {
       { timeout: 60000 },
     )
     if (res.data?.nodes?.length) {
-      saveCachedFlowApis(opts.appKey, fingerprint, res.data)
-      opts.onUpgrade?.(res.data)
-      return res.data
+      const cleaned = sanitizeFlowApiResult(opts.appKey, res.data)
+      saveCachedFlowApis(opts.appKey, fingerprint, cleaned)
+      opts.onUpgrade?.(cleaned)
+      return cleaned
     }
   } catch {
     /* fall through */
   }
 
-  const instant = buildFallbackFlowApis(opts.appKey, opts.steps)
+  const instant = sanitizeFlowApiResult(opts.appKey, buildFallbackFlowApis(opts.appKey, opts.steps))
   saveCachedFlowApis(opts.appKey, fingerprint, instant)
   return instant
 }

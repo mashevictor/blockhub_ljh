@@ -270,6 +270,7 @@ export interface CreatedApp {
   app_qr?: string
   icon_url?: string
   primary_color?: string
+  android_app_id?: string
   status: string
   created_at: string
   audience?: string
@@ -303,6 +304,7 @@ export interface RuntimeInfo {
   web_ready: boolean
   apk_ready: boolean
   apk_build_status?: 'pending' | 'building' | 'ready' | 'failed' | 'skipped'
+  android_app_id?: string
   modules?: unknown[]
   capability_keys?: string[]
 }
@@ -493,7 +495,7 @@ export async function suggestModules(text: string, forceLlm = true): Promise<Sug
   return res.data
 }
 
-/** 编排工作台问答 — 服务端 DeepSeek */
+/** 编排工作台问答 — 服务端大模型 */
 export async function askFlowQuestion(opts: {
   question: string
   appName?: string

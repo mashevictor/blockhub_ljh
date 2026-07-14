@@ -327,8 +327,8 @@ const FlowBizCommandInput = forwardRef<FlowBizCommandHandle, Props>(function Flo
       }
     }
 
-    // —— 未命中动作指令：一律走 DeepSeek（带上模块/节点上下文）——
-    finish('DeepSeek 分析中…')
+    // —— 未命中动作指令：一律走大模型（带上模块/节点上下文）——
+    finish('大模型分析中…')
     void askFlowQuestion({
       question: text,
       appName,
@@ -341,9 +341,9 @@ const FlowBizCommandInput = forwardRef<FlowBizCommandHandle, Props>(function Flo
         onAnalyze(
           res.source === 'deepseek'
             ? res.answer
-            : `${res.answer}\n\n（来源：兜底 · 请确认服务器 DEEPSEEK_API_KEY）`,
+            : `${res.answer}\n\n（来源：兜底 · 请确认服务器已配置大模型密钥）`,
         )
-        setHint(res.source === 'deepseek' ? '已回答（DeepSeek）' : '已回答（兜底）')
+        setHint(res.source === 'deepseek' ? '已回答（大模型）' : '已回答（兜底）')
       })
       .catch((e: unknown) => {
         onAnalyze(`问答失败：${e instanceof Error ? e.message : String(e)}`)

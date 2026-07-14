@@ -137,7 +137,8 @@ if [ -f "$BRANDING_FILE" ]; then
 fi
 
 APP_NAME="${APP_NAME:-TrackChat}"
-APP_ID="${APP_ID:-com.trackchat.runtime}"
+# 正式发布经由 flutter-build-from-publish.sh 注入唯一 APP_ID=com.blockhub.app.{public_id}
+APP_ID="${APP_ID:-com.blockhub.runtime}"
 APP_PUBLIC_ID="${APP_PUBLIC_ID:-}"
 TENANT_SLUG="${TENANT_SLUG:-demo}"
 API_BASE_URL="${API_BASE_URL:-http://101.32.209.251/api/v1}"
@@ -146,6 +147,21 @@ VOICE_DEMO="${VOICE_DEMO:-0}"
 APP_UI_ID="${APP_UI_ID:-bottom_tabs}"
 CAPABILITY_KEYS="${CAPABILITY_KEYS:-}"
 SKIP_DEFAULT_APK="${SKIP_DEFAULT_APK:-0}"
+
+if [ -z "${APP_ID}" ] || [ "$APP_ID" = "com.trackchat.runtime" ]; then
+  APP_ID="com.blockhub.runtime"
+fi
+# 有 public_id 却未设唯一包名时，按规则推导（防止误打共享包名）
+if [ -n "$APP_PUBLIC_ID" ] && { [ "$APP_ID" = "com.blockhub.runtime" ] || [ "$APP_ID" = "com.trackchat.runtime" ]; }; then
+  APP_ID="$(python3 -c "
+import re,sys
+pid=sys.argv[1].strip().lower()
+slug=re.sub(r'[^a-z0-9_]','_',pid)
+slug=re.sub(r'_+','_',slug).strip('_') or 'app'
+if slug[0].isdigit(): slug='a'+slug
+print('com.blockhub.app.'+slug)
+" "$APP_PUBLIC_ID")"
+fi
 
 mkdir -p branding
 if [ ! -f branding/icon.png ]; then

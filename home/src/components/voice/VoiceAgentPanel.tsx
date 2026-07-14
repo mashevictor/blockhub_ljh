@@ -105,7 +105,7 @@ export default function VoiceAgentPanel() {
       <div className="voice-agent-header">
         <div>
           <h2>上海话语音助手</h2>
-          <p>文字对话走真实 DeepSeek · 回复经电信上海话 TTS 播报 · 开麦可选</p>
+          <p>文字对话走真实大模型 · 回复经电信上海话 TTS 播报 · 开麦可选</p>
         </div>
         <span className={`voice-state-badge voice-state-${state}`}>{STATE_LABEL[state] || state}</span>
       </div>

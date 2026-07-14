@@ -334,10 +334,11 @@ def publish_app(
         )
         deliver = app.get("deliver", "both")
         public_id = app["id"]
-        apk_ready = per_app_apk_ready(public_id, deliver=deliver)
+        # 每次发布尝试入队：选型/包名 fingerprint 变更会删旧 APK 并重建
         build_status = get_apk_build_status(public_id)
-        if deliver in ("app", "both") and not apk_ready:
+        if deliver in ("app", "both"):
             build_status = enqueue_apk_build(app)
+        apk_ready = per_app_apk_ready(public_id, deliver=deliver)
 
         codegen_job_id = ""
         pending_keys = list(app.get("pending_codegen_keys") or [])
@@ -382,6 +383,7 @@ def publish_app(
                 "apk_build_status": build_status,
                 "web_template_id": app.get("web_template_id"),
                 "app_ui_id": app.get("app_ui_id"),
+                "android_app_id": app.get("android_app_id"),
             },
             "notification": {
                 "email": body.contact_email or None,

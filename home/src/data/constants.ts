@@ -105,6 +105,8 @@ export interface PublishResult {
   emailConfigured?: boolean
   /** 服务端 APK 是否已就绪（与 Flutter 构建无关，不阻塞发布） */
   apkReady?: boolean
+  /** 本应用唯一 Android applicationId（com.blockhub.app.{public_id}） */
+  androidAppId?: string
   /** 超出官方能力时的异步 codegen 任务 */
   codegenJobId?: string
   webTemplateId?: string

@@ -22,9 +22,11 @@ if (flutterVersionName == null) {
 
 // CI / scripts pass APP_NAME via gradle -PappLabel=...
 def appLabel = project.hasProperty("appLabel") ? project.property("appLabel") : "TrackChat"
-def androidAppId = project.hasProperty("androidAppId") ? project.property("androidAppId") : "com.trackchat.runtime"
+// 发布构建必须通过 -PandroidAppId=com.blockhub.app.{public_id} 覆盖；默认仅本地/烟测
+def androidAppId = project.hasProperty("androidAppId") ? project.property("androidAppId") : "com.blockhub.runtime"
 
 android {
+    // namespace 对应源码包；applicationId 由 -PandroidAppId 按应用覆盖
     namespace "com.trackchat.runtime"
     compileSdk flutter.compileSdkVersion
     ndkVersion flutter.ndkVersion

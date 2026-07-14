@@ -30,7 +30,7 @@ export function useCodegenProgress(jobId?: string | null) {
         if (st === 'ready') {
           setDetail(
             `已生成 ${job.result?.page_count ?? 0} 个预览页` +
-              (job.result?.llm ? '（DeepSeek）' : '（规则兜底）'),
+              (job.result?.llm ? '（大模型）' : '（规则兜底）'),
           )
           setRoutes(job.result?.routes ?? [])
           return true
@@ -39,7 +39,7 @@ export function useCodegenProgress(jobId?: string | null) {
           setDetail(job.error || 'AI 生成失败')
           return true
         }
-        setDetail(st === 'running' ? 'DeepSeek 正在生成页面…' : 'AI 页面生成排队中…')
+        setDetail(st === 'running' ? '大模型正在生成页面…' : 'AI 页面生成排队中…')
       } catch {
         if (!cancelled) setDetail('查询生成状态失败，稍后重试')
       }

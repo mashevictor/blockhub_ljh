@@ -57,14 +57,17 @@ step "apk build profiles (voice-only / dual-module)" \
 PY="$0/backend/.venv/bin/python"
 [ -x "$PY" ] || PY=python3
 "$PY" - <<PY
-from app.services.apk_build_profiles import resolve_apk_build_profile
+from app.services.apk_build_profiles import android_app_id_for_public_id, resolve_apk_build_profile
 
-v = resolve_apk_build_profile(["shanghai_voice"])
+v = resolve_apk_build_profile(["shanghai_voice"], public_id="abcd1234")
 assert v.voice_demo and v.profile_id == "shanghai_voice", v
-d = resolve_apk_build_profile(["chat_qa", "approval_flow"])
+assert v.android_app_id == "com.blockhub.app.abcd1234", v.android_app_id
+d = resolve_apk_build_profile(["chat_qa", "approval_flow"], public_id="1a2b3c4d")
 assert not d.voice_demo and d.profile_id == "generic", d
-print("voice-only →", v.profile_id, "voice_demo=", v.voice_demo)
-print("dual-module →", d.profile_id, "voice_demo=", d.voice_demo)
+assert d.android_app_id == "com.blockhub.app.a1a2b3c4d", d.android_app_id
+assert android_app_id_for_public_id("ab-cd") == "com.blockhub.app.ab_cd"
+print("voice-only →", v.profile_id, "voice_demo=", v.voice_demo, v.android_app_id)
+print("dual-module →", d.profile_id, "voice_demo=", d.voice_demo, d.android_app_id)
 PY
 ' "$ROOT"
 

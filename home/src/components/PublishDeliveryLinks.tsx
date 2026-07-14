@@ -39,11 +39,21 @@ export default function PublishDeliveryLinks({ result }: Props) {
             <button type="button" onClick={() => navigator.clipboard.writeText(downloadUrl)}>复制</button>
           </div>
         )}
+        {showApp && result.androidAppId && (
+          <div className="link-row">
+            <span className="link-row-label">
+              <DynamicIcon name="android" size={14} />
+              包名
+            </span>
+            <code>{result.androidAppId}</code>
+            <button type="button" onClick={() => navigator.clipboard.writeText(result.androidAppId!)}>复制</button>
+          </div>
+        )}
         {showApp && (
           <p className="publish-apk-hint">
             {result.apkReady
-              ? '专属 APK 已就绪，可直接下载安装。'
-              : '专属安装包正在后台生成，完成后此链接即可下载（不会使用通用 default.apk）。'}
+              ? '专属 APK 已就绪；每个应用使用独立包名，可与其他积木仓应用并存安装。'
+              : '专属安装包正在后台生成（独立包名），完成后此链接即可下载。'}
           </p>
         )}
       </div>

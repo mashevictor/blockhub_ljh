@@ -33,6 +33,8 @@ def get_app_by_public_id(db: Session, public_id: str) -> AppRecord | None:
 
 
 def app_record_to_dict(record: AppRecord) -> dict[str, Any]:
+    from app.services.apk_build_profiles import android_app_id_for_public_id
+
     return {
         "id": record.public_id,
         "name": record.name,
@@ -48,6 +50,7 @@ def app_record_to_dict(record: AppRecord) -> dict[str, Any]:
         "web_url": app_web_url(record.public_id),
         "download_url": app_download_url(record.public_id),
         "app_qr": app_qr_payload(record.public_id),
+        "android_app_id": android_app_id_for_public_id(record.public_id),
         "status": record.status,
         "created_at": record.created_at.isoformat() if record.created_at else "",
         "audience": record.audience,
