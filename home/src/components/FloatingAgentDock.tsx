@@ -468,8 +468,12 @@ export default function FloatingAgentDock({
 
   useEffect(() => {
     if (!expandSignal) return
-    expand({ snap: false, invokeOnExpand: false })
-  }, [expandSignal, expand])
+    if (!dockEnabled) {
+      setDockEnabled(true)
+      persistDockEnabled(true)
+    }
+    expand({ snap: snapBottomOnExpand, invokeOnExpand: false })
+  }, [expandSignal, expand, dockEnabled, persistDockEnabled, snapBottomOnExpand])
 
   const collapse = useCallback(() => {
     setCollapsed(true)
@@ -481,14 +485,17 @@ export default function FloatingAgentDock({
     else collapse()
   }, [collapsed, expand, collapse, snapBottomOnExpand])
 
-  const maybeExpandOnInput = useCallback(() => {
-    if (isCapsule && collapsed) expand({ snap: false, invokeOnExpand: false })
+  const maybeExpandOnInput = useCallback((target?: EventTarget | null) => {
+    if (!isCapsule || !collapsed) return
+    // 折叠条内专用输入框：保持折叠，允许直接打字
+    if (target instanceof Element && target.closest('.plaza-dock-collapsed-input-wrap')) return
+    expand({ snap: false, invokeOnExpand: false })
   }, [isCapsule, collapsed, expand])
 
   const onDockFocusIn = useCallback(
     (e: React.FocusEvent) => {
       if (!isCapsule || !collapsed) return
-      if (isInteractiveTarget(e.target)) maybeExpandOnInput()
+      if (isInteractiveTarget(e.target)) maybeExpandOnInput(e.target)
     },
     [isCapsule, collapsed, maybeExpandOnInput],
   )
@@ -690,7 +697,7 @@ export default function FloatingAgentDock({
         role="complementary"
         aria-label={ariaLabel}
         onFocusCapture={onDockFocusIn}
-        onInputCapture={maybeExpandOnInput}
+        onInputCapture={(e) => maybeExpandOnInput(e.target)}
       >
         <div className="floating-agent-dock-frame">
           <div

@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, type MouseEvent } from 'react'
 import type { StoredMyApp } from '../../lib/myAppsStorage'
 import { useApkBuildProgress } from '../../hooks/useApkBuildProgress'
 import { usePlazaFlowRun } from '../../context/PlazaFlowRunContext'
+import { usePlazaFocus } from '../../context/PlazaFocusContext'
 import { runPhaseUi } from './PlazaRunControls'
 import DeliveryProgress from '../DeliveryProgress'
 
@@ -9,6 +10,9 @@ interface Props {
   app: StoredMyApp
   isNew?: boolean
   isFocused?: boolean
+  /** 紧凑：状态点 +「已就绪」跟在应用名后 */
+  inline?: boolean
+  onFocusApp?: () => void
   onOpenDetail?: () => void
 }
 
@@ -46,14 +50,26 @@ function runVariantFromBadge(badgeClass: string): string {
   }
 }
 
-export default function PlazaAppStatusButton({ app, isNew = false, isFocused = false, onOpenDetail }: Props) {
+export default function PlazaAppStatusButton({
+  app,
+  isNew = false,
+  isFocused = false,
+  inline = false,
+  onFocusApp,
+  onOpenDetail,
+}: Props) {
   const [open, setOpen] = useState(false)
+  const [pendingTrial, setPendingTrial] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
   const delivery = useApkBuildProgress(app)
   const run = usePlazaFlowRun()
+  const { requestDockExpand } = usePlazaFocus()
 
-  const runActive = isFocused && (run.phase === 'running' || run.phase === 'paused')
-  const runUi = runActive
+  const runLive = isFocused && (
+    run.phase === 'running' || run.phase === 'paused'
+    || run.phase === 'completed' || run.phase === 'error' || run.phase === 'stopped'
+  )
+  const runUi = runLive
     ? runPhaseUi(run.phase, run.stepIndex, run.steps.length)
     : null
 
@@ -62,59 +78,154 @@ export default function PlazaAppStatusButton({ app, isNew = false, isFocused = f
     [app, isNew, delivery],
   )
 
-  const display = runUi && runActive
-    ? { variant: runVariantFromBadge(runUi.badgeClass), label: runUi.badge, sub: '试运营' }
+  const display = runUi && runLive
+    ? {
+        variant: runVariantFromBadge(runUi.badgeClass),
+        label: runUi.badge,
+        sub: run.phase === 'running' || run.phase === 'paused' ? '试运营' : '',
+      }
     : deliveryStatus
-
-  /** 试运营中：折叠悬浮条已有暂停/停止，勿再弹状态浮层 */
-  const skipPopover = runActive
 
   useEffect(() => {
     if (!open) return
-    if (skipPopover) {
-      setOpen(false)
-      return
-    }
-    const onDoc = (e: MouseEvent) => {
+    const onDoc = (e: globalThis.MouseEvent) => {
       if (!rootRef.current?.contains(e.target as Node)) setOpen(false)
     }
     document.addEventListener('mousedown', onDoc)
     return () => document.removeEventListener('mousedown', onDoc)
-  }, [open, skipPopover])
+  }, [open])
+
+  useEffect(() => {
+    if (!isFocused || !pendingTrial) return
+    setPendingTrial(false)
+    const phase = run.phase
+    if (phase === 'idle') {
+      run.enterRunMode()
+      run.start()
+    } else if (phase === 'running') {
+      run.pause()
+    } else if (phase === 'paused') {
+      run.resume()
+    } else if (phase === 'stopped' || phase === 'completed' || phase === 'error') {
+      run.retry()
+    }
+  }, [isFocused, pendingTrial, run])
+
+  const focusAndExpand = () => {
+    onFocusApp?.()
+    requestDockExpand()
+  }
+
+  const handleStatusClick = (e: MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    focusAndExpand()
+    setOpen((v) => !v)
+  }
+
+  const handleTrial = (e: MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    focusAndExpand()
+    if (!isFocused) {
+      setPendingTrial(true)
+      return
+    }
+    const phase = run.phase
+    if (phase === 'idle') {
+      run.enterRunMode()
+      run.start()
+      return
+    }
+    if (phase === 'running') {
+      run.pause()
+      return
+    }
+    if (phase === 'paused') {
+      run.resume()
+      return
+    }
+    if (phase === 'stopped' || phase === 'completed' || phase === 'error') {
+      run.retry()
+    }
+  }
+
+  const handleStop = (e: MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    focusAndExpand()
+    run.stop()
+    run.enterEditMode()
+  }
+
+  const trialLabel =
+    !isFocused || run.phase === 'idle'
+      ? '试运营'
+      : run.phase === 'running'
+        ? '暂停'
+        : run.phase === 'paused'
+          ? '继续'
+          : run.phase === 'stopped' || run.phase === 'completed' || run.phase === 'error'
+            ? '再试'
+            : '试运营'
+
+  const showStop = isFocused && (run.phase === 'running' || run.phase === 'paused')
 
   return (
-    <div ref={rootRef} className={`plaza-app-status-wrap${open ? ' is-open' : ''}`}>
+    <div
+      ref={rootRef}
+      className={`plaza-app-status-wrap${open ? ' is-open' : ''}${inline ? ' is-inline' : ''}`}
+    >
       <button
         type="button"
-        className={`plaza-app-status-btn variant-${display.variant}${skipPopover ? ' is-run-live' : ''}`}
-        aria-expanded={skipPopover ? undefined : open}
-        title={skipPopover ? '试运营进行中 · 请在底部悬浮条暂停/停止' : undefined}
-        onClick={(e) => {
-          e.stopPropagation()
-          if (skipPopover) return
-          setOpen((v) => !v)
-        }}
+        className={`plaza-app-status-btn variant-${display.variant}${inline ? ' is-inline' : ''}`}
+        aria-expanded={open}
+        title="查看状态"
+        onClick={handleStatusClick}
       >
         <span className="plaza-app-status-dot" aria-hidden />
         <span className="plaza-app-status-text">
           <strong>{display.label}</strong>
-          <em>{display.sub}</em>
+          {!inline && display.sub ? <em>{display.sub}</em> : null}
         </span>
       </button>
 
-      {open && !skipPopover && (
+      <button
+        type="button"
+        className="plaza-app-trial-btn"
+        title="在列表中切换试运营状态"
+        onClick={handleTrial}
+      >
+        {trialLabel === '试运营' || trialLabel === '继续' || trialLabel === '再试' ? '▶ ' : '⏸ '}
+        {trialLabel}
+      </button>
+
+      {showStop && (
+        <button
+          type="button"
+          className="plaza-app-trial-btn is-stop"
+          title="停止试运营"
+          onClick={handleStop}
+        >
+          ⏹ 停止
+        </button>
+      )}
+
+      {open && (
         <div className="plaza-app-status-popover" role="dialog" aria-label={`${app.appName} 状态`}>
           <DeliveryProgress app={app} compact />
+          <p className="plaza-app-status-hint">可在此切换试运营，或打开底部工作台继续编排</p>
           {onOpenDetail && (
             <button
               type="button"
               className="btn-ghost-sm plaza-app-status-detail"
-              onClick={() => {
+              onClick={(e) => {
+                e.stopPropagation()
                 setOpen(false)
                 onOpenDetail()
               }}
             >
-              查看交付与编排
+              进入全屏编排
             </button>
           )}
         </div>

@@ -1,11 +1,12 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { ModuleFlowStep } from '../../lib/plazaModuleFlow'
 import { FLOW_EGRESS_ID, FLOW_INGRESS_ID } from '../../lib/plazaModuleFlow'
 import { getModuleCapability, type ModuleCapability } from '../../data/moduleCatalog'
 import type { FlowApiNode } from '../../lib/flowModuleApis'
 import { usePlazaFlowRun } from '../../context/PlazaFlowRunContext'
+import { usePlazaFocus } from '../../context/PlazaFocusContext'
 import FlowApiEndpointRow from './FlowApiEndpointRow'
-import FlowBizCommandInput from './FlowBizCommandInput'
+import FlowBizCommandInput, { type FlowBizCommandHandle } from './FlowBizCommandInput'
 import PlazaChevTrigger from './PlazaChevTrigger'
 import type { PlazaChevAction } from './PlazaChevMenu'
 
@@ -56,6 +57,8 @@ export default function FlowOrchestrationDock({
   onOpenNodeByLabel,
 }: Props) {
   const run = usePlazaFlowRun()
+  const { registerCommandRunner } = usePlazaFocus()
+  const cmdRef = useRef<FlowBizCommandHandle>(null)
   const [testInputTrigger, setTestInputTrigger] = useState(0)
   const [testOutputTrigger, setTestOutputTrigger] = useState(0)
   const [localAnalysis, setLocalAnalysis] = useState('')
@@ -63,6 +66,13 @@ export default function FlowOrchestrationDock({
   const canEdit = isCreator && run.canEdit
   const canTest = isCreator && run.canTestApi
   const mutateLocked = isCreator && !run.canEdit
+
+  useEffect(() => {
+    registerCommandRunner((cmd) => {
+      cmdRef.current?.execute(cmd)
+    })
+    return () => registerCommandRunner(null)
+  }, [registerCommandRunner])
 
   const isIngress = activeNodeId === FLOW_INGRESS_ID
   const isEgress = activeNodeId === FLOW_EGRESS_ID
@@ -173,6 +183,7 @@ export default function FlowOrchestrationDock({
 
       {/* 业务输入始终保留；运行锁定仍可问答/停止，改模块/测接口需就绪 */}
       <FlowBizCommandInput
+        ref={cmdRef}
         disabled={!isCreator}
         mutateLocked={mutateLocked}
         availableModules={availableModules}

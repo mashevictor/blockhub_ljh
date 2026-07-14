@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAgentPageContext } from '../../context/AgentPageContext'
 import { useFloatingDock } from '../../context/FloatingDockContext'
@@ -19,12 +19,14 @@ function PlazaFocusDockBody({
   menuOpen,
   setMenuOpen,
   onOrchestration,
+  pageResetSignal,
 }: {
   focus: PlazaFocusTarget
   moduleLabels: string[]
   menuOpen: boolean
   setMenuOpen: (v: boolean | ((prev: boolean) => boolean)) => void
   onOrchestration: (appKey: string) => void
+  pageResetSignal: number
 }) {
   const dock = useFloatingDock()
   const openApp = () => window.open(focus.webUrl, '_blank', 'noopener,noreferrer')
@@ -124,6 +126,7 @@ function PlazaFocusDockBody({
             appName={focus.appName}
             moduleLabels={moduleLabels}
             isCreator={Boolean(focus.isCreator)}
+            pageResetSignal={pageResetSignal}
           />
         ) : (
           <p className="plaza-dual-rail-empty">暂无模块信息，请从「我的应用」进入全屏编排</p>
@@ -143,8 +146,14 @@ function PlazaFocusDockBody({
 export default function PlazaFloatingAgent() {
   const { contextKey } = useAgentPageContext()
   const copy = AGENT_CONTEXTS[contextKey]
-  const { focus, requestOrchestration } = usePlazaFocus()
+  const { focus, requestOrchestration, dockExpandSignal } = usePlazaFocus()
   const [menuOpen, setMenuOpen] = useState(false)
+  const [pageResetSignal, setPageResetSignal] = useState(0)
+
+  useEffect(() => {
+    if (!dockExpandSignal) return
+    setPageResetSignal((n) => n + 1)
+  }, [dockExpandSignal])
 
   const collapsedHint = useMemo(() => {
     if (focus) return `${focus.appName} · ${focus.moduleCount} 项`
@@ -178,6 +187,8 @@ export default function PlazaFloatingAgent() {
       collapseToggleInTail
       snapBottomOnExpand
       defaultExpanded={false}
+      expandSignal={dockExpandSignal}
+      onExpand={() => setPageResetSignal((n) => n + 1)}
     >
       {focus ? (
         <PlazaFocusDockBody
@@ -186,6 +197,7 @@ export default function PlazaFloatingAgent() {
           menuOpen={menuOpen}
           setMenuOpen={setMenuOpen}
           onOrchestration={requestOrchestration}
+          pageResetSignal={pageResetSignal}
         />
       ) : (
         <Link to={`${ROUTES.home}#contact`} className="plaza-floating-agent-link">

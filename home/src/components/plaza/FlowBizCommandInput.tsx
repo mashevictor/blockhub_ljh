@@ -1,6 +1,10 @@
-import { useMemo, useState } from 'react'
+import { forwardRef, useImperativeHandle, useMemo, useState } from 'react'
 import type { ModuleCapability } from '../../data/moduleCatalog'
 import { buildApiCurl, type FlowApiEndpoint } from '../../lib/flowModuleApis'
+
+export interface FlowBizCommandHandle {
+  execute: (raw: string) => void
+}
 
 export type BizCommandKind =
   | 'insert'
@@ -129,7 +133,7 @@ function answerAsk(opts: {
   return null
 }
 
-export default function FlowBizCommandInput({
+const FlowBizCommandInput = forwardRef<FlowBizCommandHandle, Props>(function FlowBizCommandInput({
   mutateLocked = false,
   disabled = false,
   availableModules,
@@ -148,8 +152,8 @@ export default function FlowBizCommandInput({
   onStartTrial,
   onStopTrial,
   onPauseTrial,
-  placeholder = '>> 问项目 / 打开模块 / 测试 IN · 或点下方话术',
-}: Props) {
+  placeholder = '>> 询问应用、打开能力，或点下方常用指令',
+}, ref) {
   const [value, setValue] = useState('')
   const [menuOpen, setMenuOpen] = useState(false)
   const [hint, setHint] = useState('')
@@ -329,6 +333,27 @@ export default function FlowBizCommandInput({
     finish('已理解并回答')
   }
 
+  useImperativeHandle(ref, () => ({ execute: run }), [
+    disabled,
+    mutateLocked,
+    availableModules,
+    allNodeLabels,
+    flowLabels,
+    activeNodeLabel,
+    activeApiSide,
+    appName,
+    inputApi,
+    outputApi,
+    onInsert,
+    onInvoke,
+    onAnalyze,
+    onNote,
+    onOpenNode,
+    onStartTrial,
+    onStopTrial,
+    onPauseTrial,
+  ])
+
   return (
     <div className={`plaza-biz-cmd${mutateLocked ? ' is-locked' : ''}${disabled ? ' is-disabled' : ''}`}>
       {!disabled && (
@@ -417,4 +442,6 @@ export default function FlowBizCommandInput({
       )}
     </div>
   )
-}
+})
+
+export default FlowBizCommandInput

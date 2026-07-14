@@ -141,10 +141,10 @@ export default function PlazaMyAppsPage() {
         <div>
           <h1><span className="plaza-mflow-chev chev-hero" aria-hidden>&gt;&gt;</span> 我的应用</h1>
           <p className="plaza-my-head-sub plaza-my-head-sub--full">
-            点卡片切换底部 <span className="plaza-mflow-chev">&gt;&gt;</span> 悬浮框 · 双轨默认各 5 条可懒加载 · 话术指令即执行 · 「编排」开全屏
+            点选应用，在底部工作台继续编排与试运营；需要完整视图时点「编排」
           </p>
           <p className="plaza-my-head-sub plaza-my-head-sub--short">
-            点卡片开底部 <span className="plaza-mflow-chev">&gt;&gt;</span> · 双轨 + 指令
+            点选应用，在底部工作台继续编排
           </p>
         </div>
         <Link to={ROUTES.home} className="plaza-my-create-btn">+ 继续创建</Link>
@@ -192,21 +192,18 @@ export default function PlazaMyAppsPage() {
                     size={44}
                   />
                   <div className="plaza-my-card-main">
-                    <strong>{app.appName}</strong>
+                    <div className="plaza-my-card-title-row" onClick={(e) => e.stopPropagation()}>
+                      <strong>{app.appName}</strong>
+                      <PlazaAppStatusButton
+                        app={app}
+                        isNew={isNew}
+                        inline
+                        isFocused={Boolean(focusApp && appKey(focusApp) === key)}
+                        onFocusApp={() => setFocusKey(key)}
+                        onOpenDetail={() => openOrchestration(app)}
+                      />
+                    </div>
                     <span className="plaza-my-card-meta">{statusLine(app, isNew)}</span>
-                    {focusApp && appKey(focusApp) === key && (
-                      <span className="plaza-my-card-dock-hint">
-                        <span className="plaza-mflow-chev">&gt;&gt;</span> 底部悬浮框已切换到此应用
-                      </span>
-                    )}
-                  </div>
-                  <div className="plaza-my-card-status" onClick={(e) => e.stopPropagation()}>
-                    <PlazaAppStatusButton
-                      app={app}
-                      isNew={isNew}
-                      isFocused={Boolean(focusApp && appKey(focusApp) === key)}
-                      onOpenDetail={() => openOrchestration(app)}
-                    />
                   </div>
                   <div className="plaza-my-card-actions" onClick={(e) => e.stopPropagation()}>
                     <PlazaPublishButton app={app} />

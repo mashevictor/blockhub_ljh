@@ -249,11 +249,11 @@ export default function PlazaFeedPage() {
       </div>
 
       <p className="plaza-main-hint plaza-main-hint--full">
-        浏览 <strong>@公开</strong> 应用；点卡片看双轨编排（默认各 5 条懒加载），下方可用设计/开发/测试话术指令即执行；底部悬浮框同步当前应用。
+        浏览大家公开的应用；点选后可在下方查看能力与数据编排，并在底部工作台继续试运营。
         {loading && <span> · 加载中…</span>}
       </p>
       <p className="plaza-main-hint plaza-main-hint--short">
-        <strong>@公开</strong> · 点卡片开双轨 + 指令
+        点选公开应用，查看编排并试运营
         {loading && <span> · 加载中…</span>}
       </p>
 

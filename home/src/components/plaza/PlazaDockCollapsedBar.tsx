@@ -1,7 +1,7 @@
-import { useMemo } from 'react'
+import { useState, type KeyboardEvent, type MouseEvent } from 'react'
 import { useFloatingDock } from '../../context/FloatingDockContext'
 import { usePlazaFlowRun, type PlazaRunPhase } from '../../context/PlazaFlowRunContext'
-import type { PlazaFocusTarget } from '../../context/PlazaFocusContext'
+import { usePlazaFocus, type PlazaFocusTarget } from '../../context/PlazaFocusContext'
 import { usePlazaChevActions } from '../../hooks/usePlazaChevActions'
 import PlazaChevTrigger from './PlazaChevTrigger'
 import PlazaRunControls, { runPhaseUi } from './PlazaRunControls'
@@ -25,17 +25,39 @@ export default function PlazaDockCollapsedBar({
 }: Props) {
   const dock = useFloatingDock()
   const run = usePlazaFlowRun()
+  const { runCommand } = usePlazaFocus()
   const chevActions = usePlazaChevActions(focus, { onOpenApp, onFullscreen, onCopyLink })
+  const [cmd, setCmd] = useState('')
 
-  const summary = useMemo(() => {
-    if (run.phase === 'idle') {
-      return `${focus.appName} · ${focus.moduleCount} 项 · 就绪`
+  const submit = () => {
+    const text = cmd.trim()
+    if (!text) return
+    const stayCollapsed = /^(停止试运营|停止运行|先停一下|停止|暂停|开始试运营|试运营验收|跑一遍)$/.test(
+      text.replace(/^>+\s*/, ''),
+    )
+    if (!stayCollapsed) dock?.expand()
+    runCommand(text.startsWith('>>') ? text : `>> ${text}`)
+    setCmd('')
+  }
+
+  const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    e.stopPropagation()
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      submit()
     }
-    return run.progressLabel
-  }, [run.phase, run.progressLabel, focus.appName, focus.moduleCount])
+    if (e.key === 'Escape') {
+      e.preventDefault()
+      setCmd('')
+    }
+  }
+
+  const stopDragBubble = (e: MouseEvent) => {
+    e.stopPropagation()
+  }
 
   return (
-    <div className="plaza-dock-collapsed-bar is-dock-drag-surface" aria-label="编排执行状态">
+    <div className="plaza-dock-collapsed-bar is-dock-drag-surface" aria-label="工作台指令">
       <div className="plaza-dock-collapsed-main">
         <PlazaChevTrigger actions={chevActions} />
 
@@ -43,21 +65,44 @@ export default function PlazaDockCollapsedBar({
 
         <button
           type="button"
-          className="plaza-dock-collapsed-text"
+          className="plaza-dock-collapsed-app"
           onClick={() => {
-            /* 执行中/暂停：折叠条已有暂停停止，不必展开整框 */
             if (run.phase === 'running' || run.phase === 'paused') return
             dock?.expand()
           }}
-          title={
-            run.phase === 'running' || run.phase === 'paused'
-              ? '试运营进行中 · 使用右侧暂停/停止'
-              : '展开查看双轨编排'
-          }
+          title={focus.appName}
         >
-          <strong>{focus.appName}</strong>
-          <span>{summary}</span>
+          {focus.appName}
         </button>
+
+        <div
+          className="plaza-dock-collapsed-input-wrap"
+          onPointerDown={stopDragBubble}
+          onClick={stopDragBubble}
+        >
+          <span className="plaza-dock-collapsed-chev" aria-hidden>&gt;&gt;</span>
+          <input
+            type="text"
+            className="plaza-dock-collapsed-input"
+            value={cmd}
+            placeholder="输入指令或提问，回车执行…"
+            aria-label="折叠态业务指令输入"
+            onChange={(e) => setCmd(e.target.value)}
+            onKeyDown={onKeyDown}
+            onFocus={(e) => e.stopPropagation()}
+          />
+          <button
+            type="button"
+            className="plaza-dock-collapsed-go"
+            disabled={!cmd.trim()}
+            onClick={(e) => {
+              e.stopPropagation()
+              submit()
+            }}
+          >
+            执行
+          </button>
+        </div>
 
         <PlazaRunControls compact showBadge={false} />
       </div>

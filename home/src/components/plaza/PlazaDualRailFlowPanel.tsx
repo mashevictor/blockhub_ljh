@@ -38,6 +38,8 @@ interface Props {
   isCreator: boolean
   /** 页内嵌入（广场 feed / 全屏）时显示顶栏模式切换 */
   embedded?: boolean
+  /** 底部工作台从折叠展开时递增，左右轨重置为前 5 项 */
+  pageResetSignal?: number
 }
 
 function FuncNode({
@@ -156,6 +158,7 @@ export default function PlazaDualRailFlowPanel({
   moduleLabels,
   isCreator,
   embedded = false,
+  pageResetSignal = 0,
 }: Props) {
   const [flow, setFlow] = useState<AppModuleFlow>(() => loadModuleFlow(appKey, moduleLabels))
   const run = usePlazaFlowRun()
@@ -172,7 +175,6 @@ export default function PlazaDualRailFlowPanel({
   const [overIndex, setOverIndex] = useState<number | null>(null)
   const overIndexRef = useRef<number | null>(null)
   const dragPointerIdRef = useRef<number | null>(null)
-  const lazySentinelRef = useRef<HTMLDivElement>(null)
   const [apiNodes, setApiNodes] = useState<Map<string, FlowApiNode>>(() => {
     const fp = flowStepsFingerprint(loadModuleFlow(appKey, moduleLabels).steps)
     const cached = loadCachedFlowApis(appKey, fp)
@@ -201,6 +203,12 @@ export default function PlazaDualRailFlowPanel({
     setDataVisible(DATA_PAGE)
     setFuncVisible(DATA_PAGE)
   }, [appKey, moduleLabels.join('|')])
+
+  useEffect(() => {
+    if (!pageResetSignal) return
+    setDataVisible(DATA_PAGE)
+    setFuncVisible(DATA_PAGE)
+  }, [pageResetSignal])
 
   useEffect(() => {
     const fp = flowStepsFingerprint(flow.steps)
@@ -267,21 +275,34 @@ export default function PlazaDualRailFlowPanel({
 
   const dockRef = useRef<HTMLDivElement>(null)
 
+  const funcChain = useMemo(() => {
+    return [
+      { kind: 'ingress' as const, id: FLOW_INGRESS_ID, label: '📥 用户意图', sub: '业务请求进入', stepIndex: -1 },
+      ...flow.steps.map((s, i) => ({
+        kind: 'step' as const,
+        id: s.id,
+        label: s.label,
+        sub: getModuleCapability(s.label)?.desc ?? s.note,
+        stepIndex: i,
+      })),
+      { kind: 'egress' as const, id: FLOW_EGRESS_ID, label: '📤 网页 + App', sub: '触达输出', stepIndex: -1 },
+    ]
+  }, [flow.steps])
+
+  const visibleFuncNodes = funcChain.slice(0, funcVisible)
+  const funcRemaining = Math.max(0, funcChain.length - funcVisible)
+
   const selectNode = (nodeId: string, side: 'input' | 'output' = 'input') => {
     setActiveNodeId(nodeId)
     setActiveApiSide(side)
     setEditingId(null)
     setPickerAfterStepId(null)
-    const stepIdx = flow.steps.findIndex((s) => s.id === nodeId)
-    if (stepIdx >= 0) {
-      setFuncVisible((n) => Math.max(n, Math.min(flow.steps.length, stepIdx + 1)))
+    const chainIdx = funcChain.findIndex((n) => n.id === nodeId)
+    if (chainIdx >= 0) {
+      const need = Math.min(funcChain.length, chainIdx + 1)
+      setFuncVisible((n) => Math.max(n, need))
+      setDataVisible((n) => Math.max(n, need))
     }
-    // 数据轨含 ingress + steps + egress
-    let dataIdx = 0
-    if (nodeId === FLOW_INGRESS_ID) dataIdx = 0
-    else if (nodeId === FLOW_EGRESS_ID) dataIdx = flow.steps.length + 1
-    else if (stepIdx >= 0) dataIdx = stepIdx + 1
-    setDataVisible((n) => Math.max(n, Math.min(flow.steps.length + 2, dataIdx + 1)))
     requestAnimationFrame(() => {
       dockRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
     })
@@ -337,21 +358,6 @@ export default function PlazaDualRailFlowPanel({
   const visibleDataRows = dataRows.slice(0, dataVisible)
   const dataRemaining = Math.max(0, dataRows.length - dataVisible)
 
-  useEffect(() => {
-    const el = lazySentinelRef.current
-    if (!el || dataRemaining <= 0) return
-    const io = new IntersectionObserver(
-      (entries) => {
-        if (entries.some((e) => e.isIntersecting)) {
-          setDataVisible((n) => Math.min(n + DATA_PAGE, dataRows.length))
-        }
-      },
-      { root: null, rootMargin: '40px', threshold: 0.1 },
-    )
-    io.observe(el)
-    return () => io.disconnect()
-  }, [dataRemaining, dataRows.length])
-
   const activeApiNode = activeNodeId ? apiNodes.get(activeNodeId) ?? null : null
 
   const startEdit = () => {
@@ -391,73 +397,69 @@ export default function PlazaDualRailFlowPanel({
       <div className="plaza-dual-rail-grid">
         <div className="plaza-dual-rail-col">
           <div className="plaza-dual-rail-col-head">
-            <span className="plaza-mflow-chev">&gt;&gt;</span> 功能编排轨
+            <span className="plaza-mflow-chev">&gt;&gt;</span> 功能编排
             <span className="plaza-dual-rail-col-hint">
               {run.phase === 'running'
-                ? '执行中'
+                ? '试运营中'
                 : run.phase === 'paused'
                   ? '已暂停'
                   : isCreator
-                    ? `默认 ${DATA_PAGE} · ⠿ 可拖序`
-                    : '只读 · 点击查看'}
+                    ? `先看前 ${DATA_PAGE} 项 · 可拖动排序`
+                    : '点选查看'}
             </span>
           </div>
           <div className="plaza-dual-rail-stack">
-            <FuncNode
-              id={FLOW_INGRESS_ID}
-              label="📥 用户意图"
-              sub="业务请求进入"
-              active={activeNodeId === FLOW_INGRESS_ID}
-              running={runningNodeId === FLOW_INGRESS_ID}
-              onSelect={() => selectNode(FLOW_INGRESS_ID, 'input')}
-            />
-            {flow.steps.slice(0, funcVisible).map((step, i) => (
-              <div key={step.id} className="plaza-dual-rail-connector">
-                <span className="plaza-dual-rail-vline" aria-hidden />
-                <FuncNode
-                  id={step.id}
-                  label={step.label}
-                  sub={getModuleCapability(step.label)?.desc ?? step.note}
-                  active={activeNodeId === step.id}
-                  running={runningNodeId === step.id}
-                  draggable={isCreator && !(run.phase === 'running' || run.phase === 'paused')}
-                  isDragging={dragIndex === i}
-                  isDragOver={overIndex === i && dragIndex !== null && dragIndex !== i}
-                  stepIndex={i}
-                  onSelect={() => selectNode(step.id, 'input')}
-                  onGripDown={(e) => {
-                    if (!isCreator || run.phase === 'running' || run.phase === 'paused') return
-                    if (e.button !== 0) return
-                    e.preventDefault()
-                    e.stopPropagation()
-                    e.currentTarget.setPointerCapture(e.pointerId)
-                    dragPointerIdRef.current = e.pointerId
-                    setDragIndex(i)
-                    setOverIndex(i)
-                  }}
-                />
-              </div>
-            ))}
-            {flow.steps.length > funcVisible && (
+            {visibleFuncNodes.map((node, i) => {
+              const isStep = node.kind === 'step'
+              const stepIdx = isStep ? node.stepIndex : -1
+              return (
+                <div key={node.id} className="plaza-dual-rail-connector">
+                  {i > 0 && <span className="plaza-dual-rail-vline" aria-hidden />}
+                  <FuncNode
+                    id={node.id}
+                    label={node.label}
+                    sub={node.sub}
+                    active={activeNodeId === node.id}
+                    running={runningNodeId === node.id}
+                    draggable={
+                      isStep
+                      && isCreator
+                      && !(run.phase === 'running' || run.phase === 'paused')
+                    }
+                    isDragging={isStep && dragIndex === stepIdx}
+                    isDragOver={
+                      isStep
+                      && overIndex === stepIdx
+                      && dragIndex !== null
+                      && dragIndex !== stepIdx
+                    }
+                    stepIndex={isStep ? stepIdx : undefined}
+                    onSelect={() =>
+                      selectNode(node.id, node.kind === 'egress' ? 'output' : 'input')
+                    }
+                    onGripDown={(e) => {
+                      if (!isStep || !isCreator || run.phase === 'running' || run.phase === 'paused') return
+                      if (e.button !== 0) return
+                      e.preventDefault()
+                      e.stopPropagation()
+                      e.currentTarget.setPointerCapture(e.pointerId)
+                      dragPointerIdRef.current = e.pointerId
+                      setDragIndex(stepIdx)
+                      setOverIndex(stepIdx)
+                    }}
+                  />
+                </div>
+              )
+            })}
+            {funcRemaining > 0 && (
               <button
                 type="button"
                 className="plaza-dual-rail-load-more"
-                onClick={() => setFuncVisible((n) => Math.min(n + DATA_PAGE, flow.steps.length))}
+                onClick={() => setFuncVisible((n) => Math.min(n + DATA_PAGE, funcChain.length))}
               >
-                加载更多功能（剩余 {flow.steps.length - funcVisible}）
+                展开更多能力（还有 {funcRemaining} 项）
               </button>
             )}
-            <div className="plaza-dual-rail-connector">
-              <span className="plaza-dual-rail-vline" aria-hidden />
-              <FuncNode
-                id={FLOW_EGRESS_ID}
-                label="📤 网页 + App"
-                sub="触达输出"
-                active={activeNodeId === FLOW_EGRESS_ID}
-                running={runningNodeId === FLOW_EGRESS_ID}
-                onSelect={() => selectNode(FLOW_EGRESS_ID, 'output')}
-              />
-            </div>
           </div>
         </div>
 
@@ -472,8 +474,8 @@ export default function PlazaDualRailFlowPanel({
 
         <div className="plaza-dual-rail-col data-col">
           <div className="plaza-dual-rail-col-head">
-            <span className="plaza-mflow-chev">&gt;&gt;</span> 数据编排轨
-            <span className="plaza-dual-rail-col-hint">默认 {DATA_PAGE} 条 · 懒加载</span>
+            <span className="plaza-mflow-chev">&gt;&gt;</span> 数据编排
+            <span className="plaza-dual-rail-col-hint">先看前 {DATA_PAGE} 项 · 可继续展开</span>
           </div>
           <div className="plaza-dual-rail-stack">
             {visibleDataRows.map((row, i) => (
@@ -491,23 +493,21 @@ export default function PlazaDualRailFlowPanel({
               </div>
             ))}
             {dataRemaining > 0 && (
-              <>
-                <div ref={lazySentinelRef} className="plaza-dual-rail-lazy-sentinel" aria-hidden />
-                <button
-                  type="button"
-                  className="plaza-dual-rail-load-more"
-                  onClick={() => setDataVisible((n) => Math.min(n + DATA_PAGE, dataRows.length))}
-                >
-                  加载更多（剩余 {dataRemaining}）
-                </button>
-              </>
+              <button
+                type="button"
+                className="plaza-dual-rail-load-more"
+                onClick={() => setDataVisible((n) => Math.min(n + DATA_PAGE, dataRows.length))}
+              >
+                展开更多数据（还有 {dataRemaining} 项）
+              </button>
             )}
           </div>
         </div>
       </div>
 
       <p className="plaza-dual-rail-cross-hint">
-        ↔ 点左/右节点在下方编辑 · {canMutate ? '>> 插入/调用/分析' : '编排态才可改'}
+        点选左侧能力或右侧数据，在下方继续编辑与试运营
+        {canMutate ? ' · 也可用指令快速操作' : ''}
       </p>
 
       {editingId && activeStep && canMutate && (

@@ -5121,7 +5121,7 @@ body.modal-scroll-lock {
     color: var(--pri-dark);
   }
   .plaza-my-card { flex-wrap: wrap; align-items: flex-start; }
-  .plaza-my-card-status { margin-left: 0; width: 100%; order: 3; }
+  .plaza-my-card-title-row { width: 100%; }
   .plaza-my-card-actions {
     width: 100%;
     order: 4;
@@ -5192,11 +5192,90 @@ body.modal-scroll-lock {
   .plaza-main-hint--full { display: none; }
   .plaza-main-hint--short { display: block; }
   .plaza-main-head h1 { font-size: 18px; }
-  .plaza-app-status-btn { width: 100%; min-width: 0; }
+  .plaza-app-status-btn:not(.is-inline) { width: 100%; min-width: 0; }
+  .plaza-app-status-wrap.is-inline { width: 100%; }
+  .plaza-app-status-btn.is-inline { width: auto; }
   .plaza-app-status-popover { right: auto; left: 0; width: min(100%, calc(100vw - 48px)); }
   .plaza-feed-card { padding: 14px 12px; }
-  .plaza-page { padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px)); }
+  .plaza-page { padding-bottom: calc(140px + env(safe-area-inset-bottom, 0px)); }
   .plaza-site-footer { padding-bottom: env(safe-area-inset-bottom, 0px); }
+
+  /* 底部工作台 · 折叠条可输入 + 展开双轨 */
+  .plaza-dual-rail-dock.floating-agent-dock.is-collapsed,
+  .plaza-dual-rail-dock.floating-agent-dock.is-expanded {
+    left: 8px !important;
+    right: 8px !important;
+    width: calc(100vw - 16px) !important;
+    max-width: calc(100vw - 16px) !important;
+  }
+  .plaza-dual-rail-dock.floating-agent-dock.is-expanded {
+    bottom: env(safe-area-inset-bottom, 0px) !important;
+  }
+  .plaza-dual-rail-dock.floating-agent-dock.is-expanded .floating-agent-dock-body {
+    max-height: min(68vh, 560px);
+  }
+  .plaza-dock-collapsed-main {
+    flex-wrap: wrap;
+    gap: 6px;
+    row-gap: 8px;
+  }
+  .plaza-dock-collapsed-app {
+    max-width: 72px;
+    font-size: 11px;
+  }
+  .plaza-dock-collapsed-input-wrap {
+    flex: 1 1 100%;
+    order: 10;
+    min-width: 0;
+  }
+  .plaza-dock-collapsed-input {
+    font-size: 14px; /* 减少 iOS 自动放大 */
+    min-height: 28px;
+  }
+  .plaza-dual-rail-dock-toolbar {
+    gap: 4px;
+  }
+  .plaza-dual-rail-dock-toolbar-title {
+    flex: 1 1 100%;
+    font-size: 12px;
+    order: -1;
+  }
+  .plaza-dual-rail-dock-tools {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  .plaza-biz-cmd-chips {
+    max-height: 64px;
+  }
+  .plaza-biz-cmd-chip {
+    font-size: 10px;
+    padding: 3px 7px;
+  }
+  .plaza-my-card-title-row {
+    gap: 6px;
+  }
+  .plaza-app-trial-btn {
+    font-size: 10px;
+    padding: 4px 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .plaza-dock-collapsed-app { display: none; }
+  .plaza-dual-rail-col-hint { display: none; }
+  .plaza-dual-rail-dock .plaza-run-controls.compact .plaza-run-btn {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+  .plaza-orch-head-actions {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .plaza-orch-head-actions .btn-ghost,
+  .plaza-orch-head-actions .btn-primary {
+    font-size: 12px;
+    padding: 6px 10px;
+  }
 }
 .plaza-side h4, .plaza-right h4 { font-size: 11px; color: var(--muted); margin-bottom: 10px; text-transform: uppercase; letter-spacing: .04em; }
 .plaza-side a { display: block; padding: 8px 10px; border-radius: 8px; font-size: 12px; color: var(--text); text-decoration: none; margin-bottom: 4px; }
@@ -6425,6 +6504,8 @@ a.btn-my-apps:hover { border-color: var(--pri-light); color: var(--pri); }
   border: 1px solid var(--border);
   background: var(--surface);
   transition: border-color 0.15s, box-shadow 0.15s;
+  overflow: visible;
+  cursor: pointer;
 }
 .plaza-my-card:hover {
   border-color: color-mix(in srgb, var(--pri-light) 45%, var(--border));
@@ -6449,26 +6530,31 @@ a.btn-my-apps:hover { border-color: var(--pri-light); color: var(--pri); }
   color: var(--text);
   margin-bottom: 3px;
 }
+.plaza-my-card-title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 3px;
+}
+.plaza-my-card-title-row > strong {
+  margin-bottom: 0;
+}
 .plaza-my-card-meta {
   font-size: 12px;
   color: var(--muted);
   line-height: 1.4;
 }
-.plaza-my-card-dock-hint {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  margin-top: 4px;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--pri);
-}
-.plaza-my-card-status {
-  flex-shrink: 0;
-  margin-left: auto;
-}
 .plaza-app-status-wrap {
   position: relative;
+  z-index: 2;
+  pointer-events: auto;
+}
+.plaza-app-status-wrap.is-inline {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
 }
 .plaza-app-status-btn {
   display: inline-flex;
@@ -6483,6 +6569,38 @@ a.btn-my-apps:hover { border-color: var(--pri-light); color: var(--pri); }
   text-align: left;
   transition: border-color 0.15s, box-shadow 0.15s;
   min-width: 108px;
+  pointer-events: auto;
+  position: relative;
+  z-index: 1;
+}
+.plaza-app-status-btn.is-inline {
+  min-width: 0;
+  padding: 3px 8px;
+  border-radius: 999px;
+  gap: 6px;
+}
+.plaza-app-status-btn.is-inline .plaza-app-status-text strong {
+  font-size: 11px;
+}
+.plaza-app-trial-btn {
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid #6ee7b7;
+  background: #ecfdf5;
+  color: #047857;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.plaza-app-trial-btn:hover {
+  filter: brightness(0.98);
+}
+.plaza-app-trial-btn.is-stop {
+  border-color: #fecaca;
+  background: #fef2f2;
+  color: #b91c1c;
 }
 .plaza-app-status-btn:hover,
 .plaza-app-status-wrap.is-open .plaza-app-status-btn {
@@ -6539,10 +6657,14 @@ a.btn-my-apps:hover { border-color: var(--pri-light); color: var(--pri); }
 .plaza-app-status-btn.variant-run-running { border-color: #a7f3d0; background: #ecfdf5; }
 .plaza-app-status-btn.variant-run-paused { border-color: #fcd34d; background: #fffbeb; }
 .plaza-app-status-btn.is-run-live {
-  cursor: default;
+  cursor: pointer;
 }
-.plaza-app-status-btn.is-run-live:hover {
-  box-shadow: none;
+.plaza-app-status-hint {
+  margin: 8px 0 0;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--pri);
+  line-height: 1.4;
 }
 @keyframes plaza-status-pulse {
   0%, 100% { opacity: 1; transform: scale(1); }
@@ -6552,13 +6674,14 @@ a.btn-my-apps:hover { border-color: var(--pri-light); color: var(--pri); }
   position: absolute;
   top: calc(100% + 6px);
   right: 0;
-  z-index: 50;
+  z-index: 80;
   width: min(280px, calc(100vw - 32px));
   padding: 12px;
   border-radius: 12px;
   border: 1px solid var(--border);
   background: var(--surface);
   box-shadow: 0 12px 32px rgba(15, 23, 42, 0.14);
+  pointer-events: auto;
 }
 .plaza-app-status-run {
   display: flex;
@@ -7154,36 +7277,70 @@ body.plaza-orch-open .plaza-dual-rail-dock {
   0%, 100% { transform: scale(1); opacity: 1; }
   50% { transform: scale(1.15); opacity: 0.85; }
 }
-.plaza-dock-collapsed-text {
-  flex: 1 1 0;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 1px;
+.plaza-dock-collapsed-app {
+  flex: 0 1 auto;
+  max-width: 96px;
   border: none;
   background: transparent;
-  padding: 0;
-  cursor: pointer;
-  text-align: left;
-  font-family: inherit;
-}
-.plaza-dock-collapsed-text strong {
-  font-size: 13px;
+  padding: 0 2px;
+  font: inherit;
+  font-size: 12px;
   font-weight: 800;
   color: var(--text);
+  cursor: pointer;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 100%;
+  text-align: left;
 }
-.plaza-dock-collapsed-text span {
+.plaza-dock-collapsed-app:hover { color: var(--pri); }
+.plaza-dock-collapsed-input-wrap {
+  flex: 1 1 140px;
+  min-width: 120px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 6px;
+  border: 1.5px solid #93c5fd;
+  border-radius: 10px;
+  background: #f8fbff;
+}
+.plaza-dock-collapsed-chev {
+  font-family: ui-monospace, Consolas, monospace;
+  font-weight: 900;
+  font-size: 12px;
+  color: var(--pri);
+  letter-spacing: -2px;
+  flex-shrink: 0;
+}
+.plaza-dock-collapsed-input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font: inherit;
+  font-size: 12px;
+  color: var(--text);
+}
+.plaza-dock-collapsed-input::placeholder {
+  color: #94a3b8;
+}
+.plaza-dock-collapsed-go {
+  flex-shrink: 0;
+  border: none;
+  border-radius: 7px;
+  padding: 4px 8px;
+  font: inherit;
   font-size: 11px;
-  color: var(--muted);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 100%;
+  font-weight: 800;
+  background: var(--pri);
+  color: #fff;
+  cursor: pointer;
+}
+.plaza-dock-collapsed-go:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 .plaza-dock-run-controls {
   display: flex;
