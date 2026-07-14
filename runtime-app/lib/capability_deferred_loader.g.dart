@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:capability_shanghai_voice/capability_shanghai_voice.dart' deferred as def_voice;
 import 'package:capability_dashboard/capability_dashboard.dart' deferred as def_dashboard;
 
-const deferredCapabilityKeys = {
+const Set<String> deferredCapabilityKeys = {
   'announce_board',
   'chart_bar',
   'chart_dashboard',
