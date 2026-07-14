@@ -151,13 +151,15 @@ class ShanghaiVoiceService {
 
     final uri = normalizeWsUri(config.wsUrl, _branding.apiBaseUrl)
         .replace(queryParameters: {'session_id': sessionId});
-    _readyCompleter = Completer<void>();
     error = null;
     _setState('connecting');
 
     Object? lastError;
     for (var attempt = 1; attempt <= _maxConnectAttempts; attempt++) {
       _connectAttempt = attempt;
+      // 每次重试新建 completer，避免 tearDown 置空后出现 Null check
+      final ready = Completer<void>();
+      _readyCompleter = ready;
       try {
         _channel = await connectWebSocket(uri);
         _wsSub = _channel!.stream.listen(
@@ -166,16 +168,22 @@ class ShanghaiVoiceService {
             debugPrint('[voice] ws error: $e');
             error = e.toString();
             _setState('error');
+            if (!ready.isCompleted) {
+              ready.completeError(e);
+            }
             _scheduleReconnect();
           },
           onDone: () {
             debugPrint('[voice] ws closed');
             _channel = null;
             _setState('disconnected');
+            if (!ready.isCompleted) {
+              ready.completeError(StateError('ws closed before ready'));
+            }
             _scheduleReconnect();
           },
         );
-        await _readyCompleter!.future.timeout(const Duration(seconds: 20));
+        await ready.future.timeout(const Duration(seconds: 20));
         _connectAttempt = 0;
         return;
       } catch (e) {

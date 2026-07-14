@@ -28,7 +28,8 @@ class PcmStreamPlayer {
             isSpeakerphoneOn: true,
             stayAwake: true,
             contentType: AndroidContentType.speech,
-            usageType: AndroidUsageType.voiceCommunication,
+            // media 用途 + mediaPlayer 模式：Android 上 BytesSource 不支持 lowLatency
+            usageType: AndroidUsageType.media,
             audioFocus: AndroidAudioFocus.gain,
           ),
           iOS: AudioContextIOS(
@@ -37,7 +38,9 @@ class PcmStreamPlayer {
           ),
         ),
       );
-      await _player.setPlayerMode(PlayerMode.lowLatency);
+      // BytesSource 仅支持 mediaPlayer；lowLatency 会报
+      // "Bytes sources are not supported on LOW_LATENCY mode yet"
+      await _player.setPlayerMode(PlayerMode.mediaPlayer);
       _audioContextReady = true;
     } catch (e) {
       debugPrint('[tts] audio context setup failed: $e');
