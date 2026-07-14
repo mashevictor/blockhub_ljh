@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>双轨编排 · 状态切换 + UI 方案</title>
+  <style>
+    :root {
+      --bg: #eef2f7;
+      --surface: #fff;
+      --border: #dbeafe;
+      --pri: #0d47a1;
+      --pri-soft: #eaf2ff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --ok: #047857;
+      --warn: #b45309;
+      --danger: #b91c1c;
+      --run: #059669;
+      --pause: #d97706;
+      --stop: #64748b;
+      --sans: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      --mono: ui-monospace, Consolas, monospace;
+      --shadow: 0 10px 36px rgba(13, 71, 161, 0.12);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--sans); background: var(--bg); color: var(--text); line-height: 1.55; padding-bottom: 64px; }
+    .top {
+      position: sticky; top: 0; z-index: 40;
+      background: #0f172a; color: #e2e8f0; padding: 14px 18px;
+      box-shadow: 0 4px 24px rgba(0,0,0,.25);
+    }
+    .top h1 { font-size: 16px; font-weight: 800; margin-bottom: 4px; }
+    .top p { font-size: 12px; opacity: .78; max-width: 960px; }
+    .tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .tab {
+      border: 1px solid rgba(255,255,255,.2); background: rgba(255,255,255,.06);
+      color: #e2e8f0; border-radius: 999px; padding: 7px 12px; font: inherit;
+      font-size: 12px; font-weight: 700; cursor: pointer;
+    }
+    .tab.on { background: #1976d2; border-color: #60a5fa; }
+    .page { max-width: 1100px; margin: 0 auto; padding: 18px 14px; }
+    .panel { display: none; }
+    .panel.on { display: block; }
+    .card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+      box-shadow: var(--shadow); overflow: hidden; margin-bottom: 16px;
+    }
+    .card-h {
+      padding: 14px 16px; border-bottom: 1px solid var(--border);
+      background: linear-gradient(180deg, #f8fbff, #fff);
+    }
+    .card-h h2 { font-size: 17px; font-weight: 800; }
+    .card-h p { font-size: 13px; color: var(--muted); margin-top: 4px; }
+    .card-b { padding: 16px; }
+    .rule {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;
+    }
+    @media (max-width: 720px) { .rule { grid-template-columns: 1fr; } }
+    .rule-box {
+      border-radius: 12px; padding: 12px 14px; border: 1px solid var(--border);
+    }
+    .rule-box.lock { background: #fff7ed; border-color: #fdba74; }
+    .rule-box.edit { background: #ecfdf5; border-color: #6ee7b7; }
+    .rule-box h3 { font-size: 13px; font-weight: 800; margin-bottom: 6px; }
+    .rule-box ul { margin-left: 16px; font-size: 12px; color: var(--muted); }
+    .rule-box li + li { margin-top: 4px; }
+
+    /* state machine interactive */
+    .fsm {
+      display: grid; grid-template-columns: 1.1fr .9fr; gap: 14px;
+    }
+    @media (max-width: 860px) { .fsm { grid-template-columns: 1fr; } }
+    .phases { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+    .phase-btn {
+      border: 1px solid var(--border); background: #fff; border-radius: 10px;
+      padding: 8px 10px; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer;
+    }
+    .phase-btn.on-idle { outline: 2px solid #94a3b8; }
+    .phase-btn.on-running { outline: 2px solid #10b981; }
+    .phase-btn.on-paused { outline: 2px solid #f59e0b; }
+    .phase-btn.on-stopped { outline: 2px solid #64748b; }
+    .phase-btn.on-completed { outline: 2px solid #0ea5e9; }
+    .phase-btn.on-error { outline: 2px solid #ef4444; }
+    .phase-btn.active { background: var(--pri-soft); border-color: #93c5fd; }
+    .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+    .btn {
+      border-radius: 8px; border: 1px solid var(--border); background: #fff;
+      padding: 7px 12px; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer;
+    }
+    .btn:disabled { opacity: .4; cursor: not-allowed; }
+    .btn.start { background: #ecfdf5; border-color: #6ee7b7; color: var(--ok); }
+    .btn.pause { background: #fffbeb; border-color: #fcd34d; color: var(--warn); }
+    .btn.resume { background: #ecfdf5; border-color: #6ee7b7; color: var(--ok); }
+    .btn.stop { background: #f1f5f9; border-color: #cbd5e1; color: #334155; }
+    .btn.reset { background: #eff6ff; border-color: #93c5fd; color: var(--pri); }
+    .status-banner {
+      border-radius: 10px; padding: 10px 12px; font-size: 12px; font-weight: 700; margin-bottom: 10px;
+    }
+    .status-banner.editable { background: #ecfdf5; color: var(--ok); border: 1px solid #a7f3d0; }
+    .status-banner.locked { background: #fff7ed; color: var(--warn); border: 1px solid #fdba74; }
+    .capability {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;
+    }
+    .cap {
+      border: 1px solid var(--border); border-radius: 10px; padding: 10px;
+      font-size: 12px; background: #f8fafc;
+    }
+    .cap strong { display: block; margin-bottom: 4px; }
+    .cap.yes { border-color: #6ee7b7; background: #ecfdf5; }
+    .cap.no { border-color: #fecaca; background: #fef2f2; opacity: .85; }
+    .cap .flag { font-weight: 800; }
+    .cap.yes .flag { color: var(--ok); }
+    .cap.no .flag { color: var(--danger); }
+
+    .mermaid-lite {
+      font-family: var(--mono); font-size: 11px; white-space: pre; background: #0f172a;
+      color: #e2e8f0; border-radius: 12px; padding: 14px; overflow: auto; line-height: 1.45;
+    }
+
+    /* mock dock */
+    .mock {
+      border: 2px solid #93c5fd; border-radius: 14px; overflow: hidden; background: #fff;
+    }
+    .chrome {
+      display: flex; align-items: center; gap: 8px; padding: 8px 10px;
+      background: #f8fafc; border-bottom: 1px solid var(--border); min-height: 44px;
+    }
+    .caret {
+      width: 28px; height: 28px; border-radius: 8px; border: 1px solid var(--border);
+      display: inline-flex; align-items: center; justify-content: center; background: #fff;
+      color: var(--muted); font-size: 12px; flex-shrink: 0; cursor: pointer;
+    }
+    .chev { font-family: var(--mono); font-weight: 900; color: var(--pri); letter-spacing: -2px; }
+    .brand { display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1; font-weight: 800; font-size: 13px; }
+    .brand span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .toolbar {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
+      padding: 8px 10px; border-bottom: 1px solid var(--border);
+    }
+    .toolbar .title { flex: 1; min-width: 70px; font-size: 12px; font-weight: 800; }
+    .pill {
+      font-size: 10px; font-weight: 800; padding: 4px 8px; border-radius: 999px; white-space: nowrap;
+    }
+    .pill.run { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
+    .pill.pause { background: #fffbeb; color: #b45309; border: 1px solid #fcd34d; }
+    .pill.stop { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
+    .pill.idle { background: #f8fafc; color: #64748b; border: 1px solid #e2e8f0; }
+    .tool {
+      font-size: 11px; font-weight: 700; padding: 5px 10px; border-radius: 8px;
+      border: 1px solid var(--border); background: #fff; cursor: pointer; white-space: nowrap;
+    }
+    .tool.primary { background: linear-gradient(135deg,#0d47a1,#1976d2); color: #fff; border: none; }
+    .tool.open { background: var(--pri-soft); color: var(--pri); border-color: #93c5fd; }
+    .tool.more { background: #f1f5f9; color: #475569; }
+    .tool.pause { background: #fffbeb; color: #b45309; border-color: #fcd34d; }
+    .tool.stop { background: #fef2f2; color: #b91c1c; border-color: #fecaca; }
+    .tool.start { background: #ecfdf5; color: #047857; border-color: #6ee7b7; }
+    .rails { display: grid; grid-template-columns: 1fr 8px 1fr; gap: 8px; padding: 10px; }
+    .col { border: 1px solid var(--border); border-radius: 10px; padding: 8px; background: #fbfdff; }
+    .col h4 { font-size: 11px; color: var(--muted); margin-bottom: 8px; }
+    .node {
+      font-size: 11px; padding: 7px 8px; border-radius: 8px; border: 1px solid var(--border);
+      background: #fff; margin-bottom: 6px;
+    }
+    .node.on { border-color: #34d399; box-shadow: 0 0 0 2px rgba(16,185,129,.12); }
+    .node.dim { opacity: .55; }
+    .more-btn {
+      width: 100%; font-size: 11px; font-weight: 700; padding: 7px; border-radius: 8px;
+      border: 1px dashed #93c5fd; background: var(--pri-soft); color: var(--pri); cursor: pointer;
+    }
+    .biz {
+      margin: 0 10px 10px; border: 1px solid var(--border); border-radius: 12px; padding: 10px;
+    }
+    .biz.locked {
+      border-color: #fdba74; background: #fffbeb;
+    }
+    .biz .lab { font-size: 13px; font-weight: 800; display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+    .biz-row {
+      display: flex; gap: 6px; align-items: center; border: 1.5px solid #93c5fd;
+      border-radius: 10px; padding: 6px 8px; background: #f8fbff;
+    }
+    .biz.locked .biz-row { border-color: #fdba74; background: #fff7ed; }
+    .biz-row input {
+      flex: 1; border: none; outline: none; background: transparent; font: inherit; font-size: 13px; min-width: 0;
+    }
+    .biz-row input:disabled { color: var(--muted); }
+    .biz-row .go {
+      border: none; background: var(--pri); color: #fff; font-weight: 800;
+      border-radius: 8px; padding: 6px 10px; font-size: 12px; cursor: pointer;
+    }
+    .biz-row .go:disabled { opacity: .45; cursor: not-allowed; }
+    .lock-tip { font-size: 11px; color: var(--warn); margin-top: 6px; font-weight: 600; }
+    .api-row {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px;
+    }
+    @media (max-width: 560px) { .api-row { grid-template-columns: 1fr; } }
+    .api {
+      border: 1px solid var(--border); border-radius: 8px; padding: 8px; font-size: 11px;
+    }
+    .api.locked { opacity: .55; position: relative; }
+    .api button {
+      margin-top: 6px; margin-right: 4px; font-size: 11px; padding: 4px 8px; border-radius: 6px;
+      border: 1px solid var(--border); background: #fff; cursor: pointer; font-weight: 700;
+    }
+    .api button:disabled { opacity: .4; cursor: not-allowed; }
+    .compare { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .compare th, .compare td { padding: 10px; border-bottom: 1px solid #eef2f7; text-align: left; vertical-align: top; }
+    .compare th { background: #f8fbff; color: var(--muted); font-size: 11px; }
+    .pick {
+      display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+      padding: 12px 14px; background: #fff; border: 1px solid var(--border);
+      border-radius: 12px; margin-bottom: 14px; box-shadow: var(--shadow);
+    }
+    .pick select, .pick button { font: inherit; font-size: 13px; padding: 8px 12px; border-radius: 10px; border: 1px solid var(--border); }
+    .pick .ok {
+      background: linear-gradient(135deg,#0d47a1,#1976d2); color: #fff; border: none; font-weight: 800; cursor: pointer;
+    }
+    .vote { display: none; margin-top: 8px; width: 100%; padding: 10px 12px; border-radius: 10px;
+      background: #ecfdf5; border: 1px solid #a7f3d0; color: #047857; font-size: 13px; font-weight: 700; }
+    .vote.on { display: block; }
+    .schemes { display: grid; gap: 14px; }
+    .tag { font-size: 11px; font-weight: 800; padding: 3px 8px; border-radius: 999px; background: var(--pri-soft); color: var(--pri); }
+    .tag.rec { background: #ecfdf5; color: #047857; }
+  </style>
+</head>
+<body>
+  <header class="top">
+    <h1>双轨编排 · 先定状态切换，再定 UI</h1>
+    <p>
+      硬规则：<strong>仅「可编排态」（就绪 idle / 已停止 stopped）才能改模块与测试 IN/OUT</strong>。
+      执行中 / 已暂停锁定编辑；用户必须先「停止」才能回来改。已完成 / 失败需「重置」回就绪后再改。
+    </p>
+    <div class="tabs">
+      <button type="button" class="tab on" data-tab="fsm">① 状态怎么切</button>
+      <button type="button" class="tab" data-tab="ui">② UI 方案（都遵守锁定）</button>
+      <button type="button" class="tab" data-tab="pick">③ 选型确认</button>
+    </div>
+  </header>
+
+  <main class="page">
+    <!-- FSM -->
+    <section class="panel on" id="panel-fsm">
+      <div class="card">
+        <div class="card-h">
+          <h2>状态机定稿（建议）</h2>
+          <p>把现有 6 态收成两条能力轨：<strong>可编排</strong> vs <strong>运行锁定</strong>。</p>
+        </div>
+        <div class="card-b">
+          <div class="rule">
+            <div class="rule-box edit">
+              <h3>可编排态 → 可改 / 可测接口 / 可 >> 命令</h3>
+              <ul>
+                <li><strong>就绪 idle</strong>：默认态，从未跑或已重置</li>
+                <li><strong>已停止 stopped</strong>：运行中点了「停止」回来</li>
+              </ul>
+            </div>
+            <div class="rule-box lock">
+              <h3>运行锁定 → 不可改模块、禁用测试</h3>
+              <ul>
+                <li><strong>执行中 running</strong>：只能暂停 / 停止</li>
+                <li><strong>已暂停 paused</strong>：只能继续 / 停止</li>
+                <li><strong>已完成 / 失败</strong>：只读查看；点「重置」→ 就绪 才能改</li>
+              </ul>
+            </div>
+          </div>
+
+          <pre class="mermaid-lite">idle ──▶试运营──▶ running ⇄ paused
+  ▲                  │
+  │                  ▼ 停止
+  │               stopped ──▶再试运营──▶ running
+  │                  │
+  └────重置──────────┘
+
+running ──自然跑完──▶ completed ──重置──▶ idle
+running / paused ──异常──▶ error ──重置──▶ idle
+
+规则：canEdit = phase ∈ { idle, stopped }
+     canTestApi = canEdit
+     canBizCommand(插入/调用/分析) = canEdit
+     拖序 / 删模块 / 编辑说明 = canEdit</pre>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-h">
+          <h2>交互演练（点按钮切换）</h2>
+          <p>下面模拟工具栏可用操作 + 下方业务输入 / 测接口是否解锁。</p>
+        </div>
+        <div class="card-b">
+          <div class="fsm">
+            <div>
+              <div class="phases" id="phaseChips"></div>
+              <div class="actions" id="phaseActions"></div>
+              <div class="status-banner" id="banner"></div>
+              <div class="capability" id="caps"></div>
+            </div>
+            <div>
+              <div class="mock" id="liveMock">
+                <!-- filled by js -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- UI schemes -->
+    <section class="panel" id="panel-ui">
+      <div class="card">
+        <div class="card-h">
+          <h2>三套 UI（全部强制状态锁定）</h2>
+          <p>差异在信息密度与命令入口位置；状态规则一致。</p>
+        </div>
+        <div class="card-b schemes">
+
+          <article>
+            <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+              <strong style="font-size:15px">方案 A · 工具栏门控（推荐）</strong>
+              <span class="tag rec">推荐</span>
+            </div>
+            <p style="font-size:12px;color:var(--muted);margin-bottom:10px">
+              运行控件在「全屏」左边；锁定时业务输入灰掉并提示「请先停止」；测接口按钮 disabled。
+            </p>
+            <div class="mock">
+              <div class="chrome">
+                <span class="caret">▾</span>
+                <div class="brand"><span class="chev">&gt;&gt;</span><span>就医指南 · 8 项</span></div>
+                <span class="caret">▴</span>
+              </div>
+              <div class="toolbar">
+                <span class="title">就医指南</span>
+                <span class="pill stop">已停止</span>
+                <button class="tool start">▶ 试运营</button>
+                <button class="tool primary">全屏</button>
+                <button class="tool open">打开</button>
+                <button class="tool more">···</button>
+              </div>
+              <div class="rails">
+                <div class="col"><h4>功能轨 · 可拖改</h4><div class="node on">用户意图</div><div class="node">医疗健康</div></div>
+                <div></div>
+                <div class="col"><h4>数据轨 · 默认5 · 懒加载</h4><div class="node">IN/OUT ×5</div><button class="more-btn">加载更多</button></div>
+              </div>
+              <div class="biz">
+                <div class="lab"><span class="chev">&gt;&gt;</span> 业务输入 · 可编排</div>
+                <div class="biz-row"><span class="chev">&gt;&gt;</span><input value="插入 知识库" /><button class="go">执行</button></div>
+                <div class="api-row">
+                  <div class="api">IN · <button>测试</button><button>复制 curl</button></div>
+                  <div class="api">OUT · <button>测试</button></div>
+                </div>
+              </div>
+            </div>
+            <p style="font-size:12px;margin-top:8px;color:var(--muted)">运行中样式：徽章变「执行中」+ 暂停/停止；下方整块 locked。</p>
+          </article>
+
+          <article>
+            <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+              <strong style="font-size:15px">方案 B · 双模式显式切换</strong>
+              <span class="tag">更醒目</span>
+            </div>
+            <p style="font-size:12px;color:var(--muted);margin-bottom:10px">
+              顶栏用分段控件：「编排 | 试运营」。在试运营段才出现暂停/停止；回编排＝自动 stop。
+            </p>
+            <div class="mock">
+              <div class="chrome">
+                <span class="caret">▾</span>
+                <div class="brand"><span class="chev">&gt;&gt;</span><span>就医指南</span></div>
+                <span class="caret">▴</span>
+              </div>
+              <div class="toolbar">
+                <div style="display:inline-flex;border:1px solid #93c5fd;border-radius:999px;overflow:hidden">
+                  <button class="tool" style="border:none;border-radius:0;background:#eaf2ff;color:#0d47a1">编排</button>
+                  <button class="tool" style="border:none;border-radius:0">试运营</button>
+                </div>
+                <span class="title"></span>
+                <button class="tool primary">全屏</button>
+                <button class="tool open">打开</button>
+              </div>
+              <div class="biz">
+                <div class="lab">编排模式：下方可改 · 可测</div>
+                <div class="biz-row"><input placeholder=">> 插入 / 调用 / 分析" /><button class="go">执行</button></div>
+              </div>
+            </div>
+          </article>
+
+          <article>
+            <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+              <strong style="font-size:15px">方案 C · 锁定蒙层</strong>
+              <span class="tag">强阻断</span>
+            </div>
+            <p style="font-size:12px;color:var(--muted);margin-bottom:10px">
+              运行中在双轨+底部盖半透明蒙层，「请先停止再编辑」大按钮直接 stop；适合防误触。
+            </p>
+            <div class="mock" style="position:relative">
+              <div class="chrome">
+                <span class="caret">▾</span>
+                <div class="brand"><span class="chev">&gt;&gt;</span><span>就医指南</span></div>
+                <span class="pill run">执行中 1/10</span>
+                <button class="tool pause">⏸</button>
+                <button class="tool stop">⏹</button>
+                <span class="caret">▴</span>
+              </div>
+              <div class="rails" style="opacity:.45;pointer-events:none;filter:grayscale(.2)">
+                <div class="col"><div class="node">功能轨锁定</div></div>
+                <div></div>
+                <div class="col"><div class="node">数据轨锁定</div></div>
+              </div>
+              <div style="position:absolute;left:12px;right:12px;top:52%;transform:translateY(-50%);background:rgba(15,23,42,.88);color:#fff;border-radius:12px;padding:14px;text-align:center">
+                <div style="font-weight:800;margin-bottom:8px">运行中不可修改 / 不可测试接口</div>
+                <button class="tool stop">⏹ 停止并回到可编辑</button>
+              </div>
+            </div>
+          </article>
+
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-h"><h2>三套对比</h2></div>
+        <div class="card-b" style="overflow:auto">
+          <table class="compare">
+            <thead>
+              <tr><th>点</th><th>A 工具栏门控</th><th>B 双模式</th><th>C 蒙层</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>状态切换可见性</td><td>按钮随态变化</td><td>编排/试运营分段最清晰</td><td>蒙层强提示</td></tr>
+              <tr><td>防误编辑</td><td>中（disabled）</td><td>中高（切模式才编）</td><td>最高</td></tr>
+              <tr><td>与现结构贴合</td><td>最高</td><td>中</td><td>中</td></tr>
+              <tr><td>小屏友好</td><td>好</td><td>好</td><td>蒙层占画面</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- pick -->
+    <section class="panel" id="panel-pick">
+      <div class="pick">
+        <strong>我选状态规则：</strong>
+        <select id="rule">
+          <option value="strict">定稿：idle+stopped 可编可测；running/paused 锁定；completed/error 重置后才可编</option>
+        </select>
+        <strong>我选 UI：</strong>
+        <select id="ui">
+          <option value="A">A · 工具栏门控（推荐）</option>
+          <option value="B">B · 双模式显式切换</option>
+          <option value="C">C · 锁定蒙层</option>
+        </select>
+        <button type="button" class="ok" id="confirm">确认选型</button>
+        <div class="vote" id="vote"></div>
+      </div>
+      <div class="card">
+        <div class="card-h"><h2>确认后落地清单（A 为例）</h2></div>
+        <div class="card-b" style="font-size:13px;color:var(--muted)">
+          <ol style="margin-left:18px;display:grid;gap:6px">
+            <li>PlazaFlowRunContext 导出 <code>canEdit = phase==='idle'||phase==='stopped'</code></li>
+            <li>DualRail：非 canEdit 禁用拖拽/删除/插入；业务输入与 API「测试」disabled + 提示先停止</li>
+            <li>工具栏放 RunControls（状态在全屏左）+ 彩色全屏/打开；左右折叠</li>
+            <li>数据轨默认 5 + 懒加载（仅可浏览；改结构仍受 canEdit）</li>
+            <li>&gt;&gt; 命令仅 canEdit 时执行插入/调用/分析</li>
+          </ol>
+          <p style="margin-top:12px">回复例如：<strong>选 A</strong> 或 <strong>选 B</strong>，即按该方案改代码。</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const PHASES = ['idle', 'running', 'paused', 'stopped', 'completed', 'error']
+    const LABELS = {
+      idle: '就绪',
+      running: '执行中',
+      paused: '已暂停',
+      stopped: '已停止',
+      completed: '已完成',
+      error: '失败',
+    }
+    let phase = 'idle'
+
+    function canEdit(p) {
+      return p === 'idle' || p === 'stopped'
+    }
+
+    function render() {
+      const chips = document.getElementById('phaseChips')
+      chips.innerHTML = PHASES.map((p) =>
+        `<button type="button" class="phase-btn on-${p}${p===phase?' active':''}" data-p="${p}">${LABELS[p]}</button>`
+      ).join('')
+      chips.querySelectorAll('button').forEach((b) => {
+        b.onclick = () => { phase = b.dataset.p; render() }
+      })
+
+      const actions = document.getElementById('phaseActions')
+      const bits = []
+      if (phase === 'idle' || phase === 'stopped') {
+        bits.push(`<button class="btn start" data-a="start">▶ 试运营</button>`)
+      }
+      if (phase === 'running') {
+        bits.push(`<button class="btn pause" data-a="pause">⏸ 暂停</button>`)
+        bits.push(`<button class="btn stop" data-a="stop">⏹ 停止</button>`)
+      }
+      if (phase === 'paused') {
+        bits.push(`<button class="btn resume" data-a="resume">▶ 继续</button>`)
+        bits.push(`<button class="btn stop" data-a="stop">⏹ 停止</button>`)
+      }
+      if (phase === 'completed' || phase === 'error' || phase === 'stopped') {
+        bits.push(`<button class="btn reset" data-a="reset">重置 → 就绪</button>`)
+      }
+      if (phase === 'completed' || phase === 'error') {
+        bits.push(`<button class="btn start" data-a="start">↻ 再跑</button>`)
+      }
+      actions.innerHTML = bits.join('') || '<span style="font-size:12px;color:#64748b">（终态可用上方芯片切换演示）</span>'
+      actions.querySelectorAll('button').forEach((b) => {
+        b.onclick = () => {
+          const a = b.dataset.a
+          if (a === 'start') phase = 'running'
+          if (a === 'pause') phase = 'paused'
+          if (a === 'resume') phase = 'running'
+          if (a === 'stop') phase = 'stopped'
+          if (a === 'reset') phase = 'idle'
+          render()
+        }
+      })
+
+      const editable = canEdit(phase)
+      const banner = document.getElementById('banner')
+      banner.className = 'status-banner ' + (editable ? 'editable' : 'locked')
+      banner.textContent = editable
+        ? `当前「${LABELS[phase]}」· 可编排：可改模块 / 可测试接口 / 可用 >> 命令`
+        : `当前「${LABELS[phase]}」· 已锁定：请先「停止」（或终态「重置」）后再修改与测试`
+
+      const caps = document.getElementById('caps')
+      const items = [
+        ['改功能轨/拖序/删除', editable],
+        ['>> 插入/调用/分析', editable],
+        ['测试 IN/OUT 接口', editable],
+        ['暂停/停止控制', phase === 'running' || phase === 'paused'],
+      ]
+      caps.innerHTML = items.map(([name, ok]) =>
+        `<div class="cap ${ok?'yes':'no'}"><strong>${name}</strong><span class="flag">${ok?'允许':'禁止'}</span></div>`
+      ).join('')
+
+      const pillClass = phase === 'running' ? 'run' : phase === 'paused' ? 'pause' : phase === 'stopped' ? 'stop' : 'idle'
+      const runBtns = phase === 'running'
+        ? `<button class="tool pause">⏸ 暂停</button><button class="tool stop">⏹ 停止</button>`
+        : phase === 'paused'
+          ? `<button class="tool start">▶ 继续</button><button class="tool stop">⏹ 停止</button>`
+          : phase === 'idle' || phase === 'stopped'
+            ? `<button class="tool start">▶ 试运营</button>`
+            : `<button class="tool reset" style="background:#eff6ff;color:#0d47a1;border-color:#93c5fd">重置</button>`
+
+      document.getElementById('liveMock').innerHTML = `
+        <div class="chrome">
+          <span class="caret">▾</span>
+          <div class="brand"><span class="chev">&gt;&gt;</span><span>就医指南</span></div>
+          <span class="caret">▴</span>
+        </div>
+        <div class="toolbar">
+          <span class="title">工具栏</span>
+          <span class="pill ${pillClass}">${LABELS[phase]}${phase==='running'?' 1/10':''}</span>
+          ${runBtns}
+          <button class="tool primary">全屏</button>
+          <button class="tool open">打开</button>
+        </div>
+        <div class="biz ${editable?'':'locked'}">
+          <div class="lab"><span class="chev">&gt;&gt;</span> 业务输入</div>
+          <div class="biz-row">
+            <span class="chev">&gt;&gt;</span>
+            <input ${editable?'':'disabled'} placeholder="${editable?'插入 模块名 / 调用 / 分析':'运行中不可输入'}" />
+            <button class="go" ${editable?'':'disabled'}>执行</button>
+          </div>
+          ${editable?'':'<div class="lock-tip">请先点击「停止」，才能修改与测试接口</div>'}
+          <div class="api-row">
+            <div class="api ${editable?'':'locked'}">IN POST /ingress<br/><button ${editable?'':'disabled'}>测试</button><button ${editable?'':'disabled'}>复制</button></div>
+            <div class="api ${editable?'':'locked'}">OUT POST /output<br/><button ${editable?'':'disabled'}>测试</button></div>
+          </div>
+        </div>
+      `
+    }
+
+    document.querySelectorAll('.tab').forEach((tab) => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach((t) => t.classList.remove('on'))
+        tab.classList.add('on')
+        document.querySelectorAll('.panel').forEach((p) => p.classList.remove('on'))
+        document.getElementById('panel-' + tab.dataset.tab).classList.add('on')
+      })
+    })
+
+    document.getElementById('confirm').onclick = () => {
+      const ui = document.getElementById('ui').value
+      const el = document.getElementById('vote')
+      el.classList.add('on')
+      el.textContent = `已选：状态规则定稿 + UI 方案 ${ui}。请回复助手「选 ${ui}」开始改代码。`
+    }
+
+    render()
+  </script>
+</body>
+</html>

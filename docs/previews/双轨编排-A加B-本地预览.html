@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>双轨编排 A+B · 本地预览</title>
+  <style>
+    :root {
+      --pri: #0d47a1; --pri-soft: #eaf2ff; --border: #dbeafe; --muted: #64748b; --text: #0f172a;
+      --sans: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--sans); background: #eef2f7; color: var(--text); padding: 16px; padding-bottom: 40px; }
+    h1 { font-size: 18px; margin-bottom: 6px; }
+    .sub { font-size: 13px; color: var(--muted); margin-bottom: 14px; max-width: 900px; }
+    .dock {
+      max-width: 920px; margin: 0 auto; border: 2px solid #93c5fd; border-radius: 14px;
+      background: #fff; box-shadow: 0 12px 40px rgba(13,71,161,.14); overflow: hidden;
+    }
+    .chrome {
+      display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: #f8fafc; border-bottom: 1px solid var(--border);
+    }
+    .caret { width: 28px; height: 28px; border-radius: 8px; border: 1px solid var(--border); background: #fff; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+    .brand { flex: 1; display: flex; gap: 8px; align-items: center; font-weight: 800; min-width: 0; }
+    .chev { font-family: ui-monospace, Consolas, monospace; font-weight: 900; color: var(--pri); letter-spacing: -2px; }
+    .toolbar { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+    .mode { display: inline-flex; border: 1px solid #93c5fd; border-radius: 999px; overflow: hidden; }
+    .mode button { border: none; background: #fff; padding: 5px 10px; font: inherit; font-size: 11px; font-weight: 800; cursor: pointer; color: var(--muted); }
+    .mode button.on { background: var(--pri-soft); color: var(--pri); }
+    .title { flex: 1; min-width: 80px; font-size: 12px; font-weight: 800; }
+    .pill { font-size: 10px; font-weight: 800; padding: 4px 8px; border-radius: 999px; border: 1px solid #cbd5e1; background: #f1f5f9; }
+    .pill.run { background: #ecfdf5; border-color: #a7f3d0; color: #047857; }
+    .pill.pause { background: #fffbeb; border-color: #fcd34d; color: #b45309; }
+    .btn { font: inherit; font-size: 11px; font-weight: 700; padding: 5px 10px; border-radius: 8px; border: 1px solid var(--border); background: #fff; cursor: pointer; }
+    .btn:disabled { opacity: .4; cursor: not-allowed; }
+    .btn.start { background: #ecfdf5; color: #047857; border-color: #6ee7b7; }
+    .btn.pause { background: #fffbeb; color: #b45309; border-color: #fcd34d; }
+    .btn.stop { background: #fef2f2; color: #b91c1c; border-color: #fecaca; }
+    .btn.full { background: linear-gradient(135deg,#0d47a1,#1976d2); color: #fff; border: none; }
+    .btn.open { background: var(--pri-soft); color: var(--pri); border-color: #93c5fd; }
+    .lock { margin: 8px 10px 0; padding: 8px 10px; border-radius: 10px; background: #fffbeb; border: 1px solid #fcd34d; color: #b45309; font-size: 12px; font-weight: 700; }
+    .rails { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px; }
+    .col { border: 1px solid var(--border); border-radius: 10px; padding: 8px; background: #fbfdff; }
+    .col h4 { font-size: 11px; color: var(--muted); margin-bottom: 8px; }
+    .node { font-size: 11px; padding: 7px 8px; border: 1px solid var(--border); border-radius: 8px; background: #fff; margin-bottom: 6px; cursor: pointer; }
+    .node.on { border-color: #34d399; box-shadow: 0 0 0 2px rgba(16,185,129,.12); }
+    .more { width: 100%; padding: 7px; border-radius: 8px; border: 1px dashed #93c5fd; background: var(--pri-soft); color: var(--pri); font-weight: 700; font-size: 11px; cursor: pointer; }
+    .biz { margin: 0 10px 12px; border: 1px solid var(--border); border-radius: 12px; padding: 10px; }
+    .biz.locked { border-color: #fdba74; background: #fff7ed; }
+    .biz .lab { font-weight: 800; font-size: 13px; margin-bottom: 8px; display: flex; gap: 6px; align-items: center; }
+    .row { display: flex; gap: 6px; align-items: center; border: 1.5px solid #93c5fd; border-radius: 10px; padding: 6px 8px; background: #f8fbff; }
+    .biz.locked .row { border-color: #fdba74; background: #fff7ed; }
+    .row input { flex: 1; border: none; outline: none; background: transparent; font: inherit; font-size: 13px; }
+    .go { border: none; background: var(--pri); color: #fff; font-weight: 800; border-radius: 8px; padding: 6px 10px; cursor: pointer; }
+    .go:disabled { opacity: .45; }
+    .apis { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+    .api { border: 1px solid var(--border); border-radius: 8px; padding: 8px; font-size: 11px; }
+    .api button { margin-top: 6px; margin-right: 4px; font-size: 11px; padding: 4px 8px; border-radius: 6px; border: 1px solid var(--border); background: #fff; cursor: pointer; font-weight: 700; }
+    .api button:disabled { opacity: .4; cursor: not-allowed; }
+    .hint { font-size: 12px; color: var(--muted); margin-top: 10px; text-align: center; }
+    @media (max-width: 640px) { .rails, .apis { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <h1>方案 A+B 本地预览（状态门控）</h1>
+  <p class="sub">
+    A：工具栏状态在「全屏」左侧，按钮着色；左右折叠；B：编排|试运营分段，回编排=停止解锁。
+    仅 <strong>编排模式 +（就绪/已停止）</strong> 可改模块、测接口、输入 >> 命令。
+    正式效果见本地 <code>/plaza</code> 与「我的应用」。
+  </p>
+
+  <div class="dock" id="dock">
+    <div class="chrome">
+      <button class="caret" id="collapseL" title="左折叠">▾</button>
+      <div class="brand"><span class="chev">&gt;&gt;</span><span id="appName">就医指南 · 8 项</span></div>
+      <button class="caret" id="collapseR" title="右折叠">▴</button>
+    </div>
+    <div class="toolbar">
+      <button class="caret" id="collapseT" title="折叠">▾</button>
+      <div class="mode">
+        <button type="button" class="on" id="modeEdit">编排</button>
+        <button type="button" id="modeRun">试运营</button>
+      </div>
+      <span class="title">就医指南 · @公开</span>
+      <span class="pill" id="pill">就绪</span>
+      <span id="runBtns"></span>
+      <button class="btn full">全屏</button>
+      <button class="btn open">打开</button>
+      <button class="btn">···</button>
+    </div>
+    <div id="lockBanner" class="lock" hidden></div>
+    <div class="rails">
+      <div class="col">
+        <h4>&gt;&gt; 功能编排轨</h4>
+        <div class="node on" data-n="intent">用户意图</div>
+        <div class="node" data-n="m1">医疗健康</div>
+        <div class="node" data-n="m2">知识库问答</div>
+        <div class="node" data-n="m3">用药提醒</div>
+      </div>
+      <div class="col">
+        <h4>&gt;&gt; 数据编排轨 · 默认 5 · 懒加载</h4>
+        <div id="dataList"></div>
+        <button class="more" id="loadMore" hidden>加载更多</button>
+      </div>
+    </div>
+    <div class="biz" id="biz">
+      <div class="lab"><span class="chev">&gt;&gt;</span> 业务输入</div>
+      <div class="row">
+        <span class="chev">&gt;&gt;</span>
+        <input id="cmd" placeholder="插入 知识库 / 调用 / 分析" />
+        <button class="go" id="exec">执行</button>
+      </div>
+      <div class="apis">
+        <div class="api">IN POST /ingress<br/><button id="testIn">测试</button><button>复制 curl</button></div>
+        <div class="api">OUT POST /output<br/><button id="testOut">测试</button></div>
+      </div>
+      <p class="hint" id="msg">点「试运营」会锁定编辑；点「停止」或切回「编排」解锁。</p>
+    </div>
+  </div>
+
+  <script>
+    const DATA = [
+      'ingress', '医疗健康', '知识库', '用药提醒', '复诊预约',
+      '报告解读', '缴费', '通知', '归档', '触达'
+    ]
+    let mode = 'edit' // edit | run
+    let phase = 'idle' // idle running paused stopped
+    let visible = 5
+    let timer = null
+
+    const labels = { idle: '就绪', running: '执行中 1/10', paused: '已暂停', stopped: '已停止' }
+    const canEdit = () => mode === 'edit' && (phase === 'idle' || phase === 'stopped')
+
+    function renderData() {
+      const list = document.getElementById('dataList')
+      list.innerHTML = DATA.slice(0, visible).map((n, i) =>
+        `<div class="node">${i === 0 ? 'IN/OUT · ' : 'IN/OUT · '}${n}</div>`
+      ).join('')
+      const more = document.getElementById('loadMore')
+      const left = DATA.length - visible
+      more.hidden = left <= 0
+      more.textContent = `加载更多（剩余 ${left}）`
+    }
+
+    function render() {
+      document.getElementById('modeEdit').classList.toggle('on', mode === 'edit')
+      document.getElementById('modeRun').classList.toggle('on', mode === 'run')
+      const pill = document.getElementById('pill')
+      pill.textContent = labels[phase]
+      pill.className = 'pill' + (phase === 'running' ? ' run' : phase === 'paused' ? ' pause' : '')
+
+      const rb = document.getElementById('runBtns')
+      if (phase === 'idle' || phase === 'stopped') {
+        rb.innerHTML = `<button class="btn start" id="start">▶ 试运营</button>`
+      } else if (phase === 'running') {
+        rb.innerHTML = `<button class="btn pause" id="pause">⏸ 暂停</button><button class="btn stop" id="stop">⏹ 停止</button>`
+      } else if (phase === 'paused') {
+        rb.innerHTML = `<button class="btn start" id="resume">▶ 继续</button><button class="btn stop" id="stop">⏹ 停止</button>`
+      }
+      rb.querySelector('#start')?.addEventListener('click', () => { mode = 'run'; phase = 'running'; render() })
+      rb.querySelector('#pause')?.addEventListener('click', () => { phase = 'paused'; render() })
+      rb.querySelector('#resume')?.addEventListener('click', () => { phase = 'running'; render() })
+      rb.querySelector('#stop')?.addEventListener('click', () => { phase = 'stopped'; render() })
+
+      const ok = canEdit()
+      const banner = document.getElementById('lockBanner')
+      banner.hidden = ok
+      banner.textContent = mode === 'run'
+        ? '试运营模式 · 修改与测试已锁定 · 请「停止」或切回「编排」'
+        : '当前不可编辑'
+      document.getElementById('biz').classList.toggle('locked', !ok)
+      document.getElementById('cmd').disabled = !ok
+      document.getElementById('exec').disabled = !ok
+      document.getElementById('testIn').disabled = !ok
+      document.getElementById('testOut').disabled = !ok
+      renderData()
+    }
+
+    document.getElementById('modeEdit').onclick = () => {
+      if (phase === 'running' || phase === 'paused') phase = 'stopped'
+      mode = 'edit'
+      render()
+    }
+    document.getElementById('modeRun').onclick = () => { mode = 'run'; render() }
+    document.getElementById('loadMore').onclick = () => { visible = Math.min(visible + 5, DATA.length); render() }
+    document.getElementById('exec').onclick = () => {
+      if (!canEdit()) return
+      document.getElementById('msg').textContent = '已执行命令：' + (document.getElementById('cmd').value || '>> 菜单')
+    }
+    ;['collapseL','collapseR','collapseT'].forEach((id) => {
+      document.getElementById(id).onclick = () => {
+        document.getElementById('msg').textContent = '已触发折叠（正式环境收入折叠条）'
+      }
+    })
+    render()
+  </script>
+</body>
+</html>

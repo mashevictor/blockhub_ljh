@@ -59,7 +59,7 @@ td code{font-size:11px;background:#f5f5f4;padding:2px 6px;border-radius:4px}
 <header class="hero">
   <h1>积木仓 <em>BlockHub</em> · 功能清单 v1.2</h1>
   <p class="meta">
-    <strong>模块化交付版</strong> · 2026-07-13 修订（GA）· 对齐 6 周全量攻坚 + 模块化生成主线。<br>
+    <strong>模块化交付版</strong> · 2026-07-13 修订（GA + 企业集成排期）· 对齐 6 周全量攻坚 + 模块化生成主线。<br>
     核心目标：<strong>Home 勾选 capability_keys → 生成 page_schema + build_manifest → runtime-web / Flutter 按模块组装</strong>。
     当前进度：<span style="color:#86efac">W3–W6 GA 已验收</span> · <span style="color:#86efac">13 Web 包真渲染</span> · <span style="color:#fde68a">Flutter 菜单裁剪已就绪</span> · <span style="color:#86efac">staging signoff 通过</span>。
   </p>
@@ -77,6 +77,7 @@ td code{font-size:11px;background:#f5f5f4;padding:2px 6px;border-radius:4px}
     <span class="pill">按勾选组装 Web+App</span>
     <span class="pill">12 模板 page_schema</span>
     <span class="pill">cozecode 主工程</span>
+    <span class="pill">P4 企业集成排期</span>
   </div>
 </header>
 
@@ -92,6 +93,7 @@ td code{font-size:11px;background:#f5f5f4;padding:2px 6px;border-radius:4px}
   <a href="#flutter">Flutter</a>
   <a href="#voice">上海话语音</a>
   <a href="#ga">GA 验收</a>
+  <a href="#integration">企业集成</a>
   <a href="#cut">不做项</a>
 </nav>
 
@@ -272,7 +274,7 @@ td code{font-size:11px;background:#f5f5f4;padding:2px 6px;border-radius:4px}
       <tr><td>智能问答 SSE</td><td><span class="tag tag-done">✅</span></td><td>W1 完成</td></tr>
       <tr><td>知识库 + RAG</td><td><span class="tag tag-ahead">🔵</span></td><td>W2 超前；Admin UI 已接</td></tr>
       <tr><td>审批流程</td><td><span class="tag tag-done">✅ PG</span></td><td>状态机 + demo seed；提交/通过联动通知</td></tr>
-      <tr><td>报表 / 通知 / 集成</td><td><span class="tag tag-done">✅ 非 Mock</span></td><td>W4：PG 聚合 / 通知落 PG / connector+etl</td></tr>
+      <tr><td>报表 / 通知 / 集成</td><td><span class="tag tag-done">✅ 骨架</span> <span class="tag tag-mock">🎭 sync Mock</span></td><td>W4：PG 聚合 / 通知落 PG / connector+etl · <a href="#integration">P4 真 Adapter</a></td></tr>
       <tr><td>租户 Config 表单</td><td><span class="tag tag-wip">🔶</span></td><td>W4：真实租户统计已返回；表单编辑待补</td></tr>
     </tbody>
   </table>
@@ -346,22 +348,113 @@ td code{font-size:11px;background:#f5f5f4;padding:2px 6px;border-radius:4px}
   </table>
 </section>
 
-<section id="cut">
-  <h2 class="section-title">十二、6 周内明确不做</h2>
+<section id="integration">
+  <h2 class="section-title">十二、企业系统集成落地（P4 · GA 后）</h2>
+  <p class="section-desc">GA 阶段仅 Demo 级 Connector + Mock Webhook；以下列为<strong>生产级真对接</strong>功能清单与排期。难度中等、工程量可控——骨架已就绪，按厂商增量写 Adapter 即可。详见 <a href="项目计划-合成版v1.3.md#8-企业系统集成落地计划p4--ga-后">项目计划 §8</a>。</p>
+
+  <div class="note note-info">
+    <strong>集成原则：</strong>不替换核心 ERP/CRM · 标准 API + 可选 Webhook · 主数据只读同步 · 线索/工单双向 · SSO 统一身份 · IM 消息回写。<br>
+    <strong>工期参考：</strong>标准 REST 5–10 工作日 · 复杂 ERP 中间表 2–4 周（需客户 DBA）· 框架 + Webhook + 企微消息 ≈ 2 周可演示真联调。
+  </div>
+
+  <h3 style="font-size:15px;color:var(--navy);margin:18px 0 10px">12.1 骨架现状（GA 已有 vs 待补）</h3>
   <table>
-    <thead><tr><th>能力</th><th>原因</th><th>后续</th></tr></thead>
+    <thead><tr><th>组件</th><th>GA 状态</th><th>P4 目标</th><th>关键路径</th></tr></thead>
+    <tbody>
+      <tr><td>Connector 模型 + CRUD</td><td><span class="tag tag-done">✅</span></td><td>扩展 <code>config_json</code> schema</td><td><code>integration_connectors</code> · migration 014</td></tr>
+      <tr><td>ETL Job 记录</td><td><span class="tag tag-mock">🎭 模拟 sync</span></td><td>真实 extract→map→load</td><td><code>integration.py</code> → Adapter</td></tr>
+      <tr><td>ingress / egress</td><td><span class="tag tag-mock">🎭 Mock</span></td><td>验签入站 + IM/CRM 出站</td><td><code>runtime.py</code> · <code>im_delivery_service</code></td></tr>
+      <tr><td>Admin IntegrationPage</td><td><span class="tag tag-done">✅</span></td><td>字段映射编辑 · 错误明细</td><td><code>frontend/IntegrationPage.tsx</code></td></tr>
+      <tr><td>ERP / IM / SSO Widget</td><td><span class="tag tag-mock">🎭 演示</span></td><td>调真实 API</td><td><code>web-capability-integration</code> · <code>auth-sso</code></td></tr>
+      <tr><td>厂商 Adapter 层</td><td><span class="tag tag-plan">⬜</span></td><td>按 vendor 注册</td><td><code>backend/app/services/connectors/</code></td></tr>
+    </tbody>
+  </table>
+
+  <h3 style="font-size:15px;color:var(--navy);margin:18px 0 10px">12.2 四类系统功能清单</h3>
+  <table>
+    <thead><tr><th>类别</th><th>目标系统</th><th>对接模式</th><th>状态</th><th>工期</th><th>优先级</th></tr></thead>
+    <tbody>
+      <tr><td rowspan="2"><strong>ERP/财务</strong></td><td>金蝶云星空</td><td>REST OpenAPI · 主数据/单据只读</td><td><span class="tag tag-plan">⬜ P4-I3</span></td><td>5–8 天</td><td>按签约</td></tr>
+      <tr><td>用友 U8 / YonBIP</td><td>REST 或中间库只读视图 + watermark</td><td><span class="tag tag-plan">⬜ P4-I3</span></td><td>5–8 天 / 2–4 周</td><td>按签约</td></tr>
+      <tr><td rowspan="3"><strong>CRM</strong></td><td>自建 CRM</td><td>Webhook 入站 + HMAC + <code>field_map</code></td><td><span class="tag tag-plan">⬜ P4-I1</span></td><td>2–3 天</td><td><strong>P0</strong></td></tr>
+      <tr><td>纷享销客</td><td>Webhook + 官方签名 + 字段模板</td><td><span class="tag tag-plan">⬜ P4-I4</span></td><td>5–7 天</td><td>P2</td></tr>
+      <tr><td>销售易</td><td>Webhook + REST 回写跟进</td><td><span class="tag tag-plan">⬜ P4-I4</span></td><td>5–7 天</td><td>P2</td></tr>
+      <tr><td rowspan="3"><strong>协同</strong></td><td>企业微信</td><td>消息卡片 · 通讯录 sync · 审批 callback</td><td><span class="tag tag-plan">⬜ P4-I2</span></td><td>3–5 天起</td><td><strong>P1</strong></td></tr>
+      <tr><td>钉钉</td><td>工作通知 · 扫码登录 · 审批回调</td><td><span class="tag tag-plan">⬜ P4-I2</span></td><td>+2 天</td><td>P1</td></tr>
+      <tr><td>飞书</td><td>Bot 卡片 · 事件订阅 Webhook</td><td><span class="tag tag-plan">⬜ P4-I4</span></td><td>+2 天</td><td>P2</td></tr>
+      <tr><td rowspan="3"><strong>身份</strong></td><td>企业微信扫码</td><td>OAuth2 <code>/auth/oauth/wecom</code> → JWT</td><td><span class="tag tag-plan">⬜ P4-I2</span></td><td>3–5 天</td><td><strong>P1</strong></td></tr>
+      <tr><td>Azure AD</td><td>OIDC · group claim → RBAC</td><td><span class="tag tag-plan">⬜ P4-I4</span></td><td>+2 天</td><td>P2</td></tr>
+      <tr><td>LDAP（私有化）</td><td><code>ldap3</code> bind · tenant config</td><td><span class="tag tag-plan">⬜ P4-I4</span></td><td>3–5 天</td><td>私有化</td></tr>
+    </tbody>
+  </table>
+
+  <h3 style="font-size:15px;color:var(--navy);margin:18px 0 10px">12.3 四周排期（P4-I1 ~ I4）</h3>
+  <table>
+    <thead><tr><th>周</th><th>里程碑</th><th>后端交付</th><th>前端交付</th><th>验收</th></tr></thead>
+    <tbody>
+      <tr><td><span class="tag tag-week">I1</span></td><td>框架 + CRM</td><td>Adapter 基类 · 替换 mock sync · Webhook 入站验签 · Generic CRM Adapter</td><td>—</td><td>Webhook 事件落库 · sync 有真实 result_json</td></tr>
+      <tr><td><span class="tag tag-week">I2</span></td><td>协同 + SSO</td><td><code>im_delivery_service</code> 企微/钉钉推送 · OAuth 企微扫码</td><td>SSOWidget 调 <code>/auth/oauth</code></td><td>审批 → IM 卡片 · 扫码登录拿 JWT</td></tr>
+      <tr><td><span class="tag tag-week">I3</span></td><td>ERP（签约驱动）</td><td>金蝶或 YonBIP REST Adapter · staging 表</td><td>ERPWidget 真连接 · IntegrationPage 字段映射</td><td>主数据 sync 条数真实 · 映射可预览</td></tr>
+      <tr><td><span class="tag tag-week">I4</span></td><td>深化（可选）</td><td>纷享/销售易 · Azure AD · 通讯录全量 · 审批双向</td><td>ConnectorWidget 注册</td><td>按首单客户选型 UAT</td></tr>
+    </tbody>
+  </table>
+
+  <h3 style="font-size:15px;color:var(--navy);margin:18px 0 10px">12.4 生产级必补项</h3>
+  <div class="grid2">
+    <div class="card">
+      <h3>后端</h3>
+      <ul>
+        <li>租户 <code>app_secret</code> 加密存储与轮换</li>
+        <li>Webhook 幂等键 + 重试 + 死信记录</li>
+        <li><code>EtlJob.result_json</code> 可读错误与 Admin 排查</li>
+        <li>中间表 polling watermark 增量</li>
+        <li><code>smoke-integration-real.sh</code> 真联调冒烟</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>前端 / 交付</h3>
+      <ul>
+        <li>Admin 字段映射可视化编辑</li>
+        <li>ConnectorWidget 注册（manifest 缺口补齐）</li>
+        <li>典型闭环：CRM 线索 → Agent 话术 → egress 回写</li>
+        <li><code>integration-checklist.html</code> 与 OpenAPI 对齐</li>
+        <li>客户沙箱联调 checklist</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3 style="font-size:15px;color:var(--navy);margin:18px 0 10px">12.5 P4 验收（6 项）</h3>
+  <table>
+    <thead><tr><th>#</th><th>验收项</th><th>标准</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>真实 sync</td><td>至少 1 个 Adapter 产生真实 <code>records_synced</code>，非模拟</td></tr>
+      <tr><td>2</td><td>Webhook 入站</td><td>验签通过 → 业务表可见</td></tr>
+      <tr><td>3</td><td>IM 推送</td><td>审批事件 → 企微或钉钉卡片（非仅站内通知）</td></tr>
+      <tr><td>4</td><td>SSO</td><td>企微扫码 → JWT 与 RBAC 对齐</td></tr>
+      <tr><td>5</td><td>Admin 配置</td><td><code>vendor</code> + <code>field_map</code> 可编辑</td></tr>
+      <tr><td>6</td><td>文档</td><td>集成清单与字段模板、OpenAPI 一致</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="cut">
+  <h2 class="section-title">十三、6 周内明确不做（GA 范围）</h2>
+  <table>
+    <thead><tr><th>能力</th><th>原因</th><th>后续（P4）</th></tr></thead>
     <tbody>
       <tr><td>43 个 capability 全部物理拆包</td><td>6 周内做 4–8 个样板 + registry 机制</td><td>GA 后按需扩展</td></tr>
       <tr><td>每模块独立 nginx 站点</td><td>一个 runtime-web + 动态 schema</td><td>—</td></tr>
       <tr><td>114 套独立手工 page_schema</td><td>12 模板映射</td><td>试点后扩展</td></tr>
       <tr><td>裁剪 APK 二进制（仅 link 勾选包）</td><td>MVP 用通用壳 + capability_keys 控菜单</td><td>W6 后可选</td></tr>
-      <tr><td>钉钉/企微生产级对接</td><td>Demo 连接器即可</td><td>签约 +2 周</td></tr>
+      <tr><td>厂商生产级 Adapter（ERP/CRM/IM/SSO）</td><td>GA 仅 Demo Connector + Mock Webhook</td><td><a href="#integration">§十二 P4 四周排期</a></td></tr>
+      <tr><td>钉钉/企微/飞书真推送与 SSO</td><td>Widget 演示层即可过 GA#2</td><td>P4-I2（约 2 周真联调）</td></tr>
+      <tr><td>金蝶/用友 REST 或中间表 ETL</td><td>无签约客户沙箱</td><td>P4-I3 按项目触发</td></tr>
     </tbody>
   </table>
 </section>
 
 <footer class="footer">
-  <strong>积木仓 BlockHub</strong> · 功能清单 v1.2（模块化交付版）· 2026-07-13 GA<br>
+  <strong>积木仓 BlockHub</strong> · 功能清单 v1.2（模块化交付版 + 企业集成排期）· 2026-07-13 GA<br>
   技术架构：<a href="技术架构-v1.2.html">技术架构-v1.2.html</a> ·
   项目计划：<a href="项目计划-合成版v1.3.md">项目计划-合成版v1.3.md</a> ·
   Release：<code>docs/RELEASE-v0.2.0-ga.md</code>

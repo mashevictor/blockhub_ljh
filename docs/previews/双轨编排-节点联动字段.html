@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>双轨联动 · 节点 → 输入输出字段</title>
+  <style>
+    :root {
+      --pri: #0d47a1; --pri-soft: #eaf2ff; --border: #dbeafe; --muted: #64748b; --text: #0f172a;
+      --sans: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      --mono: ui-monospace, Consolas, monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--sans); background: #eef2f7; color: var(--text); padding: 16px 14px 40px; }
+    h1 { font-size: 17px; margin-bottom: 6px; }
+    .sub { font-size: 13px; color: var(--muted); margin-bottom: 14px; max-width: 880px; }
+    .dock {
+      max-width: 920px; margin: 0 auto; border: 2px solid #93c5fd; border-radius: 14px;
+      background: #fff; box-shadow: 0 12px 40px rgba(13,71,161,.12); overflow: hidden;
+    }
+    .toolbar { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 10px; border-bottom: 1px solid var(--border); }
+    .chev { font-family: var(--mono); font-weight: 900; color: var(--pri); letter-spacing: -2px; }
+    .title { flex: 1; font-weight: 800; font-size: 13px; }
+    .rails { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px; }
+    @media (max-width: 640px) { .rails { grid-template-columns: 1fr; } }
+    .col { border: 1px solid var(--border); border-radius: 10px; padding: 8px; background: #fbfdff; }
+    .col h4 { font-size: 11px; color: var(--muted); margin-bottom: 8px; }
+    .node {
+      font-size: 12px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px;
+      background: #fff; margin-bottom: 6px; cursor: pointer; text-align: left; width: 100%; font: inherit;
+    }
+    .node.on { border-color: #34d399; box-shadow: 0 0 0 2px rgba(16,185,129,.15); font-weight: 700; }
+    .biz { margin: 0 10px 12px; border: 1px solid var(--border); border-radius: 12px; padding: 12px; scroll-margin-top: 12px; }
+    .biz .lab { font-weight: 800; font-size: 14px; margin-bottom: 4px; display: flex; gap: 6px; align-items: center; }
+    .biz .meta { font-size: 12px; color: var(--pri); font-weight: 700; margin-bottom: 10px; }
+    .apis { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    @media (max-width: 640px) { .apis { grid-template-columns: 1fr; } }
+    .api {
+      border: 1px solid var(--border); border-radius: 10px; padding: 10px; font-size: 12px;
+    }
+    .api.in { background: #eff6ff; border-color: #93c5fd; }
+    .api.out { background: #fffbeb; border-color: #fcd34d; }
+    .api.on { box-shadow: 0 0 0 2px rgba(13,71,161,.18); }
+    .tag { display: inline-block; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 4px; margin-right: 6px; }
+    .tag.in { background: #dbeafe; color: #1d4ed8; }
+    .tag.out { background: #ffedd5; color: #c2410c; }
+    .path { display: block; font-family: var(--mono); font-size: 11px; margin: 6px 0; word-break: break-all; }
+    .desc { font-size: 11px; color: var(--muted); margin-bottom: 8px; }
+    .fields { border: 1px solid #bfdbfe; border-radius: 8px; background: #f8fbff; overflow: hidden; }
+    .fields h5 { font-size: 10px; padding: 5px 8px; border-bottom: 1px solid var(--border); color: var(--muted); }
+    .fields table { width: 100%; border-collapse: collapse; font-size: 11px; }
+    .fields td { padding: 4px 8px; border-top: 1px dashed #e2e8f0; vertical-align: top; }
+    .fields td:first-child { font-family: var(--mono); font-weight: 700; }
+    .fields td:nth-child(2) { color: var(--pri); font-weight: 700; white-space: nowrap; }
+    .fields td:last-child { color: var(--muted); }
+    .hint { text-align: center; font-size: 12px; color: var(--muted); margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <h1>点击节点 → 下方联动输入/输出字段</h1>
+  <p class="sub">点左侧功能轨或右侧数据轨任意项，下方业务区标题、路径、字段表跟着切换。正式环境已接到广场 / 我的应用双轨面板。</p>
+
+  <div class="dock">
+    <div class="toolbar">
+      <span class="chev">&gt;&gt;</span>
+      <span class="title">就医指南 · 节点联动演示</span>
+    </div>
+    <div class="rails">
+      <div class="col">
+        <h4>&gt;&gt; 功能编排轨</h4>
+        <div id="func"></div>
+      </div>
+      <div class="col">
+        <h4>&gt;&gt; 数据编排轨</h4>
+        <div id="data"></div>
+      </div>
+    </div>
+    <div class="biz" id="biz">
+      <div class="lab"><span class="chev">&gt;&gt;</span> <span id="bizTitle">业务输入</span></div>
+      <div class="meta" id="bizMeta">已联动 · —</div>
+      <div class="apis">
+        <div class="api in" id="apiIn"></div>
+        <div class="api out" id="apiOut"></div>
+      </div>
+      <p class="hint">点不同节点看字段变化 · IN/OUT 侧重高亮</p>
+    </div>
+  </div>
+
+  <script>
+    const NODES = [
+      {
+        id: 'ingress',
+        label: '用户意图',
+        title: '业务输入',
+        desc: '外部请求由此进入',
+        in: {
+          method: 'POST', path: '/api/v1/runtime/demo/ingress/webhook',
+          description: '外部系统 / 用户提交业务请求',
+          fields: [
+            ['event', 'string', 'business.request'],
+            ['payload.query', 'string', '示例业务请求'],
+          ],
+        },
+        out: {
+          method: 'POST', path: '/api/v1/runtime/demo/ingress/dispatch',
+          description: '校验后分发至首模块',
+          fields: [
+            ['routed_to', 'string', 'first_module'],
+            ['trace_id', 'string', 'demo-trace-001'],
+          ],
+        },
+      },
+      {
+        id: 'med',
+        label: '医疗健康',
+        title: '医疗健康',
+        desc: '科室/症状结构化',
+        in: {
+          method: 'POST', path: '/api/v1/runtime/demo/modules/med/input',
+          description: '接收上游数据 · 医疗健康',
+          fields: [
+            ['module', 'string', 'med'],
+            ['input.text', 'string', '上游传入数据'],
+            ['context.user_id', 'string', 'u_demo'],
+          ],
+        },
+        out: {
+          method: 'GET', path: '/api/v1/runtime/demo/modules/med/output',
+          description: '输出处理结果 · 医疗健康',
+          fields: [
+            ['module', 'string', 'med'],
+            ['output.answer', 'string', '示例输出'],
+            ['confidence', 'number', '0.92'],
+          ],
+        },
+      },
+      {
+        id: 'kb',
+        label: '知识库问答',
+        title: '知识库问答',
+        desc: '检索与回答',
+        in: {
+          method: 'POST', path: '/api/v1/runtime/demo/modules/kb/input',
+          description: '接收上游数据 · 知识库问答',
+          fields: [
+            ['module', 'string', 'kb'],
+            ['input.text', 'string', '用户问题'],
+            ['top_k', 'number', '5'],
+          ],
+        },
+        out: {
+          method: 'GET', path: '/api/v1/runtime/demo/modules/kb/output',
+          description: '输出处理结果 · 知识库问答',
+          fields: [
+            ['citations', 'array', '[{doc, score}]'],
+            ['output.answer', 'string', '检索回答'],
+          ],
+        },
+      },
+      {
+        id: 'drug',
+        label: '用药提醒',
+        title: '用药提醒',
+        desc: '计划与推送',
+        in: {
+          method: 'POST', path: '/api/v1/runtime/demo/modules/drug/input',
+          description: '接收上游数据 · 用药提醒',
+          fields: [
+            ['module', 'string', 'drug'],
+            ['input.drug_name', 'string', '阿莫西林'],
+            ['input.schedule', 'string', '每日 3 次'],
+          ],
+        },
+        out: {
+          method: 'GET', path: '/api/v1/runtime/demo/modules/drug/output',
+          description: '输出处理结果 · 用药提醒',
+          fields: [
+            ['reminders', 'array', '[{at, channel}]'],
+            ['status', 'string', 'scheduled'],
+          ],
+        },
+      },
+    ]
+
+    let active = NODES[0].id
+    let side = 'input'
+
+    function renderApi(el, api, kind, highlight) {
+      el.className = 'api ' + (kind === 'IN' ? 'in' : 'out') + (highlight ? ' on' : '')
+      el.innerHTML = `
+        <div><span class="tag ${kind === 'IN' ? 'in' : 'out'}">${kind}</span><strong>${api.method}</strong></div>
+        <code class="path">${api.path}</code>
+        <p class="desc">${api.description}</p>
+        <div class="fields">
+          <h5>${kind === 'IN' ? '输入字段' : '输出字段'}</h5>
+          <table>
+            ${api.fields.map(([n,t,e]) => `<tr><td>${n}</td><td>${t}</td><td>${e}</td></tr>`).join('')}
+          </table>
+        </div>
+      `
+    }
+
+    function render() {
+      const node = NODES.find((n) => n.id === active)
+      document.getElementById('func').innerHTML = NODES.map((n) =>
+        `<button type="button" class="node${n.id===active?' on':''}" data-id="${n.id}" style="display:flex;align-items:center;gap:6px"><span aria-hidden style="cursor:grab;padding:2px 6px;border:1px solid #e2e8f0;border-radius:6px;color:#64748b">⠿</span><span>${n.label}</span></button>`
+      ).join('')
+      document.getElementById('data').innerHTML = NODES.map((n) =>
+        `<button type="button" class="node${n.id===active?' on':''}" data-id="${n.id}">IN/OUT · ${n.label}</button>`
+      ).join('')
+      document.getElementById('biz').insertAdjacentHTML('afterbegin', '')
+      // ensure >> input exists once
+      if (!document.getElementById('cmdRow')) {
+        const row = document.createElement('div')
+        row.id = 'cmdRow'
+        row.style.cssText = 'display:flex;gap:6px;align-items:center;border:1.5px solid #93c5fd;border-radius:10px;padding:6px 8px;background:#f8fbff;margin-bottom:10px'
+        row.innerHTML = '<span style="font-family:monospace;font-weight:900;color:#0d47a1;letter-spacing:-2px">>>></span><input id="cmdInput" placeholder="插入 模块名 / 调用 / 分析" style="flex:1;border:none;outline:none;background:transparent;font:inherit;font-size:13px" /><button type="button" id="cmdGo" style="border:none;background:#0d47a1;color:#fff;font-weight:800;border-radius:8px;padding:6px 10px;cursor:pointer">执行</button>'
+        document.getElementById('biz').insertBefore(row, document.getElementById('biz').children[2] || null)
+        document.getElementById('cmdGo').onclick = () => {
+          document.querySelector('.hint').textContent = '已执行：' + (document.getElementById('cmdInput').value || '>>')
+        }
+      }
+      document.querySelectorAll('#func .node, #data .node').forEach((btn) => {
+        btn.onclick = () => {
+          active = btn.dataset.id
+          side = btn.dataset.side || 'input'
+          if (btn.closest('#data') && !btn.dataset.side) side = 'input'
+          render()
+          document.getElementById('biz').scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+        }
+      })
+      // data rail: half click simulation for OUT via double-purpose second click option
+      document.querySelectorAll('#data .node').forEach((btn) => {
+        btn.onclick = () => {
+          const id = btn.dataset.id
+          if (active === id && side === 'input') side = 'output'
+          else { active = id; side = 'input' }
+          render()
+          document.getElementById('biz').scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+        }
+      })
+
+      document.getElementById('bizTitle').textContent = node.title
+      document.getElementById('bizMeta').textContent =
+        `已联动 · ${node.label}` + (side === 'input' ? ' · 侧重 IN' : ' · 侧重 OUT')
+      renderApi(document.getElementById('apiIn'), node.in, 'IN', side === 'input')
+      renderApi(document.getElementById('apiOut'), node.out, 'OUT', side === 'output')
+    }
+    render()
+  </script>
+</body>
+</html>
