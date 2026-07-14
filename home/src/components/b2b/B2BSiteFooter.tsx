@@ -39,9 +39,6 @@ export default function B2BSiteFooter({ variant = 'dark', className = '' }: Prop
             </span>
           </Link>
           <p className="b2b-site-footer-tagline">{BRAND.tagline}</p>
-          <p className="b2b-site-footer-desc">
-            模块化 AI 应用创建平台 · 三种创建方式 · 一次发布五端可用
-          </p>
         </div>
 
         <div className="b2b-site-footer-columns">
