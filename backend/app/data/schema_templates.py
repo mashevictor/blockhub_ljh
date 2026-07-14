@@ -69,7 +69,7 @@ SCENARIO_TEMPLATES: list[dict[str, Any]] = [
         "name": "设备报修",
         "industry": "mfg",
         "match": ["设备报修", "报修", "IT报障"],
-        "capability_keys": ["device_repair", "chat_qa", "notify_inapp"],
+        "capability_keys": ["device_repair", "notify_im", "chat_qa"],
     },
     {
         "id": "tpl-mfg-sop",

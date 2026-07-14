@@ -19,11 +19,14 @@ const STATUS_LABEL: Record<string, string> = {
   done: '已完工',
 }
 
+const STEPS = ['设备编号', '工位位置', '故障描述'] as const
+
 export function DeviceRepairWidget(_props: { node: SchemaNode }) {
   const { token, primaryColor, appId, user } = useRuntime()
   const [items, setItems] = useState<RepairTicket[]>([])
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
+  const [step, setStep] = useState(0)
   const [assetCode, setAssetCode] = useState('')
   const [location, setLocation] = useState('')
   const [fault, setFault] = useState('')
@@ -55,6 +58,11 @@ export function DeviceRepairWidget(_props: { node: SchemaNode }) {
     void load()
   }, [load])
 
+  const canNext =
+    (step === 0 && assetCode.trim().length > 0) ||
+    (step === 1 && true) ||
+    (step === 2 && fault.trim().length > 0)
+
   const submit = async () => {
     if (!assetCode.trim() || !fault.trim()) {
       setMsg('请填写设备编号与故障描述')
@@ -79,7 +87,8 @@ export function DeviceRepairWidget(_props: { node: SchemaNode }) {
       setAssetCode('')
       setLocation('')
       setFault('')
-      setMsg('报修单已提交')
+      setStep(0)
+      setMsg('报修已提交，可在下方跟踪；也可打开「企微钉钉飞书」页配置推送通道')
       await load()
     } catch (e) {
       setMsg(`提交失败：${String(e)}`)
@@ -102,89 +111,119 @@ export function DeviceRepairWidget(_props: { node: SchemaNode }) {
     }
   }
 
+  const accent = primaryColor || '#0d47a1'
+
   return (
-    <div className="widget device-repair-widget">
-      <h3>设备报修工单</h3>
+    <div className="widget device-repair-widget bh-flow-form">
+      <div className="bh-flow-head">
+        <h3>设备报修</h3>
+        <span className="bh-flow-meta">{step + 1}/{STEPS.length}</span>
+      </div>
       <p className="muted">
-        弹幕场景「设备报修」· 租户内真实工单
+        扫码/填编号 → 派工 → 完工跟踪
         {user?.display_name ? ` · ${user.display_name}` : ''}
       </p>
 
-      <div className="device-repair-form" style={{ display: 'grid', gap: 10, marginBottom: 16 }}>
-        <label>
-          设备编号
-          <input
-            className="input"
-            value={assetCode}
-            onChange={(e) => setAssetCode(e.target.value)}
-            placeholder="扫码或输入 CNC-A12"
-          />
-        </label>
-        <label>
-          位置 / 工位
-          <input
-            className="input"
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            placeholder="一车间·3号线"
-          />
-        </label>
-        <label>
-          故障描述
-          <textarea
-            className="input"
-            rows={3}
-            value={fault}
-            onChange={(e) => setFault(e.target.value)}
-            placeholder="现象、影响产线…"
-          />
-        </label>
-        <button
-          type="button"
-          className="btn"
-          style={{
-            background: primaryColor || '#0d47a1',
-            color: '#fff',
-            border: 'none',
-            padding: '10px 14px',
-            borderRadius: 8,
-            cursor: 'pointer',
-          }}
-          disabled={busy}
-          onClick={() => void submit()}
-        >
-          {busy ? '提交中…' : '提交报修'}
-        </button>
+      <div className="bh-flow-steps" aria-label="报修填写进度">
+        {STEPS.map((label, i) => (
+          <div
+            key={label}
+            className={`bh-flow-step${i === step ? ' is-active' : ''}${i < step ? ' is-done' : ''}`}
+          >
+            <span className="bh-flow-dot" style={i <= step ? { background: accent } : undefined} />
+            <span>{label}</span>
+          </div>
+        ))}
+      </div>
+
+      <div className="bh-flow-body">
+        {step === 0 && (
+          <label>
+            设备编号
+            <input
+              className="input"
+              value={assetCode}
+              onChange={(e) => setAssetCode(e.target.value)}
+              placeholder="扫码或输入，如 CNC-A12"
+              autoFocus
+            />
+          </label>
+        )}
+        {step === 1 && (
+          <label>
+            位置 / 工位
+            <input
+              className="input"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              placeholder="一车间·3号线（可留空）"
+              autoFocus
+            />
+          </label>
+        )}
+        {step === 2 && (
+          <label>
+            故障描述
+            <textarea
+              className="input"
+              rows={3}
+              value={fault}
+              onChange={(e) => setFault(e.target.value)}
+              placeholder="现象、是否停机、影响产线…"
+              autoFocus
+            />
+          </label>
+        )}
+
+        <div className="bh-flow-actions">
+          {step > 0 && (
+            <button type="button" className="btn btn-ghost" onClick={() => setStep((s) => s - 1)}>
+              上一步
+            </button>
+          )}
+          {step < STEPS.length - 1 ? (
+            <button
+              type="button"
+              className="btn"
+              style={{ background: accent }}
+              disabled={!canNext}
+              onClick={() => setStep((s) => s + 1)}
+            >
+              下一步
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="btn"
+              style={{ background: accent }}
+              disabled={busy || !canNext}
+              onClick={() => void submit()}
+            >
+              {busy ? '提交中…' : '提交报修'}
+            </button>
+          )}
+        </div>
         {msg && <p className="status-msg">{msg}</p>}
         {error && <p className="status-msg" style={{ color: '#b91c1c' }}>{error}</p>}
       </div>
 
-      <h4 style={{ margin: '0 0 8px', fontSize: 14 }}>工单列表</h4>
+      <h4 style={{ margin: '20px 0 8px', fontSize: 14 }}>我的工单</h4>
       {loading && <p className="muted">加载中…</p>}
-      {!loading && items.length === 0 && <p className="muted">暂无工单，提交后将写入数据库</p>}
+      {!loading && items.length === 0 && <p className="muted">暂无工单，按步骤提交后写入数据库</p>}
       <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 8 }}>
         {items.map((t) => (
-          <li
-            key={t.id}
-            className="list-card"
-            style={{ border: '1px solid #e2e8f0', borderRadius: 10, padding: 12, background: '#fff' }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
+          <li key={t.id} className="list-card">
+            <div className="list-card-head">
               <strong>{t.ticket_no || t.id} · {t.asset_code}</strong>
-              <span style={{ fontSize: 12, color: primaryColor || '#0d47a1', fontWeight: 600 }}>
-                {STATUS_LABEL[t.status] || t.status}
-              </span>
+              <span className="tag" style={{ color: accent }}>{STATUS_LABEL[t.status] || t.status}</span>
             </div>
-            <p style={{ margin: '6px 0 0', fontSize: 13, color: '#64748b' }}>{t.location}</p>
+            <p className="muted" style={{ margin: '6px 0 0' }}>{t.location}</p>
             <p style={{ margin: '4px 0 0', fontSize: 13 }}>{t.fault}</p>
-            {t.reporter_name && (
-              <p style={{ margin: '4px 0 0', fontSize: 12, color: '#94a3b8' }}>报修人：{t.reporter_name}</p>
-            )}
             {t.status !== 'done' && (
               <button
                 type="button"
-                className="btn"
-                style={{ marginTop: 8, fontSize: 12, padding: '6px 10px', cursor: 'pointer' }}
+                className="btn btn-ghost"
+                style={{ marginTop: 8, fontSize: 12 }}
                 onClick={() => void advance(t.id, t.status)}
               >
                 {t.status === 'pending' ? '派工' : '完工确认'}

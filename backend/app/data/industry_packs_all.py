@@ -41,7 +41,7 @@ _MFG = {
     "color": "#3b82f6",
     "tagline": "报修、SOP、质检、MES 打通",
     "scenes": [
-        _scene("设备报修", "设备管理", "产线故障报修派工", pages="approval+form", agent="approval"),
+        _scene("设备报修", "设备管理", "产线故障报修派工", pages="form+list", agent="device_repair"),
         _scene("SOP/工艺问答", "知识管理", "作业指导书检索", pages="chat+kb", agent="chat_qa"),
         _scene("生产日报/OEE", "生产管理", "车间产量稼动率", pages="chart", standard="部分", agent="report"),
         _scene("质检审批", "质量管理", "来料成品质检", agent="approval"),

@@ -42,6 +42,7 @@ export const CHIP_TEMPLATES: ChipTemplate[] = [
       { type: 'scenario', key: 'chip-mfg-repair', label: '设备报修' },
       { type: 'scenario', key: 'chip-mfg-sop', label: 'SOP/工艺问答' },
       { type: 'module', key: 'device_repair', label: '设备报修' },
+      { type: 'module', key: 'notify_im', label: '企微钉钉飞书' },
       { type: 'module', key: 'chat_qa', label: '智能问答' },
     ],
     scenarioNames: ['设备报修', 'SOP/工艺问答'],
@@ -168,7 +169,11 @@ export function resolveAppBundle(opts: ResolveOptions): ResolvedAppBundle {
   })()
 
   const autoModules: PromptModule[] = []
-  if (!skipBaseline) {
+  // 用户已显式勾选业务模块时，不再静默灌底座（避免设备报修旁再出请假审批流）
+  const userHasConcreteModules = userOrdered.some(
+    (m) => m.type === 'module' || m.type === 'capability' || m.type === 'supplement',
+  )
+  if (!skipBaseline && !userHasConcreteModules) {
     const extras = INDUSTRY_EXTRA[industryKey] ?? INDUSTRY_EXTRA.office ?? []
     const autoCandidates = [...extras, ...BASELINE_PICKS]
     for (const pick of autoCandidates) {

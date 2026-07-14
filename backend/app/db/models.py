@@ -446,6 +446,23 @@ class EtlJob(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
+class IntegrationEvent(Base):
+    """CRM/Webhook 入站事件（P4-I1，幂等 external_id）。"""
+
+    __tablename__ = "integration_events"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenants.id"), nullable=False, index=True)
+    connector_id: Mapped[str] = mapped_column(
+        ForeignKey("integration_connectors.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    event_type: Mapped[str] = mapped_column(String(64), nullable=False, default="crm.upsert", index=True)
+    external_id: Mapped[str] = mapped_column(String(64), nullable=False, default="", index=True)
+    payload_json: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False, default=dict)
+    status: Mapped[str] = mapped_column(String(32), nullable=False, default="pending", index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
 class AuditLog(Base):
     __tablename__ = "audit_logs"
 

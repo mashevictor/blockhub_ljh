@@ -90,6 +90,24 @@ label { display: block; margin-bottom: 12px; font-size: 13px; }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .btn-ghost { background: #fff; color: var(--text); border: 1px solid var(--border); }
 
+/* 预约演示式分步表单（业务文案本地化，单步聚焦） */
+.bh-flow-form { max-width: 520px; }
+.bh-flow-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.bh-flow-head h3 { margin: 0; }
+.bh-flow-meta { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.bh-flow-steps {
+  display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0 16px;
+  padding: 10px 12px; border-radius: 12px;
+  background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);
+  border: 1px solid var(--border);
+}
+.bh-flow-step { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+.bh-flow-step.is-active { color: var(--text); font-weight: 600; }
+.bh-flow-step.is-done { color: var(--text); }
+.bh-flow-dot { width: 8px; height: 8px; border-radius: 50%; background: #cbd5e1; flex-shrink: 0; }
+.bh-flow-body { display: grid; gap: 4px; }
+.bh-flow-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+
 .chat-messages { max-height: 360px; overflow-y: auto; margin-bottom: 12px; }
 .chat-bubble { padding: 10px 12px; border-radius: 10px; margin-bottom: 8px; background: #f1f5f9; }
 .chat-bubble.chat-user { background: #eef2ff; }

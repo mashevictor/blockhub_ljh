@@ -18,7 +18,10 @@ class _DeviceRepairPageState extends State<DeviceRepairPage> {
   List<dynamic> _items = [];
   bool _loading = true;
   bool _busy = false;
+  int _step = 0;
   String? _error;
+
+  static const _steps = ['设备编号', '工位位置', '故障描述'];
 
   @override
   void initState() {
@@ -36,11 +39,7 @@ class _DeviceRepairPageState extends State<DeviceRepairPage> {
 
   String get _base => '${widget.branding.apiBaseUrl}/device-repair';
 
-  /// 与 Web runtime `/r/{public_id}` 对齐；勿用 Android applicationId。
-  String get _appPublicId {
-    final pid = widget.branding.appPublicId.trim();
-    return pid;
-  }
+  String get _appPublicId => widget.branding.appPublicId.trim();
 
   Future<void> _load() async {
     setState(() {
@@ -85,6 +84,7 @@ class _DeviceRepairPageState extends State<DeviceRepairPage> {
       _assetCtrl.clear();
       _locCtrl.clear();
       _faultCtrl.clear();
+      _step = 0;
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('报修单已提交')),
@@ -128,74 +128,110 @@ class _DeviceRepairPageState extends State<DeviceRepairPage> {
     }
   }
 
+  bool get _canNext {
+    if (_step == 0) return _assetCtrl.text.trim().isNotEmpty;
+    if (_step == 2) return _faultCtrl.text.trim().isNotEmpty;
+    return true;
+  }
+
   @override
   Widget build(BuildContext context) {
     final color = Color(widget.branding.primaryColorValue);
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        Text('设备报修工单', style: Theme.of(context).textTheme.titleLarge),
-        const SizedBox(height: 4),
-        Text(
-          '弹幕「设备报修」· 真实接口入库',
-          style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+        Row(
+          children: [
+            Expanded(child: Text('设备报修', style: Theme.of(context).textTheme.titleLarge)),
+            Text('${_step + 1}/${_steps.length}', style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+          ],
         ),
+        const SizedBox(height: 4),
+        Text('扫码/编号 → 派工 → 完工 · 真接口入库', style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
         if (_error != null) ...[
           const SizedBox(height: 8),
           Text(_error!, style: const TextStyle(color: Colors.red, fontSize: 13)),
         ],
-        const SizedBox(height: 16),
-        TextField(
-          controller: _assetCtrl,
-          decoration: const InputDecoration(
-            labelText: '设备编号',
-            border: OutlineInputBorder(),
-            hintText: '扫码或输入 CNC-A12',
-          ),
-        ),
-        const SizedBox(height: 10),
-        TextField(
-          controller: _locCtrl,
-          decoration: const InputDecoration(
-            labelText: '位置 / 工位',
-            border: OutlineInputBorder(),
-          ),
-        ),
-        const SizedBox(height: 10),
-        TextField(
-          controller: _faultCtrl,
-          maxLines: 3,
-          decoration: const InputDecoration(
-            labelText: '故障描述',
-            border: OutlineInputBorder(),
-          ),
+        const SizedBox(height: 12),
+        Wrap(
+          spacing: 8,
+          runSpacing: 6,
+          children: [
+            for (var i = 0; i < _steps.length; i++)
+              Chip(
+                avatar: CircleAvatar(
+                  backgroundColor: i <= _step ? color : Colors.grey.shade300,
+                  radius: 6,
+                ),
+                label: Text(_steps[i], style: TextStyle(fontSize: 12, fontWeight: i == _step ? FontWeight.w600 : FontWeight.w400)),
+                backgroundColor: i == _step ? color.withOpacity(0.12) : Colors.grey.shade100,
+                side: BorderSide.none,
+              ),
+          ],
         ),
         const SizedBox(height: 12),
-        FilledButton(
-          style: FilledButton.styleFrom(backgroundColor: color),
-          onPressed: _busy ? null : _submit,
-          child: Text(_busy ? '提交中…' : '提交报修'),
+        if (_step == 0)
+          TextField(
+            controller: _assetCtrl,
+            decoration: const InputDecoration(
+              labelText: '设备编号',
+              border: OutlineInputBorder(),
+              hintText: '扫码或输入 CNC-A12',
+            ),
+            onChanged: (_) => setState(() {}),
+          )
+        else if (_step == 1)
+          TextField(
+            controller: _locCtrl,
+            decoration: const InputDecoration(
+              labelText: '位置 / 工位',
+              border: OutlineInputBorder(),
+              hintText: '一车间·3号线（可留空）',
+            ),
+          )
+        else
+          TextField(
+            controller: _faultCtrl,
+            maxLines: 3,
+            decoration: const InputDecoration(
+              labelText: '故障描述',
+              border: OutlineInputBorder(),
+              hintText: '现象、是否停机…',
+            ),
+            onChanged: (_) => setState(() {}),
+          ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            if (_step > 0)
+              TextButton(onPressed: () => setState(() => _step -= 1), child: const Text('上一步')),
+            const Spacer(),
+            if (_step < _steps.length - 1)
+              FilledButton(
+                style: FilledButton.styleFrom(backgroundColor: color),
+                onPressed: _canNext ? () => setState(() => _step += 1) : null,
+                child: const Text('下一步'),
+              )
+            else
+              FilledButton(
+                style: FilledButton.styleFrom(backgroundColor: color),
+                onPressed: _busy || !_canNext ? null : _submit,
+                child: Text(_busy ? '提交中…' : '提交报修'),
+              ),
+          ],
         ),
         const SizedBox(height: 20),
         Row(
           children: [
             Text('工单列表', style: Theme.of(context).textTheme.titleMedium),
             const Spacer(),
-            IconButton(
-              onPressed: _loading ? null : _load,
-              icon: const Icon(Icons.refresh),
-              tooltip: '刷新',
-            ),
+            IconButton(onPressed: _loading ? null : _load, icon: const Icon(Icons.refresh), tooltip: '刷新'),
           ],
         ),
-        const SizedBox(height: 8),
         if (_loading)
-          const Padding(
-            padding: EdgeInsets.all(24),
-            child: Center(child: CircularProgressIndicator()),
-          )
+          const Padding(padding: EdgeInsets.all(24), child: Center(child: CircularProgressIndicator()))
         else if (_items.isEmpty)
-          Text('暂无工单，提交后将写入数据库', style: TextStyle(color: Colors.grey.shade600))
+          Text('暂无工单，按步骤提交后写入数据库', style: TextStyle(color: Colors.grey.shade600))
         else
           ..._items.map((raw) {
             final t = Map<String, dynamic>.from(raw as Map);
@@ -213,17 +249,11 @@ class _DeviceRepairPageState extends State<DeviceRepairPage> {
                 trailing: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
-                      _label(status),
-                      style: TextStyle(color: color, fontWeight: FontWeight.w600, fontSize: 12),
-                    ),
+                    Text(_label(status), style: TextStyle(color: color, fontWeight: FontWeight.w600, fontSize: 12)),
                     if (status != 'done')
                       TextButton(
                         onPressed: () => _advance(t),
-                        child: Text(
-                          status == 'pending' ? '派工' : '完工',
-                          style: const TextStyle(fontSize: 12),
-                        ),
+                        child: Text(status == 'pending' ? '派工' : '完工', style: const TextStyle(fontSize: 12)),
                       ),
                   ],
                 ),

@@ -13,6 +13,7 @@ _ALARM_HINTS = ("闹钟", "alarm", "定时", "cron", "准时", "每天", "重复
 _AGENT_TO_MODULE: dict[str, str] = {
     "chat_qa": "chat_qa",
     "approval": "approval_flow",
+    "device_repair": "device_repair",
     "kb": "kb_document",
     "report": "chart_dashboard",
     "notify": "notify_inapp",
@@ -33,8 +34,9 @@ INDUSTRY_DEFAULT_MODULES: dict[str, list[tuple[str, str, str]]] = {
         ("flutter_push", "移动推送", "活动 Push"),
     ],
     "mfg": [
-        ("approval_flow", "审批流", "设备报修/质检审批"),
+        ("device_repair", "设备报修", "设备报修/扫码派工"),
         ("chat_qa", "智能问答", "工艺/SOP 问答"),
+        ("notify_im", "企微钉钉飞书", "工单状态推送到群"),
     ],
     "sales": [
         ("chart_funnel", "销售漏斗", "商机与漏斗看板"),

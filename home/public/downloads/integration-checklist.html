@@ -11,12 +11,23 @@ h1 { color: #0d47a1; font-size: 24px; margin: 0 0 6px; }
 .panel h2 { color: #0d47a1; font-size: 16px; margin: 0 0 10px; border-left: 4px solid #00b894; padding-left: 10px; }
 p { font-size: 14px; margin: 0 0 10px; }
 .footer { margin-top: 32px; padding-top: 16px; border-top: 1px solid #e2e8f0; font-size: 11px; color: #94a3b8; }
+code { background:#f1f5f9; padding:1px 6px; border-radius:4px; font-size:12px; }
 @media print { .noprint { display: none; } body { background:#fff; } }
 </style></head><body>
 <p class="noprint" style="background:#eff6ff;padding:10px;border-radius:8px;font-size:13px;">&gt;&gt; 积木仓资料 · 浏览器打印为 PDF（Ctrl+P）· 与官网 <a href="/trust/integration">在线版</a> 同步</p>
 <div class="brand"><strong>积木仓 BlockHub</strong>五分钟搭好，打开就能用 · 信任与合规资料</div>
 <h1>系统集成清单</h1>
-<p class="sub">用友 / 金蝶 / 钉钉 / 企业微信等常见对接说明 · 2026</p>
-<div class="panel"><h2>集成原则</h2><p>积木仓采用「标准 API + 可选 Webhook」与现有 ERP/CRM/OA 对接，避免替换核心系统。</p><p>常见模式：只读同步主数据、线索/工单双向同步、单点登录（SSO）、消息通知回写。</p></div><div class="panel"><h2>已验证系统</h2><p><strong>ERP/财务</strong>：用友 U8/YonBIP、金蝶云星空（REST/中间表）。</p><p><strong>CRM</strong>：纷享销客、销售易、自建 CRM（Webhook + 自定义字段映射）。</p><p><strong>协同</strong>：钉钉、企业微信、飞书（通讯录同步、消息卡片、审批回调）。</p><p><strong>身份</strong>：Azure AD、企业微信扫码、LDAP（私有化）。</p></div><div class="panel"><h2>典型对接场景</h2><p>制造：CRM 新线索 → 积木仓智能体草拟话术 → 销售确认后回写跟进记录。</p><p>零售：HR 制度 PDF → 知识库 → 门店员工自然语言问答。</p><p>物流：TMS 运单状态 API → 智能体 7×24 查询与异常推送。</p></div><div class="panel"><h2>实施周期</h2><p>标准 REST 对接：<strong>5–10 个工作日</strong>（含联调与 UAT）。</p><p>复杂 ERP 中间表：<strong>2–4 周</strong>；需客户方 DBA/集成商配合。</p><p>详细接口清单与字段映射模板可在 <a href="/#contact-demo">预约演示</a> 后获取。</p></div>
-<div class="footer">© 积木仓 · 本资料仅供预约客户内部评估使用 · DeepSeek 辅助生成</div>
+<p class="sub">用友 / 金蝶 / 钉钉 / 企业微信等常见对接说明 · 2026 · 对齐项目计划 §8 / P4-I1·I2</p>
+<div class="panel"><h2>集成原则</h2><p>积木仓采用「标准 API + 可选 Webhook」与现有 ERP/CRM/OA 对接，避免替换核心系统。</p><p>常见模式：只读同步主数据、线索/工单双向同步、单点登录（SSO）、消息通知回写。</p></div>
+<div class="panel"><h2>已验证系统</h2><p><strong>ERP/财务</strong>：用友 U8/YonBIP、金蝶云星空（REST/中间表）· <em>Adapter 按签约 I3</em>。</p><p><strong>CRM</strong>：自建 CRM Webhook + HMAC + field_map（<strong>✅ P4-I1</strong>）；纷享销客、销售易（I4）。</p><p><strong>协同</strong>：钉钉、企业微信、飞书群机器人消息推送（<strong>✅ P4-I2</strong>）；通讯录全量仍后续。</p><p><strong>身份</strong>：企业微信 OAuth 扫码 → JWT（<strong>🔶 P4-I2 骨架</strong>，需 WECOM_*）；Azure AD、LDAP（I4/私有化）。</p></div>
+<div class="panel"><h2>工程接口（I1/I2）</h2>
+<p>入站：<code>POST /api/v1/integrations/ingress/webhook?connector_id=…</code>，签名头 <code>X-BlockHub-Signature: sha256=…</code></p>
+<p>同步：<code>POST /api/v1/integrations/{id}/sync</code>（走 Adapter，非模拟）</p>
+<p>IM 探测：<code>POST /api/v1/integrations/{id}/test-message</code></p>
+<p>企微 SSO：<code>GET /api/v1/auth/oauth/wecom/start</code> → callback 签发 JWT</p>
+<p>冒烟：<code>bash scripts/smoke-integration-real.sh</code></p>
+</div>
+<div class="panel"><h2>典型对接场景</h2><p>制造：CRM 新线索 → Webhook 入站 → 积木仓事件落库；报修/审批状态 → 钉钉/飞书群通知。</p><p>零售：HR 制度 PDF → 知识库 → 门店员工自然语言问答。</p><p>物流：TMS 运单状态 API → 智能体 7×24 查询与异常推送。</p></div>
+<div class="panel"><h2>实施周期</h2><p>标准 REST 对接：<strong>5–10 个工作日</strong>（含联调与 UAT）。</p><p>复杂 ERP 中间表：<strong>2–4 周</strong>；需客户方 DBA/集成商配合。</p><p>详细接口清单与字段映射模板可在 <a href="/#contact-demo">预约演示</a> 后获取。</p></div>
+<div class="footer">© 积木仓 · 本资料仅供预约客户内部评估使用 · 与 docs/项目计划-合成版v1.3.md §8 同步</div>
 </body></html>

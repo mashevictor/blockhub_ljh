@@ -82,6 +82,23 @@ def create_ticket(
     db.refresh(record)
     # 保证返回含报修人展示名
     record.reporter = user
+    try:
+        from app.services.im_delivery_service import notify_business_event
+
+        notify_business_event(
+            db,
+            tenant_id=user.tenant_id,
+            title="新的设备报修",
+            content=(
+                f"{record.ticket_no} · {record.asset_code} · {record.location}\n"
+                f"{record.fault[:200]}\n状态：待派工"
+            ),
+            app_public_id=record.app_public_id,
+            path="/device-repair",
+            link_label="打开报修工单",
+        )
+    except Exception:
+        pass
     return ticket_to_dict(record)
 
 
@@ -127,4 +144,22 @@ def advance_ticket(
         record.comment = comment.strip()
     db.commit()
     db.refresh(record)
+    try:
+        from app.services.im_delivery_service import notify_business_event
+
+        label = {"dispatched": "已派工", "done": "已完工"}.get(next_status, next_status)
+        notify_business_event(
+            db,
+            tenant_id=tenant_id,
+            title=f"设备报修{label}",
+            content=(
+                f"{record.ticket_no} · {record.asset_code} · {record.location}\n"
+                f"{record.fault[:200]}\n状态：{label}"
+            ),
+            app_public_id=record.app_public_id,
+            path="/device-repair",
+            link_label="打开报修工单",
+        )
+    except Exception:
+        pass
     return ticket_to_dict(record)

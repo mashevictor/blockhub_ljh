@@ -76,6 +76,12 @@ class Settings(BaseSettings):
     kb_chunk_size: int = 500
     kb_chunk_overlap: int = 80
 
+    # 企业微信 SSO（P4-I2；未配置时 /auth/oauth/wecom/start 返回 503）
+    wecom_corp_id: str = ""
+    wecom_agent_id: str = ""
+    wecom_secret: str = ""
+    wecom_oauth_redirect_uri: str = ""  # 空则用 {public_base_url}/api/v1/auth/oauth/wecom/callback
+
     @field_validator("database_url")
     @classmethod
     def require_postgresql(cls, v: str) -> str:

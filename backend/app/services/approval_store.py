@@ -150,6 +150,19 @@ def submit_approval(
         type="approval",
         reference_id=record.id,
     )
+    try:
+        from app.services.im_delivery_service import notify_business_event
+
+        notify_business_event(
+            db,
+            tenant_id=user.tenant_id,
+            title="新的审批申请",
+            content=f"{applicant_name} 提交了「{record.title}」，请及时处理",
+            path="/approval",
+            link_label="打开审批",
+        )
+    except Exception:
+        pass
     return approval_to_dict(record)
 
 
@@ -189,4 +202,17 @@ def action_approval(
         recipient_user_id=record.applicant_id,
         reference_id=record.id,
     )
+    try:
+        from app.services.im_delivery_service import notify_business_event
+
+        notify_business_event(
+            db,
+            tenant_id=tenant_id,
+            title=f"审批{verb}：{record.title}",
+            content=f"「{record.title}」已被{verb}" + (f"：{comment}" if comment else ""),
+            path="/approval",
+            link_label="打开审批",
+        )
+    except Exception:
+        pass
     return approval_to_dict(record)

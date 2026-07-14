@@ -101,6 +101,7 @@ checks = [
     ("audit_logs", has_table("audit_logs")),
     ("demo_bookings", has_table("demo_bookings")),
     ("device_repair_tickets", has_table("device_repair_tickets")),
+    ("integration_events", has_table("integration_events")),
 ]
 for label, ok in checks:
     print(f"  {label}: {'OK' if ok else 'MISSING'}")
@@ -114,7 +115,8 @@ insp = inspect(engine)
 def col(t,c):
     return insp.has_table(t) and c in {x['name'] for x in insp.get_columns(t)}
 if not insp.has_table('users'): print(''); raise SystemExit
-if insp.has_table('device_repair_tickets'): print('019')
+if insp.has_table('integration_events'): print('020')
+elif insp.has_table('device_repair_tickets'): print('019')
 elif insp.has_table('demo_bookings'): print('018')
 elif insp.has_table('audit_logs'): print('015')
 elif insp.has_table('integration_connectors'): print('014')

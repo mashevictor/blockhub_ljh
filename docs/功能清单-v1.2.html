@@ -350,7 +350,7 @@ td code{font-size:11px;background:#f5f5f4;padding:2px 6px;border-radius:4px}
 
 <section id="integration">
   <h2 class="section-title">十二、企业系统集成落地（P4 · GA 后）</h2>
-  <p class="section-desc">GA 阶段仅 Demo 级 Connector + Mock Webhook；以下列为<strong>生产级真对接</strong>功能清单与排期。难度中等、工程量可控——骨架已就绪，按厂商增量写 Adapter 即可。详见 <a href="项目计划-合成版v1.3.md#8-企业系统集成落地计划p4--ga-后">项目计划 §8</a>。</p>
+  <p class="section-desc"><strong>P4-I1/I2 已落地</strong>（Adapter + CRM HMAC 入站 + IM 真推送 + 企微 SSO 骨架）。I3/I4 仍按签约推进。详见 <a href="项目计划-合成版v1.3.md#8-企业系统集成落地计划p4--ga-后">项目计划 §8</a> · 冒烟 <code>scripts/smoke-integration-real.sh</code>。</p>
 
   <div class="note note-info">
     <strong>集成原则：</strong>不替换核心 ERP/CRM · 标准 API + 可选 Webhook · 主数据只读同步 · 线索/工单双向 · SSO 统一身份 · IM 消息回写。<br>
@@ -362,11 +362,11 @@ td code{font-size:11px;background:#f5f5f4;padding:2px 6px;border-radius:4px}
     <thead><tr><th>组件</th><th>GA 状态</th><th>P4 目标</th><th>关键路径</th></tr></thead>
     <tbody>
       <tr><td>Connector 模型 + CRUD</td><td><span class="tag tag-done">✅</span></td><td>扩展 <code>config_json</code> schema</td><td><code>integration_connectors</code> · migration 014</td></tr>
-      <tr><td>ETL Job 记录</td><td><span class="tag tag-mock">🎭 模拟 sync</span></td><td>真实 extract→map→load</td><td><code>integration.py</code> → Adapter</td></tr>
-      <tr><td>ingress / egress</td><td><span class="tag tag-mock">🎭 Mock</span></td><td>验签入站 + IM/CRM 出站</td><td><code>runtime.py</code> · <code>im_delivery_service</code></td></tr>
-      <tr><td>Admin IntegrationPage</td><td><span class="tag tag-done">✅</span></td><td>字段映射编辑 · 错误明细</td><td><code>frontend/IntegrationPage.tsx</code></td></tr>
-      <tr><td>ERP / IM / SSO Widget</td><td><span class="tag tag-mock">🎭 演示</span></td><td>调真实 API</td><td><code>web-capability-integration</code> · <code>auth-sso</code></td></tr>
-      <tr><td>厂商 Adapter 层</td><td><span class="tag tag-plan">⬜</span></td><td>按 vendor 注册</td><td><code>backend/app/services/connectors/</code></td></tr>
+      <tr><td>ETL Job 记录</td><td><span class="tag tag-done">✅ Adapter sync</span></td><td>真实 extract→map→load</td><td><code>integration.py</code> → Adapter</td></tr>
+      <tr><td>ingress / egress</td><td><span class="tag tag-done">✅ HMAC 入站 · IM 出站</span></td><td>验签入站 + IM 推送</td><td><code>/integrations/ingress/webhook</code> · <code>im_delivery_service</code></td></tr>
+      <tr><td>Admin IntegrationPage</td><td><span class="tag tag-done">✅ field_map</span></td><td>字段映射编辑 · 错误明细</td><td><code>frontend/IntegrationPage.tsx</code></td></tr>
+      <tr><td>ERP / IM / SSO Widget</td><td><span class="tag tag-done">✅ IM/SSO</span> <span class="tag tag-plan">⬜ ERP</span></td><td>ERP 真连接待 I3</td><td><code>web-capability-integration</code> · <code>auth-sso</code></td></tr>
+      <tr><td>厂商 Adapter 层</td><td><span class="tag tag-done">✅ CRM/IM</span></td><td>ERP/LDAP 按 vendor 扩展</td><td><code>backend/app/services/connectors/</code></td></tr>
     </tbody>
   </table>
 
@@ -376,13 +376,13 @@ td code{font-size:11px;background:#f5f5f4;padding:2px 6px;border-radius:4px}
     <tbody>
       <tr><td rowspan="2"><strong>ERP/财务</strong></td><td>金蝶云星空</td><td>REST OpenAPI · 主数据/单据只读</td><td><span class="tag tag-plan">⬜ P4-I3</span></td><td>5–8 天</td><td>按签约</td></tr>
       <tr><td>用友 U8 / YonBIP</td><td>REST 或中间库只读视图 + watermark</td><td><span class="tag tag-plan">⬜ P4-I3</span></td><td>5–8 天 / 2–4 周</td><td>按签约</td></tr>
-      <tr><td rowspan="3"><strong>CRM</strong></td><td>自建 CRM</td><td>Webhook 入站 + HMAC + <code>field_map</code></td><td><span class="tag tag-plan">⬜ P4-I1</span></td><td>2–3 天</td><td><strong>P0</strong></td></tr>
+      <tr><td rowspan="3"><strong>CRM</strong></td><td>自建 CRM</td><td>Webhook 入站 + HMAC + <code>field_map</code></td><td><span class="tag tag-done">✅ P4-I1</span></td><td>2–3 天</td><td><strong>P0</strong></td></tr>
       <tr><td>纷享销客</td><td>Webhook + 官方签名 + 字段模板</td><td><span class="tag tag-plan">⬜ P4-I4</span></td><td>5–7 天</td><td>P2</td></tr>
       <tr><td>销售易</td><td>Webhook + REST 回写跟进</td><td><span class="tag tag-plan">⬜ P4-I4</span></td><td>5–7 天</td><td>P2</td></tr>
-      <tr><td rowspan="3"><strong>协同</strong></td><td>企业微信</td><td>消息卡片 · 通讯录 sync · 审批 callback</td><td><span class="tag tag-plan">⬜ P4-I2</span></td><td>3–5 天起</td><td><strong>P1</strong></td></tr>
-      <tr><td>钉钉</td><td>工作通知 · 扫码登录 · 审批回调</td><td><span class="tag tag-plan">⬜ P4-I2</span></td><td>+2 天</td><td>P1</td></tr>
-      <tr><td>飞书</td><td>Bot 卡片 · 事件订阅 Webhook</td><td><span class="tag tag-plan">⬜ P4-I4</span></td><td>+2 天</td><td>P2</td></tr>
-      <tr><td rowspan="3"><strong>身份</strong></td><td>企业微信扫码</td><td>OAuth2 <code>/auth/oauth/wecom</code> → JWT</td><td><span class="tag tag-plan">⬜ P4-I2</span></td><td>3–5 天</td><td><strong>P1</strong></td></tr>
+      <tr><td rowspan="3"><strong>协同</strong></td><td>企业微信</td><td>群机器人消息卡片（通讯录全量仍 I4）</td><td><span class="tag tag-done">✅ P4-I2 推送</span></td><td>3–5 天起</td><td><strong>P1</strong></td></tr>
+      <tr><td>钉钉</td><td>群机器人工作通知</td><td><span class="tag tag-done">✅ P4-I2 推送</span></td><td>+2 天</td><td>P1</td></tr>
+      <tr><td>飞书</td><td>Bot 卡片推送</td><td><span class="tag tag-done">✅ P4-I2 推送</span></td><td>+2 天</td><td>P1</td></tr>
+      <tr><td rowspan="3"><strong>身份</strong></td><td>企业微信扫码</td><td>OAuth2 <code>/auth/oauth/wecom</code> → JWT</td><td><span class="tag tag-done">🔶 P4-I2 骨架</span></td><td>3–5 天</td><td><strong>P1</strong></td></tr>
       <tr><td>Azure AD</td><td>OIDC · group claim → RBAC</td><td><span class="tag tag-plan">⬜ P4-I4</span></td><td>+2 天</td><td>P2</td></tr>
       <tr><td>LDAP（私有化）</td><td><code>ldap3</code> bind · tenant config</td><td><span class="tag tag-plan">⬜ P4-I4</span></td><td>3–5 天</td><td>私有化</td></tr>
     </tbody>

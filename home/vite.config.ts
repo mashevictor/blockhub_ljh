@@ -55,6 +55,12 @@ export default defineConfig(({ mode }) => {
       strictPort: false,
       proxy: {
         '/api': { target: apiProxyTarget, changeOrigin: true },
+        // 本地联调 Runtime（设备报修等）：home:5173/r/* → runtime-web:5175
+        '/r': {
+          target: 'http://127.0.0.1:5175',
+          changeOrigin: true,
+          // runtime-web base 已是 /r/，原样转发
+        },
       },
     },
   }

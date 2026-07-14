@@ -100,7 +100,8 @@ app.include_router(approvals.router, prefix=settings.api_prefix, dependencies=_a
 app.include_router(device_repair.router, prefix=settings.api_prefix, dependencies=_auth)
 app.include_router(reports.router, prefix=settings.api_prefix, dependencies=_auth)
 app.include_router(notifications.router, prefix=settings.api_prefix, dependencies=_auth)
-app.include_router(integration.router, prefix=settings.api_prefix, dependencies=_auth)
+# integration：ingress/webhook 公开验签；其余路由在 router 内依赖 get_current_user
+app.include_router(integration.router, prefix=settings.api_prefix)
 app.include_router(audit.router, prefix=settings.api_prefix, dependencies=_auth)
 app.include_router(voice_agent.router, prefix=settings.api_prefix)
 

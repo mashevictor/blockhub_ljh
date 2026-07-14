@@ -69,6 +69,17 @@ const List<CapabilityManifestEntry> capabilityManifest = [
     keywords: [],
   ),
   CapabilityManifestEntry(
+    key: "device_repair",
+    name: "设备报修",
+    category: "现场运维",
+    widget: "DeviceRepairWidget",
+    agentId: "device_repair",
+    webPkg: "@blockhub/web-capability-device-repair",
+    flutterPkg: "capability_device_repair",
+    route: "/device-repair",
+    keywords: ["设备报修", "报修", "扫码提单", "维修工单", "产线故障", "设备故障"],
+  ),
+  CapabilityManifestEntry(
     key: "approval_flow",
     name: "审批流",
     category: "流程审批",

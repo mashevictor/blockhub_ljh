@@ -45,7 +45,40 @@ export function buildPublishedModulesFromBundle(bundle: ResolvedAppBundle): Publ
   return items
 }
 
-/** 行业向导：场景 + 行业推荐模块 */
+/** 与 backend schema_templates 对齐：场景名 → 真实能力（选型即交付，不灌底座审批流） */
+const SCENARIO_CAPABILITY_MAP: Array<{ match: string[]; caps: Array<{ key: string; label: string }> }> = [
+  { match: ['设备报修', '报修', 'IT报障'], caps: [
+    { key: 'device_repair', label: '设备报修' },
+    { key: 'notify_im', label: '企微钉钉飞书' },
+    { key: 'chat_qa', label: '智能问答' },
+  ]},
+  { match: ['SOP', '工艺', '作业指导', 'BOM'], caps: [
+    { key: 'kb_document', label: '知识库' },
+    { key: 'chat_qa', label: '智能问答' },
+  ]},
+  { match: ['生产日报', 'OEE', '产量'], caps: [
+    { key: 'chart_dashboard', label: '数据看板' },
+    { key: 'data_nl_query', label: '智能问数' },
+  ]},
+  { match: ['质检', '安环', '隐患'], caps: [
+    { key: 'approval_flow', label: '审批流' },
+    { key: 'chart_dashboard', label: '数据看板' },
+  ]},
+  { match: ['请假', '年假', '调休'], caps: [{ key: 'approval_flow', label: '审批流' }, { key: 'chat_qa', label: '智能问答' }] },
+  { match: ['报销', '费用报销'], caps: [{ key: 'approval_flow', label: '审批流' }, { key: 'kb_document', label: '知识库' }] },
+  { match: ['用印', '盖章'], caps: [{ key: 'approval_flow', label: '审批流' }] },
+  { match: ['待办', '已办'], caps: [{ key: 'approval_inbox', label: '待办中心' }, { key: 'approval_flow', label: '审批流' }] },
+]
+
+function capsForScenarioName(name: string): Array<{ key: string; label: string }> {
+  const n = name.trim()
+  for (const row of SCENARIO_CAPABILITY_MAP) {
+    if (row.match.some((t) => n.includes(t) || t.includes(n))) return row.caps
+  }
+  return []
+}
+
+/** 行业向导：按所选场景解析能力；不再静默灌 BASELINE（避免假审批 Tab / codegen 乱页） */
 export function buildPublishedModulesFromIndustry(opts: {
   industryKey: string
   industryLabel: string
@@ -77,29 +110,41 @@ export function buildPublishedModulesFromIndustry(opts: {
       kind: 'scenario',
       source: 'user',
     })
+    for (const cap of capsForScenarioName(name)) {
+      push({
+        key: cap.key,
+        label: cap.label,
+        iconKey: iconForModuleKey(cap.key),
+        kind: 'module',
+        source: 'user',
+      })
+    }
   }
 
-  const extras = INDUSTRY_EXTRA[opts.industryKey] ?? INDUSTRY_EXTRA.office ?? []
-  for (const pick of extras) {
-    if (pick.type !== 'module') continue
-    push({
-      key: pick.key,
-      label: pick.label,
-      iconKey: iconForModuleKey(pick.key),
-      kind: 'module',
-      source: 'auto',
-    })
-  }
-
-  for (const pick of BASELINE_PICKS) {
-    if (pick.type !== 'module') continue
-    push({
-      key: pick.key,
-      label: pick.label,
-      iconKey: iconForModuleKey(pick.key),
-      kind: 'module',
-      source: 'auto',
-    })
+  // 无场景命中时，才补行业轻量推荐（仍不灌整套 BASELINE）
+  const hasModule = items.some((m) => m.kind === 'module')
+  if (!hasModule) {
+    const extras = INDUSTRY_EXTRA[opts.industryKey] ?? INDUSTRY_EXTRA.office ?? []
+    for (const pick of extras) {
+      if (pick.type !== 'module') continue
+      push({
+        key: pick.key,
+        label: pick.label,
+        iconKey: iconForModuleKey(pick.key),
+        kind: 'module',
+        source: 'auto',
+      })
+    }
+    for (const pick of BASELINE_PICKS) {
+      if (pick.type !== 'module') continue
+      push({
+        key: pick.key,
+        label: pick.label,
+        iconKey: iconForModuleKey(pick.key),
+        kind: 'module',
+        source: 'auto',
+      })
+    }
   }
 
   return items

@@ -1,6 +1,8 @@
 from typing import Annotated
+from urllib.parse import quote
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi.responses import RedirectResponse
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
@@ -16,6 +18,7 @@ from app.services.otp_service import (
     normalize_account,
     verify_otp,
 )
+from app.services import wecom_oauth
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -187,3 +190,61 @@ def demo_bootstrap(db: Annotated[Session, Depends(get_db)]) -> dict:
 @router.get("/me", response_model=UserOut)
 def me(current_user: Annotated[User, Depends(get_current_user)]) -> UserOut:
     return _user_out(current_user)
+
+
+@router.get("/oauth/wecom/start", response_model=None)
+def wecom_oauth_start(state: str = Query("blockhub")) -> dict:
+    """企微 OAuth 入口。未配置凭证时 503；配置后返回 authorize_url（前端可跳转）。"""
+    if not wecom_oauth.wecom_configured():
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=(
+                "企业微信 SSO 未配置。请在环境变量设置 WECOM_CORP_ID / WECOM_AGENT_ID / WECOM_SECRET"
+                "（可选 WECOM_OAUTH_REDIRECT_URI）。详见 docs/项目计划-合成版v1.3.md §8 P4-I2。"
+            ),
+        )
+    url = wecom_oauth.build_authorize_url(state=state or "blockhub")
+    return {"authorize_url": url, "redirect_uri": wecom_oauth.redirect_uri(), "provider": "wecom"}
+
+
+@router.get("/oauth/wecom/callback", response_model=None)
+def wecom_oauth_callback(
+    db: Annotated[Session, Depends(get_db)],
+    code: str | None = Query(None),
+    state: str = Query("blockhub"),
+) -> RedirectResponse:
+    """企微回调 → 换 userid → 签发 JWT → 重定向到前端带 token。"""
+    if not wecom_oauth.wecom_configured():
+        raise HTTPException(status_code=503, detail="企业微信 SSO 未配置")
+    if not code:
+        raise HTTPException(status_code=400, detail="缺少 code")
+    try:
+        info = wecom_oauth.exchange_code_for_userid(code)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    userid = info["userid"]
+    # 用稳定伪邮箱关联用户，避免与普通邮箱登录冲突
+    email = f"wecom_{userid}@wecom.local"
+    user = db.query(User).filter(User.email == email).first()
+    if not user:
+        tenant = _default_tenant(db)
+        user = User(
+            tenant_id=tenant.id,
+            email=email,
+            phone=None,
+            password_hash=None,
+            role="employee",
+            display_name=f"企微用户{userid[-4:] if len(userid) >= 4 else userid}",
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+    if not user.is_active:
+        raise HTTPException(status_code=403, detail="账号已禁用")
+
+    token = create_access_token(user.id, {"role": user.role, "tenant_id": user.tenant_id, "sso": "wecom"})
+    front = settings.public_base_url.rstrip("/")
+    # 运行时或首页可读取 hash 中的 token
+    target = f"{front}/r/sso-callback#access_token={quote(token)}&state={quote(state)}"
+    return RedirectResponse(url=target, status_code=302)

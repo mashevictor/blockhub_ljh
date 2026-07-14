@@ -10,7 +10,7 @@ EVAL_CASES: list[dict] = [
     {"input": "公司制度智能问答", "expect_any": ["chat_qa", "kb_document"]},
     {"input": "上传PDF制度文档并问答", "expect_any": ["kb_document", "flutter_pdf"]},
     {"input": "销售漏斗数据看板", "expect_any": ["chart_funnel", "chart_dashboard"]},
-    {"input": "制造业设备报修派工", "expect_any": ["approval_flow", "mfg"], "forbid": ["notify_im"]},
+    {"input": "制造业设备报修派工", "expect_any": ["device_repair", "mfg"]},
     {"input": "工厂SOP工艺问答", "expect_any": ["kb_document", "chat_qa", "mfg"]},
     {"input": "医院排班申请", "expect_any": ["approval_flow", "med"]},
     {"input": "游戏玩家FAQ客服", "expect_any": ["chat_qa", "game"]},
@@ -116,7 +116,7 @@ EVAL_CASES: list[dict] = [
     {"input": "实验室样本条码管理", "expect_any": ["flutter_scan_qr", "asset_manage"]},
     {"input": "展会访客扫码登记", "expect_any": ["flutter_scan_qr"]},
     {"input": ">> 生成一个闹钟", "expect_any": ["schedule_alarm"], "forbid": ["notify_im"]},
-    {"input": ">> 制造业设备报修 + 审批", "expect_any": ["mfg", "approval_flow"]},
+    {"input": ">> 制造业设备报修 + 审批", "expect_any": ["mfg", "device_repair"]},
     {"input": ">> 销售CRM + 漏斗看板", "expect_any": ["sales", "chart_funnel"]},
 ]
 
