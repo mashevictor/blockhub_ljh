@@ -14,6 +14,62 @@ body { margin: 0; font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
 .error-msg { color: #b91c1c; font-size: 13px; }
 
 .runtime-shell { max-width: 900px; margin: 0 auto; padding: 16px 20px 40px; }
+.runtime-shell.is-sidebar { max-width: 1100px; }
+.runtime-shell.is-landing { max-width: 960px; }
+.runtime-body { display: block; }
+.runtime-shell.is-sidebar .runtime-body {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 16px;
+  align-items: start;
+  margin-top: 16px;
+}
+.runtime-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 12px;
+  position: sticky;
+  top: 12px;
+}
+.sidebar-btn { width: 100%; text-align: left; }
+.landing-hero {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 18%, #fff), #fff);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 28px 24px;
+  margin-bottom: 16px;
+}
+.landing-hero h2 { margin: 0 0 8px; font-size: 26px; }
+.landing-hero p { margin: 0; color: var(--muted); }
+.landing-stack { display: flex; flex-direction: column; gap: 14px; }
+.landing-block {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px;
+  background: #fff;
+}
+.generated-page { display: flex; flex-direction: column; gap: 12px; }
+.generated-badge {
+  display: inline-block;
+  margin: 0 0 8px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, #fff);
+  border-radius: 999px;
+  padding: 3px 8px;
+}
+.generated-summary { color: var(--muted); margin: 0 0 8px; }
+.generated-blocks h3 { margin: 12px 0 6px; }
+@media (max-width: 720px) {
+  .runtime-shell.is-sidebar .runtime-body { grid-template-columns: 1fr; }
+  .runtime-sidebar { position: static; flex-direction: row; flex-wrap: wrap; }
+}
+
 .runtime-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 .brand { display: flex; gap: 12px; align-items: center; }
 .brand h1 { margin: 0; font-size: 20px; }

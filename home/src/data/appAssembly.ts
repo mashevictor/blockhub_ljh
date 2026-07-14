@@ -3,7 +3,10 @@ import { moduleId, pickToModule, type PromptModule } from '../components/agentIn
 import { MODULES } from './constants'
 import { CAPABILITIES_SHOWCASE, INDUSTRIES_SHOWCASE, resolveIndustryApiKey } from './showcase'
 
-/** 任意 App 发布时保证存在的底座能力（用户未选手动补齐） */
+/**
+ * 可选底座能力（默认不再静默注入 —— 选型即交付）。
+ * 仅当 resolveAppBundle({ skipBaseline: false }) 时追加。
+ */
 export const BASELINE_PICKS: AgentPick[] = [
   { type: 'capability', key: 'portal', label: '多端门户' },
   { type: 'module', key: 'chat_qa', label: '智能问答' },
@@ -139,7 +142,7 @@ export function resolveAppBundle(opts: ResolveOptions): ResolvedAppBundle {
     scenarioIds,
     catalogNames,
     suggestedModules = [],
-    skipBaseline = false,
+    skipBaseline = true,
     intentLabel = '',
   } = opts
 

@@ -113,6 +113,41 @@ class CapabilityShellScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final useDrawer = branding.appUiId == 'drawer_nav';
+    if (useDrawer) {
+      return Scaffold(
+        appBar: AppBar(
+          title: Text(config.appName),
+          actions: [
+            IconButton(icon: const Icon(Icons.logout), onPressed: onLogout, tooltip: '退出登录'),
+          ],
+        ),
+        drawer: Drawer(
+          child: ListView(
+            children: [
+              DrawerHeader(
+                decoration: BoxDecoration(color: Color(branding.primaryColorValue).withOpacity(0.15)),
+                child: Align(
+                  alignment: Alignment.bottomLeft,
+                  child: Text(config.appName, style: Theme.of(context).textTheme.titleLarge),
+                ),
+              ),
+              for (final item in menu)
+                ListTile(
+                  selected: selectedKey == item.key,
+                  title: Text(item.label),
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    onSelectKey(item.key);
+                  },
+                ),
+            ],
+          ),
+        ),
+        body: child,
+      );
+    }
+
     return Column(
       children: [
         ListTile(

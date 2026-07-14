@@ -192,21 +192,20 @@ export default function PlazaMyAppsPage() {
                     size={44}
                   />
                   <div className="plaza-my-card-main">
-                    <div className="plaza-my-card-title-row" onClick={(e) => e.stopPropagation()}>
+                    <div className="plaza-my-card-title-row">
                       <strong>{app.appName}</strong>
-                      <PlazaAppStatusButton
-                        app={app}
-                        isNew={isNew}
-                        inline
-                        isFocused={Boolean(focusApp && appKey(focusApp) === key)}
-                        onFocusApp={() => setFocusKey(key)}
-                        onOpenDetail={() => openOrchestration(app)}
-                      />
                     </div>
                     <span className="plaza-my-card-meta">{statusLine(app, isNew)}</span>
                   </div>
                   <div className="plaza-my-card-actions" onClick={(e) => e.stopPropagation()}>
-                    <PlazaPublishButton app={app} />
+                    <PlazaAppStatusButton
+                      app={app}
+                      isNew={isNew}
+                      inline
+                      isFocused={Boolean(focusApp && appKey(focusApp) === key)}
+                      onFocusApp={() => setFocusKey(key)}
+                      onOpenDetail={() => openOrchestration(app)}
+                    />
                     <button
                       type="button"
                       className="btn-primary plaza-my-orch-btn"
@@ -214,7 +213,8 @@ export default function PlazaMyAppsPage() {
                     >
                       <span className="plaza-mflow-chev">&gt;&gt;</span> 编排
                     </button>
-                    <a className="btn-ghost plaza-my-card-icon-btn" href={app.webUrl} target="_blank" rel="noreferrer" title="打开">
+                    <PlazaPublishButton app={app} />
+                    <a className="btn-ghost plaza-my-card-icon-btn" href={app.webUrl} target="_blank" rel="noreferrer" title="打开网页">
                       <IconGlobe size={16} />
                     </a>
                     <button

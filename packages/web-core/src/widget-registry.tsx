@@ -44,6 +44,10 @@ export function resolveWidgetName(node: SchemaNode): string {
     audit: 'AuditWidget',
     mask: 'MaskWidget',
     securitymask: 'MaskWidget',
+    landing_hero: 'LandingHeroWidget',
+    landinghero: 'LandingHeroWidget',
+    generated_page: 'GeneratedPageWidget',
+    generatedpage: 'GeneratedPageWidget',
   }
   return map[type] || 'ListWidget'
 }

@@ -105,6 +105,11 @@ export interface PublishResult {
   emailConfigured?: boolean
   /** 服务端 APK 是否已就绪（与 Flutter 构建无关，不阻塞发布） */
   apkReady?: boolean
+  /** 超出官方能力时的异步 codegen 任务 */
+  codegenJobId?: string
+  webTemplateId?: string
+  appUiId?: string
+  capabilityKeys?: string[]
   /** W3：按勾选组装的 Web/App 包清单 */
   buildManifest?: {
     web_pkgs?: string[]

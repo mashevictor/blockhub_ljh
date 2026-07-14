@@ -221,6 +221,42 @@ export interface PublishOptions {
   iconUrl?: string
   primaryColor?: string
   appId?: string
+  webTemplateId?: string
+  appUiId?: string
+}
+
+export interface WebTemplate {
+  id: string
+  label: string
+  desc: string
+  layout?: string
+}
+
+export interface AppUiTemplate {
+  id: string
+  label: string
+  desc: string
+  voice_demo?: boolean
+}
+
+export async function fetchDeliveryTemplates() {
+  const res = await api.get<{
+    web_templates: WebTemplate[]
+    app_ui_templates: AppUiTemplate[]
+    defaults?: { web_template_id?: string; app_ui_id?: string }
+  }>('/creation/delivery-templates')
+  return res.data
+}
+
+export async function fetchCodegenJob(jobId: string) {
+  const res = await api.get<{
+    id: string
+    status: string
+    app_id?: string
+    result?: { page_count?: number; routes?: string[]; llm?: boolean }
+    error?: string
+  }>(`/creation/codegen-jobs/${jobId}`)
+  return res.data
 }
 
 export interface CreatedApp {
@@ -284,7 +320,20 @@ export async function publishApp(
   const res = await api.post<{
     success: boolean
     app: CreatedApp
-    runtime?: { apk_ready?: boolean; web_url?: string; download_url?: string; deliver?: string }
+    codegen_job_id?: string | null
+    capability_assembly?: {
+      resolved_keys?: string[]
+      dropped_keys?: string[]
+      requested_keys?: string[]
+    }
+    runtime?: {
+      apk_ready?: boolean
+      web_url?: string
+      download_url?: string
+      deliver?: string
+      web_template_id?: string
+      app_ui_id?: string
+    }
     notification?: { email?: string; email_sent?: boolean; email_configured?: boolean }
   }>(
     '/creation/publish',
@@ -310,6 +359,8 @@ export async function publishApp(
       contact_phone: opts.contactPhone ?? '',
       icon_url: opts.iconUrl ?? '',
       primary_color: opts.primaryColor ?? '#4338ca',
+      web_template_id: opts.webTemplateId ?? 'tabs_portal',
+      app_ui_id: opts.appUiId ?? 'bottom_tabs',
     },
     { timeout: 90000 },
   )

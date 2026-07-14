@@ -48,6 +48,8 @@ def build_manifest(
     capability_keys: list[str],
     *,
     deliver: str = "both",
+    web_template_id: str = "tabs_portal",
+    app_ui_id: str = "bottom_tabs",
 ) -> dict[str, Any]:
     keys = [k for k in capability_keys if k]
     if not keys:
@@ -77,6 +79,10 @@ def build_manifest(
     return {
         "version": "1",
         "capability_keys": keys,
+        "meta": {
+            "web_template_id": web_template_id,
+            "app_ui_id": app_ui_id,
+        },
         "widgets": widgets,
         "routes": routes,
         "web_pkgs": web_pkgs,

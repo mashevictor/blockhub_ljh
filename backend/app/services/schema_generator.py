@@ -1,10 +1,11 @@
-"""Page schema generator — capability_keys → page_schema JSON."""
+"""Page schema generator — capability_keys + web_template → page_schema JSON."""
 
 from __future__ import annotations
 
 from typing import Any
 
 from app.data.capability_registry import ALL_CAPABILITIES
+from app.data.delivery_templates import normalize_web_template_id
 from app.services import effective_capability_registry as _effective_registry  # noqa: F401 — bootstrap seed caps
 
 
@@ -39,7 +40,6 @@ def generate_menu(capability_keys: list[str]) -> list[dict[str, str]]:
         if not cap:
             continue
         route = _route_for(key)
-        # 菜单文案/图标优先取注册表显式字段，留空走默认（name / "module"）
         menu.append(
             {
                 "key": key,
@@ -59,27 +59,57 @@ def generate_page_schema(
     app_name: str,
     capability_keys: list[str],
     primary_color: str = "#4338ca",
+    web_template_id: str = "tabs_portal",
+    app_ui_id: str = "bottom_tabs",
 ) -> dict[str, Any]:
     keys = [k for k in capability_keys if k]
     if not keys:
         keys = ["chat_qa"]
 
+    tpl = normalize_web_template_id(web_template_id)
     children = [_schema_node_for(k) for k in keys]
     menu = generate_menu(keys)
 
-    layout_type = "tabs" if len(children) > 1 else "single"
+    if tpl == "landing_single":
+        layout_type = "landing"
+        # 落地页：顶部英雄 + 能力区块，菜单仍保留便于跳转
+        children = [
+            {
+                "id": "landing_hero",
+                "type": "landing_hero",
+                "props": {
+                    "widget": "LandingHeroWidget",
+                    "title": app_name,
+                    "subtitle": f"共 {len(keys)} 项能力 · 打开即可用",
+                    "primaryColor": primary_color,
+                },
+            },
+            *children,
+        ]
+    elif tpl == "sidebar_admin":
+        layout_type = "sidebar"
+    else:
+        layout_type = "tabs" if len(keys) > 1 else "single"
 
     return {
         "version": "1",
         "appId": app_id,
         "title": app_name,
-        "theme": {"primaryColor": primary_color, "mode": "light"},
+        "theme": {
+            "primaryColor": primary_color,
+            "mode": "light",
+            "templateId": tpl,
+        },
         "menu": menu,
         "capability_keys": keys,
+        "meta": {
+            "web_template_id": tpl,
+            "app_ui_id": app_ui_id,
+        },
         "root": {
             "id": "root",
             "type": "page",
-            "props": {"layout": layout_type},
+            "props": {"layout": layout_type, "templateId": tpl},
             "children": children,
         },
     }
@@ -118,12 +148,8 @@ def validate_page_schema(schema: dict[str, Any]) -> None:
     for node in children:
         if not isinstance(node, dict):
             raise ValueError("page_schema child nodes must be objects")
+        if node.get("type") in ("landing_hero", "generated_page"):
+            continue
         props = node.get("props")
-        if not isinstance(props, dict):
-            raise ValueError(f"page_schema node {node.get('id', '?')} props missing")
-        widget = props.get("widget")
-        route = props.get("route")
-        if not isinstance(widget, str) or not widget:
-            raise ValueError(f"page_schema node {node.get('id', '?')} widget missing")
-        if route not in routes:
-            raise ValueError(f"page_schema node {node.get('id', '?')} route not in menu")
+        if props is not None and not isinstance(props, dict):
+            raise ValueError("page_schema child props must be an object")

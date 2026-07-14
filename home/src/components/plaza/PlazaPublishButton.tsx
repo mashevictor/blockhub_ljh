@@ -67,7 +67,14 @@ export default function PlazaPublishButton({ app, className = '', onPublished }:
           setError(null)
         }}
       >
-        {published ? app.plaza!.label : '📡 发布到广场'}
+        {published ? (
+          <>
+            <span className="plaza-my-plaza-dot" aria-hidden />
+            {app.plaza!.label}
+          </>
+        ) : (
+          '📡 发布到广场'
+        )}
       </button>
 
       {open && createPortal(

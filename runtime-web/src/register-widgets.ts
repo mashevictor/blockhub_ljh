@@ -1,4 +1,7 @@
 import type { BuildManifest } from '@blockhub/web-core'
+import { registerBuiltinWidgets } from './builtin-widgets'
+
+registerBuiltinWidgets()
 
 // 解耦核心：不在此硬编码任何能力包。
 // 通过 import.meta.glob 自动发现 packages/web-capability-*/src/index.ts，

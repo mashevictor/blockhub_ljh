@@ -1,6 +1,7 @@
 /**
- * 上海话语音 Agent — 本仓库一等公民「真项目」
- * 写入「我的应用」+ 本地广场缓存，供双轨编排 / 试运营 / APK 下载复用。
+ * 上海话语音 — 本地演示入口预填（capability_keys: shanghai_voice + immersive_chat）。
+ * 正式「选型即交付」请走 ModuleView/PromptView → publish（真实 appId + runtime）。
+ * 本文件不再作为第三条交付旁路，仅用于体验预览与 >> 试运营话术识别。
  */
 import type { PublishResult, PublishedModuleItem } from '../data/constants'
 import { PUBLIC_BASE_URL } from '../data/constants'
@@ -67,6 +68,9 @@ export function buildShanghaiVoicePublishResult(): PublishResult {
     deliver: 'both',
     source: 'shanghai-voice-project',
     contactEmail: 'shanghai-voice@blockhub.local',
+    webTemplateId: 'tabs_portal',
+    appUiId: 'immersive_chat',
+    capabilityKeys: ['shanghai_voice', 'chat_qa'],
   }
 }
 

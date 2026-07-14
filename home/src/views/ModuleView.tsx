@@ -16,6 +16,8 @@ import { emptyBranding } from '../data/appBranding'
 import SelectionBox, { type SelectionItem } from '../components/SelectionBox'
 import { ChevronDotLoadingRow } from '../components/ChevronDotLoader'
 import DeliverTargetPicker from '../components/DeliverTargetPicker'
+import DeliveryTemplatePicker from '../components/DeliveryTemplatePicker'
+import CapabilitySplitBanner from '../components/CapabilitySplitBanner'
 import { deliverToPlatforms, platformsToDeliver, type PlatformId } from '../data/deliverTargets'
 
 interface Props {
@@ -38,6 +40,8 @@ export default function ModuleView({ onPublish, active = true }: Props) {
   const [modulesError, setModulesError] = useState<string | null>(null)
   const [platforms, setPlatforms] = useState<PlatformId[]>(() => deliverToPlatforms('web'))
   const device = platformsToDeliver(platforms)
+  const [webTemplateId, setWebTemplateId] = useState('tabs_portal')
+  const [appUiId, setAppUiId] = useState('bottom_tabs')
   const [boxOpenSignal, setBoxOpenSignal] = useState(0)
   const [lastAddedId, setLastAddedId] = useState<string | null>(null)
 
@@ -124,6 +128,8 @@ export default function ModuleView({ onPublish, active = true }: Props) {
           source: 'module',
           iconUrl: branding.iconUrl,
           primaryColor: branding.primaryColor,
+          webTemplateId,
+          appUiId,
           contactEmail: contact.type === 'email' ? contact.value : undefined,
           contactPhone: contact.type === 'phone' ? contact.value : undefined,
         })
@@ -184,6 +190,21 @@ export default function ModuleView({ onPublish, active = true }: Props) {
             <h3>您的应用</h3>
             <DeliverTargetPicker value={platforms} onChange={setPlatforms} />
           </div>
+          <DeliveryTemplatePicker
+            webTemplateId={webTemplateId}
+            appUiId={appUiId}
+            onWebTemplateChange={setWebTemplateId}
+            onAppUiChange={setAppUiId}
+            recommendAppUiId={
+              widgets.some((w) => w.key.includes('shanghai_voice')) ? 'immersive_chat' : undefined
+            }
+            compact
+          />
+          <CapabilitySplitBanner
+            knownLabels={widgets.map((w) => w.name)}
+            pendingLabels={[]}
+            compact
+          />
           <div className="canvas-drop">
             {!widgets.length && (
               <div className="canvas-empty">

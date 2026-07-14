@@ -21,7 +21,15 @@ export interface PublishApiResponse {
     flutter_pkgs?: string[]
     capability_keys?: string[]
   }
-  runtime?: { apk_ready?: boolean; apk_build_status?: string; web_url?: string; download_url?: string }
+  codegen_job_id?: string | null
+  runtime?: {
+    apk_ready?: boolean
+    apk_build_status?: string
+    web_url?: string
+    download_url?: string
+    web_template_id?: string
+    app_ui_id?: string
+  }
   notification?: { email?: string; email_sent?: boolean; email_configured?: boolean }
 }
 
@@ -74,5 +82,8 @@ export function publishApiToResult(res: PublishApiResponse, opts: PublishResultO
     buildManifest: res.build_manifest ?? res.app.build_manifest,
     pageSchema: res.page_schema ?? res.app.page_schema,
     capabilityAssembly: res.capability_assembly ?? res.app.capability_assembly,
+    codegenJobId: res.codegen_job_id || undefined,
+    webTemplateId: res.runtime?.web_template_id,
+    appUiId: res.runtime?.app_ui_id,
   }
 }

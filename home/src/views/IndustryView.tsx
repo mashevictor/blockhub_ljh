@@ -18,6 +18,7 @@ import AppBrandingFields from '../components/AppBrandingFields'
 import { emptyBranding, resolveAppName } from '../data/appBranding'
 import SelectionBox, { type SelectionItem } from '../components/SelectionBox'
 import { ChevronDotLoadingRow } from '../components/ChevronDotLoader'
+import DeliveryTemplatePicker from '../components/DeliveryTemplatePicker'
 
 interface SceneItem {
   id: string
@@ -47,6 +48,8 @@ export default function IndustryView({ onPublish, active = true, initialIndustry
   const [contactOpen, setContactOpen] = useState(false)
   const [appName, setAppName] = useState('我的行业应用')
   const [branding, setBranding] = useState(() => emptyBranding('我的行业应用'))
+  const [webTemplateId, setWebTemplateId] = useState('tabs_portal')
+  const [appUiId, setAppUiId] = useState('bottom_tabs')
 
   const loadScenes = () => {
     const apiKey = resolveIndustryApiKey(industry)
@@ -161,6 +164,8 @@ export default function IndustryView({ onPublish, active = true, initialIndustry
           source: 'industry',
           iconUrl: branding.iconUrl,
           primaryColor: branding.primaryColor,
+          webTemplateId,
+          appUiId,
           contactEmail: contact.type === 'email' ? contact.value : undefined,
           contactPhone: contact.type === 'phone' ? contact.value : undefined,
         })
@@ -307,6 +312,12 @@ export default function IndustryView({ onPublish, active = true, initialIndustry
               setBranding(next)
               if (next.appName) setAppName(next.appName)
             }}
+          />
+          <DeliveryTemplatePicker
+            webTemplateId={webTemplateId}
+            appUiId={appUiId}
+            onWebTemplateChange={setWebTemplateId}
+            onAppUiChange={setAppUiId}
           />
           <div className="step-actions">
             <button type="button" className="btn-ghost" onClick={() => setStep(2)}>上一步</button>

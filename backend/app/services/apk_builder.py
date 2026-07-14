@@ -147,7 +147,12 @@ def _write_status(public_id: str, payload: dict[str, Any]) -> None:
 
 def build_spec_from_app(app: dict[str, Any]) -> dict[str, Any]:
     keys = list(app.get("capability_keys") or [])
-    profile = resolve_apk_build_profile(keys)
+    app_ui = (
+        app.get("app_ui_id")
+        or (app.get("build_manifest") or {}).get("meta", {}).get("app_ui_id")
+        or (app.get("page_schema") or {}).get("meta", {}).get("app_ui_id")
+    )
+    profile = resolve_apk_build_profile(keys, app_ui_id=app_ui)
     api_base = f"{settings.public_base_url.rstrip('/')}{settings.api_prefix}"
     return {
         "public_id": app["id"],
@@ -158,6 +163,7 @@ def build_spec_from_app(app: dict[str, Any]) -> dict[str, Any]:
         "build_manifest": app.get("build_manifest") or {},
         "deliver": app.get("deliver") or "both",
         "profile_id": profile.profile_id,
+        "app_ui_id": profile.app_ui_id,
         "voice_demo": profile.voice_demo,
         "android_app_id": profile.android_app_id,
         "tenant_slug": profile.tenant_slug,

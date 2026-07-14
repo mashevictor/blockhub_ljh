@@ -71,21 +71,25 @@ def resolve_publish_capability_keys_detailed(
 
     requested = _collect_requested(capability_keys=capability_keys, modules=modules)
     explicit_ok = [k for k in requested if is_registry_key(k)]
-    dropped = [k for k in requested if not is_registry_key(k)]
+    # 未知 key 留给异步 codegen，不再静默丢弃（仍计入 dropped_keys 供前端展示「待 AI 生成」）
+    unknown = [k for k in requested if not is_registry_key(k)]
 
-    resolved_raw = resolve_capability_keys(
-        scenario_names=scenario_names,
-        explicit_keys=explicit_ok or None,
-        industry_key=industry_key,
-    )
-    resolved = [k for k in resolved_raw if is_registry_key(k)]
-    orphan = [k for k in resolved_raw if k not in resolved]
-    all_dropped = list(dict.fromkeys([*dropped, *orphan]))
-    scenario_added = [k for k in resolved if k not in explicit_ok]
+    if explicit_ok or unknown:
+        # 选型即交付：用户有显式勾选时，不以场景模板偷偷加能力
+        resolved = list(explicit_ok)
+        scenario_added: list[str] = []
+    else:
+        resolved_raw = resolve_capability_keys(
+            scenario_names=scenario_names,
+            explicit_keys=None,
+            industry_key=industry_key,
+        )
+        resolved = [k for k in resolved_raw if is_registry_key(k)]
+        scenario_added = list(resolved)
 
     return CapabilityAssemblyMeta(
         requested_keys=requested,
         resolved_keys=resolved,
-        dropped_keys=all_dropped,
+        dropped_keys=unknown,
         scenario_added_keys=scenario_added,
     )

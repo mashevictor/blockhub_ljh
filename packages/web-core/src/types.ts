@@ -20,7 +20,8 @@ export interface PageSchema {
   version: string
   appId: string
   title: string
-  theme?: { primaryColor?: string; mode?: 'light' | 'dark' }
+  theme?: { primaryColor?: string; mode?: 'light' | 'dark'; templateId?: string }
+  meta?: Record<string, unknown>
   menu: Array<{ key: string; label: string; icon: string; route: string }>
   capability_keys: string[]
   root: SchemaNode

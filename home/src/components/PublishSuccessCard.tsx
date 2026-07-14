@@ -14,6 +14,7 @@ import PublishDeliveryLinks from './PublishDeliveryLinks'
 import { DynamicIcon } from './icons'
 import { deliverLabel, normalizeDeliver, showAppDeliver, showWebDeliver } from '../data/deliverDisplay'
 import DeliveryProgress from './DeliveryProgress'
+import { useCodegenProgress } from '../hooks/useCodegenProgress'
 
 interface Props {
   result: PublishResult
@@ -63,6 +64,7 @@ export default function PublishSuccessCard({
       onPlazaFeed: stored.audienceType === 'public' || stored.audienceType === 'dept',
     } : null
   })
+  const codegen = useCodegenProgress(result.codegenJobId)
 
   const phoneWidgets = useMemo(
     () => pickPhonePreviewModules(result.modules).slice(0, 3),
@@ -157,6 +159,30 @@ export default function PublishSuccessCard({
           <DeliveryProgress app={result} compact />
         )}
 
+        {result.codegenJobId && !orchestration && (
+          <div className="codegen-progress" role="status">
+            <div className="codegen-progress-head">
+              <DynamicIcon name="creation" size={14} />
+              <span>AI 页面生成</span>
+              <span className={`codegen-progress-status is-${codegen.status}`}>
+                {codegen.status === 'ready'
+                  ? '完成'
+                  : codegen.status === 'failed'
+                    ? '失败'
+                    : codegen.status === 'running'
+                      ? '生成中…'
+                      : '排队中…'}
+              </span>
+            </div>
+            <p className="codegen-progress-msg">{codegen.detail || '正在为未知能力生成页面…'}</p>
+            {codegen.status === 'ready' && showWebDeliver(result) && (
+              <a className="btn btn-sm btn-ghost" href={result.webUrl} target="_blank" rel="noreferrer">
+                打开网页查看生成页
+              </a>
+            )}
+          </div>
+        )}
+
         {!orchestration && result.buildManifest?.web_pkgs && result.buildManifest.web_pkgs.length > 0 && (
           <div className="publish-manifest-strip" role="status" style={{ marginBottom: 12, fontSize: 13, color: 'var(--muted)' }}>
             <DynamicIcon name="layers" size={14} />
@@ -170,7 +196,11 @@ export default function PublishSuccessCard({
 
         {!orchestration && result.capabilityAssembly?.dropped_details && result.capabilityAssembly.dropped_details.length > 0 && (
           <div className="publish-save-warn" role="alert" style={{ marginBottom: 12 }}>
-            <strong>以下能力未纳入发布契约（已跳过）：</strong>
+            <strong>
+              {result.codegenJobId
+                ? '以下能力将由 AI 异步生成预览页：'
+                : '以下能力待 AI 生成（已知能力已可用）：'}
+            </strong>
             {' '}
             {result.capabilityAssembly.dropped_details.map((d) => d.name || d.key).join('、')}
           </div>

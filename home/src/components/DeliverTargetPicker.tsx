@@ -23,10 +23,10 @@ interface Props {
 
 function useMobilePopover() {
   const [mobile, setMobile] = useState(() =>
-    typeof window !== 'undefined' ? window.matchMedia('(max-width: 640px)').matches : false,
+    typeof window !== 'undefined' ? window.matchMedia('(max-width: 768px)').matches : false,
   )
   useEffect(() => {
-    const mq = window.matchMedia('(max-width: 640px)')
+    const mq = window.matchMedia('(max-width: 768px)')
     const sync = () => setMobile(mq.matches)
     sync()
     mq.addEventListener('change', sync)

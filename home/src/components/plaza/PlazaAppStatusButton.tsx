@@ -30,8 +30,9 @@ function resolveDeliveryStatus(
   if (isNew) {
     return { variant: 'new' as const, label: '刚发布', sub: '交付检测中' }
   }
+  // 受众文案（@公开 等）由 PlazaPublishButton 展示，此处不重复
   if (app.plaza?.onPlazaFeed) {
-    return { variant: 'plaza' as const, label: app.plaza.label, sub: '已上广场' }
+    return { variant: 'plaza' as const, label: '已上广场', sub: '可打开使用' }
   }
   if (delivery.apkReady || !delivery.needApk) {
     return { variant: 'ready' as const, label: '已就绪', sub: '可打开使用' }

@@ -8,6 +8,7 @@ import {
   login,
   type BuildManifest,
   type PageSchema,
+  type SchemaNode,
   type TenantRuntimeConfig,
 } from '@blockhub/web-core'
 import { bootWidgetsFromManifest } from './register-widgets'
@@ -32,6 +33,14 @@ function navigateRoute(appId: string, route: string) {
     window.history.pushState({}, '', target)
     window.dispatchEvent(new PopStateEvent('popstate'))
   }
+}
+
+function layoutOf(schema: PageSchema): string {
+  const fromRoot = String(schema.root?.props?.layout || '')
+  const fromTheme = String(schema.theme?.templateId || '')
+  if (fromRoot === 'sidebar' || fromTheme === 'sidebar_admin') return 'sidebar'
+  if (fromRoot === 'landing' || fromTheme === 'landing_single') return 'landing'
+  return 'tabs'
 }
 
 export default function App() {
@@ -145,11 +154,19 @@ export default function App() {
 
   const primaryColor = config.primary_color || schema.theme?.primaryColor || '#4338ca'
   const menu = schema.menu?.length ? schema.menu : config.menu.map((m) => ({ ...m, route: m.route || `/${m.key}` }))
+  const layout = layoutOf(schema)
   const activeKey = menu.find((m) => m.route === route)?.key || menu[0]?.key
-  const activeNode =
-    schema.root.children?.find((c) => String(c.props?.route) === route) ||
-    schema.root.children?.find((c) => c.id === activeKey) ||
-    schema.root.children?.[0]
+  const children = schema.root.children || []
+  const heroNodes = children.filter((c) => c.type === 'landing_hero')
+  const contentNodes = children.filter((c) => c.type !== 'landing_hero')
+
+  let activeNode: SchemaNode | undefined =
+    contentNodes.find((c) => String(c.props?.route) === route) ||
+    contentNodes.find((c) => c.id === activeKey) ||
+    contentNodes[0]
+
+  // 落地页：首屏展示全部内容块；有 route 时仍可点进单能力
+  const landingAll = layout === 'landing' && (!route || route === '/')
 
   const ctx = {
     appId,
@@ -163,10 +180,12 @@ export default function App() {
 
   const showWeb = deliver === 'web' || deliver === 'both'
   const showApp = deliver === 'app' || deliver === 'both'
+  const shellClass =
+    layout === 'sidebar' ? 'runtime-shell is-sidebar' : layout === 'landing' ? 'runtime-shell is-landing' : 'runtime-shell'
 
   return (
     <RuntimeContext.Provider value={ctx}>
-      <div className="runtime-shell" style={{ '--accent': primaryColor } as CSSProperties}>
+      <div className={shellClass} style={{ '--accent': primaryColor } as CSSProperties}>
         <header className="runtime-header">
           <div className="brand">
             {config.app_icon_url ? (
@@ -176,32 +195,67 @@ export default function App() {
             )}
             <div>
               <h1>{config.app_name}</h1>
-              <p className="muted">{user.display_name} · {user.role}</p>
+              <p className="muted">
+                {user.display_name} · {user.role}
+                {layout === 'sidebar' ? ' · 侧栏后台' : layout === 'landing' ? ' · 单页落地' : ' · Tabs 门户'}
+              </p>
             </div>
           </div>
           <button type="button" className="btn btn-ghost" onClick={handleLogout}>退出</button>
         </header>
 
-        <nav className="runtime-nav runtime-nav-mobile">
-          {menu.map((item) => (
-            <button
-              key={item.key}
-              type="button"
-              className={`nav-btn${item.route === route ? ' active' : ''}`}
-              onClick={() => navigateRoute(appId, item.route || '/')}
-            >
-              {item.label}
-            </button>
-          ))}
-        </nav>
-
-        <main className="runtime-main">
-          {showWeb && activeNode ? (
-            <WidgetHost node={activeNode} ctx={ctx} />
+        <div className="runtime-body">
+          {layout === 'sidebar' ? (
+            <aside className="runtime-sidebar">
+              {menu.map((item) => (
+                <button
+                  key={item.key}
+                  type="button"
+                  className={`nav-btn sidebar-btn${item.route === route || item.key === activeKey ? ' active' : ''}`}
+                  onClick={() => navigateRoute(appId, item.route || '/')}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </aside>
           ) : (
-            <p className="muted">此应用未启用网页端</p>
+            <nav className="runtime-nav runtime-nav-mobile">
+              {menu.map((item) => (
+                <button
+                  key={item.key}
+                  type="button"
+                  className={`nav-btn${item.route === route || item.key === activeKey ? ' active' : ''}`}
+                  onClick={() => navigateRoute(appId, item.route || '/')}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </nav>
           )}
-        </main>
+
+          <main className="runtime-main">
+            {showWeb ? (
+              landingAll ? (
+                <div className="landing-stack">
+                  {heroNodes.map((n) => (
+                    <WidgetHost key={n.id} node={n} ctx={ctx} />
+                  ))}
+                  {contentNodes.map((n) => (
+                    <section key={n.id} className="landing-block">
+                      <WidgetHost node={n} ctx={ctx} />
+                    </section>
+                  ))}
+                </div>
+              ) : activeNode ? (
+                <WidgetHost node={activeNode} ctx={ctx} />
+              ) : (
+                <p className="muted">暂无页面</p>
+              )
+            ) : (
+              <p className="muted">此应用未启用网页端</p>
+            )}
+          </main>
+        </div>
 
         {showApp && (
           <footer className="runtime-footer">

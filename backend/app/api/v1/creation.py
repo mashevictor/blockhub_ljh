@@ -11,7 +11,9 @@ from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.core.deps import get_current_user, get_optional_user, require_admin
 from app.data.module_data import CREATION_WIZARD_STEPS, INDUSTRY_PACK_OPTIONS
+from app.data.delivery_templates import list_delivery_templates
 from app.data.schema_templates import feasibility_for_scenarios, list_templates
+from app.services.codegen_jobs import enqueue_codegen_job, get_codegen_job
 from app.db.models import User
 from app.db.session import get_db
 from app.services.app_store import (
@@ -93,6 +95,8 @@ class PublishRequest(BaseModel):
     contact_phone: str = ""
     icon_url: str = ""
     primary_color: str = "#4338ca"
+    web_template_id: str = "tabs_portal"
+    app_ui_id: str = "bottom_tabs"
 
 
 class PlazaPublishRequest(BaseModel):
@@ -137,6 +141,17 @@ def feasibility_check(body: FeasibilityRequest, db: Session = Depends(get_db)) -
 def schema_templates_api(industry: str | None = None) -> dict:
     items = list_templates(industry)
     return {"total": len(items), "items": items}
+
+
+@router.get("/delivery-templates")
+def delivery_templates_api() -> dict:
+    """网页模板 + App UI 壳列表（选型即交付）。"""
+    return list_delivery_templates()
+
+
+@router.get("/codegen-jobs/{job_id}")
+def codegen_job_status(job_id: str) -> dict:
+    return get_codegen_job(job_id)
 
 
 @router.post("/custom-capabilities")
@@ -289,6 +304,8 @@ def publish_app(
             payload=body.model_dump(),
             icon_url=body.icon_url,
             primary_color=body.primary_color,
+            web_template_id=body.web_template_id,
+            app_ui_id=body.app_ui_id,
         )
         deliver = app.get("deliver", "both")
         public_id = app["id"]
@@ -296,6 +313,18 @@ def publish_app(
         build_status = get_apk_build_status(public_id)
         if deliver in ("app", "both") and not apk_ready:
             build_status = enqueue_apk_build(app)
+
+        codegen_job_id = ""
+        pending_keys = list(app.get("pending_codegen_keys") or [])
+        if pending_keys:
+            codegen_job_id = enqueue_codegen_job(
+                app_id=public_id,
+                app_name=body.name,
+                unknown_keys=pending_keys,
+                prompt=body.prompt,
+                web_template_id=app.get("web_template_id") or body.web_template_id,
+                app_ui_id=app.get("app_ui_id") or body.app_ui_id,
+            )
 
         email_sent = False
         email_configured = smtp_configured()
@@ -319,12 +348,15 @@ def publish_app(
             "capability_assembly": app.get("capability_assembly"),
             "page_schema": app.get("page_schema"),
             "build_manifest": app.get("build_manifest"),
+            "codegen_job_id": codegen_job_id or None,
             "runtime": {
                 "web_url": app.get("web_url"),
                 "download_url": app.get("download_url"),
                 "deliver": deliver,
                 "apk_ready": apk_ready,
                 "apk_build_status": build_status,
+                "web_template_id": app.get("web_template_id"),
+                "app_ui_id": app.get("app_ui_id"),
             },
             "notification": {
                 "email": body.contact_email or None,

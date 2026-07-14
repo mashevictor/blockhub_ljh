@@ -37,6 +37,7 @@ fields = {
     "API_BASE_URL": spec.get("api_base_url", "http://101.32.209.251/api/v1"),
     "PRIMARY_COLOR": spec.get("primary_color", "#4338CA"),
     "VOICE_DEMO": "1" if spec.get("voice_demo") else "0",
+    "APP_UI_ID": spec.get("app_ui_id") or ("immersive_chat" if spec.get("voice_demo") else "bottom_tabs"),
     "ICON_URL": spec.get("icon_url") or "",
 }
 cap_keys = spec.get("capability_keys") or []
@@ -67,6 +68,7 @@ echo " public_id: $APP_PUBLIC_ID"
 echo " profile:   ${BUILD_PROFILE:-generic}"
 echo " name:      $APP_NAME"
 echo " voice:     VOICE_DEMO=$VOICE_DEMO"
+echo " app_ui:    APP_UI_ID=${APP_UI_ID:-bottom_tabs}"
 echo " caps:      CAPABILITY_KEYS=${CAPABILITY_KEYS:-<all>}"
 echo "=============================================="
 

@@ -139,9 +139,15 @@ def persist_published_app(
     icon_url: str = "",
     primary_color: str = "#4338ca",
     app_id: str = "",
+    web_template_id: str = "tabs_portal",
+    app_ui_id: str = "bottom_tabs",
 ) -> dict[str, Any]:
+    from app.data.delivery_templates import normalize_app_ui_id, normalize_web_template_id
+
     existing = get_app_by_public_id(db, app_id) if app_id else None
     tenant_id = user.tenant_id if user else None
+    web_tpl = normalize_web_template_id(web_template_id)
+    app_ui = normalize_app_ui_id(app_ui_id)
     assembly = resolve_publish_capability_keys_detailed(
         scenario_names=scenarios,
         capability_keys=capability_keys,
@@ -156,9 +162,16 @@ def persist_published_app(
         app_name=name,
         capability_keys=keys,
         primary_color=primary_color or "#4338ca",
+        web_template_id=web_tpl,
+        app_ui_id=app_ui,
     )
     validate_page_schema(page_schema)
-    manifest = build_manifest(keys, deliver=deliver)
+    manifest = build_manifest(
+        keys,
+        deliver=deliver,
+        web_template_id=web_tpl,
+        app_ui_id=app_ui,
+    )
 
     if existing:
         page_schema["appId"] = existing.public_id
@@ -190,6 +203,9 @@ def persist_published_app(
         db.refresh(existing)
         out = app_record_to_dict(existing)
         out["capability_assembly"] = assembly.to_dict()
+        out["web_template_id"] = web_tpl
+        out["app_ui_id"] = app_ui
+        out["pending_codegen_keys"] = list(assembly.dropped_keys)
         return out
 
     tenant = user.tenant if user else _default_tenant(db)
@@ -231,6 +247,9 @@ def persist_published_app(
     db.refresh(record)
     out = app_record_to_dict(record)
     out["capability_assembly"] = assembly.to_dict()
+    out["web_template_id"] = web_tpl
+    out["app_ui_id"] = app_ui
+    out["pending_codegen_keys"] = list(assembly.dropped_keys)
     return out
 
 

@@ -3514,7 +3514,10 @@ a.b2b-nav-btn-link {
 .floating-agent-dock-capsule.is-collapsed .agent-orb-panel,
 .floating-agent-dock-capsule.is-collapsed .prompt-footer,
 .floating-agent-dock-capsule.is-collapsed .prompt-suggest-bar,
-.floating-agent-dock-capsule.is-collapsed .intent-analysis-strip {
+.floating-agent-dock-capsule.is-collapsed .intent-analysis-strip,
+.floating-agent-dock-capsule.is-collapsed .delivery-template-picker,
+.floating-agent-dock-capsule.is-collapsed .capability-split,
+.floating-agent-dock-capsule.is-collapsed .hero-dock-intent-brief {
   display: none !important;
 }
 

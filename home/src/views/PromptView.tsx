@@ -20,10 +20,12 @@ import IntentAnalysisStrip from '../components/IntentAnalysisStrip'
 import ContactGateModal, { type ContactInfo } from '../components/ContactGateModal'
 import GenerateLoadingOverlay, { type GeneratePhase } from '../components/GenerateLoadingOverlay'
 import DeliverTargetPicker from '../components/DeliverTargetPicker'
+import DeliveryTemplatePicker from '../components/DeliveryTemplatePicker'
+import CapabilitySplitBanner from '../components/CapabilitySplitBanner'
 import { ALL_PLATFORMS, platformsToDeliver, type PlatformId } from '../data/deliverTargets'
 import { deriveDefaultAppName, emptyBranding, resolveAppName } from '../data/appBranding'
 import { moduleId, pickToModule, type PromptModule } from '../components/agentInputLogic'
-import { type PublishResult } from '../data/constants'
+import { MODULES, type PublishResult } from '../data/constants'
 import { pickWithMeta, resolveAppBundle, composeLogicalPrompt, mergePromptText, splitPromptText } from '../data/appAssembly'
 import { buildPublishedModulesFromBundle } from '../data/publishDisplay'
 import { resolvePublishBundle } from '../data/intentPublish'
@@ -121,6 +123,8 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
   const [catalogLoading, setCatalogLoading] = useState(true)
   const [platforms, setPlatforms] = useState<PlatformId[]>(() => [...ALL_PLATFORMS])
   const deliver = useMemo(() => platformsToDeliver(platforms), [platforms])
+  const [webTemplateId, setWebTemplateId] = useState('tabs_portal')
+  const [appUiId, setAppUiId] = useState('bottom_tabs')
   const [branding, setBranding] = useState(() => emptyBranding())
   const [officeAll, setOfficeAll] = useState<CatalogScenario[]>([])
   const [industryAll, setIndustryAll] = useState<CatalogScenario[]>([])
@@ -634,6 +638,18 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
     [promptModules],
   )
 
+  const capabilitySplit = useMemo(() => {
+    const official = new Set([
+      ...MODULES.flatMap((g) => g.items.map((i) => i.key)),
+      ...(suggestRegistered?.capabilities ?? []),
+    ])
+    const caps = promptModules.filter((m) => m.type === 'module' || m.type === 'capability')
+    return {
+      known: caps.filter((m) => official.has(m.key)).map((m) => m.label),
+      pending: caps.filter((m) => !official.has(m.key)).map((m) => m.label || m.key),
+    }
+  }, [promptModules, suggestRegistered?.capabilities])
+
   const previewPicks = useMemo((): AgentPick[] => {
     const map = new Map<string, AgentPick>()
     for (const m of promptModules) {
@@ -819,6 +835,8 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
       prompt: bundle.promptText,
       iconUrl: branding.iconUrl,
       primaryColor: branding.primaryColor,
+      webTemplateId,
+      appUiId,
       contactEmail: contact.type === 'email' ? contact.value : undefined,
       contactPhone: contact.type === 'phone' ? contact.value : undefined,
     })
@@ -827,7 +845,7 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
       modules: publishedModules,
       scenarios: bundle.scenarioNames,
     })
-  }, [deliver, branding])
+  }, [deliver, branding, webTemplateId, appUiId])
 
   const executePresetGenerate = useCallback(async (preset: RolePreset, contact: ContactInfo, appNameOverride?: string) => {
     const picks = buildModulesFromPreset(preset)
@@ -1075,6 +1093,21 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
             registered={suggestRegistered}
           />
         </div>
+        <DeliveryTemplatePicker
+          webTemplateId={webTemplateId}
+          appUiId={appUiId}
+          onWebTemplateChange={setWebTemplateId}
+          onAppUiChange={setAppUiId}
+          recommendAppUiId={
+            promptModules.some((m) => m.key.includes('shanghai_voice')) ? 'immersive_chat' : undefined
+          }
+          compact
+        />
+        <CapabilitySplitBanner
+          knownLabels={capabilitySplit.known}
+          pendingLabels={capabilitySplit.pending}
+          compact
+        />
         <div className="prompt-footer minimal-footer">
           <div className="prompt-meta">
             {(promptModules.length > 0 || prompt.trim()) && (

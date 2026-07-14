@@ -8,6 +8,7 @@ class AppBranding {
     required this.primaryColorHex,
     this.appPublicId = '',
     this.voiceDemoMode = false,
+    this.appUiId = 'bottom_tabs',
     this.capabilityKeys = const [],
   });
 
@@ -18,6 +19,8 @@ class AppBranding {
   final String primaryColorHex;
   final String appPublicId;
   final bool voiceDemoMode;
+  /// bottom_tabs | drawer_nav | immersive_chat
+  final String appUiId;
   final List<String> capabilityKeys;
 
   static const AppBranding defaults = AppBranding(
@@ -37,14 +40,16 @@ class AppBranding {
     const primaryColorRaw = String.fromEnvironment('PRIMARY_COLOR', defaultValue: empty);
     const appPublicIdRaw = String.fromEnvironment('APP_PUBLIC_ID', defaultValue: empty);
     const voiceDemoRaw = String.fromEnvironment('VOICE_DEMO', defaultValue: empty);
+    const appUiRaw = String.fromEnvironment('APP_UI_ID', defaultValue: empty);
     const capabilityKeysRaw = String.fromEnvironment('CAPABILITY_KEYS', defaultValue: empty);
 
     final appName = appNameRaw.isEmpty ? defaults.appName : appNameRaw;
     final appId = appIdRaw.isEmpty ? defaults.appId : appIdRaw;
-    final voiceDemo = voiceDemoRaw == '1' ||
-        voiceDemoRaw.toLowerCase() == 'true' ||
-        appId == 'com.blockhub.shanghai.voice' ||
-        appName.contains('上海话');
+    final appUiId = _normalizeAppUi(appUiRaw.isEmpty ? 'bottom_tabs' : appUiRaw);
+    // 仅以显式 APP_UI_ID / VOICE_DEMO 决定沉浸壳，弱化包名启发式
+    final voiceDemo = appUiId == 'immersive_chat' ||
+        voiceDemoRaw == '1' ||
+        voiceDemoRaw.toLowerCase() == 'true';
     final capabilityKeys = capabilityKeysRaw.isEmpty
         ? const <String>[]
         : capabilityKeysRaw.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
@@ -57,8 +62,14 @@ class AppBranding {
       primaryColorHex: primaryColorRaw.isEmpty ? defaults.primaryColorHex : primaryColorRaw,
       appPublicId: appPublicIdRaw.isEmpty ? defaults.appPublicId : appPublicIdRaw,
       voiceDemoMode: voiceDemo,
+      appUiId: appUiId,
       capabilityKeys: capabilityKeys,
     );
+  }
+
+  static String _normalizeAppUi(String raw) {
+    const allowed = {'bottom_tabs', 'drawer_nav', 'immersive_chat'};
+    return allowed.contains(raw) ? raw : 'bottom_tabs';
   }
 
   int get primaryColorValue {
@@ -82,7 +93,8 @@ class AppBranding {
       apiBaseUrl: apiBaseUrl,
       primaryColorHex: primaryColorHex,
       appPublicId: appPublicId,
-      voiceDemoMode: true,
+      voiceDemoMode: appUiId == 'immersive_chat' || voiceDemoMode,
+      appUiId: appUiId == 'bottom_tabs' ? 'immersive_chat' : appUiId,
       capabilityKeys: capabilityKeys,
     );
   }
