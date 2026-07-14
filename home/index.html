@@ -23,6 +23,28 @@
   </head>
   <body data-build-version="__BUILD_VERSION__">
     <div id="root"></div>
+    <script>
+      /* 手机端 HTML 被缓存时：对比 /version.json，不一致则带 _bhv 强制刷新（每会话最多一次，防死循环） */
+      (function () {
+        var meta = document.querySelector('meta[name="app-build-version"]')
+        var local = meta && meta.getAttribute('content')
+        if (!local || local.indexOf('__') === 0) return
+        var key = 'blockhub_html_bust_once'
+        try {
+          if (sessionStorage.getItem(key)) return
+        } catch (e) {}
+        fetch('/version.json?_=' + Date.now(), { cache: 'no-store' })
+          .then(function (r) { return r.ok ? r.json() : null })
+          .then(function (remote) {
+            if (!remote || !remote.version || remote.version === local) return
+            try { sessionStorage.setItem(key, remote.version) } catch (e) {}
+            var u = new URL(location.href)
+            u.searchParams.set('_bhv', remote.version)
+            location.replace(u.toString())
+          })
+          .catch(function () {})
+      })()
+    </script>
     <script type="module" src="/src/main.tsx"></script>
     <!-- BlockHub home build __BUILD_VERSION__ @ __BUILD_TIME__ -->
   </body>

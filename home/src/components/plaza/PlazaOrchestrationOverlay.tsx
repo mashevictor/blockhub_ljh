@@ -134,8 +134,18 @@ export default function PlazaOrchestrationOverlay({
               复制链接
             </button>
             <a className="btn-ghost" href={app.webUrl} target="_blank" rel="noreferrer">
-              <IconGlobe size={14} /> 打开
+              <IconGlobe size={14} /> 打开网页
             </a>
+            {showDelivery && (
+              <a
+                className={app.apkReady ? 'btn-primary' : 'btn-ghost'}
+                href={app.downloadUrl || `${app.webUrl}/download`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                {app.apkReady ? '下载 APK' : 'APK 链接'}
+              </a>
+            )}
             <button type="button" className="btn-ghost plaza-my-remove" onClick={onRemove}>移除</button>
             <button type="button" className="btn-primary plaza-orch-close" onClick={onClose}>关闭</button>
           </div>

@@ -6,7 +6,7 @@ import AppIconAvatar from './AppIconAvatar'
 import { pickPhonePreviewModules, widgetTint } from '../data/publishDisplay'
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock'
 import PublishDeliveryLinks from './PublishDeliveryLinks'
-import { deliverLabel, normalizeDeliver, showWebDeliver } from '../data/deliverDisplay'
+import { deliverLabel, normalizeDeliver } from '../data/deliverDisplay'
 import { DynamicIcon } from './icons'
 
 interface Props {
@@ -18,10 +18,6 @@ interface Props {
 }
 
 const MAX_CHIPS = 8
-
-function qrImageUrl(data: string) {
-  return `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(data)}`
-}
 
 export default function PublishModal({ result, onClose, onViewMyApps, showAdminLink = false, showMyAppsHint = false }: Props) {
   const [mounted, setMounted] = useState(false)
@@ -51,7 +47,6 @@ export default function PublishModal({ result, onClose, onViewMyApps, showAdminL
   const visibleChips = chipModules.slice(0, MAX_CHIPS)
   const extraChipCount = chipModules.length - visibleChips.length
   const deliverMode = normalizeDeliver(result.deliver)
-  const qrTarget = showWebDeliver(result) ? result.webUrl : (result.downloadUrl || `${result.webUrl}/download`)
 
   if (!mounted) return null
 
@@ -139,13 +134,9 @@ export default function PublishModal({ result, onClose, onViewMyApps, showAdminL
                 )}
               </div>
             </div>
-            <div className="publish-qr-block">
-              <img className="publish-qr-img" src={qrImageUrl(qrTarget)} alt={`${result.appName} 二维码`} width={88} height={88} />
-              <span>{showWebDeliver(result) ? '扫码打开网页' : '扫码下载 App'}</span>
-            </div>
           </div>
 
-          <PublishDeliveryLinks result={result} />
+          <PublishDeliveryLinks result={result} emphasize />
         </div>
 
         <footer className="publish-result-foot">

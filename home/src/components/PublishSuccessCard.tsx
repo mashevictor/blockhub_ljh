@@ -27,10 +27,6 @@ interface Props {
 
 const MAX_CHIPS = 8
 
-function qrImageUrl(data: string) {
-  return `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(data)}`
-}
-
 function appKey(result: Pick<PublishResult, 'appId' | 'webUrl'>) {
   return result.appId || result.webUrl
 }
@@ -85,7 +81,6 @@ export default function PublishSuccessCard({
   const visibleChips = chipModules.slice(0, MAX_CHIPS)
   const extraChipCount = chipModules.length - visibleChips.length
   const deliverMode = normalizeDeliver(result.deliver)
-  const qrTarget = showWebDeliver(result) ? result.webUrl : (result.downloadUrl || `${result.webUrl}/download`)
 
   const handlePlazaConfirm = async (selection: AudienceSelection) => {
     setPlazaBusy(true)
@@ -262,14 +257,11 @@ export default function PublishSuccessCard({
                 )}
               </div>
             </div>
-            <div className="publish-qr-block">
-              <img className="publish-qr-img" src={qrImageUrl(qrTarget)} alt={`${result.appName} 二维码`} width={88} height={88} />
-              <span>{showWebDeliver(result) ? '扫码打开网页' : '扫码下载 App'}</span>
-            </div>
           </div>
         )}
 
-        <PublishDeliveryLinks result={result} />
+        {/* 编排页此前关掉了二维码；强调交付区，避免「能下但找不到入口」 */}
+        <PublishDeliveryLinks result={result} emphasize />
       </div>
 
       {plazaError && (

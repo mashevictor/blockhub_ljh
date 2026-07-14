@@ -32,12 +32,12 @@ export default function B2BHero({ onBook, onTry }: Props) {
             <p>
               {PLATFORM_STATS.scenarios}+ 业务场景 · 三种创建方式 · 一次发布五端可用
             </p>
-            <div className="b2b-hero-btns">
-              <button type="button" className="b2b-btn-primary agent-action-btn" onClick={onBook}>
-                <AgentButtonContent>预约演示</AgentButtonContent>
+            <div className="b2b-hero-btns" role="group" aria-label="预约与体验">
+              <button type="button" className="b2b-btn-primary agent-action-btn b2b-hero-cta" onClick={onBook}>
+                <AgentButtonContent chevSize="nav">预约演示</AgentButtonContent>
               </button>
-              <button type="button" className="b2b-btn-outline agent-action-btn" onClick={onTry}>
-                <AgentButtonContent>在线体验</AgentButtonContent>
+              <button type="button" className="b2b-btn-outline agent-action-btn b2b-hero-cta" onClick={onTry}>
+                <AgentButtonContent chevSize="nav">在线体验</AgentButtonContent>
               </button>
             </div>
           </div>

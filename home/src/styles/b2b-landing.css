@@ -284,12 +284,13 @@ a.b2b-nav-btn-link {
 .b2b-nav-btn--compact {
   min-width: 0;
   width: auto;
-  padding: 7px 11px;
-  font-size: 13px;
-  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 12px;
+  border-radius: 7px;
   text-align: center;
   white-space: nowrap;
   line-height: 1.2;
+  box-shadow: 0 2px 8px rgba(13, 71, 161, 0.2);
 }
 
 .b2b-nav-btn.is-active {
@@ -646,14 +647,18 @@ a.b2b-nav-btn-link {
 .b2b-btn-primary {
   background: linear-gradient(135deg, var(--b2b-primary) 0%, #1976d2 100%);
   color: #fff;
-  padding: 12px 28px;
-  border-radius: 6px;
+  padding: 10px 22px;
+  border-radius: 8px;
   border: none;
   cursor: pointer;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
-  box-shadow: 0 4px 14px rgba(13, 71, 161, 0.28);
+  box-shadow: 0 3px 12px rgba(13, 71, 161, 0.24);
   transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.b2b-hero-btns .b2b-hero-cta {
+  min-height: 40px;
 }
 
 .b2b-btn-primary:hover {
@@ -666,10 +671,10 @@ a.b2b-nav-btn-link {
   border: 1px solid var(--b2b-primary);
   color: var(--b2b-primary);
   background: #fff;
-  padding: 12px 28px;
-  border-radius: 6px;
+  padding: 10px 22px;
+  border-radius: 8px;
   cursor: pointer;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
   transition: background 0.2s, border-color 0.2s;
 }
@@ -5142,18 +5147,22 @@ a.b2b-nav-btn-link {
 
   .b2b-nav-btn--compact {
     min-width: 0;
-    padding: 6px 9px;
-    font-size: 12px;
+    padding: 5px 8px;
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(13, 71, 161, 0.18);
+    line-height: 1.15;
   }
 
   .b2b-nav-btn {
-    padding: 6px 12px;
-    font-size: 12px;
+    padding: 5px 10px;
+    font-size: 11px;
   }
 
   .b2b-nav-login {
-    width: 34px;
-    height: 34px;
+    width: 32px;
+    height: 32px;
   }
 
   .b2b-scroll-rail {
@@ -5170,17 +5179,50 @@ a.b2b-nav-btn-link {
     font-size: 28px;
   }
 
+  /* 预约演示 / 在线体验：手机并排小按钮，勿通栏堆叠 */
   .b2b-hero-btns {
-    flex-direction: column;
+    flex-direction: row;
+    flex-wrap: nowrap;
     width: 100%;
-    gap: 10px;
+    max-width: 360px;
+    gap: 8px;
   }
 
   .b2b-hero-btns .b2b-btn-primary,
   .b2b-hero-btns .b2b-btn-outline {
-    width: 100%;
+    flex: 1 1 0;
+    width: auto;
+    min-width: 0;
     justify-content: center;
     text-align: center;
+    padding: 8px 10px;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 8px;
+    gap: 4px;
+    box-shadow: 0 2px 8px rgba(13, 71, 161, 0.18);
+  }
+
+  .b2b-hero-btns .b2b-btn-outline {
+    box-shadow: none;
+  }
+
+  .b2b-hero-btns .agent-chevron-glyph {
+    width: 16px !important;
+    height: 8px !important;
+  }
+
+  .b2b-hero-btns .agent-btn-text {
+    white-space: nowrap;
+  }
+
+  /* 子页「预约演示」类 CTA 同步收敛 */
+  .enrich-section-foot .b2b-btn-primary.agent-action-btn,
+  .enrich-detail-actions .b2b-btn-primary.agent-action-btn {
+    padding: 9px 14px;
+    font-size: 13px;
+    width: auto;
+    max-width: 100%;
   }
 
   .b2b-form-wrap {
