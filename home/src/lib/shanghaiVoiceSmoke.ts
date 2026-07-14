@@ -1,76 +1,51 @@
 /**
- * 上海话应用冒烟：真 voice/config + runtime 模块 mock IN
+ * 上海话应用冒烟 — 只验真业务链路（不再把 runtime mock 算成功）
  */
-import { fetchVoiceConfig, type VoiceClientConfig } from '../api/client'
-import { testFlowApi, type ApiTestResult, type FlowApiEndpoint } from './flowModuleApis'
-import { SHANGHAI_VOICE_APP_ID } from './shanghaiVoiceProject'
-
-function runtimeSlug(appKey: string): string {
-  return appKey.replace(/[^a-zA-Z0-9_-]/g, '-').slice(0, 48) || 'app'
-}
-
-export function shanghaiModuleInputApi(appKey: string = SHANGHAI_VOICE_APP_ID): FlowApiEndpoint {
-  const slug = runtimeSlug(appKey)
-  return {
-    method: 'POST',
-    path: `/api/v1/runtime/${slug}/modules/shanghai-voice/input`,
-    description: '上海话模块 IN（编排 mock）',
-    sample_body: { demo: true, dialect: 'shanghai' },
-  }
-}
-
-export function shanghaiIngressApi(appKey: string = SHANGHAI_VOICE_APP_ID): FlowApiEndpoint {
-  const slug = runtimeSlug(appKey)
-  return {
-    method: 'POST',
-    path: `/api/v1/runtime/${slug}/ingress/webhook`,
-    description: '业务入口（编排 mock）',
-    sample_body: { event: 'voice.demo', payload: { query: '侬好' } },
-  }
-}
+import { api, fetchVoiceConfig, type VoiceClientConfig } from '../api/client'
 
 export interface ShanghaiSmokeResult {
   voice: VoiceClientConfig | null
+  statusOk: boolean
+  authOk: boolean
   voiceError?: string
-  moduleIn: ApiTestResult | null
   summary: string
   ok: boolean
 }
 
-export async function runShanghaiVoiceSmoke(appKey: string = SHANGHAI_VOICE_APP_ID): Promise<ShanghaiSmokeResult> {
+export async function runShanghaiVoiceSmoke(): Promise<ShanghaiSmokeResult> {
   let voice: VoiceClientConfig | null = null
   let voiceError: string | undefined
+  let statusOk = false
+  let authOk = false
+
   try {
     voice = await fetchVoiceConfig()
   } catch (e) {
     voiceError = e instanceof Error ? e.message : String(e)
   }
 
-  let moduleIn: ApiTestResult | null = null
   try {
-    moduleIn = await testFlowApi(shanghaiModuleInputApi(appKey))
-  } catch (e) {
-    moduleIn = {
-      ok: false,
-      status: 0,
-      body: e instanceof Error ? e.message : String(e),
-      ms: 0,
-    }
+    const st = await api.get<{ configured?: boolean }>('/voice/status')
+    statusOk = Boolean(st.data?.configured)
+  } catch {
+    statusOk = false
+  }
+
+  try {
+    const auth = await api.get<{ ok?: boolean }>('/voice/auth-probe')
+    authOk = Boolean(auth.data?.ok)
+  } catch {
+    authOk = false
   }
 
   const voiceOk = Boolean(voice?.configured)
-  const mockOk = Boolean(moduleIn?.ok)
+  const ok = voiceOk && statusOk && authOk
   const summary =
-    `【上海话冒烟】\n` +
-    `· voice/config：${voiceOk ? `OK · ${voice!.agent_id} · ${voice!.llm_provider ?? 'llm'}` : voiceError || '未配置/失败'}\n` +
-    `· 模块 IN mock：${mockOk ? `OK · HTTP ${moduleIn!.status}` : `失败 · ${moduleIn?.status ?? '-'}`}\n` +
-    `· 下一步：打开网页开麦，或 >>「试一句侬好」`
+    `【上海话真链路冒烟】\n` +
+    `· voice/config：${voiceOk ? `OK · ${voice!.agent_id} · ${voice!.llm_provider ?? 'llm'}` : voiceError || '失败'}\n` +
+    `· voice/status：${statusOk ? 'OK · TELEAI 已配置' : '失败'}\n` +
+    `· voice/auth-probe：${authOk ? 'OK · ASR 握手成功' : '失败'}\n` +
+    `· 下一步：网页输入文字或点例句 → 听 TTS；App 开麦走完整 ASR`
 
-  return {
-    voice,
-    voiceError,
-    moduleIn,
-    summary,
-    ok: voiceOk && mockOk,
-  }
+  return { voice, voiceError, statusOk, authOk, summary, ok }
 }

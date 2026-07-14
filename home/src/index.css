@@ -6457,6 +6457,38 @@ a.btn-my-apps:hover { border-color: var(--pri-light); color: var(--pri); }
 .voice-msg-partial { opacity: 0.8; border-style: dashed; }
 .voice-error { color: #f87171; margin-bottom: 12px; font-size: 13px; }
 .voice-agent-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.voice-composer {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  align-items: center;
+}
+.voice-composer-input {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid #5c5346;
+  background: #1a1612;
+  color: #f5f0e8;
+  border-radius: 12px;
+  padding: 12px 14px;
+  font: inherit;
+  font-size: 14px;
+}
+.voice-composer-input:focus {
+  outline: none;
+  border-color: #d4af37;
+  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.25);
+}
+.voice-mic-hint {
+  margin: 0 0 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: #f0d78c;
+  background: rgba(150, 112, 10, 0.18);
+  border: 1px solid rgba(212, 175, 55, 0.35);
+}
 .voice-btn {
   border: 1px solid #3d3428; background: #2a231c; color: #f5f0e8; border-radius: 10px;
   padding: 10px 16px; cursor: pointer; font-family: inherit;

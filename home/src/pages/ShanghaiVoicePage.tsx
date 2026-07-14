@@ -16,7 +16,7 @@ export default function ShanghaiVoicePage() {
     >
       <header className="shanghai-voice-topbar">
         <Link to={ROUTES.home} className="shanghai-voice-back">← 返回首页</Link>
-        <span>上海话语音助手 · 正式演示项目</span>
+        <span>上海话语音助手 · 真链路（文字 / 例句 / 可选开麦）</span>
         <Link to={ROUTES.plazaMyApps} className="shanghai-voice-back" style={{ marginLeft: 'auto' }}>
           我的应用 →
         </Link>

@@ -29,13 +29,10 @@ export function isShanghaiVoiceApp(app?: { appId?: string; webUrl?: string; sour
   return false
 }
 
+/** 仅声明真实能力，避免广场展示「假模块」冒充业务 */
 const MODULE_DEFS = [
   { key: 'shanghai_voice', label: '上海话语音', iconKey: 'mic' },
   { key: 'chat_qa', label: '智能问答', iconKey: 'chat' },
-  { key: 'kb_document', label: '知识库', iconKey: 'book' },
-  { key: 'notify_inapp', label: '站内信', iconKey: 'bell' },
-  { key: 'flutter_speech', label: '语音交互', iconKey: 'speak' },
-  { key: 'rbac_page', label: '角色权限', iconKey: 'lock' },
 ] as const
 
 function absolutize(path: string): string {

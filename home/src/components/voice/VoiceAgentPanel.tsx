@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { FormEvent, useEffect, useMemo, useState } from 'react'
 import { useVoiceWebSocket } from '../../hooks/useVoiceWebSocket'
 import { api } from '../../api/client'
 
@@ -31,17 +31,21 @@ export default function VoiceAgentPanel() {
     messages,
     error,
     micActive,
+    micError,
     connect,
     disconnect,
     startMic,
     stopMic,
     bargeIn,
     simulateUtterance,
+    sendText,
   } = useVoiceWebSocket(sessionId)
 
   const [started, setStarted] = useState(false)
   const [voiceConfigured, setVoiceConfigured] = useState<boolean | null>(null)
   const [demoSamples, setDemoSamples] = useState<Array<{ label: string; utterance: string }>>([])
+  const [draft, setDraft] = useState('')
+  const [sending, setSending] = useState(false)
 
   useEffect(() => {
     api.get<{ configured: boolean; demo_samples?: Array<{ label: string; utterance: string }> }>('/voice/config')
@@ -52,22 +56,41 @@ export default function VoiceAgentPanel() {
       .catch(() => setVoiceConfigured(false))
   }, [])
 
-  const handleStart = async () => {
-    setStarted(true)
+  const ensureConnected = async () => {
+    if (!started) setStarted(true)
     await connect()
-    await startMic()
   }
 
-  const handleStop = () => {
-    stopMic()
+  const handleConnect = async () => {
+    await ensureConnected()
+  }
+
+  const handleSendText = async (e?: FormEvent) => {
+    e?.preventDefault()
+    const text = draft.trim()
+    if (!text || sending) return
+    setSending(true)
+    try {
+      await ensureConnected()
+      await sendText(text, 'text')
+      setDraft('')
+    } finally {
+      setSending(false)
+    }
   }
 
   const handleDemo = async (utterance: string) => {
-    if (!started) {
-      setStarted(true)
-      await connect()
-    }
+    await ensureConnected()
     await simulateUtterance(utterance)
+  }
+
+  const handleMicToggle = async () => {
+    if (micActive) {
+      stopMic()
+      return
+    }
+    await ensureConnected()
+    await startMic()
   }
 
   const handleDisconnect = () => {
@@ -75,12 +98,14 @@ export default function VoiceAgentPanel() {
     disconnect()
   }
 
+  const busy = state === 'thinking' || state === 'speaking' || sending
+
   return (
     <div className="voice-agent-panel">
       <div className="voice-agent-header">
         <div>
-          <h2>上海话语音 Agent</h2>
-          <p>电信星辰方言 ASR/TTS · DeepSeek 语义理解 · 支持打断</p>
+          <h2>上海话语音助手</h2>
+          <p>文字对话走真实 DeepSeek · 回复经电信上海话 TTS 播报 · 开麦可选</p>
         </div>
         <span className={`voice-state-badge voice-state-${state}`}>{STATE_LABEL[state] || state}</span>
       </div>
@@ -88,8 +113,7 @@ export default function VoiceAgentPanel() {
       {voiceConfigured === false && (
         <div className="voice-setup-banner" role="alert">
           <strong>语音服务未配置</strong>
-          <p>服务器未设置电信星辰 API Key，无法连接实时语音。请联系管理员配置 <code>TELEAI_*</code> 环境变量后重试。</p>
-          <p className="voice-setup-hint">页面可正常打开；配置完成后点击「开始说话」即可体验。</p>
+          <p>服务器未设置电信星辰 API Key，无法连接实时语音。请联系管理员配置 <code>TELEAI_*</code>。</p>
         </div>
       )}
 
@@ -100,12 +124,14 @@ export default function VoiceAgentPanel() {
       <div className="voice-agent-messages">
         {messages.length === 0 && !partialText && (
           <div className="voice-welcome">
-            <p className="voice-welcome-title">这是独立语音演示页（方案 B）</p>
-            <p className="voice-empty">点击下方「开始说话」，用上海话或普通话提问；识别结果与回复会显示在这里。</p>
+            <p className="voice-welcome-title">真实业务链路（非演示 Mock）</p>
+            <p className="voice-empty">
+              网页端可直接输入文字或点例句：跳过麦克风，仍走 LLM + 上海话 TTS。开麦在浏览器允许时可用，失败不影响文字业务。
+            </p>
             <ol className="voice-welcome-steps">
-              <li>允许浏览器使用麦克风</li>
-              <li>说完一句后点「结束本句」或等待自动识别</li>
-              <li>可随时点「打断」停止播报</li>
+              <li>点「连接助手」或直接发送文字</li>
+              <li>听到上海话播报后可点「打断」</li>
+              <li>可选：允许麦克风后「按住说话」（失败可忽略）</li>
             </ol>
           </div>
         )}
@@ -124,16 +150,18 @@ export default function VoiceAgentPanel() {
       </div>
 
       {error && <div className="voice-error">{error}</div>}
+      {micError && <div className="voice-mic-hint" role="status">{micError}</div>}
 
       {demoSamples.length > 0 && voiceConfigured !== false && (
         <div className="voice-agent-actions" style={{ marginBottom: 12 }}>
-          <p className="voice-empty" style={{ marginBottom: 8 }}>试试例句（模拟 ASR + DeepSeek + 上海话 TTS）</p>
+          <p className="voice-empty" style={{ marginBottom: 8 }}>快捷例句（真实 LLM + TTS）</p>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
             {demoSamples.map((sample) => (
               <button
                 key={sample.label}
                 type="button"
                 className="voice-btn"
+                disabled={busy && state !== 'idle' && state !== 'listening'}
                 onClick={() => void handleDemo(sample.utterance)}
               >
                 {sample.label}
@@ -143,27 +171,48 @@ export default function VoiceAgentPanel() {
         </div>
       )}
 
+      {voiceConfigured === true && (
+        <form className="voice-composer" onSubmit={(e) => void handleSendText(e)}>
+          <input
+            type="text"
+            className="voice-composer-input"
+            value={draft}
+            placeholder="输入一句话，走真实对话与上海话播报…"
+            onChange={(e) => setDraft(e.target.value)}
+            aria-label="文字输入"
+          />
+          <button
+            type="submit"
+            className="voice-btn voice-btn-primary"
+            disabled={!draft.trim() || sending}
+          >
+            发送
+          </button>
+        </form>
+      )}
+
       <div className="voice-agent-actions">
         {!started ? (
           <button
             type="button"
             className="voice-btn voice-btn-primary"
             disabled={voiceConfigured === false}
-            onClick={() => void handleStart()}
+            onClick={() => void handleConnect()}
           >
-            {voiceConfigured === false ? '语音服务未就绪' : '开始说话'}
+            {voiceConfigured === false ? '语音服务未就绪' : '连接助手'}
           </button>
         ) : (
           <>
             <button
               type="button"
-              className={`voice-btn ${micActive ? 'voice-btn-danger' : 'voice-btn-primary'}`}
-              onClick={() => (micActive ? handleStop() : void startMic())}
+              className={`voice-btn ${micActive ? 'voice-btn-danger' : ''}`}
+              onClick={() => void handleMicToggle()}
+              title="可选：浏览器麦克风"
             >
-              {micActive ? '结束本句' : '继续说话'}
+              {micActive ? '结束本句' : '开麦（可选）'}
             </button>
-            <button type="button" className="voice-btn" onClick={bargeIn}>
-              打断
+            <button type="button" className="voice-btn" onClick={bargeIn} disabled={state !== 'speaking'}>
+              打断播报
             </button>
             <button type="button" className="voice-btn voice-btn-ghost" onClick={handleDisconnect}>
               断开

@@ -66,10 +66,10 @@ export default function PlazaOrchExperienceBar({
       <div className="plaza-orch-cta">
         <h3 className="plaza-orch-cta-title">一键冒烟</h3>
         <p className="plaza-orch-cta-desc">
-          {shanghai ? 'voice/config（真）+ 模块 IN（mock）' : '入口 mock + 试运营就绪检查'}
+          {shanghai ? 'config + status + ASR 鉴权（全真链路）' : '检查网页是否可打开'}
         </p>
         <button type="button" className="btn-primary" onClick={onSmoke} disabled={smokeBusy}>
-          {smokeBusy ? '检测中…' : shanghai ? '跑上海话冒烟' : '跑接口冒烟'}
+          {smokeBusy ? '检测中…' : shanghai ? '跑真链路冒烟' : '检查交付'}
         </button>
       </div>
     </div>

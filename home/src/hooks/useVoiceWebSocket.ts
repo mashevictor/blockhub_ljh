@@ -32,6 +32,7 @@ export function useVoiceWebSocket(sessionId: string) {
   const [messages, setMessages] = useState<VoiceMessage[]>([])
   const [error, setError] = useState<string | null>(null)
   const [micActive, setMicActive] = useState(false)
+  const [micError, setMicError] = useState<string | null>(null)
 
   const wsRef = useRef<WebSocket | null>(null)
   const micRef = useRef<MicCapture | null>(null)
@@ -130,34 +131,50 @@ export function useVoiceWebSocket(sessionId: string) {
     }
   }, [appendAssistantDelta, appendMessage, sessionId])
 
-  const simulateUtterance = useCallback(async (text: string) => {
+  const sendText = useCallback(async (text: string, via: 'text' | 'simulate' = 'text') => {
+    const trimmed = text.trim()
+    if (!trimmed) return
     if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
       await connect()
     }
     const ws = wsRef.current
     if (!ws || ws.readyState !== WebSocket.OPEN) return
-    ws.send(JSON.stringify({ type: 'simulate', text }))
+    ws.send(JSON.stringify({ type: via, text: trimmed }))
     setState('thinking')
   }, [connect])
 
+  const simulateUtterance = useCallback(async (text: string) => {
+    await sendText(text, 'simulate')
+  }, [sendText])
+
   const startMic = useCallback(async () => {
+    setMicError(null)
     if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
       await connect()
     }
     const ws = wsRef.current
     if (!ws || ws.readyState !== WebSocket.OPEN) return
 
-    if (!micRef.current) {
-      const mic = new MicCapture()
-      await mic.start((b64) => {
-        if (ws.readyState === WebSocket.OPEN) {
-          ws.send(JSON.stringify({ type: 'audio', data: b64 }))
-        }
-      })
-      micRef.current = mic
+    try {
+      if (!micRef.current) {
+        const mic = new MicCapture()
+        await mic.start((b64) => {
+          if (ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({ type: 'audio', data: b64 }))
+          }
+        })
+        micRef.current = mic
+      }
+      setMicActive(true)
+      setState('listening')
+    } catch (e) {
+      setMicActive(false)
+      setMicError(
+        e instanceof Error
+          ? `麦克风不可用：${e.message}。可用下方文字输入，仍走真实 LLM + 上海话 TTS。`
+          : '麦克风不可用。请用文字输入继续。',
+      )
     }
-    setMicActive(true)
-    setState('listening')
   }, [connect])
 
   const stopMic = useCallback(() => {
@@ -182,11 +199,13 @@ export function useVoiceWebSocket(sessionId: string) {
     messages,
     error,
     micActive,
+    micError,
     connect,
     disconnect,
     startMic,
     stopMic,
     bargeIn,
     simulateUtterance,
+    sendText,
   }
 }

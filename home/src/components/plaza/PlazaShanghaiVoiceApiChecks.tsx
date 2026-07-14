@@ -1,25 +1,14 @@
 import { useState } from 'react'
-import { fetchVoiceConfig } from '../../api/client'
-import { testFlowApi } from '../../lib/flowModuleApis'
-import {
-  runShanghaiVoiceSmoke,
-  shanghaiIngressApi,
-  shanghaiModuleInputApi,
-} from '../../lib/shanghaiVoiceSmoke'
-import { SHANGHAI_VOICE_APP_ID } from '../../lib/shanghaiVoiceProject'
+import { api, fetchVoiceConfig } from '../../api/client'
+import { runShanghaiVoiceSmoke } from '../../lib/shanghaiVoiceSmoke'
 
 interface Props {
-  appKey?: string
   webUrl: string
   onReport?: (text: string) => void
 }
 
-/** 数据接口 Tab · 上海话真链路 + 可验 mock */
-export default function PlazaShanghaiVoiceApiChecks({
-  appKey = SHANGHAI_VOICE_APP_ID,
-  webUrl,
-  onReport,
-}: Props) {
+/** 数据接口 Tab · 仅上海话真业务链路（不含 runtime mock） */
+export default function PlazaShanghaiVoiceApiChecks({ webUrl, onReport }: Props) {
   const [busy, setBusy] = useState(false)
   const [log, setLog] = useState('')
 
@@ -41,22 +30,20 @@ export default function PlazaShanghaiVoiceApiChecks({
   }
 
   return (
-    <div className="plaza-orch-voice-checks" aria-label="上海话接口验证">
+    <div className="plaza-orch-voice-checks" aria-label="上海话真业务验证">
       <p className="plaza-orch-tab-hint">
         <span className="plaza-orch-badge is-real">真链路</span>
-        语音配置 / WS
-        <span className="plaza-orch-badge is-mock">mock</span>
-        runtime 编排 REST
+        下列全部为生产语音业务接口。编排 REST mock 已从验收中移除。
       </p>
 
       <div className="plaza-orch-voice-block">
         <h4 className="plaza-orch-voice-block-title">
-          <span className="plaza-mflow-chev" aria-hidden>&gt;&gt;</span> 上海话 · 真接口
+          <span className="plaza-mflow-chev" aria-hidden>&gt;&gt;</span> 上海话 · 业务接口
         </h4>
         <div className="plaza-orch-voice-row">
           <span className="plaza-orch-api-tag">GET</span>
           <div className="plaza-orch-voice-row-body">
-            <div>语音配置 <span className="plaza-orch-badge is-real">真</span></div>
+            <div>语音配置</div>
             <code>/api/v1/voice/config</code>
             <div className="plaza-orch-voice-actions">
               <button
@@ -70,6 +57,7 @@ export default function PlazaShanghaiVoiceApiChecks({
                       `【真链路】voice/config\n` +
                       `configured: ${j.configured}\n` +
                       `agent: ${j.agent_id}\n` +
+                      `llm: ${j.llm_provider}\n` +
                       `ws: ${j.ws_url || j.ws_path}`
                     )
                   })
@@ -81,61 +69,36 @@ export default function PlazaShanghaiVoiceApiChecks({
           </div>
         </div>
         <div className="plaza-orch-voice-row">
-          <span className="plaza-orch-api-tag">WS</span>
+          <span className="plaza-orch-api-tag">GET</span>
           <div className="plaza-orch-voice-row-body">
-            <div>上海话 Agent <span className="plaza-orch-badge is-real">真</span></div>
-            <code>/api/v1/voice/shanghai-agent</code>
-            <div className="plaza-orch-voice-actions">
-              <a className="btn-primary-sm" href={webUrl} target="_blank" rel="noreferrer">
-                去网页对练
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="plaza-orch-voice-block">
-        <h4 className="plaza-orch-voice-block-title">
-          <span className="plaza-mflow-chev" aria-hidden>&gt;&gt;</span> 编排 REST · 可验 mock
-        </h4>
-        <div className="plaza-orch-voice-row">
-          <span className="plaza-orch-api-tag">IN</span>
-          <div className="plaza-orch-voice-row-body">
-            <code>{shanghaiIngressApi(appKey).path}</code>
+            <div>服务状态 / ASR 鉴权</div>
+            <code>/api/v1/voice/status · /api/v1/voice/auth-probe</code>
             <div className="plaza-orch-voice-actions">
               <button
                 type="button"
                 className="btn-ghost-sm"
                 disabled={busy}
                 onClick={() =>
-                  run('测 ingress', async () => {
-                    const r = await testFlowApi(shanghaiIngressApi(appKey))
-                    return `【mock】HTTP ${r.status} · ${r.ms}ms\n${JSON.stringify(r.body).slice(0, 280)}`
+                  run('测 status', async () => {
+                    const st = await api.get('/voice/status')
+                    return `【真链路】status\n${JSON.stringify(st.data, null, 2)}`
                   })
                 }
               >
-                测试
+                测 status
               </button>
-            </div>
-          </div>
-        </div>
-        <div className="plaza-orch-voice-row">
-          <span className="plaza-orch-api-tag">IN</span>
-          <div className="plaza-orch-voice-row-body">
-            <code>{shanghaiModuleInputApi(appKey).path}</code>
-            <div className="plaza-orch-voice-actions">
               <button
                 type="button"
                 className="btn-ghost-sm"
                 disabled={busy}
                 onClick={() =>
-                  run('测模块 IN', async () => {
-                    const r = await testFlowApi(shanghaiModuleInputApi(appKey))
-                    return `【mock】HTTP ${r.status} · ${r.ms}ms\n${JSON.stringify(r.body).slice(0, 280)}`
+                  run('测 auth-probe', async () => {
+                    const auth = await api.get('/voice/auth-probe')
+                    return `【真链路】auth-probe\n${JSON.stringify(auth.data, null, 2)}`
                   })
                 }
               >
-                测试
+                测鉴权
               </button>
               <button
                 type="button"
@@ -143,13 +106,25 @@ export default function PlazaShanghaiVoiceApiChecks({
                 disabled={busy}
                 onClick={() =>
                   run('冒烟', async () => {
-                    const r = await runShanghaiVoiceSmoke(appKey)
+                    const r = await runShanghaiVoiceSmoke()
                     return r.summary
                   })
                 }
               >
-                跑冒烟
+                跑真链路冒烟
               </button>
+            </div>
+          </div>
+        </div>
+        <div className="plaza-orch-voice-row">
+          <span className="plaza-orch-api-tag">WS</span>
+          <div className="plaza-orch-voice-row-body">
+            <div>上海话 Agent · 文字 / 例句 / 开麦</div>
+            <code>/api/v1/voice/shanghai-agent</code>
+            <div className="plaza-orch-voice-actions">
+              <a className="btn-primary-sm" href={webUrl} target="_blank" rel="noreferrer">
+                打开网页对练
+              </a>
             </div>
           </div>
         </div>

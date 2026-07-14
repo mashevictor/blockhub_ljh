@@ -334,7 +334,8 @@ async def shanghai_voice_agent(ws: WebSocket, session_id: str = "default") -> No
                 await cancel_llm()
                 await set_state(SessionState.LISTENING)
 
-            elif msg_type == "simulate":
+            elif msg_type in ("simulate", "text"):
+                # text = 客户端打字输入；simulate = 例句。均跳过 ASR，走真实 LLM + TTS
                 user_text = str(msg.get("text") or "").strip()
                 if not user_text:
                     continue
@@ -343,7 +344,7 @@ async def shanghai_voice_agent(ws: WebSocket, session_id: str = "default") -> No
                     "text": user_text,
                     "lang": "wuu",
                     "dialect": "shanghai",
-                    "simulated": True,
+                    "via": "text" if msg_type == "text" else "simulate",
                 })
                 await cancel_llm()
                 llm_task = asyncio.create_task(run_llm_and_tts(user_text))

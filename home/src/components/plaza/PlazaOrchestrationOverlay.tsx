@@ -11,8 +11,7 @@ import type { PlazaAudienceMeta, StoredMyApp } from '../../lib/myAppsStorage'
 import { setMyAppPlazaAudience } from '../../lib/myAppsStorage'
 import { showAppDeliver } from '../../data/deliverDisplay'
 import { isShanghaiVoiceApp } from '../../lib/shanghaiVoiceProject'
-import { runShanghaiVoiceSmoke, shanghaiIngressApi } from '../../lib/shanghaiVoiceSmoke'
-import { testFlowApi } from '../../lib/flowModuleApis'
+import { runShanghaiVoiceSmoke } from '../../lib/shanghaiVoiceSmoke'
 import { usePlazaFlowRun } from '../../context/PlazaFlowRunContext'
 
 interface Props {
@@ -82,16 +81,12 @@ export default function PlazaOrchestrationOverlay({
     setSmokeLog('检测中…')
     try {
       if (shanghai) {
-        const r = await runShanghaiVoiceSmoke(appKey)
+        const r = await runShanghaiVoiceSmoke()
         setSmokeLog(r.summary)
+        setBodyTab('api')
       } else {
-        const r = await testFlowApi(shanghaiIngressApi(appKey))
-        setSmokeLog(
-          `【接口冒烟】HTTP ${r.status} · ${r.ms}ms\n` +
-            `${r.ok ? '入口 mock 可通' : '入口失败'} · ${JSON.stringify(r.body).slice(0, 200)}`,
-        )
+        setSmokeLog(`网页地址：${app.webUrl}\n请点「打开应用」人工验收。编排 REST 演示契约非本应用验收项。`)
       }
-      setBodyTab('api')
     } catch (e) {
       setSmokeLog(`冒烟失败：${e instanceof Error ? e.message : String(e)}`)
     } finally {
@@ -221,7 +216,6 @@ export default function PlazaOrchestrationOverlay({
 
           {bodyTab === 'api' && shanghai && (
             <PlazaShanghaiVoiceApiChecks
-              appKey={appKey}
               webUrl={app.webUrl}
               onReport={setSmokeLog}
             />
@@ -233,7 +227,13 @@ export default function PlazaOrchestrationOverlay({
             moduleLabels={moduleLabels(app)}
             isCreator
             embedded
-            railMode={bodyTab === 'flow' ? 'func' : 'data'}
+            railMode={
+              shanghai
+                ? 'func' /* 上海话不把 runtime mock 数据轨当验收内容 */
+                : bodyTab === 'flow'
+                  ? 'func'
+                  : 'data'
+            }
             commandProfile={shanghai ? 'shanghai' : 'default'}
             webUrl={app.webUrl}
           />

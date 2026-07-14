@@ -90,7 +90,12 @@ else
     exit "$APK_STATUS"
   fi
   if [ -f backend/uploads/apks/shanghai-voice.apk ]; then
+    chmod a+r backend/uploads/apks/shanghai-voice.apk 2>/dev/null || true
+    mkdir -p /var/www/blockhub/downloads 2>/dev/null || true
     cp -f backend/uploads/apks/shanghai-voice.apk /var/www/blockhub/downloads/shanghai-voice.apk 2>/dev/null || true
+    chmod a+r /var/www/blockhub/downloads/shanghai-voice.apk 2>/dev/null || true
+    # 确保 nginx worker 能读 uploads（常见 403 原因）
+    chmod a+rx backend/uploads backend/uploads/apks 2>/dev/null || true
     echo "    OK  /downloads/shanghai-voice.apk"
   fi
 fi

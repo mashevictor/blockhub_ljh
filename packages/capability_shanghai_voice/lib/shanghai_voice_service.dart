@@ -203,12 +203,23 @@ class ShanghaiVoiceService {
   }
 
   Future<void> simulateUtterance(String text) async {
+    await _sendUserText(text, via: 'simulate');
+  }
+
+  /// 键盘输入：走真实 LLM + TTS（跳过 ASR）
+  Future<void> sendTextUtterance(String text) async {
+    await _sendUserText(text, via: 'text');
+  }
+
+  Future<void> _sendUserText(String text, {required String via}) async {
+    final trimmed = text.trim();
+    if (trimmed.isEmpty) return;
     if (_channel == null) {
       throw Exception('未连接语音服务');
     }
     error = null;
     await _ttsPlayer.stop();
-    _channel!.sink.add(jsonEncode({'type': 'simulate', 'text': text}));
+    _channel!.sink.add(jsonEncode({'type': via, 'text': trimmed}));
     _setState('thinking');
   }
 
