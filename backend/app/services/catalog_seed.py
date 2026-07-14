@@ -318,43 +318,74 @@ def sync_catalog_delta(db: Session) -> int:
         )
         added += 1
 
-    # 增量补齐英雄区弹幕预设与快捷 chip（仅新增，不删历史），
-    # 使 registry/hero_presets 的新能力无需 force 重建即可流通。
-    existing_preset_ids = {row.id for row in db.query(CatalogHeroPreset.id).all()}
+    # 英雄区弹幕预设：新增或回写 picks/flow_lines（避免线上仍显示默认「一键生成」）
+    existing_presets = {row.id: row for row in db.query(CatalogHeroPreset).all()}
     for idx, preset in enumerate(HERO_PRESETS):
-        if preset["id"] in existing_preset_ids:
-            continue
-        db.add(
-            CatalogHeroPreset(
-                id=preset["id"],
-                label=preset["label"],
-                hint=preset.get("hint", ""),
-                role=preset.get("role") or preset_role(preset),
-                weight=int(preset.get("weight", 3)),
-                color=preset.get("color", ""),
-                prompt=preset["prompt"],
-                picks=preset["picks"],
-                flow_lines=preset["flow_lines"],
-                sort_order=idx,
+        role = preset.get("role") or preset_role(preset)
+        row = existing_presets.get(preset["id"])
+        if row is None:
+            db.add(
+                CatalogHeroPreset(
+                    id=preset["id"],
+                    label=preset["label"],
+                    hint=preset.get("hint", ""),
+                    role=role,
+                    weight=int(preset.get("weight", 3)),
+                    color=preset.get("color", ""),
+                    prompt=preset["prompt"],
+                    picks=preset["picks"],
+                    flow_lines=preset["flow_lines"],
+                    sort_order=idx,
+                )
             )
-        )
-        added += 1
+            added += 1
+            continue
+        changed = False
+        for field, value in (
+            ("label", preset["label"]),
+            ("hint", preset.get("hint", "")),
+            ("role", role),
+            ("weight", int(preset.get("weight", 3))),
+            ("color", preset.get("color", "")),
+            ("prompt", preset["prompt"]),
+            ("picks", preset["picks"]),
+            ("flow_lines", preset["flow_lines"]),
+            ("sort_order", idx),
+        ):
+            if getattr(row, field) != value:
+                setattr(row, field, value)
+                changed = True
+        if changed:
+            added += 1
 
-    existing_chip_texts = {row.text for row in db.query(CatalogChipTemplate.text).all()}
+    existing_chips = {row.text: row for row in db.query(CatalogChipTemplate).all()}
     for idx, chip in enumerate(CHIP_TEMPLATES):
-        if chip["text"] in existing_chip_texts:
-            continue
-        db.add(
-            CatalogChipTemplate(
-                id=str(uuid4()),
-                text=chip["text"],
-                prompt=chip["prompt"],
-                picks=chip["picks"],
-                scenario_names=chip.get("scenario_names", []),
-                sort_order=idx,
+        row = existing_chips.get(chip["text"])
+        if row is None:
+            db.add(
+                CatalogChipTemplate(
+                    id=str(uuid4()),
+                    text=chip["text"],
+                    prompt=chip["prompt"],
+                    picks=chip["picks"],
+                    scenario_names=chip.get("scenario_names", []),
+                    sort_order=idx,
+                )
             )
-        )
-        added += 1
+            added += 1
+            continue
+        changed = False
+        for field, value in (
+            ("prompt", chip["prompt"]),
+            ("picks", chip["picks"]),
+            ("scenario_names", chip.get("scenario_names", [])),
+            ("sort_order", idx),
+        ):
+            if getattr(row, field) != value:
+                setattr(row, field, value)
+                changed = True
+        if changed:
+            added += 1
 
     industry_added = sync_industry_packs_delta(db)
     added += industry_added
