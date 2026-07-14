@@ -35,6 +35,7 @@ export const MODULES = [
     { key: 'multi_agent', name: '多助手', icon: '🤖' },
   ]},
   { cat: '流程审批', items: [
+    { key: 'device_repair', name: '设备报修', icon: '🔧' },
     { key: 'approval_flow', name: '审批流', icon: '✅' },
     { key: 'approval_inbox', name: '待办中心', icon: '📥' },
     { key: 'approval_countersign', name: '会签', icon: '✍' },

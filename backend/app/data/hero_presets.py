@@ -66,7 +66,7 @@ HERO_PRESETS: list[dict[str, Any]] = [
              {"type": "scenario", "key": "s07-dash", "label": "经营看板"}, {"type": "module", "key": "chart_dashboard", "label": "数据看板"}], role="老板"),
     _preset("s08", "设备报修", "制造 · 运维", "#3b82f6", "现场设备故障报修、工单派发与维修跟踪。",
             [{"type": "industry", "key": "mfg", "label": "传统制造"}, {"type": "scenario", "key": "s08-repair", "label": "设备报修"},
-             {"type": "module", "key": "approval_flow", "label": "审批流"}], role="制造"),
+             {"type": "module", "key": "device_repair", "label": "设备报修"}], role="制造"),
     _preset("s09", "质检SOP", "制造 · 工艺", "#0ea5e9", "SOP 工艺问答、质检记录与异常上报。",
             [{"type": "industry", "key": "mfg", "label": "传统制造"}, {"type": "scenario", "key": "s09-sop", "label": "SOP/工艺问答"},
              {"type": "module", "key": "kb_document", "label": "知识库"}, {"type": "module", "key": "chat_qa", "label": "智能问答"}], role="质检"),
@@ -140,9 +140,11 @@ HERO_PRESETS: list[dict[str, Any]] = [
 ]
 
 CHIP_TEMPLATES: list[dict[str, Any]] = [
-    {"text": "制造业设备报修 + SOP 问答", "prompt": "制造业现场设备报修与 SOP 工艺问答，手机端提交、主管审批。",
+    {"text": "制造业设备报修 + SOP 问答", "prompt": "制造业现场设备报修与 SOP 工艺问答，手机端提交、工单跟踪。",
      "picks": [{"type": "industry", "key": "mfg", "label": "传统制造"}, {"type": "scenario", "key": "chip-mfg-repair", "label": "设备报修"},
-               {"type": "scenario", "key": "chip-mfg-sop", "label": "SOP/工艺问答"}, {"type": "module", "key": "approval_flow", "label": "审批流"}],
+               {"type": "scenario", "key": "chip-mfg-sop", "label": "SOP/工艺问答"},
+               {"type": "module", "key": "device_repair", "label": "设备报修"},
+               {"type": "module", "key": "chat_qa", "label": "智能问答"}],
      "scenario_names": ["设备报修", "SOP/工艺问答"]},
     {"text": "销售团队 CRM + 审批 + 漏斗看板", "prompt": "销售团队客户跟进、报价审批与销售漏斗看板一体化。",
      "picks": [{"type": "industry", "key": "sales", "label": "销售行业"}, {"type": "module", "key": "chart_funnel", "label": "销售漏斗"},

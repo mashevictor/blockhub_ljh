@@ -55,6 +55,7 @@ export const MODULE_ICON_KEYS: Record<string, string> = {
   chat_qa: 'chat_qa',
   chat_voice: 'chat_qa',
   multi_agent: 'creation',
+  device_repair: 'approval',
   approval_flow: 'approval',
   approval_inbox: 'approval',
   approval_countersign: 'approval',

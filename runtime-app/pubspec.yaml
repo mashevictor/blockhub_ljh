@@ -17,6 +17,8 @@ dependencies:
     path: ../packages/capability_shanghai_voice
   capability_approval_flow:
     path: ../packages/capability_approval_flow
+  capability_device_repair:
+    path: ../packages/capability_device_repair
   capability_audit_log:
     path: ../packages/capability_audit_log
   capability_kb:

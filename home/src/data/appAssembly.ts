@@ -36,12 +36,13 @@ export interface ChipTemplate {
 export const CHIP_TEMPLATES: ChipTemplate[] = [
   {
     text: '制造业设备报修 + SOP 问答',
-    prompt: '制造业现场设备报修与 SOP 工艺问答，手机提交、主管审批。',
+    prompt: '制造业现场设备报修与 SOP 工艺问答，手机提交、工单跟踪。',
     picks: [
       { type: 'industry', key: 'mfg', label: '传统制造' },
       { type: 'scenario', key: 'chip-mfg-repair', label: '设备报修' },
       { type: 'scenario', key: 'chip-mfg-sop', label: 'SOP/工艺问答' },
-      { type: 'module', key: 'approval_flow', label: '审批流' },
+      { type: 'module', key: 'device_repair', label: '设备报修' },
+      { type: 'module', key: 'chat_qa', label: '智能问答' },
     ],
     scenarioNames: ['设备报修', 'SOP/工艺问答'],
   },

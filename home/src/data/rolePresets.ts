@@ -118,9 +118,9 @@ export const ROLE_PRESETS: RolePreset[] = [
     [
       { type: 'industry', key: 'mfg', label: '传统制造' },
       { type: 'scenario', key: 's08-repair', label: '设备报修' },
-      { type: 'module', key: 'approval_flow', label: '审批流' },
+      { type: 'module', key: 'device_repair', label: '设备报修' },
     ],
-    ['>> 设备报修 · 扫码提单', '>> 工单派发 · 自动派工', '>> 维修跟踪 · 进度可视', '>> 消息通知 · 完工提醒']),
+    ['>> 设备报修 · 扫码提单', '>> 工单派发 · 自动派工', '>> 维修跟踪 · 进度可视', '>> CapShip · 双端能力包']),
   scene('s09', '质检SOP', '制造 · 工艺', '#0ea5e9',
     'SOP 工艺问答、质检记录与异常上报。',
     [

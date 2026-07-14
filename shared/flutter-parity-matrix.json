@@ -33,6 +33,16 @@
       "dart_import": "package:capability_approval_flow/capability_approval_flow.dart"
     },
     {
+      "web_pkg": "@blockhub/web-capability-device-repair",
+      "web_folder": "web-capability-device-repair",
+      "flutter_pkg": "capability_device_repair",
+      "p1_scope": "app",
+      "status_target": "ok",
+      "capability_keys": ["device_repair"],
+      "module_class": "DeviceRepairModule",
+      "dart_import": "package:capability_device_repair/capability_device_repair.dart"
+    },
+    {
       "web_pkg": "@blockhub/web-capability-audit-log",
       "web_folder": "web-capability-audit-log",
       "flutter_pkg": "capability_audit_log",

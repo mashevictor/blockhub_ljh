@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CapShip · 选型即交付架构规范（SSOT）</title>
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs'
+    mermaid.initialize({ startOnLoad: true, theme: 'neutral', securityLevel: 'loose' })
+  </script>
+  <style>
+    :root {
+      --bg: #f6f8fb;
+      --surface: #fff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --line: #e2e8f0;
+      --pri: #0d47a1;
+      --pri-soft: #e8f1fc;
+      --ok: #047857;
+      --ok-soft: #ecfdf5;
+      --warn: #b45309;
+      --warn-soft: #fff7ed;
+      --accent: #0f766e;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+    }
+    .wrap { max-width: 1080px; margin: 0 auto; padding: 32px 20px 80px; }
+    header.hero {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 28px 28px 22px;
+      margin-bottom: 24px;
+    }
+    header.hero h1 { margin: 0 0 8px; font-size: 28px; letter-spacing: -0.02em; color: var(--pri); }
+    header.hero .sub { margin: 0; color: var(--muted); font-size: 15px; max-width: 720px; }
+    .meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+    .pill {
+      font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 999px;
+      background: var(--pri-soft); color: var(--pri); border: 1px solid #bfdbfe;
+    }
+    .pill.ok { background: var(--ok-soft); color: var(--ok); border-color: #a7f3d0; }
+    .pill.warn { background: var(--warn-soft); color: var(--warn); border-color: #fdba74; }
+    nav.toc {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-bottom: 28px;
+    }
+    nav.toc h2 { margin: 0 0 10px; font-size: 14px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+    nav.toc ol { margin: 0; padding-left: 20px; }
+    nav.toc a { color: var(--pri); text-decoration: none; }
+    nav.toc a:hover { text-decoration: underline; }
+    section {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 22px 24px;
+      margin-bottom: 18px;
+    }
+    section h2 { margin: 0 0 12px; font-size: 20px; color: var(--pri); }
+    section h3 { margin: 20px 0 8px; font-size: 16px; }
+    p, li { font-size: 14px; }
+    .muted { color: var(--muted); }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 12px 0; }
+    th, td { border: 1px solid var(--line); padding: 8px 10px; text-align: left; vertical-align: top; }
+    th { background: #f8fafc; font-weight: 700; }
+    code, .mono { font-family: ui-monospace, Consolas, monospace; font-size: 12px; }
+    code { background: #f1f5f9; padding: 1px 5px; border-radius: 4px; }
+    pre {
+      background: #0f172a; color: #e2e8f0; padding: 14px 16px; border-radius: 10px;
+      overflow-x: auto; font-size: 12px; line-height: 1.45;
+    }
+    .mermaid { background: #fafbfc; border: 1px solid var(--line); border-radius: 10px; padding: 12px; margin: 14px 0; }
+    .callout {
+      border-left: 4px solid var(--pri);
+      background: var(--pri-soft);
+      padding: 12px 14px;
+      border-radius: 0 8px 8px 0;
+      margin: 14px 0;
+      font-size: 13px;
+    }
+    .callout.warn { border-color: var(--warn); background: var(--warn-soft); }
+    .callout.ok { border-color: var(--ok); background: var(--ok-soft); }
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 720px) { .grid2 { grid-template-columns: 1fr; } }
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 12px 14px;
+      background: #fafbfc;
+    }
+    .card h4 { margin: 0 0 6px; font-size: 14px; }
+    .card p { margin: 0; font-size: 13px; color: var(--muted); }
+    footer.note { margin-top: 28px; font-size: 12px; color: var(--muted); text-align: center; }
+    .checklist { list-style: none; padding: 0; }
+    .checklist li {
+      padding: 8px 10px; margin-bottom: 6px; border: 1px solid var(--line);
+      border-radius: 8px; background: #fff; font-size: 13px;
+    }
+    .checklist li::before { content: "☐ "; color: var(--pri); font-weight: 700; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="hero">
+      <h1>CapShip · 选型即交付架构规范</h1>
+      <p class="sub">
+        本页为积木仓 / CapShip <strong>唯一结构方案（SSOT）</strong>。
+        以后新增能力（Capability）、Agent、模块、网页壳、App 壳，一律按此实现与验收。
+        智能体框架（LangChain / LangGraph / RAG）负责「思考」；CapShip 负责「交付成 Web / App」。
+      </p>
+      <div class="meta">
+        <span class="pill">SSOT · Structure Plan</span>
+        <span class="pill ok">Web ⟂ App 对称解耦</span>
+        <span class="pill ok">注册表内无需 LLM</span>
+        <span class="pill warn">未知能力 → 预览旁路 → 正式能力包</span>
+        <span class="pill">v0.1 · 2026-07-14</span>
+      </div>
+    </header>
+
+    <nav class="toc">
+      <h2>目录</h2>
+      <ol>
+        <li><a href="#s1">一句话原则与禁止事项</a></li>
+        <li><a href="#s2">整体技术框架（分层）</a></li>
+        <li><a href="#s3">主流程图：选型 → 双端交付</a></li>
+        <li><a href="#s4">统一对象模型：能力 / Agent / 模块</a></li>
+        <li><a href="#s5">Web 与 App 解耦约定</a></li>
+        <li><a href="#s6">已有能力如何实现（标准路径）</a></li>
+        <li><a href="#s7">用户要的能力暂时没有时如何做</a></li>
+        <li><a href="#s8">目录与包命名规范</a></li>
+        <li><a href="#s9">契约字段与壳矩阵</a></li>
+        <li><a href="#s10">开发检查清单</a></li>
+        <li><a href="#s11">与 Cursor Skill 的关系</a></li>
+      </ol>
+    </nav>
+
+    <!-- 1 -->
+    <section id="s1">
+      <h2>1. 一句话原则与禁止事项</h2>
+      <div class="callout ok">
+        <strong>原则：</strong>一切可交付功能都是 <code>Capability</code>。
+        选型结果只进入 <code>capability_keys</code> → 编译为 <code>page_schema</code> + <code>build_manifest</code> →
+        Web Runtime 与 Flutter Runtime <strong>对称消费</strong>。不以「页面硬编码」「只做一端」作为默认实现。
+      </div>
+      <table>
+        <thead><tr><th>禁止</th><th>正确做法</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>只在 <code>home/</code> 写死一个 Demo 按钮，无注册表条目</td>
+            <td>先登记 Capability，再挂 Web/App 包</td>
+          </tr>
+          <tr>
+            <td>只做 Web Widget，不告知 Flutter 裁剪矩阵</td>
+            <td>至少：Web 包 + Flutter stub/page，或明确标 <code>web_only</code>/<code>app_only</code></td>
+          </tr>
+          <tr>
+            <td>用场景推荐偷偷塞进未勾选能力</td>
+            <td>显式 <code>capability_keys</code> 为准；推荐仅作选型前建议</td>
+          </tr>
+          <tr>
+            <td>把 LangGraph/RAG 放进交付热路径</td>
+            <td>它们藏在能力包内部或工作台旁路</td>
+          </tr>
+          <tr>
+            <td>宣称「AI 已生成完整能力包」但只产出 JSON 预览</td>
+            <td>预览页标注 generated；正式能力走标准 Pack 流程</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 2 -->
+    <section id="s2">
+      <h2>2. 整体技术框架（分层）</h2>
+      <div class="mermaid">
+flowchart TB
+  subgraph L0["L0 产品面 · 非 CapShip 核心"]
+    Home["Home 选型 UI"]
+    Plaza["广场 / 预约 / B2B"]
+  end
+
+  subgraph L1["L1 发布编排"]
+    Pub["POST /creation/publish"]
+    Store["AppRecord 持久化"]
+  end
+
+  subgraph L2["L2 CapShip Contract Engine ★核心"]
+    Reg["Capability Registry"]
+    Res["Resolver"]
+    Sch["Schema Generator"]
+    Man["Manifest Builder"]
+    Tpl["Web/App Shell Templates"]
+  end
+
+  subgraph L3["L3 Dual Runtime ★核心"]
+    WebRT["runtime-web + web-core"]
+    AppRT["runtime-app + flutter_core"]
+    APK["APK Build Queue"]
+  end
+
+  subgraph L4["L4 Capability Packs ★核心"]
+    WP["web-capability-*"]
+    FP["capability_*"]
+  end
+
+  subgraph L5["L5 AI 旁路 · 可选"]
+    Ask["flow-ask / 工作台"]
+    CG["codegen 预览页"]
+  end
+
+  Home --> Pub
+  Plaza -.-> Pub
+  Pub --> Res
+  Res --> Reg
+  Res --> Sch
+  Res --> Man
+  Tpl --> Sch
+  Tpl --> Man
+  Sch --> Store
+  Man --> Store
+  Store --> WebRT
+  Store --> AppRT
+  Man --> WebRT
+  Man --> APK
+  APK --> AppRT
+  WP --> WebRT
+  FP --> AppRT
+  Res -.->|unknown keys| CG
+  CG -.-> Sch
+  Ask -.-> Plaza
+    </div>
+      <div class="grid2">
+        <div class="card">
+          <h4>开源 / 复用核心</h4>
+          <p>L2 契约 + L3 双端 Runtime + L4 能力包约定。以后所有业务能力落在 L4。</p>
+        </div>
+        <div class="card">
+          <h4>产品仓保留</h4>
+          <p>L0 官网/广场、L5 编排助手与运营能力。不阻塞 L2–L4 独立演进。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3 -->
+    <section id="s3">
+      <h2>3. 主流程图：选型 → 双端交付</h2>
+      <div class="mermaid">
+sequenceDiagram
+  autonumber
+  actor U as 用户/ISV
+  participant UI as 选型 UI
+  participant API as Publish API
+  participant R as Resolver
+  participant C as Contract<br/>schema+manifest
+  participant W as Web Runtime
+  participant A as APK Worker
+  participant F as Flutter App
+
+  U->>UI: 勾选 capability_keys<br/>选 web_template_id / app_ui_id
+  UI->>API: POST /publish
+  API->>R: resolve(keys)
+  alt 全部已知
+    R->>C: 编译 page_schema + build_manifest
+    C-->>API: 契约
+    API-->>UI: web_url / download_url / android_app_id
+    UI->>W: 打开网页
+    W->>W: 按 web_pkgs 懒加载 Widget
+    API->>A: enqueue APK（deliver 含 app）
+    A->>F: dart-define APP_UI_ID + CAPABILITY_KEYS
+    F-->>U: 独立 applicationId 安装包
+  else 存在未知 key
+    R->>C: 已知部分照常编译
+    R->>API: pending_codegen_keys
+    API->>API: 异步 codegen → generated_page 合并
+    Note over API,U: 不阻塞已知能力交付；预览页可后补
+  end
+      </div>
+      <p class="muted">热路径无 LLM。APK 与 Web 共用同一 manifest，差异仅在壳与端侧实现。</p>
+    </section>
+
+    <!-- 4 -->
+    <section id="s4">
+      <h2>4. 统一对象模型：能力 / Agent / 模块</h2>
+      <p>历史上「模块」「Agent」「场景」「Flutter 工具」命名混用。CapShip <strong>统一为一等公民：Capability</strong>。</p>
+      <table>
+        <thead>
+          <tr><th>旧说法</th><th>CapShip 落点</th><th>说明</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>业务模块 / 能力模块</td><td><code>Capability.key</code></td><td>必须进注册表</td></tr>
+          <tr><td>Agent（chat_qa / approval…）</td><td><code>Capability.agent_id</code> 元数据</td><td>编排分组用；不单独开第二条交付链</td></tr>
+          <tr><td>Flutter 工具（扫码/定位）</td><td>同属 Capability（可 <code>app_only</code>）</td><td>走同一注册与 manifest</td></tr>
+          <tr><td>场景 / 行业包</td><td>选型前的「推荐 keys 集合」</td><td>不直接写 schema；展开为 keys 再 publish</td></tr>
+          <tr><td>LangGraph 节点 / RAG</td><td>能力包<strong>内部实现</strong></td><td>对交付层不可见</td></tr>
+        </tbody>
+      </table>
+      <pre>CapabilityDef {
+  key, name, category,
+  widget,          // Web 组件注册名
+  agent_id,        // 逻辑代理分组（可选元数据）
+  web_pkg?,        // 空则约定 @blockhub/web-capability-{slug}
+  flutter_pkg?,    // 空则约定 capability_{key}
+  route?,          // 空则 /{slug}
+  menu_icon?, menu_label?,
+  keywords[]
+}</pre>
+    </section>
+
+    <!-- 5 -->
+    <section id="s5">
+      <h2>5. Web 与 App 解耦约定</h2>
+      <div class="mermaid">
+flowchart LR
+  M["build_manifest"] --> WP["web_pkgs[]"]
+  M --> FP["flutter_pkgs[]"]
+  M --> Meta["meta.web_template_id<br/>meta.app_ui_id"]
+
+  WP --> WH["web-core WidgetHost"]
+  Meta --> WL["Web Shell Layout"]
+  WH --> WL
+
+  FP --> Sync["sync pubspec + registry"]
+  Meta --> Shell["Flutter APP_UI_ID Shell"]
+  Sync --> Shell
+      </div>
+      <div class="grid2">
+        <div class="card">
+          <h4>Web 侧只认</h4>
+          <p><code>page_schema</code> + <code>manifest.web_pkgs</code> + <code>web_template_id</code>。禁止读 Flutter 私有类名。</p>
+        </div>
+        <div class="card">
+          <h4>App 侧只认</h4>
+          <p><code>page_schema</code> + <code>manifest.flutter_pkgs</code> + <code>APP_UI_ID</code> / <code>CAPABILITY_KEYS</code>。禁止依赖 <code>home/</code>。</p>
+        </div>
+      </div>
+      <h3>对称实现最低标准</h3>
+      <table>
+        <thead><tr><th>端</th><th>必交付物</th><th>可选</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Web</td>
+            <td><code>packages/web-capability-*</code> + <code>registerWidget</code></td>
+            <td>共享包多 widget</td>
+          </tr>
+          <tr>
+            <td>App</td>
+            <td><code>packages/capability_*</code> + <code>CapabilityModule</code> + parity 矩阵</td>
+            <td>仅 Web 能力时登记说明并文档注明</td>
+          </tr>
+          <tr>
+            <td>壳</td>
+            <td>不改能力包即可换 <code>tabs_portal</code>/<code>bottom_tabs</code> 等</td>
+            <td>新产品壳先扩模板枚举</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 6 -->
+    <section id="s6">
+      <h2>6. 已有能力如何实现（标准路径 A）</h2>
+      <p>当注册表<strong>已有</strong> key，或新能力按正式包落地时，严格走路径 A。</p>
+      <div class="mermaid">
+flowchart TD
+  A1["1. 定 key / name / category"] --> A2["2. 写入 capability_registry.py"]
+  A2 --> A3["3. 建 Web 包或复用 web_pkg"]
+  A2 --> A4["4. 建 Flutter 包或复用 flutter_pkg"]
+  A3 --> A5["5. registerWidget + 路由页面"]
+  A4 --> A6["6. CapabilityModule + parity-matrix"]
+  A5 --> A7["7. 本地 publish 冒烟"]
+  A6 --> A7
+  A7 --> A8["8. Web 打开 + APK 裁剪日志含该 pkg"]
+      </div>
+      <h3>步骤详情</h3>
+      <ol>
+        <li><strong>定 key</strong>：小写+下划线，稳定不改；例 <code>inventory_scan</code>。</li>
+        <li><strong>注册</strong>：<code>backend/app/data/capability_registry.py</code> 增加 <code>CapabilityDef</code>；约定足够时不必填 <code>web_pkg</code>/<code>route</code>。</li>
+        <li><strong>Web 包</strong>：<code>packages/web-capability-{slug}/</code> → <code>registerWidget('XxxWidget', ...)</code>；由 <code>runtime-web</code> 按 manifest 懒加载。</li>
+        <li><strong>Flutter 包</strong>：<code>packages/capability_{key}/</code> 实现模块；更新 <code>shared/flutter-parity-matrix.json</code>；构建脚本 sync pubspec。</li>
+        <li><strong>禁止</strong>在 <code>runtime-web/App.tsx</code> 或 <code>home</code> 硬编码特殊分支（除非壳级全局行为）。</li>
+        <li><strong>验收</strong>：仅勾选该能力 publish → schema.menu 含路由 → Web 可进页 → APK build log 含对应 <code>flutter_pkgs</code>。</li>
+      </ol>
+      <div class="callout">
+        Agent / RAG / 语音链路：全部写在能力包内部（如 <code>capability_shanghai_voice</code>），对外只暴露 Capability 边界。
+      </div>
+    </section>
+
+    <!-- 7 -->
+    <section id="s7">
+      <h2>7. 用户要的能力暂时没有时如何做（路径 B → A）</h2>
+      <div class="mermaid">
+flowchart TD
+  B0["用户选型出现未知 key<br/>或不在注册表"] --> B1["Resolver: dropped / pending_codegen_keys"]
+  B1 --> B2["已知 keys 仍完整交付 Web/App"]
+  B1 --> B3["异步 Codegen Job"]
+  B3 --> B4["LLM 生成 generated_page JSON"]
+  B4 --> B5["merge 进 page_schema"]
+  B5 --> B6["Web GeneratedPageWidget 预览"]
+  B6 --> B7{"业务是否要转正?"}
+  B7 -->|否| B8["保持预览 + 产品说明"]
+  B7 -->|是| A["走路径 A：正式 Capability Pack"]
+      </div>
+      <table>
+        <thead><tr><th>阶段</th><th>交付物</th><th>用户感知</th><th>工程状态</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>B1 降级</td>
+            <td>已知能力正常 Web/APK</td>
+            <td>提示「部分能力生成中/未支持」</td>
+            <td><code>pending_codegen_keys</code></td>
+          </tr>
+          <tr>
+            <td>B2 预览</td>
+            <td><code>type: generated_page</code> 节点</td>
+            <td>可打开占位/说明页</td>
+            <td><strong>不是</strong>完整 Dart/TS 包</td>
+          </tr>
+          <tr>
+            <td>A 转正</td>
+            <td>注册表 + 双端包</td>
+            <td>与一等能力无差别</td>
+            <td>唯一生产可用形态</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="callout warn">
+        <strong>口径红线：</strong>路径 B 只能说「预览 / 占位 / AI 草图」，不能说「已生成完整 App 能力包」。转正必须走路径 A。
+      </div>
+    </section>
+
+    <!-- 8 -->
+    <section id="s8">
+      <h2>8. 目录与包命名规范（与现状对齐）</h2>
+      <pre>cozecode/
+├── backend/app/data/capability_registry.py     # 注册表 SSOT
+├── backend/app/data/delivery_templates.py      # 壳枚举
+├── backend/app/services/
+│   ├── capability_resolver.py
+│   ├── schema_generator.py
+│   ├── build_manifest.py
+│   ├── apk_builder.py / apk_build_profiles.py
+│   └── codegen_*.py                            # 仅路径 B
+├── packages/
+│   ├── web-core/                               # Web 内核
+│   ├── web-capability-{slug}/                  # Web 能力包
+│   ├── blockhub_flutter_core/                  # App 内核
+│   └── capability_{key}/                       # App 能力包
+├── runtime-web/                                # Web 壳运行时
+├── runtime-app/                                # Flutter 壳运行时
+├── shared/flutter-parity-matrix.json           # App 裁剪矩阵
+├── scripts/flutter-build-from-publish.sh
+└── docs/opensource/capship.html                # 本规范</pre>
+      <table>
+        <thead><tr><th>约定</th><th>规则</th></tr></thead>
+        <tbody>
+          <tr><td>web_pkg 默认</td><td><code>@blockhub/web-capability-{slug}</code>（slug=<code>key</code> 下划线变连字符）</td></tr>
+          <tr><td>flutter 物理包</td><td><code>capability_{key}</code></td></tr>
+          <tr><td>route 默认</td><td><code>/{slug}</code></td></tr>
+          <tr><td>android_app_id</td><td><code>com.blockhub.app.{slug(public_id)}</code></td></tr>
+          <tr><td>制品</td><td><code>uploads/apks/{public_id}.apk</code> · 下载不走 default.apk</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 9 -->
+    <section id="s9">
+      <h2>9. 契约字段与壳矩阵</h2>
+      <h3>Publish 输入</h3>
+      <pre>{
+  "capability_keys": ["chat_qa", "approval_flow"],
+  "web_template_id": "tabs_portal",
+  "app_ui_id": "bottom_tabs",
+  "deliver": "both"
+}</pre>
+      <h3>编译输出</h3>
+      <ul>
+        <li><code>page_schema</code> — 菜单、组件树、theme.templateId</li>
+        <li><code>build_manifest</code> — web_pkgs / flutter_pkgs / routes / meta</li>
+        <li><code>android_app_id</code> — 每应用唯一包名</li>
+      </ul>
+      <div class="grid2">
+        <div>
+          <h3>Web 壳 <code>web_template_id</code></h3>
+          <table>
+            <tr><th>id</th><th>语义</th></tr>
+            <tr><td>tabs_portal</td><td>多页签门户</td></tr>
+            <tr><td>sidebar_admin</td><td>侧栏后台</td></tr>
+            <tr><td>landing_single</td><td>单页落地</td></tr>
+          </table>
+        </div>
+        <div>
+          <h3>App 壳 <code>app_ui_id</code></h3>
+          <table>
+            <tr><th>id</th><th>语义</th></tr>
+            <tr><td>bottom_tabs</td><td>底部 Tab</td></tr>
+            <tr><td>drawer_nav</td><td>抽屉导航</td></tr>
+            <tr><td>immersive_chat</td><td>沉浸对话</td></tr>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 10 -->
+    <section id="s10">
+      <h2>10. 开发检查清单（每个能力必勾）</h2>
+      <ul class="checklist">
+        <li>key 已写入 <code>capability_registry.py</code>（或明确走路径 B 且有 pending 说明）</li>
+        <li>Web：widget 可注册；manifest.web_pkgs 能加载</li>
+        <li>App：flutter 包或显式 app_only；parity 矩阵更新</li>
+        <li>未在 home/runtime 写能力特例分支（壳级除外）</li>
+        <li>显式 keys 不会被场景推荐污染</li>
+        <li>publish 后 schema.menu / routes 可见</li>
+        <li>deliver 含 app 时构建指纹含该 key；包名独立</li>
+        <li>若用了 LLM/RAG/语音：仅在能力包内，文档注明</li>
+        <li>路径 B 文案未夸大为「完整生成」</li>
+        <li>更新相关 docs / 本 HTML 若改了约定</li>
+      </ul>
+    </section>
+
+    <!-- 11 -->
+    <section id="s11">
+      <h2>11. 与 Cursor Skill 的关系</h2>
+      <p>
+        仓库 Skill：<code>.cursor/skills/capship-capability/SKILL.md</code>。
+        Agent 在「新增能力 / 模块 / Agent / 双端包 / codegen」时应自动遵循本页。
+        <strong>冲突时以本 HTML 为准</strong>；Skill 是执行流程，本页是结构法。
+      </p>
+      <p class="muted">相关文档：<code>docs/opensource/README.md</code> · <code>ARCHITECTURE.md</code> · <code>SPEC.md</code> · <code>EXTRACTION.md</code></p>
+    </section>
+
+    <footer class="note">
+      CapShip Structure Plan · BlockHub monorepo · 变更请升版本号并同步 Skill
+    </footer>
+  </div>
+</body>
+</html>

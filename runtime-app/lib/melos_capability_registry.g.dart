@@ -3,6 +3,7 @@ import 'package:blockhub_flutter_core/blockhub_flutter_core.dart';
 import 'package:capability_chat_qa/capability_chat_qa.dart';
 import 'package:capability_shanghai_voice/capability_shanghai_voice.dart';
 import 'package:capability_approval_flow/capability_approval_flow.dart';
+import 'package:capability_device_repair/capability_device_repair.dart';
 import 'package:capability_audit_log/capability_audit_log.dart';
 import 'package:capability_kb/capability_kb.dart';
 import 'package:capability_dashboard/capability_dashboard.dart';
@@ -15,6 +16,7 @@ import 'package:capability_flutter_tools/capability_flutter_tools.dart';
 final _mod_chat_qa = const ChatQaModule();
 final _mod_shanghai_voice = const ShanghaiVoiceModule();
 final _mod_approval_flow = const ApprovalFlowModule();
+final _mod_device_repair = const DeviceRepairModule();
 final _mod_audit_log = const AuditLogModule();
 final _mod_kb = const KbModule();
 final _mod_dashboard = const DashboardModule();
@@ -26,6 +28,7 @@ List<CapabilityModule> get generatedMelosCapabilityModules => [
   _mod_chat_qa,
   _mod_shanghai_voice,
   _mod_approval_flow,
+  _mod_device_repair,
   _mod_audit_log,
   _mod_kb,
   _mod_dashboard,
@@ -41,19 +44,19 @@ final Map<String, CapabilityModule> generatedMelosModuleByKey = {
     'asset_manage': IntegrationModule(capabilityKey: 'asset_manage'),
     'notify_im': IntegrationModule(capabilityKey: 'notify_im'),
     'rbac_page': IntegrationModule(capabilityKey: 'rbac_page'),
-    'flutter_biometric': FlutterToolsModule(capabilityKey: 'flutter_biometric'),
-    'flutter_camera': FlutterToolsModule(capabilityKey: 'flutter_camera'),
-    'flutter_chart': FlutterToolsModule(capabilityKey: 'flutter_chart'),
-    'flutter_file_picker': FlutterToolsModule(capabilityKey: 'flutter_file_picker'),
-    'flutter_geolocation': FlutterToolsModule(capabilityKey: 'flutter_geolocation'),
-    'flutter_map': FlutterToolsModule(capabilityKey: 'flutter_map'),
-    'flutter_offline': FlutterToolsModule(capabilityKey: 'flutter_offline'),
-    'flutter_pdf': FlutterToolsModule(capabilityKey: 'flutter_pdf'),
-    'flutter_push': FlutterToolsModule(capabilityKey: 'flutter_push'),
-    'flutter_scan_qr': FlutterToolsModule(capabilityKey: 'flutter_scan_qr'),
-    'flutter_signature': FlutterToolsModule(capabilityKey: 'flutter_signature'),
-    'flutter_webview': FlutterToolsModule(capabilityKey: 'flutter_webview'),
-    'schedule_alarm': FlutterToolsModule(capabilityKey: 'schedule_alarm'),
+    'flutter_biometric': const FlutterToolsModule(capabilityKey: 'flutter_biometric'),
+    'flutter_camera': const FlutterToolsModule(capabilityKey: 'flutter_camera'),
+    'flutter_chart': const FlutterToolsModule(capabilityKey: 'flutter_chart'),
+    'flutter_file_picker': const FlutterToolsModule(capabilityKey: 'flutter_file_picker'),
+    'flutter_geolocation': const FlutterToolsModule(capabilityKey: 'flutter_geolocation'),
+    'flutter_map': const FlutterToolsModule(capabilityKey: 'flutter_map'),
+    'flutter_offline': const FlutterToolsModule(capabilityKey: 'flutter_offline'),
+    'flutter_pdf': const FlutterToolsModule(capabilityKey: 'flutter_pdf'),
+    'flutter_push': const FlutterToolsModule(capabilityKey: 'flutter_push'),
+    'flutter_scan_qr': const FlutterToolsModule(capabilityKey: 'flutter_scan_qr'),
+    'flutter_signature': const FlutterToolsModule(capabilityKey: 'flutter_signature'),
+    'flutter_webview': const FlutterToolsModule(capabilityKey: 'flutter_webview'),
+    'schedule_alarm': const FlutterToolsModule(capabilityKey: 'schedule_alarm'),
     'approval': _mod_approval_flow,
     'approval_conditional': _mod_approval_flow,
     'approval_countersign': _mod_approval_flow,
@@ -71,6 +74,7 @@ final Map<String, CapabilityModule> generatedMelosModuleByKey = {
     'contract_editor': _mod_approval_flow,
     'contract_esign': _mod_approval_flow,
     'data_nl_query': _mod_data_nl_query,
+    'device_repair': _mod_device_repair,
     'form_widget': _mod_approval_flow,
     'kb_document': _mod_kb,
     'kb_search': _mod_kb,

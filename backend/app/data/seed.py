@@ -188,6 +188,7 @@ CAPABILITIES = [
     {"key": "shanghai_voice_stream", "name": "实时语音流", "category": "智能交互", "widget": "VoiceStreamWidget", "agent_id": "shanghai_voice"},
     {"key": "multi_agent", "name": "多助手切换", "category": "智能交互", "widget": "MultiAgentWidget", "agent_id": "chat_qa"},
     {"key": "chat_summary", "name": "对话摘要", "category": "智能交互", "widget": "SummaryWidget", "agent_id": "chat_qa"},
+    {"key": "device_repair", "name": "设备报修", "category": "流程审批", "widget": "DeviceRepairWidget", "agent_id": "approval"},
     {"key": "approval_flow", "name": "通用审批流", "category": "流程审批", "widget": "FormWidget", "agent_id": "approval"},
     {"key": "approval_inbox", "name": "待办/已办中心", "category": "流程审批", "widget": "ListWidget", "agent_id": "approval"},
     {"key": "approval_countersign", "name": "会签/或签", "category": "流程审批", "widget": "WorkflowWidget", "agent_id": "approval"},

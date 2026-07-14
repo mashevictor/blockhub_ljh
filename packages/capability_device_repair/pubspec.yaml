@@ -1,0 +1,13 @@
+name: capability_device_repair
+description: BlockHub CapShip capability — device_repair (弹幕「设备报修」)
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ">=3.3.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  blockhub_flutter_core:
+    path: ../blockhub_flutter_core
