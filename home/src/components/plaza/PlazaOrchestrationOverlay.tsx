@@ -3,7 +3,7 @@ import { IconGlobe } from '../icons'
 import AppIconAvatar from '../AppIconAvatar'
 import DeliveryProgress from '../DeliveryProgress'
 import PublishSuccessCard from '../PublishSuccessCard'
-import PlazaModuleFlowPanel from './PlazaModuleFlowPanel'
+import PlazaDualRailFlowPanel from './PlazaDualRailFlowPanel'
 import type { AuthUser } from '../../auth/session'
 import type { PlazaAudienceMeta, StoredMyApp } from '../../lib/myAppsStorage'
 import { setMyAppPlazaAudience } from '../../lib/myAppsStorage'
@@ -133,12 +133,12 @@ export default function PlazaOrchestrationOverlay({
                   <span className="plaza-mflow-chev">&gt;&gt;</span> 模块数据流编排
                   <span className="plaza-orch-share-hint">可选 · 拖序与添加模块</span>
                 </summary>
-                <PlazaModuleFlowPanel
+                <PlazaDualRailFlowPanel
                   appKey={appKey}
                   appName={app.appName}
                   moduleLabels={moduleLabels(app)}
                   isCreator
-                  orchestration
+                  embedded
                 />
               </details>
             </>
@@ -150,12 +150,12 @@ export default function PlazaOrchestrationOverlay({
                 </div>
               )}
 
-              <PlazaModuleFlowPanel
+              <PlazaDualRailFlowPanel
                 appKey={appKey}
                 appName={app.appName}
                 moduleLabels={moduleLabels(app)}
                 isCreator
-                orchestration
+                embedded
               />
 
               <details className="plaza-orch-share">

@@ -52,7 +52,7 @@ export default function PlazaAppStatusButton({ app, isNew = false, isFocused = f
   const delivery = useApkBuildProgress(app)
   const run = usePlazaFlowRun()
 
-  const runActive = isFocused && run.phase !== 'idle'
+  const runActive = isFocused && (run.phase === 'running' || run.phase === 'paused')
   const runUi = runActive
     ? runPhaseUi(run.phase, run.stepIndex, run.steps.length)
     : null
@@ -66,23 +66,32 @@ export default function PlazaAppStatusButton({ app, isNew = false, isFocused = f
     ? { variant: runVariantFromBadge(runUi.badgeClass), label: runUi.badge, sub: '试运营' }
     : deliveryStatus
 
+  /** 试运营中：折叠悬浮条已有暂停/停止，勿再弹状态浮层 */
+  const skipPopover = runActive
+
   useEffect(() => {
     if (!open) return
+    if (skipPopover) {
+      setOpen(false)
+      return
+    }
     const onDoc = (e: MouseEvent) => {
       if (!rootRef.current?.contains(e.target as Node)) setOpen(false)
     }
     document.addEventListener('mousedown', onDoc)
     return () => document.removeEventListener('mousedown', onDoc)
-  }, [open])
+  }, [open, skipPopover])
 
   return (
     <div ref={rootRef} className={`plaza-app-status-wrap${open ? ' is-open' : ''}`}>
       <button
         type="button"
-        className={`plaza-app-status-btn variant-${display.variant}`}
-        aria-expanded={open}
+        className={`plaza-app-status-btn variant-${display.variant}${skipPopover ? ' is-run-live' : ''}`}
+        aria-expanded={skipPopover ? undefined : open}
+        title={skipPopover ? '试运营进行中 · 请在底部悬浮条暂停/停止' : undefined}
         onClick={(e) => {
           e.stopPropagation()
+          if (skipPopover) return
           setOpen((v) => !v)
         }}
       >
@@ -93,17 +102,8 @@ export default function PlazaAppStatusButton({ app, isNew = false, isFocused = f
         </span>
       </button>
 
-      {open && (
+      {open && !skipPopover && (
         <div className="plaza-app-status-popover" role="dialog" aria-label={`${app.appName} 状态`}>
-          {runActive && (
-            <div className="plaza-app-status-run">
-              <span className={`plaza-dock-status-dot ${runUi!.badgeClass}`} aria-hidden />
-              <div>
-                <strong>试运营 · {runUi!.badge}</strong>
-                <p>{run.progressLabel}</p>
-              </div>
-            </div>
-          )}
           <DeliveryProgress app={app} compact />
           {onOpenDetail && (
             <button

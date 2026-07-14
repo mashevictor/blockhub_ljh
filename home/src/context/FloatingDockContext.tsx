@@ -6,6 +6,7 @@ export interface FloatingDockContextValue {
   variant: FloatingDockVariant
   collapsed: boolean
   expand: () => void
+  collapse: () => void
 }
 
 const FloatingDockContext = createContext<FloatingDockContextValue | null>(null)

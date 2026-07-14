@@ -59,24 +59,46 @@ export default function PlazaLayout() {
       <div className="plaza-page b2b-brand-scope b2b-has-floating-agent">
       <header className="plaza-topbar">
         <Link to={ROUTES.home} className="plaza-topbar-brand">
-          <BrandMark size={36} />
-          <span>{BRAND.nameZh} {BRAND.nameEn}</span>
+          <BrandMark size={32} />
+          <span>
+            <strong>{BRAND.nameZh}</strong>
+            <em className="plaza-topbar-brand-en">{BRAND.nameEn}</em>
+          </span>
         </Link>
-        <nav className="plaza-topbar-nav">
-          <Link to={ROUTES.home}>生成应用</Link>
+        <nav className="plaza-topbar-nav" aria-label="广场顶部导航">
+          <Link to={ROUTES.home}>
+            <span className="plaza-nav-label-full">生成应用</span>
+            <span className="plaza-nav-label-short">生成</span>
+          </Link>
           <NavLink to={ROUTES.plazaFeed} end className={topLinkClass}>
-            📡 应用广场
+            <span className="plaza-nav-label-full">应用广场</span>
+            <span className="plaza-nav-label-short">广场</span>
           </NavLink>
           <NavLink to={ROUTES.plazaMyApps} className={topLinkClass}>
-            <IconLayers size={14} /> 我的应用
+            <IconLayers size={14} />
+            <span className="plaza-nav-label-full">我的应用</span>
+            <span className="plaza-nav-label-short">我的</span>
             {myAppsCount > 0 && <span className="plaza-my-badge">{myAppsCount}</span>}
           </NavLink>
         </nav>
       </header>
 
       <div className="plaza-flow-strip" role="marquee" aria-label="应用广场提示">
-        <p className="plaza-flow-strip-text">应用发布 · 模块数据流 · @ 受众 · 应用广场 · 我的应用</p>
+        <p className="plaza-flow-strip-text plaza-flow-strip-text--full">应用发布 · 模块数据流 · @ 受众 · 应用广场 · 我的应用</p>
+        <p className="plaza-flow-strip-text plaza-flow-strip-text--short">发布 · 数据流 · 广场 · 我的应用</p>
       </div>
+
+      <nav className="plaza-mobile-tabs" aria-label="广场移动导航">
+        <NavLink to={ROUTES.plazaFeed} end className={sideLinkClass}>
+          应用广场
+          {publicFeedCount > 0 && <span className="plaza-side-count">{publicFeedCount}</span>}
+        </NavLink>
+        <NavLink to={ROUTES.plazaMyApps} className={sideLinkClass}>
+          我的应用
+          {myAppsCount > 0 && <span className="plaza-side-count">{myAppsCount}</span>}
+        </NavLink>
+        <Link to={ROUTES.home}>去生成</Link>
+      </nav>
 
       <div className="plaza-layout">
         <aside className="plaza-side" aria-label="应用广场导航">

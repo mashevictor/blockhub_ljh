@@ -3,7 +3,9 @@ import type { ModuleFlowStep } from '../../lib/plazaModuleFlow'
 import { FLOW_EGRESS_ID, FLOW_INGRESS_ID } from '../../lib/plazaModuleFlow'
 import { getModuleCapability, type ModuleCapability } from '../../data/moduleCatalog'
 import type { FlowApiNode } from '../../lib/flowModuleApis'
+import { usePlazaFlowRun } from '../../context/PlazaFlowRunContext'
 import FlowApiEndpointRow from './FlowApiEndpointRow'
+import FlowBizCommandInput from './FlowBizCommandInput'
 import PlazaChevTrigger from './PlazaChevTrigger'
 import type { PlazaChevAction } from './PlazaChevMenu'
 
@@ -15,11 +17,20 @@ interface Props {
   isCreator: boolean
   pickerOpen: boolean
   availableModules: ModuleCapability[]
+  flowLabels: string[]
+  /** 含入口/出口，供指令「打开 xxx」 */
+  nodeLabels?: string[]
+  appName?: string
+  analysisText?: string
   onAddModule: () => void
   onEditNote: () => void
   onDelete: () => void
   onPickModule: (mod: ModuleCapability) => void
   onClosePicker: () => void
+  onInsertModule: (mod: ModuleCapability) => void
+  onSaveNote?: (note: string) => void
+  onAnalyze?: (text: string) => void
+  onOpenNodeByLabel?: (label: string, side?: 'input' | 'output') => void
 }
 
 export default function FlowOrchestrationDock({
@@ -30,14 +41,28 @@ export default function FlowOrchestrationDock({
   isCreator,
   pickerOpen,
   availableModules,
+  flowLabels,
+  nodeLabels,
+  appName = '',
+  analysisText,
   onAddModule,
   onEditNote,
   onDelete,
   onPickModule,
   onClosePicker,
+  onInsertModule,
+  onSaveNote,
+  onAnalyze,
+  onOpenNodeByLabel,
 }: Props) {
+  const run = usePlazaFlowRun()
   const [testInputTrigger, setTestInputTrigger] = useState(0)
   const [testOutputTrigger, setTestOutputTrigger] = useState(0)
+  const [localAnalysis, setLocalAnalysis] = useState('')
+
+  const canEdit = isCreator && run.canEdit
+  const canTest = isCreator && run.canTestApi
+  const mutateLocked = isCreator && !run.canEdit
 
   const isIngress = activeNodeId === FLOW_INGRESS_ID
   const isEgress = activeNodeId === FLOW_EGRESS_ID
@@ -45,23 +70,22 @@ export default function FlowOrchestrationDock({
   const cap = activeStep ? getModuleCapability(activeStep.label) : null
 
   let title = '点击数据流中的模块'
-  let desc = '在上方完整数据流里选择节点，在此编排添加、编辑与拨通'
+  let desc = '在上方双轨选择节点；可编排态下可编辑、测试与 >> 命令'
 
   if (isIngress) {
     title = '业务输入'
-    desc = '外部请求由此进入应用数据流 · 下方可测试 IN/OUT 接口 · 用 >> 插入或调用模块'
+    desc = '外部请求进入数据流 · 停止/编排态下可测 IN·OUT · 用 >> 插入/调用/分析'
   } else if (isEgress) {
     title = '触达输出'
-    desc = '处理结果推送到网页、手机或消息通知 · 下方可测试 IN/OUT 接口'
+    desc = '结果推送到网页/App · 可编排态下可测接口'
   } else if (activeStep) {
     title = activeStep.label
     desc = cap?.desc ?? activeStep.note
   }
 
   const chevActions = useMemo((): PlazaChevAction[] => {
-    if (!isCreator) return []
+    if (!canEdit) return []
     const items: PlazaChevAction[] = []
-
     if (!isEgress) {
       items.push({
         id: 'insert',
@@ -70,7 +94,6 @@ export default function FlowOrchestrationDock({
         disabled: availableModules.length === 0,
       })
     }
-
     if (activeApiNode) {
       items.push({
         id: 'invoke-in',
@@ -88,15 +111,13 @@ export default function FlowOrchestrationDock({
         })
       }
     }
-
     if (activeStep && !isEndpoint) {
       items.push({ id: 'edit', label: '编辑说明', onClick: onEditNote })
       items.push({ id: 'delete', label: '删除模块', onClick: onDelete })
     }
-
     return items
   }, [
-    isCreator,
+    canEdit,
     isEgress,
     isIngress,
     isEndpoint,
@@ -109,18 +130,94 @@ export default function FlowOrchestrationDock({
   ])
 
   return (
-    <div className="plaza-orch-dock" role="complementary" aria-label="编排悬浮框">
-      {isCreator && chevActions.length > 0 ? (
-        <PlazaChevTrigger actions={chevActions} className="plaza-orch-dock-chev-trigger" />
+    <div
+      className={`plaza-orch-dock${canEdit ? '' : ' is-run-locked'}`}
+      role="complementary"
+      aria-label="编排编辑区"
+      data-active-node={activeNodeId ?? ''}
+    >
+      {isCreator ? (
+        <PlazaChevTrigger
+          actions={
+            canEdit && chevActions.length > 0
+              ? chevActions
+              : [
+                  {
+                    id: 'unlock',
+                    label:
+                      run.phase === 'running' || run.phase === 'paused'
+                        ? '停止并回到可编辑'
+                        : '重置到就绪后可编辑',
+                    onClick: () => {
+                      if (run.phase === 'running' || run.phase === 'paused') run.stop()
+                      else run.enterEditMode()
+                    },
+                  },
+                ]
+          }
+          className="plaza-orch-dock-chev-trigger"
+        />
       ) : (
         <div className="plaza-orch-dock-chev" aria-hidden>&gt;&gt;</div>
       )}
       <div className="plaza-orch-dock-body">
         <strong>{title}</strong>
         <span>{desc}</span>
+        {activeApiNode && (
+          <em className="plaza-orch-dock-linkhint">
+            已联动 · {activeApiNode.label}
+            {activeApiSide === 'input' ? ' · 侧重 IN' : activeApiSide === 'output' ? ' · 侧重 OUT' : ''}
+          </em>
+        )}
       </div>
 
-      {activeApiNode && (
+      {/* 业务输入始终保留；运行锁定仍可问答/停止，改模块/测接口需就绪 */}
+      <FlowBizCommandInput
+        disabled={!isCreator}
+        mutateLocked={mutateLocked}
+        availableModules={availableModules}
+        flowLabels={flowLabels}
+        nodeLabels={nodeLabels}
+        appName={appName}
+        activeNodeLabel={
+          isIngress ? '用户意图' : isEgress ? '触达输出' : activeStep?.label ?? activeApiNode?.label ?? '用户意图'
+        }
+        activeApiSide={activeApiSide}
+        inputApi={activeApiNode?.input_api ?? null}
+        outputApi={activeApiNode?.output_api ?? null}
+        onInsert={onInsertModule}
+        onInvoke={(side) => {
+          if (!canTest) return
+          if (side === 'output' || isEgress) setTestOutputTrigger((n) => n + 1)
+          else setTestInputTrigger((n) => n + 1)
+        }}
+        onAnalyze={(text) => {
+          setLocalAnalysis(text)
+          onAnalyze?.(text)
+        }}
+        onNote={(text) => {
+          if (text && isCreator && canEdit) onSaveNote?.(text)
+        }}
+        onOpenNode={onOpenNodeByLabel}
+        onStartTrial={() => {
+          run.enterRunMode()
+          run.start()
+        }}
+        onStopTrial={() => {
+          run.stop()
+          run.enterEditMode()
+        }}
+        onPauseTrial={() => run.pause()}
+      />
+
+      {(analysisText || localAnalysis) && (
+        <div className="plaza-orch-analysis" role="status">
+          <strong>指令结果</strong>
+          <p>{analysisText || localAnalysis}</p>
+        </div>
+      )}
+
+      {activeApiNode ? (
         <div className="plaza-orch-dock-api">
           <FlowApiEndpointRow
             title="IN"
@@ -128,7 +225,9 @@ export default function FlowOrchestrationDock({
             variant="input"
             highlighted={activeApiSide === 'input'}
             compact
+            showFields
             testTrigger={testInputTrigger}
+            testDisabled={!canTest}
           />
           <FlowApiEndpointRow
             title="OUT"
@@ -136,12 +235,16 @@ export default function FlowOrchestrationDock({
             variant="output"
             highlighted={activeApiSide === 'output'}
             compact
+            showFields
             testTrigger={testOutputTrigger}
+            testDisabled={!canTest}
           />
         </div>
+      ) : (
+        <p className="plaza-orch-dock-empty">点击上方功能轨或数据轨节点，下方将显示该节点的输入/输出字段</p>
       )}
 
-      {pickerOpen && (
+      {pickerOpen && canEdit && (
         <div className="plaza-orch-dock-picker">
           <div className="plaza-orch-dock-picker-head">
             <span className="plaza-mflow-chev">&gt;&gt;</span>

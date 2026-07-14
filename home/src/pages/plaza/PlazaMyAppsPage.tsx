@@ -140,8 +140,11 @@ export default function PlazaMyAppsPage() {
       <div className="plaza-main-head plaza-my-head-slim">
         <div>
           <h1><span className="plaza-mflow-chev chev-hero" aria-hidden>&gt;&gt;</span> 我的应用</h1>
-          <p className="plaza-my-head-sub">
-            点击应用卡片切换底部 <span className="plaza-mflow-chev">&gt;&gt;</span> 悬浮框 · 每个应用独立双轨编排与试运营
+          <p className="plaza-my-head-sub plaza-my-head-sub--full">
+            点卡片切换底部 <span className="plaza-mflow-chev">&gt;&gt;</span> 悬浮框 · 双轨默认各 5 条可懒加载 · 话术指令即执行 · 「编排」开全屏
+          </p>
+          <p className="plaza-my-head-sub plaza-my-head-sub--short">
+            点卡片开底部 <span className="plaza-mflow-chev">&gt;&gt;</span> · 双轨 + 指令
           </p>
         </div>
         <Link to={ROUTES.home} className="plaza-my-create-btn">+ 继续创建</Link>

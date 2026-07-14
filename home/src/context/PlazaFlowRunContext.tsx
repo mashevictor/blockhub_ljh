@@ -19,6 +19,9 @@ export type PlazaRunPhase =
   | 'error'
   | 'stopped'
 
+/** A+B：编排态可改可测；试运营态锁定 */
+export type PlazaWorkMode = 'edit' | 'run'
+
 export interface PlazaRunStep {
   id: string
   label: string
@@ -26,11 +29,15 @@ export interface PlazaRunStep {
 
 export interface PlazaFlowRunSnapshot {
   phase: PlazaRunPhase
+  mode: PlazaWorkMode
   steps: PlazaRunStep[]
   stepIndex: number
   currentStep: PlazaRunStep | null
   progressLabel: string
   errorMessage?: string
+  /** 就绪/已停止才允许改模块、测接口、>> 命令 */
+  canEdit: boolean
+  canTestApi: boolean
 }
 
 interface Value extends PlazaFlowRunSnapshot {
@@ -40,6 +47,8 @@ interface Value extends PlazaFlowRunSnapshot {
   stop: () => void
   retry: () => void
   reset: () => void
+  enterEditMode: () => void
+  enterRunMode: () => void
 }
 
 const STEP_MS = 1400
@@ -72,6 +81,10 @@ function phaseLabel(phase: PlazaRunPhase): string {
   }
 }
 
+export function isPlazaEditablePhase(phase: PlazaRunPhase): boolean {
+  return phase === 'idle' || phase === 'stopped'
+}
+
 export function PlazaFlowRunProvider({
   appKey,
   moduleLabels,
@@ -82,6 +95,7 @@ export function PlazaFlowRunProvider({
   children: ReactNode
 }) {
   const [phase, setPhase] = useState<PlazaRunPhase>('idle')
+  const [mode, setMode] = useState<PlazaWorkMode>('edit')
   const [stepIndex, setStepIndex] = useState(0)
   const [errorMessage, setErrorMessage] = useState<string | undefined>()
   const timerRef = useRef<number | null>(null)
@@ -105,6 +119,7 @@ export function PlazaFlowRunProvider({
     setPhase('idle')
     setStepIndex(0)
     setErrorMessage(undefined)
+    setMode('edit')
   }, [clearTimer])
 
   useEffect(() => {
@@ -137,6 +152,7 @@ export function PlazaFlowRunProvider({
     clearTimer()
     setErrorMessage(undefined)
     setStepIndex(0)
+    setMode('run')
     setPhase('running')
     scheduleNext(0)
   }, [clearTimer, scheduleNext, steps.length])
@@ -162,6 +178,28 @@ export function PlazaFlowRunProvider({
     start()
   }, [start])
 
+  /** B：回编排 = 停止并解锁 */
+  const enterEditMode = useCallback(() => {
+    clearTimer()
+    if (phase === 'running' || phase === 'paused') {
+      setPhase('stopped')
+    } else if (phase === 'completed' || phase === 'error') {
+      setPhase('idle')
+      setStepIndex(0)
+      setErrorMessage(undefined)
+    }
+    setMode('edit')
+  }, [clearTimer, phase])
+
+  /** B：切试运营（不自动 start，由按钮发动） */
+  const enterRunMode = useCallback(() => {
+    setMode('run')
+  }, [])
+
+  /** 仅执行中/暂停锁定；就绪与已停止始终可编排（与「编排|试运营」分段解耦） */
+  const canEdit = isPlazaEditablePhase(phase)
+  const canTestApi = canEdit
+
   const currentStep = steps[stepIndex] ?? null
   const progressLabel =
     steps.length > 0 && phase !== 'idle'
@@ -171,53 +209,66 @@ export function PlazaFlowRunProvider({
   const value = useMemo<Value>(
     () => ({
       phase,
+      mode,
       steps,
       stepIndex,
       currentStep,
       progressLabel,
       errorMessage,
+      canEdit,
+      canTestApi,
       start,
       pause,
       resume,
       stop,
       retry,
       reset,
+      enterEditMode,
+      enterRunMode,
     }),
     [
       phase,
+      mode,
       steps,
       stepIndex,
       currentStep,
       progressLabel,
       errorMessage,
+      canEdit,
+      canTestApi,
       start,
       pause,
       resume,
       stop,
       retry,
       reset,
+      enterEditMode,
+      enterRunMode,
     ],
   )
 
   return <PlazaFlowRunContext.Provider value={value}>{children}</PlazaFlowRunContext.Provider>
 }
 
+const EMPTY: Value = {
+  phase: 'idle',
+  mode: 'edit',
+  steps: [],
+  stepIndex: 0,
+  currentStep: null,
+  progressLabel: '就绪',
+  canEdit: true,
+  canTestApi: true,
+  start: () => {},
+  pause: () => {},
+  resume: () => {},
+  stop: () => {},
+  retry: () => {},
+  reset: () => {},
+  enterEditMode: () => {},
+  enterRunMode: () => {},
+}
+
 export function usePlazaFlowRun(): Value {
-  const ctx = useContext(PlazaFlowRunContext)
-  if (!ctx) {
-    return {
-      phase: 'idle',
-      steps: [],
-      stepIndex: 0,
-      currentStep: null,
-      progressLabel: '就绪',
-      start: () => {},
-      pause: () => {},
-      resume: () => {},
-      stop: () => {},
-      retry: () => {},
-      reset: () => {},
-    }
-  }
-  return ctx
+  return useContext(PlazaFlowRunContext) ?? EMPTY
 }

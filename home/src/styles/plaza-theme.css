@@ -316,6 +316,64 @@
   }
 }
 
+@media (max-width: 900px) {
+  .b2b-brand-scope .plaza-mobile-tabs a {
+    border-color: #dbeafe;
+    background: #fff;
+    color: var(--b2b-muted, #666);
+  }
+
+  .b2b-brand-scope .plaza-mobile-tabs a.on {
+    background: var(--b2b-panel);
+    color: var(--b2b-primary);
+    border-color: #93c5fd;
+  }
+
+  .b2b-brand-scope .plaza-my-card {
+    box-shadow: 0 2px 10px rgba(13, 71, 161, 0.05);
+  }
+
+  .b2b-brand-scope .plaza-my-orch-btn {
+    min-height: 40px;
+  }
+}
+
+@media (max-width: 768px) {
+  .b2b-brand-scope .plaza-main-head {
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .b2b-brand-scope .plaza-filters {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+  }
+
+  .b2b-brand-scope .plaza-filters::-webkit-scrollbar {
+    display: none;
+  }
+
+  .b2b-brand-scope .plaza-filters button {
+    flex: 0 0 auto;
+    min-height: 36px;
+    padding: 6px 14px;
+  }
+
+  .b2b-brand-scope .plaza-feed-card {
+    border-radius: 12px;
+  }
+
+  .b2b-brand-scope .plaza-feed-act {
+    min-height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
 /* —— 卡片 / 按钮统一 —— */
 .b2b-brand-scope .plaza-my-item-actions .btn-ghost {
   font-size: var(--bh-fs-sm, 13px);

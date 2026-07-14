@@ -26,13 +26,18 @@ import {
   updateFlowStep,
 } from '../../lib/plazaModuleFlow'
 import FlowOrchestrationDock from './FlowOrchestrationDock'
+import PlazaWorkModeSwitch from './PlazaWorkModeSwitch'
 import PlazaRunControls from './PlazaRunControls'
+
+const DATA_PAGE = 5
 
 interface Props {
   appKey: string
   appName: string
   moduleLabels: string[]
   isCreator: boolean
+  /** 页内嵌入（广场 feed / 全屏）时显示顶栏模式切换 */
+  embedded?: boolean
 }
 
 function FuncNode({
@@ -85,7 +90,7 @@ function FuncNode({
         type="button"
         className={`plaza-dual-rail-node func${active ? ' active' : ''}${running ? ' running' : ''}${draggable ? ' draggable' : ''}`}
         onClick={onSelect}
-        disabled={readOnly}
+        disabled={readOnly && false}
         aria-pressed={active}
       >
         <span className="plaza-dual-rail-node-label">{label}</span>
@@ -150,18 +155,24 @@ export default function PlazaDualRailFlowPanel({
   appName,
   moduleLabels,
   isCreator,
+  embedded = false,
 }: Props) {
   const [flow, setFlow] = useState<AppModuleFlow>(() => loadModuleFlow(appKey, moduleLabels))
   const run = usePlazaFlowRun()
+  const canMutate = isCreator && run.canEdit
   const [activeNodeId, setActiveNodeId] = useState<string | null>(FLOW_INGRESS_ID)
   const [activeApiSide, setActiveApiSide] = useState<'input' | 'output' | null>('input')
   const [pickerAfterStepId, setPickerAfterStepId] = useState<string | null>(null)
   const [editNote, setEditNote] = useState('')
   const [editingId, setEditingId] = useState<string | null>(null)
+  const [analysis, setAnalysis] = useState('')
+  const [dataVisible, setDataVisible] = useState(DATA_PAGE)
+  const [funcVisible, setFuncVisible] = useState(DATA_PAGE)
   const [dragIndex, setDragIndex] = useState<number | null>(null)
   const [overIndex, setOverIndex] = useState<number | null>(null)
   const overIndexRef = useRef<number | null>(null)
   const dragPointerIdRef = useRef<number | null>(null)
+  const lazySentinelRef = useRef<HTMLDivElement>(null)
   const [apiNodes, setApiNodes] = useState<Map<string, FlowApiNode>>(() => {
     const fp = flowStepsFingerprint(loadModuleFlow(appKey, moduleLabels).steps)
     const cached = loadCachedFlowApis(appKey, fp)
@@ -186,6 +197,9 @@ export default function PlazaDualRailFlowPanel({
     setActiveApiSide('input')
     setEditingId(null)
     setPickerAfterStepId(null)
+    setAnalysis('')
+    setDataVisible(DATA_PAGE)
+    setFuncVisible(DATA_PAGE)
   }, [appKey, moduleLabels.join('|')])
 
   useEffect(() => {
@@ -210,14 +224,20 @@ export default function PlazaDualRailFlowPanel({
     () => modulesAvailableToAdd(flow.steps.map((s) => s.label)),
     [flow.steps],
   )
+  const flowLabels = useMemo(() => flow.steps.map((s) => s.label), [flow.steps])
 
   const finishDrag = useCallback((from: number, to: number) => {
+    if (!isCreator || run.phase === 'running' || run.phase === 'paused') {
+      setDragIndex(null)
+      setOverIndex(null)
+      return
+    }
     if (from !== to && from >= 0 && to >= 0) {
       setFlow((prev) => reorderFlowSteps(prev, from, to))
     }
     setDragIndex(null)
     setOverIndex(null)
-  }, [])
+  }, [isCreator, run.phase])
 
   useEffect(() => {
     if (dragIndex === null) return
@@ -245,14 +265,51 @@ export default function PlazaDualRailFlowPanel({
     }
   }, [dragIndex, finishDrag])
 
+  const dockRef = useRef<HTMLDivElement>(null)
+
   const selectNode = (nodeId: string, side: 'input' | 'output' = 'input') => {
     setActiveNodeId(nodeId)
     setActiveApiSide(side)
     setEditingId(null)
     setPickerAfterStepId(null)
+    const stepIdx = flow.steps.findIndex((s) => s.id === nodeId)
+    if (stepIdx >= 0) {
+      setFuncVisible((n) => Math.max(n, Math.min(flow.steps.length, stepIdx + 1)))
+    }
+    // 数据轨含 ingress + steps + egress
+    let dataIdx = 0
+    if (nodeId === FLOW_INGRESS_ID) dataIdx = 0
+    else if (nodeId === FLOW_EGRESS_ID) dataIdx = flow.steps.length + 1
+    else if (stepIdx >= 0) dataIdx = stepIdx + 1
+    setDataVisible((n) => Math.max(n, Math.min(flow.steps.length + 2, dataIdx + 1)))
+    requestAnimationFrame(() => {
+      dockRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+    })
   }
 
+  const openNodeByLabel = (label: string, side: 'input' | 'output' = 'input') => {
+    const norm = label.replace(/^📥\s*|^📤\s*/, '').trim()
+    if (/用户意图|业务输入|业务请求/.test(norm)) {
+      selectNode(FLOW_INGRESS_ID, side === 'output' ? 'output' : 'input')
+      return
+    }
+    if (/触达输出|网页\s*\+\s*App|网页/.test(norm)) {
+      selectNode(FLOW_EGRESS_ID, 'output')
+      return
+    }
+    const hit =
+      flow.steps.find((s) => s.label === norm)
+      ?? flow.steps.find((s) => s.label.includes(norm) || norm.includes(s.label))
+    if (hit) selectNode(hit.id, side)
+  }
+
+  const nodeLabels = useMemo(
+    () => ['用户意图', ...flow.steps.map((s) => s.label), '触达输出'],
+    [flow.steps],
+  )
+
   const handleAddFromCatalog = (mod: ModuleCapability, afterId: string | null) => {
+    if (!canMutate) return
     const next = insertFlowStepAfter(flow, afterId, mod.label, mod.flowHint)
     setFlow(next)
     const idx =
@@ -277,23 +334,60 @@ export default function PlazaDualRailFlowPanel({
     })
   }, [flow.steps, apiNodes])
 
+  const visibleDataRows = dataRows.slice(0, dataVisible)
+  const dataRemaining = Math.max(0, dataRows.length - dataVisible)
+
+  useEffect(() => {
+    const el = lazySentinelRef.current
+    if (!el || dataRemaining <= 0) return
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          setDataVisible((n) => Math.min(n + DATA_PAGE, dataRows.length))
+        }
+      },
+      { root: null, rootMargin: '40px', threshold: 0.1 },
+    )
+    io.observe(el)
+    return () => io.disconnect()
+  }, [dataRemaining, dataRows.length])
+
   const activeApiNode = activeNodeId ? apiNodes.get(activeNodeId) ?? null : null
 
   const startEdit = () => {
-    if (!activeStep || !isCreator) return
+    if (!activeStep || !canMutate) return
     setEditingId(activeStep.id)
     setEditNote(activeStep.note)
     setPickerAfterStepId(null)
   }
 
   const saveEdit = () => {
-    if (!editingId) return
+    if (!editingId || !canMutate) return
     setFlow(updateFlowStep(flow, editingId, { note: editNote }))
     setEditingId(null)
   }
 
   return (
-    <div className="plaza-dual-rail-panel" aria-label={`${appName} 双轨编排`}>
+    <div
+      className={`plaza-dual-rail-panel${embedded ? ' is-embedded' : ''}${canMutate ? '' : ' is-run-locked'}`}
+      aria-label={`${appName} 双轨编排`}
+      onPointerDown={(e) => e.stopPropagation()}
+    >
+      {embedded && (
+        <div className="plaza-dual-rail-embed-bar">
+          <PlazaWorkModeSwitch />
+          <PlazaRunControls compact />
+        </div>
+      )}
+
+      {!run.canEdit && (
+        <p className="plaza-dual-rail-lock-banner" role="status">
+          {run.mode === 'run'
+            ? '试运营模式 · 修改与测试已锁定 · 请「停止」或切回「编排」'
+            : '当前不可编辑 · 请重置到就绪或停止后再改'}
+        </p>
+      )}
+
       <div className="plaza-dual-rail-grid">
         <div className="plaza-dual-rail-col">
           <div className="plaza-dual-rail-col-head">
@@ -304,8 +398,8 @@ export default function PlazaDualRailFlowPanel({
                 : run.phase === 'paused'
                   ? '已暂停'
                   : isCreator
-                    ? '可拖序 · 点击选中'
-                    : '只读'}
+                    ? `默认 ${DATA_PAGE} · ⠿ 可拖序`
+                    : '只读 · 点击查看'}
             </span>
           </div>
           <div className="plaza-dual-rail-stack">
@@ -315,27 +409,27 @@ export default function PlazaDualRailFlowPanel({
               sub="业务请求进入"
               active={activeNodeId === FLOW_INGRESS_ID}
               running={runningNodeId === FLOW_INGRESS_ID}
-              readOnly={!isCreator}
               onSelect={() => selectNode(FLOW_INGRESS_ID, 'input')}
             />
-            {flow.steps.map((step, i) => (
-              <div key={step.id} className="plaza-dual-rail-connector" aria-hidden>
-                <span className="plaza-dual-rail-vline" />
+            {flow.steps.slice(0, funcVisible).map((step, i) => (
+              <div key={step.id} className="plaza-dual-rail-connector">
+                <span className="plaza-dual-rail-vline" aria-hidden />
                 <FuncNode
                   id={step.id}
                   label={step.label}
                   sub={getModuleCapability(step.label)?.desc ?? step.note}
                   active={activeNodeId === step.id}
                   running={runningNodeId === step.id}
-                  draggable={isCreator}
+                  draggable={isCreator && !(run.phase === 'running' || run.phase === 'paused')}
                   isDragging={dragIndex === i}
                   isDragOver={overIndex === i && dragIndex !== null && dragIndex !== i}
                   stepIndex={i}
-                  readOnly={!isCreator}
                   onSelect={() => selectNode(step.id, 'input')}
                   onGripDown={(e) => {
+                    if (!isCreator || run.phase === 'running' || run.phase === 'paused') return
                     if (e.button !== 0) return
                     e.preventDefault()
+                    e.stopPropagation()
                     e.currentTarget.setPointerCapture(e.pointerId)
                     dragPointerIdRef.current = e.pointerId
                     setDragIndex(i)
@@ -344,15 +438,23 @@ export default function PlazaDualRailFlowPanel({
                 />
               </div>
             ))}
-            <div className="plaza-dual-rail-connector" aria-hidden>
-              <span className="plaza-dual-rail-vline" />
+            {flow.steps.length > funcVisible && (
+              <button
+                type="button"
+                className="plaza-dual-rail-load-more"
+                onClick={() => setFuncVisible((n) => Math.min(n + DATA_PAGE, flow.steps.length))}
+              >
+                加载更多功能（剩余 {flow.steps.length - funcVisible}）
+              </button>
+            )}
+            <div className="plaza-dual-rail-connector">
+              <span className="plaza-dual-rail-vline" aria-hidden />
               <FuncNode
                 id={FLOW_EGRESS_ID}
                 label="📤 网页 + App"
                 sub="触达输出"
                 active={activeNodeId === FLOW_EGRESS_ID}
                 running={runningNodeId === FLOW_EGRESS_ID}
-                readOnly={!isCreator}
                 onSelect={() => selectNode(FLOW_EGRESS_ID, 'output')}
               />
             </div>
@@ -360,7 +462,7 @@ export default function PlazaDualRailFlowPanel({
         </div>
 
         <div className="plaza-dual-rail-bridge" aria-hidden>
-          {dataRows.map((row) => (
+          {visibleDataRows.map((row) => (
             <span
               key={row.id}
               className={`plaza-dual-rail-link${activeNodeId === row.id ? ' active' : ''}`}
@@ -371,10 +473,10 @@ export default function PlazaDualRailFlowPanel({
         <div className="plaza-dual-rail-col data-col">
           <div className="plaza-dual-rail-col-head">
             <span className="plaza-mflow-chev">&gt;&gt;</span> 数据编排轨
-            <span className="plaza-dual-rail-col-hint">IN 入站 · OUT 出站 · 只读</span>
+            <span className="plaza-dual-rail-col-hint">默认 {DATA_PAGE} 条 · 懒加载</span>
           </div>
           <div className="plaza-dual-rail-stack">
-            {dataRows.map((row, i) => (
+            {visibleDataRows.map((row, i) => (
               <div key={row.id} className="plaza-dual-rail-connector data">
                 {i > 0 && <span className="plaza-dual-rail-vline data" />}
                 <DataNodePair
@@ -388,19 +490,27 @@ export default function PlazaDualRailFlowPanel({
                 />
               </div>
             ))}
+            {dataRemaining > 0 && (
+              <>
+                <div ref={lazySentinelRef} className="plaza-dual-rail-lazy-sentinel" aria-hidden />
+                <button
+                  type="button"
+                  className="plaza-dual-rail-load-more"
+                  onClick={() => setDataVisible((n) => Math.min(n + DATA_PAGE, dataRows.length))}
+                >
+                  加载更多（剩余 {dataRemaining}）
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>
 
-      <div className="plaza-dual-rail-run-bar">
-        <PlazaRunControls />
-      </div>
-
       <p className="plaza-dual-rail-cross-hint">
-        ↔ 点击节点跨轨高亮 · {isCreator ? '>> 插入/调用模块 · ⠿ 拖动排序' : '创建者可编辑功能轨'}
+        ↔ 点左/右节点在下方编辑 · {canMutate ? '>> 插入/调用/分析' : '编排态才可改'}
       </p>
 
-      {editingId && activeStep && (
+      {editingId && activeStep && canMutate && (
         <div className="plaza-dual-rail-edit">
           <input
             value={editNote}
@@ -413,7 +523,8 @@ export default function PlazaDualRailFlowPanel({
         </div>
       )}
 
-      {isCreator && (
+      {(isCreator || Boolean(activeApiNode)) && (
+        <div ref={dockRef}>
         <FlowOrchestrationDock
           activeNodeId={activeNodeId}
           activeStep={activeStep}
@@ -421,11 +532,19 @@ export default function PlazaDualRailFlowPanel({
           activeApiSide={activeApiSide}
           isCreator={isCreator}
           pickerOpen={
-            pickerAfterStepId === activeNodeId
-            || (pickerAfterStepId === FLOW_INGRESS_ID && activeNodeId === FLOW_INGRESS_ID)
+            canMutate && (
+              pickerAfterStepId === activeNodeId
+              || (pickerAfterStepId === FLOW_INGRESS_ID && activeNodeId === FLOW_INGRESS_ID)
+            )
           }
           availableModules={availableModules}
+          flowLabels={flowLabels}
+          nodeLabels={nodeLabels}
+          appName={appName}
+          analysisText={analysis}
+          onOpenNodeByLabel={openNodeByLabel}
           onAddModule={() => {
+            if (!canMutate) return
             if (activeNodeId === FLOW_INGRESS_ID) {
               setPickerAfterStepId(FLOW_INGRESS_ID)
               return
@@ -440,7 +559,7 @@ export default function PlazaDualRailFlowPanel({
           }}
           onEditNote={startEdit}
           onDelete={() => {
-            if (!activeStep) return
+            if (!activeStep || !canMutate) return
             const next = removeFlowStep(flow, activeStep.id)
             setFlow(next)
             selectNode(next.steps[0]?.id ?? FLOW_INGRESS_ID, 'input')
@@ -454,7 +573,21 @@ export default function PlazaDualRailFlowPanel({
             handleAddFromCatalog(mod, afterId)
           }}
           onClosePicker={() => setPickerAfterStepId(null)}
+          onInsertModule={(mod) => {
+            const afterId =
+              activeNodeId === FLOW_INGRESS_ID
+                ? FLOW_INGRESS_ID
+                : activeStep?.id ?? flow.steps[flow.steps.length - 1]?.id ?? null
+            handleAddFromCatalog(mod, afterId)
+          }}
+          onSaveNote={(note) => {
+            if (activeStep && canMutate) {
+              setFlow(updateFlowStep(flow, activeStep.id, { note }))
+            }
+          }}
+          onAnalyze={setAnalysis}
         />
+        </div>
       )}
     </div>
   )

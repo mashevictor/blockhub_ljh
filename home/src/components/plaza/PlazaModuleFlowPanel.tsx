@@ -154,6 +154,7 @@ export default function PlazaModuleFlowPanel({
               || (pickerAfterStepId === activeNodeId && !!activeStep)
             }
             availableModules={availableModules}
+            flowLabels={existingLabels}
             onAddModule={() => {
               if (activeNodeId === FLOW_INGRESS_ID) {
                 setPickerAfterStepId(FLOW_INGRESS_ID)
@@ -176,6 +177,12 @@ export default function PlazaModuleFlowPanel({
               handleAddFromCatalog(mod, afterId)
             }}
             onClosePicker={() => setPickerAfterStepId(null)}
+            onInsertModule={(mod) => {
+              const afterId = activeNodeId === FLOW_INGRESS_ID
+                ? FLOW_INGRESS_ID
+                : activeStep?.id ?? null
+              handleAddFromCatalog(mod, afterId)
+            }}
           />
 
           <div className="plaza-orch-advanced">

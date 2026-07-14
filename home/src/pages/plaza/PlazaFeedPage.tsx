@@ -8,7 +8,7 @@ import { loadPlazaFeedItemsAsync, PLAZA_FEED_UPDATED_EVENT } from '../../lib/pla
 import type { PlazaFeedItem } from '../../data/plazaMock'
 import { usePlazaFocus } from '../../context/PlazaFocusContext'
 import { feedAppKey, isFeedCreator } from '../../lib/plazaAppUtils'
-import PlazaModuleFlowPanel from '../../components/plaza/PlazaModuleFlowPanel'
+import PlazaDualRailFlowPanel from '../../components/plaza/PlazaDualRailFlowPanel'
 
 type FeedFilter = 'latest' | 'hot' | 'mention'
 
@@ -248,17 +248,22 @@ export default function PlazaFeedPage() {
         </div>
       </div>
 
-      <p className="plaza-main-hint">
-        浏览所有人 <strong>@公开</strong> 发布的应用；选中卡片可查看该应用的模块数据流（创建者可编辑）。
+      <p className="plaza-main-hint plaza-main-hint--full">
+        浏览 <strong>@公开</strong> 应用；点卡片看双轨编排（默认各 5 条懒加载），下方可用设计/开发/测试话术指令即执行；底部悬浮框同步当前应用。
+        {loading && <span> · 加载中…</span>}
+      </p>
+      <p className="plaza-main-hint plaza-main-hint--short">
+        <strong>@公开</strong> · 点卡片开双轨 + 指令
         {loading && <span> · 加载中…</span>}
       </p>
 
       {selected ? (
-        <PlazaModuleFlowPanel
+        <PlazaDualRailFlowPanel
           appKey={feedAppKey(selected)}
           appName={selected.appName}
           moduleLabels={selected.modules}
           isCreator={isFeedCreator(selected)}
+          embedded
         />
       ) : (
         <div className="plaza-mflow-placeholder">

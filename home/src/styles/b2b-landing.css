@@ -2222,6 +2222,10 @@ a.b2b-nav-btn-link {
   font-size: 18px;
 }
 
+.b2b-brand-scope .plaza-topbar-brand strong {
+  color: var(--b2b-primary);
+}
+
 .b2b-brand-scope .plaza-topbar-nav a {
   font-size: 15px;
   color: #555;
@@ -5302,6 +5306,79 @@ a.b2b-nav-btn-link {
 
   .b2b-demo-block {
     padding: 12px;
+  }
+
+  /* 双行顶栏后，锚点需更大滚动边距 */
+  #hero,
+  #product,
+  #trust,
+  #cases,
+  #pricing,
+  #news,
+  #demo,
+  #create,
+  [data-home-section] {
+    scroll-margin-top: calc(118px + env(safe-area-inset-top, 0px));
+  }
+
+  .b2b-hero-panel-stats-grid {
+    mask-image: linear-gradient(90deg, #000 86%, transparent);
+  }
+
+  .b2b-has-floating-agent {
+    padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .b2b-brand-scope.plaza-page {
+    padding-bottom: calc(128px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .b2b-brand-scope .plaza-topbar {
+    min-height: 0;
+    padding: 8px 12px 4px;
+    position: sticky;
+    top: 0;
+    z-index: 40;
+  }
+
+  .b2b-brand-scope .plaza-topbar-brand {
+    font-size: 16px;
+  }
+
+  .b2b-brand-scope .plaza-topbar-nav a {
+    font-size: 13px;
+  }
+
+  .b2b-brand-scope .plaza-mobile-tabs a.on {
+    background: var(--b2b-panel);
+    color: var(--b2b-primary);
+    border-color: #93c5fd;
+  }
+
+  .b2b-brand-scope .plaza-dual-rail-dock.floating-agent-dock.is-collapsed,
+  .b2b-brand-scope .plaza-dual-rail-dock.floating-agent-dock.is-expanded {
+    width: min(100vw - 16px, 720px) !important;
+    max-width: calc(100vw - 16px);
+  }
+}
+
+@media (max-width: 480px) {
+  .b2b-module-grid,
+  .b2b-industry-grid,
+  .b2b-atomic-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .b2b-hero h1 {
+    font-size: 24px;
+  }
+
+  .plaza-my-card-actions {
+    grid-template-columns: 1fr !important;
+  }
+
+  .plaza-feed-actions {
+    grid-template-columns: 1fr !important;
   }
 }
 

@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>双轨编排 · 完整演示（左右懒加载 + 指令即执行）</title>
+  <style>
+    :root {
+      --bg: #eef2f7; --surface: #fff; --border: #dbeafe; --pri: #0d47a1; --pri-soft: #eaf2ff;
+      --text: #0f172a; --muted: #64748b; --ok: #047857; --warn: #b45309; --danger: #b91c1c;
+      --sans: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      --mono: ui-monospace, Consolas, monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--sans); background: var(--bg); color: var(--text); line-height: 1.5; padding: 16px 14px 56px; }
+    .page { max-width: 980px; margin: 0 auto; }
+    h1 { font-size: 18px; font-weight: 800; margin-bottom: 6px; }
+    .lead { font-size: 13px; color: var(--muted); margin-bottom: 12px; }
+    .dock {
+      border: 2px solid #93c5fd; border-radius: 14px; background: #fff;
+      box-shadow: 0 12px 40px rgba(13,71,161,.14); overflow: hidden;
+    }
+    .chrome, .toolbar {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
+      padding: 8px 10px; border-bottom: 1px solid var(--border);
+    }
+    .chrome { background: #f8fafc; }
+    .caret {
+      width: 28px; height: 28px; border-radius: 8px; border: 1px solid var(--border);
+      background: #fff; display: inline-flex; align-items: center; justify-content: center;
+      cursor: pointer; color: var(--muted);
+    }
+    .brand { flex: 1; display: flex; gap: 8px; align-items: center; font-weight: 800; min-width: 0; }
+    .chev { font-family: var(--mono); font-weight: 900; color: var(--pri); letter-spacing: -2px; }
+    .mode { display: inline-flex; border: 1px solid #93c5fd; border-radius: 999px; overflow: hidden; }
+    .mode button {
+      border: none; background: #fff; padding: 5px 12px; font: inherit; font-size: 11px;
+      font-weight: 800; cursor: pointer; color: var(--muted);
+    }
+    .mode button.on { background: var(--pri-soft); color: var(--pri); }
+    .title { flex: 1 1 90px; font-size: 12px; font-weight: 800; min-width: 70px; }
+    .pill {
+      font-size: 10px; font-weight: 800; padding: 4px 8px; border-radius: 999px;
+      border: 1px solid #cbd5e1; background: #f1f5f9; color: #475569;
+    }
+    .pill.run { background: #ecfdf5; border-color: #a7f3d0; color: var(--ok); }
+    .pill.pause { background: #fffbeb; border-color: #fcd34d; color: var(--warn); }
+    .pill.stop { background: #f1f5f9; color: #475569; }
+    .pill.done { background: #eff6ff; border-color: #93c5fd; color: #1d4ed8; }
+    .btn {
+      font: inherit; font-size: 11px; font-weight: 700; padding: 5px 10px; border-radius: 8px;
+      border: 1px solid var(--border); background: #fff; cursor: pointer; white-space: nowrap;
+    }
+    .btn:disabled { opacity: .4; cursor: not-allowed; }
+    .btn.start { background: #ecfdf5; color: var(--ok); border-color: #6ee7b7; }
+    .btn.pause { background: #fffbeb; color: var(--warn); border-color: #fcd34d; }
+    .btn.stop { background: #fef2f2; color: var(--danger); border-color: #fecaca; }
+    .btn.reset { background: #eff6ff; color: var(--pri); border-color: #93c5fd; }
+    .btn.full { background: linear-gradient(135deg,#0d47a1,#1976d2); color: #fff; border: none; }
+    .btn.open { background: var(--pri-soft); color: var(--pri); border-color: #93c5fd; }
+    .lock {
+      margin: 8px 10px 0; padding: 8px 10px; border-radius: 10px; background: #fffbeb;
+      border: 1px solid #fcd34d; color: var(--warn); font-size: 12px; font-weight: 700;
+    }
+    .rails { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px; }
+    @media (max-width: 760px) { .rails { grid-template-columns: 1fr; } }
+    .col { border: 1px solid var(--border); border-radius: 10px; padding: 8px; background: #fbfdff; }
+    .col h4 { font-size: 11px; color: var(--muted); margin-bottom: 8px; display: flex; gap: 6px; align-items: center; }
+    .col h4 .hint { margin-left: auto; font-weight: 600; }
+    .node { display: flex; gap: 6px; width: 100%; margin-bottom: 6px; background: none; border: none; padding: 0; }
+    .grip {
+      width: 28px; min-height: 40px; border: 1px solid var(--border); border-radius: 8px; background: #fff;
+      color: #64748b; cursor: grab; display: inline-flex; align-items: center; justify-content: center;
+      touch-action: none; font-size: 15px;
+    }
+    .grip:disabled { opacity: .4; cursor: not-allowed; }
+    .node-card {
+      flex: 1; text-align: left; border: 1.5px solid #93c5fd; border-radius: 10px;
+      background: #eaf2ff; padding: 8px 10px; cursor: pointer; font: inherit;
+    }
+    .node.on .node-card { border-color: #34d399; background: #ecfdf5; box-shadow: 0 0 0 2px rgba(16,185,129,.15); }
+    .node.dragging { opacity: .5; }
+    .node.drag-over .node-card { border-color: var(--pri); transform: translateY(-2px); }
+    .node-card strong { display: block; font-size: 12px; }
+    .node-card em { display: block; font-size: 10px; color: var(--muted); font-style: normal; margin-top: 2px; }
+    .data-node {
+      width: 100%; text-align: left; font: inherit; margin-bottom: 6px; border: 1px solid var(--border);
+      border-radius: 8px; background: #fff; padding: 8px 10px; cursor: pointer; font-size: 11px;
+    }
+    .data-node.on { border-color: #34d399; font-weight: 700; box-shadow: 0 0 0 2px rgba(16,185,129,.12); }
+    .io-tag { display: inline-block; font-size: 10px; font-weight: 800; padding: 1px 5px; border-radius: 4px; margin-right: 4px; }
+    .io-tag.in { background: #dbeafe; color: #1d4ed8; }
+    .io-tag.out { background: #ffedd5; color: #c2410c; }
+    .more {
+      width: 100%; margin-top: 4px; font-size: 11px; font-weight: 700; padding: 7px; border-radius: 8px;
+      border: 1px dashed #93c5fd; background: var(--pri-soft); color: var(--pri); cursor: pointer; font-family: inherit;
+    }
+    .biz { margin: 0 10px 12px; border: 1px solid var(--border); border-radius: 12px; padding: 12px; }
+    .biz.locked { border-color: #fdba74; background: #fffbeb; }
+    .biz-lab { font-size: 14px; font-weight: 800; display: flex; gap: 6px; align-items: center; }
+    .biz-meta { font-size: 12px; font-weight: 700; color: var(--pri); margin: 4px 0 8px; }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+    .chip {
+      font: inherit; font-size: 11px; font-weight: 700; padding: 5px 10px; border-radius: 999px;
+      border: 1px solid #93c5fd; background: #fff; color: var(--pri); cursor: pointer;
+    }
+    .chip:hover { background: var(--pri-soft); }
+    .chip:disabled { opacity: .4; cursor: not-allowed; }
+    .chip.cat-design { border-color: #a78bfa; color: #6d28d9; }
+    .chip.cat-dev { border-color: #60a5fa; color: #1d4ed8; }
+    .chip.cat-test { border-color: #34d399; color: #047857; }
+    .chip.cat-ops { border-color: #fbbf24; color: #b45309; }
+    .cmd {
+      display: flex; align-items: center; gap: 6px; border: 1.5px solid #93c5fd; border-radius: 10px;
+      padding: 6px 8px; background: #f8fbff; margin-bottom: 8px;
+    }
+    .biz.locked .cmd { border-color: #fdba74; background: #fff7ed; }
+    .cmd input { flex: 1; border: none; outline: none; background: transparent; font: inherit; font-size: 13px; min-width: 0; }
+    .cmd .go {
+      border: none; background: var(--pri); color: #fff; font-weight: 800; border-radius: 8px;
+      padding: 6px 12px; cursor: pointer; font-family: inherit; font-size: 12px;
+    }
+    .cmd .go:disabled { opacity: .45; cursor: not-allowed; }
+    .result {
+      margin-bottom: 10px; padding: 10px 12px; border-radius: 10px; border: 1px solid #bfdbfe;
+      background: linear-gradient(180deg, #f8fbff, #fff); font-size: 12px; display: none;
+    }
+    .result.on { display: block; }
+    .result strong { display: block; color: var(--pri); margin-bottom: 4px; }
+    .result p { color: var(--text); line-height: 1.55; white-space: pre-wrap; }
+    .result.ok { border-color: #6ee7b7; background: #ecfdf5; }
+    .result.ok strong { color: var(--ok); }
+    .apis { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    @media (max-width: 760px) { .apis { grid-template-columns: 1fr; } }
+    .api { border: 1px solid var(--border); border-radius: 10px; padding: 10px; font-size: 12px; }
+    .api.in { background: #eff6ff; border-color: #93c5fd; }
+    .api.out { background: #fffbeb; border-color: #fcd34d; }
+    .api.on { box-shadow: 0 0 0 2px rgba(13,71,161,.16); }
+    .api-head { display: flex; justify-content: space-between; gap: 6px; align-items: center; margin-bottom: 6px; }
+    .api-actions { display: flex; gap: 4px; flex-wrap: wrap; }
+    .api-actions .btn { font-size: 10px; padding: 3px 8px; }
+    .path { display: block; font-family: var(--mono); font-size: 11px; word-break: break-all; margin-bottom: 4px; }
+    .desc { font-size: 11px; color: var(--muted); margin-bottom: 8px; }
+    .fields { border: 1px solid #bfdbfe; border-radius: 8px; background: #f8fbff; overflow: hidden; }
+    .fields h5 { font-size: 10px; padding: 5px 8px; border-bottom: 1px solid var(--border); color: var(--muted); }
+    .fields table { width: 100%; border-collapse: collapse; font-size: 11px; }
+    .fields td { padding: 4px 8px; border-top: 1px dashed #e2e8f0; }
+    .fields td:first-child { font-family: var(--mono); font-weight: 700; }
+    .fields td:nth-child(2) { color: var(--pri); font-weight: 700; }
+    .fields td:last-child { color: var(--muted); }
+    .test-out {
+      margin-top: 8px; font-size: 10px; max-height: 90px; overflow: auto; padding: 6px;
+      border-radius: 6px; background: #0f172a; color: #e2e8f0; white-space: pre-wrap; font-family: var(--mono);
+    }
+    .test-out.ok { border: 1px solid #22c55e; }
+    .toast { margin-top: 10px; text-align: center; font-size: 12px; color: var(--muted); min-height: 1.4em; }
+    .toast.ok { color: var(--ok); font-weight: 700; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <h1>双轨编排 · 完整演示</h1>
+    <p class="lead">
+      左右轨均默认 5 条懒加载 · 状态按钮 · 拖拽 · 节点联动字段 · 测试/复制 curl ·
+      <strong>指令即理解即执行</strong>（产品设计 / 开发 / 测试话术一键点选）。
+    </p>
+
+    <div class="dock">
+      <div class="chrome">
+        <button type="button" class="caret" id="foldL">▾</button>
+        <div class="brand"><span class="chev">&gt;&gt;</span><span>就医指南 · 8 项</span></div>
+        <button type="button" class="caret" id="foldR">▴</button>
+      </div>
+      <div class="toolbar">
+        <div class="mode">
+          <button type="button" class="on" id="modeEdit">编排</button>
+          <button type="button" id="modeRun">试运营</button>
+        </div>
+        <span class="title">就医指南 · @公开</span>
+        <span class="pill" id="pill">就绪</span>
+        <span id="runBtns"></span>
+        <button type="button" class="btn full">全屏</button>
+        <button type="button" class="btn open">打开</button>
+      </div>
+      <div class="lock" id="lockBanner" hidden>执行中已锁定编辑与测试 · 请停止或切回「编排」</div>
+
+      <div class="rails">
+        <div class="col">
+          <h4><span class="chev">&gt;&gt;</span> 功能编排 <span class="hint" id="funcHint">默认 5 · 可拖序</span></h4>
+          <div id="funcList"></div>
+          <button type="button" class="more" id="funcMore" hidden>加载更多</button>
+        </div>
+        <div class="col">
+          <h4><span class="chev">&gt;&gt;</span> 数据编排 <span class="hint">默认 5 · 懒加载</span></h4>
+          <div id="dataList"></div>
+          <button type="button" class="more" id="dataMore" hidden>加载更多</button>
+        </div>
+      </div>
+
+      <div class="biz" id="biz">
+        <div class="biz-lab"><span class="chev">&gt;&gt;</span> <span id="bizTitle">业务输入 · 可编辑</span></div>
+        <div class="biz-meta" id="bizMeta">已联动 · 用户意图 · 侧重 IN</div>
+
+        <div class="chips" id="chips"></div>
+
+        <div class="cmd">
+          <span class="chev">&gt;&gt;</span>
+          <input id="cmd" placeholder="问项目 / 测接口 / 插入模块 / 开始试运营 … Enter 立即执行" />
+          <button type="button" class="go" id="exec">执行</button>
+        </div>
+
+        <div class="result" id="resultBox"><strong id="resultTitle">执行结果</strong><p id="resultBody"></p></div>
+
+        <div class="apis">
+          <div class="api in" id="apiIn"></div>
+          <div class="api out" id="apiOut"></div>
+        </div>
+        <p class="toast" id="toast">点上方彩色话术，或直接输入指令后回车</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const PAGE = 5
+    const NODES = [
+      { id: 'ingress', label: '用户意图', sub: '业务请求进入',
+        inApi: { method: 'POST', path: '/api/v1/runtime/demo/ingress/webhook', desc: '外部请求进入', fields: [['event','string','business.request'],['payload.query','string','头痛怎么办']], sample: { event: 'business.request', payload: { query: '头痛怎么办' } } },
+        outApi: { method: 'POST', path: '/api/v1/runtime/demo/ingress/dispatch', desc: '分发至首模块', fields: [['routed_to','string','知识库问答'],['trace_id','string','t-001']], sample: { routed_to: '知识库问答', trace_id: 't-001' } } },
+      { id: 'kb', label: '知识库问答', sub: '检索与引用',
+        inApi: { method: 'POST', path: '/api/v1/runtime/demo/modules/kb/input', desc: '接收问题', fields: [['input.text','string','用户问题'],['top_k','number','5']], sample: { input: { text: '用户问题' }, top_k: 5 } },
+        outApi: { method: 'GET', path: '/api/v1/runtime/demo/modules/kb/output', desc: '返回答案+引用', fields: [['output.answer','string','检索回答'],['citations','array','[{doc}]']], sample: { output: { answer: '检索回答' }, citations: [{ doc: '就医指南.pdf' }] } } },
+      { id: 'med', label: '医疗健康', sub: '科室/症状结构化',
+        inApi: { method: 'POST', path: '/api/v1/runtime/demo/modules/med/input', desc: '症状结构化', fields: [['input.text','string','上游数据'],['dept','string','内科']], sample: { input: { text: '上游数据' }, dept: '内科' } },
+        outApi: { method: 'GET', path: '/api/v1/runtime/demo/modules/med/output', desc: '科室建议', fields: [['output.answer','string','建议挂内科'],['confidence','number','0.92']], sample: { output: { answer: '建议挂内科' }, confidence: 0.92 } } },
+      { id: 'drug', label: '用药提醒', sub: '计划与推送',
+        inApi: { method: 'POST', path: '/api/v1/runtime/demo/modules/drug/input', desc: '用药计划', fields: [['drug_name','string','阿莫西林'],['schedule','string','每日3次']], sample: { drug_name: '阿莫西林', schedule: '每日3次' } },
+        outApi: { method: 'GET', path: '/api/v1/runtime/demo/modules/drug/output', desc: '提醒任务', fields: [['status','string','scheduled']], sample: { status: 'scheduled' } } },
+      { id: 'follow', label: '复诊预约', sub: '排期与确认',
+        inApi: { method: 'POST', path: '/api/v1/runtime/demo/modules/follow/input', desc: '预约入参', fields: [['date','string','2026-07-20'],['dept','string','内科']], sample: { date: '2026-07-20', dept: '内科' } },
+        outApi: { method: 'GET', path: '/api/v1/runtime/demo/modules/follow/output', desc: '预约结果', fields: [['ticket_id','string','T-10086']], sample: { ticket_id: 'T-10086', status: 'booked' } } },
+      { id: 'report', label: '报告解读', sub: '结构化说明',
+        inApi: { method: 'POST', path: '/api/v1/runtime/demo/modules/report/input', desc: '报告文件', fields: [['file','string','blood.pdf']], sample: { file: 'blood.pdf' } },
+        outApi: { method: 'GET', path: '/api/v1/runtime/demo/modules/report/output', desc: '解读要点', fields: [['summary','string','血脂偏高']], sample: { summary: '血脂偏高', risk: '中' } } },
+      { id: 'pay', label: '缴费', sub: '账单聚合',
+        inApi: { method: 'POST', path: '/api/v1/runtime/demo/modules/pay/input', desc: '账单', fields: [['amount','number','128.5']], sample: { amount: 128.5 } },
+        outApi: { method: 'GET', path: '/api/v1/runtime/demo/modules/pay/output', desc: '支付结果', fields: [['paid','boolean','true']], sample: { paid: true, receipt: 'R-9' } } },
+      { id: 'egress', label: '触达输出', sub: '网页 + App',
+        inApi: { method: 'POST', path: '/api/v1/runtime/demo/egress/collect', desc: '汇聚结果', fields: [['modules','array','[...]']], sample: { modules: ['kb', 'med'] } },
+        outApi: { method: 'GET', path: '/api/v1/runtime/demo/egress/deliver', desc: '多端触达', fields: [['delivered','boolean','true']], sample: { channels: ['web', 'app'], delivered: true } } },
+    ]
+
+    const QUICK = [
+      { cat: 'design', label: '这个应用解决什么问题？', text: '这个应用解决什么问题' },
+      { cat: 'design', label: '画一下完整用户旅程', text: '画一下完整用户旅程' },
+      { cat: 'design', label: '梳理功能清单', text: '梳理功能清单' },
+      { cat: 'dev', label: '当前流程有哪些模块？', text: '当前流程有哪些模块' },
+      { cat: 'dev', label: '打开知识库问答', text: '打开知识库问答' },
+      { cat: 'dev', label: '插入审批流', text: '插入 审批流' },
+      { cat: 'dev', label: '复制当前 IN curl', text: '复制 curl' },
+      { cat: 'test', label: '测试当前 IN 接口', text: '测试当前 IN' },
+      { cat: 'test', label: '回归测一下 OUT', text: '测试 OUT' },
+      { cat: 'test', label: '开始试运营验收', text: '开始试运营' },
+      { cat: 'ops', label: '停止试运营', text: '停止试运营' },
+      { cat: 'ops', label: '生成联调检查清单', text: '生成联调检查清单' },
+    ]
+
+    let order = NODES.map((n) => n.id)
+    let mode = 'edit'
+    let phase = 'idle'
+    let activeId = 'ingress'
+    let side = 'input'
+    let funcVisible = PAGE
+    let dataVisible = PAGE
+    let dragFrom = null
+
+    const canEdit = () => phase === 'idle' || phase === 'stopped'
+    const labels = { idle: '就绪', running: '执行中', paused: '已暂停', stopped: '已停止', completed: '已完成' }
+    const nodeById = (id) => NODES.find((n) => n.id === id)
+
+    function showResult(title, body, ok) {
+      const box = document.getElementById('resultBox')
+      box.className = 'result on' + (ok ? ' ok' : '')
+      document.getElementById('resultTitle').textContent = title
+      document.getElementById('resultBody').textContent = body
+      document.getElementById('toast').textContent = title
+      document.getElementById('toast').className = 'toast' + (ok ? ' ok' : '')
+    }
+
+    function toast(msg, ok) {
+      document.getElementById('toast').textContent = msg
+      document.getElementById('toast').className = 'toast' + (ok ? ' ok' : '')
+    }
+
+    function buildCurl(api) {
+      if (api.method === 'GET') return `curl -sS '${location.origin}${api.path}'`
+      return `curl -sS -X ${api.method} '${location.origin}${api.path}' \\\n  -H 'Content-Type: application/json' \\\n  -d '${JSON.stringify(api.sample ?? {})}'`
+    }
+
+    async function copyText(text) {
+      try { await navigator.clipboard.writeText(text) }
+      catch {
+        const ta = document.createElement('textarea')
+        ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove()
+      }
+    }
+
+    /** 指令理解 → 立刻执行（演示用规则解析） */
+    function executeCommand(raw) {
+      if (!canEdit() && !/停止|暂停/.test(raw) && !/试运营|开始验收/.test(raw)) {
+        showResult('无法执行', '当前处于执行中/已暂停。请先「停止」或切回「编排」。', false)
+        return
+      }
+      const text = raw.replace(/^>+\s*/, '').trim()
+      const low = text.toLowerCase()
+
+      // —— 运行控制 ——
+      if (/开始试运营|试运营验收|跑一遍|启动验收/.test(text)) {
+        mode = 'run'; phase = 'running'
+        showResult('已开始试运营', '已切换到试运营并开始执行。下方编辑/测试已锁定，可点暂停或停止。', true)
+        render(); return
+      }
+      if (/停止试运营|停止运行|先停一下/.test(text)) {
+        phase = 'stopped'
+        showResult('已停止', '试运营已停止，可继续拖拽模块、改流程、测接口。', true)
+        render(); return
+      }
+      if (/暂停/.test(text) && phase === 'running') {
+        phase = 'paused'
+        showResult('已暂停', '可点继续或停止。', true)
+        render(); return
+      }
+
+      // —— 跳转节点 ——
+      for (const n of NODES) {
+        if (new RegExp(`(打开|选中|查看|定位到?)\\s*${n.label}`).test(text) || text === n.label) {
+          activeId = n.id; side = 'input'
+          // ensure visible
+          const idx = order.indexOf(n.id)
+          if (idx >= funcVisible) funcVisible = Math.min(order.length, idx + 1)
+          if (idx >= dataVisible) dataVisible = Math.min(order.length, idx + 1)
+          showResult('已打开节点', `已联动到「${n.label}」，下方展示其 IN/OUT 字段。`, true)
+          render()
+          document.getElementById('biz').scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+          return
+        }
+      }
+
+      // —— 接口 ——
+      if (/测试\s*out|回归测.*out|测一下\s*out/i.test(low) || /测试\s*输出/.test(text)) {
+        side = 'output'; render(); setTimeout(() => document.querySelector('#apiOut #testOut')?.click(), 30)
+        showResult('已执行测试', '正在测试当前节点 OUT 接口…', true); return
+      }
+      if (/测试|测接口|测一下\s*in|调用模块|联调/.test(text)) {
+        side = 'input'; render(); setTimeout(() => document.querySelector('#apiIn #testIn')?.click(), 30)
+        showResult('已执行测试', '正在测试当前节点 IN 接口…', true); return
+      }
+      if (/复制\s*curl|拷贝\s*curl|给我 curl/.test(low)) {
+        const n = nodeById(activeId)
+        const api = side === 'output' ? n.outApi : n.inApi
+        copyText(buildCurl(api))
+        showResult('已复制 curl', buildCurl(api), true); return
+      }
+
+      // —— 插入 ——
+      if (/插入|添加模块|加一个/.test(text)) {
+        const name = text.replace(/.*(插入|添加模块|加一个)\s*/, '').trim() || '审批流'
+        showResult('已接收插入指令', `将在「${nodeById(activeId).label}」后插入「${name}」（演示环境模拟成功）。正式环境会写入模块流。`, true)
+        return
+      }
+
+      // —— 项目问答 / 设计 / 开发 / 测试话术 ——
+      if (/解决什么问题|价值主张|痛点/.test(text)) {
+        showResult('产品回答',
+`就医指南帮患者在「问—查—约—缴」链路自助完成：
+1) 用户意图进入 → 2) 知识库/科室结构化 → 3) 用药/复诊/报告 → 4) 缴费 → 5) 网页+App 触达。
+目标：首响更快、少跑腿、关键节点可测可观测。`, true); return
+      }
+      if (/用户旅程|完整旅程|用户路径/.test(text)) {
+        showResult('用户旅程',
+`发现入口(公开页) → 描述症状(用户意图) → 查知识库 → 建议科室(医疗健康)
+→ 用药提醒 / 复诊预约 / 报告解读 → 缴费 → 触达输出(消息+打开应用)。
+卡点：意图不清、知识未命中、预约占位失败——均可在对应节点测 IN/OUT。`, true); return
+      }
+      if (/功能清单|有哪些模块|当前流程/.test(text)) {
+        const names = order.map((id) => nodeById(id).label)
+        showResult('功能清单 / 当前流程',
+`共 ${names.length} 个节点：\n` + names.map((x, i) => `${i + 1}. ${x}`).join('\n') +
+`\n\n数据轨默认展示 5 条，点「加载更多」可看全量。`, true); return
+      }
+      if (/联调检查|检查清单|验收清单/.test(text)) {
+        showResult('联调 / 验收清单',
+`【设计】旅程与字段是否对齐需求？
+【开发】各节点 IN 必填字段是否齐全？curl 是否可复现？
+【测试】逐节点测 IN → 看 OUT；再「开始试运营」走全链路。
+【发布】@公开 / 五端选择 / 我的应用列表可见。
+【回归】停止 → 改一处模块 → 再测当前节点 → 再试运营。`, true); return
+      }
+      if (/分析|风险|缺什么|可观测/.test(text)) {
+        showResult('流程分析',
+`节点数 ${order.length}：${order.map((id) => nodeById(id).label).join(' → ')}
+建议：
+• 为「知识库问答」补 citation 断言
+• 「复诊预约」测占位失败降级
+• 「缴费」测幂等与回执字段
+当前可立即：测试 IN / 复制 curl / 开始试运营。`, true); return
+      }
+
+      // 默认：当作项目问答
+      showResult('已理解并回答',
+`已收到指令：「${text}」
+结合当前选中节点「${nodeById(activeId).label}」（侧重 ${side === 'input' ? 'IN' : 'OUT'}）：
+• 可继续问：功能清单 / 用户旅程 / 联调检查清单
+• 可执行：打开某某模块 · 测试 IN · 复制 curl · 开始试运营
+若要操作模块，请用更明确的动词，例如「打开用药提醒」「测试 OUT」。`, true)
+    }
+
+    function renderApi(el, api, kind, highlight) {
+      el.className = 'api ' + (kind === 'IN' ? 'in' : 'out') + (highlight ? ' on' : '')
+      const testId = kind === 'IN' ? 'testIn' : 'testOut'
+      const copyId = kind === 'IN' ? 'copyIn' : 'copyOut'
+      const outId = kind === 'IN' ? 'outIn' : 'outOut'
+      const locked = !canEdit()
+      el.innerHTML = `
+        <div class="api-head">
+          <div><span class="io-tag ${kind==='IN'?'in':'out'}">${kind}</span><strong>${api.method}</strong></div>
+          <div class="api-actions">
+            <button type="button" class="btn" id="${copyId}" ${locked?'disabled':''}>复制 curl</button>
+            <button type="button" class="btn" id="${testId}" ${locked?'disabled':''}>测试</button>
+          </div>
+        </div>
+        <code class="path">${api.path}</code>
+        <p class="desc">${api.desc}</p>
+        <div class="fields"><h5>${kind==='IN'?'输入字段':'输出字段'}</h5>
+          <table>${api.fields.map(([a,b,c]) => `<tr><td>${a}</td><td>${b}</td><td>${c}</td></tr>`).join('')}</table>
+        </div>
+        <pre class="test-out" id="${outId}" hidden></pre>`
+      el.querySelector('#' + copyId).onclick = () => {
+        if (!canEdit()) return
+        copyText(buildCurl(api))
+        showResult('已复制 curl', buildCurl(api), true)
+      }
+      el.querySelector('#' + testId).onclick = () => {
+        if (!canEdit()) return
+        const out = el.querySelector('#' + outId)
+        out.hidden = false
+        out.textContent = '测试中…'
+        setTimeout(() => {
+          out.className = 'test-out ok'
+          out.textContent = `HTTP 200 · ${40 + Math.floor(Math.random()*90)}ms\n` + JSON.stringify(api.sample ?? { ok: true }, null, 2)
+          showResult(`${kind} 测试完成`, out.textContent, true)
+        }, 400)
+      }
+    }
+
+    function renderRunBtns() {
+      const box = document.getElementById('runBtns')
+      if (phase === 'idle' || phase === 'stopped') {
+        box.innerHTML = `<button type="button" class="btn start" id="btnStart">▶ 试运营</button>`
+      } else if (phase === 'running') {
+        box.innerHTML = `<button type="button" class="btn pause" id="btnPause">⏸ 暂停</button><button type="button" class="btn stop" id="btnStop">⏹ 停止</button>`
+      } else if (phase === 'paused') {
+        box.innerHTML = `<button type="button" class="btn start" id="btnResume">▶ 继续</button><button type="button" class="btn stop" id="btnStop">⏹ 停止</button>`
+      } else {
+        box.innerHTML = `<button type="button" class="btn start" id="btnStart">↻ 再试</button><button type="button" class="btn reset" id="btnReset">重置</button>`
+      }
+      box.querySelector('#btnStart')?.addEventListener('click', () => executeCommand('开始试运营'))
+      box.querySelector('#btnResume')?.addEventListener('click', () => { phase = 'running'; render() })
+      box.querySelector('#btnPause')?.addEventListener('click', () => executeCommand('暂停'))
+      box.querySelector('#btnStop')?.addEventListener('click', () => executeCommand('停止试运营'))
+      box.querySelector('#btnReset')?.addEventListener('click', () => { phase = 'idle'; mode = 'edit'; showResult('已重置', '回到就绪，可编辑。', true); render() })
+    }
+
+    function renderFunc() {
+      const list = document.getElementById('funcList')
+      const rows = order.slice(0, funcVisible)
+      const locked = !canEdit()
+      list.innerHTML = rows.map((id, index) => {
+        const n = nodeById(id)
+        return `<div class="node${activeId===id?' on':''}" data-id="${id}" data-index="${index}">
+          <button type="button" class="grip" ${locked?'disabled':''} data-grip="${index}" title="拖动排序">⠿</button>
+          <button type="button" class="node-card" data-select="${id}"><strong>${n.label}</strong><em>${n.sub}</em></button>
+        </div>`
+      }).join('')
+      list.querySelectorAll('[data-select]').forEach((b) => {
+        b.onclick = () => { activeId = b.dataset.select; side = 'input'; render(); document.getElementById('biz').scrollIntoView({ behavior: 'smooth', block: 'nearest' }) }
+      })
+      list.querySelectorAll('[data-grip]').forEach((grip) => {
+        grip.onpointerdown = (e) => {
+          if (!canEdit() || e.button !== 0) return
+          e.preventDefault(); e.stopPropagation()
+          dragFrom = Number(grip.dataset.grip)
+          grip.setPointerCapture(e.pointerId)
+          list.querySelector(`.node[data-index="${dragFrom}"]`)?.classList.add('dragging')
+        }
+      })
+      list.onpointermove = (e) => {
+        if (dragFrom === null) return
+        const row = document.elementFromPoint(e.clientX, e.clientY)?.closest('.node[data-index]')
+        list.querySelectorAll('.node').forEach((n) => n.classList.remove('drag-over'))
+        row?.classList.add('drag-over')
+      }
+      const end = (e) => {
+        if (dragFrom === null) return
+        const row = document.elementFromPoint(e.clientX, e.clientY)?.closest('.node[data-index]')
+        const to = row ? Number(row.dataset.index) : dragFrom
+        if (to !== dragFrom) {
+          const visible = order.slice(0, funcVisible)
+          const rest = order.slice(funcVisible)
+          const [item] = visible.splice(dragFrom, 1)
+          visible.splice(to, 0, item)
+          order = visible.concat(rest)
+          showResult('已调整顺序', `「${nodeById(item).label}」已移动到第 ${to + 1} 位（当前可见段内）。`, true)
+        }
+        dragFrom = null
+        render()
+      }
+      list.onpointerup = end
+      list.onpointercancel = end
+
+      const left = order.length - funcVisible
+      const more = document.getElementById('funcMore')
+      more.hidden = left <= 0
+      more.textContent = `加载更多功能（剩余 ${left}）`
+    }
+
+    function renderData() {
+      const list = document.getElementById('dataList')
+      const rows = order.slice(0, dataVisible)
+      list.innerHTML = rows.map((id) => {
+        const n = nodeById(id)
+        return `<button type="button" class="data-node${activeId===id?' on':''}" data-id="${id}">
+          <span class="io-tag in">IN</span><span class="io-tag out">OUT</span> ${n.label}
+        </button>`
+      }).join('')
+      list.querySelectorAll('.data-node').forEach((btn) => {
+        btn.onclick = () => {
+          const id = btn.dataset.id
+          if (activeId === id) side = side === 'input' ? 'output' : 'input'
+          else { activeId = id; side = 'input' }
+          render()
+          document.getElementById('biz').scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+        }
+      })
+      const left = order.length - dataVisible
+      const more = document.getElementById('dataMore')
+      more.hidden = left <= 0
+      more.textContent = `加载更多数据对（剩余 ${left}）`
+    }
+
+    function renderChips() {
+      const box = document.getElementById('chips')
+      const locked = !canEdit()
+      box.innerHTML = QUICK.map((q) =>
+        `<button type="button" class="chip cat-${q.cat}" data-text="${q.text}" ${locked && !/停止|试运营|开始验收/.test(q.text) ? 'disabled' : ''}>${q.label}</button>`
+      ).join('')
+      box.querySelectorAll('.chip').forEach((b) => {
+        b.onclick = () => {
+          document.getElementById('cmd').value = '>> ' + b.dataset.text
+          executeCommand(b.dataset.text)
+        }
+      })
+    }
+
+    function renderBiz() {
+      const n = nodeById(activeId)
+      const editable = canEdit()
+      document.getElementById('biz').classList.toggle('locked', !editable)
+      document.getElementById('bizTitle').textContent = (n.id === 'ingress' ? '业务输入 · 可编辑' : n.label + ' · 可编辑')
+      document.getElementById('bizMeta').textContent = `已联动 · ${n.label} · 侧重 ${side === 'input' ? 'IN' : 'OUT'}`
+      document.getElementById('cmd').disabled = false // 允许输入；执行时再校验
+      document.getElementById('exec').disabled = false
+      renderApi(document.getElementById('apiIn'), n.inApi, 'IN', side === 'input')
+      renderApi(document.getElementById('apiOut'), n.outApi, 'OUT', side === 'output')
+    }
+
+    function render() {
+      document.getElementById('modeEdit').classList.toggle('on', mode === 'edit')
+      document.getElementById('modeRun').classList.toggle('on', mode === 'run')
+      const pill = document.getElementById('pill')
+      pill.textContent = phase === 'running' ? `执行中 1/${order.length}` : labels[phase]
+      pill.className = 'pill ' + (phase === 'running' ? 'run' : phase === 'paused' ? 'pause' : phase === 'stopped' ? 'stop' : phase === 'completed' ? 'done' : '')
+      document.getElementById('lockBanner').hidden = canEdit()
+      document.getElementById('funcHint').textContent = canEdit() ? `默认 ${PAGE} · 可拖序` : '锁定中'
+      renderRunBtns(); renderFunc(); renderData(); renderChips(); renderBiz()
+    }
+
+    document.getElementById('modeEdit').onclick = () => {
+      if (phase === 'running' || phase === 'paused') phase = 'stopped'
+      if (phase === 'completed') phase = 'idle'
+      mode = 'edit'
+      showResult('已回编排', '可拖拽、可测接口、可执行指令。', true)
+      render()
+    }
+    document.getElementById('modeRun').onclick = () => { mode = 'run'; toast('试运营模式 · 可点绿色试运营或输入「开始试运营」'); render() }
+    document.getElementById('funcMore').onclick = () => { funcVisible = Math.min(funcVisible + PAGE, order.length); render() }
+    document.getElementById('dataMore').onclick = () => { dataVisible = Math.min(dataVisible + PAGE, order.length); render() }
+    document.getElementById('exec').onclick = () => executeCommand(document.getElementById('cmd').value || '当前流程有哪些模块')
+    document.getElementById('cmd').onkeydown = (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); executeCommand(document.getElementById('cmd').value) }
+    }
+    ;['foldL','foldR'].forEach((id) => {
+      document.getElementById(id).onclick = () => toast('已触发折叠（正式环境收入底部条）')
+    })
+
+    render()
+  </script>
+</body>
+</html>

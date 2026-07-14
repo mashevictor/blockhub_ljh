@@ -563,8 +563,9 @@ export default function FloatingAgentDock({
       variant,
       collapsed,
       expand: () => expand({ snap: false, invokeOnExpand: false }),
+      collapse: () => collapse(),
     }),
-    [variant, collapsed, expand],
+    [variant, collapsed, expand, collapse],
   )
 
   const setEnabled = useCallback(
@@ -734,7 +735,20 @@ export default function FloatingAgentDock({
                     ) : null}
                   </button>
                 ) : (
-                  titleBlock
+                  <>
+                    <button
+                      type="button"
+                      className="floating-agent-dock-toggle capsule-toggle plaza-dock-collapse-start"
+                      onClick={collapse}
+                      aria-expanded={!collapsed}
+                      aria-controls={panelId}
+                      aria-label="折叠悬浮框"
+                      title="折叠"
+                    >
+                      <span className="floating-agent-dock-caret open" aria-hidden />
+                    </button>
+                    {titleBlock}
+                  </>
                 )}
                 {dockToggle}
                 {toggleBtn}

@@ -93,8 +93,12 @@ function fallbackNodeApis(
       kind: node.kind,
       input_api: makeApi('POST', `${base}/egress/collect`, '汇聚各模块处理结果', {
         modules: ['module-a', 'module-b'],
+        results: [{ module: 'module-a', ok: true }],
       }),
-      output_api: makeApi('GET', `${base}/egress/deliver`, '推送到网页 / 消息通知'),
+      output_api: makeApi('GET', `${base}/egress/deliver`, '推送到网页 / 消息通知', {
+        channels: ['web', 'app'],
+        delivered: true,
+      }),
     }
   }
   return {
@@ -105,12 +109,13 @@ function fallbackNodeApis(
       'POST',
       `${base}/modules/${modSlug}/input`,
       `接收上游数据 · ${node.note || node.label}`,
-      { module: modSlug, input: { text: '上游传入数据' } },
+      { module: modSlug, input: { text: '上游传入数据' }, context: { user_id: 'u_demo' } },
     ),
     output_api: makeApi(
       'GET',
       `${base}/modules/${modSlug}/output`,
       `输出处理结果 · ${node.note || node.label}`,
+      { module: modSlug, output: { answer: '示例输出' }, confidence: 0.92 },
     ),
   }
 }

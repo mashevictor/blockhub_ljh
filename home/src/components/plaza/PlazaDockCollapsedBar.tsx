@@ -44,8 +44,16 @@ export default function PlazaDockCollapsedBar({
         <button
           type="button"
           className="plaza-dock-collapsed-text"
-          onClick={() => dock?.expand()}
-          title="展开查看双轨编排"
+          onClick={() => {
+            /* 执行中/暂停：折叠条已有暂停停止，不必展开整框 */
+            if (run.phase === 'running' || run.phase === 'paused') return
+            dock?.expand()
+          }}
+          title={
+            run.phase === 'running' || run.phase === 'paused'
+              ? '试运营进行中 · 使用右侧暂停/停止'
+              : '展开查看双轨编排'
+          }
         >
           <strong>{focus.appName}</strong>
           <span>{summary}</span>

@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAgentPageContext } from '../../context/AgentPageContext'
+import { useFloatingDock } from '../../context/FloatingDockContext'
 import { usePlazaFocus, type PlazaFocusTarget } from '../../context/PlazaFocusContext'
 import { AGENT_CONTEXTS } from '../../data/agentContext'
 import { usePlazaChevActions } from '../../hooks/usePlazaChevActions'
@@ -9,6 +10,8 @@ import FloatingAgentDock from '../FloatingAgentDock'
 import PlazaChevTrigger from '../plaza/PlazaChevTrigger'
 import PlazaDockCollapsedBar from '../plaza/PlazaDockCollapsedBar'
 import PlazaDualRailFlowPanel from '../plaza/PlazaDualRailFlowPanel'
+import PlazaRunControls from '../plaza/PlazaRunControls'
+import PlazaWorkModeSwitch from '../plaza/PlazaWorkModeSwitch'
 
 function PlazaFocusDockBody({
   focus,
@@ -23,6 +26,7 @@ function PlazaFocusDockBody({
   setMenuOpen: (v: boolean | ((prev: boolean) => boolean)) => void
   onOrchestration: (appKey: string) => void
 }) {
+  const dock = useFloatingDock()
   const openApp = () => window.open(focus.webUrl, '_blank', 'noopener,noreferrer')
   const copyLink = () => void navigator.clipboard.writeText(focus.webUrl)
   const chevActions = usePlazaChevActions(focus, {
@@ -41,23 +45,34 @@ function PlazaFocusDockBody({
       />
       <div className="plaza-dual-rail-dock-body plaza-dual-rail-dock-expanded">
         <div className="plaza-dual-rail-dock-toolbar is-dock-drag-surface">
+          <button
+            type="button"
+            className="plaza-dual-rail-collapse-btn"
+            onClick={() => dock?.collapse()}
+            aria-label="折叠悬浮框"
+            title="折叠"
+          >
+            ▾
+          </button>
           <PlazaChevTrigger actions={chevActions} className="plaza-dock-chev-toolbar" />
+          <PlazaWorkModeSwitch />
           <span className="plaza-dual-rail-dock-toolbar-title">
             {focus.appName}
             {focus.plazaLabel ? ` · ${focus.plazaLabel}` : ''}
           </span>
           <div className="plaza-dual-rail-dock-tools">
+            <PlazaRunControls compact showBadge />
             {focus.source === 'my' && focus.isCreator && !focus.inOrchestration && (
               <button
                 type="button"
-                className="plaza-dual-rail-tool"
+                className="plaza-dual-rail-tool is-fullscreen"
                 onClick={() => onOrchestration(focus.appKey)}
               >
                 全屏
               </button>
             )}
             <a
-              className="plaza-dual-rail-tool"
+              className="plaza-dual-rail-tool is-open"
               href={focus.webUrl}
               target="_blank"
               rel="noreferrer"
@@ -67,7 +82,7 @@ function PlazaFocusDockBody({
             <div className="plaza-dual-rail-menu-wrap">
               <button
                 type="button"
-                className="plaza-dual-rail-tool"
+                className="plaza-dual-rail-tool is-more"
                 aria-expanded={menuOpen}
                 onClick={() => setMenuOpen((v) => !v)}
               >
@@ -108,7 +123,7 @@ function PlazaFocusDockBody({
             appKey={focus.appKey}
             appName={focus.appName}
             moduleLabels={moduleLabels}
-            isCreator={focus.isCreator && focus.source === 'my'}
+            isCreator={Boolean(focus.isCreator)}
           />
         ) : (
           <p className="plaza-dual-rail-empty">暂无模块信息，请从「我的应用」进入全屏编排</p>
@@ -124,7 +139,7 @@ function PlazaFocusDockBody({
   )
 }
 
-/** 广场页底部 >> 双轨编排（方案 C） */
+/** 广场页底部 >> 双轨编排（方案 A+B）— 我的应用 / 应用广场共用 */
 export default function PlazaFloatingAgent() {
   const { contextKey } = useAgentPageContext()
   const copy = AGENT_CONTEXTS[contextKey]
@@ -143,7 +158,6 @@ export default function PlazaFloatingAgent() {
 
   const title = focus ? (
     <span className="plaza-dual-rail-dock-title">
-      <span className="plaza-mflow-chev" aria-hidden>&gt;&gt;</span>
       <span className="plaza-dual-rail-dock-name">{focus.appName}</span>
       <span className="plaza-dual-rail-dock-meta">· {focus.moduleCount} 项</span>
     </span>
@@ -167,12 +181,12 @@ export default function PlazaFloatingAgent() {
     >
       {focus ? (
         <PlazaFocusDockBody
-            focus={focus}
-            moduleLabels={moduleLabels}
-            menuOpen={menuOpen}
-            setMenuOpen={setMenuOpen}
-            onOrchestration={requestOrchestration}
-          />
+          focus={focus}
+          moduleLabels={moduleLabels}
+          menuOpen={menuOpen}
+          setMenuOpen={setMenuOpen}
+          onOrchestration={requestOrchestration}
+        />
       ) : (
         <Link to={`${ROUTES.home}#contact`} className="plaza-floating-agent-link">
           <span className="agent-brand-trigger mini" aria-hidden>
