@@ -11,16 +11,23 @@ from app.core.config import settings
 from app.data.capability_registry import ALL_CAPABILITIES, capability_catalog_for_llm
 
 
-def _post_chat(messages: list[dict], *, temperature: float = 0.2) -> str | None:
+def _post_chat(
+    messages: list[dict],
+    *,
+    temperature: float = 0.2,
+    json_mode: bool = True,
+) -> str | None:
     if not settings.deepseek_api_key:
         return None
     url = f"{settings.deepseek_base_url.rstrip('/')}/chat/completions"
-    body = json.dumps({
+    payload: dict = {
         "model": settings.deepseek_model,
         "messages": messages,
         "temperature": temperature,
-        "response_format": {"type": "json_object"},
-    }).encode("utf-8")
+    }
+    if json_mode:
+        payload["response_format"] = {"type": "json_object"}
+    body = json.dumps(payload).encode("utf-8")
     req = urllib.request.Request(
         url,
         data=body,
@@ -38,12 +45,28 @@ def _post_chat(messages: list[dict], *, temperature: float = 0.2) -> str | None:
         return None
 
 
+def deepseek_text_chat(system: str, user: str, *, temperature: float = 0.35) -> str | None:
+    """普通文本对话（非强制 JSON），失败返回 None。"""
+    raw = _post_chat(
+        [
+            {"role": "system", "content": system},
+            {"role": "user", "content": user},
+        ],
+        temperature=temperature,
+        json_mode=False,
+    )
+    if not raw:
+        return None
+    text = raw.strip()
+    return text or None
+
+
 def deepseek_json_chat(system: str, user: str, *, temperature: float = 0.25) -> dict | None:
     """通用 JSON 对话，失败返回 None。"""
     raw = _post_chat([
         {"role": "system", "content": system},
         {"role": "user", "content": user},
-    ], temperature=temperature)
+    ], temperature=temperature, json_mode=True)
     if not raw:
         return None
     try:

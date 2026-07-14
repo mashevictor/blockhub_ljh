@@ -1,6 +1,6 @@
 import { forwardRef, useImperativeHandle, useMemo, useState } from 'react'
 import type { ModuleCapability } from '../../data/moduleCatalog'
-import { api, fetchVoiceConfig } from '../../api/client'
+import { api, askFlowQuestion, fetchVoiceConfig } from '../../api/client'
 import { buildApiCurl, type FlowApiEndpoint } from '../../lib/flowModuleApis'
 import { runShanghaiVoiceSmoke } from '../../lib/shanghaiVoiceSmoke'
 
@@ -97,68 +97,6 @@ async function copyText(text: string) {
     document.execCommand('copy')
     ta.remove()
   }
-}
-
-function answerAsk(opts: {
-  text: string
-  flowLabels: string[]
-  nodeLabels: string[]
-  activeNodeLabel: string
-  activeApiSide: 'input' | 'output' | null
-  appName: string
-}): string | null {
-  const { text, flowLabels, nodeLabels, activeNodeLabel, activeApiSide, appName } = opts
-  const chain = nodeLabels.length ? nodeLabels : ['用户意图', ...flowLabels, '触达输出']
-  const sideHint = activeApiSide === 'output' ? 'OUT' : 'IN'
-
-  if (/解决什么问题|价值主张|痛点/.test(text)) {
-    return (
-      `${appName || '本应用'}面向「问—查—约—缴」自助链路：\n` +
-      `1) 用户意图进入 → 2) 知识库/科室结构化 → 3) 用药/复诊/报告 → 4) 缴费 → 5) 网页+App 触达。\n` +
-      `目标：首响更快、少跑腿、关键节点可测可观测。`
-    )
-  }
-  if (/用户旅程|完整旅程|用户路径/.test(text)) {
-    return (
-      `发现入口 → 描述症状(用户意图) → 查知识库 → 建议科室\n` +
-      `→ 用药提醒 / 复诊预约 / 报告解读 → 缴费 → 触达输出。\n` +
-      `卡点（意图不清 / 知识未命中 / 预约失败）均可在对应节点测 IN/OUT。`
-    )
-  }
-  if (/功能清单|有哪些模块|当前流程/.test(text)) {
-    return (
-      `共 ${chain.length} 个节点：\n` +
-      chain.map((x, i) => `${i + 1}. ${x}`).join('\n') +
-      `\n\n功能轨/数据轨默认各展示 5 条，点「加载更多」看全量。`
-    )
-  }
-  if (/怎么测上海话|如何测上海话|测试上海话/.test(text)) {
-    return (
-      `【怎么测上海话】\n` +
-      `1) >> 测 voice 配置 / 测 ASR 鉴权 → 均应 OK\n` +
-      `2) >> 打开上海话网页 → 输入文字或点例句（真实 LLM+TTS）\n` +
-      `3) >> 跑真链路冒烟 → config+status+auth\n` +
-      `4) App 开麦 + TTS 播报验收\n` +
-      `不接受 runtime mock 作为业务通过依据。`
-    )
-  }
-  if (/联调检查|检查清单|验收清单/.test(text)) {
-    return (
-      `【设计】旅程与字段是否对齐需求？\n` +
-      `【开发】各节点 IN 必填是否齐全？curl 是否可复现？\n` +
-      `【测试】逐节点测 IN → 看 OUT；再「开始试运营」走全链路。\n` +
-      `【发布】@公开 / 五端选择 / 我的应用列表可见。\n` +
-      `【回归】停止 → 改一处模块 → 再测当前节点 → 再试运营。`
-    )
-  }
-  if (/分析|风险|缺什么|可观测/.test(text)) {
-    return (
-      `节点：${chain.join(' → ')}\n` +
-      `建议：为检索类节点补 citation 断言；预约类测占位失败降级；缴费测幂等与回执。\n` +
-      `当前选中「${activeNodeLabel}」· ${sideHint}，可立刻：测试接口 / 复制 curl / 开始试运营。`
-    )
-  }
-  return null
 }
 
 const FlowBizCommandInput = forwardRef<FlowBizCommandHandle, Props>(function FlowBizCommandInput({
@@ -267,21 +205,6 @@ const FlowBizCommandInput = forwardRef<FlowBizCommandHandle, Props>(function Flo
           setHint('鉴权失败')
         })
       return true
-    }
-    if (/怎么测上海话|如何测上海话/.test(text)) {
-      const ask = answerAsk({
-        text,
-        flowLabels,
-        nodeLabels: allNodeLabels,
-        activeNodeLabel,
-        activeApiSide,
-        appName,
-      })
-      if (ask) {
-        onAnalyze(ask)
-        finish('已回答（见下方分析区）')
-        return true
-      }
     }
     return false
   }
@@ -395,39 +318,8 @@ const FlowBizCommandInput = forwardRef<FlowBizCommandHandle, Props>(function Flo
       return
     }
 
-    // —— 项目问答 / 设计 / 开发 / 测试 ——
-    const ask = answerAsk({
-      text,
-      flowLabels,
-      nodeLabels: allNodeLabels,
-      activeNodeLabel,
-      activeApiSide,
-      appName,
-    })
-    if (ask) {
-      onAnalyze(ask)
-      finish('已回答（见下方分析区）')
-      return
-    }
-
-    if (/^分析/.test(text)) {
-      const summary =
-        text.replace(/^分析(功能)?\s*/, '').trim()
-        || answerAsk({
-          text: '分析',
-          flowLabels,
-          nodeLabels: allNodeLabels,
-          activeNodeLabel,
-          activeApiSide,
-          appName,
-        })!
-      onAnalyze(summary)
-      finish('已生成功能分析')
-      return
-    }
-
-    if (/^(备注|说明|记下)\s*/.test(text)) {
-      const note = text.replace(/^(备注|说明|记下)\s*/, '').trim()
+    if (/^(备注|记下)\s*/.test(text)) {
+      const note = text.replace(/^(备注|记下)\s*/, '').trim()
       if (note && !mutateLocked) {
         onNote?.(note)
         finish('已写入节点说明')
@@ -435,13 +327,28 @@ const FlowBizCommandInput = forwardRef<FlowBizCommandHandle, Props>(function Flo
       }
     }
 
-    // 默认：项目语境回答（有效、可马上跟进）
-    const fallback =
-      `已收到：「${text}」\n` +
-      `当前节点「${activeNodeLabel}」· 侧重 ${activeApiSide === 'output' ? 'OUT' : 'IN'}。\n` +
-      `可继续：功能清单 / 用户旅程 / 联调检查清单；或执行：打开某某模块 · 测试 IN · 复制 curl · 开始试运营。`
-    onAnalyze(fallback)
-    finish('已理解并回答')
+    // —— 未命中动作指令：一律走 DeepSeek（带上模块/节点上下文）——
+    finish('DeepSeek 分析中…')
+    void askFlowQuestion({
+      question: text,
+      appName,
+      modules: flowLabels,
+      nodes: allNodeLabels,
+      activeNode: activeNodeLabel,
+      activeSide: activeApiSide,
+    })
+      .then((res) => {
+        onAnalyze(
+          res.source === 'deepseek'
+            ? res.answer
+            : `${res.answer}\n\n（来源：兜底 · 请确认服务器 DEEPSEEK_API_KEY）`,
+        )
+        setHint(res.source === 'deepseek' ? '已回答（DeepSeek）' : '已回答（兜底）')
+      })
+      .catch((e: unknown) => {
+        onAnalyze(`问答失败：${e instanceof Error ? e.message : String(e)}`)
+        setHint('问答失败')
+      })
   }
 
   useImperativeHandle(ref, () => ({ execute: run }), [

@@ -27,6 +27,7 @@ from app.services.app_store import (
 from app.services import catalog_store
 from app.services.apk_builder import enqueue_apk_build, get_apk_build_status, per_app_apk_ready
 from app.services.file_storage import read_bytes, save_app_icon_data_url, uploads_root
+from app.services.flow_ask import answer_flow_question
 from app.services.flow_module_api import generate_flow_module_apis
 from app.services.module_suggest import suggest_modules
 from app.services.publish_email import send_publish_delivery_email
@@ -69,6 +70,16 @@ class FlowModuleApisRequest(BaseModel):
     app_slug: str
     app_name: str
     nodes: list[FlowModuleNodeIn]
+
+
+class FlowAskRequest(BaseModel):
+    question: str
+    app_name: str = ""
+    modules: list[str] = []
+    nodes: list[str] = []
+    active_node: str = ""
+    active_side: str = "input"
+    extra_context: str = ""
 
 
 class PublishModuleItem(BaseModel):
@@ -263,6 +274,20 @@ def flow_module_apis_api(body: FlowModuleApisRequest) -> dict:
         app_slug=body.app_slug,
         app_name=body.app_name,
         nodes=[n.model_dump() for n in body.nodes],
+    )
+
+
+@router.post("/flow-ask")
+def flow_ask_api(body: FlowAskRequest) -> dict:
+    """编排工作台业务问答，优先 DeepSeek。"""
+    return answer_flow_question(
+        question=body.question,
+        app_name=body.app_name,
+        modules=body.modules,
+        nodes=body.nodes,
+        active_node=body.active_node,
+        active_side=body.active_side,
+        extra_context=body.extra_context,
     )
 
 

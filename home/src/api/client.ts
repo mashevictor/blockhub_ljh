@@ -493,6 +493,36 @@ export async function suggestModules(text: string, forceLlm = true): Promise<Sug
   return res.data
 }
 
+/** 编排工作台问答 — 服务端 DeepSeek */
+export async function askFlowQuestion(opts: {
+  question: string
+  appName?: string
+  modules?: string[]
+  nodes?: string[]
+  activeNode?: string
+  activeSide?: 'input' | 'output' | null
+  extraContext?: string
+}): Promise<{ answer: string; source: 'deepseek' | 'fallback'; llm_configured: boolean }> {
+  const res = await api.post<{
+    answer: string
+    source: 'deepseek' | 'fallback'
+    llm_configured: boolean
+  }>(
+    '/creation/flow-ask',
+    {
+      question: opts.question,
+      app_name: opts.appName ?? '',
+      modules: opts.modules ?? [],
+      nodes: opts.nodes ?? [],
+      active_node: opts.activeNode ?? '',
+      active_side: opts.activeSide === 'output' ? 'output' : 'input',
+      extra_context: opts.extraContext ?? '',
+    },
+    { timeout: 60000 },
+  )
+  return res.data
+}
+
 export interface CatalogCapability {
   key: string
   name: string

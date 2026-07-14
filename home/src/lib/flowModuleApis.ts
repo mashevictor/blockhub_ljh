@@ -197,7 +197,7 @@ export async function testFlowApi(endpoint: FlowApiEndpoint): Promise<ApiTestRes
   }
 }
 
-/** 拨通：先本地规则模拟立即可用，再异步尝试 DeepSeek 升级 */
+/** 拨通：优先等待 DeepSeek；失败再退回本地规则模拟 */
 export async function dialFlowModuleApis(opts: {
   appKey: string
   appName: string
@@ -208,29 +208,32 @@ export async function dialFlowModuleApis(opts: {
   const fingerprint = flowStepsFingerprint(opts.steps)
   if (!opts.force) {
     const cached = loadCachedFlowApis(opts.appKey, fingerprint)
-    if (cached) return cached
+    // 有 DeepSeek 产物才用缓存；规则模拟缓存不当作最终答案
+    if (cached && cached.source === 'deepseek') return cached
+  }
+
+  const slug = appSlug(opts.appKey)
+  try {
+    const res = await http.post<FlowApiResult>(
+      '/creation/flow-module-apis',
+      {
+        app_slug: slug,
+        app_name: opts.appName,
+        nodes: buildFlowApiNodeList(opts.steps),
+      },
+      { timeout: 60000 },
+    )
+    if (res.data?.nodes?.length) {
+      saveCachedFlowApis(opts.appKey, fingerprint, res.data)
+      opts.onUpgrade?.(res.data)
+      return res.data
+    }
+  } catch {
+    /* fall through */
   }
 
   const instant = buildFallbackFlowApis(opts.appKey, opts.steps)
   saveCachedFlowApis(opts.appKey, fingerprint, instant)
-
-  const slug = appSlug(opts.appKey)
-  void http
-    .post<FlowApiResult>('/creation/flow-module-apis', {
-      app_slug: slug,
-      app_name: opts.appName,
-      nodes: buildFlowApiNodeList(opts.steps),
-    })
-    .then((res) => {
-      if (res.data?.nodes?.length) {
-        saveCachedFlowApis(opts.appKey, fingerprint, res.data)
-        opts.onUpgrade?.(res.data)
-      }
-    })
-    .catch(() => {
-      /* 保留本地 fallback */
-    })
-
   return instant
 }
 
