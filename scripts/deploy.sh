@@ -23,15 +23,17 @@ echo " Git: $(git rev-parse --short HEAD 2>/dev/null || echo unknown)"
 echo "=========================================="
 
 echo "==> [1/9] git pull (discard local lockfile & generated preview drift)"
-# 未跟踪 codegen 会阻塞 pull（远程已纳入版本库）；部署机可直接删
-rm -f \
-  runtime-app/lib/melos_capability_registry.g.dart \
-  runtime-app/lib/capability_deferred_loader.g.dart \
-  2>/dev/null || true
+# 注意：.g.dart 已纳入版本库，禁止 rm（会导致 APK 编译缺文件）。
+# 未跟踪冲突由 scripts/lib/git-pull.sh 按需清理。
 # shellcheck disable=SC1091
 source "$ROOT/scripts/lib/git-pull.sh"
 blockhub_git_pull main
 echo "    now at $(git rev-parse --short HEAD)"
+# pull 后若工作区缺 codegen，从 HEAD 恢复
+git checkout HEAD -- \
+  runtime-app/lib/melos_capability_registry.g.dart \
+  runtime-app/lib/capability_deferred_loader.g.dart \
+  2>/dev/null || true
 
 echo "==> [2/9] backend dependencies"
 cd backend

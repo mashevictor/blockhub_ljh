@@ -163,6 +163,41 @@ PY
   fi
 fi
 
+# 确保 melos / deferred codegen 存在（deploy 误删或干净检出后缺文件会直接炸编译）
+ensure_runtime_codegen() {
+  local reg="$ROOT/runtime-app/lib/melos_capability_registry.g.dart"
+  local def="$ROOT/runtime-app/lib/capability_deferred_loader.g.dart"
+  if [ -f "$reg" ] && [ -f "$def" ]; then
+    return 0
+  fi
+  echo "==> Missing registry .g.dart — restore / regenerate..."
+  if git -C "$ROOT" rev-parse --git-dir >/dev/null 2>&1; then
+    git -C "$ROOT" checkout HEAD -- \
+      runtime-app/lib/melos_capability_registry.g.dart \
+      runtime-app/lib/capability_deferred_loader.g.dart \
+      2>/dev/null || true
+  fi
+  if [ -f "$reg" ] && [ -f "$def" ]; then
+    echo "    restored from git"
+    return 0
+  fi
+  local py="$ROOT/backend/.venv/bin/python"
+  [ -x "$py" ] || py=python3
+  if [ -f "$ROOT/scripts/flutter-sync-pubspec-from-manifest.py" ]; then
+    local sync_args=()
+    if [ -n "${CAPABILITY_KEYS:-}" ]; then
+      sync_args+=(--keys "$CAPABILITY_KEYS")
+    fi
+    "$py" "$ROOT/scripts/flutter-sync-pubspec-from-manifest.py" "${sync_args[@]}"
+  fi
+  if [ ! -f "$reg" ] || [ ! -f "$def" ]; then
+    echo "ERROR: still missing $reg or $def"
+    echo "  Fix: bash scripts/flutter-dev-reset.sh"
+    exit 1
+  fi
+}
+ensure_runtime_codegen
+
 flutter pub get
 dart run tool/generate_modular_config.dart 2>/dev/null || true
 dart run flutter_launcher_icons
