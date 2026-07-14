@@ -1,6 +1,9 @@
 import { forwardRef, useImperativeHandle, useMemo, useState } from 'react'
 import type { ModuleCapability } from '../../data/moduleCatalog'
-import { buildApiCurl, type FlowApiEndpoint } from '../../lib/flowModuleApis'
+import { fetchVoiceConfig } from '../../api/client'
+import { buildApiCurl, testFlowApi, type FlowApiEndpoint } from '../../lib/flowModuleApis'
+import { runShanghaiVoiceSmoke, shanghaiModuleInputApi } from '../../lib/shanghaiVoiceSmoke'
+import { SHANGHAI_VOICE_APP_ID } from '../../lib/shanghaiVoiceProject'
 
 export interface FlowBizCommandHandle {
   execute: (raw: string) => void
@@ -36,6 +39,9 @@ interface Props {
   activeNodeLabel?: string
   activeApiSide?: 'input' | 'output' | null
   appName?: string
+  appKey?: string
+  webUrl?: string
+  commandProfile?: 'default' | 'shanghai'
   inputApi?: FlowApiEndpoint | null
   outputApi?: FlowApiEndpoint | null
   onInsert: (mod: ModuleCapability) => void
@@ -62,6 +68,20 @@ const QUICK: BizQuickChip[] = [
   { cat: 'test', label: '开始试运营验收', text: '开始试运营' },
   { cat: 'ops', label: '停止试运营', text: '停止试运营' },
   { cat: 'ops', label: '生成联调检查清单', text: '生成联调检查清单' },
+]
+
+/** 上海话应用 · >> 内置测试话术（沿用既有 chip 色系） */
+const SHANGHAI_QUICK: BizQuickChip[] = [
+  { cat: 'dev', label: '打开上海话网页', text: '打开上海话网页' },
+  { cat: 'test', label: '测 voice 配置', text: '测 voice 配置' },
+  { cat: 'test', label: '试一句「侬好」', text: '试一句侬好' },
+  { cat: 'test', label: '例句·查审批', text: '例句查审批' },
+  { cat: 'test', label: '测试模块 IN', text: '测试上海话模块 IN' },
+  { cat: 'test', label: '跑上海话冒烟', text: '跑上海话冒烟' },
+  { cat: 'ops', label: '开始试运营', text: '开始试运营' },
+  { cat: 'ops', label: '停止试运营', text: '停止试运营' },
+  { cat: 'design', label: '怎么测上海话？', text: '怎么测上海话' },
+  { cat: 'dev', label: '打开上海话语音', text: '打开 上海话语音' },
 ]
 
 function stripCmd(raw: string) {
@@ -114,6 +134,16 @@ function answerAsk(opts: {
       `\n\n功能轨/数据轨默认各展示 5 条，点「加载更多」看全量。`
     )
   }
+  if (/怎么测上海话|如何测上海话|测试上海话/.test(text)) {
+    return (
+      `【怎么测上海话】\n` +
+      `1) >> 测 voice 配置 → configured 应为 true\n` +
+      `2) >> 打开上海话网页 → 点例句或开麦\n` +
+      `3) >> 跑上海话冒烟 → 真接口 + mock 各测一条\n` +
+      `4) >> 开始试运营 → 看功能节点逐步高亮\n` +
+      `编排 REST 仅 mock，不代替语音主链路。`
+    )
+  }
   if (/联调检查|检查清单|验收清单/.test(text)) {
     return (
       `【设计】旅程与字段是否对齐需求？\n` +
@@ -142,6 +172,9 @@ const FlowBizCommandInput = forwardRef<FlowBizCommandHandle, Props>(function Flo
   activeNodeLabel = '用户意图',
   activeApiSide = 'input',
   appName = '',
+  appKey = SHANGHAI_VOICE_APP_ID,
+  webUrl = '',
+  commandProfile = 'default',
   inputApi = null,
   outputApi = null,
   onInsert,
@@ -157,6 +190,9 @@ const FlowBizCommandInput = forwardRef<FlowBizCommandHandle, Props>(function Flo
   const [value, setValue] = useState('')
   const [menuOpen, setMenuOpen] = useState(false)
   const [hint, setHint] = useState('')
+
+  const chips = commandProfile === 'shanghai' ? SHANGHAI_QUICK : QUICK
+  const voiceWeb = webUrl || '/agents/shanghai-voice'
 
   const allNodeLabels = useMemo(() => {
     if (nodeLabels.length) return nodeLabels
@@ -177,10 +213,90 @@ const FlowBizCommandInput = forwardRef<FlowBizCommandHandle, Props>(function Flo
     }
   }
 
+  const runShanghai = (text: string): boolean => {
+    if (commandProfile !== 'shanghai') return false
+
+    if (/打开上海话网页|打开网页应用/.test(text)) {
+      window.open(voiceWeb, '_blank', 'noopener')
+      onAnalyze('已打开上海话网页应用')
+      finish('已打开上海话网页')
+      return true
+    }
+    if (/测\s*voice|voice\s*配置|测配置/.test(text)) {
+      finish('正在测 voice/config…')
+      void fetchVoiceConfig()
+        .then((j) => {
+          onAnalyze(
+            `【真链路】voice/config\nconfigured: ${j.configured}\nagent: ${j.agent_id}\nws: ${j.ws_url || j.ws_path}`,
+          )
+          setHint(j.configured ? 'voice 已配置' : 'voice 未配置')
+        })
+        .catch((e: unknown) => {
+          onAnalyze(`voice/config 失败：${e instanceof Error ? e.message : String(e)}`)
+          setHint('voice 检测失败')
+        })
+      return true
+    }
+    if (/侬好|试一句/.test(text)) {
+      window.open(voiceWeb, '_blank', 'noopener')
+      onAnalyze('【例句】侬好，阿拉想试试上海话语音助手\n已打开网页，请点例句或开麦对练。')
+      finish('已打开网页 · 试一句侬好')
+      return true
+    }
+    if (/查审批|例句[·・]?查/.test(text)) {
+      window.open(voiceWeb, '_blank', 'noopener')
+      onAnalyze('【例句】帮吾查一查今朝有啥审批要处理\n已打开网页，请点例句或开麦。')
+      finish('已打开网页 · 查审批例句')
+      return true
+    }
+    if (/跑上海话冒烟|上海话冒烟|跑冒烟/.test(text)) {
+      if (mutateLocked) {
+        finish('运行锁定中，请先停止后再冒烟', false)
+        return true
+      }
+      finish('冒烟检测中…')
+      void runShanghaiVoiceSmoke(appKey || SHANGHAI_VOICE_APP_ID).then((r) => {
+        onAnalyze(r.summary)
+        setHint(r.ok ? '冒烟通过' : '冒烟有失败项')
+      })
+      return true
+    }
+    if (/测试上海话模块|测试模块\s*in|模块\s*in/i.test(text)) {
+      if (mutateLocked) {
+        finish('运行锁定中，请先停止后再测接口', false)
+        return true
+      }
+      finish('测试模块 IN…')
+      void testFlowApi(shanghaiModuleInputApi(appKey || SHANGHAI_VOICE_APP_ID)).then((r) => {
+        onAnalyze(`【mock】模块 IN · HTTP ${r.status} · ${r.ms}ms\n${JSON.stringify(r.body).slice(0, 280)}`)
+        setHint(r.ok ? '模块 IN 可通' : '模块 IN 失败')
+      })
+      return true
+    }
+    if (/怎么测上海话|如何测上海话/.test(text)) {
+      const ask = answerAsk({
+        text,
+        flowLabels,
+        nodeLabels: allNodeLabels,
+        activeNodeLabel,
+        activeApiSide,
+        appName,
+      })
+      if (ask) {
+        onAnalyze(ask)
+        finish('已回答（见下方分析区）')
+        return true
+      }
+    }
+    return false
+  }
+
   const run = (raw: string) => {
     if (disabled) return
-    const text = stripCmd(raw || '当前流程有哪些模块')
+    const text = stripCmd(raw || (commandProfile === 'shanghai' ? '怎么测上海话' : '当前流程有哪些模块'))
     if (!text) return
+
+    if (runShanghai(text)) return
 
     // —— 运行控制（锁定时也可停/暂停；开始需可编排）——
     if (/停止试运营|停止运行|先停一下|^停止$/.test(text)) {
@@ -342,6 +458,9 @@ const FlowBizCommandInput = forwardRef<FlowBizCommandHandle, Props>(function Flo
     activeNodeLabel,
     activeApiSide,
     appName,
+    appKey,
+    webUrl,
+    commandProfile,
     inputApi,
     outputApi,
     onInsert,
@@ -355,10 +474,10 @@ const FlowBizCommandInput = forwardRef<FlowBizCommandHandle, Props>(function Flo
   ])
 
   return (
-    <div className={`plaza-biz-cmd${mutateLocked ? ' is-locked' : ''}${disabled ? ' is-disabled' : ''}`}>
+    <div className={`plaza-biz-cmd${mutateLocked ? ' is-locked' : ''}${disabled ? ' is-disabled' : ''}${commandProfile === 'shanghai' ? ' is-shanghai' : ''}`}>
       {!disabled && (
-        <div className="plaza-biz-cmd-chips" aria-label="内置话术">
-          {QUICK.map((q) => (
+        <div className="plaza-biz-cmd-chips" aria-label={commandProfile === 'shanghai' ? '上海话内置测试' : '内置话术'}>
+          {chips.map((q) => (
             <button
               key={q.text}
               type="button"

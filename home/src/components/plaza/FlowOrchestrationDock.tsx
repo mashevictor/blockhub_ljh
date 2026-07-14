@@ -22,6 +22,9 @@ interface Props {
   /** 含入口/出口，供指令「打开 xxx」 */
   nodeLabels?: string[]
   appName?: string
+  appKey?: string
+  webUrl?: string
+  commandProfile?: 'default' | 'shanghai'
   analysisText?: string
   onAddModule: () => void
   onEditNote: () => void
@@ -45,6 +48,9 @@ export default function FlowOrchestrationDock({
   flowLabels,
   nodeLabels,
   appName = '',
+  appKey = '',
+  webUrl = '',
+  commandProfile = 'default',
   analysisText,
   onAddModule,
   onEditNote,
@@ -190,12 +196,20 @@ export default function FlowOrchestrationDock({
         flowLabels={flowLabels}
         nodeLabels={nodeLabels}
         appName={appName}
+        appKey={appKey}
+        webUrl={webUrl}
+        commandProfile={commandProfile}
         activeNodeLabel={
           isIngress ? '用户意图' : isEgress ? '触达输出' : activeStep?.label ?? activeApiNode?.label ?? '用户意图'
         }
         activeApiSide={activeApiSide}
         inputApi={activeApiNode?.input_api ?? null}
         outputApi={activeApiNode?.output_api ?? null}
+        placeholder={
+          commandProfile === 'shanghai'
+            ? '>> 测 voice 配置 · 试一句侬好 · 跑上海话冒烟'
+            : '>> 询问应用、打开能力，或点下方常用指令'
+        }
         onInsert={onInsertModule}
         onInvoke={(side) => {
           if (!canTest) return

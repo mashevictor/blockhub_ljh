@@ -14,6 +14,21 @@ import {
 
 export const SHANGHAI_VOICE_APP_ID = 'shanghai-voice-agent'
 
+/** 是否为上海话演示项目（全屏 B 方案 / >> 专属话术） */
+export function isShanghaiVoiceApp(app?: { appId?: string; webUrl?: string; source?: string } | string | null): boolean {
+  if (!app) return false
+  if (typeof app === 'string') {
+    return (
+      app === SHANGHAI_VOICE_APP_ID
+      || app.includes('shanghai-voice')
+      || /上海话/.test(app)
+    )
+  }
+  if (app.appId === SHANGHAI_VOICE_APP_ID || app.source === 'shanghai-voice-project') return true
+  if (app.webUrl?.includes('shanghai-voice')) return true
+  return false
+}
+
 const MODULE_DEFS = [
   { key: 'shanghai_voice', label: '上海话语音', iconKey: 'mic' },
   { key: 'chat_qa', label: '智能问答', iconKey: 'chat' },

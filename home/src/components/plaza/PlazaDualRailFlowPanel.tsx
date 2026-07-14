@@ -31,6 +31,9 @@ import PlazaRunControls from './PlazaRunControls'
 
 const DATA_PAGE = 5
 
+export type DualRailMode = 'both' | 'func' | 'data'
+export type CommandProfile = 'default' | 'shanghai'
+
 interface Props {
   appKey: string
   appName: string
@@ -40,6 +43,11 @@ interface Props {
   embedded?: boolean
   /** 底部工作台从折叠展开时递增，左右轨重置为前 5 项 */
   pageResetSignal?: number
+  /** B 方案：只显示功能轨 / 数据轨 / 双轨 */
+  railMode?: DualRailMode
+  /** >> 内置话术档案（上海话专属测试） */
+  commandProfile?: CommandProfile
+  webUrl?: string
 }
 
 function FuncNode({
@@ -159,7 +167,12 @@ export default function PlazaDualRailFlowPanel({
   isCreator,
   embedded = false,
   pageResetSignal = 0,
+  railMode = 'both',
+  commandProfile = 'default',
+  webUrl = '',
 }: Props) {
+  const showFunc = railMode === 'both' || railMode === 'func'
+  const showData = railMode === 'both' || railMode === 'data'
   const [flow, setFlow] = useState<AppModuleFlow>(() => loadModuleFlow(appKey, moduleLabels))
   const run = usePlazaFlowRun()
   const canMutate = isCreator && run.canEdit
@@ -375,7 +388,12 @@ export default function PlazaDualRailFlowPanel({
 
   return (
     <div
-      className={`plaza-dual-rail-panel${embedded ? ' is-embedded' : ''}${canMutate ? '' : ' is-run-locked'}`}
+      className={[
+        'plaza-dual-rail-panel',
+        embedded ? 'is-embedded' : '',
+        canMutate ? '' : 'is-run-locked',
+        railMode !== 'both' ? `rail-${railMode}` : '',
+      ].filter(Boolean).join(' ')}
       aria-label={`${appName} 双轨编排`}
       onPointerDown={(e) => e.stopPropagation()}
     >
@@ -394,120 +412,132 @@ export default function PlazaDualRailFlowPanel({
         </p>
       )}
 
-      <div className="plaza-dual-rail-grid">
-        <div className="plaza-dual-rail-col">
-          <div className="plaza-dual-rail-col-head">
-            <span className="plaza-mflow-chev">&gt;&gt;</span> 功能编排
-            <span className="plaza-dual-rail-col-hint">
-              {run.phase === 'running'
-                ? '试运营中'
-                : run.phase === 'paused'
-                  ? '已暂停'
-                  : isCreator
-                    ? `先看前 ${DATA_PAGE} 项 · 可拖动排序`
-                    : '点选查看'}
-            </span>
+      <div className={`plaza-dual-rail-grid${railMode !== 'both' ? ' is-single' : ''}`}>
+        {showFunc && (
+          <div className="plaza-dual-rail-col">
+            <div className="plaza-dual-rail-col-head">
+              <span className="plaza-mflow-chev">&gt;&gt;</span> 功能编排
+              <span className="plaza-dual-rail-col-hint">
+                {run.phase === 'running'
+                  ? '试运营中'
+                  : run.phase === 'paused'
+                    ? '已暂停'
+                    : isCreator
+                      ? `先看前 ${DATA_PAGE} 项 · 可拖动排序`
+                      : '点选查看'}
+              </span>
+            </div>
+            <div className="plaza-dual-rail-stack">
+              {visibleFuncNodes.map((node, i) => {
+                const isStep = node.kind === 'step'
+                const stepIdx = isStep ? node.stepIndex : -1
+                return (
+                  <div key={node.id} className="plaza-dual-rail-connector">
+                    {i > 0 && <span className="plaza-dual-rail-vline" aria-hidden />}
+                    <FuncNode
+                      id={node.id}
+                      label={node.label}
+                      sub={node.sub}
+                      active={activeNodeId === node.id}
+                      running={runningNodeId === node.id}
+                      draggable={
+                        isStep
+                        && isCreator
+                        && !(run.phase === 'running' || run.phase === 'paused')
+                      }
+                      isDragging={isStep && dragIndex === stepIdx}
+                      isDragOver={
+                        isStep
+                        && overIndex === stepIdx
+                        && dragIndex !== null
+                        && dragIndex !== stepIdx
+                      }
+                      stepIndex={isStep ? stepIdx : undefined}
+                      onSelect={() =>
+                        selectNode(node.id, node.kind === 'egress' ? 'output' : 'input')
+                      }
+                      onGripDown={(e) => {
+                        if (!isStep || !isCreator || run.phase === 'running' || run.phase === 'paused') return
+                        if (e.button !== 0) return
+                        e.preventDefault()
+                        e.stopPropagation()
+                        e.currentTarget.setPointerCapture(e.pointerId)
+                        dragPointerIdRef.current = e.pointerId
+                        setDragIndex(stepIdx)
+                        setOverIndex(stepIdx)
+                      }}
+                    />
+                  </div>
+                )
+              })}
+              {funcRemaining > 0 && (
+                <button
+                  type="button"
+                  className="plaza-dual-rail-load-more"
+                  onClick={() => setFuncVisible((n) => Math.min(n + DATA_PAGE, funcChain.length))}
+                >
+                  展开更多能力（还有 {funcRemaining} 项）
+                </button>
+              )}
+            </div>
           </div>
-          <div className="plaza-dual-rail-stack">
-            {visibleFuncNodes.map((node, i) => {
-              const isStep = node.kind === 'step'
-              const stepIdx = isStep ? node.stepIndex : -1
-              return (
-                <div key={node.id} className="plaza-dual-rail-connector">
-                  {i > 0 && <span className="plaza-dual-rail-vline" aria-hidden />}
-                  <FuncNode
-                    id={node.id}
-                    label={node.label}
-                    sub={node.sub}
-                    active={activeNodeId === node.id}
-                    running={runningNodeId === node.id}
-                    draggable={
-                      isStep
-                      && isCreator
-                      && !(run.phase === 'running' || run.phase === 'paused')
-                    }
-                    isDragging={isStep && dragIndex === stepIdx}
-                    isDragOver={
-                      isStep
-                      && overIndex === stepIdx
-                      && dragIndex !== null
-                      && dragIndex !== stepIdx
-                    }
-                    stepIndex={isStep ? stepIdx : undefined}
-                    onSelect={() =>
-                      selectNode(node.id, node.kind === 'egress' ? 'output' : 'input')
-                    }
-                    onGripDown={(e) => {
-                      if (!isStep || !isCreator || run.phase === 'running' || run.phase === 'paused') return
-                      if (e.button !== 0) return
-                      e.preventDefault()
-                      e.stopPropagation()
-                      e.currentTarget.setPointerCapture(e.pointerId)
-                      dragPointerIdRef.current = e.pointerId
-                      setDragIndex(stepIdx)
-                      setOverIndex(stepIdx)
-                    }}
+        )}
+
+        {railMode === 'both' && (
+          <div className="plaza-dual-rail-bridge" aria-hidden>
+            {visibleDataRows.map((row) => (
+              <span
+                key={row.id}
+                className={`plaza-dual-rail-link${activeNodeId === row.id ? ' active' : ''}`}
+              />
+            ))}
+          </div>
+        )}
+
+        {showData && (
+          <div className="plaza-dual-rail-col data-col">
+            <div className="plaza-dual-rail-col-head">
+              <span className="plaza-mflow-chev">&gt;&gt;</span> 数据编排
+              <span className="plaza-dual-rail-col-hint">先看前 {DATA_PAGE} 项 · 可继续展开</span>
+            </div>
+            <div className="plaza-dual-rail-stack">
+              {visibleDataRows.map((row, i) => (
+                <div key={row.id} className="plaza-dual-rail-connector data">
+                  {i > 0 && <span className="plaza-dual-rail-vline data" />}
+                  <DataNodePair
+                    nodeId={row.id}
+                    inputApi={row.input}
+                    outputApi={row.output}
+                    active={activeNodeId === row.id}
+                    activeSide={activeNodeId === row.id ? activeApiSide : null}
+                    running={runningNodeId === row.id}
+                    onSelect={(side) => selectNode(row.id, side)}
                   />
                 </div>
-              )
-            })}
-            {funcRemaining > 0 && (
-              <button
-                type="button"
-                className="plaza-dual-rail-load-more"
-                onClick={() => setFuncVisible((n) => Math.min(n + DATA_PAGE, funcChain.length))}
-              >
-                展开更多能力（还有 {funcRemaining} 项）
-              </button>
-            )}
+              ))}
+              {dataRemaining > 0 && (
+                <button
+                  type="button"
+                  className="plaza-dual-rail-load-more"
+                  onClick={() => setDataVisible((n) => Math.min(n + DATA_PAGE, dataRows.length))}
+                >
+                  展开更多数据（还有 {dataRemaining} 项）
+                </button>
+              )}
+            </div>
           </div>
-        </div>
-
-        <div className="plaza-dual-rail-bridge" aria-hidden>
-          {visibleDataRows.map((row) => (
-            <span
-              key={row.id}
-              className={`plaza-dual-rail-link${activeNodeId === row.id ? ' active' : ''}`}
-            />
-          ))}
-        </div>
-
-        <div className="plaza-dual-rail-col data-col">
-          <div className="plaza-dual-rail-col-head">
-            <span className="plaza-mflow-chev">&gt;&gt;</span> 数据编排
-            <span className="plaza-dual-rail-col-hint">先看前 {DATA_PAGE} 项 · 可继续展开</span>
-          </div>
-          <div className="plaza-dual-rail-stack">
-            {visibleDataRows.map((row, i) => (
-              <div key={row.id} className="plaza-dual-rail-connector data">
-                {i > 0 && <span className="plaza-dual-rail-vline data" />}
-                <DataNodePair
-                  nodeId={row.id}
-                  inputApi={row.input}
-                  outputApi={row.output}
-                  active={activeNodeId === row.id}
-                  activeSide={activeNodeId === row.id ? activeApiSide : null}
-                  running={runningNodeId === row.id}
-                  onSelect={(side) => selectNode(row.id, side)}
-                />
-              </div>
-            ))}
-            {dataRemaining > 0 && (
-              <button
-                type="button"
-                className="plaza-dual-rail-load-more"
-                onClick={() => setDataVisible((n) => Math.min(n + DATA_PAGE, dataRows.length))}
-              >
-                展开更多数据（还有 {dataRemaining} 项）
-              </button>
-            )}
-          </div>
-        </div>
+        )}
       </div>
 
       <p className="plaza-dual-rail-cross-hint">
-        点选左侧能力或右侧数据，在下方继续编辑与试运营
-        {canMutate ? ' · 也可用指令快速操作' : ''}
+        {railMode === 'func'
+          ? '点选能力节点，在下方编辑与试运营；接口验证请切到「数据接口与验证」'
+          : railMode === 'data'
+            ? (commandProfile === 'shanghai'
+              ? '点选数据节点测 IN/OUT；也可用下方 >> 上海话专用指令'
+              : '点选数据节点测 IN/OUT；也可用下方 >> 快速测试')
+            : '点选左侧能力或右侧数据，在下方继续编辑与试运营'}
+        {canMutate && railMode === 'both' ? ' · 也可用指令快速操作' : ''}
       </p>
 
       {editingId && activeStep && canMutate && (
@@ -541,6 +571,9 @@ export default function PlazaDualRailFlowPanel({
           flowLabels={flowLabels}
           nodeLabels={nodeLabels}
           appName={appName}
+          appKey={appKey}
+          webUrl={webUrl}
+          commandProfile={commandProfile}
           analysisText={analysis}
           onOpenNodeByLabel={openNodeByLabel}
           onAddModule={() => {

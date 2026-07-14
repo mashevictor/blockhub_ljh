@@ -469,6 +469,9 @@ export interface VoiceClientConfig {
   frame_ms: number
   dialect: string
   configured: boolean
+  llm_provider?: string
+  greeting?: string
+  demo_samples?: Array<{ label: string; utterance: string }>
 }
 
 export async function fetchVoiceConfig() {

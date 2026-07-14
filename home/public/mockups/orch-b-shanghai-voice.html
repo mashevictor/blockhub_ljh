@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>B方案 · 上海话语音全屏预览</title>
+  <style>
+    :root {
+      --ink: #0f2a3d;
+      --muted: #5a7285;
+      --line: #d5e0e8;
+      --paper: #f4f7f9;
+      --card: #ffffff;
+      --sea: #0d7a6f;
+      --sea-soft: #e6f4f2;
+      --amber: #c46b1a;
+      --amber-soft: #fff4e8;
+      --blue: #1a6bb5;
+      --blue-soft: #e8f1fa;
+      --ok: #1b8a4a;
+      --ok-soft: #e8f7ee;
+      --font: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      --shadow: 0 14px 44px rgba(15, 42, 61, 0.13);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: var(--font);
+      color: var(--ink);
+      background:
+        radial-gradient(820px 400px at 8% -8%, #d5efe9 0%, transparent 55%),
+        radial-gradient(640px 360px at 100% 0%, #d9e7f4 0%, transparent 50%),
+        var(--paper);
+      min-height: 100vh;
+      padding: 24px 16px 48px;
+    }
+    .wrap { max-width: 980px; margin: 0 auto; }
+    .intro {
+      margin-bottom: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 20px;
+      justify-content: space-between;
+      align-items: end;
+    }
+    .intro h1 { margin: 0 0 4px; font-size: 22px; }
+    .intro p { margin: 0; font-size: 13px; color: var(--muted); max-width: 560px; line-height: 1.5; }
+    .intro .tag {
+      font-size: 12px; font-weight: 700;
+      background: var(--ink); color: #fff;
+      padding: 8px 12px; border-radius: 999px;
+    }
+
+    .stage {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .stage-head {
+      display: flex; flex-wrap: wrap; gap: 12px;
+      justify-content: space-between; align-items: center;
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(180deg, #fbfcfd, #fff);
+    }
+    .app-id { display: flex; gap: 12px; align-items: center; }
+    .app-icon {
+      width: 46px; height: 46px; border-radius: 12px;
+      background: linear-gradient(145deg, #1a8f84, #0d5c55);
+      color: #fff; display: grid; place-items: center; font-weight: 700;
+    }
+    .app-id h2 { margin: 0 0 4px; font-size: 17px; }
+    .pills { display: flex; flex-wrap: wrap; gap: 6px; }
+    .pill {
+      font-size: 11px; padding: 3px 8px; border-radius: 999px;
+      background: var(--paper); color: var(--muted); border: 1px solid var(--line);
+    }
+    .pill.warn { background: var(--amber-soft); color: var(--amber); border-color: #f0d2ad; }
+    .pill.ok { background: var(--ok-soft); color: var(--ok); border-color: #b9e4c8; }
+    .head-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+    .btn {
+      border: 1px solid var(--line); background: #fff; color: var(--ink);
+      border-radius: 10px; padding: 8px 12px; font: inherit; font-size: 13px;
+      font-weight: 600; cursor: pointer; text-decoration: none;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn.primary { background: var(--sea); border-color: var(--sea); color: #fff; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn.sm { padding: 5px 8px; font-size: 11px; }
+    .body { padding: 16px 18px 20px; }
+
+    .cta-row {
+      display: grid;
+      grid-template-columns: 1.35fr 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    @media (max-width: 800px) { .cta-row { grid-template-columns: 1fr; } }
+    .cta {
+      border: 1px solid var(--line); border-radius: 12px;
+      padding: 14px; background: #fff;
+    }
+    .cta.main { background: var(--sea-soft); border-color: #b7ddd7; }
+    .cta h3 { margin: 0 0 6px; font-size: 14px; }
+    .cta p { margin: 0 0 10px; font-size: 12px; color: var(--muted); line-height: 1.4; }
+
+    .progress {
+      background: var(--paper); border: 1px solid var(--line);
+      border-radius: 12px; padding: 10px 12px; margin-bottom: 14px;
+    }
+    .progress-top {
+      display: flex; justify-content: space-between; gap: 8px;
+      font-size: 12px; margin-bottom: 8px;
+    }
+    .bar { height: 8px; border-radius: 999px; background: #e2ebf1; overflow: hidden; }
+    .bar > i {
+      display: block; height: 100%; width: 92%;
+      background: linear-gradient(90deg, #148a7d, #1a6bb5);
+      transition: width 0.4s;
+    }
+
+    .tabs {
+      display: flex; gap: 4px; background: var(--paper);
+      border: 1px solid var(--line); border-radius: 12px;
+      padding: 4px; margin-bottom: 12px;
+    }
+    .tabs button {
+      flex: 1; border: 0; background: transparent; padding: 10px 8px;
+      border-radius: 9px; font: inherit; font-size: 13px; font-weight: 600;
+      color: var(--muted); cursor: pointer;
+    }
+    .tabs button[aria-selected="true"] {
+      background: #fff; color: var(--ink);
+      box-shadow: 0 1px 4px rgba(15, 42, 61, 0.08);
+    }
+    .hidden { display: none !important; }
+    .panel-note { font-size: 12px; color: var(--muted); margin: 0 0 10px; line-height: 1.45; }
+
+    .rail {
+      border: 1px solid var(--line); border-radius: 12px;
+      padding: 10px; background: #fafcfd; margin-bottom: 12px;
+    }
+    .rail h4 { margin: 0 0 8px; font-size: 12px; color: var(--muted); }
+    .node {
+      border: 1px solid var(--line); background: #fff; border-radius: 10px;
+      padding: 10px; margin-bottom: 8px; font-size: 13px;
+    }
+    .node.active { border-color: var(--sea); box-shadow: 0 0 0 2px rgba(13,122,111,.15); }
+    .node.running { border-color: var(--blue); background: var(--blue-soft); }
+    .node small { display: block; color: var(--muted); margin-top: 3px; font-size: 11px; }
+
+    .badge {
+      display: inline-block; font-size: 10px; font-weight: 700;
+      padding: 2px 6px; border-radius: 999px; margin-left: 4px; vertical-align: middle;
+    }
+    .badge.real { background: var(--ok-soft); color: var(--ok); }
+    .badge.mock { background: var(--amber-soft); color: var(--amber); }
+
+    .api {
+      display: flex; gap: 8px; align-items: flex-start;
+      border: 1px solid var(--line); border-radius: 10px;
+      padding: 10px; margin-bottom: 8px; background: #fff; font-size: 12px;
+    }
+    .tag {
+      flex: none; font-size: 10px; font-weight: 700;
+      padding: 3px 7px; border-radius: 6px;
+      background: var(--blue-soft); color: var(--blue);
+    }
+    .tag.out { background: var(--amber-soft); color: var(--amber); }
+    .api code {
+      display: block; font-family: ui-monospace, Consolas, monospace;
+      font-size: 11px; word-break: break-all; margin: 2px 0 6px;
+    }
+    .api-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+
+    /* >> dock */
+    .dock {
+      margin-top: 12px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fff;
+      padding: 12px 14px;
+      box-shadow: 0 4px 18px rgba(15, 42, 61, 0.06);
+    }
+    .dock-head {
+      display: flex; justify-content: space-between; align-items: baseline;
+      gap: 8px; margin-bottom: 8px;
+    }
+    .dock-head strong { font-size: 13px; }
+    .dock-head span { font-size: 11px; color: var(--muted); }
+    .cmd-row {
+      display: flex; gap: 8px; align-items: center;
+      border: 1px solid var(--line); border-radius: 12px;
+      padding: 8px 10px; background: var(--paper);
+    }
+    .chev {
+      font-weight: 800; color: var(--sea); letter-spacing: -1px;
+      flex: none; font-size: 15px;
+    }
+    .cmd-row input {
+      flex: 1; border: 0; background: transparent; font: inherit;
+      font-size: 14px; outline: none; color: var(--ink); min-width: 0;
+    }
+    .chips {
+      display: flex; flex-wrap: wrap; gap: 6px;
+      margin-top: 10px;
+    }
+    .chip {
+      border: 1px solid var(--line); background: #fff;
+      border-radius: 999px; padding: 6px 10px;
+      font: inherit; font-size: 12px; font-weight: 600;
+      cursor: pointer; color: var(--ink);
+    }
+    .chip:hover { border-color: var(--sea); color: var(--sea); }
+    .chip.cat-sh { background: var(--sea-soft); border-color: #b7ddd7; color: #0a5c54; }
+    .chip.cat-test { background: var(--blue-soft); border-color: #c5daf0; color: var(--blue); }
+    .chip.cat-ops { background: var(--amber-soft); border-color: #f0d2ad; color: var(--amber); }
+    .chip.cat-ask { background: #fff; }
+
+    .result {
+      margin-top: 10px;
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 12px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      color: var(--ink);
+      min-height: 42px;
+    }
+    .result.ok { background: var(--ok-soft); border-color: #b9e4c8; }
+    .result.err { background: #fdeeee; border-color: #f0c4c4; }
+    .result.mock { background: var(--amber-soft); border-color: #f0d2ad; }
+
+    .toast {
+      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+      background: var(--ink); color: #fff; padding: 10px 16px;
+      border-radius: 999px; font-size: 13px; font-weight: 600;
+      opacity: 0; pointer-events: none; transition: opacity 0.2s;
+      z-index: 20;
+    }
+    .toast.show { opacity: 1; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="intro">
+      <div>
+        <h1>B 方案增强 · 上海话语音</h1>
+        <p>
+          顶部「马上体验 / 交付 / 一键冒烟」；下方 Tab 分功能编排与数据接口。
+          底部 <strong>>></strong> 内置上海话专用测试话术（可点可输入）。本页为预览 HTML，可真实请求
+          <code>101.32.209.251</code>。
+        </p>
+      </div>
+      <span class="tag">方案 B · 上海话专版</span>
+    </div>
+
+    <div class="stage">
+      <header class="stage-head">
+        <div class="app-id">
+          <div class="app-icon">沪</div>
+          <div>
+            <h2>>> 上海话语音助手</h2>
+            <div class="pills">
+              <span class="pill">核心：上海话语音</span>
+              <span class="pill warn" id="apkPill">APK 构建中</span>
+              <span class="pill ok">语音已配置</span>
+              <span class="pill">@公开</span>
+            </div>
+          </div>
+        </div>
+        <div class="head-actions">
+          <button type="button" class="btn" id="btnCopyLink">复制链接</button>
+          <a class="btn" id="btnOpen" href="http://101.32.209.251/agents/shanghai-voice" target="_blank" rel="noreferrer">打开</a>
+          <button type="button" class="btn primary">关闭</button>
+        </div>
+      </header>
+
+      <div class="body">
+        <!-- B: 顶部体验台 -->
+        <div class="cta-row">
+          <div class="cta main">
+            <h3>马上体验</h3>
+            <p>网页已就绪。先听上海话助手说话；APK 打包不影响网页试跑。</p>
+            <a class="btn primary" href="http://101.32.209.251/agents/shanghai-voice" target="_blank" rel="noreferrer">打开上海话网页</a>
+            <button type="button" class="btn" id="btnTrial" style="margin-left:6px">▶ 试运营</button>
+          </div>
+          <div class="cta">
+            <h3>交付摘要</h3>
+            <p id="deliverBrief">网页 ✓ · APK 打包中 · 语音 API ✓</p>
+            <button type="button" class="btn" id="btnToggleProgress">展开进度</button>
+          </div>
+          <div class="cta">
+            <h3>一键冒烟</h3>
+            <p>voice/config（真）+ 模块 IN（mock）</p>
+            <button type="button" class="btn primary" id="btnSmoke">跑上海话冒烟</button>
+          </div>
+        </div>
+
+        <div class="progress hidden" id="progressBlock">
+          <div class="progress-top">
+            <strong>交付进度 · 上海话五端</strong>
+            <span id="progressPct">92%</span>
+          </div>
+          <div class="bar"><i id="progressBar"></i></div>
+        </div>
+
+        <div class="tabs" role="tablist">
+          <button type="button" role="tab" data-tab="flow" aria-selected="true">功能编排</button>
+          <button type="button" role="tab" data-tab="api" aria-selected="false">数据接口与验证</button>
+        </div>
+
+        <div id="panel-flow">
+          <p class="panel-note">上海话应用默认突出语音能力节点；其它办公能力可展开。试运营时会高亮当前步。</p>
+          <div class="rail">
+            <h4>>> 功能编排 · 用户感知</h4>
+            <div class="node" data-node="intent">用户意图<small>业务请求进入 · 点例句或开麦</small></div>
+            <div class="node active" data-node="voice">上海话语音<small>ASR → LLM → TTS · 真链路</small></div>
+            <div class="node" data-node="office">通用办公<small>可与语音结果联动的示例能力</small></div>
+            <div class="node" data-node="todo">待办中心<small>审批 / 待办汇总（示意）</small></div>
+            <div class="node" data-node="portal">多端门户<small>网页 + App 统一入口</small></div>
+          </div>
+        </div>
+
+        <div id="panel-api" class="hidden">
+          <p class="panel-note">
+            <span class="badge real">真链路</span> 语音配置 / WS　
+            <span class="badge mock">mock</span> runtime 编排 REST（可点通，非生产业务）
+          </p>
+          <div class="rail">
+            <h4>>> 上海话 · 真接口</h4>
+            <div class="api">
+              <span class="tag">GET</span>
+              <div>
+                <div>语音配置 <span class="badge real">真</span></div>
+                <code>http://101.32.209.251/api/v1/voice/config</code>
+                <div class="api-actions">
+                  <button type="button" class="btn sm" data-test="voice-config">测试</button>
+                  <button type="button" class="btn sm" data-copy="http://101.32.209.251/api/v1/voice/config">复制 URL</button>
+                </div>
+              </div>
+            </div>
+            <div class="api">
+              <span class="tag">WS</span>
+              <div>
+                <div>上海话 Agent <span class="badge real">真</span></div>
+                <code>ws://101.32.209.251/api/v1/voice/shanghai-agent</code>
+                <div class="api-actions">
+                  <button type="button" class="btn sm" data-test="voice-ws">说明 / 探测</button>
+                  <a class="btn sm primary" href="http://101.32.209.251/agents/shanghai-voice" target="_blank" rel="noreferrer">去网页对练</a>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="rail">
+            <h4>>> 编排 REST · 可验 mock</h4>
+            <div class="api">
+              <span class="tag">IN</span>
+              <div>
+                <code>POST /api/v1/runtime/2225d4b2/ingress/webhook</code>
+                <div class="api-actions">
+                  <button type="button" class="btn sm" data-test="ingress">测试</button>
+                </div>
+              </div>
+            </div>
+            <div class="api">
+              <span class="tag">IN</span>
+              <div>
+                <code>POST /api/v1/runtime/2225d4b2/modules/shanghai-voice/input</code>
+                <div class="api-actions">
+                  <button type="button" class="btn sm" data-test="module-in">测试</button>
+                </div>
+              </div>
+            </div>
+            <div class="api">
+              <span class="tag out">OUT</span>
+              <div>
+                <code>GET /api/v1/runtime/2225d4b2/modules/shanghai-voice/output</code>
+                <div class="api-actions">
+                  <button type="button" class="btn sm" data-test="module-out">测试</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- >> 指令区：上海话内置 -->
+        <div class="dock">
+          <div class="dock-head">
+            <strong>>> 指令 · 上海话内置测试</strong>
+            <span>点芯片或输入后回车 · 真接口会请求线上</span>
+          </div>
+          <div class="cmd-row">
+            <span class="chev" aria-hidden>>></span>
+            <input id="cmdInput" type="text" placeholder="例如：测 voice 配置 · 试一句侬好 · 打开上海话" autocomplete="off" />
+            <button type="button" class="btn primary sm" id="cmdGo">执行</button>
+          </div>
+          <div class="chips" aria-label="上海话内置话术">
+            <button type="button" class="chip cat-sh" data-cmd="打开上海话网页">打开上海话网页</button>
+            <button type="button" class="chip cat-sh" data-cmd="测 voice 配置">测 voice 配置</button>
+            <button type="button" class="chip cat-sh" data-cmd="探测语音 WS">探测语音 WS</button>
+            <button type="button" class="chip cat-sh" data-cmd="试一句侬好">试一句「侬好」</button>
+            <button type="button" class="chip cat-sh" data-cmd="例句查审批">例句·查审批</button>
+            <button type="button" class="chip cat-test" data-cmd="测试上海话模块 IN">测试模块 IN</button>
+            <button type="button" class="chip cat-test" data-cmd="测试模块 OUT">测试模块 OUT</button>
+            <button type="button" class="chip cat-test" data-cmd="跑上海话冒烟">跑上海话冒烟</button>
+            <button type="button" class="chip cat-ops" data-cmd="开始试运营">开始试运营</button>
+            <button type="button" class="chip cat-ops" data-cmd="停止试运营">停止试运营</button>
+            <button type="button" class="chip cat-ask" data-cmd="这个应用怎么测上海话">怎么测上海话？</button>
+          </div>
+          <div class="result" id="cmdResult">点上方芯片即可。上海话相关会打真实域名接口。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const API = 'http://101.32.209.251'
+    const SLUG = '2225d4b2'
+    const nodes = ['intent', 'voice', 'office', 'todo', 'portal']
+    let trialTimer = null
+    let trialIdx = -1
+
+    const $ = (id) => document.getElementById(id)
+    const resultEl = $('cmdResult')
+    const inputEl = $('cmdInput')
+
+    function toast(msg) {
+      const t = $('toast')
+      t.textContent = msg
+      t.classList.add('show')
+      setTimeout(() => t.classList.remove('show'), 1800)
+    }
+
+    function setResult(text, kind) {
+      resultEl.textContent = text
+      resultEl.className = 'result' + (kind ? ' ' + kind : '')
+    }
+
+    async function copy(text) {
+      try { await navigator.clipboard.writeText(text); toast('已复制') }
+      catch { prompt('复制：', text) }
+    }
+
+    async function testVoiceConfig() {
+      setResult('请求中 GET /api/v1/voice/config …')
+      try {
+        const r = await fetch(API + '/api/v1/voice/config')
+        const j = await r.json()
+        setResult(
+          `【真链路】HTTP ${r.status}\n` +
+          `agent: ${j.agent_id}\n` +
+          `configured: ${j.configured}\n` +
+          `llm: ${j.llm_provider}\n` +
+          `ws: ${j.ws_url}\n` +
+          `greeting: ${j.greeting || ''}`,
+          r.ok ? 'ok' : 'err'
+        )
+        return j
+      } catch (e) {
+        setResult('voice/config 失败：' + e.message + '\n（若浏览器拦跨域，请在已部署的同域页测，或看本预览仅作布局参考）', 'err')
+        return null
+      }
+    }
+
+    async function testMock(path, method) {
+      setResult(`请求中 ${method} ${path} …`)
+      try {
+        const r = await fetch(API + path, {
+          method,
+          headers: { 'Content-Type': 'application/json' },
+          body: method === 'GET' ? undefined : '{}',
+        })
+        const text = await r.text()
+        let pretty = text
+        try { pretty = JSON.stringify(JSON.parse(text), null, 2) } catch {}
+        setResult(`【编排 mock】HTTP ${r.status}\n` + pretty.slice(0, 900), r.ok ? 'mock' : 'err')
+        return r.ok
+      } catch (e) {
+        setResult('请求失败：' + e.message, 'err')
+        return false
+      }
+    }
+
+    async function probeWs() {
+      setResult('探测 WebSocket …')
+      return new Promise((resolve) => {
+        let done = false
+        const finish = (msg, kind) => {
+          if (done) return
+          done = true
+          try { ws.close() } catch {}
+          setResult(msg, kind)
+          resolve()
+        }
+        let ws
+        try {
+          ws = new WebSocket('ws://101.32.209.251/api/v1/voice/shanghai-agent')
+        } catch (e) {
+          finish('无法创建 WS：' + e.message + '\n建议到网页应用内开麦实测。', 'err')
+          return
+        }
+        const timer = setTimeout(() => finish('WS 超时（可能跨域/网关限制）。请用「打开上海话网页」实测对练。', 'err'), 4000)
+        ws.onopen = () => {
+          clearTimeout(timer)
+          finish('【真链路】WebSocket 已连通 ws://…/shanghai-agent\n接下来请到网页里开麦或点例句「侬好」。', 'ok')
+        }
+        ws.onerror = () => {
+          clearTimeout(timer)
+          finish('WS 握手失败。配置接口可用时，仍请到网页应用内对练。', 'err')
+        }
+      })
+    }
+
+    function showSample(label, utter) {
+      setResult(
+        `【例句 · 去网页对练】\n标签：${label}\n说法：${utter}\n\n已尝试打开上海话网页。点页面例句或开麦讲这句话。`,
+        'ok'
+      )
+      window.open(API + '/agents/shanghai-voice', '_blank', 'noopener')
+    }
+
+    function stopTrial() {
+      if (trialTimer) clearInterval(trialTimer)
+      trialTimer = null
+      trialIdx = -1
+      document.querySelectorAll('.node').forEach((n) => n.classList.remove('running'))
+      $('btnTrial').textContent = '▶ 试运营'
+    }
+
+    function startTrial() {
+      stopTrial()
+      $('btnTrial').textContent = '⏹ 停止'
+      trialIdx = 0
+      const tick = () => {
+        document.querySelectorAll('.node').forEach((n) => n.classList.remove('running'))
+        const id = nodes[trialIdx]
+        const el = document.querySelector(`[data-node="${id}"]`)
+        if (el) el.classList.add('running')
+        setResult(`试运营中 · 第 ${trialIdx + 1}/${nodes.length} 步：${el ? el.childNodes[0].textContent : id}`, 'ok')
+        trialIdx += 1
+        if (trialIdx >= nodes.length) {
+          stopTrial()
+          setResult('试运营完成 · 可继续测 voice/config 或打开网页对练', 'ok')
+        }
+      }
+      tick()
+      trialTimer = setInterval(tick, 1200)
+    }
+
+    async function smoke() {
+      setResult('冒烟：1) voice/config  2) shanghai-voice IN …')
+      const cfg = await testVoiceConfig()
+      await new Promise((r) => setTimeout(r, 400))
+      const okMock = await testMock(`/api/v1/runtime/${SLUG}/modules/shanghai-voice/input`, 'POST')
+      setResult(
+        `【上海话冒烟汇总】\n` +
+        `· voice/config：${cfg && cfg.configured ? 'OK · configured' : (cfg ? '有响应但未配置' : '失败')}\n` +
+        `· runtime 模块 IN：${okMock ? 'OK (mock)' : '失败'}\n` +
+        `· 下一步：打开网页开麦，或 >> 输入「试一句侬好」`,
+        cfg ? 'ok' : 'err'
+      )
+    }
+
+    async function runCmd(raw) {
+      const text = raw.trim().replace(/^>+\s*/, '')
+      if (!text) return
+      inputEl.value = text
+
+      if (/打开上海话|打开网页|打开应用/.test(text)) {
+        window.open(API + '/agents/shanghai-voice', '_blank', 'noopener')
+        setResult('已打开上海话网页应用', 'ok')
+        return
+      }
+      if (/测\s*voice|voice\s*配置|测配置/.test(text)) {
+        await testVoiceConfig()
+        return
+      }
+      if (/探测.*ws|语音\s*ws|测\s*ws/i.test(text)) {
+        await probeWs()
+        return
+      }
+      if (/侬好|试一句/.test(text)) {
+        showSample('侬好', '侬好，阿拉想试试上海话语音助手')
+        return
+      }
+      if (/查审批|例句/.test(text)) {
+        showSample('查审批', '帮吾查一查今朝有啥审批要处理')
+        return
+      }
+      if (/模块\s*out|测试\s*out|测一下\s*out/i.test(text)) {
+        await testMock(`/api/v1/runtime/${SLUG}/modules/shanghai-voice/output`, 'GET')
+        return
+      }
+      if (/模块\s*in|测试上海话|测试模块/i.test(text)) {
+        await testMock(`/api/v1/runtime/${SLUG}/modules/shanghai-voice/input`, 'POST')
+        return
+      }
+      if (/冒烟/.test(text)) {
+        await smoke()
+        return
+      }
+      if (/开始试运营|试运营/.test(text) && !/停止/.test(text)) {
+        document.querySelector('[data-tab="flow"]').click()
+        startTrial()
+        return
+      }
+      if (/停止试已运营|停止试运营|停止/.test(text)) {
+        stopTrial()
+        setResult('已停止试运营', 'ok')
+        return
+      }
+      if (/怎么测|如何测|测试指南/.test(text)) {
+        setResult(
+          '【怎么测上海话】\n' +
+          '1) >> 测 voice 配置 → 应 configured:true\n' +
+          '2) >> 打开上海话网页 → 点例句或开麦\n' +
+          '3) >> 探测语音 WS → 握手成功再对练\n' +
+          '4) >> 跑上海话冒烟 → 真接口+mock 各测一条\n' +
+          '5) >> 开始试运营 → 看功能节点逐步高亮\n' +
+          '编排 REST 仅 mock，不代替语音主链路。',
+          'ok'
+        )
+        return
+      }
+      setResult('未识别指令。可点芯片，或试：测 voice 配置 / 试一句侬好 / 跑上海话冒烟', 'err')
+    }
+
+    // tabs
+    document.querySelectorAll('.tabs button').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tabs button').forEach((b) => {
+          b.setAttribute('aria-selected', b === btn ? 'true' : 'false')
+        })
+        const tab = btn.dataset.tab
+        $('panel-flow').classList.toggle('hidden', tab !== 'flow')
+        $('panel-api').classList.toggle('hidden', tab !== 'api')
+      })
+    })
+
+    document.querySelectorAll('.chip').forEach((c) => {
+      c.addEventListener('click', () => runCmd(c.dataset.cmd))
+    })
+    $('cmdGo').addEventListener('click', () => runCmd(inputEl.value))
+    inputEl.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') runCmd(inputEl.value)
+    })
+
+    $('btnSmoke').addEventListener('click', smoke)
+    $('btnTrial').addEventListener('click', () => {
+      if (trialTimer) { stopTrial(); setResult('已停止试运营', 'ok') }
+      else startTrial()
+    })
+    $('btnToggleProgress').addEventListener('click', () => {
+      $('progressBlock').classList.toggle('hidden')
+    })
+    $('btnCopyLink').addEventListener('click', () => copy(API + '/agents/shanghai-voice'))
+
+    document.querySelectorAll('[data-test]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const k = btn.dataset.test
+        if (k === 'voice-config') testVoiceConfig()
+        else if (k === 'voice-ws') probeWs()
+        else if (k === 'ingress') testMock(`/api/v1/runtime/${SLUG}/ingress/webhook`, 'POST')
+        else if (k === 'module-in') testMock(`/api/v1/runtime/${SLUG}/modules/shanghai-voice/input`, 'POST')
+        else if (k === 'module-out') testMock(`/api/v1/runtime/${SLUG}/modules/shanghai-voice/output`, 'GET')
+      })
+    })
+    document.querySelectorAll('[data-copy]').forEach((btn) => {
+      btn.addEventListener('click', () => copy(btn.dataset.copy))
+    })
+  </script>
+</body>
+</html>
