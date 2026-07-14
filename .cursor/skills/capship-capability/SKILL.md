@@ -68,10 +68,19 @@ description: >-
 - App 壳：`app_ui_id` ∈ `bottom_tabs` | `drawer_nav` | `immersive_chat`
 - 包名：`android_app_id` = `com.blockhub.app.{slug(public_id)}`（见 `apk_build_profiles`）
 
-### A6 验收
+### A6 业务落地（路径 A 生产包强制）
+
+能力包 UI **禁止** localStorage / 内存假数据冒充业务。须有：
+
+- Backend：`models` 表 + alembic 迁移 + `/api/v1/...`（鉴权、租户隔离；参考 `approvals` / `device_repair`）
+- Web：`apiFetch` + `useRuntime().token` / `appId`
+- App：`getRuntimeAuthedDio()` + `branding.apiBaseUrl`；跨端隔离用 `appPublicId`（勿用 Android `applicationId`）
+- 空库可空列表；**不要** seed 演示假工单伪装成已有数据
+
+### A7 验收
 
 - [ ] 仅勾选该 key publish → `page_schema.menu/routes` 含该项
-- [ ] Web 可打开对应页
+- [ ] Web / App 读写同一真 API，刷新后数据仍在
 - [ ] deliver 含 app 时构建 log / manifest 含 `flutter_pkgs`
 - [ ] 无场景推荐「偷加」未选 key
 - [ ] 未把 LLM 塞进 resolver/schema 热路径

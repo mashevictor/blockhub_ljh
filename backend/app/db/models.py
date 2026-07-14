@@ -475,3 +475,26 @@ class DemoBooking(Base):
     sms_sent: Mapped[bool] = mapped_column(nullable=False, default=False)
     delivery_status: Mapped[str] = mapped_column(String(32), nullable=False, default="pending")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class DeviceRepairTicket(Base):
+    """CapShip · device_repair 能力包业务表（真实工单，非 mock）。"""
+
+    __tablename__ = "device_repair_tickets"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenants.id"), nullable=False, index=True)
+    app_public_id: Mapped[str] = mapped_column(String(64), nullable=False, default="", index=True)
+    reporter_id: Mapped[str] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
+    ticket_no: Mapped[str] = mapped_column(String(32), nullable=False, index=True)
+    asset_code: Mapped[str] = mapped_column(String(120), nullable=False)
+    location: Mapped[str] = mapped_column(String(200), nullable=False, default="")
+    fault: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(String(32), nullable=False, default="pending", index=True)
+    comment: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+    reporter: Mapped[User] = relationship(foreign_keys=[reporter_id])

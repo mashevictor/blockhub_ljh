@@ -388,10 +388,11 @@ flowchart TD
         <li><strong>Web 包</strong>：<code>packages/web-capability-{slug}/</code> → <code>registerWidget('XxxWidget', ...)</code>；由 <code>runtime-web</code> 按 manifest 懒加载。</li>
         <li><strong>Flutter 包</strong>：<code>packages/capability_{key}/</code> 实现模块；更新 <code>shared/flutter-parity-matrix.json</code>；构建脚本 sync pubspec。</li>
         <li><strong>禁止</strong>在 <code>runtime-web/App.tsx</code> 或 <code>home</code> 硬编码特殊分支（除非壳级全局行为）。</li>
-        <li><strong>验收</strong>：仅勾选该能力 publish → schema.menu 含路由 → Web 可进页 → APK build log 含对应 <code>flutter_pkgs</code>。</li>
+        <li><strong>业务落地</strong>：正式包须接真 API + DB（鉴权、租户）；禁止 localStorage / 内存假数据冒充业务。参考 <code>approvals</code>、<code>device_repair</code>。</li>
+        <li><strong>验收</strong>：仅勾选该能力 publish → schema.menu 含路由 → Web/App 读写同一接口且刷新仍在 → APK build log 含对应 <code>flutter_pkgs</code>。</li>
       </ol>
       <div class="callout">
-        Agent / RAG / 语音链路：全部写在能力包内部（如 <code>capability_shanghai_voice</code>），对外只暴露 Capability 边界。
+        Agent / RAG / 语音链路：全部写在能力包内部（如 <code>capability_shanghai_voice</code>），对外只暴露 Capability 边界。路径 A 生产包不允许用 mock 冒充已交付。
       </div>
     </section>
 
