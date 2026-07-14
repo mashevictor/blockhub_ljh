@@ -50,7 +50,12 @@ function PlazaFocusDockBody({
           <button
             type="button"
             className="plaza-dual-rail-collapse-btn"
-            onClick={() => dock?.collapse()}
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              dock?.collapse()
+            }}
             aria-label="折叠悬浮框"
             title="折叠"
           >

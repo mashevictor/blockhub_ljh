@@ -1,0 +1,32 @@
+{
+  "id": "shanghai-voice-agent",
+  "name": "上海话语音助手",
+  "slug": "shanghai-voice",
+  "kind": "first_party",
+  "description": "上海话实时语音智能体：ASR 方言识别 → DeepSeek → TTS 超自然合成，Web + APK 双端。",
+  "webPath": "/agents/shanghai-voice",
+  "apkId": "com.blockhub.shanghai.voice",
+  "apkDownload": "/downloads/shanghai-voice.apk",
+  "branding": "runtime-app/branding/shanghai-voice.json",
+  "flutterPackage": "packages/capability_shanghai_voice",
+  "modules": [
+    "shanghai_voice",
+    "chat_qa",
+    "kb_document",
+    "notify_inapp",
+    "flutter_speech",
+    "rbac_page"
+  ],
+  "api": {
+    "config": "/api/v1/voice/config",
+    "status": "/api/v1/voice/status",
+    "authProbe": "/api/v1/voice/auth-probe",
+    "ws": "/api/v1/voice/shanghai-agent"
+  },
+  "ship": {
+    "web": "scripts/deploy-all.sh --web-only",
+    "apk": "scripts/build-shanghai-voice-apk.sh",
+    "smoke": "scripts/smoke-voice-apk.sh",
+    "oneShot": "scripts/ship-shanghai-project.sh"
+  }
+}

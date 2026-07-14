@@ -518,8 +518,14 @@ export default function FloatingAgentDock({
         if (onDragSurface && e.target.closest('button, input, textarea, select, a, label, [contenteditable="true"]')) {
           return
         }
-      } else if (isInteractiveTarget(e.target) && !(e.target instanceof Element && e.target.closest('.is-dock-drag-surface'))) {
-        return
+      } else {
+        // 展开态：折叠/试运营等按钮绝不能被拖拽逻辑吞掉 click
+        if (isInteractiveTarget(e.target)) return
+        if (!(e.target instanceof Element)) return
+        const onChrome = e.target.closest('.floating-agent-dock-chrome')
+        const onGrip = e.target.closest('.floating-agent-dock-grip')
+        const onDragSurface = e.target.closest('.is-dock-drag-surface')
+        if (!onChrome && !onGrip && !onDragSurface) return
       }
       e.preventDefault()
       const handle = e.currentTarget
@@ -608,7 +614,12 @@ export default function FloatingAgentDock({
     <button
       type="button"
       className={`floating-agent-dock-toggle${isCapsule ? ' capsule-toggle' : ''}`}
-      onClick={toggleCollapsed}
+      onPointerDown={(e) => e.stopPropagation()}
+      onClick={(e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        toggleCollapsed()
+      }}
       aria-expanded={!collapsed}
       aria-controls={panelId}
       aria-label={collapsed ? '展开悬浮框' : '折叠悬浮框'}
@@ -746,7 +757,12 @@ export default function FloatingAgentDock({
                     <button
                       type="button"
                       className="floating-agent-dock-toggle capsule-toggle plaza-dock-collapse-start"
-                      onClick={collapse}
+                      onPointerDown={(e) => e.stopPropagation()}
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        collapse()
+                      }}
                       aria-expanded={!collapsed}
                       aria-controls={panelId}
                       aria-label="折叠悬浮框"

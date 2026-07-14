@@ -1,5 +1,10 @@
 # 上海话语音 Agent · 部署与生成器文档
 
+> **真项目交付（推荐）**：服务器执行  
+> `bash scripts/ship-shanghai-project.sh`  
+> 或 `bash scripts/deploy-shanghai-one.sh`  
+> 清单见 `projects/shanghai-voice/project.json`。部署后打开「我的应用」可见「上海话语音助手」。
+
 本文覆盖三件事：
 
 1. 后端「上海话语音 Agent」的部署要点（ASR / LLM / TTS）。

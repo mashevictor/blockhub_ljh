@@ -12,6 +12,7 @@ import type { AgentContextKey } from '../../data/agentContext'
 import PlazaFloatingAgent from '../../components/b2b/PlazaFloatingAgent'
 import B2BSiteFooter from '../../components/b2b/B2BSiteFooter'
 import PlazaRunBridge from '../../components/plaza/PlazaRunBridge'
+import { bootstrapShanghaiVoiceProject } from '../../lib/shanghaiVoiceProject'
 import '../../styles/b2b-landing.css'
 import '../../styles/plaza-theme.css'
 
@@ -49,6 +50,10 @@ export default function PlazaLayout() {
   useEffect(() => {
     document.body.classList.add('b2b-landing')
     return () => document.body.classList.remove('b2b-landing')
+  }, [])
+
+  useEffect(() => {
+    bootstrapShanghaiVoiceProject()
   }, [])
 
   return (
