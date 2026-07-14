@@ -311,6 +311,15 @@ export default function FlowBizCommandInput({
       return
     }
 
+    if (/^(备注|说明|记下)\s*/.test(text)) {
+      const note = text.replace(/^(备注|说明|记下)\s*/, '').trim()
+      if (note && !mutateLocked) {
+        onNote?.(note)
+        finish('已写入节点说明')
+        return
+      }
+    }
+
     // 默认：项目语境回答（有效、可马上跟进）
     const fallback =
       `已收到：「${text}」\n` +
