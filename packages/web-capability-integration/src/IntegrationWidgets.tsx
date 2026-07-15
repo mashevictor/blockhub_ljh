@@ -264,7 +264,7 @@ function ImChannelPanel() {
       </GtgtStepComposer>
 
       <h4 style={{ margin: '20px 0 8px', fontSize: 14 }}>已绑定通道</h4>
-      {items.length === 0 && <p className="muted">还没有可用通道。>> 选通道 → 粘贴 → 保存。</p>}
+      {items.length === 0 && <p className="muted">还没有可用通道。{'>>'} 选通道 → 粘贴 → 保存。</p>}
       {items.map((c) => {
         const cfg = c.config as { webhook_url?: string; source?: string; managed?: boolean }
         const envManaged = cfg?.source === 'env' || cfg?.managed === true
