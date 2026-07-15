@@ -1,0 +1,11 @@
+name: capability_sales_lead
+description: CapShip sales_lead — 销售线索
+version: 0.1.0
+publish_to: none
+environment:
+  sdk: ">=3.3.0 <4.0.0"
+dependencies:
+  flutter:
+    sdk: flutter
+  blockhub_flutter_core:
+    path: ../blockhub_flutter_core

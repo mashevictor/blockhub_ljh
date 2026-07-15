@@ -79,6 +79,20 @@ dependencies:
     path: ../packages/capability_gov_service
   capability_legal_case:
     path: ../packages/capability_legal_case
+  capability_leave_request:
+    path: ../packages/capability_leave_request
+  capability_expense_claim:
+    path: ../packages/capability_expense_claim
+  capability_policy_qa:
+    path: ../packages/capability_policy_qa
+  capability_hire_onboard:
+    path: ../packages/capability_hire_onboard
+  capability_sales_lead:
+    path: ../packages/capability_sales_lead
+  capability_quote_contract:
+    path: ../packages/capability_quote_contract
+  capability_ops_kpi:
+    path: ../packages/capability_ops_kpi
   capability_flutter_tools:
     path: ../packages/capability_flutter_tools
   dio: ^5.7.0

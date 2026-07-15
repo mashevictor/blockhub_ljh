@@ -453,6 +453,90 @@
       ],
       "module_class": "LegalCaseModule",
       "dart_import": "package:capability_legal_case/capability_legal_case.dart"
+    },
+    {
+      "web_pkg": "@blockhub/web-capability-leave-request",
+      "web_folder": "web-capability-leave-request",
+      "flutter_pkg": "capability_leave_request",
+      "p1_scope": "app",
+      "status_target": "ok",
+      "capability_keys": [
+        "leave_request"
+      ],
+      "module_class": "LeaveRequestModule",
+      "dart_import": "package:capability_leave_request/capability_leave_request.dart"
+    },
+    {
+      "web_pkg": "@blockhub/web-capability-expense-claim",
+      "web_folder": "web-capability-expense-claim",
+      "flutter_pkg": "capability_expense_claim",
+      "p1_scope": "app",
+      "status_target": "ok",
+      "capability_keys": [
+        "expense_claim"
+      ],
+      "module_class": "ExpenseClaimModule",
+      "dart_import": "package:capability_expense_claim/capability_expense_claim.dart"
+    },
+    {
+      "web_pkg": "@blockhub/web-capability-policy-qa",
+      "web_folder": "web-capability-policy-qa",
+      "flutter_pkg": "capability_policy_qa",
+      "p1_scope": "app",
+      "status_target": "ok",
+      "capability_keys": [
+        "policy_qa"
+      ],
+      "module_class": "PolicyQaModule",
+      "dart_import": "package:capability_policy_qa/capability_policy_qa.dart"
+    },
+    {
+      "web_pkg": "@blockhub/web-capability-hire-onboard",
+      "web_folder": "web-capability-hire-onboard",
+      "flutter_pkg": "capability_hire_onboard",
+      "p1_scope": "app",
+      "status_target": "ok",
+      "capability_keys": [
+        "hire_onboard"
+      ],
+      "module_class": "HireOnboardModule",
+      "dart_import": "package:capability_hire_onboard/capability_hire_onboard.dart"
+    },
+    {
+      "web_pkg": "@blockhub/web-capability-sales-lead",
+      "web_folder": "web-capability-sales-lead",
+      "flutter_pkg": "capability_sales_lead",
+      "p1_scope": "app",
+      "status_target": "ok",
+      "capability_keys": [
+        "sales_lead"
+      ],
+      "module_class": "SalesLeadModule",
+      "dart_import": "package:capability_sales_lead/capability_sales_lead.dart"
+    },
+    {
+      "web_pkg": "@blockhub/web-capability-quote-contract",
+      "web_folder": "web-capability-quote-contract",
+      "flutter_pkg": "capability_quote_contract",
+      "p1_scope": "app",
+      "status_target": "ok",
+      "capability_keys": [
+        "quote_contract"
+      ],
+      "module_class": "QuoteContractModule",
+      "dart_import": "package:capability_quote_contract/capability_quote_contract.dart"
+    },
+    {
+      "web_pkg": "@blockhub/web-capability-ops-kpi",
+      "web_folder": "web-capability-ops-kpi",
+      "flutter_pkg": "capability_ops_kpi",
+      "p1_scope": "app",
+      "status_target": "ok",
+      "capability_keys": [
+        "ops_kpi"
+      ],
+      "module_class": "OpsKpiModule",
+      "dart_import": "package:capability_ops_kpi/capability_ops_kpi.dart"
     }
   ]
 }

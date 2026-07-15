@@ -431,6 +431,22 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     ]
   },
   {
+    "key": "expense_claim",
+    "name": "报销记账",
+    "category": "财务法务",
+    "widget": "ExpenseClaimWidget",
+    "agent_id": "expense_claim",
+    "web_pkg": "@blockhub/web-capability-expense-claim",
+    "flutter_pkg": "capability_expense_claim",
+    "route": "/expense-claim",
+    "keywords": [
+      "报销记账",
+      "费用报销",
+      "发票上传",
+      "报销申请"
+    ]
+  },
+  {
     "key": "fitness_checkin",
     "name": "健身打卡",
     "category": "生活服务",
@@ -722,6 +738,22 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     ]
   },
   {
+    "key": "hire_onboard",
+    "name": "招聘入职",
+    "category": "人事行政",
+    "widget": "HireOnboardWidget",
+    "agent_id": "hire_onboard",
+    "web_pkg": "@blockhub/web-capability-hire-onboard",
+    "flutter_pkg": "capability_hire_onboard",
+    "route": "/hire-onboard",
+    "keywords": [
+      "招聘入职",
+      "招聘管理",
+      "简历筛选",
+      "入职指引"
+    ]
+  },
+  {
     "key": "homework_qa",
     "name": "作业答疑",
     "category": "教育培训",
@@ -846,6 +878,22 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     "flutter_pkg": "capability_kb_search",
     "route": "/kb",
     "keywords": []
+  },
+  {
+    "key": "leave_request",
+    "name": "请假审批",
+    "category": "人事行政",
+    "widget": "LeaveRequestWidget",
+    "agent_id": "leave_request",
+    "web_pkg": "@blockhub/web-capability-leave-request",
+    "flutter_pkg": "capability_leave_request",
+    "route": "/leave-request",
+    "keywords": [
+      "请假审批",
+      "请假申请",
+      "假期余额",
+      "请假"
+    ]
   },
   {
     "key": "legal_case",
@@ -1029,6 +1077,22 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     "keywords": []
   },
   {
+    "key": "ops_kpi",
+    "name": "经营看板",
+    "category": "数据报表",
+    "widget": "OpsKpiWidget",
+    "agent_id": "ops_kpi",
+    "web_pkg": "@blockhub/web-capability-ops-kpi",
+    "flutter_pkg": "capability_ops_kpi",
+    "route": "/ops-kpi",
+    "keywords": [
+      "经营看板",
+      "经营指标",
+      "自然语言查数",
+      "老板看板"
+    ]
+  },
+  {
     "key": "pet_clinic",
     "name": "宠物问诊",
     "category": "医疗健康",
@@ -1043,6 +1107,22 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
       "预约就诊",
       "疫苗提醒",
       "宠物"
+    ]
+  },
+  {
+    "key": "policy_qa",
+    "name": "制度问答",
+    "category": "知识协同",
+    "widget": "PolicyQaWidget",
+    "agent_id": "policy_qa",
+    "web_pkg": "@blockhub/web-capability-policy-qa",
+    "flutter_pkg": "capability_policy_qa",
+    "route": "/policy-qa",
+    "keywords": [
+      "制度问答",
+      "制度政策",
+      "福利政策",
+      "制度查询"
     ]
   },
   {
@@ -1082,6 +1162,22 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     ]
   },
   {
+    "key": "quote_contract",
+    "name": "报价合同",
+    "category": "销售行业",
+    "widget": "QuoteContractWidget",
+    "agent_id": "quote_contract",
+    "web_pkg": "@blockhub/web-capability-quote-contract",
+    "flutter_pkg": "capability_quote_contract",
+    "route": "/quote-contract",
+    "keywords": [
+      "报价合同",
+      "报价审批",
+      "合同评审",
+      "特价申请"
+    ]
+  },
+  {
     "key": "rbac_page",
     "name": "角色权限",
     "category": "权限安全",
@@ -1107,6 +1203,22 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     "flutter_pkg": "capability_report_scheduled",
     "route": "/dashboard",
     "keywords": []
+  },
+  {
+    "key": "sales_lead",
+    "name": "销售线索",
+    "category": "销售行业",
+    "widget": "SalesLeadWidget",
+    "agent_id": "sales_lead",
+    "web_pkg": "@blockhub/web-capability-sales-lead",
+    "flutter_pkg": "capability_sales_lead",
+    "route": "/sales-lead",
+    "keywords": [
+      "销售线索",
+      "客户跟进",
+      "线索录入",
+      "销售漏斗"
+    ]
   },
   {
     "key": "schedule_alarm",

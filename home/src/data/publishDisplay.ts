@@ -137,6 +137,34 @@ const SCENARIO_CAPABILITY_MAP: Array<{ match: string[]; caps: Array<{ key: strin
     { key: 'legal_case', label: '法务合同' },
     { key: 'notify_im', label: '企微钉钉飞书' },
   ]},
+  { match: ['请假审批', '请假申请', '假期余额', '请假'], caps: [
+    { key: 'leave_request', label: '请假审批' },
+    { key: 'notify_im', label: '企微钉钉飞书' },
+  ]},
+  { match: ['报销记账', '费用报销', '发票上传', '报销申请'], caps: [
+    { key: 'expense_claim', label: '报销记账' },
+    { key: 'notify_im', label: '企微钉钉飞书' },
+  ]},
+  { match: ['制度问答', '制度政策', '福利政策', '制度查询'], caps: [
+    { key: 'policy_qa', label: '制度问答' },
+    { key: 'notify_im', label: '企微钉钉飞书' },
+  ]},
+  { match: ['招聘入职', '招聘管理', '简历筛选', '入职指引'], caps: [
+    { key: 'hire_onboard', label: '招聘入职' },
+    { key: 'notify_im', label: '企微钉钉飞书' },
+  ]},
+  { match: ['销售线索', '客户跟进', '线索录入', '销售漏斗'], caps: [
+    { key: 'sales_lead', label: '销售线索' },
+    { key: 'notify_im', label: '企微钉钉飞书' },
+  ]},
+  { match: ['报价合同', '报价审批', '合同评审', '特价申请'], caps: [
+    { key: 'quote_contract', label: '报价合同' },
+    { key: 'notify_im', label: '企微钉钉飞书' },
+  ]},
+  { match: ['经营看板', '经营指标', '自然语言查数', '老板看板'], caps: [
+    { key: 'ops_kpi', label: '经营看板' },
+    { key: 'notify_im', label: '企微钉钉飞书' },
+  ]},
   { match: ['课本学习', '学习规划', '学习进度', '家默', '听写', '复习跟进', '家默督导', '教学规划'], caps: [
     { key: 'study_coach', label: '课本学习' },
     { key: 'notify_im', label: '企微钉钉飞书' },

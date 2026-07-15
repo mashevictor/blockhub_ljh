@@ -5,6 +5,13 @@ import type { AgentPick } from '../components/agentInputLogic'
 import { ROLE_PRESETS, type RolePreset } from './rolePresets'
 
 const ALIASES: Record<string, string[]> = {
+  s01: ['请假审批', '请假申请', '假期余额', '请假'],
+  s02: ['报销记账', '费用报销', '发票上传', '报销申请'],
+  s03: ['制度问答', '制度政策', '福利政策', '制度查询'],
+  s04: ['招聘入职', '招聘管理', '简历筛选', '入职指引'],
+  s05: ['销售线索', '客户跟进', '线索录入', '销售漏斗'],
+  s06: ['报价合同', '报价审批', '合同评审', '特价申请'],
+  s07: ['经营看板', '经营指标', '自然语言查数', '老板看板'],
   s08: ['设备报修', '报修', '维修工单', '扫码提单', '产线故障'],
   s09: ['质检SOP', '质检', 'SOP', '终检', '不合格'],
   s10: ['库存盘点', '盘点', '货位', 'SKU', '补货'],
@@ -53,6 +60,13 @@ export const CAPSHIP_MODULE_KEYS = new Set([
   'study_coach',
   'travel_plan',
   'legal_case',
+  'ops_kpi',
+  'quote_contract',
+  'sales_lead',
+  'hire_onboard',
+  'policy_qa',
+  'expense_claim',
+  'leave_request',
   'gov_service',
   'pet_clinic',
   'deco_material',

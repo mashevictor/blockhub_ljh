@@ -37,6 +37,13 @@ from app.api.v1 import (
     fitness_checkin,
     travel_plan,
     legal_case,
+    ops_kpi,
+    quote_contract,
+    sales_lead,
+    hire_onboard,
+    policy_qa,
+    expense_claim,
+    leave_request,
     gov_service,
     pet_clinic,
     deco_material,
@@ -136,6 +143,13 @@ app.include_router(hotel_booking.router, prefix=settings.api_prefix, dependencie
 app.include_router(study_coach.router, prefix=settings.api_prefix, dependencies=_auth)
 app.include_router(travel_plan.router, prefix=settings.api_prefix, dependencies=_auth)
 app.include_router(legal_case.router, prefix=settings.api_prefix, dependencies=_auth)
+app.include_router(ops_kpi.router, prefix=settings.api_prefix, dependencies=_auth)
+app.include_router(quote_contract.router, prefix=settings.api_prefix, dependencies=_auth)
+app.include_router(sales_lead.router, prefix=settings.api_prefix, dependencies=_auth)
+app.include_router(hire_onboard.router, prefix=settings.api_prefix, dependencies=_auth)
+app.include_router(policy_qa.router, prefix=settings.api_prefix, dependencies=_auth)
+app.include_router(expense_claim.router, prefix=settings.api_prefix, dependencies=_auth)
+app.include_router(leave_request.router, prefix=settings.api_prefix, dependencies=_auth)
 app.include_router(gov_service.router, prefix=settings.api_prefix, dependencies=_auth)
 app.include_router(pet_clinic.router, prefix=settings.api_prefix, dependencies=_auth)
 app.include_router(deco_material.router, prefix=settings.api_prefix, dependencies=_auth)

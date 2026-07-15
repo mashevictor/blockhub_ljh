@@ -34,6 +34,13 @@ import 'package:capability_deco_material/capability_deco_material.dart';
 import 'package:capability_pet_clinic/capability_pet_clinic.dart';
 import 'package:capability_gov_service/capability_gov_service.dart';
 import 'package:capability_legal_case/capability_legal_case.dart';
+import 'package:capability_leave_request/capability_leave_request.dart';
+import 'package:capability_expense_claim/capability_expense_claim.dart';
+import 'package:capability_policy_qa/capability_policy_qa.dart';
+import 'package:capability_hire_onboard/capability_hire_onboard.dart';
+import 'package:capability_sales_lead/capability_sales_lead.dart';
+import 'package:capability_quote_contract/capability_quote_contract.dart';
+import 'package:capability_ops_kpi/capability_ops_kpi.dart';
 import 'package:capability_flutter_tools/capability_flutter_tools.dart';
 
 final _mod_chat_qa = const ChatQaModule();
@@ -69,6 +76,13 @@ final _mod_deco_material = const DecoMaterialModule();
 final _mod_pet_clinic = const PetClinicModule();
 final _mod_gov_service = const GovServiceModule();
 final _mod_legal_case = const LegalCaseModule();
+final _mod_leave_request = const LeaveRequestModule();
+final _mod_expense_claim = const ExpenseClaimModule();
+final _mod_policy_qa = const PolicyQaModule();
+final _mod_hire_onboard = const HireOnboardModule();
+final _mod_sales_lead = const SalesLeadModule();
+final _mod_quote_contract = const QuoteContractModule();
+final _mod_ops_kpi = const OpsKpiModule();
 
 List<CapabilityModule> get generatedMelosCapabilityModules => [
   _mod_chat_qa,
@@ -104,6 +118,13 @@ List<CapabilityModule> get generatedMelosCapabilityModules => [
   _mod_pet_clinic,
   _mod_gov_service,
   _mod_legal_case,
+  _mod_leave_request,
+  _mod_expense_claim,
+  _mod_policy_qa,
+  _mod_hire_onboard,
+  _mod_sales_lead,
+  _mod_quote_contract,
+  _mod_ops_kpi,
 ];
 
 final Map<String, CapabilityModule> generatedMelosModuleByKey = {
@@ -148,16 +169,19 @@ final Map<String, CapabilityModule> generatedMelosModuleByKey = {
     'deco_material': _mod_deco_material,
     'delivery_order': _mod_delivery_order,
     'device_repair': _mod_device_repair,
+    'expense_claim': _mod_expense_claim,
     'fitness_checkin': _mod_fitness_checkin,
     'form_widget': _mod_approval_flow,
     'game_support': _mod_game_support,
     'gov_service': _mod_gov_service,
+    'hire_onboard': _mod_hire_onboard,
     'homework_qa': _mod_homework_qa,
     'hotel_booking': _mod_hotel_booking,
     'house_viewing': _mod_house_viewing,
     'inventory_count': _mod_inventory_count,
     'kb_document': _mod_kb,
     'kb_search': _mod_kb,
+    'leave_request': _mod_leave_request,
     'legal_case': _mod_legal_case,
     'list_widget': _mod_approval_flow,
     'med_triage': _mod_med_triage,
@@ -166,9 +190,13 @@ final Map<String, CapabilityModule> generatedMelosModuleByKey = {
     'notify_email': _mod_dashboard,
     'notify_inapp': _mod_dashboard,
     'nurse_shift': _mod_nurse_shift,
+    'ops_kpi': _mod_ops_kpi,
     'pet_clinic': _mod_pet_clinic,
+    'policy_qa': _mod_policy_qa,
     'property_repair': _mod_property_repair,
     'quality_inspect': _mod_quality_inspect,
+    'quote_contract': _mod_quote_contract,
+    'sales_lead': _mod_sales_lead,
     'school_notice': _mod_school_notice,
     'security_mask': _mod_security_mask,
     'shanghai_voice': _mod_shanghai_voice,
