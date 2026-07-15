@@ -86,7 +86,7 @@ export function LegalCaseWidget(_props: { node: SchemaNode }) {
       await apiFetch('/api/v1/legal-case/records', token, {
         method: 'POST',
         body: JSON.stringify({
-          category,,
+          category,
           title: (values.title || '').trim(),
           party: (values.party || '').trim(),
           deadline: (values.deadline || '').trim(),

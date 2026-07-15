@@ -86,7 +86,7 @@ export function DecoMaterialWidget(_props: { node: SchemaNode }) {
       await apiFetch('/api/v1/deco-material/records', token, {
         method: 'POST',
         body: JSON.stringify({
-          category,,
+          category,
           material_name: (values.material_name || '').trim(),
           location: (values.location || '').trim(),
           budget: (values.budget || '').trim(),

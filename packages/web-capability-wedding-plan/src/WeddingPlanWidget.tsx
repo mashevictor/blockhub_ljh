@@ -86,7 +86,7 @@ export function WeddingPlanWidget(_props: { node: SchemaNode }) {
       await apiFetch('/api/v1/wedding-plan/records', token, {
         method: 'POST',
         body: JSON.stringify({
-          category,,
+          category,
           title: (values.title || '').trim(),
           vendor: (values.vendor || '').trim(),
           budget: (values.budget || '').trim(),

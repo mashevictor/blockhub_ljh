@@ -85,7 +85,7 @@ export function FitnessCheckinWidget(_props: { node: SchemaNode }) {
       await apiFetch('/api/v1/fitness-checkin/records', token, {
         method: 'POST',
         body: JSON.stringify({
-          category,,
+          category,
           member_name: (values.member_name || '').trim(),
           class_name: (values.class_name || '').trim(),
           schedule_at: (values.schedule_at || '').trim(),

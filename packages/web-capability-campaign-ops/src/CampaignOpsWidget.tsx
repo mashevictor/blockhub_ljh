@@ -86,7 +86,7 @@ export function CampaignOpsWidget(_props: { node: SchemaNode }) {
       await apiFetch('/api/v1/campaign-ops/records', token, {
         method: 'POST',
         body: JSON.stringify({
-          category,,
+          category,
           title: (values.title || '').trim(),
           channel: (values.channel || '').trim(),
           metric: (values.metric || '').trim(),

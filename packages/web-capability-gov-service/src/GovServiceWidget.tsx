@@ -86,7 +86,7 @@ export function GovServiceWidget(_props: { node: SchemaNode }) {
       await apiFetch('/api/v1/gov-service/records', token, {
         method: 'POST',
         body: JSON.stringify({
-          category,,
+          category,
           title: (values.title || '').trim(),
           dept: (values.dept || '').trim(),
           ticket_no: (values.ticket_no || '').trim(),

@@ -570,7 +570,7 @@ def write_web(c: dict) -> None:
 
     req_check = " || ".join(f"!values.{r}?.trim()" for r in c["req"])
     body_json = ",\n          ".join(
-        "category," if fn == "category" else f"{fn}: (values.{fn} || '').trim()" for fn in field_names
+        "category" if fn == "category" else f"{fn}: (values.{fn} || '').trim()" for fn in field_names
     )
     name = c["name"]
     title_field = c["title_field"]

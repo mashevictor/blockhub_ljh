@@ -86,7 +86,7 @@ export function PetClinicWidget(_props: { node: SchemaNode }) {
       await apiFetch('/api/v1/pet-clinic/records', token, {
         method: 'POST',
         body: JSON.stringify({
-          category,,
+          category,
           pet_name: (values.pet_name || '').trim(),
           symptom: (values.symptom || '').trim(),
           schedule_at: (values.schedule_at || '').trim(),

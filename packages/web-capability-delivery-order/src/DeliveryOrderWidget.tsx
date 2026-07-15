@@ -87,7 +87,7 @@ export function DeliveryOrderWidget(_props: { node: SchemaNode }) {
       await apiFetch('/api/v1/delivery-order/records', token, {
         method: 'POST',
         body: JSON.stringify({
-          category,,
+          category,
           pickup: (values.pickup || '').trim(),
           dropoff: (values.dropoff || '').trim(),
           rider_name: (values.rider_name || '').trim(),

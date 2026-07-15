@@ -86,7 +86,7 @@ export function TravelPlanWidget(_props: { node: SchemaNode }) {
       await apiFetch('/api/v1/travel-plan/records', token, {
         method: 'POST',
         body: JSON.stringify({
-          category,,
+          category,
           destination: (values.destination || '').trim(),
           days: (values.days || '').trim(),
           title: (values.title || '').trim(),

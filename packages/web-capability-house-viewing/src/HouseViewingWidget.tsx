@@ -87,7 +87,7 @@ export function HouseViewingWidget(_props: { node: SchemaNode }) {
       await apiFetch('/api/v1/house-viewing/records', token, {
         method: 'POST',
         body: JSON.stringify({
-          category,,
+          category,
           client_name: (values.client_name || '').trim(),
           property_addr: (values.property_addr || '').trim(),
           schedule_at: (values.schedule_at || '').trim(),
