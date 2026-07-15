@@ -41,11 +41,13 @@ export const SCENARIO_PICKS: ScenarioPick[] = [
   { key: 'notify_announce', category: '消息通知', icon: '📢', title: '公告推送', desc: '全员公告栏，已读未读追踪', capability: 'announce_board', agent: '通知', promptLine: '企业公告栏与全员推送' },
 
   // 行业场景（抽样）
-  { key: 'mfg_repair', category: '制造业', icon: '🔧', title: '设备报修', desc: '产线故障拍照报修，派工跟踪', capability: 'approval_flow', agent: '审批', promptLine: '产线设备报修派工（拍照+工单流转）' },
+  { key: 'mfg_repair', category: '制造业', icon: '🔧', title: '设备报修', desc: '产线故障拍照报修，派工跟踪', capability: 'device_repair', agent: '报修', promptLine: '产线设备报修派工（拍照+工单流转）' },
   { key: 'sales_quote', category: '销售行业', icon: '💼', title: '报价折扣审批', desc: '超权限折扣需主管审批', capability: 'approval_flow', agent: '审批', promptLine: '销售报价/折扣超权限审批' },
   { key: 'sales_script', category: '销售行业', icon: '🎯', title: '产品话术问答', desc: '竞品对比、参数查询，销售随身助手', capability: 'chat_qa', agent: '问答', promptLine: '销售产品话术与竞品参数问答' },
-  { key: 'med_triage', category: '医疗行业', icon: '🏥', title: '智能导诊', desc: '患者预问诊，对外轻量网页或 App', capability: 'chat_qa', agent: '问答', promptLine: '对外智能导诊与预问诊' },
-  { key: 'game_faq', category: '游戏行业', icon: '🎮', title: '玩家 FAQ', desc: '活动规则、攻略问答，减轻客服压力', capability: 'chat_qa', agent: '问答', promptLine: '玩家 FAQ 与活动规则问答' },
+  { key: 'med_triage', category: '医疗行业', icon: '🏥', title: '智能导诊', desc: '患者预问诊，对外轻量网页或 App', capability: 'med_triage', agent: '导诊', promptLine: '对外智能导诊与预问诊' },
+  { key: 'nurse_shift', category: '医疗行业', icon: '🗓️', title: '护士排班', desc: '调班申请与护士长批复', capability: 'nurse_shift', agent: '排班', promptLine: '护士调班申请与批复' },
+  { key: 'member_loyalty', category: '零售电商', icon: '🎁', title: '会员营销', desc: '积分活动登记与触达确认', capability: 'member_loyalty', agent: '营销', promptLine: '会员积分促销活动与触达' },
+  { key: 'game_faq', category: '游戏行业', icon: '🎮', title: '玩家 FAQ', desc: '活动规则、攻略与客服工单', capability: 'game_support', agent: '客服', promptLine: '玩家 FAQ 与客服工单' },
   { key: 'it_help', category: 'IT 与资产', icon: '🛠', title: 'IT 报障', desc: '故障工单提交，IT 值班分派', capability: 'it_helpdesk', agent: '外部数据', promptLine: 'IT 报障工单与值班分派' },
   { key: 'erp', category: '外部对接', icon: '🔌', title: '对接 ERP/OA', desc: 'SAP/用友/钉钉数据双向同步', capability: 'erp_connector', agent: '外部数据', promptLine: '对接 ERP/OA 系统数据同步' },
 ]

@@ -20,6 +20,10 @@ from app.api.v1 import (
     integration,
     inventory_count,
     kb,
+    member_loyalty,
+    med_triage,
+    nurse_shift,
+    game_support,
     notifications,
     quality_inspect,
     reports,
@@ -102,6 +106,10 @@ app.include_router(approvals.router, prefix=settings.api_prefix, dependencies=_a
 app.include_router(device_repair.router, prefix=settings.api_prefix, dependencies=_auth)
 app.include_router(quality_inspect.router, prefix=settings.api_prefix, dependencies=_auth)
 app.include_router(inventory_count.router, prefix=settings.api_prefix, dependencies=_auth)
+app.include_router(member_loyalty.router, prefix=settings.api_prefix, dependencies=_auth)
+app.include_router(med_triage.router, prefix=settings.api_prefix, dependencies=_auth)
+app.include_router(nurse_shift.router, prefix=settings.api_prefix, dependencies=_auth)
+app.include_router(game_support.router, prefix=settings.api_prefix, dependencies=_auth)
 app.include_router(reports.router, prefix=settings.api_prefix, dependencies=_auth)
 app.include_router(notifications.router, prefix=settings.api_prefix, dependencies=_auth)
 # integration：ingress/webhook 公开验签；其余路由在 router 内依赖 get_current_user

@@ -69,6 +69,22 @@ const SCENARIO_CAPABILITY_MAP: Array<{ match: string[]; caps: Array<{ key: strin
     { key: 'inventory_count', label: '库存盘点' },
     { key: 'notify_im', label: '企微钉钉飞书' },
   ]},
+  { match: ['会员营销', '会员积分', '会员管理', '促销活动', '券码', '积分兑换'], caps: [
+    { key: 'member_loyalty', label: '会员营销' },
+    { key: 'notify_im', label: '企微钉钉飞书' },
+  ]},
+  { match: ['医疗导诊', '智能导诊', '就医指南', '导诊', '预问诊', '科室导航', '症状初筛'], caps: [
+    { key: 'med_triage', label: '医疗导诊' },
+    { key: 'notify_im', label: '企微钉钉飞书' },
+  ]},
+  { match: ['护士排班', '调班申请', '护士调班', '排班/调班', '值班通知'], caps: [
+    { key: 'nurse_shift', label: '护士排班' },
+    { key: 'notify_im', label: '企微钉钉飞书' },
+  ]},
+  { match: ['玩家FAQ', '玩家攻略', '客服工单', '活动规则', '游戏FAQ'], caps: [
+    { key: 'game_support', label: '玩家FAQ' },
+    { key: 'notify_im', label: '企微钉钉飞书' },
+  ]},
   { match: ['请假', '年假', '调休'], caps: [{ key: 'approval_flow', label: '审批流' }, { key: 'chat_qa', label: '智能问答' }] },
   { match: ['报销', '费用报销'], caps: [{ key: 'approval_flow', label: '审批流' }, { key: 'kb_document', label: '知识库' }] },
   { match: ['用印', '盖章'], caps: [{ key: 'approval_flow', label: '审批流' }] },

@@ -6,6 +6,7 @@ import re
 
 from app.data.capability_registry import ALL_CAPABILITIES, INDUSTRY_HINTS
 from app.data.industry_packs_all import ALL_INDUSTRY_PACKS
+from app.services.hero_preset_match import match_hero_presets
 
 _ALARM_HINTS = ("闹钟", "alarm", "定时", "cron", "准时", "每天", "重复提醒", "番茄钟", "计时器", "倒计时")
 
@@ -14,6 +15,12 @@ _AGENT_TO_MODULE: dict[str, str] = {
     "chat_qa": "chat_qa",
     "approval": "approval_flow",
     "device_repair": "device_repair",
+    "quality_inspect": "quality_inspect",
+    "inventory_count": "inventory_count",
+    "member_loyalty": "member_loyalty",
+    "med_triage": "med_triage",
+    "nurse_shift": "nurse_shift",
+    "game_support": "game_support",
     "kb": "kb_document",
     "report": "chart_dashboard",
     "notify": "notify_inapp",
@@ -26,6 +33,7 @@ _AGENT_TO_MODULE: dict[str, str] = {
 # 兜底（行业包未覆盖时）
 INDUSTRY_DEFAULT_MODULES: dict[str, list[tuple[str, str, str]]] = {
     "game": [
+        ("game_support", "玩家FAQ", "FAQ/攻略/客服工单"),
         ("chat_qa", "智能问答", "玩家 FAQ/攻略/NPC 对话"),
         ("approval_flow", "审批流", "客服工单/公会/验收"),
         ("kb_document", "知识库", "版本/活动规则库"),
@@ -35,6 +43,7 @@ INDUSTRY_DEFAULT_MODULES: dict[str, list[tuple[str, str, str]]] = {
     ],
     "mfg": [
         ("device_repair", "设备报修", "设备报修/扫码派工"),
+        ("quality_inspect", "质检SOP", "质检/SOP 录入与闭环"),
         ("chat_qa", "智能问答", "工艺/SOP 问答"),
         ("notify_im", "企微钉钉飞书", "工单状态推送到群"),
     ],
@@ -43,12 +52,16 @@ INDUSTRY_DEFAULT_MODULES: dict[str, list[tuple[str, str, str]]] = {
         ("approval_flow", "审批流", "报价/合同审批"),
     ],
     "med": [
-        ("approval_flow", "审批流", "排班/会诊申请"),
+        ("med_triage", "医疗导诊", "科室导诊/就诊指引"),
+        ("nurse_shift", "护士排班", "调班申请/批复"),
         ("chat_qa", "智能问答", "导诊/制度问答"),
+        ("notify_im", "企微钉钉飞书", "就诊提醒推送"),
     ],
     "retail": [
+        ("inventory_count", "库存盘点", "货位/SKU 盘点确认"),
+        ("member_loyalty", "会员营销", "积分/活动/触达"),
+        ("notify_im", "企微钉钉飞书", "促销/盘点通知"),
         ("chart_dashboard", "数据看板", "会员/库存看板"),
-        ("notify_inapp", "站内信", "促销/会员触达"),
     ],
     "edu": [
         ("chat_qa", "智能问答", "课程/培训答疑"),
@@ -188,13 +201,16 @@ def score_keywords(text: str, keywords: tuple[str, ...]) -> float:
 
 
 def _merge_item_lists(primary: list[dict], secondary: list[dict], *, limit: int = 12) -> list[dict]:
-    seen = {x["key"] for x in primary}
-    merged = list(primary)
-    for item in secondary:
-        if item["key"] in seen:
+    """合并时同 key 保留更高分（保证弹幕/关键词不被 LLM 低分项冲掉）。"""
+    by_key: dict[str, dict] = {}
+    for item in primary + secondary:
+        k = str(item.get("key") or "")
+        if not k:
             continue
-        merged.append(item)
-        seen.add(item["key"])
+        prev = by_key.get(k)
+        if prev is None or float(item.get("score") or 0) > float(prev.get("score") or 0):
+            by_key[k] = item
+    merged = list(by_key.values())
     merged.sort(key=lambda x: x["score"], reverse=True)
     return merged[:limit]
 
@@ -238,6 +254,18 @@ def match_modules_keyword(user_text: str) -> list[dict]:
         push("kb_document", 7.5, "知识库 · 制度与文档")
         push("知识协同", 7.0, "积木仓核心办公分类", pick_type="office", label="知识协同")
         matched_industries.append(("office", "通用办公", 9.0))
+
+    # 弹幕英雄场景优先（CapShip 真能力），得分可压过泛行业兜底
+    for item in match_hero_presets(text):
+        push(
+            item["key"],
+            float(item["score"]),
+            str(item.get("reason") or "弹幕场景匹配"),
+            pick_type=str(item.get("type") or "module"),
+            label=str(item.get("label") or ""),
+        )
+        if item.get("type") == "industry":
+            matched_industries.append((item["key"], item.get("label") or item["key"], float(item["score"])))
 
     for cap in ALL_CAPABILITIES.values():
         s = score_keywords(text, cap.keywords)

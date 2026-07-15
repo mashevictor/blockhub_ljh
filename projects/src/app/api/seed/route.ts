@@ -176,7 +176,7 @@ const INDUSTRY_SCENARIOS = [
   { scenario_key: "med_dept_dashboard", name: "科室运营看板", category: "数据分析", type: "industry", pack: "med", primary_agent: "report", required_caps: ["chart_dashboard"] },
   { scenario_key: "med_cme", name: "继续教育/考核", category: "培训管理", type: "industry", pack: "med", primary_agent: "kb", required_caps: ["kb_document", "form_widget"] },
   { scenario_key: "med_his_sync", name: "对接HIS/LIS", category: "系统集成", type: "industry", pack: "med", primary_agent: "integration", required_caps: ["integration"] },
-  { scenario_key: "med_triage", name: "智能导诊", category: "患者服务", type: "industry", pack: "med", primary_agent: "chat_qa", required_caps: ["chat_qa"] },
+  { scenario_key: "med_triage", name: "智能导诊", category: "患者服务", type: "industry", pack: "med", primary_agent: "med_triage", required_caps: ["med_triage"] },
   { scenario_key: "med_consultation", name: "会诊/转诊申请", category: "临床管理", type: "industry", pack: "med", primary_agent: "approval", required_caps: ["approval_flow"] },
   // 游戏行业 13
   { scenario_key: "game_faq", name: "玩家FAQ/攻略", category: "玩家服务", type: "industry", pack: "game", primary_agent: "chat_qa", required_caps: ["chat_qa"] },

@@ -1,0 +1,14 @@
+---
+description: 弹幕/Hero 场景能力必须按 CapShip 路径 A 真实现（API+DB），禁止 mock
+alwaysApply: true
+---
+
+# CapShip 弹幕能力 · 真交付
+
+首页 Hero 弹幕、`>>` 匹配、rolePresets / hero_presets 里挂出的 **module key**，一律按 **选型即交付**：
+
+1. **路径 A**：`capability_registry` → DB 表 + Alembic → `/api/v1/...` → `web-capability-*` + `capability_*` 双端包
+2. **禁止**：localStorage / 内存假列表 / seed 演示工单冒充业务数据
+3. **空库 = 空列表**；刷新后仍从同一真 API 读写
+4. **`>>` 匹配**优先弹幕映射的真 capability（如报修→`device_repair`，勿用 `approval_flow` 顶替）
+5. 参考实现：`device_repair` / `quality_inspect` / `inventory_count`；契约见 `docs/opensource/capship.html` 与 `.cursor/skills/capship-capability/SKILL.md`

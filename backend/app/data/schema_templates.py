@@ -99,6 +99,34 @@ SCENARIO_TEMPLATES: list[dict[str, Any]] = [
         "match": ["库存", "盘点", "SKU", "货位", "补货"],
         "capability_keys": ["inventory_count", "notify_im", "chart_dashboard"],
     },
+    {
+        "id": "tpl-retail-member",
+        "name": "会员营销",
+        "industry": "retail",
+        "match": ["会员营销", "会员积分", "会员管理", "促销活动", "券码", "积分兑换"],
+        "capability_keys": ["member_loyalty", "notify_im", "chart_dashboard"],
+    },
+    {
+        "id": "tpl-med-triage",
+        "name": "医疗导诊",
+        "industry": "med",
+        "match": ["医疗导诊", "智能导诊", "就医指南", "导诊", "预问诊", "科室导航", "症状初筛"],
+        "capability_keys": ["med_triage", "notify_im", "chat_qa"],
+    },
+    {
+        "id": "tpl-med-shift",
+        "name": "护士排班",
+        "industry": "med",
+        "match": ["护士排班", "调班申请", "护士调班", "排班/调班", "值班通知"],
+        "capability_keys": ["nurse_shift", "notify_im"],
+    },
+    {
+        "id": "tpl-game-faq",
+        "name": "玩家FAQ",
+        "industry": "game",
+        "match": ["玩家FAQ", "玩家攻略", "客服工单", "活动规则", "游戏FAQ"],
+        "capability_keys": ["game_support", "notify_im", "chat_qa"],
+    },
 ]
 
 OFFICE_DEFAULT_KEYS = ["chat_qa", "approval_flow", "kb_document", "chart_dashboard"]

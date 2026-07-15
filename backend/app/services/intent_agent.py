@@ -129,6 +129,8 @@ def _keyword_industry_rescue(text: str) -> dict[str, Any] | None:
 
 
 def _build_system_prompt(extra_industries: str = "", extra_caps: str = "") -> str:
+    from app.services.hero_preset_match import hero_scene_catalog_for_llm
+
     return (
         "你是积木仓 BlockHub 的「意图理解 Agent」，专门把用户的自然语言需求转化为可落地的企业智能应用方案。\n"
         "你的职责：\n"
@@ -142,7 +144,8 @@ def _build_system_prompt(extra_industries: str = "", extra_caps: str = "") -> st
         "- valid：能明确判断业务场景，confidence>=0.5，给出 industries/items。\n"
         "- unclear：信息过少或含糊（如单字、代词），confidence<0.5，items 可为空，必须给 guidance 引导补充。\n"
         "- invalid：与建应用无关、违规或无法理解，confidence<=0.2，items 必须为空，必须给 rejection_reason。\n\n"
-        "匹配规则：\n"
+        "匹配规则（高匹配优先）：\n"
+        "- 若用户描述接近首页弹幕场景，必须优先选用「弹幕场景映射」中的 module key（如设备报修→device_repair，质检→quality_inspect，盘点→inventory_count，会员→member_loyalty，导诊→med_triage，护士排班→nurse_shift，玩家FAQ→game_support），不要用旧的 approval_flow 顶替。\n"
         "- 行业 key 必须从已有列表选择；不要编造不存在的 key 放进 industries。\n"
         "- 能力 module key 优先从 catalog 选取；确实没有时用 new_capabilities（key 以 custom_ 开头）。\n"
         "- 娱乐/游戏类（含休闲对战、宠物、小游戏、玩家 FAQ、客服工单、活动通知）优先 game 行业，不要硬塞办公审批，也不要判 invalid。\n"
@@ -152,12 +155,13 @@ def _build_system_prompt(extra_industries: str = "", extra_caps: str = "") -> st
         '"rejection_reason":"","guidance":"给用户的补充引导",'
         '"industries":[{"key":"mfg","label":"传统制造","reason":"...","score":8}],'
         '"offices":[{"key":"流程审批","label":"流程审批","reason":"...","score":7}],'
-        '"items":[{"key":"approval_flow","name":"审批流","reason":"...","score":8}],'
+        '"items":[{"key":"device_repair","name":"设备报修","reason":"...","score":9}],'
         '"new_industries":[{"key":"wellness","name":"健身运动","tagline":"课程预约会员管理","reason":"..."}],'
         '"new_capabilities":[{"key":"custom_live_commerce","name":"直播带货","category":"扩展能力","reason":"..."}],'
         '"new_scenes":[{"pack_key":"wellness","name":"课程预约","category":"会员服务","problem":"..."}]}'
         f"\n\n已有行业包：\n{industry_catalog_for_llm()}"
         f"{extra_industries}"
+        f"\n\n弹幕场景 → 能力映射（高优先）：\n{hero_scene_catalog_for_llm()}"
         f"\n\n已有能力 catalog：\n{capability_catalog_for_llm()}"
         f"{extra_caps}"
     )

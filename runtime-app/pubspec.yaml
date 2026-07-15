@@ -23,6 +23,14 @@ dependencies:
     path: ../packages/capability_quality_inspect
   capability_inventory_count:
     path: ../packages/capability_inventory_count
+  capability_member_loyalty:
+    path: ../packages/capability_member_loyalty
+  capability_med_triage:
+    path: ../packages/capability_med_triage
+  capability_nurse_shift:
+    path: ../packages/capability_nurse_shift
+  capability_game_support:
+    path: ../packages/capability_game_support
   capability_audit_log:
     path: ../packages/capability_audit_log
   capability_kb:

@@ -6,6 +6,10 @@ import 'package:capability_approval_flow/capability_approval_flow.dart';
 import 'package:capability_device_repair/capability_device_repair.dart';
 import 'package:capability_quality_inspect/capability_quality_inspect.dart';
 import 'package:capability_inventory_count/capability_inventory_count.dart';
+import 'package:capability_member_loyalty/capability_member_loyalty.dart';
+import 'package:capability_med_triage/capability_med_triage.dart';
+import 'package:capability_nurse_shift/capability_nurse_shift.dart';
+import 'package:capability_game_support/capability_game_support.dart';
 import 'package:capability_audit_log/capability_audit_log.dart';
 import 'package:capability_kb/capability_kb.dart';
 import 'package:capability_dashboard/capability_dashboard.dart';
@@ -21,6 +25,10 @@ final _mod_approval_flow = const ApprovalFlowModule();
 final _mod_device_repair = const DeviceRepairModule();
 final _mod_quality_inspect = const QualityInspectModule();
 final _mod_inventory_count = const InventoryCountModule();
+final _mod_member_loyalty = const MemberLoyaltyModule();
+final _mod_med_triage = const MedTriageModule();
+final _mod_nurse_shift = const NurseShiftModule();
+final _mod_game_support = const GameSupportModule();
 final _mod_audit_log = const AuditLogModule();
 final _mod_kb = const KbModule();
 final _mod_dashboard = const DashboardModule();
@@ -35,6 +43,10 @@ List<CapabilityModule> get generatedMelosCapabilityModules => [
   _mod_device_repair,
   _mod_quality_inspect,
   _mod_inventory_count,
+  _mod_member_loyalty,
+  _mod_med_triage,
+  _mod_nurse_shift,
+  _mod_game_support,
   _mod_audit_log,
   _mod_kb,
   _mod_dashboard,
@@ -81,15 +93,19 @@ final Map<String, CapabilityModule> generatedMelosModuleByKey = {
     'contract_esign': _mod_approval_flow,
     'data_nl_query': _mod_data_nl_query,
     'device_repair': _mod_device_repair,
-    'quality_inspect': _mod_quality_inspect,
-    'inventory_count': _mod_inventory_count,
     'form_widget': _mod_approval_flow,
+    'game_support': _mod_game_support,
+    'inventory_count': _mod_inventory_count,
     'kb_document': _mod_kb,
     'kb_search': _mod_kb,
     'list_widget': _mod_approval_flow,
+    'med_triage': _mod_med_triage,
+    'member_loyalty': _mod_member_loyalty,
     'multi_agent': _mod_multi_agent,
     'notify_email': _mod_dashboard,
     'notify_inapp': _mod_dashboard,
+    'nurse_shift': _mod_nurse_shift,
+    'quality_inspect': _mod_quality_inspect,
     'security_mask': _mod_security_mask,
     'shanghai_voice': _mod_shanghai_voice,
     'shanghai_voice_stream': _mod_shanghai_voice,

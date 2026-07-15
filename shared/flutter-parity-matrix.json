@@ -63,6 +63,46 @@
       "dart_import": "package:capability_inventory_count/capability_inventory_count.dart"
     },
     {
+      "web_pkg": "@blockhub/web-capability-member-loyalty",
+      "web_folder": "web-capability-member-loyalty",
+      "flutter_pkg": "capability_member_loyalty",
+      "p1_scope": "app",
+      "status_target": "ok",
+      "capability_keys": ["member_loyalty"],
+      "module_class": "MemberLoyaltyModule",
+      "dart_import": "package:capability_member_loyalty/capability_member_loyalty.dart"
+    },
+    {
+      "web_pkg": "@blockhub/web-capability-med-triage",
+      "web_folder": "web-capability-med-triage",
+      "flutter_pkg": "capability_med_triage",
+      "p1_scope": "app",
+      "status_target": "ok",
+      "capability_keys": ["med_triage"],
+      "module_class": "MedTriageModule",
+      "dart_import": "package:capability_med_triage/capability_med_triage.dart"
+    },
+    {
+      "web_pkg": "@blockhub/web-capability-nurse-shift",
+      "web_folder": "web-capability-nurse-shift",
+      "flutter_pkg": "capability_nurse_shift",
+      "p1_scope": "app",
+      "status_target": "ok",
+      "capability_keys": ["nurse_shift"],
+      "module_class": "NurseShiftModule",
+      "dart_import": "package:capability_nurse_shift/capability_nurse_shift.dart"
+    },
+    {
+      "web_pkg": "@blockhub/web-capability-game-support",
+      "web_folder": "web-capability-game-support",
+      "flutter_pkg": "capability_game_support",
+      "p1_scope": "app",
+      "status_target": "ok",
+      "capability_keys": ["game_support"],
+      "module_class": "GameSupportModule",
+      "dart_import": "package:capability_game_support/capability_game_support.dart"
+    },
+    {
       "web_pkg": "@blockhub/web-capability-audit-log",
       "web_folder": "web-capability-audit-log",
       "flutter_pkg": "capability_audit_log",

@@ -142,6 +142,12 @@ def suggest_modules(
             llm_items, supplemented = merge_llm_items(parsed)
 
     keyword_items = merge_keyword_with_llm(keyword_items, llm_items, limit=20)
+    # 弹幕高匹配二次抬升：同 key 取高分，确保 >> 优先真 CapShip
+    from app.services.hero_preset_match import match_hero_presets
+
+    hero_boost = match_hero_presets(text)
+    if hero_boost:
+        keyword_items = merge_keyword_with_llm(hero_boost, keyword_items, limit=24)
     keyword_items = filter_spurious_modules(text, keyword_items)
 
     # 命中行业时：用 20 行业深度包的 scenes + 能力模块补齐（LLM 只猜 2～3 个时仍展开完整包）
