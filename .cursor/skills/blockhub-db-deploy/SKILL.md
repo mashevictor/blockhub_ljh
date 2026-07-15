@@ -28,6 +28,17 @@ bash scripts/fix-catalog.sh
 bash scripts/smoke-db.sh http://127.0.0.1:8001
 ```
 
+### Catalog seed FK：`agent_id` 不在 `catalog_agents`
+
+报错示例：`Key (agent_id)=(quality_inspect) is not present in table "catalog_agents"`。
+
+**原因**：CapShip 能力（质检/盘点/会员…）的 `agent_id` 未写入 `AGENTS`。已在 `seed.py` 补齐，且 `catalog_seed._ensure_capship_agents` 会幂等补缺。
+
+```bash
+git pull
+bash scripts/fix-catalog.sh
+```
+
 或分步：
 
 ```bash

@@ -26,6 +26,48 @@ from app.db.models import (
 )
 
 
+def _ensure_capship_agents(db: Session) -> int:
+    """保证 CAPABILITIES 引用的 agent_id 均存在于 catalog_agents（防 FK 失败）。"""
+    existing = {row.id for row in db.query(CatalogAgent.id).all()}
+    by_id = {a["id"]: a for a in AGENTS}
+    added = 0
+    for cap in CAPABILITIES:
+        aid = str(cap.get("agent_id") or "").strip()
+        if not aid or aid in existing:
+            continue
+        src = by_id.get(aid) or {
+            "id": aid,
+            "name": cap.get("name") or aid,
+            "icon": "◆",
+            "color": "#6366f1",
+            "status": "active",
+            "description": f"CapShip · {cap.get('name') or aid}",
+            "pipeline": "录入→确认→闭环",
+            "capabilities": [cap["key"]],
+            "office_count": 0,
+            "industry_count": 0,
+        }
+        db.add(
+            CatalogAgent(
+                id=src["id"],
+                name=src["name"],
+                icon=src.get("icon", ""),
+                color=src.get("color", ""),
+                status=src.get("status", "active"),
+                description=src.get("description", ""),
+                pipeline=src.get("pipeline", ""),
+                capability_keys=src.get("capabilities", [cap["key"]]),
+                office_count=int(src.get("office_count", 0)),
+                industry_count=int(src.get("industry_count", 0)),
+            )
+        )
+        existing.add(aid)
+        added += 1
+    if added:
+        db.flush()
+    return added
+
+
 def _seed_hero_and_chips(db: Session) -> None:
     db.query(CatalogChipTemplate).delete()
     db.query(CatalogHeroPreset).delete()
@@ -134,6 +176,8 @@ def seed_catalog(db: Session, *, force: bool = False) -> dict[str, int]:
                 industry_count=int(agent.get("industry_count", 0)),
             )
         )
+    db.flush()
+    _ensure_capship_agents(db)
 
     for cap in CAPABILITIES:
         db.add(
@@ -302,7 +346,9 @@ def sync_catalog_delta(db: Session) -> int:
                 industry_count=int(agent.get("industry_count", 0)),
             )
         )
+        existing_agents.add(agent["id"])
         added += 1
+    added += _ensure_capship_agents(db)
 
     for cap in CAPABILITIES:
         if cap["key"] in existing_caps:
