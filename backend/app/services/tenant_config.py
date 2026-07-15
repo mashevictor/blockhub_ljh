@@ -72,15 +72,16 @@ def get_tenant_config(
         **config,
     }
 
-    # Real tenant stats (W4 · 非 Mock).
-    apps_count = db.query(AppRecord).filter(AppRecord.tenant_id == tenant.id).count()
-    approvals_count = db.query(ApprovalRecord).filter(ApprovalRecord.tenant_id == tenant.id).count()
-    users_count = db.query(User).filter(User.tenant_id == tenant.id).count()
-    payload["stats"] = {
-        "apps": apps_count,
-        "approvals": approvals_count,
-        "users": users_count,
-    }
+    # 按应用打开运行时时跳过全局 COUNT（三表全表统计会拖慢 /config）
+    if not app_public_id:
+        apps_count = db.query(AppRecord).filter(AppRecord.tenant_id == tenant.id).count()
+        approvals_count = db.query(ApprovalRecord).filter(ApprovalRecord.tenant_id == tenant.id).count()
+        users_count = db.query(User).filter(User.tenant_id == tenant.id).count()
+        payload["stats"] = {
+            "apps": apps_count,
+            "approvals": approvals_count,
+            "users": users_count,
+        }
 
     if app_public_id:
         app = (
@@ -91,8 +92,9 @@ def get_tenant_config(
         if app:
             deliver = app.deliver or "both"
             base_url = settings.public_base_url.rstrip("/")
-            apk_status = get_apk_build_status(app.public_id)
+            # 运行时壳只需要文件是否存在；不读 build log / detail
             apk_ready = per_app_apk_ready(app.public_id, deliver=deliver)
+            apk_status = get_apk_build_status(app.public_id) if deliver in ("app", "both") else "skipped"
             payload["app"] = {
                 "id": app.public_id,
                 "name": app.name,
@@ -100,8 +102,6 @@ def get_tenant_config(
                 "deliver": deliver,
                 "modules": app.modules,
                 "capability_keys": app.capability_keys,
-                "page_schema": app.page_schema,
-                "build_manifest": app.build_manifest,
                 "web_url": f"{base_url}/r/{app.public_id}",
                 "download_url": f"{base_url}/r/{app.public_id}/download",
                 "apk_ready": apk_ready,

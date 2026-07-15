@@ -31,7 +31,7 @@ async function loadPkg(pkg: string): Promise<void> {
   }
 }
 
-/** 按 build_manifest.web_pkgs 懒加载所需能力包（自注册生效）。 */
+/** 按 build_manifest.web_pkgs 并行懒加载所需能力包（自注册生效）。 */
 export async function bootWidgetsFromManifest(
   manifest: BuildManifest | null | undefined,
 ): Promise<void> {
@@ -40,20 +40,20 @@ export async function bootWidgetsFromManifest(
     await bootAllWidgets()
     return
   }
-  for (const pkg of pkgs) {
-    await loadPkg(pkg)
-  }
+  await Promise.all(pkgs.map((pkg) => loadPkg(pkg)))
 }
 
-/** 兜底：无 manifest 时导入所有已发现的能力包。 */
+/** 兜底：无 manifest 时并行导入所有已发现的能力包。 */
 export async function bootAllWidgets(): Promise<void> {
-  for (const loader of Object.values(loaderByFolder)) {
-    try {
-      await loader()
-    } catch (e) {
-      console.warn('[boot] 能力包加载失败:', e)
-    }
-  }
+  await Promise.all(
+    Object.values(loaderByFolder).map(async (loader) => {
+      try {
+        await loader()
+      } catch (e) {
+        console.warn('[boot] 能力包加载失败:', e)
+      }
+    }),
+  )
 }
 
 /** @deprecated use bootWidgetsFromManifest after manifest fetch */

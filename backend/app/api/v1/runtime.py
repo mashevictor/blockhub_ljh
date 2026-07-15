@@ -101,7 +101,7 @@ def runtime_manifest(public_id: str, db: Session = Depends(get_db)) -> dict:
 
 @router.get("/{public_id}")
 def runtime_info(public_id: str, db: Session = Depends(get_db)) -> dict:
-    """运行时元信息（Web / App 共用）。"""
+    """运行时元信息（Web / App 共用）。默认不含巨型 schema/manifest，避免拖慢首屏。"""
     app = db.query(AppRecord).filter(AppRecord.public_id == public_id).first()
     if not app:
         raise HTTPException(status_code=404, detail="应用不存在")
@@ -127,8 +127,6 @@ def runtime_info(public_id: str, db: Session = Depends(get_db)) -> dict:
         or android_app_id_for_public_id(app.public_id),
         "modules": app.modules,
         "capability_keys": app.capability_keys,
-        "page_schema": app.page_schema,
-        "build_manifest": app.build_manifest,
     }
 
 

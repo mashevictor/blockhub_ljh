@@ -83,25 +83,56 @@ export default function App() {
     if (!appId || !token) return
     let cancelled = false
     setWidgetsReady(false)
-    Promise.all([
-      fetch(`/api/v1/runtime/${appId}/config`).then((r) => r.json()),
-      fetch(`/api/v1/runtime/${appId}/schema`).then((r) => r.json()),
-      fetch(`/api/v1/runtime/${appId}/manifest`).then((r) => r.json()),
-      fetch(`/api/v1/runtime/${appId}`).then((r) => (r.ok ? r.json() : null)),
-    ])
-      .then(async ([cfg, sch, man, meta]) => {
+    setError('')
+
+    const withTimeout = <T,>(p: Promise<T>, ms: number, label: string): Promise<T> =>
+      Promise.race([
+        p,
+        new Promise<T>((_, reject) => {
+          window.setTimeout(() => reject(new Error(`${label} 超时（${ms / 1000}s）`)), ms)
+        }),
+      ])
+
+    // 关键路径：config + schema + manifest（并行）→ 能力包并行 boot
+    // 不拉整包 GET /runtime/{id}（含重复巨型 schema，且会查 APK 状态，拖慢「加载应用」）
+    withTimeout(
+      Promise.all([
+        fetch(`/api/v1/runtime/${appId}/config`).then((r) => {
+          if (!r.ok) throw new Error(`config ${r.status}`)
+          return r.json()
+        }),
+        fetch(`/api/v1/runtime/${appId}/schema`).then((r) => {
+          if (!r.ok) throw new Error(`schema ${r.status}`)
+          return r.json()
+        }),
+        fetch(`/api/v1/runtime/${appId}/manifest`).then((r) => {
+          if (!r.ok) throw new Error(`manifest ${r.status}`)
+          return r.json()
+        }),
+      ]),
+      20000,
+      '应用配置',
+    )
+      .then(async ([cfg, sch, man]) => {
         if (cancelled) return
         const bm = (man as { build_manifest: BuildManifest }).build_manifest
-        await bootWidgetsFromManifest(bm)
-        if (cancelled) return
-        setConfig(cfg as TenantRuntimeConfig)
+        const cfgObj = cfg as TenantRuntimeConfig & {
+          deliver?: string
+          apk_ready?: boolean
+        }
+        // 先写入壳数据，再并行 boot；能力包失败不应永久卡死
+        setConfig(cfgObj)
         setSchema((sch as { page_schema: PageSchema }).page_schema)
         setManifest(bm)
+        if (cfgObj.deliver) setDeliver(cfgObj.deliver)
+        if (cfgObj.apk_ready) setApkReady(true)
+        await withTimeout(bootWidgetsFromManifest(bm), 25000, '能力模块')
+        if (cancelled) return
         setWidgetsReady(true)
-        if (meta?.deliver) setDeliver(meta.deliver)
-        if (meta?.apk_ready) setApkReady(true)
       })
-      .catch((e) => setError(String(e)))
+      .catch((e) => {
+        if (!cancelled) setError(String(e))
+      })
     return () => {
       cancelled = true
     }
@@ -163,8 +194,15 @@ export default function App() {
     )
   }
 
-  if (error && !config) {
-    return <p className="error-msg">加载失败：{error}</p>
+  if (error && !widgetsReady) {
+    return (
+      <div className="login-shell">
+        <p className="error-msg">加载失败：{error}</p>
+        <button type="button" className="btn" onClick={() => window.location.reload()}>
+          重试
+        </button>
+      </div>
+    )
   }
 
   if (!config || !schema || !manifest || !widgetsReady) {
