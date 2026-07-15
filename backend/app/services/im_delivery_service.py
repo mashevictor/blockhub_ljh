@@ -112,6 +112,14 @@ def _post_json(url: str, payload: dict[str, Any], timeout: float = 8.0) -> tuple
 
 
 def list_im_connectors(db: Session, tenant_id: str) -> list[IntegrationConnector]:
+    # 解耦：推送前先按环境变量补齐 connector（不挡 UI 手填通道）
+    try:
+        from app.services.im_env_bootstrap import ensure_env_im_connectors
+
+        ensure_env_im_connectors(db, tenant_id=tenant_id)
+    except Exception:  # noqa: BLE001
+        logger.exception("IM env bootstrap failed tenant=%s", tenant_id)
+
     rows = (
         db.query(IntegrationConnector)
         .filter(

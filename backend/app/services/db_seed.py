@@ -47,3 +47,11 @@ def ensure_seed_data(db: Session) -> None:
             )
         )
     db.commit()
+
+    # IM：环境变量 webhook → 自动写入 demo（及其他 IM_AUTO_TENANT_SLUGS）connector
+    try:
+        from app.services.im_env_bootstrap import ensure_env_im_connectors
+
+        ensure_env_im_connectors(db)
+    except Exception:  # noqa: BLE001
+        pass

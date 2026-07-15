@@ -24,6 +24,7 @@ code { background:#f1f5f9; padding:1px 6px; border-radius:4px; font-size:12px; }
 <p>入站：<code>POST /api/v1/integrations/ingress/webhook?connector_id=…</code>，签名头 <code>X-BlockHub-Signature: sha256=…</code></p>
 <p>同步：<code>POST /api/v1/integrations/{id}/sync</code>（走 Adapter，非模拟）</p>
 <p>IM 探测：<code>POST /api/v1/integrations/{id}/test-message</code></p>
+<p>IM 解耦自动化：环境变量 <code>IM_WECOM_WEBHOOK_URL</code>（及钉钉/飞书同名）→ 启动/推送时自动 upsert connector，无需 Runtime 手填；脚本 <code>bash scripts/ensure-im-from-env.sh</code></p>
 <p>企微 SSO：<code>GET /api/v1/auth/oauth/wecom/start</code> → callback 签发 JWT</p>
 <p>冒烟：<code>bash scripts/smoke-integration-real.sh</code></p>
 </div>

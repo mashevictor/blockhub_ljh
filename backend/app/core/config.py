@@ -82,6 +82,19 @@ class Settings(BaseSettings):
     wecom_secret: str = ""
     wecom_oauth_redirect_uri: str = ""  # 空则用 {public_base_url}/api/v1/auth/oauth/wecom/callback
 
+    # IM 群机器人（P4-I2 解耦自动化：设环境变量即自动绑租户 connector，无需 Runtime 手填）
+    # 例：IM_WECOM_WEBHOOK_URL=https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=…
+    im_wecom_webhook_url: str = ""
+    im_dingtalk_webhook_url: str = ""
+    im_feishu_webhook_url: str = ""
+    # 逗号分隔租户 slug；空 = 仅 demo。* = 所有租户在 ensure 时写入
+    im_auto_tenant_slugs: str = "demo"
+
+    @field_validator("im_wecom_webhook_url", "im_dingtalk_webhook_url", "im_feishu_webhook_url")
+    @classmethod
+    def strip_im_webhooks(cls, v: str) -> str:
+        return (v or "").strip().strip('"').strip("'")
+
     @field_validator("database_url")
     @classmethod
     def require_postgresql(cls, v: str) -> str:

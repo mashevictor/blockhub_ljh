@@ -172,7 +172,7 @@ function ImChannelPanel() {
         <h3>企微 / 钉钉 / 飞书</h3>
         <span className="bh-flow-meta">{step + 1}/2</span>
       </div>
-      <p className="muted">粘贴群机器人 Webhook → 保存后可发真实测试消息；审批/报修变更也会推送。</p>
+      <p className="muted">优先用环境变量 <code>IM_WECOM_WEBHOOK_URL</code> 自动绑定；也可在下方粘贴群机器人 Webhook。报修/审批变更会真推送到群。</p>
 
       <div className="bh-flow-steps">
         {['选择通道', '粘贴 Webhook'].map((label, i) => (
@@ -231,20 +231,27 @@ function ImChannelPanel() {
 
       <h4 style={{ margin: '20px 0 8px', fontSize: 14 }}>已绑定通道</h4>
       {items.length === 0 && <p className="muted">尚未绑定</p>}
-      {items.map((c) => (
+      {items.map((c) => {
+        const cfg = c.config as { webhook_url?: string; source?: string; managed?: boolean }
+        const envManaged = cfg?.source === 'env' || cfg?.managed === true
+        return (
         <div key={c.id} className="list-card">
           <div className="list-card-head">
             <strong>{c.name}</strong>
-            <span className="tag">{c.connector_type} · {c.status}</span>
+            <span className="tag">
+              {c.connector_type} · {c.status}
+              {envManaged ? ' · 环境自动' : ''}
+            </span>
           </div>
           <p className="muted" style={{ fontSize: 12, wordBreak: 'break-all' }}>
-            {String((c.config as { webhook_url?: string })?.webhook_url || '（无 webhook）')}
+            {String(cfg?.webhook_url || '（无 webhook）')}
           </p>
           <button type="button" className="btn btn-ghost" style={{ marginTop: 8, fontSize: 12 }} onClick={() => void sendTest(c.id)}>
             发送测试消息
           </button>
         </div>
-      ))}
+        )
+      })}
     </div>
   )
 }
