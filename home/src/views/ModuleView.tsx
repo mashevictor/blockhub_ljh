@@ -188,18 +188,20 @@ export default function ModuleView({ onPublish, active = true }: Props) {
         <div className="builder-canvas cube-panel-inner">
           <div className="canvas-toolbar">
             <h3>您的应用</h3>
-            <DeliverTargetPicker value={platforms} onChange={setPlatforms} />
+            <div className="canvas-toolbar-right" style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+              <DeliveryTemplatePicker
+                webTemplateId={webTemplateId}
+                appUiId={appUiId}
+                onWebTemplateChange={setWebTemplateId}
+                onAppUiChange={setAppUiId}
+                recommendAppUiId={
+                  widgets.some((w) => w.key.includes('shanghai_voice')) ? 'immersive_chat' : undefined
+                }
+                compact
+              />
+              <DeliverTargetPicker value={platforms} onChange={setPlatforms} />
+            </div>
           </div>
-          <DeliveryTemplatePicker
-            webTemplateId={webTemplateId}
-            appUiId={appUiId}
-            onWebTemplateChange={setWebTemplateId}
-            onAppUiChange={setAppUiId}
-            recommendAppUiId={
-              widgets.some((w) => w.key.includes('shanghai_voice')) ? 'immersive_chat' : undefined
-            }
-            compact
-          />
           <CapabilitySplitBanner
             knownLabels={widgets.map((w) => w.name)}
             pendingLabels={[]}

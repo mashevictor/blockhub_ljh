@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   fetchDeliveryTemplates,
   type AppUiTemplate,
@@ -12,21 +12,21 @@ interface Props {
   onAppUiChange: (id: string) => void
   recommendAppUiId?: string
   compact?: boolean
+  className?: string
 }
 
 const FALLBACK_WEB: WebTemplate[] = [
-  { id: 'tabs_portal', label: 'Tabs 门户', desc: '多页签并列能力' },
-  { id: 'sidebar_admin', label: '侧栏后台', desc: '左侧导航管理壳' },
-  { id: 'landing_single', label: '单页落地', desc: '英雄区 + 能力块' },
+  { id: 'tabs_portal', label: 'Tabs 门户', desc: '底部/顶部多页签，适合多能力并列' },
+  { id: 'sidebar_admin', label: '侧栏后台', desc: '左侧导航 + 内容区，适合管理后台' },
+  { id: 'landing_single', label: '单页落地', desc: '英雄区 + 能力块，适合少模块宣传页' },
 ]
 
 const FALLBACK_APP: AppUiTemplate[] = [
-  { id: 'bottom_tabs', label: '底部 Tab', desc: '经典多能力导航' },
-  { id: 'drawer_nav', label: '侧栏抽屉', desc: '抽屉 + 内容页' },
-  { id: 'immersive_chat', label: '沉浸对话', desc: '语音/对话全屏（上海话推荐）' },
+  { id: 'bottom_tabs', label: '底部 Tab', desc: '经典底部导航多能力壳' },
+  { id: 'drawer_nav', label: '侧栏抽屉', desc: '抽屉导航 + 内容页' },
+  { id: 'immersive_chat', label: '沉浸对话', desc: '全屏对话/语音体验（上海话等语音能力推荐）' },
 ]
 
-/** 迷你布局示意（约 36×26），展示壳形态而非装饰图 */
 function TemplatePreview({ id }: { id: string }) {
   return (
     <span className={`tpl-preview tpl-preview--${id}`} aria-hidden>
@@ -84,7 +84,7 @@ function TemplatePreview({ id }: { id: string }) {
   )
 }
 
-/** 发布前：网页模板 × App UI 壳（默认 tabs_portal + bottom_tabs） */
+/** 网页模板 × App UI：触发按钮 + 弹框选择（默认第一项 tabs_portal / bottom_tabs） */
 export default function DeliveryTemplatePicker({
   webTemplateId,
   appUiId,
@@ -92,9 +92,12 @@ export default function DeliveryTemplatePicker({
   onAppUiChange,
   recommendAppUiId,
   compact,
+  className = '',
 }: Props) {
+  const [open, setOpen] = useState(false)
   const [web, setWeb] = useState<WebTemplate[]>(FALLBACK_WEB)
   const [appUi, setAppUi] = useState<AppUiTemplate[]>(FALLBACK_APP)
+  const rootRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     fetchDeliveryTemplates()
@@ -107,61 +110,121 @@ export default function DeliveryTemplatePicker({
       })
   }, [])
 
+  useEffect(() => {
+    if (!open) return
+    const onDoc = (e: MouseEvent) => {
+      if (!rootRef.current?.contains(e.target as Node)) setOpen(false)
+    }
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false)
+    }
+    document.addEventListener('mousedown', onDoc)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('mousedown', onDoc)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [open])
+
+  const webLabel = web.find((t) => t.id === webTemplateId)?.label || web[0]?.label || 'Tabs 门户'
+  const appLabel = appUi.find((t) => t.id === appUiId)?.label || appUi[0]?.label || '底部 Tab'
+
   return (
-    <div className={`delivery-template-picker${compact ? ' compact' : ''}`}>
-      <div className="delivery-template-section">
-        <h4 className="delivery-template-title">网页模板</h4>
-        <div className="delivery-template-grid">
-          {web.map((t) => (
-            <button
-              key={t.id}
-              type="button"
-              className={`delivery-template-chip${webTemplateId === t.id ? ' on' : ''}`}
-              onClick={() => onWebTemplateChange(t.id)}
-              title={t.desc}
-              aria-pressed={webTemplateId === t.id}
-            >
-              <TemplatePreview id={t.id} />
-              <span className="delivery-template-chip-text">
-                <strong>{t.label}</strong>
-                <span>{t.desc}</span>
-              </span>
+    <div
+      ref={rootRef}
+      className={`delivery-template-picker is-trigger${compact ? ' compact' : ''}${open ? ' is-open' : ''}${className ? ` ${className}` : ''}`}
+    >
+      <button
+        type="button"
+        className="delivery-template-trigger"
+        aria-expanded={open}
+        aria-haspopup="dialog"
+        onClick={() => setOpen((v) => !v)}
+        title={`${webLabel} · ${appLabel}`}
+      >
+        <TemplatePreview id={webTemplateId || 'tabs_portal'} />
+        <span className="delivery-template-trigger-text">
+          <strong>模板</strong>
+          <span>
+            {webLabel} / {appLabel}
+          </span>
+        </span>
+        <span className="delivery-template-caret" aria-hidden>
+          ▾
+        </span>
+      </button>
+
+      {open && (
+        <div className="delivery-template-popover" role="dialog" aria-label="选择网页模板与 App UI">
+          <div className="delivery-template-popover-head">
+            <strong>选择模板</strong>
+            <button type="button" className="delivery-template-popover-close" onClick={() => setOpen(false)} aria-label="关闭">
+              ×
             </button>
-          ))}
+          </div>
+
+          <div className="delivery-template-section">
+            <h4 className="delivery-template-title">网页模板</h4>
+            <div className="delivery-template-grid">
+              {web.map((t) => (
+                <button
+                  key={t.id}
+                  type="button"
+                  className={`delivery-template-chip${webTemplateId === t.id ? ' on' : ''}`}
+                  onClick={() => onWebTemplateChange(t.id)}
+                  title={t.desc}
+                  aria-pressed={webTemplateId === t.id}
+                >
+                  <TemplatePreview id={t.id} />
+                  <span className="delivery-template-chip-text">
+                    <strong>{t.label}</strong>
+                    <span>{t.desc}</span>
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="delivery-template-section">
+            <h4 className="delivery-template-title">
+              App UI
+              {recommendAppUiId && recommendAppUiId !== appUiId && (
+                <button
+                  type="button"
+                  className="delivery-template-rec"
+                  onClick={() => onAppUiChange(recommendAppUiId)}
+                >
+                  采用推荐
+                </button>
+              )}
+            </h4>
+            <div className="delivery-template-grid">
+              {appUi.map((t) => (
+                <button
+                  key={t.id}
+                  type="button"
+                  className={`delivery-template-chip${appUiId === t.id ? ' on' : ''}`}
+                  onClick={() => onAppUiChange(t.id)}
+                  title={t.desc}
+                  aria-pressed={appUiId === t.id}
+                >
+                  <TemplatePreview id={t.id} />
+                  <span className="delivery-template-chip-text">
+                    <strong>{t.label}</strong>
+                    <span>{t.desc}</span>
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="delivery-template-popover-foot">
+            <button type="button" className="btn-primary delivery-template-done" onClick={() => setOpen(false)}>
+              完成
+            </button>
+          </div>
         </div>
-      </div>
-      <div className="delivery-template-section">
-        <h4 className="delivery-template-title">
-          App UI
-          {recommendAppUiId && recommendAppUiId !== appUiId && (
-            <button
-              type="button"
-              className="delivery-template-rec"
-              onClick={() => onAppUiChange(recommendAppUiId)}
-            >
-              采用推荐
-            </button>
-          )}
-        </h4>
-        <div className="delivery-template-grid">
-          {appUi.map((t) => (
-            <button
-              key={t.id}
-              type="button"
-              className={`delivery-template-chip${appUiId === t.id ? ' on' : ''}`}
-              onClick={() => onAppUiChange(t.id)}
-              title={t.desc}
-              aria-pressed={appUiId === t.id}
-            >
-              <TemplatePreview id={t.id} />
-              <span className="delivery-template-chip-text">
-                <strong>{t.label}</strong>
-                <span>{t.desc}</span>
-              </span>
-            </button>
-          ))}
-        </div>
-      </div>
+      )}
     </div>
   )
 }

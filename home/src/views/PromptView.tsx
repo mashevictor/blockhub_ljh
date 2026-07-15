@@ -1156,16 +1156,6 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
             registered={suggestRegistered}
           />
         </div>
-        <DeliveryTemplatePicker
-          webTemplateId={webTemplateId}
-          appUiId={appUiId}
-          onWebTemplateChange={setWebTemplateId}
-          onAppUiChange={setAppUiId}
-          recommendAppUiId={
-            promptModules.some((m) => m.key.includes('shanghai_voice')) ? 'immersive_chat' : undefined
-          }
-          compact
-        />
         <CapabilitySplitBanner
           knownLabels={capabilitySplit.known}
           pendingLabels={capabilitySplit.pending}
@@ -1178,6 +1168,17 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
             )}
           </div>
           <div className="prompt-footer-right">
+            <DeliveryTemplatePicker
+              webTemplateId={webTemplateId}
+              appUiId={appUiId}
+              onWebTemplateChange={setWebTemplateId}
+              onAppUiChange={setAppUiId}
+              recommendAppUiId={
+                promptModules.some((m) => m.key.includes('shanghai_voice')) ? 'immersive_chat' : undefined
+              }
+              compact
+              className="minimal-template"
+            />
             <DeliverTargetPicker value={platforms} onChange={setPlatforms} compact className="minimal-deliver" />
             <button type="button" className="btn-primary minimal-generate agent-action-btn" disabled={loading || !canGenerate} onClick={handleGenerate}>
               {loading ? GENERATE_APP_LOADING : (

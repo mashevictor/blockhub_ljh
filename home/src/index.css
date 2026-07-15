@@ -2749,13 +2749,57 @@ h1, h2, h3, h4, h5, h6 {
 .deliver-target-picker.compact .deliver-target-dot { width: 16px; height: 16px; }
 
 .delivery-template-picker {
-  margin: 10px 0 14px;
-  padding: 12px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--surface);
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  position: relative;
 }
-.delivery-template-picker.compact { padding: 8px 10px; margin: 8px 0; }
+.delivery-template-picker.is-trigger { display: inline-flex; }
+.delivery-template-trigger {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 10px; border: 1px solid var(--border); border-radius: 999px;
+  background: var(--surface); cursor: pointer; font-family: inherit;
+  color: var(--text); max-width: min(280px, 56vw);
+}
+.delivery-template-trigger:hover { border-color: color-mix(in srgb, var(--pri) 40%, var(--border)); }
+.delivery-template-picker.is-open .delivery-template-trigger {
+  border-color: var(--pri-light); background: var(--pri-soft);
+}
+.delivery-template-trigger-text {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 0; min-width: 0; flex: 1;
+}
+.delivery-template-trigger-text strong { font-size: 11px; line-height: 1.2; }
+.delivery-template-trigger-text > span {
+  font-size: 10px; color: var(--muted); line-height: 1.2;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px;
+}
+.delivery-template-caret { font-size: 10px; color: var(--muted); flex: 0 0 auto; }
+.delivery-template-popover {
+  position: absolute; right: 0; bottom: calc(100% + 8px); z-index: 40;
+  width: min(420px, calc(100vw - 32px));
+  padding: 12px;
+  border: 1px solid var(--border); border-radius: 14px;
+  background: var(--surface);
+  box-shadow: 0 12px 32px color-mix(in srgb, #0f172a 16%, transparent);
+}
+.delivery-template-popover-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 10px; font-size: 13px;
+}
+.delivery-template-popover-close {
+  border: none; background: none; font-size: 20px; line-height: 1;
+  color: var(--muted); cursor: pointer; padding: 0 4px;
+}
+.delivery-template-popover-foot {
+  display: flex; justify-content: flex-end; margin-top: 12px;
+}
+.delivery-template-done { padding: 6px 14px; font-size: 12px; border-radius: 8px; }
+.delivery-template-picker.compact .delivery-template-trigger {
+  font-size: var(--bh-fs-2xs, 11px); padding: var(--bh-space-2, 6px) var(--bh-space-3, 10px);
+}
+.delivery-template-picker.compact .tpl-preview { width: 28px; height: 20px; }
+.delivery-template-picker.compact .tpl-preview svg { width: 28px; height: 20px; }
 .delivery-template-section + .delivery-template-section { margin-top: 12px; }
 .delivery-template-title {
   display: flex; align-items: center; gap: 8px;
@@ -2794,8 +2838,10 @@ h1, h2, h3, h4, h5, h6 {
 .tpl-preview .tpl-accent { fill: color-mix(in srgb, var(--pri) 55%, var(--muted)); }
 .delivery-template-chip.on .tpl-preview .tpl-accent { fill: var(--pri); }
 .delivery-template-chip.on .tpl-preview .tpl-frame { stroke: color-mix(in srgb, var(--pri) 45%, var(--muted)); }
-.delivery-template-picker.compact .tpl-preview { width: 32px; height: 22px; }
-.delivery-template-picker.compact .tpl-preview svg { width: 32px; height: 22px; }
+@media (max-width: 640px) {
+  .delivery-template-grid { grid-template-columns: 1fr; }
+  .delivery-template-popover { left: 0; right: auto; width: min(360px, calc(100vw - 24px)); }
+}
 .capability-split {
   margin: 8px 0 12px; padding: 10px 12px; border-radius: 10px;
   background: color-mix(in srgb, var(--pri) 6%, var(--surface));
@@ -2806,9 +2852,6 @@ h1, h2, h3, h4, h5, h6 {
 .capability-split-row.muted { color: var(--muted); }
 .capability-split-row em { font-style: normal; font-weight: 700; color: var(--pri-dark); }
 .capability-split-note { display: block; margin-top: 2px; font-size: 11px; color: var(--muted); }
-@media (max-width: 640px) {
-  .delivery-template-grid { grid-template-columns: 1fr; }
-}
 .codegen-progress {
   margin: 0 0 12px; padding: 10px 12px; border-radius: 10px;
   border: 1px solid var(--border); background: var(--bg);
@@ -2855,6 +2898,7 @@ h1, h2, h3, h4, h5, h6 {
   }
   .deliver-target-grid { grid-template-columns: 1fr; }
   .prompt-footer-right .deliver-target-picker,
+  .prompt-footer-right .delivery-template-picker,
   .prompt-footer-right .minimal-generate,
   .prompt-footer-right .btn-primary.minimal-generate {
     width: 100%;
