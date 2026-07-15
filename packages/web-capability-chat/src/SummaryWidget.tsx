@@ -32,8 +32,9 @@ export default function SummaryWidget(_props: { node: SchemaNode }) {
           body: JSON.stringify({
             message: `请用 3-5 条要点总结以下对话：\n\n${text}`,
             session_id: `${sessionId}-summary`,
-            model: 'doubao-seed-2-0-mini',
+            model: 'deepseek-chat',
             use_rag: false,
+            app_id: appId,
           }),
         },
       )

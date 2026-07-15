@@ -14,7 +14,7 @@ export default function ChatWidget(_props: { node: SchemaNode }) {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
-  const [model] = useState('doubao-seed-2-0-mini')
+  const [model] = useState('deepseek-chat')
   const sessionId = `runtime-${appId}`
   const bottomRef = useRef<HTMLDivElement>(null)
 
@@ -40,6 +40,7 @@ export default function ChatWidget(_props: { node: SchemaNode }) {
         session_id: sessionId,
         model,
         use_rag: true,
+        app_id: appId,
       }),
     })
     if (!res.ok || !res.body) {
@@ -117,7 +118,9 @@ export default function ChatWidget(_props: { node: SchemaNode }) {
   return (
     <div className="widget chat-widget">
       <div className="chat-messages">
-        {messages.length === 0 && <p className="muted">向智能助手提问，支持结合企业知识库回答。</p>}
+        {messages.length === 0 && (
+          <p className="muted">向智能助手提问。回复会结合本应用已开通能力，并由 DeepSeek 生成。</p>
+        )}
         {messages.map((m) => (
           <div key={m.id} className={`chat-bubble chat-${m.role}`}>
             <strong>{m.role === 'user' ? '我' : '助手'}</strong>

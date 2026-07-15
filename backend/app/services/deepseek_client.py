@@ -9,6 +9,7 @@ import urllib.request
 
 from app.core.config import settings
 from app.data.capability_registry import ALL_CAPABILITIES, capability_catalog_for_llm
+from app.services.llm_text import NO_MARKDOWN_STYLE_RULE, sanitize_llm_plain_text
 
 
 def _post_chat(
@@ -58,7 +59,7 @@ def deepseek_text_chat(system: str, user: str, *, temperature: float = 0.35) -> 
     if not raw:
         return None
     text = raw.strip()
-    return text or None
+    return sanitize_llm_plain_text(text) or None
 
 
 def deepseek_json_chat(system: str, user: str, *, temperature: float = 0.25) -> dict | None:
@@ -90,6 +91,8 @@ def suggest_with_deepseek(user_text: str) -> dict | None:
         "若能判断，从 catalog 选 1~5 个 module key，并给出 industries（行业 key: mfg/sales/med/game/office/retail/edu 等）、"
         "offices（办公分类：人事行政/财务法务/流程审批/知识协同/数据报表/消息通知 等）。"
         "娱乐/游戏类不要推荐办公模块（审批流、知识库），应优先 game 行业或 custom_ 扩展能力。"
+        f"{NO_MARKDOWN_STYLE_RULE}"
+        "reason 与 intent_summary 不要用星号加粗。"
         "只返回 JSON："
         "{\"confidence\":0-1,\"intent_summary\":\"一句话理解\","
         "\"industries\":[{\"key\":\"sales\",\"label\":\"销售行业\",\"reason\":\"...\"}],"
@@ -128,7 +131,7 @@ def merge_llm_items(parsed: dict) -> tuple[list[dict], list[dict]]:
             "label": str(ind.get("label", key)),
             "type": "industry",
             "score": float(ind.get("score", 8)),
-            "reason": str(ind.get("reason", "AI 判断行业")),
+            "reason": sanitize_llm_plain_text(str(ind.get("reason", "AI 判断行业"))),
             "source": "deepseek_industry",
             "flutter_pkg": "",
         })
@@ -142,7 +145,7 @@ def merge_llm_items(parsed: dict) -> tuple[list[dict], list[dict]]:
             "label": str(off.get("label", key)),
             "type": "office",
             "score": float(off.get("score", 7)),
-            "reason": str(off.get("reason", "AI 判断办公场景")),
+            "reason": sanitize_llm_plain_text(str(off.get("reason", "AI 判断办公场景"))),
             "source": "deepseek_office",
             "flutter_pkg": "",
         })
@@ -158,7 +161,7 @@ def merge_llm_items(parsed: dict) -> tuple[list[dict], list[dict]]:
             "label": label,
             "type": "module" if not key.startswith("custom_") else "supplement",
             "score": float(it.get("score", 7)),
-            "reason": str(it.get("reason", "DeepSeek 推荐")),
+            "reason": sanitize_llm_plain_text(str(it.get("reason", "DeepSeek 推荐"))),
             "source": "deepseek",
             "flutter_pkg": cap.flutter_pkg if cap else str(it.get("flutter_pkg", "")),
         })
@@ -175,7 +178,7 @@ def merge_llm_items(parsed: dict) -> tuple[list[dict], list[dict]]:
             "type": "supplement",
             "category": str(sup.get("category", "扩展能力")),
             "flutter_pkg": str(sup.get("flutter_pkg", "")),
-            "reason": str(sup.get("reason", "DeepSeek 补充能力")),
+            "reason": sanitize_llm_plain_text(str(sup.get("reason", "DeepSeek 补充能力"))),
             "source": "deepseek_supplement",
         })
         items.append({
@@ -183,7 +186,7 @@ def merge_llm_items(parsed: dict) -> tuple[list[dict], list[dict]]:
             "label": str(sup.get("name", key)),
             "type": "supplement",
             "score": 6.0,
-            "reason": str(sup.get("reason", "DeepSeek 补充能力")),
+            "reason": sanitize_llm_plain_text(str(sup.get("reason", "DeepSeek 补充能力"))),
             "source": "deepseek_supplement",
         })
 

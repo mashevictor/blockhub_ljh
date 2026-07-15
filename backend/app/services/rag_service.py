@@ -40,14 +40,18 @@ def build_rag_messages(
     user_message: str,
     history: list[dict[str, str]] | None,
     rag: RagContext | None,
+    *,
+    system_prompt: str | None = None,
 ) -> list[dict[str, str]]:
     from app.services.llm_gateway import CHAT_SYSTEM_PROMPT
+    from app.services.llm_text import NO_MARKDOWN_STYLE_RULE
 
-    system = CHAT_SYSTEM_PROMPT
+    system = system_prompt or CHAT_SYSTEM_PROMPT
     if rag:
         system = (
-            f"{CHAT_SYSTEM_PROMPT}\n\n{RAG_SYSTEM_APPENDIX}\n\n"
-            f"--- 知识库参考片段 ---\n{rag.context_text}\n--- 片段结束 ---"
+            f"{system}\n\n{RAG_SYSTEM_APPENDIX}\n\n"
+            f"--- 知识库参考片段 ---\n{rag.context_text}\n--- 片段结束 ---\n"
+            f"{NO_MARKDOWN_STYLE_RULE}"
         )
     msgs: list[dict[str, str]] = [{"role": "system", "content": system}]
     for item in history or []:

@@ -57,8 +57,9 @@ export default function MultiAgentWidget(_props: { node: SchemaNode }) {
           body: JSON.stringify({
             message: `[${selected?.name ?? agentId}] ${text}`,
             session_id: sessionId,
-            model: 'doubao-seed-2-0-mini',
+            model: 'deepseek-chat',
             use_rag: true,
+            app_id: appId,
           }),
         },
       )

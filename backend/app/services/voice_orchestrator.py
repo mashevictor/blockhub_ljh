@@ -48,34 +48,48 @@ def iter_sentences(deltas: Iterator[str]) -> Iterator[str]:
 def iter_llm_stream(messages: list[dict[str, str]]) -> Iterator[LlmStreamEvent]:
     """逐 token 产出 delta，并在句末产出 sentence 供 TTS。"""
     from app.core.config import settings
+    from app.services.llm_text import sanitize_llm_plain_text
 
     model = settings.deepseek_model if settings.deepseek_api_key else None
     if not llm_configured():
         return
     buffer = ""
+    spoken = ""
     for delta in stream_chat_deltas(messages, model=model, temperature=0.65):
         buffer += delta
-        yield LlmStreamEvent(delta=delta)
+        clean = sanitize_llm_plain_text(buffer)
+        # 仅把相对上次新增的干净文本作为 delta（尽量贴合语音流）
+        if clean.startswith(spoken):
+            piece = clean[len(spoken) :]
+            spoken = clean
+            if piece:
+                yield LlmStreamEvent(delta=piece)
+        else:
+            spoken = clean
+            if clean:
+                yield LlmStreamEvent(delta=clean)
         while True:
-            match = _SENTENCE_END.search(buffer)
+            match = _SENTENCE_END.search(spoken)
             if not match:
                 break
             end = match.end()
-            sentence = buffer[:end].strip()
-            buffer = buffer[end:]
+            sentence = spoken[:end].strip()
+            spoken = spoken[end:].lstrip()
+            buffer = spoken
             if sentence:
-                yield LlmStreamEvent(sentence=sentence)
-    tail = buffer.strip()
+                yield LlmStreamEvent(sentence=sanitize_llm_plain_text(sentence))
+    tail = sanitize_llm_plain_text(spoken).strip()
     if tail:
         yield LlmStreamEvent(sentence=tail)
 
 
 async def stream_sentences(messages: list[dict[str, str]]) -> AsyncIterator[str]:
     from app.core.config import settings
+    from app.services.llm_text import sanitize_llm_plain_text
 
     # 语音 Agent 优先 DeepSeek 做语义理解
     model = settings.deepseek_model if settings.deepseek_api_key else None
     if not llm_configured():
         return
     for sentence in iter_sentences(stream_chat_deltas(messages, model=model, temperature=0.65)):
-        yield sentence
+        yield sanitize_llm_plain_text(sentence)

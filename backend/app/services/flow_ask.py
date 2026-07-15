@@ -4,14 +4,16 @@ from __future__ import annotations
 
 from app.core.config import settings
 from app.services.deepseek_client import deepseek_text_chat
+from app.services.llm_text import NO_MARKDOWN_STYLE_RULE, sanitize_llm_plain_text
 
-_SYSTEM = """你是积木仓 BlockHub 应用编排助手。
+_SYSTEM = f"""你是积木仓 BlockHub 应用编排助手。
 根据用户问题、当前应用与已选模块/流程节点，用简洁中文回答（面向产品和联调验收）。
 要求：
 1. 必须结合给出的应用名、模块列表、当前节点作答，不要套用无关行业模板。
 2. 若问「解决什么问题 / 用户旅程 / 功能清单 / 怎么测 / 风险」，分别给出对应结构清晰的回答。
 3. 可提示下一步可执行动作（打开某节点、测 IN/OUT、试运营），但不要编造未给出的 API。
-4. 控制在 400 字以内，用短段或编号列表。"""
+4. 控制在 400 字以内，用短段或编号列表。
+5. {NO_MARKDOWN_STYLE_RULE}"""
 
 
 def _local_fallback(
@@ -70,7 +72,11 @@ def answer_flow_question(
     if llm_ok:
         text = deepseek_text_chat(_SYSTEM, user, temperature=0.4)
         if text:
-            return {"answer": text, "source": "deepseek", "llm_configured": True}
+            return {
+                "answer": sanitize_llm_plain_text(text),
+                "source": "deepseek",
+                "llm_configured": True,
+            }
 
     return {
         "answer": _local_fallback(

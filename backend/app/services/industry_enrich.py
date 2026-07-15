@@ -7,6 +7,7 @@ from typing import Any
 from app.data.industry_enrich_static import PACK_CAPSHIP_MODULES, build_static_enrichment
 from app.data.industry_packs_all import pack_meta
 from app.services.deepseek_client import deepseek_json_chat
+from app.services.llm_text import NO_MARKDOWN_STYLE_RULE, sanitize_llm_plain_text
 
 # 允许 LLM 推荐的能力 key（含 CapShip）
 _ALLOWED_MODULE_KEYS = sorted(
@@ -55,12 +56,20 @@ def _normalize_llm_enrichment(
             tips.append({"name": name, "tip": tip})
     if not tips:
         tips = fb["scene_tips"]
-    highlights = [h for h in (parsed.get("highlights") or []) if isinstance(h, str) and h.strip()]
+    highlights = [
+        sanitize_llm_plain_text(h)
+        for h in (parsed.get("highlights") or [])
+        if isinstance(h, str) and h.strip()
+    ]
+    tips_clean = [
+        {"name": sanitize_llm_plain_text(t["name"]), "tip": sanitize_llm_plain_text(t["tip"])}
+        for t in tips
+    ]
     return {
-        "overview": (parsed.get("overview") or fb["overview"]).strip(),
+        "overview": sanitize_llm_plain_text((parsed.get("overview") or fb["overview"]).strip()),
         "highlights": highlights or fb["highlights"],
         "recommended_modules": modules,
-        "scene_tips": tips,
+        "scene_tips": tips_clean,
         "source": "deepseek",
     }
 
@@ -96,6 +105,7 @@ def enrich_industry_pack(
         '"scene_tips":[{"name":"场景名","tip":"1句可执行落地建议，含页面/通知/审批要点"}]}'
         f"recommended_modules 只能从以下 key 中选择：{allowed}。"
         "优先推荐行业专用 CapShip 能力，少用泛化 approval_flow。"
+        f"{NO_MARKDOWN_STYLE_RULE}"
     )
     user = (
         f"行业包：{pack_name}（key={pack_key}）\n"

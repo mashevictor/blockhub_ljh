@@ -62,12 +62,14 @@ def _enrich_parsed_with_registered(parsed: dict[str, Any], registered: dict[str,
 
 
 def _validation_payload(parsed: dict[str, Any]) -> dict[str, Any]:
+    from app.services.llm_text import sanitize_llm_plain_text
+
     return {
         "status": parsed.get("status", "unclear"),
         "confidence": float(parsed.get("confidence", 0)),
-        "intent_summary": parsed.get("intent_summary", ""),
-        "rejection_reason": parsed.get("rejection_reason", ""),
-        "guidance": parsed.get("guidance", ""),
+        "intent_summary": sanitize_llm_plain_text(str(parsed.get("intent_summary", "") or "")),
+        "rejection_reason": sanitize_llm_plain_text(str(parsed.get("rejection_reason", "") or "")),
+        "guidance": sanitize_llm_plain_text(str(parsed.get("guidance", "") or "")),
     }
 
 

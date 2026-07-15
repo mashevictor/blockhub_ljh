@@ -8,16 +8,19 @@ from sqlalchemy.orm import Session
 
 from app.core.deps import get_current_user
 from app.data.module_data import CHAT_MODELS, CHAT_SUGGESTIONS, generate_rag_reply
-from app.db.models import User
+from app.db.models import AppRecord, User
 from app.db.session import get_db
 from app.services.chat_store import add_message, list_messages
 from app.services.embedding_service import embedding_configured
 from app.services.kb_store import search_chunks
 from app.services.llm_gateway import (
+    build_app_capability_system_prompt,
+    build_chat_messages,
     chat_complete,
     llm_configured,
     stream_chat_deltas,
 )
+from app.services.llm_text import sanitize_llm_plain_text
 from app.services.rag_service import build_rag_context, build_rag_messages
 
 router = APIRouter(prefix="/chat", tags=["chat"])
@@ -26,10 +29,11 @@ router = APIRouter(prefix="/chat", tags=["chat"])
 class ChatRequest(BaseModel):
     message: str
     session_id: str = "default"
-    model: str = "doubao-seed-2-0-mini"
+    model: str = "deepseek-chat"
     use_rag: bool = True
     kb_id: str | None = None
     top_k: int = Field(default=4, ge=1, le=10)
+    app_id: str | None = Field(default=None, description="runtime 应用 public_id，按能力定制问答")
 
 
 def _history_for_llm(db: Session, user: User, session_id: str) -> list[dict[str, str]]:
@@ -44,6 +48,36 @@ def _retrieve(db: Session, user: User, message: str, kb_id: str | None, top_k: i
     return build_rag_context(hits)
 
 
+def _app_system_prompt(db: Session, app_id: str | None) -> str | None:
+    pid = (app_id or "").strip()
+    if not pid:
+        return None
+    app = db.query(AppRecord).filter(AppRecord.public_id == pid).first()
+    if not app:
+        return None
+    return build_app_capability_system_prompt(
+        app_name=app.name or pid,
+        capability_keys=list(app.capability_keys or []),
+        modules=list(app.modules or []) if isinstance(app.modules, list) else None,
+    )
+
+
+def _build_messages(
+    db: Session,
+    user: User,
+    *,
+    message: str,
+    session_id: str,
+    rag,
+    app_id: str | None,
+) -> list[dict[str, str]]:
+    history = _history_for_llm(db, user, session_id)
+    system = _app_system_prompt(db, app_id)
+    if rag:
+        return build_rag_messages(message, history, rag, system_prompt=system)
+    return build_chat_messages(message, history, system_prompt=system)
+
+
 def _resolve_reply(
     db: Session,
     user: User,
@@ -54,21 +88,19 @@ def _resolve_reply(
     use_rag: bool,
     kb_id: str | None,
     top_k: int,
+    app_id: str | None = None,
 ) -> tuple[str, str, list[dict] | None]:
     """返回 (reply, source, citations)"""
     rag = _retrieve(db, user, message, kb_id, top_k) if use_rag else None
     citations = rag.citations if rag else None
 
     if llm_configured():
-        history = _history_for_llm(db, user, session_id)
-        messages = build_rag_messages(message, history, rag) if rag else None
-        if messages is None:
-            from app.services.llm_gateway import build_chat_messages
-
-            messages = build_chat_messages(message, history)
+        messages = _build_messages(
+            db, user, message=message, session_id=session_id, rag=rag, app_id=app_id
+        )
         text = chat_complete(messages, model=model)
         if text:
-            return text.strip(), "llm", citations
+            return sanitize_llm_plain_text(text), "deepseek", citations
 
     if rag and rag.citations:
         top = rag.citations[0]
@@ -88,9 +120,9 @@ def chat_config(db: Session = Depends(get_db), user: User = Depends(get_current_
     stats = kb_stats(db, user.tenant_id)
     return {
         "title": "智能问答",
-        "description": "结合企业知识库的多轮对话",
-        "default_model": CHAT_MODELS[0],
-        "models": CHAT_MODELS,
+        "description": "结合本应用能力与企业知识库的多轮对话（DeepSeek）",
+        "default_model": "deepseek-chat",
+        "models": ["deepseek-chat", *CHAT_MODELS],
         "suggestions": CHAT_SUGGESTIONS,
         "llm_configured": llm_configured(),
         "embedding_configured": embedding_configured(),
@@ -125,6 +157,7 @@ def chat_completion(
         use_rag=body.use_rag,
         kb_id=body.kb_id,
         top_k=body.top_k,
+        app_id=body.app_id,
     )
     msg = add_message(
         db, user, body.session_id, "assistant", reply, citations=citations, source=source
@@ -147,18 +180,20 @@ async def chat_stream(
         source = "mock"
 
         if llm_configured():
-            history = _history_for_llm(db, user, body.session_id)
-            messages = build_rag_messages(body.message, history, rag) if rag else None
-            if messages is None:
-                from app.services.llm_gateway import build_chat_messages
-
-                messages = build_chat_messages(body.message, history)
+            messages = _build_messages(
+                db,
+                user,
+                message=body.message,
+                session_id=body.session_id,
+                rag=rag,
+                app_id=body.app_id,
+            )
             got_llm = False
             for delta in stream_chat_deltas(messages, model=body.model):
                 got_llm = True
-                source = "llm"
+                source = "deepseek"
                 reply_parts.append(delta)
-                chunk = "".join(reply_parts)
+                chunk = sanitize_llm_plain_text("".join(reply_parts))
                 payload = {
                     "content": chunk,
                     "done": False,
@@ -168,7 +203,7 @@ async def chat_stream(
                 yield f"data: {json.dumps(payload, ensure_ascii=False)}\n\n"
                 await asyncio.sleep(0)
             if got_llm and reply_parts:
-                full = "".join(reply_parts)
+                full = sanitize_llm_plain_text("".join(reply_parts))
                 add_message(
                     db,
                     user,
@@ -198,6 +233,7 @@ async def chat_stream(
         else:
             reply = generate_rag_reply(body.message)
 
+        reply = sanitize_llm_plain_text(reply)
         add_message(
             db, user, body.session_id, "assistant", reply, citations=citations, source=source
         )
