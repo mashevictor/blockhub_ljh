@@ -198,6 +198,34 @@ def suggest_modules(
             keyword_items = merge_keyword_with_llm(keyword_items, extras, limit=24)
             keyword_items = filter_spurious_modules(text, keyword_items)
 
+    # 弹幕 CapShip 主能力锁定：命中会员/报修等后，剔除审批流等干扰 module
+    _CAPSHIP = {
+        "device_repair", "quality_inspect", "inventory_count", "member_loyalty",
+        "med_triage", "nurse_shift", "game_support", "school_notice", "homework_qa",
+        "shanghai_voice",
+    }
+    hero_caps = {
+        x["key"] for x in (hero_boost or [])
+        if x.get("type") == "module" and x.get("key") in _CAPSHIP
+    }
+    if hero_caps:
+        allowed = set(hero_caps) | {
+            x["key"] for x in (hero_boost or [])
+            if x.get("type") in ("module", "industry", "office", "scenario", "capability")
+        }
+        keyword_items = [
+            x for x in keyword_items
+            if not (
+                x.get("type") == "module"
+                and x.get("key") not in allowed
+                and (
+                    x.get("key") in _CAPSHIP
+                    or x.get("key") in ("approval_flow", "approval_inbox", "form_widget", "list_widget")
+                    or x.get("source") == "industry_pack"
+                )
+            )
+        ]
+
     if validation and validation.get("status") in ("valid", "unclear") and keyword_items:
         if not validation.get("intent_summary") and keyword_items:
             ind = next((x for x in keyword_items if x.get("type") == "industry"), None)

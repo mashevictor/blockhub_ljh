@@ -211,11 +211,34 @@ label { display: block; margin-bottom: 12px; font-size: 13px; }
 .bh-flow-body { display: grid; gap: 4px; }
 .bh-flow-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
 
-/* >> 单字段步进（对齐首页预约演示） */
-.bh-gtgt-form { max-width: 560px; }
-.bh-gtgt-progress {
-  display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  margin: 12px 0 10px; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums;
+/* >> 单字段步进（对齐首页预约演示 BookingFloatingAgent） */
+.bh-gtgt-form.booking-float-composer,
+.booking-float-composer {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 560px;
+}
+.bh-gtgt-flow { margin: 0 0 4px; font-size: 13px; }
+.bh-gtgt-progress.booking-float-status,
+.booking-float-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 4px 0;
+  font-size: 12px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.booking-float-progress {
+  font-size: 12px;
+  color: var(--accent, #4338ca);
+  background: color-mix(in srgb, var(--accent, #4338ca) 12%, #fff);
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-weight: 700;
 }
 .bh-gtgt-dots { display: flex; gap: 6px; list-style: none; margin: 0; padding: 0; }
 .bh-gtgt-dots li {
@@ -223,24 +246,64 @@ label { display: block; margin-bottom: 12px; font-size: 13px; }
 }
 .bh-gtgt-dots li.is-active { background: var(--accent, #4338ca); }
 .bh-gtgt-dots li.is-done { background: #94a3b8; }
-.bh-gtgt-row {
-  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
-  padding: 10px 12px; border: 1px solid var(--border); border-radius: 12px;
+.bh-gtgt-row.booking-float-input-row,
+.booking-float-input-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 12px 14px;
+  border: 1.5px solid color-mix(in srgb, var(--accent, #4338ca) 35%, var(--border, #e2e8f0));
+  border-radius: 14px;
   background: linear-gradient(180deg, #fff 0%, #f8fafc 100%);
+  box-shadow: 0 1px 0 rgba(15, 23, 42, 0.04), 0 8px 24px rgba(15, 23, 42, 0.06);
 }
-.bh-gtgt-prefix {
-  flex-shrink: 0; font-size: 13px; font-weight: 600; color: var(--text);
+.bh-gtgt-prefix.booking-float-prefix,
+.booking-float-prefix {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent, #4338ca);
   white-space: nowrap;
 }
-.bh-gtgt-input {
-  flex: 1; min-width: 140px; border: none; outline: none; background: transparent;
-  font: inherit; font-size: 14px; padding: 6px 0;
+.bh-gtgt-chev {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  letter-spacing: -0.06em;
+  opacity: 0.9;
 }
-.bh-gtgt-input::placeholder { color: #94a3b8; }
+.bh-gtgt-input.booking-float-input,
+.booking-float-input {
+  flex: 1;
+  min-width: 140px;
+  border: none;
+  outline: none;
+  background: transparent;
+  font: inherit;
+  font-size: 15px;
+  padding: 6px 0;
+  color: var(--text, #0f172a);
+}
+.bh-gtgt-input::placeholder,
+.booking-float-input::placeholder { color: #94a3b8; }
 .bh-gtgt-custom { flex: 1; min-width: 160px; }
-.bh-gtgt-go { flex-shrink: 0; padding: 8px 14px; }
-.bh-gtgt-hint { margin: 8px 0 0; font-size: 12px; }
-.bh-gtgt-skip { margin-top: 8px; font-size: 12px; }
+.bh-gtgt-go.booking-float-go,
+.booking-float-go {
+  flex-shrink: 0;
+  padding: 9px 16px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+.bh-gtgt-hint { margin: 4px 0 0; font-size: 12px; }
+.bh-gtgt-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.booking-float-skip { font-size: 12px; }
 
 .chat-messages { max-height: 360px; overflow-y: auto; margin-bottom: 12px; }
 .chat-bubble { padding: 10px 12px; border-radius: 10px; margin-bottom: 8px; background: #f1f5f9; }

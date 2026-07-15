@@ -30,8 +30,8 @@ import { pickWithMeta, resolveAppBundle, composeLogicalPrompt, mergePromptText, 
 import { buildPublishedModulesFromBundle } from '../data/publishDisplay'
 import { resolvePublishBundle } from '../data/intentPublish'
 import {
-  alignSuggestPicksWithHero,
   matchHeroPreset,
+  picksForCapabilityAlign,
 } from '../data/heroAlign'
 import {
   canAutoApplySuggestions,
@@ -585,29 +585,44 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
               : it.reason,
           ...metaForSuggestItem(it),
         }))
-        // 命中弹幕场景时，与弹幕点击同一套 industry/module（避免 >>匹配 ≠ 弹幕选型）
+        // 命中弹幕场景时：与弹幕点击完全同一套 picks（禁止混入审批流等）
         const hero = matchHeroPreset(text)
         let mapped = mappedRaw
         if (hero) {
-          const picks = alignSuggestPicksWithHero(text, mappedRaw.map((m) => m.pick))
+          const picks = picksForCapabilityAlign(hero)
           mapped = picks.map((pick, i) => {
-            const prev = mappedRaw.find((m) => m.pick.key === pick.key && m.pick.type === pick.type)
             const meta = pickWithMeta(pick)
             return {
               pick,
-              score: prev?.score ?? 9.5 - i * 0.15,
-              reason: prev?.reason ?? `与弹幕「${hero.label}」同一选型`,
+              score: 9.5 - i * 0.15,
+              reason: `与弹幕「${hero.label}」同一选型`,
               iconKey: meta.iconKey,
               color: meta.color,
             }
           })
           setSuggestSourceLabel(`弹幕对齐 · ${hero.label}`)
-        }
-        setPromptSuggestions(mapped)
-        if (canAutoApplySuggestions(validation, mapped)) {
-          applySuggestModules(mapped, text)
+          setPromptSuggestions(mapped)
+          if (canAutoApplySuggestions(validation, mapped)) {
+            // 与点击弹幕同源：buildModulesFromPreset
+            const mods = buildModulesFromPreset(hero).map((m) => ({
+              ...m,
+              source: 'suggest' as const,
+            }))
+            lastAutoSuggestSigRef.current = `${text}::${mods.map((m) => m.id).join(',')}`
+            setPromptModules(mods)
+            setIndustryKeys(new Set(hero.picks.filter((p) => p.type === 'industry').map((p) => p.key)))
+            setOfficeCats(new Set(hero.picks.filter((p) => p.type === 'office').map((p) => p.key)))
+            setSelected(new Set(mods.filter((m) => m.type === 'scenario').map((m) => m.key)))
+          } else {
+            clearSuggestModules()
+          }
         } else {
-          clearSuggestModules()
+          setPromptSuggestions(mapped)
+          if (canAutoApplySuggestions(validation, mapped)) {
+            applySuggestModules(mapped, text)
+          } else {
+            clearSuggestModules()
+          }
         }
         const pct = res.confidence > 0 ? Math.round(res.confidence * 100) : 100
         setAnalysisProgress(pct)
@@ -622,16 +637,42 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
       .catch(() => {
         if (!cancelled) {
           setSuggestUsedAi(false)
-          setSuggestSourceLabel('关键词匹配')
           setSuggestConfidence(0)
           setSuggestValidation(null)
           setSuggestRegistered(undefined)
-          const mapped = suggestModulesFromText(text, catalogScenarios)
-          setPromptSuggestions(mapped)
-          if (canAutoApplySuggestions(null, mapped)) {
-            applySuggestModules(mapped, text)
+          const hero = matchHeroPreset(text)
+          if (hero) {
+            setSuggestSourceLabel(`弹幕对齐 · ${hero.label}`)
+            const mapped = picksForCapabilityAlign(hero).map((pick, i) => {
+              const meta = pickWithMeta(pick)
+              return {
+                pick,
+                score: 9.5 - i * 0.15,
+                reason: `与弹幕「${hero.label}」同一选型`,
+                iconKey: meta.iconKey,
+                color: meta.color,
+              }
+            })
+            setPromptSuggestions(mapped)
+            if (canAutoApplySuggestions(null, mapped)) {
+              const mods = buildModulesFromPreset(hero).map((m) => ({ ...m, source: 'suggest' as const }))
+              lastAutoSuggestSigRef.current = `${text}::${mods.map((m) => m.id).join(',')}`
+              setPromptModules(mods)
+              setIndustryKeys(new Set(hero.picks.filter((p) => p.type === 'industry').map((p) => p.key)))
+              setOfficeCats(new Set(hero.picks.filter((p) => p.type === 'office').map((p) => p.key)))
+              setSelected(new Set(mods.filter((m) => m.type === 'scenario').map((m) => m.key)))
+            } else {
+              clearSuggestModules()
+            }
           } else {
-            clearSuggestModules()
+            setSuggestSourceLabel('关键词匹配')
+            const mapped = suggestModulesFromText(text, catalogScenarios)
+            setPromptSuggestions(mapped)
+            if (canAutoApplySuggestions(null, mapped)) {
+              applySuggestModules(mapped, text)
+            } else {
+              clearSuggestModules()
+            }
           }
           setAnalysisProgress(100)
           setAnalysisPhase('done')

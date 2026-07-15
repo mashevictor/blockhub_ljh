@@ -72,26 +72,14 @@ export function picksForCapabilityAlign(preset: RolePreset): AgentPick[] {
   )
 }
 
-/** suggest 自动应用时：若命中弹幕，只保留与弹幕一致的 industry/module（与弹幕生成同源） */
-export function alignSuggestPicksWithHero(text: string, apiPicks: AgentPick[]): AgentPick[] {
+/**
+ * >> 命中弹幕场景时：强制与弹幕点击同一套 picks。
+ * 禁止再混入 API / DeepSeek 的审批流等无关主能力。
+ */
+export function alignSuggestPicksWithHero(text: string, _apiPicks: AgentPick[]): AgentPick[] {
   const hero = matchHeroPreset(text)
-  if (!hero) return apiPicks
-  const heroPicks = picksForCapabilityAlign(hero).filter(
-    (p) => p.type === 'industry' || p.type === 'module' || p.type === 'capability' || p.type === 'office',
-  )
-  if (heroPicks.length === 0) return apiPicks
-  // 弹幕 picks 在前，API 仅补 notify 等附属且未在弹幕中的项
-  const seen = new Set(heroPicks.map((p) => `${p.type}:${p.key}`))
-  const extras = apiPicks.filter((p) => {
-    const id = `${p.type}:${p.key}`
-    if (seen.has(id)) return false
-    // 附属能力可补；主 CapShip 已由弹幕定死
-    if (p.type === 'module' && CAPSHIP_MODULE_KEYS.has(p.key) && !heroPicks.some((h) => h.key === p.key)) {
-      return false
-    }
-    return p.type === 'module' || p.type === 'capability' || p.type === 'industry'
-  })
-  return [...heroPicks, ...extras]
+  if (!hero) return _apiPicks
+  return picksForCapabilityAlign(hero)
 }
 
 export function userHasCapShipModule(modules: { type: string; key: string; source?: string }[]): boolean {

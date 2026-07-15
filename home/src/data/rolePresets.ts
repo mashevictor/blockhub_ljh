@@ -396,18 +396,21 @@ export function mapHeroPresetFromApi(item: {
   picks: AgentPick[]
   flowLines: string[]
 }): RolePreset {
-  const flowLines = Array.isArray(item.flowLines) && item.flowLines.length > 0
-    ? item.flowLines
-    : [`>> ${item.label} · 一键生成`, '>> 智能编排 · 场景就绪']
+  // 内置 CapShip 场景以本地 picks 为准，避免 DB/缓存仍指向旧审批流导致「弹幕 ≠ >>」
+  const local = ROLE_PRESETS.find((p) => p.id === item.id)
+  const flowLines = local?.flowLines
+    ?? (Array.isArray(item.flowLines) && item.flowLines.length > 0
+      ? item.flowLines
+      : [`>> ${item.label} · 一键生成`, '>> 智能编排 · 场景就绪'])
   return {
     id: item.id,
-    label: item.label,
-    hint: item.hint,
-    role: item.role,
-    weight: item.weight,
-    color: item.color,
-    prompt: item.prompt,
-    picks: item.picks ?? [],
+    label: item.label || local?.label || item.id,
+    hint: item.hint || local?.hint || '',
+    role: item.role || local?.role,
+    weight: item.weight || local?.weight || 3,
+    color: item.color || local?.color || '#6366f1',
+    prompt: local?.prompt || item.prompt,
+    picks: (local?.picks?.length ? local.picks : item.picks) ?? [],
     flowLines,
   }
 }

@@ -32,6 +32,7 @@ type Props = {
 
 /**
  * 预约演示同款：单字段 >> 前缀 + Enter 确认推进，最后一步提交。
+ * 视觉类名对齐 home BookingFloatingAgent（bh-gtgt / booking-float 双类）。
  */
 export function GtgtStepComposer({
   title,
@@ -82,15 +83,20 @@ export function GtgtStepComposer({
   if (!current) return null
 
   return (
-    <div className="widget bh-gtgt-form" style={{ ['--accent' as string]: accent }}>
+    <div
+      className="widget bh-gtgt-form booking-float-composer"
+      style={{ ['--accent' as string]: accent, ['--bh-gtgt-accent' as string]: accent }}
+    >
       <div className="bh-flow-head">
         <h3>{title}</h3>
         {meta ? <span className="bh-flow-meta">{meta}</span> : null}
       </div>
-      {flowHint ? <p className="muted">{flowHint}</p> : null}
+      {flowHint ? <p className="muted bh-gtgt-flow">{flowHint}</p> : null}
 
-      <div className="bh-gtgt-progress">
-        <span>{step + 1}/{steps.length}</span>
+      <div className="booking-float-status bh-gtgt-progress">
+        <span className="booking-float-progress">
+          {step + 1}/{steps.length}
+        </span>
         <ol className="bh-gtgt-dots" aria-hidden>
           {steps.map((s, i) => (
             <li key={s.key} className={i === step ? 'is-active' : i < step ? 'is-done' : ''} />
@@ -98,9 +104,9 @@ export function GtgtStepComposer({
         </ol>
       </div>
 
-      <div className="bh-gtgt-row">
-        <span className="bh-gtgt-prefix" aria-hidden>
-          &gt;&gt; {current.label}
+      <div className="booking-float-input-row bh-gtgt-row">
+        <span className="booking-float-prefix bh-gtgt-prefix" aria-hidden>
+          <span className="bh-gtgt-chev">&gt;&gt;</span> {current.label}
         </span>
         {current.render ? (
           <div className="bh-gtgt-custom">
@@ -113,7 +119,7 @@ export function GtgtStepComposer({
         ) : (
           <input
             ref={inputRef}
-            className="bh-gtgt-input"
+            className="booking-float-input bh-gtgt-input"
             value={draft}
             onChange={(e) => onChange(current.key, e.target.value)}
             onKeyDown={onKeyDown}
@@ -124,7 +130,7 @@ export function GtgtStepComposer({
         )}
         <button
           type="button"
-          className="btn bh-gtgt-go"
+          className="btn booking-float-go bh-gtgt-go"
           style={{ background: accent }}
           disabled={busy || !canGo}
           onClick={() => void advance()}
@@ -134,17 +140,18 @@ export function GtgtStepComposer({
       </div>
 
       {current.hint && !current.render ? <p className="bh-gtgt-hint muted">{current.hint}</p> : null}
-      {current.optional && (
-        <button type="button" className="btn btn-ghost bh-gtgt-skip" disabled={busy} onClick={() => void advance()}>
-          跳过
-        </button>
-      )}
-
-      {step > 0 && (
-        <button type="button" className="btn btn-ghost" style={{ marginTop: 8, fontSize: 12 }} disabled={busy} onClick={() => setStep((s) => s - 1)}>
-          上一步
-        </button>
-      )}
+      <div className="bh-gtgt-actions">
+        {current.optional && (
+          <button type="button" className="btn btn-ghost booking-float-skip" disabled={busy} onClick={() => void advance()}>
+            跳过
+          </button>
+        )}
+        {step > 0 && (
+          <button type="button" className="btn btn-ghost" disabled={busy} onClick={() => setStep((s) => s - 1)}>
+            上一步
+          </button>
+        )}
+      </div>
 
       {children}
     </div>

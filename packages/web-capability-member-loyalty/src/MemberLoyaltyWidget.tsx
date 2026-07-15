@@ -256,7 +256,11 @@ export function MemberLoyaltyWidget(_props: { node: SchemaNode }) {
   }
 
   return (
-    <div>
+    <div className="member-loyalty-widget">
+      <p className="muted" style={{ marginBottom: 8 }}>
+        与首页预约同款：单字段 <strong>&gt;&gt;</strong> 输入，Enter / 确认推进
+        {user?.display_name ? ` · ${user.display_name}` : ''}
+      </p>
       <div className="row-actions" style={{ marginBottom: 12 }}>
         {([
           ['member', '建会员'],
@@ -285,7 +289,7 @@ export function MemberLoyaltyWidget(_props: { node: SchemaNode }) {
         title={entrySource === 'im' ? `会员营销 · ${titles[mode]}` : titles[mode]}
         meta={entrySource === 'im' ? '群消息入口' : '应用工作台'}
         accent={accent}
-        flowHint={`会员档案 → 活动 → 积分流水 → 触达${user?.display_name ? ` · ${user.display_name}` : ''}`}
+        flowHint="会员档案 → 活动 → 积分流水 → 触达"
         steps={steps}
         values={values}
         onChange={(k, v) => setValues((prev) => ({ ...prev, [k]: v }))}
@@ -297,7 +301,12 @@ export function MemberLoyaltyWidget(_props: { node: SchemaNode }) {
 
       {msg && <p className="status-msg">{msg}</p>}
 
-      <h4 style={{ margin: '16px 0 8px', fontSize: 14 }}>会员（{members.length}）</h4>
+      <details style={{ marginTop: 16 }}>
+        <summary style={{ cursor: 'pointer', fontSize: 13, color: '#64748b' }}>
+          查看数据（会员 {members.length} · 活动 {campaigns.length} · 流水 {txns.length} · 触达 {outreaches.length}）
+        </summary>
+        <div style={{ marginTop: 12 }}>
+      <h4 style={{ margin: '0 0 8px', fontSize: 14 }}>会员</h4>
       {members.length === 0 && <p className="muted">暂无会员</p>}
       <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 8 }}>
         {members.slice(0, 8).map((m) => (
@@ -353,6 +362,8 @@ export function MemberLoyaltyWidget(_props: { node: SchemaNode }) {
           </li>
         ))}
       </ul>
+        </div>
+      </details>
     </div>
   )
 }
