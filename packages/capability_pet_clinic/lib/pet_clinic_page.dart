@@ -1,6 +1,12 @@
 import 'package:blockhub_flutter_core/blockhub_flutter_core.dart';
 import 'package:flutter/material.dart';
 
+const _cats = [
+  ('consult', '问诊'),
+  ('visit', '就诊'),
+  ('vaccine', '疫苗'),
+];
+
 class PetClinicPage extends StatefulWidget {
   const PetClinicPage({super.key, required this.branding});
   final AppBranding branding;
@@ -12,16 +18,38 @@ class _PetClinicPageState extends State<PetClinicPage> {
   List<dynamic> _items = [];
   bool _loading = true;
   bool _busy = false;
-  int _resetKey = 0;
-  final Map<String, String> _values = {'category': 'consult'};
+  String? _msg;
+  String _category = 'consult';
+  final _petCtrl = TextEditingController();
+  final _symptomCtrl = TextEditingController();
+  final _whenCtrl = TextEditingController();
 
   String get _base => '${widget.branding.apiBaseUrl}/pet-clinic';
   String get _appId => widget.branding.appPublicId.trim();
+
+  String _statusLabel(String status) {
+    switch (status) {
+      case 'open':
+        return '待约';
+      case 'scheduled':
+        return '已预约';
+      default:
+        return status;
+    }
+  }
 
   @override
   void initState() {
     super.initState();
     _load();
+  }
+
+  @override
+  void dispose() {
+    _petCtrl.dispose();
+    _symptomCtrl.dispose();
+    _whenCtrl.dispose();
+    super.dispose();
   }
 
   Future<void> _load() async {
@@ -31,31 +59,42 @@ class _PetClinicPageState extends State<PetClinicPage> {
       final q = _appId.isNotEmpty ? '?app_id=${Uri.encodeQueryComponent(_appId)}' : '';
       final resp = await dio.get<Map<String, dynamic>>('$_base/records$q');
       _items = resp.data?['items'] as List<dynamic>? ?? [];
-    } catch (_) {
+    } catch (e) {
       _items = [];
+      _msg = '$e';
     } finally {
       if (mounted) setState(() => _loading = false);
     }
   }
 
   Future<void> _submit() async {
-    if ((_values['pet_name'] ?? '').trim().isEmpty || (_values['symptom'] ?? '').trim().isEmpty) return;
-    setState(() => _busy = true);
+    final pet = _petCtrl.text.trim();
+    final symptom = _symptomCtrl.text.trim();
+    if (pet.isEmpty || symptom.isEmpty) {
+      setState(() => _msg = '请填写宠物名与症状');
+      return;
+    }
+    setState(() {
+      _busy = true;
+      _msg = null;
+    });
     try {
       final dio = getRuntimeAuthedDio();
       await dio.post('$_base/records', data: {
-        'category': (_values['category'] ?? '').trim(),
-        'pet_name': (_values['pet_name'] ?? '').trim(),
-        'symptom': (_values['symptom'] ?? '').trim(),
-        'schedule_at': (_values['schedule_at'] ?? '').trim(),
-        'note': (_values['note'] ?? '').trim(),
+        'category': _category,
+        'pet_name': pet,
+        'symptom': symptom,
+        'schedule_at': _whenCtrl.text.trim(),
+        'note': '',
         'app_public_id': _appId,
       });
-      _values
-        ..clear()
-        ..['category'] = 'consult';
-      _resetKey++;
+      _petCtrl.clear();
+      _symptomCtrl.clear();
+      _whenCtrl.clear();
+      setState(() => _msg = '已预约');
       await _load();
+    } catch (e) {
+      setState(() => _msg = '$e');
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -70,52 +109,105 @@ class _PetClinicPageState extends State<PetClinicPage> {
   @override
   Widget build(BuildContext context) {
     final color = Color(widget.branding.primaryColorValue);
+    final active = _items
+        .map((e) => Map<String, dynamic>.from(e as Map))
+        .where((t) => '${t['status']}' != 'done')
+        .toList();
+
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        GtgtStepComposer(
-          title: '宠物问诊',
-          flowHint: '登记 → 状态闭环',
-          accent: color,
-          steps: const [
-            GtgtStep(
-              key: 'category',
-              label: '类型',
-              choices: [
-                (value: 'consult', label: '问诊'),
-                (value: 'visit', label: '就诊'),
-                (value: 'vaccine', label: '疫苗'),
-              ],
-            ),
-            GtgtStep(key: 'pet_name', label: '宠物名', placeholder: '宠物名'),
-            GtgtStep(key: 'symptom', label: '症状/事项', placeholder: '症状/事项'),
-            GtgtStep(key: 'schedule_at', label: '预约时间', placeholder: '预约时间', optional: true),
-            GtgtStep(key: 'note', label: '备注', placeholder: '备注', optional: true, multiline: true),
-          ],
-          values: _values,
-          onChanged: (k, v) => setState(() => _values[k] = v),
-          onComplete: _submit,
-          busy: _busy,
-          resetKey: _resetKey,
-          submitLabel: '提交',
+        Text('宠物就诊预约', style: Theme.of(context).textTheme.titleMedium),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          children: _cats.map((c) {
+            final selected = _category == c.$1;
+            return ChoiceChip(
+              label: Text(c.$2),
+              selected: selected,
+              selectedColor: color.withOpacity(0.2),
+              onSelected: (_) => setState(() => _category = c.$1),
+            );
+          }).toList(),
         ),
+        const SizedBox(height: 8),
+        TextField(
+          controller: _petCtrl,
+          decoration: const InputDecoration(border: OutlineInputBorder(), hintText: '宠物名'),
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          controller: _symptomCtrl,
+          decoration: const InputDecoration(border: OutlineInputBorder(), hintText: '症状 / 诉求'),
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          controller: _whenCtrl,
+          decoration: const InputDecoration(border: OutlineInputBorder(), hintText: '预约时间，如 2026-07-20 10:00'),
+        ),
+        const SizedBox(height: 12),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(backgroundColor: color),
+          onPressed: _busy ? null : _submit,
+          child: const Text('预约'),
+        ),
+        if (_msg != null) ...[
+          const SizedBox(height: 8),
+          Text(_msg!, style: TextStyle(color: color, fontSize: 13)),
+        ],
         const SizedBox(height: 16),
         if (_loading)
           const Center(child: CircularProgressIndicator())
+        else if (active.isEmpty)
+          Text('暂无预约', style: TextStyle(color: Colors.grey.shade600))
         else
-          ..._items.map((raw) {
-            final t = Map<String, dynamic>.from(raw as Map);
+          ...active.map((t) {
             final id = '${t['id']}';
+            final status = '${t['status']}';
             return Card(
-              child: ListTile(
-                title: Text('${t['record_no']} · ${t['symptom'] ?? t['category']}'),
-                subtitle: Text('${t['category']} · ${t['status']}'),
-                trailing: Wrap(
+              margin: const EdgeInsets.only(bottom: 8),
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (t['status'] != 'scheduled' && t['status'] != 'done' && t['status'] != 'closed' && t['status'] != 'cancelled')
-                      TextButton(onPressed: () => _advance(id, 'scheduled'), child: const Text('已预约')),
-                    if (t['status'] != 'done' && t['status'] != 'done' && t['status'] != 'closed' && t['status'] != 'cancelled')
-                      TextButton(onPressed: () => _advance(id, 'done'), child: const Text('完成')),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            '${t['pet_name']} · ${t['symptom']}',
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        Chip(
+                          label: Text(_statusLabel(status), style: const TextStyle(fontSize: 11)),
+                          visualDensity: VisualDensity.compact,
+                        ),
+                      ],
+                    ),
+                    if ('${t['schedule_at'] ?? ''}'.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 6),
+                        child: Text('${t['schedule_at']}', style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
+                      ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      children: [
+                        if (status == 'open')
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(backgroundColor: color),
+                            onPressed: () => _advance(id, 'scheduled'),
+                            child: const Text('确认预约'),
+                          ),
+                        if (status != 'done')
+                          OutlinedButton(
+                            onPressed: () => _advance(id, 'done'),
+                            child: const Text('完成就诊'),
+                          ),
+                      ],
+                    ),
                   ],
                 ),
               ),

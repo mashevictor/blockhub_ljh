@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import type { SchemaNode } from '@blockhub/web-core'
-import { apiFetch, GtgtStepComposer, useRuntime, type GtgtStep } from '@blockhub/web-core'
+import { apiFetch, useRuntime } from '@blockhub/web-core'
 
 interface RecordItem {
   id: string
@@ -11,155 +11,95 @@ interface RecordItem {
   amount: string
   note: string
   status: string
-  reporter_name?: string
 }
 
-const STATUS_LABEL: Record<string, string> = {
-  open: '待处理',
-  reviewing: 'reviewing',
-  approved: 'approved',
-  signed: 'signed',
-}
+const COLUMNS = [
+  { key: 'open', label: '报价' },
+  { key: 'reviewing', label: '评审中', action: 'reviewing' },
+  { key: 'approved', label: '已批准', action: 'approved' },
+  { key: 'signed', label: '已签约', action: 'signed' },
+] as const
 
 export function QuoteContractWidget(_props: { node: SchemaNode }) {
-  const { token, primaryColor, appId, user, entrySource } = useRuntime()
+  const { token, primaryColor, appId } = useRuntime()
   const [items, setItems] = useState<RecordItem[]>([])
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
-  const [resetKey, setResetKey] = useState(0)
-  const [values, setValues] = useState<Record<string, string>>({ category: 'quote' })
+  const [title, setTitle] = useState('')
+  const [customer, setCustomer] = useState('')
+  const [amount, setAmount] = useState('')
   const [msg, setMsg] = useState('')
-  const [showForm, setShowForm] = useState(entrySource !== 'im')
-
-  const accent = primaryColor || '#dc2626'
-  const openCount = items.filter((t) => t.status === 'open').length
-
-  const steps: GtgtStep[] = useMemo(
-    () => [
-      {
-        key: 'category',
-        label: '类型',
-        render: ({ value, setValue, accent: a }) => (
-          <div className="row-actions">
-            <button type="button" className={(value || 'quote') === 'quote' ? 'btn' : 'btn btn-ghost'} style={(value || 'quote') === 'quote' ? { background: a } : undefined} onClick={() => setValue('quote')}>报价</button>
-            <button type="button" className={(value || 'quote') === 'contract' ? 'btn' : 'btn btn-ghost'} style={(value || 'quote') === 'contract' ? { background: a } : undefined} onClick={() => setValue('contract')}>合同</button>
-            <button type="button" className={(value || 'quote') === 'special' ? 'btn' : 'btn btn-ghost'} style={(value || 'quote') === 'special' ? { background: a } : undefined} onClick={() => setValue('special')}>特价</button>
-          </div>
-        ),
-      },
-      { key: 'title', label: '标题', placeholder: '标题' },
-      { key: 'customer', label: '客户', placeholder: '客户', optional: true },
-      { key: 'amount', label: '金额', placeholder: '金额', optional: true },
-      { key: 'note', label: '备注', placeholder: '备注', optional: true },
-    ],
-    [],
-  )
+  const accent = primaryColor || '#0284c7'
 
   const load = useCallback(async () => {
-    if (!token) {
-      setItems([])
-      setLoading(false)
-      return
-    }
+    if (!token) { setItems([]); setLoading(false); return }
     setLoading(true)
     try {
       const q = appId ? `?app_id=${encodeURIComponent(appId)}` : ''
       const data = await apiFetch<{ items: RecordItem[] }>(`/api/v1/quote-contract/records${q}`, token)
       setItems(data.items || [])
-    } catch (e) {
-      setMsg(`加载失败：${String(e)}`)
-      setItems([])
-    } finally {
-      setLoading(false)
-    }
+    } catch (e) { setMsg(String(e)); setItems([]) }
+    finally { setLoading(false) }
   }, [token, appId])
 
-  useEffect(() => {
-    void load()
-  }, [load])
+  useEffect(() => { void load() }, [load])
 
   const submit = async () => {
-    if (!token || !values.title?.trim()) return
-    setBusy(true)
-    setMsg('')
-    const category = values.category || 'quote'
+    if (!token || !title.trim()) return
+    setBusy(true); setMsg('')
     try {
       await apiFetch('/api/v1/quote-contract/records', token, {
         method: 'POST',
         body: JSON.stringify({
-          category,
-          title: (values.title || '').trim(),
-          customer: (values.customer || '').trim(),
-          amount: (values.amount || '').trim(),
-          note: (values.note || '').trim(),
-          app_public_id: appId || '',
+          category: 'quote', title: title.trim(), customer: customer.trim(),
+          amount: amount.trim(), note: '', app_public_id: appId || '',
         }),
       })
-      setValues({ category: 'quote' })
-      setResetKey((k) => k + 1)
-      setMsg('已提交')
+      setTitle(''); setCustomer(''); setAmount(''); setMsg('已进入报价板')
       await load()
-    } catch (e) {
-      setMsg(`提交失败：${String(e)}`)
-    } finally {
-      setBusy(false)
-    }
+    } catch (e) { setMsg(String(e)) }
+    finally { setBusy(false) }
   }
 
-  const advance = async (id: string, action: string) => {
+  const moveTo = async (id: string, action: string) => {
     if (!token) return
-    try {
-      await apiFetch(`/api/v1/quote-contract/records/${id}/${action}`, token, { method: 'POST', body: '{}' })
-      await load()
-    } catch (e) {
-      setMsg(`更新失败：${String(e)}`)
-    }
+    await apiFetch(`/api/v1/quote-contract/records/${id}/${action}`, token, { method: 'POST', body: '{}' })
+    await load()
   }
 
   return (
     <div>
-      {!showForm ? (
-        <button type="button" className="btn btn-ghost" onClick={() => setShowForm(true)}>新建报价合同</button>
-      ) : (
-        <GtgtStepComposer
-          title={entrySource === 'im' ? '报价合同协作' : '报价合同'}
-          meta={entrySource === 'im' ? '群消息入口' : '应用工作台'}
-          accent={accent}
-          flowHint={`登记 → 状态跟进闭环${user?.display_name ? ` · ${user.display_name}` : ''}${openCount ? ` · 待处理 ${openCount}` : ''}`}
-          steps={steps}
-          values={values}
-          onChange={(k, v) => setValues((p) => ({ ...p, [k]: v }))}
-          onComplete={submit}
-          busy={busy}
-          resetKey={resetKey}
-          submitLabel="提交"
-        />
-      )}
+      <div className="list-card" style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
+        <input className="input" style={{ flex: '1 1 120px' }} placeholder="报价标题" value={title} onChange={(e) => setTitle(e.target.value)} />
+        <input className="input" style={{ flex: '1 1 100px' }} placeholder="客户" value={customer} onChange={(e) => setCustomer(e.target.value)} />
+        <input className="input" style={{ flex: '0 1 80px' }} placeholder="金额" value={amount} onChange={(e) => setAmount(e.target.value)} />
+        <button type="button" className="btn" style={{ background: accent }} disabled={busy || !title.trim()} onClick={() => void submit()}>录入</button>
+      </div>
       {msg && <p className="status-msg">{msg}</p>}
-
-      <h4 style={{ margin: '16px 0 8px', fontSize: 14 }}>报价合同列表</h4>
       {loading && <p className="muted">加载中…</p>}
-      {!loading && items.length === 0 && <p className="muted">暂无记录</p>}
-      <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 8 }}>
-        {items.map((t) => (
-          <li key={t.id} className="list-card">
-            <div className="list-card-head">
-              <strong>{t.record_no} · {(t as any).title || t.category}</strong>
-              <span className="tag">{STATUS_LABEL[t.status] || t.status}</span>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(130px, 1fr))', gap: 8, overflowX: 'auto' }}>
+        {COLUMNS.map((col) => {
+          const colItems = items.filter((t) => t.status === col.key)
+          return (
+            <div key={col.key}>
+              <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 8, padding: '6px 8px', borderRadius: 6, background: col.key === 'open' ? accent : 'rgba(0,0,0,0.06)', color: col.key === 'open' ? '#fff' : 'inherit' }}>{col.label} · {colItems.length}</div>
+              <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 8 }}>
+                {colItems.map((t) => (
+                  <li key={t.id} className="list-card" style={{ padding: 10 }}>
+                    <strong style={{ fontSize: 13 }}>{t.title}</strong>
+                    <p className="muted" style={{ margin: '4px 0 0', fontSize: 12 }}>{t.customer || '客户待定'}{t.amount ? ` · ¥${t.amount}` : ''}</p>
+                    <div className="row-actions" style={{ marginTop: 6, flexWrap: 'wrap' }}>
+                      {COLUMNS.filter((c) => 'action' in c && c.action && c.key !== t.status).map((c) => (
+                        <button key={c.key} type="button" className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 6px' }} onClick={() => void moveTo(t.id, (c as { action: string }).action)}>→{c.label}</button>
+                      ))}
+                    </div>
+                  </li>
+                ))}
+              </ul>
             </div>
-            <p className="muted" style={{ margin: '6px 0 0' }}>{t.category}{t.note ? ` · ${t.note}` : ''}</p>
-            {t.status !== 'reviewing' && t.status !== 'done' && t.status !== 'closed' && t.status !== 'cancelled' && (
-              <button type="button" className="btn btn-ghost" style={{ marginTop: 8, fontSize: 12, marginRight: 8 }} onClick={() => void advance(t.id, 'reviewing')}>评审中</button>
-            )}
-            {t.status !== 'approved' && t.status !== 'done' && t.status !== 'closed' && t.status !== 'cancelled' && (
-              <button type="button" className="btn btn-ghost" style={{ marginTop: 8, fontSize: 12, marginRight: 8 }} onClick={() => void advance(t.id, 'approved')}>已批准</button>
-            )}
-            {t.status !== 'signed' && t.status !== 'done' && t.status !== 'closed' && t.status !== 'cancelled' && (
-              <button type="button" className="btn btn-ghost" style={{ marginTop: 8, fontSize: 12, marginRight: 8 }} onClick={() => void advance(t.id, 'signed')}>已签约</button>
-            )}
-          </li>
-        ))}
-      </ul>
+          )
+        })}
+      </div>
     </div>
   )
 }

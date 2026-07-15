@@ -1,6 +1,8 @@
 import 'package:blockhub_flutter_core/blockhub_flutter_core.dart';
 import 'package:flutter/material.dart';
 
+const _audience = ['全体家长', '本班家长', '老师'];
+
 class SchoolNoticePage extends StatefulWidget {
   const SchoolNoticePage({super.key, required this.branding});
   final AppBranding branding;
@@ -12,11 +14,10 @@ class _SchoolNoticePageState extends State<SchoolNoticePage> {
   List<dynamic> _items = [];
   bool _loading = true;
   bool _busy = false;
-  int _resetKey = 0;
-  final Map<String, String> _values = {
-    'category': 'notice',
-    'audience': '全班家长',
-  };
+  String? _msg;
+  String _audience = _audience.first;
+  final _titleCtrl = TextEditingController();
+  final _contentCtrl = TextEditingController();
 
   String get _base => '${widget.branding.apiBaseUrl}/school-notice';
   String get _appId => widget.branding.appPublicId.trim();
@@ -27,6 +28,13 @@ class _SchoolNoticePageState extends State<SchoolNoticePage> {
     _load();
   }
 
+  @override
+  void dispose() {
+    _titleCtrl.dispose();
+    _contentCtrl.dispose();
+    super.dispose();
+  }
+
   Future<void> _load() async {
     setState(() => _loading = true);
     try {
@@ -34,30 +42,38 @@ class _SchoolNoticePageState extends State<SchoolNoticePage> {
       final q = _appId.isNotEmpty ? '?app_id=${Uri.encodeQueryComponent(_appId)}' : '';
       final resp = await dio.get<Map<String, dynamic>>('$_base/records$q');
       _items = resp.data?['items'] as List<dynamic>? ?? [];
-    } catch (_) {
+    } catch (e) {
       _items = [];
+      _msg = '$e';
     } finally {
       if (mounted) setState(() => _loading = false);
     }
   }
 
-  Future<void> _submit() async {
-    if ((_values['title'] ?? '').trim().isEmpty) return;
-    setState(() => _busy = true);
+  Future<void> _publish() async {
+    if (_titleCtrl.text.trim().isEmpty) {
+      setState(() => _msg = '请填写通知标题');
+      return;
+    }
+    setState(() {
+      _busy = true;
+      _msg = null;
+    });
     try {
       final dio = getRuntimeAuthedDio();
       await dio.post('$_base/records', data: {
-        'category': _values['category'] ?? 'notice',
-        'audience': (_values['audience'] ?? '').trim(),
-        'title': (_values['title'] ?? '').trim(),
-        'content': (_values['content'] ?? '').trim(),
+        'title': _titleCtrl.text.trim(),
+        'content': _contentCtrl.text.trim(),
+        'audience': _audience,
+        'category': 'notice',
         'app_public_id': _appId,
       });
-      _values
-        ..clear()
-        ..addAll({'category': 'notice', 'audience': '全班家长'});
-      _resetKey++;
+      _titleCtrl.clear();
+      _contentCtrl.clear();
+      setState(() => _msg = '已发布');
       await _load();
+    } catch (e) {
+      setState(() => _msg = '$e');
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -72,48 +88,89 @@ class _SchoolNoticePageState extends State<SchoolNoticePage> {
   @override
   Widget build(BuildContext context) {
     final color = Color(widget.branding.primaryColorValue);
+    final published = _items
+        .map((e) => Map<String, dynamic>.from(e as Map))
+        .where((t) => '${t['status']}' == 'published')
+        .toList();
+
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        GtgtStepComposer(
-          title: '家校通知',
-          flowHint: '类型 → 受众 → 标题 → 正文',
-          accent: color,
-          steps: const [
-            GtgtStep(
-              key: 'category',
-              label: '类型',
-              choices: [
-                (value: 'notice', label: '通知'),
-                (value: 'signup', label: '报名'),
-                (value: 'message', label: '留言'),
-              ],
-            ),
-            GtgtStep(key: 'audience', label: '受众', placeholder: '三年二班家长'),
-            GtgtStep(key: 'title', label: '标题', placeholder: '春季运动会报名'),
-            GtgtStep(key: 'content', label: '正文', optional: true, multiline: true),
-          ],
-          values: _values,
-          onChanged: (k, v) => setState(() => _values[k] = v),
-          onComplete: _submit,
-          busy: _busy,
-          resetKey: _resetKey,
-          submitLabel: '发布',
+        Text('发布家校通知', style: Theme.of(context).textTheme.titleMedium),
+        const SizedBox(height: 8),
+        TextField(
+          controller: _titleCtrl,
+          decoration: const InputDecoration(border: OutlineInputBorder(), hintText: '通知标题'),
         ),
+        const SizedBox(height: 8),
+        TextField(
+          controller: _contentCtrl,
+          maxLines: 3,
+          decoration: const InputDecoration(border: OutlineInputBorder(), hintText: '通知内容'),
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          children: _audience.map((a) {
+            final selected = _audience == a;
+            return ChoiceChip(
+              label: Text(a, style: const TextStyle(fontSize: 12)),
+              selected: selected,
+              selectedColor: color.withOpacity(0.2),
+              onSelected: (_) => setState(() => _audience = a),
+            );
+          }).toList(),
+        ),
+        const SizedBox(height: 12),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(backgroundColor: color),
+          onPressed: _busy ? null : _publish,
+          child: const Text('发布'),
+        ),
+        if (_msg != null) ...[
+          const SizedBox(height: 8),
+          Text(_msg!, style: TextStyle(color: color, fontSize: 13)),
+        ],
         const SizedBox(height: 16),
+        Text('待回执${published.isEmpty ? '' : ' · ${published.length}'}', style: Theme.of(context).textTheme.titleMedium),
+        const SizedBox(height: 8),
         if (_loading)
           const Center(child: CircularProgressIndicator())
+        else if (published.isEmpty)
+          Text('暂无待回执通知', style: TextStyle(color: Colors.grey.shade600))
         else
-          ..._items.map((raw) {
-            final t = Map<String, dynamic>.from(raw as Map);
+          ...published.map((t) {
             final id = '${t['id']}';
+            final audience = '${t['audience'] ?? ''}';
             return Card(
-              child: ListTile(
-                title: Text('${t['record_no']} · ${t['title']}'),
-                subtitle: Text('${t['audience']} · ${t['category']} · ${t['status']}'),
-                trailing: t['status'] == 'published'
-                    ? TextButton(onPressed: () => _ack(id), child: const Text('回执'))
-                    : null,
+              margin: const EdgeInsets.only(bottom: 8),
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(child: Text('${t['title']}', style: const TextStyle(fontWeight: FontWeight.bold))),
+                        Chip(
+                          label: Text(audience.isEmpty ? '全员' : audience, style: const TextStyle(fontSize: 11)),
+                          visualDensity: VisualDensity.compact,
+                        ),
+                      ],
+                    ),
+                    if ('${t['content'] ?? ''}'.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 6),
+                        child: Text('${t['content']}', style: const TextStyle(fontSize: 13)),
+                      ),
+                    const SizedBox(height: 8),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(backgroundColor: color),
+                      onPressed: () => _ack(id),
+                      child: const Text('我已知晓'),
+                    ),
+                  ],
+                ),
               ),
             );
           }),

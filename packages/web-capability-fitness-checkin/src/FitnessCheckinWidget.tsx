@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import type { SchemaNode } from '@blockhub/web-core'
-import { apiFetch, GtgtStepComposer, useRuntime, type GtgtStep } from '@blockhub/web-core'
+import { apiFetch, useRuntime } from '@blockhub/web-core'
 
 interface RecordItem {
   id: string
@@ -11,144 +11,87 @@ interface RecordItem {
   schedule_at: string
   note: string
   status: string
-  reporter_name?: string
 }
 
-const STATUS_LABEL: Record<string, string> = {
-  open: '待处理',
-  done: '已完成',
-}
+const CATS = [
+  { k: 'book', l: '预约课' },
+  { k: 'checkin', l: '到店打卡' },
+  { k: 'coach', l: '私教' },
+]
 
 export function FitnessCheckinWidget(_props: { node: SchemaNode }) {
-  const { token, primaryColor, appId, user, entrySource } = useRuntime()
+  const { token, primaryColor, appId, user } = useRuntime()
   const [items, setItems] = useState<RecordItem[]>([])
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
-  const [resetKey, setResetKey] = useState(0)
-  const [values, setValues] = useState<Record<string, string>>({ category: 'checkin' })
+  const [category, setCategory] = useState('checkin')
+  const [className, setClassName] = useState('')
+  const [when, setWhen] = useState('')
   const [msg, setMsg] = useState('')
-  const [showForm, setShowForm] = useState(entrySource !== 'im')
-
-  const accent = primaryColor || '#14b8a6'
-  const openCount = items.filter((t) => t.status === 'open').length
-
-  const steps: GtgtStep[] = useMemo(
-    () => [
-      {
-        key: 'category',
-        label: '类型',
-        render: ({ value, setValue, accent: a }) => (
-          <div className="row-actions">
-            <button type="button" className={(value || 'checkin') === 'book' ? 'btn' : 'btn btn-ghost'} style={(value || 'checkin') === 'book' ? { background: a } : undefined} onClick={() => setValue('book')}>预约</button>
-            <button type="button" className={(value || 'checkin') === 'checkin' ? 'btn' : 'btn btn-ghost'} style={(value || 'checkin') === 'checkin' ? { background: a } : undefined} onClick={() => setValue('checkin')}>打卡</button>
-            <button type="button" className={(value || 'checkin') === 'coach' ? 'btn' : 'btn btn-ghost'} style={(value || 'checkin') === 'coach' ? { background: a } : undefined} onClick={() => setValue('coach')}>教练答疑</button>
-          </div>
-        ),
-      },
-      { key: 'member_name', label: '会员姓名', placeholder: '会员姓名', optional: true },
-      { key: 'class_name', label: '课程/动作', placeholder: '课程/动作' },
-      { key: 'schedule_at', label: '预约/打卡时间', placeholder: '预约/打卡时间', optional: true },
-      { key: 'note', label: '备注', placeholder: '备注', optional: true },
-    ],
-    [],
-  )
+  const accent = primaryColor || '#16a34a'
 
   const load = useCallback(async () => {
-    if (!token) {
-      setItems([])
-      setLoading(false)
-      return
-    }
+    if (!token) { setItems([]); setLoading(false); return }
     setLoading(true)
     try {
       const q = appId ? `?app_id=${encodeURIComponent(appId)}` : ''
       const data = await apiFetch<{ items: RecordItem[] }>(`/api/v1/fitness-checkin/records${q}`, token)
       setItems(data.items || [])
-    } catch (e) {
-      setMsg(`加载失败：${String(e)}`)
-      setItems([])
-    } finally {
-      setLoading(false)
-    }
+    } catch (e) { setMsg(String(e)); setItems([]) }
+    finally { setLoading(false) }
   }, [token, appId])
 
-  useEffect(() => {
-    void load()
-  }, [load])
+  useEffect(() => { void load() }, [load])
 
   const submit = async () => {
-    if (!token || !values.class_name?.trim()) return
-    setBusy(true)
-    setMsg('')
-    const category = values.category || 'checkin'
+    if (!token || !className.trim()) { setMsg('请填写课程名'); return }
+    setBusy(true); setMsg('')
     try {
       await apiFetch('/api/v1/fitness-checkin/records', token, {
         method: 'POST',
         body: JSON.stringify({
-          category,
-          member_name: (values.member_name || '').trim(),
-          class_name: (values.class_name || '').trim(),
-          schedule_at: (values.schedule_at || '').trim(),
-          note: (values.note || '').trim(),
-          app_public_id: appId || '',
+          category, member_name: user?.display_name || '', class_name: className.trim(),
+          schedule_at: when.trim(), note: '', app_public_id: appId || '',
         }),
       })
-      setValues({ category: 'checkin' })
-      setResetKey((k) => k + 1)
-      setMsg('已提交')
+      setClassName(''); setWhen(''); setMsg(category === 'checkin' ? '打卡成功' : '已预约')
       await load()
-    } catch (e) {
-      setMsg(`提交失败：${String(e)}`)
-    } finally {
-      setBusy(false)
-    }
+    } catch (e) { setMsg(String(e)) }
+    finally { setBusy(false) }
   }
 
-  const advance = async (id: string, action: string) => {
+  const done = async (id: string) => {
     if (!token) return
-    try {
-      await apiFetch(`/api/v1/fitness-checkin/records/${id}/${action}`, token, { method: 'POST', body: '{}' })
-      await load()
-    } catch (e) {
-      setMsg(`更新失败：${String(e)}`)
-    }
+    await apiFetch(`/api/v1/fitness-checkin/records/${id}/done`, token, { method: 'POST', body: '{}' })
+    await load()
   }
+
+  const open = items.filter((t) => t.status === 'open')
 
   return (
     <div>
-      {!showForm ? (
-        <button type="button" className="btn btn-ghost" onClick={() => setShowForm(true)}>新建健身打卡</button>
-      ) : (
-        <GtgtStepComposer
-          title={entrySource === 'im' ? '健身打卡协作' : '健身打卡'}
-          meta={entrySource === 'im' ? '群消息入口' : '应用工作台'}
-          accent={accent}
-          flowHint={`登记 → 状态跟进闭环${user?.display_name ? ` · ${user.display_name}` : ''}${openCount ? ` · 待处理 ${openCount}` : ''}`}
-          steps={steps}
-          values={values}
-          onChange={(k, v) => setValues((p) => ({ ...p, [k]: v }))}
-          onComplete={submit}
-          busy={busy}
-          resetKey={resetKey}
-          submitLabel="提交"
-        />
-      )}
+      <h4 style={{ margin: '0 0 8px', fontSize: 14 }}>健身预约 / 打卡</h4>
+      <div className="row-actions" style={{ marginBottom: 8 }}>
+        {CATS.map((c) => (
+          <button key={c.k} type="button" className={category === c.k ? 'btn' : 'btn btn-ghost'} style={category === c.k ? { background: accent } : undefined} onClick={() => setCategory(c.k)}>{c.l}</button>
+        ))}
+      </div>
+      <div style={{ display: 'grid', gap: 8, marginBottom: 12 }}>
+        <input className="input" placeholder="课程名" value={className} onChange={(e) => setClassName(e.target.value)} />
+        {category !== 'checkin' && <input className="input" type="datetime-local" value={when} onChange={(e) => setWhen(e.target.value)} />}
+        <button type="button" className="btn" style={{ background: accent }} disabled={busy} onClick={() => void submit()}>{category === 'checkin' ? '立即打卡' : '预约课程'}</button>
+      </div>
       {msg && <p className="status-msg">{msg}</p>}
-
-      <h4 style={{ margin: '16px 0 8px', fontSize: 14 }}>健身打卡列表</h4>
       {loading && <p className="muted">加载中…</p>}
-      {!loading && items.length === 0 && <p className="muted">暂无记录</p>}
       <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 8 }}>
-        {items.map((t) => (
+        {open.map((t) => (
           <li key={t.id} className="list-card">
             <div className="list-card-head">
-              <strong>{t.record_no} · {(t as any).class_name || t.category}</strong>
-              <span className="tag">{STATUS_LABEL[t.status] || t.status}</span>
+              <strong>{t.class_name}</strong>
+              <span className="tag">{t.member_name || '会员'}</span>
             </div>
-            <p className="muted" style={{ margin: '6px 0 0' }}>{t.category}{t.note ? ` · ${t.note}` : ''}</p>
-            {t.status !== 'done' && t.status !== 'done' && t.status !== 'closed' && t.status !== 'cancelled' && (
-              <button type="button" className="btn btn-ghost" style={{ marginTop: 8, fontSize: 12, marginRight: 8 }} onClick={() => void advance(t.id, 'done')}>完成</button>
-            )}
+            {t.schedule_at ? <p className="muted" style={{ margin: '6px 0 0' }}>{t.schedule_at}</p> : null}
+            <button type="button" className="btn" style={{ background: accent, marginTop: 8 }} onClick={() => void done(t.id)}>完成</button>
           </li>
         ))}
       </ul>

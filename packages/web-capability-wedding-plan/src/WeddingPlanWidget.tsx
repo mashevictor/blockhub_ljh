@@ -1,160 +1,100 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import type { SchemaNode } from '@blockhub/web-core'
-import { apiFetch, GtgtStepComposer, useRuntime, type GtgtStep } from '@blockhub/web-core'
+import { apiFetch, useRuntime } from '@blockhub/web-core'
 
 interface RecordItem {
   id: string
   record_no: string
-  category: string
-  title: string
+  status: string
+    title: string
   vendor: string
   budget: string
-  note: string
-  status: string
-  reporter_name?: string
+  [key: string]: string | undefined
 }
 
-const STATUS_LABEL: Record<string, string> = {
-  open: '待处理',
-  confirmed: '已确认',
-  done: '已完成',
-}
+const TRACK = ['open', 'confirmed', 'done'] as const
+const LABEL: Record<string, string> = {'open': '待办', 'confirmed': '已确认', 'done': '完成'}
 
 export function WeddingPlanWidget(_props: { node: SchemaNode }) {
-  const { token, primaryColor, appId, user, entrySource } = useRuntime()
+  const { token, primaryColor, appId } = useRuntime()
   const [items, setItems] = useState<RecordItem[]>([])
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
-  const [resetKey, setResetKey] = useState(0)
-  const [values, setValues] = useState<Record<string, string>>({ category: 'guest' })
+  const [values, setValues] = useState<Record<string, string>>({})
   const [msg, setMsg] = useState('')
-  const [showForm, setShowForm] = useState(entrySource !== 'im')
-
-  const accent = primaryColor || '#e879f9'
-  const openCount = items.filter((t) => t.status === 'open').length
-
-  const steps: GtgtStep[] = useMemo(
-    () => [
-      {
-        key: 'category',
-        label: '环节',
-        render: ({ value, setValue, accent: a }) => (
-          <div className="row-actions">
-            <button type="button" className={(value || 'guest') === 'guest' ? 'btn' : 'btn btn-ghost'} style={(value || 'guest') === 'guest' ? { background: a } : undefined} onClick={() => setValue('guest')}>宾客</button>
-            <button type="button" className={(value || 'guest') === 'vendor' ? 'btn' : 'btn btn-ghost'} style={(value || 'guest') === 'vendor' ? { background: a } : undefined} onClick={() => setValue('vendor')}>供应商</button>
-            <button type="button" className={(value || 'guest') === 'budget' ? 'btn' : 'btn btn-ghost'} style={(value || 'guest') === 'budget' ? { background: a } : undefined} onClick={() => setValue('budget')}>预算</button>
-          </div>
-        ),
-      },
-      { key: 'title', label: '事项标题', placeholder: '事项标题' },
-      { key: 'vendor', label: '供应商/嘉宾', placeholder: '供应商/嘉宾', optional: true },
-      { key: 'budget', label: '预算/费用', placeholder: '预算/费用', optional: true },
-      { key: 'note', label: '备注', placeholder: '备注', optional: true },
-    ],
-    [],
-  )
+  const accent = primaryColor || '#e11d48'
 
   const load = useCallback(async () => {
-    if (!token) {
-      setItems([])
-      setLoading(false)
-      return
-    }
+    if (!token) { setItems([]); setLoading(false); return }
     setLoading(true)
     try {
       const q = appId ? `?app_id=${encodeURIComponent(appId)}` : ''
       const data = await apiFetch<{ items: RecordItem[] }>(`/api/v1/wedding-plan/records${q}`, token)
       setItems(data.items || [])
-    } catch (e) {
-      setMsg(`加载失败：${String(e)}`)
-      setItems([])
-    } finally {
-      setLoading(false)
-    }
+    } catch (e) { setMsg(String(e)); setItems([]) }
+    finally { setLoading(false) }
   }, [token, appId])
 
-  useEffect(() => {
-    void load()
-  }, [load])
+  useEffect(() => { void load() }, [load])
 
   const submit = async () => {
-    if (!token || !values.title?.trim()) return
-    setBusy(true)
-    setMsg('')
-    const category = values.category || 'guest'
+    if (!token || !(values.title || '').trim()) { setMsg('请填写必填项'); return }
+    setBusy(true); setMsg('')
     try {
       await apiFetch('/api/v1/wedding-plan/records', token, {
         method: 'POST',
-        body: JSON.stringify({
-          category,
-          title: (values.title || '').trim(),
-          vendor: (values.vendor || '').trim(),
-          budget: (values.budget || '').trim(),
-          note: (values.note || '').trim(),
-          app_public_id: appId || '',
-        }),
+        body: JSON.stringify({ category: 'guest', title: (values.title || '').trim(), vendor: (values.vendor || '').trim(), budget: (values.budget || '').trim(), note: '', app_public_id: appId || '' }),
       })
-      setValues({ category: 'guest' })
-      setResetKey((k) => k + 1)
-      setMsg('已提交')
+      setValues({}); setMsg('已创建')
       await load()
-    } catch (e) {
-      setMsg(`提交失败：${String(e)}`)
-    } finally {
-      setBusy(false)
-    }
+    } catch (e) { setMsg(String(e)) }
+    finally { setBusy(false) }
   }
 
   const advance = async (id: string, action: string) => {
     if (!token) return
-    try {
-      await apiFetch(`/api/v1/wedding-plan/records/${id}/${action}`, token, { method: 'POST', body: '{}' })
-      await load()
-    } catch (e) {
-      setMsg(`更新失败：${String(e)}`)
-    }
+    await apiFetch(`/api/v1/wedding-plan/records/${id}/${action}`, token, { method: 'POST', body: '{}' })
+    await load()
   }
+
+  const active = items.filter((t) => t.status !== TRACK[TRACK.length - 1])
 
   return (
     <div>
-      {!showForm ? (
-        <button type="button" className="btn btn-ghost" onClick={() => setShowForm(true)}>新建婚礼筹备</button>
-      ) : (
-        <GtgtStepComposer
-          title={entrySource === 'im' ? '婚礼筹备协作' : '婚礼筹备'}
-          meta={entrySource === 'im' ? '群消息入口' : '应用工作台'}
-          accent={accent}
-          flowHint={`登记 → 状态跟进闭环${user?.display_name ? ` · ${user.display_name}` : ''}${openCount ? ` · 待处理 ${openCount}` : ''}`}
-          steps={steps}
-          values={values}
-          onChange={(k, v) => setValues((p) => ({ ...p, [k]: v }))}
-          onComplete={submit}
-          busy={busy}
-          resetKey={resetKey}
-          submitLabel="提交"
-        />
-      )}
+      <h4 style={{ margin: '0 0 8px', fontSize: 14 }}>婚礼筹备清单</h4>
+      <div style={{ display: 'grid', gap: 8, marginBottom: 12 }}>
+        <input className="input" placeholder="事项" value={values.title || ''} onChange={(e) => setValues((p) => ({ ...p, title: e.target.value }))} />
+        <input className="input" placeholder="供应商" value={values.vendor || ''} onChange={(e) => setValues((p) => ({ ...p, vendor: e.target.value }))} />
+        <input className="input" placeholder="预算" value={values.budget || ''} onChange={(e) => setValues((p) => ({ ...p, budget: e.target.value }))} />
+        <button type="button" className="btn" style={{ background: accent }} disabled={busy} onClick={() => void submit()}>添加</button>
+      </div>
       {msg && <p className="status-msg">{msg}</p>}
-
-      <h4 style={{ margin: '16px 0 8px', fontSize: 14 }}>婚礼筹备列表</h4>
+      <h4 style={{ margin: '16px 0 8px', fontSize: 14 }}>进度</h4>
       {loading && <p className="muted">加载中…</p>}
-      {!loading && items.length === 0 && <p className="muted">暂无记录</p>}
       <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 8 }}>
-        {items.map((t) => (
-          <li key={t.id} className="list-card">
-            <div className="list-card-head">
-              <strong>{t.record_no} · {(t as any).title || t.category}</strong>
-              <span className="tag">{STATUS_LABEL[t.status] || t.status}</span>
-            </div>
-            <p className="muted" style={{ margin: '6px 0 0' }}>{t.category}{t.note ? ` · ${t.note}` : ''}</p>
-            {t.status !== 'confirmed' && t.status !== 'done' && t.status !== 'closed' && t.status !== 'cancelled' && (
-              <button type="button" className="btn btn-ghost" style={{ marginTop: 8, fontSize: 12, marginRight: 8 }} onClick={() => void advance(t.id, 'confirmed')}>已确认</button>
-            )}
-            {t.status !== 'done' && t.status !== 'done' && t.status !== 'closed' && t.status !== 'cancelled' && (
-              <button type="button" className="btn btn-ghost" style={{ marginTop: 8, fontSize: 12, marginRight: 8 }} onClick={() => void advance(t.id, 'done')}>完成</button>
-            )}
-          </li>
-        ))}
+        {active.map((t) => {
+          const idx = TRACK.indexOf(t.status as typeof TRACK[number])
+          return (
+            <li key={t.id} className="list-card">
+              <div className="list-card-head">
+                <strong>{t.title}</strong>
+                <span className="tag">{LABEL[t.status] || t.status}</span>
+              </div>
+              <p className="muted" style={{ margin: '6px 0 0' }}>{t.vendor}</p>
+              <div style={{ display: 'flex', gap: 4, marginTop: 8 }}>
+                {TRACK.map((s, i) => (
+                  <div key={s} style={{ flex: 1, height: 6, borderRadius: 3, background: i <= idx ? accent : 'rgba(0,0,0,0.12)' }} />
+                ))}
+              </div>
+              {t.status === 'open' && (
+                <button type="button" className="btn" style={{ background: accent, marginTop: 8 }} onClick={() => void advance(t.id, 'confirmed')}>确认</button>
+              )}
+              {t.status === 'confirmed' && (
+                <button type="button" className="btn" style={{ background: accent, marginTop: 8 }} onClick={() => void advance(t.id, 'done')}>完成</button>
+              )}
+            </li>
+          )
+        })}
       </ul>
     </div>
   )

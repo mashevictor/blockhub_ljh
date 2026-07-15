@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import type { SchemaNode } from '@blockhub/web-core'
-import { apiFetch, GtgtStepComposer, useRuntime, type GtgtStep } from '@blockhub/web-core'
+import { apiFetch, useRuntime } from '@blockhub/web-core'
 
 interface RecordItem {
   id: string
@@ -11,155 +11,93 @@ interface RecordItem {
   owner: string
   note: string
   status: string
-  reporter_name?: string
 }
 
-const STATUS_LABEL: Record<string, string> = {
-  open: '待处理',
-  interview: 'interview',
-  offered: 'offered',
-  joined: 'joined',
-}
+const COLUMNS = [
+  { key: 'open', label: '候选人' },
+  { key: 'interview', label: '面试', action: 'interview' },
+  { key: 'offered', label: 'Offer', action: 'offered' },
+  { key: 'joined', label: '已入职', action: 'joined' },
+] as const
 
 export function HireOnboardWidget(_props: { node: SchemaNode }) {
-  const { token, primaryColor, appId, user, entrySource } = useRuntime()
+  const { token, primaryColor, appId, user } = useRuntime()
   const [items, setItems] = useState<RecordItem[]>([])
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
-  const [resetKey, setResetKey] = useState(0)
-  const [values, setValues] = useState<Record<string, string>>({ category: 'job' })
+  const [candidate, setCandidate] = useState('')
+  const [stage, setStage] = useState('')
   const [msg, setMsg] = useState('')
-  const [showForm, setShowForm] = useState(entrySource !== 'im')
-
   const accent = primaryColor || '#a855f7'
-  const openCount = items.filter((t) => t.status === 'open').length
-
-  const steps: GtgtStep[] = useMemo(
-    () => [
-      {
-        key: 'category',
-        label: '环节',
-        render: ({ value, setValue, accent: a }) => (
-          <div className="row-actions">
-            <button type="button" className={(value || 'job') === 'job' ? 'btn' : 'btn btn-ghost'} style={(value || 'job') === 'job' ? { background: a } : undefined} onClick={() => setValue('job')}>岗位</button>
-            <button type="button" className={(value || 'job') === 'resume' ? 'btn' : 'btn btn-ghost'} style={(value || 'job') === 'resume' ? { background: a } : undefined} onClick={() => setValue('resume')}>简历</button>
-            <button type="button" className={(value || 'job') === 'onboard' ? 'btn' : 'btn btn-ghost'} style={(value || 'job') === 'onboard' ? { background: a } : undefined} onClick={() => setValue('onboard')}>入职</button>
-          </div>
-        ),
-      },
-      { key: 'candidate', label: '候选人/岗位', placeholder: '候选人/岗位' },
-      { key: 'stage', label: '阶段', placeholder: '阶段', optional: true },
-      { key: 'owner', label: '负责人', placeholder: '负责人', optional: true },
-      { key: 'note', label: '备注', placeholder: '备注', optional: true },
-    ],
-    [],
-  )
 
   const load = useCallback(async () => {
-    if (!token) {
-      setItems([])
-      setLoading(false)
-      return
-    }
+    if (!token) { setItems([]); setLoading(false); return }
     setLoading(true)
     try {
       const q = appId ? `?app_id=${encodeURIComponent(appId)}` : ''
       const data = await apiFetch<{ items: RecordItem[] }>(`/api/v1/hire-onboard/records${q}`, token)
       setItems(data.items || [])
-    } catch (e) {
-      setMsg(`加载失败：${String(e)}`)
-      setItems([])
-    } finally {
-      setLoading(false)
-    }
+    } catch (e) { setMsg(String(e)); setItems([]) }
+    finally { setLoading(false) }
   }, [token, appId])
 
-  useEffect(() => {
-    void load()
-  }, [load])
+  useEffect(() => { void load() }, [load])
 
   const submit = async () => {
-    if (!token || !values.candidate?.trim()) return
-    setBusy(true)
-    setMsg('')
-    const category = values.category || 'job'
+    if (!token || !candidate.trim()) return
+    setBusy(true); setMsg('')
     try {
       await apiFetch('/api/v1/hire-onboard/records', token, {
         method: 'POST',
         body: JSON.stringify({
-          category,
-          candidate: (values.candidate || '').trim(),
-          stage: (values.stage || '').trim(),
-          owner: (values.owner || '').trim(),
-          note: (values.note || '').trim(),
-          app_public_id: appId || '',
+          category: 'job', candidate: candidate.trim(), stage: stage.trim() || '初筛',
+          owner: user?.display_name || '', note: '', app_public_id: appId || '',
         }),
       })
-      setValues({ category: 'job' })
-      setResetKey((k) => k + 1)
-      setMsg('已提交')
+      setCandidate(''); setStage(''); setMsg('已加入招聘板')
       await load()
-    } catch (e) {
-      setMsg(`提交失败：${String(e)}`)
-    } finally {
-      setBusy(false)
-    }
+    } catch (e) { setMsg(String(e)) }
+    finally { setBusy(false) }
   }
 
-  const advance = async (id: string, action: string) => {
+  const moveTo = async (id: string, action: string) => {
     if (!token) return
-    try {
-      await apiFetch(`/api/v1/hire-onboard/records/${id}/${action}`, token, { method: 'POST', body: '{}' })
-      await load()
-    } catch (e) {
-      setMsg(`更新失败：${String(e)}`)
-    }
+    await apiFetch(`/api/v1/hire-onboard/records/${id}/${action}`, token, { method: 'POST', body: '{}' })
+    await load()
   }
 
   return (
     <div>
-      {!showForm ? (
-        <button type="button" className="btn btn-ghost" onClick={() => setShowForm(true)}>新建招聘入职</button>
-      ) : (
-        <GtgtStepComposer
-          title={entrySource === 'im' ? '招聘入职协作' : '招聘入职'}
-          meta={entrySource === 'im' ? '群消息入口' : '应用工作台'}
-          accent={accent}
-          flowHint={`登记 → 状态跟进闭环${user?.display_name ? ` · ${user.display_name}` : ''}${openCount ? ` · 待处理 ${openCount}` : ''}`}
-          steps={steps}
-          values={values}
-          onChange={(k, v) => setValues((p) => ({ ...p, [k]: v }))}
-          onComplete={submit}
-          busy={busy}
-          resetKey={resetKey}
-          submitLabel="提交"
-        />
-      )}
+      <div className="list-card" style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
+        <input className="input" style={{ flex: '1 1 140px' }} placeholder="候选人 / 岗位" value={candidate} onChange={(e) => setCandidate(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') void submit() }} />
+        <input className="input" style={{ flex: '0 1 100px' }} placeholder="阶段" value={stage} onChange={(e) => setStage(e.target.value)} />
+        <button type="button" className="btn" style={{ background: accent }} disabled={busy || !candidate.trim()} onClick={() => void submit()}>录入</button>
+      </div>
       {msg && <p className="status-msg">{msg}</p>}
-
-      <h4 style={{ margin: '16px 0 8px', fontSize: 14 }}>招聘入职列表</h4>
       {loading && <p className="muted">加载中…</p>}
-      {!loading && items.length === 0 && <p className="muted">暂无记录</p>}
-      <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 8 }}>
-        {items.map((t) => (
-          <li key={t.id} className="list-card">
-            <div className="list-card-head">
-              <strong>{t.record_no} · {(t as any).candidate || t.category}</strong>
-              <span className="tag">{STATUS_LABEL[t.status] || t.status}</span>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(130px, 1fr))', gap: 8, overflowX: 'auto' }}>
+        {COLUMNS.map((col) => {
+          const colItems = items.filter((t) => t.status === col.key)
+          return (
+            <div key={col.key}>
+              <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 8, padding: '6px 8px', borderRadius: 6, background: col.key === 'open' ? accent : 'rgba(0,0,0,0.06)', color: col.key === 'open' ? '#fff' : 'inherit' }}>{col.label} · {colItems.length}</div>
+              <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 8 }}>
+                {colItems.map((t) => (
+                  <li key={t.id} className="list-card" style={{ padding: 10 }}>
+                    <strong style={{ fontSize: 13 }}>{t.candidate}</strong>
+                    <p className="muted" style={{ margin: '4px 0 0', fontSize: 12 }}>{t.stage || '—'}{t.owner ? ` · ${t.owner}` : ''}</p>
+                    <div className="row-actions" style={{ marginTop: 6, flexWrap: 'wrap' }}>
+                      {COLUMNS.filter((c) => 'action' in c && c.action && c.key !== t.status).map((c) => (
+                        <button key={c.key} type="button" className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 6px' }} onClick={() => void moveTo(t.id, (c as { action: string }).action)}>→{c.label}</button>
+                      ))}
+                    </div>
+                  </li>
+                ))}
+              </ul>
             </div>
-            <p className="muted" style={{ margin: '6px 0 0' }}>{t.category}{t.note ? ` · ${t.note}` : ''}</p>
-            {t.status !== 'interview' && t.status !== 'done' && t.status !== 'closed' && t.status !== 'cancelled' && (
-              <button type="button" className="btn btn-ghost" style={{ marginTop: 8, fontSize: 12, marginRight: 8 }} onClick={() => void advance(t.id, 'interview')}>面试</button>
-            )}
-            {t.status !== 'offered' && t.status !== 'done' && t.status !== 'closed' && t.status !== 'cancelled' && (
-              <button type="button" className="btn btn-ghost" style={{ marginTop: 8, fontSize: 12, marginRight: 8 }} onClick={() => void advance(t.id, 'offered')}>Offer</button>
-            )}
-            {t.status !== 'joined' && t.status !== 'done' && t.status !== 'closed' && t.status !== 'cancelled' && (
-              <button type="button" className="btn btn-ghost" style={{ marginTop: 8, fontSize: 12, marginRight: 8 }} onClick={() => void advance(t.id, 'joined')}>已入职</button>
-            )}
-          </li>
-        ))}
-      </ul>
+          )
+        })}
+      </div>
     </div>
   )
 }

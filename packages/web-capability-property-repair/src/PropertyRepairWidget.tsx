@@ -15,7 +15,7 @@ interface RecordItem {
 const STATUS_LABEL: Record<string, string> = {
   open: '待派工',
   dispatched: '维修中',
-  done: '已完成',
+  done: '已完工',
 }
 
 export function PropertyRepairWidget(_props: { node: SchemaNode }) {
@@ -29,13 +29,17 @@ export function PropertyRepairWidget(_props: { node: SchemaNode }) {
   const [showForm, setShowForm] = useState(entrySource !== 'im')
 
   const accent = primaryColor || '#0d47a1'
-  const pending = items.filter((t) => t.status === 'open').length
+  const openItems = items.filter((t) => t.status === 'open')
+  const busyItems = items.filter((t) => t.status === 'dispatched')
+  const doneItems = items.filter((t) => t.status === 'done')
+  const processActive =
+    openItems.length > 0 ? 1 : busyItems.length > 0 ? 2 : doneItems.length > 0 ? 3 : showForm ? 0 : 0
 
   const steps: GtgtStep[] = useMemo(
     () => [
-      { key: 'location', label: '位置', placeholder: '楼栋/单元/房号', optional: true },
-      { key: 'asset_name', label: '资产名称', placeholder: '电梯/门禁/水管…' },
-      { key: 'fault', label: '故障描述', placeholder: '现象、影响范围…' },
+      { key: 'location', label: '楼栋 / 房号', placeholder: '例如：3号楼·502' },
+      { key: 'asset_name', label: '报修对象', placeholder: '电梯 / 门禁 / 水管…' },
+      { key: 'fault', label: '故障现象', placeholder: '渗水、异响、无法开门…' },
     ],
     [],
   )
@@ -79,7 +83,8 @@ export function PropertyRepairWidget(_props: { node: SchemaNode }) {
       })
       setValues({})
       setResetKey((k) => k + 1)
-      setMsg('报修已提交，等待物业派工')
+      setShowForm(false)
+      setMsg('业主报修已提交，等待派工')
       await load()
     } catch (e) {
       setMsg(`提交失败：${String(e)}`)
@@ -88,22 +93,10 @@ export function PropertyRepairWidget(_props: { node: SchemaNode }) {
     }
   }
 
-  const dispatch = async (id: string) => {
+  const advance = async (id: string, action: 'dispatch' | 'done') => {
     if (!token) return
     try {
-      await apiFetch(`/api/v1/property-repair/records/${id}/dispatch`, token, { method: 'POST', body: '{}' })
-      setMsg('已派工')
-      await load()
-    } catch (e) {
-      setMsg(`派工失败：${String(e)}`)
-    }
-  }
-
-  const done = async (id: string) => {
-    if (!token) return
-    try {
-      await apiFetch(`/api/v1/property-repair/records/${id}/done`, token, { method: 'POST', body: '{}' })
-      setMsg('已完工')
+      await apiFetch(`/api/v1/property-repair/records/${id}/${action}`, token, { method: 'POST', body: '{}' })
       await load()
     } catch (e) {
       setMsg(`操作失败：${String(e)}`)
@@ -112,14 +105,33 @@ export function PropertyRepairWidget(_props: { node: SchemaNode }) {
 
   return (
     <div>
-      {!showForm ? (
-        <button type="button" className="btn btn-ghost" onClick={() => setShowForm(true)}>新建报修</button>
-      ) : (
+      <p className="muted" style={{ marginBottom: 4 }}>物业报修流程</p>
+      <ol className="bh-process-flow" aria-label="物业报修流程">
+        <li className={processActive === 0 && showForm ? 'is-active' : processActive > 0 ? 'is-done' : ''}>① 业主提单</li>
+        <span className="arrow" aria-hidden>
+          →
+        </span>
+        <li className={processActive === 1 ? 'is-active' : processActive > 1 ? 'is-done' : ''}>
+          ② 派工{openItems.length ? `（${openItems.length}）` : ''}
+        </li>
+        <span className="arrow" aria-hidden>
+          →
+        </span>
+        <li className={processActive === 2 ? 'is-active' : processActive > 2 ? 'is-done' : ''}>
+          ③ 维修{busyItems.length ? `（${busyItems.length}）` : ''}
+        </li>
+        <span className="arrow" aria-hidden>
+          →
+        </span>
+        <li className={processActive === 3 ? 'is-done' : ''}>④ 完工</li>
+      </ol>
+
+      {showForm || items.length === 0 ? (
         <GtgtStepComposer
-          title={entrySource === 'im' ? '物业报修' : '业主报修'}
-          meta={entrySource === 'im' ? '群消息入口' : '应用工作台'}
+          title={entrySource === 'im' ? '物业报修协作' : '业主报修'}
+          meta={user?.display_name || '业主'}
           accent={accent}
-          flowHint={`提单 → 派工 → 完工${user?.display_name ? ` · ${user.display_name}` : ''}${pending ? ` · 待派工 ${pending}` : ''}`}
+          flowHint="位置 → 对象 → 故障 → 派工维修"
           steps={steps}
           values={values}
           onChange={(k, v) => setValues((p) => ({ ...p, [k]: v }))}
@@ -128,30 +140,72 @@ export function PropertyRepairWidget(_props: { node: SchemaNode }) {
           resetKey={resetKey}
           submitLabel="提交报修"
         />
+      ) : (
+        <button type="button" className="btn btn-ghost" onClick={() => setShowForm(true)}>
+          + 新建报修
+        </button>
       )}
       {msg && <p className="status-msg">{msg}</p>}
 
-      <h4 style={{ margin: '16px 0 8px', fontSize: 14 }}>报修列表</h4>
+      <h4 style={{ margin: '16px 0 8px', fontSize: 14 }}>待派工</h4>
       {loading && <p className="muted">加载中…</p>}
-      {!loading && items.length === 0 && <p className="muted">暂无记录</p>}
+      {!loading && openItems.length === 0 && <p className="muted">暂无待派工</p>}
       <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 8 }}>
-        {items.map((t) => (
+        {openItems.map((t) => (
           <li key={t.id} className="list-card">
             <div className="list-card-head">
-              <strong>{t.record_no} · {t.asset_name}</strong>
-              <span className="tag">{STATUS_LABEL[t.status] || t.status}</span>
+              <strong>
+                {t.asset_name} · {t.location}
+              </strong>
+              <span className="tag">{STATUS_LABEL[t.status]}</span>
             </div>
-            <p className="muted" style={{ margin: '6px 0 0' }}>{t.location} · {t.reporter_name || '—'}</p>
-            <p style={{ margin: '4px 0 0', fontSize: 13 }}>{t.fault}</p>
-            {t.status === 'open' && (
-              <button type="button" className="btn btn-ghost" style={{ marginTop: 8, fontSize: 12 }} onClick={() => void dispatch(t.id)}>派工</button>
-            )}
-            {t.status === 'dispatched' && (
-              <button type="button" className="btn btn-ghost" style={{ marginTop: 8, fontSize: 12 }} onClick={() => void done(t.id)}>完工</button>
-            )}
+            <p style={{ margin: '8px 0 0', fontSize: 13 }}>{t.fault}</p>
+            <p className="muted" style={{ margin: '4px 0 0', fontSize: 12 }}>
+              {t.reporter_name || '业主'} · {t.record_no}
+            </p>
+            <button type="button" className="btn" style={{ background: accent, marginTop: 10 }} onClick={() => void advance(t.id, 'dispatch')}>
+              派给师傅
+            </button>
           </li>
         ))}
       </ul>
+
+      {busyItems.length > 0 && (
+        <>
+          <h4 style={{ margin: '16px 0 8px', fontSize: 14 }}>维修中</h4>
+          <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 8 }}>
+            {busyItems.map((t) => (
+              <li key={t.id} className="list-card">
+                <div className="list-card-head">
+                  <strong>
+                    {t.asset_name} · {t.location}
+                  </strong>
+                  <span className="tag">维修中</span>
+                </div>
+                <p style={{ margin: '8px 0 0', fontSize: 13 }}>{t.fault}</p>
+                <button type="button" className="btn" style={{ background: accent, marginTop: 10 }} onClick={() => void advance(t.id, 'done')}>
+                  确认完工
+                </button>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+
+      {doneItems.length > 0 && (
+        <>
+          <h4 style={{ margin: '16px 0 8px', fontSize: 14 }}>已完工 · {doneItems.length}</h4>
+          <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 8 }}>
+            {doneItems.slice(0, 6).map((t) => (
+              <li key={t.id} className="list-card" style={{ opacity: 0.85 }}>
+                <strong>
+                  {t.asset_name} · {t.location}
+                </strong>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
     </div>
   )
 }
