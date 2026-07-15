@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { SchemaNode } from '@blockhub/web-core'
-import { apiFetch, useRuntime } from '@blockhub/web-core'
+import { apiFetch, GtgtStepComposer, useRuntime, type GtgtStep } from '@blockhub/web-core'
 
 interface RecordItem {
   id: string
@@ -13,23 +13,32 @@ interface RecordItem {
   reporter_name?: string
 }
 
-const STEPS = ['货位', 'SKU', '盘点数量'] as const
-
 export function InventoryCountWidget(_props: { node: SchemaNode }) {
   const { token, primaryColor, appId, user, entrySource } = useRuntime()
   const [items, setItems] = useState<RecordItem[]>([])
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
-  const [step, setStep] = useState(0)
-  const [location, setLocation] = useState('')
-  const [sku, setSku] = useState('')
-  const [qty, setQty] = useState('0')
-  const [note, setNote] = useState('')
+  const [resetKey, setResetKey] = useState(0)
+  const [values, setValues] = useState<Record<string, string>>({
+    location: '',
+    sku: '',
+    qty: '0',
+    note: '',
+  })
   const [msg, setMsg] = useState('')
   const [showForm, setShowForm] = useState(entrySource !== 'im')
-
   const accent = primaryColor || '#f97316'
   const pending = items.filter((t) => t.status === 'pending').length
+
+  const steps: GtgtStep[] = useMemo(
+    () => [
+      { key: 'location', label: '货位', placeholder: 'A区-3货架', optional: true },
+      { key: 'sku', label: 'SKU', placeholder: 'SKU-10086' },
+      { key: 'qty', label: '实盘数量', placeholder: '0' },
+      { key: 'note', label: '备注', placeholder: '破损、临期…', optional: true },
+    ],
+    [],
+  )
 
   const load = useCallback(async () => {
     if (!token) {
@@ -55,25 +64,22 @@ export function InventoryCountWidget(_props: { node: SchemaNode }) {
   }, [load])
 
   const submit = async () => {
-    if (!token || !sku.trim()) return
+    if (!token || !values.sku?.trim()) return
     setBusy(true)
     setMsg('')
     try {
       await apiFetch('/api/v1/inventory-count/records', token, {
         method: 'POST',
         body: JSON.stringify({
-          location: location.trim(),
-          sku_code: sku.trim(),
-          qty: Number(qty) || 0,
-          note: note.trim(),
+          location: (values.location || '').trim(),
+          sku_code: values.sku.trim(),
+          qty: Number(values.qty) || 0,
+          note: (values.note || '').trim(),
           app_public_id: appId || '',
         }),
       })
-      setLocation('')
-      setSku('')
-      setQty('0')
-      setNote('')
-      setStep(0)
+      setValues({ location: '', sku: '', qty: '0', note: '' })
+      setResetKey((k) => k + 1)
       setMsg('盘点已录入，待主管确认')
       await load()
     } catch (e) {
@@ -94,66 +100,23 @@ export function InventoryCountWidget(_props: { node: SchemaNode }) {
   }
 
   return (
-    <div className="widget bh-flow-form" style={{ ['--accent' as string]: accent }}>
-      <div className="bh-flow-head">
-        <h3>{entrySource === 'im' ? '盘点协作' : '库存盘点'}</h3>
-        <span className="bh-flow-meta">{entrySource === 'im' ? '群消息入口' : '应用工作台'}</span>
-      </div>
-      <p className="muted">
-        扫码/填 SKU → 录入数量 → 确认入库
-        {user?.display_name ? ` · ${user.display_name}` : ''}
-      </p>
-      <ol className="bh-process-flow">
-        <li className={showForm ? 'is-active' : 'is-done'}>① 录入</li>
-        <span className="arrow" aria-hidden>→</span>
-        <li className={pending ? 'is-active' : ''}>② 待确认{pending ? `（${pending}）` : ''}</li>
-        <span className="arrow" aria-hidden>→</span>
-        <li>③ 已确认</li>
-      </ol>
-
+    <div>
       {!showForm ? (
         <button type="button" className="btn btn-ghost" onClick={() => setShowForm(true)}>新建盘点</button>
       ) : (
-        <>
-          <div className="bh-flow-steps">
-            {STEPS.map((label, i) => (
-              <div key={label} className={`bh-flow-step${i === step ? ' is-active' : ''}${i < step ? ' is-done' : ''}`}>
-                <span className="bh-flow-dot" style={i <= step ? { background: accent } : undefined} />
-                <span>{label}</span>
-              </div>
-            ))}
-          </div>
-          <div className="bh-flow-body">
-            {step === 0 && (
-              <label>货位 / 仓位
-                <input className="input" value={location} onChange={(e) => setLocation(e.target.value)} placeholder="A区-3货架" autoFocus />
-              </label>
-            )}
-            {step === 1 && (
-              <label>SKU / 物料编码
-                <input className="input" value={sku} onChange={(e) => setSku(e.target.value)} placeholder="SKU-10086" autoFocus />
-              </label>
-            )}
-            {step === 2 && (
-              <>
-                <label>实盘数量
-                  <input className="input" type="number" min={0} value={qty} onChange={(e) => setQty(e.target.value)} autoFocus />
-                </label>
-                <label>备注
-                  <input className="input" value={note} onChange={(e) => setNote(e.target.value)} placeholder="破损、临期…" />
-                </label>
-              </>
-            )}
-            <div className="bh-flow-actions">
-              {step > 0 && <button type="button" className="btn btn-ghost" onClick={() => setStep((s) => s - 1)}>上一步</button>}
-              {step < 2 ? (
-                <button type="button" className="btn" style={{ background: accent }} disabled={step === 1 && !sku.trim()} onClick={() => setStep((s) => s + 1)}>下一步</button>
-              ) : (
-                <button type="button" className="btn" style={{ background: accent }} disabled={busy || !sku.trim()} onClick={() => void submit()}>{busy ? '提交中…' : '提交盘点'}</button>
-              )}
-            </div>
-          </div>
-        </>
+        <GtgtStepComposer
+          title={entrySource === 'im' ? '盘点协作' : '库存盘点'}
+          meta={entrySource === 'im' ? '群消息入口' : '应用工作台'}
+          accent={accent}
+          flowHint={`扫码/填 SKU → 录入数量 → 确认入库${user?.display_name ? ` · ${user.display_name}` : ''}${pending ? ` · 待确认 ${pending}` : ''}`}
+          steps={steps}
+          values={values}
+          onChange={(k, v) => setValues((prev) => ({ ...prev, [k]: v }))}
+          onComplete={submit}
+          busy={busy}
+          resetKey={resetKey}
+          submitLabel="提交盘点"
+        />
       )}
       {msg && <p className="status-msg">{msg}</p>}
 

@@ -9,12 +9,11 @@ class GameSupportPage extends StatefulWidget {
 }
 
 class _GameSupportPageState extends State<GameSupportPage> {
-  final _title = TextEditingController();
-  final _content = TextEditingController();
-  final _player = TextEditingController();
   List<dynamic> _items = [];
-  String _category = 'ticket';
   bool _loading = true;
+  bool _busy = false;
+  int _resetKey = 0;
+  final Map<String, String> _values = {'category': 'ticket'};
 
   String get _base => '${widget.branding.apiBaseUrl}/game-support';
   String get _appId => widget.branding.appPublicId.trim();
@@ -23,14 +22,6 @@ class _GameSupportPageState extends State<GameSupportPage> {
   void initState() {
     super.initState();
     _load();
-  }
-
-  @override
-  void dispose() {
-    _title.dispose();
-    _content.dispose();
-    _player.dispose();
-    super.dispose();
   }
 
   Future<void> _load() async {
@@ -48,19 +39,25 @@ class _GameSupportPageState extends State<GameSupportPage> {
   }
 
   Future<void> _submit() async {
-    if (_title.text.trim().isEmpty) return;
-    final dio = getRuntimeAuthedDio();
-    await dio.post('$_base/records', data: {
-      'category': _category,
-      'title': _title.text.trim(),
-      'content': _content.text.trim(),
-      'player_name': _player.text.trim(),
-      'app_public_id': _appId,
-    });
-    _title.clear();
-    _content.clear();
-    _player.clear();
-    await _load();
+    if ((_values['title'] ?? '').trim().isEmpty) return;
+    setState(() => _busy = true);
+    try {
+      final dio = getRuntimeAuthedDio();
+      await dio.post('$_base/records', data: {
+        'category': _values['category'] ?? 'ticket',
+        'title': (_values['title'] ?? '').trim(),
+        'content': (_values['content'] ?? '').trim(),
+        'player_name': (_values['player_name'] ?? '').trim(),
+        'app_public_id': _appId,
+      });
+      _values
+        ..clear()
+        ..['category'] = 'ticket';
+      _resetKey++;
+      await _load();
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
   }
 
   Future<void> _close(String id) async {
@@ -71,24 +68,34 @@ class _GameSupportPageState extends State<GameSupportPage> {
 
   @override
   Widget build(BuildContext context) {
+    final color = Color(widget.branding.primaryColorValue);
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        Text('玩家 FAQ / 工单', style: Theme.of(context).textTheme.titleLarge),
-        const SizedBox(height: 8),
-        Row(children: [
-          ChoiceChip(label: const Text('FAQ'), selected: _category == 'faq', onSelected: (_) => setState(() => _category = 'faq')),
-          const SizedBox(width: 8),
-          ChoiceChip(label: const Text('工单'), selected: _category == 'ticket', onSelected: (_) => setState(() => _category = 'ticket')),
-        ]),
-        const SizedBox(height: 8),
-        TextField(controller: _player, decoration: const InputDecoration(labelText: '玩家昵称', border: OutlineInputBorder())),
-        const SizedBox(height: 8),
-        TextField(controller: _title, decoration: const InputDecoration(labelText: '标题', border: OutlineInputBorder())),
-        const SizedBox(height: 8),
-        TextField(controller: _content, maxLines: 3, decoration: const InputDecoration(labelText: '内容', border: OutlineInputBorder())),
-        const SizedBox(height: 12),
-        FilledButton(onPressed: _submit, child: const Text('提交')),
+        GtgtStepComposer(
+          title: '玩家 FAQ / 工单',
+          flowHint: '类型 → 昵称 → 标题 → 内容',
+          accent: color,
+          steps: const [
+            GtgtStep(
+              key: 'category',
+              label: '类型',
+              choices: [
+                (value: 'faq', label: 'FAQ/攻略'),
+                (value: 'ticket', label: '客服工单'),
+              ],
+            ),
+            GtgtStep(key: 'player_name', label: '玩家昵称', optional: true),
+            GtgtStep(key: 'title', label: '标题', placeholder: '活动规则 / 掉线反馈…'),
+            GtgtStep(key: 'content', label: '详细内容', optional: true, multiline: true),
+          ],
+          values: _values,
+          onChanged: (k, v) => setState(() => _values[k] = v),
+          onComplete: _submit,
+          busy: _busy,
+          resetKey: _resetKey,
+          submitLabel: '提交',
+        ),
         const SizedBox(height: 16),
         if (_loading)
           const Center(child: CircularProgressIndicator())

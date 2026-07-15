@@ -195,6 +195,8 @@ CAPABILITIES = [
     {"key": "med_triage", "name": "医疗导诊", "category": "患者服务", "widget": "MedTriageWidget", "agent_id": "med_triage"},
     {"key": "nurse_shift", "name": "护士排班", "category": "患者服务", "widget": "NurseShiftWidget", "agent_id": "nurse_shift"},
     {"key": "game_support", "name": "玩家FAQ", "category": "游戏娱乐", "widget": "GameSupportWidget", "agent_id": "game_support"},
+    {"key": "school_notice", "name": "家校通知", "category": "教育培训", "widget": "SchoolNoticeWidget", "agent_id": "school_notice"},
+    {"key": "homework_qa", "name": "作业答疑", "category": "教育培训", "widget": "HomeworkQaWidget", "agent_id": "homework_qa"},
     {"key": "approval_flow", "name": "通用审批流", "category": "流程审批", "widget": "FormWidget", "agent_id": "approval"},
     {"key": "approval_inbox", "name": "待办/已办中心", "category": "流程审批", "widget": "ListWidget", "agent_id": "approval"},
     {"key": "approval_countersign", "name": "会签/或签", "category": "流程审批", "widget": "WorkflowWidget", "agent_id": "approval"},

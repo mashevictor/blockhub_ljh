@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { SchemaNode } from '@blockhub/web-core'
-import { apiFetch, useRuntime } from '@blockhub/web-core'
+import { apiFetch, GtgtStepComposer, useRuntime, type GtgtStep } from '@blockhub/web-core'
 
 interface RepairTicket {
   id: string
@@ -28,18 +28,14 @@ const STATUS_LABEL: Record<string, string> = {
   done: '已完工',
 }
 
-const STEPS = ['设备编号', '工位位置', '故障描述'] as const
-
 export function DeviceRepairWidget(_props: { node: SchemaNode }) {
   const { token, primaryColor, appId, user, entrySource } = useRuntime()
   const [items, setItems] = useState<RepairTicket[]>([])
   const [candidates, setCandidates] = useState<AssigneeCandidate[]>([])
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
-  const [step, setStep] = useState(0)
-  const [assetCode, setAssetCode] = useState('')
-  const [location, setLocation] = useState('')
-  const [fault, setFault] = useState('')
+  const [resetKey, setResetKey] = useState(0)
+  const [values, setValues] = useState<Record<string, string>>({})
   const [msg, setMsg] = useState('')
   const [error, setError] = useState('')
   const [showForm, setShowForm] = useState(entrySource !== 'im')
@@ -47,6 +43,15 @@ export function DeviceRepairWidget(_props: { node: SchemaNode }) {
   const [dispatchId, setDispatchId] = useState<string | null>(null)
   const [pickId, setPickId] = useState('')
   const [pickName, setPickName] = useState('')
+
+  const steps: GtgtStep[] = useMemo(
+    () => [
+      { key: 'asset_code', label: '设备编号', placeholder: '扫码或输入，如 CNC-A12' },
+      { key: 'location', label: '位置/工位', placeholder: '一车间·3号线（可留空）', optional: true },
+      { key: 'fault', label: '故障描述', placeholder: '现象、是否停机、影响产线…' },
+    ],
+    [],
+  )
 
   const load = useCallback(async () => {
     if (!token) {
@@ -87,13 +92,8 @@ export function DeviceRepairWidget(_props: { node: SchemaNode }) {
     void loadCandidates()
   }, [loadCandidates])
 
-  const canNext =
-    (step === 0 && assetCode.trim().length > 0) ||
-    (step === 1 && true) ||
-    (step === 2 && fault.trim().length > 0)
-
   const submit = async () => {
-    if (!assetCode.trim() || !fault.trim()) {
+    if (!values.asset_code?.trim() || !values.fault?.trim()) {
       setMsg('请填写设备编号与故障描述')
       return
     }
@@ -107,16 +107,14 @@ export function DeviceRepairWidget(_props: { node: SchemaNode }) {
       await apiFetch('/api/v1/device-repair/tickets', token, {
         method: 'POST',
         body: JSON.stringify({
-          asset_code: assetCode.trim(),
-          location: location.trim(),
-          fault: fault.trim(),
+          asset_code: values.asset_code.trim(),
+          location: (values.location || '').trim(),
+          fault: values.fault.trim(),
           app_public_id: appId || '',
         }),
       })
-      setAssetCode('')
-      setLocation('')
-      setFault('')
-      setStep(0)
+      setValues({})
+      setResetKey((k) => k + 1)
       setMsg('报修已提交并通知群；同事可用同一 Runtime 链接登录后派工')
       await load()
     } catch (e) {
@@ -183,11 +181,7 @@ export function DeviceRepairWidget(_props: { node: SchemaNode }) {
     pendingCount > 0 ? 1 : busyCount > 0 ? 2 : items.some((t) => t.status === 'done') ? 3 : 0
 
   return (
-    <div className="widget device-repair-widget bh-flow-form" style={{ ['--accent' as string]: accent }}>
-      <div className="bh-flow-head">
-        <h3>{entrySource === 'im' ? '报修协作' : '设备报修'}</h3>
-        <span className="bh-flow-meta">{entrySource === 'im' ? '群消息入口' : '应用工作台'}</span>
-      </div>
+    <div className="widget device-repair-widget" style={{ ['--accent' as string]: accent }}>
       <p className="muted">
         {entrySource === 'im'
           ? '你从企微/钉钉/飞书打开 · 优先处理下方待派工/维修中工单'
@@ -217,93 +211,22 @@ export function DeviceRepairWidget(_props: { node: SchemaNode }) {
           </button>
         </div>
       ) : (
-      <>
-      <div className="bh-flow-steps" aria-label="报修填写进度">
-        {STEPS.map((label, i) => (
-          <div
-            key={label}
-            className={`bh-flow-step${i === step ? ' is-active' : ''}${i < step ? ' is-done' : ''}`}
-          >
-            <span className="bh-flow-dot" style={i <= step ? { background: accent } : undefined} />
-            <span>{label}</span>
-          </div>
-        ))}
-      </div>
-
-      <div className="bh-flow-body">
-        {step === 0 && (
-          <label>
-            设备编号
-            <input
-              className="input"
-              value={assetCode}
-              onChange={(e) => setAssetCode(e.target.value)}
-              placeholder="扫码或输入，如 CNC-A12"
-              autoFocus
-            />
-          </label>
-        )}
-        {step === 1 && (
-          <label>
-            位置 / 工位
-            <input
-              className="input"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              placeholder="一车间·3号线（可留空）"
-              autoFocus
-            />
-          </label>
-        )}
-        {step === 2 && (
-          <label>
-            故障描述
-            <textarea
-              className="input"
-              rows={3}
-              value={fault}
-              onChange={(e) => setFault(e.target.value)}
-              placeholder="现象、是否停机、影响产线…"
-              autoFocus
-            />
-          </label>
-        )}
-
-        <div className="bh-flow-actions">
-          {step > 0 && (
-            <button type="button" className="btn btn-ghost" onClick={() => setStep((s) => s - 1)}>
-              上一步
-            </button>
-          )}
-          {step < STEPS.length - 1 ? (
-            <button
-              type="button"
-              className="btn"
-              style={{ background: accent }}
-              disabled={!canNext}
-              onClick={() => setStep((s) => s + 1)}
-            >
-              下一步
-            </button>
-          ) : (
-            <button
-              type="button"
-              className="btn"
-              style={{ background: accent }}
-              disabled={busy || !canNext}
-              onClick={() => void submit()}
-            >
-              {busy ? '提交中…' : '提交报修'}
-            </button>
-          )}
-        </div>
-        {msg && <p className="status-msg">{msg}</p>}
-        {error && <p className="status-msg" style={{ color: '#b91c1c' }}>{error}</p>}
-      </div>
-      </>
+        <GtgtStepComposer
+          title={entrySource === 'im' ? '报修协作' : '设备报修'}
+          meta={entrySource === 'im' ? '群消息入口' : '应用工作台'}
+          accent={accent}
+          flowHint={`提单 → 派工 → 维修 → 完工${user?.display_name ? ` · ${user.display_name}` : ''}`}
+          steps={steps}
+          values={values}
+          onChange={(k, v) => setValues((p) => ({ ...p, [k]: v }))}
+          onComplete={submit}
+          busy={busy}
+          resetKey={resetKey}
+          submitLabel="提交报修"
+        />
       )}
-      {!showForm && msg && <p className="status-msg">{msg}</p>}
-      {!showForm && error && <p className="status-msg" style={{ color: '#b91c1c' }}>{error}</p>}
+      {msg && <p className="status-msg">{msg}</p>}
+      {error && <p className="status-msg" style={{ color: '#b91c1c' }}>{error}</p>}
 
       {dispatchId && (
         <div className="list-card" style={{ marginTop: 16, borderColor: accent }}>

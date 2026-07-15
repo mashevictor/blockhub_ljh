@@ -62,6 +62,8 @@ export const MODULE_ICON_KEYS: Record<string, string> = {
   med_triage: 'chat_qa',
   nurse_shift: 'approval',
   game_support: 'chat_qa',
+  school_notice: 'notify',
+  homework_qa: 'chat_qa',
   approval_flow: 'approval',
   approval_inbox: 'approval',
   approval_countersign: 'approval',

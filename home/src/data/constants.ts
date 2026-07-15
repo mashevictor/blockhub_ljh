@@ -42,6 +42,8 @@ export const MODULES = [
     { key: 'med_triage', name: '医疗导诊', icon: '🏥' },
     { key: 'nurse_shift', name: '护士排班', icon: '🗓️' },
     { key: 'game_support', name: '玩家FAQ', icon: '🎮' },
+    { key: 'school_notice', name: '家校通知', icon: '📢' },
+    { key: 'homework_qa', name: '作业答疑', icon: '📝' },
     { key: 'approval_flow', name: '审批流', icon: '✅' },
     { key: 'approval_inbox', name: '待办中心', icon: '📥' },
     { key: 'approval_countersign', name: '会签', icon: '✍' },

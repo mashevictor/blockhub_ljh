@@ -85,6 +85,14 @@ const SCENARIO_CAPABILITY_MAP: Array<{ match: string[]; caps: Array<{ key: strin
     { key: 'game_support', label: '玩家FAQ' },
     { key: 'notify_im', label: '企微钉钉飞书' },
   ]},
+  { match: ['家校通知', '活动报名', '家长留言', '学校通知'], caps: [
+    { key: 'school_notice', label: '家校通知' },
+    { key: 'notify_im', label: '企微钉钉飞书' },
+  ]},
+  { match: ['作业答疑', '作业提交', '课程答疑', '错题巩固', '错题'], caps: [
+    { key: 'homework_qa', label: '作业答疑' },
+    { key: 'notify_im', label: '企微钉钉飞书' },
+  ]},
   { match: ['请假', '年假', '调休'], caps: [{ key: 'approval_flow', label: '审批流' }, { key: 'chat_qa', label: '智能问答' }] },
   { match: ['报销', '费用报销'], caps: [{ key: 'approval_flow', label: '审批流' }, { key: 'kb_document', label: '知识库' }] },
   { match: ['用印', '盖章'], caps: [{ key: 'approval_flow', label: '审批流' }] },

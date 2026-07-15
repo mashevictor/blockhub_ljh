@@ -77,6 +77,23 @@ description: >-
 - App：`getRuntimeAuthedDio()` + `branding.apiBaseUrl`；跨端隔离用 `appPublicId`（勿用 Android `applicationId`）
 - 空库可空列表；**不要** seed 演示假工单伪装成已有数据
 
+### A6.1 Runtime 填表交互（强制，对齐首页「预约演示」）
+
+**适用范围**：所有 Runtime 业务写入表单（弹幕能力、审批 `FormWidget`、IM Webhook 绑定等）。**禁止**一屏堆满多个 `<input>` / 传统多列表单。
+
+统一：
+
+1. 使用 `@blockhub/web-core` 的 **`GtgtStepComposer`**（样式类 `bh-gtgt-*`，runtime-web `styles.css` 已提供）
+2. 交互与 `BookingFloatingAgent` 同构：**单字段聚焦** → 前缀 `>> 字段名` → Enter /「确认」推进 → 最后一步提交真 API
+3. 可选步骤可「跳过」；选择类字段用 `GtgtStep.render`（如合格/不合格、IM 通道卡片）
+4. 提交成功后递增 `resetKey` 归零步进；列表、派工、批复、测推送等 **读操作 / 二次动作** 可留在表单下方
+5. 参考：`DemoBookingContext` + `BookingFloatingAgent`；实现示例：`device_repair` / `member_loyalty` / `quality_inspect` / `approval` / `notify_im`
+6. **Flutter App** 同源：`blockhub_flutter_core` 的 **`GtgtStepComposer`**（`>> 字段名` 单字段确认推进），弹幕能力页禁止多框同屏
+
+**反例**：`bh-flow-body` 里同时露产品号+工序+备注多个 input；或旧分步只换页但仍用无 `>>` 的普通 input（须改成 `GtgtStepComposer`）。
+
+**已覆盖能力包（写入主路径 · Web + App）**：`device_repair`、`quality_inspect`、`inventory_count`、`member_loyalty`、`med_triage`、`nurse_shift`、`game_support`、`school_notice`、`homework_qa`；另 Web：`approval`（FormWidget）、`notify_im`（Webhook 绑定）。
+
 ### A7 验收
 
 - [ ] 仅勾选该 key publish → `page_schema.menu/routes` 含该项
@@ -84,6 +101,7 @@ description: >-
 - [ ] deliver 含 app 时构建 log / manifest 含 `flutter_pkgs`
 - [ ] 无场景推荐「偷加」未选 key
 - [ ] 未把 LLM 塞进 resolver/schema 热路径
+- [ ] 业务填单为 `>>` 单字段步进（非多框同屏表单）
 
 ## 路径 B — 暂时没有的能力
 

@@ -2,6 +2,7 @@ import type { SuggestModuleItem } from '../api/client'
 import { suggestModules as suggestModulesApi } from '../api/client'
 import { moduleId, type PromptModule } from '../components/agentInputLogic'
 import { resolveAppBundle, type ResolvedAppBundle } from './appAssembly'
+import { CAPSHIP_MODULE_KEYS, userHasCapShipModule } from './heroAlign'
 import { MODULE_ICON_KEYS } from './iconPalette'
 
 function suggestItemToModule(it: SuggestModuleItem): PromptModule {
@@ -30,6 +31,7 @@ export async function resolvePublishBundle(opts: ResolvePublishBundleOpts): Prom
   const intent = opts.intentText.trim()
   let suggested: PromptModule[] = []
   let usedLlm = false
+  const lockedCapShip = userHasCapShipModule(opts.userModules)
 
   if (intent.length >= 2) {
     try {
@@ -39,6 +41,15 @@ export async function resolvePublishBundle(opts: ResolvePublishBundleOpts): Prom
       for (const it of res.items) {
         const mod = suggestItemToModule(it)
         if (seen.has(mod.id)) continue
+        // 已由弹幕 / >> 选定 CapShip 主能力时，禁止 suggest 换成别的主能力
+        if (
+          lockedCapShip &&
+          (mod.type === 'module' || mod.type === 'capability') &&
+          CAPSHIP_MODULE_KEYS.has(mod.key) &&
+          !opts.userModules.some((u) => u.key === mod.key)
+        ) {
+          continue
+        }
         seen.add(mod.id)
         suggested.push(mod)
       }
@@ -52,6 +63,9 @@ export async function resolvePublishBundle(opts: ResolvePublishBundleOpts): Prom
           source: 'suggest',
         }
         if (seen.has(mod.id)) continue
+        if (lockedCapShip && CAPSHIP_MODULE_KEYS.has(mod.key) && !opts.userModules.some((u) => u.key === mod.key)) {
+          continue
+        }
         seen.add(mod.id)
         suggested.push(mod)
       }
@@ -61,7 +75,7 @@ export async function resolvePublishBundle(opts: ResolvePublishBundleOpts): Prom
   }
 
   const hasUserPicks = opts.userModules.some((m) => m.type !== 'action')
-  const skipBaseline = suggested.length > 0 && (usedLlm || !hasUserPicks)
+  const skipBaseline = (suggested.length > 0 && (usedLlm || !hasUserPicks)) || lockedCapShip
 
   return resolveAppBundle({
     userModules: opts.userModules,

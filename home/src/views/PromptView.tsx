@@ -30,6 +30,10 @@ import { pickWithMeta, resolveAppBundle, composeLogicalPrompt, mergePromptText, 
 import { buildPublishedModulesFromBundle } from '../data/publishDisplay'
 import { resolvePublishBundle } from '../data/intentPublish'
 import {
+  alignSuggestPicksWithHero,
+  matchHeroPreset,
+} from '../data/heroAlign'
+import {
   canAutoApplySuggestions,
   enhanceSimplePrompt,
   hasStructuredPicks,
@@ -571,7 +575,7 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
         } else {
           setSuggestSourceLabel('')
         }
-        const mapped = res.items.map((it) => ({
+        const mappedRaw = res.items.map((it) => ({
           pick: mapSuggestApiItem(it),
           score: it.score,
           reason: it.source.startsWith('deepseek') || it.source.startsWith('intent') || it.source === 'industry_pack'
@@ -581,6 +585,24 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
               : it.reason,
           ...metaForSuggestItem(it),
         }))
+        // 命中弹幕场景时，与弹幕点击同一套 industry/module（避免 >>匹配 ≠ 弹幕选型）
+        const hero = matchHeroPreset(text)
+        let mapped = mappedRaw
+        if (hero) {
+          const picks = alignSuggestPicksWithHero(text, mappedRaw.map((m) => m.pick))
+          mapped = picks.map((pick, i) => {
+            const prev = mappedRaw.find((m) => m.pick.key === pick.key && m.pick.type === pick.type)
+            const meta = pickWithMeta(pick)
+            return {
+              pick,
+              score: prev?.score ?? 9.5 - i * 0.15,
+              reason: prev?.reason ?? `与弹幕「${hero.label}」同一选型`,
+              iconKey: meta.iconKey,
+              color: meta.color,
+            }
+          })
+          setSuggestSourceLabel(`弹幕对齐 · ${hero.label}`)
+        }
         setPromptSuggestions(mapped)
         if (canAutoApplySuggestions(validation, mapped)) {
           applySuggestModules(mapped, text)

@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from 'react'
-import { apiFetch, useRuntime, type SchemaNode } from '@blockhub/web-core'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { apiFetch, GtgtStepComposer, useRuntime, type GtgtStep, type SchemaNode } from '@blockhub/web-core'
 
 type IntegrationKind = 'erp' | 'meeting' | 'helpdesk' | 'asset' | 'im' | 'rbac' | 'generic'
 
@@ -99,10 +99,10 @@ function detectChannelFromUrl(url: string): (typeof IM_CHANNELS)[number]['type']
 function ImChannelPanel() {
   const { token, primaryColor, appId, entrySource } = useRuntime()
   const [items, setItems] = useState<Connector[]>([])
-  const [webhook, setWebhook] = useState('')
-  const [channel, setChannel] = useState<(typeof IM_CHANNELS)[number]['type']>('wecom')
+  const [values, setValues] = useState<Record<string, string>>({ channel: 'wecom' })
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState('')
+  const [resetKey, setResetKey] = useState(0)
 
   const load = useCallback(async () => {
     if (!token) return
@@ -119,7 +119,8 @@ function ImChannelPanel() {
   }, [load])
 
   const bind = async () => {
-    const url = webhook.trim()
+    const url = (values.webhook || '').trim()
+    const channel = (values.channel || 'wecom') as (typeof IM_CHANNELS)[number]['type']
     if (!token || !url) {
       setMsg('请粘贴机器人 Webhook 地址')
       return
@@ -147,8 +148,8 @@ function ImChannelPanel() {
           },
         }),
       })
-      setWebhook('')
-      setChannel(resolved)
+      setValues({ channel: resolved })
+      setResetKey((k) => k + 1)
       setMsg(`${label}已绑定。下方可测推送；报修/派工/完工会自动发到群。`)
       await load()
     } catch (e) {
@@ -190,17 +191,42 @@ function ImChannelPanel() {
   }
 
   const accent = primaryColor || '#4338ca'
-  const ph = IM_CHANNELS.find((c) => c.type === channel)?.placeholder || ''
+  const ph = IM_CHANNELS.find((c) => c.type === (values.channel || 'wecom'))?.placeholder || ''
   const bound = items.length > 0
-  const flowStep = bound ? 2 : webhook.trim() ? 1 : 0
+
+  const steps: GtgtStep[] = useMemo(
+    () => [
+      {
+        key: 'channel',
+        label: '通道',
+        render: ({ value, setValue, accent: a }) => (
+          <div className="im-channel-grid" style={{ flex: 1 }}>
+            {IM_CHANNELS.map((c) => (
+              <button
+                key={c.type}
+                type="button"
+                className={`im-channel-card${value === c.type ? ' is-selected' : ''}`}
+                style={value === c.type ? { borderColor: a } : undefined}
+                onClick={() => setValue(c.type)}
+              >
+                <strong>{c.label}</strong>
+              </button>
+            ))}
+          </div>
+        ),
+      },
+      {
+        key: 'webhook',
+        label: 'Webhook',
+        placeholder: ph,
+        hint: '也可由运维配置 IM_WECOM_WEBHOOK_URL 自动绑定',
+      },
+    ],
+    [ph],
+  )
 
   return (
-    <div className="bh-flow-form" style={{ ['--accent' as string]: accent }}>
-      <div className="bh-flow-head">
-        <h3>消息推送配置</h3>
-        <span className="bh-flow-meta">{entrySource === 'im' ? '协作侧' : '工作台'}</span>
-      </div>
-
+    <div>
       <p className="muted" style={{ marginBottom: 4 }}>业务闭环（配置一次即可）</p>
       <ol className="bh-process-flow" aria-label="报修推送流程">
         <li className="is-done">提单</li>
@@ -212,59 +238,33 @@ function ImChannelPanel() {
         <li className={bound ? 'is-active' : ''}>派工 / 完工再推</li>
       </ol>
 
-      <p className="muted" style={{ marginBottom: 4 }}>本页配置进度</p>
-      <ol className="bh-process-flow" aria-label="Webhook 配置进度">
-        <li className={flowStep >= 0 ? 'is-active' : ''}>① 点选通道</li>
-        <span className="arrow" aria-hidden>→</span>
-        <li className={flowStep >= 1 ? 'is-active' : ''}>② 粘贴地址</li>
-        <span className="arrow" aria-hidden>→</span>
-        <li className={flowStep >= 2 ? 'is-done' : ''}>③ 已生效</li>
-      </ol>
-
-      <div className="im-channel-grid">
-        {IM_CHANNELS.map((c) => (
-          <button
-            key={c.type}
-            type="button"
-            className={`im-channel-card${channel === c.type ? ' is-selected' : ''}`}
-            onClick={() => setChannel(c.type)}
-          >
-            <strong>{c.label}</strong>
-            <span className="muted" style={{ fontSize: 12 }}>
-              {channel === c.type ? '已选 · 在下方粘贴 Webhook' : '点击选择此通道'}
-            </span>
-          </button>
-        ))}
-      </div>
-
-      <div className="im-bind-box">
-        <label>
-          粘贴 {IM_CHANNELS.find((c) => c.type === channel)?.label} Webhook（整段 URL）
-          <input
-            className="input"
-            value={webhook}
-            onChange={(e) => {
-              const v = e.target.value
-              setWebhook(v)
+      <GtgtStepComposer
+        title="消息推送配置"
+        meta={entrySource === 'im' ? '协作侧' : '工作台'}
+        accent={accent}
+        flowHint="选通道 → 粘贴 Webhook → 保存启用"
+        steps={steps}
+        values={values}
+        onChange={(k, v) => {
+          setValues((p) => {
+            const next = { ...p, [k]: v }
+            if (k === 'webhook') {
               const detected = detectChannelFromUrl(v)
-              if (detected) setChannel(detected)
-            }}
-            placeholder={ph}
-          />
-        </label>
-        <p className="muted" style={{ fontSize: 12, marginTop: 8 }}>
-          也可由运维配置环境变量 <code>IM_WECOM_WEBHOOK_URL</code> 自动绑定，与本页粘贴并存。
-        </p>
-        <div className="bh-flow-actions" style={{ marginTop: 12 }}>
-          <button type="button" className="btn" style={{ background: accent }} disabled={busy} onClick={() => void bind()}>
-            {busy ? '保存中…' : '保存并启用推送'}
-          </button>
-        </div>
-        {msg && <p className="status-msg">{msg}</p>}
-      </div>
+              if (detected) next.channel = detected
+            }
+            return next
+          })
+        }}
+        onComplete={bind}
+        busy={busy}
+        resetKey={resetKey}
+        submitLabel="保存并启用推送"
+      >
+        {msg ? <p className="status-msg">{msg}</p> : null}
+      </GtgtStepComposer>
 
       <h4 style={{ margin: '20px 0 8px', fontSize: 14 }}>已绑定通道</h4>
-      {items.length === 0 && <p className="muted">还没有可用通道。选通道 → 粘贴 → 保存。</p>}
+      {items.length === 0 && <p className="muted">还没有可用通道。>> 选通道 → 粘贴 → 保存。</p>}
       {items.map((c) => {
         const cfg = c.config as { webhook_url?: string; source?: string; managed?: boolean }
         const envManaged = cfg?.source === 'env' || cfg?.managed === true

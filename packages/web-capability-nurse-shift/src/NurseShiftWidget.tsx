@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { SchemaNode } from '@blockhub/web-core'
-import { apiFetch, useRuntime } from '@blockhub/web-core'
+import { apiFetch, GtgtStepComposer, useRuntime, type GtgtStep } from '@blockhub/web-core'
 
 interface RecordItem {
   id: string
@@ -14,24 +14,38 @@ interface RecordItem {
   reporter_name?: string
 }
 
-const STEPS = ['值班日', '班次', '原因'] as const
-
 export function NurseShiftWidget(_props: { node: SchemaNode }) {
   const { token, primaryColor, appId, user, entrySource } = useRuntime()
   const [items, setItems] = useState<RecordItem[]>([])
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
-  const [step, setStep] = useState(0)
-  const [nurseName, setNurseName] = useState('')
-  const [shiftDate, setShiftDate] = useState('')
-  const [fromShift, setFromShift] = useState('白班')
-  const [toShift, setToShift] = useState('夜班')
-  const [reason, setReason] = useState('')
+  const [resetKey, setResetKey] = useState(0)
+  const [values, setValues] = useState<Record<string, string>>({
+    from_shift: '白班',
+    to_shift: '夜班',
+  })
   const [msg, setMsg] = useState('')
   const [showForm, setShowForm] = useState(entrySource !== 'im')
 
   const accent = primaryColor || '#059669'
   const pending = items.filter((t) => t.status === 'pending').length
+
+  const steps: GtgtStep[] = useMemo(
+    () => [
+      { key: 'nurse_name', label: '护士姓名', placeholder: user?.display_name || '可默认当前用户', optional: true },
+      {
+        key: 'shift_date',
+        label: '值班日期',
+        render: ({ value, setValue }) => (
+          <input className="bh-gtgt-input" type="date" value={value} onChange={(e) => setValue(e.target.value)} />
+        ),
+      },
+      { key: 'from_shift', label: '原班次', placeholder: '白班 / 小夜 / 大夜' },
+      { key: 'to_shift', label: '目标班次', placeholder: '希望调至' },
+      { key: 'reason', label: '调班原因', placeholder: '家庭事由 / 倒班换休…', optional: true },
+    ],
+    [user?.display_name],
+  )
 
   const load = useCallback(async () => {
     if (!token) {
@@ -57,27 +71,23 @@ export function NurseShiftWidget(_props: { node: SchemaNode }) {
   }, [load])
 
   const submit = async () => {
-    if (!token || !shiftDate.trim()) return
+    if (!token || !values.shift_date?.trim()) return
     setBusy(true)
     setMsg('')
     try {
       await apiFetch('/api/v1/nurse-shift/records', token, {
         method: 'POST',
         body: JSON.stringify({
-          nurse_name: nurseName.trim() || user?.display_name || '',
-          shift_date: shiftDate.trim(),
-          from_shift: fromShift.trim(),
-          to_shift: toShift.trim(),
-          reason: reason.trim(),
+          nurse_name: (values.nurse_name || '').trim() || user?.display_name || '',
+          shift_date: values.shift_date.trim(),
+          from_shift: (values.from_shift || '白班').trim(),
+          to_shift: (values.to_shift || '夜班').trim(),
+          reason: (values.reason || '').trim(),
           app_public_id: appId || '',
         }),
       })
-      setNurseName('')
-      setShiftDate('')
-      setFromShift('白班')
-      setToShift('夜班')
-      setReason('')
-      setStep(0)
+      setValues({ from_shift: '白班', to_shift: '夜班' })
+      setResetKey((k) => k + 1)
       setMsg('调班已提交 · 待护士长批复')
       await load()
     } catch (e) {
@@ -101,71 +111,23 @@ export function NurseShiftWidget(_props: { node: SchemaNode }) {
   const statusLabel = (s: string) => (s === 'pending' ? '待批复' : s === 'approved' ? '已通过' : '已驳回')
 
   return (
-    <div className="widget bh-flow-form" style={{ ['--accent' as string]: accent }}>
-      <div className="bh-flow-head">
-        <h3>{entrySource === 'im' ? '排班协作' : '护士排班'}</h3>
-        <span className="bh-flow-meta">{entrySource === 'im' ? '群消息入口' : '应用工作台'}</span>
-      </div>
-      <p className="muted">
-        调班申请 → 护士长批复 → 值班通知
-        {user?.display_name ? ` · ${user.display_name}` : ''}
-      </p>
-      <ol className="bh-process-flow">
-        <li className={showForm ? 'is-active' : 'is-done'}>① 申请</li>
-        <span className="arrow" aria-hidden>→</span>
-        <li className={pending ? 'is-active' : ''}>② 待批复{pending ? `（${pending}）` : ''}</li>
-        <span className="arrow" aria-hidden>→</span>
-        <li>③ 已决策</li>
-      </ol>
-
+    <div>
       {!showForm ? (
         <button type="button" className="btn btn-ghost" onClick={() => setShowForm(true)}>新建调班申请</button>
       ) : (
-        <>
-          <div className="bh-flow-steps">
-            {STEPS.map((label, i) => (
-              <div key={label} className={`bh-flow-step${i === step ? ' is-active' : ''}${i < step ? ' is-done' : ''}`}>
-                <span className="bh-flow-dot" style={i <= step ? { background: accent } : undefined} />
-                <span>{label}</span>
-              </div>
-            ))}
-          </div>
-          <div className="bh-flow-body">
-            {step === 0 && (
-              <>
-                <label>护士姓名
-                  <input className="input" value={nurseName} onChange={(e) => setNurseName(e.target.value)} placeholder={user?.display_name || '可默认当前用户'} autoFocus />
-                </label>
-                <label>值班日期
-                  <input className="input" type="date" value={shiftDate} onChange={(e) => setShiftDate(e.target.value)} />
-                </label>
-              </>
-            )}
-            {step === 1 && (
-              <>
-                <label>原班次
-                  <input className="input" value={fromShift} onChange={(e) => setFromShift(e.target.value)} placeholder="白班 / 小夜 / 大夜" autoFocus />
-                </label>
-                <label>目标班次
-                  <input className="input" value={toShift} onChange={(e) => setToShift(e.target.value)} placeholder="希望调至" />
-                </label>
-              </>
-            )}
-            {step === 2 && (
-              <label>调班原因
-                <textarea className="input" rows={3} value={reason} onChange={(e) => setReason(e.target.value)} placeholder="家庭事由 / 倒班换休…" autoFocus />
-              </label>
-            )}
-            <div className="bh-flow-actions">
-              {step > 0 && <button type="button" className="btn btn-ghost" onClick={() => setStep((s) => s - 1)}>上一步</button>}
-              {step < 2 ? (
-                <button type="button" className="btn" style={{ background: accent }} disabled={step === 0 && !shiftDate.trim()} onClick={() => setStep((s) => s + 1)}>下一步</button>
-              ) : (
-                <button type="button" className="btn" style={{ background: accent }} disabled={busy} onClick={() => void submit()}>{busy ? '提交中…' : '提交申请'}</button>
-              )}
-            </div>
-          </div>
-        </>
+        <GtgtStepComposer
+          title={entrySource === 'im' ? '排班协作' : '护士排班'}
+          meta={entrySource === 'im' ? '群消息入口' : '应用工作台'}
+          accent={accent}
+          flowHint={`调班申请 → 护士长批复 → 值班通知${user?.display_name ? ` · ${user.display_name}` : ''}${pending ? ` · 待批复 ${pending}` : ''}`}
+          steps={steps}
+          values={values}
+          onChange={(k, v) => setValues((p) => ({ ...p, [k]: v }))}
+          onComplete={submit}
+          busy={busy}
+          resetKey={resetKey}
+          submitLabel="提交申请"
+        />
       )}
       {msg && <p className="status-msg">{msg}</p>}
 

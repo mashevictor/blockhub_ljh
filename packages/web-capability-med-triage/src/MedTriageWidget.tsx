@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { SchemaNode } from '@blockhub/web-core'
-import { apiFetch, useRuntime } from '@blockhub/web-core'
+import { apiFetch, GtgtStepComposer, useRuntime, type GtgtStep } from '@blockhub/web-core'
 
 interface RecordItem {
   id: string
@@ -14,24 +14,62 @@ interface RecordItem {
   reporter_name?: string
 }
 
-const STEPS = ['患者', '症状', '科室'] as const
-
 export function MedTriageWidget(_props: { node: SchemaNode }) {
   const { token, primaryColor, appId, user, entrySource } = useRuntime()
   const [items, setItems] = useState<RecordItem[]>([])
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
-  const [step, setStep] = useState(0)
-  const [patient, setPatient] = useState('')
-  const [symptoms, setSymptoms] = useState('')
-  const [dept, setDept] = useState('')
-  const [urgency, setUrgency] = useState<'low' | 'normal' | 'high'>('normal')
-  const [note, setNote] = useState('')
+  const [resetKey, setResetKey] = useState(0)
+  const [values, setValues] = useState<Record<string, string>>({ urgency: 'normal' })
   const [msg, setMsg] = useState('')
   const [showForm, setShowForm] = useState(entrySource !== 'im')
 
   const accent = primaryColor || '#10b981'
   const openCount = items.filter((t) => t.status === 'open').length
+
+  const previewDept = useCallback(async (symptoms: string) => {
+    if (!token || !symptoms.trim()) return
+    try {
+      const data = await apiFetch<{ suggested_dept: string }>('/api/v1/med-triage/suggest-dept', token, {
+        method: 'POST',
+        body: JSON.stringify({ symptoms: symptoms.trim() }),
+      })
+      setValues((p) => ({ ...p, dept: data.suggested_dept || '' }))
+    } catch (e) {
+      setMsg(`科室建议失败：${String(e)}`)
+    }
+  }, [token])
+
+  const steps: GtgtStep[] = useMemo(
+    () => [
+      { key: 'patient', label: '患者姓名', placeholder: '可留空', optional: true },
+      { key: 'symptoms', label: '症状描述', placeholder: '如：咳嗽发烧两天…' },
+      {
+        key: 'urgency',
+        label: '紧急程度',
+        render: ({ value, setValue, accent: a }) => (
+          <div className="row-actions">
+            <button type="button" className={value === 'low' ? 'btn' : 'btn btn-ghost'} style={value === 'low' ? { background: a } : undefined} onClick={() => setValue('low')}>低</button>
+            <button type="button" className={(value || 'normal') === 'normal' ? 'btn' : 'btn btn-ghost'} style={(value || 'normal') === 'normal' ? { background: a } : undefined} onClick={() => setValue('normal')}>普通</button>
+            <button type="button" className={value === 'high' ? 'btn' : 'btn btn-ghost'} style={value === 'high' ? { background: '#b91c1c' } : undefined} onClick={() => setValue('high')}>紧急</button>
+          </div>
+        ),
+      },
+      {
+        key: 'dept',
+        label: '建议科室',
+        placeholder: '可点建议或手填',
+        render: ({ value, setValue, accent: a }) => (
+          <div style={{ display: 'grid', gap: 8 }}>
+            <input className="bh-gtgt-input" value={value} onChange={(e) => setValue(e.target.value)} placeholder="可点建议或手填" />
+            <button type="button" className="btn btn-ghost" onClick={() => void previewDept(values.symptoms || '')}>根据症状建议科室</button>
+          </div>
+        ),
+      },
+      { key: 'note', label: '备注', placeholder: '过敏史、既往就诊…', optional: true },
+    ],
+    [previewDept, values.symptoms],
+  )
 
   const load = useCallback(async () => {
     if (!token) {
@@ -56,41 +94,24 @@ export function MedTriageWidget(_props: { node: SchemaNode }) {
     void load()
   }, [load])
 
-  const previewDept = async () => {
-    if (!token || !symptoms.trim()) return
-    try {
-      const data = await apiFetch<{ suggested_dept: string }>('/api/v1/med-triage/suggest-dept', token, {
-        method: 'POST',
-        body: JSON.stringify({ symptoms: symptoms.trim() }),
-      })
-      setDept(data.suggested_dept || '')
-    } catch (e) {
-      setMsg(`科室建议失败：${String(e)}`)
-    }
-  }
-
   const submit = async () => {
-    if (!token || !symptoms.trim()) return
+    if (!token || !values.symptoms?.trim()) return
     setBusy(true)
     setMsg('')
     try {
       await apiFetch('/api/v1/med-triage/records', token, {
         method: 'POST',
         body: JSON.stringify({
-          patient_name: patient.trim(),
-          symptoms: symptoms.trim(),
-          suggested_dept: dept.trim(),
-          urgency,
-          note: note.trim(),
+          patient_name: (values.patient || '').trim(),
+          symptoms: values.symptoms.trim(),
+          suggested_dept: (values.dept || '').trim(),
+          urgency: values.urgency || 'normal',
+          note: (values.note || '').trim(),
           app_public_id: appId || '',
         }),
       })
-      setPatient('')
-      setSymptoms('')
-      setDept('')
-      setUrgency('normal')
-      setNote('')
-      setStep(0)
+      setValues({ urgency: 'normal' })
+      setResetKey((k) => k + 1)
       setMsg('导诊已入库；可在待办中确认完成')
       await load()
     } catch (e) {
@@ -111,86 +132,23 @@ export function MedTriageWidget(_props: { node: SchemaNode }) {
   }
 
   return (
-    <div className="widget bh-flow-form" style={{ ['--accent' as string]: accent }}>
-      <div className="bh-flow-head">
-        <h3>{entrySource === 'im' ? '导诊协作' : '医疗导诊'}</h3>
-        <span className="bh-flow-meta">{entrySource === 'im' ? '群消息入口' : '应用工作台'}</span>
-      </div>
-      <p className="muted">
-        预问诊 → 推荐科室 → 完成指引
-        {user?.display_name ? ` · ${user.display_name}` : ''}
-      </p>
-      <ol className="bh-process-flow">
-        <li className={showForm ? 'is-active' : 'is-done'}>① 录入</li>
-        <span className="arrow" aria-hidden>→</span>
-        <li className={openCount ? 'is-active' : ''}>② 待指引{openCount ? `（${openCount}）` : ''}</li>
-        <span className="arrow" aria-hidden>→</span>
-        <li>③ 已完成</li>
-      </ol>
-
+    <div>
       {!showForm ? (
         <button type="button" className="btn btn-ghost" onClick={() => setShowForm(true)}>新建导诊</button>
       ) : (
-        <>
-          <div className="bh-flow-steps">
-            {STEPS.map((label, i) => (
-              <div key={label} className={`bh-flow-step${i === step ? ' is-active' : ''}${i < step ? ' is-done' : ''}`}>
-                <span className="bh-flow-dot" style={i <= step ? { background: accent } : undefined} />
-                <span>{label}</span>
-              </div>
-            ))}
-          </div>
-          <div className="bh-flow-body">
-            {step === 0 && (
-              <label>患者姓名（可匿名）
-                <input className="input" value={patient} onChange={(e) => setPatient(e.target.value)} placeholder="可留空" autoFocus />
-              </label>
-            )}
-            {step === 1 && (
-              <>
-                <label>症状描述
-                  <textarea className="input" rows={3} value={symptoms} onChange={(e) => setSymptoms(e.target.value)} placeholder="如：咳嗽发烧两天…" autoFocus />
-                </label>
-                <div className="row-actions">
-                  <button type="button" className={urgency === 'low' ? 'btn' : 'btn btn-ghost'} style={urgency === 'low' ? { background: accent } : undefined} onClick={() => setUrgency('low')}>低</button>
-                  <button type="button" className={urgency === 'normal' ? 'btn' : 'btn btn-ghost'} style={urgency === 'normal' ? { background: accent } : undefined} onClick={() => setUrgency('normal')}>普通</button>
-                  <button type="button" className={urgency === 'high' ? 'btn' : 'btn btn-ghost'} style={urgency === 'high' ? { background: '#b91c1c' } : undefined} onClick={() => setUrgency('high')}>紧急</button>
-                </div>
-              </>
-            )}
-            {step === 2 && (
-              <>
-                <label>建议科室
-                  <input className="input" value={dept} onChange={(e) => setDept(e.target.value)} placeholder="可点建议或手填" />
-                </label>
-                <button type="button" className="btn btn-ghost" onClick={() => void previewDept()}>根据症状建议科室</button>
-                <label>备注
-                  <textarea className="input" rows={2} value={note} onChange={(e) => setNote(e.target.value)} placeholder="过敏史、既往就诊…" />
-                </label>
-              </>
-            )}
-            <div className="bh-flow-actions">
-              {step > 0 && <button type="button" className="btn btn-ghost" onClick={() => setStep((s) => s - 1)}>上一步</button>}
-              {step < 2 ? (
-                <button
-                  type="button"
-                  className="btn"
-                  style={{ background: accent }}
-                  disabled={step === 1 && !symptoms.trim()}
-                  onClick={() => {
-                    const next = step + 1
-                    setStep(next)
-                    if (next === 2 && !dept.trim()) void previewDept()
-                  }}
-                >
-                  下一步
-                </button>
-              ) : (
-                <button type="button" className="btn" style={{ background: accent }} disabled={busy} onClick={() => void submit()}>{busy ? '提交中…' : '提交导诊'}</button>
-              )}
-            </div>
-          </div>
-        </>
+        <GtgtStepComposer
+          title={entrySource === 'im' ? '导诊协作' : '医疗导诊'}
+          meta={entrySource === 'im' ? '群消息入口' : '应用工作台'}
+          accent={accent}
+          flowHint={`预问诊 → 推荐科室 → 完成指引${user?.display_name ? ` · ${user.display_name}` : ''}${openCount ? ` · 待指引 ${openCount}` : ''}`}
+          steps={steps}
+          values={values}
+          onChange={(k, v) => setValues((p) => ({ ...p, [k]: v }))}
+          onComplete={submit}
+          busy={busy}
+          resetKey={resetKey}
+          submitLabel="提交导诊"
+        />
       )}
       {msg && <p className="status-msg">{msg}</p>}
 

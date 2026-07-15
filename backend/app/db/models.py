@@ -567,7 +567,7 @@ class InventoryCountRecord(Base):
 
 
 class MemberLoyaltyRecord(Base):
-    """CapShip · member_loyalty 会员营销触达。"""
+    """CapShip · member_loyalty 旧触达单（保留兼容）。"""
 
     __tablename__ = "member_loyalty_records"
 
@@ -581,6 +581,90 @@ class MemberLoyaltyRecord(Base):
     campaign_name: Mapped[str] = mapped_column(String(200), nullable=False, default="")
     points: Mapped[int] = mapped_column(nullable=False, default=0)
     note: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    status: Mapped[str] = mapped_column(String(32), nullable=False, default="pending", index=True)  # pending | sent
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+    reporter: Mapped[User] = relationship(foreign_keys=[reporter_id])
+
+
+class MemberLoyaltyMember(Base):
+    """CapShip · member_loyalty 会员档案。"""
+
+    __tablename__ = "member_loyalty_members"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenants.id"), nullable=False, index=True)
+    app_public_id: Mapped[str] = mapped_column(String(64), nullable=False, default="", index=True)
+    reporter_id: Mapped[str] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
+    name: Mapped[str] = mapped_column(String(120), nullable=False, default="")
+    phone: Mapped[str] = mapped_column(String(32), nullable=False, default="", index=True)
+    points: Mapped[int] = mapped_column(nullable=False, default=0)
+    last_visit_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    status: Mapped[str] = mapped_column(String(32), nullable=False, default="active", index=True)  # active | sleeping
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+    reporter: Mapped[User] = relationship(foreign_keys=[reporter_id])
+
+
+class MemberLoyaltyCampaign(Base):
+    """CapShip · member_loyalty 营销活动。"""
+
+    __tablename__ = "member_loyalty_campaigns"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenants.id"), nullable=False, index=True)
+    app_public_id: Mapped[str] = mapped_column(String(64), nullable=False, default="", index=True)
+    reporter_id: Mapped[str] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
+    name: Mapped[str] = mapped_column(String(200), nullable=False, default="")
+    campaign_type: Mapped[str] = mapped_column(String(32), nullable=False, default="points")  # points | redeem | wake
+    rule_text: Mapped[str] = mapped_column(String(500), nullable=False, default="")
+    points_delta: Mapped[int] = mapped_column(nullable=False, default=0)
+    status: Mapped[str] = mapped_column(String(32), nullable=False, default="active", index=True)  # active | ended
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+    reporter: Mapped[User] = relationship(foreign_keys=[reporter_id])
+
+
+class MemberLoyaltyPointTxn(Base):
+    """CapShip · member_loyalty 积分流水。"""
+
+    __tablename__ = "member_loyalty_point_txns"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenants.id"), nullable=False, index=True)
+    app_public_id: Mapped[str] = mapped_column(String(64), nullable=False, default="", index=True)
+    reporter_id: Mapped[str] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
+    member_id: Mapped[str] = mapped_column(ForeignKey("member_loyalty_members.id"), nullable=False, index=True)
+    campaign_id: Mapped[str] = mapped_column(String(36), nullable=False, default="")
+    txn_type: Mapped[str] = mapped_column(String(32), nullable=False, default="earn")  # earn | redeem
+    points: Mapped[int] = mapped_column(nullable=False, default=0)
+    reason: Mapped[str] = mapped_column(String(500), nullable=False, default="")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    reporter: Mapped[User] = relationship(foreign_keys=[reporter_id])
+
+
+class MemberLoyaltyOutreach(Base):
+    """CapShip · member_loyalty 定向触达。"""
+
+    __tablename__ = "member_loyalty_outreaches"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenants.id"), nullable=False, index=True)
+    app_public_id: Mapped[str] = mapped_column(String(64), nullable=False, default="", index=True)
+    reporter_id: Mapped[str] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
+    member_id: Mapped[str] = mapped_column(ForeignKey("member_loyalty_members.id"), nullable=False, index=True)
+    campaign_id: Mapped[str] = mapped_column(String(36), nullable=False, default="")
+    message: Mapped[str] = mapped_column(Text, nullable=False, default="")
     status: Mapped[str] = mapped_column(String(32), nullable=False, default="pending", index=True)  # pending | sent
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
@@ -642,11 +726,48 @@ class GameSupportRecord(Base):
     app_public_id: Mapped[str] = mapped_column(String(64), nullable=False, default="", index=True)
     reporter_id: Mapped[str] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
     record_no: Mapped[str] = mapped_column(String(32), nullable=False, index=True)
-    category: Mapped[str] = mapped_column(String(32), nullable=False, default="ticket")  # faq | ticket
+    reporter: Mapped[User] = relationship(foreign_keys=[reporter_id])
+
+
+class SchoolNoticeRecord(Base):
+    """CapShip · school_notice 家校通知。"""
+
+    __tablename__ = "school_notice_records"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenants.id"), nullable=False, index=True)
+    app_public_id: Mapped[str] = mapped_column(String(64), nullable=False, default="", index=True)
+    reporter_id: Mapped[str] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
+    record_no: Mapped[str] = mapped_column(String(32), nullable=False, index=True)
+    title: Mapped[str] = mapped_column(String(200), nullable=False, default="")
+    audience: Mapped[str] = mapped_column(String(120), nullable=False, default="")
+    category: Mapped[str] = mapped_column(String(32), nullable=False, default="notice")  # notice | signup | message
+    content: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    status: Mapped[str] = mapped_column(String(32), nullable=False, default="published", index=True)  # published | acked
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+    reporter: Mapped[User] = relationship(foreign_keys=[reporter_id])
+
+
+class HomeworkQaRecord(Base):
+    """CapShip · homework_qa 作业答疑。"""
+
+    __tablename__ = "homework_qa_records"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenants.id"), nullable=False, index=True)
+    app_public_id: Mapped[str] = mapped_column(String(64), nullable=False, default="", index=True)
+    reporter_id: Mapped[str] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
+    record_no: Mapped[str] = mapped_column(String(32), nullable=False, index=True)
+    student_name: Mapped[str] = mapped_column(String(120), nullable=False, default="")
+    subject: Mapped[str] = mapped_column(String(64), nullable=False, default="")
+    category: Mapped[str] = mapped_column(String(32), nullable=False, default="homework")  # homework | qa | wrongbook
     title: Mapped[str] = mapped_column(String(200), nullable=False, default="")
     content: Mapped[str] = mapped_column(Text, nullable=False, default="")
-    player_name: Mapped[str] = mapped_column(String(120), nullable=False, default="")
-    status: Mapped[str] = mapped_column(String(32), nullable=False, default="open", index=True)  # open | closed
+    status: Mapped[str] = mapped_column(String(32), nullable=False, default="open", index=True)  # open | reviewed
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()

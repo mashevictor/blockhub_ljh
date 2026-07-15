@@ -48,6 +48,8 @@ export const SCENARIO_PICKS: ScenarioPick[] = [
   { key: 'nurse_shift', category: '医疗行业', icon: '🗓️', title: '护士排班', desc: '调班申请与护士长批复', capability: 'nurse_shift', agent: '排班', promptLine: '护士调班申请与批复' },
   { key: 'member_loyalty', category: '零售电商', icon: '🎁', title: '会员营销', desc: '积分活动登记与触达确认', capability: 'member_loyalty', agent: '营销', promptLine: '会员积分促销活动与触达' },
   { key: 'game_faq', category: '游戏行业', icon: '🎮', title: '玩家 FAQ', desc: '活动规则、攻略与客服工单', capability: 'game_support', agent: '客服', promptLine: '玩家 FAQ 与客服工单' },
+  { key: 'school_notice', category: '教育培训', icon: '📢', title: '家校通知', desc: '通知/报名/家长留言', capability: 'school_notice', agent: '家校', promptLine: '家校通知与活动报名' },
+  { key: 'homework_qa', category: '教育培训', icon: '📝', title: '作业答疑', desc: '作业提交与课程答疑', capability: 'homework_qa', agent: '教学', promptLine: '作业提交与课程答疑' },
   { key: 'it_help', category: 'IT 与资产', icon: '🛠', title: 'IT 报障', desc: '故障工单提交，IT 值班分派', capability: 'it_helpdesk', agent: '外部数据', promptLine: 'IT 报障工单与值班分派' },
   { key: 'erp', category: '外部对接', icon: '🔌', title: '对接 ERP/OA', desc: 'SAP/用友/钉钉数据双向同步', capability: 'erp_connector', agent: '外部数据', promptLine: '对接 ERP/OA 系统数据同步' },
 ]

@@ -127,6 +127,20 @@ SCENARIO_TEMPLATES: list[dict[str, Any]] = [
         "match": ["玩家FAQ", "玩家攻略", "客服工单", "活动规则", "游戏FAQ"],
         "capability_keys": ["game_support", "notify_im", "chat_qa"],
     },
+    {
+        "id": "tpl-edu-notice",
+        "name": "家校通知",
+        "industry": "edu",
+        "match": ["家校通知", "活动报名", "家长留言", "学校通知"],
+        "capability_keys": ["school_notice", "notify_im"],
+    },
+    {
+        "id": "tpl-edu-homework",
+        "name": "作业答疑",
+        "industry": "edu",
+        "match": ["作业答疑", "作业提交", "课程答疑", "错题巩固", "错题"],
+        "capability_keys": ["homework_qa", "notify_im", "chat_qa"],
+    },
 ]
 
 OFFICE_DEFAULT_KEYS = ["chat_qa", "approval_flow", "kb_document", "chart_dashboard"]

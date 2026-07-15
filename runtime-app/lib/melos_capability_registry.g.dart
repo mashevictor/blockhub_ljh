@@ -10,6 +10,8 @@ import 'package:capability_member_loyalty/capability_member_loyalty.dart';
 import 'package:capability_med_triage/capability_med_triage.dart';
 import 'package:capability_nurse_shift/capability_nurse_shift.dart';
 import 'package:capability_game_support/capability_game_support.dart';
+import 'package:capability_school_notice/capability_school_notice.dart';
+import 'package:capability_homework_qa/capability_homework_qa.dart';
 import 'package:capability_audit_log/capability_audit_log.dart';
 import 'package:capability_kb/capability_kb.dart';
 import 'package:capability_dashboard/capability_dashboard.dart';
@@ -29,6 +31,8 @@ final _mod_member_loyalty = const MemberLoyaltyModule();
 final _mod_med_triage = const MedTriageModule();
 final _mod_nurse_shift = const NurseShiftModule();
 final _mod_game_support = const GameSupportModule();
+final _mod_school_notice = const SchoolNoticeModule();
+final _mod_homework_qa = const HomeworkQaModule();
 final _mod_audit_log = const AuditLogModule();
 final _mod_kb = const KbModule();
 final _mod_dashboard = const DashboardModule();
@@ -47,6 +51,8 @@ List<CapabilityModule> get generatedMelosCapabilityModules => [
   _mod_med_triage,
   _mod_nurse_shift,
   _mod_game_support,
+  _mod_school_notice,
+  _mod_homework_qa,
   _mod_audit_log,
   _mod_kb,
   _mod_dashboard,
@@ -95,6 +101,7 @@ final Map<String, CapabilityModule> generatedMelosModuleByKey = {
     'device_repair': _mod_device_repair,
     'form_widget': _mod_approval_flow,
     'game_support': _mod_game_support,
+    'homework_qa': _mod_homework_qa,
     'inventory_count': _mod_inventory_count,
     'kb_document': _mod_kb,
     'kb_search': _mod_kb,
@@ -106,6 +113,7 @@ final Map<String, CapabilityModule> generatedMelosModuleByKey = {
     'notify_inapp': _mod_dashboard,
     'nurse_shift': _mod_nurse_shift,
     'quality_inspect': _mod_quality_inspect,
+    'school_notice': _mod_school_notice,
     'security_mask': _mod_security_mask,
     'shanghai_voice': _mod_shanghai_voice,
     'shanghai_voice_stream': _mod_shanghai_voice,

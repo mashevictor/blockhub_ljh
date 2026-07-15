@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { SchemaNode } from '@blockhub/web-core'
-import { apiFetch, useRuntime } from '@blockhub/web-core'
+import { apiFetch, GtgtStepComposer, useRuntime, type GtgtStep } from '@blockhub/web-core'
 
 interface RecordItem {
   id: string
@@ -13,23 +13,37 @@ interface RecordItem {
   reporter_name?: string
 }
 
-const STEPS = ['类型', '标题', '内容'] as const
-
 export function GameSupportWidget(_props: { node: SchemaNode }) {
   const { token, primaryColor, appId, user, entrySource } = useRuntime()
   const [items, setItems] = useState<RecordItem[]>([])
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
-  const [step, setStep] = useState(0)
-  const [category, setCategory] = useState<'faq' | 'ticket'>('ticket')
-  const [title, setTitle] = useState('')
-  const [content, setContent] = useState('')
-  const [playerName, setPlayerName] = useState('')
+  const [resetKey, setResetKey] = useState(0)
+  const [values, setValues] = useState<Record<string, string>>({ category: 'ticket' })
   const [msg, setMsg] = useState('')
   const [showForm, setShowForm] = useState(entrySource !== 'im')
 
   const accent = primaryColor || '#a855f7'
   const openCount = items.filter((t) => t.status === 'open').length
+
+  const steps: GtgtStep[] = useMemo(
+    () => [
+      {
+        key: 'category',
+        label: '类型',
+        render: ({ value, setValue, accent: a }) => (
+          <div className="row-actions">
+            <button type="button" className={(value || 'ticket') === 'faq' ? 'btn' : 'btn btn-ghost'} style={(value || 'ticket') === 'faq' ? { background: a } : undefined} onClick={() => setValue('faq')}>FAQ/攻略</button>
+            <button type="button" className={(value || 'ticket') === 'ticket' ? 'btn' : 'btn btn-ghost'} style={(value || 'ticket') === 'ticket' ? { background: a } : undefined} onClick={() => setValue('ticket')}>客服工单</button>
+          </div>
+        ),
+      },
+      { key: 'player_name', label: '玩家昵称', placeholder: user?.display_name || '', optional: true },
+      { key: 'title', label: '标题', placeholder: '活动规则 / 掉线反馈…' },
+      { key: 'content', label: '详细内容', placeholder: '规则说明或问题复现步骤…', optional: true },
+    ],
+    [user?.display_name],
+  )
 
   const load = useCallback(async () => {
     if (!token) {
@@ -55,25 +69,23 @@ export function GameSupportWidget(_props: { node: SchemaNode }) {
   }, [load])
 
   const submit = async () => {
-    if (!token || !title.trim()) return
+    if (!token || !values.title?.trim()) return
     setBusy(true)
     setMsg('')
+    const category = values.category === 'faq' ? 'faq' : 'ticket'
     try {
       await apiFetch('/api/v1/game-support/records', token, {
         method: 'POST',
         body: JSON.stringify({
           category,
-          title: title.trim(),
-          content: content.trim(),
-          player_name: playerName.trim() || user?.display_name || '',
+          title: values.title.trim(),
+          content: (values.content || '').trim(),
+          player_name: (values.player_name || '').trim() || user?.display_name || '',
           app_public_id: appId || '',
         }),
       })
-      setTitle('')
-      setContent('')
-      setPlayerName('')
-      setCategory('ticket')
-      setStep(0)
+      setValues({ category: 'ticket' })
+      setResetKey((k) => k + 1)
       setMsg(category === 'faq' ? 'FAQ 已入库' : '客服工单已提交')
       await load()
     } catch (e) {
@@ -94,67 +106,23 @@ export function GameSupportWidget(_props: { node: SchemaNode }) {
   }
 
   return (
-    <div className="widget bh-flow-form" style={{ ['--accent' as string]: accent }}>
-      <div className="bh-flow-head">
-        <h3>{entrySource === 'im' ? '玩家支持协作' : '玩家 FAQ / 工单'}</h3>
-        <span className="bh-flow-meta">{entrySource === 'im' ? '群消息入口' : '应用工作台'}</span>
-      </div>
-      <p className="muted">
-        FAQ/工单入库 → 跟进 → 关闭
-        {user?.display_name ? ` · ${user.display_name}` : ''}
-      </p>
-      <ol className="bh-process-flow">
-        <li className={showForm ? 'is-active' : 'is-done'}>① 提交</li>
-        <span className="arrow" aria-hidden>→</span>
-        <li className={openCount ? 'is-active' : ''}>② 处理中{openCount ? `（${openCount}）` : ''}</li>
-        <span className="arrow" aria-hidden>→</span>
-        <li>③ 已关闭</li>
-      </ol>
-
+    <div>
       {!showForm ? (
         <button type="button" className="btn btn-ghost" onClick={() => setShowForm(true)}>新建 FAQ / 工单</button>
       ) : (
-        <>
-          <div className="bh-flow-steps">
-            {STEPS.map((label, i) => (
-              <div key={label} className={`bh-flow-step${i === step ? ' is-active' : ''}${i < step ? ' is-done' : ''}`}>
-                <span className="bh-flow-dot" style={i <= step ? { background: accent } : undefined} />
-                <span>{label}</span>
-              </div>
-            ))}
-          </div>
-          <div className="bh-flow-body">
-            {step === 0 && (
-              <>
-                <div className="row-actions">
-                  <button type="button" className={category === 'faq' ? 'btn' : 'btn btn-ghost'} style={category === 'faq' ? { background: accent } : undefined} onClick={() => setCategory('faq')}>FAQ/攻略</button>
-                  <button type="button" className={category === 'ticket' ? 'btn' : 'btn btn-ghost'} style={category === 'ticket' ? { background: accent } : undefined} onClick={() => setCategory('ticket')}>客服工单</button>
-                </div>
-                <label>玩家昵称（可选）
-                  <input className="input" value={playerName} onChange={(e) => setPlayerName(e.target.value)} placeholder={user?.display_name || ''} />
-                </label>
-              </>
-            )}
-            {step === 1 && (
-              <label>标题
-                <input className="input" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="活动规则 / 掉线反馈…" autoFocus />
-              </label>
-            )}
-            {step === 2 && (
-              <label>详细内容
-                <textarea className="input" rows={4} value={content} onChange={(e) => setContent(e.target.value)} placeholder="规则说明或问题复现步骤…" autoFocus />
-              </label>
-            )}
-            <div className="bh-flow-actions">
-              {step > 0 && <button type="button" className="btn btn-ghost" onClick={() => setStep((s) => s - 1)}>上一步</button>}
-              {step < 2 ? (
-                <button type="button" className="btn" style={{ background: accent }} disabled={step === 1 && !title.trim()} onClick={() => setStep((s) => s + 1)}>下一步</button>
-              ) : (
-                <button type="button" className="btn" style={{ background: accent }} disabled={busy} onClick={() => void submit()}>{busy ? '提交中…' : '提交'}</button>
-              )}
-            </div>
-          </div>
-        </>
+        <GtgtStepComposer
+          title={entrySource === 'im' ? '玩家支持协作' : '玩家 FAQ / 工单'}
+          meta={entrySource === 'im' ? '群消息入口' : '应用工作台'}
+          accent={accent}
+          flowHint={`FAQ/工单入库 → 跟进 → 关闭${user?.display_name ? ` · ${user.display_name}` : ''}${openCount ? ` · 处理中 ${openCount}` : ''}`}
+          steps={steps}
+          values={values}
+          onChange={(k, v) => setValues((p) => ({ ...p, [k]: v }))}
+          onComplete={submit}
+          busy={busy}
+          resetKey={resetKey}
+          submitLabel="提交"
+        />
       )}
       {msg && <p className="status-msg">{msg}</p>}
 

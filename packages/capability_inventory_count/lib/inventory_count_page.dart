@@ -9,11 +9,11 @@ class InventoryCountPage extends StatefulWidget {
 }
 
 class _InventoryCountPageState extends State<InventoryCountPage> {
-  final _loc = TextEditingController();
-  final _sku = TextEditingController();
-  final _qty = TextEditingController(text: '0');
   List<dynamic> _items = [];
   bool _loading = true;
+  bool _busy = false;
+  int _resetKey = 0;
+  final Map<String, String> _values = {'qty': '0'};
 
   String get _base => '${widget.branding.apiBaseUrl}/inventory-count';
   String get _appId => widget.branding.appPublicId.trim();
@@ -22,14 +22,6 @@ class _InventoryCountPageState extends State<InventoryCountPage> {
   void initState() {
     super.initState();
     _load();
-  }
-
-  @override
-  void dispose() {
-    _loc.dispose();
-    _sku.dispose();
-    _qty.dispose();
-    super.dispose();
   }
 
   Future<void> _load() async {
@@ -47,44 +39,63 @@ class _InventoryCountPageState extends State<InventoryCountPage> {
   }
 
   Future<void> _submit() async {
-    final sku = _sku.text.trim();
+    final sku = (_values['sku'] ?? '').trim();
     if (sku.isEmpty) return;
-    final dio = getRuntimeAuthedDio();
-    await dio.post('$_base/records', data: {
-      'location': _loc.text.trim(),
-      'sku_code': sku,
-      'qty': int.tryParse(_qty.text.trim()) ?? 0,
-      'app_public_id': _appId,
-    });
-    _loc.clear();
-    _sku.clear();
-    _qty.text = '0';
-    await _load();
+    setState(() => _busy = true);
+    try {
+      final dio = getRuntimeAuthedDio();
+      await dio.post('$_base/records', data: {
+        'location': (_values['location'] ?? '').trim(),
+        'sku_code': sku,
+        'qty': int.tryParse((_values['qty'] ?? '0').trim()) ?? 0,
+        'app_public_id': _appId,
+      });
+      _values
+        ..clear()
+        ..['qty'] = '0';
+      _resetKey++;
+      await _load();
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final color = Color(widget.branding.primaryColorValue);
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        Text('库存盘点', style: Theme.of(context).textTheme.titleLarge),
-        const SizedBox(height: 8),
-        TextField(controller: _loc, decoration: const InputDecoration(labelText: '货位', border: OutlineInputBorder())),
-        const SizedBox(height: 8),
-        TextField(controller: _sku, decoration: const InputDecoration(labelText: 'SKU', border: OutlineInputBorder())),
-        const SizedBox(height: 8),
-        TextField(controller: _qty, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: '数量', border: OutlineInputBorder())),
-        const SizedBox(height: 12),
-        FilledButton(onPressed: _submit, child: const Text('提交盘点')),
+        GtgtStepComposer(
+          title: '库存盘点',
+          flowHint: '货位 → SKU → 数量',
+          accent: color,
+          steps: const [
+            GtgtStep(key: 'location', label: '货位', placeholder: 'A区-3货架', optional: true),
+            GtgtStep(key: 'sku', label: 'SKU', placeholder: 'SKU-10086'),
+            GtgtStep(key: 'qty', label: '实盘数量', placeholder: '0', keyboardType: TextInputType.number),
+            GtgtStep(key: 'note', label: '备注', optional: true),
+          ],
+          values: _values,
+          onChanged: (k, v) => setState(() => _values[k] = v),
+          onComplete: _submit,
+          busy: _busy,
+          resetKey: _resetKey,
+          submitLabel: '提交盘点',
+        ),
         const SizedBox(height: 16),
-        if (_loading) const Center(child: CircularProgressIndicator())
-        else ..._items.map((raw) {
-          final t = Map<String, dynamic>.from(raw as Map);
-          return Card(child: ListTile(
-            title: Text('${t['record_no']} · ${t['sku_code']}'),
-            subtitle: Text('${t['location']} · qty ${t['qty']} · ${t['status']}'),
-          ));
-        }),
+        if (_loading)
+          const Center(child: CircularProgressIndicator())
+        else
+          ..._items.map((raw) {
+            final t = Map<String, dynamic>.from(raw as Map);
+            return Card(
+              child: ListTile(
+                title: Text('${t['record_no']} · ${t['sku_code']}'),
+                subtitle: Text('${t['location']} · qty ${t['qty']} · ${t['status']}'),
+              ),
+            );
+          }),
       ],
     );
   }

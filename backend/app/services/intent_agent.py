@@ -145,7 +145,7 @@ def _build_system_prompt(extra_industries: str = "", extra_caps: str = "") -> st
         "- unclear：信息过少或含糊（如单字、代词），confidence<0.5，items 可为空，必须给 guidance 引导补充。\n"
         "- invalid：与建应用无关、违规或无法理解，confidence<=0.2，items 必须为空，必须给 rejection_reason。\n\n"
         "匹配规则（高匹配优先）：\n"
-        "- 若用户描述接近首页弹幕场景，必须优先选用「弹幕场景映射」中的 module key（如设备报修→device_repair，质检→quality_inspect，盘点→inventory_count，会员→member_loyalty，导诊→med_triage，护士排班→nurse_shift，玩家FAQ→game_support），不要用旧的 approval_flow 顶替。\n"
+        "- 若用户描述接近首页弹幕场景，必须优先选用「弹幕场景映射」中的 module key（如设备报修→device_repair，质检→quality_inspect，盘点→inventory_count，会员→member_loyalty，导诊→med_triage，护士排班→nurse_shift，玩家FAQ→game_support，家校通知→school_notice，作业答疑→homework_qa），不要用旧的 approval_flow 顶替。\n"
         "- 行业 key 必须从已有列表选择；不要编造不存在的 key 放进 industries。\n"
         "- 能力 module key 优先从 catalog 选取；确实没有时用 new_capabilities（key 以 custom_ 开头）。\n"
         "- 娱乐/游戏类（含休闲对战、宠物、小游戏、玩家 FAQ、客服工单、活动通知）优先 game 行业，不要硬塞办公审批，也不要判 invalid。\n"

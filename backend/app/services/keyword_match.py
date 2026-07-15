@@ -21,6 +21,8 @@ _AGENT_TO_MODULE: dict[str, str] = {
     "med_triage": "med_triage",
     "nurse_shift": "nurse_shift",
     "game_support": "game_support",
+    "school_notice": "school_notice",
+    "homework_qa": "homework_qa",
     "kb": "kb_document",
     "report": "chart_dashboard",
     "notify": "notify_inapp",
@@ -64,6 +66,8 @@ INDUSTRY_DEFAULT_MODULES: dict[str, list[tuple[str, str, str]]] = {
         ("chart_dashboard", "数据看板", "会员/库存看板"),
     ],
     "edu": [
+        ("school_notice", "家校通知", "通知/报名/留言"),
+        ("homework_qa", "作业答疑", "作业提交/课程答疑"),
         ("chat_qa", "智能问答", "课程/培训答疑"),
         ("notify_inapp", "站内信", "家校/学员通知"),
     ],

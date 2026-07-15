@@ -9,12 +9,11 @@ class QualityInspectPage extends StatefulWidget {
 }
 
 class _QualityInspectPageState extends State<QualityInspectPage> {
-  final _product = TextEditingController();
-  final _process = TextEditingController();
-  final _note = TextEditingController();
   List<dynamic> _items = [];
-  String _result = 'pass';
   bool _loading = true;
+  bool _busy = false;
+  int _resetKey = 0;
+  final Map<String, String> _values = {'result': 'pass'};
 
   String get _base => '${widget.branding.apiBaseUrl}/quality-inspect';
   String get _appId => widget.branding.appPublicId.trim();
@@ -23,14 +22,6 @@ class _QualityInspectPageState extends State<QualityInspectPage> {
   void initState() {
     super.initState();
     _load();
-  }
-
-  @override
-  void dispose() {
-    _product.dispose();
-    _process.dispose();
-    _note.dispose();
-    super.dispose();
   }
 
   Future<void> _load() async {
@@ -48,51 +39,71 @@ class _QualityInspectPageState extends State<QualityInspectPage> {
   }
 
   Future<void> _submit() async {
-    final code = _product.text.trim();
+    final code = (_values['product'] ?? '').trim();
     if (code.isEmpty) return;
-    final dio = getRuntimeAuthedDio();
-    await dio.post('$_base/records', data: {
-      'product_code': code,
-      'process_name': _process.text.trim(),
-      'result': _result,
-      'note': _note.text.trim(),
-      'app_public_id': _appId,
-    });
-    _product.clear();
-    _process.clear();
-    _note.clear();
-    await _load();
+    setState(() => _busy = true);
+    try {
+      final dio = getRuntimeAuthedDio();
+      await dio.post('$_base/records', data: {
+        'product_code': code,
+        'process_name': (_values['process'] ?? '').trim(),
+        'result': _values['result'] == 'fail' ? 'fail' : 'pass',
+        'note': (_values['note'] ?? '').trim(),
+        'app_public_id': _appId,
+      });
+      _values
+        ..clear()
+        ..['result'] = 'pass';
+      _resetKey++;
+      await _load();
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final color = Color(widget.branding.primaryColorValue);
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        Text('质检 SOP', style: Theme.of(context).textTheme.titleLarge),
-        const SizedBox(height: 8),
-        TextField(controller: _product, decoration: const InputDecoration(labelText: '产品/批次', border: OutlineInputBorder())),
-        const SizedBox(height: 8),
-        TextField(controller: _process, decoration: const InputDecoration(labelText: '工序', border: OutlineInputBorder())),
-        const SizedBox(height: 8),
-        Row(children: [
-          ChoiceChip(label: const Text('合格'), selected: _result == 'pass', onSelected: (_) => setState(() => _result = 'pass')),
-          const SizedBox(width: 8),
-          ChoiceChip(label: const Text('不合格'), selected: _result == 'fail', onSelected: (_) => setState(() => _result = 'fail')),
-        ]),
-        const SizedBox(height: 8),
-        TextField(controller: _note, decoration: const InputDecoration(labelText: '备注', border: OutlineInputBorder())),
-        const SizedBox(height: 12),
-        FilledButton(onPressed: _submit, child: const Text('提交质检')),
+        GtgtStepComposer(
+          title: '质检 SOP',
+          flowHint: '产品 → 工序 → 结论 → 备注',
+          accent: color,
+          steps: const [
+            GtgtStep(key: 'product', label: '产品/批次', placeholder: 'LOT-…'),
+            GtgtStep(key: 'process', label: '工序', placeholder: '终检/焊接', optional: true),
+            GtgtStep(
+              key: 'result',
+              label: '结论',
+              choices: [
+                (value: 'pass', label: '合格'),
+                (value: 'fail', label: '不合格'),
+              ],
+            ),
+            GtgtStep(key: 'note', label: '备注', optional: true),
+          ],
+          values: _values,
+          onChanged: (k, v) => setState(() => _values[k] = v),
+          onComplete: _submit,
+          busy: _busy,
+          resetKey: _resetKey,
+          submitLabel: '提交质检',
+        ),
         const SizedBox(height: 16),
-        if (_loading) const Center(child: CircularProgressIndicator())
-        else ..._items.map((raw) {
-          final t = Map<String, dynamic>.from(raw as Map);
-          return Card(child: ListTile(
-            title: Text('${t['record_no']} · ${t['product_code']}'),
-            subtitle: Text('${t['process_name']} · ${t['result']} · ${t['status']}'),
-          ));
-        }),
+        if (_loading)
+          const Center(child: CircularProgressIndicator())
+        else
+          ..._items.map((raw) {
+            final t = Map<String, dynamic>.from(raw as Map);
+            return Card(
+              child: ListTile(
+                title: Text('${t['record_no']} · ${t['product_code']}'),
+                subtitle: Text('${t['process_name']} · ${t['result']} · ${t['status']}'),
+              ),
+            );
+          }),
       ],
     );
   }

@@ -204,31 +204,34 @@ class _DeviceRepairPageState extends State<DeviceRepairPage> {
           ],
         ),
         const SizedBox(height: 12),
+        Text('>> ${_steps[_step]}', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700)),
+        const SizedBox(height: 8),
         if (_step == 0)
           TextField(
             controller: _assetCtrl,
             decoration: const InputDecoration(
-              labelText: '设备编号',
               border: OutlineInputBorder(),
               hintText: '扫码或输入 CNC-A12',
             ),
             onChanged: (_) => setState(() {}),
+            onSubmitted: (_) {
+              if (_canNext) setState(() => _step += 1);
+            },
           )
         else if (_step == 1)
           TextField(
             controller: _locCtrl,
             decoration: const InputDecoration(
-              labelText: '位置 / 工位',
               border: OutlineInputBorder(),
               hintText: '一车间·3号线（可留空）',
             ),
+            onSubmitted: (_) => setState(() => _step += 1),
           )
         else
           TextField(
             controller: _faultCtrl,
             maxLines: 3,
             decoration: const InputDecoration(
-              labelText: '故障描述',
               border: OutlineInputBorder(),
               hintText: '现象、是否停机…',
             ),
@@ -244,7 +247,7 @@ class _DeviceRepairPageState extends State<DeviceRepairPage> {
               FilledButton(
                 style: FilledButton.styleFrom(backgroundColor: color),
                 onPressed: _canNext ? () => setState(() => _step += 1) : null,
-                child: const Text('下一步'),
+                child: const Text('确认'),
               )
             else
               FilledButton(

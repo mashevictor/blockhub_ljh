@@ -9,13 +9,11 @@ class MedTriagePage extends StatefulWidget {
 }
 
 class _MedTriagePageState extends State<MedTriagePage> {
-  final _patient = TextEditingController();
-  final _symptoms = TextEditingController();
-  final _dept = TextEditingController();
-  final _note = TextEditingController();
   List<dynamic> _items = [];
-  String _urgency = 'normal';
   bool _loading = true;
+  bool _busy = false;
+  int _resetKey = 0;
+  final Map<String, String> _values = {'urgency': 'normal'};
 
   String get _base => '${widget.branding.apiBaseUrl}/med-triage';
   String get _appId => widget.branding.appPublicId.trim();
@@ -24,15 +22,6 @@ class _MedTriagePageState extends State<MedTriagePage> {
   void initState() {
     super.initState();
     _load();
-  }
-
-  @override
-  void dispose() {
-    _patient.dispose();
-    _symptoms.dispose();
-    _dept.dispose();
-    _note.dispose();
-    super.dispose();
   }
 
   Future<void> _load() async {
@@ -49,33 +38,28 @@ class _MedTriagePageState extends State<MedTriagePage> {
     }
   }
 
-  Future<void> _suggest() async {
-    final s = _symptoms.text.trim();
-    if (s.isEmpty) return;
-    final dio = getRuntimeAuthedDio();
-    final resp = await dio.post<Map<String, dynamic>>('$_base/suggest-dept', data: {'symptoms': s});
-    final dept = resp.data?['suggested_dept'] as String? ?? '';
-    if (mounted) setState(() => _dept.text = dept);
-  }
-
   Future<void> _submit() async {
-    final s = _symptoms.text.trim();
+    final s = (_values['symptoms'] ?? '').trim();
     if (s.isEmpty) return;
-    final dio = getRuntimeAuthedDio();
-    await dio.post('$_base/records', data: {
-      'patient_name': _patient.text.trim(),
-      'symptoms': s,
-      'suggested_dept': _dept.text.trim(),
-      'urgency': _urgency,
-      'note': _note.text.trim(),
-      'app_public_id': _appId,
-    });
-    _patient.clear();
-    _symptoms.clear();
-    _dept.clear();
-    _note.clear();
-    _urgency = 'normal';
-    await _load();
+    setState(() => _busy = true);
+    try {
+      final dio = getRuntimeAuthedDio();
+      await dio.post('$_base/records', data: {
+        'patient_name': (_values['patient'] ?? '').trim(),
+        'symptoms': s,
+        'suggested_dept': (_values['dept'] ?? '').trim(),
+        'urgency': _values['urgency'] ?? 'normal',
+        'note': (_values['note'] ?? '').trim(),
+        'app_public_id': _appId,
+      });
+      _values
+        ..clear()
+        ..['urgency'] = 'normal';
+      _resetKey++;
+      await _load();
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
   }
 
   Future<void> _guided(String id) async {
@@ -86,28 +70,36 @@ class _MedTriagePageState extends State<MedTriagePage> {
 
   @override
   Widget build(BuildContext context) {
+    final color = Color(widget.branding.primaryColorValue);
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        Text('医疗导诊', style: Theme.of(context).textTheme.titleLarge),
-        const SizedBox(height: 8),
-        TextField(controller: _patient, decoration: const InputDecoration(labelText: '患者姓名', border: OutlineInputBorder())),
-        const SizedBox(height: 8),
-        TextField(controller: _symptoms, maxLines: 3, decoration: const InputDecoration(labelText: '症状', border: OutlineInputBorder())),
-        const SizedBox(height: 8),
-        Row(children: [
-          ChoiceChip(label: const Text('低'), selected: _urgency == 'low', onSelected: (_) => setState(() => _urgency = 'low')),
-          const SizedBox(width: 8),
-          ChoiceChip(label: const Text('普通'), selected: _urgency == 'normal', onSelected: (_) => setState(() => _urgency = 'normal')),
-          const SizedBox(width: 8),
-          ChoiceChip(label: const Text('紧急'), selected: _urgency == 'high', onSelected: (_) => setState(() => _urgency = 'high')),
-        ]),
-        const SizedBox(height: 8),
-        TextField(controller: _dept, decoration: const InputDecoration(labelText: '建议科室', border: OutlineInputBorder())),
-        TextButton(onPressed: _suggest, child: const Text('根据症状建议科室')),
-        TextField(controller: _note, decoration: const InputDecoration(labelText: '备注', border: OutlineInputBorder())),
-        const SizedBox(height: 12),
-        FilledButton(onPressed: _submit, child: const Text('提交导诊')),
+        GtgtStepComposer(
+          title: '医疗导诊',
+          flowHint: '录症状 → 定紧急度 → 建议科室',
+          accent: color,
+          steps: [
+            const GtgtStep(key: 'patient', label: '患者姓名', placeholder: '可留空', optional: true),
+            const GtgtStep(key: 'symptoms', label: '症状描述', placeholder: '咳嗽发烧两天…', multiline: true),
+            const GtgtStep(
+              key: 'urgency',
+              label: '紧急程度',
+              choices: [
+                (value: 'low', label: '低'),
+                (value: 'normal', label: '普通'),
+                (value: 'high', label: '紧急'),
+              ],
+            ),
+            const GtgtStep(key: 'dept', label: '建议科室', placeholder: '内科/急诊…', optional: true),
+            const GtgtStep(key: 'note', label: '备注', optional: true, multiline: true),
+          ],
+          values: _values,
+          onChanged: (k, v) => setState(() => _values[k] = v),
+          onComplete: _submit,
+          busy: _busy,
+          resetKey: _resetKey,
+          submitLabel: '提交导诊',
+        ),
         const SizedBox(height: 16),
         if (_loading)
           const Center(child: CircularProgressIndicator())

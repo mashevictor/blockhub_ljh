@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { apiFetch, useRuntime } from '@blockhub/web-core'
+import { apiFetch, GtgtStepComposer, useRuntime, type GtgtStep } from '@blockhub/web-core'
 import type { SchemaNode } from '@blockhub/web-core'
 
 interface ApprovalItem {
@@ -15,7 +15,6 @@ interface ApprovalItem {
 type FormCopy = {
   headline: string
   hint: string
-  steps: [string, string, string]
   titleLabel: string
   titlePlaceholder: string
   deptLabel: string
@@ -33,8 +32,7 @@ function resolveFormCopy(node: SchemaNode): FormCopy {
 
   const base: FormCopy = {
     headline: String(fromProps.form_headline || '发起审批'),
-    hint: String(fromProps.form_hint || '按步骤填写，提交后进入待办'),
-    steps: ['事项标题', '所属部门', '说明'],
+    hint: String(fromProps.form_hint || '>> 单字段推进，提交后进入待办'),
     titleLabel: '事项标题',
     titlePlaceholder: String(fromProps.title_placeholder || '简要说明要办的事'),
     deptLabel: '所属部门',
@@ -88,37 +86,38 @@ function resolveFormCopy(node: SchemaNode): FormCopy {
 export function FormWidget({ node }: { node: SchemaNode }) {
   const { token, primaryColor, user } = useRuntime()
   const copy = useMemo(() => resolveFormCopy(node), [node])
-  const [step, setStep] = useState(0)
-  const [title, setTitle] = useState('')
-  const [summary, setSummary] = useState('')
-  const [department, setDepartment] = useState('')
+  const [values, setValues] = useState<Record<string, string>>({})
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState('')
+  const [resetKey, setResetKey] = useState(0)
+  const accent = primaryColor || '#4338ca'
 
-  const canNext =
-    (step === 0 && title.trim().length > 0) ||
-    step === 1 ||
-    (step === 2 && true)
+  const steps: GtgtStep[] = useMemo(
+    () => [
+      { key: 'title', label: copy.titleLabel, placeholder: copy.titlePlaceholder },
+      { key: 'department', label: copy.deptLabel, placeholder: copy.deptPlaceholder, optional: true },
+      { key: 'summary', label: copy.summaryLabel, placeholder: copy.summaryPlaceholder, optional: true },
+    ],
+    [copy],
+  )
 
   const handleSubmit = async () => {
-    if (!title.trim()) return
+    if (!token || !values.title?.trim()) return
     setBusy(true)
     setMsg('')
     try {
       await apiFetch('/api/v1/approvals', token, {
         method: 'POST',
         body: JSON.stringify({
-          title: title.trim(),
+          title: values.title.trim(),
           type: String(node.props?.approval_type || 'general'),
-          department: department.trim() || '未填写',
-          summary: summary.trim() || title.trim(),
+          department: (values.department || '').trim() || '未填写',
+          summary: (values.summary || '').trim() || values.title.trim(),
         }),
       })
       setMsg(copy.successMsg)
-      setTitle('')
-      setSummary('')
-      setDepartment('')
-      setStep(0)
+      setValues({})
+      setResetKey((k) => k + 1)
     } catch (e) {
       setMsg(`提交失败：${String(e)}`)
     } finally {
@@ -126,97 +125,23 @@ export function FormWidget({ node }: { node: SchemaNode }) {
     }
   }
 
-  const accent = primaryColor || '#4338ca'
-
   return (
-    <div className="widget form-widget bh-flow-form">
-      <div className="bh-flow-head">
-        <h3>{copy.headline}</h3>
-        <span className="bh-flow-meta">{step + 1}/3</span>
-      </div>
-      <p className="muted">{copy.hint}{user?.display_name ? ` · ${user.display_name}` : ''}</p>
-
-      <div className="bh-flow-steps" aria-label="填写进度">
-        {copy.steps.map((label, i) => (
-          <div
-            key={label}
-            className={`bh-flow-step${i === step ? ' is-active' : ''}${i < step ? ' is-done' : ''}`}
-          >
-            <span className="bh-flow-dot" style={i <= step ? { background: accent } : undefined} />
-            <span>{label}</span>
-          </div>
-        ))}
-      </div>
-
-      <div className="bh-flow-body">
-        {step === 0 && (
-          <label>
-            {copy.titleLabel}
-            <input
-              className="input"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder={copy.titlePlaceholder}
-              autoFocus
-            />
-          </label>
-        )}
-        {step === 1 && (
-          <label>
-            {copy.deptLabel}
-            <input
-              className="input"
-              value={department}
-              onChange={(e) => setDepartment(e.target.value)}
-              placeholder={copy.deptPlaceholder}
-              autoFocus
-            />
-          </label>
-        )}
-        {step === 2 && (
-          <label>
-            {copy.summaryLabel}
-            <textarea
-              className="input"
-              rows={3}
-              value={summary}
-              onChange={(e) => setSummary(e.target.value)}
-              placeholder={copy.summaryPlaceholder}
-              autoFocus
-            />
-          </label>
-        )}
-
-        <div className="bh-flow-actions">
-          {step > 0 && (
-            <button type="button" className="btn btn-ghost" onClick={() => setStep((s) => s - 1)}>
-              上一步
-            </button>
-          )}
-          {step < 2 ? (
-            <button
-              type="button"
-              className="btn"
-              style={{ background: accent }}
-              disabled={!canNext}
-              onClick={() => setStep((s) => s + 1)}
-            >
-              下一步
-            </button>
-          ) : (
-            <button
-              type="button"
-              className="btn"
-              style={{ background: accent }}
-              disabled={busy || !title.trim()}
-              onClick={() => void handleSubmit()}
-            >
-              {busy ? '提交中…' : copy.submitLabel}
-            </button>
-          )}
-        </div>
-        {msg && <p className="status-msg">{msg}</p>}
-      </div>
+    <div className="widget form-widget">
+      <GtgtStepComposer
+        title={copy.headline}
+        meta="审批录入"
+        accent={accent}
+        flowHint={`${copy.hint}${user?.display_name ? ` · ${user.display_name}` : ''}`}
+        steps={steps}
+        values={values}
+        onChange={(k, v) => setValues((p) => ({ ...p, [k]: v }))}
+        onComplete={handleSubmit}
+        busy={busy}
+        resetKey={resetKey}
+        submitLabel={copy.submitLabel}
+      >
+        {msg ? <p className="status-msg">{msg}</p> : null}
+      </GtgtStepComposer>
     </div>
   )
 }

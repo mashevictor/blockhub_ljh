@@ -1,5 +1,5 @@
 ---
-description: 弹幕/Hero 场景能力必须按 CapShip 路径 A 真实现（API+DB），禁止 mock
+description: 弹幕/Hero 场景能力必须按 CapShip 路径 A 真实现（API+DB），禁止 mock；Runtime 填表用 >>
 alwaysApply: true
 ---
 
@@ -11,4 +11,5 @@ alwaysApply: true
 2. **禁止**：localStorage / 内存假列表 / seed 演示工单冒充业务数据
 3. **空库 = 空列表**；刷新后仍从同一真 API 读写
 4. **`>>` 匹配**优先弹幕映射的真 capability（如报修→`device_repair`，勿用 `approval_flow` 顶替）
-5. 参考实现：`device_repair` / `quality_inspect` / `inventory_count`；契约见 `docs/opensource/capship.html` 与 `.cursor/skills/capship-capability/SKILL.md`
+5. **Runtime 填表（强制）**：与首页「预约演示」同构 — `@blockhub/web-core` 的 `GtgtStepComposer`，`>> 字段名` 单字段 Enter 推进；审批 / IM Webhook / 弹幕能力写入主路径一律如此，禁止多框同屏表单
+6. 参考：`device_repair` / `member_loyalty` / `ApprovalWidgets.FormWidget`；契约见 `docs/opensource/capship.html` 与 `.cursor/skills/capship-capability/SKILL.md` · A6.1

@@ -9,13 +9,14 @@ class NurseShiftPage extends StatefulWidget {
 }
 
 class _NurseShiftPageState extends State<NurseShiftPage> {
-  final _name = TextEditingController();
-  final _date = TextEditingController();
-  final _from = TextEditingController(text: '白班');
-  final _to = TextEditingController(text: '夜班');
-  final _reason = TextEditingController();
   List<dynamic> _items = [];
   bool _loading = true;
+  bool _busy = false;
+  int _resetKey = 0;
+  final Map<String, String> _values = {
+    'from_shift': '白班',
+    'to_shift': '夜班',
+  };
 
   String get _base => '${widget.branding.apiBaseUrl}/nurse-shift';
   String get _appId => widget.branding.appPublicId.trim();
@@ -24,16 +25,6 @@ class _NurseShiftPageState extends State<NurseShiftPage> {
   void initState() {
     super.initState();
     _load();
-  }
-
-  @override
-  void dispose() {
-    _name.dispose();
-    _date.dispose();
-    _from.dispose();
-    _to.dispose();
-    _reason.dispose();
-    super.dispose();
   }
 
   Future<void> _load() async {
@@ -51,20 +42,26 @@ class _NurseShiftPageState extends State<NurseShiftPage> {
   }
 
   Future<void> _submit() async {
-    if (_date.text.trim().isEmpty) return;
-    final dio = getRuntimeAuthedDio();
-    await dio.post('$_base/records', data: {
-      'nurse_name': _name.text.trim(),
-      'shift_date': _date.text.trim(),
-      'from_shift': _from.text.trim(),
-      'to_shift': _to.text.trim(),
-      'reason': _reason.text.trim(),
-      'app_public_id': _appId,
-    });
-    _name.clear();
-    _date.clear();
-    _reason.clear();
-    await _load();
+    if ((_values['shift_date'] ?? '').trim().isEmpty) return;
+    setState(() => _busy = true);
+    try {
+      final dio = getRuntimeAuthedDio();
+      await dio.post('$_base/records', data: {
+        'nurse_name': (_values['nurse_name'] ?? '').trim(),
+        'shift_date': (_values['shift_date'] ?? '').trim(),
+        'from_shift': (_values['from_shift'] ?? '').trim(),
+        'to_shift': (_values['to_shift'] ?? '').trim(),
+        'reason': (_values['reason'] ?? '').trim(),
+        'app_public_id': _appId,
+      });
+      _values
+        ..clear()
+        ..addAll({'from_shift': '白班', 'to_shift': '夜班'});
+      _resetKey++;
+      await _load();
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
   }
 
   Future<void> _decide(String id, bool approve) async {
@@ -75,22 +72,28 @@ class _NurseShiftPageState extends State<NurseShiftPage> {
 
   @override
   Widget build(BuildContext context) {
+    final color = Color(widget.branding.primaryColorValue);
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        Text('护士排班', style: Theme.of(context).textTheme.titleLarge),
-        const SizedBox(height: 8),
-        TextField(controller: _name, decoration: const InputDecoration(labelText: '护士姓名', border: OutlineInputBorder())),
-        const SizedBox(height: 8),
-        TextField(controller: _date, decoration: const InputDecoration(labelText: '值班日期 YYYY-MM-DD', border: OutlineInputBorder())),
-        const SizedBox(height: 8),
-        TextField(controller: _from, decoration: const InputDecoration(labelText: '原班次', border: OutlineInputBorder())),
-        const SizedBox(height: 8),
-        TextField(controller: _to, decoration: const InputDecoration(labelText: '目标班次', border: OutlineInputBorder())),
-        const SizedBox(height: 8),
-        TextField(controller: _reason, decoration: const InputDecoration(labelText: '原因', border: OutlineInputBorder())),
-        const SizedBox(height: 12),
-        FilledButton(onPressed: _submit, child: const Text('提交调班')),
+        GtgtStepComposer(
+          title: '护士排班',
+          flowHint: '姓名 → 日期 → 原班次 → 目标班次',
+          accent: color,
+          steps: const [
+            GtgtStep(key: 'nurse_name', label: '护士姓名', optional: true),
+            GtgtStep(key: 'shift_date', label: '值班日期', placeholder: 'YYYY-MM-DD'),
+            GtgtStep(key: 'from_shift', label: '原班次', placeholder: '白班 / 小夜 / 大夜'),
+            GtgtStep(key: 'to_shift', label: '目标班次', placeholder: '希望调至'),
+            GtgtStep(key: 'reason', label: '调班原因', optional: true),
+          ],
+          values: _values,
+          onChanged: (k, v) => setState(() => _values[k] = v),
+          onComplete: _submit,
+          busy: _busy,
+          resetKey: _resetKey,
+          submitLabel: '提交调班',
+        ),
         const SizedBox(height: 16),
         if (_loading)
           const Center(child: CircularProgressIndicator())

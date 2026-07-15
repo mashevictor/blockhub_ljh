@@ -31,6 +31,10 @@ dependencies:
     path: ../packages/capability_nurse_shift
   capability_game_support:
     path: ../packages/capability_game_support
+  capability_school_notice:
+    path: ../packages/capability_school_notice
+  capability_homework_qa:
+    path: ../packages/capability_homework_qa
   capability_audit_log:
     path: ../packages/capability_audit_log
   capability_kb:

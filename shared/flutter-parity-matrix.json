@@ -103,6 +103,26 @@
       "dart_import": "package:capability_game_support/capability_game_support.dart"
     },
     {
+      "web_pkg": "@blockhub/web-capability-school-notice",
+      "web_folder": "web-capability-school-notice",
+      "flutter_pkg": "capability_school_notice",
+      "p1_scope": "app",
+      "status_target": "ok",
+      "capability_keys": ["school_notice"],
+      "module_class": "SchoolNoticeModule",
+      "dart_import": "package:capability_school_notice/capability_school_notice.dart"
+    },
+    {
+      "web_pkg": "@blockhub/web-capability-homework-qa",
+      "web_folder": "web-capability-homework-qa",
+      "flutter_pkg": "capability_homework_qa",
+      "p1_scope": "app",
+      "status_target": "ok",
+      "capability_keys": ["homework_qa"],
+      "module_class": "HomeworkQaModule",
+      "dart_import": "package:capability_homework_qa/capability_homework_qa.dart"
+    },
+    {
       "web_pkg": "@blockhub/web-capability-audit-log",
       "web_folder": "web-capability-audit-log",
       "flutter_pkg": "capability_audit_log",
