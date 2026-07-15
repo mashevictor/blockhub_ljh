@@ -31,7 +31,7 @@ const STATUS_LABEL: Record<string, string> = {
 const STEPS = ['设备编号', '工位位置', '故障描述'] as const
 
 export function DeviceRepairWidget(_props: { node: SchemaNode }) {
-  const { token, primaryColor, appId, user } = useRuntime()
+  const { token, primaryColor, appId, user, entrySource } = useRuntime()
   const [items, setItems] = useState<RepairTicket[]>([])
   const [candidates, setCandidates] = useState<AssigneeCandidate[]>([])
   const [loading, setLoading] = useState(true)
@@ -42,6 +42,7 @@ export function DeviceRepairWidget(_props: { node: SchemaNode }) {
   const [fault, setFault] = useState('')
   const [msg, setMsg] = useState('')
   const [error, setError] = useState('')
+  const [showForm, setShowForm] = useState(entrySource !== 'im')
 
   const [dispatchId, setDispatchId] = useState<string | null>(null)
   const [pickId, setPickId] = useState('')
@@ -176,18 +177,47 @@ export function DeviceRepairWidget(_props: { node: SchemaNode }) {
   }
 
   const accent = primaryColor || '#0d47a1'
+  const pendingCount = items.filter((t) => t.status === 'pending').length
+  const busyCount = items.filter((t) => t.status === 'dispatched').length
+  const processActive =
+    pendingCount > 0 ? 1 : busyCount > 0 ? 2 : items.some((t) => t.status === 'done') ? 3 : 0
 
   return (
-    <div className="widget device-repair-widget bh-flow-form">
+    <div className="widget device-repair-widget bh-flow-form" style={{ ['--accent' as string]: accent }}>
       <div className="bh-flow-head">
-        <h3>设备报修</h3>
-        <span className="bh-flow-meta">{step + 1}/{STEPS.length}</span>
+        <h3>{entrySource === 'im' ? '报修协作' : '设备报修'}</h3>
+        <span className="bh-flow-meta">{entrySource === 'im' ? '群消息入口' : '应用工作台'}</span>
       </div>
       <p className="muted">
-        提单 → 派工选人 → 完工 · 同租户同事打开同一 Runtime 即可协作
-        {user?.display_name ? ` · 当前：${user.display_name}` : ''}
+        {entrySource === 'im'
+          ? '你从企微/钉钉/飞书打开 · 优先处理下方待派工/维修中工单'
+          : '工作台提单 · 同事可从群消息深链登录同一应用协作'}
+        {user?.display_name ? ` · ${user.display_name}` : ''}
       </p>
 
+      <p className="muted" style={{ marginBottom: 4 }}>业务流程图 · 当前位置高亮</p>
+      <ol className="bh-process-flow" aria-label="报修业务全流程">
+        <li className={processActive === 0 && showForm ? 'is-active' : processActive > 0 ? 'is-done' : ''}>① 提单</li>
+        <span className="arrow" aria-hidden>→</span>
+        <li className={processActive === 1 ? 'is-active' : processActive > 1 ? 'is-done' : ''}>
+          ② 派工选人{pendingCount ? `（${pendingCount}）` : ''}
+        </li>
+        <span className="arrow" aria-hidden>→</span>
+        <li className={processActive === 2 ? 'is-active' : processActive > 2 ? 'is-done' : ''}>
+          ③ 维修中{busyCount ? `（${busyCount}）` : ''}
+        </li>
+        <span className="arrow" aria-hidden>→</span>
+        <li className={processActive === 3 ? 'is-done' : ''}>④ 完工</li>
+      </ol>
+
+      {!showForm ? (
+        <div className="bh-flow-actions" style={{ marginBottom: 12 }}>
+          <button type="button" className="btn btn-ghost" onClick={() => setShowForm(true)}>
+            我也要提单报修
+          </button>
+        </div>
+      ) : (
+      <>
       <div className="bh-flow-steps" aria-label="报修填写进度">
         {STEPS.map((label, i) => (
           <div
@@ -270,6 +300,10 @@ export function DeviceRepairWidget(_props: { node: SchemaNode }) {
         {msg && <p className="status-msg">{msg}</p>}
         {error && <p className="status-msg" style={{ color: '#b91c1c' }}>{error}</p>}
       </div>
+      </>
+      )}
+      {!showForm && msg && <p className="status-msg">{msg}</p>}
+      {!showForm && error && <p className="status-msg" style={{ color: '#b91c1c' }}>{error}</p>}
 
       {dispatchId && (
         <div className="list-card" style={{ marginTop: 16, borderColor: accent }}>

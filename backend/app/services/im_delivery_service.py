@@ -19,14 +19,14 @@ IM_TYPES = frozenset({"wecom", "dingtalk", "feishu"})
 
 
 def runtime_detail_url(app_public_id: str = "", *, path: str = "/device-repair") -> str:
-    """浏览器/飞书/钉钉内可打开的 Runtime 深链。"""
+    """浏览器/飞书/钉钉内可打开的 Runtime 深链（带 from=wecom，入口与官网打开区分）。"""
     base = (settings.public_base_url or "").rstrip("/") or "http://127.0.0.1:5173"
     app_id = (app_public_id or "").strip()
     route = path if path.startswith("/") else f"/{path}"
     if not app_id:
         return base
-    # 本地开发时 PUBLIC_BASE_URL 常是生产机；仍拼 /r/{id}，演示机与生产一致
-    return f"{base}/r/{app_id}{route}"
+    # from=wecom → Runtime 显示「群消息协作入口」，避免与官网生成链接观感雷同
+    return f"{base}/r/{app_id}{route}?from=wecom"
 
 
 def _webhook_url(cfg: dict[str, Any]) -> str:

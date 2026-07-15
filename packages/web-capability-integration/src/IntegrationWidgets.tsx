@@ -97,13 +97,12 @@ function detectChannelFromUrl(url: string): (typeof IM_CHANNELS)[number]['type']
 }
 
 function ImChannelPanel() {
-  const { token, primaryColor, appId } = useRuntime()
+  const { token, primaryColor, appId, entrySource } = useRuntime()
   const [items, setItems] = useState<Connector[]>([])
   const [webhook, setWebhook] = useState('')
   const [channel, setChannel] = useState<(typeof IM_CHANNELS)[number]['type']>('wecom')
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState('')
-  const [step, setStep] = useState(0)
 
   const load = useCallback(async () => {
     if (!token) return
@@ -150,8 +149,7 @@ function ImChannelPanel() {
       })
       setWebhook('')
       setChannel(resolved)
-      setStep(0)
-      setMsg(`${label}通道已保存（页面粘贴）；群里会收到报修/审批推送，也可点「发送测试消息」`)
+      setMsg(`${label}已绑定。下方可测推送；报修/派工/完工会自动发到群。`)
       await load()
     } catch (e) {
       setMsg(`保存失败：${String(e)}`)
@@ -164,7 +162,7 @@ function ImChannelPanel() {
     if (!token) return
     try {
       const detailUrl = appId
-        ? `${window.location.origin}/r/${appId}/device-repair`
+        ? `${window.location.origin}/r/${appId}/device-repair?from=wecom`
         : `${window.location.origin}/`
       const res = await apiFetch<{ status?: string; delivered?: number; reason?: string; detail_url?: string }>(
         `/api/v1/integrations/${id}/test-message`,
@@ -173,7 +171,7 @@ function ImChannelPanel() {
           method: 'POST',
           body: JSON.stringify({
             title: '积木仓 IM 探测',
-            content: '测试消息：群里能看到说明链路已通；点「打开报修工单」回到应用。',
+            content: '测试消息：群里能看到说明链路已通；点「打开报修工单」进入协作入口。',
             detail_url: detailUrl,
             app_public_id: appId || '',
             link_label: '打开报修工单',
@@ -183,7 +181,7 @@ function ImChannelPanel() {
       if (res.status === 'skipped') {
         setMsg(`未发送：${res.reason || '无 Webhook'}`)
       } else {
-        setMsg(`推送结果：${res.status} · delivered=${res.delivered ?? 0}${res.detail_url ? ` · ${res.detail_url}` : ''}`)
+        setMsg(`推送结果：${res.status} · delivered=${res.delivered ?? 0}`)
       }
       await load()
     } catch (e) {
@@ -193,116 +191,88 @@ function ImChannelPanel() {
 
   const accent = primaryColor || '#4338ca'
   const ph = IM_CHANNELS.find((c) => c.type === channel)?.placeholder || ''
-  const envItems = items.filter((c) => {
-    const cfg = c.config as { source?: string; managed?: boolean }
-    return cfg?.source === 'env' || cfg?.managed === true
-  })
-  const uiItems = items.filter((c) => !envItems.includes(c))
+  const bound = items.length > 0
+  const flowStep = bound ? 2 : webhook.trim() ? 1 : 0
 
   return (
-    <div className="bh-flow-form">
+    <div className="bh-flow-form" style={{ ['--accent' as string]: accent }}>
       <div className="bh-flow-head">
-        <h3>企微 / 钉钉 / 飞书</h3>
-        <span className="bh-flow-meta">{step + 1}/2</span>
+        <h3>消息推送配置</h3>
+        <span className="bh-flow-meta">{entrySource === 'im' ? '协作侧' : '工作台'}</span>
       </div>
-      <p className="muted" style={{ marginBottom: 8 }}>
-        <strong>双通道都可用：</strong>
-        ① 本页粘贴群机器人 Webhook 并保存；② 服务器配置 <code>IM_WECOM_WEBHOOK_URL</code> 自动绑定。
-        报修/审批变更会对<strong>所有已绑定通道</strong>真推送。
-      </p>
 
-      <div className="bh-flow-steps">
-        {['选择通道', '粘贴 Webhook'].map((label, i) => (
-          <div key={label} className={`bh-flow-step${i === step ? ' is-active' : ''}${i < step ? ' is-done' : ''}`}>
-            <span className="bh-flow-dot" style={i <= step ? { background: accent } : undefined} />
-            <span>{label}</span>
-          </div>
+      <p className="muted" style={{ marginBottom: 4 }}>业务闭环（配置一次即可）</p>
+      <ol className="bh-process-flow" aria-label="报修推送流程">
+        <li className="is-done">提单</li>
+        <span className="arrow" aria-hidden>→</span>
+        <li className="is-done">群通知</li>
+        <span className="arrow" aria-hidden>→</span>
+        <li className={bound ? 'is-done' : 'is-active'}>通道已绑？</li>
+        <span className="arrow" aria-hidden>→</span>
+        <li className={bound ? 'is-active' : ''}>派工 / 完工再推</li>
+      </ol>
+
+      <p className="muted" style={{ marginBottom: 4 }}>本页配置进度</p>
+      <ol className="bh-process-flow" aria-label="Webhook 配置进度">
+        <li className={flowStep >= 0 ? 'is-active' : ''}>① 点选通道</li>
+        <span className="arrow" aria-hidden>→</span>
+        <li className={flowStep >= 1 ? 'is-active' : ''}>② 粘贴地址</li>
+        <span className="arrow" aria-hidden>→</span>
+        <li className={flowStep >= 2 ? 'is-done' : ''}>③ 已生效</li>
+      </ol>
+
+      <div className="im-channel-grid">
+        {IM_CHANNELS.map((c) => (
+          <button
+            key={c.type}
+            type="button"
+            className={`im-channel-card${channel === c.type ? ' is-selected' : ''}`}
+            onClick={() => setChannel(c.type)}
+          >
+            <strong>{c.label}</strong>
+            <span className="muted" style={{ fontSize: 12 }}>
+              {channel === c.type ? '已选 · 在下方粘贴 Webhook' : '点击选择此通道'}
+            </span>
+          </button>
         ))}
       </div>
 
-      <div className="bh-flow-body">
-        {step === 0 && (
-          <div className="row-actions" style={{ marginTop: 0 }}>
-            {IM_CHANNELS.map((c) => (
-              <button
-                key={c.type}
-                type="button"
-                className={channel === c.type ? 'btn' : 'btn btn-ghost'}
-                style={channel === c.type ? { background: accent } : undefined}
-                onClick={() => setChannel(c.type)}
-              >
-                {c.label}
-              </button>
-            ))}
-          </div>
-        )}
-        {step === 1 && (
-          <label>
-            Webhook 地址（企微示例：https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=…）
-            <input
-              className="input"
-              value={webhook}
-              onChange={(e) => {
-                const v = e.target.value
-                setWebhook(v)
-                const detected = detectChannelFromUrl(v)
-                if (detected) setChannel(detected)
-              }}
-              placeholder={ph}
-              autoFocus
-            />
-          </label>
-        )}
-
-        <div className="bh-flow-actions">
-          {step > 0 && (
-            <button type="button" className="btn btn-ghost" onClick={() => setStep(0)}>上一步</button>
-          )}
-          {step === 0 ? (
-            <button type="button" className="btn" style={{ background: accent }} onClick={() => setStep(1)}>
-              下一步 · 粘贴 Webhook
-            </button>
-          ) : (
-            <button type="button" className="btn" style={{ background: accent }} disabled={busy} onClick={() => void bind()}>
-              {busy ? '保存中…' : '保存通道'}
-            </button>
-          )}
+      <div className="im-bind-box">
+        <label>
+          粘贴 {IM_CHANNELS.find((c) => c.type === channel)?.label} Webhook（整段 URL）
+          <input
+            className="input"
+            value={webhook}
+            onChange={(e) => {
+              const v = e.target.value
+              setWebhook(v)
+              const detected = detectChannelFromUrl(v)
+              if (detected) setChannel(detected)
+            }}
+            placeholder={ph}
+          />
+        </label>
+        <p className="muted" style={{ fontSize: 12, marginTop: 8 }}>
+          也可由运维配置环境变量 <code>IM_WECOM_WEBHOOK_URL</code> 自动绑定，与本页粘贴并存。
+        </p>
+        <div className="bh-flow-actions" style={{ marginTop: 12 }}>
+          <button type="button" className="btn" style={{ background: accent }} disabled={busy} onClick={() => void bind()}>
+            {busy ? '保存中…' : '保存并启用推送'}
+          </button>
         </div>
         {msg && <p className="status-msg">{msg}</p>}
       </div>
 
       <h4 style={{ margin: '20px 0 8px', fontSize: 14 }}>已绑定通道</h4>
-      {items.length === 0 && (
-        <p className="muted">尚未绑定。可在上方粘贴保存，或让运维配置 IM_WECOM_WEBHOOK_URL 后重启 API。</p>
-      )}
-      {envItems.length > 0 && (
-        <p className="muted" style={{ fontSize: 12, marginBottom: 6 }}>环境自动（{envItems.length}）</p>
-      )}
-      {envItems.map((c) => {
-        const cfg = c.config as { webhook_url?: string }
+      {items.length === 0 && <p className="muted">还没有可用通道。选通道 → 粘贴 → 保存。</p>}
+      {items.map((c) => {
+        const cfg = c.config as { webhook_url?: string; source?: string; managed?: boolean }
+        const envManaged = cfg?.source === 'env' || cfg?.managed === true
         return (
           <div key={c.id} className="list-card">
             <div className="list-card-head">
               <strong>{c.name}</strong>
-              <span className="tag">{c.connector_type} · 环境自动</span>
-            </div>
-            <p className="muted" style={{ fontSize: 12, wordBreak: 'break-all' }}>{cfg?.webhook_url}</p>
-            <button type="button" className="btn btn-ghost" style={{ marginTop: 8, fontSize: 12 }} onClick={() => void sendTest(c.id)}>
-              发送测试消息
-            </button>
-          </div>
-        )
-      })}
-      {uiItems.length > 0 && (
-        <p className="muted" style={{ fontSize: 12, margin: '12px 0 6px' }}>页面粘贴（{uiItems.length}）</p>
-      )}
-      {uiItems.map((c) => {
-        const cfg = c.config as { webhook_url?: string }
-        return (
-          <div key={c.id} className="list-card">
-            <div className="list-card-head">
-              <strong>{c.name}</strong>
-              <span className="tag">{c.connector_type} · 页面粘贴</span>
+              <span className="tag">{c.connector_type} · {envManaged ? '环境自动' : '页面粘贴'}</span>
             </div>
             <p className="muted" style={{ fontSize: 12, wordBreak: 'break-all' }}>{cfg?.webhook_url}</p>
             <button type="button" className="btn btn-ghost" style={{ marginTop: 8, fontSize: 12 }} onClick={() => void sendTest(c.id)}>

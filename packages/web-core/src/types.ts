@@ -66,4 +66,6 @@ export interface RuntimeContextValue {
   token: string
   user: RuntimeUser
   primaryColor: string
+  /** portal=官网/生成链接打开；im=企微钉钉飞书消息深链打开 */
+  entrySource?: 'portal' | 'im'
 }

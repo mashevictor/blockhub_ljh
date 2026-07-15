@@ -18,6 +18,16 @@ function parseAppId(): string | null {
   return m?.[1] ?? null
 }
 
+function parseEntrySource(): 'portal' | 'im' {
+  const from = (new URLSearchParams(window.location.search).get('from') || '').toLowerCase()
+  if (['wecom', 'im', 'dingtalk', 'feishu', 'lark'].includes(from)) return 'im'
+  const ua = navigator.userAgent.toLowerCase()
+  if (ua.includes('wxwork') || ua.includes('dingtalk') || ua.includes('lark/') || ua.includes('feishu')) {
+    return 'im'
+  }
+  return 'portal'
+}
+
 function routeFromPath(appId: string): string {
   const prefix = `/r/${appId}`
   const path = window.location.pathname
@@ -29,8 +39,10 @@ function routeFromPath(appId: string): string {
 function navigateRoute(appId: string, route: string) {
   const base = `/r/${appId}`
   const target = route === '/' ? base : `${base}${route}`
-  if (window.location.pathname !== target) {
-    window.history.pushState({}, '', target)
+  const qs = window.location.search || ''
+  const next = `${target}${qs}`
+  if (`${window.location.pathname}${window.location.search}` !== next) {
+    window.history.pushState({}, '', next)
     window.dispatchEvent(new PopStateEvent('popstate'))
   }
 }
@@ -45,6 +57,7 @@ function layoutOf(schema: PageSchema): string {
 
 export default function App() {
   const appId = useMemo(parseAppId, [])
+  const entrySource = useMemo(parseEntrySource, [])
   const [route, setRoute] = useState(() => (appId ? routeFromPath(appId) : '/'))
   const [token, setToken] = useState(getStoredToken)
   const [user, setUser] = useState(getStoredUser)
@@ -124,8 +137,14 @@ export default function App() {
 
   if (!token || !user) {
     return (
-      <div className="login-shell">
-        <h1>员工端登录</h1>
+      <div className={`login-shell${entrySource === 'im' ? ' is-im-entry' : ''}`}>
+        <p className="entry-chip">{entrySource === 'im' ? '企微 / 钉钉 / 飞书 · 消息入口' : '应用门户 · 生成链接'}</p>
+        <h1>{entrySource === 'im' ? '登录后处理工单' : '员工端登录'}</h1>
+        <p className="muted">
+          {entrySource === 'im'
+            ? '你从群消息打开了报修协作页，登录后可派工选人 / 完工确认。'
+            : '从官网「生成应用」打开的工作台，可提单、配置通道与问答。'}
+        </p>
         <p className="muted">应用 ID：{appId}</p>
         <label>
           邮箱
@@ -176,16 +195,35 @@ export default function App() {
     token,
     user,
     primaryColor,
+    entrySource,
   }
 
   const showWeb = deliver === 'web' || deliver === 'both'
   const showApp = deliver === 'app' || deliver === 'both'
   const shellClass =
-    layout === 'sidebar' ? 'runtime-shell is-sidebar' : layout === 'landing' ? 'runtime-shell is-landing' : 'runtime-shell'
+    layout === 'sidebar'
+      ? 'runtime-shell is-sidebar'
+      : layout === 'landing'
+        ? 'runtime-shell is-landing'
+        : 'runtime-shell'
+  const shellExtra = entrySource === 'im' ? ' is-im-entry' : ' is-portal-entry'
 
   return (
     <RuntimeContext.Provider value={ctx}>
-      <div className={shellClass} style={{ '--accent': primaryColor } as CSSProperties}>
+      <div className={`${shellClass}${shellExtra}`} style={{ '--accent': primaryColor } as CSSProperties}>
+        <div className={`entry-banner ${entrySource === 'im' ? 'im' : 'portal'}`} role="status">
+          {entrySource === 'im' ? (
+            <>
+              <strong>群消息协作入口</strong>
+              <span>流程：提单 → 派工选人 → 维修 → 完工。当前请处理工单或确认状态。</span>
+            </>
+          ) : (
+            <>
+              <strong>应用工作台</strong>
+              <span>官网生成链接打开 · 可提单、配置企微推送、智能问答。</span>
+            </>
+          )}
+        </div>
         <header className="runtime-header">
           <div className="brand">
             {config.app_icon_url ? (
@@ -197,7 +235,8 @@ export default function App() {
               <h1>{config.app_name}</h1>
               <p className="muted">
                 {user.display_name} · {user.role}
-                {layout === 'sidebar' ? ' · 侧栏后台' : layout === 'landing' ? ' · 单页落地' : ' · Tabs 门户'}
+                {entrySource === 'im' ? ' · 来自企微/钉钉/飞书' : ' · 应用门户'}
+                {layout === 'sidebar' ? ' · 侧栏' : layout === 'landing' ? ' · 落地' : ''}
               </p>
             </div>
           </div>
