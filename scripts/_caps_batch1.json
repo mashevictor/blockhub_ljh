@@ -1,0 +1,473 @@
+[
+  {
+    "key": "wedding_plan",
+    "slug": "wedding-plan",
+    "name": "婚礼筹备",
+    "cat": "生活服务",
+    "widget": "WeddingPlanWidget",
+    "prefix": "WP",
+    "aliases": [
+      "婚礼筹备",
+      "宾客名单",
+      "供应商协同",
+      "婚礼预算",
+      "婚庆"
+    ],
+    "fields": [
+      [
+        "category",
+        "环节",
+        32,
+        "guest"
+      ],
+      [
+        "title",
+        "事项标题",
+        200,
+        ""
+      ],
+      [
+        "vendor",
+        "供应商/嘉宾",
+        120,
+        ""
+      ],
+      [
+        "budget",
+        "预算/费用",
+        64,
+        ""
+      ],
+      [
+        "note",
+        "备注",
+        "text",
+        ""
+      ]
+    ],
+    "statuses": [
+      "open",
+      "confirmed",
+      "done"
+    ],
+    "advance": [
+      [
+        "confirmed",
+        "已确认"
+      ],
+      [
+        "done",
+        "完成"
+      ]
+    ],
+    "choices": {
+      "category": [
+        [
+          "guest",
+          "宾客"
+        ],
+        [
+          "vendor",
+          "供应商"
+        ],
+        [
+          "budget",
+          "预算"
+        ]
+      ]
+    },
+    "color": "#e879f9",
+    "scene": "s25",
+    "role": "新人",
+    "hint": "生活 · 庆典",
+    "prompt": "宾客名单、供应商协同与预算跟踪。",
+    "flow": [
+      ">> 婚礼筹备 · 宾客供应商登记",
+      ">> 预算确认 · 进度闭环",
+      ">> 企微钉钉飞书 · 协同提醒",
+      ">> CapShip · 双端真接口"
+    ],
+    "icon": "💒",
+    "req": [
+      "title"
+    ],
+    "title_field": "title"
+  },
+  {
+    "key": "deco_material",
+    "slug": "deco-material",
+    "name": "装修选材",
+    "cat": "建筑工程",
+    "widget": "DecoMaterialWidget",
+    "prefix": "DM",
+    "aliases": [
+      "装修选材",
+      "材料选型",
+      "进度验收",
+      "家装预算",
+      "装修"
+    ],
+    "fields": [
+      [
+        "category",
+        "环节",
+        32,
+        "material"
+      ],
+      [
+        "material_name",
+        "材料/部位",
+        200,
+        ""
+      ],
+      [
+        "location",
+        "施工位置",
+        120,
+        ""
+      ],
+      [
+        "budget",
+        "预算",
+        64,
+        ""
+      ],
+      [
+        "note",
+        "备注",
+        "text",
+        ""
+      ]
+    ],
+    "statuses": [
+      "open",
+      "accepted",
+      "done"
+    ],
+    "advance": [
+      [
+        "accepted",
+        "已验收"
+      ],
+      [
+        "done",
+        "完成"
+      ]
+    ],
+    "choices": {
+      "category": [
+        [
+          "material",
+          "选材"
+        ],
+        [
+          "progress",
+          "进度"
+        ],
+        [
+          "budget",
+          "预算"
+        ]
+      ]
+    },
+    "color": "#ca8a04",
+    "scene": "s26",
+    "role": "业主",
+    "hint": "生活 · 家装",
+    "prompt": "材料选型、进度验收与预算审批。",
+    "flow": [
+      ">> 装修选材 · 材料部位登记",
+      ">> 进度验收 · 闭环完成",
+      ">> 企微钉钉飞书 · 验收提醒",
+      ">> CapShip · 双端真接口"
+    ],
+    "icon": "🛠️",
+    "req": [
+      "material_name"
+    ],
+    "title_field": "material_name"
+  },
+  {
+    "key": "pet_clinic",
+    "slug": "pet-clinic",
+    "name": "宠物问诊",
+    "cat": "医疗健康",
+    "widget": "PetClinicWidget",
+    "prefix": "PC",
+    "aliases": [
+      "宠物问诊",
+      "宠物健康",
+      "预约就诊",
+      "疫苗提醒",
+      "宠物"
+    ],
+    "fields": [
+      [
+        "category",
+        "类型",
+        32,
+        "consult"
+      ],
+      [
+        "pet_name",
+        "宠物名",
+        120,
+        ""
+      ],
+      [
+        "symptom",
+        "症状/事项",
+        200,
+        ""
+      ],
+      [
+        "schedule_at",
+        "预约时间",
+        64,
+        ""
+      ],
+      [
+        "note",
+        "备注",
+        "text",
+        ""
+      ]
+    ],
+    "statuses": [
+      "open",
+      "scheduled",
+      "done"
+    ],
+    "advance": [
+      [
+        "scheduled",
+        "已预约"
+      ],
+      [
+        "done",
+        "完成"
+      ]
+    ],
+    "choices": {
+      "category": [
+        [
+          "consult",
+          "问诊"
+        ],
+        [
+          "visit",
+          "就诊"
+        ],
+        [
+          "vaccine",
+          "疫苗"
+        ]
+      ]
+    },
+    "color": "#f472b6",
+    "scene": "s27",
+    "role": "宠主",
+    "hint": "生活 · 宠物",
+    "prompt": "宠物健康问答、预约就诊与疫苗提醒。",
+    "flow": [
+      ">> 宠物问诊 · 症状登记",
+      ">> 就诊/疫苗 · 预约闭环",
+      ">> 企微钉钉飞书 · 提醒推送",
+      ">> CapShip · 双端真接口"
+    ],
+    "icon": "🐾",
+    "req": [
+      "pet_name",
+      "symptom"
+    ],
+    "title_field": "symptom"
+  },
+  {
+    "key": "gov_service",
+    "slug": "gov-service",
+    "name": "政务办事",
+    "cat": "政务公用",
+    "widget": "GovServiceWidget",
+    "prefix": "GS",
+    "aliases": [
+      "政务办事",
+      "办事指南",
+      "诉求提交",
+      "进度查询",
+      "政务"
+    ],
+    "fields": [
+      [
+        "category",
+        "类型",
+        32,
+        "guide"
+      ],
+      [
+        "title",
+        "事项标题",
+        200,
+        ""
+      ],
+      [
+        "dept",
+        "部门/窗口",
+        120,
+        ""
+      ],
+      [
+        "ticket_no",
+        "受理号",
+        64,
+        ""
+      ],
+      [
+        "note",
+        "备注",
+        "text",
+        ""
+      ]
+    ],
+    "statuses": [
+      "open",
+      "processing",
+      "done"
+    ],
+    "advance": [
+      [
+        "processing",
+        "办理中"
+      ],
+      [
+        "done",
+        "办结"
+      ]
+    ],
+    "choices": {
+      "category": [
+        [
+          "guide",
+          "指南"
+        ],
+        [
+          "appeal",
+          "诉求"
+        ],
+        [
+          "progress",
+          "进度"
+        ]
+      ]
+    },
+    "color": "#475569",
+    "scene": "s29",
+    "role": "市民",
+    "hint": "政务 · 便民",
+    "prompt": "办事指南、诉求提交与进度查询。",
+    "flow": [
+      ">> 政务办事 · 事项诉求登记",
+      ">> 办理进度 · 办结闭环",
+      ">> 企微钉钉飞书 · 进度推送",
+      ">> CapShip · 双端真接口"
+    ],
+    "icon": "🏛️",
+    "req": [
+      "title"
+    ],
+    "title_field": "title"
+  },
+  {
+    "key": "legal_case",
+    "slug": "legal-case",
+    "name": "法务合同",
+    "cat": "法律服务",
+    "widget": "LegalCaseWidget",
+    "prefix": "LC",
+    "aliases": [
+      "法务合同",
+      "合同审查",
+      "法规检索",
+      "案件跟踪",
+      "法务"
+    ],
+    "fields": [
+      [
+        "category",
+        "类型",
+        32,
+        "contract"
+      ],
+      [
+        "title",
+        "标题",
+        200,
+        ""
+      ],
+      [
+        "party",
+        "对方/当事人",
+        120,
+        ""
+      ],
+      [
+        "deadline",
+        "节点日期",
+        64,
+        ""
+      ],
+      [
+        "note",
+        "备注",
+        "text",
+        ""
+      ]
+    ],
+    "statuses": [
+      "open",
+      "reviewing",
+      "done"
+    ],
+    "advance": [
+      [
+        "reviewing",
+        "审查中"
+      ],
+      [
+        "done",
+        "完成"
+      ]
+    ],
+    "choices": {
+      "category": [
+        [
+          "contract",
+          "合同"
+        ],
+        [
+          "law",
+          "法规"
+        ],
+        [
+          "case",
+          "案件"
+        ]
+      ]
+    },
+    "color": "#334155",
+    "scene": "s30",
+    "role": "法务",
+    "hint": "法务 · 合规",
+    "prompt": "合同审查、法规检索与案件跟踪。",
+    "flow": [
+      ">> 法务合同 · 审查案件登记",
+      ">> 节点跟进 · 闭环完成",
+      ">> 企微钉钉飞书 · 节点提醒",
+      ">> CapShip · 双端真接口"
+    ],
+    "icon": "⚖️",
+    "req": [
+      "title"
+    ],
+    "title_field": "title"
+  }
+]

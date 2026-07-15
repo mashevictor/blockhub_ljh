@@ -69,6 +69,16 @@ dependencies:
     path: ../packages/capability_fitness_checkin
   capability_travel_plan:
     path: ../packages/capability_travel_plan
+  capability_wedding_plan:
+    path: ../packages/capability_wedding_plan
+  capability_deco_material:
+    path: ../packages/capability_deco_material
+  capability_pet_clinic:
+    path: ../packages/capability_pet_clinic
+  capability_gov_service:
+    path: ../packages/capability_gov_service
+  capability_legal_case:
+    path: ../packages/capability_legal_case
   capability_flutter_tools:
     path: ../packages/capability_flutter_tools
   dio: ^5.7.0

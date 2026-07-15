@@ -279,26 +279,32 @@ export const ROLE_PRESETS: RolePreset[] = [
     '宾客名单、供应商协同与预算跟踪。',
     [
       { type: 'industry', key: 'office', label: '通用办公' },
-      { type: 'scenario', key: 's25-wedding', label: '活动筹备' },
-      { type: 'module', key: 'approval_flow', label: '审批流' },
+      { type: 'scenario', key: 's25-main', label: '婚礼筹备' },
+      { type: 'module', key: 'wedding_plan', label: '婚礼筹备' },
+      { type: 'module', key: 'notify_im', label: '企微钉钉飞书' },
     ],
-    ['>> 宾客名单 · 席位安排', '>> 供应商协同 · 进度跟踪', '>> 预算跟踪 · 费用管控', '>> 消息通知 · 日程提醒']),
+    ['>> 婚礼筹备 · 宾客供应商登记', '>> 预算确认 · 进度闭环', '>> 企微钉钉飞书 · 协同提醒', '>> CapShip · 双端真接口'], '新人'),
+
   scene('s26', '装修选材', '生活 · 家装', '#ca8a04',
     '材料选型、进度验收与预算审批。',
     [
       { type: 'industry', key: 'construction', label: '建筑工程' },
-      { type: 'scenario', key: 's26-deco', label: '材料管理' },
-      { type: 'module', key: 'approval_flow', label: '审批流' },
+      { type: 'scenario', key: 's26-main', label: '装修选材' },
+      { type: 'module', key: 'deco_material', label: '装修选材' },
+      { type: 'module', key: 'notify_im', label: '企微钉钉飞书' },
     ],
-    ['>> 材料管理 · 选型比价', '>> 进度验收 · 节点拍照', '>> 预算审批 · 超支预警', '>> 工单流转 · 施工方协同']),
+    ['>> 装修选材 · 材料部位登记', '>> 进度验收 · 闭环完成', '>> 企微钉钉飞书 · 验收提醒', '>> CapShip · 双端真接口'], '业主'),
+
   scene('s27', '宠物问诊', '生活 · 宠物', '#f472b6',
     '宠物健康问答、预约就诊与疫苗提醒。',
     [
       { type: 'industry', key: 'med', label: '医疗健康' },
-      { type: 'scenario', key: 's27-pet', label: '在线问诊' },
-      { type: 'module', key: 'chat_qa', label: '智能问答' },
+      { type: 'scenario', key: 's27-main', label: '宠物问诊' },
+      { type: 'module', key: 'pet_clinic', label: '宠物问诊' },
+      { type: 'module', key: 'notify_im', label: '企微钉钉飞书' },
     ],
-    ['>> 在线问诊 · 症状描述', '>> 预约就诊 · 时段选择', '>> 疫苗提醒 · 定期推送', '>> 健康档案 · 成长记录']),
+    ['>> 宠物问诊 · 症状登记', '>> 就诊/疫苗 · 预约闭环', '>> 企微钉钉飞书 · 提醒推送', '>> CapShip · 双端真接口'], '宠主'),
+
   scene('s28', '巡检打卡', '能源 · 安全', '#eab308',
     '设备巡检、隐患上报与安全合规。',
     [
@@ -312,19 +318,22 @@ export const ROLE_PRESETS: RolePreset[] = [
     '办事指南、诉求提交与进度查询。',
     [
       { type: 'industry', key: 'gov', label: '政务公用' },
-      { type: 'scenario', key: 's29-gov', label: '办事指南' },
-      { type: 'module', key: 'chat_qa', label: '智能问答' },
+      { type: 'scenario', key: 's29-main', label: '政务办事' },
+      { type: 'module', key: 'gov_service', label: '政务办事' },
+      { type: 'module', key: 'notify_im', label: '企微钉钉飞书' },
     ],
-    ['>> 办事指南 · 材料清单', '>> 诉求提交 · 在线受理', '>> 进度查询 · 节点透明', '>> 智能问答 · 政策解读']),
+    ['>> 政务办事 · 事项诉求登记', '>> 办理进度 · 办结闭环', '>> 企微钉钉飞书 · 进度推送', '>> CapShip · 双端真接口'], '市民'),
+
   scene('s30', '法务合同', '法务 · 合规', '#334155',
     '合同审查、法规检索与案件跟踪。',
     [
       { type: 'industry', key: 'legal', label: '法律服务' },
-      { type: 'office', key: '财务法务', label: '财务法务' },
-      { type: 'scenario', key: 's30-legal', label: '合同管理' },
-      { type: 'module', key: 'kb_document', label: '知识库' },
+      { type: 'scenario', key: 's30-main', label: '法务合同' },
+      { type: 'module', key: 'legal_case', label: '法务合同' },
+      { type: 'module', key: 'notify_im', label: '企微钉钉飞书' },
     ],
-    ['>> 合同管理 · 版本比对', '>> 法规检索 · 条款查询', '>> 案件跟踪 · 节点提醒', '>> 知识库 · 判例沉淀'], 4),
+    ['>> 法务合同 · 审查案件登记', '>> 节点跟进 · 闭环完成', '>> 企微钉钉飞书 · 节点提醒', '>> CapShip · 双端真接口'], '法务'),
+
   scene('s31', '上海话语音助手', '方言 · 语音', '#db2777',
     '上海话实时语音交互：开口即问、语音播报、支持方言识别。',
     [

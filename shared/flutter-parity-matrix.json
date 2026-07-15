@@ -393,6 +393,66 @@
       ],
       "module_class": "TravelPlanModule",
       "dart_import": "package:capability_travel_plan/capability_travel_plan.dart"
+    },
+    {
+      "web_pkg": "@blockhub/web-capability-wedding-plan",
+      "web_folder": "web-capability-wedding-plan",
+      "flutter_pkg": "capability_wedding_plan",
+      "p1_scope": "app",
+      "status_target": "ok",
+      "capability_keys": [
+        "wedding_plan"
+      ],
+      "module_class": "WeddingPlanModule",
+      "dart_import": "package:capability_wedding_plan/capability_wedding_plan.dart"
+    },
+    {
+      "web_pkg": "@blockhub/web-capability-deco-material",
+      "web_folder": "web-capability-deco-material",
+      "flutter_pkg": "capability_deco_material",
+      "p1_scope": "app",
+      "status_target": "ok",
+      "capability_keys": [
+        "deco_material"
+      ],
+      "module_class": "DecoMaterialModule",
+      "dart_import": "package:capability_deco_material/capability_deco_material.dart"
+    },
+    {
+      "web_pkg": "@blockhub/web-capability-pet-clinic",
+      "web_folder": "web-capability-pet-clinic",
+      "flutter_pkg": "capability_pet_clinic",
+      "p1_scope": "app",
+      "status_target": "ok",
+      "capability_keys": [
+        "pet_clinic"
+      ],
+      "module_class": "PetClinicModule",
+      "dart_import": "package:capability_pet_clinic/capability_pet_clinic.dart"
+    },
+    {
+      "web_pkg": "@blockhub/web-capability-gov-service",
+      "web_folder": "web-capability-gov-service",
+      "flutter_pkg": "capability_gov_service",
+      "p1_scope": "app",
+      "status_target": "ok",
+      "capability_keys": [
+        "gov_service"
+      ],
+      "module_class": "GovServiceModule",
+      "dart_import": "package:capability_gov_service/capability_gov_service.dart"
+    },
+    {
+      "web_pkg": "@blockhub/web-capability-legal-case",
+      "web_folder": "web-capability-legal-case",
+      "flutter_pkg": "capability_legal_case",
+      "p1_scope": "app",
+      "status_target": "ok",
+      "capability_keys": [
+        "legal_case"
+      ],
+      "module_class": "LegalCaseModule",
+      "dart_import": "package:capability_legal_case/capability_legal_case.dart"
     }
   ]
 }

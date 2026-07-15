@@ -36,6 +36,11 @@ from app.api.v1 import (
     campaign_ops,
     fitness_checkin,
     travel_plan,
+    legal_case,
+    gov_service,
+    pet_clinic,
+    deco_material,
+    wedding_plan,
     notifications,
     quality_inspect,
     reports,
@@ -130,6 +135,11 @@ app.include_router(class_schedule.router, prefix=settings.api_prefix, dependenci
 app.include_router(hotel_booking.router, prefix=settings.api_prefix, dependencies=_auth)
 app.include_router(study_coach.router, prefix=settings.api_prefix, dependencies=_auth)
 app.include_router(travel_plan.router, prefix=settings.api_prefix, dependencies=_auth)
+app.include_router(legal_case.router, prefix=settings.api_prefix, dependencies=_auth)
+app.include_router(gov_service.router, prefix=settings.api_prefix, dependencies=_auth)
+app.include_router(pet_clinic.router, prefix=settings.api_prefix, dependencies=_auth)
+app.include_router(deco_material.router, prefix=settings.api_prefix, dependencies=_auth)
+app.include_router(wedding_plan.router, prefix=settings.api_prefix, dependencies=_auth)
 app.include_router(fitness_checkin.router, prefix=settings.api_prefix, dependencies=_auth)
 app.include_router(campaign_ops.router, prefix=settings.api_prefix, dependencies=_auth)
 app.include_router(house_viewing.router, prefix=settings.api_prefix, dependencies=_auth)

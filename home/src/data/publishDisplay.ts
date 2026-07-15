@@ -117,6 +117,26 @@ const SCENARIO_CAPABILITY_MAP: Array<{ match: string[]; caps: Array<{ key: strin
     { key: 'travel_plan', label: '旅行攻略' },
     { key: 'notify_im', label: '企微钉钉飞书' },
   ]},
+  { match: ['婚礼筹备', '宾客名单', '供应商协同', '婚礼预算', '婚庆'], caps: [
+    { key: 'wedding_plan', label: '婚礼筹备' },
+    { key: 'notify_im', label: '企微钉钉飞书' },
+  ]},
+  { match: ['装修选材', '材料选型', '进度验收', '家装预算', '装修'], caps: [
+    { key: 'deco_material', label: '装修选材' },
+    { key: 'notify_im', label: '企微钉钉飞书' },
+  ]},
+  { match: ['宠物问诊', '宠物健康', '预约就诊', '疫苗提醒', '宠物'], caps: [
+    { key: 'pet_clinic', label: '宠物问诊' },
+    { key: 'notify_im', label: '企微钉钉飞书' },
+  ]},
+  { match: ['政务办事', '办事指南', '诉求提交', '进度查询', '政务'], caps: [
+    { key: 'gov_service', label: '政务办事' },
+    { key: 'notify_im', label: '企微钉钉飞书' },
+  ]},
+  { match: ['法务合同', '合同审查', '法规检索', '案件跟踪', '法务'], caps: [
+    { key: 'legal_case', label: '法务合同' },
+    { key: 'notify_im', label: '企微钉钉飞书' },
+  ]},
   { match: ['课本学习', '学习规划', '学习进度', '家默', '听写', '复习跟进', '家默督导', '教学规划'], caps: [
     { key: 'study_coach', label: '课本学习' },
     { key: 'notify_im', label: '企微钉钉飞书' },

@@ -352,6 +352,23 @@
       ]
     },
     {
+      "key": "deco_material",
+      "name": "装修选材",
+      "category": "建筑工程",
+      "widget": "DecoMaterialWidget",
+      "agent_id": "deco_material",
+      "web_pkg": "@blockhub/web-capability-deco-material",
+      "flutter_pkg": "capability_deco_material",
+      "route": "/deco-material",
+      "keywords": [
+        "装修选材",
+        "材料选型",
+        "进度验收",
+        "家装预算",
+        "装修"
+      ]
+    },
+    {
       "key": "delivery_order",
       "name": "外卖配送",
       "category": "物流仓储",
@@ -678,6 +695,23 @@
       ]
     },
     {
+      "key": "gov_service",
+      "name": "政务办事",
+      "category": "政务公用",
+      "widget": "GovServiceWidget",
+      "agent_id": "gov_service",
+      "web_pkg": "@blockhub/web-capability-gov-service",
+      "flutter_pkg": "capability_gov_service",
+      "route": "/gov-service",
+      "keywords": [
+        "政务办事",
+        "办事指南",
+        "诉求提交",
+        "进度查询",
+        "政务"
+      ]
+    },
+    {
       "key": "homework_qa",
       "name": "作业答疑",
       "category": "教育培训",
@@ -802,6 +836,23 @@
       "flutter_pkg": "capability_kb_search",
       "route": "/kb",
       "keywords": []
+    },
+    {
+      "key": "legal_case",
+      "name": "法务合同",
+      "category": "法律服务",
+      "widget": "LegalCaseWidget",
+      "agent_id": "legal_case",
+      "web_pkg": "@blockhub/web-capability-legal-case",
+      "flutter_pkg": "capability_legal_case",
+      "route": "/legal-case",
+      "keywords": [
+        "法务合同",
+        "合同审查",
+        "法规检索",
+        "案件跟踪",
+        "法务"
+      ]
     },
     {
       "key": "list_widget",
@@ -966,6 +1017,23 @@
       "flutter_pkg": "capability_oa_connector",
       "route": "/oa-connector",
       "keywords": []
+    },
+    {
+      "key": "pet_clinic",
+      "name": "宠物问诊",
+      "category": "医疗健康",
+      "widget": "PetClinicWidget",
+      "agent_id": "pet_clinic",
+      "web_pkg": "@blockhub/web-capability-pet-clinic",
+      "flutter_pkg": "capability_pet_clinic",
+      "route": "/pet-clinic",
+      "keywords": [
+        "宠物问诊",
+        "宠物健康",
+        "预约就诊",
+        "疫苗提醒",
+        "宠物"
+      ]
     },
     {
       "key": "property_repair",
@@ -1166,6 +1234,23 @@
         "景点问答",
         "预订提醒",
         "旅行"
+      ]
+    },
+    {
+      "key": "wedding_plan",
+      "name": "婚礼筹备",
+      "category": "生活服务",
+      "widget": "WeddingPlanWidget",
+      "agent_id": "wedding_plan",
+      "web_pkg": "@blockhub/web-capability-wedding-plan",
+      "flutter_pkg": "capability_wedding_plan",
+      "route": "/wedding-plan",
+      "keywords": [
+        "婚礼筹备",
+        "宾客名单",
+        "供应商协同",
+        "婚礼预算",
+        "婚庆"
       ]
     }
   ]

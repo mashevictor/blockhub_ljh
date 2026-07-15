@@ -29,6 +29,11 @@ import 'package:capability_house_viewing/capability_house_viewing.dart';
 import 'package:capability_campaign_ops/capability_campaign_ops.dart';
 import 'package:capability_fitness_checkin/capability_fitness_checkin.dart';
 import 'package:capability_travel_plan/capability_travel_plan.dart';
+import 'package:capability_wedding_plan/capability_wedding_plan.dart';
+import 'package:capability_deco_material/capability_deco_material.dart';
+import 'package:capability_pet_clinic/capability_pet_clinic.dart';
+import 'package:capability_gov_service/capability_gov_service.dart';
+import 'package:capability_legal_case/capability_legal_case.dart';
 import 'package:capability_flutter_tools/capability_flutter_tools.dart';
 
 final _mod_chat_qa = const ChatQaModule();
@@ -59,6 +64,11 @@ final _mod_house_viewing = const HouseViewingModule();
 final _mod_campaign_ops = const CampaignOpsModule();
 final _mod_fitness_checkin = const FitnessCheckinModule();
 final _mod_travel_plan = const TravelPlanModule();
+final _mod_wedding_plan = const WeddingPlanModule();
+final _mod_deco_material = const DecoMaterialModule();
+final _mod_pet_clinic = const PetClinicModule();
+final _mod_gov_service = const GovServiceModule();
+final _mod_legal_case = const LegalCaseModule();
 
 List<CapabilityModule> get generatedMelosCapabilityModules => [
   _mod_chat_qa,
@@ -89,6 +99,11 @@ List<CapabilityModule> get generatedMelosCapabilityModules => [
   _mod_campaign_ops,
   _mod_fitness_checkin,
   _mod_travel_plan,
+  _mod_wedding_plan,
+  _mod_deco_material,
+  _mod_pet_clinic,
+  _mod_gov_service,
+  _mod_legal_case,
 ];
 
 final Map<String, CapabilityModule> generatedMelosModuleByKey = {
@@ -130,17 +145,20 @@ final Map<String, CapabilityModule> generatedMelosModuleByKey = {
     'contract_editor': _mod_approval_flow,
     'contract_esign': _mod_approval_flow,
     'data_nl_query': _mod_data_nl_query,
+    'deco_material': _mod_deco_material,
     'delivery_order': _mod_delivery_order,
     'device_repair': _mod_device_repair,
     'fitness_checkin': _mod_fitness_checkin,
     'form_widget': _mod_approval_flow,
     'game_support': _mod_game_support,
+    'gov_service': _mod_gov_service,
     'homework_qa': _mod_homework_qa,
     'hotel_booking': _mod_hotel_booking,
     'house_viewing': _mod_house_viewing,
     'inventory_count': _mod_inventory_count,
     'kb_document': _mod_kb,
     'kb_search': _mod_kb,
+    'legal_case': _mod_legal_case,
     'list_widget': _mod_approval_flow,
     'med_triage': _mod_med_triage,
     'member_loyalty': _mod_member_loyalty,
@@ -148,6 +166,7 @@ final Map<String, CapabilityModule> generatedMelosModuleByKey = {
     'notify_email': _mod_dashboard,
     'notify_inapp': _mod_dashboard,
     'nurse_shift': _mod_nurse_shift,
+    'pet_clinic': _mod_pet_clinic,
     'property_repair': _mod_property_repair,
     'quality_inspect': _mod_quality_inspect,
     'school_notice': _mod_school_notice,
@@ -157,4 +176,5 @@ final Map<String, CapabilityModule> generatedMelosModuleByKey = {
     'site_patrol': _mod_site_patrol,
     'study_coach': _mod_study_coach,
     'travel_plan': _mod_travel_plan,
+    'wedding_plan': _mod_wedding_plan,
 };
