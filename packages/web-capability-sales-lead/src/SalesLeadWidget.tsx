@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import type { SchemaNode } from '@blockhub/web-core'
-import { apiFetch, GtgtStepComposer, useRuntime, type GtgtStep } from '@blockhub/web-core'
+import { apiFetch, useRuntime } from '@blockhub/web-core'
 
 interface RecordItem {
   id: string
@@ -14,46 +14,23 @@ interface RecordItem {
   reporter_name?: string
 }
 
-const STATUS_LABEL: Record<string, string> = {
-  open: '待处理',
-  following: '跟进中',
-  won: 'won',
-  lost: 'lost',
-}
+const COLUMNS: { key: string; label: string; action?: string }[] = [
+  { key: 'open', label: '新线索' },
+  { key: 'following', label: '跟进中', action: 'following' },
+  { key: 'won', label: '成交', action: 'won' },
+  { key: 'lost', label: '丢单', action: 'lost' },
+]
 
 export function SalesLeadWidget(_props: { node: SchemaNode }) {
-  const { token, primaryColor, appId, user, entrySource } = useRuntime()
+  const { token, primaryColor, appId, user } = useRuntime()
   const [items, setItems] = useState<RecordItem[]>([])
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
-  const [resetKey, setResetKey] = useState(0)
-  const [values, setValues] = useState<Record<string, string>>({ category: 'lead' })
+  const [customer, setCustomer] = useState('')
+  const [amount, setAmount] = useState('')
   const [msg, setMsg] = useState('')
-  const [showForm, setShowForm] = useState(entrySource !== 'im')
 
   const accent = primaryColor || '#ef4444'
-  const openCount = items.filter((t) => t.status === 'open').length
-
-  const steps: GtgtStep[] = useMemo(
-    () => [
-      {
-        key: 'category',
-        label: '阶段',
-        render: ({ value, setValue, accent: a }) => (
-          <div className="row-actions">
-            <button type="button" className={(value || 'lead') === 'lead' ? 'btn' : 'btn btn-ghost'} style={(value || 'lead') === 'lead' ? { background: a } : undefined} onClick={() => setValue('lead')}>线索</button>
-            <button type="button" className={(value || 'lead') === 'opportunity' ? 'btn' : 'btn btn-ghost'} style={(value || 'lead') === 'opportunity' ? { background: a } : undefined} onClick={() => setValue('opportunity')}>商机</button>
-            <button type="button" className={(value || 'lead') === 'account' ? 'btn' : 'btn btn-ghost'} style={(value || 'lead') === 'account' ? { background: a } : undefined} onClick={() => setValue('account')}>客户</button>
-          </div>
-        ),
-      },
-      { key: 'customer', label: '客户名称', placeholder: '客户名称' },
-      { key: 'amount', label: '预计金额', placeholder: '预计金额', optional: true },
-      { key: 'owner', label: '跟进人', placeholder: '跟进人', optional: true },
-      { key: 'note', label: '跟进备注', placeholder: '跟进备注', optional: true },
-    ],
-    [],
-  )
 
   const load = useCallback(async () => {
     if (!token) {
@@ -79,25 +56,24 @@ export function SalesLeadWidget(_props: { node: SchemaNode }) {
   }, [load])
 
   const submit = async () => {
-    if (!token || !values.customer?.trim()) return
+    if (!token || !customer.trim()) return
     setBusy(true)
     setMsg('')
-    const category = values.category || 'lead'
     try {
       await apiFetch('/api/v1/sales-lead/records', token, {
         method: 'POST',
         body: JSON.stringify({
-          category,
-          customer: (values.customer || '').trim(),
-          amount: (values.amount || '').trim(),
-          owner: (values.owner || '').trim(),
-          note: (values.note || '').trim(),
+          category: 'lead',
+          customer: customer.trim(),
+          amount: amount.trim(),
+          owner: user?.display_name || '',
+          note: '',
           app_public_id: appId || '',
         }),
       })
-      setValues({ category: 'lead' })
-      setResetKey((k) => k + 1)
-      setMsg('已提交')
+      setCustomer('')
+      setAmount('')
+      setMsg('已加入看板')
       await load()
     } catch (e) {
       setMsg(`提交失败：${String(e)}`)
@@ -106,7 +82,7 @@ export function SalesLeadWidget(_props: { node: SchemaNode }) {
     }
   }
 
-  const advance = async (id: string, action: string) => {
+  const moveTo = async (id: string, action: string) => {
     if (!token) return
     try {
       await apiFetch(`/api/v1/sales-lead/records/${id}/${action}`, token, { method: 'POST', body: '{}' })
@@ -118,48 +94,96 @@ export function SalesLeadWidget(_props: { node: SchemaNode }) {
 
   return (
     <div>
-      {!showForm ? (
-        <button type="button" className="btn btn-ghost" onClick={() => setShowForm(true)}>新建销售线索</button>
-      ) : (
-        <GtgtStepComposer
-          title={entrySource === 'im' ? '销售线索协作' : '销售线索'}
-          meta={entrySource === 'im' ? '群消息入口' : '应用工作台'}
-          accent={accent}
-          flowHint={`登记 → 状态跟进闭环${user?.display_name ? ` · ${user.display_name}` : ''}${openCount ? ` · 待处理 ${openCount}` : ''}`}
-          steps={steps}
-          values={values}
-          onChange={(k, v) => setValues((p) => ({ ...p, [k]: v }))}
-          onComplete={submit}
-          busy={busy}
-          resetKey={resetKey}
-          submitLabel="提交"
+      <div
+        className="list-card"
+        style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', marginBottom: 16 }}
+      >
+        <strong style={{ marginRight: 4 }}>新线索</strong>
+        <input
+          className="input"
+          style={{ flex: '1 1 160px', minWidth: 140 }}
+          placeholder="客户名称"
+          value={customer}
+          onChange={(e) => setCustomer(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') void submit()
+          }}
         />
-      )}
+        <input
+          className="input"
+          style={{ flex: '0 1 120px', width: 120 }}
+          placeholder="金额（可空）"
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') void submit()
+          }}
+        />
+        <button type="button" className="btn" style={{ background: accent }} disabled={busy || !customer.trim()} onClick={() => void submit()}>
+          录入
+        </button>
+      </div>
       {msg && <p className="status-msg">{msg}</p>}
-
-      <h4 style={{ margin: '16px 0 8px', fontSize: 14 }}>销售线索列表</h4>
       {loading && <p className="muted">加载中…</p>}
-      {!loading && items.length === 0 && <p className="muted">暂无记录</p>}
-      <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 8 }}>
-        {items.map((t) => (
-          <li key={t.id} className="list-card">
-            <div className="list-card-head">
-              <strong>{t.record_no} · {(t as any).customer || t.category}</strong>
-              <span className="tag">{STATUS_LABEL[t.status] || t.status}</span>
+
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(4, minmax(140px, 1fr))',
+          gap: 10,
+          overflowX: 'auto',
+        }}
+      >
+        {COLUMNS.map((col) => {
+          const colItems = items.filter((t) => t.status === col.key)
+          return (
+            <div key={col.key} style={{ minWidth: 140 }}>
+              <div
+                style={{
+                  fontSize: 13,
+                  fontWeight: 600,
+                  marginBottom: 8,
+                  padding: '6px 8px',
+                  borderRadius: 6,
+                  background: col.key === 'open' ? accent : 'rgba(0,0,0,0.06)',
+                  color: col.key === 'open' ? '#fff' : 'inherit',
+                }}
+              >
+                {col.label} · {colItems.length}
+              </div>
+              <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 8 }}>
+                {colItems.map((t) => (
+                  <li key={t.id} className="list-card" style={{ padding: 10 }}>
+                    <strong style={{ fontSize: 13 }}>{t.customer}</strong>
+                    <p className="muted" style={{ margin: '4px 0 0', fontSize: 12 }}>
+                      {t.amount ? `¥${t.amount}` : '金额待定'}
+                      {t.owner ? ` · ${t.owner}` : ''}
+                    </p>
+                    <div className="row-actions" style={{ marginTop: 8, flexWrap: 'wrap' }}>
+                      {COLUMNS.filter((c) => c.action && c.key !== t.status).map((c) => (
+                        <button
+                          key={c.key}
+                          type="button"
+                          className="btn btn-ghost"
+                          style={{ fontSize: 11, padding: '2px 6px' }}
+                          onClick={() => void moveTo(t.id, c.action!)}
+                        >
+                          →{c.label}
+                        </button>
+                      ))}
+                    </div>
+                  </li>
+                ))}
+                {!loading && colItems.length === 0 && (
+                  <li className="muted" style={{ fontSize: 12, padding: 8 }}>
+                    空
+                  </li>
+                )}
+              </ul>
             </div>
-            <p className="muted" style={{ margin: '6px 0 0' }}>{t.category}{t.note ? ` · ${t.note}` : ''}</p>
-            {t.status !== 'following' && t.status !== 'done' && t.status !== 'closed' && t.status !== 'cancelled' && (
-              <button type="button" className="btn btn-ghost" style={{ marginTop: 8, fontSize: 12, marginRight: 8 }} onClick={() => void advance(t.id, 'following')}>跟进中</button>
-            )}
-            {t.status !== 'won' && t.status !== 'done' && t.status !== 'closed' && t.status !== 'cancelled' && (
-              <button type="button" className="btn btn-ghost" style={{ marginTop: 8, fontSize: 12, marginRight: 8 }} onClick={() => void advance(t.id, 'won')}>成交</button>
-            )}
-            {t.status !== 'lost' && t.status !== 'done' && t.status !== 'closed' && t.status !== 'cancelled' && (
-              <button type="button" className="btn btn-ghost" style={{ marginTop: 8, fontSize: 12, marginRight: 8 }} onClick={() => void advance(t.id, 'lost')}>丢单</button>
-            )}
-          </li>
-        ))}
-      </ul>
+          )
+        })}
+      </div>
     </div>
   )
 }

@@ -14,11 +14,17 @@ interface RecordItem {
   reporter_name?: string
 }
 
+const CAT_LABEL: Record<string, string> = {
+  travel: '差旅',
+  meal: '餐饮',
+  office: '办公',
+}
+
 const STATUS_LABEL: Record<string, string> = {
-  open: '待处理',
-  reviewing: 'reviewing',
-  paid: 'paid',
-  rejected: 'rejected',
+  open: '待审核',
+  reviewing: '审核中',
+  paid: '已付款',
+  rejected: '已驳回',
 }
 
 export function ExpenseClaimWidget(_props: { node: SchemaNode }) {
@@ -29,10 +35,11 @@ export function ExpenseClaimWidget(_props: { node: SchemaNode }) {
   const [resetKey, setResetKey] = useState(0)
   const [values, setValues] = useState<Record<string, string>>({ category: 'travel' })
   const [msg, setMsg] = useState('')
-  const [showForm, setShowForm] = useState(entrySource !== 'im')
+  const [showDone, setShowDone] = useState(false)
 
   const accent = primaryColor || '#0284c7'
-  const openCount = items.filter((t) => t.status === 'open').length
+  const pending = items.filter((t) => t.status === 'open' || t.status === 'reviewing')
+  const done = items.filter((t) => t.status === 'paid' || t.status === 'rejected')
 
   const steps: GtgtStep[] = useMemo(
     () => [
@@ -41,16 +48,27 @@ export function ExpenseClaimWidget(_props: { node: SchemaNode }) {
         label: '费用类型',
         render: ({ value, setValue, accent: a }) => (
           <div className="row-actions">
-            <button type="button" className={(value || 'travel') === 'travel' ? 'btn' : 'btn btn-ghost'} style={(value || 'travel') === 'travel' ? { background: a } : undefined} onClick={() => setValue('travel')}>差旅</button>
-            <button type="button" className={(value || 'travel') === 'meal' ? 'btn' : 'btn btn-ghost'} style={(value || 'travel') === 'meal' ? { background: a } : undefined} onClick={() => setValue('meal')}>餐饮</button>
-            <button type="button" className={(value || 'travel') === 'office' ? 'btn' : 'btn btn-ghost'} style={(value || 'travel') === 'office' ? { background: a } : undefined} onClick={() => setValue('office')}>办公</button>
+            {([
+              ['travel', '差旅'],
+              ['meal', '餐饮'],
+              ['office', '办公'],
+            ] as const).map(([k, lab]) => (
+              <button
+                key={k}
+                type="button"
+                className={(value || 'travel') === k ? 'btn' : 'btn btn-ghost'}
+                style={(value || 'travel') === k ? { background: a } : undefined}
+                onClick={() => setValue(k)}
+              >
+                {lab}
+              </button>
+            ))}
           </div>
         ),
       },
-      { key: 'title', label: '报销标题', placeholder: '报销标题' },
-      { key: 'amount', label: '金额', placeholder: '金额' },
-      { key: 'invoice_no', label: '发票号', placeholder: '发票号', optional: true },
-      { key: 'note', label: '备注', placeholder: '备注', optional: true },
+      { key: 'title', label: '报销内容', placeholder: '如：上海出差高铁' },
+      { key: 'amount', label: '金额（元）', placeholder: '328.00' },
+      { key: 'invoice_no', label: '发票号（可空）', placeholder: '发票号码', optional: true },
     ],
     [],
   )
@@ -82,22 +100,21 @@ export function ExpenseClaimWidget(_props: { node: SchemaNode }) {
     if (!token || !values.title?.trim() || !values.amount?.trim()) return
     setBusy(true)
     setMsg('')
-    const category = values.category || 'travel'
     try {
       await apiFetch('/api/v1/expense-claim/records', token, {
         method: 'POST',
         body: JSON.stringify({
-          category,
-          title: (values.title || '').trim(),
-          amount: (values.amount || '').trim(),
+          category: values.category || 'travel',
+          title: values.title.trim(),
+          amount: values.amount.trim(),
           invoice_no: (values.invoice_no || '').trim(),
-          note: (values.note || '').trim(),
+          note: '',
           app_public_id: appId || '',
         }),
       })
       setValues({ category: 'travel' })
       setResetKey((k) => k + 1)
-      setMsg('已提交')
+      setMsg('已提交报销')
       await load()
     } catch (e) {
       setMsg(`提交失败：${String(e)}`)
@@ -118,48 +135,90 @@ export function ExpenseClaimWidget(_props: { node: SchemaNode }) {
 
   return (
     <div>
-      {!showForm ? (
-        <button type="button" className="btn btn-ghost" onClick={() => setShowForm(true)}>新建报销记账</button>
-      ) : (
-        <GtgtStepComposer
-          title={entrySource === 'im' ? '报销记账协作' : '报销记账'}
-          meta={entrySource === 'im' ? '群消息入口' : '应用工作台'}
-          accent={accent}
-          flowHint={`登记 → 状态跟进闭环${user?.display_name ? ` · ${user.display_name}` : ''}${openCount ? ` · 待处理 ${openCount}` : ''}`}
-          steps={steps}
-          values={values}
-          onChange={(k, v) => setValues((p) => ({ ...p, [k]: v }))}
-          onComplete={submit}
-          busy={busy}
-          resetKey={resetKey}
-          submitLabel="提交"
-        />
-      )}
-      {msg && <p className="status-msg">{msg}</p>}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'minmax(280px, 1fr) minmax(280px, 1fr)',
+          gap: 16,
+          alignItems: 'start',
+        }}
+      >
+        <div>
+          <GtgtStepComposer
+            title="我要报销"
+            meta={entrySource === 'im' ? '群消息入口' : user?.display_name || '提单人'}
+            accent={accent}
+            flowHint="类型 → 内容与金额 → 交财务审"
+            steps={steps}
+            values={values}
+            onChange={(k, v) => setValues((p) => ({ ...p, [k]: v }))}
+            onComplete={submit}
+            busy={busy}
+            resetKey={resetKey}
+            submitLabel="提交报销"
+          />
+        </div>
 
-      <h4 style={{ margin: '16px 0 8px', fontSize: 14 }}>报销记账列表</h4>
-      {loading && <p className="muted">加载中…</p>}
-      {!loading && items.length === 0 && <p className="muted">暂无记录</p>}
-      <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 8 }}>
-        {items.map((t) => (
-          <li key={t.id} className="list-card">
-            <div className="list-card-head">
-              <strong>{t.record_no} · {(t as any).title || t.category}</strong>
-              <span className="tag">{STATUS_LABEL[t.status] || t.status}</span>
+        <div>
+          <h4 style={{ margin: '0 0 8px', fontSize: 14 }}>
+            待我审 {pending.length ? `· ${pending.length}` : ''}
+          </h4>
+          {loading && <p className="muted">加载中…</p>}
+          {!loading && pending.length === 0 && <p className="muted">暂无待审报销</p>}
+          <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 10 }}>
+            {pending.map((t) => (
+              <li key={t.id} className="list-card">
+                <div className="list-card-head">
+                  <strong>{t.title}</strong>
+                  <span className="tag">{STATUS_LABEL[t.status] || t.status}</span>
+                </div>
+                <p style={{ margin: '8px 0 0', fontSize: 13 }}>
+                  ¥{t.amount} · {CAT_LABEL[t.category] || t.category}
+                  {t.reporter_name ? ` · ${t.reporter_name}` : ''}
+                </p>
+                {t.invoice_no ? <p className="muted" style={{ margin: '4px 0 0' }}>发票 {t.invoice_no}</p> : null}
+                <div className="row-actions" style={{ marginTop: 12 }}>
+                  {t.status === 'open' && (
+                    <button type="button" className="btn btn-ghost" onClick={() => void advance(t.id, 'reviewing')}>
+                      收下审核
+                    </button>
+                  )}
+                  <button type="button" className="btn" style={{ background: accent }} onClick={() => void advance(t.id, 'paid')}>
+                    付款通过
+                  </button>
+                  <button type="button" className="btn btn-ghost" onClick={() => void advance(t.id, 'rejected')}>
+                    驳回
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+
+          {done.length > 0 && (
+            <div style={{ marginTop: 16 }}>
+              <button type="button" className="btn btn-ghost" style={{ fontSize: 12 }} onClick={() => setShowDone((v) => !v)}>
+                {showDone ? '收起已处理' : `已处理 ${done.length}`}
+              </button>
+              {showDone && (
+                <ul style={{ listStyle: 'none', margin: '8px 0 0', padding: 0, display: 'grid', gap: 8 }}>
+                  {done.map((t) => (
+                    <li key={t.id} className="list-card" style={{ opacity: 0.85 }}>
+                      <div className="list-card-head">
+                        <strong>{t.title}</strong>
+                        <span className="tag">{STATUS_LABEL[t.status] || t.status}</span>
+                      </div>
+                      <p className="muted" style={{ margin: '6px 0 0', fontSize: 12 }}>
+                        ¥{t.amount} · {CAT_LABEL[t.category] || t.category}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
-            <p className="muted" style={{ margin: '6px 0 0' }}>{t.category}{t.note ? ` · ${t.note}` : ''}</p>
-            {t.status !== 'reviewing' && t.status !== 'done' && t.status !== 'closed' && t.status !== 'cancelled' && (
-              <button type="button" className="btn btn-ghost" style={{ marginTop: 8, fontSize: 12, marginRight: 8 }} onClick={() => void advance(t.id, 'reviewing')}>审核中</button>
-            )}
-            {t.status !== 'paid' && t.status !== 'done' && t.status !== 'closed' && t.status !== 'cancelled' && (
-              <button type="button" className="btn btn-ghost" style={{ marginTop: 8, fontSize: 12, marginRight: 8 }} onClick={() => void advance(t.id, 'paid')}>已付款</button>
-            )}
-            {t.status !== 'rejected' && t.status !== 'done' && t.status !== 'closed' && t.status !== 'cancelled' && (
-              <button type="button" className="btn btn-ghost" style={{ marginTop: 8, fontSize: 12, marginRight: 8 }} onClick={() => void advance(t.id, 'rejected')}>驳回</button>
-            )}
-          </li>
-        ))}
-      </ul>
+          )}
+        </div>
+      </div>
+      {msg && <p className="status-msg">{msg}</p>}
     </div>
   )
 }

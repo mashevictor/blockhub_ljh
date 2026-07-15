@@ -1,6 +1,14 @@
 import 'package:blockhub_flutter_core/blockhub_flutter_core.dart';
 import 'package:flutter/material.dart';
 
+const _catLabel = {'annual': '年假', 'sick': '病假', 'personal': '事假'};
+const _statusLabel = {
+  'open': '待审批',
+  'approved': '已通过',
+  'rejected': '已驳回',
+  'done': '已归档',
+};
+
 class LeaveRequestPage extends StatefulWidget {
   const LeaveRequestPage({super.key, required this.branding});
   final AppBranding branding;
@@ -12,11 +20,22 @@ class _LeaveRequestPageState extends State<LeaveRequestPage> {
   List<dynamic> _items = [];
   bool _loading = true;
   bool _busy = false;
+  bool _showDone = false;
   int _resetKey = 0;
   final Map<String, String> _values = {'category': 'annual'};
 
   String get _base => '${widget.branding.apiBaseUrl}/leave-request';
   String get _appId => widget.branding.appPublicId.trim();
+
+  List<Map<String, dynamic>> get _pending => _items
+      .map((e) => Map<String, dynamic>.from(e as Map))
+      .where((t) => '${t['status']}' == 'open')
+      .toList();
+
+  List<Map<String, dynamic>> get _done => _items
+      .map((e) => Map<String, dynamic>.from(e as Map))
+      .where((t) => '${t['status']}' != 'open')
+      .toList();
 
   @override
   void initState() {
@@ -44,8 +63,8 @@ class _LeaveRequestPageState extends State<LeaveRequestPage> {
     try {
       final dio = getRuntimeAuthedDio();
       await dio.post('$_base/records', data: {
-        'category': (_values['category'] ?? '').trim(),
-        'applicant': (_values['applicant'] ?? '').trim(),
+        'category': _values['category'] ?? 'annual',
+        'applicant': '',
         'start_at': (_values['start_at'] ?? '').trim(),
         'end_at': (_values['end_at'] ?? '').trim(),
         'note': (_values['note'] ?? '').trim(),
@@ -74,55 +93,88 @@ class _LeaveRequestPageState extends State<LeaveRequestPage> {
       padding: const EdgeInsets.all(16),
       children: [
         GtgtStepComposer(
-          title: '请假审批',
-          flowHint: '登记 → 状态闭环',
+          title: '我要请假',
+          flowHint: '假种 → 起止日期 → 交主管审',
           accent: color,
           steps: const [
             GtgtStep(
               key: 'category',
-              label: '请假类型',
+              label: '假种',
               choices: [
                 (value: 'annual', label: '年假'),
                 (value: 'sick', label: '病假'),
                 (value: 'personal', label: '事假'),
               ],
             ),
-            GtgtStep(key: 'applicant', label: '申请人', placeholder: '申请人', optional: true),
-            GtgtStep(key: 'start_at', label: '开始日期', placeholder: '开始日期'),
-            GtgtStep(key: 'end_at', label: '结束日期', placeholder: '结束日期'),
-            GtgtStep(key: 'note', label: '事由', placeholder: '事由', optional: true, multiline: true),
+            GtgtStep(key: 'start_at', label: '开始日期', placeholder: '2026-07-20'),
+            GtgtStep(key: 'end_at', label: '结束日期', placeholder: '2026-07-22'),
+            GtgtStep(key: 'note', label: '事由（可空）', optional: true, multiline: true),
           ],
           values: _values,
           onChanged: (k, v) => setState(() => _values[k] = v),
           onComplete: _submit,
           busy: _busy,
           resetKey: _resetKey,
-          submitLabel: '提交',
+          submitLabel: '提交请假',
         ),
         const SizedBox(height: 16),
+        Text('待我审${_pending.isEmpty ? '' : ' · ${_pending.length}'}',
+            style: Theme.of(context).textTheme.titleSmall),
+        const SizedBox(height: 8),
         if (_loading)
           const Center(child: CircularProgressIndicator())
+        else if (_pending.isEmpty)
+          const Text('暂无待审批请假')
         else
-          ..._items.map((raw) {
-            final t = Map<String, dynamic>.from(raw as Map);
+          ..._pending.map((t) {
             final id = '${t['id']}';
+            final cat = _catLabel['${t['category']}'] ?? '${t['category']}';
             return Card(
-              child: ListTile(
-                title: Text('${t['record_no']} · ${t['applicant'] ?? t['category']}'),
-                subtitle: Text('${t['category']} · ${t['status']}'),
-                trailing: Wrap(
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (t['status'] != 'approved' && t['status'] != 'done' && t['status'] != 'closed' && t['status'] != 'cancelled')
-                      TextButton(onPressed: () => _advance(id, 'approved'), child: const Text('通过')),
-                    if (t['status'] != 'rejected' && t['status'] != 'done' && t['status'] != 'closed' && t['status'] != 'cancelled')
-                      TextButton(onPressed: () => _advance(id, 'rejected'), child: const Text('驳回')),
-                    if (t['status'] != 'done' && t['status'] != 'done' && t['status'] != 'closed' && t['status'] != 'cancelled')
-                      TextButton(onPressed: () => _advance(id, 'done'), child: const Text('归档')),
+                    Text('${t['applicant'] ?? t['reporter_name'] ?? '同事'} · $cat',
+                        style: const TextStyle(fontWeight: FontWeight.bold)),
+                    Text('${t['start_at']} → ${t['end_at']}'),
+                    if ('${t['note'] ?? ''}'.isNotEmpty) Text('${t['note']}'),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(backgroundColor: color),
+                          onPressed: () => _advance(id, 'approved'),
+                          child: const Text('通过'),
+                        ),
+                        const SizedBox(width: 8),
+                        OutlinedButton(onPressed: () => _advance(id, 'rejected'), child: const Text('驳回')),
+                      ],
+                    ),
                   ],
                 ),
               ),
             );
           }),
+        if (_done.isNotEmpty) ...[
+          TextButton(
+            onPressed: () => setState(() => _showDone = !_showDone),
+            child: Text(_showDone ? '收起已处理' : '已处理 ${_done.length}'),
+          ),
+          if (_showDone)
+            ..._done.map((t) {
+              final id = '${t['id']}';
+              return Card(
+                child: ListTile(
+                  title: Text('${t['applicant'] ?? '同事'} · ${_catLabel['${t['category']}'] ?? t['category']}'),
+                  subtitle: Text('${_statusLabel['${t['status']}'] ?? t['status']} · ${t['start_at']} → ${t['end_at']}'),
+                  trailing: '${t['status']}' == 'approved'
+                      ? TextButton(onPressed: () => _advance(id, 'done'), child: const Text('归档'))
+                      : null,
+                ),
+              );
+            }),
+        ],
       ],
     );
   }

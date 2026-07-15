@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import type { SchemaNode } from '@blockhub/web-core'
-import { apiFetch, GtgtStepComposer, useRuntime, type GtgtStep } from '@blockhub/web-core'
+import { apiFetch, useRuntime } from '@blockhub/web-core'
 
 interface RecordItem {
   id: string
@@ -14,6 +14,12 @@ interface RecordItem {
   reporter_name?: string
 }
 
+const ROOMS = [
+  { key: '标准间', desc: '双床 · 适合差旅' },
+  { key: '大床房', desc: '1.8m 床 · 商务常选' },
+  { key: '套房', desc: '客厅+卧室 · 会客' },
+] as const
+
 const STATUS_LABEL: Record<string, string> = {
   booked: '已预订',
   checked_in: '已入住',
@@ -21,28 +27,17 @@ const STATUS_LABEL: Record<string, string> = {
 }
 
 export function HotelBookingWidget(_props: { node: SchemaNode }) {
-  const { token, primaryColor, appId, user, entrySource } = useRuntime()
+  const { token, primaryColor, appId, user } = useRuntime()
   const [items, setItems] = useState<RecordItem[]>([])
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
-  const [resetKey, setResetKey] = useState(0)
-  const [values, setValues] = useState<Record<string, string>>({})
+  const [roomType, setRoomType] = useState('大床房')
+  const [checkIn, setCheckIn] = useState('')
+  const [checkOut, setCheckOut] = useState('')
+  const [guestName, setGuestName] = useState('')
   const [msg, setMsg] = useState('')
-  const [showForm, setShowForm] = useState(entrySource !== 'im')
 
   const accent = primaryColor || '#b45309'
-  const booked = items.filter((t) => t.status === 'booked').length
-
-  const steps: GtgtStep[] = useMemo(
-    () => [
-      { key: 'guest_name', label: '客人姓名', placeholder: '张三', optional: true },
-      { key: 'room_type', label: '房型', placeholder: '大床房 / 双床房 / 套房' },
-      { key: 'check_in', label: '入住日期', placeholder: '2026-03-15' },
-      { key: 'check_out', label: '退房日期', placeholder: '2026-03-17' },
-      { key: 'note', label: '备注', placeholder: '无烟房、靠窗…', optional: true },
-    ],
-    [],
-  )
 
   const load = useCallback(async () => {
     if (!token) {
@@ -68,24 +63,28 @@ export function HotelBookingWidget(_props: { node: SchemaNode }) {
   }, [load])
 
   const submit = async () => {
-    if (!token || !values.room_type?.trim()) return
+    if (!token || !roomType || !checkIn.trim() || !checkOut.trim()) {
+      setMsg('请选择房型并填写入住/退房日期')
+      return
+    }
     setBusy(true)
     setMsg('')
     try {
       await apiFetch('/api/v1/hotel-booking/records', token, {
         method: 'POST',
         body: JSON.stringify({
-          guest_name: (values.guest_name || '散客').trim(),
-          room_type: values.room_type.trim(),
-          check_in: (values.check_in || '').trim(),
-          check_out: (values.check_out || '').trim(),
-          note: (values.note || '').trim(),
+          guest_name: (guestName || user?.display_name || '散客').trim(),
+          room_type: roomType,
+          check_in: checkIn.trim(),
+          check_out: checkOut.trim(),
+          note: '',
           app_public_id: appId || '',
         }),
       })
-      setValues({})
-      setResetKey((k) => k + 1)
-      setMsg('预订已提交')
+      setGuestName('')
+      setCheckIn('')
+      setCheckOut('')
+      setMsg('预订成功')
       await load()
     } catch (e) {
       setMsg(`提交失败：${String(e)}`)
@@ -94,14 +93,13 @@ export function HotelBookingWidget(_props: { node: SchemaNode }) {
     }
   }
 
-  const checkIn = async (id: string) => {
+  const checkInAction = async (id: string) => {
     if (!token) return
     try {
       await apiFetch(`/api/v1/hotel-booking/records/${id}/check-in`, token, { method: 'POST', body: '{}' })
-      setMsg('已办理入住')
       await load()
     } catch (e) {
-      setMsg(`入住失败：${String(e)}`)
+      setMsg(`办理失败：${String(e)}`)
     }
   }
 
@@ -109,57 +107,128 @@ export function HotelBookingWidget(_props: { node: SchemaNode }) {
     if (!token) return
     try {
       await apiFetch(`/api/v1/hotel-booking/records/${id}/cancel`, token, { method: 'POST', body: '{}' })
-      setMsg('已取消预订')
       await load()
     } catch (e) {
       setMsg(`取消失败：${String(e)}`)
     }
   }
 
+  const active = items.filter((t) => t.status === 'booked')
+  const others = items.filter((t) => t.status !== 'booked')
+
   return (
     <div>
-      {!showForm ? (
-        <button type="button" className="btn btn-ghost" onClick={() => setShowForm(true)}>新建预订</button>
-      ) : (
-        <GtgtStepComposer
-          title={entrySource === 'im' ? '客房预订' : '酒店预订'}
-          meta={entrySource === 'im' ? '群入口' : '前台工作台'}
-          accent={accent}
-          flowHint={`客人 → 房型 → 入住 → 退房${user?.display_name ? ` · ${user.display_name}` : ''}${booked ? ` · 待入住 ${booked}` : ''}`}
-          steps={steps}
-          values={values}
-          onChange={(k, v) => setValues((p) => ({ ...p, [k]: v }))}
-          onComplete={submit}
-          busy={busy}
-          resetKey={resetKey}
-          submitLabel="提交预订"
+      <h4 style={{ margin: '0 0 8px', fontSize: 14 }}>选择房型</h4>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(100px, 1fr))', gap: 8, marginBottom: 12 }}>
+        {ROOMS.map((r) => (
+          <button
+            key={r.key}
+            type="button"
+            className={roomType === r.key ? 'btn' : 'btn btn-ghost'}
+            style={{
+              textAlign: 'left',
+              padding: 12,
+              background: roomType === r.key ? accent : undefined,
+              color: roomType === r.key ? '#fff' : undefined,
+            }}
+            onClick={() => setRoomType(r.key)}
+          >
+            <div style={{ fontWeight: 600 }}>{r.key}</div>
+            <div style={{ fontSize: 11, marginTop: 4, opacity: 0.9 }}>{r.desc}</div>
+          </button>
+        ))}
+      </div>
+
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: 8,
+          marginBottom: 8,
+        }}
+      >
+        <label style={{ fontSize: 12 }}>
+          <span className="muted">入住</span>
+          <input
+            className="input"
+            style={{ width: '100%', marginTop: 4 }}
+            type="date"
+            value={checkIn}
+            onChange={(e) => setCheckIn(e.target.value)}
+          />
+        </label>
+        <label style={{ fontSize: 12 }}>
+          <span className="muted">退房</span>
+          <input
+            className="input"
+            style={{ width: '100%', marginTop: 4 }}
+            type="date"
+            value={checkOut}
+            onChange={(e) => setCheckOut(e.target.value)}
+          />
+        </label>
+      </div>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
+        <input
+          className="input"
+          style={{ flex: '1 1 160px' }}
+          placeholder={`入住人（默认 ${user?.display_name || '散客'}）`}
+          value={guestName}
+          onChange={(e) => setGuestName(e.target.value)}
         />
-      )}
+        <button type="button" className="btn" style={{ background: accent }} disabled={busy} onClick={() => void submit()}>
+          确认预订 · {roomType}
+        </button>
+      </div>
       {msg && <p className="status-msg">{msg}</p>}
 
-      <h4 style={{ margin: '16px 0 8px', fontSize: 14 }}>预订列表</h4>
+      <h4 style={{ margin: '16px 0 8px', fontSize: 14 }}>待入住</h4>
       {loading && <p className="muted">加载中…</p>}
-      {!loading && items.length === 0 && <p className="muted">暂无记录</p>}
+      {!loading && active.length === 0 && <p className="muted">暂无预订</p>}
       <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 8 }}>
-        {items.map((t) => (
+        {active.map((t) => (
           <li key={t.id} className="list-card">
             <div className="list-card-head">
-              <strong>{t.record_no} · {t.guest_name}</strong>
-              <span className="tag">{STATUS_LABEL[t.status] || t.status}</span>
+              <strong>
+                {t.room_type} · {t.guest_name}
+              </strong>
+              <span className="tag">{STATUS_LABEL[t.status]}</span>
             </div>
-            <p className="muted" style={{ margin: '6px 0 0' }}>
-              {t.room_type} · {t.check_in || '—'} → {t.check_out || '—'}
+            <p style={{ margin: '8px 0 0', fontSize: 13 }}>
+              {t.check_in} → {t.check_out}
             </p>
-            {t.note && <p style={{ margin: '4px 0 0', fontSize: 13 }}>{t.note}</p>}
-            {t.status === 'booked' && (
-              <div className="row-actions" style={{ marginTop: 8 }}>
-                <button type="button" className="btn btn-ghost" style={{ fontSize: 12 }} onClick={() => void checkIn(t.id)}>入住</button>
-                <button type="button" className="btn btn-ghost" style={{ fontSize: 12 }} onClick={() => void cancel(t.id)}>取消</button>
-              </div>
-            )}
+            <div className="row-actions" style={{ marginTop: 10 }}>
+              <button type="button" className="btn" style={{ background: accent }} onClick={() => void checkInAction(t.id)}>
+                办理入住
+              </button>
+              <button type="button" className="btn btn-ghost" onClick={() => void cancel(t.id)}>
+                取消
+              </button>
+            </div>
           </li>
         ))}
       </ul>
+
+      {others.length > 0 && (
+        <>
+          <h4 style={{ margin: '16px 0 8px', fontSize: 14 }}>历史</h4>
+          <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 8 }}>
+            {others.map((t) => (
+              <li key={t.id} className="list-card" style={{ opacity: 0.85 }}>
+                <div className="list-card-head">
+                  <strong>
+                    {t.room_type} · {t.guest_name}
+                  </strong>
+                  <span className="tag">{STATUS_LABEL[t.status] || t.status}</span>
+                </div>
+                <p className="muted" style={{ margin: '6px 0 0', fontSize: 12 }}>
+                  {t.check_in} → {t.check_out}
+                </p>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
     </div>
   )
 }

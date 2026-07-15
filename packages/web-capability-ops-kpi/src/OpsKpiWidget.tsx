@@ -11,45 +11,40 @@ interface RecordItem {
   value: string
   note: string
   status: string
-  reporter_name?: string
 }
 
-const STATUS_LABEL: Record<string, string> = {
-  open: '待处理',
-  published: 'published',
-  archived: 'archived',
+interface NLQueryResult {
+  question: string
+  answer?: string
 }
+
+const SUGGESTIONS = ['本月审批通过率？', '本周新增报销多少？', '哪个模块用得最多？']
 
 export function OpsKpiWidget(_props: { node: SchemaNode }) {
-  const { token, primaryColor, appId, user, entrySource } = useRuntime()
+  const { token, primaryColor, appId } = useRuntime()
   const [items, setItems] = useState<RecordItem[]>([])
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
+  const [nlBusy, setNlBusy] = useState(false)
+  const [question, setQuestion] = useState('')
+  const [nlResult, setNlResult] = useState<NLQueryResult | null>(null)
+  const [showManual, setShowManual] = useState(false)
   const [resetKey, setResetKey] = useState(0)
-  const [values, setValues] = useState<Record<string, string>>({ category: 'kpi' })
+  const [values, setValues] = useState<Record<string, string>>({})
   const [msg, setMsg] = useState('')
-  const [showForm, setShowForm] = useState(entrySource !== 'im')
 
-  const accent = primaryColor || '#f59e0b'
-  const openCount = items.filter((t) => t.status === 'open').length
+  const accent = primaryColor || '#0f766e'
 
-  const steps: GtgtStep[] = useMemo(
+  const cards = useMemo(() => {
+    const published = items.filter((t) => t.status === 'published' || t.status === 'open')
+    return published.slice(0, 4)
+  }, [items])
+
+  const manualSteps: GtgtStep[] = useMemo(
     () => [
-      {
-        key: 'category',
-        label: '指标类型',
-        render: ({ value, setValue, accent: a }) => (
-          <div className="row-actions">
-            <button type="button" className={(value || 'kpi') === 'kpi' ? 'btn' : 'btn btn-ghost'} style={(value || 'kpi') === 'kpi' ? { background: a } : undefined} onClick={() => setValue('kpi')}>KPI</button>
-            <button type="button" className={(value || 'kpi') === 'query' ? 'btn' : 'btn btn-ghost'} style={(value || 'kpi') === 'query' ? { background: a } : undefined} onClick={() => setValue('query')}>查数</button>
-            <button type="button" className={(value || 'kpi') === 'alert' ? 'btn' : 'btn btn-ghost'} style={(value || 'kpi') === 'alert' ? { background: a } : undefined} onClick={() => setValue('alert')}>预警</button>
-          </div>
-        ),
-      },
-      { key: 'title', label: '指标/查询', placeholder: '指标/查询' },
-      { key: 'period', label: '周期', placeholder: '周期', optional: true },
-      { key: 'value', label: '数值', placeholder: '数值', optional: true },
-      { key: 'note', label: '备注', placeholder: '备注', optional: true },
+      { key: 'title', label: '指标名', placeholder: '如：月营收' },
+      { key: 'value', label: '数值', placeholder: '128.5万' },
+      { key: 'period', label: '周期（可空）', placeholder: '2026-07', optional: true },
     ],
     [],
   )
@@ -77,26 +72,69 @@ export function OpsKpiWidget(_props: { node: SchemaNode }) {
     void load()
   }, [load])
 
-  const submit = async () => {
-    if (!token || !values.title?.trim()) return
-    setBusy(true)
+  const runNl = async (q: string) => {
+    const text = q.trim()
+    if (!token || !text) return
+    setNlBusy(true)
     setMsg('')
-    const category = values.category || 'kpi'
+    setQuestion(text)
+    try {
+      const data = await apiFetch<NLQueryResult>('/api/v1/reports/nl-query', token, {
+        method: 'POST',
+        body: JSON.stringify({ question: text }),
+      })
+      setNlResult(data)
+    } catch (e) {
+      setMsg(`查数失败：${String(e)}`)
+      setNlResult(null)
+    } finally {
+      setNlBusy(false)
+    }
+  }
+
+  const saveAsKpi = async () => {
+    if (!token || !nlResult?.answer) return
+    setBusy(true)
     try {
       await apiFetch('/api/v1/ops-kpi/records', token, {
         method: 'POST',
         body: JSON.stringify({
-          category,
-          title: (values.title || '').trim(),
-          period: (values.period || '').trim(),
-          value: (values.value || '').trim(),
-          note: (values.note || '').trim(),
+          category: 'query',
+          title: (nlResult.question || question).slice(0, 80),
+          period: '即时',
+          value: (nlResult.answer || '').slice(0, 120),
+          note: '由自然语言查数存入',
           app_public_id: appId || '',
         }),
       })
-      setValues({ category: 'kpi' })
+      setMsg('已存为指标')
+      await load()
+    } catch (e) {
+      setMsg(`保存失败：${String(e)}`)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const submitManual = async () => {
+    if (!token || !values.title?.trim() || !values.value?.trim()) return
+    setBusy(true)
+    try {
+      await apiFetch('/api/v1/ops-kpi/records', token, {
+        method: 'POST',
+        body: JSON.stringify({
+          category: 'kpi',
+          title: values.title.trim(),
+          period: (values.period || '').trim(),
+          value: values.value.trim(),
+          note: '',
+          app_public_id: appId || '',
+        }),
+      })
+      setValues({})
       setResetKey((k) => k + 1)
-      setMsg('已提交')
+      setShowManual(false)
+      setMsg('已补录指标')
       await load()
     } catch (e) {
       setMsg(`提交失败：${String(e)}`)
@@ -105,57 +143,100 @@ export function OpsKpiWidget(_props: { node: SchemaNode }) {
     }
   }
 
-  const advance = async (id: string, action: string) => {
-    if (!token) return
-    try {
-      await apiFetch(`/api/v1/ops-kpi/records/${id}/${action}`, token, { method: 'POST', body: '{}' })
-      await load()
-    } catch (e) {
-      setMsg(`更新失败：${String(e)}`)
-    }
-  }
-
   return (
     <div>
-      {!showForm ? (
-        <button type="button" className="btn btn-ghost" onClick={() => setShowForm(true)}>新建经营看板</button>
+      <h4 style={{ margin: '0 0 8px', fontSize: 14 }}>经营指标</h4>
+      {loading && <p className="muted">加载中…</p>}
+      {!loading && cards.length === 0 && (
+        <p className="muted">暂无指标，用下面自然语言查数，或补录一条</p>
+      )}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
+          gap: 10,
+          marginBottom: 16,
+        }}
+      >
+        {cards.map((c) => (
+          <div key={c.id} className="list-card" style={{ padding: 12 }}>
+            <div className="muted" style={{ fontSize: 12 }}>
+              {c.period || '周期未填'}
+            </div>
+            <div style={{ fontWeight: 600, marginTop: 4, fontSize: 13 }}>{c.title}</div>
+            <div style={{ fontSize: 20, fontWeight: 700, marginTop: 8, color: accent }}>{c.value || '—'}</div>
+          </div>
+        ))}
+      </div>
+
+      <h4 style={{ margin: '0 0 8px', fontSize: 14 }}>一句查数</h4>
+      <div className="row-actions" style={{ marginBottom: 8, flexWrap: 'wrap' }}>
+        {SUGGESTIONS.map((s) => (
+          <button key={s} type="button" className="btn btn-ghost" style={{ fontSize: 12 }} onClick={() => void runNl(s)}>
+            {s}
+          </button>
+        ))}
+      </div>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
+        <input
+          className="input"
+          style={{ flex: '1 1 200px' }}
+          placeholder="例如：本月报销合计多少？"
+          value={question}
+          onChange={(e) => setQuestion(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') void runNl(question)
+          }}
+        />
+        <button
+          type="button"
+          className="btn"
+          style={{ background: accent }}
+          disabled={nlBusy || !question.trim()}
+          onClick={() => void runNl(question)}
+        >
+          {nlBusy ? '查询中…' : '查询'}
+        </button>
+      </div>
+      {nlResult?.answer && (
+        <div className="list-card" style={{ marginBottom: 12 }}>
+          <div className="list-card-head">
+            <strong>{nlResult.question}</strong>
+            <span className="tag">查数结果</span>
+          </div>
+          <p style={{ margin: '8px 0 0', fontSize: 14, lineHeight: 1.5 }}>{nlResult.answer}</p>
+          <button
+            type="button"
+            className="btn"
+            style={{ background: accent, marginTop: 10 }}
+            disabled={busy}
+            onClick={() => void saveAsKpi()}
+          >
+            存为指标
+          </button>
+        </div>
+      )}
+
+      {!showManual ? (
+        <button type="button" className="btn btn-ghost" onClick={() => setShowManual(true)}>
+          + 手工补录指标
+        </button>
       ) : (
         <GtgtStepComposer
-          title={entrySource === 'im' ? '经营看板协作' : '经营看板'}
-          meta={entrySource === 'im' ? '群消息入口' : '应用工作台'}
+          title="补录指标"
+          meta="次要入口"
           accent={accent}
-          flowHint={`登记 → 状态跟进闭环${user?.display_name ? ` · ${user.display_name}` : ''}${openCount ? ` · 待处理 ${openCount}` : ''}`}
-          steps={steps}
+          flowHint="指标名 → 数值 → 周期"
+          steps={manualSteps}
           values={values}
           onChange={(k, v) => setValues((p) => ({ ...p, [k]: v }))}
-          onComplete={submit}
+          onComplete={submitManual}
           busy={busy}
           resetKey={resetKey}
-          submitLabel="提交"
+          submitLabel="保存指标"
         />
       )}
       {msg && <p className="status-msg">{msg}</p>}
-
-      <h4 style={{ margin: '16px 0 8px', fontSize: 14 }}>经营看板列表</h4>
-      {loading && <p className="muted">加载中…</p>}
-      {!loading && items.length === 0 && <p className="muted">暂无记录</p>}
-      <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 8 }}>
-        {items.map((t) => (
-          <li key={t.id} className="list-card">
-            <div className="list-card-head">
-              <strong>{t.record_no} · {(t as any).title || t.category}</strong>
-              <span className="tag">{STATUS_LABEL[t.status] || t.status}</span>
-            </div>
-            <p className="muted" style={{ margin: '6px 0 0' }}>{t.category}{t.note ? ` · ${t.note}` : ''}</p>
-            {t.status !== 'published' && t.status !== 'done' && t.status !== 'closed' && t.status !== 'cancelled' && (
-              <button type="button" className="btn btn-ghost" style={{ marginTop: 8, fontSize: 12, marginRight: 8 }} onClick={() => void advance(t.id, 'published')}>已发布</button>
-            )}
-            {t.status !== 'archived' && t.status !== 'done' && t.status !== 'closed' && t.status !== 'cancelled' && (
-              <button type="button" className="btn btn-ghost" style={{ marginTop: 8, fontSize: 12, marginRight: 8 }} onClick={() => void advance(t.id, 'archived')}>归档</button>
-            )}
-          </li>
-        ))}
-      </ul>
     </div>
   )
 }

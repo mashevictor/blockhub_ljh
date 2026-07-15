@@ -14,11 +14,17 @@ interface RecordItem {
   reporter_name?: string
 }
 
+const CAT_LABEL: Record<string, string> = {
+  annual: '年假',
+  sick: '病假',
+  personal: '事假',
+}
+
 const STATUS_LABEL: Record<string, string> = {
-  open: '待处理',
-  approved: 'approved',
-  rejected: 'rejected',
-  done: '已完成',
+  open: '待审批',
+  approved: '已通过',
+  rejected: '已驳回',
+  done: '已归档',
 }
 
 export function LeaveRequestWidget(_props: { node: SchemaNode }) {
@@ -29,28 +35,40 @@ export function LeaveRequestWidget(_props: { node: SchemaNode }) {
   const [resetKey, setResetKey] = useState(0)
   const [values, setValues] = useState<Record<string, string>>({ category: 'annual' })
   const [msg, setMsg] = useState('')
-  const [showForm, setShowForm] = useState(entrySource !== 'im')
+  const [showDone, setShowDone] = useState(false)
 
   const accent = primaryColor || '#8b5cf6'
-  const openCount = items.filter((t) => t.status === 'open').length
+  const pending = items.filter((t) => t.status === 'open')
+  const done = items.filter((t) => t.status !== 'open')
 
   const steps: GtgtStep[] = useMemo(
     () => [
       {
         key: 'category',
-        label: '请假类型',
+        label: '假种',
         render: ({ value, setValue, accent: a }) => (
           <div className="row-actions">
-            <button type="button" className={(value || 'annual') === 'annual' ? 'btn' : 'btn btn-ghost'} style={(value || 'annual') === 'annual' ? { background: a } : undefined} onClick={() => setValue('annual')}>年假</button>
-            <button type="button" className={(value || 'annual') === 'sick' ? 'btn' : 'btn btn-ghost'} style={(value || 'annual') === 'sick' ? { background: a } : undefined} onClick={() => setValue('sick')}>病假</button>
-            <button type="button" className={(value || 'annual') === 'personal' ? 'btn' : 'btn btn-ghost'} style={(value || 'annual') === 'personal' ? { background: a } : undefined} onClick={() => setValue('personal')}>事假</button>
+            {([
+              ['annual', '年假'],
+              ['sick', '病假'],
+              ['personal', '事假'],
+            ] as const).map(([k, lab]) => (
+              <button
+                key={k}
+                type="button"
+                className={(value || 'annual') === k ? 'btn' : 'btn btn-ghost'}
+                style={(value || 'annual') === k ? { background: a } : undefined}
+                onClick={() => setValue(k)}
+              >
+                {lab}
+              </button>
+            ))}
           </div>
         ),
       },
-      { key: 'applicant', label: '申请人', placeholder: '申请人', optional: true },
-      { key: 'start_at', label: '开始日期', placeholder: '开始日期' },
-      { key: 'end_at', label: '结束日期', placeholder: '结束日期' },
-      { key: 'note', label: '事由', placeholder: '事由', optional: true },
+      { key: 'start_at', label: '开始日期', placeholder: '2026-07-20' },
+      { key: 'end_at', label: '结束日期', placeholder: '2026-07-22' },
+      { key: 'note', label: '事由（可空）', placeholder: '探亲 / 看病…', optional: true },
     ],
     [],
   )
@@ -82,22 +100,21 @@ export function LeaveRequestWidget(_props: { node: SchemaNode }) {
     if (!token || !values.start_at?.trim() || !values.end_at?.trim()) return
     setBusy(true)
     setMsg('')
-    const category = values.category || 'annual'
     try {
       await apiFetch('/api/v1/leave-request/records', token, {
         method: 'POST',
         body: JSON.stringify({
-          category,
-          applicant: (values.applicant || '').trim(),
-          start_at: (values.start_at || '').trim(),
-          end_at: (values.end_at || '').trim(),
+          category: values.category || 'annual',
+          applicant: user?.display_name || '',
+          start_at: values.start_at.trim(),
+          end_at: values.end_at.trim(),
           note: (values.note || '').trim(),
           app_public_id: appId || '',
         }),
       })
       setValues({ category: 'annual' })
       setResetKey((k) => k + 1)
-      setMsg('已提交')
+      setMsg('已提交审批')
       await load()
     } catch (e) {
       setMsg(`提交失败：${String(e)}`)
@@ -118,48 +135,93 @@ export function LeaveRequestWidget(_props: { node: SchemaNode }) {
 
   return (
     <div>
-      {!showForm ? (
-        <button type="button" className="btn btn-ghost" onClick={() => setShowForm(true)}>新建请假审批</button>
-      ) : (
-        <GtgtStepComposer
-          title={entrySource === 'im' ? '请假审批协作' : '请假审批'}
-          meta={entrySource === 'im' ? '群消息入口' : '应用工作台'}
-          accent={accent}
-          flowHint={`登记 → 状态跟进闭环${user?.display_name ? ` · ${user.display_name}` : ''}${openCount ? ` · 待处理 ${openCount}` : ''}`}
-          steps={steps}
-          values={values}
-          onChange={(k, v) => setValues((p) => ({ ...p, [k]: v }))}
-          onComplete={submit}
-          busy={busy}
-          resetKey={resetKey}
-          submitLabel="提交"
-        />
-      )}
-      {msg && <p className="status-msg">{msg}</p>}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'minmax(280px, 1fr) minmax(280px, 1fr)',
+          gap: 16,
+          alignItems: 'start',
+        }}
+      >
+        <div>
+          <GtgtStepComposer
+            title="我要请假"
+            meta={entrySource === 'im' ? '群消息入口' : user?.display_name || '申请人'}
+            accent={accent}
+            flowHint="选假种 → 填起止日期 → 交主管审"
+            steps={steps}
+            values={values}
+            onChange={(k, v) => setValues((p) => ({ ...p, [k]: v }))}
+            onComplete={submit}
+            busy={busy}
+            resetKey={resetKey}
+            submitLabel="提交请假"
+          />
+        </div>
 
-      <h4 style={{ margin: '16px 0 8px', fontSize: 14 }}>请假审批列表</h4>
-      {loading && <p className="muted">加载中…</p>}
-      {!loading && items.length === 0 && <p className="muted">暂无记录</p>}
-      <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 8 }}>
-        {items.map((t) => (
-          <li key={t.id} className="list-card">
-            <div className="list-card-head">
-              <strong>{t.record_no} · {(t as any).applicant || t.category}</strong>
-              <span className="tag">{STATUS_LABEL[t.status] || t.status}</span>
+        <div>
+          <h4 style={{ margin: '0 0 8px', fontSize: 14 }}>
+            待我审 {pending.length ? `· ${pending.length}` : ''}
+          </h4>
+          {loading && <p className="muted">加载中…</p>}
+          {!loading && pending.length === 0 && <p className="muted">暂无待审批请假</p>}
+          <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 10 }}>
+            {pending.map((t) => (
+              <li key={t.id} className="list-card">
+                <div className="list-card-head">
+                  <strong>
+                    {t.applicant || t.reporter_name || '同事'} · {CAT_LABEL[t.category] || t.category}
+                  </strong>
+                  <span className="tag">{STATUS_LABEL[t.status]}</span>
+                </div>
+                <p style={{ margin: '8px 0 0', fontSize: 13 }}>
+                  {t.start_at} → {t.end_at}
+                </p>
+                {t.note ? <p className="muted" style={{ margin: '4px 0 0' }}>{t.note}</p> : null}
+                <div className="row-actions" style={{ marginTop: 12 }}>
+                  <button type="button" className="btn" style={{ background: accent }} onClick={() => void advance(t.id, 'approved')}>
+                    通过
+                  </button>
+                  <button type="button" className="btn btn-ghost" onClick={() => void advance(t.id, 'rejected')}>
+                    驳回
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+
+          {done.length > 0 && (
+            <div style={{ marginTop: 16 }}>
+              <button type="button" className="btn btn-ghost" style={{ fontSize: 12 }} onClick={() => setShowDone((v) => !v)}>
+                {showDone ? '收起已处理' : `已处理 ${done.length}`}
+              </button>
+              {showDone && (
+                <ul style={{ listStyle: 'none', margin: '8px 0 0', padding: 0, display: 'grid', gap: 8 }}>
+                  {done.map((t) => (
+                    <li key={t.id} className="list-card" style={{ opacity: 0.85 }}>
+                      <div className="list-card-head">
+                        <strong>
+                          {t.applicant || '同事'} · {CAT_LABEL[t.category] || t.category}
+                        </strong>
+                        <span className="tag">{STATUS_LABEL[t.status] || t.status}</span>
+                      </div>
+                      <p className="muted" style={{ margin: '6px 0 0', fontSize: 12 }}>
+                        {t.start_at} → {t.end_at}
+                      </p>
+                      {t.status === 'approved' && (
+                        <button type="button" className="btn btn-ghost" style={{ marginTop: 8, fontSize: 12 }} onClick={() => void advance(t.id, 'done')}>
+                          归档
+                        </button>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
-            <p className="muted" style={{ margin: '6px 0 0' }}>{t.category}{t.note ? ` · ${t.note}` : ''}</p>
-            {t.status !== 'approved' && t.status !== 'done' && t.status !== 'closed' && t.status !== 'cancelled' && (
-              <button type="button" className="btn btn-ghost" style={{ marginTop: 8, fontSize: 12, marginRight: 8 }} onClick={() => void advance(t.id, 'approved')}>通过</button>
-            )}
-            {t.status !== 'rejected' && t.status !== 'done' && t.status !== 'closed' && t.status !== 'cancelled' && (
-              <button type="button" className="btn btn-ghost" style={{ marginTop: 8, fontSize: 12, marginRight: 8 }} onClick={() => void advance(t.id, 'rejected')}>驳回</button>
-            )}
-            {t.status !== 'done' && t.status !== 'done' && t.status !== 'closed' && t.status !== 'cancelled' && (
-              <button type="button" className="btn btn-ghost" style={{ marginTop: 8, fontSize: 12, marginRight: 8 }} onClick={() => void advance(t.id, 'done')}>归档</button>
-            )}
-          </li>
-        ))}
-      </ul>
+          )}
+        </div>
+      </div>
+      {msg && <p className="status-msg">{msg}</p>}
     </div>
   )
 }

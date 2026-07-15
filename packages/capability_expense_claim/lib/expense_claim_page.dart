@@ -1,6 +1,14 @@
 import 'package:blockhub_flutter_core/blockhub_flutter_core.dart';
 import 'package:flutter/material.dart';
 
+const _catLabel = {'travel': '差旅', 'meal': '餐饮', 'office': '办公'};
+const _statusLabel = {
+  'open': '待审核',
+  'reviewing': '审核中',
+  'paid': '已付款',
+  'rejected': '已驳回',
+};
+
 class ExpenseClaimPage extends StatefulWidget {
   const ExpenseClaimPage({super.key, required this.branding});
   final AppBranding branding;
@@ -12,11 +20,22 @@ class _ExpenseClaimPageState extends State<ExpenseClaimPage> {
   List<dynamic> _items = [];
   bool _loading = true;
   bool _busy = false;
+  bool _showDone = false;
   int _resetKey = 0;
   final Map<String, String> _values = {'category': 'travel'};
 
   String get _base => '${widget.branding.apiBaseUrl}/expense-claim';
   String get _appId => widget.branding.appPublicId.trim();
+
+  List<Map<String, dynamic>> get _pending => _items
+      .map((e) => Map<String, dynamic>.from(e as Map))
+      .where((t) => {'open', 'reviewing'}.contains('${t['status']}'))
+      .toList();
+
+  List<Map<String, dynamic>> get _done => _items
+      .map((e) => Map<String, dynamic>.from(e as Map))
+      .where((t) => {'paid', 'rejected'}.contains('${t['status']}'))
+      .toList();
 
   @override
   void initState() {
@@ -44,11 +63,11 @@ class _ExpenseClaimPageState extends State<ExpenseClaimPage> {
     try {
       final dio = getRuntimeAuthedDio();
       await dio.post('$_base/records', data: {
-        'category': (_values['category'] ?? '').trim(),
+        'category': _values['category'] ?? 'travel',
         'title': (_values['title'] ?? '').trim(),
         'amount': (_values['amount'] ?? '').trim(),
         'invoice_no': (_values['invoice_no'] ?? '').trim(),
-        'note': (_values['note'] ?? '').trim(),
+        'note': '',
         'app_public_id': _appId,
       });
       _values
@@ -74,8 +93,8 @@ class _ExpenseClaimPageState extends State<ExpenseClaimPage> {
       padding: const EdgeInsets.all(16),
       children: [
         GtgtStepComposer(
-          title: '报销记账',
-          flowHint: '登记 → 状态闭环',
+          title: '我要报销',
+          flowHint: '类型 → 内容金额 → 交财务审',
           accent: color,
           steps: const [
             GtgtStep(
@@ -87,42 +106,72 @@ class _ExpenseClaimPageState extends State<ExpenseClaimPage> {
                 (value: 'office', label: '办公'),
               ],
             ),
-            GtgtStep(key: 'title', label: '报销标题', placeholder: '报销标题'),
-            GtgtStep(key: 'amount', label: '金额', placeholder: '金额'),
-            GtgtStep(key: 'invoice_no', label: '发票号', placeholder: '发票号', optional: true),
-            GtgtStep(key: 'note', label: '备注', placeholder: '备注', optional: true, multiline: true),
+            GtgtStep(key: 'title', label: '报销内容', placeholder: '如：上海出差高铁'),
+            GtgtStep(key: 'amount', label: '金额（元）', placeholder: '328.00'),
+            GtgtStep(key: 'invoice_no', label: '发票号（可空）', optional: true),
           ],
           values: _values,
           onChanged: (k, v) => setState(() => _values[k] = v),
           onComplete: _submit,
           busy: _busy,
           resetKey: _resetKey,
-          submitLabel: '提交',
+          submitLabel: '提交报销',
         ),
         const SizedBox(height: 16),
+        Text('待我审${_pending.isEmpty ? '' : ' · ${_pending.length}'}',
+            style: Theme.of(context).textTheme.titleSmall),
+        const SizedBox(height: 8),
         if (_loading)
           const Center(child: CircularProgressIndicator())
+        else if (_pending.isEmpty)
+          const Text('暂无待审报销')
         else
-          ..._items.map((raw) {
-            final t = Map<String, dynamic>.from(raw as Map);
+          ..._pending.map((t) {
             final id = '${t['id']}';
+            final status = '${t['status']}';
             return Card(
-              child: ListTile(
-                title: Text('${t['record_no']} · ${t['title'] ?? t['category']}'),
-                subtitle: Text('${t['category']} · ${t['status']}'),
-                trailing: Wrap(
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (t['status'] != 'reviewing' && t['status'] != 'done' && t['status'] != 'closed' && t['status'] != 'cancelled')
-                      TextButton(onPressed: () => _advance(id, 'reviewing'), child: const Text('审核中')),
-                    if (t['status'] != 'paid' && t['status'] != 'done' && t['status'] != 'closed' && t['status'] != 'cancelled')
-                      TextButton(onPressed: () => _advance(id, 'paid'), child: const Text('已付款')),
-                    if (t['status'] != 'rejected' && t['status'] != 'done' && t['status'] != 'closed' && t['status'] != 'cancelled')
-                      TextButton(onPressed: () => _advance(id, 'rejected'), child: const Text('驳回')),
+                    Text('${t['title']}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                    Text(
+                      '¥${t['amount']} · ${_catLabel['${t['category']}'] ?? t['category']} · ${_statusLabel[status] ?? status}',
+                    ),
+                    if ('${t['invoice_no'] ?? ''}'.isNotEmpty) Text('发票 ${t['invoice_no']}'),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      children: [
+                        if (status == 'open')
+                          OutlinedButton(onPressed: () => _advance(id, 'reviewing'), child: const Text('收下审核')),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(backgroundColor: color),
+                          onPressed: () => _advance(id, 'paid'),
+                          child: const Text('付款通过'),
+                        ),
+                        OutlinedButton(onPressed: () => _advance(id, 'rejected'), child: const Text('驳回')),
+                      ],
+                    ),
                   ],
                 ),
               ),
             );
           }),
+        if (_done.isNotEmpty) ...[
+          TextButton(
+            onPressed: () => setState(() => _showDone = !_showDone),
+            child: Text(_showDone ? '收起已处理' : '已处理 ${_done.length}'),
+          ),
+          if (_showDone)
+            ..._done.map((t) => Card(
+                  child: ListTile(
+                    title: Text('${t['title']}'),
+                    subtitle: Text('¥${t['amount']} · ${_statusLabel['${t['status']}'] ?? t['status']}'),
+                  ),
+                )),
+        ],
       ],
     );
   }

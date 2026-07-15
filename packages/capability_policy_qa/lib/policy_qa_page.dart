@@ -10,10 +10,12 @@ class PolicyQaPage extends StatefulWidget {
 
 class _PolicyQaPageState extends State<PolicyQaPage> {
   List<dynamic> _items = [];
+  Map<String, dynamic>? _latest;
   bool _loading = true;
   bool _busy = false;
   int _resetKey = 0;
-  final Map<String, String> _values = {'category': 'ask'};
+  String _msg = '';
+  final Map<String, String> _values = {};
 
   String get _base => '${widget.branding.apiBaseUrl}/policy-qa';
   String get _appId => widget.branding.appPublicId.trim();
@@ -38,33 +40,29 @@ class _PolicyQaPageState extends State<PolicyQaPage> {
     }
   }
 
-  Future<void> _submit() async {
-    if ((_values['title'] ?? '').trim().isEmpty) return;
-    setState(() => _busy = true);
+  Future<void> _ask() async {
+    final query = (_values['query'] ?? '').trim();
+    if (query.isEmpty) return;
+    setState(() {
+      _busy = true;
+      _msg = '';
+      _latest = null;
+    });
     try {
       final dio = getRuntimeAuthedDio();
-      await dio.post('$_base/records', data: {
-        'category': (_values['category'] ?? '').trim(),
-        'title': (_values['title'] ?? '').trim(),
-        'dept': (_values['dept'] ?? '').trim(),
-        'answer': (_values['answer'] ?? '').trim(),
-        'note': (_values['note'] ?? '').trim(),
+      final resp = await dio.post<Map<String, dynamic>>('$_base/answer', data: {
+        'query': query,
         'app_public_id': _appId,
       });
-      _values
-        ..clear()
-        ..['category'] = 'ask';
+      _latest = resp.data?['record'] as Map<String, dynamic>?;
+      _values.clear();
       _resetKey++;
       await _load();
+    } catch (e) {
+      _msg = '$e';
     } finally {
       if (mounted) setState(() => _busy = false);
     }
-  }
-
-  Future<void> _advance(String id, String action) async {
-    final dio = getRuntimeAuthedDio();
-    await dio.post('$_base/records/$id/$action');
-    await _load();
   }
 
   @override
@@ -75,49 +73,73 @@ class _PolicyQaPageState extends State<PolicyQaPage> {
       children: [
         GtgtStepComposer(
           title: '制度问答',
-          flowHint: '登记 → 状态闭环',
+          flowHint: '问一句 → 自动答复 → 可再问',
           accent: color,
           steps: const [
             GtgtStep(
-              key: 'category',
-              label: '类型',
-              choices: [
-                (value: 'ask', label: '提问'),
-                (value: 'policy', label: '制度'),
-                (value: 'benefit', label: '福利'),
-              ],
+              key: 'query',
+              label: '你想查哪条制度 / 福利？',
+              placeholder: '例如：年假怎么申请？',
             ),
-            GtgtStep(key: 'title', label: '问题/制度名', placeholder: '问题/制度名'),
-            GtgtStep(key: 'dept', label: '适用部门', placeholder: '适用部门', optional: true),
-            GtgtStep(key: 'answer', label: '答复摘要', placeholder: '答复摘要', optional: true),
-            GtgtStep(key: 'note', label: '备注', placeholder: '备注', optional: true, multiline: true),
           ],
           values: _values,
           onChanged: (k, v) => setState(() => _values[k] = v),
-          onComplete: _submit,
+          onComplete: _ask,
           busy: _busy,
           resetKey: _resetKey,
-          submitLabel: '提交',
+          submitLabel: '帮我查',
         ),
-        const SizedBox(height: 16),
+        if (_msg.isNotEmpty) Text(_msg, style: const TextStyle(color: Colors.red)),
+        if (_latest != null) ...[
+          const SizedBox(height: 12),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('${_latest!['title']}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                  if ('${_latest!['dept'] ?? ''}'.isNotEmpty) Text('建议咨询 · ${_latest!['dept']}'),
+                  const SizedBox(height: 8),
+                  Text('${_latest!['answer'] ?? ''}'),
+                  if ('${_latest!['note'] ?? ''}'.isNotEmpty)
+                    Text('${_latest!['note']}', style: TextStyle(color: Colors.grey.shade700, fontSize: 12)),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(backgroundColor: color),
+                        onPressed: () => setState(() => _latest = null),
+                        child: const Text('有用'),
+                      ),
+                      const SizedBox(width: 8),
+                      OutlinedButton(
+                        onPressed: () => setState(() {
+                          _latest = null;
+                          _resetKey++;
+                        }),
+                        child: const Text('再问'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+        const SizedBox(height: 12),
+        Text('历史问答', style: Theme.of(context).textTheme.titleSmall),
         if (_loading)
           const Center(child: CircularProgressIndicator())
+        else if (_items.isEmpty)
+          const Text('还没有问答记录')
         else
           ..._items.map((raw) {
             final t = Map<String, dynamic>.from(raw as Map);
-            final id = '${t['id']}';
             return Card(
               child: ListTile(
-                title: Text('${t['record_no']} · ${t['title'] ?? t['category']}'),
-                subtitle: Text('${t['category']} · ${t['status']}'),
-                trailing: Wrap(
-                  children: [
-                    if (t['status'] != 'answered' && t['status'] != 'done' && t['status'] != 'closed' && t['status'] != 'cancelled')
-                      TextButton(onPressed: () => _advance(id, 'answered'), child: const Text('已答复')),
-                    if (t['status'] != 'archived' && t['status'] != 'done' && t['status'] != 'closed' && t['status'] != 'cancelled')
-                      TextButton(onPressed: () => _advance(id, 'archived'), child: const Text('归档')),
-                  ],
-                ),
+                title: Text('${t['title']}'),
+                subtitle: Text('${t['answer'] ?? t['note'] ?? ''}'),
               ),
             );
           }),

@@ -23,6 +23,11 @@ class CreateBody(BaseModel):
     app_public_id: str = Field(default="", max_length=64)
 
 
+class AnswerBody(BaseModel):
+    query: str = Field(min_length=1, max_length=200)
+    app_public_id: str = Field(default="", max_length=64)
+
+
 @router.get("/records")
 def list_api(
     app_id: str | None = Query(None),
@@ -32,6 +37,21 @@ def list_api(
 ) -> dict:
     items = store.list_records(db, user.tenant_id, app_public_id=app_id or None, status=status)
     return {"total": len(items), "items": items}
+
+
+@router.post("/answer")
+def answer_api(
+    body: AnswerBody,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> dict:
+    q = body.query.strip()
+    if not q:
+        raise HTTPException(status_code=400, detail="请先输入制度或福利问题")
+    result = store.answer_question(db, user, query=q, app_public_id=body.app_public_id)
+    if not result.get("ok"):
+        raise HTTPException(status_code=503, detail=result.get("error") or "无法答复")
+    return {"success": True, "record": result.get("record")}
 
 
 @router.post("/records")
