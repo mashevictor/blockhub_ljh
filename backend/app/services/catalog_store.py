@@ -440,6 +440,90 @@ def list_hero_presets(db: Session) -> list[dict[str, Any]]:
     ]
 
 
+def list_hero_presets_static() -> list[dict[str, Any]]:
+    """无 PostgreSQL 时从内置 HERO_PRESETS 返回，保证 Home 首页可开。"""
+    from app.data.hero_presets import HERO_PRESETS, preset_role
+
+    return [
+        {
+            "id": p["id"],
+            "label": p["label"],
+            "hint": p["hint"],
+            "role": p.get("role") or preset_role(p),
+            "weight": p.get("weight", 3),
+            "color": p["color"],
+            "prompt": p["prompt"],
+            "picks": p.get("picks") or [],
+            "flowLines": p.get("flow_lines") or [],
+        }
+        for p in HERO_PRESETS
+    ]
+
+
+def list_office_scenarios_static(
+    *,
+    category: str | None = None,
+    q: str | None = None,
+    lite: bool = False,
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    from app.data.seed import OFFICE_SCENARIOS
+
+    items: list[dict[str, Any]] = []
+    for row in OFFICE_SCENARIOS:
+        if category and row.get("category") != category:
+            continue
+        name = row.get("name") or ""
+        if q and q.lower() not in name.lower():
+            continue
+        base = {
+            "id": row["id"],
+            "name": name,
+            "category": row.get("category", ""),
+            "category_icon": row.get("category_icon", ""),
+            "agent": row.get("agent", ""),
+            "type": "office",
+        }
+        items.append(base if lite else {**base, "auto_generate": row.get("auto_generate", True)})
+    return items, []
+
+
+def list_industry_scenarios_static(
+    *,
+    pack: str | None = None,
+    category: str | None = None,
+    q: str | None = None,
+    lite: bool = False,
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    from app.data.industry_packs_all import ALL_INDUSTRY_PACKS
+
+    items: list[dict[str, Any]] = []
+    for pack_row in ALL_INDUSTRY_PACKS:
+        pack_key = pack_row.get("key") or ""
+        if pack and pack_key != pack:
+            continue
+        for i, scene in enumerate(pack_row.get("scenes") or [], start=1):
+            cat = scene.get("category") or "其他"
+            if category and cat != category:
+                continue
+            name = scene.get("name") or ""
+            if q and q.lower() not in name.lower():
+                continue
+            base = {
+                "id": f"{pack_key}-{i:02d}",
+                "name": name,
+                "category": cat,
+                "pack_key": pack_key,
+                "pack_name": pack_row.get("name", ""),
+                "pack_icon": pack_row.get("icon", ""),
+                "problem": scene.get("problem", ""),
+                "standard": scene.get("standard", "✓"),
+                "agent": scene.get("agent", "approval"),
+                "type": "industry",
+            }
+            items.append(base)
+    return items, []
+
+
 def list_chip_templates(db: Session) -> list[dict[str, Any]]:
     rows = db.query(CatalogChipTemplate).order_by(CatalogChipTemplate.sort_order).all()
     return [
@@ -451,4 +535,19 @@ def list_chip_templates(db: Session) -> list[dict[str, Any]]:
             "scenarioNames": row.scenario_names,
         }
         for row in rows
+    ]
+
+
+def list_chip_templates_static() -> list[dict[str, Any]]:
+    from app.data.hero_presets import CHIP_TEMPLATES
+
+    return [
+        {
+            "id": c.get("id") or f"chip-{i}",
+            "text": c["text"],
+            "prompt": c.get("prompt", ""),
+            "picks": c.get("picks") or [],
+            "scenarioNames": c.get("scenario_names") or c.get("scenarioNames") or [],
+        }
+        for i, c in enumerate(CHIP_TEMPLATES, start=1)
     ]

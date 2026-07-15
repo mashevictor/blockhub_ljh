@@ -18,7 +18,7 @@ interface Props {
   as?: 'p' | 'h1' | 'h2' | 'span'
 }
 
-/** >> 重新定义智能交互 — 全站统一品牌句 */
+/** >> 重新定义智能体新交互 — 全站统一品牌 slogan */
 export default function AgentSignLine({
   variant = 'inline',
   className = '',
@@ -30,7 +30,11 @@ export default function AgentSignLine({
       className={`agent-sign-line agent-sign-line--${variant} ${className}`.trim()}
       aria-label={aria}
     >
-      <ChevronDotSign size={SIGN_SIZE[variant]} className="agent-sign-chev-dot" />
+      <ChevronDotSign
+        size={SIGN_SIZE[variant]}
+        className="agent-sign-chev-dot"
+        introTarget={variant === 'eyebrow'}
+      />
       {BRAND.agentSignLine}
     </Tag>
   )

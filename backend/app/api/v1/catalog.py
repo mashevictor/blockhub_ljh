@@ -17,20 +17,34 @@ def catalog_summary(db: Annotated[Session, Depends(get_db)]) -> dict[str, Any]:
     try:
         return catalog_store.catalog_summary(db)
     except (ProgrammingError, SQLAlchemyError):
-        db.rollback()
+        try:
+            db.rollback()
+        except Exception:
+            pass
         try:
             ensure_catalog_seeded(db)
             return catalog_store.catalog_summary(db)
         except (ProgrammingError, SQLAlchemyError) as exc:
-            db.rollback()
+            try:
+                db.rollback()
+            except Exception:
+                pass
             try:
                 seed_catalog(db, force=True)
                 return catalog_store.catalog_summary(db)
-            except Exception as retry_exc:
-                raise HTTPException(
-                    status_code=503,
-                    detail=f"Catalog 表未就绪: {retry_exc}. 请执行: bash scripts/fix-catalog.sh",
-                ) from exc
+            except Exception:
+                # 本机无 PostgreSQL 时返回静态目录概览，避免首页空白
+                office, _ = catalog_store.list_office_scenarios_static(lite=True)
+                industry, _ = catalog_store.list_industry_scenarios_static(lite=True)
+                heroes = catalog_store.list_hero_presets_static()
+                return {
+                    "office_scenario_count": len(office),
+                    "industry_scenario_count": len(industry),
+                    "hero_preset_count": len(heroes),
+                    "chip_template_count": len(catalog_store.list_chip_templates_static()),
+                    "source": "static",
+                    "detail": f"数据库不可用，已使用静态 catalog（{exc.__class__.__name__}）",
+                }
 
 
 @router.get("/office")
@@ -42,14 +56,37 @@ def list_office(
     limit: int = Query(50, description="分页大小", ge=1, le=500),
     offset: int = Query(0, description="分页偏移", ge=0),
 ) -> dict:
-    items, groups = catalog_store.list_office_scenarios(db, category=category, q=q, lite=lite)
+    try:
+        items, groups = catalog_store.list_office_scenarios(db, category=category, q=q, lite=lite)
+        source = "database"
+    except SQLAlchemyError:
+        try:
+            db.rollback()
+        except Exception:
+            pass
+        items, groups = catalog_store.list_office_scenarios_static(category=category, q=q, lite=lite)
+        source = "static"
     total = len(items)
-    return {"total": total, "items": items[offset:offset + limit], "groups": groups, "limit": limit, "offset": offset}
+    return {
+        "total": total,
+        "items": items[offset:offset + limit],
+        "groups": groups,
+        "limit": limit,
+        "offset": offset,
+        "source": source,
+    }
 
 
 @router.get("/office/groups")
 def office_groups(db: Annotated[Session, Depends(get_db)]) -> dict:
-    groups = catalog_store.list_office_groups(db)
+    try:
+        groups = catalog_store.list_office_groups(db)
+    except SQLAlchemyError:
+        try:
+            db.rollback()
+        except Exception:
+            pass
+        groups = []
     total = sum(len(g.get("items", [])) for g in groups)
     return {"groups": groups, "total_scenarios": total}
 
@@ -64,9 +101,25 @@ def list_industry(
     limit: int = Query(50, description="分页大小", ge=1, le=500),
     offset: int = Query(0, description="分页偏移", ge=0),
 ) -> dict:
-    items, packs = catalog_store.list_industry_scenarios(db, pack=pack, category=category, q=q, lite=lite)
+    try:
+        items, packs = catalog_store.list_industry_scenarios(db, pack=pack, category=category, q=q, lite=lite)
+        source = "database"
+    except SQLAlchemyError:
+        try:
+            db.rollback()
+        except Exception:
+            pass
+        items, packs = catalog_store.list_industry_scenarios_static(pack=pack, category=category, q=q, lite=lite)
+        source = "static"
     total = len(items)
-    return {"total": total, "items": items[offset:offset + limit], "packs": packs, "limit": limit, "offset": offset}
+    return {
+        "total": total,
+        "items": items[offset:offset + limit],
+        "packs": packs,
+        "limit": limit,
+        "offset": offset,
+        "source": source,
+    }
 
 
 @router.get("/industry-sites")
@@ -120,11 +173,29 @@ def list_capabilities(db: Annotated[Session, Depends(get_db)]) -> dict:
 
 @router.get("/hero-presets")
 def hero_presets(db: Annotated[Session, Depends(get_db)]) -> dict:
-    items = catalog_store.list_hero_presets(db)
-    return {"total": len(items), "items": items, "source": "database"}
+    try:
+        items = catalog_store.list_hero_presets(db)
+        if items:
+            return {"total": len(items), "items": items, "source": "database"}
+    except SQLAlchemyError:
+        try:
+            db.rollback()
+        except Exception:
+            pass
+    items = catalog_store.list_hero_presets_static()
+    return {"total": len(items), "items": items, "source": "static"}
 
 
 @router.get("/chip-templates")
 def chip_templates(db: Annotated[Session, Depends(get_db)]) -> dict:
-    items = catalog_store.list_chip_templates(db)
-    return {"total": len(items), "items": items, "source": "database"}
+    try:
+        items = catalog_store.list_chip_templates(db)
+        if items:
+            return {"total": len(items), "items": items, "source": "database"}
+    except SQLAlchemyError:
+        try:
+            db.rollback()
+        except Exception:
+            pass
+    items = catalog_store.list_chip_templates_static()
+    return {"total": len(items), "items": items, "source": "static"}

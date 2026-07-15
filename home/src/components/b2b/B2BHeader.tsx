@@ -7,7 +7,7 @@ import { getAdminUrl, getAdminDashboardUrl } from '../../data/constants'
 import { ROUTES } from '../../routes/paths'
 import type { AuthUser } from '../../auth/session'
 import { AgentChevronGlyph } from '../AgentChevron'
-import { IconLogIn } from '../icons'
+import { IconGithub, IconLogIn } from '../icons'
 import { scrollToHomeSection, type HomeSectionId } from '../../hooks/useHomeActiveSection'
 
 interface Props {
@@ -68,10 +68,14 @@ export default function B2BHeader({ user, activeSection = 'hero', onLogout }: Pr
                   <li key={item.to}>
                     <Link
                       to={item.to}
-                      className={`b2b-nav-pill${active ? ' on' : ''}`}
+                      className={`b2b-nav-pill${active ? ' on' : ''}${item.icon === 'github' ? ' b2b-nav-pill--github' : ''}`}
                       aria-current={active ? 'page' : undefined}
                     >
-                      <AgentChevronGlyph size="nav" className="b2b-nav-chev" />
+                      {item.icon === 'github' ? (
+                        <IconGithub size={14} className="b2b-nav-github" aria-hidden />
+                      ) : (
+                        <AgentChevronGlyph size="nav" className="b2b-nav-chev" />
+                      )}
                       <span className="b2b-nav-label">{item.label}</span>
                     </Link>
                   </li>

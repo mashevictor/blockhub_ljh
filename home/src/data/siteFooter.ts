@@ -17,6 +17,7 @@ export const SITE_FOOTER_COLUMNS: SiteFooterColumn[] = [
     title: '产品',
     links: [
       { label: '生成应用', to: homeSectionHref('contact-create') },
+      { label: 'CapShip 开源', to: ROUTES.capship },
       { label: '应用广场', to: ROUTES.plazaFeed },
       { label: '我的应用', to: ROUTES.plazaMyApps },
       { label: '管理后台', to: '/admin/login', external: true },

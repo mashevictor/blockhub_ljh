@@ -234,8 +234,24 @@
   line-height: 1;
 }
 
+.b2b-nav-github {
+  flex-shrink: 0;
+  color: inherit;
+  opacity: 0.9;
+  line-height: 1;
+}
+
+.b2b-nav-pill--github .b2b-nav-label {
+  letter-spacing: 0.02em;
+}
+
 .b2b-nav-pill.on .b2b-nav-chev {
   color: #fff;
+}
+
+.b2b-nav-pill.on .b2b-nav-github {
+  color: #fff;
+  opacity: 1;
 }
 
 .b2b-nav-chev-label {
@@ -452,7 +468,7 @@ a.b2b-nav-btn-link {
   }
 }
 
-/* 全页开场 >> loading：轻量 overlay，不遮挡导航与正文 */
+/* 全页开场 >> loading → FLIP 飞入品牌 >> */
 .home-page-intro {
   position: fixed;
   inset: 0;
@@ -461,13 +477,41 @@ a.b2b-nav-btn-link {
   align-items: flex-start;
   justify-content: center;
   padding-top: clamp(56px, 14vh, 128px);
-  background: rgba(255, 255, 255, 0.88);
+  background: rgba(255, 255, 255, 0.78);
   pointer-events: none;
+  transition:
+    background 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.35s ease;
+}
+
+.home-page-intro.is-flying {
+  background: rgba(255, 255, 255, 0);
 }
 
 .home-page-intro.is-exiting {
   opacity: 0;
   transition: opacity 0.32s ease;
+}
+
+.home-page-intro-loader {
+  transform-origin: center center;
+  filter: drop-shadow(0 8px 28px rgba(13, 71, 161, 0.18));
+}
+
+/* 落点 >>：开场前隐藏，落地后淡入（避免双影子突兀切换） */
+.b2b-app.is-page-intro [data-intro-sign-target] {
+  opacity: 0;
+}
+
+.b2b-app.is-page-intro [data-intro-sign-target].is-intro-receiving {
+  opacity: 0.35;
+  transition: opacity 0.35s ease;
+}
+
+.b2b-app.is-page-intro [data-intro-sign-target].is-intro-landed,
+.b2b-app.is-page-ready [data-intro-sign-target] {
+  opacity: 1;
+  transition: opacity 0.28s ease;
 }
 
 .b2b-app.is-page-intro {
@@ -482,6 +526,9 @@ a.b2b-nav-btn-link {
 @media (prefers-reduced-motion: reduce) {
   .home-page-intro.is-exiting {
     transition: none;
+  }
+  .home-page-intro-loader {
+    transition: none !important;
   }
 }
 
@@ -2605,7 +2652,7 @@ a.b2b-nav-btn-link {
 }
 
 .b2b-create-booking .demo-booking-composer {
-  padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(28px + env(safe-area-inset-bottom, 0px));
   gap: 14px;
 }
 
@@ -3778,22 +3825,27 @@ a.b2b-nav-btn-link {
 }
 
 .b2b-form-wrap .prompt-view-minimal.layout-floating::after,
-.b2b-brand-scope.b2b-has-floating-agent::after,
 .b2b-brand-scope.plaza-page::after {
   content: '';
   position: fixed;
   left: 0;
   right: 0;
   bottom: 0;
-  height: 140px;
+  height: 96px;
   background: linear-gradient(
     to top,
-    rgba(249, 250, 251, 1) 0%,
-    rgba(249, 250, 251, 0.96) 45%,
+    rgba(249, 250, 251, 0.92) 0%,
+    rgba(249, 250, 251, 0.55) 40%,
     rgba(249, 250, 251, 0) 100%
   );
   pointer-events: none;
   z-index: 210;
+}
+
+/* 首页底部不再铺全宽白渐变，避免遮挡页脚与预约区 */
+.b2b-app.b2b-has-floating-agent::after {
+  content: none;
+  display: none;
 }
 
 .b2b-form-wrap .prompt-view-minimal.layout-floating .prompt-card:focus-within,
@@ -4027,12 +4079,12 @@ a.b2b-nav-btn-link {
 }
 
 .agent-floating-spacer {
-  height: 188px;
+  height: 72px;
   pointer-events: none;
 }
 
 .b2b-form-wrap {
-  padding-bottom: 180px;
+  padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px));
 }
 
 .plaza-floating-dock.floating-agent-dock {
@@ -4161,6 +4213,8 @@ a.b2b-nav-btn-link {
 
 /* ── B 端官网 Footer（广场 / 子站浅色底）── */
 .b2b-site-footer {
+  position: relative;
+  z-index: 220;
   margin-top: auto;
   border-top: 1px solid var(--border, #e5e7eb);
   background: var(--surface, #fff);
@@ -4362,8 +4416,8 @@ a.b2b-nav-btn-link {
   flex-direction: column;
   gap: 16px;
   scroll-margin-top: 88px;
-  scroll-margin-bottom: calc(120px + env(safe-area-inset-bottom, 0px));
-  padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+  scroll-margin-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: 8px;
 }
 
 .demo-booking-flow {
@@ -4971,7 +5025,7 @@ a.b2b-nav-btn-link {
 }
 
 .agent-floating-spacer.is-booking {
-  height: 260px;
+  height: 96px;
 }
 
 /* 右侧快捷滚动：顶部 / 底部 */
@@ -5377,7 +5431,7 @@ a.b2b-nav-btn-link {
   }
 
   .demo-booking-composer {
-    padding-bottom: calc(112px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: 8px;
   }
 
   .demo-booking-float-hint::after {

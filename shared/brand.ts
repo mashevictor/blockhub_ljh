@@ -7,7 +7,7 @@ export const BRAND = {
   adminTitle: '积木仓 BlockHub · 管理后台',
   heroBadge: '智能应用创建入口',
   /** >> 品牌主张 · 全站统一（UI 前加 >> 符号） */
-  agentSignLine: '重新定义智能交互',
+  agentSignLine: '重新定义智能体新交互',
   footer: '积木仓 BlockHub · 五分钟搭好，打开就能用',
   homeUrl: 'http://127.0.0.1:5173',
   adminUrl: 'http://127.0.0.1:5174',

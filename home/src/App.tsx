@@ -19,6 +19,7 @@ import PricingPage from './pages/enrichment/PricingPage'
 import NewsIndexPage from './pages/enrichment/NewsIndexPage'
 import NewsDetailPage from './pages/enrichment/NewsDetailPage'
 import RolePage from './pages/enrichment/RolePage'
+import CapShipPage from './pages/CapShipPage'
 import { ROUTES } from './routes/paths'
 
 export default function App() {
@@ -87,6 +88,11 @@ export default function App() {
       <Route path="/for/:role" element={
         <ErrorBoundary fallbackTitle="角色页加载失败">
           <RolePage />
+        </ErrorBoundary>
+      } />
+      <Route path={ROUTES.capship} element={
+        <ErrorBoundary fallbackTitle="CapShip 开源页加载失败">
+          <CapShipPage />
         </ErrorBoundary>
       } />
       <Route path="/" element={<HomeApp />} />

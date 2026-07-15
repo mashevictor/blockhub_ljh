@@ -33,31 +33,28 @@
 }
 
 .chevron-dot-loader.scheme-intro .dot {
-  animation: cdl-hero-intro 2.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-  animation-delay: calc(var(--i) * 0.03s);
+  animation: cdl-hero-intro 0.98s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation-delay: calc(var(--i) * 0.022s);
 }
 
 @keyframes cdl-hero-intro {
   0% {
     opacity: 0;
-    transform: translate(calc(-50% + var(--sx, 0px) * 2.8), calc(-50% + var(--sy, 0px) * 2.8)) scale(0.2);
+    transform: translate(calc(-50% + var(--sx, 0px) * 2.4), calc(-50% + var(--sy, 0px) * 2.4)) scale(0.25);
   }
-  28% {
-    opacity: 0.85;
-    transform: translate(calc(-50% + var(--sx, 0px) * 0.6), calc(-50% + var(--sy, 0px) * 0.6)) scale(0.9);
+  42% {
+    opacity: 0.92;
+    transform: translate(calc(-50% + var(--sx, 0px) * 0.35), calc(-50% + var(--sy, 0px) * 0.35)) scale(1.05);
   }
-  52% {
+  72% {
     opacity: 1;
-    transform: translate(-50%, -50%) scale(1.12);
-    box-shadow: 0 0 12px color-mix(in srgb, var(--accent, #0d47a1) 55%, transparent);
-  }
-  78% {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1.05);
+    transform: translate(-50%, -50%) scale(1.06);
+    box-shadow: 0 0 10px color-mix(in srgb, var(--accent, #0d47a1) 45%, transparent);
   }
   100% {
-    opacity: 0.15;
+    opacity: 1;
     transform: translate(-50%, -50%) scale(1);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent, #0d47a1) 22%, transparent);
   }
 }
 

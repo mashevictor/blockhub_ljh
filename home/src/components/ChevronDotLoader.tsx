@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react'
+import { forwardRef, type CSSProperties } from 'react'
 import {
   CHEVRON_DEFAULT_SIZE,
   CHEVRON_DOT_POINTS,
@@ -60,18 +60,22 @@ function ChevronStrokeLoader({
 }
 
 /** Loading >> — 默认点阵；悬浮框输入用 ChevronStrokeLoader */
-export default function ChevronDotLoader({
-  variant = 'scan',
-  size = 'sm',
-  className = '',
-  label = '加载中',
-}: LoaderProps) {
+const ChevronDotLoader = forwardRef<HTMLSpanElement, LoaderProps>(function ChevronDotLoader(
+  {
+    variant = 'scan',
+    size = 'sm',
+    className = '',
+    label = '加载中',
+  },
+  ref,
+) {
   const { width, height } = CHEVRON_DOT_SIZES[size]
   const dot = chevronDotRadius(size)
   const scheme = schemeClass(variant)
 
   return (
     <span
+      ref={ref}
       className={`chevron-dot-loader dot-chev ${scheme} ${className}`.trim()}
       style={
         {
@@ -103,7 +107,9 @@ export default function ChevronDotLoader({
       ))}
     </span>
   )
-}
+})
+
+export default ChevronDotLoader
 
 /** 悬浮框输入 loading — SVG 描边（非点阵） */
 export { ChevronStrokeLoader }
@@ -112,9 +118,12 @@ export { ChevronStrokeLoader }
 export function ChevronDotSign({
   size = CHEVRON_DEFAULT_SIZE,
   className = '',
+  introTarget = false,
 }: {
   size?: ChevronDotSize
   className?: string
+  /** 首页开场 FLIP 落点 */
+  introTarget?: boolean
 }) {
   const { width, height, stroke } = CHEVRON_DOT_SIZES[size]
   const paths = chevronSignSvgPaths()
@@ -129,6 +138,7 @@ export function ChevronDotSign({
       aria-label="大于号大于号"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
+      {...(introTarget ? { 'data-intro-sign-target': '' } : {})}
     >
       {paths.map((d, i) => (
         <path

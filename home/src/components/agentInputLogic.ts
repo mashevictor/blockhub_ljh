@@ -181,7 +181,7 @@ export const PANEL_HINT_TEXT: Record<PanelHint, string> = {
   ime: '输入法组词中，完成后再选',
 }
 
-export const BRAND_TAGLINE = '>>重新定义智能交互'
+export const BRAND_TAGLINE = '>>重新定义智能体新交互'
 
 export const GUIDE_PLACEHOLDER = '描述您想要的应用，例如：制造业设备报修 + 审批流程…'
 export const DEFAULT_GUIDE_TEXT = TRIGGER_TOKEN

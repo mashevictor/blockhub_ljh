@@ -2782,10 +2782,25 @@ h1, h2, h3, h4, h5, h6 {
   border: 1px solid var(--border); border-radius: 14px;
   background: var(--surface);
   box-shadow: 0 12px 32px color-mix(in srgb, #0f172a 16%, transparent);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.delivery-template-popover.is-ported {
+  position: fixed;
+  right: auto;
+  bottom: auto;
+}
+.delivery-template-popover-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 2px;
 }
 .delivery-template-popover-head {
   display: flex; align-items: center; justify-content: space-between;
   margin-bottom: 10px; font-size: 13px;
+  flex-shrink: 0;
 }
 .delivery-template-popover-close {
   border: none; background: none; font-size: 20px; line-height: 1;
@@ -2793,6 +2808,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 .delivery-template-popover-foot {
   display: flex; justify-content: flex-end; margin-top: 12px;
+  flex-shrink: 0;
 }
 .delivery-template-done { padding: 6px 14px; font-size: 12px; border-radius: 8px; }
 .delivery-template-picker.compact .delivery-template-trigger {

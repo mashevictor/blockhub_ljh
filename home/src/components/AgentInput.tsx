@@ -530,7 +530,7 @@ export default forwardRef<AgentInputHandle, Props>(function AgentInput({
               <button
                 type="button"
                 className={`agent-brand-trigger${effectivePanelOpen ? ' active' : ''}`}
-                title="积木仓符号 · >>重新定义智能交互"
+                title="积木仓符号 · >>重新定义智能体新交互"
                 aria-label="打开模块选择"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => {

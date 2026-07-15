@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import {
   fetchDeliveryTemplates,
   type AppUiTemplate,
@@ -84,7 +85,11 @@ function TemplatePreview({ id }: { id: string }) {
   )
 }
 
-/** 网页模板 × App UI：触发按钮 + 弹框选择（默认第一项 tabs_portal / bottom_tabs） */
+type PopoverPos =
+  | { mode: 'above'; left: number; bottom: number; width: number; maxHeight: number }
+  | { mode: 'below'; left: number; top: number; width: number; maxHeight: number }
+
+/** 网页模板 × App UI：触发按钮 + portal 弹层（避开悬浮框 overflow 裁切） */
 export default function DeliveryTemplatePicker({
   webTemplateId,
   appUiId,
@@ -97,7 +102,10 @@ export default function DeliveryTemplatePicker({
   const [open, setOpen] = useState(false)
   const [web, setWeb] = useState<WebTemplate[]>(FALLBACK_WEB)
   const [appUi, setAppUi] = useState<AppUiTemplate[]>(FALLBACK_APP)
+  const [pos, setPos] = useState<PopoverPos | null>(null)
   const rootRef = useRef<HTMLDivElement>(null)
+  const triggerRef = useRef<HTMLButtonElement>(null)
+  const popoverRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     fetchDeliveryTemplates()
@@ -110,10 +118,58 @@ export default function DeliveryTemplatePicker({
       })
   }, [])
 
+  const updatePosition = () => {
+    const trigger = triggerRef.current
+    if (!trigger) return
+    const rect = trigger.getBoundingClientRect()
+    const width = Math.min(420, window.innerWidth - 24)
+    const gap = 8
+    const spaceAbove = Math.max(0, rect.top - gap - 12)
+    const spaceBelow = Math.max(0, window.innerHeight - rect.bottom - gap - 12)
+    const preferAbove = spaceAbove >= 240 || spaceAbove >= spaceBelow
+    let left = rect.right - width
+    left = Math.max(12, Math.min(left, window.innerWidth - width - 12))
+    if (preferAbove) {
+      setPos({
+        mode: 'above',
+        left,
+        bottom: window.innerHeight - rect.top + gap,
+        width,
+        maxHeight: Math.min(440, Math.max(200, spaceAbove)),
+      })
+    } else {
+      setPos({
+        mode: 'below',
+        left,
+        top: rect.bottom + gap,
+        width,
+        maxHeight: Math.min(440, Math.max(200, spaceBelow)),
+      })
+    }
+  }
+
+  useLayoutEffect(() => {
+    if (!open) {
+      setPos(null)
+      return
+    }
+    updatePosition()
+    const onWin = () => updatePosition()
+    window.addEventListener('resize', onWin)
+    window.addEventListener('scroll', onWin, true)
+    return () => {
+      window.removeEventListener('resize', onWin)
+      window.removeEventListener('scroll', onWin, true)
+    }
+  }, [open])
+
   useEffect(() => {
     if (!open) return
     const onDoc = (e: MouseEvent) => {
-      if (!rootRef.current?.contains(e.target as Node)) setOpen(false)
+      const t = e.target as Node
+      if (rootRef.current?.contains(t)) return
+      if (popoverRef.current?.contains(t)) return
+      setOpen(false)
     }
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setOpen(false)
@@ -129,40 +185,39 @@ export default function DeliveryTemplatePicker({
   const webLabel = web.find((t) => t.id === webTemplateId)?.label || web[0]?.label || 'Tabs 门户'
   const appLabel = appUi.find((t) => t.id === appUiId)?.label || appUi[0]?.label || '底部 Tab'
 
-  return (
-    <div
-      ref={rootRef}
-      className={`delivery-template-picker is-trigger${compact ? ' compact' : ''}${open ? ' is-open' : ''}${className ? ` ${className}` : ''}`}
-    >
-      <button
-        type="button"
-        className="delivery-template-trigger"
-        aria-expanded={open}
-        aria-haspopup="dialog"
-        onClick={() => setOpen((v) => !v)}
-        title={`${webLabel} · ${appLabel}`}
+  const popover =
+    open &&
+    pos &&
+    createPortal(
+      <div
+        ref={popoverRef}
+        className="delivery-template-popover is-ported"
+        role="dialog"
+        aria-label="选择网页模板与 App UI"
+        style={{
+          position: 'fixed',
+          left: pos.left,
+          width: pos.width,
+          maxHeight: pos.maxHeight,
+          zIndex: 12000,
+          ...(pos.mode === 'above'
+            ? { bottom: pos.bottom, top: 'auto' }
+            : { top: pos.top, bottom: 'auto' }),
+        }}
       >
-        <TemplatePreview id={webTemplateId || 'tabs_portal'} />
-        <span className="delivery-template-trigger-text">
-          <strong>模板</strong>
-          <span>
-            {webLabel} / {appLabel}
-          </span>
-        </span>
-        <span className="delivery-template-caret" aria-hidden>
-          ▾
-        </span>
-      </button>
+        <div className="delivery-template-popover-head">
+          <strong>选择模板</strong>
+          <button
+            type="button"
+            className="delivery-template-popover-close"
+            onClick={() => setOpen(false)}
+            aria-label="关闭"
+          >
+            ×
+          </button>
+        </div>
 
-      {open && (
-        <div className="delivery-template-popover" role="dialog" aria-label="选择网页模板与 App UI">
-          <div className="delivery-template-popover-head">
-            <strong>选择模板</strong>
-            <button type="button" className="delivery-template-popover-close" onClick={() => setOpen(false)} aria-label="关闭">
-              ×
-            </button>
-          </div>
-
+        <div className="delivery-template-popover-body">
           <div className="delivery-template-section">
             <h4 className="delivery-template-title">网页模板</h4>
             <div className="delivery-template-grid">
@@ -217,14 +272,43 @@ export default function DeliveryTemplatePicker({
               ))}
             </div>
           </div>
-
-          <div className="delivery-template-popover-foot">
-            <button type="button" className="btn-primary delivery-template-done" onClick={() => setOpen(false)}>
-              完成
-            </button>
-          </div>
         </div>
-      )}
+
+        <div className="delivery-template-popover-foot">
+          <button type="button" className="btn-primary delivery-template-done" onClick={() => setOpen(false)}>
+            完成
+          </button>
+        </div>
+      </div>,
+      document.body,
+    )
+
+  return (
+    <div
+      ref={rootRef}
+      className={`delivery-template-picker is-trigger${compact ? ' compact' : ''}${open ? ' is-open' : ''}${className ? ` ${className}` : ''}`}
+    >
+      <button
+        ref={triggerRef}
+        type="button"
+        className="delivery-template-trigger"
+        aria-expanded={open}
+        aria-haspopup="dialog"
+        onClick={() => setOpen((v) => !v)}
+        title={`${webLabel} · ${appLabel}`}
+      >
+        <TemplatePreview id={webTemplateId || 'tabs_portal'} />
+        <span className="delivery-template-trigger-text">
+          <strong>模板</strong>
+          <span>
+            {webLabel} / {appLabel}
+          </span>
+        </span>
+        <span className="delivery-template-caret" aria-hidden>
+          ▾
+        </span>
+      </button>
+      {popover}
     </div>
   )
 }

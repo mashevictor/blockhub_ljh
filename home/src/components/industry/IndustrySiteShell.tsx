@@ -59,6 +59,7 @@ export default function IndustrySiteShell({ theme, children, industryName, layou
         </p>
         <div className="industry-site-footer-links marketing-site-footer-links">
           <Link to={homeSectionHref('product')}>20 个行业方案</Link>
+          <Link to={ROUTES.capship}>CapShip</Link>
           <Link to={ROUTES.cases}>落地案例</Link>
           <Link to={ROUTES.trust}>信任合规</Link>
           <Link to={ROUTES.pricing}>定价说明</Link>

@@ -23,5 +23,7 @@ export const ROUTES = {
   news: '/news',
   newsDetail: (slug: string) => `/news/${slug}`,
   rolePage: (role: string) => `/for/${role}`,
+  /** CapShip 开源落地页 */
+  capship: '/capship',
   contactDemo: '/#contact-demo',
 } as const
