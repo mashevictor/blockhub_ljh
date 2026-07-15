@@ -73,19 +73,22 @@ required = [
     "catalog_agents", "catalog_office_scenarios", "catalog_hero_presets",
     "catalog_chip_templates",
 ]
-for t in required:
-    if not insp.has_table(t):
-        raise SystemExit(1)
+missing = [t for t in required if not insp.has_table(t)]
+if missing:
+    print("MISSING_TABLES:", ", ".join(missing), flush=True)
+    raise SystemExit(1)
 if not col("apps", "page_schema") or not col("apps", "build_manifest"):
+    print("MISSING_COLUMNS: apps.page_schema / apps.build_manifest", flush=True)
     raise SystemExit(3)
 with engine.connect() as conn:
     if not conn.execute(text("SELECT 1 FROM pg_extension WHERE extname='vector'")).fetchone():
+        print("MISSING_EXTENSION: vector", flush=True)
         raise SystemExit(2)
 PY
   then
     ok "tables: kb + plaza + demo_bookings + page_schema"
   else
-    bad "schema tables missing — run: bash scripts/server-db.sh"
+    bad "schema tables missing — run: bash scripts/fix-catalog.sh  (再看上方 MISSING_TABLES)"
   fi
   cd "$ROOT"
 else
