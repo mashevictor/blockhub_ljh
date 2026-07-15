@@ -147,7 +147,7 @@ raise SystemExit(0 if ok else 1)
 }
 
 SCHEMA_REV="$(schema_level)"
-ALEMBIC_REV="$(alembic current 2>/dev/null | grep -oE '01[0-9]' | tail -1 || true)"
+ALEMBIC_REV="$(alembic current 2>/dev/null | grep -oE '[0-9]{3}' | sort -n | tail -1 || true)"
 HEAD_REV="$(alembic heads 2>/dev/null | awk '{print $1}' | head -1 || echo '017')"
 
 echo "==> head=$HEAD_REV alembic=${ALEMBIC_REV:-none} schema≈${SCHEMA_REV:-none}"
