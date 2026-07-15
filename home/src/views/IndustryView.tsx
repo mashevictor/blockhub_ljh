@@ -287,15 +287,6 @@ export default function IndustryView({
                 >
                   方案站
                 </Link>
-                <a
-                  href={ROUTES.industrySiteHtml(p.key)}
-                  className="ind-detail-link ind-detail-link-decoupled"
-                  target="_blank"
-                  rel="noreferrer"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  独立网页
-                </a>
               </button>
               )
             })}

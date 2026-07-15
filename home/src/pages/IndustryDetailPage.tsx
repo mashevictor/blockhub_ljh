@@ -158,14 +158,14 @@ export default function IndustryDetailPage() {
         stats={visualTheme.stats}
         icon={<Icon size={40} />}
         ctaPrimary={
-          <button type="button" className="btn-primary" onClick={handleOpenDecoupledSite}>
-            打开独立网页（解耦）
+          <button type="button" className="btn-primary" onClick={handleUseIndustry}>
+            编排生成应用 →
           </button>
         }
         ctaSecondary={
           <>
-            <button type="button" className="btn-ghost industry-site-ghost" onClick={handleUseIndustry}>
-              编排生成应用 →
+            <button type="button" className="btn-ghost industry-site-ghost" onClick={handleOpenDecoupledSite}>
+              打开落地页预览
             </button>
             <button type="button" className="btn-ghost industry-site-ghost" disabled={enriching} onClick={handleReEnrich}>
               {enriching ? '大模型丰富中…' : '大模型重新丰富'}
@@ -201,6 +201,16 @@ export default function IndustryDetailPage() {
       <IndustryMicrositePreview
         packKey={pack.key}
         packName={pack.name}
+        tagline={visualTheme.heroPitch ?? pack.tagline}
+        overview={enrichment?.overview ?? pack.tagline}
+        highlights={enrichment?.highlights?.length ? enrichment.highlights : visualTheme.highlights}
+        scenes={(enrichment?.scene_tips?.length
+          ? enrichment.scene_tips.map((t) => ({ name: t.name, detail: t.tip }))
+          : groups.flatMap((g) => g.items).slice(0, 6).map((s) => ({
+              name: s.name,
+              detail: s.problem || s.name,
+            }))
+        )}
         accent={accent}
         onCompose={handleComposeWithTemplate}
       />
@@ -275,16 +285,15 @@ export default function IndustryDetailPage() {
       ) : null}
 
       <section className="industry-site-cta-band">
-        <h2>两条交付路径 · 互不解耦依赖</h2>
-        <p>独立网页可投放；应用编排走 CapShip。{site.stats.delivery}</p>
+        <h2>确认方案后去编排应用</h2>
+        <p>{site.stats.delivery}</p>
         <div className="industry-site-cta-band-actions">
-          <button type="button" className="btn-primary agent-action-btn" onClick={handleOpenDecoupledSite}>
-            打开独立网页
-          </button>
-          <button type="button" className="btn-ghost" onClick={handleUseIndustry}>
+          <button type="button" className="btn-primary agent-action-btn" onClick={handleUseIndustry}>
             {site.cta.create_label} →
           </button>
-          <Link to={ROUTES.industrySites} className="btn-ghost">全部解耦网页目录</Link>
+          <button type="button" className="btn-ghost" onClick={handleOpenDecoupledSite}>
+            打开落地页预览
+          </button>
         </div>
       </section>
     </IndustrySiteShell>

@@ -20,7 +20,6 @@ import NewsIndexPage from './pages/enrichment/NewsIndexPage'
 import NewsDetailPage from './pages/enrichment/NewsDetailPage'
 import RolePage from './pages/enrichment/RolePage'
 import CapShipPage from './pages/CapShipPage'
-import IndustrySitesCatalogPage from './pages/IndustrySitesCatalogPage'
 import { ROUTES } from './routes/paths'
 
 export default function App() {
@@ -96,11 +95,7 @@ export default function App() {
           <CapShipPage />
         </ErrorBoundary>
       } />
-      <Route path={ROUTES.industrySites} element={
-        <ErrorBoundary fallbackTitle="独立网页目录加载失败">
-          <IndustrySitesCatalogPage />
-        </ErrorBoundary>
-      } />
+      <Route path="/sites" element={<Navigate to="/" replace />} />
       <Route path="/" element={<HomeApp />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

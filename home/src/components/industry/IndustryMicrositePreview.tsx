@@ -6,15 +6,29 @@ import {
   saveMicrositeId,
   type IndustryMicrositeTemplate,
 } from '../../data/industryMicrositeTemplates'
+import { buildIndustryMicrositeSrcDoc } from '../../data/industryMicrositePreviewHtml'
 
 interface Props {
   packKey: string
   packName: string
+  tagline: string
+  overview: string
+  highlights: string[]
+  scenes: Array<{ name: string; detail?: string }>
   accent: string
   onCompose: (template: IndustryMicrositeTemplate) => void
 }
 
-export default function IndustryMicrositePreview({ packKey, packName, accent, onCompose }: Props) {
+export default function IndustryMicrositePreview({
+  packKey,
+  packName,
+  tagline,
+  overview,
+  highlights,
+  scenes,
+  accent,
+  onCompose,
+}: Props) {
   const [activeId, setActiveId] = useState(() => loadSavedMicrositeId(packKey))
 
   useEffect(() => {
@@ -25,6 +39,16 @@ export default function IndustryMicrositePreview({ packKey, packName, accent, on
     () => getMicrositeTemplate(activeId) ?? INDUSTRY_MICROSITE_TEMPLATES[0],
     [activeId],
   )
+
+  const srcDoc = useMemo(() => {
+    if (!current) return ''
+    const origin = typeof window !== 'undefined' ? window.location.origin : ''
+    return buildIndustryMicrositeSrcDoc(
+      { packKey, packName, tagline, overview, highlights, scenes },
+      current,
+      origin,
+    )
+  }, [current, packKey, packName, tagline, overview, highlights, scenes])
 
   const handleSelect = (id: string) => {
     setActiveId(id)
@@ -38,16 +62,17 @@ export default function IndustryMicrositePreview({ packKey, packName, accent, on
       <div className="b2b-section-title industry-site-section-head">
         <span className="b2b-eyebrow">网页模板 · 可切换预览</span>
         <h2>
-          {packName} · <em>20 套</em> 真实落地页模板
+          {packName} · <em>20 套</em> 视觉模板
         </h2>
         <p>
-          默认匹配本行业风格；可切换任意模板预览效果。确认后「用此模板去编排」，进入首页悬浮框按需增减正式能力并发布。
+          正文固定为「{packName}」行业方案文案；切换模板只改版式与视觉气质，避免文案割裂。
+          确认后「用此模板去编排」。
         </p>
       </div>
 
       <div className="industry-microsite-toolbar">
         <label className="industry-microsite-select-label" htmlFor={`ms-select-${packKey}`}>
-          当前模板
+          当前视觉模板
         </label>
         <select
           id={`ms-select-${packKey}`}
@@ -58,7 +83,7 @@ export default function IndustryMicrositePreview({ packKey, packName, accent, on
         >
           {INDUSTRY_MICROSITE_TEMPLATES.map((t) => (
             <option key={t.id} value={t.id}>
-              {t.styleLabel} · {t.name}（{t.brand}）
+              {t.styleLabel} · {packName}
             </option>
           ))}
         </select>
@@ -69,25 +94,9 @@ export default function IndustryMicrositePreview({ packKey, packName, accent, on
         >
           用此模板去编排应用 →
         </button>
-        <a
-          className="btn-ghost industry-site-ghost"
-          href={`/industry-sites/${packKey}/index.html`}
-          target="_blank"
-          rel="noreferrer"
-        >
-          打开解耦独立网页
-        </a>
-        <a
-          className="btn-ghost industry-site-ghost"
-          href={current.previewPath}
-          target="_blank"
-          rel="noreferrer"
-        >
-          预览视觉模板
-        </a>
       </div>
 
-      <div className="industry-microsite-picker" role="listbox" aria-label="网页模板列表">
+      <div className="industry-microsite-picker" role="listbox" aria-label="视觉模板列表">
         {INDUSTRY_MICROSITE_TEMPLATES.map((t) => (
           <button
             key={t.id}
@@ -98,22 +107,23 @@ export default function IndustryMicrositePreview({ packKey, packName, accent, on
             onClick={() => handleSelect(t.id)}
             style={t.id === current.id ? { borderColor: accent, color: accent } : undefined}
           >
-            <strong>{t.name}</strong>
-            <span>{t.styleLabel}</span>
+            <strong>{t.styleLabel}</strong>
+            <span>{packName}</span>
           </button>
         ))}
       </div>
 
       <div className="industry-microsite-frame-wrap">
         <div className="industry-microsite-frame-bar">
-          <span>{current.brand}</span>
+          <span>{packName}方案</span>
           <span>{current.styleLabel}</span>
         </div>
         <iframe
-          key={current.id}
-          title={`${current.brand} 预览`}
+          key={`${packKey}-${current.id}`}
+          title={`${packName} · ${current.styleLabel} 预览`}
           className="industry-microsite-frame"
-          src={current.previewPath}
+          srcDoc={srcDoc}
+          sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"
           loading="lazy"
         />
       </div>

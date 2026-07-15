@@ -25,8 +25,7 @@ export const ROUTES = {
   rolePage: (role: string) => `/for/${role}`,
   /** CapShip 开源落地页 */
   capship: '/capship',
-  /** 行业独立网页解耦目录（静态 HTML，非应用运行时） */
-  industrySites: '/sites',
+  /** 行业静态落地页 HTML（非 SPA 目录） */
   industrySiteHtml: (packKey: string) => `/industry-sites/${packKey}/index.html`,
   contactDemo: '/#contact-demo',
 } as const

@@ -13,13 +13,7 @@ export const B2B_NAV_ITEMS: B2BNavItem[] = [
     kind: 'scroll',
     id: 'product',
     label: '产品能力',
-    match: (p) => p.startsWith('/industry/') || p === ROUTES.industrySites || p.startsWith('/industry-sites'),
-  },
-  {
-    kind: 'link',
-    to: ROUTES.industrySites,
-    label: '独立网页',
-    match: (p) => p === ROUTES.industrySites || p.startsWith('/industry-sites'),
+    match: (p) => p.startsWith('/industry/'),
   },
   {
     kind: 'link',
