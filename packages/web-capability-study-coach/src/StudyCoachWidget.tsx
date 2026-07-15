@@ -64,6 +64,19 @@ const KIND_LABEL: Record<string, string> = {
   exam: '考试',
 }
 
+function catalogLine(c: CatalogInfo) {
+  return [
+    c.publisher || c.series,
+    c.school_system,
+    c.stage,
+    c.grade,
+    c.semester,
+    c.subject,
+  ]
+    .filter(Boolean)
+    .join(' · ')
+}
+
 export function StudyCoachWidget(_props: { node: SchemaNode }) {
   const { token, primaryColor, appId, user, entrySource } = useRuntime()
   const [courses, setCourses] = useState<CourseItem[]>([])
@@ -72,46 +85,28 @@ export function StudyCoachWidget(_props: { node: SchemaNode }) {
   const [busy, setBusy] = useState(false)
   const [resetKey, setResetKey] = useState(0)
   const [drillResetKey, setDrillResetKey] = useState(0)
-  const [values, setValues] = useState<Record<string, string>>({ role: 'student' })
+  const [queryValues, setQueryValues] = useState<Record<string, string>>({})
   const [drillValues, setDrillValues] = useState<Record<string, string>>({ kind: 'dictation' })
   const [activeCourseId, setActiveCourseId] = useState('')
   const [msg, setMsg] = useState('')
-  const [showForm, setShowForm] = useState(entrySource !== 'im')
+  const [phase, setPhase] = useState<'ask' | 'confirm'>('ask')
+  const [lastQuery, setLastQuery] = useState('')
+  const [candidates, setCandidates] = useState<CatalogInfo[]>([])
+  const [showAsk, setShowAsk] = useState(entrySource !== 'im')
 
   const accent = primaryColor || '#6366f1'
   const activeCourse = courses.find((c) => c.id === activeCourseId) || courses[0]
 
-  const steps: GtgtStep[] = useMemo(
+  const askSteps: GtgtStep[] = useMemo(
     () => [
       {
-        key: 'role',
-        label: '角色',
-        render: ({ value, setValue, accent: a }) => (
-          <div className="row-actions">
-            {([
-              ['student', '学生'],
-              ['parent', '家长'],
-              ['teacher', '老师'],
-            ] as const).map(([k, lab]) => (
-              <button
-                key={k}
-                type="button"
-                className={(value || 'student') === k ? 'btn' : 'btn btn-ghost'}
-                style={(value || 'student') === k ? { background: a } : undefined}
-                onClick={() => setValue(k)}
-              >
-                {lab}
-              </button>
-            ))}
-          </div>
-        ),
+        key: 'query',
+        label: '你在学哪本课本？',
+        placeholder: '例如：沪教英语二年级下 / 人教版语文三年级上',
+        hint: '口语说即可，不用自己拆出版社、学制、年级',
       },
-      { key: 'textbook_name', label: '课本定位', placeholder: '沪教版英语五四制·小学二年级下' },
-      { key: 'subject', label: '科目（可空，由 DeepSeek 补全）', placeholder: '英语', optional: true },
-      { key: 'grade', label: '年级册次（可空）', placeholder: '小学二年级下', optional: true },
-      { key: 'student_name', label: '学生姓名', placeholder: user?.display_name || '', optional: true },
     ],
-    [user?.display_name],
+    [],
   )
 
   const drillSteps: GtgtStep[] = useMemo(() => {
@@ -119,7 +114,7 @@ export function StudyCoachWidget(_props: { node: SchemaNode }) {
     return [
       {
         key: 'kind',
-        label: '跟进类型',
+        label: '记一次跟进',
         render: ({ value, setValue, accent: a }) => (
           <div className="row-actions">
             {([
@@ -142,7 +137,7 @@ export function StudyCoachWidget(_props: { node: SchemaNode }) {
       },
       {
         key: 'unit_name',
-        label: '学习单元',
+        label: '对应单元',
         placeholder: unitChoices[0] || '第一单元',
         render: unitChoices.length
           ? ({ value, setValue, accent: a }) => (
@@ -157,43 +152,27 @@ export function StudyCoachWidget(_props: { node: SchemaNode }) {
                       setValue(name)
                       const unit = (activeCourse?.plan || []).find((u) => u.unit_name === name)
                       if (unit?.dictation_hint) {
-                        setDrillValues((p) => ({ ...p, unit_name: name, notes: p.notes || unit.dictation_hint || '' }))
+                        setDrillValues((p) => ({
+                          ...p,
+                          unit_name: name,
+                          notes: p.notes || unit.dictation_hint || '',
+                        }))
                       }
                     }}
                   >
-                    {name.length > 16 ? `${name.slice(0, 16)}…` : name}
+                    {name.length > 18 ? `${name.slice(0, 18)}…` : name}
                   </button>
                 ))}
               </div>
             )
           : undefined,
       },
-      { key: 'score', label: '得分/题量', placeholder: '95 或 8/10', optional: true },
       {
-        key: 'result',
-        label: '结果',
+        key: 'notes',
+        label: '结果备注（可空）',
+        placeholder: '得分、错词、薄弱点…',
         optional: true,
-        render: ({ value, setValue, accent: a }) => (
-          <div className="row-actions">
-            {([
-              ['pass', '通过'],
-              ['partial', '部分'],
-              ['fail', '需巩固'],
-            ] as const).map(([k, lab]) => (
-              <button
-                key={k}
-                type="button"
-                className={value === k ? 'btn' : 'btn btn-ghost'}
-                style={value === k ? { background: a } : undefined}
-                onClick={() => setValue(k)}
-              >
-                {lab}
-              </button>
-            ))}
-          </div>
-        ),
       },
-      { key: 'notes', label: '备注', placeholder: '错词 / 薄弱点…', optional: true },
     ]
   }, [activeCourse?.plan])
 
@@ -231,33 +210,71 @@ export function StudyCoachWidget(_props: { node: SchemaNode }) {
     void load()
   }, [load])
 
-  const submitCourse = async () => {
-    if (!token || !values.textbook_name?.trim()) return
+  const locateBook = async () => {
+    if (!token || !queryValues.query?.trim()) return
     setBusy(true)
     setMsg('')
-    const role = ['student', 'parent', 'teacher'].includes(values.role) ? values.role : 'student'
+    const q = queryValues.query.trim()
+    try {
+      const data = await apiFetch<{ candidates: CatalogInfo[]; query: string }>(
+        '/api/v1/study-coach/locate',
+        token,
+        { method: 'POST', body: JSON.stringify({ query: q, role: 'student' }) },
+      )
+      const list = data.candidates || []
+      setLastQuery(data.query || q)
+      setCandidates(list)
+      setPhase('confirm')
+      setMsg(list.length ? '请点选正确的册次' : '没定位到，换个说法再试')
+    } catch (e) {
+      setMsg(`定位失败：${String(e)}`)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const confirmBook = async (catalog: CatalogInfo) => {
+    if (!token || !catalog.full_title) return
+    setBusy(true)
+    setMsg('正在生成学习大纲…')
     try {
       const data = await apiFetch<{ course: CourseItem }>('/api/v1/study-coach/courses', token, {
         method: 'POST',
         body: JSON.stringify({
-          role,
-          textbook_name: values.textbook_name.trim(),
-          subject: (values.subject || '').trim(),
-          grade: (values.grade || '').trim(),
-          student_name: (values.student_name || '').trim() || user?.display_name || '',
+          query: lastQuery,
+          textbook_name: catalog.full_title,
+          catalog,
+          role: 'student',
+          student_name: user?.display_name || '',
           app_public_id: appId || '',
         }),
       })
-      setValues({ role: 'student' })
+      setQueryValues({})
+      setCandidates([])
+      setPhase('ask')
       setResetKey((k) => k + 1)
-      setMsg(`已定位 · ${data.course?.textbook_name || ''} · ${data.course?.plan?.length || 0} 单元 · ${data.course?.plan_source === 'deepseek' ? 'DeepSeek' : '模板'}`)
+      setShowAsk(false)
+      setMsg(
+        `已确认 · ${data.course?.textbook_name || ''} · ${data.course?.plan?.length || 0} 个单元 · ${
+          data.course?.plan_source === 'deepseek' ? 'DeepSeek 大纲' : '模板大纲'
+        }`,
+      )
       await load()
       if (data.course?.id) setActiveCourseId(data.course.id)
     } catch (e) {
-      setMsg(`创建失败：${String(e)}`)
+      setMsg(`生成失败：${String(e)}`)
     } finally {
       setBusy(false)
     }
+  }
+
+  const resetAsk = () => {
+    setPhase('ask')
+    setCandidates([])
+    setQueryValues({})
+    setResetKey((k) => k + 1)
+    setShowAsk(true)
+    setMsg('')
   }
 
   const setProgress = async (courseId: string, order: number, status: string) => {
@@ -283,6 +300,7 @@ export function StudyCoachWidget(_props: { node: SchemaNode }) {
     setBusy(true)
     setMsg('')
     const kind = ['review', 'dictation', 'exam'].includes(drillValues.kind) ? drillValues.kind : 'dictation'
+    const notes = (drillValues.notes || '').trim()
     try {
       await apiFetch('/api/v1/study-coach/drills', token, {
         method: 'POST',
@@ -290,9 +308,9 @@ export function StudyCoachWidget(_props: { node: SchemaNode }) {
           course_id: activeCourse.id,
           unit_name: unit,
           kind,
-          score: (drillValues.score || '').trim(),
-          result: (drillValues.result || '').trim(),
-          notes: (drillValues.notes || '').trim(),
+          score: '',
+          result: '',
+          notes,
           app_public_id: appId || '',
         }),
       })
@@ -311,28 +329,77 @@ export function StudyCoachWidget(_props: { node: SchemaNode }) {
 
   return (
     <div>
-      {!showForm ? (
-        <button type="button" className="btn btn-ghost" onClick={() => setShowForm(true)}>新建课本学习</button>
-      ) : (
+      {phase === 'ask' && (showAsk || courses.length === 0) && (
         <GtgtStepComposer
           title={entrySource === 'im' ? '课本学习协作' : '课本学习'}
-          meta={entrySource === 'im' ? '群消息入口' : '应用工作台'}
+          meta={entrySource === 'im' ? '群消息入口' : '说书名即可'}
           accent={accent}
-          flowHint={`输入版本+科目+学制+年级册次 → DeepSeek 定位具体目录 → 进度/家默/考试${user?.display_name ? ` · ${user.display_name}` : ''}`}
-          steps={steps}
-          values={values}
-          onChange={(k, v) => setValues((p) => ({ ...p, [k]: v }))}
-          onComplete={submitCourse}
+          flowHint="一句话书名 → 确认册次 → 生成规划 / 进度 / 家默"
+          steps={askSteps}
+          values={queryValues}
+          onChange={(k, v) => setQueryValues((p) => ({ ...p, [k]: v }))}
+          onComplete={locateBook}
           busy={busy}
           resetKey={resetKey}
-          submitLabel="定位课本并生成规划"
+          submitLabel="帮我定位这本课本"
         />
       )}
+
+      {phase === 'ask' && !showAsk && courses.length > 0 && (
+        <button type="button" className="btn btn-ghost" onClick={() => setShowAsk(true)}>
+          + 再加一本课本
+        </button>
+      )}
+
+      {phase === 'confirm' && (
+        <div className="list-card" style={{ marginBottom: 12 }}>
+          <div className="list-card-head">
+            <strong>是这几本吗？</strong>
+            <span className="tag">根据「{lastQuery}」定位</span>
+          </div>
+          <p className="muted" style={{ margin: '8px 0 12px', fontSize: 13 }}>
+            点选正确册次后，再生成 Module / Unit 学习大纲
+          </p>
+          <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 8 }}>
+            {candidates.map((c, i) => (
+              <li key={`${c.full_title}-${i}`}>
+                <button
+                  type="button"
+                  className="btn"
+                  disabled={busy}
+                  style={{
+                    width: '100%',
+                    textAlign: 'left',
+                    background: i === 0 ? accent : undefined,
+                    opacity: busy ? 0.7 : 1,
+                  }}
+                  onClick={() => void confirmBook(c)}
+                >
+                  <div style={{ fontWeight: 600 }}>{c.full_title}</div>
+                  <div style={{ fontSize: 12, marginTop: 4, opacity: 0.9 }}>
+                    {catalogLine(c)}
+                    {typeof c.confidence === 'number' ? ` · ${Math.round(c.confidence * 100)}%` : ''}
+                  </div>
+                  {c.note ? <div style={{ fontSize: 12, marginTop: 4, opacity: 0.85 }}>{c.note}</div> : null}
+                </button>
+              </li>
+            ))}
+          </ul>
+          <div className="row-actions" style={{ marginTop: 12 }}>
+            <button type="button" className="btn btn-ghost" disabled={busy} onClick={resetAsk}>
+              不对，换个说法
+            </button>
+          </div>
+        </div>
+      )}
+
       {msg && <p className="status-msg">{msg}</p>}
 
       <h4 style={{ margin: '16px 0 8px', fontSize: 14 }}>我的课本</h4>
       {loading && <p className="muted">加载中…</p>}
-      {!loading && courses.length === 0 && <p className="muted">暂无课本，输入课本名称即可生成网页/App 学习闭环</p>}
+      {!loading && courses.length === 0 && phase === 'ask' && (
+        <p className="muted">先说课本名，确认册次后会生成真实学习大纲</p>
+      )}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
         {courses.map((c) => (
           <button
@@ -351,41 +418,56 @@ export function StudyCoachWidget(_props: { node: SchemaNode }) {
         <>
           <div className="list-card" style={{ marginBottom: 12 }}>
             <div className="list-card-head">
-              <strong>{activeCourse.record_no} · {activeCourse.textbook_name}</strong>
-              <span className="tag">{activeCourse.progress_pct}% · {activeCourse.plan_source === 'deepseek' ? 'DeepSeek定位' : '模板'}</span>
+              <strong>{activeCourse.textbook_name}</strong>
+              <span className="tag">
+                {activeCourse.progress_pct}% · {activeCourse.plan_source === 'deepseek' ? 'DeepSeek 大纲' : '模板大纲'}
+              </span>
             </div>
             {activeCourse.catalog && (
               <p className="muted" style={{ margin: '6px 0 0', fontSize: 12 }}>
-                {[
-                  activeCourse.catalog.publisher || activeCourse.catalog.series,
-                  activeCourse.catalog.school_system,
-                  activeCourse.catalog.stage,
-                  activeCourse.catalog.grade,
-                  activeCourse.catalog.semester,
-                  activeCourse.catalog.subject,
-                ].filter(Boolean).join(' · ')}
+                {catalogLine(activeCourse.catalog)}
                 {typeof activeCourse.catalog.confidence === 'number'
                   ? ` · 置信度 ${Math.round(activeCourse.catalog.confidence * 100)}%`
                   : ''}
-                {activeCourse.catalog.note ? ` · ${activeCourse.catalog.note}` : ''}
               </p>
             )}
-            <p className="muted" style={{ margin: '6px 0 0' }}>
-              {activeCourse.student_name}
-              {activeCourse.subject ? ` · ${activeCourse.subject}` : ''}
-              {activeCourse.grade ? ` · ${activeCourse.grade}` : ''}
-            </p>
             <ul style={{ listStyle: 'none', margin: '10px 0 0', padding: 0, display: 'grid', gap: 8 }}>
               {(activeCourse.plan || []).map((u) => (
-                <li key={u.order} style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', fontSize: 13 }}>
+                <li
+                  key={u.order}
+                  style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', fontSize: 13 }}
+                >
                   <span style={{ flex: '1 1 200px' }}>
-                    {u.unit_code ? `${u.unit_code} · ` : ''}{u.order}. {u.unit_name}
-                    {u.focus ? <span className="muted" style={{ display: 'block', fontSize: 12 }}>重点：{u.focus}</span> : null}
-                    {u.dictation_hint ? <span className="muted" style={{ display: 'block', fontSize: 12 }}>家默：{u.dictation_hint}</span> : null}
+                    {u.unit_code ? `${u.unit_code} · ` : ''}
+                    {u.order}. {u.unit_name}
+                    {u.focus ? (
+                      <span className="muted" style={{ display: 'block', fontSize: 12 }}>
+                        重点：{u.focus}
+                      </span>
+                    ) : null}
+                    {u.dictation_hint ? (
+                      <span className="muted" style={{ display: 'block', fontSize: 12 }}>
+                        家默：{u.dictation_hint}
+                      </span>
+                    ) : null}
                   </span>
                   <span className="tag">{UNIT_LABEL[u.status] || u.status}</span>
-                  <button type="button" className="btn btn-ghost" style={{ fontSize: 12 }} onClick={() => void setProgress(activeCourse.id, u.order, 'learning')}>开始学</button>
-                  <button type="button" className="btn btn-ghost" style={{ fontSize: 12 }} onClick={() => void setProgress(activeCourse.id, u.order, 'mastered')}>掌握</button>
+                  <button
+                    type="button"
+                    className="btn btn-ghost"
+                    style={{ fontSize: 12 }}
+                    onClick={() => void setProgress(activeCourse.id, u.order, 'learning')}
+                  >
+                    开始学
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-ghost"
+                    style={{ fontSize: 12 }}
+                    onClick={() => void setProgress(activeCourse.id, u.order, 'mastered')}
+                  >
+                    掌握
+                  </button>
                 </li>
               ))}
             </ul>
@@ -395,20 +477,18 @@ export function StudyCoachWidget(_props: { node: SchemaNode }) {
             title="复习 / 家默 / 考试"
             meta={activeCourse.textbook_name}
             accent={accent}
-            flowHint="家长可做家默盯检 · 学生考试 · 老师跟进复习"
+            flowHint="选类型 → 选单元 → 可选写一句结果"
             steps={drillSteps}
             values={{
               kind: drillValues.kind || 'dictation',
               unit_name: drillValues.unit_name || activeCourse.plan?.[0]?.unit_name || '',
-              score: drillValues.score || '',
-              result: drillValues.result || '',
               notes: drillValues.notes || '',
             }}
             onChange={(k, v) => setDrillValues((p) => ({ ...p, [k]: v }))}
             onComplete={submitDrill}
             busy={busy}
             resetKey={drillResetKey}
-            submitLabel="记录跟进"
+            submitLabel="记下这次跟进"
           />
 
           <h4 style={{ margin: '16px 0 8px', fontSize: 14 }}>跟进记录</h4>
@@ -417,11 +497,12 @@ export function StudyCoachWidget(_props: { node: SchemaNode }) {
             {courseDrills.map((d) => (
               <li key={d.id} className="list-card">
                 <div className="list-card-head">
-                  <strong>{d.record_no} · {KIND_LABEL[d.kind] || d.kind}</strong>
+                  <strong>
+                    {KIND_LABEL[d.kind] || d.kind} · {d.unit_name}
+                  </strong>
                   <span className="tag">{d.result || d.score || '已记录'}</span>
                 </div>
-                <p className="muted" style={{ margin: '6px 0 0' }}>{d.unit_name}</p>
-                {d.notes && <p style={{ margin: '4px 0 0', fontSize: 13 }}>{d.notes}</p>}
+                {d.notes && <p style={{ margin: '6px 0 0', fontSize: 13 }}>{d.notes}</p>}
               </li>
             ))}
           </ul>

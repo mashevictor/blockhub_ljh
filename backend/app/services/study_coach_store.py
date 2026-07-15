@@ -160,69 +160,128 @@ def _clean_units(units_raw: Any) -> list[dict[str, Any]]:
     return cleaned
 
 
+def _candidate_from_raw(raw: Any, fallback: dict[str, Any]) -> dict[str, Any] | None:
+    if not isinstance(raw, dict):
+        return None
+    catalog = _clean_catalog(raw, fallback)
+    title = str(catalog.get("full_title") or "").strip()
+    if not title:
+        return None
+    return catalog
+
+
+def locate_textbooks(*, query: str, role: str = "student") -> list[dict[str, Any]]:
+    """仅定位册次候选（不落库、不生成大纲）。返回 1~3 条 catalog。"""
+    q = (query or "").strip()
+    if not q:
+        return []
+    hint = _heuristic_catalog(q, "", "")
+    system = (
+        "你是中国K12教材定位助手。用户口语描述课本，你只输出可能的具体册次候选，不要生成学习单元。"
+        "常见例子：沪教版/牛津上海版英语·五四制·小学二年级下；人教版语文·三年级上。"
+        "规则："
+        "1) 给出 1~3 个最可能的册次，按 confidence 从高到低；"
+        "2) 每条拆开 publisher/series/subject/school_system/stage/grade/semester/full_title；"
+        "3) 沪教英语优先牛津上海版/沪教牛津，并写明五四制或六三制；"
+        "4) 信息不足也要给最合理猜测，并在 note 写清不确定点；"
+        "5) full_title 写成家长/老师能一眼确认的规范全称。"
+        "只返回 JSON：{\"candidates\":[{\"publisher\":\"\",\"series\":\"\",\"subject\":\"\","
+        "\"school_system\":\"\",\"stage\":\"\",\"grade\":\"\",\"semester\":\"\","
+        "\"full_title\":\"\",\"confidence\":0.0,\"note\":\"\"}]}"
+    )
+    user = (
+        f"用户说的课本：{q}\n"
+        f"发起角色：{role}\n"
+        f"规则粗解析参考：{hint}\n"
+        "请给出可点选确认的册次候选。"
+    )
+    parsed = deepseek_json_chat(system, user, temperature=0.1)
+    out: list[dict[str, Any]] = []
+    if isinstance(parsed, dict):
+        raw_list = parsed.get("candidates")
+        if not isinstance(raw_list, list) and isinstance(parsed.get("catalog"), dict):
+            raw_list = [parsed.get("catalog")]
+        if isinstance(raw_list, list):
+            for raw in raw_list[:3]:
+                item = _candidate_from_raw(raw, hint)
+                if item:
+                    out.append(item)
+    if not out:
+        # 无模型时至少给出规则定位，方便用户确认或纠错
+        out = [hint]
+    # 去重 full_title
+    seen: set[str] = set()
+    uniq: list[dict[str, Any]] = []
+    for c in out:
+        key = str(c.get("full_title") or "").strip()
+        if not key or key in seen:
+            continue
+        seen.add(key)
+        uniq.append(c)
+    return uniq
+
+
+def generate_units_for_catalog(
+    *,
+    catalog: dict[str, Any],
+    query: str = "",
+    role: str = "student",
+) -> tuple[list[dict[str, Any]], str, dict[str, Any]]:
+    """用户已确认册次后，按该册目录生成 Module/Unit 级规划。"""
+    cleaned = _clean_catalog(catalog, _heuristic_catalog(str(catalog.get("full_title") or query or ""), "", ""))
+    title = str(cleaned.get("full_title") or query or "未命名课本").strip()
+    system = (
+        "你是中国K12教材目录专家。用户已确认具体课本册次，请按该册真实目录输出学习单元。"
+        "规则："
+        "1) units 必须对齐 Module/Unit/课文级目录名，禁止「第一单元预习」空泛标题；"
+        "2) 每个 unit 给 focus 与 dictation_hint（家默听写要点）；"
+        "3) 本册覆盖尽量完整，6~12 个单元；不要抄袭教材全文；"
+        "4) 可微调 catalog 字段，但不要改成另一册书。"
+        "只返回 JSON：{\"catalog\":{...},\"units\":[{\"order\":1,\"unit_code\":\"Module1-U1\","
+        "\"unit_name\":\"具体目录名\",\"focus\":\"\",\"dictation_hint\":\"\",\"estimated_days\":1}]}"
+    )
+    user = (
+        f"已确认教材：{cleaned}\n"
+        f"用户原话：{query or title}\n"
+        f"发起角色：{role}\n"
+        "请输出该册目录级学习规划。"
+    )
+    parsed = deepseek_json_chat(system, user, temperature=0.2)
+    if not isinstance(parsed, dict):
+        return _fallback_plan(title, cleaned), "fallback", cleaned
+    final_catalog = _clean_catalog(parsed.get("catalog"), cleaned)
+    # 防止模型漂到别的书
+    if cleaned.get("full_title") and not final_catalog.get("full_title"):
+        final_catalog["full_title"] = cleaned["full_title"]
+    units = _clean_units(parsed.get("units"))
+    generic_hits = sum(
+        1
+        for u in units
+        if any(x in u["unit_name"] for x in ("预习与精读", "练习巩固", "重点回顾", "熟悉目录", "Module/Unit 1 预习"))
+    )
+    if len(units) < 4 or generic_hits >= max(2, len(units) // 2):
+        return _fallback_plan(title, final_catalog), "fallback", final_catalog
+    return units, "deepseek", final_catalog
+
+
 def generate_study_plan(
     *,
     textbook_name: str,
     subject: str = "",
     grade: str = "",
     role: str = "student",
+    catalog: dict[str, Any] | None = None,
 ) -> tuple[list[dict[str, Any]], str, dict[str, Any]]:
-    """DeepSeek 先定位具体教材（版本/学制/年级册），再生成对齐目录的单元。
-
-    返回 (units, source, catalog)。
-    """
-    hint = _heuristic_catalog(textbook_name, subject, grade)
-    system = (
-        "你是中国K12教材目录定位专家。用户会给出模糊或口语化的课本描述，"
-        "你必须先定位到具体教材版本，再按该册真实目录结构输出学习单元。"
-        "常见例子：沪教版/牛津上海版英语·五四制·小学二年级下；人教版语文·三年级上；部编版等。"
-        "规则："
-        "1) catalog.publisher 写出版体系（沪教版/人教版/部编版/外研版…）；"
-        "2) 沪教英语优先识别为牛津上海版/沪教牛津，并写明五四制或六三制；"
-        "3) stage/grade/semester 必须拆开（小学/二年级/下册），不要混在一句里；"
-        "4) units 必须对齐该册 Module/Unit/课文级别目录名（如 Module 1 Unit 1 … / 第x单元 课题），"
-        "禁止输出「第一单元预习」这类空泛标题；"
-        "5) 每个 unit 给 focus（本课词句/知识点）与 dictation_hint（家默/听写建议词或句子要点）；"
-        "6) 本册覆盖尽量完整，6~12个单元为宜；不要大段抄袭教材全文；"
-        "7) confidence 为 0~1，信息不足请明显降低并在 note 说明缺什么。"
-        "只返回 JSON："
-        "{\"catalog\":{"
-        "\"publisher\":\"\","
-        "\"series\":\"\","
-        "\"subject\":\"\","
-        "\"school_system\":\"五四制|六三制|\" ,"
-        "\"stage\":\"小学|初中|高中|\" ,"
-        "\"grade\":\"二年级\" ,"
-        "\"semester\":\"上册|下册|\" ,"
-        "\"full_title\":\"规范全称\" ,"
-        "\"confidence\":0.0,"
-        "\"note\":\"\"},"
-        "\"units\":[{\"order\":1,\"unit_code\":\"Module1-U1\","
-        "\"unit_name\":\"具体目录名\",\"focus\":\"\",\"dictation_hint\":\"\","
-        "\"estimated_days\":1}]}"
-    )
-    user = (
-        f"用户输入课本描述：{textbook_name}\n"
-        f"补充科目：{subject or '未填'}\n"
-        f"补充年级：{grade or '未填'}\n"
-        f"发起角色：{role}\n"
-        f"规则粗解析参考（可纠正）：{hint}\n"
-        "请定位到具体册次并输出该册目录级学习规划。"
-    )
-    parsed = deepseek_json_chat(system, user, temperature=0.2)
-    if not isinstance(parsed, dict):
-        return _fallback_plan(textbook_name, hint), "fallback", hint
-
-    catalog = _clean_catalog(parsed.get("catalog"), hint)
-    units = _clean_units(parsed.get("units"))
-    generic_hits = sum(
-        1
-        for u in units
-        if any(x in u["unit_name"] for x in ("预习与精读", "练习巩固", "重点回顾", "熟悉目录"))
-    )
-    if len(units) < 4 or generic_hits >= max(2, len(units) // 2):
-        return _fallback_plan(textbook_name, catalog), "fallback", catalog
-    return units, "deepseek", catalog
+    """兼容旧接口：有确认 catalog 则只生成大纲，否则 locate 取首条再生成。"""
+    if isinstance(catalog, dict) and str(catalog.get("full_title") or "").strip():
+        return generate_units_for_catalog(catalog=catalog, query=textbook_name, role=role)
+    candidates = locate_textbooks(query=textbook_name, role=role)
+    picked = candidates[0] if candidates else _heuristic_catalog(textbook_name, subject, grade)
+    if subject.strip():
+        picked = {**picked, "subject": subject.strip() or picked.get("subject")}
+    if grade.strip() and not picked.get("grade"):
+        picked = {**picked, "grade": grade.strip()}
+    return generate_units_for_catalog(catalog=picked, query=textbook_name, role=role)
 
 
 def _progress_pct(plan: list[Any]) -> int:
@@ -308,19 +367,27 @@ def create_course(
     db: Session,
     user: User,
     *,
-    textbook_name: str,
+    textbook_name: str = "",
     subject: str = "",
     grade: str = "",
     role: str = "student",
     student_name: str = "",
     app_public_id: str = "",
+    catalog: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     role_n = (role or "student").strip().lower()
     if role_n not in VALID_ROLE:
         role_n = "student"
-    title = (textbook_name or "").strip() or "未命名课本"
+    title = (textbook_name or "").strip()
+    if not title and isinstance(catalog, dict):
+        title = str(catalog.get("full_title") or "").strip()
+    title = title or "未命名课本"
     plan, source, catalog = generate_study_plan(
-        textbook_name=title, subject=subject, grade=grade, role=role_n
+        textbook_name=title,
+        subject=subject,
+        grade=grade,
+        role=role_n,
+        catalog=catalog if isinstance(catalog, dict) else None,
     )
     subject_n = (subject or "").strip() or str(catalog.get("subject") or "")
     grade_parts = [

@@ -16,7 +16,11 @@ class _StudyCoachPageState extends State<StudyCoachPage> {
   int _resetKey = 0;
   int _drillResetKey = 0;
   String _activeId = '';
-  final Map<String, String> _values = {'role': 'student'};
+  String _phase = 'ask'; // ask | confirm
+  String _lastQuery = '';
+  List<Map<String, dynamic>> _candidates = [];
+  bool _showAsk = true;
+  final Map<String, String> _values = {};
   final Map<String, String> _drillValues = {'kind': 'dictation'};
 
   String get _base => '${widget.branding.apiBaseUrl}/study-coach';
@@ -49,6 +53,7 @@ class _StudyCoachPageState extends State<StudyCoachPage> {
       if (_activeId.isEmpty || !_courses.any((e) => '${(e as Map)['id']}' == _activeId)) {
         _activeId = _courses.isEmpty ? '' : '${(_courses.first as Map)['id']}';
       }
+      if (_courses.isNotEmpty) _showAsk = false;
     } catch (_) {
       _courses = [];
       _drills = [];
@@ -57,29 +62,60 @@ class _StudyCoachPageState extends State<StudyCoachPage> {
     }
   }
 
-  Future<void> _submitCourse() async {
-    if ((_values['textbook_name'] ?? '').trim().isEmpty) return;
+  Future<void> _locate() async {
+    final q = (_values['query'] ?? '').trim();
+    if (q.isEmpty) return;
+    setState(() => _busy = true);
+    try {
+      final dio = getRuntimeAuthedDio();
+      final resp = await dio.post<Map<String, dynamic>>('$_base/locate', data: {
+        'query': q,
+        'role': 'student',
+      });
+      final raw = resp.data?['candidates'] as List<dynamic>? ?? [];
+      _candidates = raw.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+      _lastQuery = '${resp.data?['query'] ?? q}';
+      _phase = 'confirm';
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _confirm(Map<String, dynamic> catalog) async {
+    final title = '${catalog['full_title'] ?? ''}'.trim();
+    if (title.isEmpty) return;
     setState(() => _busy = true);
     try {
       final dio = getRuntimeAuthedDio();
       final resp = await dio.post<Map<String, dynamic>>('$_base/courses', data: {
-        'role': _values['role'] ?? 'student',
-        'textbook_name': (_values['textbook_name'] ?? '').trim(),
-        'subject': (_values['subject'] ?? '').trim(),
-        'grade': (_values['grade'] ?? '').trim(),
-        'student_name': (_values['student_name'] ?? '').trim(),
+        'query': _lastQuery,
+        'textbook_name': title,
+        'catalog': catalog,
+        'role': 'student',
+        'student_name': '',
         'app_public_id': _appId,
       });
       final course = resp.data?['course'] as Map<String, dynamic>?;
-      _values
-        ..clear()
-        ..['role'] = 'student';
+      _values.clear();
+      _candidates = [];
+      _phase = 'ask';
+      _showAsk = false;
       _resetKey++;
       if (course != null) _activeId = '${course['id']}';
       await _load();
     } finally {
       if (mounted) setState(() => _busy = false);
     }
+  }
+
+  void _resetAsk() {
+    setState(() {
+      _phase = 'ask';
+      _candidates = [];
+      _values.clear();
+      _showAsk = true;
+      _resetKey++;
+    });
   }
 
   Future<void> _progress(String courseId, int order, String status) async {
@@ -102,8 +138,8 @@ class _StudyCoachPageState extends State<StudyCoachPage> {
         'course_id': '${active['id']}',
         'unit_name': unit,
         'kind': _drillValues['kind'] ?? 'dictation',
-        'score': (_drillValues['score'] ?? '').trim(),
-        'result': (_drillValues['result'] ?? '').trim(),
+        'score': '',
+        'result': '',
         'notes': (_drillValues['notes'] ?? '').trim(),
         'app_public_id': _appId,
       });
@@ -116,6 +152,17 @@ class _StudyCoachPageState extends State<StudyCoachPage> {
     } finally {
       if (mounted) setState(() => _busy = false);
     }
+  }
+
+  String _catalogLine(Map<String, dynamic> c) {
+    return [
+      if ('${c['publisher'] ?? c['series'] ?? ''}'.isNotEmpty) '${c['publisher'] ?? c['series']}',
+      if ('${c['school_system'] ?? ''}'.isNotEmpty) '${c['school_system']}',
+      if ('${c['stage'] ?? ''}'.isNotEmpty) '${c['stage']}',
+      if ('${c['grade'] ?? ''}'.isNotEmpty) '${c['grade']}',
+      if ('${c['semester'] ?? ''}'.isNotEmpty) '${c['semester']}',
+      if ('${c['subject'] ?? ''}'.isNotEmpty) '${c['subject']}',
+    ].join(' · ');
   }
 
   @override
@@ -131,33 +178,69 @@ class _StudyCoachPageState extends State<StudyCoachPage> {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        GtgtStepComposer(
-          title: '课本学习',
-          flowHint: '角色 → 课本定位(沪教版/五四制/年级下) → DeepSeek 目录',
-          accent: color,
-          steps: const [
-            GtgtStep(
-              key: 'role',
-              label: '角色',
-              choices: [
-                (value: 'student', label: '学生'),
-                (value: 'parent', label: '家长'),
-                (value: 'teacher', label: '老师'),
-              ],
+        if (_phase == 'ask' && (_showAsk || _courses.isEmpty))
+          GtgtStepComposer(
+            title: '课本学习',
+            flowHint: '一句话书名 → 确认册次 → 生成规划',
+            accent: color,
+            steps: const [
+              GtgtStep(
+                key: 'query',
+                label: '你在学哪本课本？',
+                placeholder: '例如：沪教英语二年级下',
+              ),
+            ],
+            values: _values,
+            onChanged: (k, v) => setState(() => _values[k] = v),
+            onComplete: _locate,
+            busy: _busy,
+            resetKey: _resetKey,
+            submitLabel: '帮我定位这本课本',
+          ),
+        if (_phase == 'ask' && !_showAsk && _courses.isNotEmpty)
+          TextButton(onPressed: () => setState(() => _showAsk = true), child: const Text('+ 再加一本课本')),
+        if (_phase == 'confirm') ...[
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('是这几本吗？', style: Theme.of(context).textTheme.titleMedium),
+                  Text('根据「$_lastQuery」定位 · 点选后生成大纲', style: TextStyle(color: Colors.grey.shade700)),
+                  const SizedBox(height: 8),
+                  ..._candidates.asMap().entries.map((e) {
+                    final c = e.value;
+                    final selected = e.key == 0;
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: selected ? color : null,
+                          foregroundColor: selected ? Colors.white : null,
+                          alignment: Alignment.centerLeft,
+                          padding: const EdgeInsets.all(12),
+                        ),
+                        onPressed: _busy ? null : () => _confirm(c),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('${c['full_title']}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                            Text(_catalogLine(c), style: const TextStyle(fontSize: 12)),
+                            if ('${c['note'] ?? ''}'.isNotEmpty)
+                              Text('${c['note']}', style: const TextStyle(fontSize: 12)),
+                          ],
+                        ),
+                      ),
+                    );
+                  }),
+                  TextButton(onPressed: _busy ? null : _resetAsk, child: const Text('不对，换个说法')),
+                ],
+              ),
             ),
-            GtgtStep(key: 'textbook_name', label: '课本定位', placeholder: '沪教版英语五四制·小学二年级下'),
-            GtgtStep(key: 'subject', label: '科目（可空）', placeholder: '英语', optional: true),
-            GtgtStep(key: 'grade', label: '年级册次（可空）', placeholder: '小学二年级下', optional: true),
-            GtgtStep(key: 'student_name', label: '学生姓名', optional: true),
-          ],
-          values: _values,
-          onChanged: (k, v) => setState(() => _values[k] = v),
-          onComplete: _submitCourse,
-          busy: _busy,
-          resetKey: _resetKey,
-          submitLabel: '定位课本并生成规划',
-        ),
-        const SizedBox(height: 12),
+          ),
+          const SizedBox(height: 12),
+        ],
         if (_loading)
           const Center(child: CircularProgressIndicator())
         else ...[
@@ -183,24 +266,12 @@ class _StudyCoachPageState extends State<StudyCoachPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('${active['record_no']} · ${active['textbook_name']}',
-                        style: const TextStyle(fontWeight: FontWeight.bold)),
+                    Text('${active['textbook_name']}', style: const TextStyle(fontWeight: FontWeight.bold)),
                     Text('进度 ${active['progress_pct']}% · ${active['plan_source']}'),
                     if (active['catalog'] is Map) ...[
                       const SizedBox(height: 4),
                       Text(
-                        [
-                          if ((active['catalog'] as Map)['publisher'] != null)
-                            '${(active['catalog'] as Map)['publisher']}',
-                          if ((active['catalog'] as Map)['school_system'] != null)
-                            '${(active['catalog'] as Map)['school_system']}',
-                          if ((active['catalog'] as Map)['grade'] != null)
-                            '${(active['catalog'] as Map)['grade']}',
-                          if ((active['catalog'] as Map)['semester'] != null)
-                            '${(active['catalog'] as Map)['semester']}',
-                          if ((active['catalog'] as Map)['confidence'] != null)
-                            '置信度 ${((active['catalog'] as Map)['confidence'] is num) ? (((active['catalog'] as Map)['confidence'] as num) * 100).round() : active['catalog']['confidence']}%',
-                        ].where((e) => e.trim().isNotEmpty).join(' · '),
+                        _catalogLine(Map<String, dynamic>.from(active['catalog'] as Map)),
                         style: TextStyle(color: Colors.grey.shade700, fontSize: 12),
                       ),
                     ],
@@ -244,12 +315,12 @@ class _StudyCoachPageState extends State<StudyCoachPage> {
             const SizedBox(height: 12),
             GtgtStepComposer(
               title: '复习 / 家默 / 考试',
-              flowHint: '类型 → 单元 → 结果',
+              flowHint: '类型 → 单元 → 可选备注',
               accent: color,
               steps: [
                 const GtgtStep(
                   key: 'kind',
-                  label: '跟进类型',
+                  label: '记一次跟进',
                   choices: [
                     (value: 'dictation', label: '家默'),
                     (value: 'review', label: '复习'),
@@ -258,7 +329,7 @@ class _StudyCoachPageState extends State<StudyCoachPage> {
                 ),
                 GtgtStep(
                   key: 'unit_name',
-                  label: '学习单元',
+                  label: '对应单元',
                   placeholder: unitNames.isEmpty ? '第一单元' : unitNames.first,
                   choices: unitNames.isEmpty
                       ? null
@@ -266,39 +337,26 @@ class _StudyCoachPageState extends State<StudyCoachPage> {
                           .map((n) => (value: n, label: n.length > 18 ? '${n.substring(0, 18)}…' : n))
                           .toList(),
                 ),
-                const GtgtStep(key: 'score', label: '得分/题量', optional: true),
-                const GtgtStep(
-                  key: 'result',
-                  label: '结果',
-                  optional: true,
-                  choices: [
-                    (value: 'pass', label: '通过'),
-                    (value: 'partial', label: '部分'),
-                    (value: 'fail', label: '需巩固'),
-                  ],
-                ),
-                const GtgtStep(key: 'notes', label: '备注', optional: true, multiline: true),
+                const GtgtStep(key: 'notes', label: '结果备注（可空）', optional: true, multiline: true),
               ],
               values: {
                 'kind': _drillValues['kind'] ?? 'dictation',
                 'unit_name': _drillValues['unit_name'] ?? (unitNames.isEmpty ? '' : unitNames.first),
-                'score': _drillValues['score'] ?? '',
-                'result': _drillValues['result'] ?? '',
                 'notes': _drillValues['notes'] ?? '',
               },
               onChanged: (k, v) => setState(() => _drillValues[k] = v),
               onComplete: _submitDrill,
               busy: _busy,
               resetKey: _drillResetKey,
-              submitLabel: '记录跟进',
+              submitLabel: '记下这次跟进',
             ),
             const SizedBox(height: 12),
             ...courseDrills.map((raw) {
               final d = Map<String, dynamic>.from(raw as Map);
               return Card(
                 child: ListTile(
-                  title: Text('${d['record_no']} · ${d['kind']}'),
-                  subtitle: Text('${d['unit_name']} · ${d['result'] ?? d['score'] ?? ''}'),
+                  title: Text('${d['kind']} · ${d['unit_name']}'),
+                  subtitle: Text('${d['notes'] ?? d['result'] ?? d['score'] ?? '已记录'}'),
                 ),
               );
             }),

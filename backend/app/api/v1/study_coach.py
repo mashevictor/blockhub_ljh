@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
@@ -14,13 +16,20 @@ from app.services import study_coach_store as store
 router = APIRouter(prefix="/study-coach", tags=["study-coach"])
 
 
+class LocateBody(BaseModel):
+    query: str = Field(min_length=1, max_length=200)
+    role: str = "student"
+
+
 class CreateCourseBody(BaseModel):
-    textbook_name: str = Field(min_length=1, max_length=200)
+    textbook_name: str = ""
+    query: str = ""
     subject: str = ""
     grade: str = ""
     role: str = "student"
     student_name: str = ""
     app_public_id: str = Field(default="", max_length=64)
+    catalog: dict[str, Any] | None = None
 
 
 class ProgressBody(BaseModel):
@@ -36,6 +45,20 @@ class CreateDrillBody(BaseModel):
     result: str = ""
     notes: str = ""
     app_public_id: str = Field(default="", max_length=64)
+
+
+@router.post("/locate")
+def locate_api(
+    body: LocateBody,
+    user: User = Depends(get_current_user),
+) -> dict:
+    _ = user
+    q = body.query.strip()
+    if not q:
+        raise HTTPException(status_code=400, detail="请先说一下课本名")
+    role = body.role if body.role in ("student", "parent", "teacher") else "student"
+    candidates = store.locate_textbooks(query=q, role=role)
+    return {"total": len(candidates), "candidates": candidates, "query": q}
 
 
 @router.get("/courses")
@@ -55,17 +78,21 @@ def create_course_api(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> dict:
-    if not body.textbook_name.strip():
-        raise HTTPException(status_code=400, detail="课本名称不能为空")
+    title = (body.textbook_name or body.query or "").strip()
+    if isinstance(body.catalog, dict):
+        title = title or str(body.catalog.get("full_title") or "").strip()
+    if not title:
+        raise HTTPException(status_code=400, detail="请先确认课本")
     item = store.create_course(
         db,
         user,
-        textbook_name=body.textbook_name,
+        textbook_name=title,
         subject=body.subject,
         grade=body.grade,
         role=body.role,
         student_name=body.student_name,
         app_public_id=body.app_public_id,
+        catalog=body.catalog,
     )
     return {"success": True, "course": item}
 
