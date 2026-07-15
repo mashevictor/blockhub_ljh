@@ -122,11 +122,11 @@ export default function DeliveryTemplatePicker({
     const trigger = triggerRef.current
     if (!trigger) return
     const rect = trigger.getBoundingClientRect()
-    const width = Math.min(420, window.innerWidth - 24)
+    const width = Math.min(300, window.innerWidth - 24)
     const gap = 8
     const spaceAbove = Math.max(0, rect.top - gap - 12)
     const spaceBelow = Math.max(0, window.innerHeight - rect.bottom - gap - 12)
-    const preferAbove = spaceAbove >= 240 || spaceAbove >= spaceBelow
+    const preferAbove = spaceAbove >= 200 || spaceAbove >= spaceBelow
     let left = rect.right - width
     left = Math.max(12, Math.min(left, window.innerWidth - width - 12))
     if (preferAbove) {
@@ -135,7 +135,7 @@ export default function DeliveryTemplatePicker({
         left,
         bottom: window.innerHeight - rect.top + gap,
         width,
-        maxHeight: Math.min(440, Math.max(200, spaceAbove)),
+        maxHeight: Math.min(360, Math.max(180, spaceAbove)),
       })
     } else {
       setPos({
@@ -143,7 +143,7 @@ export default function DeliveryTemplatePicker({
         left,
         top: rect.bottom + gap,
         width,
-        maxHeight: Math.min(440, Math.max(200, spaceBelow)),
+        maxHeight: Math.min(360, Math.max(180, spaceBelow)),
       })
     }
   }
@@ -191,7 +191,7 @@ export default function DeliveryTemplatePicker({
     createPortal(
       <div
         ref={popoverRef}
-        className="delivery-template-popover is-ported"
+        className="delivery-template-popover is-ported b2b-brand-scope"
         role="dialog"
         aria-label="选择网页模板与 App UI"
         style={{
@@ -233,7 +233,7 @@ export default function DeliveryTemplatePicker({
                   <TemplatePreview id={t.id} />
                   <span className="delivery-template-chip-text">
                     <strong>{t.label}</strong>
-                    <span>{t.desc}</span>
+                    <span className="delivery-template-chip-desc">{t.desc}</span>
                   </span>
                 </button>
               ))}
@@ -266,7 +266,7 @@ export default function DeliveryTemplatePicker({
                   <TemplatePreview id={t.id} />
                   <span className="delivery-template-chip-text">
                     <strong>{t.label}</strong>
-                    <span>{t.desc}</span>
+                    <span className="delivery-template-chip-desc">{t.desc}</span>
                   </span>
                 </button>
               ))}
