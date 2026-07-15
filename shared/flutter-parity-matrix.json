@@ -43,6 +43,26 @@
       "dart_import": "package:capability_device_repair/capability_device_repair.dart"
     },
     {
+      "web_pkg": "@blockhub/web-capability-quality-inspect",
+      "web_folder": "web-capability-quality-inspect",
+      "flutter_pkg": "capability_quality_inspect",
+      "p1_scope": "app",
+      "status_target": "ok",
+      "capability_keys": ["quality_inspect"],
+      "module_class": "QualityInspectModule",
+      "dart_import": "package:capability_quality_inspect/capability_quality_inspect.dart"
+    },
+    {
+      "web_pkg": "@blockhub/web-capability-inventory-count",
+      "web_folder": "web-capability-inventory-count",
+      "flutter_pkg": "capability_inventory_count",
+      "p1_scope": "app",
+      "status_target": "ok",
+      "capability_keys": ["inventory_count"],
+      "module_class": "InventoryCountModule",
+      "dart_import": "package:capability_inventory_count/capability_inventory_count.dart"
+    },
+    {
       "web_pkg": "@blockhub/web-capability-audit-log",
       "web_folder": "web-capability-audit-log",
       "flutter_pkg": "capability_audit_log",

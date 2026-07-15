@@ -518,3 +518,49 @@ class DeviceRepairTicket(Base):
 
     reporter: Mapped[User] = relationship(foreign_keys=[reporter_id])
     assignee: Mapped[User | None] = relationship(foreign_keys=[assignee_id])
+
+
+class QualityInspectRecord(Base):
+    """CapShip · quality_inspect 质检 / SOP 记录。"""
+
+    __tablename__ = "quality_inspect_records"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenants.id"), nullable=False, index=True)
+    app_public_id: Mapped[str] = mapped_column(String(64), nullable=False, default="", index=True)
+    reporter_id: Mapped[str] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
+    record_no: Mapped[str] = mapped_column(String(32), nullable=False, index=True)
+    product_code: Mapped[str] = mapped_column(String(120), nullable=False)
+    process_name: Mapped[str] = mapped_column(String(200), nullable=False, default="")
+    result: Mapped[str] = mapped_column(String(32), nullable=False, default="pass")  # pass | fail
+    note: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    status: Mapped[str] = mapped_column(String(32), nullable=False, default="open", index=True)  # open | closed
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+    reporter: Mapped[User] = relationship(foreign_keys=[reporter_id])
+
+
+class InventoryCountRecord(Base):
+    """CapShip · inventory_count 库存盘点。"""
+
+    __tablename__ = "inventory_count_records"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenants.id"), nullable=False, index=True)
+    app_public_id: Mapped[str] = mapped_column(String(64), nullable=False, default="", index=True)
+    reporter_id: Mapped[str] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
+    record_no: Mapped[str] = mapped_column(String(32), nullable=False, index=True)
+    location: Mapped[str] = mapped_column(String(200), nullable=False, default="")
+    sku_code: Mapped[str] = mapped_column(String(120), nullable=False)
+    qty: Mapped[int] = mapped_column(nullable=False, default=0)
+    note: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    status: Mapped[str] = mapped_column(String(32), nullable=False, default="pending", index=True)  # pending | confirmed
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+    reporter: Mapped[User] = relationship(foreign_keys=[reporter_id])

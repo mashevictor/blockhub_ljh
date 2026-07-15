@@ -19,6 +19,10 @@ dependencies:
     path: ../packages/capability_approval_flow
   capability_device_repair:
     path: ../packages/capability_device_repair
+  capability_quality_inspect:
+    path: ../packages/capability_quality_inspect
+  capability_inventory_count:
+    path: ../packages/capability_inventory_count
   capability_audit_log:
     path: ../packages/capability_audit_log
   capability_kb:

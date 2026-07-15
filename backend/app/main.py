@@ -18,8 +18,10 @@ from app.api.v1 import (
     device_repair,
     health,
     integration,
+    inventory_count,
     kb,
     notifications,
+    quality_inspect,
     reports,
     runtime,
     seed,
@@ -98,6 +100,8 @@ app.include_router(contracts.router, prefix=settings.api_prefix, dependencies=_a
 app.include_router(kb.router, prefix=settings.api_prefix, dependencies=_auth)
 app.include_router(approvals.router, prefix=settings.api_prefix, dependencies=_auth)
 app.include_router(device_repair.router, prefix=settings.api_prefix, dependencies=_auth)
+app.include_router(quality_inspect.router, prefix=settings.api_prefix, dependencies=_auth)
+app.include_router(inventory_count.router, prefix=settings.api_prefix, dependencies=_auth)
 app.include_router(reports.router, prefix=settings.api_prefix, dependencies=_auth)
 app.include_router(notifications.router, prefix=settings.api_prefix, dependencies=_auth)
 # integration：ingress/webhook 公开验签；其余路由在 router 内依赖 get_current_user

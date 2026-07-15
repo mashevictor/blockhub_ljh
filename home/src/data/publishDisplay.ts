@@ -52,8 +52,9 @@ const SCENARIO_CAPABILITY_MAP: Array<{ match: string[]; caps: Array<{ key: strin
     { key: 'notify_im', label: '企微钉钉飞书' },
     { key: 'chat_qa', label: '智能问答' },
   ]},
-  { match: ['SOP', '工艺', '作业指导', 'BOM'], caps: [
-    { key: 'kb_document', label: '知识库' },
+  { match: ['SOP', '工艺', '作业指导', 'BOM', '质检SOP'], caps: [
+    { key: 'quality_inspect', label: '质检SOP' },
+    { key: 'notify_im', label: '企微钉钉飞书' },
     { key: 'chat_qa', label: '智能问答' },
   ]},
   { match: ['生产日报', 'OEE', '产量'], caps: [
@@ -61,8 +62,12 @@ const SCENARIO_CAPABILITY_MAP: Array<{ match: string[]; caps: Array<{ key: strin
     { key: 'data_nl_query', label: '智能问数' },
   ]},
   { match: ['质检', '安环', '隐患'], caps: [
-    { key: 'approval_flow', label: '审批流' },
-    { key: 'chart_dashboard', label: '数据看板' },
+    { key: 'quality_inspect', label: '质检SOP' },
+    { key: 'notify_im', label: '企微钉钉飞书' },
+  ]},
+  { match: ['库存', '盘点', 'SKU', '货位', '补货'], caps: [
+    { key: 'inventory_count', label: '库存盘点' },
+    { key: 'notify_im', label: '企微钉钉飞书' },
   ]},
   { match: ['请假', '年假', '调休'], caps: [{ key: 'approval_flow', label: '审批流' }, { key: 'chat_qa', label: '智能问答' }] },
   { match: ['报销', '费用报销'], caps: [{ key: 'approval_flow', label: '审批流' }, { key: 'kb_document', label: '知识库' }] },

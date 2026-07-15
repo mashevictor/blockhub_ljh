@@ -189,6 +189,8 @@ CAPABILITIES = [
     {"key": "multi_agent", "name": "多助手切换", "category": "智能交互", "widget": "MultiAgentWidget", "agent_id": "chat_qa"},
     {"key": "chat_summary", "name": "对话摘要", "category": "智能交互", "widget": "SummaryWidget", "agent_id": "chat_qa"},
     {"key": "device_repair", "name": "设备报修", "category": "流程审批", "widget": "DeviceRepairWidget", "agent_id": "approval"},
+    {"key": "quality_inspect", "name": "质检SOP", "category": "现场运维", "widget": "QualityInspectWidget", "agent_id": "quality_inspect"},
+    {"key": "inventory_count", "name": "库存盘点", "category": "仓储物流", "widget": "InventoryCountWidget", "agent_id": "inventory_count"},
     {"key": "approval_flow", "name": "通用审批流", "category": "流程审批", "widget": "FormWidget", "agent_id": "approval"},
     {"key": "approval_inbox", "name": "待办/已办中心", "category": "流程审批", "widget": "ListWidget", "agent_id": "approval"},
     {"key": "approval_countersign", "name": "会签/或签", "category": "流程审批", "widget": "WorkflowWidget", "agent_id": "approval"},

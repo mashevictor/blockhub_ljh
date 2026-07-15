@@ -75,8 +75,8 @@ SCENARIO_TEMPLATES: list[dict[str, Any]] = [
         "id": "tpl-mfg-sop",
         "name": "SOP工艺问答",
         "industry": "mfg",
-        "match": ["SOP", "工艺", "作业指导", "BOM"],
-        "capability_keys": ["kb_document", "chat_qa"],
+        "match": ["SOP", "工艺", "作业指导", "BOM", "质检SOP"],
+        "capability_keys": ["quality_inspect", "kb_document", "chat_qa", "notify_im"],
     },
     {
         "id": "tpl-mfg-oee",
@@ -90,7 +90,14 @@ SCENARIO_TEMPLATES: list[dict[str, Any]] = [
         "name": "质检审批",
         "industry": "mfg",
         "match": ["质检", "安环", "隐患"],
-        "capability_keys": ["approval_flow", "chart_dashboard"],
+        "capability_keys": ["quality_inspect", "notify_im", "chart_dashboard"],
+    },
+    {
+        "id": "tpl-retail-stock",
+        "name": "库存盘点",
+        "industry": "retail",
+        "match": ["库存", "盘点", "SKU", "货位", "补货"],
+        "capability_keys": ["inventory_count", "notify_im", "chart_dashboard"],
     },
 ]
 

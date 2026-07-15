@@ -118,10 +118,12 @@ def resolve_publish_capability_keys_detailed(
         push(scenario_from_tpl)
         push(explicit_ok)
         scenario_added = list(scenario_from_tpl)
-        # 设备报修场景勿被旧底座「审批流」顶替成 FormWidget
-        if "device_repair" in scenario_from_tpl and "approval_flow" not in scenario_from_tpl:
-            resolved[:] = [k for k in resolved if k != "approval_flow"]
-            seen.discard("approval_flow")
+        # 现场运维 / 仓储选型勿被旧底座审批流顶替
+        for win in ("device_repair", "quality_inspect", "inventory_count"):
+            if win in scenario_from_tpl and "approval_flow" not in scenario_from_tpl:
+                resolved[:] = [k for k in resolved if k != "approval_flow"]
+                seen.discard("approval_flow")
+                break
     elif explicit_ok or unknown:
         push(explicit_ok)
         scenario_added = []
