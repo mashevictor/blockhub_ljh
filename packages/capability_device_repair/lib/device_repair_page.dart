@@ -102,12 +102,46 @@ class _DeviceRepairPageState extends State<DeviceRepairPage> {
     final id = t['id']?.toString() ?? '';
     if (id.isEmpty) return;
     final status = t['status']?.toString() ?? '';
-    final action = status == 'pending' ? 'dispatch' : 'complete';
+    if (status == 'pending') {
+      final nameCtrl = TextEditingController();
+      final ok = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('派工选人'),
+          content: TextField(
+            controller: nameCtrl,
+            decoration: const InputDecoration(
+              labelText: '维修工姓名',
+              hintText: '选择或填写，如：张三',
+            ),
+            autofocus: true,
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('取消')),
+            FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('确认派工')),
+          ],
+        ),
+      );
+      final name = nameCtrl.text.trim();
+      nameCtrl.dispose();
+      if (ok != true || name.isEmpty) return;
+      try {
+        final dio = getRuntimeAuthedDio();
+        await dio.post(
+          '$_base/tickets/$id/action',
+          data: {'action': 'dispatch', 'assignee_name': name},
+        );
+        await _load();
+      } catch (e) {
+        setState(() => _error = '派工失败: $e');
+      }
+      return;
+    }
     try {
       final dio = getRuntimeAuthedDio();
       await dio.post(
         '$_base/tickets/$id/action',
-        data: {'action': action},
+        data: {'action': 'complete'},
       );
       await _load();
     } catch (e) {
@@ -147,7 +181,7 @@ class _DeviceRepairPageState extends State<DeviceRepairPage> {
           ],
         ),
         const SizedBox(height: 4),
-        Text('扫码/编号 → 派工 → 完工 · 真接口入库', style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
+        Text('提单 → 派工选人 → 完工 · 同租户协作', style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
         if (_error != null) ...[
           const SizedBox(height: 8),
           Text(_error!, style: const TextStyle(color: Colors.red, fontSize: 13)),
@@ -240,11 +274,16 @@ class _DeviceRepairPageState extends State<DeviceRepairPage> {
             final asset = t['asset_code']?.toString() ?? '';
             final loc = t['location']?.toString() ?? '';
             final fault = t['fault']?.toString() ?? '';
+            final assignee = t['assignee_name']?.toString() ?? '';
+            final reporter = t['reporter_name']?.toString() ?? '';
             return Card(
               margin: const EdgeInsets.only(bottom: 8),
               child: ListTile(
                 title: Text('$no · $asset'),
-                subtitle: Text('$loc\n$fault'),
+                subtitle: Text(
+                  '$loc\n$fault\n报修:${reporter.isEmpty ? '—' : reporter}'
+                  '${assignee.isEmpty ? '' : ' · 维修:$assignee'}',
+                ),
                 isThreeLine: true,
                 trailing: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -253,7 +292,7 @@ class _DeviceRepairPageState extends State<DeviceRepairPage> {
                     if (status != 'done')
                       TextButton(
                         onPressed: () => _advance(t),
-                        child: Text(status == 'pending' ? '派工' : '完工', style: const TextStyle(fontSize: 12)),
+                        child: Text(status == 'pending' ? '派工选人' : '完工', style: const TextStyle(fontSize: 12)),
                       ),
                   ],
                 ),

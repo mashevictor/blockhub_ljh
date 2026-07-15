@@ -503,6 +503,8 @@ class DeviceRepairTicket(Base):
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenants.id"), nullable=False, index=True)
     app_public_id: Mapped[str] = mapped_column(String(64), nullable=False, default="", index=True)
     reporter_id: Mapped[str] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
+    assignee_id: Mapped[str | None] = mapped_column(ForeignKey("users.id"), nullable=True, index=True)
+    assignee_name: Mapped[str] = mapped_column(String(120), nullable=False, default="")
     ticket_no: Mapped[str] = mapped_column(String(32), nullable=False, index=True)
     asset_code: Mapped[str] = mapped_column(String(120), nullable=False)
     location: Mapped[str] = mapped_column(String(200), nullable=False, default="")
@@ -515,3 +517,4 @@ class DeviceRepairTicket(Base):
     )
 
     reporter: Mapped[User] = relationship(foreign_keys=[reporter_id])
+    assignee: Mapped[User | None] = relationship(foreign_keys=[assignee_id])

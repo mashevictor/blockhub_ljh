@@ -24,6 +24,18 @@ class CreateTicketBody(BaseModel):
 class ActionBody(BaseModel):
     action: str = Field(description="dispatch | complete | next")
     comment: str = ""
+    assignee_id: str = ""
+    assignee_name: str = Field(default="", max_length=120)
+
+
+@router.get("/assignees")
+def list_assignees_api(
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> dict:
+    """同租户可登录成员，供派工选人（群里其他人登录同一 Runtime 也能操作）。"""
+    items = store.list_assignee_candidates(db, user.tenant_id)
+    return {"total": len(items), "items": items}
 
 
 @router.get("/tickets")
@@ -89,7 +101,13 @@ def ticket_action_api(
         ticket_id,
         action=action,
         comment=body.comment,
+        assignee_id=body.assignee_id or None,
+        assignee_name=body.assignee_name,
     )
     if result is None:
         raise HTTPException(status_code=404, detail="工单不存在或 action 无效")
+    if result.get("error") == "dispatch_requires_assignee":
+        raise HTTPException(status_code=400, detail="派工请选择或填写维修工")
+    if result.get("error") == "assignee_not_found":
+        raise HTTPException(status_code=400, detail="维修工不在本租户或已停用")
     return {"success": True, "ticket": result}

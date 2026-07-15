@@ -11,6 +11,15 @@ interface RepairTicket {
   status: 'pending' | 'dispatched' | 'done' | string
   created_at: string
   reporter_name?: string
+  assignee_id?: string | null
+  assignee_name?: string
+}
+
+interface AssigneeCandidate {
+  id: string
+  name: string
+  email: string
+  role: string
 }
 
 const STATUS_LABEL: Record<string, string> = {
@@ -24,6 +33,7 @@ const STEPS = ['设备编号', '工位位置', '故障描述'] as const
 export function DeviceRepairWidget(_props: { node: SchemaNode }) {
   const { token, primaryColor, appId, user } = useRuntime()
   const [items, setItems] = useState<RepairTicket[]>([])
+  const [candidates, setCandidates] = useState<AssigneeCandidate[]>([])
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
   const [step, setStep] = useState(0)
@@ -32,6 +42,10 @@ export function DeviceRepairWidget(_props: { node: SchemaNode }) {
   const [fault, setFault] = useState('')
   const [msg, setMsg] = useState('')
   const [error, setError] = useState('')
+
+  const [dispatchId, setDispatchId] = useState<string | null>(null)
+  const [pickId, setPickId] = useState('')
+  const [pickName, setPickName] = useState('')
 
   const load = useCallback(async () => {
     if (!token) {
@@ -54,9 +68,23 @@ export function DeviceRepairWidget(_props: { node: SchemaNode }) {
     }
   }, [token, appId])
 
+  const loadCandidates = useCallback(async () => {
+    if (!token) return
+    try {
+      const data = await apiFetch<{ items: AssigneeCandidate[] }>('/api/v1/device-repair/assignees', token)
+      setCandidates(data.items || [])
+    } catch {
+      setCandidates([])
+    }
+  }, [token])
+
   useEffect(() => {
     void load()
   }, [load])
+
+  useEffect(() => {
+    void loadCandidates()
+  }, [loadCandidates])
 
   const canNext =
     (step === 0 && assetCode.trim().length > 0) ||
@@ -88,7 +116,7 @@ export function DeviceRepairWidget(_props: { node: SchemaNode }) {
       setLocation('')
       setFault('')
       setStep(0)
-      setMsg('报修已提交，可在下方跟踪；也可打开「企微钉钉飞书」页配置推送通道')
+      setMsg('报修已提交并通知群；同事可用同一 Runtime 链接登录后派工')
       await load()
     } catch (e) {
       setMsg(`提交失败：${String(e)}`)
@@ -97,14 +125,50 @@ export function DeviceRepairWidget(_props: { node: SchemaNode }) {
     }
   }
 
-  const advance = async (id: string, status: string) => {
+  const openDispatch = (id: string) => {
+    setDispatchId(id)
+    setPickId('')
+    setPickName('')
+    setMsg('')
+    void loadCandidates()
+  }
+
+  const confirmDispatch = async () => {
+    if (!token || !dispatchId) return
+    const name = pickName.trim()
+    if (!pickId && !name) {
+      setMsg('请选择维修工或手填姓名')
+      return
+    }
+    setBusy(true)
+    setMsg('')
+    try {
+      await apiFetch(`/api/v1/device-repair/tickets/${dispatchId}/action`, token, {
+        method: 'POST',
+        body: JSON.stringify({
+          action: 'dispatch',
+          assignee_id: pickId || '',
+          assignee_name: name,
+        }),
+      })
+      setDispatchId(null)
+      setMsg('已派工，群消息会带上维修工姓名')
+      await load()
+    } catch (e) {
+      setMsg(`派工失败：${String(e)}`)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const complete = async (id: string) => {
     if (!token) return
-    const action = status === 'pending' ? 'dispatch' : 'complete'
     try {
       await apiFetch(`/api/v1/device-repair/tickets/${id}/action`, token, {
         method: 'POST',
-        body: JSON.stringify({ action }),
+        body: JSON.stringify({ action: 'complete' }),
       })
+      setMsg('已完工确认')
       await load()
     } catch (e) {
       setMsg(`操作失败：${String(e)}`)
@@ -120,8 +184,8 @@ export function DeviceRepairWidget(_props: { node: SchemaNode }) {
         <span className="bh-flow-meta">{step + 1}/{STEPS.length}</span>
       </div>
       <p className="muted">
-        扫码/填编号 → 派工 → 完工跟踪
-        {user?.display_name ? ` · ${user.display_name}` : ''}
+        提单 → 派工选人 → 完工 · 同租户同事打开同一 Runtime 即可协作
+        {user?.display_name ? ` · 当前：${user.display_name}` : ''}
       </p>
 
       <div className="bh-flow-steps" aria-label="报修填写进度">
@@ -207,7 +271,61 @@ export function DeviceRepairWidget(_props: { node: SchemaNode }) {
         {error && <p className="status-msg" style={{ color: '#b91c1c' }}>{error}</p>}
       </div>
 
-      <h4 style={{ margin: '20px 0 8px', fontSize: 14 }}>我的工单</h4>
+      {dispatchId && (
+        <div className="list-card" style={{ marginTop: 16, borderColor: accent }}>
+          <strong>派工 · 选择维修工</strong>
+          <p className="muted" style={{ fontSize: 12, margin: '6px 0 10px' }}>
+            从本租户账号选人，或手填外部师傅姓名（企微群里其他人登录同一链接也能看到并操作）
+          </p>
+          <div style={{ display: 'grid', gap: 8 }}>
+            {candidates.map((c) => (
+              <button
+                key={c.id}
+                type="button"
+                className={pickId === c.id ? 'btn' : 'btn btn-ghost'}
+                style={pickId === c.id ? { background: accent, textAlign: 'left' } : { textAlign: 'left' }}
+                onClick={() => {
+                  setPickId(c.id)
+                  setPickName(c.name)
+                }}
+              >
+                {c.name}
+                {c.role ? ` · ${c.role}` : ''}
+                {c.email ? ` · ${c.email}` : ''}
+              </button>
+            ))}
+            {candidates.length === 0 && <p className="muted">暂无候选人列表，可直接手填姓名</p>}
+            <label>
+              或手填维修工姓名
+              <input
+                className="input"
+                value={pickName}
+                onChange={(e) => {
+                  setPickName(e.target.value)
+                  setPickId('')
+                }}
+                placeholder="如：张三（外协）"
+              />
+            </label>
+          </div>
+          <div className="bh-flow-actions" style={{ marginTop: 12 }}>
+            <button type="button" className="btn btn-ghost" onClick={() => setDispatchId(null)}>
+              取消
+            </button>
+            <button
+              type="button"
+              className="btn"
+              style={{ background: accent }}
+              disabled={busy || (!pickId && !pickName.trim())}
+              onClick={() => void confirmDispatch()}
+            >
+              {busy ? '派工中…' : '确认派工'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      <h4 style={{ margin: '20px 0 8px', fontSize: 14 }}>本应用工单（同租户可见）</h4>
       {loading && <p className="muted">加载中…</p>}
       {!loading && items.length === 0 && <p className="muted">暂无工单，按步骤提交后写入数据库</p>}
       <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 8 }}>
@@ -219,14 +337,28 @@ export function DeviceRepairWidget(_props: { node: SchemaNode }) {
             </div>
             <p className="muted" style={{ margin: '6px 0 0' }}>{t.location}</p>
             <p style={{ margin: '4px 0 0', fontSize: 13 }}>{t.fault}</p>
-            {t.status !== 'done' && (
+            <p className="muted" style={{ margin: '6px 0 0', fontSize: 12 }}>
+              报修：{t.reporter_name || '—'}
+              {t.assignee_name ? ` · 维修：${t.assignee_name}` : ''}
+            </p>
+            {t.status === 'pending' && (
               <button
                 type="button"
                 className="btn btn-ghost"
                 style={{ marginTop: 8, fontSize: 12 }}
-                onClick={() => void advance(t.id, t.status)}
+                onClick={() => openDispatch(t.id)}
               >
-                {t.status === 'pending' ? '派工' : '完工确认'}
+                派工选人
+              </button>
+            )}
+            {t.status === 'dispatched' && (
+              <button
+                type="button"
+                className="btn btn-ghost"
+                style={{ marginTop: 8, fontSize: 12 }}
+                onClick={() => void complete(t.id)}
+              >
+                完工确认
               </button>
             )}
           </li>
