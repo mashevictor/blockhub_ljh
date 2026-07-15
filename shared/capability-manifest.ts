@@ -144,6 +144,23 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     "keywords": []
   },
   {
+    "key": "campaign_ops",
+    "name": "活动运营",
+    "category": "营销运营",
+    "widget": "CampaignOpsWidget",
+    "agent_id": "campaign_ops",
+    "web_pkg": "@blockhub/web-capability-campaign-ops",
+    "flutter_pkg": "capability_campaign_ops",
+    "route": "/campaign-ops",
+    "keywords": [
+      "活动运营",
+      "活动策划",
+      "报名统计",
+      "转化复盘",
+      "活动管理"
+    ]
+  },
+  {
     "key": "chart_basic",
     "name": "折线/柱状图",
     "category": "可视化",
@@ -345,6 +362,24 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     ]
   },
   {
+    "key": "delivery_order",
+    "name": "外卖配送",
+    "category": "物流仓储",
+    "widget": "DeliveryOrderWidget",
+    "agent_id": "delivery_order",
+    "web_pkg": "@blockhub/web-capability-delivery-order",
+    "flutter_pkg": "capability_delivery_order",
+    "route": "/delivery-order",
+    "keywords": [
+      "外卖配送",
+      "外卖",
+      "骑手调度",
+      "配送异常",
+      "订单跟踪",
+      "运单跟踪"
+    ]
+  },
+  {
     "key": "device_repair",
     "name": "设备报修",
     "category": "现场运维",
@@ -376,6 +411,23 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
       "sap",
       "用友",
       "金蝶"
+    ]
+  },
+  {
+    "key": "fitness_checkin",
+    "name": "健身打卡",
+    "category": "生活服务",
+    "widget": "FitnessCheckinWidget",
+    "agent_id": "fitness_checkin",
+    "web_pkg": "@blockhub/web-capability-fitness-checkin",
+    "flutter_pkg": "capability_fitness_checkin",
+    "route": "/fitness-checkin",
+    "keywords": [
+      "健身打卡",
+      "课程预约",
+      "训练打卡",
+      "教练答疑",
+      "健身"
     ]
   },
   {
@@ -667,6 +719,23 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
       "入住",
       "退房",
       "订房"
+    ]
+  },
+  {
+    "key": "house_viewing",
+    "name": "看房签约",
+    "category": "房地产",
+    "widget": "HouseViewingWidget",
+    "agent_id": "house_viewing",
+    "web_pkg": "@blockhub/web-capability-house-viewing",
+    "flutter_pkg": "capability_house_viewing",
+    "route": "/house-viewing",
+    "keywords": [
+      "看房签约",
+      "看房预约",
+      "意向登记",
+      "签约跟进",
+      "带看"
     ]
   },
   {
@@ -1070,6 +1139,43 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
       "隐患",
       "安全巡检",
       "设备巡检"
+    ]
+  },
+  {
+    "key": "study_coach",
+    "name": "课本学习",
+    "category": "教育培训",
+    "widget": "StudyCoachWidget",
+    "agent_id": "study_coach",
+    "web_pkg": "@blockhub/web-capability-study-coach",
+    "flutter_pkg": "capability_study_coach",
+    "route": "/study-coach",
+    "keywords": [
+      "课本学习",
+      "学习规划",
+      "学习进度",
+      "家默",
+      "听写",
+      "复习跟进",
+      "考试",
+      "课本"
+    ]
+  },
+  {
+    "key": "travel_plan",
+    "name": "旅行攻略",
+    "category": "生活服务",
+    "widget": "TravelPlanWidget",
+    "agent_id": "travel_plan",
+    "web_pkg": "@blockhub/web-capability-travel-plan",
+    "flutter_pkg": "capability_travel_plan",
+    "route": "/travel-plan",
+    "keywords": [
+      "旅行攻略",
+      "行程规划",
+      "景点问答",
+      "预订提醒",
+      "旅行"
     ]
   }
 ] as const

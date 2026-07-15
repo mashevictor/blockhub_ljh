@@ -30,6 +30,12 @@ from app.api.v1 import (
     site_patrol,
     class_schedule,
     hotel_booking,
+    study_coach,
+    delivery_order,
+    house_viewing,
+    campaign_ops,
+    fitness_checkin,
+    travel_plan,
     notifications,
     quality_inspect,
     reports,
@@ -122,6 +128,12 @@ app.include_router(property_repair.router, prefix=settings.api_prefix, dependenc
 app.include_router(site_patrol.router, prefix=settings.api_prefix, dependencies=_auth)
 app.include_router(class_schedule.router, prefix=settings.api_prefix, dependencies=_auth)
 app.include_router(hotel_booking.router, prefix=settings.api_prefix, dependencies=_auth)
+app.include_router(study_coach.router, prefix=settings.api_prefix, dependencies=_auth)
+app.include_router(travel_plan.router, prefix=settings.api_prefix, dependencies=_auth)
+app.include_router(fitness_checkin.router, prefix=settings.api_prefix, dependencies=_auth)
+app.include_router(campaign_ops.router, prefix=settings.api_prefix, dependencies=_auth)
+app.include_router(house_viewing.router, prefix=settings.api_prefix, dependencies=_auth)
+app.include_router(delivery_order.router, prefix=settings.api_prefix, dependencies=_auth)
 app.include_router(reports.router, prefix=settings.api_prefix, dependencies=_auth)
 app.include_router(notifications.router, prefix=settings.api_prefix, dependencies=_auth)
 # integration：ingress/webhook 公开验签；其余路由在 router 内依赖 get_current_user

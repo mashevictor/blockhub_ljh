@@ -97,6 +97,30 @@ const SCENARIO_CAPABILITY_MAP: Array<{ match: string[]; caps: Array<{ key: strin
     { key: 'class_schedule', label: '课表查询' },
     { key: 'notify_im', label: '企微钉钉飞书' },
   ]},
+  { match: ['外卖配送', '外卖', '骑手调度', '配送异常', '订单跟踪'], caps: [
+    { key: 'delivery_order', label: '外卖配送' },
+    { key: 'notify_im', label: '企微钉钉飞书' },
+  ]},
+  { match: ['看房签约', '看房预约', '意向登记', '签约跟进', '带看'], caps: [
+    { key: 'house_viewing', label: '看房签约' },
+    { key: 'notify_im', label: '企微钉钉飞书' },
+  ]},
+  { match: ['活动运营', '活动策划', '报名统计', '转化复盘', '活动管理'], caps: [
+    { key: 'campaign_ops', label: '活动运营' },
+    { key: 'notify_im', label: '企微钉钉飞书' },
+  ]},
+  { match: ['健身打卡', '课程预约', '训练打卡', '教练答疑', '健身'], caps: [
+    { key: 'fitness_checkin', label: '健身打卡' },
+    { key: 'notify_im', label: '企微钉钉飞书' },
+  ]},
+  { match: ['旅行攻略', '行程规划', '景点问答', '预订提醒', '旅行'], caps: [
+    { key: 'travel_plan', label: '旅行攻略' },
+    { key: 'notify_im', label: '企微钉钉飞书' },
+  ]},
+  { match: ['课本学习', '学习规划', '学习进度', '家默', '听写', '复习跟进', '家默督导', '教学规划'], caps: [
+    { key: 'study_coach', label: '课本学习' },
+    { key: 'notify_im', label: '企微钉钉飞书' },
+  ]},
   { match: ['物业报修', '业主报修', '小区报修', '物业工单'], caps: [
     { key: 'property_repair', label: '物业报修' },
     { key: 'notify_im', label: '企微钉钉飞书' },

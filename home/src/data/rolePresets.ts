@@ -21,6 +21,7 @@ const PRESET_ROLES: Record<string, string> = {
   s16: '学生', s17: '学生', s18: '运营', s19: '业主', s20: '销售',
   s21: '酒店', s22: '骑手', s23: '会员', s24: '旅行', s25: '新人',
   s26: '业主', s27: '宠主', s28: '巡检', s29: '市民', s30: '法务', s31: '全员',
+  s32: '学生', s33: '家长', s34: '老师',
 }
 
 export function presetRole(p: RolePreset): string {
@@ -210,11 +211,12 @@ export const ROLE_PRESETS: RolePreset[] = [
     '活动策划、报名统计与转化复盘。',
     [
       { type: 'industry', key: 'marketing', label: '市场营销' },
-      { type: 'office', key: '数据报表', label: '数据报表' },
-      { type: 'scenario', key: 's18-campaign', label: '活动管理' },
-      { type: 'module', key: 'notify_inapp', label: '站内信' },
+      { type: 'scenario', key: 's18-main', label: '活动运营' },
+      { type: 'module', key: 'campaign_ops', label: '活动运营' },
+      { type: 'module', key: 'notify_im', label: '企微钉钉飞书' },
     ],
-    ['>> 活动管理 · 排期素材', '>> 报名统计 · 实时看板', '>> 转化复盘 · 漏斗分析', '>> 消息推送 · 多渠道触达']),
+    ['>> 活动运营 · 排期素材登记', '>> 报名复盘 · 指标闭环', '>> 企微钉钉飞书 · 触达推送', '>> CapShip · 双端真接口'], '运营'),
+
   scene('s19', '物业报修', '生活 · 社区', '#78716c',
     '业主报修、工单处理与进度查询。',
     [
@@ -228,10 +230,12 @@ export const ROLE_PRESETS: RolePreset[] = [
     '看房预约、意向登记与签约跟进。',
     [
       { type: 'industry', key: 'realestate', label: '房地产' },
-      { type: 'scenario', key: 's20-view', label: '看房预约' },
-      { type: 'module', key: 'chart_funnel', label: '销售漏斗' },
+      { type: 'scenario', key: 's20-main', label: '看房签约' },
+      { type: 'module', key: 'house_viewing', label: '看房签约' },
+      { type: 'module', key: 'notify_im', label: '企微钉钉飞书' },
     ],
-    ['>> 看房预约 · 在线选房', '>> 意向登记 · 客户画像', '>> 销售漏斗 · 跟进阶段', '>> 签约提醒 · 节点推送']),
+    ['>> 看房签约 · 客户房源登记', '>> 意向/签约 · 跟进闭环', '>> 企微钉钉飞书 · 进度推送', '>> CapShip · 双端真接口'], '销售'),
+
   scene('s21', '酒店预订', '餐饮 · 预订', '#ec4899',
     '客房预订、排班管理与客诉处理。',
     [
@@ -245,26 +249,32 @@ export const ROLE_PRESETS: RolePreset[] = [
     '订单跟踪、骑手调度与异常处理。',
     [
       { type: 'industry', key: 'logistics', label: '物流仓储' },
-      { type: 'scenario', key: 's22-deliver', label: '运单跟踪' },
-      { type: 'module', key: 'notify_inapp', label: '站内信' },
+      { type: 'scenario', key: 's22-main', label: '外卖配送' },
+      { type: 'module', key: 'delivery_order', label: '外卖配送' },
+      { type: 'module', key: 'notify_im', label: '企微钉钉飞书' },
     ],
-    ['>> 运单跟踪 · 实时位置', '>> 骑手调度 · 智能派单', '>> 异常处理 · 快速响应', '>> 消息推送 · 送达通知']),
+    ['>> 外卖配送 · 取送信息登记', '>> 配送中/完成 · 状态闭环', '>> 企微钉钉飞书 · 异常推送', '>> CapShip · 双端真接口'], '骑手'),
+
   scene('s23', '健身打卡', '生活 · 健康', '#14b8a6',
     '课程预约、训练打卡与教练答疑。',
     [
       { type: 'industry', key: 'office', label: '通用办公' },
-      { type: 'scenario', key: 's23-gym', label: '课程预约' },
-      { type: 'module', key: 'chat_qa', label: '智能问答' },
+      { type: 'scenario', key: 's23-main', label: '健身打卡' },
+      { type: 'module', key: 'fitness_checkin', label: '健身打卡' },
+      { type: 'module', key: 'notify_im', label: '企微钉钉飞书' },
     ],
-    ['>> 课程预约 · 团课私教', '>> 训练打卡 · 记录成长', '>> 教练答疑 · 动作指导', '>> 数据看板 · 体脂趋势']),
+    ['>> 健身打卡 · 课程预约登记', '>> 训练打卡 · 完成闭环', '>> 企微钉钉飞书 · 提醒推送', '>> CapShip · 双端真接口'], '会员'),
+
   scene('s24', '旅行攻略', '生活 · 出行', '#0d9488',
     '行程规划、景点问答与预订提醒。',
     [
       { type: 'industry', key: 'office', label: '通用办公' },
-      { type: 'scenario', key: 's24-trip', label: '行程规划' },
-      { type: 'module', key: 'chat_qa', label: '智能问答' },
+      { type: 'scenario', key: 's24-main', label: '旅行攻略' },
+      { type: 'module', key: 'travel_plan', label: '旅行攻略' },
+      { type: 'module', key: 'notify_im', label: '企微钉钉飞书' },
     ],
-    ['>> 行程规划 · 路线推荐', '>> 景点问答 · 攻略检索', '>> 预订提醒 · 节点推送', '>> 智能问答 · 当地资讯']),
+    ['>> 旅行攻略 · 目的地行程登记', '>> 景点/预订 · 确认闭环', '>> 企微钉钉飞书 · 提醒推送', '>> CapShip · 双端真接口'], '旅行'),
+
   scene('s25', '婚礼筹备', '生活 · 庆典', '#e879f9',
     '宾客名单、供应商协同与预算跟踪。',
     [
@@ -323,6 +333,35 @@ export const ROLE_PRESETS: RolePreset[] = [
       { type: 'module', key: 'chat_qa', label: '智能问答' },
     ],
     ['>> 上海话语音 · 开口即问', '>> 实时语音 · 边说边答', '>> 语音播报 · 听得到', '>> 手机/网页 · 直接可用'], '全员'),
+  scene('s32', '课本学习', '教育 · 学生', '#6366f1',
+    '输入课本名，规划学习内容、自动进度，支持复习、考试与家默。',
+    [
+      { type: 'industry', key: 'edu', label: '教育培训' },
+      { type: 'scenario', key: 's32-study', label: '课本学习' },
+      { type: 'module', key: 'study_coach', label: '课本学习' },
+      { type: 'module', key: 'notify_im', label: '企微钉钉飞书' },
+    ],
+    ['>> 课本学习 · 输入课本生成规划', '>> 学习进度 · 自动跟进', '>> 家默考试 · 复习闭环', '>> CapShip · 双端真接口'], 5),
+  scene('s33', '家默督导', '教育 · 家长', '#8b5cf6',
+    '家长盯家默/听写、跟复习进度，与课本学习闭环联动。',
+    [
+      { type: 'industry', key: 'edu', label: '教育培训' },
+      { type: 'scenario', key: 's33-dictation', label: '家默督导' },
+      { type: 'module', key: 'study_coach', label: '课本学习' },
+      { type: 'module', key: 'school_notice', label: '家校通知' },
+      { type: 'module', key: 'notify_im', label: '企微钉钉飞书' },
+    ],
+    ['>> 家默督导 · 听写默写记录', '>> 学习进度 · 家长可视', '>> 企微钉钉飞书 · 提醒推送', '>> CapShip · 双端真接口'], 4),
+  scene('s34', '教学规划', '教育 · 老师', '#4f46e5',
+    '按课本生成教学单元、跟学生进度与测验结果。',
+    [
+      { type: 'industry', key: 'edu', label: '教育培训' },
+      { type: 'scenario', key: 's34-teach', label: '教学规划' },
+      { type: 'module', key: 'study_coach', label: '课本学习' },
+      { type: 'module', key: 'homework_qa', label: '作业答疑' },
+      { type: 'module', key: 'notify_im', label: '企微钉钉飞书' },
+    ],
+    ['>> 教学规划 · 课本大纲生成', '>> 测验跟进 · 掌握度闭环', '>> 企微钉钉飞书 · 学情推送', '>> CapShip · 双端真接口'], 4),
 ]
 
 export interface DanmakuLayout {

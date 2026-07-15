@@ -41,6 +41,8 @@ dependencies:
     path: ../packages/capability_class_schedule
   capability_hotel_booking:
     path: ../packages/capability_hotel_booking
+  capability_study_coach:
+    path: ../packages/capability_study_coach
   capability_homework_qa:
     path: ../packages/capability_homework_qa
   capability_audit_log:
@@ -57,6 +59,16 @@ dependencies:
     path: ../packages/capability_multi_agent
   capability_security_mask:
     path: ../packages/capability_security_mask
+  capability_delivery_order:
+    path: ../packages/capability_delivery_order
+  capability_house_viewing:
+    path: ../packages/capability_house_viewing
+  capability_campaign_ops:
+    path: ../packages/capability_campaign_ops
+  capability_fitness_checkin:
+    path: ../packages/capability_fitness_checkin
+  capability_travel_plan:
+    path: ../packages/capability_travel_plan
   capability_flutter_tools:
     path: ../packages/capability_flutter_tools
   dio: ^5.7.0

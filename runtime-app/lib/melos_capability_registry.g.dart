@@ -15,6 +15,7 @@ import 'package:capability_property_repair/capability_property_repair.dart';
 import 'package:capability_site_patrol/capability_site_patrol.dart';
 import 'package:capability_class_schedule/capability_class_schedule.dart';
 import 'package:capability_hotel_booking/capability_hotel_booking.dart';
+import 'package:capability_study_coach/capability_study_coach.dart';
 import 'package:capability_homework_qa/capability_homework_qa.dart';
 import 'package:capability_audit_log/capability_audit_log.dart';
 import 'package:capability_kb/capability_kb.dart';
@@ -23,6 +24,11 @@ import 'package:capability_data_nl_query/capability_data_nl_query.dart';
 import 'package:capability_integration/capability_integration.dart';
 import 'package:capability_multi_agent/capability_multi_agent.dart';
 import 'package:capability_security_mask/capability_security_mask.dart';
+import 'package:capability_delivery_order/capability_delivery_order.dart';
+import 'package:capability_house_viewing/capability_house_viewing.dart';
+import 'package:capability_campaign_ops/capability_campaign_ops.dart';
+import 'package:capability_fitness_checkin/capability_fitness_checkin.dart';
+import 'package:capability_travel_plan/capability_travel_plan.dart';
 import 'package:capability_flutter_tools/capability_flutter_tools.dart';
 
 final _mod_chat_qa = const ChatQaModule();
@@ -40,6 +46,7 @@ final _mod_property_repair = const PropertyRepairModule();
 final _mod_site_patrol = const SitePatrolModule();
 final _mod_class_schedule = const ClassScheduleModule();
 final _mod_hotel_booking = const HotelBookingModule();
+final _mod_study_coach = const StudyCoachModule();
 final _mod_homework_qa = const HomeworkQaModule();
 final _mod_audit_log = const AuditLogModule();
 final _mod_kb = const KbModule();
@@ -47,6 +54,11 @@ final _mod_dashboard = const DashboardModule();
 final _mod_data_nl_query = const DataNlQueryModule();
 final _mod_multi_agent = const MultiAgentModule();
 final _mod_security_mask = const SecurityMaskModule();
+final _mod_delivery_order = const DeliveryOrderModule();
+final _mod_house_viewing = const HouseViewingModule();
+final _mod_campaign_ops = const CampaignOpsModule();
+final _mod_fitness_checkin = const FitnessCheckinModule();
+final _mod_travel_plan = const TravelPlanModule();
 
 List<CapabilityModule> get generatedMelosCapabilityModules => [
   _mod_chat_qa,
@@ -64,6 +76,7 @@ List<CapabilityModule> get generatedMelosCapabilityModules => [
   _mod_site_patrol,
   _mod_class_schedule,
   _mod_hotel_booking,
+  _mod_study_coach,
   _mod_homework_qa,
   _mod_audit_log,
   _mod_kb,
@@ -71,6 +84,11 @@ List<CapabilityModule> get generatedMelosCapabilityModules => [
   _mod_data_nl_query,
   _mod_multi_agent,
   _mod_security_mask,
+  _mod_delivery_order,
+  _mod_house_viewing,
+  _mod_campaign_ops,
+  _mod_fitness_checkin,
+  _mod_travel_plan,
 ];
 
 final Map<String, CapabilityModule> generatedMelosModuleByKey = {
@@ -101,6 +119,7 @@ final Map<String, CapabilityModule> generatedMelosModuleByKey = {
     'approval_inbox': _mod_approval_flow,
     'approval_remind': _mod_approval_flow,
     'audit_log': _mod_audit_log,
+    'campaign_ops': _mod_campaign_ops,
     'chart_dashboard': _mod_dashboard,
     'chart_funnel': _mod_dashboard,
     'chat': _mod_chat_qa,
@@ -111,11 +130,14 @@ final Map<String, CapabilityModule> generatedMelosModuleByKey = {
     'contract_editor': _mod_approval_flow,
     'contract_esign': _mod_approval_flow,
     'data_nl_query': _mod_data_nl_query,
+    'delivery_order': _mod_delivery_order,
     'device_repair': _mod_device_repair,
+    'fitness_checkin': _mod_fitness_checkin,
     'form_widget': _mod_approval_flow,
     'game_support': _mod_game_support,
     'homework_qa': _mod_homework_qa,
     'hotel_booking': _mod_hotel_booking,
+    'house_viewing': _mod_house_viewing,
     'inventory_count': _mod_inventory_count,
     'kb_document': _mod_kb,
     'kb_search': _mod_kb,
@@ -133,4 +155,6 @@ final Map<String, CapabilityModule> generatedMelosModuleByKey = {
     'shanghai_voice': _mod_shanghai_voice,
     'shanghai_voice_stream': _mod_shanghai_voice,
     'site_patrol': _mod_site_patrol,
+    'study_coach': _mod_study_coach,
+    'travel_plan': _mod_travel_plan,
 };
