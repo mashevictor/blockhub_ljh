@@ -15,7 +15,7 @@ export function readAppVersion(packageJsonPath) {
   return pkg.version ?? '1.0.0'
 }
 
-/** @param {{ appVersion?: string, appName: 'home' | 'admin' }} options */
+/** @param {{ appVersion?: string, appName: 'home' | 'admin' | 'runtime' }} options */
 export function htmlCacheVersionPlugin(options) {
   const appVersion = options.appVersion ?? '1.0.0'
   const version = buildVersionLabel(appVersion)

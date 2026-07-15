@@ -2,11 +2,40 @@
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>TrackChat Runtime</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <meta name="app-build-version" content="__BUILD_VERSION__" />
+    <meta name="app-build-time" content="__BUILD_TIME__" />
+    <meta name="app-name" content="__APP_NAME__" />
+    <title>积木仓 Runtime</title>
   </head>
-  <body>
+  <body data-build-version="__BUILD_VERSION__">
     <div id="root"></div>
+    <script>
+      /* Runtime HTML 缓存：对比 /r/version.json，不一致则带 _bhv 强制刷新（保留 from= 等 query） */
+      (function () {
+        var meta = document.querySelector('meta[name="app-build-version"]')
+        var local = meta && meta.getAttribute('content')
+        if (!local || local.indexOf('__') === 0) return
+        var key = 'blockhub_runtime_html_bust_once'
+        try {
+          if (sessionStorage.getItem(key)) return
+        } catch (e) {}
+        fetch('/r/version.json?_=' + Date.now(), { cache: 'no-store' })
+          .then(function (r) { return r.ok ? r.json() : null })
+          .then(function (remote) {
+            if (!remote || !remote.version || remote.version === local) return
+            try { sessionStorage.setItem(key, remote.version) } catch (e) {}
+            var u = new URL(location.href)
+            u.searchParams.set('_bhv', remote.version)
+            location.replace(u.toString())
+          })
+          .catch(function () {})
+      })()
+    </script>
     <script type="module" src="/src/main.tsx"></script>
+    <!-- BlockHub runtime build __BUILD_VERSION__ @ __BUILD_TIME__ -->
   </body>
 </html>

@@ -153,7 +153,7 @@ echo "    admin js: $(basename "$ADMIN_JS") ($(wc -c < "$ADMIN_JS") bytes)"
 echo "    home js:  $(basename "$HOME_JS") ($(wc -c < "$HOME_JS") bytes)"
 echo "    runtime js: $(basename "$RUNTIME_JS") ($(wc -c < "$RUNTIME_JS") bytes)"
 
-for app in home admin; do
+for app in home admin runtime-web; do
   VER_FILE="$ROOT/$app/dist/version.txt"
   if [ -f "$VER_FILE" ]; then
     echo "    $app html cache version: $(tr -d '\n\r' < "$VER_FILE")"
@@ -194,6 +194,12 @@ if [ -f /var/www/blockhub/home/version.txt ]; then
     echo "    home index.html cache meta: OK"
   fi
 fi
+if [ -f /var/www/blockhub/r/version.txt ]; then
+  echo "    deployed runtime version: $(tr -d '\n\r' < /var/www/blockhub/r/version.txt)"
+  if grep -q 'app-build-version' /var/www/blockhub/r/index.html 2>/dev/null; then
+    echo "    runtime index.html cache meta: OK"
+  fi
+fi
 
 if [ -f /var/www/blockhub/home/downloads/one-pager-mfg.html ]; then
   echo "    downloads/one-pager-mfg.html: OK"
@@ -223,8 +229,11 @@ echo " Deploy complete!"
 echo " Home:  http://101.32.209.251/"
 echo " Admin: http://101.32.209.251/admin/login"
 if [ -f /var/www/blockhub/home/version.txt ]; then
-  echo " HTML version: $(tr -d '\n\r' < /var/www/blockhub/home/version.txt)"
-  echo " 浏览器强刷: Ctrl+Shift+R 或访问 /version.txt 核对版本"
+  echo " Home HTML: $(tr -d '\n\r' < /var/www/blockhub/home/version.txt)"
+fi
+if [ -f /var/www/blockhub/r/version.txt ]; then
+  echo " Runtime HTML: $(tr -d '\n\r' < /var/www/blockhub/r/version.txt)"
+  echo " 核对: /version.txt · /r/version.txt · 不一致会自动带 _bhv 刷新"
 fi
 echo " 预约数据表: demo_bookings (API 自动写入，无需手工 SQL)"
 echo " Full smoke: bash scripts/smoke-test.sh http://101.32.209.251"
