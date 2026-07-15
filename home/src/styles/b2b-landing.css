@@ -2183,7 +2183,7 @@ a.b2b-nav-btn-link {
   --btn-shadow: 0 4px 14px rgba(13, 71, 161, 0.28);
   --glow: rgba(13, 71, 161, 0.12);
   background: var(--b2b-form-bg);
-  padding: 72px 20px 80px;
+  padding: 72px 20px 12px;
 }
 
 /* 生成应用 — 联系方式弹框（portal 到 body，单独挂品牌作用域） */
@@ -2537,8 +2537,8 @@ a.b2b-nav-btn-link {
 
 .b2b-demo-block {
   max-width: 1200px;
-  margin: 0 auto 32px;
-  padding: 28px 28px 24px;
+  margin: 0 auto;
+  padding: 28px 28px 12px;
   background: #fff;
   border-radius: 12px;
   border: 1px solid #dbeafe;
@@ -2652,7 +2652,7 @@ a.b2b-nav-btn-link {
 }
 
 .b2b-create-booking .demo-booking-composer {
-  padding-bottom: calc(28px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: 0;
   gap: 14px;
 }
 
@@ -2719,7 +2719,31 @@ a.b2b-nav-btn-link {
 }
 
 .b2b-create-main {
-  min-height: 200px;
+  min-height: 0;
+}
+
+/* 悬浮模式：去掉卡片内多余内边距（dock 为 fixed，不占文档流高度） */
+.b2b-form-wrap .prompt-view-minimal.layout-floating {
+  padding: 0;
+  margin: 0;
+  max-width: none;
+  min-height: 0;
+}
+
+/* 仅 prompt 悬浮可见时：塌缩主内容区高度，贴紧预约表单 */
+.b2b-form-wrap .b2b-create-main:has(> :not(.view-hidden) .prompt-view-minimal.layout-floating) {
+  height: 0;
+  overflow: visible;
+  margin: 0;
+  padding: 0;
+}
+
+.b2b-form-wrap .b2b-create-studio:has(.b2b-create-main > :not(.view-hidden) .prompt-view-minimal.layout-floating) {
+  gap: 20px;
+}
+
+.b2b-form-wrap .b2b-create-studio:has(.b2b-create-main > :not(.view-hidden) .prompt-view-minimal.layout-floating) > .b2b-create-main {
+  margin-top: -20px;
 }
 
 .b2b-brand-scope .step-item.current .wizard-step-num,
@@ -4083,8 +4107,21 @@ a.b2b-nav-btn-link {
   pointer-events: none;
 }
 
+/* 首页：悬浮框 fixed，去掉卡片内预留空白 */
+.b2b-app .agent-floating-spacer {
+  height: 0;
+}
+
+.agent-floating-spacer.is-booking {
+  height: 96px;
+}
+
+.b2b-app .agent-floating-spacer.is-booking {
+  height: 0;
+}
+
 .b2b-form-wrap {
-  padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: 12px;
 }
 
 .plaza-floating-dock.floating-agent-dock {
@@ -5024,9 +5061,7 @@ a.b2b-nav-btn-link {
   border-radius: 10px;
 }
 
-.agent-floating-spacer.is-booking {
-  height: 96px;
-}
+/* booking spacer 高度已在上方统一清零 */
 
 /* 右侧快捷滚动：顶部 / 底部 */
 .b2b-scroll-rail {
@@ -5475,7 +5510,7 @@ a.b2b-nav-btn-link {
   }
 
   .b2b-has-floating-agent {
-    padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: 0;
   }
 
   .b2b-brand-scope.plaza-page {
@@ -5757,8 +5792,9 @@ a.b2b-nav-btn-link {
 
 .b2b-brand-scope .industry-card .ind-detail-link,
 .b2b-form-wrap .industry-card .ind-detail-link {
-  display: block;
+  display: inline-block;
   margin-top: 8px;
+  margin-right: 10px;
   font-size: 11px;
   color: var(--accent, #0d47a1);
   text-decoration: none;
@@ -5768,6 +5804,41 @@ a.b2b-nav-btn-link {
 .b2b-brand-scope .industry-card .ind-detail-link:hover,
 .b2b-form-wrap .industry-card .ind-detail-link:hover {
   text-decoration: underline;
+}
+
+.b2b-brand-scope .industry-card .ind-detail-link-decoupled,
+.b2b-form-wrap .industry-card .ind-detail-link-decoupled {
+  color: #475569;
+  font-weight: 500;
+}
+
+.industry-compose-hint {
+  margin: 0 0 16px;
+  padding: 14px 16px;
+  border: 1px solid #dbeafe;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #f8fbff 0%, #fff 100%);
+  font-size: 13px;
+  color: #334155;
+  line-height: 1.55;
+}
+
+.industry-compose-hint p {
+  margin: 0 0 8px;
+}
+
+.industry-compose-hint p:last-child {
+  margin-bottom: 0;
+}
+
+.industry-compose-chip {
+  display: inline-block;
+  margin: 4px 6px 0 0;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: #eaf2ff;
+  color: #0d47a1;
+  font-size: 12px;
 }
 
 @media (max-width: 640px) {

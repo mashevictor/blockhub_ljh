@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime, timezone
 from typing import Any
 
 from sqlalchemy.orm import Session
@@ -17,6 +18,59 @@ from app.db.models import (
     CatalogOfficeGroup,
     CatalogOfficeScenario,
 )
+
+
+def _read_cached_enrichment(pack: CatalogIndustryPack | None) -> dict[str, Any] | None:
+    if not pack or not isinstance(pack.enrichment_json, dict):
+        return None
+    data = dict(pack.enrichment_json)
+    if not data.get("overview"):
+        return None
+    if pack.enrichment_source:
+        data["source"] = pack.enrichment_source
+    return data
+
+
+def _persist_enrichment(db: Session, pack_key: str, enrichment: dict[str, Any]) -> None:
+    """写回重新丰富结果；无 pack 行时跳过（静态路径仍可返回 enrichment）。"""
+    pack = db.query(CatalogIndustryPack).filter(CatalogIndustryPack.key == pack_key).first()
+    if not pack:
+        return
+    pack.enrichment_json = {
+        "overview": enrichment.get("overview"),
+        "highlights": enrichment.get("highlights") or [],
+        "recommended_modules": enrichment.get("recommended_modules") or [],
+        "scene_tips": enrichment.get("scene_tips") or [],
+    }
+    pack.enrichment_source = str(enrichment.get("source") or "deepseek")
+    pack.enriched_at = datetime.now(timezone.utc)
+    db.add(pack)
+    try:
+        db.commit()
+    except Exception:
+        db.rollback()
+
+
+def resolve_pack_enrichment(
+    db: Session | None,
+    pack_key: str,
+    *,
+    scenes: list[dict[str, Any]],
+    enrich: bool,
+) -> dict[str, Any]:
+    """enrich=true → LLM 并落库；否则优先库缓存 → 静态第一版。"""
+    if enrich:
+        enrichment = enrich_industry_pack(pack_key, scenes=scenes, force_llm=True)
+        if db is not None and enrichment.get("source") == "deepseek":
+            _persist_enrichment(db, pack_key, enrichment)
+        return enrichment
+
+    if db is not None:
+        pack = db.query(CatalogIndustryPack).filter(CatalogIndustryPack.key == pack_key).first()
+        cached = _read_cached_enrichment(pack)
+        if cached:
+            return cached
+    return enrich_industry_pack(pack_key, scenes=scenes, force_llm=False)
 
 
 def _office_to_dict(row: CatalogOfficeScenario, *, lite: bool = False) -> dict[str, Any]:
@@ -238,13 +292,13 @@ def get_industry_pack_detail(
     }
 
     if enrich:
-        detail["enrichment"] = enrich_industry_pack(
-            pack_key,
-            scenes=scene_dicts,
-            force_llm=True,
+        detail["enrichment"] = resolve_pack_enrichment(
+            db, pack_key, scenes=scene_dicts, enrich=True,
         )
     else:
-        detail["enrichment"] = enrich_industry_pack(pack_key, scenes=scene_dicts, force_llm=False)
+        detail["enrichment"] = resolve_pack_enrichment(
+            db, pack_key, scenes=scene_dicts, enrich=False,
+        )
 
     return detail
 
@@ -312,10 +366,8 @@ def get_industry_pack_detail_static(
         "site": build_site_config(pack_key, pack_info),
         "source": "static",
     }
-    detail["enrichment"] = enrich_industry_pack(
-        pack_key,
-        scenes=scene_dicts,
-        force_llm=enrich,
+    detail["enrichment"] = resolve_pack_enrichment(
+        None, pack_key, scenes=scene_dicts, enrich=enrich,
     )
     return detail
 

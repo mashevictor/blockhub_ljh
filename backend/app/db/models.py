@@ -138,6 +138,9 @@ class CatalogIndustryPack(Base):
     icon: Mapped[str] = mapped_column(String(16), nullable=False, default="")
     color: Mapped[str] = mapped_column(String(32), nullable=False, default="")
     sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    enrichment_json: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
+    enriched_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    enrichment_source: Mapped[str] = mapped_column(String(32), nullable=False, default="")
 
 
 class CatalogOfficeScenario(Base):

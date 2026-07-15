@@ -53,28 +53,28 @@ export const STYLE_PACK_META: Record<IndustryStylePack, StylePackMeta> = {
   broadcast: { id: 'broadcast', label: '传媒波段', heroVariant: 'stacked-dark', pageBg: '#1a0a1a', panelShape: 'glass' },
 }
 
-/** 20 行业 → 统一 edu 学院风模板（差异仅 --site-primary） */
+/** 20 行业 → 12 套效果样式包（壳层视觉）；真实落地页另见 industryMicrositeTemplates */
 export const INDUSTRY_STYLE_PACK: Record<string, IndustryStylePack> = {
-  office: 'campus',
-  gov: 'campus',
-  mfg: 'campus',
-  construction: 'campus',
-  sales: 'campus',
-  marketing: 'campus',
-  med: 'campus',
-  hotel: 'campus',
-  game: 'campus',
-  retail: 'campus',
+  office: 'classic',
+  gov: 'vault',
+  mfg: 'industrial',
+  construction: 'freight',
+  sales: 'velocity',
+  marketing: 'market',
+  med: 'serenity',
+  hotel: 'horizon',
+  game: 'cyber',
+  retail: 'market',
   agriculture: 'campus',
   edu: 'campus',
-  finance: 'campus',
-  legal: 'campus',
-  logistics: 'campus',
-  auto: 'campus',
-  realestate: 'campus',
-  energy: 'campus',
-  hr: 'campus',
-  media: 'campus',
+  finance: 'vault',
+  legal: 'vault',
+  logistics: 'freight',
+  auto: 'velocity',
+  realestate: 'horizon',
+  energy: 'industrial',
+  hr: 'people',
+  media: 'broadcast',
 }
 
 export function getIndustryStylePack(key: string): IndustryStylePack {

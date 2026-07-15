@@ -195,11 +195,13 @@ function capsForScenarioName(name: string): Array<{ key: string; label: string }
   return []
 }
 
-/** 行业向导：按所选场景解析能力；不再静默灌 BASELINE（避免假审批 Tab / codegen 乱页） */
+/** 行业向导：按所选场景解析能力；优先合并独立站 enrichment 的 CapShip 正式模块 */
 export function buildPublishedModulesFromIndustry(opts: {
   industryKey: string
   industryLabel: string
   scenarioNames: string[]
+  /** 独立站 / 静态 enrichment 推荐的正式能力 key */
+  preferCapabilityKeys?: string[]
 }): PublishedModuleItem[] {
   const items: PublishedModuleItem[] = []
   const seen = new Set<string>()
@@ -218,6 +220,17 @@ export function buildPublishedModulesFromIndustry(opts: {
     kind: 'industry',
     source: 'user',
   })
+
+  for (const key of opts.preferCapabilityKeys ?? []) {
+    if (!key.trim()) continue
+    push({
+      key,
+      label: key,
+      iconKey: iconForModuleKey(key),
+      kind: 'module',
+      source: 'auto',
+    })
+  }
 
   for (const name of opts.scenarioNames) {
     push({
@@ -238,7 +251,7 @@ export function buildPublishedModulesFromIndustry(opts: {
     }
   }
 
-  // 无场景命中时，才补行业轻量推荐（仍不灌整套 BASELINE）
+  // 仍无模块时，才补行业轻量推荐（不灌整套 BASELINE）
   const hasModule = items.some((m) => m.kind === 'module')
   if (!hasModule) {
     const extras = INDUSTRY_EXTRA[opts.industryKey] ?? INDUSTRY_EXTRA.office ?? []

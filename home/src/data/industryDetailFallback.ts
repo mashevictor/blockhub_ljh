@@ -1,7 +1,7 @@
 import type { IndustryPackDetail, IndustryPackScene } from '../api/client'
 import { SCENES } from './constants'
 import { industryAssets } from './industryAssets'
-import { getIndustryVisualTheme } from './industryVisualThemes'
+import { buildClientStaticEnrichment } from './industryEnrichStatic'
 import { INDUSTRIES_SHOWCASE } from './showcase'
 import { ROUTES } from '../routes/paths'
 
@@ -40,15 +40,15 @@ function buildScenes(key: string, packName: string, count: number): IndustryPack
   }))
 }
 
-/** 同步构建行业详情，进入独立站时零等待渲染 */
+/** 同步构建行业详情，进入独立站时零等待渲染（第一版生产文案同源） */
 export function buildIndustryPackDetailFallback(key: string): IndustryPackDetail | null {
   const meta = INDUSTRIES_SHOWCASE.find((i) => i.key === key)
   if (!meta) return null
 
-  const visual = getIndustryVisualTheme(key)
   const scenes = buildScenes(key, meta.name, meta.count)
   const groups = [{ category: meta.name, items: scenes }]
   const assets = industryAssets(key)
+  const enrichment = buildClientStaticEnrichment(key)
 
   return {
     pack: {
@@ -82,11 +82,6 @@ export function buildIndustryPackDetailFallback(key: string): IndustryPackDetail
       },
       site_url: ROUTES.industryDetail(key),
     },
-    enrichment: {
-      overview: visual.heroPitch ?? `${meta.name}深度包：${meta.desc}。共 ${meta.count} 项业务场景，支持 Web / App 双端一键发布。`,
-      highlights: visual.highlights,
-      recommended_modules: visual.focusModules,
-      source: 'static',
-    },
+    enrichment,
   }
 }

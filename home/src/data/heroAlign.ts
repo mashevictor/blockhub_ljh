@@ -136,3 +136,47 @@ export function userHasCapShipModule(modules: { type: string; key: string; sourc
       (m.source === 'user' || m.source === 'suggest'),
   )
 }
+
+/** 场景可检索文本：标签、角色、hint、别名、flowLines */
+export function heroPresetSearchBlob(preset: RolePreset): string {
+  const parts = [
+    preset.label,
+    preset.role ?? '',
+    preset.hint,
+    preset.prompt,
+    ...(ALIASES[preset.id] ?? []),
+    ...preset.picks.map((p) => p.label),
+    ...preset.flowLines.map((line) => line.replace(/>>/g, '').trim()),
+  ]
+  return parts.join(' ').toLowerCase()
+}
+
+export function heroPresetMatchesQuery(preset: RolePreset, query: string): boolean {
+  const q = query.trim().toLowerCase()
+  if (!q) return true
+  return heroPresetSearchBlob(preset).includes(q)
+}
+
+/** >> 面板：按关键词筛弹幕场景（空词返回全部，由调用方 slice） */
+export function filterHeroPresetsForQuery(query: string): RolePreset[] {
+  const q = query.trim()
+  if (!q) return ROLE_PRESETS
+  return ROLE_PRESETS.filter((p) => heroPresetMatchesQuery(p, q))
+}
+
+/**
+ * CapShip 模块 → 可检索关键词（含弹幕别名）。
+ * 用于 >> 「功能模块」过滤，使「产线故障」能命中设备报修等。
+ */
+export function heroModuleSearchHints(): Map<string, string> {
+  const map = new Map<string, string>()
+  for (const preset of ROLE_PRESETS) {
+    const blob = heroPresetSearchBlob(preset)
+    for (const pick of preset.picks) {
+      if (pick.type !== 'module' && pick.type !== 'capability') continue
+      const prev = map.get(pick.key) ?? ''
+      map.set(pick.key, `${prev} ${pick.label} ${blob}`.trim())
+    }
+  }
+  return map
+}

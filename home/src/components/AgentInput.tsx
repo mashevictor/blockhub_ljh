@@ -9,6 +9,12 @@ import {
 } from 'react'
 import { MODULES } from '../data/constants'
 import { CAPABILITIES_SHOWCASE, INDUSTRIES_SHOWCASE, resolveCategoryIcon, type IndustryItem } from '../data/showcase'
+import {
+  filterHeroPresetsForQuery,
+  heroModuleSearchHints,
+  picksForCapabilityAlign,
+} from '../data/heroAlign'
+import { presetRole } from '../data/rolePresets'
 import { categoryColor } from '../data/iconPalette'
 import type { ThemeTokens } from '../data/themes'
 import { DynamicIcon } from './icons'
@@ -80,10 +86,14 @@ interface Props {
 
 interface PanelItem {
   pick: AgentPick
+  /** 面板展示名（可与 pick.label 不同，如弹幕「角色 × 场景」） */
+  displayLabel?: string
   hint?: string
   iconKey?: string
   color?: string
   selected?: boolean
+  /** 选中弹幕场景时一并写入的 picks（与点击弹幕同源） */
+  bundle?: AgentPick[]
 }
 
 interface PanelSection {
@@ -235,6 +245,7 @@ export default forwardRef<AgentInputHandle, Props>(function AgentInput({
     const q = filterQuery
     const match = (label: string, hint?: string) =>
       !q || label.toLowerCase().includes(q) || (hint?.toLowerCase().includes(q) ?? false)
+    const moduleHints = heroModuleSearchHints()
 
     const mk = (pick: AgentPick, extra: Omit<PanelItem, 'pick' | 'selected'>): PanelItem => ({
       pick,
@@ -256,7 +267,11 @@ export default forwardRef<AgentInputHandle, Props>(function AgentInput({
     )
     const moduleItems = MODULES.flatMap((group) =>
       group.items
-        .filter((m) => match(m.name, group.cat))
+        .filter((m) => {
+          if (match(m.name, group.cat)) return true
+          const hint = moduleHints.get(m.key)
+          return Boolean(q && hint?.includes(q))
+        })
         .map((m) => mk({ type: 'module', key: m.key, label: m.name }, { hint: group.cat, iconKey: 'box', color: theme?.priLight })),
     )
     const scenarioItems = scenarios
@@ -268,17 +283,40 @@ export default forwardRef<AgentInputHandle, Props>(function AgentInput({
         return mk({ type: 'scenario', key: s.id, label: s.name }, { hint: s.category, iconKey, color: ic })
       })
 
+    const heroPresets = filterHeroPresetsForQuery(q)
+    const heroSceneItems = heroPresets.map((preset) => {
+      const picks = picksForCapabilityAlign(preset)
+      const primary =
+        picks.find((p) => p.type === 'module' || p.type === 'capability') ??
+        picks[0] ??
+        ({ type: 'scenario' as const, key: preset.id, label: preset.label })
+      const role = presetRole(preset)
+      return mk(primary, {
+        displayLabel: `${role} × ${preset.label}`,
+        hint: `${role} · ${preset.hint}`,
+        iconKey: 'zap',
+        color: preset.color,
+        bundle: picks,
+      })
+    })
+
     const showFullCatalog = !isMinimal || Boolean(filterQuery) || pickerSession
+    const moduleLimit = q ? 24 : 8
+    const industryLimit = q ? 16 : 8
+    const heroLimit = q ? 20 : 10
 
     const out: PanelSection[] = []
     if (actionItems.length && !isMinimal) out.push({ id: 'actions', title: '快捷指令', items: actionItems })
+    if (heroSceneItems.length && showFullCatalog) {
+      out.push({ id: 'hero-scenes', title: '弹幕场景', items: heroSceneItems.slice(0, heroLimit) })
+    }
     if (scenarioItems.length && showFullCatalog) out.push({ id: 'scenarios', title: '业务场景', items: scenarioItems })
-    if (industryItems.length) out.push({ id: 'industries', title: '行业视角', items: industryItems.slice(0, 8) })
+    if (industryItems.length) out.push({ id: 'industries', title: '行业视角', items: industryItems.slice(0, industryLimit) })
     if (officeItems.length) out.push({ id: 'office', title: '办公分类', items: officeItems })
-    if (capItems.length) out.push({ id: 'capabilities', title: '平台能力', items: capItems.slice(0, 6) })
-    if (moduleItems.length && showFullCatalog) out.push({ id: 'modules', title: '功能模块', items: moduleItems.slice(0, 8) })
+    if (capItems.length) out.push({ id: 'capabilities', title: '平台能力', items: capItems.slice(0, q ? 10 : 6) })
+    if (moduleItems.length && showFullCatalog) out.push({ id: 'modules', title: '功能模块', items: moduleItems.slice(0, moduleLimit) })
     return out
-  }, [filterQuery, scenarios, modules, isMinimal, theme])
+  }, [filterQuery, scenarios, modules, isMinimal, theme, pickerSession])
 
   const flatItems = useMemo(() => sections.flatMap((s) => s.items), [sections])
   const panelMode = mode === 'guide' ? 'guide' : 'command'
@@ -295,6 +333,16 @@ export default forwardRef<AgentInputHandle, Props>(function AgentInput({
     const triggerAt = mode === 'guide' ? 0 : ctx.triggerAt
     const hasTrigger = mode === 'guide' || ctx.open
 
+    const applyPicks = () => {
+      if (item.bundle?.length) {
+        for (const pick of item.bundle) {
+          onPick?.(pick, { iconKey: item.iconKey, color: item.color })
+        }
+        return
+      }
+      onPick?.(item.pick, { iconKey: item.iconKey, color: item.color })
+    }
+
     if (item.pick.type === 'action') {
       pickedRef.current = true
       onPick?.(item.pick, { iconKey: item.iconKey, color: item.color })
@@ -310,7 +358,7 @@ export default forwardRef<AgentInputHandle, Props>(function AgentInput({
     }
 
     pickedRef.current = true
-    onPick?.(item.pick, { iconKey: item.iconKey, color: item.color })
+    applyPicks()
 
     if (isMinimal) {
       setPickerSession(true)
@@ -474,7 +522,7 @@ export default forwardRef<AgentInputHandle, Props>(function AgentInput({
         const current = idx++
         return {
           idx: current,
-          label: item.pick.label,
+          label: item.displayLabel ?? item.pick.label,
           hint: item.hint,
           iconKey: item.iconKey,
           color: item.color,
@@ -715,7 +763,7 @@ export default forwardRef<AgentInputHandle, Props>(function AgentInput({
                             <DynamicIcon name={item.iconKey} size={16} color={item.color} />
                           </span>
                         )}
-                        <span className="agent-module-label">{item.pick.label}</span>
+                        <span className="agent-module-label">{item.displayLabel ?? item.pick.label}</span>
                         {item.selected && <span className="agent-module-badge">已选</span>}
                         {item.hint && <span className="agent-module-meta">{item.hint}</span>}
                       </button>

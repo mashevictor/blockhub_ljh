@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
-import { fetchScenarios, publishApp } from '../api/client'
+import { fetchIndustryPackDetail, fetchScenarios, publishApp } from '../api/client'
 import { publishApiToResult } from '../api/publishHelpers'
 import { runLoadingPublishPipeline } from '../lib/publishFlow'
 import { GENERATE_APP_LABEL, GENERATE_APP_LOADING } from '../data/publishUi'
@@ -12,6 +12,12 @@ import { categoryColor, industryColor, iconWrapStyle } from '../data/iconPalette
 import { resolveCategoryIcon, resolveIndustryApiKey } from '../data/showcase'
 import { ROUTES } from '../routes/paths'
 import { buildPublishedModulesFromIndustry } from '../data/publishDisplay'
+import { buildClientStaticEnrichment } from '../data/industryEnrichStatic'
+import {
+  getMicrositeTemplate,
+  loadSavedMicrositeId,
+  saveMicrositeId,
+} from '../data/industryMicrositeTemplates'
 import ContactGateModal, { type ContactInfo } from '../components/ContactGateModal'
 import GenerateLoadingOverlay from '../components/GenerateLoadingOverlay'
 import AppBrandingFields from '../components/AppBrandingFields'
@@ -30,9 +36,16 @@ interface Props {
   onPublish: (r: PublishResult) => void
   active?: boolean
   initialIndustry?: string
+  /** 独立站所选落地页模板 id（codecode microsite） */
+  initialMicrosite?: string
 }
 
-export default function IndustryView({ onPublish, active = true, initialIndustry }: Props) {
+export default function IndustryView({
+  onPublish,
+  active = true,
+  initialIndustry,
+  initialMicrosite,
+}: Props) {
   const { theme } = useTheme()
   const [industry, setIndustry] = useState(initialIndustry ?? 'office')
   const [step, setStep] = useState(1)
@@ -48,8 +61,14 @@ export default function IndustryView({ onPublish, active = true, initialIndustry
   const [contactOpen, setContactOpen] = useState(false)
   const [appName, setAppName] = useState('我的行业应用')
   const [branding, setBranding] = useState(() => emptyBranding('我的行业应用'))
-  const [webTemplateId, setWebTemplateId] = useState('tabs_portal')
+  const [webTemplateId, setWebTemplateId] = useState('landing_single')
   const [appUiId, setAppUiId] = useState('bottom_tabs')
+  const [preferKeys, setPreferKeys] = useState<string[]>(() =>
+    buildClientStaticEnrichment(initialIndustry ?? 'office').recommended_modules,
+  )
+  const [micrositeId, setMicrositeId] = useState(
+    () => initialMicrosite ?? loadSavedMicrositeId(initialIndustry ?? 'office'),
+  )
 
   const loadScenes = () => {
     const apiKey = resolveIndustryApiKey(industry)
@@ -79,9 +98,34 @@ export default function IndustryView({ onPublish, active = true, initialIndustry
   }, [initialIndustry])
 
   useEffect(() => {
+    if (initialMicrosite) {
+      setMicrositeId(initialMicrosite)
+      if (initialIndustry) saveMicrositeId(initialIndustry, initialMicrosite)
+    }
+  }, [initialMicrosite, initialIndustry])
+
+  useEffect(() => {
     if (!active) return
     loadScenes()
   }, [industry, active])
+
+  useEffect(() => {
+    if (!active) return
+    const apiKey = resolveIndustryApiKey(industry)
+    const fallback = buildClientStaticEnrichment(apiKey)
+    setPreferKeys(fallback.recommended_modules)
+    setMicrositeId((prev) => initialMicrosite || loadSavedMicrositeId(apiKey) || prev)
+    // 独立站落地页风格 → 默认用单页落地壳，用户仍可在交付模板里改
+    setWebTemplateId((prev) => (prev === 'tabs_portal' ? 'landing_single' : prev))
+    fetchIndustryPackDetail(apiKey, { enrich: false })
+      .then((detail) => {
+        const keys = detail.enrichment?.recommended_modules
+        if (keys?.length) setPreferKeys(keys)
+      })
+      .catch(() => {
+        /* 保留静态 CapShip 推荐 */
+      })
+  }, [industry, active, initialMicrosite])
 
   useEffect(() => {
     if (active) return
@@ -89,6 +133,7 @@ export default function IndustryView({ onPublish, active = true, initialIndustry
   }, [active])
 
   const pack = INDUSTRIES.find((p) => p.key === industry)!
+  const micrositeMeta = getMicrositeTemplate(micrositeId)
 
   const sceneGroups = useMemo(() => {
     const map = new Map<string, SceneItem[]>()
@@ -148,6 +193,7 @@ export default function IndustryView({ onPublish, active = true, initialIndustry
           industryKey: resolveIndustryApiKey(industry),
           industryLabel: pack.name,
           scenarioNames,
+          preferCapabilityKeys: preferKeys,
         })
         const res = await publishApp(resolveAppName(branding.appName, appName), resolveIndustryApiKey(industry), {
           scenarioIds: [...selected],
@@ -187,6 +233,25 @@ export default function IndustryView({ onPublish, active = true, initialIndustry
         <p>共 <strong>{INDUSTRIES.length}</strong> 个行业深度包 · 每项含完整场景清单 · 您可再按需增减</p>
       </div>
 
+      {(preferKeys.length > 0 || micrositeMeta) && (
+        <div className="industry-compose-hint cube-panel">
+          {micrositeMeta ? (
+            <p>
+              已选落地页模板：<strong>{micrositeMeta.styleLabel}</strong>（{micrositeMeta.brand}）
+              · 交付壳默认「单页落地」，可在发布步骤改模板
+            </p>
+          ) : null}
+          {preferKeys.length > 0 ? (
+            <p>
+              正式能力将一并打包（可后续在悬浮框继续编排）：
+              {preferKeys.map((k) => (
+                <code key={k} className="industry-compose-chip">{k}</code>
+              ))}
+            </p>
+          ) : null}
+        </div>
+      )}
+
       <div className="step-bar">
         {['选行业', '选场景', '选受众', '发布'].map((s, i) => (
           <div key={s} className={`step-item${step > i ? ' done' : ''}${step === i + 1 ? ' current' : ''}`}>
@@ -220,8 +285,17 @@ export default function IndustryView({ onPublish, active = true, initialIndustry
                   className="ind-detail-link"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  进入独立站
+                  方案站
                 </Link>
+                <a
+                  href={ROUTES.industrySiteHtml(p.key)}
+                  className="ind-detail-link ind-detail-link-decoupled"
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  独立网页
+                </a>
               </button>
               )
             })}

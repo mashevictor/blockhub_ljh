@@ -12,13 +12,16 @@ import PromptView from '../../views/PromptView'
 import IndustryView from '../../views/IndustryView'
 import ModuleView from '../../views/ModuleView'
 import { finishPublishNavigate } from '../../lib/publishFlow'
-import { parseCreateDeepLink } from '../../lib/createDeepLink'
+import { parseCreateDeepLink, buildCreateDeepLinkHash } from '../../lib/createDeepLink'
 import { scrollToHomeSection } from '../../hooks/useHomeActiveSection'
 import DemoBookingComposer from './DemoBookingComposer'
+
+const CREATE_MAIN_ID = 'create-studio-main'
 
 export default function CreateStudio() {
   const [view, setView] = useState<ViewMode>('prompt')
   const [initialIndustry, setInitialIndustry] = useState<string | undefined>()
+  const [initialMicrosite, setInitialMicrosite] = useState<string | undefined>()
   const [roleApply, setRoleApply] = useState<RoleApplyRequest | null>(null)
   const mainRef = useRef<HTMLDivElement>(null)
   const navigate = useNavigate()
@@ -27,9 +30,10 @@ export default function CreateStudio() {
 
   useEffect(() => {
     const applyDeepLink = () => {
-      const { mode, pack } = parseCreateDeepLink()
+      const { mode, pack, microsite } = parseCreateDeepLink()
       if (mode) setView(mode)
       if (pack && mode === 'industry') setInitialIndustry(pack)
+      if (microsite && mode === 'industry') setInitialMicrosite(microsite)
     }
     applyDeepLink()
     window.addEventListener('hashchange', applyDeepLink)
@@ -66,20 +70,51 @@ export default function CreateStudio() {
     return () => io.disconnect()
   }, [view, setContextKey, bookingZoneActive])
 
+  const syncCreateHash = (mode: ViewMode, pack?: string, microsite?: string) => {
+    if (typeof history === 'undefined' || !history.replaceState) return
+    const hash = buildCreateDeepLinkHash(mode, pack, microsite)
+    const next = `${window.location.pathname}${window.location.search}${hash}`
+    if (`${window.location.pathname}${window.location.search}${window.location.hash}` !== next) {
+      history.replaceState(null, '', next)
+    }
+  }
+
+  const scrollToCreateMain = () => {
+    requestAnimationFrame(() => {
+      const el = mainRef.current ?? document.getElementById(CREATE_MAIN_ID)
+      if (!el) {
+        scrollToHomeSection('contact-create')
+        return
+      }
+      const header = document.querySelector('.b2b-header')
+      const offset = (header?.getBoundingClientRect().height ?? 70) + 8
+      const top = el.getBoundingClientRect().top + window.scrollY - offset
+      window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' })
+    })
+  }
+
   const handleViewChange = (mode: ViewMode) => {
     setView(mode)
-    scrollToHomeSection('contact-create')
+    syncCreateHash(mode, mode === 'industry' ? initialIndustry : undefined)
+    if (mode === 'prompt') {
+      scrollToHomeSection('contact-create')
+    } else {
+      scrollToCreateMain()
+    }
   }
 
   const handleRoleApply = (role: RoleApplyRequest['preset'], generate?: boolean) => {
     setView('prompt')
     setRoleApply({ preset: role, generate })
+    syncCreateHash('prompt')
     if (generate) scrollToHomeSection('contact-create')
   }
 
   const handlePublish = (result: PublishResult) => {
     finishPublishNavigate(navigate, result)
   }
+
+  const showPromptStage = view === 'prompt'
 
   return (
     <div className="b2b-create-studio">
@@ -89,13 +124,17 @@ export default function CreateStudio() {
           <ViewModeSwitcher value={view} onChange={handleViewChange} />
         </div>
       </div>
-      <div className="b2b-create-hero">
-        <HeroCubeStage onRoleApply={handleRoleApply} showTitle={false} />
-      </div>
-      <div className="b2b-create-booking">
-        <DemoBookingComposer />
-      </div>
-      <div ref={mainRef} className="b2b-create-main">
+      {showPromptStage && (
+        <>
+          <div className="b2b-create-hero">
+            <HeroCubeStage onRoleApply={handleRoleApply} showTitle={false} />
+          </div>
+          <div className="b2b-create-booking">
+            <DemoBookingComposer />
+          </div>
+        </>
+      )}
+      <div ref={mainRef} id={CREATE_MAIN_ID} className="b2b-create-main">
         <div className={view === 'prompt' ? undefined : 'view-hidden'} aria-hidden={view !== 'prompt'}>
           <PromptView
             active={view === 'prompt'}
@@ -109,6 +148,7 @@ export default function CreateStudio() {
             active={view === 'industry'}
             onPublish={handlePublish}
             initialIndustry={initialIndustry}
+            initialMicrosite={initialMicrosite}
           />
         </div>
         <div className={view === 'module' ? undefined : 'view-hidden'} aria-hidden={view !== 'module'}>

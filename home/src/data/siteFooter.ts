@@ -27,6 +27,7 @@ export const SITE_FOOTER_COLUMNS: SiteFooterColumn[] = [
     title: '解决方案',
     links: [
       { label: '20 个行业方案', to: homeSectionHref('product') },
+      { label: '独立网页（解耦）', to: ROUTES.industrySites },
       { label: '落地案例', to: ROUTES.cases },
       { label: '模块积木库', to: homeSectionHref('product') },
       { label: '五端发布', to: homeSectionHref('contact-create') },

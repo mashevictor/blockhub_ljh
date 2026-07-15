@@ -944,6 +944,94 @@
   font-size: 14px;
 }
 
+.industry-site-cta-band-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+
+/* 行业独立网页解耦目录 */
+.industry-sites-catalog {
+  min-height: 100vh;
+  background: #f4f7fb;
+  color: #0f172a;
+  padding: 28px 20px 64px;
+}
+
+.industry-sites-catalog-head {
+  max-width: 1080px;
+  margin: 0 auto 28px;
+}
+
+.industry-sites-catalog-back {
+  display: inline-block;
+  margin-bottom: 12px;
+  color: #0d47a1;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.industry-sites-catalog-head h1 {
+  margin: 0 0 10px;
+  font-size: 28px;
+}
+
+.industry-sites-catalog-head p {
+  margin: 0 0 16px;
+  color: #64748b;
+  line-height: 1.6;
+  max-width: 720px;
+}
+
+.industry-sites-catalog-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.industry-sites-catalog-grid {
+  max-width: 1080px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 14px;
+}
+
+.industry-sites-catalog-card {
+  background: #fff;
+  border: 1px solid #dbeafe;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 4px 16px rgba(13, 71, 161, 0.06);
+}
+
+.industry-sites-catalog-card h2 {
+  margin: 0 0 8px;
+  font-size: 17px;
+}
+
+.industry-sites-catalog-card p {
+  margin: 0 0 10px;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.45;
+  min-height: 2.6em;
+}
+
+.industry-sites-catalog-tpl {
+  display: inline-block;
+  margin-bottom: 12px;
+  font-size: 12px;
+  color: #0d47a1;
+}
+
+.industry-sites-catalog-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .industry-site .btn-primary {
   transform: none;
   background: linear-gradient(
@@ -951,4 +1039,103 @@
     var(--site-primary, #0d47a1) 0%,
     color-mix(in srgb, var(--site-primary, #0d47a1) 38%, #1976d2) 100%
   );
+}
+
+/* ── 20 套真实落地页模板预览 ── */
+.industry-microsite-preview {
+  margin-top: 8px;
+}
+
+.industry-microsite-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 12px;
+  margin: 16px 0 14px;
+}
+
+.industry-microsite-select-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--b2b-muted, #666);
+}
+
+.industry-microsite-select {
+  min-width: min(420px, 100%);
+  flex: 1;
+  padding: 10px 12px;
+  border: 1.5px solid #c7d7f5;
+  border-radius: 10px;
+  background: #fff;
+  font-size: 14px;
+}
+
+.industry-microsite-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+  max-height: 140px;
+  overflow-y: auto;
+}
+
+.industry-microsite-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 8px 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #fff;
+  cursor: pointer;
+  text-align: left;
+  min-width: 120px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.industry-microsite-chip strong {
+  font-size: 13px;
+  color: #0f172a;
+}
+
+.industry-microsite-chip span {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.industry-microsite-chip.on,
+.industry-microsite-chip:hover {
+  box-shadow: 0 2px 10px rgba(13, 71, 161, 0.08);
+}
+
+.industry-microsite-frame-wrap {
+  border: 1px solid #dbeafe;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #0f172a;
+}
+
+.industry-microsite-frame-bar {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 12px;
+  font-size: 12px;
+  color: #cbd5e1;
+  background: #1e293b;
+}
+
+.industry-microsite-frame {
+  display: block;
+  width: 100%;
+  height: min(72vh, 720px);
+  border: 0;
+  background: #fff;
+}
+
+@media (max-width: 720px) {
+  .industry-microsite-frame {
+    height: 64vh;
+  }
 }

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>行业独立网页目录 · BlockHub</title>
+  <meta name="description" content="20 个行业落地页，静态解耦生成，不依赖应用运行时。" />
+  <style>
+    :root { --bg:#f4f7fb; --text:#0f172a; --muted:#64748b; --line:#dbeafe; --pri:#0d47a1; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: "Segoe UI", "PingFang SC", sans-serif; background:var(--bg); color:var(--text); }
+    .wrap { max-width:1080px; margin:0 auto; padding:32px 20px 64px; }
+    h1 { font-size:28px; margin:0 0 8px; }
+    .lead { color:var(--muted); margin:0 0 28px; line-height:1.6; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:14px; }
+    .site-card {
+      display:flex; flex-direction:column; gap:6px; text-decoration:none; color:inherit;
+      background:#fff; border:1px solid var(--line); border-radius:12px; padding:16px;
+      box-shadow:0 4px 16px rgba(13,71,161,.06);
+    }
+    .site-card:hover { border-color:var(--pri); }
+    .site-card strong { font-size:16px; }
+    .site-card span { font-size:13px; color:var(--muted); line-height:1.45; }
+    .site-card em { font-style:normal; font-size:12px; color:var(--pri); }
+    .bar { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:20px; }
+    .bar a { color:var(--pri); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>行业独立网页 · 解耦目录</h1>
+    <p class="lead">以下站点为纯静态 HTML，可单独托管/投放；与积木仓「生成应用」链路解耦。需要能力编排时再进入行业方案站。</p>
+    <div class="bar">
+      <a href="/">积木仓首页</a>
+      <a href="/#product">行业方案入口</a>
+    </div>
+    <div class="grid">
+<a class="site-card" href="./office/index.html">
+  <strong>通用办公</strong>
+  <span>人事、财务、审批、知识库一体化</span>
+  <em>Read Only · 极简名片</em>
+</a>
+<a class="site-card" href="./mfg/index.html">
+  <strong>传统制造</strong>
+  <span>报修、SOP、质检、MES 打通</span>
+  <em>Solid State · 深色企业</em>
+</a>
+<a class="site-card" href="./sales/index.html">
+  <strong>销售行业</strong>
+  <span>话术、漏斗、合同、CRM 一体</span>
+  <em>Fractal · 产品焦点</em>
+</a>
+<a class="site-card" href="./med/index.html">
+  <strong>医疗健康</strong>
+  <span>指南、排班、导诊、HIS 协同</span>
+  <em>Tessellate · 块面拼贴</em>
+</a>
+<a class="site-card" href="./game/index.html">
+  <strong>游戏娱乐</strong>
+  <span>玩家 FAQ、客服、活动通知</span>
+  <em>Dimension · 遮罩面板</em>
+</a>
+<a class="site-card" href="./retail/index.html">
+  <strong>零售电商</strong>
+  <span>库存、会员、促销、订单全链路</span>
+  <em>Big Picture · 全幅影像</em>
+</a>
+<a class="site-card" href="./edu/index.html">
+  <strong>教育培训</strong>
+  <span>课程、题库、排课、家校互通</span>
+  <em>Massively · 杂志栅格</em>
+</a>
+<a class="site-card" href="./finance/index.html">
+  <strong>金融服务</strong>
+  <span>合规、风控、理财、尽调闭环</span>
+  <em>Landed · 稳重商务</em>
+</a>
+<a class="site-card" href="./logistics/index.html">
+  <strong>物流仓储</strong>
+  <span>运单、仓储、调度、签收可视</span>
+  <em>Multiverse · 图库矩阵</em>
+</a>
+<a class="site-card" href="./realestate/index.html">
+  <strong>房地产</strong>
+  <span>看房、签约、物业、报修一体</span>
+  <em>Forty · 大字标题</em>
+</a>
+<a class="site-card" href="./hotel/index.html">
+  <strong>酒店餐饮</strong>
+  <span>预订、排班、客诉、巡检</span>
+  <em>Story · 叙事长滚动</em>
+</a>
+<a class="site-card" href="./energy/index.html">
+  <strong>能源电力</strong>
+  <span>巡检、工单、能耗、安全合规</span>
+  <em>Photon · 分区图标条</em>
+</a>
+<a class="site-card" href="./gov/index.html">
+  <strong>政务公用</strong>
+  <span>办事指南、诉求、审批便民</span>
+  <em>Stellar · 居中纵轴</em>
+</a>
+<a class="site-card" href="./legal/index.html">
+  <strong>法律服务</strong>
+  <span>案件、合同、法规检索</span>
+  <em>Helios · 全屏开场</em>
+</a>
+<a class="site-card" href="./hr/index.html">
+  <strong>人力资源</strong>
+  <span>招聘、绩效、培训、薪酬</span>
+  <em>Editorial · 侧栏杂志</em>
+</a>
+<a class="site-card" href="./marketing/index.html">
+  <strong>市场营销</strong>
+  <span>活动、线索、内容、投放</span>
+  <em>Hyperspace · 侧栏导航</em>
+</a>
+<a class="site-card" href="./construction/index.html">
+  <strong>建筑工程</strong>
+  <span>进度、安全、材料、验收</span>
+  <em>Paradigm Shift · 非对称编辑</em>
+</a>
+<a class="site-card" href="./agriculture/index.html">
+  <strong>农业</strong>
+  <span>溯源、巡检、补贴、产销</span>
+  <em>Sonar · 摄影瀑布流</em>
+</a>
+<a class="site-card" href="./media/index.html">
+  <strong>传媒内容</strong>
+  <span>选题、审核、版权、分发</span>
+  <em>Spectral · 渐变首屏</em>
+</a>
+<a class="site-card" href="./auto/index.html">
+  <strong>汽车交通</strong>
+  <span>售后、试驾、配件、工单</span>
+  <em>Nova Launch · 电影感科技</em>
+</a>
+    </div>
+  </div>
+</body>
+</html>

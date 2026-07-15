@@ -1,0 +1,142 @@
+[
+  {
+    "key": "office",
+    "name": "通用办公",
+    "tagline": "人事、财务、审批、知识库一体化",
+    "template": "Read Only · 极简名片",
+    "href": "./office/index.html"
+  },
+  {
+    "key": "mfg",
+    "name": "传统制造",
+    "tagline": "报修、SOP、质检、MES 打通",
+    "template": "Solid State · 深色企业",
+    "href": "./mfg/index.html"
+  },
+  {
+    "key": "sales",
+    "name": "销售行业",
+    "tagline": "话术、漏斗、合同、CRM 一体",
+    "template": "Fractal · 产品焦点",
+    "href": "./sales/index.html"
+  },
+  {
+    "key": "med",
+    "name": "医疗健康",
+    "tagline": "指南、排班、导诊、HIS 协同",
+    "template": "Tessellate · 块面拼贴",
+    "href": "./med/index.html"
+  },
+  {
+    "key": "game",
+    "name": "游戏娱乐",
+    "tagline": "玩家 FAQ、客服、活动通知",
+    "template": "Dimension · 遮罩面板",
+    "href": "./game/index.html"
+  },
+  {
+    "key": "retail",
+    "name": "零售电商",
+    "tagline": "库存、会员、促销、订单全链路",
+    "template": "Big Picture · 全幅影像",
+    "href": "./retail/index.html"
+  },
+  {
+    "key": "edu",
+    "name": "教育培训",
+    "tagline": "课程、题库、排课、家校互通",
+    "template": "Massively · 杂志栅格",
+    "href": "./edu/index.html"
+  },
+  {
+    "key": "finance",
+    "name": "金融服务",
+    "tagline": "合规、风控、理财、尽调闭环",
+    "template": "Landed · 稳重商务",
+    "href": "./finance/index.html"
+  },
+  {
+    "key": "logistics",
+    "name": "物流仓储",
+    "tagline": "运单、仓储、调度、签收可视",
+    "template": "Multiverse · 图库矩阵",
+    "href": "./logistics/index.html"
+  },
+  {
+    "key": "realestate",
+    "name": "房地产",
+    "tagline": "看房、签约、物业、报修一体",
+    "template": "Forty · 大字标题",
+    "href": "./realestate/index.html"
+  },
+  {
+    "key": "hotel",
+    "name": "酒店餐饮",
+    "tagline": "预订、排班、客诉、巡检",
+    "template": "Story · 叙事长滚动",
+    "href": "./hotel/index.html"
+  },
+  {
+    "key": "energy",
+    "name": "能源电力",
+    "tagline": "巡检、工单、能耗、安全合规",
+    "template": "Photon · 分区图标条",
+    "href": "./energy/index.html"
+  },
+  {
+    "key": "gov",
+    "name": "政务公用",
+    "tagline": "办事指南、诉求、审批便民",
+    "template": "Stellar · 居中纵轴",
+    "href": "./gov/index.html"
+  },
+  {
+    "key": "legal",
+    "name": "法律服务",
+    "tagline": "案件、合同、法规检索",
+    "template": "Helios · 全屏开场",
+    "href": "./legal/index.html"
+  },
+  {
+    "key": "hr",
+    "name": "人力资源",
+    "tagline": "招聘、绩效、培训、薪酬",
+    "template": "Editorial · 侧栏杂志",
+    "href": "./hr/index.html"
+  },
+  {
+    "key": "marketing",
+    "name": "市场营销",
+    "tagline": "活动、线索、内容、投放",
+    "template": "Hyperspace · 侧栏导航",
+    "href": "./marketing/index.html"
+  },
+  {
+    "key": "construction",
+    "name": "建筑工程",
+    "tagline": "进度、安全、材料、验收",
+    "template": "Paradigm Shift · 非对称编辑",
+    "href": "./construction/index.html"
+  },
+  {
+    "key": "agriculture",
+    "name": "农业",
+    "tagline": "溯源、巡检、补贴、产销",
+    "template": "Sonar · 摄影瀑布流",
+    "href": "./agriculture/index.html"
+  },
+  {
+    "key": "media",
+    "name": "传媒内容",
+    "tagline": "选题、审核、版权、分发",
+    "template": "Spectral · 渐变首屏",
+    "href": "./media/index.html"
+  },
+  {
+    "key": "auto",
+    "name": "汽车交通",
+    "tagline": "售后、试驾、配件、工单",
+    "template": "Nova Launch · 电影感科技",
+    "href": "./auto/index.html"
+  }
+]

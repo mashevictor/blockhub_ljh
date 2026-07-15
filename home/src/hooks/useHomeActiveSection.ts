@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { preserveCreateHashOnScroll } from '../lib/createDeepLink'
 
 export type HomeSectionId = 'hero' | 'product' | 'case' | 'contact-create' | 'contact-demo'
 
@@ -47,12 +48,12 @@ function animateScrollTo(targetY: number, durationMs: number) {
 
 export function scrollToHomeSection(id: HomeSectionId | string, delayMs = 0) {
   const run = () => {
-    const el = document.getElementById(id)
+    const el = document.getElementById(id.replace(/^#/, ''))
     if (!el) return
     const top = el.getBoundingClientRect().top + window.scrollY - headerScrollOffset()
     animateScrollTo(Math.max(0, top), HOME_SECTION_SCROLL_MS)
     if (typeof history !== 'undefined' && history.replaceState) {
-      const hash = id.startsWith('#') ? id : `#${id}`
+      const hash = preserveCreateHashOnScroll(id)
       if (window.location.hash !== hash) {
         history.replaceState(null, '', `${window.location.pathname}${window.location.search}${hash}`)
       }
@@ -66,7 +67,7 @@ export function useHomeActiveSection() {
   const [active, setActive] = useState<HomeSectionId>('hero')
 
   useEffect(() => {
-    const targets = SECTION_IDS.map((id) => document.getElementById(id)).filter(Boolean) as HTMLElement[]
+    const targets = SECTION_IDS.map((sid) => document.getElementById(sid)).filter(Boolean) as HTMLElement[]
     if (!targets.length) return
 
     const io = new IntersectionObserver(
@@ -74,8 +75,8 @@ export function useHomeActiveSection() {
         const visible = entries.filter((e) => e.isIntersecting)
         if (!visible.length) return
         const best = [...visible].sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0]
-        const id = best.target.id as HomeSectionId
-        if (SECTION_IDS.includes(id)) setActive(id)
+        const nextId = best.target.id as HomeSectionId
+        if (SECTION_IDS.includes(nextId)) setActive(nextId)
       },
       { threshold: [0.12, 0.28, 0.45], rootMargin: '-72px 0px -42% 0px' },
     )

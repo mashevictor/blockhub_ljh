@@ -14,6 +14,8 @@ import { getIndustryVisualTheme } from '../data/industryVisualThemes'
 import { getIndustryStylePack, getStylePackMeta, industrySitePackClass } from '../data/industryStylePacks'
 import IndustryHeroSection from '../components/industry/IndustryHeroSection'
 import IndustryPageTemplateGallery from '../components/industry/IndustryPageTemplateGallery'
+import IndustryMicrositePreview from '../components/industry/IndustryMicrositePreview'
+import type { IndustryMicrositeTemplate } from '../data/industryMicrositeTemplates'
 import { ROUTES } from '../routes/paths'
 import '../styles/b2b-landing.css'
 import '../styles/industry-style-packs.css'
@@ -97,8 +99,21 @@ export default function IndustryDetailPage() {
     return buildIndustryPageTemplates(detail.pack.name, flat)
   }, [detail])
 
+  const handleOpenDecoupledSite = () => {
+    window.open(ROUTES.industrySiteHtml(key), '_blank', 'noopener,noreferrer')
+  }
+
   const handleUseIndustry = () => {
-    navigate(`${ROUTES.home}#contact-create?mode=industry&pack=${key}`)
+    navigate(`${ROUTES.home}#contact-create?mode=industry&pack=${encodeURIComponent(key)}`)
+  }
+
+  const handleComposeWithTemplate = (tpl: IndustryMicrositeTemplate) => {
+    const q = new URLSearchParams({
+      mode: 'industry',
+      pack: key,
+      microsite: tpl.id,
+    })
+    navigate(`${ROUTES.home}#contact-create?${q.toString()}`)
   }
 
   const handleReEnrich = () => {
@@ -120,6 +135,14 @@ export default function IndustryDetailPage() {
   const { pack, groups, total, enrichment } = detail
   const Icon = INDUSTRY_ICONS[pack.key] ?? IconSparkles
   const accent = site.theme.primary
+  const enrichmentSourceLabel =
+    enrichment?.source === 'deepseek'
+      ? '大模型（已缓存，可再丰富）'
+      : enrichment?.source === 'static'
+        ? '第一版生产文案（可大模型再丰富）'
+        : enrichment?.source
+          ? '自动生成'
+          : null
 
   return (
     <IndustrySiteShell theme={site.theme} industryName={pack.name} layoutClass={layoutClass}>
@@ -135,14 +158,19 @@ export default function IndustryDetailPage() {
         stats={visualTheme.stats}
         icon={<Icon size={40} />}
         ctaPrimary={
-          <button type="button" className="btn-primary" onClick={handleUseIndustry}>
-            {site.cta.create_label} →
+          <button type="button" className="btn-primary" onClick={handleOpenDecoupledSite}>
+            打开独立网页（解耦）
           </button>
         }
         ctaSecondary={
-          <button type="button" className="btn-ghost industry-site-ghost" disabled={enriching} onClick={handleReEnrich}>
-            {enriching ? '大模型丰富中…' : '大模型重新丰富'}
-          </button>
+          <>
+            <button type="button" className="btn-ghost industry-site-ghost" onClick={handleUseIndustry}>
+              编排生成应用 →
+            </button>
+            <button type="button" className="btn-ghost industry-site-ghost" disabled={enriching} onClick={handleReEnrich}>
+              {enriching ? '大模型丰富中…' : '大模型重新丰富'}
+            </button>
+          </>
         }
       />
 
@@ -158,19 +186,24 @@ export default function IndustryDetailPage() {
           ))}
         </ul>
         <div className="industry-site-modules">
-          <h3>推荐模块</h3>
+          <h3>推荐模块（正式能力，可在悬浮框增减）</h3>
           <div className="industry-site-module-chips">
             {(enrichment?.recommended_modules?.length ? enrichment.recommended_modules : visualTheme.focusModules).map((m) => (
               <code key={m}>{m}</code>
             ))}
           </div>
         </div>
-        {enrichment?.source && enrichment.source !== 'static' ? (
-          <span className="industry-detail-source">
-            文案来源：{enrichment.source === 'deepseek' ? '大模型' : '自动生成'}
-          </span>
+        {enrichmentSourceLabel ? (
+          <span className="industry-detail-source">文案来源：{enrichmentSourceLabel}</span>
         ) : null}
       </section>
+
+      <IndustryMicrositePreview
+        packKey={pack.key}
+        packName={pack.name}
+        accent={accent}
+        onCompose={handleComposeWithTemplate}
+      />
 
       {pageTemplates.length > 0 ? (
         <IndustryPageTemplateGallery
@@ -242,11 +275,17 @@ export default function IndustryDetailPage() {
       ) : null}
 
       <section className="industry-site-cta-band">
-        <h2>选用 {pack.name}，五分钟搭好应用</h2>
-        <p>{site.stats.delivery}</p>
-        <button type="button" className="btn-primary agent-action-btn" onClick={handleUseIndustry}>
-          {site.cta.create_label} →
-        </button>
+        <h2>两条交付路径 · 互不解耦依赖</h2>
+        <p>独立网页可投放；应用编排走 CapShip。{site.stats.delivery}</p>
+        <div className="industry-site-cta-band-actions">
+          <button type="button" className="btn-primary agent-action-btn" onClick={handleOpenDecoupledSite}>
+            打开独立网页
+          </button>
+          <button type="button" className="btn-ghost" onClick={handleUseIndustry}>
+            {site.cta.create_label} →
+          </button>
+          <Link to={ROUTES.industrySites} className="btn-ghost">全部解耦网页目录</Link>
+        </div>
       </section>
     </IndustrySiteShell>
   )
