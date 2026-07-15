@@ -113,6 +113,46 @@
       "dart_import": "package:capability_school_notice/capability_school_notice.dart"
     },
     {
+      "web_pkg": "@blockhub/web-capability-property-repair",
+      "web_folder": "web-capability-property-repair",
+      "flutter_pkg": "capability_property_repair",
+      "p1_scope": "app",
+      "status_target": "ok",
+      "capability_keys": ["property_repair"],
+      "module_class": "PropertyRepairModule",
+      "dart_import": "package:capability_property_repair/capability_property_repair.dart"
+    },
+    {
+      "web_pkg": "@blockhub/web-capability-site-patrol",
+      "web_folder": "web-capability-site-patrol",
+      "flutter_pkg": "capability_site_patrol",
+      "p1_scope": "app",
+      "status_target": "ok",
+      "capability_keys": ["site_patrol"],
+      "module_class": "SitePatrolModule",
+      "dart_import": "package:capability_site_patrol/capability_site_patrol.dart"
+    },
+    {
+      "web_pkg": "@blockhub/web-capability-class-schedule",
+      "web_folder": "web-capability-class-schedule",
+      "flutter_pkg": "capability_class_schedule",
+      "p1_scope": "app",
+      "status_target": "ok",
+      "capability_keys": ["class_schedule"],
+      "module_class": "ClassScheduleModule",
+      "dart_import": "package:capability_class_schedule/capability_class_schedule.dart"
+    },
+    {
+      "web_pkg": "@blockhub/web-capability-hotel-booking",
+      "web_folder": "web-capability-hotel-booking",
+      "flutter_pkg": "capability_hotel_booking",
+      "p1_scope": "app",
+      "status_target": "ok",
+      "capability_keys": ["hotel_booking"],
+      "module_class": "HotelBookingModule",
+      "dart_import": "package:capability_hotel_booking/capability_hotel_booking.dart"
+    },
+    {
       "web_pkg": "@blockhub/web-capability-homework-qa",
       "web_folder": "web-capability-homework-qa",
       "flutter_pkg": "capability_homework_qa",

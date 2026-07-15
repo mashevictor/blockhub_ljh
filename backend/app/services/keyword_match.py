@@ -23,6 +23,10 @@ _AGENT_TO_MODULE: dict[str, str] = {
     "game_support": "game_support",
     "school_notice": "school_notice",
     "homework_qa": "homework_qa",
+    "property_repair": "property_repair",
+    "site_patrol": "site_patrol",
+    "class_schedule": "class_schedule",
+    "hotel_booking": "hotel_booking",
     "kb": "kb_document",
     "report": "chart_dashboard",
     "notify": "notify_inapp",
@@ -68,8 +72,21 @@ INDUSTRY_DEFAULT_MODULES: dict[str, list[tuple[str, str, str]]] = {
     "edu": [
         ("school_notice", "家校通知", "通知/报名/留言"),
         ("homework_qa", "作业答疑", "作业提交/课程答疑"),
+        ("class_schedule", "课表查询", "课程/考试/教室"),
         ("chat_qa", "智能问答", "课程/培训答疑"),
         ("notify_inapp", "站内信", "家校/学员通知"),
+    ],
+    "realestate": [
+        ("property_repair", "物业报修", "业主报修/派工"),
+        ("notify_im", "企微钉钉飞书", "报修状态推送"),
+    ],
+    "hotel": [
+        ("hotel_booking", "酒店预订", "客房入住/退房"),
+        ("notify_im", "企微钉钉飞书", "预订确认推送"),
+    ],
+    "energy": [
+        ("site_patrol", "巡检打卡", "站点巡检/隐患"),
+        ("notify_im", "企微钉钉飞书", "合规推送"),
     ],
     "logistics": [
         ("flutter_map", "地图导航", "运单/派单地图"),

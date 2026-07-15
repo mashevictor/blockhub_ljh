@@ -26,6 +26,10 @@ from app.api.v1 import (
     game_support,
     school_notice,
     homework_qa,
+    property_repair,
+    site_patrol,
+    class_schedule,
+    hotel_booking,
     notifications,
     quality_inspect,
     reports,
@@ -114,6 +118,10 @@ app.include_router(nurse_shift.router, prefix=settings.api_prefix, dependencies=
 app.include_router(game_support.router, prefix=settings.api_prefix, dependencies=_auth)
 app.include_router(school_notice.router, prefix=settings.api_prefix, dependencies=_auth)
 app.include_router(homework_qa.router, prefix=settings.api_prefix, dependencies=_auth)
+app.include_router(property_repair.router, prefix=settings.api_prefix, dependencies=_auth)
+app.include_router(site_patrol.router, prefix=settings.api_prefix, dependencies=_auth)
+app.include_router(class_schedule.router, prefix=settings.api_prefix, dependencies=_auth)
+app.include_router(hotel_booking.router, prefix=settings.api_prefix, dependencies=_auth)
 app.include_router(reports.router, prefix=settings.api_prefix, dependencies=_auth)
 app.include_router(notifications.router, prefix=settings.api_prefix, dependencies=_auth)
 # integration：ingress/webhook 公开验签；其余路由在 router 内依赖 get_current_user

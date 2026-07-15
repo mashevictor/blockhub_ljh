@@ -202,9 +202,10 @@ export const ROLE_PRESETS: RolePreset[] = [
     [
       { type: 'industry', key: 'edu', label: '教育培训' },
       { type: 'scenario', key: 's17-schedule', label: '课表查询' },
-      { type: 'module', key: 'chat_qa', label: '智能问答' },
+      { type: 'module', key: 'class_schedule', label: '课表查询' },
+      { type: 'module', key: 'notify_im', label: '企微钉钉飞书' },
     ],
-    ['>> 课表查询 · 今日课程', '>> 考试安排 · 倒计时提醒', '>> 教室查询 · 空教室', '>> 智能问答 · 校园制度']),
+    ['>> 课表查询 · 课程考试登记', '>> 教室时段 · 一键归档', '>> 企微钉钉飞书 · 日程提醒', '>> CapShip · 双端真接口']),
   scene('s18', '活动运营', '市场 · 活动', '#06b6d4',
     '活动策划、报名统计与转化复盘。',
     [
@@ -219,9 +220,10 @@ export const ROLE_PRESETS: RolePreset[] = [
     [
       { type: 'industry', key: 'realestate', label: '房地产' },
       { type: 'scenario', key: 's19-fix', label: '物业报修' },
-      { type: 'module', key: 'approval_flow', label: '审批流' },
+      { type: 'module', key: 'property_repair', label: '物业报修' },
+      { type: 'module', key: 'notify_im', label: '企微钉钉飞书' },
     ],
-    ['>> 物业报修 · 拍照提单', '>> 工单处理 · 师傅派单', '>> 进度查询 · 实时跟踪', '>> 评价反馈 · 服务闭环'], 4),
+    ['>> 物业报修 · 业主扫码提单', '>> 派工维修 · 进度跟踪', '>> 企微钉钉飞书 · 状态推送', '>> CapShip · 双端真接口'], 4),
   scene('s20', '看房签约', '房产 · 销售', '#b45309',
     '看房预约、意向登记与签约跟进。',
     [
@@ -235,9 +237,10 @@ export const ROLE_PRESETS: RolePreset[] = [
     [
       { type: 'industry', key: 'hotel', label: '酒店餐饮' },
       { type: 'scenario', key: 's21-book', label: '客房预订' },
-      { type: 'module', key: 'approval_flow', label: '审批流' },
+      { type: 'module', key: 'hotel_booking', label: '酒店预订' },
+      { type: 'module', key: 'notify_im', label: '企微钉钉飞书' },
     ],
-    ['>> 客房预订 · 房态查询', '>> 排班管理 · 人员轮班', '>> 客诉处理 · 工单跟踪', '>> 消息通知 · 入住提醒']),
+    ['>> 酒店预订 · 房型入住登记', '>> 入住/取消 · 房态闭环', '>> 企微钉钉飞书 · 确认推送', '>> CapShip · 双端真接口']),
   scene('s22', '外卖配送', '生活 · 配送', '#f43f5e',
     '订单跟踪、骑手调度与异常处理。',
     [
@@ -291,9 +294,10 @@ export const ROLE_PRESETS: RolePreset[] = [
     [
       { type: 'industry', key: 'energy', label: '能源电力' },
       { type: 'scenario', key: 's28-inspect', label: '巡检管理' },
-      { type: 'module', key: 'approval_flow', label: '审批流' },
+      { type: 'module', key: 'site_patrol', label: '巡检打卡' },
+      { type: 'module', key: 'notify_im', label: '企微钉钉飞书' },
     ],
-    ['>> 巡检管理 · 路线打卡', '>> 隐患上报 · 拍照留痕', '>> 安全合规 · 制度问答', '>> 工单闭环 · 整改跟踪']),
+    ['>> 巡检打卡 · 站点点位录入', '>> 合格/隐患 · 当场闭环', '>> 企微钉钉飞书 · 合规推送', '>> CapShip · 双端真接口']),
   scene('s29', '政务办事', '政务 · 便民', '#475569',
     '办事指南、诉求提交与进度查询。',
     [

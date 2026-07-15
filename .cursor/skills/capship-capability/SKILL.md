@@ -92,7 +92,7 @@ description: >-
 
 **反例**：`bh-flow-body` 里同时露产品号+工序+备注多个 input；或旧分步只换页但仍用无 `>>` 的普通 input（须改成 `GtgtStepComposer`）。
 
-**已覆盖能力包（写入主路径 · Web + App）**：`device_repair`、`quality_inspect`、`inventory_count`、`member_loyalty`、`med_triage`、`nurse_shift`、`game_support`、`school_notice`、`homework_qa`；另 Web：`approval`（FormWidget）、`notify_im`（Webhook 绑定）。
+**已覆盖能力包（写入主路径 · Web + App）**：`device_repair`、`quality_inspect`、`inventory_count`、`member_loyalty`、`med_triage`、`nurse_shift`、`game_support`、`school_notice`、`homework_qa`、`property_repair`、`site_patrol`、`class_schedule`、`hotel_booking`；另 Web：`approval`（FormWidget）、`notify_im`（Webhook 绑定）。
 
 ### A7 验收
 

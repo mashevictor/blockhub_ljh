@@ -93,6 +93,22 @@ const SCENARIO_CAPABILITY_MAP: Array<{ match: string[]; caps: Array<{ key: strin
     { key: 'homework_qa', label: '作业答疑' },
     { key: 'notify_im', label: '企微钉钉飞书' },
   ]},
+  { match: ['课表查询', '课程表', '考试安排', '教室查询', '课表'], caps: [
+    { key: 'class_schedule', label: '课表查询' },
+    { key: 'notify_im', label: '企微钉钉飞书' },
+  ]},
+  { match: ['物业报修', '业主报修', '小区报修', '物业工单'], caps: [
+    { key: 'property_repair', label: '物业报修' },
+    { key: 'notify_im', label: '企微钉钉飞书' },
+  ]},
+  { match: ['酒店预订', '客房预订', '入住登记', '酒店客房'], caps: [
+    { key: 'hotel_booking', label: '酒店预订' },
+    { key: 'notify_im', label: '企微钉钉飞书' },
+  ]},
+  { match: ['巡检打卡', '设备巡检', '隐患上报', '安全巡检', '巡检管理'], caps: [
+    { key: 'site_patrol', label: '巡检打卡' },
+    { key: 'notify_im', label: '企微钉钉飞书' },
+  ]},
   { match: ['请假', '年假', '调休'], caps: [{ key: 'approval_flow', label: '审批流' }, { key: 'chat_qa', label: '智能问答' }] },
   { match: ['报销', '费用报销'], caps: [{ key: 'approval_flow', label: '审批流' }, { key: 'kb_document', label: '知识库' }] },
   { match: ['用印', '盖章'], caps: [{ key: 'approval_flow', label: '审批流' }] },

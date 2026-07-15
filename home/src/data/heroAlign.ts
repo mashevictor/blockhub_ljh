@@ -14,6 +14,10 @@ const ALIASES: Record<string, string[]> = {
   s14: ['玩家FAQ', '玩家攻略', '客服工单', '活动规则', '游戏FAQ'],
   s15: ['家校通知', '活动报名', '家长留言', '学校通知', '家校'],
   s16: ['作业答疑', '作业提交', '课程答疑', '错题巩固', '错题'],
+  s17: ['课表查询', '课程表', '考试安排', '教室查询', '课表'],
+  s19: ['物业报修', '业主报修', '小区报修', '物业工单'],
+  s21: ['酒店预订', '客房预订', '入住登记', '酒店客房'],
+  s28: ['巡检打卡', '设备巡检', '隐患上报', '安全巡检', '巡检管理'],
   s00: ['上海话', '沪语'],
   s31: ['上海话', '沪语', '方言语音'],
 }
@@ -29,6 +33,10 @@ export const CAPSHIP_MODULE_KEYS = new Set([
   'game_support',
   'school_notice',
   'homework_qa',
+  'property_repair',
+  'site_patrol',
+  'class_schedule',
+  'hotel_booking',
   'shanghai_voice',
 ])
 

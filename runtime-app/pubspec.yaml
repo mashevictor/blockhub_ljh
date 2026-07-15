@@ -33,6 +33,14 @@ dependencies:
     path: ../packages/capability_game_support
   capability_school_notice:
     path: ../packages/capability_school_notice
+  capability_property_repair:
+    path: ../packages/capability_property_repair
+  capability_site_patrol:
+    path: ../packages/capability_site_patrol
+  capability_class_schedule:
+    path: ../packages/capability_class_schedule
+  capability_hotel_booking:
+    path: ../packages/capability_hotel_booking
   capability_homework_qa:
     path: ../packages/capability_homework_qa
   capability_audit_log:

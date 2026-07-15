@@ -161,7 +161,7 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     "widget": "DashboardWidget",
     "agent_id": "report",
     "web_pkg": "@blockhub/web-capability-dashboard",
-    "flutter_pkg": "fl_chart",
+    "flutter_pkg": "capability_chart_dashboard",
     "route": "/dashboard",
     "keywords": [
       "看板",
@@ -178,7 +178,7 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     "widget": "FunnelWidget",
     "agent_id": "report",
     "web_pkg": "@blockhub/web-capability-dashboard",
-    "flutter_pkg": "fl_chart",
+    "flutter_pkg": "capability_chart_funnel",
     "route": "/dashboard",
     "keywords": [
       "漏斗",
@@ -236,11 +236,28 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     "widget": "VoiceWidget",
     "agent_id": "chat_qa",
     "web_pkg": "@blockhub/web-capability-chat",
-    "flutter_pkg": "speech_to_text",
+    "flutter_pkg": "capability_chat_voice",
     "route": "/chat",
     "keywords": [
       "语音问答",
       "语音助手"
+    ]
+  },
+  {
+    "key": "class_schedule",
+    "name": "课表查询",
+    "category": "教育培训",
+    "widget": "ClassScheduleWidget",
+    "agent_id": "class_schedule",
+    "web_pkg": "@blockhub/web-capability-class-schedule",
+    "flutter_pkg": "capability_class_schedule",
+    "route": "/class-schedule",
+    "keywords": [
+      "课表查询",
+      "课程表",
+      "考试安排",
+      "教室查询",
+      "课表"
     ]
   },
   {
@@ -328,6 +345,24 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     ]
   },
   {
+    "key": "device_repair",
+    "name": "设备报修",
+    "category": "现场运维",
+    "widget": "DeviceRepairWidget",
+    "agent_id": "device_repair",
+    "web_pkg": "@blockhub/web-capability-device-repair",
+    "flutter_pkg": "capability_device_repair",
+    "route": "/device-repair",
+    "keywords": [
+      "设备报修",
+      "报修",
+      "扫码提单",
+      "维修工单",
+      "产线故障",
+      "设备故障"
+    ]
+  },
+  {
     "key": "erp_connector",
     "name": "ERP对接",
     "category": "外部集成",
@@ -350,7 +385,7 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     "widget": "BioWidget",
     "agent_id": "security",
     "web_pkg": "",
-    "flutter_pkg": "local_auth",
+    "flutter_pkg": "capability_flutter_biometric",
     "route": "/flutter-biometric",
     "keywords": [
       "指纹",
@@ -367,7 +402,7 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     "widget": "CameraWidget",
     "agent_id": "integration",
     "web_pkg": "",
-    "flutter_pkg": "image_picker",
+    "flutter_pkg": "capability_flutter_camera",
     "route": "/flutter-camera",
     "keywords": [
       "拍照",
@@ -386,7 +421,7 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     "widget": "MobileChartWidget",
     "agent_id": "report",
     "web_pkg": "",
-    "flutter_pkg": "fl_chart",
+    "flutter_pkg": "capability_flutter_chart",
     "route": "/flutter-chart",
     "keywords": [
       "图表",
@@ -402,7 +437,7 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     "widget": "FileWidget",
     "agent_id": "kb",
     "web_pkg": "",
-    "flutter_pkg": "file_picker",
+    "flutter_pkg": "capability_flutter_file_picker",
     "route": "/flutter-file-picker",
     "keywords": [
       "选文件",
@@ -419,7 +454,7 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     "widget": "GeoWidget",
     "agent_id": "integration",
     "web_pkg": "",
-    "flutter_pkg": "geolocator",
+    "flutter_pkg": "capability_flutter_geolocation",
     "route": "/flutter-geolocation",
     "keywords": [
       "定位",
@@ -438,7 +473,7 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     "widget": "MapWidget",
     "agent_id": "integration",
     "web_pkg": "",
-    "flutter_pkg": "tencent_map_flutter",
+    "flutter_pkg": "capability_flutter_map",
     "route": "/flutter-map",
     "keywords": [
       "地图",
@@ -456,7 +491,7 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     "widget": "OfflineWidget",
     "agent_id": "integration",
     "web_pkg": "",
-    "flutter_pkg": "hive",
+    "flutter_pkg": "capability_flutter_offline",
     "route": "/flutter-offline",
     "keywords": [
       "离线",
@@ -473,7 +508,7 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     "widget": "PdfWidget",
     "agent_id": "kb",
     "web_pkg": "",
-    "flutter_pkg": "flutter_pdfview",
+    "flutter_pkg": "capability_flutter_pdf",
     "route": "/flutter-pdf",
     "keywords": [
       "pdf",
@@ -488,7 +523,7 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     "widget": "PushWidget",
     "agent_id": "notify",
     "web_pkg": "",
-    "flutter_pkg": "flutter_local_notifications",
+    "flutter_pkg": "capability_flutter_push",
     "route": "/flutter-push",
     "keywords": [
       "推送",
@@ -504,7 +539,7 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     "widget": "ScanWidget",
     "agent_id": "integration",
     "web_pkg": "",
-    "flutter_pkg": "mobile_scanner",
+    "flutter_pkg": "capability_flutter_scan_qr",
     "route": "/flutter-scan-qr",
     "keywords": [
       "扫码",
@@ -521,7 +556,7 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     "widget": "SignWidget",
     "agent_id": "approval",
     "web_pkg": "",
-    "flutter_pkg": "signature",
+    "flutter_pkg": "capability_flutter_signature",
     "route": "/flutter-signature",
     "keywords": [
       "签名",
@@ -537,7 +572,7 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     "widget": "SpeechWidget",
     "agent_id": "chat_qa",
     "web_pkg": "",
-    "flutter_pkg": "record",
+    "flutter_pkg": "capability_flutter_speech",
     "route": "/flutter-speech",
     "keywords": [
       "语音",
@@ -554,7 +589,7 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     "widget": "WebViewWidget",
     "agent_id": "integration",
     "web_pkg": "",
-    "flutter_pkg": "webview_flutter",
+    "flutter_pkg": "capability_flutter_webview",
     "route": "/flutter-webview",
     "keywords": [
       "webview",
@@ -572,7 +607,7 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     "widget": "FormWidget",
     "agent_id": "creation",
     "web_pkg": "@blockhub/web-capability-approval",
-    "flutter_pkg": "flutter_form_builder",
+    "flutter_pkg": "capability_form_widget",
     "route": "/form",
     "keywords": [
       "表单",
@@ -580,6 +615,58 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
       "席位",
       "登记",
       "填写"
+    ]
+  },
+  {
+    "key": "game_support",
+    "name": "玩家FAQ",
+    "category": "游戏娱乐",
+    "widget": "GameSupportWidget",
+    "agent_id": "game_support",
+    "web_pkg": "@blockhub/web-capability-game-support",
+    "flutter_pkg": "capability_game_support",
+    "route": "/game-support",
+    "keywords": [
+      "玩家FAQ",
+      "玩家攻略",
+      "客服工单",
+      "活动规则",
+      "游戏FAQ",
+      "玩家支持"
+    ]
+  },
+  {
+    "key": "homework_qa",
+    "name": "作业答疑",
+    "category": "教育培训",
+    "widget": "HomeworkQaWidget",
+    "agent_id": "homework_qa",
+    "web_pkg": "@blockhub/web-capability-homework-qa",
+    "flutter_pkg": "capability_homework_qa",
+    "route": "/homework-qa",
+    "keywords": [
+      "作业答疑",
+      "作业提交",
+      "课程答疑",
+      "错题",
+      "错题巩固"
+    ]
+  },
+  {
+    "key": "hotel_booking",
+    "name": "酒店预订",
+    "category": "酒店餐饮",
+    "widget": "HotelBookingWidget",
+    "agent_id": "hotel_booking",
+    "web_pkg": "@blockhub/web-capability-hotel-booking",
+    "flutter_pkg": "capability_hotel_booking",
+    "route": "/hotel-booking",
+    "keywords": [
+      "酒店预订",
+      "客房预订",
+      "入住",
+      "退房",
+      "订房"
     ]
   },
   {
@@ -592,6 +679,24 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     "flutter_pkg": "capability_integration",
     "route": "/integration",
     "keywords": []
+  },
+  {
+    "key": "inventory_count",
+    "name": "库存盘点",
+    "category": "仓储物流",
+    "widget": "InventoryCountWidget",
+    "agent_id": "inventory_count",
+    "web_pkg": "@blockhub/web-capability-inventory-count",
+    "flutter_pkg": "capability_inventory_count",
+    "route": "/inventory-count",
+    "keywords": [
+      "库存",
+      "盘点",
+      "SKU",
+      "货位",
+      "补货",
+      "仓储"
+    ]
   },
   {
     "key": "it_helpdesk",
@@ -618,7 +723,7 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     "widget": "KBUploadWidget",
     "agent_id": "kb",
     "web_pkg": "@blockhub/web-capability-kb",
-    "flutter_pkg": "file_picker",
+    "flutter_pkg": "capability_kb_document",
     "route": "/kb",
     "keywords": [
       "知识库",
@@ -656,6 +761,25 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     ]
   },
   {
+    "key": "med_triage",
+    "name": "医疗导诊",
+    "category": "患者服务",
+    "widget": "MedTriageWidget",
+    "agent_id": "med_triage",
+    "web_pkg": "@blockhub/web-capability-med-triage",
+    "flutter_pkg": "capability_med_triage",
+    "route": "/med-triage",
+    "keywords": [
+      "医疗导诊",
+      "智能导诊",
+      "就医指南",
+      "导诊",
+      "科室",
+      "预问诊",
+      "症状"
+    ]
+  },
+  {
     "key": "meeting_booking",
     "name": "会议室预约",
     "category": "外部集成",
@@ -672,6 +796,25 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
       "课程预约",
       "酒店",
       "健身房"
+    ]
+  },
+  {
+    "key": "member_loyalty",
+    "name": "会员营销",
+    "category": "营销运营",
+    "widget": "MemberLoyaltyWidget",
+    "agent_id": "member_loyalty",
+    "web_pkg": "@blockhub/web-capability-member-loyalty",
+    "flutter_pkg": "capability_member_loyalty",
+    "route": "/member-loyalty",
+    "keywords": [
+      "会员营销",
+      "会员积分",
+      "会员管理",
+      "促销",
+      "券码",
+      "积分兑换",
+      "触达"
     ]
   },
   {
@@ -705,7 +848,7 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
   },
   {
     "key": "notify_im",
-    "name": "企微钉钉",
+    "name": "企微钉钉飞书",
     "category": "通知集成",
     "widget": "IMWidget",
     "agent_id": "notify",
@@ -716,7 +859,9 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
       "企微",
       "钉钉",
       "企业微信",
-      "飞书"
+      "飞书",
+      "webhook",
+      "群机器人"
     ]
   },
   {
@@ -726,13 +871,30 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     "widget": "InboxWidget",
     "agent_id": "notify",
     "web_pkg": "@blockhub/web-capability-dashboard",
-    "flutter_pkg": "flutter_local_notifications",
+    "flutter_pkg": "capability_notify_inapp",
     "route": "/notifications",
     "keywords": [
       "站内",
       "消息中心",
       "提醒",
       "通知"
+    ]
+  },
+  {
+    "key": "nurse_shift",
+    "name": "护士排班",
+    "category": "患者服务",
+    "widget": "NurseShiftWidget",
+    "agent_id": "nurse_shift",
+    "web_pkg": "@blockhub/web-capability-nurse-shift",
+    "flutter_pkg": "capability_nurse_shift",
+    "route": "/nurse-shift",
+    "keywords": [
+      "护士排班",
+      "调班",
+      "排班",
+      "值班",
+      "换班"
     ]
   },
   {
@@ -747,13 +909,49 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     "keywords": []
   },
   {
+    "key": "property_repair",
+    "name": "物业报修",
+    "category": "生活服务",
+    "widget": "PropertyRepairWidget",
+    "agent_id": "property_repair",
+    "web_pkg": "@blockhub/web-capability-property-repair",
+    "flutter_pkg": "capability_property_repair",
+    "route": "/property-repair",
+    "keywords": [
+      "物业报修",
+      "业主报修",
+      "社区报修",
+      "工单",
+      "维修"
+    ]
+  },
+  {
+    "key": "quality_inspect",
+    "name": "质检SOP",
+    "category": "现场运维",
+    "widget": "QualityInspectWidget",
+    "agent_id": "quality_inspect",
+    "web_pkg": "@blockhub/web-capability-quality-inspect",
+    "flutter_pkg": "capability_quality_inspect",
+    "route": "/quality-inspect",
+    "keywords": [
+      "质检",
+      "SOP",
+      "工艺",
+      "不合格",
+      "终检",
+      "安环",
+      "隐患"
+    ]
+  },
+  {
     "key": "rbac_page",
     "name": "角色权限",
     "category": "权限安全",
     "widget": "RBACWidget",
     "agent_id": "creation",
     "web_pkg": "@blockhub/web-capability-integration",
-    "flutter_pkg": "go_router",
+    "flutter_pkg": "capability_rbac_page",
     "route": "/rbac",
     "keywords": [
       "权限",
@@ -780,7 +978,7 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     "widget": "AlarmWidget",
     "agent_id": "notify",
     "web_pkg": "",
-    "flutter_pkg": "flutter_local_notifications",
+    "flutter_pkg": "capability_schedule_alarm",
     "route": "/schedule-alarm",
     "keywords": [
       "闹钟",
@@ -793,6 +991,23 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
       "番茄钟",
       "计时器",
       "倒计时"
+    ]
+  },
+  {
+    "key": "school_notice",
+    "name": "家校通知",
+    "category": "教育培训",
+    "widget": "SchoolNoticeWidget",
+    "agent_id": "school_notice",
+    "web_pkg": "@blockhub/web-capability-school-notice",
+    "flutter_pkg": "capability_school_notice",
+    "route": "/school-notice",
+    "keywords": [
+      "家校通知",
+      "家校",
+      "活动报名",
+      "家长留言",
+      "学校通知"
     ]
   },
   {
@@ -813,7 +1028,7 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     "widget": "ShanghaiVoiceWidget",
     "agent_id": "shanghai_voice",
     "web_pkg": "@blockhub/web-capability-voice",
-    "flutter_pkg": "record",
+    "flutter_pkg": "capability_shanghai_voice",
     "route": "/voice",
     "keywords": [
       "上海话",
@@ -830,13 +1045,31 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     "widget": "VoiceStreamWidget",
     "agent_id": "shanghai_voice",
     "web_pkg": "@blockhub/web-capability-voice",
-    "flutter_pkg": "web_socket_channel",
+    "flutter_pkg": "capability_shanghai_voice_stream",
     "route": "/voice",
     "keywords": [
       "语音流",
       "asr",
       "tts",
       "websocket"
+    ]
+  },
+  {
+    "key": "site_patrol",
+    "name": "巡检打卡",
+    "category": "现场运维",
+    "widget": "SitePatrolWidget",
+    "agent_id": "site_patrol",
+    "web_pkg": "@blockhub/web-capability-site-patrol",
+    "flutter_pkg": "capability_site_patrol",
+    "route": "/site-patrol",
+    "keywords": [
+      "巡检打卡",
+      "巡检",
+      "打卡",
+      "隐患",
+      "安全巡检",
+      "设备巡检"
     ]
   }
 ] as const

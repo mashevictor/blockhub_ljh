@@ -119,7 +119,7 @@ def resolve_publish_capability_keys_detailed(
         push(explicit_ok)
         scenario_added = list(scenario_from_tpl)
         # 现场运维 / 仓储选型勿被旧底座审批流顶替
-        for win in ("device_repair", "quality_inspect", "inventory_count", "member_loyalty", "med_triage", "nurse_shift", "game_support", "school_notice", "homework_qa"):
+        for win in ("device_repair", "quality_inspect", "inventory_count", "member_loyalty", "med_triage", "nurse_shift", "game_support", "school_notice", "homework_qa", "property_repair", "site_patrol", "class_schedule", "hotel_booking"):
             if win in scenario_from_tpl and "approval_flow" not in scenario_from_tpl:
                 resolved[:] = [k for k in resolved if k != "approval_flow"]
                 seen.discard("approval_flow")

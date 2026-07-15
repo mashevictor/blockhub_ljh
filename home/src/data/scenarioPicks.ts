@@ -50,6 +50,10 @@ export const SCENARIO_PICKS: ScenarioPick[] = [
   { key: 'game_faq', category: '游戏行业', icon: '🎮', title: '玩家 FAQ', desc: '活动规则、攻略与客服工单', capability: 'game_support', agent: '客服', promptLine: '玩家 FAQ 与客服工单' },
   { key: 'school_notice', category: '教育培训', icon: '📢', title: '家校通知', desc: '通知/报名/家长留言', capability: 'school_notice', agent: '家校', promptLine: '家校通知与活动报名' },
   { key: 'homework_qa', category: '教育培训', icon: '📝', title: '作业答疑', desc: '作业提交与课程答疑', capability: 'homework_qa', agent: '教学', promptLine: '作业提交与课程答疑' },
+  { key: 'class_schedule', category: '教育培训', icon: '📅', title: '课表查询', desc: '课程/考试/教室安排', capability: 'class_schedule', agent: '教务', promptLine: '课表与考试教室安排' },
+  { key: 'property_repair', category: '生活服务', icon: '🏠', title: '物业报修', desc: '业主报修派工闭环', capability: 'property_repair', agent: '物业', promptLine: '物业报修与派工维修' },
+  { key: 'site_patrol', category: '现场运维', icon: '🦺', title: '巡检打卡', desc: '站点巡检与隐患闭环', capability: 'site_patrol', agent: '巡检', promptLine: '设备巡检打卡与隐患上报' },
+  { key: 'hotel_booking', category: '酒店餐饮', icon: '🏨', title: '酒店预订', desc: '客房入住退房登记', capability: 'hotel_booking', agent: '前台', promptLine: '酒店客房预订与入住' },
   { key: 'it_help', category: 'IT 与资产', icon: '🛠', title: 'IT 报障', desc: '故障工单提交，IT 值班分派', capability: 'it_helpdesk', agent: '外部数据', promptLine: 'IT 报障工单与值班分派' },
   { key: 'erp', category: '外部对接', icon: '🔌', title: '对接 ERP/OA', desc: 'SAP/用友/钉钉数据双向同步', capability: 'erp_connector', agent: '外部数据', promptLine: '对接 ERP/OA 系统数据同步' },
 ]
