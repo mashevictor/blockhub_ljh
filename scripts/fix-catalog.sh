@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # 修复 Catalog 500：补全缺失 catalog 表 + 强制 seed
-# 适用：alembic=016 但 catalog_chip_templates 等表不存在
+# 适用：alembic 已是 head(如 033)，但 catalog_hero_presets / catalog_chip_templates 仍不存在
+#      （历史 stamp 跳过 003/004，017 也不会再跑）
 # 用法: bash scripts/fix-catalog.sh
 set -euo pipefail
 
@@ -28,9 +29,19 @@ if missing:
     raise SystemExit(1)
 PY
 
-echo "==> [2/5] alembic upgrade head (迁移 017 幂等补 catalog 表)"
+echo "==> [2/5] alembic upgrade head"
 alembic upgrade head
 alembic current
+
+# head 已超前时，upgrade 不会重跑 017 → 需回放幂等补表迁移
+if [ "$MISSING" -eq 1 ]; then
+  echo "==> [2b/5] 回放 017 repair（stamp 016 → upgrade 017 → stamp head）"
+  HEAD_REV="$(alembic heads 2>/dev/null | awk '{print $1}' | head -1 || echo head)"
+  alembic stamp 016
+  alembic upgrade 017
+  alembic stamp "$HEAD_REV"
+  alembic current
+fi
 
 if [ "$MISSING" -eq 1 ]; then
   echo "==> [3/5] 复查 catalog 表"
@@ -76,7 +87,7 @@ curl -sf --max-time 10 http://127.0.0.1:8001/api/v1/health && echo " API OK"
 SUMMARY=$(curl -sf --max-time 10 http://127.0.0.1:8001/api/v1/catalog/summary || echo "")
 if echo "$SUMMARY" | grep -q '"source"'; then
   echo " catalog/summary OK"
-  echo "$SUMMARY" | python3 -c "import sys,json; d=json.load(sys.stdin); print(f\"  total={d.get('total')} hero={d.get('hero_preset_count')}\")" 2>/dev/null || true
+  echo "$SUMMARY" | python3 -c "import sys,json; d=json.load(sys.stdin); print(f\"  source={d.get('source')} hero={d.get('hero_preset_count')} chips={d.get('chip_template_count')}\")" 2>/dev/null || true
 else
   echo "ERROR: catalog/summary still failing: $SUMMARY"
   exit 1
