@@ -1,10 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import {
-  fetchDeliveryTemplates,
-  type AppUiTemplate,
-  type WebTemplate,
-} from '../api/client'
+import type { AppUiTemplate, WebTemplate } from '../api/client'
 
 interface Props {
   webTemplateId: string
@@ -100,23 +96,12 @@ export default function DeliveryTemplatePicker({
   className = '',
 }: Props) {
   const [open, setOpen] = useState(false)
-  const [web, setWeb] = useState<WebTemplate[]>(FALLBACK_WEB)
-  const [appUi, setAppUi] = useState<AppUiTemplate[]>(FALLBACK_APP)
+  const web = FALLBACK_WEB
+  const appUi = FALLBACK_APP
   const [pos, setPos] = useState<PopoverPos | null>(null)
   const rootRef = useRef<HTMLDivElement>(null)
   const triggerRef = useRef<HTMLButtonElement>(null)
   const popoverRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    fetchDeliveryTemplates()
-      .then((data) => {
-        if (data.web_templates?.length) setWeb(data.web_templates)
-        if (data.app_ui_templates?.length) setAppUi(data.app_ui_templates)
-      })
-      .catch(() => {
-        /* keep fallback */
-      })
-  }, [])
 
   const updatePosition = () => {
     const trigger = triggerRef.current

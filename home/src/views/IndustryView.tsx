@@ -1,7 +1,5 @@
 import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
-import { fetchIndustryPackDetail, fetchScenarios, publishApp } from '../api/client'
-import { publishApiToResult } from '../api/publishHelpers'
 import { runLoadingPublishPipeline } from '../lib/publishFlow'
 import { GENERATE_APP_LABEL, GENERATE_APP_LOADING } from '../data/publishUi'
 import { AgentButtonContent } from '../components/AgentChevron'
@@ -11,8 +9,12 @@ import { useTheme } from '../context/ThemeContext'
 import { categoryColor, industryColor, iconWrapStyle } from '../data/iconPalette'
 import { resolveCategoryIcon, resolveIndustryApiKey } from '../data/showcase'
 import { ROUTES } from '../routes/paths'
-import { buildPublishedModulesFromIndustry } from '../data/publishDisplay'
 import { buildClientStaticEnrichment } from '../data/industryEnrichStatic'
+import {
+  buildCachedIndustryPublish,
+  getCachedIndustryScenes,
+  type CachedIndustryScene,
+} from '../data/industryPackCache'
 import {
   getMicrositeTemplate,
   loadSavedMicrositeId,
@@ -23,14 +25,7 @@ import GenerateLoadingOverlay from '../components/GenerateLoadingOverlay'
 import AppBrandingFields from '../components/AppBrandingFields'
 import { emptyBranding, resolveAppName } from '../data/appBranding'
 import SelectionBox, { type SelectionItem } from '../components/SelectionBox'
-import { ChevronDotLoadingRow } from '../components/ChevronDotLoader'
 import DeliveryTemplatePicker from '../components/DeliveryTemplatePicker'
-
-interface SceneItem {
-  id: string
-  name: string
-  category?: string
-}
 
 interface Props {
   onPublish: (r: PublishResult) => void
@@ -50,13 +45,16 @@ export default function IndustryView({
   const [industry, setIndustry] = useState(initialIndustry ?? 'office')
   const [step, setStep] = useState(1)
   const [audience, setAudience] = useState<Audience>('b')
-  const [scenes, setScenes] = useState<SceneItem[]>([])
-  const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [scenes, setScenes] = useState<CachedIndustryScene[]>(() =>
+    getCachedIndustryScenes(resolveIndustryApiKey(initialIndustry ?? 'office')),
+  )
+  const [selected, setSelected] = useState<Set<string>>(() => {
+    const list = getCachedIndustryScenes(resolveIndustryApiKey(initialIndustry ?? 'office'))
+    return new Set(list.map((s) => s.id))
+  })
   const [loading, setLoading] = useState(false)
   const [boxOpenSignal, setBoxOpenSignal] = useState(0)
   const [lastAddedId, setLastAddedId] = useState<string | null>(null)
-  const [scenesLoading, setScenesLoading] = useState(false)
-  const [sceneError, setSceneError] = useState<string | null>(null)
   const [publishError, setPublishError] = useState<string | null>(null)
   const [contactOpen, setContactOpen] = useState(false)
   const [appName, setAppName] = useState('我的行业应用')
@@ -71,28 +69,11 @@ export default function IndustryView({
     () => initialMicrosite ?? loadSavedMicrositeId(initialIndustry ?? 'office'),
   )
 
-  const loadScenes = () => {
-    const apiKey = resolveIndustryApiKey(industry)
-    setScenesLoading(true)
-    setSceneError(null)
-    fetchScenarios(apiKey)
-      .then((items) => {
-        if (items.length === 0) {
-          setSceneError('该行业暂无场景数据，请检查 Catalog seed')
-          setScenes([])
-          setSelected(new Set())
-          return
-        }
-        setScenes(items)
-        // 默认全选场景清单，发布后进入完整 Runtime（非薄落地页）
-        setSelected(new Set(items.map((s) => s.id)))
-      })
-      .catch(() => {
-        setSceneError('无法加载场景列表，请稍后重试')
-        setScenes([])
-        setSelected(new Set())
-      })
-      .finally(() => setScenesLoading(false))
+  const loadScenesFromCache = (packKey: string) => {
+    const apiKey = resolveIndustryApiKey(packKey)
+    const items = getCachedIndustryScenes(apiKey)
+    setScenes(items)
+    setSelected(new Set(items.map((s) => s.id)))
   }
 
   useEffect(() => {
@@ -108,7 +89,7 @@ export default function IndustryView({
 
   useEffect(() => {
     if (!active) return
-    loadScenes()
+    loadScenesFromCache(industry)
   }, [industry, active])
 
   useEffect(() => {
@@ -119,14 +100,6 @@ export default function IndustryView({
     setMicrositeId((prev) => initialMicrosite || loadSavedMicrositeId(apiKey) || prev)
     // 独立站落地页风格 → 默认用单页落地壳，用户仍可在交付模板里改
     setWebTemplateId((prev) => (prev === 'tabs_portal' ? 'landing_single' : prev))
-    fetchIndustryPackDetail(apiKey, { enrich: false })
-      .then((detail) => {
-        const keys = detail.enrichment?.recommended_modules
-        if (keys?.length) setPreferKeys(keys)
-      })
-      .catch(() => {
-        /* 保留静态 CapShip 推荐 */
-      })
   }, [industry, active, initialMicrosite])
 
   useEffect(() => {
@@ -138,9 +111,9 @@ export default function IndustryView({
   const micrositeMeta = getMicrositeTemplate(micrositeId)
 
   const sceneGroups = useMemo(() => {
-    const map = new Map<string, SceneItem[]>()
+    const map = new Map<string, CachedIndustryScene[]>()
     for (const s of scenes) {
-      const cat = s.category ?? '其他'
+      const cat = s.category || '其他'
       const list = map.get(cat) ?? []
       list.push(s)
       map.set(cat, list)
@@ -188,42 +161,20 @@ export default function IndustryView({
       setLoading,
       setError: setPublishError,
       onSuccess: onPublish,
-      errorMessage: '发布失败，请确认已登录后重试',
+      errorMessage: '生成失败，请重试',
       execute: async () => {
-        const scenarioNames = scenes.filter((s) => selected.has(s.id)).map((s) => s.name)
-        const publishedModules = buildPublishedModulesFromIndustry({
-          industryKey: resolveIndustryApiKey(industry),
-          industryLabel: pack.name,
-          scenarioNames,
-          preferCapabilityKeys: preferKeys,
-        })
-        const res = await publishApp(resolveAppName(branding.appName, appName), resolveIndustryApiKey(industry), {
-          scenarioIds: [...selected],
-          scenarioNames,
-          capabilityKeys: publishedModules.filter((m) => m.kind === 'module').map((m) => m.key),
-          modules: publishedModules.map((m) => ({
-            key: m.key,
-            label: m.label,
-            kind: m.kind,
-            iconKey: m.iconKey,
-            source: m.source,
-          })),
-          audience,
-          source: 'industry',
-          // 行业全量场景装配 → 完整 menu/capabilities
-          assembleFullScenes: true,
-          // 业务使用以 Runtime 为准，避免仅落地页薄壳
-          webTemplateId: webTemplateId === 'landing_single' ? 'tabs_portal' : webTemplateId,
+        // 行业包：本地静态装配，不打 /creation/publish（避免网关 60s 超时）
+        return buildCachedIndustryPublish({
+          packKey: resolveIndustryApiKey(industry),
+          appName: resolveAppName(branding.appName, appName),
+          scenes,
+          selectedIds: selected,
           iconUrl: branding.iconUrl,
           primaryColor: branding.primaryColor,
+          webTemplateId: webTemplateId === 'landing_single' ? 'tabs_portal' : webTemplateId,
           appUiId,
           contactEmail: contact.type === 'email' ? contact.value : undefined,
           contactPhone: contact.type === 'phone' ? contact.value : undefined,
-        })
-        return publishApiToResult(res, {
-          moduleCount: publishedModules.length,
-          modules: publishedModules,
-          scenarios: scenarioNames,
         })
       },
     })
@@ -302,16 +253,12 @@ export default function IndustryView({
 
       {step === 2 && (
         <>
-          {scenesLoading && (
-            <ChevronDotLoadingRow variant="scan" size="sm" text="正在加载场景…" className="catalog-loading" />
-          )}
-          {sceneError && (
+          {scenes.length === 0 ? (
             <div className="catalog-error">
-              <p>{sceneError}</p>
-              <button type="button" className="btn-secondary" onClick={loadScenes}>重试</button>
+              <p>该行业暂无缓存场景清单</p>
             </div>
-          )}
-          {!scenesLoading && !sceneError && sceneGroups.map(([cat, items]) => (
+          ) : (
+            sceneGroups.map(([cat, items]) => (
             <div key={cat} className="scene-panel">
               <h4>
                 {pack.name} · {cat}
@@ -321,9 +268,9 @@ export default function IndustryView({
               </h4>
               <div className="scene-grid">
                 {items.map((s) => {
-                  const cat = s.category ?? '其他'
-                  const ic = categoryColor(cat, theme)
-                  const iconKey = resolveCategoryIcon(cat, 'industry')
+                  const catName = s.category || '其他'
+                  const ic = categoryColor(catName, theme)
+                  const iconKey = resolveCategoryIcon(catName, 'industry')
                   return (
                   <label key={s.id} className={`scene-check${selected.has(s.id) ? ' on' : ''}`}>
                     <input
@@ -351,9 +298,10 @@ export default function IndustryView({
                 })}
               </div>
             </div>
-          ))}
+            ))
+          )}
           <p style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 16 }}>
-            合计已选 {selected.size} / {scenes.length} 个场景
+            合计已选 {selected.size} / {scenes.length} 个场景 · 本地缓存即时加载
           </p>
           <div className="step-actions">
             <button type="button" className="btn-ghost" onClick={() => setStep(1)}>上一步</button>
