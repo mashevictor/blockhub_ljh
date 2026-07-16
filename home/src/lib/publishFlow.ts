@@ -29,11 +29,15 @@ function errorMessageFromApi(error: unknown, fallback: string): string {
   if (typeof error === 'object' && error !== null && 'response' in error) {
     const response = (error as { response?: { data?: { detail?: unknown }; status?: number } }).response
     const detail = response?.data?.detail
+    const status = response?.status
+    if (status === 405 || (typeof detail === 'string' && /method not allowed/i.test(detail))) {
+      return `${fallback}：请求方式被拦截(405)。请用 https://blockhub.club 打开本站后强制刷新(Ctrl+F5)再试，勿用未跳转的 http 书签`
+    }
     if (typeof detail === 'string' && detail.trim()) return detail
-    if (response?.status === 502) {
+    if (status === 502) {
       return `${fallback}：服务器网关错误(502)，请确认 blockhub-api 已启动`
     }
-    if (response?.status === 503) {
+    if (status === 503) {
       return `${fallback}：服务暂时不可用(503)，请稍后重试`
     }
   }

@@ -18,6 +18,8 @@
     "baseUrl": ".",
     "paths": {
       "@shared/*": ["../shared/*"],
+      "@blockhub/web-core": ["../packages/web-core/src/developer-panel.d.ts"],
+      "@blockhub/web-core/developer-blueprint.css": ["./src/types/css-modules.d.ts"],
       "@capship/composer": ["./node_modules/@capship/composer/src/index.d.ts"],
       "@capship/composer/styles.css": ["./src/types/css-modules.d.ts"]
     }

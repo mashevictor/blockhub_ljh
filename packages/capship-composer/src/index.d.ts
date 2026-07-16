@@ -108,8 +108,20 @@ export interface ComposerEvents {
   onSchemaPatch?: (schema: ComposerPageSchema) => void
   onFlowChange?: (flow: ModuleFlowPersist) => void
   onPublish?: (payload: { appId?: string; schema?: ComposerPageSchema; keys?: string[] }) => void
-  onSaved?: (result: { page_schema?: ComposerPageSchema; capability_keys?: string[] }) => void
+  onSaved?: (result: {
+    page_schema?: ComposerPageSchema
+    capability_keys?: string[]
+    schema_rev?: number
+  }) => void
   onError?: (message: string) => void
+}
+
+export interface SchemaRevisionItem {
+  rev: number
+  summary: string
+  source: string
+  editor_name: string
+  created_at?: string | null
 }
 
 export interface CapShipComposerProps extends ComposerInput, ComposerEvents {
@@ -134,11 +146,55 @@ export declare function applyComposeOps(
   ops: ComposeEditOp[],
 ): ComposerPageSchema
 
+export declare class SchemaRevConflictError extends Error {
+  status: number
+  schema_rev: number
+  schema_editor_name: string
+  page_schema?: ComposerPageSchema
+}
+
+export declare function fetchRuntimeSchema(
+  appId: string,
+  opts?: { token?: string | null },
+): Promise<{
+  page_schema: ComposerPageSchema
+  schema_rev: number
+  schema_editor_name?: string
+  schema_updated_at?: string | null
+}>
+
+export declare function fetchSchemaRevisions(
+  appId: string,
+  opts?: { token?: string | null; limit?: number },
+): Promise<{ schema_rev: number; schema_editor_name?: string; items: SchemaRevisionItem[] }>
+
+export declare function restoreSchemaRevision(
+  appId: string,
+  body: { rev: number; base_rev?: number; force?: boolean },
+  opts?: { token?: string | null },
+): Promise<{
+  success: boolean
+  page_schema: ComposerPageSchema
+  schema_rev: number
+  schema_editor_name?: string
+}>
+
 export declare function patchRuntimeSchema(
   appId: string,
   pageSchema: ComposerPageSchema,
-  opts?: { token?: string | null; mergeMeta?: Record<string, unknown> },
-): Promise<{ success: boolean; page_schema: ComposerPageSchema }>
+  opts?: {
+    token?: string | null
+    mergeMeta?: Record<string, unknown>
+    baseRev?: number | null
+    force?: boolean
+    source?: string
+  },
+): Promise<{
+  success: boolean
+  page_schema: ComposerPageSchema
+  schema_rev: number
+  schema_editor_name?: string
+}>
 
 export declare function patchRuntimeModules(
   appId: string,
@@ -147,6 +203,9 @@ export declare function patchRuntimeModules(
     modules?: Array<Record<string, unknown>>
     rebuild_schema?: boolean
     menu_plan?: Array<Record<string, unknown>>
+    base_rev?: number | null
+    force?: boolean
+    source?: string
   },
   opts?: { token?: string | null },
 ): Promise<{
@@ -154,6 +213,8 @@ export declare function patchRuntimeModules(
   page_schema?: ComposerPageSchema
   capability_keys?: string[]
   build_manifest?: Record<string, unknown>
+  schema_rev?: number
+  schema_editor_name?: string
 }>
 
 export declare function fetchIndustryAssembly(

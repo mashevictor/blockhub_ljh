@@ -1,5 +1,14 @@
-import { lazy, Suspense, useEffect, useMemo, useState, type CSSProperties } from 'react'
 import {
+  lazy,
+  Suspense,
+  useEffect,
+  useMemo,
+  useState,
+  type ComponentType,
+  type CSSProperties,
+} from 'react'
+import {
+  DeveloperBlueprintPanel,
   RuntimeContext,
   WidgetHost,
   clearAuth,
@@ -11,11 +20,15 @@ import {
   type SchemaNode,
   type TenantRuntimeConfig,
 } from '@blockhub/web-core'
+import type { CapShipComposerDockProps } from '@capship/composer'
+import '@blockhub/web-core/developer-blueprint.css'
 import '@capship/composer/styles.css'
 import { bootWidgetsFromManifest } from './register-widgets'
 
 const CapShipComposerDock = lazy(() =>
-  import('@capship/composer').then((m) => ({ default: m.CapShipComposerDock })),
+  import('@capship/composer').then((m) => ({
+    default: m.CapShipComposerDock as ComponentType<CapShipComposerDockProps>,
+  })),
 )
 
 function parseAppId(): string | null {
@@ -348,6 +361,14 @@ export default function App() {
           </footer>
         )}
 
+        <DeveloperBlueprintPanel
+          mode="app"
+          appId={appId}
+          token={token}
+          role={user.role}
+          accent={primaryColor}
+        />
+
         <Suspense fallback={null}>
           <CapShipComposerDock
             storageKey="capship-runtime-dock-v3"
@@ -357,13 +378,13 @@ export default function App() {
             capability_keys={schema.capability_keys}
             page_schema={schema as never}
             build_manifest={manifest}
-            defaultMode="live_edit"
-            onSchemaPatch={(next) => setSchema(next as unknown as PageSchema)}
-            onSaved={(result) => {
-              if (result.page_schema) setSchema(result.page_schema as unknown as PageSchema)
+            defaultMode={"live_edit" as const}
+            onSchemaPatch={(next: unknown) => setSchema(next as PageSchema)}
+            onSaved={(result: { page_schema?: unknown; capability_keys?: string[] }) => {
+              if (result.page_schema) setSchema(result.page_schema as PageSchema)
               if (result.capability_keys?.length) {
                 setManifest((prev) =>
-                  prev ? { ...prev, capability_keys: result.capability_keys } : prev,
+                  prev ? { ...prev, capability_keys: result.capability_keys as string[] } : prev,
                 )
               }
               void fetch(`/api/v1/runtime/${appId}/manifest`)

@@ -6,18 +6,30 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, HTTPException, Request
-from fastapi.responses import FileResponse
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi.responses import FileResponse, Response
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
-from app.core.deps import get_current_user
+from app.core.deps import get_current_user, require_admin
 from app.db.models import AppRecord, User
 from app.db.session import get_db
 from app.services.apk_builder import get_apk_build_detail, get_apk_build_status, per_app_apk_path, per_app_apk_ready
 from app.services.build_manifest import build_manifest
+from app.services.capability_blueprint import (
+    PREVIEW_PACK_KEYS,
+    BlueprintBuild,
+    build_code_zip,
+    build_developer_blueprint,
+)
 from app.services.schema_generator import generate_page_schema, validate_page_schema
+from app.services.schema_versioning import (
+    commit_schema_revision,
+    list_revisions,
+    restore_revision,
+    schema_meta,
+)
 from app.services.tenant_config import get_tenant_config
 
 router = APIRouter(prefix="/runtime", tags=["runtime"])
@@ -26,6 +38,9 @@ router = APIRouter(prefix="/runtime", tags=["runtime"])
 class RuntimeSchemaPatch(BaseModel):
     page_schema: dict[str, Any]
     merge_meta: dict[str, Any] | None = None
+    base_rev: int | None = Field(default=None, description="客户端基于的 schema_rev；冲突返回 409")
+    force: bool = False
+    source: str = "compose"
 
 
 class RuntimeModulesPatch(BaseModel):
@@ -33,12 +48,136 @@ class RuntimeModulesPatch(BaseModel):
     modules: list[dict[str, Any]] = Field(default_factory=list)
     rebuild_schema: bool = True
     menu_plan: list[dict[str, Any]] | None = None
+    base_rev: int | None = None
+    force: bool = False
+    source: str = "modules"
+
+
+class RuntimeSchemaRestore(BaseModel):
+    rev: int
+    base_rev: int | None = None
+    force: bool = False
 
 
 def _assert_can_edit_runtime_app(user: User, app: AppRecord) -> None:
     if user.tenant_id != app.tenant_id:
         raise HTTPException(status_code=403, detail="无权编辑其他租户的应用")
     # 同租户登录用户可编排（与 publish 一致：租户内协作）
+
+
+def _assert_can_view_developer(user: User, app: AppRecord) -> None:
+    if user.role == "admin":
+        return
+    if user.tenant_id != app.tenant_id:
+        raise HTTPException(status_code=403, detail="无权查看其他租户的开发者契约")
+
+
+def _blueprint_for_app(app: AppRecord) -> dict:
+    keys = list(app.capability_keys or [])
+    if not keys and isinstance(app.page_schema, dict):
+        keys = list(app.page_schema.get("capability_keys") or [])
+    manifest = app.build_manifest if isinstance(app.build_manifest, dict) else None
+    if not manifest:
+        manifest = build_manifest(keys or ["chat_qa"], deliver=app.deliver or "web")
+    return build_developer_blueprint(
+        BlueprintBuild(
+            capability_keys=keys or ["chat_qa"],
+            modules=list(app.modules or []),
+            build_manifest=manifest,
+            page_schema=app.page_schema if isinstance(app.page_schema, dict) else None,
+            app={
+                "public_id": app.public_id,
+                "name": app.name,
+                "industry_key": app.industry_key,
+                "deliver": app.deliver,
+            },
+        )
+    )
+
+
+@router.get("/developer/preview")
+def developer_preview_blueprint(
+    user: Annotated[User, Depends(get_current_user)],
+    pack: str = Query("mfg", description="行业预览包，如 mfg"),
+) -> dict:
+    """制造业等独立站 Runtime 预览：库表 / 接口 / 代码路径（需登录）。"""
+    _ = user
+    keys = PREVIEW_PACK_KEYS.get(pack)
+    if not keys:
+        raise HTTPException(status_code=404, detail=f"未知预览包: {pack}")
+    return build_developer_blueprint(
+        BlueprintBuild(
+            capability_keys=keys,
+            modules=[],
+            build_manifest=build_manifest(keys, deliver="web"),
+            pack=pack,
+            app={"public_id": f"preview-{pack}", "name": f"{pack} Runtime 预览", "industry_key": pack},
+        )
+    )
+
+
+@router.get("/developer/preview/code.zip")
+def download_preview_code_zip(
+    user: Annotated[User, Depends(require_admin)],
+    pack: str = Query("mfg"),
+) -> Response:
+    """下载预览包开发者 zip（仅管理员）。"""
+    _ = user
+    keys = PREVIEW_PACK_KEYS.get(pack)
+    if not keys:
+        raise HTTPException(status_code=404, detail=f"未知预览包: {pack}")
+    blueprint = build_developer_blueprint(
+        BlueprintBuild(
+            capability_keys=keys,
+            modules=[],
+            build_manifest=build_manifest(keys, deliver="web"),
+            pack=pack,
+            app={"public_id": f"preview-{pack}", "name": f"{pack} Runtime 预览", "industry_key": pack},
+        )
+    )
+    data = build_code_zip(blueprint)
+    return Response(
+        content=data,
+        media_type="application/zip",
+        headers={"Content-Disposition": f'attachment; filename="blockhub-{pack}-developer.zip"'},
+    )
+
+
+@router.get("/{public_id}/developer")
+def developer_app_blueprint(
+    public_id: str,
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+) -> dict:
+    """已发布应用：库表字段 / REST / 代码路径（需登录且同租户）。"""
+    app = db.query(AppRecord).filter(AppRecord.public_id == public_id).first()
+    if not app:
+        raise HTTPException(status_code=404, detail="应用不存在")
+    _assert_can_view_developer(user, app)
+    return _blueprint_for_app(app)
+
+
+@router.get("/{public_id}/developer/code.zip")
+def download_app_code_zip(
+    public_id: str,
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(require_admin)],
+) -> Response:
+    """下载应用开发者 zip（仅管理员）。"""
+    app = db.query(AppRecord).filter(AppRecord.public_id == public_id).first()
+    if not app:
+        raise HTTPException(status_code=404, detail="应用不存在")
+    if user.tenant_id != app.tenant_id and user.role != "admin":
+        raise HTTPException(status_code=403, detail="无权下载其他租户源码包")
+    blueprint = _blueprint_for_app(app)
+    data = build_code_zip(blueprint)
+    return Response(
+        content=data,
+        media_type="application/zip",
+        headers={
+            "Content-Disposition": f'attachment; filename="blockhub-{public_id}-developer.zip"'
+        },
+    )
 
 
 APK_DIR = "apks"
@@ -82,7 +221,7 @@ async def _read_body(request: Request) -> Any:
 
 @router.get("/{public_id}/schema")
 def runtime_schema(public_id: str, db: Session = Depends(get_db)) -> dict:
-    """Page schema for runtime-web / Flutter."""
+    """Page schema for runtime-web / Flutter（含 schema_rev 供协作）。"""
     app = db.query(AppRecord).filter(AppRecord.public_id == public_id).first()
     if not app:
         raise HTTPException(status_code=404, detail="应用不存在")
@@ -93,8 +232,8 @@ def runtime_schema(public_id: str, db: Session = Depends(get_db)) -> dict:
             capability_keys=app.capability_keys or [],
             primary_color=app.primary_color or "#4338ca",
         )
-        return {"public_id": app.public_id, "page_schema": schema}
-    return {"public_id": app.public_id, "page_schema": app.page_schema}
+        return {"public_id": app.public_id, "page_schema": schema, **schema_meta(app)}
+    return {"public_id": app.public_id, "page_schema": app.page_schema, **schema_meta(app)}
 
 
 @router.patch("/{public_id}/schema")
@@ -104,7 +243,7 @@ def patch_runtime_schema(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> dict:
-    """写回 page_schema（Composer live_edit / 流程编排持久化）。"""
+    """写回 page_schema（乐观锁：传 base_rev；冲突 409）。"""
     app = db.query(AppRecord).filter(AppRecord.public_id == public_id).first()
     if not app:
         raise HTTPException(status_code=404, detail="应用不存在")
@@ -119,13 +258,56 @@ def patch_runtime_schema(
         validate_page_schema(schema)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
-    app.page_schema = schema
-    if isinstance(schema.get("capability_keys"), list):
-        app.capability_keys = [str(k) for k in schema["capability_keys"] if k]
-    db.add(app)
-    db.commit()
-    db.refresh(app)
-    return {"success": True, "public_id": app.public_id, "page_schema": app.page_schema}
+    return commit_schema_revision(
+        db,
+        app,
+        user=user,
+        page_schema=schema,
+        base_rev=body.base_rev,
+        source=body.source or "compose",
+        force=body.force,
+    )
+
+
+@router.get("/{public_id}/schema/revisions")
+def runtime_schema_revisions(
+    public_id: str,
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+    limit: int = Query(30, ge=1, le=100),
+) -> dict:
+    """修订历史（同租户可看）。"""
+    app = db.query(AppRecord).filter(AppRecord.public_id == public_id).first()
+    if not app:
+        raise HTTPException(status_code=404, detail="应用不存在")
+    _assert_can_edit_runtime_app(user, app)
+    return {
+        "public_id": public_id,
+        **schema_meta(app),
+        "items": list_revisions(db, public_id, limit=limit),
+    }
+
+
+@router.post("/{public_id}/schema/restore")
+def runtime_schema_restore(
+    public_id: str,
+    body: RuntimeSchemaRestore,
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+) -> dict:
+    """回滚到历史版本（产生新 rev，非破坏历史）。"""
+    app = db.query(AppRecord).filter(AppRecord.public_id == public_id).first()
+    if not app:
+        raise HTTPException(status_code=404, detail="应用不存在")
+    _assert_can_edit_runtime_app(user, app)
+    return restore_revision(
+        db,
+        app,
+        user=user,
+        rev=body.rev,
+        base_rev=body.base_rev,
+        force=body.force,
+    )
 
 
 @router.patch("/{public_id}/modules")
@@ -135,7 +317,7 @@ def patch_runtime_modules(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> dict:
-    """更新 capability_keys / modules，可选重建 schema + manifest。"""
+    """更新 capability_keys / modules，可选重建 schema + manifest（带乐观锁）。"""
     app = db.query(AppRecord).filter(AppRecord.public_id == public_id).first()
     if not app:
         raise HTTPException(status_code=404, detail="应用不存在")
@@ -171,7 +353,18 @@ def patch_runtime_modules(
             validate_page_schema(schema)
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
-        app.page_schema = schema
+        result = commit_schema_revision(
+            db,
+            app,
+            user=user,
+            page_schema=schema,
+            base_rev=body.base_rev,
+            source=body.source or "modules",
+            force=body.force,
+        )
+        result["modules"] = app.modules
+        result["build_manifest"] = app.build_manifest
+        return result
 
     db.add(app)
     db.commit()
@@ -183,6 +376,7 @@ def patch_runtime_modules(
         "modules": app.modules,
         "page_schema": app.page_schema,
         "build_manifest": app.build_manifest,
+        **schema_meta(app),
     }
 
 

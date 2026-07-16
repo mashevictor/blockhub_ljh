@@ -78,7 +78,24 @@ if [ -f "$ROOT/scripts/blockhub-api.service" ]; then
   sudo systemctl daemon-reload
 fi
 if [ -f "$ROOT/scripts/nginx-blockhub.conf" ]; then
-  sed "s|BLOCKHUB_ROOT|$ROOT|g" "$ROOT/scripts/nginx-blockhub.conf" | sudo tee /etc/nginx/sites-available/blockhub >/dev/null
+  # 优先 Let's Encrypt（certbot）；否则自签。避免 deploy 冲掉正式证书路径。
+  SSL_CERT="/etc/nginx/ssl/blockhub-selfsigned.crt"
+  SSL_KEY="/etc/nginx/ssl/blockhub-selfsigned.key"
+  for d in blockhub.club www.blockhub.club; do
+    if [ -f "/etc/letsencrypt/live/$d/fullchain.pem" ] && [ -f "/etc/letsencrypt/live/$d/privkey.pem" ]; then
+      SSL_CERT="/etc/letsencrypt/live/$d/fullchain.pem"
+      SSL_KEY="/etc/letsencrypt/live/$d/privkey.pem"
+      echo "    nginx SSL: Let's Encrypt ($d)"
+      break
+    fi
+  done
+  if [ "$SSL_CERT" = "/etc/nginx/ssl/blockhub-selfsigned.crt" ]; then
+    echo "    nginx SSL: self-signed (run: sudo certbot --nginx -d blockhub.club -d www.blockhub.club)"
+  fi
+  sed -e "s|BLOCKHUB_ROOT|$ROOT|g" \
+      -e "s|SSL_CERTIFICATE_PATH|$SSL_CERT|g" \
+      -e "s|SSL_CERTIFICATE_KEY_PATH|$SSL_KEY|g" \
+      "$ROOT/scripts/nginx-blockhub.conf" | sudo tee /etc/nginx/sites-available/blockhub >/dev/null
   sudo ln -sf /etc/nginx/sites-available/blockhub /etc/nginx/sites-enabled/blockhub 2>/dev/null || true
 fi
 

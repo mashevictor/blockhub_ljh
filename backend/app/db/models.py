@@ -73,11 +73,37 @@ class AppRecord(Base):
     plaza_published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     page_schema: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
     build_manifest: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
+    # 对话改页 / Runtime 写回：乐观锁版本（多人协作）
+    schema_rev: Mapped[int] = mapped_column(nullable=False, default=1)
+    schema_updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    schema_updated_by_id: Mapped[str | None] = mapped_column(ForeignKey("users.id"), nullable=True)
+    schema_editor_name: Mapped[str] = mapped_column(String(120), nullable=False, default="")
     created_by_id: Mapped[str | None] = mapped_column(ForeignKey("users.id"), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     tenant: Mapped[Tenant] = relationship(back_populates="apps")
     publish_records: Mapped[list[PublishRecord]] = relationship(back_populates="app")
+    schema_revisions: Mapped[list["AppSchemaRevision"]] = relationship(back_populates="app")
+
+
+class AppSchemaRevision(Base):
+    """page_schema 每次成功写回的快照，支持历史列表与回滚。"""
+
+    __tablename__ = "app_schema_revisions"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    app_id: Mapped[str] = mapped_column(ForeignKey("apps.id"), nullable=False, index=True)
+    public_id: Mapped[str] = mapped_column(String(16), nullable=False, index=True)
+    rev: Mapped[int] = mapped_column(nullable=False)
+    page_schema: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
+    capability_keys: Mapped[list[Any]] = mapped_column(JSON, nullable=False, default=list)
+    summary: Mapped[str] = mapped_column(String(240), nullable=False, default="")
+    source: Mapped[str] = mapped_column(String(32), nullable=False, default="compose")
+    editor_id: Mapped[str | None] = mapped_column(ForeignKey("users.id"), nullable=True)
+    editor_name: Mapped[str] = mapped_column(String(120), nullable=False, default="")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    app: Mapped[AppRecord] = relationship(back_populates="schema_revisions")
 
 
 class PublishRecord(Base):

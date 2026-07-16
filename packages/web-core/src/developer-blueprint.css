@@ -1,0 +1,319 @@
+.dev-bp {
+  --dev-bp-accent: #2563eb;
+  font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: 13px;
+  color: #0f172a;
+}
+
+.dev-bp-toggle {
+  position: fixed;
+  right: 16px;
+  bottom: 88px;
+  z-index: 40;
+  border: 1px solid color-mix(in srgb, var(--dev-bp-accent) 45%, #cbd5e1);
+  background: #fff;
+  color: var(--dev-bp-accent);
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 10px 16px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+  cursor: pointer;
+}
+
+.dev-bp-toggle:hover {
+  background: color-mix(in srgb, var(--dev-bp-accent) 8%, #fff);
+}
+
+.dev-bp-panel {
+  position: fixed;
+  right: 16px;
+  bottom: 140px;
+  z-index: 41;
+  width: min(920px, calc(100vw - 24px));
+  max-height: min(70vh, 640px);
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  box-shadow: 0 18px 48px rgba(15, 23, 42, 0.18);
+  overflow: hidden;
+}
+
+.dev-bp-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-bottom: 1px solid #e2e8f0;
+  background: linear-gradient(180deg, #f8fafc, #fff);
+}
+
+.dev-bp-head strong {
+  display: block;
+  font-size: 14px;
+}
+
+.dev-bp-head span {
+  color: #64748b;
+  font-size: 12px;
+}
+
+.dev-bp-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.dev-bp-actions a,
+.dev-bp-actions button {
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #0f172a;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.dev-bp-actions button {
+  background: var(--dev-bp-accent);
+  border-color: var(--dev-bp-accent);
+  color: #fff;
+}
+
+.dev-bp-actions button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.dev-bp-msg,
+.dev-bp-hint {
+  margin: 0;
+  padding: 8px 14px;
+  color: #64748b;
+}
+
+.dev-bp-login {
+  display: grid;
+  gap: 8px;
+  padding: 12px 14px;
+  border-bottom: 1px solid #e2e8f0;
+  background: #f8fafc;
+}
+
+.dev-bp-login p {
+  margin: 0;
+  font-size: 12px;
+  color: #475569;
+}
+
+.dev-bp-login label {
+  display: grid;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #334155;
+}
+
+.dev-bp-login input {
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 7px 10px;
+  font-size: 13px;
+}
+
+.dev-bp-login > button {
+  justify-self: start;
+  border: 0;
+  border-radius: 8px;
+  padding: 8px 14px;
+  background: var(--dev-bp-accent);
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.dev-bp-login > button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.dev-bp-err {
+  margin: 0;
+  padding: 8px 14px;
+  color: #b91c1c;
+  background: #fef2f2;
+}
+
+.dev-bp-body {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  min-height: 0;
+  flex: 1;
+  overflow: hidden;
+}
+
+.dev-bp-keys {
+  border-right: 1px solid #e2e8f0;
+  overflow: auto;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dev-bp-keys button {
+  text-align: left;
+  border: 0;
+  background: transparent;
+  border-radius: 8px;
+  padding: 8px;
+  cursor: pointer;
+}
+
+.dev-bp-keys button.on,
+.dev-bp-keys button:hover {
+  background: color-mix(in srgb, var(--dev-bp-accent) 10%, #fff);
+}
+
+.dev-bp-keys em {
+  display: block;
+  font-style: normal;
+  font-size: 11px;
+  color: #64748b;
+}
+
+.dev-bp-keys span {
+  font-weight: 600;
+}
+
+.dev-bp-main {
+  min-width: 0;
+  overflow: auto;
+  padding: 10px 12px 16px;
+}
+
+.dev-bp-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.dev-bp-tabs button {
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  border-radius: 999px;
+  padding: 5px 12px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.dev-bp-tabs button.on {
+  background: var(--dev-bp-accent);
+  border-color: var(--dev-bp-accent);
+  color: #fff;
+}
+
+.dev-bp-table-name {
+  margin: 0 0 8px;
+  color: #334155;
+}
+
+.dev-bp-section table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.dev-bp-section th,
+.dev-bp-section td {
+  border-bottom: 1px solid #e2e8f0;
+  text-align: left;
+  padding: 6px 8px;
+  font-size: 12px;
+}
+
+.dev-bp-section th {
+  color: #64748b;
+  font-weight: 600;
+}
+
+.dev-bp-apis {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dev-bp-apis li {
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  gap: 4px 8px;
+  padding: 8px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.dev-bp-apis .path {
+  grid-column: 2;
+  word-break: break-all;
+}
+
+.dev-bp-apis span,
+.dev-bp-apis em {
+  grid-column: 2;
+  color: #64748b;
+  font-size: 12px;
+  font-style: normal;
+}
+
+.dev-bp-apis code.m-get { color: #047857; font-weight: 700; }
+.dev-bp-apis code.m-post { color: #1d4ed8; font-weight: 700; }
+.dev-bp-apis code.m-put,
+.dev-bp-apis code.m-patch { color: #b45309; font-weight: 700; }
+.dev-bp-apis code.m-delete { color: #b91c1c; font-weight: 700; }
+
+.dev-bp-paths {
+  margin: 0 0 12px;
+  padding-left: 18px;
+}
+
+.dev-bp-section pre {
+  margin: 0;
+  padding: 10px;
+  background: #0f172a;
+  color: #e2e8f0;
+  border-radius: 10px;
+  overflow: auto;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+@media (max-width: 720px) {
+  .dev-bp-body {
+    grid-template-columns: 1fr;
+  }
+  .dev-bp-keys {
+    border-right: 0;
+    border-bottom: 1px solid #e2e8f0;
+    max-height: 120px;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  .dev-bp-toggle {
+    bottom: 72px;
+    right: 12px;
+  }
+  .dev-bp-panel {
+    right: 8px;
+    left: 8px;
+    width: auto;
+    bottom: 120px;
+  }
+}

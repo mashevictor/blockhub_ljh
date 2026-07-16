@@ -84,8 +84,21 @@ export interface ComposerEvents {
   onSchemaPatch?: (schema: ComposerPageSchema) => void
   onFlowChange?: (flow: ModuleFlowPersist) => void
   onPublish?: (payload: { appId?: string; schema?: ComposerPageSchema; keys?: string[] }) => void
-  onSaved?: (result: { page_schema?: ComposerPageSchema; capability_keys?: string[] }) => void
+  onSaved?: (result: {
+    page_schema?: ComposerPageSchema
+    capability_keys?: string[]
+    schema_rev?: number
+  }) => void
   onError?: (message: string) => void
+}
+
+/** 对话改页版本历史条目 */
+export interface SchemaRevisionItem {
+  rev: number
+  summary: string
+  source: string
+  editor_name: string
+  created_at?: string | null
 }
 
 export type ComposeEditOp =

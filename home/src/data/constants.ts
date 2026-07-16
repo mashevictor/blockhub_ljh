@@ -15,7 +15,7 @@ export function getAdminDashboardUrl(): string {
 
 /** @deprecated 请用 getAdminUrl()，避免生产构建仍指向 127.0.0.1 */
 export const ADMIN_URL = getAdminUrl()
-export const PUBLIC_BASE_URL = import.meta.env.VITE_PUBLIC_BASE_URL || 'http://101.32.209.251'
+export const PUBLIC_BASE_URL = import.meta.env.VITE_PUBLIC_BASE_URL || 'https://blockhub.club'
 
 export { INDUSTRIES_SHOWCASE as INDUSTRIES } from './showcase'
 

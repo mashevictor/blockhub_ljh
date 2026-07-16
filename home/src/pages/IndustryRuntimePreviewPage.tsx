@@ -14,7 +14,8 @@ import type {
   ComposerPageSchema,
   CapShipComposerDockProps,
 } from '@capship/composer'
-import { getToken } from '../auth/storage'
+import { DeveloperBlueprintPanel } from '@blockhub/web-core'
+import { getToken, setToken } from '../auth/storage'
 import {
   getIndustryRuntimePreview,
   groupScenesByCategory,
@@ -26,6 +27,7 @@ import { ROUTES } from '../routes/paths'
 import { usePageMeta } from '../hooks/usePageMeta'
 import '../styles/industry-runtime-preview.css'
 import '@capship/composer/styles.css'
+import '@blockhub/web-core/developer-blueprint.css'
 
 const CapShipComposerDock: LazyExoticComponent<ComponentType<CapShipComposerDockProps>> = lazy(() =>
   import('@capship/composer').then((m) => ({ default: m.CapShipComposerDock })),
@@ -497,6 +499,8 @@ export default function IndustryRuntimePreviewPage() {
   const [scenes, setScenes] = useState<IndustryRuntimeScene[]>(catalog)
   const [activeId, setActiveId] = useState(catalog[0]?.id ?? '')
   const [schema, setSchema] = useState<ComposerPageSchema | null>(null)
+  const [homeToken, setHomeToken] = useState(() => getToken() || '')
+  const [homeRole, setHomeRole] = useState('')
 
   usePageMeta({
     title: preview ? `${preview.name} · Runtime 场景预览` : 'Runtime 场景预览',
@@ -509,6 +513,16 @@ export default function IndustryRuntimePreviewPage() {
     setActiveId(preview.scenes[0]?.id ?? '')
     setSchema(scenesToSchema(preview.name, preview.scenes))
   }, [preview])
+
+  useEffect(() => {
+    if (!homeToken) return
+    void fetch('/api/v1/auth/me', { headers: { Authorization: `Bearer ${homeToken}` } })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((u: { role?: string } | null) => {
+        if (u?.role) setHomeRole(u.role)
+      })
+      .catch(() => undefined)
+  }, [homeToken])
 
   if (!preview) {
     return (
@@ -577,6 +591,19 @@ export default function IndustryRuntimePreviewPage() {
         </main>
       </div>
 
+      <DeveloperBlueprintPanel
+        mode="preview"
+        pack={preview.key}
+        token={homeToken}
+        role={homeRole}
+        accent={preview.accent}
+        onAuth={(auth) => {
+          setToken(auth.token)
+          setHomeToken(auth.token)
+          setHomeRole(auth.role)
+        }}
+      />
+
       <Suspense fallback={null}>
         <CapShipComposerDock
           storageKey="capship-irp-dock-v3"
@@ -585,7 +612,7 @@ export default function IndustryRuntimePreviewPage() {
           capability_keys={keys}
           page_schema={schema}
           industry_pack={preview.key}
-          token={getToken()}
+          token={homeToken || undefined}
           onSchemaPatch={applySchema}
           onModulesChange={((nextKeys) => {
             const kept = catalog.filter((s) =>

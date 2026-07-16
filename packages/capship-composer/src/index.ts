@@ -10,11 +10,16 @@ export type {
   ComposeEditOp,
   FlowEditOp,
   ModuleFlowPersist,
+  SchemaRevisionItem,
 } from './types'
 export { COMPOSER_MODES } from './types'
 export {
   patchRuntimeSchema,
   patchRuntimeModules,
+  fetchRuntimeSchema,
+  fetchSchemaRevisions,
+  restoreSchemaRevision,
+  SchemaRevConflictError,
   fetchIndustryAssembly,
   askComposeEdit,
   askFlowEdit,

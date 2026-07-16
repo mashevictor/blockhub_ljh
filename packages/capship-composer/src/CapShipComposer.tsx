@@ -7,9 +7,19 @@ import type {
   ComposerModuleItem,
   ComposerPageSchema,
   ModuleFlowPersist,
+  SchemaRevisionItem,
 } from './types'
 import { COMPOSER_MODES } from './types'
-import { askComposeEdit, askFlowEdit, patchRuntimeModules, patchRuntimeSchema } from './api'
+import {
+  SchemaRevConflictError,
+  askComposeEdit,
+  askFlowEdit,
+  fetchRuntimeSchema,
+  fetchSchemaRevisions,
+  patchRuntimeModules,
+  patchRuntimeSchema,
+  restoreSchemaRevision,
+} from './api'
 import {
   applyFlowEditOps,
   moveFlowStepLocal,
@@ -172,8 +182,16 @@ export function CapShipComposer({
   const [status, setStatus] = useState('')
   const [draft, setDraft] = useState('')
   const [flowDraft, setFlowDraft] = useState('')
+  const [schemaRev, setSchemaRev] = useState(1)
+  const [editorName, setEditorName] = useState('')
+  const [historyOpen, setHistoryOpen] = useState(false)
+  const [revisions, setRevisions] = useState<SchemaRevisionItem[]>([])
+  const [conflict, setConflict] = useState<SchemaRevConflictError | null>(null)
   const [messages, setMessages] = useState<ChatMsg[]>([
-    { role: 'assistant', text: '直接说要怎么改，例如「去掉保养计划」或「增加请假管理」。' },
+    {
+      role: 'assistant',
+      text: '直接说要怎么改，例如「去掉保养计划」或「增加请假管理」。多人同时改时会校验版本，冲突可拉最新或强制覆盖。',
+    },
   ])
   const [flowMessages, setFlowMessages] = useState<ChatMsg[]>([
     { role: 'assistant', text: '可以说「在报修后面加审批流」或「去掉知识库」。' },
@@ -190,6 +208,27 @@ export function CapShipComposer({
   useEffect(() => {
     if (initialKeys?.length) setKeys([...initialKeys])
   }, [initialKeys])
+
+  useEffect(() => {
+    if (!appId || !token) return
+    let cancelled = false
+    void fetchRuntimeSchema(appId, { token })
+      .then((data) => {
+        if (cancelled) return
+        setSchemaRev(data.schema_rev)
+        setEditorName(data.schema_editor_name || '')
+        if (data.page_schema) {
+          setSchema(cloneSchema(data.page_schema))
+          onSchemaPatch?.(data.page_schema)
+        }
+      })
+      .catch(() => undefined)
+    return () => {
+      cancelled = true
+    }
+    // 仅挂载 / appId·token 变化时同步版本
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [appId, token])
 
   useEffect(() => {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: 'smooth' })
@@ -217,7 +256,96 @@ export function CapShipComposer({
     onModulesChange?.(next, mods)
   }
 
-  const applyModules = async () => {
+  const handleConflict = (err: SchemaRevConflictError) => {
+    setConflict(err)
+    const who = err.schema_editor_name ? `（${err.schema_editor_name}）` : ''
+    const msg = `${err.message}${who}`
+    onError?.(msg)
+    setStatus(msg)
+    setMessages((prev) => [...prev, { role: 'assistant', text: `⚠️ 版本冲突：${msg}` }])
+  }
+
+  const pullLatest = async () => {
+    if (!appId) return
+    setBusy(true)
+    try {
+      const data = await fetchRuntimeSchema(appId, { token })
+      setSchemaRev(data.schema_rev)
+      setEditorName(data.schema_editor_name || '')
+      setSchema(cloneSchema(data.page_schema))
+      setKeys(data.page_schema.capability_keys || keys)
+      onSchemaPatch?.(data.page_schema)
+      setConflict(null)
+      setStatus(`已同步到 v${data.schema_rev}`)
+      setMessages((prev) => [
+        ...prev,
+        { role: 'assistant', text: `已拉取最新页面 v${data.schema_rev}，可继续对话改页。` },
+      ])
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : '拉取失败'
+      onError?.(msg)
+      setStatus(msg)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const loadHistory = async () => {
+    if (!appId) return
+    const opening = !historyOpen
+    setHistoryOpen(opening)
+    if (!opening) return
+    try {
+      const data = await fetchSchemaRevisions(appId, { token })
+      setRevisions(data.items || [])
+      setSchemaRev(data.schema_rev)
+      setEditorName(data.schema_editor_name || '')
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : '历史加载失败'
+      setStatus(msg)
+    }
+  }
+
+  const restoreRev = async (rev: number) => {
+    if (!appId) return
+    setBusy(true)
+    try {
+      const res = await restoreSchemaRevision(
+        appId,
+        { rev, base_rev: schemaRev, force: false },
+        { token },
+      )
+      setSchemaRev(res.schema_rev)
+      setEditorName(res.schema_editor_name || '')
+      setSchema(res.page_schema)
+      setKeys(res.page_schema.capability_keys || keys)
+      onSchemaPatch?.(res.page_schema)
+      onSaved?.({
+        page_schema: res.page_schema,
+        capability_keys: res.page_schema.capability_keys,
+        schema_rev: res.schema_rev,
+      })
+      setStatus(`已回滚并生成 v${res.schema_rev}（基于历史 v${rev}）`)
+      setConflict(null)
+      try {
+        const hist = await fetchSchemaRevisions(appId, { token })
+        setRevisions(hist.items || [])
+      } catch {
+        /* ignore */
+      }
+    } catch (e) {
+      if (e instanceof SchemaRevConflictError) handleConflict(e)
+      else {
+        const msg = e instanceof Error ? e.message : '回滚失败'
+        onError?.(msg)
+        setStatus(msg)
+      }
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const applyModules = async (force = false) => {
     if (!appId) {
       onPublish?.({ keys })
       setStatus('已更新本地选型（无 appId，未写库）')
@@ -234,6 +362,9 @@ export function CapShipComposer({
             (m) => ({ key: m.key, label: m.label, kind: m.kind || 'module', source: m.source || 'composer' }),
           ),
           rebuild_schema: true,
+          base_rev: schemaRev,
+          force,
+          source: 'modules',
         },
         { token },
       )
@@ -242,26 +373,53 @@ export function CapShipComposer({
         onSchemaPatch?.(res.page_schema)
       }
       if (res.capability_keys) setKeys(res.capability_keys)
-      onSaved?.({ page_schema: res.page_schema, capability_keys: res.capability_keys })
-      setStatus('模块已保存并刷新页面')
+      if (typeof res.schema_rev === 'number') setSchemaRev(res.schema_rev)
+      if (res.schema_editor_name) setEditorName(res.schema_editor_name)
+      setConflict(null)
+      onSaved?.({
+        page_schema: res.page_schema,
+        capability_keys: res.capability_keys,
+        schema_rev: res.schema_rev,
+      })
+      setStatus(`模块已保存 · v${res.schema_rev ?? schemaRev}`)
     } catch (e) {
-      const msg = e instanceof Error ? e.message : '保存失败'
-      onError?.(msg)
-      setStatus(msg)
+      if (e instanceof SchemaRevConflictError) handleConflict(e)
+      else {
+        const msg = e instanceof Error ? e.message : '保存失败'
+        onError?.(msg)
+        setStatus(msg)
+      }
     } finally {
       setBusy(false)
     }
   }
 
-  const persistSchema = async (next: ComposerPageSchema, mergeMeta?: Record<string, unknown>) => {
+  const persistSchema = async (
+    next: ComposerPageSchema,
+    mergeMeta?: Record<string, unknown>,
+    opts?: { force?: boolean; source?: string },
+  ) => {
     if (!appId) {
       onPublish?.({ schema: next, keys: next.capability_keys })
       return
     }
-    const res = await patchRuntimeSchema(appId, next, { token, mergeMeta })
+    const res = await patchRuntimeSchema(appId, next, {
+      token,
+      mergeMeta,
+      baseRev: schemaRev,
+      force: opts?.force,
+      source: opts?.source ?? 'compose',
+    })
     setSchema(res.page_schema)
+    setSchemaRev(res.schema_rev)
+    setEditorName(res.schema_editor_name || '')
+    setConflict(null)
     onSchemaPatch?.(res.page_schema)
-    onSaved?.({ page_schema: res.page_schema, capability_keys: res.page_schema.capability_keys })
+    onSaved?.({
+      page_schema: res.page_schema,
+      capability_keys: res.page_schema.capability_keys,
+      schema_rev: res.schema_rev,
+    })
   }
 
   const commitFlow = async (nextFlow: ModuleFlowPersist) => {
@@ -329,13 +487,25 @@ export function CapShipComposer({
         setSchema(next)
         setKeys(next.capability_keys)
         onSchemaPatch?.(next)
-        await persistSchema(next)
+        try {
+          await persistSchema(next, undefined, { source: 'live_edit' })
+        } catch (pe) {
+          if (pe instanceof SchemaRevConflictError) {
+            handleConflict(pe)
+            return
+          }
+          throw pe
+        }
       }
 
       const src = result.source === 'deepseek' ? '' : '（本地规则）'
       setMessages((prev) => [...prev, { role: 'assistant', text: `${result.reply}${src}` }])
-      setStatus(result.ops?.length ? '页面已更新' : '')
+      setStatus(result.ops?.length ? '页面已更新并写入新版本' : '')
     } catch (e) {
+      if (e instanceof SchemaRevConflictError) {
+        handleConflict(e)
+        return
+      }
       const msg = e instanceof Error ? e.message : '理解失败'
       onError?.(msg)
       setMessages((prev) => [...prev, { role: 'assistant', text: msg }])
@@ -370,12 +540,24 @@ export function CapShipComposer({
           ])
           return
         }
-        await commitFlow(nextFlow)
+        try {
+          await commitFlow(nextFlow)
+        } catch (pe) {
+          if (pe instanceof SchemaRevConflictError) {
+            handleConflict(pe)
+            return
+          }
+          throw pe
+        }
       }
       const src = result.source === 'deepseek' ? '' : '（本地规则）'
       setFlowMessages((prev) => [...prev, { role: 'assistant', text: `${result.reply}${src}` }])
-      setStatus(result.ops?.length ? '数据流已更新' : '')
+      setStatus(result.ops?.length ? '数据流已更新并写入新版本' : '')
     } catch (e) {
+      if (e instanceof SchemaRevConflictError) {
+        handleConflict(e)
+        return
+      }
       const msg = e instanceof Error ? e.message : '理解失败'
       onError?.(msg)
       setFlowMessages((prev) => [...prev, { role: 'assistant', text: msg }])
@@ -400,6 +582,79 @@ export function CapShipComposer({
           </button>
         ))}
       </div>
+
+      <div className="capship-composer-version" aria-live="polite">
+        {appId ? (
+          <>
+            <span className="capship-composer-version-badge">v{schemaRev}</span>
+            <span className="capship-composer-version-meta">
+              {editorName ? `最近编辑：${editorName}` : '多人协作已开启'}
+            </span>
+            <button type="button" className="capship-composer-link" disabled={busy} onClick={() => void pullLatest()}>
+              拉最新
+            </button>
+            <button type="button" className="capship-composer-link" disabled={busy} onClick={() => void loadHistory()}>
+              {historyOpen ? '收起历史' : '版本历史'}
+            </button>
+          </>
+        ) : (
+          <span className="capship-composer-version-meta">本地预览 · 无版本库（发布后可多人协作）</span>
+        )}
+      </div>
+
+      {conflict && (
+        <div className="capship-composer-conflict" role="alert">
+          <p>
+            版本冲突：服务端已是 <strong>v{conflict.schema_rev}</strong>
+            {conflict.schema_editor_name ? `（${conflict.schema_editor_name}）` : ''}。请先同步，或强制覆盖。
+          </p>
+          <div className="capship-composer-conflict-actions">
+            <button type="button" disabled={busy} onClick={() => void pullLatest()}>
+              拉取最新
+            </button>
+            <button
+              type="button"
+              className="danger"
+              disabled={busy || !schema}
+              onClick={() => {
+                if (!schema) return
+                void persistSchema(schema, undefined, { force: true, source: 'force_overwrite' })
+                  .then(() => setStatus('已强制覆盖并生成新版本'))
+                  .catch((e) => setStatus(e instanceof Error ? e.message : '覆盖失败'))
+              }}
+            >
+              强制覆盖
+            </button>
+          </div>
+        </div>
+      )}
+
+      {historyOpen && appId && (
+        <ul className="capship-composer-history">
+          {revisions.length === 0 ? (
+            <li className="muted">暂无历史版本（保存一次对话改页后会出现）</li>
+          ) : (
+            revisions.map((r) => (
+              <li key={r.rev}>
+                <div>
+                  <strong>v{r.rev}</strong>
+                  <span>
+                    {r.editor_name || '未知'} · {r.summary}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  className="capship-composer-link"
+                  disabled={busy || r.rev === schemaRev}
+                  onClick={() => void restoreRev(r.rev)}
+                >
+                  回滚到此
+                </button>
+              </li>
+            ))
+          )}
+        </ul>
+      )}
 
       {activeMode === 'select_modules' && (
         <div className="capship-composer-pane">
