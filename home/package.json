@@ -10,6 +10,7 @@
     "test:interaction": "node scripts/test-interaction.mjs"
   },
   "dependencies": {
+    "@capship/composer": "file:../packages/capship-composer",
     "axios": "^1.7.9",
     "lucide-react": "^1.22.0",
     "react": "^18.3.1",

@@ -18,7 +18,9 @@
     "paths": {
       "@blockhub/web-core": ["../packages/web-core/src/index.ts"],
       "@blockhub/web-core/*": ["../packages/web-core/src/*"],
-      "@blockhub/web-capability-*": ["../packages/web-capability-*/src/index.ts"]
+      "@blockhub/web-capability-*": ["../packages/web-capability-*/src/index.ts"],
+      "@capship/composer": ["./node_modules/@capship/composer/src/index.d.ts"],
+      "@capship/composer/styles.css": ["./src/vite-env.d.ts"]
     }
   },
   "include": ["src"]

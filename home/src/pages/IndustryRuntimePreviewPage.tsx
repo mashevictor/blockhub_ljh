@@ -1,6 +1,19 @@
-import { lazy, Suspense, useEffect, useMemo, useState, type CSSProperties } from 'react'
+import {
+  lazy,
+  Suspense,
+  useEffect,
+  useMemo,
+  useState,
+  type ComponentType,
+  type CSSProperties,
+  type LazyExoticComponent,
+} from 'react'
 import { Link, useParams } from 'react-router-dom'
-import type { ComposerPageMock, ComposerPageSchema } from '@capship/composer'
+import type {
+  ComposerPageMock,
+  ComposerPageSchema,
+  CapShipComposerDockProps,
+} from '@capship/composer'
 import { getToken } from '../auth/storage'
 import {
   getIndustryRuntimePreview,
@@ -14,7 +27,7 @@ import { usePageMeta } from '../hooks/usePageMeta'
 import '../styles/industry-runtime-preview.css'
 import '@capship/composer/styles.css'
 
-const CapShipComposerDock = lazy(() =>
+const CapShipComposerDock: LazyExoticComponent<ComponentType<CapShipComposerDockProps>> = lazy(() =>
   import('@capship/composer').then((m) => ({ default: m.CapShipComposerDock })),
 )
 
@@ -568,13 +581,13 @@ export default function IndustryRuntimePreviewPage() {
         <CapShipComposerDock
           storageKey="capship-irp-dock-v3"
           defaultOpen
-          defaultMode="live_edit"
+          defaultMode={"live_edit" as const}
           capability_keys={keys}
           page_schema={schema}
           industry_pack={preview.key}
           token={getToken()}
           onSchemaPatch={applySchema}
-          onModulesChange={(nextKeys) => {
+          onModulesChange={((nextKeys) => {
             const kept = catalog.filter((s) =>
               nextKeys.includes(s.capabilityHint.split(/\s*\+\s*/)[0].trim()),
             )
@@ -582,10 +595,10 @@ export default function IndustryRuntimePreviewPage() {
             setScenes(next)
             setSchema(scenesToSchema(preview.name, next))
             if (!next.some((s) => s.id === activeId)) setActiveId(next[0]?.id ?? '')
-          }}
-          onSaved={(result) => {
+          }) satisfies NonNullable<CapShipComposerDockProps['onModulesChange']>}
+          onSaved={((result) => {
             if (result.page_schema) applySchema(result.page_schema)
-          }}
+          }) satisfies NonNullable<CapShipComposerDockProps['onSaved']>}
         />
       </Suspense>
     </div>

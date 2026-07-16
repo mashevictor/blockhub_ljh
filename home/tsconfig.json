@@ -15,7 +15,12 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
-    "paths": { "@shared/*": ["../shared/*"] }
+    "baseUrl": ".",
+    "paths": {
+      "@shared/*": ["../shared/*"],
+      "@capship/composer": ["./node_modules/@capship/composer/src/index.d.ts"],
+      "@capship/composer/styles.css": ["./src/types/css-modules.d.ts"]
+    }
   },
   "include": ["src", "../shared"]
 }
