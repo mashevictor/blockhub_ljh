@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState, type CSSProperties } from 'react'
+import './developer-blueprint.css'
 
 export interface BlueprintColumn {
   name: string

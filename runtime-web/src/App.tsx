@@ -21,7 +21,6 @@ import {
   type TenantRuntimeConfig,
 } from '@blockhub/web-core'
 import type { CapShipComposerDockProps } from '@capship/composer'
-import '@blockhub/web-core/developer-blueprint.css'
 import '@capship/composer/styles.css'
 import { bootWidgetsFromManifest } from './register-widgets'
 

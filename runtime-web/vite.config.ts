@@ -31,10 +31,6 @@ export default defineConfig({
   resolve: {
     alias: {
       '@blockhub/web-core': path.join(root, 'packages/web-core/src'),
-      '@blockhub/web-core/developer-blueprint.css': path.join(
-        root,
-        'packages/web-core/src/developer-blueprint.css',
-      ),
       '@capship/composer': path.join(root, 'packages/capship-composer/src'),
       '@capship/composer/styles.css': path.join(root, 'packages/capship-composer/src/styles.css'),
       ...capabilityAliases,

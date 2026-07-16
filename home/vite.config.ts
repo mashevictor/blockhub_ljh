@@ -39,14 +39,10 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: {
         '@shared': path.resolve(__dirname, '../shared'),
-        // 仅暴露开发者契约面板，避免把整个 web-core 打进 home
+        // 仅暴露开发者契约面板（样式由组件内 import），避免把整个 web-core 打进 home
         '@blockhub/web-core': path.resolve(
           __dirname,
           '../packages/web-core/src/DeveloperBlueprintPanel.tsx',
-        ),
-        '@blockhub/web-core/developer-blueprint.css': path.resolve(
-          __dirname,
-          '../packages/web-core/src/developer-blueprint.css',
         ),
         '@capship/composer': path.resolve(__dirname, '../packages/capship-composer/src'),
         '@capship/composer/styles.css': path.resolve(

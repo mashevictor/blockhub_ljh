@@ -27,7 +27,6 @@ import { ROUTES } from '../routes/paths'
 import { usePageMeta } from '../hooks/usePageMeta'
 import '../styles/industry-runtime-preview.css'
 import '@capship/composer/styles.css'
-import '@blockhub/web-core/developer-blueprint.css'
 
 const CapShipComposerDock: LazyExoticComponent<ComponentType<CapShipComposerDockProps>> = lazy(() =>
   import('@capship/composer').then((m) => ({ default: m.CapShipComposerDock })),

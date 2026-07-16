@@ -17,7 +17,6 @@
     "baseUrl": ".",
     "paths": {
       "@blockhub/web-core": ["./src/web-core-shim.d.ts"],
-      "@blockhub/web-core/developer-blueprint.css": ["./src/vite-env.d.ts"],
       "@blockhub/web-capability-*": ["../packages/web-capability-*/src/index.ts"],
       "@capship/composer": ["../packages/capship-composer/src/index.d.ts"],
       "@capship/composer/styles.css": ["./src/vite-env.d.ts"]
