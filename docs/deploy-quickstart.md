@@ -1,23 +1,47 @@
 # 部署与数据库
 
+## 域名 blockhub.club
+
+DNS（注册商后台）两条 A 记录指向 `101.32.209.251`：
+
+| 主机 | 类型 | 值 |
+|------|------|-----|
+| `@` | A | `101.32.209.251` |
+| `www` | A | `101.32.209.251` |
+
+Nginx 模板已含 `server_name blockhub.club www.blockhub.club 101.32.209.251`。`deploy-one.sh` 会写入站点配置。
+
+生产 `.env` 建议：
+
+```bash
+PUBLIC_BASE_URL=https://blockhub.club
+CORS_ORIGINS=https://blockhub.club,https://www.blockhub.club,http://blockhub.club,http://www.blockhub.club,http://101.32.209.251
+```
+
+HTTPS（解析生效后）：
+
+```bash
+sudo certbot --nginx -d blockhub.club -d www.blockhub.club
+```
+
 ## 部署前：确认代码已更新
 
 ```bash
 cd ~/blockhub
 git pull
-git log -1 --oneline                         # 应 ≥ 60cdd14
-test -f backend/alembic/versions/017_repair_catalog_tables.py && echo "017 OK"
+git log -1 --oneline
 cd backend && source .venv/bin/activate
-alembic heads                                # 应 017 (head)
+alembic upgrade head
 alembic current
 ```
-
-若 **current=017 但 heads=016**：数据库比代码新，**只需 `git pull`**，不是故障。
 
 ## 一键命令
 
 ```bash
-# 网页（B2B 首页、弹幕、预约）
+# 网页（含 Nginx 刷新、HTML 缓存版本 bump）
+cd ~/blockhub
+git pull
+cd home && npm install && cd ..
 bash scripts/deploy-one.sh
 
 # 上海话网页 + 测试 APK
