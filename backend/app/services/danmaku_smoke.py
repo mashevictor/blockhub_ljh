@@ -17,6 +17,7 @@ from app.services.build_manifest import _web_pkg
 from app.services.hero_preset_match import match_hero_presets
 from app.services.keyword_match import match_modules_keyword
 from app.services.module_suggest import suggest_modules
+from app.services.web_capability_gate import is_web_ready_capability, is_web_widget_registered
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 
@@ -231,6 +232,19 @@ def run_danmaku_smoke(
             "path": f"packages/{slug}",
         }
         if not on_disk:
+            ok = False
+
+        # registerWidget：包存在但未注册 = Runtime「尚未接入」
+        widget_name = cap.widget if cap else ""
+        widget_ok = bool(widget_name) and is_web_widget_registered(widget_name)
+        ready = is_web_ready_capability(key)
+        checks["register_widget"] = {
+            "status": "ok" if widget_ok and ready else "fail",
+            "widget": widget_name,
+            "registered": widget_ok,
+            "web_ready": ready,
+        }
+        if not widget_ok or not ready:
             ok = False
 
         # HTTP route

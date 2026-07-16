@@ -141,6 +141,18 @@ def resolve_publish_capability_keys_detailed(
         )
         scenario_added = list(resolved)
 
+    # Web 交付闸门：假 web seed key → 正式 Path-A（禁 ContractEditorWidget 等「尚未接入」）
+    from app.services.web_capability_gate import ensure_web_ready_key
+
+    remapped: list[str] = []
+    seen_ready: set[str] = set()
+    for k in resolved:
+        ready = ensure_web_ready_key(k)
+        if ready not in seen_ready:
+            seen_ready.add(ready)
+            remapped.append(ready)
+    resolved = remapped
+
     return CapabilityAssemblyMeta(
         requested_keys=requested,
         resolved_keys=resolved,

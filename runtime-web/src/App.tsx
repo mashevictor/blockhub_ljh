@@ -94,20 +94,15 @@ function scopedKeysFromSchema(schema: PageSchema | null | undefined): string[] {
 function scopeManifestToApp(manifest: BuildManifest, schema: PageSchema): BuildManifest {
   const keys = scopedKeysFromSchema(schema)
   if (!keys.length) return manifest
-  const keySet = new Set(keys)
-  const slugSet = new Set(keys.map((k) => k.replace(/_/g, '-')))
-  const webPkgs = (manifest.web_pkgs || []).filter((pkg) => {
-    const slug = pkg.replace(/^@blockhub\/web-capability-/, '')
-    return slugSet.has(slug) || keys.some((k) => pkg.includes(k.replace(/_/g, '-')))
-  })
-  // 若过滤后为空（共享包名如 chat），按 keys 约定重建列表
+  // 后端 GET /manifest 已按 registry.web_pkg（含 chat/approval/integration 共享包）现算；
+  // 勿按 slug≈key 过滤，否则 notify_im→integration 会被误删，导致「尚未接入」。
   const pkgs =
-    webPkgs.length > 0
-      ? webPkgs
+    (manifest.web_pkgs || []).length > 0
+      ? [...manifest.web_pkgs]
       : keys.map((k) => `@blockhub/web-capability-${k.replace(/_/g, '-')}`)
   return {
     ...manifest,
-    capability_keys: keys.filter((k) => keySet.has(k)),
+    capability_keys: keys,
     web_pkgs: pkgs,
   }
 }

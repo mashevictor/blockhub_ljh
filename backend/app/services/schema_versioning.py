@@ -60,6 +60,12 @@ def commit_schema_revision(
         )
 
     next_rev = current + 1
+    try:
+        from app.services.web_capability_gate import sanitize_page_schema
+
+        page_schema = sanitize_page_schema(page_schema)
+    except Exception:
+        pass
     app.page_schema = page_schema
     if isinstance(page_schema.get("capability_keys"), list):
         app.capability_keys = [str(k) for k in page_schema["capability_keys"] if k]

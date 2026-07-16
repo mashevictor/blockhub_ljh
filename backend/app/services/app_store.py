@@ -199,6 +199,14 @@ def persist_published_app(
         scene_groups=scene_groups,
     )
     validate_page_schema(page_schema)
+    try:
+        from app.services.web_capability_gate import filter_web_ready_keys, sanitize_page_schema
+
+        keys = filter_web_ready_keys(keys)
+        page_schema = sanitize_page_schema(page_schema)
+        page_schema["capability_keys"] = keys
+    except Exception:
+        pass
     manifest = build_manifest(
         keys,
         deliver=deliver,

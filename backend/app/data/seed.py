@@ -81,11 +81,8 @@ AGENTS = [
         "description": "自定义文本合同、手写签名与电子章，AI 起草审阅，一键生成 PDF",
         "pipeline": "选模板→编辑→AI审阅→签名盖章→PDF归档",
         "capabilities": [
-            "contract_editor",
-            "contract_sign",
-            "contract_seal",
-            "contract_pdf",
-            "approval_esign",
+            "legal_case",
+            "approval_flow",
             "chat_qa",
         ],
         "office_count": 3,

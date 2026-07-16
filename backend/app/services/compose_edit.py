@@ -16,6 +16,7 @@ from app.services.deepseek_client import deepseek_json_chat
 from app.services.hero_preset_match import match_hero_presets
 from app.services.keyword_match import match_modules_keyword
 from app.services.llm_text import NO_MARKDOWN_STYLE_RULE, sanitize_llm_plain_text
+from app.services.web_capability_gate import ensure_web_ready_key, is_web_ready_capability
 
 _PAGE_KINDS = ("form_list", "chat_kb", "chart", "roster", "notify", "approval", "files")
 
@@ -23,7 +24,7 @@ _PAGE_KINDS = ("form_list", "chat_kb", "chart", "roster", "notify", "approval", 
 _SYNONYM_TO_CAP: list[tuple[tuple[str, ...], str]] = [
     (("请假", "年假", "调休", "病假", "事假", "休假", "加班申请", "出差申请"), "leave_request"),
     (("报销", "费用报销", "发票", "差旅费", "借款", "付款申请"), "expense_claim"),
-    (("入职", "招聘", "面试", "候选人", "onboard"), "hire_onboard"),
+    (("入职", "招聘", "面试", "候选人", "onboard", "劳动合同", "雇佣合同", "用工合同", "工资5000", "入职日期"), "hire_onboard"),
     (("设备报修", "报修", "产线坏", "机器坏", "故障", "维修工单", "派工维修"), "device_repair"),
     (("物业报修", "业主报修", "小区报修"), "property_repair"),
     (("质检", "sop", "不合格", "终检"), "quality_inspect"),
@@ -44,10 +45,10 @@ _SYNONYM_TO_CAP: list[tuple[tuple[str, ...], str]] = [
     (("看房", "带看", "意向登记", "签约跟进"), "house_viewing"),
     (("外卖", "配送", "骑手", "运单"), "delivery_order"),
     (("巡检", "隐患上报", "安全巡检"), "site_patrol"),
-    (("法务", "合同审查", "案件"), "legal_case"),
+    (("法务", "合同审查", "案件", "法务合同", "合同生成", "生成合同"), "legal_case"),
+    (("报价合同", "销售合同", "特价申请"), "quote_contract"),
     (("政务", "办事指南", "诉求提交"), "gov_service"),
     (("销售线索", "客户跟进", "线索录入"), "sales_lead"),
-    (("报价", "合同评审", "特价申请"), "quote_contract"),
     (("经营看板", "问数", "老板看板", "kpi看板"), "ops_kpi"),
     (("数据看板", "统计报表", "可视化看板"), "chart_dashboard"),
     (("自然语言查数", "智能问数"), "data_nl_query"),
@@ -133,17 +134,20 @@ _SYSTEM = f"""你是积木仓 Runtime 编排助手。用户用中文描述业务
 规则：
 1. 即使用户没说「增加/添加」，只要在描述业务痛点（如「产线常坏要报修」「员工要请假报销」），也应 add 对应正式能力。
 2. capability_key 必须来自可用列表。优先：请假→leave_request，报销→expense_claim，设备报修→device_repair，会议室→meeting_booking，IT报障→it_ticket，制度→policy_qa/kb_document。禁止用 approval_flow 顶替上述专用能力。
-3. 一句需求可挂多个能力（例如「要请假和报销」→ 两个 add）。
-4. 已在当前菜单的同类能力不要重复 add；可 rename/move。
-5. 仅当完全无法匹配正式能力时才用 chat_qa；不要用 page_mock 伪造业务数据。
-6. ops 可为空（仅回答问题、澄清时）。
-7. {NO_MARKDOWN_STYLE_RULE}
+3. 禁止使用 contract_editor / contract_sign / contract_seal 等无 Web 真包能力；劳动合同/入职→hire_onboard，法务合同→legal_case，销售合同→quote_contract。
+4. 一句需求可挂多个能力（例如「要请假和报销」→ 两个 add）。
+5. 已在当前菜单的同类能力不要重复 add；可 rename/move。
+6. 仅当完全无法匹配正式能力时才用 chat_qa；不要用 page_mock 伪造业务数据。
+7. ops 可为空（仅回答问题、澄清时）。
+8. {NO_MARKDOWN_STYLE_RULE}
 """
 
 
 def _catalog_brief() -> str:
     rows = []
     for key, cap in ALL_CAPABILITIES.items():
+        if not is_web_ready_capability(key):
+            continue
         kw = "、".join(cap.keywords[:6]) if cap.keywords else ""
         if kw:
             rows.append(f"{key}:{cap.name}({kw})")
@@ -317,6 +321,11 @@ def _enrich_add_op(op: dict[str, Any]) -> dict[str, Any]:
             if any(a in text for a in aliases) and key in ALL_CAPABILITIES:
                 cap = key
                 break
+
+    # 硬闸：假 web / 未 registerWidget → 正式 Path-A（禁「尚未接入」）
+    cap = ensure_web_ready_key(cap if cap in ALL_CAPABILITIES else "", hint=text)
+    if not is_web_ready_capability(cap):
+        cap = ensure_web_ready_key("chat_qa", hint=text)
 
     op["capability_key"] = cap
     cap_def = ALL_CAPABILITIES.get(cap)
@@ -542,8 +551,11 @@ def compose_edit_from_instruction(
             except (TypeError, ValueError):
                 pass
         ck = cleaned.get("capability_key")
-        if ck and ck not in ALL_CAPABILITIES:
-            cleaned["capability_key"] = "chat_qa"
+        if ck and (ck not in ALL_CAPABILITIES or not is_web_ready_capability(str(ck))):
+            cleaned["capability_key"] = ensure_web_ready_key(
+                str(ck or ""),
+                hint=str(cleaned.get("label") or instruction),
+            )
         if kind == "add":
             cleaned = _enrich_add_op(cleaned)
         ops.append(cleaned)

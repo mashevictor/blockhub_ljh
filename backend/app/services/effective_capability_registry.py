@@ -182,3 +182,10 @@ class CapabilityAssemblyMeta:
 
 # 模块 import 时补齐 seed 能力，避免 catalog 有而 registry 无
 bootstrap_registry_from_seed()
+# 假 web 能力（seed 声明了未 registerWidget 的 widget）改挂正式 Path-A 别名
+try:
+    from app.services.web_capability_gate import patch_registry_fake_web_aliases
+
+    patch_registry_fake_web_aliases()
+except Exception:
+    pass

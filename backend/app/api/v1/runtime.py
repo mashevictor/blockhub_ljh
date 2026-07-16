@@ -242,6 +242,8 @@ async def _read_body(request: Request) -> Any:
 @router.get("/{public_id}/schema")
 def runtime_schema(public_id: str, db: Session = Depends(get_db)) -> dict:
     """Page schema for runtime-web / Flutter（含 schema_rev 供协作）。"""
+    from app.services.web_capability_gate import sanitize_page_schema
+
     app = db.query(AppRecord).filter(AppRecord.public_id == public_id).first()
     if not app:
         raise HTTPException(status_code=404, detail="应用不存在")
@@ -252,8 +254,13 @@ def runtime_schema(public_id: str, db: Session = Depends(get_db)) -> dict:
             capability_keys=app.capability_keys or [],
             primary_color=app.primary_color or "#4338ca",
         )
-        return {"public_id": app.public_id, "page_schema": schema, **schema_meta(app)}
-    return {"public_id": app.public_id, "page_schema": app.page_schema, **schema_meta(app)}
+        return {"public_id": app.public_id, "page_schema": sanitize_page_schema(schema), **schema_meta(app)}
+    # 读时清洗：历史页里 ContractEditorWidget 等未注册 widget → 正式 Path-A，避免「尚未接入」
+    return {
+        "public_id": app.public_id,
+        "page_schema": sanitize_page_schema(dict(app.page_schema)),
+        **schema_meta(app),
+    }
 
 
 @router.patch("/{public_id}/schema")
@@ -346,6 +353,12 @@ def patch_runtime_modules(
     keys = [str(k).strip() for k in (body.capability_keys or []) if str(k).strip()]
     if not keys:
         keys = list(app.capability_keys or []) or ["chat_qa"]
+    try:
+        from app.services.web_capability_gate import filter_web_ready_keys
+
+        keys = filter_web_ready_keys(keys) or ["chat_qa"]
+    except Exception:
+        pass
     modules = list(body.modules) if body.modules else list(app.modules or [])
     app.capability_keys = keys
     app.modules = modules
@@ -412,15 +425,22 @@ def runtime_config(public_id: str, db: Session = Depends(get_db)) -> dict:
 @router.get("/{public_id}/manifest")
 def runtime_manifest(public_id: str, db: Session = Depends(get_db)) -> dict:
     """Build manifest — Web/App package list for modular assembly."""
+    from app.services.web_capability_gate import filter_web_ready_keys, sanitize_page_schema
+
     app = db.query(AppRecord).filter(AppRecord.public_id == public_id).first()
     if not app:
         raise HTTPException(status_code=404, detail="应用不存在")
-    if not app.build_manifest:
-        from app.services.build_manifest import build_manifest as build_manifest_fn
-
-        manifest = build_manifest_fn(app.capability_keys or [], deliver=app.deliver)
-        return {"public_id": app.public_id, "build_manifest": manifest}
-    return {"public_id": app.public_id, "build_manifest": app.build_manifest}
+    # 与 schema 读时清洗对齐：按可 Web 交付的 keys 现算 manifest，保证 registerWidget 包被 boot
+    keys = filter_web_ready_keys(list(app.capability_keys or []))
+    if isinstance(app.page_schema, dict):
+        cleaned = sanitize_page_schema(dict(app.page_schema))
+        schema_keys = [str(k) for k in (cleaned.get("capability_keys") or []) if k]
+        if schema_keys:
+            keys = filter_web_ready_keys(schema_keys)
+    if not keys:
+        keys = ["chat_qa"]
+    manifest = build_manifest(keys, deliver=app.deliver or "both")
+    return {"public_id": app.public_id, "build_manifest": manifest}
 
 
 @router.get("/{public_id}")
