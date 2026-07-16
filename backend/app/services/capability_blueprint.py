@@ -244,10 +244,62 @@ class BlueprintBuild:
     page_schema: dict[str, Any] | None = None
     app: dict[str, Any] | None = None
     pack: str | None = None
+    scope: str = "app"  # app | preview_pack
+
+
+def resolve_app_scoped_keys(
+    *,
+    capability_keys: list[str] | None = None,
+    page_schema: dict[str, Any] | None = None,
+) -> list[str]:
+    """仅本应用实际页面用到的能力：优先 menu / children，避免装配全量 keys 污染契约面板。"""
+    schema = page_schema if isinstance(page_schema, dict) else {}
+    ordered: list[str] = []
+    seen: set[str] = set()
+
+    def _add(raw: object) -> None:
+        key = str(raw or "").strip()
+        if not key or key in seen:
+            return
+        seen.add(key)
+        ordered.append(key)
+
+    menu = schema.get("menu") if isinstance(schema.get("menu"), list) else []
+    for item in menu:
+        if isinstance(item, dict):
+            _add(item.get("capability_key"))
+
+    root = schema.get("root") if isinstance(schema.get("root"), dict) else {}
+    children = root.get("children") if isinstance(root.get("children"), list) else []
+    for node in children:
+        if isinstance(node, dict):
+            props = node.get("props") if isinstance(node.get("props"), dict) else {}
+            _add(props.get("capability_key"))
+
+    if ordered:
+        return ordered
+
+    for key in capability_keys or []:
+        _add(key)
+    for key in schema.get("capability_keys") or []:
+        _add(key)
+    return ordered or ["chat_qa"]
 
 
 def build_developer_blueprint(spec: BlueprintBuild) -> dict[str, Any]:
-    keys = [k for k in spec.capability_keys if k]
+    keys = resolve_app_scoped_keys(
+        capability_keys=spec.capability_keys,
+        page_schema=spec.page_schema,
+    )
+    # preview_pack 显式传入完整清单时保留（制造 12 场景预览）
+    if spec.scope == "preview_pack" and spec.capability_keys:
+        keys = []
+        seen_p: set[str] = set()
+        for k in spec.capability_keys:
+            kk = str(k).strip()
+            if kk and kk not in seen_p:
+                seen_p.add(kk)
+                keys.append(kk)
     modules: list[dict[str, Any]] = []
     seen: set[str] = set()
     for key in keys:
@@ -304,20 +356,37 @@ def build_developer_blueprint(spec: BlueprintBuild) -> dict[str, Any]:
             }
         )
 
-    manifest = spec.build_manifest or build_manifest(keys, deliver="web")
+    # 契约包只带本应用精简 manifest，绝不回传平台全量 web_pkgs
+    slim_manifest = build_manifest(keys, deliver="web")
+    slim_schema: dict[str, Any] | None = None
+    if isinstance(spec.page_schema, dict):
+        slim_schema = {
+            "version": spec.page_schema.get("version"),
+            "appId": spec.page_schema.get("appId"),
+            "title": spec.page_schema.get("title"),
+            "capability_keys": keys,
+            "menu": [
+                m
+                for m in (spec.page_schema.get("menu") or [])
+                if isinstance(m, dict)
+                and (not m.get("capability_key") or str(m.get("capability_key")) in set(keys))
+            ],
+        }
     return {
         "success": True,
+        "scope": spec.scope,
         "app": spec.app,
         "pack": spec.pack,
         "capability_keys": keys,
-        "build_manifest": manifest,
-        "page_schema": spec.page_schema,
+        "build_manifest": slim_manifest,
+        "page_schema": slim_schema,
         "modules": modules,
         "download": {
             "requires_role": "admin",
-            "hint": "下载源码包需要管理员账号（admin@trackchat.local / admin123）",
+            "hint": "下载源码包仅含本应用能力；需管理员账号（admin@trackchat.local / admin123）",
         },
         "openapi_url": "/docs",
+        "note": "仅本应用菜单/能力，不含平台其它能力包",
     }
 
 

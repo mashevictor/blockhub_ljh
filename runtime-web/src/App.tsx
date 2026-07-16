@@ -72,6 +72,46 @@ function layoutOf(schema: PageSchema): string {
   return 'tabs'
 }
 
+/** 仅本应用菜单/节点用到的能力，避免行业全量装配污染 boot / 契约 / 页脚 */
+function scopedKeysFromSchema(schema: PageSchema | null | undefined): string[] {
+  if (!schema) return []
+  const ordered: string[] = []
+  const seen = new Set<string>()
+  const add = (raw: unknown) => {
+    const k = String(raw || '').trim()
+    if (!k || seen.has(k)) return
+    seen.add(k)
+    ordered.push(k)
+  }
+  for (const m of schema.menu || []) add((m as { capability_key?: string }).capability_key)
+  for (const n of schema.root?.children || []) add(n.props?.capability_key)
+  if (!ordered.length) {
+    for (const k of schema.capability_keys || []) add(k)
+  }
+  return ordered
+}
+
+function scopeManifestToApp(manifest: BuildManifest, schema: PageSchema): BuildManifest {
+  const keys = scopedKeysFromSchema(schema)
+  if (!keys.length) return manifest
+  const keySet = new Set(keys)
+  const slugSet = new Set(keys.map((k) => k.replace(/_/g, '-')))
+  const webPkgs = (manifest.web_pkgs || []).filter((pkg) => {
+    const slug = pkg.replace(/^@blockhub\/web-capability-/, '')
+    return slugSet.has(slug) || keys.some((k) => pkg.includes(k.replace(/_/g, '-')))
+  })
+  // 若过滤后为空（共享包名如 chat），按 keys 约定重建列表
+  const pkgs =
+    webPkgs.length > 0
+      ? webPkgs
+      : keys.map((k) => `@blockhub/web-capability-${k.replace(/_/g, '-')}`)
+  return {
+    ...manifest,
+    capability_keys: keys.filter((k) => keySet.has(k)),
+    web_pkgs: pkgs,
+  }
+}
+
 export default function App() {
   const appId = useMemo(parseAppId, [])
   const entrySource = useMemo(parseEntrySource, [])
@@ -132,14 +172,16 @@ export default function App() {
     )
       .then(async ([cfg, sch, man]) => {
         if (cancelled) return
-        const bm = (man as { build_manifest: BuildManifest }).build_manifest
+        const pageSchema = (sch as { page_schema: PageSchema }).page_schema
+        const rawBm = (man as { build_manifest: BuildManifest }).build_manifest
+        const bm = scopeManifestToApp(rawBm, pageSchema)
         const cfgObj = cfg as TenantRuntimeConfig & {
           deliver?: string
           apk_ready?: boolean
         }
-        // 先写入壳数据，再并行 boot；能力包失败不应永久卡死
+        // 先写入壳数据，再按「本应用菜单」精简 boot；禁止加载平台全量能力包
         setConfig(cfgObj)
-        setSchema((sch as { page_schema: PageSchema }).page_schema)
+        setSchema(pageSchema)
         setManifest(bm)
         if (cfgObj.deliver) setDeliver(cfgObj.deliver)
         if (cfgObj.apk_ready) setApkReady(true)
@@ -356,7 +398,12 @@ export default function App() {
             <a className="btn" href={`/api/v1/runtime/${appId}/download`} style={{ opacity: apkReady ? 1 : 0.5 }}>
               下载 Android APK
             </a>
-            <span className="muted">已加载包：{manifest.web_pkgs.join(', ')}</span>
+            <span className="muted" title={manifest.web_pkgs.join(', ')}>
+              本应用能力包 {manifest.web_pkgs.length} 个
+              {manifest.web_pkgs.length <= 4
+                ? `：${manifest.web_pkgs.map((p) => p.replace('@blockhub/web-capability-', '')).join(', ')}`
+                : ''}
+            </span>
           </footer>
         )}
 
@@ -374,24 +421,21 @@ export default function App() {
             defaultOpen
             appId={appId}
             token={token}
-            capability_keys={schema.capability_keys}
+            capability_keys={scopedKeysFromSchema(schema)}
             page_schema={schema as never}
             build_manifest={manifest}
             defaultMode={"live_edit" as const}
             onSchemaPatch={(next: unknown) => setSchema(next as PageSchema)}
             onSaved={(result: { page_schema?: unknown; capability_keys?: string[] }) => {
+              const nextSchema = (result.page_schema as PageSchema | undefined) || schema
               if (result.page_schema) setSchema(result.page_schema as PageSchema)
-              if (result.capability_keys?.length) {
-                setManifest((prev) =>
-                  prev ? { ...prev, capability_keys: result.capability_keys as string[] } : prev,
-                )
-              }
               void fetch(`/api/v1/runtime/${appId}/manifest`)
                 .then((r) => (r.ok ? r.json() : null))
                 .then((data) => {
                   if (!data?.build_manifest) return
-                  setManifest(data.build_manifest)
-                  return bootWidgetsFromManifest(data.build_manifest)
+                  const scoped = scopeManifestToApp(data.build_manifest, nextSchema)
+                  setManifest(scoped)
+                  return bootWidgetsFromManifest(scoped)
                 })
                 .catch(() => undefined)
             }}

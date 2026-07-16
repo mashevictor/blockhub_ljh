@@ -73,18 +73,28 @@ def _assert_can_view_developer(user: User, app: AppRecord) -> None:
 
 
 def _blueprint_for_app(app: AppRecord) -> dict:
-    keys = list(app.capability_keys or [])
-    if not keys and isinstance(app.page_schema, dict):
-        keys = list(app.page_schema.get("capability_keys") or [])
-    manifest = app.build_manifest if isinstance(app.build_manifest, dict) else None
-    if not manifest:
-        manifest = build_manifest(keys or ["chat_qa"], deliver=app.deliver or "web")
+    from app.services.capability_blueprint import resolve_app_scoped_keys
+
+    schema = app.page_schema if isinstance(app.page_schema, dict) else None
+    keys = resolve_app_scoped_keys(
+        capability_keys=list(app.capability_keys or []),
+        page_schema=schema,
+    )
+    slim_manifest = build_manifest(keys, deliver=app.deliver or "web")
+    # modules 也按本应用 keys 过滤，避免行业全量装配残留
+    key_set = set(keys)
+    modules = [
+        m
+        for m in (app.modules or [])
+        if isinstance(m, dict) and str(m.get("key") or m.get("capability_key") or "") in key_set
+    ]
     return build_developer_blueprint(
         BlueprintBuild(
-            capability_keys=keys or ["chat_qa"],
-            modules=list(app.modules or []),
-            build_manifest=manifest,
-            page_schema=app.page_schema if isinstance(app.page_schema, dict) else None,
+            capability_keys=keys,
+            modules=modules,
+            build_manifest=slim_manifest,
+            page_schema=schema,
+            scope="app",
             app={
                 "public_id": app.public_id,
                 "name": app.name,
@@ -111,7 +121,12 @@ def developer_preview_blueprint(
             modules=[],
             build_manifest=build_manifest(keys, deliver="web"),
             pack=pack,
-            app={"public_id": f"preview-{pack}", "name": f"{pack} Runtime 预览", "industry_key": pack},
+            scope="preview_pack",
+            app={
+                "public_id": f"preview-{pack}",
+                "name": f"{pack} 行业 Runtime 预览（非独立站）",
+                "industry_key": pack,
+            },
         )
     )
 
@@ -132,7 +147,12 @@ def download_preview_code_zip(
             modules=[],
             build_manifest=build_manifest(keys, deliver="web"),
             pack=pack,
-            app={"public_id": f"preview-{pack}", "name": f"{pack} Runtime 预览", "industry_key": pack},
+            scope="preview_pack",
+            app={
+                "public_id": f"preview-{pack}",
+                "name": f"{pack} 行业 Runtime 预览（非独立站）",
+                "industry_key": pack,
+            },
         )
     )
     data = build_code_zip(blueprint)

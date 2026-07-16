@@ -555,12 +555,15 @@ export default function IndustryRuntimePreviewPage() {
         <div className="irp-brand">
           <span className="irp-mark" aria-hidden />
           <div>
-            <p className="irp-brand-label">行业 Runtime 预览</p>
+            <p className="irp-brand-label">行业 Runtime 工作台预览（非独立站）</p>
             <strong className="irp-brand-name">{preview.name}</strong>
           </div>
         </div>
         <div className="irp-top-actions">
-          <span className="irp-pill">{scenes.length} 个场景 · 可用 &gt;&gt; 对话改页</span>
+          <span className="irp-pill">{scenes.length} 场景 · 契约仅本预览包</span>
+          <a className="irp-link" href={ROUTES.industrySiteHtml(preview.key)}>
+            制造独立站
+          </a>
           <Link className="irp-link" to={ROUTES.industryDetail(preview.key)}>方案站</Link>
           <Link className="irp-link" to={ROUTES.home}>首页</Link>
         </div>

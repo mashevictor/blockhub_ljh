@@ -28,6 +28,8 @@ export interface BlueprintModule {
 
 export interface DeveloperBlueprint {
   success?: boolean
+  scope?: string
+  note?: string
   capability_keys?: string[]
   modules?: BlueprintModule[]
   download?: { requires_role?: string; hint?: string }
@@ -213,17 +215,20 @@ export function DeveloperBlueprintPanel({
   return (
     <div className={`dev-bp ${className}`} style={{ '--dev-bp-accent': accent } as CSSProperties}>
       <button type="button" className="dev-bp-toggle" onClick={() => setOpen((v) => !v)}>
-        {open ? '收起后端契约' : '库表 · 接口 · 代码'}
+        {open ? '收起本应用契约' : '本应用 · 库表/接口/代码'}
       </button>
 
       {open && (
-        <div className="dev-bp-panel" role="dialog" aria-label="后端开发者契约">
+        <div className="dev-bp-panel" role="dialog" aria-label="本应用后端契约">
           <header className="dev-bp-head">
             <div>
-              <strong>后端契约</strong>
+              <strong>{mode === 'preview' ? '行业 Runtime 预览契约' : '本应用契约'}</strong>
               <span>
-                {mode === 'preview' ? `预览包 ${pack}` : `应用 ${appId}`}
+                {mode === 'preview'
+                  ? `预览包 ${pack}（非独立站 /industry-sites）`
+                  : `仅应用 ${appId}`}
                 {data?.app?.name ? ` · ${data.app.name}` : ''}
+                {data?.capability_keys?.length ? ` · ${data.capability_keys.length} 个能力` : ''}
                 {role ? ` · ${role}` : ''}
               </span>
             </div>
@@ -262,6 +267,7 @@ export function DeveloperBlueprintPanel({
 
           {busy && <p className="dev-bp-msg">加载中…</p>}
           {error && <p className="dev-bp-err">{error}</p>}
+          {data?.note && token && <p className="dev-bp-hint">{data.note}</p>}
           {data?.download?.hint && token && <p className="dev-bp-hint">{data.download.hint}</p>}
 
           {data?.modules && data.modules.length > 0 && (
