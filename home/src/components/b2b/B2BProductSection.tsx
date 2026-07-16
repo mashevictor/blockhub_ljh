@@ -13,6 +13,7 @@ import { industryCardImage } from '../../data/industryAssets'
 import { PLATFORM_STATS } from '@shared/platformStats'
 import { CAPABILITY_ICONS, INDUSTRY_ICONS, IconSparkles } from '../icons'
 import { AgentButtonContent } from '../AgentChevron'
+import LazyCover from '../LazyCover'
 import TemplatePreviewMock from './TemplatePreviewMock'
 
 interface Props {
@@ -188,15 +189,14 @@ export default function B2BProductSection({ onTry }: Props) {
                   }
                 }}
               >
-                <div
+                <LazyCover
                   className="b2b-industry-visual"
-                  style={{ backgroundImage: `url(${industryCardImage(ind.key)})` }}
-                  role="img"
-                  aria-label={`${ind.name}行业特性配图`}
+                  src={industryCardImage(ind.key)}
+                  alt={`${ind.name}行业特性配图`}
                 >
                   <span className="industry-card-visual-title">{ind.name}</span>
                   <span className="b2b-industry-visual-count">{ind.count} 场景</span>
-                </div>
+                </LazyCover>
                 <div className="b2b-industry-body">
                 <header className="b2b-industry-head">
                   <span className="b2b-industry-icon" aria-hidden>

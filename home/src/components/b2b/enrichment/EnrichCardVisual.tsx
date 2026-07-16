@@ -1,3 +1,5 @@
+import { staticUrl } from '../../../lib/staticUrl'
+
 interface Props {
   icon: string
   label: string
@@ -18,15 +20,26 @@ export default function EnrichCardVisual({
 }: Props) {
   const showOverlay = imageUrl && photoOverlay !== 'none'
   const badgeOnly = imageUrl && photoOverlay === 'badge'
+  const src = imageUrl ? staticUrl(imageUrl) : ''
 
   return (
     <div
       className={`enrich-card-visual${imageUrl ? ' enrich-card-visual--photo' : ''}${badgeOnly ? ' enrich-card-visual--photo-badge' : ''}`}
-      style={imageUrl ? { backgroundImage: `url(${imageUrl})` } : undefined}
       aria-hidden={!imageUrl}
       role={imageUrl ? 'img' : undefined}
       aria-label={imageUrl ? label : undefined}
     >
+      {src ? (
+        <img
+          className="lazy-cover-img"
+          src={src}
+          alt=""
+          loading="lazy"
+          decoding="async"
+          fetchPriority="low"
+          draggable={false}
+        />
+      ) : null}
       {!imageUrl ? (
         <>
           <span className="enrich-card-icon">{icon}</span>

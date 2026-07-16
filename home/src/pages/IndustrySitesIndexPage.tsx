@@ -8,6 +8,7 @@ import { ROUTES } from '../routes/paths'
 import IndustrySiteShell from '../components/industry/IndustrySiteShell'
 import { INDUSTRY_ICONS, IconSparkles } from '../components/icons'
 import { AgentButtonContent } from '../components/AgentChevron'
+import LazyCover from '../components/LazyCover'
 import '../styles/b2b-landing.css'
 
 const FALLBACK_SITES: IndustrySiteSummary[] = INDUSTRIES_SHOWCASE.map((ind) => ({
@@ -78,18 +79,17 @@ export default function IndustrySitesIndexPage() {
                 className="industry-hub-card"
                 style={{ '--card-accent': site.color } as CSSProperties}
               >
-                <div
+                <LazyCover
                   className="industry-hub-feature-img"
-                  style={{ backgroundImage: `url(${industryCardImage(site.key)})` }}
-                  role="img"
-                  aria-label={`${site.name}行业特性配图`}
+                  src={industryCardImage(site.key)}
+                  alt={`${site.name}行业特性配图`}
                 >
                   <span className="industry-card-visual-title">{site.name}</span>
                   <span className="industry-hub-feature-icon" aria-hidden>
                     <Icon size={22} />
                   </span>
                   <span className="industry-hub-feature-shade" aria-hidden />
-                </div>
+                </LazyCover>
                 <div className="industry-hub-body">
                   <span className="industry-hub-badge">深度包 · {site.scenes} 场景</span>
                   <h2>{site.name}</h2>

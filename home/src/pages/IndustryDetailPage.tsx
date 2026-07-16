@@ -15,6 +15,7 @@ import { getIndustryStylePack, getStylePackMeta, industrySitePackClass } from '.
 import IndustryHeroSection from '../components/industry/IndustryHeroSection'
 import IndustryPageTemplateGallery from '../components/industry/IndustryPageTemplateGallery'
 import IndustryMicrositePreview from '../components/industry/IndustryMicrositePreview'
+import LazyCover from '../components/LazyCover'
 import type { IndustryMicrositeTemplate } from '../data/industryMicrositeTemplates'
 import { ROUTES } from '../routes/paths'
 import '../styles/b2b-landing.css'
@@ -164,16 +165,6 @@ export default function IndustryDetailPage() {
         }
         ctaSecondary={
           <>
-            {(pack.key === 'mfg' || pack.key === 'office') ? (
-              <a
-                className="btn-ghost industry-site-ghost"
-                href={ROUTES.industryRuntimePack(pack.key)}
-                target="_blank"
-                rel="noreferrer"
-              >
-                打开真 Runtime 工作台
-              </a>
-            ) : null}
             <button type="button" className="btn-ghost industry-site-ghost" onClick={handleOpenDecoupledSite}>
               打开落地页预览
             </button>
@@ -281,9 +272,13 @@ export default function IndustryDetailPage() {
                 className="industry-hub-card"
                 style={{ '--card-accent': s.color } as CSSProperties}
               >
-                <div className="industry-hub-thumb" style={{ backgroundImage: `url(${industryCardImage(s.key)})` }}>
+                <LazyCover
+                  className="industry-hub-thumb"
+                  src={industryCardImage(s.key)}
+                  alt={`${s.name}行业配图`}
+                >
                   <span className="industry-card-visual-title">{s.name}</span>
-                </div>
+                </LazyCover>
                 <div className="industry-hub-body">
                   <h3>{s.name}</h3>
                   <p>{s.scenes} 场景</p>
