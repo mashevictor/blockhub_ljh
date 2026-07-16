@@ -17,6 +17,7 @@ export default function TrustCenterPage() {
 
   return (
     <MarketingSiteShell
+      skin="landed"
       pageTitle={TRUST_HERO.title}
       pageEyebrow="信任与合规"
       pageLead={TRUST_HERO.desc}

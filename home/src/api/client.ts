@@ -223,6 +223,8 @@ export interface PublishOptions {
   appId?: string
   webTemplateId?: string
   appUiId?: string
+  /** 行业包按场景清单全量装配（默认 true） */
+  assembleFullScenes?: boolean
 }
 
 export interface WebTemplate {
@@ -363,6 +365,7 @@ export async function publishApp(
       primary_color: opts.primaryColor ?? '#4338ca',
       web_template_id: opts.webTemplateId ?? 'tabs_portal',
       app_ui_id: opts.appUiId ?? 'bottom_tabs',
+      assemble_full_scenes: opts.assembleFullScenes ?? opts.source === 'industry',
     },
     { timeout: 90000 },
   )
@@ -519,6 +522,61 @@ export async function askFlowQuestion(opts: {
       active_node: opts.activeNode ?? '',
       active_side: opts.activeSide === 'output' ? 'output' : 'input',
       extra_context: opts.extraContext ?? '',
+    },
+    { timeout: 60000 },
+  )
+  return res.data
+}
+
+export type ComposeEditOp =
+  | {
+      op: 'add'
+      label: string
+      capability_key?: string
+      category?: string
+      summary?: string
+      page_kind?: string
+      page_mock?: {
+        form_title?: string
+        fields?: Array<{ label: string; value?: string }>
+        list_title?: string
+        list?: Array<{ id: string; title: string; status: string }>
+        chat_title?: string
+        chat?: Array<{ role: string; text: string }>
+        files_title?: string
+        files?: string[]
+        kpis?: Array<{ label: string; value: string; hint?: string }>
+        primary_action?: string
+      }
+    }
+  | { op: 'remove'; label: string }
+  | { op: 'rename'; from: string; to: string }
+  | { op: 'move'; label: string; index?: number }
+
+/** 自然语言改页面菜单 — 大模型理解意图并返回 ops */
+export async function askComposeEdit(opts: {
+  instruction: string
+  appName?: string
+  menu?: Array<{ key?: string; label?: string; capability_key?: string; category?: string }>
+  capabilityKeys?: string[]
+}): Promise<{
+  reply: string
+  ops: ComposeEditOp[]
+  source: 'deepseek' | 'fallback'
+  llm_configured: boolean
+}> {
+  const res = await api.post<{
+    reply: string
+    ops: ComposeEditOp[]
+    source: 'deepseek' | 'fallback'
+    llm_configured: boolean
+  }>(
+    '/creation/compose-edit',
+    {
+      instruction: opts.instruction,
+      app_name: opts.appName ?? '',
+      menu: opts.menu ?? [],
+      capability_keys: opts.capabilityKeys ?? [],
     },
     { timeout: 60000 },
   )

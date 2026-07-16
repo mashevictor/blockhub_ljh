@@ -27,7 +27,9 @@ from app.services.app_store import (
 from app.services import catalog_store
 from app.services.apk_builder import enqueue_apk_build, get_apk_build_status, per_app_apk_ready
 from app.services.file_storage import read_bytes, save_app_icon_data_url, uploads_root
+from app.services.compose_edit import compose_edit_from_instruction
 from app.services.flow_ask import answer_flow_question
+from app.services.flow_edit import flow_edit_from_instruction
 from app.services.flow_module_api import generate_flow_module_apis
 from app.services.module_suggest import suggest_modules
 from app.services.publish_email import send_publish_delivery_email
@@ -82,6 +84,20 @@ class FlowAskRequest(BaseModel):
     extra_context: str = ""
 
 
+class ComposeEditRequest(BaseModel):
+    instruction: str
+    app_name: str = ""
+    menu: list[dict] = []
+    capability_keys: list[str] = []
+
+
+class FlowEditRequest(BaseModel):
+    instruction: str
+    app_name: str = ""
+    steps: list[dict] = []
+    available_labels: list[str] = []
+
+
 class PublishModuleItem(BaseModel):
     key: str
     label: str
@@ -108,6 +124,8 @@ class PublishRequest(BaseModel):
     primary_color: str = "#4338ca"
     web_template_id: str = "tabs_portal"
     app_ui_id: str = "bottom_tabs"
+    # True：按行业场景清单装配；行业向导显式开启，弹幕/选模块默认 False
+    assemble_full_scenes: bool = False
 
 
 class PlazaPublishRequest(BaseModel):
@@ -222,6 +240,15 @@ def wizard_meta() -> dict:
     return {"steps": CREATION_WIZARD_STEPS, "industry_packs": INDUSTRY_PACK_OPTIONS}
 
 
+@router.get("/industry/{pack_key}/assembly")
+def industry_pack_assembly(pack_key: str, scenes: str = "") -> dict:
+    """场景清单 → capability_keys / menu_plan 预览（SSOT）。"""
+    from app.services.scene_capability_map import assemble_industry_pack
+
+    names = [s.strip() for s in scenes.split(",") if s.strip()] if scenes else None
+    return {"success": True, "assembly": assemble_industry_pack(pack_key, scene_names=names)}
+
+
 @router.get("/scenarios")
 def scenarios_for_industry(
     industry_key: str = "office",
@@ -291,6 +318,28 @@ def flow_ask_api(body: FlowAskRequest) -> dict:
     )
 
 
+@router.post("/compose-edit")
+def compose_edit_api(body: ComposeEditRequest) -> dict:
+    """自然语言改 Runtime 菜单/场景，优先大模型。"""
+    return compose_edit_from_instruction(
+        instruction=body.instruction,
+        menu=body.menu,
+        capability_keys=body.capability_keys,
+        app_name=body.app_name,
+    )
+
+
+@router.post("/flow-edit")
+def flow_edit_api(body: FlowEditRequest) -> dict:
+    """自然语言改模块数据流，优先大模型。"""
+    return flow_edit_from_instruction(
+        instruction=body.instruction,
+        steps=body.steps,
+        app_name=body.app_name,
+        available_labels=body.available_labels,
+    )
+
+
 @router.post("/publish")
 def publish_app(
     body: PublishRequest,
@@ -331,6 +380,7 @@ def publish_app(
             primary_color=body.primary_color,
             web_template_id=body.web_template_id,
             app_ui_id=body.app_ui_id,
+            assemble_full_scenes=body.assemble_full_scenes,
         )
         deliver = app.get("deliver", "both")
         public_id = app["id"]

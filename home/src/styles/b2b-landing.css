@@ -4793,6 +4793,25 @@ a.b2b-nav-btn-link {
   background: linear-gradient(180deg, #dbeafe 0%, #eaf2ff 100%);
 }
 
+/* 预约 capsule：折叠时只留一行输入，控件与首页一致（caret 按钮） */
+.floating-agent-dock-booking.floating-agent-dock-capsule.is-collapsed .booking-float-status,
+.floating-agent-dock-booking.floating-agent-dock-capsule.is-collapsed .booking-float-ghost,
+.floating-agent-dock-booking.floating-agent-dock-capsule.is-collapsed .booking-float-skip,
+.floating-agent-dock-booking.floating-agent-dock-capsule.is-collapsed .booking-float-review-list,
+.floating-agent-dock-booking.floating-agent-dock-capsule.is-collapsed .booking-float-error {
+  display: none !important;
+}
+
+.floating-agent-dock-booking.floating-agent-dock-capsule.is-collapsed .booking-float-composer {
+  gap: 0;
+  width: 100%;
+}
+
+.floating-agent-dock-booking.floating-agent-dock-capsule.is-collapsed .booking-float-input-row {
+  min-height: 0;
+  gap: 6px;
+}
+
 .booking-float-composer {
   display: flex;
   flex-direction: column;
@@ -6442,23 +6461,28 @@ a.b2b-nav-btn-link {
   margin-bottom: 28px;
 }
 
-.industry-tpl-gallery .b2b-section-title h2 {
-  color: #fff;
+/* 深色底：标题/说明一律白色（避免被行业包 --ind-text / 渐变字色盖成深色） */
+.industry-tpl-gallery .b2b-section-title h2,
+.industry-tpl-gallery .industry-site-section-head h2,
+.industry-tpl-gallery .b2b-section-title h2 em,
+.industry-tpl-gallery .industry-site-section-head h2 em,
+.industry-tpl-gallery .b2b-section-title p,
+.industry-tpl-gallery .industry-site-section-head p,
+.industry-tpl-gallery .b2b-eyebrow,
+.industry-tpl-gallery .industry-tpl-tech-badges span {
+  color: #fff !important;
+  -webkit-text-fill-color: #fff;
+  background-image: none;
 }
 
-.industry-tpl-gallery .b2b-section-title h2 em {
-  color: color-mix(in srgb, var(--tpl-accent, #818cf8) 80%, #fff);
+.industry-tpl-gallery .b2b-section-title h2 em,
+.industry-tpl-gallery .industry-site-section-head h2 em {
   font-style: normal;
 }
 
-.industry-tpl-gallery .b2b-section-title p {
-  color: rgba(226, 232, 240, 0.82);
-}
-
 .industry-tpl-gallery .b2b-eyebrow {
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.22);
 }
 
 .industry-tpl-tech-badges {

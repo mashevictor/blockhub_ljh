@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type CSSProperties } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useState, type CSSProperties } from 'react'
 import {
   RuntimeContext,
   WidgetHost,
@@ -11,7 +11,12 @@ import {
   type SchemaNode,
   type TenantRuntimeConfig,
 } from '@blockhub/web-core'
+import '@capship/composer/styles.css'
 import { bootWidgetsFromManifest } from './register-widgets'
+
+const CapShipComposerDock = lazy(() =>
+  import('@capship/composer').then((m) => ({ default: m.CapShipComposerDock })),
+)
 
 function parseAppId(): string | null {
   const m = window.location.pathname.match(/^\/r\/([a-z0-9]+)/i)
@@ -342,6 +347,36 @@ export default function App() {
             <span className="muted">已加载包：{manifest.web_pkgs.join(', ')}</span>
           </footer>
         )}
+
+        <Suspense fallback={null}>
+          <CapShipComposerDock
+            storageKey="capship-runtime-dock-v3"
+            defaultOpen
+            appId={appId}
+            token={token}
+            capability_keys={schema.capability_keys}
+            page_schema={schema as never}
+            build_manifest={manifest}
+            defaultMode="live_edit"
+            onSchemaPatch={(next) => setSchema(next as unknown as PageSchema)}
+            onSaved={(result) => {
+              if (result.page_schema) setSchema(result.page_schema as unknown as PageSchema)
+              if (result.capability_keys?.length) {
+                setManifest((prev) =>
+                  prev ? { ...prev, capability_keys: result.capability_keys } : prev,
+                )
+              }
+              void fetch(`/api/v1/runtime/${appId}/manifest`)
+                .then((r) => (r.ok ? r.json() : null))
+                .then((data) => {
+                  if (!data?.build_manifest) return
+                  setManifest(data.build_manifest)
+                  return bootWidgetsFromManifest(data.build_manifest)
+                })
+                .catch(() => undefined)
+            }}
+          />
+        </Suspense>
       </div>
     </RuntimeContext.Provider>
   )

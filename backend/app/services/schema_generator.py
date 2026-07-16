@@ -53,6 +53,54 @@ def generate_menu(capability_keys: list[str]) -> list[dict[str, str]]:
     return menu
 
 
+def _scene_route(scene_key: str) -> str:
+    slug = scene_key.replace("_", "-")
+    return f"/s/{slug}" if not slug.startswith("/") else slug
+
+
+def generate_menu_from_plan(menu_plan: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    """场景菜单计划 → (menu, children)。每场景独立入口，可复用同一 capability widget。"""
+    menu: list[dict[str, Any]] = []
+    children: list[dict[str, Any]] = []
+    for item in menu_plan:
+        if not isinstance(item, dict):
+            continue
+        cap_key = str(item.get("capability_key") or item.get("key") or "").strip()
+        if not cap_key:
+            continue
+        scene_key = str(item.get("key") or cap_key).strip()
+        label = str(item.get("label") or cap_key)
+        category = str(item.get("category") or "")
+        route = str(item.get("route") or "").strip() or _scene_route(scene_key)
+        if not route.startswith("/"):
+            route = f"/{route}"
+        icon = str(item.get("icon") or "module")
+        node = _schema_node_for(cap_key)
+        node["id"] = scene_key
+        props = dict(node.get("props") or {})
+        props["route"] = route
+        props["scene_label"] = label
+        if category:
+            props["category"] = category
+        if item.get("standard"):
+            props["standard"] = item["standard"]
+        node["props"] = props
+        children.append(node)
+        menu.append(
+            {
+                "key": scene_key,
+                "label": label,
+                "icon": icon,
+                "route": route,
+                "category": category,
+                "capability_key": cap_key,
+            }
+        )
+    if not menu:
+        return generate_menu(["chat_qa"]), [_schema_node_for("chat_qa")]
+    return menu, children
+
+
 def generate_page_schema(
     *,
     app_id: str,
@@ -61,14 +109,24 @@ def generate_page_schema(
     primary_color: str = "#4338ca",
     web_template_id: str = "tabs_portal",
     app_ui_id: str = "bottom_tabs",
+    menu_plan: list[dict[str, Any]] | None = None,
+    scene_groups: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     keys = [k for k in capability_keys if k]
     if not keys:
         keys = ["chat_qa"]
 
     tpl = normalize_web_template_id(web_template_id)
-    children = [_schema_node_for(k) for k in keys]
-    menu = generate_menu(keys)
+    if menu_plan:
+        menu, children = generate_menu_from_plan(menu_plan)
+        # 保证 capability_keys 覆盖菜单引用
+        for item in menu:
+            ck = str(item.get("capability_key") or "")
+            if ck and ck not in keys:
+                keys.append(ck)
+    else:
+        children = [_schema_node_for(k) for k in keys]
+        menu = generate_menu(keys)
 
     if tpl == "landing_single":
         layout_type = "landing"
@@ -80,7 +138,7 @@ def generate_page_schema(
                 "props": {
                     "widget": "LandingHeroWidget",
                     "title": app_name,
-                    "subtitle": f"共 {len(keys)} 项能力 · 打开即可用",
+                    "subtitle": f"共 {len(menu)} 项场景 · 打开即可用",
                     "primaryColor": primary_color,
                 },
             },
@@ -89,7 +147,16 @@ def generate_page_schema(
     elif tpl == "sidebar_admin":
         layout_type = "sidebar"
     else:
-        layout_type = "tabs" if len(keys) > 1 else "single"
+        layout_type = "tabs" if len(menu) > 1 else "single"
+
+    meta: dict[str, Any] = {
+        "web_template_id": tpl,
+        "app_ui_id": app_ui_id,
+    }
+    if scene_groups:
+        meta["scene_groups"] = scene_groups
+    if menu_plan:
+        meta["menu_plan"] = menu_plan
 
     return {
         "version": "1",
@@ -102,10 +169,7 @@ def generate_page_schema(
         },
         "menu": menu,
         "capability_keys": keys,
-        "meta": {
-            "web_template_id": tpl,
-            "app_ui_id": app_ui_id,
-        },
+        "meta": meta,
         "root": {
             "id": "root",
             "type": "page",

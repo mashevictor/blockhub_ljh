@@ -33,6 +33,22 @@ keys=[chat_qa, approval_flow] + shells
 
 BlockHub 改为 `pip install -e ../capship/contract` 或 monorepo path 依赖，避免双份漂移。
 
+## 阶段 1.5 — Composer（L2–L4 编排面，已在 monorepo 落地）
+
+| 源 | 目标包 |
+|----|--------|
+| `packages/capship-composer/**` | `@capship/composer` |
+| 三模式：`live_edit` / `module_flow` / `select_modules` | 对话改页（默认）· 数据流 · 选模块 |
+| 悬浮壳对齐 home `FloatingAgentDock` capsule | 握把 + `>>` + caret 折叠/展开（无文字链） |
+| Runtime `PATCH /runtime/{id}/schema|modules` | 写回 `apps.page_schema` / capabilities |
+| 行业场景 SSOT `scene_capability_map.py` | 场景清单 → menu_plan + capability_keys |
+
+产品面消费（注意边界）：
+
+- **`/capship` 产品页保持开源营销/GitHub 介绍，不做工作台改造**；Composer UI 随开源仓发布，不绑在本页
+- Home CreateStudio / PromptView / ModuleView 对齐 Composer 模式契约（`data-capship-mode`）
+- `runtime-web` 懒加载 `>>` dock，保存后即时刷新 WidgetHost
+
 ## 阶段 2 — Web Runtime
 
 | 源 | 目标 |
@@ -40,6 +56,7 @@ BlockHub 改为 `pip install -e ../capship/contract` 或 monorepo path 依赖，
 | `packages/web-core/**` | `@capship/web-core` |
 | `runtime-web/**`（去掉产品 hardcode） | `@capship/web-runtime` |
 | `web-capability-chat`、`approval`、`dashboard` | 示范能力包 |
+| `@capship/composer`（runtime dock） | 与 web-runtime 同仓或 peer |
 
 验收：静态 fixture schema/manifest → `pnpm dev` 可渲染，无后端。
 

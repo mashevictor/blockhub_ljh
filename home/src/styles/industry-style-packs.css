@@ -894,6 +894,24 @@
   color: var(--ind-text, #111);
 }
 
+/* 模板画廊深色底：强制白字，覆盖各 pack 的 --ind-text */
+.industry-site .industry-tpl-gallery .industry-site-section-head h2,
+.industry-site .industry-tpl-gallery .industry-site-section-head h2 em,
+.industry-site .industry-tpl-gallery .b2b-section-title h2,
+.industry-site .industry-tpl-gallery .b2b-section-title h2 em,
+.industry-site .industry-tpl-gallery .industry-site-section-head p,
+.industry-site .industry-tpl-gallery .b2b-section-title p,
+.industry-site .industry-tpl-gallery .b2b-eyebrow,
+.industry-site .industry-tpl-gallery .industry-tpl-tech-badges span {
+  color: #fff !important;
+  -webkit-text-fill-color: #fff;
+}
+
+.industry-site .industry-tpl-gallery .industry-site-section-head h2 {
+  background: none;
+  border-left-color: rgba(255, 255, 255, 0.55);
+}
+
 .industry-site .industry-site-panel {
   border-radius: 8px;
   border: 1px solid #bfdbfe;

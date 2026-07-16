@@ -20,6 +20,7 @@ import {
   buildFlowApiNodeList,
   flowStepsFingerprint,
   insertFlowStepAfter,
+  hydrateModuleFlowFromRuntime,
   loadModuleFlow,
   removeFlowStep,
   reorderFlowSteps,
@@ -206,8 +207,9 @@ export default function PlazaDualRailFlowPanel({
     run.phase === 'running' || run.phase === 'paused' ? run.currentStep?.id ?? null : null
 
   useEffect(() => {
-    const loaded = loadModuleFlow(appKey, moduleLabels)
-    setFlow(loaded)
+    let cancelled = false
+    const local = loadModuleFlow(appKey, moduleLabels)
+    setFlow(local)
     setActiveNodeId(FLOW_INGRESS_ID)
     setActiveApiSide('input')
     setEditingId(null)
@@ -215,6 +217,12 @@ export default function PlazaDualRailFlowPanel({
     setAnalysis('')
     setDataVisible(DATA_PAGE)
     setFuncVisible(DATA_PAGE)
+    void hydrateModuleFlowFromRuntime(appKey, moduleLabels).then((loaded) => {
+      if (!cancelled) setFlow(loaded)
+    })
+    return () => {
+      cancelled = true
+    }
   }, [appKey, moduleLabels.join('|')])
 
   useEffect(() => {

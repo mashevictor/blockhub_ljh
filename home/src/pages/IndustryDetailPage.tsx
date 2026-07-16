@@ -159,7 +159,7 @@ export default function IndustryDetailPage() {
         icon={<Icon size={40} />}
         ctaPrimary={
           <button type="button" className="btn-primary" onClick={handleUseIndustry}>
-            编排生成应用 →
+            编排生成应用（进入 Runtime）→
           </button>
         }
         ctaSecondary={

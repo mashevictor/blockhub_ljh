@@ -16,6 +16,7 @@ export default function CasesIndexPage() {
 
   return (
     <MarketingSiteShell
+      skin="landed"
       pageTitle="客户案例"
       pageEyebrow="落地案例"
       pageLead="深度案例 · 短案例速览 · 可下载一页纸摘要"

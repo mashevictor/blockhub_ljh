@@ -6,6 +6,7 @@ import {
 import type { AppModuleFlow, ModuleFlowStep } from '../../lib/plazaModuleFlow'
 import {
   addFlowStep,
+  hydrateModuleFlowFromRuntime,
   insertFlowStepAfter,
   loadModuleFlow,
   reorderFlowSteps,
@@ -46,11 +47,20 @@ export default function PlazaModuleFlowPanel({
   const apiRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    const loaded = loadModuleFlow(appKey, moduleLabels)
-    setFlow(loaded)
-    setActiveNodeId(loaded.steps[0]?.id ?? FLOW_INGRESS_ID)
+    let cancelled = false
+    const local = loadModuleFlow(appKey, moduleLabels)
+    setFlow(local)
+    setActiveNodeId(local.steps[0]?.id ?? FLOW_INGRESS_ID)
     setEditingId(null)
     setPickerAfterStepId(null)
+    void hydrateModuleFlowFromRuntime(appKey, moduleLabels).then((loaded) => {
+      if (cancelled) return
+      setFlow(loaded)
+      setActiveNodeId((prev) => prev || loaded.steps[0]?.id || FLOW_INGRESS_ID)
+    })
+    return () => {
+      cancelled = true
+    }
   }, [appKey, moduleLabels.join('|')])
 
   const existingLabels = useMemo(() => flow.steps.map((s) => s.label), [flow.steps])

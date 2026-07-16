@@ -55,6 +55,9 @@ export default function BookingFloatingAgent() {
       title={dockTitle}
       chevLabel={chevLabel}
       collapsedHint={collapsedHint}
+      variant="capsule"
+      collapseToggleInTail
+      showDockToggle={false}
       ariaLabel="预约信息悬浮输入"
     >
       {!inView ? (

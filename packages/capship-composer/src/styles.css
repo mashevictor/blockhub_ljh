@@ -1,0 +1,484 @@
+.capship-composer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  color: #0f172a;
+}
+
+.capship-composer.is-compact {
+  gap: 8px;
+  font-size: 13px;
+}
+
+.capship-composer-tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 4px;
+}
+
+.capship-composer-tab {
+  border: 0;
+  background: transparent;
+  padding: 6px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.capship-composer-tab.active {
+  background: #0f172a;
+  color: #fff;
+}
+
+.capship-composer-pane {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.capship-composer-hint {
+  margin: 0;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.capship-composer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 8px;
+  max-height: 220px;
+  overflow: auto;
+}
+
+.capship-composer-chip {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  cursor: pointer;
+  background: #f8fafc;
+}
+
+.capship-composer-chip code {
+  font-size: 10px;
+  color: #94a3b8;
+}
+
+.capship-composer-btn {
+  align-self: flex-start;
+  border: 0;
+  border-radius: 999px;
+  padding: 8px 16px;
+  background: #0f172a;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.capship-composer-btn:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+.capship-composer-chat-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 180px;
+  overflow: auto;
+  padding: 4px 2px;
+}
+
+.capship-composer-msg {
+  max-width: 92%;
+  padding: 8px 12px;
+  border-radius: 14px;
+  font-size: 13px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+
+.capship-composer-msg.is-user {
+  align-self: flex-end;
+  background: #0f172a;
+  color: #fff;
+  border-bottom-right-radius: 4px;
+}
+
+.capship-composer-msg.is-assistant {
+  align-self: flex-start;
+  background: #f1f5f9;
+  color: #0f172a;
+  border-bottom-left-radius: 4px;
+}
+
+.capship-composer-msg.is-pending {
+  opacity: 0.7;
+}
+
+.capship-composer-chat-input {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.capship-composer-chat-input textarea {
+  flex: 1;
+  min-height: 44px;
+  resize: vertical;
+  border: 1px solid #cbd5e1;
+  border-radius: 14px;
+  padding: 10px 12px;
+  font: inherit;
+  background: #fff;
+}
+
+.capship-composer-chat-input .capship-composer-btn {
+  flex-shrink: 0;
+  align-self: stretch;
+}
+
+.capship-composer-flow-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 200px;
+  overflow: auto;
+}
+
+.capship-composer-flow-list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+.capship-composer-flow-idx {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: #0f172a;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.capship-composer-flow-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.capship-composer-flow-body strong {
+  font-size: 13px;
+}
+
+.capship-composer-flow-body em {
+  font-style: normal;
+  font-size: 11px;
+  color: #64748b;
+}
+
+.capship-composer-flow-actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.capship-composer-link {
+  border: 0;
+  background: transparent;
+  color: #2563eb;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 2px 4px;
+}
+
+.capship-composer-link:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.capship-composer-status {
+  margin: 0;
+  font-size: 12px;
+  color: #0f766e;
+}
+
+/* —— 与 home FloatingAgentDock capsule 同构（Runtime / 预览自带样式） —— */
+.capship-floating-dock.floating-agent-dock {
+  position: fixed;
+  z-index: 80;
+  touch-action: none;
+  user-select: none;
+  color: #0f172a;
+}
+
+.capship-floating-dock .floating-agent-dock-frame {
+  background: #ffffff;
+  border: 2px solid #93c5fd;
+  border-radius: 14px;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.95) inset,
+    0 8px 32px rgba(13, 71, 161, 0.18),
+    0 2px 8px rgba(15, 23, 42, 0.08);
+  overflow: hidden;
+  max-height: calc(100vh - 32px);
+  display: flex;
+  flex-direction: column;
+  transition: box-shadow 0.2s ease, border-radius 0.25s ease;
+}
+
+.capship-floating-dock.is-dragging .floating-agent-dock-frame {
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 1) inset,
+    0 16px 48px rgba(13, 71, 161, 0.28),
+    0 4px 16px rgba(15, 23, 42, 0.12);
+  cursor: grabbing;
+}
+
+.capship-floating-dock .floating-agent-dock-chrome {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 6px 8px 6px 10px;
+  background: linear-gradient(180deg, #eaf2ff 0%, #f8fbff 100%);
+  border-bottom: 2px solid #bfdbfe;
+  cursor: grab;
+}
+
+.capship-floating-dock.is-collapsed .floating-agent-dock-chrome {
+  border-bottom: none;
+}
+
+.capship-floating-dock.is-collapsed .floating-agent-dock-frame {
+  flex-direction: row;
+  align-items: center;
+  border-radius: 999px;
+  min-height: 44px;
+  max-height: 48px;
+  padding: 0 6px 0 10px;
+}
+
+.capship-floating-dock.is-collapsed .floating-agent-dock-chrome {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  background: transparent;
+}
+
+.capship-floating-dock.is-expanded .floating-agent-dock-frame {
+  border-radius: 18px;
+  max-height: min(72vh, 540px);
+}
+
+.capship-floating-dock.is-expanded .floating-agent-dock-chrome {
+  padding: 10px 12px;
+  border-bottom: 1px solid #e2e8f0;
+  background: transparent;
+}
+
+.capship-floating-dock .floating-agent-dock-grip {
+  flex-shrink: 0;
+  width: 10px;
+  height: 14px;
+  background:
+    radial-gradient(circle, #64748b 1.5px, transparent 1.5px) 0 0 / 5px 5px repeat;
+  opacity: 0.75;
+  cursor: grab;
+  padding: 4px 2px;
+}
+
+.capship-floating-dock .floating-agent-dock-expand-bar {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 4px 8px 4px 4px;
+  border-radius: 8px;
+  font: inherit;
+  text-align: left;
+  color: inherit;
+}
+
+.capship-floating-dock .floating-agent-dock-expand-bar:hover {
+  background: rgba(13, 71, 161, 0.06);
+}
+
+.capship-floating-dock .floating-agent-dock-brand-static {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.capship-floating-dock.is-expanded .floating-agent-dock-brand-static {
+  flex: 1;
+  min-width: 0;
+}
+
+.capship-floating-dock .floating-agent-dock-chev {
+  font-weight: 800;
+  letter-spacing: -1px;
+  color: #0d47a1;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.capship-floating-dock .floating-agent-dock-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0d47a1;
+  white-space: nowrap;
+}
+
+.capship-floating-dock .floating-agent-dock-collapsed-hint {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+  color: #64748b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.capship-floating-dock .floating-agent-dock-toggle {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border: 1px solid #dbeafe;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  margin-left: auto;
+}
+
+.capship-floating-dock .floating-agent-dock-toggle:hover {
+  border-color: #93c5fd;
+  background: #f0f9ff;
+}
+
+.capship-floating-dock .floating-agent-dock-toggle.capsule-toggle {
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.capship-floating-dock .floating-agent-dock-caret {
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid #0d47a1;
+  border-bottom: 2px solid #0d47a1;
+  transform: rotate(45deg) translateY(-2px);
+  transition: transform 0.2s ease;
+}
+
+.capship-floating-dock .floating-agent-dock-caret.open {
+  transform: rotate(-135deg) translateY(-2px);
+}
+
+.capship-floating-dock .floating-agent-dock-expand-bar .floating-agent-dock-caret {
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* 全屏图标按钮（方框），不用文字 */
+.capship-floating-dock .floating-agent-dock-fs {
+  width: 12px;
+  height: 12px;
+  border: 2px solid #0d47a1;
+  border-radius: 2px;
+  box-sizing: border-box;
+}
+
+.capship-floating-dock .floating-agent-dock-fs.is-exit {
+  width: 10px;
+  height: 10px;
+  border-width: 2px;
+  box-shadow: 2px -2px 0 -1px #fff, 2px -2px 0 0 #0d47a1;
+}
+
+.capship-floating-dock .floating-agent-dock-body {
+  padding: 0 14px 14px;
+  user-select: text;
+  overflow: auto;
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none;
+  color: #0f172a;
+}
+
+.capship-floating-dock.is-fullscreen {
+  inset: 16px !important;
+  width: auto !important;
+  max-width: none !important;
+  transform: none !important;
+}
+
+.capship-floating-dock.is-fullscreen .floating-agent-dock-frame {
+  height: 100%;
+  max-height: none;
+  border-radius: 18px;
+}
+
+.capship-floating-dock.is-fullscreen .floating-agent-dock-body {
+  display: flex;
+  flex-direction: column;
+}
+
+.capship-floating-dock.is-fullscreen .capship-composer {
+  flex: 1;
+  min-height: 0;
+}
+
+.capship-floating-dock.is-fullscreen .capship-composer-chat-list,
+.capship-floating-dock.is-fullscreen .capship-composer-flow-list,
+.capship-floating-dock.is-fullscreen .capship-composer-grid {
+  max-height: none;
+  flex: 1;
+}
+
+/* 数据流操作：统一成方钮，不用文字链 */
+.capship-composer-flow-actions .capship-composer-link {
+  width: 28px;
+  height: 28px;
+  border: 1px solid #dbeafe;
+  border-radius: 8px;
+  background: #fff;
+  color: #0d47a1;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 0;
+  display: inline-grid;
+  place-items: center;
+}
+
+.capship-composer-flow-actions .capship-composer-link:hover:not(:disabled) {
+  border-color: #93c5fd;
+  background: #f0f9ff;
+}

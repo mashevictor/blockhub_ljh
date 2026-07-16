@@ -37,7 +37,14 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [react(), htmlCacheVersionPlugin({ appName: 'home', appVersion }), industryHubRedirectPlugin()],
     resolve: {
-      alias: { '@shared': path.resolve(__dirname, '../shared') },
+      alias: {
+        '@shared': path.resolve(__dirname, '../shared'),
+        '@capship/composer': path.resolve(__dirname, '../packages/capship-composer/src'),
+        '@capship/composer/styles.css': path.resolve(
+          __dirname,
+          '../packages/capship-composer/src/styles.css',
+        ),
+      },
     },
     build: {
       rollupOptions: {

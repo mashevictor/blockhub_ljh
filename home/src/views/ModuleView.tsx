@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { COMPOSER_MODES } from '@capship/composer'
 import { fetchCatalogModules, publishApp } from '../api/client'
 import { publishApiToResult } from '../api/publishHelpers'
 import { runLoadingPublishPipeline } from '../lib/publishFlow'
@@ -31,6 +32,8 @@ interface CapabilityGroup {
   cat: string
   items: Widget[]
 }
+
+const MODULE_COMPOSER_MODE = COMPOSER_MODES.find((m) => m.id === 'select_modules')?.id ?? 'select_modules'
 
 export default function ModuleView({ onPublish, active = true }: Props) {
   const { theme } = useTheme()
@@ -145,7 +148,7 @@ export default function ModuleView({ onPublish, active = true }: Props) {
   const handlePublish = () => setContactOpen(true)
 
   return (
-    <div className="view module-view">
+    <div className="view module-view" data-capship-mode={MODULE_COMPOSER_MODE}>
       <div className="builder-layout cube-panel">
         <aside className="builder-palette cube-panel-inner">
           <h3>功能模块</h3>

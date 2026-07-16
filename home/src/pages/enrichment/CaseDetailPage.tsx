@@ -27,7 +27,7 @@ export default function CaseDetailPage() {
   const blocks = resolveCaseBlocks(study)
 
   return (
-    <MarketingSiteShell pageTitle={study.name} pageEyebrow={study.tag ?? '客户案例'} pageLead={study.summary}>
+    <MarketingSiteShell skin="landed" pageTitle={study.name} pageEyebrow={study.tag ?? '客户案例'} pageLead={study.summary}>
       <article className="enrich-card enrich-detail-hero" style={enrichCardStyle(theme) as CSSProperties}>
         <EnrichCardVisual icon={theme.icon} label={study.industry} sublabel="完整案例" />
         <div className="enrich-case-metrics enrich-case-metrics--detail enrich-card-body enrich-card-body--inline">

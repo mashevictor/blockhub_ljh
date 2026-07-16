@@ -16,7 +16,7 @@ export default function PricingPage() {
   })
 
   return (
-    <MarketingSiteShell pageTitle="定价框架" pageEyebrow="定价说明">
+    <MarketingSiteShell skin="landed" pageTitle="定价框架" pageEyebrow="定价说明">
       <div className="enrich-pricing-grid enrich-pricing-grid--page">
         {PRICING_TIERS.map((tier) => {
           const theme = pricingTierTheme(tier.id)

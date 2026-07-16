@@ -1,4 +1,6 @@
 import { defaultFlowHint } from '../data/moduleCatalog'
+import { getToken } from '../auth/storage'
+import { patchRuntimeSchema } from '@capship/composer'
 
 /** 单个模块在数据流中的节点 */
 export interface ModuleFlowStep {
@@ -59,7 +61,7 @@ function saveAll(map: Record<string, AppModuleFlow>) {
   }
 }
 
-/** 读取应用模块流；若无则按 modules 生成默认 */
+/** 本地缓存读取（兼容离线）；真相源为 apps.page_schema.meta.module_flow */
 export function loadModuleFlow(appKey: string, moduleLabels: string[]): AppModuleFlow {
   const stored = loadAll()[appKey]
   if (stored?.steps?.length) return stored
@@ -71,7 +73,52 @@ export function saveModuleFlow(flow: AppModuleFlow): AppModuleFlow {
   const map = loadAll()
   map[flow.appKey] = next
   saveAll(map)
+  // 异步写回 Runtime DB（失败不阻断 UI）
+  void persistModuleFlowToRuntime(next).catch(() => undefined)
   return next
+}
+
+/** 从 Runtime schema 水合流程（优先于 localStorage） */
+export async function hydrateModuleFlowFromRuntime(
+  appKey: string,
+  moduleLabels: string[],
+): Promise<AppModuleFlow> {
+  try {
+    const res = await fetch(`/api/v1/runtime/${appKey}/schema`)
+    if (res.ok) {
+      const data = (await res.json()) as {
+        page_schema?: { meta?: { module_flow?: AppModuleFlow } }
+      }
+      const remote = data.page_schema?.meta?.module_flow
+      if (remote?.steps?.length) {
+        const next = { ...remote, appKey, updatedAt: remote.updatedAt || new Date().toISOString() }
+        const map = loadAll()
+        map[appKey] = next
+        saveAll(map)
+        return next
+      }
+    }
+  } catch {
+    /* fall through */
+  }
+  return loadModuleFlow(appKey, moduleLabels)
+}
+
+/** 将流程写入 page_schema.meta.module_flow（DB 真相源） */
+export async function persistModuleFlowToRuntime(flow: AppModuleFlow): Promise<void> {
+  const token = getToken()
+  if (!token || !flow.appKey) return
+  const res = await fetch(`/api/v1/runtime/${flow.appKey}/schema`)
+  if (!res.ok) return
+  const data = (await res.json()) as { page_schema?: Record<string, unknown> }
+  const schema = data.page_schema
+  if (!schema || typeof schema !== 'object') return
+  const meta = { ...((schema.meta as Record<string, unknown>) || {}), module_flow: flow }
+  const nextSchema = { ...schema, meta }
+  await patchRuntimeSchema(flow.appKey, nextSchema as never, {
+    token,
+    mergeMeta: { module_flow: flow },
+  })
 }
 
 export function addFlowStep(flow: AppModuleFlow, label: string, note?: string): AppModuleFlow {

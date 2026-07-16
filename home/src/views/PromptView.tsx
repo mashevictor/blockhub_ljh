@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { COMPOSER_MODES } from '@capship/composer'
 import {
   fetchIndustryScenarios,
   fetchOfficeScenarios,
@@ -100,6 +101,9 @@ function filterByIndustries(
   }
   return out
 }
+
+/** 弹幕创建对应 CapShip Composer 的 live_edit / 选型发布链路 */
+const PROMPT_COMPOSER_MODE = COMPOSER_MODES.find((m) => m.id === 'live_edit')?.id ?? 'live_edit'
 
 export default function PromptView({ onPublish, roleApply, onRoleApplyDone, active = true }: Props) {
   const bookingZoneActive = useDemoBookingActive()
@@ -1094,7 +1098,7 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
   }, [])
 
   return (
-    <div className="view prompt-view prompt-view-minimal layout-floating">
+    <div className="view prompt-view prompt-view-minimal layout-floating" data-capship-mode={PROMPT_COMPOSER_MODE}>
       {showPromptDock && (
       <FloatingAgentDock
         storageKey="tc-floating-home"

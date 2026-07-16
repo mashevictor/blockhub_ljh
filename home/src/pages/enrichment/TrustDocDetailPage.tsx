@@ -30,6 +30,7 @@ export default function TrustDocDetailPage() {
 
   return (
     <MarketingSiteShell
+      skin="landed"
       pageTitle={article.title}
       pageEyebrow="信任与合规"
       pageLead={article.subtitle}

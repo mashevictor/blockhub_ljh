@@ -1,0 +1,315 @@
+/**
+ * 营销子站皮肤：Landed · 稳重商务布局
+ * 源自 industry-microsites/accounting（20 套模板之一）
+ * 字体与主页一致：Apple / PingFang SC（--font-sans / --font-display）
+ * 仅用于案例 / 信任 / 定价（新闻动态保持 default 壳）
+ */
+
+.marketing-site--landed {
+  --mk-accent: #0d5c4d;
+  --mk-accent-soft: #1a7a66;
+  --mk-bg: #eef5f2;
+  --mk-bg-deep: #e2eee9;
+  --mk-text: #1a1a1a;
+  --mk-muted: rgba(26, 26, 26, 0.62);
+  --mk-surface: rgba(255, 255, 255, 0.78);
+  --mk-line: color-mix(in srgb, #1a1a1a 10%, transparent);
+  /* 与主页 / design-tokens 一致 */
+  --mk-fd: var(--font-display, var(--bh-font-display, "PingFang SC", "SF Pro Display", -apple-system, BlinkMacSystemFont, sans-serif));
+  --mk-fb: var(--font-sans, var(--bh-font-sans, "PingFang SC", "SF Pro Text", -apple-system, BlinkMacSystemFont, sans-serif));
+  --b2b-bg: var(--mk-bg);
+  --b2b-text: var(--mk-text);
+  --b2b-muted: var(--mk-muted);
+  --b2b-primary: var(--mk-accent);
+  font-family: var(--mk-fb);
+  color: var(--mk-text);
+  background:
+    radial-gradient(ellipse 80% 50% at 10% -10%, color-mix(in srgb, var(--mk-accent) 14%, transparent), transparent 55%),
+    radial-gradient(ellipse 60% 40% at 90% 0%, color-mix(in srgb, var(--mk-accent) 8%, transparent), transparent 50%),
+    var(--mk-bg);
+}
+
+body.marketing-landed-body {
+  background: #eef5f2;
+}
+
+.marketing-site--landed .marketing-site-main {
+  background: transparent;
+}
+
+/* 顶栏轻微贴合 Landed */
+.marketing-site--landed .b2b-header {
+  background: rgba(238, 245, 242, 0.88);
+  border-bottom: 1px solid color-mix(in srgb, #0d5c4d 12%, transparent);
+  backdrop-filter: blur(12px);
+}
+
+.marketing-site--landed .b2b-header a.is-active,
+.marketing-site--landed .b2b-nav a[aria-current='page'] {
+  color: var(--mk-accent);
+}
+
+.marketing-site--landed .marketing-site-section.b2b-product-section,
+.marketing-site--landed .b2b-section.b2b-product-section {
+  background: transparent;
+  padding-top: 2.5rem;
+  padding-bottom: 4rem;
+}
+
+/* ── 页头（Landed hero 气质）── */
+@keyframes mk-landed-rise {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.marketing-site--landed .reveal {
+  animation: mk-landed-rise 0.75s ease both;
+}
+
+.marketing-site--landed .reveal.d2 { animation-delay: 0.1s; }
+.marketing-site--landed .reveal.d3 { animation-delay: 0.2s; }
+
+.marketing-site--landed .marketing-site-page-head {
+  text-align: left;
+  max-width: 720px;
+  margin: 0 0 2.75rem;
+  padding: 1.25rem 0 1.75rem;
+  position: relative;
+}
+
+.marketing-site--landed .marketing-site-page-head::after {
+  content: '';
+  display: block;
+  width: 56px;
+  height: 3px;
+  margin-top: 1.35rem;
+  background: var(--mk-accent);
+}
+
+.marketing-site--landed .marketing-site-page-head .b2b-eyebrow {
+  display: inline-block;
+  font-family: var(--mk-fb);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--mk-accent);
+  background: color-mix(in srgb, var(--mk-accent) 10%, #fff);
+  border: 1px solid color-mix(in srgb, var(--mk-accent) 22%, transparent);
+  border-radius: 0;
+  padding: 0.35rem 0.7rem;
+  margin-bottom: 0.85rem;
+}
+
+.marketing-site--landed .marketing-site-page-head h1 {
+  font-family: var(--mk-fd);
+  font-weight: 600;
+  font-size: clamp(2rem, 4.5vw, 3.25rem);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--mk-text);
+  margin: 0 0 0.85rem;
+}
+
+.marketing-site--landed .marketing-site-page-head p {
+  margin: 0;
+  max-width: 36rem;
+  font-size: 1.05rem;
+  line-height: 1.7;
+  color: var(--mk-muted);
+  text-align: left;
+}
+
+/* ── 面板标题 ── */
+.marketing-site--landed .enrich-panel {
+  background: var(--mk-surface);
+  border: 1px solid var(--mk-line);
+  border-radius: 0;
+  backdrop-filter: blur(10px);
+  box-shadow: none;
+  overflow: hidden;
+}
+
+.marketing-site--landed .enrich-panel-head {
+  padding: 1.5rem 1.5rem 0.75rem;
+  border-bottom: none;
+}
+
+.marketing-site--landed .enrich-panel-head h2 {
+  font-family: var(--mk-fd);
+  font-size: clamp(1.35rem, 2.4vw, 1.85rem);
+  font-weight: 600;
+  color: var(--mk-text);
+  margin: 0 0 0.4rem;
+}
+
+.marketing-site--landed .enrich-panel-head p {
+  color: var(--mk-muted);
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.marketing-site--landed .enrich-panel-body {
+  padding: 1rem 1.5rem 1.6rem;
+}
+
+/* ── 卡片：Landed glass card ── */
+.marketing-site--landed .enrich-card {
+  background: var(--mk-surface);
+  border: 1px solid var(--mk-line);
+  border-radius: 0;
+  box-shadow: none;
+  backdrop-filter: blur(8px);
+  transition: transform 0.25s ease, border-color 0.25s ease, background 0.25s ease;
+}
+
+.marketing-site--landed .enrich-card:hover {
+  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--mk-accent) 35%, var(--mk-line));
+  box-shadow: 0 12px 32px color-mix(in srgb, var(--mk-accent) 10%, transparent);
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.marketing-site--landed .enrich-card-visual {
+  min-height: 108px;
+  border-bottom: 3px solid var(--mk-accent);
+  background:
+    radial-gradient(circle at 18% 30%, color-mix(in srgb, var(--mk-accent) 22%, transparent), transparent 48%),
+    linear-gradient(135deg, color-mix(in srgb, var(--mk-accent) 12%, #f7fbf9), #fff);
+}
+
+.marketing-site--landed .enrich-card-visual-label {
+  font-family: var(--mk-fd);
+  font-weight: 600;
+}
+
+.marketing-site--landed .enrich-card-visual-sub {
+  color: var(--mk-accent);
+}
+
+.marketing-site--landed .enrich-card-icon {
+  border-radius: 0;
+  background: color-mix(in srgb, var(--mk-accent) 14%, #fff);
+  color: var(--mk-accent);
+}
+
+.marketing-site--landed .enrich-card-body h2,
+.marketing-site--landed .enrich-card-body h2 a {
+  font-family: var(--mk-fd);
+  font-weight: 600;
+  color: var(--mk-text);
+  text-decoration: none;
+}
+
+.marketing-site--landed .enrich-card-body h2 a:hover {
+  color: var(--mk-accent);
+}
+
+.marketing-site--landed .enrich-card-body p {
+  color: var(--mk-muted);
+}
+
+/* ── 按钮 / 链接 ── */
+.marketing-site--landed .enrich-link-btn,
+.marketing-site--landed .b2b-btn-primary.agent-action-btn,
+.marketing-site--landed a.b2b-btn-primary {
+  border-radius: 0 !important;
+  background: var(--mk-accent) !important;
+  border-color: var(--mk-accent) !important;
+  color: #fff !important;
+  font-family: var(--mk-fb);
+  font-weight: 600;
+  box-shadow: none !important;
+}
+
+.marketing-site--landed .enrich-link-btn:hover,
+.marketing-site--landed .b2b-btn-primary.agent-action-btn:hover {
+  background: var(--mk-accent-soft) !important;
+  transform: translateY(-2px);
+}
+
+.marketing-site--landed .enrich-dl-btn--secondary {
+  border-radius: 0;
+  border-color: color-mix(in srgb, var(--mk-accent) 40%, transparent);
+  color: var(--mk-accent);
+}
+
+.marketing-site--landed .enrich-case-tag,
+.marketing-site--landed .enrich-news-cat {
+  background: color-mix(in srgb, var(--mk-accent) 12%, #fff);
+  color: var(--mk-accent);
+  border-radius: 0;
+  font-weight: 600;
+}
+
+.marketing-site--landed .enrich-metric strong {
+  font-family: var(--mk-fd);
+  color: var(--mk-accent);
+}
+
+/* ── FAQ / 角色芯片 ── */
+.marketing-site--landed .enrich-faq-list--cards li,
+.marketing-site--landed .enrich-faq-item {
+  background: rgba(255, 255, 255, 0.65);
+  border: 1px solid var(--mk-line);
+  border-radius: 0;
+}
+
+.marketing-site--landed .enrich-faq-item dt {
+  font-family: var(--mk-fd);
+  font-weight: 600;
+}
+
+.marketing-site--landed .enrich-role-chip {
+  border-radius: 0;
+  border: 1px solid var(--mk-line);
+  background: var(--mk-surface);
+  color: var(--mk-text);
+}
+
+.marketing-site--landed .enrich-role-chip:hover {
+  border-color: var(--mk-accent);
+  color: var(--mk-accent);
+}
+
+/* ── 定价 featured ── */
+.marketing-site--landed .enrich-tier.is-featured {
+  border-color: var(--mk-accent);
+  outline: 2px solid color-mix(in srgb, var(--mk-accent) 35%, transparent);
+  outline-offset: 0;
+}
+
+.marketing-site--landed .enrich-tier-range {
+  font-family: var(--mk-fd);
+  color: var(--mk-accent);
+  font-weight: 600;
+}
+
+/* ── 页脚 ── */
+.marketing-site--landed .marketing-site-footer,
+.marketing-site--landed .b2b-site-footer {
+  background: color-mix(in srgb, var(--mk-bg-deep) 70%, #fff);
+  border-top: 1px solid var(--mk-line);
+}
+
+.marketing-site--landed .marketing-site-footer-links a {
+  color: var(--mk-accent);
+}
+
+/* ── 列表节奏 ── */
+.marketing-site--landed .enrich-cases-list,
+.marketing-site--landed .enrich-news-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+}
+
+.marketing-site--landed .enrich-section-foot {
+  margin-top: 1.75rem;
+}
+
+@media (max-width: 720px) {
+  .marketing-site--landed .marketing-site-page-head {
+    text-align: left;
+  }
+}

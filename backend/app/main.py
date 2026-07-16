@@ -50,6 +50,7 @@ from app.api.v1 import (
     wedding_plan,
     notifications,
     quality_inspect,
+    mfg_ops,
     reports,
     runtime,
     seed,
@@ -129,6 +130,7 @@ app.include_router(kb.router, prefix=settings.api_prefix, dependencies=_auth)
 app.include_router(approvals.router, prefix=settings.api_prefix, dependencies=_auth)
 app.include_router(device_repair.router, prefix=settings.api_prefix, dependencies=_auth)
 app.include_router(quality_inspect.router, prefix=settings.api_prefix, dependencies=_auth)
+app.include_router(mfg_ops.router, prefix=settings.api_prefix, dependencies=_auth)
 app.include_router(inventory_count.router, prefix=settings.api_prefix, dependencies=_auth)
 app.include_router(member_loyalty.router, prefix=settings.api_prefix, dependencies=_auth)
 app.include_router(med_triage.router, prefix=settings.api_prefix, dependencies=_auth)

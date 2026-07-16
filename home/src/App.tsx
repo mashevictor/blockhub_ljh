@@ -20,6 +20,7 @@ import NewsIndexPage from './pages/enrichment/NewsIndexPage'
 import NewsDetailPage from './pages/enrichment/NewsDetailPage'
 import RolePage from './pages/enrichment/RolePage'
 import CapShipPage from './pages/CapShipPage'
+import IndustryRuntimePreviewPage from './pages/IndustryRuntimePreviewPage'
 import { ROUTES } from './routes/paths'
 
 export default function App() {
@@ -95,6 +96,12 @@ export default function App() {
           <CapShipPage />
         </ErrorBoundary>
       } />
+      <Route path="/preview/industry-runtime/:pack" element={
+        <ErrorBoundary fallbackTitle="行业 Runtime 预览加载失败">
+          <IndustryRuntimePreviewPage />
+        </ErrorBoundary>
+      } />
+      <Route path="/preview/industry-runtime" element={<Navigate to="/preview/industry-runtime/mfg" replace />} />
       <Route path="/sites" element={<Navigate to="/" replace />} />
       <Route path="/" element={<HomeApp />} />
       <Route path="*" element={<Navigate to="/" replace />} />

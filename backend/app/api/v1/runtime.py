@@ -4,19 +4,42 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import FileResponse
+from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
-from app.db.models import AppRecord
+from app.core.deps import get_current_user
+from app.db.models import AppRecord, User
 from app.db.session import get_db
 from app.services.apk_builder import get_apk_build_detail, get_apk_build_status, per_app_apk_path, per_app_apk_ready
+from app.services.build_manifest import build_manifest
+from app.services.schema_generator import generate_page_schema, validate_page_schema
 from app.services.tenant_config import get_tenant_config
 
 router = APIRouter(prefix="/runtime", tags=["runtime"])
+
+
+class RuntimeSchemaPatch(BaseModel):
+    page_schema: dict[str, Any]
+    merge_meta: dict[str, Any] | None = None
+
+
+class RuntimeModulesPatch(BaseModel):
+    capability_keys: list[str] = Field(default_factory=list)
+    modules: list[dict[str, Any]] = Field(default_factory=list)
+    rebuild_schema: bool = True
+    menu_plan: list[dict[str, Any]] | None = None
+
+
+def _assert_can_edit_runtime_app(user: User, app: AppRecord) -> None:
+    if user.tenant_id != app.tenant_id:
+        raise HTTPException(status_code=403, detail="无权编辑其他租户的应用")
+    # 同租户登录用户可编排（与 publish 一致：租户内协作）
+
 
 APK_DIR = "apks"
 
@@ -64,8 +87,6 @@ def runtime_schema(public_id: str, db: Session = Depends(get_db)) -> dict:
     if not app:
         raise HTTPException(status_code=404, detail="应用不存在")
     if not app.page_schema:
-        from app.services.schema_generator import generate_page_schema
-
         schema = generate_page_schema(
             app_id=app.public_id,
             app_name=app.name,
@@ -74,6 +95,95 @@ def runtime_schema(public_id: str, db: Session = Depends(get_db)) -> dict:
         )
         return {"public_id": app.public_id, "page_schema": schema}
     return {"public_id": app.public_id, "page_schema": app.page_schema}
+
+
+@router.patch("/{public_id}/schema")
+def patch_runtime_schema(
+    public_id: str,
+    body: RuntimeSchemaPatch,
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+) -> dict:
+    """写回 page_schema（Composer live_edit / 流程编排持久化）。"""
+    app = db.query(AppRecord).filter(AppRecord.public_id == public_id).first()
+    if not app:
+        raise HTTPException(status_code=404, detail="应用不存在")
+    _assert_can_edit_runtime_app(user, app)
+    schema = dict(body.page_schema or {})
+    schema["appId"] = app.public_id
+    if body.merge_meta:
+        meta = dict(schema.get("meta") or {})
+        meta.update(body.merge_meta)
+        schema["meta"] = meta
+    try:
+        validate_page_schema(schema)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    app.page_schema = schema
+    if isinstance(schema.get("capability_keys"), list):
+        app.capability_keys = [str(k) for k in schema["capability_keys"] if k]
+    db.add(app)
+    db.commit()
+    db.refresh(app)
+    return {"success": True, "public_id": app.public_id, "page_schema": app.page_schema}
+
+
+@router.patch("/{public_id}/modules")
+def patch_runtime_modules(
+    public_id: str,
+    body: RuntimeModulesPatch,
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+) -> dict:
+    """更新 capability_keys / modules，可选重建 schema + manifest。"""
+    app = db.query(AppRecord).filter(AppRecord.public_id == public_id).first()
+    if not app:
+        raise HTTPException(status_code=404, detail="应用不存在")
+    _assert_can_edit_runtime_app(user, app)
+
+    keys = [str(k).strip() for k in (body.capability_keys or []) if str(k).strip()]
+    if not keys:
+        keys = list(app.capability_keys or []) or ["chat_qa"]
+    modules = list(body.modules) if body.modules else list(app.modules or [])
+    app.capability_keys = keys
+    app.modules = modules
+
+    manifest = build_manifest(keys, deliver=app.deliver or "both")
+    app.build_manifest = manifest
+
+    if body.rebuild_schema:
+        meta = dict((app.page_schema or {}).get("meta") or {})
+        menu_plan = body.menu_plan or meta.get("menu_plan")
+        schema = generate_page_schema(
+            app_id=app.public_id,
+            app_name=app.name,
+            capability_keys=keys,
+            primary_color=app.primary_color or "#4338ca",
+            web_template_id=str(meta.get("web_template_id") or "tabs_portal"),
+            app_ui_id=str(meta.get("app_ui_id") or "bottom_tabs"),
+            menu_plan=menu_plan if isinstance(menu_plan, list) else None,
+            scene_groups=meta.get("scene_groups") if isinstance(meta.get("scene_groups"), list) else None,
+        )
+        # 保留流程编排等 meta
+        if meta.get("module_flow"):
+            schema.setdefault("meta", {})["module_flow"] = meta["module_flow"]
+        try:
+            validate_page_schema(schema)
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        app.page_schema = schema
+
+    db.add(app)
+    db.commit()
+    db.refresh(app)
+    return {
+        "success": True,
+        "public_id": app.public_id,
+        "capability_keys": app.capability_keys,
+        "modules": app.modules,
+        "page_schema": app.page_schema,
+        "build_manifest": app.build_manifest,
+    }
 
 
 @router.get("/{public_id}/config")

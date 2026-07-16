@@ -61,7 +61,8 @@ export default function IndustryView({
   const [contactOpen, setContactOpen] = useState(false)
   const [appName, setAppName] = useState('我的行业应用')
   const [branding, setBranding] = useState(() => emptyBranding('我的行业应用'))
-  const [webTemplateId, setWebTemplateId] = useState('landing_single')
+  // 业务 Runtime 默认 tabs；落地页模板仅作投放预览，发布时若仍是 landing 会自动升为 tabs_portal
+  const [webTemplateId, setWebTemplateId] = useState('tabs_portal')
   const [appUiId, setAppUiId] = useState('bottom_tabs')
   const [preferKeys, setPreferKeys] = useState<string[]>(() =>
     buildClientStaticEnrichment(initialIndustry ?? 'office').recommended_modules,
@@ -83,7 +84,8 @@ export default function IndustryView({
           return
         }
         setScenes(items)
-        setSelected(new Set(items.slice(0, Math.min(6, items.length)).map((s) => s.id)))
+        // 默认全选场景清单，发布后进入完整 Runtime（非薄落地页）
+        setSelected(new Set(items.map((s) => s.id)))
       })
       .catch(() => {
         setSceneError('无法加载场景列表，请稍后重试')
@@ -208,9 +210,12 @@ export default function IndustryView({
           })),
           audience,
           source: 'industry',
+          // 行业全量场景装配 → 完整 menu/capabilities
+          assembleFullScenes: true,
+          // 业务使用以 Runtime 为准，避免仅落地页薄壳
+          webTemplateId: webTemplateId === 'landing_single' ? 'tabs_portal' : webTemplateId,
           iconUrl: branding.iconUrl,
           primaryColor: branding.primaryColor,
-          webTemplateId,
           appUiId,
           contactEmail: contact.type === 'email' ? contact.value : undefined,
           contactPhone: contact.type === 'phone' ? contact.value : undefined,

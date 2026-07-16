@@ -144,13 +144,41 @@ def persist_published_app(
     app_id: str = "",
     web_template_id: str = "tabs_portal",
     app_ui_id: str = "bottom_tabs",
+    assemble_full_scenes: bool = False,
 ) -> dict[str, Any]:
     from app.data.delivery_templates import normalize_app_ui_id, normalize_web_template_id
+    from app.data.industry_packs_all import pack_meta
+    from app.services.scene_capability_map import assemble_industry_pack
 
     existing = get_app_by_public_id(db, app_id) if app_id else None
     tenant_id = user.tenant_id if user else None
     web_tpl = normalize_web_template_id(web_template_id)
     app_ui = normalize_app_ui_id(app_ui_id)
+
+    menu_plan: list[dict[str, Any]] | None = None
+    scene_groups: list[dict[str, Any]] | None = None
+    industry_assembly: dict[str, Any] | None = None
+    # 行业包：按场景清单装配（industry 来源或显式 assemble_full_scenes）
+    use_scene_pack = assemble_full_scenes or source in ("industry", "industry_pack", "industry_site")
+    if use_scene_pack and pack_meta(industry_key):
+        # 无有效场景名 / 仅「自定义应用」→ 全量；否则按所选场景
+        meaningful = [s for s in scenarios if s and s != "自定义应用"]
+        industry_assembly = assemble_industry_pack(
+            industry_key,
+            scene_names=meaningful or None,
+        )
+        if industry_assembly.get("scene_count", 0) > 0:
+            capability_keys = list(
+                dict.fromkeys([*(capability_keys or []), *industry_assembly["capability_keys"]])
+            )
+            # 场景模块优先；保留调用方额外 modules
+            scene_mods = list(industry_assembly.get("modules") or [])
+            extra = [m for m in (modules or []) if m.get("source") != "industry_scene"]
+            modules = scene_mods + extra
+            scenarios = list(industry_assembly.get("scenario_names") or scenarios)
+            menu_plan = list(industry_assembly.get("menu_plan") or [])
+            scene_groups = list(industry_assembly.get("groups") or [])
+
     assembly = resolve_publish_capability_keys_detailed(
         scenario_names=scenarios,
         capability_keys=capability_keys,
@@ -167,6 +195,8 @@ def persist_published_app(
         primary_color=primary_color or "#4338ca",
         web_template_id=web_tpl,
         app_ui_id=app_ui,
+        menu_plan=menu_plan,
+        scene_groups=scene_groups,
     )
     validate_page_schema(page_schema)
     manifest = build_manifest(
@@ -206,6 +236,12 @@ def persist_published_app(
         db.refresh(existing)
         out = app_record_to_dict(existing)
         out["capability_assembly"] = assembly.to_dict()
+        if industry_assembly:
+            out["industry_scene_assembly"] = {
+                "scene_count": industry_assembly.get("scene_count"),
+                "groups": industry_assembly.get("groups"),
+                "pack_name": industry_assembly.get("pack_name"),
+            }
         out["web_template_id"] = web_tpl
         out["app_ui_id"] = app_ui
         out["pending_codegen_keys"] = list(assembly.dropped_keys)
@@ -250,6 +286,12 @@ def persist_published_app(
     db.refresh(record)
     out = app_record_to_dict(record)
     out["capability_assembly"] = assembly.to_dict()
+    if industry_assembly:
+        out["industry_scene_assembly"] = {
+            "scene_count": industry_assembly.get("scene_count"),
+            "groups": industry_assembly.get("groups"),
+            "pack_name": industry_assembly.get("pack_name"),
+        }
     out["web_template_id"] = web_tpl
     out["app_ui_id"] = app_ui
     out["pending_codegen_keys"] = list(assembly.dropped_keys)

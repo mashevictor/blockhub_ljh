@@ -11,10 +11,18 @@ import ViewModeSwitcher from '../ViewModeSwitcher'
 import PromptView from '../../views/PromptView'
 import IndustryView from '../../views/IndustryView'
 import ModuleView from '../../views/ModuleView'
+import { COMPOSER_MODES } from '@capship/composer'
 import { finishPublishNavigate } from '../../lib/publishFlow'
 import { parseCreateDeepLink, buildCreateDeepLinkHash } from '../../lib/createDeepLink'
 import { scrollToHomeSection } from '../../hooks/useHomeActiveSection'
 import DemoBookingComposer from './DemoBookingComposer'
+
+/** Home 创建三入口 ↔ CapShip Composer 模式映射（消费 @capship/composer 契约） */
+const HOME_VIEW_TO_COMPOSER = {
+  module: 'select_modules',
+  industry: 'module_flow',
+  prompt: 'live_edit',
+} as const satisfies Record<string, (typeof COMPOSER_MODES)[number]['id']>
 
 const CREATE_MAIN_ID = 'create-studio-main'
 
@@ -111,13 +119,28 @@ export default function CreateStudio() {
   }
 
   const handlePublish = (result: PublishResult) => {
+    // 行业编排：进入完整 Runtime（/r/{id}），而非仅广场列表
+    if (view === 'industry' && result.appId) {
+      const runtimePath = `/r/${result.appId}`
+      try {
+        finishPublishNavigate(navigate, result)
+      } catch {
+        /* ignore */
+      }
+      window.setTimeout(() => {
+        window.location.assign(runtimePath)
+      }, 80)
+      return
+    }
     finishPublishNavigate(navigate, result)
   }
 
   const showPromptStage = view === 'prompt'
 
+  const composerMode = HOME_VIEW_TO_COMPOSER[view]
+
   return (
-    <div className="b2b-create-studio">
+    <div className="b2b-create-studio" data-capship-mode={composerMode}>
       <div className="b2b-create-head">
         <AgentSignLine variant="hero" className="hero-e-headline" />
         <div className="b2b-create-toolbar">
