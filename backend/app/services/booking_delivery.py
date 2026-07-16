@@ -21,7 +21,7 @@ SHARE_ARTIFACTS: list[dict[str, str]] = [
         "id": "one-pager",
         "title": "一页纸方案摘要",
         "description": "制造行业 · 线索快速响应 · 可转发给决策层",
-        "href": "/downloads/one-pager-mfg.html",
+        "href": "/downloads/one-pager-mfg.pdf",
     },
     {
         "id": "case-mfg",
@@ -33,13 +33,13 @@ SHARE_ARTIFACTS: list[dict[str, str]] = [
         "id": "integration",
         "title": "业务系统对接清单",
         "description": "用友等常见系统对接说明与数据流",
-        "href": "/downloads/integration-checklist.html",
+        "href": "/downloads/integration-checklist.pdf",
     },
     {
         "id": "security",
         "title": "安全常见问题答复（预填版）",
         "description": "信息部门预审 · 数据不出境 · 可审计",
-        "href": "/downloads/security-faq.html",
+        "href": "/downloads/security-faq.pdf",
     },
     {
         "id": "pricing",

@@ -51,7 +51,7 @@ export default function TrustDocDetailPage() {
           rel="noopener noreferrer"
           className="b2b-btn-primary agent-action-btn"
         >
-          <AgentButtonContent>打开可打印版（PDF）</AgentButtonContent>
+          <AgentButtonContent>下载 PDF</AgentButtonContent>
         </a>
         <Link to={ROUTES.trust} className="enrich-link-btn agent-action-btn">
           <AgentButtonContent trailing={false}>返回信任中心</AgentButtonContent>

@@ -1,4 +1,4 @@
-/** B2B 官网 · 信任与合规资料 */
+/** B2B 官网 · 信任与合规资料（真 PDF：home/public/downloads/*.pdf） */
 
 export interface TrustDoc {
   id: string
@@ -15,39 +15,39 @@ export const TRUST_HERO = {
 export const TRUST_DOCS: TrustDoc[] = [
   {
     id: 'security-whitepaper',
-    title: '安全白皮书',
-    description: '数据流与存储 · 加密与访问控制 · 30 天删除承诺',
-    downloadPath: '/downloads/security-whitepaper.html',
+    title: '积木仓 BlockHub 信息安全白皮书',
+    description: '企业评估版 · 数据驻留 · 加密与访问控制 · 删除承诺',
+    downloadPath: '/downloads/security-whitepaper.pdf',
   },
   {
     id: 'integration',
-    title: '系统集成清单',
-    description: '用友 / 金蝶 / 钉钉 / 企业微信等常见对接说明',
-    downloadPath: '/downloads/integration-checklist.html',
+    title: '积木仓企业系统集成清单',
+    description: 'ERP / CRM / IM / SSO · 对接方式 · 实施周期',
+    downloadPath: '/downloads/integration-checklist.pdf',
   },
   {
     id: 'dpa',
-    title: '数据处理协议摘要',
-    description: 'DPA 核心条款 · 子处理器说明 · 境内存储',
-    downloadPath: '/downloads/dpa-summary.html',
+    title: '数据处理协议（DPA）核心条款摘要',
+    description: '处理目的 · 子处理器 · 境内存储 · 安全义务',
+    downloadPath: '/downloads/dpa-summary.pdf',
   },
   {
     id: 'deployment',
-    title: '部署模式对比',
-    description: 'PaaS / 混合 / 私有化 · 网络边界与运维责任',
-    downloadPath: '/downloads/deployment-modes.html',
+    title: '积木仓部署模式对照说明',
+    description: 'PaaS · 混合 · 私有化 · 网络边界与运维责任',
+    downloadPath: '/downloads/deployment-modes.pdf',
   },
   {
     id: 'security-faq',
-    title: '安全常见问题答复（预填版）',
-    description: '50 题常见问卷 · 42 题预填 · 带来源说明',
-    downloadPath: '/downloads/security-faq.html',
+    title: '企业安全问卷答复手册（预填版）',
+    description: '常见问卷框架 · 预填样例 · 适用边界说明',
+    downloadPath: '/downloads/security-faq.pdf',
   },
   {
     id: 'audit-log',
-    title: '操作日志样例',
-    description: '审计字段说明 · 留存策略 · 导出方式',
-    downloadPath: '/downloads/audit-log-sample.html',
+    title: '操作审计日志样例与留存策略',
+    description: '字段规范 · 留存周期 · 导出与 SIEM 说明',
+    downloadPath: '/downloads/audit-log-sample.pdf',
   },
 ]
 

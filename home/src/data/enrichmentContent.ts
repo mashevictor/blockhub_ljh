@@ -14,9 +14,9 @@ export interface TrustDocArticle {
 export const TRUST_DOC_ARTICLES: Record<string, TrustDocArticle> = {
   'security-whitepaper': {
     id: 'security-whitepaper',
-    title: `安全白皮书`,
-    subtitle: `数据流与存储 · 加密与访问控制 · 30 天删除承诺`,
-    downloadPath: '/downloads/security-whitepaper.html',
+    title: `积木仓 BlockHub 信息安全白皮书`,
+    subtitle: `企业评估版 · 数据驻留 · 加密与访问控制 · 删除承诺`,
+    downloadPath: '/downloads/security-whitepaper.pdf',
     sections: [
       { heading: `文档说明`, paragraphs: [`本白皮书面向企业信息部门与安全团队，概述积木仓 BlockHub 在数据存储、传输加密、访问控制与删除承诺方面的实践。`,
           `内容可与 [信任与合规中心](/trust) 在线资料对照；如需完整 DPA 与等保对齐说明，请 [预约演示](/#contact-demo) 获取资质包。`] },
@@ -42,9 +42,9 @@ export const TRUST_DOC_ARTICLES: Record<string, TrustDocArticle> = {
   },
   'integration': {
     id: 'integration',
-    title: `系统集成清单`,
-    subtitle: `用友 / 金蝶 / 钉钉 / 企业微信等常见对接说明`,
-    downloadPath: '/downloads/integration-checklist.html',
+    title: `积木仓企业系统集成清单`,
+    subtitle: `ERP / CRM / IM / SSO · 对接方式 · 实施周期`,
+    downloadPath: '/downloads/integration-checklist.pdf',
     sections: [
       { heading: `集成原则`, paragraphs: [`积木仓采用「标准 API + 可选 Webhook」与现有 ERP/CRM/OA 对接，避免替换核心系统。`,
           `常见模式：只读同步主数据、线索/工单双向同步、单点登录（SSO）、消息通知回写。`] },
@@ -54,7 +54,7 @@ export const TRUST_DOC_ARTICLES: Record<string, TrustDocArticle> = {
           `**身份**：企业微信 OAuth 扫码骨架；Azure AD、LDAP（私有化）。`] },
       { heading: `工程接口`, paragraphs: [`入站：\`POST /api/v1/integrations/ingress/webhook\`（HMAC）。`,
           `IM 探测：\`POST /api/v1/integrations/{id}/test-message\`。`,
-          `企微 SSO：\`GET /api/v1/auth/oauth/wecom/start\`。可下载 [系统集成清单](/downloads/integration-checklist.html)。`] },
+          `企微 SSO：\`GET /api/v1/auth/oauth/wecom/start\`。可下载 [系统集成清单](/downloads/integration-checklist.pdf)。`] },
       { heading: `典型对接场景`, paragraphs: [`制造：CRM 新线索 → 积木仓智能体草拟话术 → 销售确认后回写跟进记录。`,
           `零售：HR 制度 PDF → 知识库 → 门店员工自然语言问答。`,
           `物流：TMS 运单状态 API → 智能体 7×24 查询与异常推送。`] },
@@ -72,9 +72,9 @@ export const TRUST_DOC_ARTICLES: Record<string, TrustDocArticle> = {
   },
   'dpa': {
     id: 'dpa',
-    title: `数据处理协议摘要`,
-    subtitle: `DPA 核心条款 · 子处理器说明 · 境内存储`,
-    downloadPath: '/downloads/dpa-summary.html',
+    title: `数据处理协议（DPA）核心条款摘要`,
+    subtitle: `处理目的 · 子处理器 · 境内存储 · 安全义务`,
+    downloadPath: '/downloads/dpa-summary.pdf',
     sections: [
       { heading: `协议范围`, paragraphs: [`本摘要为积木仓标准数据处理协议（DPA）的核心条款概览，适用于 SaaS/PaaS/混合/私有化各部署模式。`,
           `正式签约以双方盖章版为准；采购与法务可在 [信任与合规中心](/trust) 索取完整模板。`] },
@@ -97,9 +97,9 @@ export const TRUST_DOC_ARTICLES: Record<string, TrustDocArticle> = {
   },
   'deployment': {
     id: 'deployment',
-    title: `部署模式对比`,
-    subtitle: `PaaS / 混合 / 私有化 · 网络边界与运维责任`,
-    downloadPath: '/downloads/deployment-modes.html',
+    title: `积木仓部署模式对照说明`,
+    subtitle: `PaaS · 混合 · 私有化 · 网络边界与运维责任`,
+    downloadPath: '/downloads/deployment-modes.pdf',
     sections: [
       { heading: `选型概览`, paragraphs: [`积木仓提供 **PaaS 标准 / 混合部署 / 私有化** 三档，匹配不同数据敏感度与 IT 能力。`,
           `建议路径：PaaS 试点验证场景 → 混合部署固化集成 → 私有化满足等保/行业监管（如需要）。`] },
@@ -123,9 +123,9 @@ export const TRUST_DOC_ARTICLES: Record<string, TrustDocArticle> = {
   },
   'security-faq': {
     id: 'security-faq',
-    title: `安全常见问题答复（预填版）`,
-    subtitle: `50 题常见问卷 · 42 题预填 · 带来源说明`,
-    downloadPath: '/downloads/security-faq.html',
+    title: `企业安全问卷答复手册（预填版）`,
+    subtitle: `常见问卷框架 · 预填样例 · 适用边界说明`,
+    downloadPath: '/downloads/security-faq.pdf',
     sections: [
       { heading: `使用说明`, paragraphs: [`以下为常见 50 题安全问卷中的 **42 题预填样例**（节选展示）。正式版含来源页码，可在演示后索取 Word/PDF。`,
           `在线提问：各子站智能体助手支持引用本资料作答。`] },
@@ -146,9 +146,9 @@ export const TRUST_DOC_ARTICLES: Record<string, TrustDocArticle> = {
   },
   'audit-log': {
     id: 'audit-log',
-    title: `操作日志样例`,
-    subtitle: `审计字段说明 · 留存策略 · 导出方式`,
-    downloadPath: '/downloads/audit-log-sample.html',
+    title: `操作审计日志样例与留存策略`,
+    subtitle: `字段规范 · 留存周期 · 导出与 SIEM 说明`,
+    downloadPath: '/downloads/audit-log-sample.pdf',
     sections: [
       { heading: `审计范围`, paragraphs: [`操作日志覆盖管理后台与关键 API：登录/登出、权限变更、应用发布、数据导出、智能体配置变更等。`,
           `日志用于安全审计、问题追溯与合规检查，**不可被普通管理员篡改**。`] },

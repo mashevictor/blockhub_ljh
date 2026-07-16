@@ -24,12 +24,12 @@ COMMON_LINKS = [
 ]
 
 TRUST_DOCS_META = [
-    ("security-whitepaper", "安全白皮书", "数据流与存储 · 加密与访问控制 · 30 天删除承诺", "/downloads/security-whitepaper.html"),
-    ("integration", "系统集成清单", "用友 / 金蝶 / 钉钉 / 企业微信等常见对接说明", "/downloads/integration-checklist.html"),
-    ("dpa", "数据处理协议摘要", "DPA 核心条款 · 子处理器说明 · 境内存储", "/downloads/dpa-summary.html"),
-    ("deployment", "部署模式对比", "PaaS / 混合 / 私有化 · 网络边界与运维责任", "/downloads/deployment-modes.html"),
-    ("security-faq", "安全常见问题答复（预填版）", "50 题常见问卷 · 42 题预填 · 带来源说明", "/downloads/security-faq.html"),
-    ("audit-log", "操作日志样例", "审计字段说明 · 留存策略 · 导出方式", "/downloads/audit-log-sample.html"),
+    ("security-whitepaper", "积木仓 BlockHub 信息安全白皮书", "企业评估版 · 数据驻留 · 加密与访问控制 · 删除承诺", "/downloads/security-whitepaper.pdf"),
+    ("integration", "积木仓企业系统集成清单", "ERP / CRM / IM / SSO · 对接方式 · 实施周期", "/downloads/integration-checklist.pdf"),
+    ("dpa", "数据处理协议（DPA）核心条款摘要", "处理目的 · 子处理器 · 境内存储 · 安全义务", "/downloads/dpa-summary.pdf"),
+    ("deployment", "积木仓部署模式对照说明", "PaaS · 混合 · 私有化 · 网络边界与运维责任", "/downloads/deployment-modes.pdf"),
+    ("security-faq", "企业安全问卷答复手册（预填版）", "常见问卷框架 · 预填样例 · 适用边界说明", "/downloads/security-faq.pdf"),
+    ("audit-log", "操作审计日志样例与留存策略", "字段规范 · 留存周期 · 导出与 SIEM 说明", "/downloads/audit-log-sample.pdf"),
 ]
 
 

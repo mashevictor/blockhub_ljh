@@ -50,7 +50,7 @@ export default function TrustCenterPage() {
                       className="enrich-dl-btn enrich-dl-btn--secondary"
                     >
                       <AgentChevronGlyph size="sm" className="enrich-dl-chev" />
-                      打印 PDF
+                      下载 PDF
                     </a>
                   </div>
                 </article>

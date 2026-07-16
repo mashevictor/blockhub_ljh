@@ -30,7 +30,7 @@ export const ROLE_PAGES: RolePage[] = [
     ],
     downloads: [
       { title: '制造行业客户案例', path: '/cases/mfg-leads' },
-      { title: '一页纸方案摘要', path: '/downloads/one-pager-mfg.html' },
+      { title: '行业方案一页纸 · 智能制造', path: '/downloads/one-pager-mfg.pdf' },
       { title: '价格与套餐说明', path: '/pricing' },
     ],
     cta: '预约演示 · 获取可转发材料包',
@@ -66,7 +66,7 @@ export const ROLE_PAGES: RolePage[] = [
     ],
     downloads: [
       { title: '定价框架说明', path: '/pricing' },
-      { title: '一页纸方案摘要', path: '/downloads/one-pager-mfg.html' },
+      { title: '行业方案一页纸 · 智能制造', path: '/downloads/one-pager-mfg.pdf' },
     ],
     cta: '查看定价说明',
   },
