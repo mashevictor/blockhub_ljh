@@ -24,6 +24,7 @@ def _scene(
     }
 
 
+# 通用办公 Runtime 正式场景（路径 A · 与 SCENES.office / 发布装配对齐）
 _OFFICE_META = {
     "key": "office",
     "name": "通用办公",
@@ -31,12 +32,24 @@ _OFFICE_META = {
     "color": "#6366f1",
     "tagline": "人事、财务、审批、知识库一体化",
     "scenes": [
-        _scene("请假审批", "人事行政", "员工请假在线申请与主管审批", pages="approval", agent="leave_request"),
-        _scene("报销记账", "财务法务", "费用报销与发票归档", pages="approval+form", agent="expense_claim"),
-        _scene("制度问答", "知识协同", "制度政策福利智能问答", pages="chat+kb", agent="policy_qa"),
-        _scene("招聘入职", "人事行政", "招聘与入职指引", pages="approval+kb", agent="hire_onboard"),
+        _scene("制度政策问答", "知识协同", "制度政策福利智能问答", pages="chat+kb", agent="policy_qa"),
+        _scene("请假申请", "人事行政", "员工请假在线申请与主管审批", pages="approval", agent="leave_request"),
+        _scene("加班申请", "人事行政", "加班时段申请与审批", pages="approval", agent="leave_request"),
+        _scene("出差申请", "人事行政", "出差行程申请与审批", pages="approval", agent="leave_request"),
+        _scene("报销审批", "财务法务", "费用报销与发票归档", pages="approval+form", agent="expense_claim"),
+        _scene("借款申请", "财务法务", "员工借款审批", pages="approval", agent="expense_claim"),
+        _scene("付款申请", "财务法务", "对外付款审批", pages="approval", agent="expense_claim"),
+        _scene("入职办理", "人事行政", "招聘与入职指引", pages="approval+kb", agent="hire_onboard"),
+        _scene("用印申请", "人事行政", "印章类型与文件用途审批", pages="approval", agent="seal_request"),
+        _scene("会议室预约", "人事行政", "会议室时段预约", pages="form+list", agent="meeting_booking"),
+        _scene("通用审批", "流程审批", "自定义事项审批", pages="approval", agent="approval_flow"),
         _scene("待办中心", "流程审批", "跨流程待办统一处理", pages="list", agent="approval_inbox"),
-        _scene("知识库", "知识协同", "制度文档语义检索", pages="kb", agent="kb_document"),
+        _scene("部门看板", "数据报表", "部门经营与效率看板", pages="chart", agent="ops_kpi"),
+        _scene("考勤查询", "人事行政", "班次考勤查询申诉", pages="list+approval", agent="shift_attendance"),
+        _scene("制度文档库", "知识协同", "制度文档语义检索", pages="kb", agent="kb_document"),
+        _scene("IT报障", "IT与资产", "电脑网络账号等 IT 工单", pages="form+list", agent="it_ticket"),
+        _scene("资产领用", "IT与资产", "固定资产领用归还盘点", pages="form+list", agent="asset_manage"),
+        _scene("企微通知", "消息通知", "企微钉钉飞书通道配置", pages="integration", agent="notify_im"),
     ],
 }
 
@@ -449,8 +462,11 @@ ALL_INDUSTRY_KEYS: set[str] = {p["key"] for p in ALL_INDUSTRY_PACKS}
 
 
 def scene_count_for_pack(key: str) -> int:
+    # 营销口径仍展示目录规模；Runtime 装配以 pack.scenes 为准
     if key == "office":
-        return 66
+        pack = next((p for p in ALL_INDUSTRY_PACKS if p["key"] == key), None)
+        n = len(pack["scenes"]) if pack else 0
+        return max(n, 66)
     pack = next((p for p in ALL_INDUSTRY_PACKS if p["key"] == key), None)
     return len(pack["scenes"]) if pack else 0
 

@@ -61,6 +61,53 @@ function matchMenuLabel(
   return menu.find((m) => m.label === t) || menu.find((m) => m.label.includes(t) || t.includes(m.label))
 }
 
+/** 与 backend capability_registry.widget 对齐的兜底表（后端 op.widget 优先） */
+const CAP_WIDGET_FALLBACK: Record<string, string> = {
+  chat_qa: 'ChatWidget',
+  leave_request: 'LeaveRequestWidget',
+  expense_claim: 'ExpenseClaimWidget',
+  hire_onboard: 'HireOnboardWidget',
+  device_repair: 'DeviceRepairWidget',
+  quality_inspect: 'QualityInspectWidget',
+  inventory_count: 'InventoryCountWidget',
+  member_loyalty: 'MemberLoyaltyWidget',
+  meeting_booking: 'MeetingBookingWidget',
+  it_ticket: 'ItTicketWidget',
+  it_helpdesk: 'ItTicketWidget',
+  asset_manage: 'AssetManageWidget',
+  seal_request: 'FormWidget',
+  approval_flow: 'FormWidget',
+  approval_inbox: 'InboxWidget',
+  policy_qa: 'PolicyQaWidget',
+  kb_document: 'KBUploadWidget',
+  chart_dashboard: 'DashboardWidget',
+  data_nl_query: 'NLQueryWidget',
+  notify_inapp: 'InboxWidget',
+  notify_im: 'IMWidget',
+  med_triage: 'MedTriageWidget',
+  nurse_shift: 'NurseShiftWidget',
+  property_repair: 'PropertyRepairWidget',
+  hotel_booking: 'HotelBookingWidget',
+  house_viewing: 'HouseViewingWidget',
+  delivery_order: 'DeliveryOrderWidget',
+  site_patrol: 'SitePatrolWidget',
+  sales_lead: 'SalesLeadWidget',
+  quote_contract: 'QuoteContractWidget',
+  ops_kpi: 'OpsKpiWidget',
+  school_notice: 'SchoolNoticeWidget',
+  homework_qa: 'HomeworkQaWidget',
+  class_schedule: 'ClassScheduleWidget',
+  game_support: 'GameSupportWidget',
+  legal_case: 'LegalCaseWidget',
+  gov_service: 'GovServiceWidget',
+  shanghai_voice: 'ShanghaiVoiceWidget',
+}
+
+function resolveAddWidget(cap: string, explicit?: string): string {
+  if (explicit && /Widget$/.test(explicit)) return explicit
+  return CAP_WIDGET_FALLBACK[cap] || 'ListWidget'
+}
+
 export function applyComposeOps(schema: ComposerPageSchema, ops: ComposeEditOp[]): ComposerPageSchema {
   let next = cloneSchema(schema)!
   const keys = new Set(next.capability_keys || [])
@@ -102,42 +149,49 @@ export function applyComposeOps(schema: ComposerPageSchema, ops: ComposeEditOp[]
       if (!label) continue
       if (next.menu.some((m) => m.label === label)) continue
       const cap = op.capability_key || 'chat_qa'
+      if ([...keys].includes(cap) && next.menu.some((m) => m.capability_key === cap)) continue
+      const widget = resolveAddWidget(cap, op.widget)
+      const nodeType = widget.replace(/Widget$/i, '').toLowerCase() || cap
       const key = `scene_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`
       const route = `/s/${key}`
       keys.add(cap)
+      const menuItem: ComposerPageSchema['menu'][number] = {
+        key,
+        label,
+        route,
+        category: op.category || '自定义',
+        capability_key: cap,
+        icon: 'module',
+        summary: op.summary,
+        page_kind: op.page_kind,
+      }
+      // 正式能力包不依赖 page_mock；仅兜底 ListWidget 时保留
+      if (op.page_mock && widget === 'ListWidget') {
+        menuItem.page_mock = op.page_mock
+      }
+      const childProps: Record<string, unknown> = {
+        widget,
+        capability_key: cap,
+        route,
+        scene_label: label,
+        summary: op.summary,
+        page_kind: op.page_kind,
+      }
+      if (op.page_mock && widget === 'ListWidget') {
+        childProps.page_mock = op.page_mock
+      }
       next = {
         ...next,
         capability_keys: [...keys],
-        menu: [
-          ...next.menu,
-          {
-            key,
-            label,
-            route,
-            category: op.category || '自定义',
-            capability_key: cap,
-            icon: 'module',
-            summary: op.summary,
-            page_kind: op.page_kind,
-            page_mock: op.page_mock,
-          },
-        ],
+        menu: [...next.menu, menuItem],
         root: {
           ...next.root,
           children: [
             ...(next.root.children || []),
             {
               id: key,
-              type: 'section',
-              props: {
-                capability_key: cap,
-                route,
-                scene_label: label,
-                summary: op.summary,
-                page_kind: op.page_kind,
-                page_mock: op.page_mock,
-                widget: 'ListWidget',
-              },
+              type: nodeType,
+              props: childProps,
             },
           ],
         },
@@ -190,7 +244,7 @@ export function CapShipComposer({
   const [messages, setMessages] = useState<ChatMsg[]>([
     {
       role: 'assistant',
-      text: '直接说要怎么改，例如「去掉保养计划」或「增加请假管理」。多人同时改时会校验版本，冲突可拉最新或强制覆盖。',
+      text: '直接说业务需求即可，例如「产线设备常坏要报修」「员工要请假和报销」。我会理解意图并挂上正式能力包（真表单/真 API），不只改菜单文案。也可说「去掉某某」。',
     },
   ])
   const [flowMessages, setFlowMessages] = useState<ChatMsg[]>([
@@ -680,7 +734,7 @@ export function CapShipComposer({
 
       {activeMode === 'live_edit' && (
         <div className="capship-composer-pane capship-composer-chat">
-          <p className="capship-composer-hint">输入文字直接改页面，由大模型理解意图。</p>
+          <p className="capship-composer-hint">说业务痛点或改页指令；理解后挂正式能力（选型即交付），不只改文案。</p>
           <div className="capship-composer-chat-list" ref={listRef} aria-live="polite">
             {messages.map((m, i) => (
               <div key={`${m.role}-${i}`} className={`capship-composer-msg is-${m.role}`}>
@@ -693,7 +747,7 @@ export function CapShipComposer({
             <textarea
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
-              placeholder="例如：去掉保养计划，增加请假管理"
+              placeholder="例如：产线老坏要报修；或 增加请假和报销"
               rows={2}
               aria-label="改页指令"
               onKeyDown={(e) => {

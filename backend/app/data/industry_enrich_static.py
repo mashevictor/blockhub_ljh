@@ -8,7 +8,7 @@ from app.data.industry_packs_all import ALL_INDUSTRY_PACKS, pack_meta, scene_cou
 
 # 各行业默认 CapShip / 正式能力 key（对齐弹幕与 >> 选型）
 PACK_CAPSHIP_MODULES: dict[str, list[str]] = {
-    "office": ["leave_request", "expense_claim", "policy_qa", "hire_onboard", "chat_qa", "approval_inbox"],
+    "office": ["leave_request", "expense_claim", "policy_qa", "hire_onboard", "seal_request", "meeting_booking", "approval_flow", "approval_inbox", "ops_kpi", "shift_attendance", "kb_document", "it_ticket", "asset_manage", "notify_im"],
     "mfg": ["device_repair", "quality_inspect", "inventory_count", "chat_qa", "notify_im", "kb_document"],
     "sales": ["sales_lead", "quote_contract", "ops_kpi", "chat_qa", "chart_funnel", "notify_im"],
     "med": ["med_triage", "nurse_shift", "kb_document", "chat_qa", "approval_flow", "notify_im"],

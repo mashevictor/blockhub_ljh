@@ -188,6 +188,8 @@ export async function askComposeEdit(
   ops: ComposeEditOp[]
   source: 'deepseek' | 'fallback'
   llm_configured: boolean
+  intent_summary?: string
+  matched?: Array<{ key: string; label?: string; score?: number }>
 }> {
   const res = await fetch('/api/v1/creation/compose-edit', {
     method: 'POST',

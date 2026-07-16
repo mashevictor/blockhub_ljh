@@ -620,9 +620,9 @@ CAPABILITIES = [
     {"key": "integration", "name": "外部数据对接", "category": "外部集成", "widget": "ConnectorWidget", "agent_id": "integration"},
     {"key": "erp_connector", "name": "ERP 连接器", "category": "外部集成", "widget": "ERPWidget", "agent_id": "integration"},
     {"key": "oa_connector", "name": "OA 连接器", "category": "外部集成", "widget": "OAWidget", "agent_id": "integration"},
-    {"key": "it_helpdesk", "name": "IT 报障", "category": "外部集成", "widget": "HelpdeskWidget", "agent_id": "integration"},
-    {"key": "asset_manage", "name": "资产管理", "category": "外部集成", "widget": "AssetWidget", "agent_id": "integration"},
-    {"key": "meeting_booking", "name": "会议室预约", "category": "外部集成", "widget": "MeetingWidget", "agent_id": "integration"},
+    {"key": "it_helpdesk", "name": "IT 报障", "category": "IT与资产", "widget": "ItTicketWidget", "agent_id": "it_ticket"},
+    {"key": "asset_manage", "name": "资产管理", "category": "IT与资产", "widget": "AssetManageWidget", "agent_id": "asset_manage"},
+    {"key": "meeting_booking", "name": "会议室预约", "category": "人事行政", "widget": "MeetingBookingWidget", "agent_id": "meeting_booking"},
 ]
 
 OFFICE_GROUPS = [

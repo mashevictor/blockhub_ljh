@@ -33,6 +33,13 @@ _AGENT_TO_CAPABILITY: dict[str, str] = {
     "expense_claim": "expense_claim",
     "policy_qa": "policy_qa",
     "hire_onboard": "hire_onboard",
+    "seal_request": "seal_request",
+    "it_ticket": "it_ticket",
+    "it_helpdesk": "it_ticket",
+    "ops_kpi": "ops_kpi",
+    "notify_im": "notify_im",
+    "meeting_booking": "meeting_booking",
+    "asset_manage": "asset_manage",
     "sales_lead": "sales_lead",
     "quote_contract": "quote_contract",
     "ops_kpi": "ops_kpi",
@@ -66,21 +73,35 @@ _NAME_HINTS: list[tuple[tuple[str, ...], str]] = [
     (("质检", "来料", "成品检"), "quality_inspect"),
     (("领料", "退料", "物料领"), "material_issue"),
     (("安环", "隐患", "巡检"), "site_patrol"),
-    (("排班", "考勤"), "shift_attendance"),
+    (("排班", "考勤统计", "考勤查询"), "shift_attendance"),
+    (("加班", "出差"), "leave_request"),
     (("请假",), "leave_request"),
-    (("报销",), "expense_claim"),
+    (("报销", "费用报销", "付款申请", "借款"), "expense_claim"),
+    (("用印", "盖章", "签章", "电子签"), "seal_request"),
+    (("入职", "招聘", "离职", "onboarding"), "hire_onboard"),
+    (("制度政策", "福利政策", "员工手册", "法务咨询", "合规制度"), "policy_qa"),
+    (("制度文档", "培训资料", "项目文档", "会议纪要", "内部FAQ", "最佳实践", "IT知识库", "合规制度库", "审计资料"), "kb_document"),
+    (("待办", "已办", "代理审批", "超时催办"), "approval_inbox"),
+    (("通用审批", "多级会签", "条件分支", "合同审批"), "approval_flow"),
+    (("部门看板", "审批效率", "费用汇总", "自定义报表", "自然语言查数", "审批统计"), "ops_kpi"),
+    (("IT报障", "报障", "账号权限", "软件安装", "网络/VPN", "VPN"), "it_ticket"),
+    (("企微", "钉钉", "飞书", "审批提醒", "公告推送", "订阅消息", "到期提醒", "邮件/短信"), "notify_im"),
+    (("会议室",), "meeting_booking"),
+    (("资产领用", "资产盘点", "固定资产"), "asset_manage"),
+    (("单点登录", "SSO"), "erp_connector"),
     (("报修", "维修", "故障"), "device_repair"),
     (("话术", "线索", "CRM"), "sales_lead"),
     (("报价", "合同"), "quote_contract"),
     (("OEE", "稼动", "生产日报"), "mfg_oee"),
     (("能耗", "碳排"), "energy_carbon"),
     (("漏斗", "KPI"), "chart_dashboard"),
+    (("SOP作业", "作业指导"), "kb_document"),
     (("SOP", "工艺"), "chat_qa"),
     (("图纸", "BOM"), "kb_document"),
     (("培训", "上岗证", "技能"), "training_record"),
     (("保养", "维保"), "maintenance_plan"),
     (("提醒", "通知"), "notify_inapp"),
-    (("MES", "ERP", "对接", "集成"), "erp_connector"),
+    (("MES", "ERP", "对接", "集成", "SAP", "用友", "OA", "HR系统"), "erp_connector"),
 ]
 
 _PAGE_HINTS: dict[str, list[str]] = {
@@ -200,16 +221,28 @@ def assemble_industry_pack(
                 "partial": standard in {"部分", "定制", "partial", "custom"},
             }
         )
-        menu_plan.append(
-            {
-                "key": scene_key,
-                "label": name,
-                "category": category,
-                "capability_key": primary,
-                "icon": "module",
-                "standard": standard,
-            }
-        )
+        plan_item: dict[str, Any] = {
+            "key": scene_key,
+            "label": name,
+            "category": category,
+            "capability_key": primary,
+            "icon": "module",
+            "standard": standard,
+        }
+        if "加班" in name:
+            plan_item["default_category"] = "overtime"
+        elif "出差" in name:
+            plan_item["default_category"] = "trip"
+        elif "借款" in name:
+            plan_item["default_category"] = "loan"
+        elif "付款" in name:
+            plan_item["default_category"] = "payment"
+        elif "盘点" in name and primary == "asset_manage":
+            plan_item["default_category"] = "inventory"
+        if primary == "seal_request":
+            plan_item["approval_type"] = "seal"
+            plan_item["form_headline"] = "用印申请"
+        menu_plan.append(plan_item)
 
     if not capability_keys:
         capability_keys = ["chat_qa", "approval_flow", "kb_document"]

@@ -1,4 +1,4 @@
-/** CapShip open-source landing (Edge vs Stable) — page copy is English-only */
+/** CapShip open-source landing (Edge vs Stable) — English-only page copy */
 import { ROLE_PRESETS, presetRole } from './rolePresets'
 import { ROUTES } from '../routes/paths'
 
@@ -76,16 +76,16 @@ export const CAPSHIP_STATS = [
 
 export const CAPSHIP_PILLARS = [
   {
-    title: 'Selection → Delivery',
-    body: 'From barrage intent to a deployable Web + App stack — not a mockup carousel.',
+    title: '>> Selection → Delivery',
+    body: 'Type >> on the product home or in Runtime chat — CapShip mounts real modules (leave, repair, expense…), not a mock carousel.',
   },
   {
-    title: 'Real APIs, real data',
-    body: 'CapShip modules ship with tenant-scoped records, progress states, and IM hooks.',
+    title: 'Ship in 5 minutes',
+    body: 'Select → publish → Web Runtime / App on the same contract. Empty DB = empty lists; submits hit real tables and APIs.',
   },
   {
     title: 'Stable vs Edge',
-    body: 'Pin CapShip Stable for production; track Edge when you want the newest scenarios.',
+    body: 'Pin CapShip Stable for production; track Edge (capship-dev) for the newest scenarios.',
   },
 ] as const
 

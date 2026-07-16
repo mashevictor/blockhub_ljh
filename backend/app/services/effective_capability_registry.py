@@ -52,15 +52,24 @@ def _def_from_seed_item(item: dict) -> CapabilityDef:
         menu_icon = "bell"
     elif key in (
         "erp_connector",
-        "meeting_booking",
-        "it_helpdesk",
-        "asset_manage",
         "notify_im",
         "rbac_page",
     ) or key.startswith("custom_"):
         web_pkg = "@blockhub/web-capability-integration"
         route = f"/{key.replace('_', '-')}"
         menu_icon = "integration"
+    elif key in ("meeting_booking",):
+        web_pkg = "@blockhub/web-capability-meeting-booking"
+        route = "/meeting-booking"
+        menu_icon = "approval"
+    elif key in ("asset_manage",):
+        web_pkg = "@blockhub/web-capability-asset-manage"
+        route = "/asset-manage"
+        menu_icon = "approval"
+    elif key in ("it_helpdesk", "it_ticket"):
+        web_pkg = "@blockhub/web-capability-it-ticket"
+        route = "/it-ticket"
+        menu_icon = "approval"
     return CapabilityDef(
         key=key,
         name=str(item.get("name") or key),

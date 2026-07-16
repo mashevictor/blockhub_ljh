@@ -18,6 +18,8 @@ const CAT_LABEL: Record<string, string> = {
   annual: '年假',
   sick: '病假',
   personal: '事假',
+  overtime: '加班',
+  trip: '出差',
 }
 
 const STATUS_LABEL: Record<string, string> = {
@@ -27,13 +29,19 @@ const STATUS_LABEL: Record<string, string> = {
   done: '已归档',
 }
 
-export function LeaveRequestWidget(_props: { node: SchemaNode }) {
+export function LeaveRequestWidget({ node }: { node: SchemaNode }) {
   const { token, primaryColor, appId, user, entrySource } = useRuntime()
+  const defaultCat = String(node.props?.default_category || 'annual')
+  const sceneLabel = String(node.props?.scene_label || '')
+  const isOvertime = defaultCat === 'overtime' || sceneLabel.includes('加班')
+  const isTrip = defaultCat === 'trip' || sceneLabel.includes('出差')
+  const initialCat = isOvertime ? 'overtime' : isTrip ? 'trip' : defaultCat || 'annual'
+
   const [items, setItems] = useState<RecordItem[]>([])
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
   const [resetKey, setResetKey] = useState(0)
-  const [values, setValues] = useState<Record<string, string>>({ category: 'annual' })
+  const [values, setValues] = useState<Record<string, string>>({ category: initialCat })
   const [msg, setMsg] = useState('')
   const [showDone, setShowDone] = useState(false)
 
@@ -41,23 +49,39 @@ export function LeaveRequestWidget(_props: { node: SchemaNode }) {
   const pending = items.filter((t) => t.status === 'open')
   const done = items.filter((t) => t.status !== 'open')
 
+  const formTitle = isOvertime ? '我要加班' : isTrip ? '出差申请' : '我要请假'
+  const submitLabel = isOvertime ? '提交加班' : isTrip ? '提交出差' : '提交请假'
+  const flowHint = isOvertime
+    ? '选加班 → 填起止时间 → 交主管审'
+    : isTrip
+      ? '选出差 → 填起止日期 → 交主管审'
+      : '选假种 → 填起止日期 → 交主管审'
+
+  const catOptions = useMemo(() => {
+    if (isOvertime) return [['overtime', '加班']] as const
+    if (isTrip) return [['trip', '出差']] as const
+    return [
+      ['annual', '年假'],
+      ['sick', '病假'],
+      ['personal', '事假'],
+      ['overtime', '加班'],
+      ['trip', '出差'],
+    ] as const
+  }, [isOvertime, isTrip])
+
   const steps: GtgtStep[] = useMemo(
     () => [
       {
         key: 'category',
-        label: '假种',
+        label: isOvertime || isTrip ? '申请类型' : '假种',
         render: ({ value, setValue, accent: a }) => (
           <div className="row-actions">
-            {([
-              ['annual', '年假'],
-              ['sick', '病假'],
-              ['personal', '事假'],
-            ] as const).map(([k, lab]) => (
+            {catOptions.map(([k, lab]) => (
               <button
                 key={k}
                 type="button"
-                className={(value || 'annual') === k ? 'btn' : 'btn btn-ghost'}
-                style={(value || 'annual') === k ? { background: a } : undefined}
+                className={(value || initialCat) === k ? 'btn' : 'btn btn-ghost'}
+                style={(value || initialCat) === k ? { background: a } : undefined}
                 onClick={() => setValue(k)}
               >
                 {lab}
@@ -66,11 +90,11 @@ export function LeaveRequestWidget(_props: { node: SchemaNode }) {
           </div>
         ),
       },
-      { key: 'start_at', label: '开始日期', placeholder: '2026-07-20' },
-      { key: 'end_at', label: '结束日期', placeholder: '2026-07-22' },
-      { key: 'note', label: '事由（可空）', placeholder: '探亲 / 看病…', optional: true },
+      { key: 'start_at', label: isOvertime ? '开始时间' : '开始日期', placeholder: isOvertime ? '2026-07-20 18:00' : '2026-07-20' },
+      { key: 'end_at', label: isOvertime ? '结束时间' : '结束日期', placeholder: isOvertime ? '2026-07-20 21:00' : '2026-07-22' },
+      { key: 'note', label: '事由（可空）', placeholder: isOvertime ? '项目上线 / 盘点…' : '探亲 / 看病…', optional: true },
     ],
-    [],
+    [catOptions, initialCat, isOvertime, isTrip],
   )
 
   const load = useCallback(async () => {
@@ -104,7 +128,7 @@ export function LeaveRequestWidget(_props: { node: SchemaNode }) {
       await apiFetch('/api/v1/leave-request/records', token, {
         method: 'POST',
         body: JSON.stringify({
-          category: values.category || 'annual',
+          category: values.category || initialCat,
           applicant: user?.display_name || '',
           start_at: values.start_at.trim(),
           end_at: values.end_at.trim(),
@@ -112,7 +136,7 @@ export function LeaveRequestWidget(_props: { node: SchemaNode }) {
           app_public_id: appId || '',
         }),
       })
-      setValues({ category: 'annual' })
+      setValues({ category: initialCat })
       setResetKey((k) => k + 1)
       setMsg('已提交审批')
       await load()
@@ -145,17 +169,17 @@ export function LeaveRequestWidget(_props: { node: SchemaNode }) {
       >
         <div>
           <GtgtStepComposer
-            title="我要请假"
+            title={formTitle}
             meta={entrySource === 'im' ? '群消息入口' : user?.display_name || '申请人'}
             accent={accent}
-            flowHint="选假种 → 填起止日期 → 交主管审"
+            flowHint={flowHint}
             steps={steps}
             values={values}
             onChange={(k, v) => setValues((p) => ({ ...p, [k]: v }))}
             onComplete={submit}
             busy={busy}
             resetKey={resetKey}
-            submitLabel="提交请假"
+            submitLabel={submitLabel}
           />
         </div>
 
@@ -164,7 +188,7 @@ export function LeaveRequestWidget(_props: { node: SchemaNode }) {
             待我审 {pending.length ? `· ${pending.length}` : ''}
           </h4>
           {loading && <p className="muted">加载中…</p>}
-          {!loading && pending.length === 0 && <p className="muted">暂无待审批请假</p>}
+          {!loading && pending.length === 0 && <p className="muted">暂无待审批记录</p>}
           <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 10 }}>
             {pending.map((t) => (
               <li key={t.id} className="list-card">

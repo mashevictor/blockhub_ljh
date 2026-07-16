@@ -1,0 +1,7 @@
+{
+  "name": "@blockhub/web-capability-meeting-booking",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "main": "src/index.ts"
+}

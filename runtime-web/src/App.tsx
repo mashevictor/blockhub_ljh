@@ -30,29 +30,9 @@ const CapShipComposerDock = lazy(() =>
   })),
 )
 
-type RuntimeTarget =
-  | { kind: 'app'; appId: string }
-  | { kind: 'pack'; pack: string }
-
-function parseRuntimeTarget(): RuntimeTarget | null {
-  const pack = window.location.pathname.match(/^\/r\/preview\/([a-z0-9_-]+)/i)?.[1]
-  if (pack) return { kind: 'pack', pack }
-  const appId = window.location.pathname.match(/^\/r\/([a-z0-9]+)/i)?.[1]
-  if (appId) return { kind: 'app', appId }
-  return null
-}
-
-function runtimeBasePath(target: RuntimeTarget): string {
-  return target.kind === 'pack' ? `/r/preview/${target.pack}` : `/r/${target.appId}`
-}
-
-function virtualAppId(target: RuntimeTarget): string {
-  return target.kind === 'pack' ? `preview-${target.pack}` : target.appId
-}
-
 function parseAppId(): string | null {
-  const target = parseRuntimeTarget()
-  return target ? virtualAppId(target) : null
+  const m = window.location.pathname.match(/^\/r\/([a-z0-9]+)/i)
+  return m?.[1] ?? null
 }
 
 function parseEntrySource(): 'portal' | 'im' {
@@ -65,32 +45,23 @@ function parseEntrySource(): 'portal' | 'im' {
   return 'portal'
 }
 
-function routeFromPath(target: RuntimeTarget): string {
-  const prefix = runtimeBasePath(target)
+function routeFromPath(appId: string): string {
+  const prefix = `/r/${appId}`
   const path = window.location.pathname
   if (!path.startsWith(prefix)) return '/'
   const rest = path.slice(prefix.length) || '/'
   return rest.endsWith('/') && rest.length > 1 ? rest.slice(0, -1) : rest
 }
 
-function navigateRoute(target: RuntimeTarget, route: string) {
-  const base = runtimeBasePath(target)
-  const targetPath = route === '/' ? base : `${base}${route}`
+function navigateRoute(appId: string, route: string) {
+  const base = `/r/${appId}`
+  const target = route === '/' ? base : `${base}${route}`
   const qs = window.location.search || ''
-  const next = `${targetPath}${qs}`
+  const next = `${target}${qs}`
   if (`${window.location.pathname}${window.location.search}` !== next) {
     window.history.pushState({}, '', next)
     window.dispatchEvent(new PopStateEvent('popstate'))
   }
-}
-
-function runtimeBootUrls(target: RuntimeTarget): { config: string; schema: string; manifest: string } {
-  if (target.kind === 'pack') {
-    const base = `/api/v1/runtime/pack/${target.pack}`
-    return { config: `${base}/config`, schema: `${base}/schema`, manifest: `${base}/manifest` }
-  }
-  const base = `/api/v1/runtime/${target.appId}`
-  return { config: `${base}/config`, schema: `${base}/schema`, manifest: `${base}/manifest` }
 }
 
 function layoutOf(schema: PageSchema): string {
@@ -142,12 +113,9 @@ function scopeManifestToApp(manifest: BuildManifest, schema: PageSchema): BuildM
 }
 
 export default function App() {
-  const target = useMemo(parseRuntimeTarget, [])
-  const appId = useMemo(() => (target ? virtualAppId(target) : null), [target])
-  const isPackPreview = target?.kind === 'pack'
-  const packKey = target?.kind === 'pack' ? target.pack : ''
+  const appId = useMemo(parseAppId, [])
   const entrySource = useMemo(parseEntrySource, [])
-  const [route, setRoute] = useState(() => (target ? routeFromPath(target) : '/'))
+  const [route, setRoute] = useState(() => (appId ? routeFromPath(appId) : '/'))
   const [token, setToken] = useState(getStoredToken)
   const [user, setUser] = useState(getStoredUser)
   const [config, setConfig] = useState<TenantRuntimeConfig | null>(null)
@@ -162,14 +130,14 @@ export default function App() {
   const [loginBusy, setLoginBusy] = useState(false)
 
   useEffect(() => {
-    if (!target) return
-    const onPop = () => setRoute(routeFromPath(target))
+    if (!appId) return
+    const onPop = () => setRoute(routeFromPath(appId))
     window.addEventListener('popstate', onPop)
     return () => window.removeEventListener('popstate', onPop)
-  }, [target])
+  }, [appId])
 
   useEffect(() => {
-    if (!target || !token) return
+    if (!appId || !token) return
     let cancelled = false
     setWidgetsReady(false)
     setError('')
@@ -182,19 +150,19 @@ export default function App() {
         }),
       ])
 
-    const urls = runtimeBootUrls(target)
-
+    // 关键路径：config + schema + manifest（并行）→ 能力包并行 boot
+    // 不拉整包 GET /runtime/{id}（含重复巨型 schema，且会查 APK 状态，拖慢「加载应用」）
     withTimeout(
       Promise.all([
-        fetch(urls.config).then((r) => {
+        fetch(`/api/v1/runtime/${appId}/config`).then((r) => {
           if (!r.ok) throw new Error(`config ${r.status}`)
           return r.json()
         }),
-        fetch(urls.schema).then((r) => {
+        fetch(`/api/v1/runtime/${appId}/schema`).then((r) => {
           if (!r.ok) throw new Error(`schema ${r.status}`)
           return r.json()
         }),
-        fetch(urls.manifest).then((r) => {
+        fetch(`/api/v1/runtime/${appId}/manifest`).then((r) => {
           if (!r.ok) throw new Error(`manifest ${r.status}`)
           return r.json()
         }),
@@ -227,7 +195,7 @@ export default function App() {
     return () => {
       cancelled = true
     }
-  }, [target, token])
+  }, [appId, token])
 
   const handleLogin = async () => {
     setLoginBusy(true)
@@ -253,8 +221,8 @@ export default function App() {
     setWidgetsReady(false)
   }
 
-  if (!target || !appId) {
-    return <p className="error-msg">无效的应用链接，请使用 /r/&#123;appId&#125; 或 /r/preview/&#123;pack&#125; 访问</p>
+  if (!appId) {
+    return <p className="error-msg">无效的应用链接，请使用 /r/&#123;appId&#125; 访问</p>
   }
 
   if (!token || !user) {
@@ -265,9 +233,7 @@ export default function App() {
         <p className="muted">
           {entrySource === 'im'
             ? '你从群消息打开了报修协作页，登录后可派工选人 / 完工确认。'
-            : isPackPreview
-              ? `行业包「${packKey}」体验工作台：登录后使用真能力组件与 REST API（与发布后装配同源）。`
-              : '从官网「生成应用」打开的工作台，可提单、配置通道与问答。'}
+            : '从官网「生成应用」打开的工作台，可提单、配置通道与问答。'}
         </p>
         <p className="muted">应用 ID：{appId}</p>
         <label>
@@ -348,11 +314,6 @@ export default function App() {
               <strong>群消息协作入口</strong>
               <span>流程：提单 → 派工选人 → 维修 → 完工。当前请处理工单或确认状态。</span>
             </>
-          ) : isPackPreview ? (
-            <>
-              <strong>行业包体验工作台</strong>
-              <span>真 widget + 真 API · 与「生成应用」发布后同构 · 非营销独立站。</span>
-            </>
           ) : (
             <>
               <strong>应用工作台</strong>
@@ -371,7 +332,7 @@ export default function App() {
               <h1>{config.app_name}</h1>
               <p className="muted">
                 {user.display_name} · {user.role}
-                {entrySource === 'im' ? ' · 来自企微/钉钉/飞书' : isPackPreview ? ' · 行业包预览' : ' · 应用门户'}
+                {entrySource === 'im' ? ' · 来自企微/钉钉/飞书' : ' · 应用门户'}
                 {layout === 'sidebar' ? ' · 侧栏' : layout === 'landing' ? ' · 落地' : ''}
               </p>
             </div>
@@ -387,7 +348,7 @@ export default function App() {
                   key={item.key}
                   type="button"
                   className={`nav-btn sidebar-btn${item.route === route || item.key === activeKey ? ' active' : ''}`}
-                  onClick={() => navigateRoute(target, item.route || '/')}
+                  onClick={() => navigateRoute(appId, item.route || '/')}
                 >
                   {item.label}
                 </button>
@@ -400,7 +361,7 @@ export default function App() {
                   key={item.key}
                   type="button"
                   className={`nav-btn${item.route === route || item.key === activeKey ? ' active' : ''}`}
-                  onClick={() => navigateRoute(target, item.route || '/')}
+                  onClick={() => navigateRoute(appId, item.route || '/')}
                 >
                   {item.label}
                 </button>
@@ -432,7 +393,7 @@ export default function App() {
           </main>
         </div>
 
-        {showApp && !isPackPreview && (
+        {showApp && (
           <footer className="runtime-footer">
             <a className="btn" href={`/api/v1/runtime/${appId}/download`} style={{ opacity: apkReady ? 1 : 0.5 }}>
               下载 Android APK
@@ -447,15 +408,13 @@ export default function App() {
         )}
 
         <DeveloperBlueprintPanel
-          mode={isPackPreview ? 'preview' : 'app'}
-          appId={isPackPreview ? undefined : appId}
-          pack={isPackPreview ? packKey : undefined}
+          mode="app"
+          appId={appId}
           token={token}
           role={user.role}
           accent={primaryColor}
         />
 
-        {!isPackPreview && (
         <Suspense fallback={null}>
           <CapShipComposerDock
             storageKey="capship-runtime-dock-v3"
@@ -482,7 +441,6 @@ export default function App() {
             }}
           />
         </Suspense>
-        )}
       </div>
     </RuntimeContext.Provider>
   )

@@ -3,7 +3,7 @@
 export type ComposerMode = 'live_edit' | 'module_flow' | 'select_modules'
 
 export const COMPOSER_MODES: Array<{ id: ComposerMode; label: string; desc: string }> = [
-  { id: 'live_edit', label: '对话改页', desc: '输入文字，大模型理解后改菜单' },
+  { id: 'live_edit', label: '对话改页', desc: '说业务需求，理解后挂正式能力包' },
   { id: 'module_flow', label: '数据流', desc: '编排模块链路，对话或手动改流' },
   { id: 'select_modules', label: '选模块', desc: '从目录检索并多选正式能力' },
 ]
@@ -106,6 +106,8 @@ export type ComposeEditOp =
       op: 'add'
       label: string
       capability_key?: string
+      /** 注册表 widget 名，如 DeviceRepairWidget；缺省按 capability 推导 */
+      widget?: string
       category?: string
       summary?: string
       page_kind?: string

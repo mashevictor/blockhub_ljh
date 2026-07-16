@@ -105,9 +105,9 @@ export default function CapShipPage() {
   const statsRef = useRef<HTMLElement | null>(null)
 
   usePageMeta({
-    title: 'CapShip · Open Source',
+    title: 'CapShip · >> Ship in 5 minutes',
     description:
-      'Ship production-ready Web & App deliverables from a single intent. Dual GitHub channels for Edge nightly builds & Stable releases — set up in 5 minutes, ready to use out of the box.',
+      'CapShip: type >> to mount real capabilities. Publish Web + App in five minutes — leave, repair, expense, meetings with real APIs, not demos.',
   })
 
   useEffect(() => {
@@ -187,29 +187,34 @@ export default function CapShipPage() {
           <div className="cs-hero-atmosphere" aria-hidden />
           <div className="cs-hero-inner">
             <p className="cs-kicker">
-              <IconGithub size={16} aria-hidden /> Open Source · Selection to Delivery
+              <span className="cs-gtgt" aria-hidden>
+                &gt;&gt;
+              </span>
+              Selection → Delivery · Open Source
             </p>
-            <h1 className="cs-brand">CapShip</h1>
+            <h1 className="cs-brand">
+              <span className="cs-brand-gtgt" aria-hidden>
+                &gt;&gt;
+              </span>
+              CapShip
+            </h1>
+            <p className="cs-tagline">Ship it in 5 minutes</p>
             <p className="cs-lead">
               <span className="cs-lead-line">
-                Ship production-ready <em>Web &amp; App</em> deliverables from a single intent.
-              </span>
-              <span className="cs-lead-line cs-lead-sub">
-                Dual GitHub channels for <strong>Edge</strong> nightly builds &amp;{' '}
-                <strong>Stable</strong> releases — set up in <mark>5 minutes</mark>, ready to use out of
-                the box.
+                Type <em className="cs-inline-gtgt">&gt;&gt;</em> to mount real capabilities — publish Web + App.
               </span>
             </p>
+
             <div className="cs-hero-cta">
-              <a className="cs-btn cs-btn-primary" href={CAPSHIP_GITHUB.stable.url} target="_blank" rel="noreferrer">
+              <Link className="cs-btn cs-btn-primary" to={ROUTES.home}>
+                Try &gt;&gt; on home <ArrowUpRight size={16} aria-hidden />
+              </Link>
+              <a className="cs-btn cs-btn-ghost" href={CAPSHIP_GITHUB.stable.url} target="_blank" rel="noreferrer">
                 <IconGithub size={18} aria-hidden /> CapShip Stable
               </a>
-              <a className="cs-btn cs-btn-ghost" href={CAPSHIP_GITHUB.edge.url} target="_blank" rel="noreferrer">
-                <Star size={18} aria-hidden /> Star Edge on GitHub
+              <a className="cs-btn cs-btn-text" href={CAPSHIP_GITHUB.edge.url} target="_blank" rel="noreferrer">
+                <Star size={16} aria-hidden /> Star Edge
               </a>
-              <Link className="cs-btn cs-btn-text" to={ROUTES.home}>
-                Try on product home <ArrowUpRight size={16} aria-hidden />
-              </Link>
             </div>
           </div>
         </section>
@@ -269,6 +274,10 @@ export default function CapShipPage() {
         </section>
 
         <section className="cs-section cs-pillars">
+          <div className="cs-section-head">
+            <h2>Why &gt;&gt;</h2>
+            <p>One command mounts a capability — intent to a runnable Runtime in five minutes.</p>
+          </div>
           <div className="cs-pillar-list">
             {CAPSHIP_PILLARS.map((p) => (
               <div key={p.title} className="cs-pillar">

@@ -178,8 +178,36 @@ export const MFG_RUNTIME_PREVIEW: IndustryRuntimePackPreview = {
   ],
 }
 
+export const OFFICE_RUNTIME_PREVIEW: IndustryRuntimePackPreview = {
+  key: 'office',
+  name: '通用办公',
+  tagline: '请假报销·会议室·资产·IT · 真 Runtime',
+  accent: '#6366f1',
+  scenes: [
+    { id: 'o1', name: '制度政策问答', category: '知识协同', summary: '制度政策福利智能问答', pages: 'chat+kb', standard: '✓', kind: 'chat_kb', capabilityHint: 'policy_qa' },
+    { id: 'o2', name: '请假申请', category: '人事行政', summary: '员工请假在线申请', pages: 'approval', standard: '✓', kind: 'understood', capabilityHint: 'leave_request' },
+    { id: 'o3', name: '加班申请', category: '人事行政', summary: '加班时段申请审批', pages: 'approval', standard: '✓', kind: 'understood', capabilityHint: 'leave_request' },
+    { id: 'o4', name: '出差申请', category: '人事行政', summary: '出差行程申请', pages: 'approval', standard: '✓', kind: 'understood', capabilityHint: 'leave_request' },
+    { id: 'o5', name: '报销审批', category: '财务法务', summary: '费用报销与发票', pages: 'approval', standard: '✓', kind: 'understood', capabilityHint: 'expense_claim' },
+    { id: 'o6', name: '借款申请', category: '财务法务', summary: '员工借款审批', pages: 'approval', standard: '✓', kind: 'understood', capabilityHint: 'expense_claim' },
+    { id: 'o7', name: '付款申请', category: '财务法务', summary: '对外付款审批', pages: 'approval', standard: '✓', kind: 'understood', capabilityHint: 'expense_claim' },
+    { id: 'o8', name: '入职办理', category: '人事行政', summary: '招聘入职看板', pages: 'form+list', standard: '✓', kind: 'understood', capabilityHint: 'hire_onboard' },
+    { id: 'o9', name: '用印申请', category: '人事行政', summary: '印章与文件用途审批', pages: 'approval', standard: '✓', kind: 'understood', capabilityHint: 'seal_request' },
+    { id: 'o10', name: '会议室预约', category: '人事行政', summary: '会议室时段预约真表', pages: 'form+list', standard: '✓', kind: 'understood', capabilityHint: 'meeting_booking' },
+    { id: 'o11', name: '通用审批', category: '流程审批', summary: '自定义事项审批', pages: 'approval', standard: '✓', kind: 'understood', capabilityHint: 'approval_flow' },
+    { id: 'o12', name: '待办中心', category: '流程审批', summary: '跨流程待办', pages: 'list', standard: '✓', kind: 'understood', capabilityHint: 'approval_inbox' },
+    { id: 'o13', name: '部门看板', category: '数据报表', summary: '部门经营看板', pages: 'chart', standard: '✓', kind: 'oee', capabilityHint: 'ops_kpi' },
+    { id: 'o14', name: '考勤查询', category: '人事行政', summary: '班次考勤查询', pages: 'list', standard: '✓', kind: 'roster', capabilityHint: 'shift_attendance' },
+    { id: 'o15', name: '制度文档库', category: '知识协同', summary: '制度文档检索', pages: 'kb', standard: '✓', kind: 'bom', capabilityHint: 'kb_document' },
+    { id: 'o16', name: 'IT报障', category: 'IT与资产', summary: 'IT 工单真表', pages: 'form+list', standard: '✓', kind: 'repair', capabilityHint: 'it_ticket' },
+    { id: 'o17', name: '资产领用', category: 'IT与资产', summary: '资产领用盘点真表', pages: 'form+list', standard: '✓', kind: 'understood', capabilityHint: 'asset_manage' },
+    { id: 'o18', name: '企微通知', category: '消息通知', summary: '企微钉钉飞书通道', pages: 'integration', standard: '✓', kind: 'integration', capabilityHint: 'notify_im' },
+  ],
+}
+
 export function getIndustryRuntimePreview(packKey: string): IndustryRuntimePackPreview | null {
   if (packKey === 'mfg') return MFG_RUNTIME_PREVIEW
+  if (packKey === 'office') return OFFICE_RUNTIME_PREVIEW
   return null
 }
 

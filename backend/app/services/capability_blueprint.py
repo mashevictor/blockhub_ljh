@@ -129,38 +129,41 @@ _BINDING: dict[str, dict[str, Any]] = {
         ],
         "code": ["backend/app/api/v1/expense_claim.py", "packages/web-capability-expense-claim/"],
     },
-    "policy_qa": {
-        "model": db_models.PolicyQaRecord,
-        "table_label": "制度问答",
-        "apis": [
-            {"method": "GET", "path": "/api/v1/policy-qa/records", "desc": "制度条目", "auth": "JWT"},
-            {"method": "POST", "path": "/api/v1/policy-qa/records", "desc": "录入制度", "auth": "JWT"},
-            {"method": "POST", "path": "/api/v1/policy-qa/answer", "desc": "制度问答", "auth": "JWT"},
-        ],
-        "code": ["backend/app/api/v1/policy_qa.py", "packages/web-capability-policy-qa/"],
-    },
-    "hire_onboard": {
-        "model": db_models.HireOnboardRecord,
-        "table_label": "招聘入职",
-        "apis": [
-            {"method": "GET", "path": "/api/v1/hire-onboard/records", "desc": "招聘列表", "auth": "JWT"},
-            {"method": "POST", "path": "/api/v1/hire-onboard/records", "desc": "新建候选人", "auth": "JWT"},
-        ],
-        "code": ["backend/app/api/v1/hire_onboard.py", "packages/web-capability-hire-onboard/"],
-    },
-    "approval_inbox": {
+    "seal_request": {
         "model": db_models.ApprovalRecord,
-        "table_label": "待办中心",
+        "table_label": "用印/审批单",
         "apis": [
-            {"method": "GET", "path": "/api/v1/approvals", "desc": "待办列表", "auth": "JWT"},
-            {
-                "method": "POST",
-                "path": "/api/v1/approvals/{id}/action",
-                "desc": "通过/驳回",
-                "auth": "JWT",
-            },
+            {"method": "GET", "path": "/api/v1/approvals", "desc": "审批列表", "auth": "JWT"},
+            {"method": "POST", "path": "/api/v1/approvals", "desc": "发起用印审批", "auth": "JWT"},
         ],
         "code": ["backend/app/api/v1/approvals.py", "packages/web-capability-approval/"],
+    },
+    "it_ticket": {
+        "model": db_models.ItTicketRecord,
+        "table_label": "IT报障工单",
+        "apis": [
+            {"method": "GET", "path": "/api/v1/it-ticket/tickets", "desc": "IT工单列表", "auth": "JWT"},
+            {"method": "POST", "path": "/api/v1/it-ticket/tickets", "desc": "提交报障", "auth": "JWT"},
+        ],
+        "code": ["backend/app/api/v1/it_ticket.py", "packages/web-capability-it-ticket/"],
+    },
+    "meeting_booking": {
+        "model": db_models.MeetingBookingRecord,
+        "table_label": "会议室预约",
+        "apis": [
+            {"method": "GET", "path": "/api/v1/meeting-booking/records", "desc": "预约列表", "auth": "JWT"},
+            {"method": "POST", "path": "/api/v1/meeting-booking/records", "desc": "提交预约", "auth": "JWT"},
+        ],
+        "code": ["backend/app/api/v1/meeting_booking.py", "packages/web-capability-meeting-booking/"],
+    },
+    "asset_manage": {
+        "model": db_models.AssetManageRecord,
+        "table_label": "资产管理",
+        "apis": [
+            {"method": "GET", "path": "/api/v1/asset-manage/records", "desc": "资产单据列表", "auth": "JWT"},
+            {"method": "POST", "path": "/api/v1/asset-manage/records", "desc": "提交领用/盘点", "auth": "JWT"},
+        ],
+        "code": ["backend/app/api/v1/asset_manage.py", "packages/web-capability-asset-manage/"],
     },
     "erp_connector": {
         "model": db_models.IntegrationConnector,
@@ -219,13 +222,38 @@ for _kind, _label in _MFG_KIND_LABEL.items():
         ],
     }
 
-PREVIEW_PACK_KEYS: dict[str, list[str]] = {}  # 已废弃：请用 resolve_preview_pack_keys(pack)
-
-
-def resolve_preview_pack_keys(pack: str) -> list[str]:
-    from app.services.industry_pack_boot import resolve_preview_pack_keys as _resolve
-
-    return _resolve(pack)
+PREVIEW_PACK_KEYS: dict[str, list[str]] = {
+    "mfg": [
+        "device_repair",
+        "chat_qa",
+        "kb_document",
+        "mfg_oee",
+        "quality_inspect",
+        "material_issue",
+        "site_patrol",
+        "shift_attendance",
+        "maintenance_plan",
+        "erp_connector",
+        "energy_carbon",
+        "training_record",
+    ],
+    "office": [
+        "policy_qa",
+        "leave_request",
+        "expense_claim",
+        "hire_onboard",
+        "seal_request",
+        "meeting_booking",
+        "approval_flow",
+        "approval_inbox",
+        "ops_kpi",
+        "shift_attendance",
+        "kb_document",
+        "it_ticket",
+        "asset_manage",
+        "notify_im",
+    ],
+}
 
 
 def _columns_of(model: type) -> list[dict[str, str]]:

@@ -63,6 +63,16 @@ def commit_schema_revision(
     app.page_schema = page_schema
     if isinstance(page_schema.get("capability_keys"), list):
         app.capability_keys = [str(k) for k in page_schema["capability_keys"] if k]
+        # 对话改页挂上新能力时同步 manifest，否则 Runtime 仍 boot 旧 web_pkgs
+        try:
+            from app.services.build_manifest import build_manifest
+
+            app.build_manifest = build_manifest(
+                list(app.capability_keys or []),
+                deliver=app.deliver or "both",
+            )
+        except Exception:
+            pass
     app.schema_rev = next_rev
     app.schema_updated_at = datetime.now(timezone.utc)
     app.schema_updated_by_id = user.id

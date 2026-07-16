@@ -63,7 +63,7 @@ function resolveFormCopy(node: SchemaNode): FormCopy {
       submitLabel: '提交报销',
     }
   }
-  if (type.includes('seal') || /用印|盖章/.test(String(fromProps.form_headline || ''))) {
+  if (type.includes('seal') || key.includes('seal') || /用印|盖章/.test(String(fromProps.form_headline || ''))) {
     return {
       ...base,
       headline: '用印申请',
@@ -110,7 +110,7 @@ export function FormWidget({ node }: { node: SchemaNode }) {
         method: 'POST',
         body: JSON.stringify({
           title: values.title.trim(),
-          type: String(node.props?.approval_type || 'general'),
+          type: String(node.props?.approval_type || (String(node.props?.capability_key || '').includes('seal') ? 'seal' : 'general')),
           department: (values.department || '').trim() || '未填写',
           summary: (values.summary || '').trim() || values.title.trim(),
         }),

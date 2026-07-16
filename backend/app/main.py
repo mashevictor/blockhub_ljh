@@ -44,6 +44,9 @@ from app.api.v1 import (
     policy_qa,
     expense_claim,
     leave_request,
+    it_ticket,
+    meeting_booking,
+    asset_manage,
     gov_service,
     pet_clinic,
     deco_material,
@@ -152,6 +155,9 @@ app.include_router(hire_onboard.router, prefix=settings.api_prefix, dependencies
 app.include_router(policy_qa.router, prefix=settings.api_prefix, dependencies=_auth)
 app.include_router(expense_claim.router, prefix=settings.api_prefix, dependencies=_auth)
 app.include_router(leave_request.router, prefix=settings.api_prefix, dependencies=_auth)
+app.include_router(it_ticket.router, prefix=settings.api_prefix, dependencies=_auth)
+app.include_router(meeting_booking.router, prefix=settings.api_prefix, dependencies=_auth)
+app.include_router(asset_manage.router, prefix=settings.api_prefix, dependencies=_auth)
 app.include_router(gov_service.router, prefix=settings.api_prefix, dependencies=_auth)
 app.include_router(pet_clinic.router, prefix=settings.api_prefix, dependencies=_auth)
 app.include_router(deco_material.router, prefix=settings.api_prefix, dependencies=_auth)

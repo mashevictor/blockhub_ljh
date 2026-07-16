@@ -37,7 +37,7 @@ describe('capship composer contract', () => {
     expect(next.capability_keys).toContain('energy_carbon')
   })
 
-  it('stores page_mock on add ops from LLM understanding', () => {
+  it('adds formal capability with real widget (not ListWidget mock page)', () => {
     const base: ComposerPageSchema = {
       version: '1',
       appId: 't',
@@ -51,6 +51,7 @@ describe('capship composer contract', () => {
         op: 'add',
         label: '请假管理',
         capability_key: 'leave_request',
+        widget: 'LeaveRequestWidget',
         summary: '员工请假申请与审批',
         page_kind: 'form_list',
         page_mock: {
@@ -61,8 +62,11 @@ describe('capship composer contract', () => {
       },
     ])
     expect(next.menu[0].capability_key).toBe('leave_request')
-    expect(next.menu[0].page_mock?.form_title).toBe('新建请假单')
+    expect(next.menu[0].page_mock).toBeUndefined()
     expect(next.menu[0].summary).toContain('请假')
+    const child = next.root.children?.[0]
+    expect(child?.props?.widget).toBe('LeaveRequestWidget')
+    expect(child?.type).toBe('leaverequest')
   })
 
   it('applies flow edit ops', () => {
