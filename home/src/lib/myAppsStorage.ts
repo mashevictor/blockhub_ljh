@@ -48,7 +48,32 @@ export function loadMyApps(): StoredMyApp[] {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return []
     const parsed = JSON.parse(raw) as StoredMyApp[]
-    return Array.isArray(parsed) ? parsed : []
+    if (!Array.isArray(parsed)) return []
+    // 修复：行业缓存应用曾被误写成 /r/cache-*（服务端 404）
+    let dirty = false
+    const fixed = parsed.map((a) => {
+      const id = String(a.appId || '')
+      if (!id.startsWith('cache-')) return a
+      const pack = id.split('-')[1] || 'office'
+      const good =
+        pack === 'mfg' || pack === 'office'
+          ? `/preview/industry-runtime/${pack}`
+          : `/industry/${pack}`
+      const badR = a.webUrl?.includes(`/r/${id}`) || a.webUrl?.endsWith(`/r/${id}`)
+      if (a.source === 'industry-cache' || badR || a.webUrl?.includes('/r/cache-')) {
+        if (a.webUrl !== good) dirty = true
+        return { ...a, webUrl: good, appQr: good, schemaUrl: good, source: a.source || 'industry-cache' }
+      }
+      return a
+    })
+    if (dirty) {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(fixed))
+      } catch {
+        /* ignore */
+      }
+    }
+    return fixed
   } catch {
     return []
   }

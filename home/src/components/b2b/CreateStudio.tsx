@@ -119,8 +119,23 @@ export default function CreateStudio() {
   }
 
   const handlePublish = (result: PublishResult) => {
-    // 行业编排：进入完整 Runtime（/r/{id}），而非仅广场列表
-    if (view === 'industry' && result.appId) {
+    // 行业包本地缓存：打开 /preview/industry-runtime/{pack}，禁止误跳 /r/cache-*（服务端无此应用）
+    const isLocalCache =
+      result.source === 'industry-cache' ||
+      (typeof result.appId === 'string' && result.appId.startsWith('cache-'))
+    if (view === 'industry' && isLocalCache && result.webUrl) {
+      try {
+        finishPublishNavigate(navigate, result)
+      } catch {
+        /* ignore */
+      }
+      window.setTimeout(() => {
+        window.location.assign(result.webUrl)
+      }, 80)
+      return
+    }
+    // 真服务端发布：进入 /r/{id}
+    if (view === 'industry' && result.appId && !String(result.appId).startsWith('cache-')) {
       const runtimePath = `/r/${result.appId}`
       try {
         finishPublishNavigate(navigate, result)
