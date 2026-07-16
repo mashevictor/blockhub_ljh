@@ -37,6 +37,7 @@ from app.api.v1 import (
     fitness_checkin,
     travel_plan,
     legal_case,
+    smoke,
     ops_kpi,
     quote_contract,
     sales_lead,
@@ -117,6 +118,7 @@ _auth = [Depends(get_current_user)]
 _admin = [Depends(require_admin)]
 
 app.include_router(health.router, prefix=settings.api_prefix)
+app.include_router(smoke.router, prefix=settings.api_prefix)
 app.include_router(tenant.router, prefix=settings.api_prefix)
 app.include_router(runtime.router, prefix=settings.api_prefix)
 app.include_router(auth.router, prefix=settings.api_prefix)
