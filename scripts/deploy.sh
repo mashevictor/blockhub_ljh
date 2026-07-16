@@ -72,6 +72,15 @@ if not insp.has_table("demo_bookings"):
 print("    预约表 demo_bookings 已就绪（用户提交时 API 自动写入，无需手工插数据）")
 PY
 
+# 永久消掉「alembic=head 但 hero/chip 表缺失 → catalog source=static」：
+# 历史 stamp 会跳过 003/004，单靠 upgrade head 不够，必须幂等补表 + force seed。
+echo "==> [3b/9] catalog 表补齐 + seed（fix-catalog）"
+bash "$ROOT/scripts/fix-catalog.sh" || {
+  echo "ERROR: catalog 修复失败 — 手动执行: bash scripts/fix-catalog.sh"
+  echo "  常见原因: alembic_version 已 stamp 超前，但 catalog_hero_presets / catalog_chip_templates 未建"
+  exit 1
+}
+
 echo "==> [4/9] systemd + nginx config (paths → $ROOT)"
 if [ -f "$ROOT/scripts/blockhub-api.service" ]; then
   sed "s|BLOCKHUB_ROOT|$ROOT|g" "$ROOT/scripts/blockhub-api.service" | sudo tee /etc/systemd/system/blockhub-api.service >/dev/null
