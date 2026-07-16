@@ -24,14 +24,20 @@ def _scene(
     }
 
 
-# office 场景走 catalog_office_scenarios，此处仅元数据
 _OFFICE_META = {
     "key": "office",
     "name": "通用办公",
     "icon": "🏢",
     "color": "#6366f1",
     "tagline": "人事、财务、审批、知识库一体化",
-    "scenes": [],
+    "scenes": [
+        _scene("请假审批", "人事行政", "员工请假在线申请与主管审批", pages="approval", agent="leave_request"),
+        _scene("报销记账", "财务法务", "费用报销与发票归档", pages="approval+form", agent="expense_claim"),
+        _scene("制度问答", "知识协同", "制度政策福利智能问答", pages="chat+kb", agent="policy_qa"),
+        _scene("招聘入职", "人事行政", "招聘与入职指引", pages="approval+kb", agent="hire_onboard"),
+        _scene("待办中心", "流程审批", "跨流程待办统一处理", pages="list", agent="approval_inbox"),
+        _scene("知识库", "知识协同", "制度文档语义检索", pages="kb", agent="kb_document"),
+    ],
 }
 
 _MFG = {

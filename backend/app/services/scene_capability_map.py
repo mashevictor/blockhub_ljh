@@ -146,17 +146,7 @@ def get_pack_scenes(pack_key: str) -> list[dict[str, Any]]:
     meta = pack_meta(pack_key) or next((p for p in ALL_INDUSTRY_PACKS if p.get("key") == pack_key), None)
     if not meta:
         return []
-    scenes = list(meta.get("scenes") or [])
-    if pack_key == "office" and not scenes:
-        return [
-            {"name": "请假审批", "category": "人事行政", "agent": "leave_request", "pages": "approval"},
-            {"name": "报销记账", "category": "财务法务", "agent": "expense_claim", "pages": "approval+form"},
-            {"name": "制度问答", "category": "知识协同", "agent": "policy_qa", "pages": "chat+kb"},
-            {"name": "招聘入职", "category": "人事行政", "agent": "hire_onboard", "pages": "approval+kb"},
-            {"name": "待办中心", "category": "流程审批", "agent": "approval_inbox", "pages": "list"},
-            {"name": "知识库", "category": "知识协同", "agent": "kb_document", "pages": "kb"},
-        ]
-    return scenes
+    return list(meta.get("scenes") or [])
 
 
 def assemble_industry_pack(

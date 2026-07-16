@@ -25,7 +25,11 @@ export const ROUTES = {
   rolePage: (role: string) => `/for/${role}`,
   /** CapShip 开源落地页 */
   capship: '/capship',
-  /** 行业静态落地页 HTML（非 SPA 目录） */
+  /** 行业独立站 HTML（非 SPA 目录） */
   industrySiteHtml: (packKey: string) => `/industry-sites/${packKey}/index.html`,
+  /** 行业包真 Runtime（assemble_industry_pack → 真 widget） */
+  industryRuntimePack: (packKey: string) => `/r/preview/${packKey}`,
+  /** 旧预览路由（重定向到 industryRuntimePack） */
+  industryRuntimePreview: (packKey: string) => `/preview/industry-runtime/${packKey}`,
   contactDemo: '/#contact-demo',
 } as const

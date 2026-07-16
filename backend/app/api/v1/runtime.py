@@ -17,8 +17,8 @@ from app.db.models import AppRecord, User
 from app.db.session import get_db
 from app.services.apk_builder import get_apk_build_detail, get_apk_build_status, per_app_apk_path, per_app_apk_ready
 from app.services.build_manifest import build_manifest
+from app.services.industry_pack_boot import boot_industry_pack, resolve_preview_pack_keys
 from app.services.capability_blueprint import (
-    PREVIEW_PACK_KEYS,
     BlueprintBuild,
     build_code_zip,
     build_developer_blueprint,
@@ -108,13 +108,15 @@ def _blueprint_for_app(app: AppRecord) -> dict:
 @router.get("/developer/preview")
 def developer_preview_blueprint(
     user: Annotated[User, Depends(get_current_user)],
-    pack: str = Query("mfg", description="行业预览包，如 mfg"),
+    pack: str = Query("mfg", description="行业预览包，如 mfg / office"),
 ) -> dict:
-    """制造业等独立站 Runtime 预览：库表 / 接口 / 代码路径（需登录）。"""
+    """行业包 Runtime：库表 / 接口 / 代码路径（需登录，keys 来自装配 SSOT）。"""
     _ = user
-    keys = PREVIEW_PACK_KEYS.get(pack)
-    if not keys:
-        raise HTTPException(status_code=404, detail=f"未知预览包: {pack}")
+    try:
+        keys = resolve_preview_pack_keys(pack)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    boot = boot_industry_pack(pack)
     return build_developer_blueprint(
         BlueprintBuild(
             capability_keys=keys,
@@ -122,13 +124,49 @@ def developer_preview_blueprint(
             build_manifest=build_manifest(keys, deliver="web"),
             pack=pack,
             scope="preview_pack",
+            page_schema=boot["page_schema"],
             app={
-                "public_id": f"preview-{pack}",
-                "name": f"{pack} 行业 Runtime 预览（非独立站）",
+                "public_id": boot["public_id"],
+                "name": boot["config"]["app_name"],
                 "industry_key": pack,
             },
         )
     )
+
+
+@router.get("/pack/{pack_key}/boot")
+def runtime_pack_boot(pack_key: str) -> dict:
+    """行业包真 Runtime 启动（schema + manifest + config，与发布后装配同源）。"""
+    try:
+        return boot_industry_pack(pack_key)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@router.get("/pack/{pack_key}/config")
+def runtime_pack_config(pack_key: str) -> dict:
+    try:
+        return boot_industry_pack(pack_key)["config"]
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@router.get("/pack/{pack_key}/schema")
+def runtime_pack_schema(pack_key: str) -> dict:
+    try:
+        boot = boot_industry_pack(pack_key)
+        return {"public_id": boot["public_id"], "page_schema": boot["page_schema"]}
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@router.get("/pack/{pack_key}/manifest")
+def runtime_pack_manifest(pack_key: str) -> dict:
+    try:
+        boot = boot_industry_pack(pack_key)
+        return {"public_id": boot["public_id"], "build_manifest": boot["build_manifest"]}
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
 
 
 @router.get("/developer/preview/code.zip")
@@ -138,9 +176,11 @@ def download_preview_code_zip(
 ) -> Response:
     """下载预览包开发者 zip（仅管理员）。"""
     _ = user
-    keys = PREVIEW_PACK_KEYS.get(pack)
-    if not keys:
-        raise HTTPException(status_code=404, detail=f"未知预览包: {pack}")
+    try:
+        keys = resolve_preview_pack_keys(pack)
+        boot = boot_industry_pack(pack)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
     blueprint = build_developer_blueprint(
         BlueprintBuild(
             capability_keys=keys,
@@ -148,9 +188,10 @@ def download_preview_code_zip(
             build_manifest=build_manifest(keys, deliver="web"),
             pack=pack,
             scope="preview_pack",
+            page_schema=boot["page_schema"],
             app={
-                "public_id": f"preview-{pack}",
-                "name": f"{pack} 行业 Runtime 预览（非独立站）",
+                "public_id": boot["public_id"],
+                "name": boot["config"]["app_name"],
                 "industry_key": pack,
             },
         )

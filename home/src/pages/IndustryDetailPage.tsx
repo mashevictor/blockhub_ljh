@@ -164,6 +164,16 @@ export default function IndustryDetailPage() {
         }
         ctaSecondary={
           <>
+            {(pack.key === 'mfg' || pack.key === 'office') ? (
+              <a
+                className="btn-ghost industry-site-ghost"
+                href={ROUTES.industryRuntimePack(pack.key)}
+                target="_blank"
+                rel="noreferrer"
+              >
+                打开真 Runtime 工作台
+              </a>
+            ) : null}
             <button type="button" className="btn-ghost industry-site-ghost" onClick={handleOpenDecoupledSite}>
               打开落地页预览
             </button>
