@@ -14,11 +14,17 @@ import {
   SchemaRevConflictError,
   askComposeEdit,
   askFlowEdit,
+  approveSchemaChange,
   fetchRuntimeSchema,
   fetchSchemaRevisions,
+  listSchemaChanges,
   patchRuntimeModules,
   patchRuntimeSchema,
+  rejectSchemaChange,
   restoreSchemaRevision,
+  submitSchemaChange,
+  upsertSchemaChangeDraft,
+  type SchemaChangeItem,
 } from './api'
 import {
   applyFlowEditOps,
@@ -26,6 +32,11 @@ import {
   readModuleFlowFromSchema,
   removeFlowStepLocal,
 } from './flowOps'
+import {
+  commitLocalSchemaRevision,
+  getLocalSchemaRevision,
+  listLocalSchemaRevisions,
+} from './localSchemaRevisions'
 
 const DEMO_CATALOG: ComposerModuleItem[] = [
   { key: 'chat_qa', label: '智能问答', kind: 'module' },
@@ -321,30 +332,56 @@ export function CapShipComposer({
   const [historyOpen, setHistoryOpen] = useState(false)
   const [revisions, setRevisions] = useState<SchemaRevisionItem[]>([])
   const [conflict, setConflict] = useState<SchemaRevConflictError | null>(null)
+  /** 对话/数据流已改页但未点「保存」→ 草稿，与版本历史区分 */
+  const [schemaDirty, setSchemaDirty] = useState(false)
+  const [changeId, setChangeId] = useState<string | null>(null)
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [changeItems, setChangeItems] = useState<SchemaChangeItem[]>([])
   const [messages, setMessages] = useState<ChatMsg[]>([
     {
       role: 'assistant',
-      text: '直接说业务需求即可，例如「加一个团建经费审批」「要季度 OKR 看板」「员工要请假和报销」。我会理解自然语言：有正式能力就挂真表单/真 API；没有则先出差异化页面，接口可异步生成。也可说「去掉某某」。',
+      text: '直接说业务需求即可。改页先落「本地草稿」（左侧立刻可见）→「保存草稿」（绑你的账号）→「提交审批」；管理员通过后才影响正式 Runtime。',
     },
   ])
   const [flowMessages, setFlowMessages] = useState<ChatMsg[]>([
-    { role: 'assistant', text: '可以说「在报修后面加审批流」或「去掉知识库」。' },
+    { role: 'assistant', text: '可以说「在报修后面加审批流」。改动先落草稿，保存后提交审批。' },
   ])
   const listRef = useRef<HTMLDivElement>(null)
   const flowListRef = useRef<HTMLDivElement>(null)
+  const lastSavedSchemaRef = useRef<ComposerPageSchema | null>(cloneSchema(initialSchema))
 
   const activeMode = controlledMode ?? mode
+  const versionAppKey = String(appId || schema?.appId || 'preview-local')
+  const isPreviewLocal =
+    Boolean(schema?.meta?.preview) ||
+    Boolean(initialSchema?.meta?.preview) ||
+    versionAppKey.startsWith('preview-') ||
+    !appId
 
   useEffect(() => {
-    if (initialSchema) setSchema(cloneSchema(initialSchema))
-  }, [initialSchema])
+    if (!initialSchema) return
+    // 有未保存草稿时，勿用父组件回传的 schema 覆盖本地草稿
+    if (schemaDirty) return
+    const cloned = cloneSchema(initialSchema)
+    setSchema(cloned)
+    lastSavedSchemaRef.current = cloned
+  }, [initialSchema, schemaDirty])
 
   useEffect(() => {
     if (initialKeys?.length) setKeys([...initialKeys])
   }, [initialKeys])
 
   useEffect(() => {
-    if (!appId || !token) return
+    if (!isPreviewLocal || !versionAppKey) return
+    const local = listLocalSchemaRevisions(versionAppKey)
+    if (local.schema_rev > 0) {
+      setSchemaRev(local.schema_rev)
+      setRevisions(local.items.map(({ page_schema: _ps, ...rest }) => rest))
+    }
+  }, [isPreviewLocal, versionAppKey])
+
+  useEffect(() => {
+    if (!appId || !token || isPreviewLocal) return
     let cancelled = false
     void fetchRuntimeSchema(appId, { token })
       .then((data) => {
@@ -352,7 +389,10 @@ export function CapShipComposer({
         setSchemaRev(data.schema_rev)
         setEditorName(data.schema_editor_name || '')
         if (data.page_schema) {
-          setSchema(cloneSchema(data.page_schema))
+          const cloned = cloneSchema(data.page_schema)
+          setSchema(cloned)
+          lastSavedSchemaRef.current = cloned
+          setSchemaDirty(false)
           onSchemaPatch?.(data.page_schema)
         }
       })
@@ -362,7 +402,7 @@ export function CapShipComposer({
     }
     // 仅挂载 / appId·token 变化时同步版本
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [appId, token])
+  }, [appId, token, isPreviewLocal])
 
   useEffect(() => {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: 'smooth' })
@@ -400,13 +440,32 @@ export function CapShipComposer({
   }
 
   const pullLatest = async () => {
+    if (isPreviewLocal) {
+      const saved = lastSavedSchemaRef.current
+      if (saved) {
+        setSchema(cloneSchema(saved))
+        setKeys(saved.capability_keys || keys)
+        onSchemaPatch?.(saved)
+      }
+      setSchemaDirty(false)
+      setConflict(null)
+      setStatus(`已回到已保存 v${schemaRev}`)
+      setMessages((prev) => [
+        ...prev,
+        { role: 'assistant', text: `已丢弃未保存草稿，回到已保存 v${schemaRev}。` },
+      ])
+      return
+    }
     if (!appId) return
     setBusy(true)
     try {
       const data = await fetchRuntimeSchema(appId, { token })
       setSchemaRev(data.schema_rev)
       setEditorName(data.schema_editor_name || '')
-      setSchema(cloneSchema(data.page_schema))
+      const cloned = cloneSchema(data.page_schema)
+      setSchema(cloned)
+      lastSavedSchemaRef.current = cloned
+      setSchemaDirty(false)
       setKeys(data.page_schema.capability_keys || keys)
       onSchemaPatch?.(data.page_schema)
       setConflict(null)
@@ -425,10 +484,16 @@ export function CapShipComposer({
   }
 
   const loadHistory = async () => {
-    if (!appId) return
     const opening = !historyOpen
     setHistoryOpen(opening)
     if (!opening) return
+    if (isPreviewLocal) {
+      const local = listLocalSchemaRevisions(versionAppKey)
+      setRevisions(local.items.map(({ page_schema: _ps, ...rest }) => rest))
+      if (local.schema_rev > 0) setSchemaRev(local.schema_rev)
+      return
+    }
+    if (!appId) return
     try {
       const data = await fetchSchemaRevisions(appId, { token })
       setRevisions(data.items || [])
@@ -441,9 +506,26 @@ export function CapShipComposer({
   }
 
   const restoreRev = async (rev: number) => {
-    if (!appId) return
     setBusy(true)
     try {
+      if (isPreviewLocal) {
+        const hit = getLocalSchemaRevision(versionAppKey, rev)
+        if (!hit) {
+          setStatus(`本地版本 v${rev} 不存在`)
+          return
+        }
+        const cloned = cloneSchema(hit.page_schema)
+        setSchema(cloned)
+        lastSavedSchemaRef.current = cloned
+        setSchemaDirty(false)
+        setKeys(hit.page_schema.capability_keys || keys)
+        setSchemaRev(hit.rev)
+        onSchemaPatch?.(hit.page_schema)
+        setStatus(`已恢复本地 v${rev}（仍可再保存生成新版本）`)
+        setHistoryOpen(true)
+        return
+      }
+      if (!appId) return
       const res = await restoreSchemaRevision(
         appId,
         { rev, base_rev: schemaRev, force: false },
@@ -451,7 +533,10 @@ export function CapShipComposer({
       )
       setSchemaRev(res.schema_rev)
       setEditorName(res.schema_editor_name || '')
-      setSchema(res.page_schema)
+      const cloned = cloneSchema(res.page_schema)
+      setSchema(cloned)
+      lastSavedSchemaRef.current = cloned
+      setSchemaDirty(false)
       setKeys(res.page_schema.capability_keys || keys)
       onSchemaPatch?.(res.page_schema)
       onSaved?.({
@@ -528,36 +613,245 @@ export function CapShipComposer({
     }
   }
 
+  const loadChangeQueue = async () => {
+    if (!appId || isPreviewLocal) return
+    try {
+      const data = await listSchemaChanges(appId, { token })
+      setIsAdmin(Boolean(data.is_admin))
+      setChangeItems(data.items || [])
+      const mine = (data.items || []).find(
+        (c) => c.status === 'draft' || c.status === 'pending' || c.status === 'rejected',
+      )
+      if (mine) setChangeId(mine.id)
+    } catch {
+      /* ignore */
+    }
+  }
+
+  useEffect(() => {
+    if (!appId || isPreviewLocal) return
+    void loadChangeQueue()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [appId, token, isPreviewLocal])
+
   const persistSchema = async (
     next: ComposerPageSchema,
     mergeMeta?: Record<string, unknown>,
-    opts?: { force?: boolean; source?: string },
+    opts?: { force?: boolean; source?: string; summary?: string; directPublish?: boolean },
   ) => {
     const previewLocal =
       Boolean(next.meta?.preview) ||
       Boolean(schema?.meta?.preview) ||
       String(appId || next.appId || '').startsWith('preview-')
     if (!appId || previewLocal) {
+      const item = commitLocalSchemaRevision(versionAppKey, next, {
+        summary: opts?.summary || '保存草稿为版本',
+        source: opts?.source || 'local_save',
+        editor_name: '本地',
+      })
+      const cloned = cloneSchema(next)
+      setSchema(cloned)
+      lastSavedSchemaRef.current = cloned
+      setSchemaDirty(false)
+      setSchemaRev(item.rev)
+      setEditorName('本地')
+      const local = listLocalSchemaRevisions(versionAppKey)
+      setRevisions(local.items.map(({ page_schema: _ps, ...rest }) => rest))
+      onSchemaPatch?.(next)
       onPublish?.({ schema: next, keys: next.capability_keys })
+      onSaved?.({
+        page_schema: next,
+        capability_keys: next.capability_keys,
+        schema_rev: item.rev,
+      })
       return
     }
-    const res = await patchRuntimeSchema(appId, next, {
-      token,
-      mergeMeta,
-      baseRev: schemaRev,
-      force: opts?.force,
-      source: opts?.source ?? 'compose',
-    })
-    setSchema(res.page_schema)
-    setSchemaRev(res.schema_rev)
-    setEditorName(res.schema_editor_name || '')
-    setConflict(null)
-    onSchemaPatch?.(res.page_schema)
-    onSaved?.({
-      page_schema: res.page_schema,
-      capability_keys: res.page_schema.capability_keys,
-      schema_rev: res.schema_rev,
-    })
+
+    // 管理员直接发布正式 schema
+    if (opts?.directPublish) {
+      let merged = next
+      if (mergeMeta) {
+        merged = {
+          ...next,
+          meta: { ...(next.meta || {}), ...mergeMeta },
+        }
+      }
+      const res = await patchRuntimeSchema(appId, merged, {
+        token,
+        mergeMeta,
+        baseRev: schemaRev,
+        force: opts?.force,
+        source: opts?.source ?? 'compose',
+        directPublish: true,
+      })
+      const cloned = cloneSchema(res.page_schema)
+      setSchema(cloned)
+      lastSavedSchemaRef.current = cloned
+      setSchemaDirty(false)
+      setChangeId(null)
+      setSchemaRev(res.schema_rev)
+      setEditorName(res.schema_editor_name || '')
+      setConflict(null)
+      onSchemaPatch?.(res.page_schema)
+      onSaved?.({
+        page_schema: res.page_schema,
+        capability_keys: res.page_schema.capability_keys,
+        schema_rev: res.schema_rev,
+      })
+      await loadChangeQueue()
+      try {
+        const hist = await fetchSchemaRevisions(appId, { token })
+        setRevisions(hist.items || [])
+      } catch {
+        /* ignore */
+      }
+      return
+    }
+
+    // 默认：写入账号绑定的服务端草稿（不改正式业务）
+    const res = await upsertSchemaChangeDraft(
+      appId,
+      {
+        page_schema: next,
+        summary: opts?.summary || '对话改页草稿',
+        change_id: changeId || undefined,
+      },
+      { token },
+    )
+    setChangeId(res.change.id)
+    setSchemaDirty(false)
+    lastSavedSchemaRef.current = cloneSchema(next)
+    setStatus(`草稿已保存（账号绑定）· 基于正式 v${res.schema_rev}`)
+    await loadChangeQueue()
+  }
+
+  /** 将当前改动保存为账号草稿（不进正式 Runtime） */
+  const saveDraftSchema = async (force = false) => {
+    if (!schema || busy) return
+    if (!schemaDirty && !force && changeId) {
+      setStatus('当前无新的未保存改动')
+      return
+    }
+    setBusy(true)
+    setStatus('')
+    try {
+      await persistSchema(schema, undefined, {
+        force,
+        source: isPreviewLocal ? 'local_save' : 'draft_save',
+        summary: '对话改页草稿',
+      })
+      setHistoryOpen(true)
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: 'assistant',
+          text: isPreviewLocal
+            ? '草稿已保存到本地版本历史。'
+            : '草稿已保存到你的账号。点「提交审批」后管理员才能通过并生效。',
+        },
+      ])
+    } catch (e) {
+      if (e instanceof SchemaRevConflictError) handleConflict(e)
+      else {
+        const msg = e instanceof Error ? e.message : '保存失败'
+        onError?.(msg)
+        setStatus(msg)
+      }
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  /** 提交审批 → 通知管理员 */
+  const submitForApproval = async () => {
+    if (!schema || busy || !appId || isPreviewLocal) return
+    setBusy(true)
+    setStatus('')
+    try {
+      const res = await submitSchemaChange(
+        appId,
+        {
+          change_id: changeId || undefined,
+          page_schema: schema,
+          summary: '对话改页提交审批',
+        },
+        { token },
+      )
+      setChangeId(res.change.id)
+      setSchemaDirty(false)
+      lastSavedSchemaRef.current = cloneSchema(schema)
+      setStatus('已提交审批 · 等待管理员通过')
+      setHistoryOpen(true)
+      setMessages((prev) => [
+        ...prev,
+        { role: 'assistant', text: '已提交审批，管理员将收到通知。通过后才会更新正式 Runtime 业务页面。' },
+      ])
+      await loadChangeQueue()
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : '提交失败'
+      onError?.(msg)
+      setStatus(msg)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const reviewChange = async (id: string, action: 'approve' | 'reject') => {
+    if (!appId || busy) return
+    setBusy(true)
+    try {
+      if (action === 'approve') {
+        const res = await approveSchemaChange(appId, id, { comment: '已通过', force: false }, { token })
+        if (res.page_schema) {
+          const cloned = cloneSchema(res.page_schema)
+          setSchema(cloned)
+          lastSavedSchemaRef.current = cloned
+          onSchemaPatch?.(res.page_schema)
+          onSaved?.({
+            page_schema: res.page_schema,
+            capability_keys: res.page_schema.capability_keys,
+            schema_rev: res.schema_rev,
+          })
+        }
+        setSchemaRev(res.schema_rev)
+        setSchemaDirty(false)
+        setChangeId(null)
+        setStatus(`已通过并发布正式 v${res.schema_rev}`)
+        try {
+          const hist = await fetchSchemaRevisions(appId, { token })
+          setRevisions(hist.items || [])
+        } catch {
+          /* ignore */
+        }
+      } else {
+        await rejectSchemaChange(appId, id, { comment: '已驳回' }, { token })
+        setStatus('已驳回该变更')
+      }
+      await loadChangeQueue()
+    } catch (e) {
+      if (e instanceof SchemaRevConflictError) handleConflict(e)
+      else {
+        const msg = e instanceof Error ? e.message : '审批失败'
+        onError?.(msg)
+        setStatus(msg)
+      }
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const discardDraft = () => {
+    const saved = lastSavedSchemaRef.current
+    if (!saved) {
+      setStatus('没有可恢复的已保存版本')
+      return
+    }
+    const cloned = cloneSchema(saved)
+    setSchema(cloned)
+    setKeys(saved.capability_keys || keys)
+    setSchemaDirty(false)
+    onSchemaPatch?.(saved)
+    setStatus(`已丢弃本地未保存改动 · 正式仍为 v${schemaRev}`)
   }
 
   const commitFlow = async (nextFlow: ModuleFlowPersist) => {
@@ -573,9 +867,10 @@ export function CapShipComposer({
       } satisfies ComposerPageSchema)
     const next = withModuleFlow(base, nextFlow)
     setSchema(next)
+    setSchemaDirty(true)
     onSchemaPatch?.(next)
     onFlowChange?.(nextFlow)
-    await persistSchema(next, { module_flow: nextFlow })
+    setStatus('数据流已写入草稿（未保存）')
   }
 
   const sendChat = async () => {
@@ -624,16 +919,8 @@ export function CapShipComposer({
         }
         setSchema(next)
         setKeys(next.capability_keys)
+        setSchemaDirty(true)
         onSchemaPatch?.(next)
-        try {
-          await persistSchema(next, undefined, { source: 'live_edit' })
-        } catch (pe) {
-          if (pe instanceof SchemaRevConflictError) {
-            handleConflict(pe)
-            return
-          }
-          throw pe
-        }
       }
 
       const src = result.source === 'deepseek' ? '' : '（本地规则）'
@@ -642,15 +929,16 @@ export function CapShipComposer({
         pending?.length
           ? ` 未覆盖的正式接口将异步生成（${pending.length} 项）。`
           : ''
+      const draftHint = result.ops?.length ? ' 已写入草稿，点「保存」记入版本历史。' : ''
       setMessages((prev) => [
         ...prev,
-        { role: 'assistant', text: `${result.reply}${src}${asyncHint}` },
+        { role: 'assistant', text: `${result.reply}${src}${asyncHint}${draftHint}` },
       ])
       setStatus(
         result.ops?.length
           ? result.ops.some((o) => o.op === 'patch_page')
-            ? '控件已更新；请打开左侧对应菜单体验'
-            : '页面已更新；可先打开左侧菜单体验'
+            ? '草稿已更新控件 · 未保存'
+            : '草稿已更新页面 · 未保存'
           : '',
       )
     } catch (e) {
@@ -704,7 +992,7 @@ export function CapShipComposer({
       }
       const src = result.source === 'deepseek' ? '' : '（本地规则）'
       setFlowMessages((prev) => [...prev, { role: 'assistant', text: `${result.reply}${src}` }])
-      setStatus(result.ops?.length ? '数据流已更新并写入新版本' : '')
+      setStatus(result.ops?.length ? '数据流已写入草稿（未保存）' : '')
     } catch (e) {
       if (e instanceof SchemaRevConflictError) {
         handleConflict(e)
@@ -736,22 +1024,87 @@ export function CapShipComposer({
       </div>
 
       <div className="capship-composer-version" aria-live="polite">
-        {appId ? (
-          <>
-            <span className="capship-composer-version-badge">v{schemaRev}</span>
-            <span className="capship-composer-version-meta">
-              {editorName ? `最近编辑：${editorName}` : '多人协作已开启'}
-            </span>
-            <button type="button" className="capship-composer-link" disabled={busy} onClick={() => void pullLatest()}>
-              拉最新
-            </button>
-            <button type="button" className="capship-composer-link" disabled={busy} onClick={() => void loadHistory()}>
-              {historyOpen ? '收起历史' : '版本历史'}
-            </button>
-          </>
+        {schemaDirty ? (
+          <span className="capship-composer-version-badge is-draft">未保存</span>
+        ) : changeItems.some((c) => c.id === changeId && c.status === 'pending') ? (
+          <span className="capship-composer-version-badge is-pending">待审批</span>
         ) : (
-          <span className="capship-composer-version-meta">本地预览 · 无版本库（发布后可多人协作）</span>
+          <span className="capship-composer-version-badge">v{schemaRev}</span>
         )}
+        <span className="capship-composer-version-meta">
+          {schemaDirty
+            ? `本地草稿 · 正式仍为 v${schemaRev}`
+            : isPreviewLocal
+              ? '预览本地版本（无审批流）'
+              : changeItems.some((c) => c.id === changeId && c.status === 'pending')
+                ? '已提交 · 等待管理员通过后影响正式业务'
+                : isAdmin
+                  ? `正式 v${schemaRev} · 管理员可审批/直接发布`
+                  : `正式 v${schemaRev} · 改页需审批后生效`}
+        </span>
+        <button
+          type="button"
+          className="capship-composer-btn capship-composer-btn-save"
+          disabled={busy || !schema || (!schemaDirty && Boolean(changeId))}
+          onClick={() => void saveDraftSchema(true)}
+        >
+          {busy ? '…' : '保存草稿'}
+        </button>
+        {!isPreviewLocal && appId ? (
+          <button
+            type="button"
+            className="capship-composer-btn capship-composer-btn-save"
+            disabled={busy || !schema}
+            onClick={() => void submitForApproval()}
+          >
+            提交审批
+          </button>
+        ) : null}
+        {!isPreviewLocal && isAdmin && appId && schema ? (
+          <button
+            type="button"
+            className="capship-composer-link"
+            disabled={busy}
+            onClick={() => {
+              void persistSchema(schema, undefined, {
+                directPublish: true,
+                source: 'admin_direct',
+                summary: '管理员直接发布',
+              })
+                .then(() => {
+                  setStatus('已直接发布正式版本')
+                  setMessages((prev) => [
+                    ...prev,
+                    { role: 'assistant', text: '管理员已直接发布，正式 Runtime 已更新。' },
+                  ])
+                })
+                .catch((e) => setStatus(e instanceof Error ? e.message : '发布失败'))
+            }}
+          >
+            直接发布
+          </button>
+        ) : null}
+        {schemaDirty ? (
+          <button type="button" className="capship-composer-link" disabled={busy} onClick={discardDraft}>
+            丢弃改动
+          </button>
+        ) : null}
+        {!isPreviewLocal && appId ? (
+          <button type="button" className="capship-composer-link" disabled={busy} onClick={() => void pullLatest()}>
+            拉最新正式版
+          </button>
+        ) : null}
+        <button
+          type="button"
+          className="capship-composer-link"
+          disabled={busy}
+          onClick={() => {
+            void loadHistory()
+            void loadChangeQueue()
+          }}
+        >
+          {historyOpen ? '收起历史' : '版本/审批'}
+        </button>
       </div>
 
       {conflict && (
@@ -764,44 +1117,131 @@ export function CapShipComposer({
             <button type="button" disabled={busy} onClick={() => void pullLatest()}>
               拉取最新
             </button>
-            <button
-              type="button"
-              className="danger"
-              disabled={busy || !schema}
-              onClick={() => {
-                if (!schema) return
-                void persistSchema(schema, undefined, { force: true, source: 'force_overwrite' })
-                  .then(() => setStatus('已强制覆盖并生成新版本'))
-                  .catch((e) => setStatus(e instanceof Error ? e.message : '覆盖失败'))
-              }}
-            >
-              强制覆盖
-            </button>
+            {isAdmin ? (
+              <button
+                type="button"
+                className="danger"
+                disabled={busy || !schema}
+                onClick={() => {
+                  if (!schema) return
+                  void persistSchema(schema, undefined, {
+                    force: true,
+                    directPublish: true,
+                    source: 'force_overwrite',
+                  })
+                    .then(() => setStatus('已强制覆盖并生成新版本'))
+                    .catch((e) => setStatus(e instanceof Error ? e.message : '覆盖失败'))
+                }}
+              >
+                强制覆盖
+              </button>
+            ) : null}
           </div>
         </div>
       )}
 
-      {historyOpen && appId && (
+      {historyOpen && (
         <ul className="capship-composer-history">
-          {revisions.length === 0 ? (
-            <li className="muted">暂无历史版本（保存一次对话改页后会出现）</li>
-          ) : (
-            revisions.map((r) => (
-              <li key={r.rev}>
+          {schemaDirty ? (
+            <li className="is-draft-row">
+              <div>
+                <strong>本地未保存</strong>
+                <span>仅本机预览 · 正式仍为 v{schemaRev}</span>
+              </div>
+              <button
+                type="button"
+                className="capship-composer-link"
+                disabled={busy}
+                onClick={() => void saveDraftSchema(true)}
+              >
+                保存草稿
+              </button>
+            </li>
+          ) : null}
+          {changeItems.length > 0 ? (
+            changeItems.map((c) => (
+              <li key={c.id} className={c.status === 'pending' ? 'is-pending-row' : undefined}>
                 <div>
-                  <strong>v{r.rev}</strong>
+                  <strong>
+                    {c.status === 'draft'
+                      ? '账号草稿'
+                      : c.status === 'pending'
+                        ? '待审批'
+                        : c.status === 'approved'
+                          ? `已通过→v${c.published_rev}`
+                          : c.status === 'rejected'
+                            ? '已驳回'
+                            : c.status}
+                  </strong>
                   <span>
-                    {r.editor_name || '未知'} · {r.summary}
+                    {c.author_name} · {c.summary}
+                    {c.review_comment ? ` · ${c.review_comment}` : ''}
                   </span>
                 </div>
-                <button
-                  type="button"
-                  className="capship-composer-link"
-                  disabled={busy || r.rev === schemaRev}
-                  onClick={() => void restoreRev(r.rev)}
-                >
-                  回滚到此
-                </button>
+                <div className="capship-composer-history-actions">
+                  {isAdmin && c.status === 'pending' ? (
+                    <>
+                      <button
+                        type="button"
+                        className="capship-composer-link"
+                        disabled={busy}
+                        onClick={() => void reviewChange(c.id, 'approve')}
+                      >
+                        通过
+                      </button>
+                      <button
+                        type="button"
+                        className="capship-composer-link"
+                        disabled={busy}
+                        onClick={() => void reviewChange(c.id, 'reject')}
+                      >
+                        驳回
+                      </button>
+                    </>
+                  ) : null}
+                  {c.page_schema && (c.status === 'draft' || c.status === 'rejected') ? (
+                    <button
+                      type="button"
+                      className="capship-composer-link"
+                      disabled={busy}
+                      onClick={() => {
+                        const cloned = cloneSchema(c.page_schema!)
+                        setSchema(cloned)
+                        setChangeId(c.id)
+                        setKeys(c.page_schema!.capability_keys || keys)
+                        onSchemaPatch?.(c.page_schema!)
+                        setStatus('已载入该草稿')
+                      }}
+                    >
+                      载入
+                    </button>
+                  ) : null}
+                </div>
+              </li>
+            ))
+          ) : null}
+          {revisions.length === 0 && !schemaDirty && changeItems.length === 0 ? (
+            <li className="muted">暂无版本/审批记录（改页后保存草稿并提交审批）</li>
+          ) : (
+            revisions.map((r) => (
+              <li key={`rev-${r.rev}`}>
+                <div>
+                  <strong>正式 v{r.rev}</strong>
+                  <span>
+                    {r.editor_name || '未知'} · {r.summary}
+                    {r.source ? ` · ${r.source}` : ''}
+                  </span>
+                </div>
+                {isAdmin || isPreviewLocal ? (
+                  <button
+                    type="button"
+                    className="capship-composer-link"
+                    disabled={busy || (!schemaDirty && r.rev === schemaRev)}
+                    onClick={() => void restoreRev(r.rev)}
+                  >
+                    回滚到此
+                  </button>
+                ) : null}
               </li>
             ))
           )}
@@ -832,7 +1272,7 @@ export function CapShipComposer({
 
       {activeMode === 'live_edit' && (
         <div className="capship-composer-pane capship-composer-chat">
-          <p className="capship-composer-hint">说业务痛点或改页指令；理解后挂正式能力（选型即交付），不只改文案。</p>
+          <p className="capship-composer-hint">说业务痛点或改页指令；左侧先出预览 → 保存草稿（绑账号）→ 提交审批 → 管理员通过后正式生效。</p>
           <div className="capship-composer-chat-list" ref={listRef} aria-live="polite">
             {messages.map((m, i) => (
               <div key={`${m.role}-${i}`} className={`capship-composer-msg is-${m.role}`}>

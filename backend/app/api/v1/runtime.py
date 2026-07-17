@@ -41,6 +41,11 @@ class RuntimeSchemaPatch(BaseModel):
     base_rev: int | None = Field(default=None, description="客户端基于的 schema_rev；冲突返回 409")
     force: bool = False
     source: str = "compose"
+    # 非管理员禁止直接写正式 schema；管理员可直接发布
+    direct_publish: bool = Field(
+        default=False,
+        description="仅管理员：跳过审批直接写正式 page_schema",
+    )
 
 
 class RuntimeModulesPatch(BaseModel):
@@ -57,6 +62,23 @@ class RuntimeSchemaRestore(BaseModel):
     rev: int
     base_rev: int | None = None
     force: bool = False
+
+
+class SchemaChangeUpsert(BaseModel):
+    page_schema: dict[str, Any]
+    summary: str | None = None
+    change_id: str | None = None
+
+
+class SchemaChangeReview(BaseModel):
+    comment: str = ""
+    force: bool = False
+
+
+class SchemaChangeSubmit(BaseModel):
+    change_id: str | None = None
+    page_schema: dict[str, Any] | None = None
+    summary: str | None = None
 
 
 def _assert_can_edit_runtime_app(user: User, app: AppRecord) -> None:
@@ -270,11 +292,22 @@ def patch_runtime_schema(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> dict:
-    """写回 page_schema（乐观锁：传 base_rev；冲突 409）。"""
+    """直接写正式 page_schema：仅管理员。
+
+    普通用户请走 /schema/changes 草稿 → 提交审批 → 管理员通过。
+    """
     app = db.query(AppRecord).filter(AppRecord.public_id == public_id).first()
     if not app:
         raise HTTPException(status_code=404, detail="应用不存在")
     _assert_can_edit_runtime_app(user, app)
+    if user.role != "admin":
+        raise HTTPException(
+            status_code=403,
+            detail={
+                "code": "SCHEMA_APPROVAL_REQUIRED",
+                "message": "改页需先保存草稿并提交审批，管理员通过后才会影响正式 Runtime",
+            },
+        )
     schema = dict(body.page_schema or {})
     schema["appId"] = app.public_id
     if body.merge_meta:
@@ -294,6 +327,145 @@ def patch_runtime_schema(
         source=body.source or "compose",
         force=body.force,
     )
+
+
+@router.get("/{public_id}/schema/changes")
+def list_schema_changes(
+    public_id: str,
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+    status: str | None = Query(None),
+    limit: int = Query(30, ge=1, le=100),
+) -> dict:
+    """草稿 / 待审批 / 已审变更列表（绑个人账号；管理员看全量）。"""
+    from app.services import schema_change_approval as sca
+
+    app = db.query(AppRecord).filter(AppRecord.public_id == public_id).first()
+    if not app:
+        raise HTTPException(status_code=404, detail="应用不存在")
+    _assert_can_edit_runtime_app(user, app)
+    return sca.list_changes(db, app, user=user, status=status, limit=limit)
+
+
+@router.post("/{public_id}/schema/changes")
+def upsert_schema_change_draft(
+    public_id: str,
+    body: SchemaChangeUpsert,
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+) -> dict:
+    """保存个人草稿（不写正式 schema，不影响业务）。"""
+    from app.services import schema_change_approval as sca
+
+    app = db.query(AppRecord).filter(AppRecord.public_id == public_id).first()
+    if not app:
+        raise HTTPException(status_code=404, detail="应用不存在")
+    _assert_can_edit_runtime_app(user, app)
+    schema = dict(body.page_schema or {})
+    schema["appId"] = app.public_id
+    try:
+        validate_page_schema(schema)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return sca.upsert_draft(
+        db,
+        app,
+        user=user,
+        page_schema=schema,
+        summary=body.summary,
+        change_id=body.change_id,
+    )
+
+
+@router.post("/{public_id}/schema/changes/submit")
+def submit_schema_change(
+    public_id: str,
+    body: SchemaChangeSubmit,
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+) -> dict:
+    """提交审批：可先带 page_schema 落草稿再 pending；通知租户管理员。"""
+    from app.services import schema_change_approval as sca
+
+    app = db.query(AppRecord).filter(AppRecord.public_id == public_id).first()
+    if not app:
+        raise HTTPException(status_code=404, detail="应用不存在")
+    _assert_can_edit_runtime_app(user, app)
+    change_id = body.change_id
+    if body.page_schema is not None:
+        schema = dict(body.page_schema)
+        schema["appId"] = app.public_id
+        try:
+            validate_page_schema(schema)
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        draft = sca.upsert_draft(
+            db,
+            app,
+            user=user,
+            page_schema=schema,
+            summary=body.summary,
+            change_id=change_id,
+        )
+        change_id = draft["change"]["id"]
+    if not change_id:
+        raise HTTPException(status_code=400, detail="缺少 change_id 或 page_schema")
+    return sca.submit_change(db, app, user=user, change_id=change_id)
+
+
+@router.post("/{public_id}/schema/changes/{change_id}/approve")
+def approve_schema_change(
+    public_id: str,
+    change_id: str,
+    body: SchemaChangeReview,
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+) -> dict:
+    """管理员通过 → 写入正式 page_schema + 版本历史（影响业务）。"""
+    from app.services import schema_change_approval as sca
+
+    app = db.query(AppRecord).filter(AppRecord.public_id == public_id).first()
+    if not app:
+        raise HTTPException(status_code=404, detail="应用不存在")
+    _assert_can_edit_runtime_app(user, app)
+    return sca.approve_change(
+        db, app, user=user, change_id=change_id, comment=body.comment, force=body.force
+    )
+
+
+@router.post("/{public_id}/schema/changes/{change_id}/reject")
+def reject_schema_change(
+    public_id: str,
+    change_id: str,
+    body: SchemaChangeReview,
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+) -> dict:
+    """管理员驳回。"""
+    from app.services import schema_change_approval as sca
+
+    app = db.query(AppRecord).filter(AppRecord.public_id == public_id).first()
+    if not app:
+        raise HTTPException(status_code=404, detail="应用不存在")
+    _assert_can_edit_runtime_app(user, app)
+    return sca.reject_change(db, app, user=user, change_id=change_id, comment=body.comment)
+
+
+@router.post("/{public_id}/schema/changes/{change_id}/cancel")
+def cancel_schema_change(
+    public_id: str,
+    change_id: str,
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+) -> dict:
+    """作者取消草稿/待审。"""
+    from app.services import schema_change_approval as sca
+
+    app = db.query(AppRecord).filter(AppRecord.public_id == public_id).first()
+    if not app:
+        raise HTTPException(status_code=404, detail="应用不存在")
+    _assert_can_edit_runtime_app(user, app)
+    return sca.cancel_change(db, app, user=user, change_id=change_id)
 
 
 @router.get("/{public_id}/schema/revisions")
@@ -322,11 +494,13 @@ def runtime_schema_restore(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> dict:
-    """回滚到历史版本（产生新 rev，非破坏历史）。"""
+    """回滚到历史版本（产生新 rev，非破坏历史）。仅管理员。"""
     app = db.query(AppRecord).filter(AppRecord.public_id == public_id).first()
     if not app:
         raise HTTPException(status_code=404, detail="应用不存在")
     _assert_can_edit_runtime_app(user, app)
+    if user.role != "admin":
+        raise HTTPException(status_code=403, detail="仅管理员可回滚正式版本")
     return restore_revision(
         db,
         app,

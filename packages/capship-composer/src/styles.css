@@ -246,6 +246,42 @@
   font-size: 12px;
 }
 
+.capship-composer-version-badge.is-draft {
+  background: #ffedd5;
+  color: #c2410c;
+}
+
+.capship-composer-version-badge.is-pending {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.capship-composer-btn-save {
+  padding: 4px 12px !important;
+  font-size: 12px !important;
+  min-height: 28px;
+}
+
+.capship-composer-history li.is-draft-row {
+  background: #fff7ed;
+  border-bottom: 1px solid #fed7aa;
+}
+
+.capship-composer-history li.is-draft-row strong {
+  color: #c2410c;
+}
+
+.capship-composer-history li.is-pending-row {
+  background: #fffbeb;
+  border-bottom: 1px solid #fde68a;
+}
+
+.capship-composer-history-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
 .capship-composer-version-meta {
   flex: 1;
   min-width: 120px;

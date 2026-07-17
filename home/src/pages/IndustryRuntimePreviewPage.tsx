@@ -727,6 +727,7 @@ export default function IndustryRuntimePreviewPage() {
           storageKey="capship-irp-dock-v3"
           defaultOpen
           defaultMode={"live_edit" as const}
+          appId={`preview-${preview.key}`}
           capability_keys={keys}
           page_schema={schema}
           industry_pack={preview.key}

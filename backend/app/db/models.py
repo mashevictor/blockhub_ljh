@@ -84,6 +84,9 @@ class AppRecord(Base):
     tenant: Mapped[Tenant] = relationship(back_populates="apps")
     publish_records: Mapped[list[PublishRecord]] = relationship(back_populates="app")
     schema_revisions: Mapped[list["AppSchemaRevision"]] = relationship(back_populates="app")
+    schema_change_requests: Mapped[list["AppSchemaChangeRequest"]] = relationship(
+        back_populates="app"
+    )
 
 
 class AppSchemaRevision(Base):
@@ -104,6 +107,36 @@ class AppSchemaRevision(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     app: Mapped[AppRecord] = relationship(back_populates="schema_revisions")
+
+
+class AppSchemaChangeRequest(Base):
+    """对话改页：个人草稿 → 提交审批 → 管理员通过后才写入正式 page_schema。"""
+
+    __tablename__ = "app_schema_change_requests"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    app_id: Mapped[str] = mapped_column(ForeignKey("apps.id"), nullable=False, index=True)
+    public_id: Mapped[str] = mapped_column(String(16), nullable=False, index=True)
+    # draft | pending | approved | rejected | cancelled
+    status: Mapped[str] = mapped_column(String(32), nullable=False, default="draft", index=True)
+    base_rev: Mapped[int] = mapped_column(nullable=False, default=1)
+    page_schema: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
+    capability_keys: Mapped[list[Any]] = mapped_column(JSON, nullable=False, default=list)
+    summary: Mapped[str] = mapped_column(String(240), nullable=False, default="")
+    author_id: Mapped[str] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
+    author_name: Mapped[str] = mapped_column(String(120), nullable=False, default="")
+    reviewer_id: Mapped[str | None] = mapped_column(ForeignKey("users.id"), nullable=True)
+    reviewer_name: Mapped[str] = mapped_column(String(120), nullable=False, default="")
+    review_comment: Mapped[str] = mapped_column(String(500), nullable=False, default="")
+    published_rev: Mapped[int | None] = mapped_column(nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+    submitted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    app: Mapped[AppRecord] = relationship(back_populates="schema_change_requests")
 
 
 class PublishRecord(Base):

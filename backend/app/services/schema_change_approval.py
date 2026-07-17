@@ -1,0 +1,346 @@
+"""page_schema 改页审批：个人草稿 → 提交 → 管理员通过后才影响正式 Runtime。"""
+
+from __future__ import annotations
+
+from datetime import datetime, timezone
+from typing import Any
+
+from fastapi import HTTPException
+from sqlalchemy.orm import Session
+
+from app.db.models import AppRecord, AppSchemaChangeRequest, User
+from app.services.schema_versioning import _editor_name, _summarize, commit_schema_revision, schema_meta
+
+STATUSES = frozenset({"draft", "pending", "approved", "rejected", "cancelled"})
+
+
+def _row_to_dict(row: AppSchemaChangeRequest) -> dict[str, Any]:
+    return {
+        "id": row.id,
+        "public_id": row.public_id,
+        "status": row.status,
+        "base_rev": int(row.base_rev or 1),
+        "page_schema": row.page_schema,
+        "capability_keys": list(row.capability_keys or []),
+        "summary": row.summary or "",
+        "author_id": row.author_id,
+        "author_name": row.author_name or "",
+        "reviewer_id": row.reviewer_id,
+        "reviewer_name": row.reviewer_name or "",
+        "review_comment": row.review_comment or "",
+        "published_rev": row.published_rev,
+        "created_at": row.created_at.isoformat() if row.created_at else None,
+        "updated_at": row.updated_at.isoformat() if row.updated_at else None,
+        "submitted_at": row.submitted_at.isoformat() if row.submitted_at else None,
+        "reviewed_at": row.reviewed_at.isoformat() if row.reviewed_at else None,
+    }
+
+
+def _is_admin(user: User) -> bool:
+    return (user.role or "").lower() == "admin"
+
+
+def upsert_draft(
+    db: Session,
+    app: AppRecord,
+    *,
+    user: User,
+    page_schema: dict[str, Any],
+    summary: str | None = None,
+    change_id: str | None = None,
+) -> dict[str, Any]:
+    """保存/更新当前用户的草稿（不写正式 page_schema）。每人每应用最多一个 open draft。"""
+    try:
+        from app.services.web_capability_gate import sanitize_page_schema
+
+        page_schema = sanitize_page_schema(page_schema)
+    except Exception:
+        pass
+
+    row: AppSchemaChangeRequest | None = None
+    if change_id:
+        row = (
+            db.query(AppSchemaChangeRequest)
+            .filter(
+                AppSchemaChangeRequest.id == change_id,
+                AppSchemaChangeRequest.public_id == app.public_id,
+            )
+            .first()
+        )
+        if not row:
+            raise HTTPException(status_code=404, detail="草稿不存在")
+        if row.author_id != user.id and not _is_admin(user):
+            raise HTTPException(status_code=403, detail="只能编辑自己的草稿")
+        if row.status not in {"draft", "rejected"}:
+            raise HTTPException(status_code=400, detail=f"状态为 {row.status}，无法再编辑为草稿")
+        row.status = "draft"
+    else:
+        row = (
+            db.query(AppSchemaChangeRequest)
+            .filter(
+                AppSchemaChangeRequest.public_id == app.public_id,
+                AppSchemaChangeRequest.author_id == user.id,
+                AppSchemaChangeRequest.status == "draft",
+            )
+            .order_by(AppSchemaChangeRequest.updated_at.desc())
+            .first()
+        )
+        if not row:
+            row = AppSchemaChangeRequest(
+                app_id=app.id,
+                public_id=app.public_id,
+                status="draft",
+                author_id=user.id,
+                author_name=_editor_name(user),
+            )
+            db.add(row)
+
+    row.base_rev = int(getattr(app, "schema_rev", None) or 1)
+    row.page_schema = page_schema
+    caps = page_schema.get("capability_keys") if isinstance(page_schema, dict) else None
+    row.capability_keys = [str(k) for k in caps] if isinstance(caps, list) else list(app.capability_keys or [])
+    row.summary = (summary or _summarize(page_schema, "draft"))[:240]
+    row.author_name = _editor_name(user)
+    row.review_comment = ""
+    row.reviewer_id = None
+    row.reviewer_name = ""
+    row.published_rev = None
+    row.reviewed_at = None
+    row.updated_at = datetime.now(timezone.utc)
+    db.commit()
+    db.refresh(row)
+    return {"success": True, "change": _row_to_dict(row), **schema_meta(app)}
+
+
+def submit_change(
+    db: Session,
+    app: AppRecord,
+    *,
+    user: User,
+    change_id: str,
+) -> dict[str, Any]:
+    """草稿 → pending，并通知租户管理员。"""
+    row = (
+        db.query(AppSchemaChangeRequest)
+        .filter(
+            AppSchemaChangeRequest.id == change_id,
+            AppSchemaChangeRequest.public_id == app.public_id,
+        )
+        .first()
+    )
+    if not row:
+        raise HTTPException(status_code=404, detail="变更单不存在")
+    if row.author_id != user.id and not _is_admin(user):
+        raise HTTPException(status_code=403, detail="只能提交自己的草稿")
+    if row.status not in {"draft", "rejected"}:
+        raise HTTPException(status_code=400, detail=f"状态为 {row.status}，无法提交审批")
+    if not row.page_schema:
+        raise HTTPException(status_code=400, detail="草稿内容为空")
+
+    row.status = "pending"
+    row.base_rev = int(getattr(app, "schema_rev", None) or 1)
+    row.submitted_at = datetime.now(timezone.utc)
+    row.updated_at = row.submitted_at
+    row.review_comment = ""
+    db.commit()
+    db.refresh(row)
+
+    try:
+        from app.services.notification_service import notify_tenant_admins
+
+        notify_tenant_admins(
+            db,
+            tenant_id=app.tenant_id,
+            title=f"改页待审批 · {app.name or app.public_id}",
+            content=f"{row.author_name} 提交了页面变更（基于 v{row.base_rev}）：{row.summary}",
+            type="schema_change",
+            reference_id=row.id,
+        )
+    except Exception:
+        pass
+
+    return {"success": True, "change": _row_to_dict(row), **schema_meta(app)}
+
+
+def list_changes(
+    db: Session,
+    app: AppRecord,
+    *,
+    user: User,
+    status: str | None = None,
+    limit: int = 30,
+) -> dict[str, Any]:
+    q = db.query(AppSchemaChangeRequest).filter(AppSchemaChangeRequest.public_id == app.public_id)
+    if status:
+        if status not in STATUSES:
+            raise HTTPException(status_code=400, detail="无效 status")
+        q = q.filter(AppSchemaChangeRequest.status == status)
+    if not _is_admin(user):
+        # 普通人：自己的全部 + 租户内 pending（只读列表，便于知道排队）
+        from sqlalchemy import or_
+
+        q = q.filter(
+            or_(
+                AppSchemaChangeRequest.author_id == user.id,
+                AppSchemaChangeRequest.status == "pending",
+            )
+        )
+    rows = q.order_by(AppSchemaChangeRequest.updated_at.desc()).limit(max(1, min(limit, 100))).all()
+    return {
+        "public_id": app.public_id,
+        "is_admin": _is_admin(user),
+        "items": [_row_to_dict(r) for r in rows],
+        **schema_meta(app),
+    }
+
+
+def approve_change(
+    db: Session,
+    app: AppRecord,
+    *,
+    user: User,
+    change_id: str,
+    comment: str = "",
+    force: bool = False,
+) -> dict[str, Any]:
+    """管理员通过：写入正式 page_schema + 版本历史。"""
+    if not _is_admin(user):
+        raise HTTPException(status_code=403, detail="仅管理员可审批通过")
+    row = (
+        db.query(AppSchemaChangeRequest)
+        .filter(
+            AppSchemaChangeRequest.id == change_id,
+            AppSchemaChangeRequest.public_id == app.public_id,
+        )
+        .first()
+    )
+    if not row:
+        raise HTTPException(status_code=404, detail="变更单不存在")
+    if row.status != "pending":
+        raise HTTPException(status_code=400, detail=f"状态为 {row.status}，无法通过")
+    if not isinstance(row.page_schema, dict):
+        raise HTTPException(status_code=400, detail="变更内容无效")
+
+    schema = dict(row.page_schema)
+    schema["appId"] = app.public_id
+    result = commit_schema_revision(
+        db,
+        app,
+        user=user,
+        page_schema=schema,
+        base_rev=row.base_rev,
+        source="approve",
+        force=force,
+    )
+
+    row.status = "approved"
+    row.reviewer_id = user.id
+    row.reviewer_name = _editor_name(user)
+    row.review_comment = (comment or "已通过")[:500]
+    row.published_rev = int(result.get("schema_rev") or app.schema_rev)
+    row.reviewed_at = datetime.now(timezone.utc)
+    row.updated_at = row.reviewed_at
+    db.add(row)
+    db.commit()
+    db.refresh(row)
+
+    try:
+        from app.services.notification_service import create_notification
+
+        create_notification(
+            db,
+            tenant_id=app.tenant_id,
+            title=f"改页已通过 · {app.name or app.public_id}",
+            content=f"管理员 {row.reviewer_name} 已通过你的变更，正式版本 v{row.published_rev}",
+            type="schema_change",
+            recipient_user_id=row.author_id,
+            reference_id=row.id,
+        )
+    except Exception:
+        pass
+
+    return {
+        "success": True,
+        "change": _row_to_dict(row),
+        "page_schema": result.get("page_schema"),
+        "capability_keys": result.get("capability_keys"),
+        **schema_meta(app),
+    }
+
+
+def reject_change(
+    db: Session,
+    app: AppRecord,
+    *,
+    user: User,
+    change_id: str,
+    comment: str = "",
+) -> dict[str, Any]:
+    if not _is_admin(user):
+        raise HTTPException(status_code=403, detail="仅管理员可驳回")
+    row = (
+        db.query(AppSchemaChangeRequest)
+        .filter(
+            AppSchemaChangeRequest.id == change_id,
+            AppSchemaChangeRequest.public_id == app.public_id,
+        )
+        .first()
+    )
+    if not row:
+        raise HTTPException(status_code=404, detail="变更单不存在")
+    if row.status != "pending":
+        raise HTTPException(status_code=400, detail=f"状态为 {row.status}，无法驳回")
+
+    row.status = "rejected"
+    row.reviewer_id = user.id
+    row.reviewer_name = _editor_name(user)
+    row.review_comment = (comment or "已驳回")[:500]
+    row.reviewed_at = datetime.now(timezone.utc)
+    row.updated_at = row.reviewed_at
+    db.commit()
+    db.refresh(row)
+
+    try:
+        from app.services.notification_service import create_notification
+
+        create_notification(
+            db,
+            tenant_id=app.tenant_id,
+            title=f"改页已驳回 · {app.name or app.public_id}",
+            content=f"管理员 {row.reviewer_name} 驳回：{row.review_comment}",
+            type="schema_change",
+            recipient_user_id=row.author_id,
+            reference_id=row.id,
+        )
+    except Exception:
+        pass
+
+    return {"success": True, "change": _row_to_dict(row), **schema_meta(app)}
+
+
+def cancel_change(
+    db: Session,
+    app: AppRecord,
+    *,
+    user: User,
+    change_id: str,
+) -> dict[str, Any]:
+    row = (
+        db.query(AppSchemaChangeRequest)
+        .filter(
+            AppSchemaChangeRequest.id == change_id,
+            AppSchemaChangeRequest.public_id == app.public_id,
+        )
+        .first()
+    )
+    if not row:
+        raise HTTPException(status_code=404, detail="变更单不存在")
+    if row.author_id != user.id and not _is_admin(user):
+        raise HTTPException(status_code=403, detail="只能取消自己的变更")
+    if row.status not in {"draft", "pending", "rejected"}:
+        raise HTTPException(status_code=400, detail=f"状态为 {row.status}，无法取消")
+    row.status = "cancelled"
+    row.updated_at = datetime.now(timezone.utc)
+    db.commit()
+    db.refresh(row)
+    return {"success": True, "change": _row_to_dict(row), **schema_meta(app)}

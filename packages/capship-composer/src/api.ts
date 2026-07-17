@@ -107,6 +107,7 @@ export async function patchRuntimeSchema(
     baseRev?: number | null
     force?: boolean
     source?: string
+    directPublish?: boolean
   },
 ): Promise<{
   success: boolean
@@ -123,7 +124,111 @@ export async function patchRuntimeSchema(
       base_rev: opts?.baseRev ?? null,
       force: opts?.force ?? false,
       source: opts?.source ?? 'compose',
+      direct_publish: opts?.directPublish ?? true,
     }),
+  })
+  if (!res.ok) await parsePatchError(res)
+  return res.json()
+}
+
+export type SchemaChangeItem = {
+  id: string
+  public_id: string
+  status: 'draft' | 'pending' | 'approved' | 'rejected' | 'cancelled' | string
+  base_rev: number
+  page_schema?: ComposerPageSchema | null
+  capability_keys?: string[]
+  summary: string
+  author_id: string
+  author_name: string
+  reviewer_id?: string | null
+  reviewer_name?: string
+  review_comment?: string
+  published_rev?: number | null
+  created_at?: string | null
+  updated_at?: string | null
+  submitted_at?: string | null
+  reviewed_at?: string | null
+}
+
+export async function upsertSchemaChangeDraft(
+  appId: string,
+  body: { page_schema: ComposerPageSchema; summary?: string; change_id?: string },
+  opts?: { token?: string | null },
+): Promise<{ success: boolean; change: SchemaChangeItem; schema_rev: number }> {
+  const res = await fetch(`/api/v1/runtime/${appId}/schema/changes`, {
+    method: 'POST',
+    headers: authHeaders(opts?.token),
+    body: JSON.stringify(body),
+  })
+  if (!res.ok) await parsePatchError(res)
+  return res.json()
+}
+
+export async function submitSchemaChange(
+  appId: string,
+  body: { change_id?: string; page_schema?: ComposerPageSchema; summary?: string },
+  opts?: { token?: string | null },
+): Promise<{ success: boolean; change: SchemaChangeItem; schema_rev: number }> {
+  const res = await fetch(`/api/v1/runtime/${appId}/schema/changes/submit`, {
+    method: 'POST',
+    headers: authHeaders(opts?.token),
+    body: JSON.stringify(body),
+  })
+  if (!res.ok) await parsePatchError(res)
+  return res.json()
+}
+
+export async function listSchemaChanges(
+  appId: string,
+  opts?: { token?: string | null; status?: string; limit?: number },
+): Promise<{
+  public_id: string
+  is_admin: boolean
+  items: SchemaChangeItem[]
+  schema_rev: number
+}> {
+  const q = new URLSearchParams()
+  if (opts?.status) q.set('status', opts.status)
+  if (opts?.limit) q.set('limit', String(opts.limit))
+  const qs = q.toString() ? `?${q}` : ''
+  const res = await fetch(`/api/v1/runtime/${appId}/schema/changes${qs}`, {
+    headers: authHeaders(opts?.token),
+  })
+  if (!res.ok) throw new Error(`拉取变更单失败 (${res.status})`)
+  return res.json()
+}
+
+export async function approveSchemaChange(
+  appId: string,
+  changeId: string,
+  body?: { comment?: string; force?: boolean },
+  opts?: { token?: string | null },
+): Promise<{
+  success: boolean
+  change: SchemaChangeItem
+  page_schema?: ComposerPageSchema
+  schema_rev: number
+}> {
+  const res = await fetch(`/api/v1/runtime/${appId}/schema/changes/${changeId}/approve`, {
+    method: 'POST',
+    headers: authHeaders(opts?.token),
+    body: JSON.stringify(body || {}),
+  })
+  if (!res.ok) await parsePatchError(res)
+  return res.json()
+}
+
+export async function rejectSchemaChange(
+  appId: string,
+  changeId: string,
+  body?: { comment?: string },
+  opts?: { token?: string | null },
+): Promise<{ success: boolean; change: SchemaChangeItem; schema_rev: number }> {
+  const res = await fetch(`/api/v1/runtime/${appId}/schema/changes/${changeId}/reject`, {
+    method: 'POST',
+    headers: authHeaders(opts?.token),
+    body: JSON.stringify(body || {}),
   })
   if (!res.ok) await parsePatchError(res)
   return res.json()
