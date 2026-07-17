@@ -305,6 +305,41 @@ label { display: block; margin-bottom: 12px; font-size: 13px; }
 }
 .booking-float-skip { font-size: 12px; }
 
+/* Soft · 柔和分区（Gtgt 步进默认壳） */
+.bh-gtgt-form.bh-gtgt-soft,
+.bh-gtgt-soft.booking-float-composer {
+  padding: 16px 18px 18px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #fff 0%, #f8fafc 100%);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+}
+.bh-gtgt-soft .bh-flow-head h3 {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.bh-gtgt-soft .bh-flow-meta {
+  font-size: 12px;
+  color: #64748b;
+}
+.bh-gtgt-soft .bh-gtgt-row.booking-float-input-row,
+.bh-gtgt-soft .booking-float-input-row {
+  background: #f1f5f9;
+  border-color: transparent;
+  box-shadow: none;
+}
+.bh-gtgt-soft .bh-gtgt-hint {
+  color: #64748b;
+  line-height: 1.5;
+}
+.bh-gtgt-soft .bh-gtgt-go.booking-float-go,
+.bh-gtgt-soft .booking-float-go {
+  background: linear-gradient(135deg, var(--accent, #4338ca), color-mix(in srgb, var(--accent, #4338ca) 70%, #7c3aed));
+  border: none;
+  color: #fff;
+}
+
 .chat-messages { max-height: 360px; overflow-y: auto; margin-bottom: 12px; }
 .chat-bubble { padding: 10px 12px; border-radius: 10px; margin-bottom: 8px; background: #f1f5f9; }
 .chat-bubble.chat-user { background: #eef2ff; }

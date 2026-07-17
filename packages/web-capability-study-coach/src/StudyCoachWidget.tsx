@@ -101,9 +101,9 @@ export function StudyCoachWidget(_props: { node: SchemaNode }) {
     () => [
       {
         key: 'query',
-        label: '你在学哪本课本？',
-        placeholder: '例如：沪教英语二年级下 / 人教版语文三年级上',
-        hint: '口语说即可，不用自己拆出版社、学制、年级',
+        label: '课本怎么叫？',
+        placeholder: '例：沪教版英语二年级下 / 人教语文三上 / 牛津英语 6A',
+        hint: '随便说书名、出版社、年级、上下册都行。我们会帮你对齐正式册次，再生成 Module / Unit 大纲。',
       },
     ],
     [],
@@ -111,16 +111,30 @@ export function StudyCoachWidget(_props: { node: SchemaNode }) {
 
   const drillSteps: GtgtStep[] = useMemo(() => {
     const unitChoices = (activeCourse?.plan || []).map((u) => u.unit_name)
+    const kind = drillValues.kind || 'dictation'
+    const kindHint =
+      kind === 'dictation'
+        ? '家默/听写：写下本次默写范围、对了几个、错词清单（如：apple→aple）。家长也可代记。'
+        : kind === 'review'
+          ? '复习：写下薄弱点或「已过一遍 Unit X」。可附错题页码，方便下次盯。'
+          : '考试：写下测验名称、得分或等第（如：单元测 92 / 口试 B）。可选写错题单元。'
+    const notesPh =
+      kind === 'dictation'
+        ? '例：听写 20 词，对 17；错：friend / because'
+        : kind === 'review'
+          ? '例：复习 Unit3 过去式，不规则动词仍不熟'
+          : '例：Unit4 单元测 88 分；阅读丢 2 题'
     return [
       {
         key: 'kind',
-        label: '记一次跟进',
+        label: '这次记什么？',
+        hint: '家默=听写默写 · 复习=过单元巩固 · 考试=测验成绩。点选后下一步选对应单元。',
         render: ({ value, setValue, accent: a }) => (
-          <div className="row-actions">
+          <div className="row-actions" style={{ flexWrap: 'wrap' }}>
             {([
-              ['dictation', '家默'],
-              ['review', '复习'],
-              ['exam', '考试'],
+              ['dictation', '家默 / 听写'],
+              ['review', '复习巩固'],
+              ['exam', '考试成绩'],
             ] as const).map(([k, lab]) => (
               <button
                 key={k}
@@ -137,8 +151,11 @@ export function StudyCoachWidget(_props: { node: SchemaNode }) {
       },
       {
         key: 'unit_name',
-        label: '对应单元',
-        placeholder: unitChoices[0] || '第一单元',
+        label: '对应哪个单元？',
+        placeholder: unitChoices[0] || '第一单元 / Module 1',
+        hint: unitChoices.length
+          ? '点选大纲里的单元；有「家默提示」的会自动填到下一步备注。'
+          : '还没有大纲单元时，可手填如「Unit 2 · My family」。',
         render: unitChoices.length
           ? ({ value, setValue, accent: a }) => (
               <div className="row-actions" style={{ flexWrap: 'wrap' }}>
@@ -169,12 +186,14 @@ export function StudyCoachWidget(_props: { node: SchemaNode }) {
       },
       {
         key: 'notes',
-        label: '结果备注（可空）',
-        placeholder: '得分、错词、薄弱点…',
+        label: kind === 'exam' ? '得分与错题（可空）' : kind === 'review' ? '复习小结（可空）' : '家默结果（可空）',
+        placeholder: notesPh,
+        hint: kindHint,
         optional: true,
+        inputType: 'textarea',
       },
     ]
-  }, [activeCourse?.plan])
+  }, [activeCourse?.plan, drillValues.kind])
 
   const load = useCallback(async () => {
     if (!token) {
@@ -332,9 +351,10 @@ export function StudyCoachWidget(_props: { node: SchemaNode }) {
       {phase === 'ask' && (showAsk || courses.length === 0) && (
         <GtgtStepComposer
           title={entrySource === 'im' ? '课本学习协作' : '课本学习'}
-          meta={entrySource === 'im' ? '群消息入口' : '说书名即可'}
+          meta={entrySource === 'im' ? '群消息入口 · Soft 步进' : '学生入口 · Soft 步进'}
           accent={accent}
-          flowHint="一句话书名 → 确认册次 → 生成规划 / 进度 / 家默"
+          variant="soft"
+          flowHint="说书名 → 确认册次 → 生成大纲 → 再记家默 / 复习 / 考试"
           steps={askSteps}
           values={queryValues}
           onChange={(k, v) => setQueryValues((p) => ({ ...p, [k]: v }))}
@@ -358,7 +378,8 @@ export function StudyCoachWidget(_props: { node: SchemaNode }) {
             <span className="tag">根据「{lastQuery}」定位</span>
           </div>
           <p className="muted" style={{ margin: '8px 0 12px', fontSize: 13 }}>
-            点选正确册次后，再生成 Module / Unit 学习大纲
+            根据你说的「{lastQuery}」找到这些册次。点选正确的一本后，会生成 Module / Unit 学习大纲，
+            之后就能按单元记家默、复习和考试。
           </p>
           <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 8 }}>
             {candidates.map((c, i) => (
@@ -398,7 +419,9 @@ export function StudyCoachWidget(_props: { node: SchemaNode }) {
       <h4 style={{ margin: '16px 0 8px', fontSize: 14 }}>我的课本</h4>
       {loading && <p className="muted">加载中…</p>}
       {!loading && courses.length === 0 && phase === 'ask' && (
-        <p className="muted">先说课本名，确认册次后会生成真实学习大纲</p>
+        <p className="muted">
+          先说课本名（出版社 + 科目 + 年级 + 上下册更准）。确认册次后会生成真实学习大纲，再用来记家默、复习与考试。
+        </p>
       )}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
         {courses.map((c) => (
@@ -474,10 +497,11 @@ export function StudyCoachWidget(_props: { node: SchemaNode }) {
           </div>
 
           <GtgtStepComposer
-            title="复习 / 家默 / 考试"
-            meta={activeCourse.textbook_name}
+            title="记一次学习跟进"
+            meta={`${activeCourse.textbook_name} · 家默 / 复习 / 考试`}
             accent={accent}
-            flowHint="选类型 → 选单元 → 可选写一句结果"
+            variant="soft"
+            flowHint="选类型 → 选单元 → 写一句结果（可跳过）→ 写入真库"
             steps={drillSteps}
             values={{
               kind: drillValues.kind || 'dictation',

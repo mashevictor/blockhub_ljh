@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CapShip · 通用表单模板（日期选择器 + 分类样式）</title>
+  <style>
+    :root {
+      --bg: #f4f6f9;
+      --surface: #fff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --line: #e2e8f0;
+      --pri: #0d47a1;
+      --pri-soft: #e8f1fc;
+      --ok: #047857;
+      --warn: #b45309;
+      --accent: #0f766e;
+      --radius: 12px;
+      --font: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      --mono: ui-monospace, "Cascadia Code", Consolas, monospace;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+    }
+    .wrap { max-width: 1120px; margin: 0 auto; padding: 28px 18px 96px; }
+    header.hero {
+      background: linear-gradient(145deg, #0d47a1 0%, #0f766e 100%);
+      color: #fff;
+      border-radius: 16px;
+      padding: 28px 28px 22px;
+      margin-bottom: 22px;
+    }
+    header.hero h1 { margin: 0 0 8px; font-size: 1.55rem; letter-spacing: -0.02em; }
+    header.hero p { margin: 0; opacity: 0.92; max-width: 52rem; }
+    header.hero code {
+      background: rgba(255,255,255,.16);
+      padding: 1px 6px;
+      border-radius: 6px;
+      font-family: var(--mono);
+      font-size: 0.85em;
+    }
+    .toc {
+      display: flex; flex-wrap: wrap; gap: 8px;
+      margin: 0 0 28px;
+    }
+    .toc a {
+      text-decoration: none;
+      color: var(--pri);
+      background: var(--surface);
+      border: 1px solid var(--line);
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .toc a:hover { border-color: var(--pri); background: var(--pri-soft); }
+    section.cat {
+      margin-bottom: 36px;
+    }
+    section.cat > h2 {
+      margin: 0 0 6px;
+      font-size: 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    section.cat > h2 .badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: var(--pri-soft);
+      color: var(--pri);
+    }
+    section.cat > .lead {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 16px;
+    }
+    /* —— 模板壳：4 种通用样式 —— */
+    .tpl {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      min-height: 100%;
+    }
+    .tpl-head {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 8px;
+    }
+    .tpl-head strong { font-size: 14px; }
+    .tpl-head span {
+      font-size: 11px;
+      color: var(--muted);
+      font-family: var(--mono);
+    }
+    .tpl-body { padding: 16px; flex: 1; }
+    .tpl-foot {
+      padding: 12px 16px;
+      border-top: 1px solid var(--line);
+      background: #fafbfc;
+    }
+    .field { margin-bottom: 12px; }
+    .field:last-child { margin-bottom: 0; }
+    .field label {
+      display: block;
+      font-size: 12px;
+      font-weight: 650;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    .field input,
+    .field textarea,
+    .field select {
+      width: 100%;
+      font: inherit;
+      font-size: 14px;
+      color: var(--text);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 9px 11px;
+      background: #fff;
+    }
+    .field input[type="date"],
+    .field input[type="datetime-local"],
+    .field input[type="number"] {
+      min-height: 40px;
+    }
+    .field input:focus,
+    .field textarea:focus,
+    .field select:focus {
+      outline: 2px solid color-mix(in srgb, var(--pri) 35%, transparent);
+      border-color: var(--pri);
+    }
+    .field textarea { min-height: 72px; resize: vertical; }
+    .hint { font-size: 11px; color: var(--muted); margin-top: 4px; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      border: none;
+      border-radius: 9px;
+      padding: 10px 16px;
+      font: inherit;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      background: var(--pri);
+      color: #fff;
+      width: 100%;
+    }
+    .btn:hover { filter: brightness(1.06); }
+    .btn.secondary { background: #fff; color: var(--pri); border: 1px solid var(--line); }
+    .row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    @media (max-width: 520px) {
+      .row-2 { grid-template-columns: 1fr; }
+    }
+
+    /* A · Classic 双栏卡片 */
+    .tpl.classic .tpl-head { background: #fff; }
+    .tpl.classic .btn { background: var(--pri); }
+
+    /* B · Compact 紧凑列表 */
+    .tpl.compact .tpl-body { padding: 12px 14px; }
+    .tpl.compact .field { margin-bottom: 8px; }
+    .tpl.compact .field label { font-size: 11px; }
+    .tpl.compact .field input,
+    .tpl.compact .field textarea,
+    .tpl.compact .field select {
+      padding: 7px 9px;
+      border-radius: 6px;
+      font-size: 13px;
+    }
+    .tpl.compact .btn { padding: 8px 12px; font-size: 13px; border-radius: 7px; }
+
+    /* C · Gtgt 步进（>> 单字段） */
+    .tpl.gtgt {
+      border-color: color-mix(in srgb, var(--accent) 35%, var(--line));
+    }
+    .tpl.gtgt .tpl-head {
+      background: color-mix(in srgb, var(--accent) 8%, #fff);
+    }
+    .gtgt-progress {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .gtgt-dots { display: flex; gap: 4px; list-style: none; margin: 0; padding: 0; }
+    .gtgt-dots li {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--line);
+    }
+    .gtgt-dots li.on { background: var(--accent); }
+    .gtgt-dots li.done { background: color-mix(in srgb, var(--accent) 45%, #fff); }
+    .gtgt-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      padding: 10px 12px;
+      border: 1px dashed color-mix(in srgb, var(--accent) 40%, var(--line));
+      border-radius: 10px;
+      background: #f8fffc;
+    }
+    .gtgt-prefix {
+      font-weight: 800;
+      color: var(--accent);
+      font-family: var(--mono);
+      font-size: 13px;
+      white-space: nowrap;
+    }
+    .gtgt-row input {
+      flex: 1;
+      min-width: 140px;
+      border: none;
+      background: transparent;
+      padding: 6px 0;
+      font-size: 15px;
+    }
+    .gtgt-row input:focus { outline: none; }
+    .gtgt-row .btn {
+      width: auto;
+      background: var(--accent);
+      padding: 8px 14px;
+    }
+
+    /* D · Soft panel 柔和分区 */
+    .tpl.soft {
+      background: linear-gradient(180deg, #fff 0%, #f8fafc 100%);
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+    }
+    .tpl.soft .tpl-head {
+      border: none;
+      padding-bottom: 0;
+    }
+    .tpl.soft .tpl-body { padding-top: 8px; }
+    .tpl.soft .field label {
+      color: var(--text);
+      font-size: 13px;
+    }
+    .tpl.soft .field input,
+    .tpl.soft .field textarea {
+      background: #f1f5f9;
+      border-color: transparent;
+    }
+    .tpl.soft .btn {
+      background: linear-gradient(135deg, var(--pri), var(--accent));
+    }
+
+    .legend {
+      margin-top: 40px;
+      padding: 18px 20px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      font-size: 13px;
+    }
+    .legend h3 { margin: 0 0 10px; font-size: 15px; }
+    .legend ul { margin: 0; padding-left: 1.2em; color: var(--muted); }
+    .legend li { margin-bottom: 4px; }
+    .legend code { font-family: var(--mono); font-size: 12px; background: #f1f5f9; padding: 1px 5px; border-radius: 4px; }
+    footer {
+      margin-top: 24px;
+      font-size: 12px;
+      color: var(--muted);
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="hero">
+      <h1>CapShip 通用表单模板</h1>
+      <p>
+        按<strong>业务分类</strong>整理可复用表单结构；凡含「日期 / 时间」的字段一律使用原生
+        <code>date</code> / <code>datetime-local</code> 选择器（禁止纯文本冒充日期）。
+        右侧标注 4 种通用视觉壳：Classic · Compact · Gtgt 步进 · Soft。<br />
+        <strong>Runtime 默认</strong>：Gtgt 步进 + Soft（单字段 <code>&gt;&gt;</code> 推进，柔和分区底）。
+      </p>
+    </header>
+
+    <nav class="toc" aria-label="分类导航">
+      <a href="#leave">人事 · 请假出差</a>
+      <a href="#expense">财务 · 报销经费</a>
+      <a href="#booking">协作 · 会议预约</a>
+      <a href="#ticket">运维 · 报修工单</a>
+      <a href="#hr">人事 · 入职用印</a>
+      <a href="#styles">样式壳对照</a>
+      <a href="#contract">字段契约</a>
+    </nav>
+
+    <!-- ========== 请假 ========== -->
+    <section class="cat" id="leave">
+      <h2>人事 · 请假 / 出差 / 加班 <span class="badge">date 必填</span></h2>
+      <p class="lead">起止必须拆成两个日期（或时间）字段，对应 API <code>start_at</code> / <code>end_at</code>。</p>
+      <div class="grid">
+        <article class="tpl classic">
+          <div class="tpl-head"><strong>请假申请</strong><span>classic</span></div>
+          <div class="tpl-body">
+            <div class="field">
+              <label>请假类型</label>
+              <select><option>年假</option><option>事假</option><option>病假</option><option>调休</option></select>
+            </div>
+            <div class="row-2">
+              <div class="field">
+                <label>开始日期</label>
+                <input type="date" name="start_at" required />
+              </div>
+              <div class="field">
+                <label>结束日期</label>
+                <input type="date" name="end_at" required />
+              </div>
+            </div>
+            <div class="field">
+              <label>事由</label>
+              <textarea name="note" placeholder="可空"></textarea>
+            </div>
+          </div>
+          <div class="tpl-foot"><button type="button" class="btn">提交请假</button></div>
+        </article>
+
+        <article class="tpl soft">
+          <div class="tpl-head"><strong>加班申请</strong><span>soft · datetime</span></div>
+          <div class="tpl-body">
+            <div class="field">
+              <label>开始时间</label>
+              <input type="datetime-local" name="start_at" required />
+            </div>
+            <div class="field">
+              <label>结束时间</label>
+              <input type="datetime-local" name="end_at" required />
+            </div>
+            <div class="field">
+              <label>加班事由</label>
+              <textarea name="note" rows="2"></textarea>
+            </div>
+          </div>
+          <div class="tpl-foot"><button type="button" class="btn">提交加班</button></div>
+        </article>
+
+        <article class="tpl gtgt" data-gtgt>
+          <div class="tpl-head"><strong>出差 · &gt;&gt; 步进</strong><span>gtgt</span></div>
+          <div class="tpl-body">
+            <div class="gtgt-progress">
+              <span>1/4</span>
+              <ol class="gtgt-dots" aria-hidden><li class="on"></li><li></li><li></li><li></li></ol>
+            </div>
+            <div class="gtgt-row">
+              <span class="gtgt-prefix">&gt;&gt; 出发日期</span>
+              <input type="date" name="start_at" aria-label="出发日期" />
+              <button type="button" class="btn gtgt-next">确认</button>
+            </div>
+            <p class="hint">Enter / 确认推进下一字段；日期用系统日历选择，禁止手打模糊文案。</p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ========== 报销 ========== -->
+    <section class="cat" id="expense">
+      <h2>财务 · 报销 / 团建经费 / 借款 <span class="badge">number + date</span></h2>
+      <p class="lead">金额用 <code>number</code>；归还日 / 活动日用 <code>date</code>。</p>
+      <div class="grid">
+        <article class="tpl classic">
+          <div class="tpl-head"><strong>费用报销</strong><span>classic</span></div>
+          <div class="tpl-body">
+            <div class="field">
+              <label>标题</label>
+              <input type="text" name="title" placeholder="差旅 / 办公…" />
+            </div>
+            <div class="row-2">
+              <div class="field">
+                <label>金额（元）</label>
+                <input type="number" name="amount" min="0" step="0.01" placeholder="1280" />
+              </div>
+              <div class="field">
+                <label>发生日期</label>
+                <input type="date" name="occurred_at" />
+              </div>
+            </div>
+            <div class="field">
+              <label>说明</label>
+              <textarea name="note"></textarea>
+            </div>
+          </div>
+          <div class="tpl-foot"><button type="button" class="btn">提交报销</button></div>
+        </article>
+
+        <article class="tpl compact">
+          <div class="tpl-head"><strong>团建经费</strong><span>compact</span></div>
+          <div class="tpl-body">
+            <div class="field">
+              <label>活动名称</label>
+              <input type="text" name="title" />
+            </div>
+            <div class="field">
+              <label>预算金额</label>
+              <input type="number" name="amount" min="0" />
+            </div>
+            <div class="field">
+              <label>活动日期</label>
+              <input type="date" name="event_date" />
+            </div>
+            <div class="field">
+              <label>说明</label>
+              <textarea name="note" rows="2"></textarea>
+            </div>
+          </div>
+          <div class="tpl-foot"><button type="button" class="btn">提交审批</button></div>
+        </article>
+
+        <article class="tpl soft">
+          <div class="tpl-head"><strong>借款申请</strong><span>soft</span></div>
+          <div class="tpl-body">
+            <div class="field">
+              <label>借款金额</label>
+              <input type="number" name="amount" min="0" />
+            </div>
+            <div class="field">
+              <label>预计归还日</label>
+              <input type="date" name="due_date" required />
+            </div>
+            <div class="field">
+              <label>用途</label>
+              <textarea name="note"></textarea>
+            </div>
+          </div>
+          <div class="tpl-foot"><button type="button" class="btn">提交借款</button></div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ========== 会议 ========== -->
+    <section class="cat" id="booking">
+      <h2>协作 · 会议室预约 <span class="badge">datetime-local</span></h2>
+      <p class="lead">预约类起止用 <code>datetime-local</code>，避免只有「时段」文本框。</p>
+      <div class="grid">
+        <article class="tpl classic">
+          <div class="tpl-head"><strong>会议室预约</strong><span>classic</span></div>
+          <div class="tpl-body">
+            <div class="field">
+              <label>会议室</label>
+              <input type="text" name="room_name" placeholder="A301" />
+            </div>
+            <div class="field">
+              <label>会议主题</label>
+              <input type="text" name="title" />
+            </div>
+            <div class="row-2">
+              <div class="field">
+                <label>开始时间</label>
+                <input type="datetime-local" name="start_at" required />
+              </div>
+              <div class="field">
+                <label>结束时间</label>
+                <input type="datetime-local" name="end_at" required />
+              </div>
+            </div>
+          </div>
+          <div class="tpl-foot"><button type="button" class="btn">提交预约</button></div>
+        </article>
+
+        <article class="tpl gtgt" data-gtgt>
+          <div class="tpl-head"><strong>预约 · &gt;&gt; 步进</strong><span>gtgt</span></div>
+          <div class="tpl-body">
+            <div class="gtgt-progress">
+              <span>2/4</span>
+              <ol class="gtgt-dots"><li class="done"></li><li class="on"></li><li></li><li></li></ol>
+            </div>
+            <div class="gtgt-row">
+              <span class="gtgt-prefix">&gt;&gt; 开始时间</span>
+              <input type="datetime-local" name="start_at" />
+              <button type="button" class="btn">确认</button>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ========== 报修 ========== -->
+    <section class="cat" id="ticket">
+      <h2>运维 · 设备报修 / IT 工单 <span class="badge">textarea</span></h2>
+      <p class="lead">现象类字段用多行；若有「期望修复日」仍用 date。</p>
+      <div class="grid">
+        <article class="tpl classic">
+          <div class="tpl-head"><strong>设备报修</strong><span>classic</span></div>
+          <div class="tpl-body">
+            <div class="field">
+              <label>设备 / 产线</label>
+              <input type="text" name="asset_code" placeholder="A3 冲压线 · 工位 07" />
+            </div>
+            <div class="field">
+              <label>位置</label>
+              <input type="text" name="location" />
+            </div>
+            <div class="field">
+              <label>故障现象</label>
+              <textarea name="fault" required></textarea>
+            </div>
+            <div class="field">
+              <label>期望修复日</label>
+              <input type="date" name="due_date" />
+            </div>
+          </div>
+          <div class="tpl-foot"><button type="button" class="btn">提交并派工</button></div>
+        </article>
+
+        <article class="tpl compact">
+          <div class="tpl-head"><strong>IT 报障</strong><span>compact</span></div>
+          <div class="tpl-body">
+            <div class="field">
+              <label>标题</label>
+              <input type="text" name="title" />
+            </div>
+            <div class="field">
+              <label>故障描述</label>
+              <textarea name="fault" rows="3"></textarea>
+            </div>
+            <div class="field">
+              <label>紧急程度</label>
+              <select name="priority"><option>高</option><option>中</option><option>低</option></select>
+            </div>
+          </div>
+          <div class="tpl-foot"><button type="button" class="btn">提交工单</button></div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ========== 入职用印 ========== -->
+    <section class="cat" id="hr">
+      <h2>人事 · 入职 / 用印 <span class="badge">date</span></h2>
+      <div class="grid">
+        <article class="tpl soft">
+          <div class="tpl-head"><strong>入职办理</strong><span>soft</span></div>
+          <div class="tpl-body">
+            <div class="field">
+              <label>候选人</label>
+              <input type="text" name="candidate" />
+            </div>
+            <div class="field">
+              <label>入职日期</label>
+              <input type="date" name="join_date" required />
+            </div>
+            <div class="field">
+              <label>岗位</label>
+              <input type="text" name="role" />
+            </div>
+          </div>
+          <div class="tpl-foot"><button type="button" class="btn">提交办理</button></div>
+        </article>
+
+        <article class="tpl classic">
+          <div class="tpl-head"><strong>用印申请</strong><span>classic</span></div>
+          <div class="tpl-body">
+            <div class="field">
+              <label>印章类型</label>
+              <input type="text" name="seal_type" placeholder="公章 / 合同章" />
+            </div>
+            <div class="field">
+              <label>文件名称</label>
+              <input type="text" name="doc_name" />
+            </div>
+            <div class="field">
+              <label>用印日期</label>
+              <input type="date" name="seal_date" />
+            </div>
+            <div class="field">
+              <label>用途说明</label>
+              <textarea name="purpose"></textarea>
+            </div>
+          </div>
+          <div class="tpl-foot"><button type="button" class="btn">提交用印</button></div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ========== 样式壳对照 ========== -->
+    <section class="cat" id="styles">
+      <h2>四种通用样式壳 <span class="badge">视觉</span></h2>
+      <p class="lead">同一「通用审批」字段，切换壳即可；业务分类复用字段契约，不绑死某一视觉。</p>
+      <div class="grid">
+        <article class="tpl classic">
+          <div class="tpl-head"><strong>A · Classic</strong><span>默认双栏</span></div>
+          <div class="tpl-body">
+            <div class="field"><label>事项标题</label><input type="text" /></div>
+            <div class="field"><label>期望完成日</label><input type="date" /></div>
+            <div class="field"><label>说明</label><textarea rows="2"></textarea></div>
+          </div>
+          <div class="tpl-foot"><button type="button" class="btn">提交</button></div>
+        </article>
+        <article class="tpl compact">
+          <div class="tpl-head"><strong>B · Compact</strong><span>列表密度</span></div>
+          <div class="tpl-body">
+            <div class="field"><label>事项标题</label><input type="text" /></div>
+            <div class="field"><label>期望完成日</label><input type="date" /></div>
+            <div class="field"><label>说明</label><textarea rows="2"></textarea></div>
+          </div>
+          <div class="tpl-foot"><button type="button" class="btn">提交</button></div>
+        </article>
+        <article class="tpl gtgt">
+          <div class="tpl-head"><strong>C · Gtgt 步进</strong><span>&gt;&gt; 单字段</span></div>
+          <div class="tpl-body">
+            <div class="gtgt-progress"><span>1/3</span><ol class="gtgt-dots"><li class="on"></li><li></li><li></li></ol></div>
+            <div class="gtgt-row">
+              <span class="gtgt-prefix">&gt;&gt; 期望完成日</span>
+              <input type="date" />
+              <button type="button" class="btn">确认</button>
+            </div>
+          </div>
+        </article>
+        <article class="tpl soft">
+          <div class="tpl-head"><strong>D · Soft</strong><span>柔和分区</span></div>
+          <div class="tpl-body">
+            <div class="field"><label>事项标题</label><input type="text" /></div>
+            <div class="field"><label>期望完成日</label><input type="date" /></div>
+            <div class="field"><label>说明</label><textarea rows="2"></textarea></div>
+          </div>
+          <div class="tpl-foot"><button type="button" class="btn">提交</button></div>
+        </article>
+      </div>
+    </section>
+
+    <aside class="legend" id="contract">
+      <h3>字段契约（与 Runtime / compose-edit 对齐）</h3>
+      <ul>
+        <li>标签含「日期 / 归还日 / 入职 / 截止…」→ <code>type: "date"</code> → 原生日历</li>
+        <li>标签含「时间 / 时段」→ <code>type: "datetime-local"</code></li>
+        <li>金额 / 数量 → <code>number</code>；事由 / 说明 / 现象 → <code>textarea</code></li>
+        <li>禁止用一个「起止时间」文本框；应拆 <code>start_at</code> + <code>end_at</code></li>
+        <li>实现落点：<code>packages/web-core/src/resolveFormSteps.ts</code>（标签推断）、
+          <code>compose_edit._intent_page_mock</code>（生成带 type 的 fields）、
+          <code>GtgtStepComposer</code>（消费 <code>inputType</code>）</li>
+      </ul>
+    </aside>
+
+    <footer>BlockHub CapShip · form-templates.html · 本地打开即可预览选择器</footer>
+  </div>
+
+  <script>
+    // 演示：Gtgt 卡片点「确认」推进进度点（仅 UI）
+    document.querySelectorAll('[data-gtgt] .gtgt-next, [data-gtgt] .gtgt-row .btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const root = btn.closest('[data-gtgt]')
+        const dots = root.querySelectorAll('.gtgt-dots li')
+        const on = root.querySelector('.gtgt-dots li.on')
+        if (!on) return
+        on.classList.remove('on')
+        on.classList.add('done')
+        const next = on.nextElementSibling
+        if (next) next.classList.add('on')
+        const prog = root.querySelector('.gtgt-progress span')
+        if (prog && next) {
+          const i = [...dots].indexOf(next) + 1
+          prog.textContent = i + '/' + dots.length
+        }
+      })
+    })
+  </script>
+</body>
+</html>

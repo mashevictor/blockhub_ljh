@@ -29,12 +29,15 @@ type Props = {
   /** 流程提示文案，如「录入 → 推送 → 闭环」 */
   flowHint?: string
   resetKey?: string | number
+  /** Soft：柔和分区底 + 浅灰输入区（Runtime 默认） */
+  variant?: 'default' | 'soft'
   children?: ReactNode
 }
 
 /**
  * 预约演示同款：单字段 >> 前缀 + Enter 确认推进，最后一步提交。
  * 视觉类名对齐 home BookingFloatingAgent（bh-gtgt / booking-float 双类）。
+ * Runtime 默认 Soft 壳。
  */
 export function GtgtStepComposer({
   title,
@@ -48,6 +51,7 @@ export function GtgtStepComposer({
   submitLabel = '提交',
   flowHint,
   resetKey,
+  variant = 'soft',
   children,
 }: Props) {
   const [step, setStep] = useState(0)
@@ -86,7 +90,7 @@ export function GtgtStepComposer({
 
   return (
     <div
-      className="widget bh-gtgt-form booking-float-composer"
+      className={`widget bh-gtgt-form booking-float-composer${variant === 'soft' ? ' bh-gtgt-soft' : ''}`}
       style={{ ['--accent' as string]: accent, ['--bh-gtgt-accent' as string]: accent }}
     >
       <div className="bh-flow-head">
@@ -158,7 +162,7 @@ export function GtgtStepComposer({
         </button>
       </div>
 
-      {current.hint && !current.render ? <p className="bh-gtgt-hint muted">{current.hint}</p> : null}
+      {current.hint ? <p className="bh-gtgt-hint muted">{current.hint}</p> : null}
       <div className="bh-gtgt-actions">
         {current.optional && (
           <button type="button" className="btn btn-ghost booking-float-skip" disabled={busy} onClick={() => void advance()}>

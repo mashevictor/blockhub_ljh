@@ -19,7 +19,14 @@ export type ScenePageKind =
 
 export interface ScenePageMock {
   form_title?: string
-  fields?: Array<{ key?: string; label: string; value?: string; type?: string }>
+  fields?: Array<{
+    key?: string
+    label: string
+    value?: string
+    type?: string
+    placeholder?: string
+    optional?: boolean
+  }>
   list_title?: string
   list?: Array<{ id: string; title: string; status: string }>
   chat_title?: string
@@ -68,6 +75,17 @@ export const MFG_RUNTIME_PREVIEW: IndustryRuntimePackPreview = {
       standard: '✓',
       kind: 'repair',
       capabilityHint: 'device_repair',
+      pageMock: {
+        form_title: '设备报修',
+        fields: [
+          { key: 'asset_code', label: '设备 / 产线', placeholder: 'A3 冲压线 · 工位 07' },
+          { key: 'location', label: '位置', placeholder: '车间 / 工位', optional: true },
+          { key: 'fault', label: '故障现象', type: 'textarea', placeholder: '异响、停机、压力波动…' },
+        ],
+        list_title: '在办工单',
+        list: [],
+        primary_action: '提交并派工',
+      },
     },
     {
       id: 's2',
@@ -78,6 +96,13 @@ export const MFG_RUNTIME_PREVIEW: IndustryRuntimePackPreview = {
       standard: '✓',
       kind: 'chat_kb',
       capabilityHint: 'chat_qa + kb_document',
+      pageMock: {
+        chat_title: '工艺问答',
+        chat: [{ role: 'bot', text: '可就换模、压力参数等提问；空库无文档时仅作引导。' }],
+        files_title: '作业指导书',
+        files: ['SOP-冲压换模-08.pdf'],
+        primary_action: '发送',
+      },
     },
     {
       id: 's3',
@@ -88,6 +113,15 @@ export const MFG_RUNTIME_PREVIEW: IndustryRuntimePackPreview = {
       standard: '✓',
       kind: 'oee',
       capabilityHint: 'mfg_oee',
+      pageMock: {
+        kpis: [
+          { label: 'OEE', value: '—', hint: '接真数据后刷新' },
+          { label: '产量', value: '—', hint: '件/班' },
+          { label: '停机', value: '—', hint: '计划外' },
+        ],
+        list_title: '稼动趋势',
+        primary_action: '刷新数据',
+      },
     },
     {
       id: 's4',
@@ -98,6 +132,18 @@ export const MFG_RUNTIME_PREVIEW: IndustryRuntimePackPreview = {
       standard: '✓',
       kind: 'quality',
       capabilityHint: 'quality_inspect',
+      pageMock: {
+        form_title: '质检登记',
+        fields: [
+          { key: 'product_code', label: '产品 / 批次号', placeholder: 'LOT-2026-0412' },
+          { key: 'process_name', label: '工序 / 检验点', placeholder: '来料 IQC', optional: true },
+          { key: 'result', label: '初判结果', placeholder: 'pass / fail / hold' },
+          { key: 'note', label: '检验备注', type: 'textarea', placeholder: '尺寸公差、外观…', optional: true },
+        ],
+        list_title: '质检记录',
+        list: [],
+        primary_action: '提交质检',
+      },
     },
     {
       id: 's5',
@@ -108,6 +154,18 @@ export const MFG_RUNTIME_PREVIEW: IndustryRuntimePackPreview = {
       standard: '✓',
       kind: 'material',
       capabilityHint: 'material_issue',
+      pageMock: {
+        form_title: '生产领料',
+        fields: [
+          { key: 'material_name', label: '物料名称', placeholder: '轴承 6205' },
+          { key: 'qty', label: '领用数量', type: 'number', placeholder: '40' },
+          { key: 'work_order', label: '工单号', placeholder: 'WO-8841', optional: true },
+          { key: 'note', label: '用途说明', type: 'textarea', placeholder: 'A3 线换模备件…', optional: true },
+        ],
+        list_title: '领料记录',
+        list: [],
+        primary_action: '提交领料',
+      },
     },
     {
       id: 's6',
@@ -118,6 +176,18 @@ export const MFG_RUNTIME_PREVIEW: IndustryRuntimePackPreview = {
       standard: '✓',
       kind: 'safety',
       capabilityHint: 'site_patrol',
+      pageMock: {
+        form_title: '隐患上报',
+        fields: [
+          { key: 'site_name', label: '区域 / 车间', placeholder: 'A3 冲压车间 · 消防通道' },
+          { key: 'checkpoint', label: '检查点', placeholder: '消防栓', optional: true },
+          { key: 'result', label: '巡检结果', placeholder: 'hazard / ok' },
+          { key: 'note', label: '隐患描述', type: 'textarea', placeholder: '通道堆放纸箱，遮挡消防栓…' },
+        ],
+        list_title: '隐患记录',
+        list: [],
+        primary_action: '上报并流转',
+      },
     },
     {
       id: 's7',
@@ -178,6 +248,18 @@ export const MFG_RUNTIME_PREVIEW: IndustryRuntimePackPreview = {
       standard: '✓',
       kind: 'training',
       capabilityHint: 'training_record',
+      pageMock: {
+        form_title: '培训登记',
+        fields: [
+          { key: 'trainee', label: '学员姓名', placeholder: '李强' },
+          { key: 'course', label: '课程 / 证件', placeholder: '冲压上岗证' },
+          { key: 'expire_at', label: '有效期至', type: 'date', placeholder: '点选日期', optional: true },
+          { key: 'note', label: '备注', type: 'textarea', placeholder: '复训/补考…', optional: true },
+        ],
+        list_title: '培训档案',
+        list: [],
+        primary_action: '登记',
+      },
     },
   ],
 }

@@ -197,7 +197,7 @@ export const ROLE_PRESETS: RolePreset[] = [
     ],
     ['>> 家校通知 · 活动公告推送', '>> 报名留言 · 在线互动', '>> 企微钉钉飞书 · 家长触达', '>> CapShip · 双端真接口']),
   scene('s16', '作业答疑', '教育 · 学生', '#3b82f6',
-    '课程答疑、作业提交与错题巩固。',
+    '写清页码题号与卡点，>> Soft 步进提问，老师批改闭环。',
     [
       { type: 'industry', key: 'edu', label: '教育培训' },
       { type: 'scenario', key: 's16-hw', label: '作业提交' },
@@ -205,16 +205,16 @@ export const ROLE_PRESETS: RolePreset[] = [
       { type: 'module', key: 'homework_qa', label: '作业答疑' },
       { type: 'module', key: 'notify_im', label: '企微钉钉飞书' },
     ],
-    ['>> 作业答疑 · 在线提交', '>> 课程答疑 · 知识点提问', '>> 企微钉钉飞书 · 批改通知', '>> CapShip · 双端真接口']),
+    ['>> 作业答疑 · 页码题号卡点', '>> Soft 步进 · 提交真库', '>> 企微钉钉飞书 · 批改通知', '>> CapShip · 双端真接口']),
   scene('s17', '课表查询', '校园 · 日程', '#2563eb',
-    '课程表、考试安排与教室查询。',
+    '课程/考试登记：日期点选 + 时段推进，教室可空，归档真库。',
     [
       { type: 'industry', key: 'edu', label: '教育培训' },
       { type: 'scenario', key: 's17-schedule', label: '课表查询' },
       { type: 'module', key: 'class_schedule', label: '课表查询' },
       { type: 'module', key: 'notify_im', label: '企微钉钉飞书' },
     ],
-    ['>> 课表查询 · 课程考试登记', '>> 教室时段 · 一键归档', '>> 企微钉钉飞书 · 日程提醒', '>> CapShip · 双端真接口']),
+    ['>> 课表 · 课程考试登记', '>> 日期时段 · Soft 步进', '>> 企微钉钉飞书 · 日程提醒', '>> CapShip · 双端真接口']),
   scene('s18', '活动运营', '市场 · 活动', '#06b6d4',
     '活动策划、报名统计与转化复盘。',
     [
@@ -351,16 +351,16 @@ export const ROLE_PRESETS: RolePreset[] = [
     ],
     ['>> 上海话语音 · 开口即问', '>> 实时语音 · 边说边答', '>> 语音播报 · 听得到', '>> 手机/网页 · 直接可用'], '全员'),
   scene('s32', '课本学习', '教育 · 学生', '#6366f1',
-    '输入课本名，规划学习内容、自动进度，支持复习、考试与家默。',
+    '说书名定位册次 → 生成大纲 → Soft 步进记家默/复习/考试，进度真库。',
     [
       { type: 'industry', key: 'edu', label: '教育培训' },
       { type: 'scenario', key: 's32-study', label: '课本学习' },
       { type: 'module', key: 'study_coach', label: '课本学习' },
       { type: 'module', key: 'notify_im', label: '企微钉钉飞书' },
     ],
-    ['>> 课本学习 · 输入课本生成规划', '>> 学习进度 · 自动跟进', '>> 家默考试 · 复习闭环', '>> CapShip · 双端真接口'], 5),
+    ['>> 课本 · 书名定位册次', '>> 大纲 · Module/Unit 规划', '>> 家默复习考试 · Soft 步进', '>> CapShip · 双端真接口'], 5),
   scene('s33', '家默督导', '教育 · 家长', '#8b5cf6',
-    '家长盯家默/听写、跟复习进度，与课本学习闭环联动。',
+    '家长代记听写默写：选单元、写错词得分，与课本学习同一真库闭环。',
     [
       { type: 'industry', key: 'edu', label: '教育培训' },
       { type: 'scenario', key: 's33-dictation', label: '家默督导' },
@@ -368,9 +368,9 @@ export const ROLE_PRESETS: RolePreset[] = [
       { type: 'module', key: 'school_notice', label: '家校通知' },
       { type: 'module', key: 'notify_im', label: '企微钉钉飞书' },
     ],
-    ['>> 家默督导 · 听写默写记录', '>> 学习进度 · 家长可视', '>> 企微钉钉飞书 · 提醒推送', '>> CapShip · 双端真接口'], 4),
+    ['>> 家默 · 听写错词得分', '>> 选单元 · Soft 步进', '>> 企微钉钉飞书 · 提醒推送', '>> CapShip · 双端真接口'], 4),
   scene('s34', '教学规划', '教育 · 老师', '#4f46e5',
-    '按课本生成教学单元、跟学生进度与测验结果。',
+    '按课本生成教学单元，跟学生进度、测验与作业答疑闭环。',
     [
       { type: 'industry', key: 'edu', label: '教育培训' },
       { type: 'scenario', key: 's34-teach', label: '教学规划' },
@@ -378,7 +378,7 @@ export const ROLE_PRESETS: RolePreset[] = [
       { type: 'module', key: 'homework_qa', label: '作业答疑' },
       { type: 'module', key: 'notify_im', label: '企微钉钉飞书' },
     ],
-    ['>> 教学规划 · 课本大纲生成', '>> 测验跟进 · 掌握度闭环', '>> 企微钉钉飞书 · 学情推送', '>> CapShip · 双端真接口'], 4),
+    ['>> 教学规划 · 课本大纲', '>> 测验家默 · 掌握度跟进', '>> 作业答疑 · Soft 批改', '>> CapShip · 双端真接口'], 4),
 ]
 
 export interface DanmakuLayout {

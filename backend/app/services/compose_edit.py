@@ -690,92 +690,97 @@ def _intent_page_mock(label: str, cap: str, kind: str, hint: str = "") -> dict[s
             "primary_action": "发送",
         }
 
-    # 办公常见场景：字段随语义变化，避免千篇一律
+    # 办公常见场景：字段随语义变化；日期类必须带 type=date / datetime-local
     if any(w in blob for w in ("请假", "年假", "事假", "病假")):
         fields = [
-            {"label": "请假类型", "value": ""},
-            {"label": "起止时间", "value": ""},
-            {"label": "事由", "value": ""},
+            {"key": "category", "label": "请假类型", "type": "text", "value": ""},
+            {"key": "start_at", "label": "开始日期", "type": "date", "value": ""},
+            {"key": "end_at", "label": "结束日期", "type": "date", "value": ""},
+            {"key": "note", "label": "事由", "type": "textarea", "value": ""},
         ]
         action = "提交请假"
     elif any(w in blob for w in ("加班",)):
         fields = [
-            {"label": "加班日期", "value": ""},
-            {"label": "时段", "value": ""},
-            {"label": "加班事由", "value": ""},
+            {"key": "start_at", "label": "开始时间", "type": "datetime-local", "value": ""},
+            {"key": "end_at", "label": "结束时间", "type": "datetime-local", "value": ""},
+            {"key": "note", "label": "加班事由", "type": "textarea", "value": ""},
         ]
         action = "提交加班"
     elif any(w in blob for w in ("出差", "差旅", "外勤")):
         fields = [
-            {"label": "目的地", "value": ""},
-            {"label": "行程日期", "value": ""},
-            {"label": "出差事由", "value": ""},
+            {"key": "destination", "label": "目的地", "type": "text", "value": ""},
+            {"key": "start_at", "label": "出发日期", "type": "date", "value": ""},
+            {"key": "end_at", "label": "返回日期", "type": "date", "value": ""},
+            {"key": "note", "label": "出差事由", "type": "textarea", "value": ""},
         ]
         action = "提交出差"
     elif any(w in blob for w in ("报销", "发票", "团建", "经费")):
         fields = [
-            {"label": "费用类型", "value": "团建经费" if "团建" in blob else ""},
-            {"label": "金额（元）", "value": ""},
-            {"label": "事由说明", "value": ""},
+            {"key": "title", "label": "费用类型", "type": "text", "value": "团建经费" if "团建" in blob else ""},
+            {"key": "amount", "label": "金额（元）", "type": "number", "value": ""},
+            {"key": "note", "label": "事由说明", "type": "textarea", "value": ""},
         ]
         action = "提交报销"
     elif any(w in blob for w in ("借款", "预支")):
         fields = [
-            {"label": "借款金额", "value": ""},
-            {"label": "预计归还日", "value": ""},
-            {"label": "用途", "value": ""},
+            {"key": "amount", "label": "借款金额", "type": "number", "value": ""},
+            {"key": "due_date", "label": "预计归还日", "type": "date", "value": ""},
+            {"key": "note", "label": "用途", "type": "textarea", "value": ""},
         ]
         action = "提交借款"
     elif any(w in blob for w in ("付款", "对公")):
         fields = [
-            {"label": "收款方", "value": ""},
-            {"label": "付款金额", "value": ""},
-            {"label": "合同/单据号", "value": ""},
+            {"key": "payee", "label": "收款方", "type": "text", "value": ""},
+            {"key": "amount", "label": "付款金额", "type": "number", "value": ""},
+            {"key": "note", "label": "合同/单据号", "type": "text", "value": ""},
         ]
         action = "提交付款"
     elif any(w in blob for w in ("会议室", "预约", "会议")):
         fields = [
-            {"label": "会议室", "value": ""},
-            {"label": "时段", "value": ""},
-            {"label": "会议主题", "value": ""},
+            {"key": "room_name", "label": "会议室", "type": "text", "value": ""},
+            {"key": "start_at", "label": "开始时间", "type": "datetime-local", "value": ""},
+            {"key": "end_at", "label": "结束时间", "type": "datetime-local", "value": ""},
+            {"key": "title", "label": "会议主题", "type": "text", "value": ""},
         ]
         action = "提交预约"
     elif any(w in blob for w in ("用印", "印章")):
         fields = [
-            {"label": "印章类型", "value": ""},
-            {"label": "文件名称", "value": ""},
-            {"label": "用途说明", "value": ""},
+            {"key": "seal_type", "label": "印章类型", "type": "text", "value": ""},
+            {"key": "doc_name", "label": "文件名称", "type": "text", "value": ""},
+            {"key": "purpose", "label": "用途说明", "type": "textarea", "value": ""},
         ]
         action = "提交用印"
     elif any(w in blob for w in ("入职", "招聘", "办理")):
         fields = [
-            {"label": "候选人", "value": ""},
-            {"label": "入职日期", "value": ""},
-            {"label": "岗位", "value": ""},
+            {"key": "candidate", "label": "候选人", "type": "text", "value": ""},
+            {"key": "join_date", "label": "入职日期", "type": "date", "value": ""},
+            {"key": "role", "label": "岗位", "type": "text", "value": ""},
         ]
         action = "提交办理"
     elif any(w in blob for w in ("资产", "领用", "盘点")):
         fields = [
-            {"label": "资产名称", "value": ""},
-            {"label": "数量", "value": ""},
-            {"label": "领用人", "value": ""},
+            {"key": "asset_name", "label": "资产名称", "type": "text", "value": ""},
+            {"key": "qty", "label": "数量", "type": "number", "value": ""},
+            {"key": "assignee", "label": "领用人", "type": "text", "value": ""},
         ]
         action = "提交领用"
     elif any(w in blob for w in ("报障", "IT", "工单", "报修")):
         fields = [
-            {"label": "故障现象", "value": ""},
-            {"label": "影响范围", "value": ""},
-            {"label": "紧急程度", "value": ""},
+            {"key": "fault", "label": "故障现象", "type": "textarea", "value": ""},
+            {"key": "scope", "label": "影响范围", "type": "text", "value": ""},
+            {"key": "priority", "label": "紧急程度", "type": "text", "value": ""},
         ]
         action = "提交工单"
     else:
         field_a = "事项说明" if any(w in blob for w in ("审批", "申请")) else "标题"
         field_b = "金额" if any(w in blob for w in ("费", "款", "预算", "付款")) else "负责人"
         field_c = "期望完成日" if any(w in blob for w in ("计划", "排期", "OKR")) else "备注"
+        type_b = "number" if "金额" in field_b else "text"
+        type_c = "date" if "日" in field_c else ("textarea" if field_c == "备注" else "text")
         fields = [
-            {"label": field_a, "value": ""},
-            {"label": field_b, "value": ""},
-            {"label": field_c, "value": ""},
+            {"key": "f_a", "label": field_a, "type": "text", "value": ""},
+            {"key": "f_b", "label": field_b, "type": type_b, "value": ""},
+            {"key": "f_c", "label": field_c, "type": type_c, "value": ""},
         ]
         action = "提交"
 

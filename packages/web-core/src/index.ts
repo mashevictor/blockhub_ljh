@@ -7,6 +7,7 @@ export {
   resolveFormSteps,
   resolveFormFieldDefs,
   normalizeInputType,
+  inferInputTypeFromLabel,
   type FormFieldDef,
   type ResolveFormStepsOptions,
 } from './resolveFormSteps'

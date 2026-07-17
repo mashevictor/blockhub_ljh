@@ -15,6 +15,8 @@ import type {
   CapShipComposerDockProps,
 } from '@capship/composer'
 import { DeveloperBlueprintPanel } from '@blockhub/web-core'
+import { GtgtStepComposer } from '@blockhub/web-core/gtgt'
+import { resolveFormSteps } from '@blockhub/web-core/resolveFormSteps'
 import {
   LiveOfficeSceneBody,
   isLiveOfficeScene,
@@ -176,6 +178,72 @@ function DemoOnlyNote({ scene }: { scene: IndustryRuntimeScene }) {
   )
 }
 
+function SoftGtgtFormPreview({ scene }: { scene: IndustryRuntimeScene }) {
+  const mock = scene.pageMock
+  const [vals, setVals] = useState<Record<string, string>>({})
+  const [resetKey, setResetKey] = useState(0)
+  const [msg, setMsg] = useState('')
+  const steps = useMemo(
+    () =>
+      resolveFormSteps({
+        formFields: scene.formFields,
+        pageMockFields: mock?.fields,
+      }),
+    [scene.formFields, mock?.fields],
+  )
+  const list = mock?.list || []
+
+  if (!steps.length) {
+    return (
+      <div className="irp-panel">
+        <DemoOnlyNote scene={scene} />
+        <p className="irp-summary">暂无表单字段</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="irp-grid-2">
+      <section className="irp-panel irp-gtgt-panel">
+        <DemoOnlyNote scene={scene} />
+        <GtgtStepComposer
+          title={mock?.form_title || `新建 · ${scene.name}`}
+          meta="Gtgt · Soft"
+          accent="#6366f1"
+          variant="soft"
+          flowHint=">> 单字段推进 · 示意布局（正式能力请选已挂真 API 的场景）"
+          steps={steps}
+          values={vals}
+          onChange={(k, v) => setVals((p) => ({ ...p, [k]: v }))}
+          onComplete={() => {
+            setMsg('示意页不可提交 — 请选请假/报销/报修/质检/安环等真 API 场景')
+            setResetKey((k) => k + 1)
+            setVals({})
+          }}
+          resetKey={resetKey}
+          submitLabel={mock?.primary_action || '提交'}
+        >
+          {msg ? <p className="irp-summary" style={{ marginTop: 10 }}>{msg}</p> : null}
+        </GtgtStepComposer>
+      </section>
+      <section className="irp-panel">
+        <h3>{mock?.list_title || `${scene.name}记录`}</h3>
+        {list.length === 0 ? (
+          <p className="irp-summary">空库无数据 — 接入真 API 后提交会出现在这里</p>
+        ) : (
+          list.map((row) => (
+            <div key={row.id} className="irp-row">
+              <strong>{row.id}</strong>
+              <span>{row.title}</span>
+              <em>{row.status}</em>
+            </div>
+          ))
+        )}
+      </section>
+    </div>
+  )
+}
+
 function UnderstoodBody({ scene }: { scene: IndustryRuntimeScene }) {
   const mock = scene.pageMock
   const action = mock?.primary_action || '提交'
@@ -241,50 +309,7 @@ function UnderstoodBody({ scene }: { scene: IndustryRuntimeScene }) {
     )
   }
 
-  const fields = mock?.fields?.length
-    ? mock.fields
-    : [
-        { label: '标题', value: scene.name },
-        { label: '说明', value: scene.summary },
-      ]
-  // 禁止假 seed 列表冒充业务数据
-  const list = mock?.list || []
-
-  return (
-    <div className="irp-grid-2">
-      <section className="irp-panel">
-        <DemoOnlyNote scene={scene} />
-        <h3>{mock?.form_title || `新建${scene.name}`}</h3>
-        {fields.map((f) => (
-          <label key={f.label}>
-            {f.label}
-            {f.label.includes('说明') || f.label.includes('事由') || f.label.includes('现象') ? (
-              <textarea defaultValue={f.value || ''} rows={3} disabled />
-            ) : (
-              <input type={(f as { type?: string }).type || 'text'} defaultValue={f.value || ''} disabled />
-            )}
-          </label>
-        ))}
-        <button type="button" className="irp-btn" disabled title="示意页不可提交">
-          {action}
-        </button>
-      </section>
-      <section className="irp-panel">
-        <h3>{mock?.list_title || `${scene.name}记录`}</h3>
-        {list.length === 0 ? (
-          <p className="irp-summary">空库无数据 — 接入真 API 后提交会出现在这里</p>
-        ) : (
-          list.map((row) => (
-            <div key={row.id} className="irp-row">
-              <strong>{row.id}</strong>
-              <span>{row.title}</span>
-              <em>{row.status}</em>
-            </div>
-          ))
-        )}
-      </section>
-    </div>
-  )
+  return <SoftGtgtFormPreview scene={scene} />
 }
 
 function SceneWorkspace({
@@ -677,8 +702,8 @@ export default function IndustryRuntimePreviewPage() {
 
       <p className="irp-compose-hint">
         {preview.key === 'office'
-          ? '66 场景已挂真能力。请假/报销/会议室/IT/资产/审批等可真提交并推进状态；登录态会自动尝试 demo 账号。完整 Widget 流程也可发布后打开 /r/应用。'
-          : '用右下角编排助手描述新需求，DeepSeek 会理解意图并先生成差异化页面；正式接口可异步落地。'}
+          ? '66 场景已挂真能力。表单统一 Gtgt 步进 · Soft；请假/报销/会议室/IT/资产/审批等可真提交。登录态会自动尝试 demo 账号。'
+          : '制造表单统一 Gtgt 步进 · Soft。报修 / 质检 / 安环隐患已接真 API；其余场景为 Soft 步进示意。用右下角编排助手可加新页。'}
       </p>
 
       <div className="irp-body">

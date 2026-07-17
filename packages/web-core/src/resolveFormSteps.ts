@@ -51,6 +51,31 @@ export function normalizeInputType(type?: string): string | undefined {
   return t
 }
 
+/** 按中文标签推断控件类型：凡日期/时间相关一律走原生选择器 */
+export function inferInputTypeFromLabel(label: string, key = ''): string | undefined {
+  const L = label || ''
+  const blob = `${L} ${key}`
+  if (/时间|时段|datetime/i.test(L) || /datetime/i.test(key)) return 'datetime-local'
+  if (
+    /日期|归还日|入职|截止|到期|出生日|活动日|行程日|期望完成|起止|_date|join_date/i.test(blob)
+  ) {
+    return 'date'
+  }
+  // start_at / end_at 无「时间」字样时默认日期（请假）；加班场景由显式 type 覆盖
+  if (/_at$/i.test(key)) return 'date'
+  if (/金额|预算|费用|数量|价格|元/.test(L) || /amount|money|qty|price/i.test(key)) return 'number'
+  if (/说明|事由|备注|描述|现象|详情|用途说明/.test(L) || /note|fault|desc|remark/i.test(key)) {
+    return 'textarea'
+  }
+  if (/邮箱|email/i.test(blob)) return 'email'
+  if (/手机|电话|tel|phone/i.test(blob)) return 'tel'
+  return undefined
+}
+
+function resolveFieldType(f: FormFieldDef): string | undefined {
+  return normalizeInputType(f.type) || inferInputTypeFromLabel(f.label, f.key) || 'text'
+}
+
 function isSyntheticKey(key: string): boolean {
   return /^f_\d+$/i.test(key)
 }
@@ -103,15 +128,21 @@ function mergeOntoDefaults(defaults: FormFieldDef[], extras: FormFieldDef[]): Fo
   const used = new Set<string>()
   const merged = defaults.map((d) => {
     const hit = findOverlay(d, extras, used)
-    if (!hit) return { ...d, type: normalizeInputType(d.type) }
+    if (!hit) return { ...d, type: resolveFieldType(d) }
     used.add(hit.key)
     // 合成 label「起止时间」同时匹配 start/end 时：首个未用的吃掉，勿重复
+    const mergedType = resolveFieldType({
+      ...d,
+      ...hit,
+      key: d.key,
+      type: hit.type || d.type,
+    })
     return {
       ...d,
       label: hit.label || d.label,
       placeholder: hit.placeholder || d.placeholder,
       optional: hit.optional ?? d.optional,
-      type: normalizeInputType(hit.type || d.type),
+      type: mergedType,
       key: d.key,
     }
   })
@@ -121,7 +152,7 @@ function mergeOntoDefaults(defaults: FormFieldDef[], extras: FormFieldDef[]): Fo
     if (used.has(e.key)) continue
     if (isSyntheticKey(e.key)) continue
     if (defaults.some((d) => d.key === e.key)) continue
-    merged.push({ ...e, type: normalizeInputType(e.type) })
+    merged.push({ ...e, type: resolveFieldType(e) })
   }
   return merged
 }
@@ -148,7 +179,7 @@ export function resolveFormFieldDefs(opts: ResolveFormStepsOptions): FormFieldDe
       if (hit) key = hit
       else key = `f_${i}`
     }
-    return { ...f, key, type: normalizeInputType(f.type) }
+    return { ...f, key, type: resolveFieldType({ ...f, key }) }
   })
 }
 
@@ -158,6 +189,6 @@ export function resolveFormSteps(opts: ResolveFormStepsOptions): GtgtStep[] {
     label: f.label,
     placeholder: f.placeholder || undefined,
     optional: f.optional,
-    inputType: normalizeInputType(f.type) || 'text',
+    inputType: resolveFieldType(f) || 'text',
   }))
 }

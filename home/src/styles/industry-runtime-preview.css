@@ -584,6 +584,35 @@
   cursor: pointer;
 }
 
+/* Soft 壳叠在深色面板上 */
+.irp-gtgt-panel .bh-gtgt-soft {
+  padding: 14px 16px 16px;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #fff 0%, #f8fafc 100%);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+}
+.irp-gtgt-panel .bh-gtgt-soft .bh-flow-head h3 {
+  color: #0f172a;
+}
+.irp-gtgt-panel .bh-gtgt-soft .bh-flow-meta,
+.irp-gtgt-panel .bh-gtgt-soft .bh-gtgt-flow,
+.irp-gtgt-panel .bh-gtgt-soft .bh-gtgt-hint {
+  color: #64748b;
+}
+.irp-gtgt-panel .bh-gtgt-soft .booking-float-input-row {
+  background: #f1f5f9;
+  border-color: transparent;
+  box-shadow: none;
+}
+.irp-gtgt-panel .bh-gtgt-soft .booking-float-prefix {
+  color: #6366f1;
+}
+.irp-gtgt-panel .bh-gtgt-soft .btn-ghost {
+  border-color: #cbd5e1;
+  color: #475569;
+}
+
 @media (max-width: 960px) {
   .irp-body {
     grid-template-columns: 1fr;

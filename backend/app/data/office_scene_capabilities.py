@@ -29,9 +29,9 @@ _OFFICE_SCENE_ROWS: list[dict[str, Any]] = [
         "default_category": "annual",
         "form_headline": "请假申请",
         "fields": [
-            {"key": "title", "label": "请假类型/时段", "placeholder": "如：年假 3 天（4/1–4/3）"},
-            {"key": "department", "label": "所属部门", "placeholder": "如：行政部", "optional": True},
-            {"key": "summary", "label": "事由", "placeholder": "事由、代理人…", "optional": True},
+            {"key": "start_at", "label": "开始日期", "type": "date", "placeholder": "点选开始日期"},
+            {"key": "end_at", "label": "结束日期", "type": "date", "placeholder": "点选结束日期"},
+            {"key": "note", "label": "事由", "type": "textarea", "placeholder": "年假/事假、代理人…", "optional": True},
         ],
     },
     {
@@ -44,9 +44,9 @@ _OFFICE_SCENE_ROWS: list[dict[str, Any]] = [
         "default_category": "overtime",
         "form_headline": "加班申请",
         "fields": [
-            {"key": "title", "label": "加班日期与时段", "placeholder": "如：4/1 18:00–21:00"},
-            {"key": "department", "label": "所属部门", "placeholder": "如：研发部", "optional": True},
-            {"key": "summary", "label": "加班事由", "placeholder": "项目/紧急事项…", "optional": True},
+            {"key": "start_at", "label": "开始时间", "type": "datetime-local", "placeholder": "点选开始时间"},
+            {"key": "end_at", "label": "结束时间", "type": "datetime-local", "placeholder": "点选结束时间"},
+            {"key": "note", "label": "加班事由", "type": "textarea", "placeholder": "项目/紧急事项…", "optional": True},
         ],
     },
     {
@@ -59,9 +59,9 @@ _OFFICE_SCENE_ROWS: list[dict[str, Any]] = [
         "default_category": "trip",
         "form_headline": "出差申请",
         "fields": [
-            {"key": "title", "label": "目的地与日期", "placeholder": "如：上海 · 4/1–4/3"},
-            {"key": "department", "label": "所属部门", "placeholder": "如：销售部", "optional": True},
-            {"key": "summary", "label": "出差事由", "placeholder": "客户拜访/展会…", "optional": True},
+            {"key": "start_at", "label": "出发日期", "type": "date", "placeholder": "点选出发日"},
+            {"key": "end_at", "label": "返回日期", "type": "date", "placeholder": "点选返回日"},
+            {"key": "note", "label": "出差事由", "type": "textarea", "placeholder": "目的地 · 客户拜访/展会…", "optional": True},
         ],
     },
     {
@@ -73,9 +73,9 @@ _OFFICE_SCENE_ROWS: list[dict[str, Any]] = [
         "page_kind": "form_list",
         "form_headline": "报销审批",
         "fields": [
-            {"key": "title", "label": "费用摘要", "placeholder": "如：差旅报销 ¥1280"},
-            {"key": "department", "label": "费用归属", "placeholder": "部门/项目", "optional": True},
-            {"key": "summary", "label": "明细说明", "placeholder": "发票张数、是否已垫付…", "optional": True},
+            {"key": "title", "label": "费用摘要", "placeholder": "如：差旅报销"},
+            {"key": "amount", "label": "金额", "type": "number", "placeholder": "1280"},
+            {"key": "note", "label": "明细说明", "type": "textarea", "placeholder": "发票张数、是否已垫付…", "optional": True},
         ],
     },
     {
@@ -757,8 +757,20 @@ def page_mock_for_scene(name: str) -> dict[str, Any] | None:
     ]
     return {
         "form_title": str(row.get("form_headline") or f"新建 · {name}"),
-        "fields": [{"label": f["label"], "value": ""} for f in fields],
+        "fields": [
+            {
+                **{
+                    "key": str(f.get("key") or ""),
+                    "label": str(f["label"]),
+                    "value": "",
+                    "placeholder": str(f.get("placeholder") or ""),
+                    "optional": bool(f.get("optional")),
+                },
+                **({"type": str(f["type"])} if f.get("type") else {}),
+            }
+            for f in fields
+        ],
         "list_title": f"{name}记录",
-        "list": [{"id": "01", "title": f"{name}（空库无业务数据）", "status": "待办"}],
+        "list": [],
         "primary_action": "提交",
     }

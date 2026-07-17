@@ -205,6 +205,58 @@ function apiFor(cap: string, scene: IndustryRuntimeScene): CapApi | null {
       itemsKey: 'items',
     }
   }
+  if (cap === 'quality_inspect') {
+    return {
+      listPath: '/api/v1/quality-inspect/records',
+      createPath: '/api/v1/quality-inspect/records',
+      fields: [
+        { key: 'product_code', label: '产品 / 批次号', placeholder: 'LOT-2026-0412' },
+        { key: 'process_name', label: '工序 / 检验点', placeholder: '来料 IQC / 成品 FQC', optional: true },
+        { key: 'result', label: '初判结果', placeholder: 'pass / fail / hold' },
+        { key: 'note', label: '检验备注', placeholder: '尺寸/外观/硬度…', type: 'textarea', optional: true },
+      ],
+      buildBody: (v) => ({
+        product_code: v.product_code?.trim() || name,
+        process_name: v.process_name?.trim() || '',
+        result: v.result?.trim() || 'pass',
+        note: v.note?.trim() || '',
+        app_public_id: 'preview-mfg',
+      }),
+      advances: [{ action: 'close', label: '结案' }],
+      mapItem: (r) => ({
+        id: String(r.id || ''),
+        title: `${String(r.product_code || '')} · ${String(r.process_name || '')} · ${String(r.result || '')}`,
+        status: String(r.status || ''),
+        raw: r,
+      }),
+    }
+  }
+  if (cap === 'site_patrol') {
+    return {
+      listPath: '/api/v1/site-patrol/records',
+      createPath: '/api/v1/site-patrol/records',
+      fields: [
+        { key: 'site_name', label: '区域 / 车间', placeholder: 'A3 冲压车间 · 消防通道' },
+        { key: 'checkpoint', label: '检查点', placeholder: '消防栓 / 防护罩', optional: true },
+        { key: 'result', label: '巡检结果', placeholder: 'ok / hazard / followup' },
+        { key: 'note', label: '隐患描述', placeholder: '通道堆放纸箱，遮挡消防栓…', type: 'textarea', optional: true },
+      ],
+      buildBody: (v) => ({
+        site_name: v.site_name?.trim() || name,
+        checkpoint: v.checkpoint?.trim() || '',
+        result: v.result?.trim() || 'ok',
+        note: v.note?.trim() || '',
+        app_public_id: 'preview-mfg',
+      }),
+      advances: [{ action: 'close', label: '结案' }],
+      mapItem: (r) => ({
+        id: String(r.id || ''),
+        title: `${String(r.site_name || '')} · ${String(r.checkpoint || '')}`,
+        status: String(r.status || ''),
+        raw: r,
+      }),
+    }
+  }
   if (cap === 'meeting_booking') {
     return {
       listPath: '/api/v1/meeting-booking/records',
@@ -534,6 +586,16 @@ export function LiveOfficeSceneBody({
           method: 'POST',
           body: JSON.stringify({ action, comment: '' }),
         })
+      } else if (cap === 'quality_inspect') {
+        await apiJson(`/api/v1/quality-inspect/records/${id}/close`, token, {
+          method: 'POST',
+          body: '{}',
+        })
+      } else if (cap === 'site_patrol') {
+        await apiJson(`/api/v1/site-patrol/records/${id}/close`, token, {
+          method: 'POST',
+          body: '{}',
+        })
       }
       setMsg(`已${action} · 流程已更新`)
       await load()
@@ -548,13 +610,14 @@ export function LiveOfficeSceneBody({
     <div className="irp-grid-2">
       <section className="irp-panel irp-gtgt-panel">
         <p className="irp-summary" style={{ marginBottom: 12 }}>
-          真 API · {cap} · {'>>'} 单字段推进 · 提交写入数据库
+          真 API · {cap} · Gtgt 步进 · Soft · 提交写入数据库
         </p>
         {steps.length > 0 ? (
           <GtgtStepComposer
             title={`${scene.name} · 提交`}
-            accent="#8b5cf6"
-            flowHint="填写 → 确认 → 提交真库"
+            accent="#6366f1"
+            variant="soft"
+            flowHint=">> 单字段推进 → 确认 → 提交真库"
             steps={steps}
             values={vals}
             onChange={(k: string, v: string) => setVals((p) => ({ ...p, [k]: v }))}
@@ -609,6 +672,8 @@ const LIVE_OFFICE_CAPS = [
   'seal_request',
   'approval_inbox',
   'device_repair',
+  'quality_inspect',
+  'site_patrol',
 ] as const
 
 /** 口语 / gen_* 场景名 → 可真提交的正式能力 */
