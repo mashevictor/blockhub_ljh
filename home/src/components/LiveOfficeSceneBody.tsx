@@ -33,6 +33,7 @@ function statusLabel(s: string): string {
     reviewing: '审核中',
     paid: '已付款',
     pending: '待处理',
+    dispatched: '已派工',
     booked: '已预约',
     cancelled: '已取消',
     interview: '面试中',
@@ -90,23 +91,52 @@ function apiFor(cap: string, scene: IndustryRuntimeScene): CapApi | null {
   if (cap === 'expense_claim') {
     const loan = name.includes('借款')
     const pay = name.includes('付款')
-    const cat = loan ? 'loan' : pay ? 'payment' : name.includes('发票') ? 'office' : 'travel'
+    const team = name.includes('团建') || name.includes('经费')
+    const cat = loan ? 'loan' : pay ? 'payment' : team || name.includes('发票') ? 'office' : 'travel'
     return {
       listPath: '/api/v1/expense-claim/records',
       createPath: '/api/v1/expense-claim/records',
       fields: [
-        { key: 'title', label: '标题', placeholder: name },
-        { key: 'amount', label: '金额', placeholder: '1280', type: 'number' },
+        { key: 'title', label: team ? '活动名称' : '标题', placeholder: name },
+        { key: 'amount', label: team ? '预算金额' : '金额', placeholder: '1280', type: 'number' },
         { key: 'note', label: '说明', placeholder: '可空', optional: true },
       ],
-      buildBody: (v) => ({
-        category: cat,
-        title: v.title?.trim() || name,
-        amount: v.amount?.trim() || '0',
-        invoice_no: '',
-        note: v.note?.trim() || '',
-        app_public_id: 'preview-office',
-      }),
+      buildBody: (v, scene) => {
+        const vals = Object.fromEntries(
+          Object.entries(v).map(([k, val]) => [k, String(val ?? '').trim()]),
+        )
+        const labeled = [
+          ...(scene.formFields || []),
+          ...((scene.pageMock?.fields || []).map((f, i) => ({
+            key: f.key || `f_${i}`,
+            label: f.label,
+          })) || []),
+        ]
+        const byHints = (hints: string[]) => {
+          for (const f of labeled) {
+            if (hints.some((h) => (f.label || '').includes(h) || (f.key || '').includes(h))) {
+              const x = vals[f.key]
+              if (x) return x
+            }
+          }
+          for (const [k, val] of Object.entries(vals)) {
+            if (val && hints.some((h) => k.includes(h))) return val
+          }
+          return ''
+        }
+        const title =
+          vals.title || byHints(['活动', '标题', '事项', '名称', '费用类型']) || name
+        const amount = vals.amount || byHints(['金额', '预算', '费用']) || '0'
+        const note = vals.note || byHints(['说明', '事由', '用途', '部门', '日期']) || ''
+        return {
+          category: cat,
+          title,
+          amount,
+          invoice_no: '',
+          note,
+          app_public_id: 'preview-office',
+        }
+      },
       advances: [
         { action: 'reviewing', label: '审核中' },
         { action: 'paid', label: '已付款' },
@@ -118,6 +148,34 @@ function apiFor(cap: string, scene: IndustryRuntimeScene): CapApi | null {
         status: String(r.status || ''),
         raw: r,
       }),
+    }
+  }
+  if (cap === 'device_repair') {
+    return {
+      listPath: '/api/v1/device-repair/tickets',
+      createPath: '/api/v1/device-repair/tickets',
+      fields: [
+        { key: 'asset_code', label: '设备 / 产线', placeholder: 'A3 冲压线 · 工位 07' },
+        { key: 'location', label: '位置', placeholder: '可空', optional: true },
+        { key: 'fault', label: '故障现象', placeholder: '描述异响、停机等', type: 'textarea' },
+      ],
+      buildBody: (v) => ({
+        asset_code: v.asset_code?.trim() || name,
+        location: v.location?.trim() || '',
+        fault: v.fault?.trim() || '',
+        app_public_id: 'preview-office',
+      }),
+      advances: [
+        { action: 'next', label: '推进' },
+        { action: 'complete', label: '完工' },
+      ],
+      mapItem: (r) => ({
+        id: String(r.id || ''),
+        title: `${String(r.asset_code || '')} · ${String(r.fault || '').slice(0, 40)}`,
+        status: String(r.status || ''),
+        raw: r,
+      }),
+      itemsKey: 'items',
     }
   }
   if (cap === 'meeting_booking') {
@@ -310,7 +368,7 @@ export function LiveOfficeSceneBody({
   scene: IndustryRuntimeScene
   token: string
 }) {
-  const cap = scene.capabilityHint.split(/\s*\+\s*/)[0].trim()
+  const cap = resolveLiveCap(scene) || scene.capabilityHint.split(/\s*\+\s*/)[0].trim()
   const api = useMemo(() => apiFor(cap, scene), [cap, scene])
   const steps = useMemo(() => {
     if (!api) return []
@@ -364,12 +422,12 @@ export function LiveOfficeSceneBody({
 
   const submit = async () => {
     if (!token || busy || !api) return
-    const body = api.buildBody(vals, scene)
-    const first = steps[0]?.key
-    if (first && !String(body[first] ?? vals[first] ?? '').toString().trim()) {
-      setMsg(`请填写「${steps[0].label}」`)
+    const first = steps[0]
+    if (first && !first.optional && !String(vals[first.key] ?? '').trim()) {
+      setMsg(`请填写「${first.label}」`)
       return
     }
+    const body = api.buildBody(vals, scene)
     setBusy(true)
     setMsg('')
     try {
@@ -423,6 +481,11 @@ export function LiveOfficeSceneBody({
         await apiJson(`/api/v1/hire-onboard/records/${id}/${action}`, token, {
           method: 'POST',
           body: '{}',
+        })
+      } else if (cap === 'device_repair') {
+        await apiJson(`/api/v1/device-repair/tickets/${id}/action`, token, {
+          method: 'POST',
+          body: JSON.stringify({ action, comment: '' }),
         })
       }
       setMsg(`已${action} · 流程已更新`)
@@ -488,18 +551,61 @@ export function LiveOfficeSceneBody({
   )
 }
 
+const LIVE_OFFICE_CAPS = [
+  'leave_request',
+  'expense_claim',
+  'meeting_booking',
+  'it_ticket',
+  'asset_manage',
+  'hire_onboard',
+  'approval_flow',
+  'seal_request',
+  'approval_inbox',
+  'device_repair',
+] as const
+
+/** 口语 / gen_* 场景名 → 可真提交的正式能力 */
+export function resolveLiveCap(scene: {
+  capabilityHint: string
+  name?: string
+  summary?: string
+}): string | null {
+  const raw = scene.capabilityHint.split(/\s*\+\s*/)[0].trim()
+  if ((LIVE_OFFICE_CAPS as readonly string[]).includes(raw)) return raw
+  // 已挂正式非表单能力（质检/OEE 等）勿按名称误映射
+  if (raw && !raw.startsWith('gen_') && raw !== 'chat_qa' && /^[a-z][a-z0-9_]*$/.test(raw)) {
+    return null
+  }
+  const blob = `${scene.name || ''} ${scene.summary || ''}`
+  const rules: Array<{ words: string[]; cap: (typeof LIVE_OFFICE_CAPS)[number] }> = [
+    { words: ['团建', '经费', '报销', '借款', '付款', '预算', '发票', '费用'], cap: 'expense_claim' },
+    { words: ['请假', '加班', '出差', '年假', '调休'], cap: 'leave_request' },
+    { words: ['报修', '故障', '维修工单', '产线坏'], cap: 'device_repair' },
+    { words: ['会议室', '预约会议'], cap: 'meeting_booking' },
+    { words: ['用印', '盖章'], cap: 'seal_request' },
+    { words: ['入职', '招聘', '候选人'], cap: 'hire_onboard' },
+    { words: ['IT报障', 'IT 报障', '电脑坏', '网络不通'], cap: 'it_ticket' },
+    { words: ['资产领用', '固定资产'], cap: 'asset_manage' },
+    { words: ['团建经费', '通用审批', '会签', '经费审批'], cap: 'approval_flow' },
+  ]
+  for (const r of rules) {
+    if (r.words.some((w) => blob.includes(w))) return r.cap
+  }
+  // 纯「审批/申请」且无更具体能力时 → 通用审批
+  if (/审批|申请/.test(blob)) return 'approval_flow'
+  return null
+}
+
 /** 表单/审批类能力走真流程；其余仍用静态预览 */
 export function isLiveOfficeCap(capabilityHint: string): boolean {
   const cap = capabilityHint.split(/\s*\+\s*/)[0].trim()
-  return [
-    'leave_request',
-    'expense_claim',
-    'meeting_booking',
-    'it_ticket',
-    'asset_manage',
-    'hire_onboard',
-    'approval_flow',
-    'seal_request',
-    'approval_inbox',
-  ].includes(cap)
+  return (LIVE_OFFICE_CAPS as readonly string[]).includes(cap)
+}
+
+export function isLiveOfficeScene(scene: {
+  capabilityHint: string
+  name?: string
+  summary?: string
+}): boolean {
+  return Boolean(resolveLiveCap(scene))
 }

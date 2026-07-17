@@ -23,7 +23,7 @@ _PAGE_KINDS = ("form_list", "chat_kb", "chart", "roster", "notify", "approval", 
 # 口语 / 同义 → 正式能力（fallback 与 enrich 共用；优先于 approval_flow）
 _SYNONYM_TO_CAP: list[tuple[tuple[str, ...], str]] = [
     (("请假", "年假", "调休", "病假", "事假", "休假", "加班申请", "出差申请"), "leave_request"),
-    (("报销", "费用报销", "发票", "差旅费", "借款", "付款申请"), "expense_claim"),
+    (("报销", "费用报销", "发票", "差旅费", "借款", "付款申请", "团建", "经费", "活动经费", "预算审批"), "expense_claim"),
     (("入职", "招聘", "面试", "候选人", "onboard", "劳动合同", "雇佣合同", "用工合同", "工资5000", "入职日期"), "hire_onboard"),
     (("设备报修", "报修", "产线坏", "机器坏", "故障", "维修工单", "派工维修"), "device_repair"),
     (("物业报修", "业主报修", "小区报修"), "property_repair"),
@@ -532,6 +532,27 @@ def _slug_gen_key(label: str) -> str:
     return f"gen_{raw}"
 
 
+def _formal_cap_from_text(text: str) -> str | None:
+    """口语 / 场景名 → 正式 web_ready 能力（优先于 gen_）。"""
+    blob = (text or "").strip()
+    if not blob:
+        return None
+    hits = _resolve_matches(blob)
+    if hits:
+        key = str(hits[0].get("key") or "")
+        if key and is_web_ready_capability(key):
+            return key
+    for aliases, key in _SYNONYM_TO_CAP:
+        if any(a in blob for a in aliases) and is_web_ready_capability(key):
+            return key
+    if any(w in blob for w in ("经费", "团建", "报销", "预算", "借款", "付款", "费用")):
+        if is_web_ready_capability("expense_claim"):
+            return "expense_claim"
+    if any(w in blob for w in ("审批", "申请")) and is_web_ready_capability("approval_flow"):
+        return "approval_flow"
+    return None
+
+
 def _enrich_add_op(op: dict[str, Any]) -> dict[str, Any]:
     """补全 capability / widget；页面先出（page_mock），正式能力仍挂真 widget。"""
     label = str(op.get("label") or "").strip()
@@ -540,22 +561,23 @@ def _enrich_add_op(op: dict[str, Any]) -> dict[str, Any]:
     text = label + str(op.get("summary") or "")
     cap = str(op.get("capability_key") or "").strip()
     pending_codegen = False
+    cap_def = None
 
+    # LLM 误给 gen_*：若文案能落到正式能力，改回 Path-A（可真提交）
     if cap.startswith("gen_"):
-        pending_codegen = True
-    elif not cap or cap not in ALL_CAPABILITIES:
-        hits = _resolve_matches(text)
-        if hits:
-            cap = str(hits[0]["key"])
+        remapped = _formal_cap_from_text(text)
+        if remapped:
+            cap = remapped
+            pending_codegen = False
         else:
-            for aliases, key in _SYNONYM_TO_CAP:
-                if any(a in text for a in aliases):
-                    cap = key
-                    break
-            else:
-                # 路径 B：先出页面，接口异步
-                cap = _slug_gen_key(label)
-                pending_codegen = True
+            pending_codegen = True
+    elif not cap or cap not in ALL_CAPABILITIES:
+        remapped = _formal_cap_from_text(text)
+        if remapped:
+            cap = remapped
+        else:
+            cap = _slug_gen_key(label)
+            pending_codegen = True
 
     if cap == "approval_flow":
         for aliases, key in _SYNONYM_TO_CAP:
@@ -571,15 +593,24 @@ def _enrich_add_op(op: dict[str, Any]) -> dict[str, Any]:
         op["widget"] = "GeneratedPageWidget"
         cap_def = None
     else:
-        # 假 web seed → 正式 Path-A
         cap = ensure_web_ready_key(cap if cap in ALL_CAPABILITIES else "", hint=text)
         if not is_web_ready_capability(cap):
-            # 仍无 Web 就绪：改为 gen_ 预览页
-            cap = _slug_gen_key(label)
-            pending_codegen = True
-            op["capability_key"] = cap
-            op["widget"] = "GeneratedPageWidget"
-            cap_def = None
+            remapped = _formal_cap_from_text(text)
+            if remapped and is_web_ready_capability(remapped):
+                cap = remapped
+                pending_codegen = False
+                op["capability_key"] = cap
+                cap_def = ALL_CAPABILITIES.get(cap)
+                if cap_def:
+                    op["widget"] = cap_def.widget
+                    if not op.get("category"):
+                        op["category"] = cap_def.category
+            else:
+                cap = _slug_gen_key(label)
+                pending_codegen = True
+                op["capability_key"] = cap
+                op["widget"] = "GeneratedPageWidget"
+                cap_def = None
         else:
             op["capability_key"] = cap
             cap_def = ALL_CAPABILITIES.get(cap)
@@ -587,9 +618,7 @@ def _enrich_add_op(op: dict[str, Any]) -> dict[str, Any]:
                 op["widget"] = cap_def.widget
                 if not op.get("category"):
                     op["category"] = cap_def.category
-                if not label or label == cap:
-                    op["label"] = cap_def.menu_label or cap_def.name
-                    label = op["label"]
+                # 保留用户场景名（如「团建经费审批」）
             else:
                 op["widget"] = "ListWidget"
                 if not op.get("category"):
@@ -601,6 +630,8 @@ def _enrich_add_op(op: dict[str, Any]) -> dict[str, Any]:
             op["category"] = "自定义"
         if not op.get("summary"):
             op["summary"] = f"{label}：页面已生成预览，业务接口后台异步落地"
+    else:
+        op.pop("pending_codegen", None)
 
     if not op.get("summary") and not pending_codegen:
         name = cap_def.name if cap_def else label
@@ -752,9 +783,8 @@ def _intent_page_mock(label: str, cap: str, kind: str, hint: str = "") -> dict[s
         "form_title": f"新建 · {label}",
         "fields": fields,
         "list_title": f"{label}记录",
-        "list": [
-            {"id": "01", "title": f"{label}（空库无业务数据）", "status": "待办"},
-        ],
+        # 空库提示，禁止假业务条目冒充已有数据
+        "list": [],
         "primary_action": action,
     }
 

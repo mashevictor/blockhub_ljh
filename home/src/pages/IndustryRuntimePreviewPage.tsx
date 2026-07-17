@@ -15,7 +15,11 @@ import type {
   CapShipComposerDockProps,
 } from '@capship/composer'
 import { DeveloperBlueprintPanel } from '@blockhub/web-core'
-import { LiveOfficeSceneBody, isLiveOfficeCap } from '../components/LiveOfficeSceneBody'
+import {
+  LiveOfficeSceneBody,
+  isLiveOfficeScene,
+  resolveLiveCap,
+} from '../components/LiveOfficeSceneBody'
 import { getToken, setToken } from '../auth/storage'
 import {
   getIndustryRuntimePreview,
@@ -119,11 +123,17 @@ function schemaToScenes(
           .filter((f) => f.key && f.label)
       : undefined
     if (hit) {
+      const hint = item.capability_key || hit.capabilityHint
+      const live = resolveLiveCap({
+        capabilityHint: hint,
+        name: item.label || hit.name,
+        summary: item.summary || hit.summary,
+      })
       out.push({
         ...hit,
         name: item.label || hit.name,
         id: item.key || hit.id,
-        capabilityHint: item.capability_key || hit.capabilityHint,
+        capabilityHint: live || hint,
         pageMock: mock || hit.pageMock,
         formFields: formFields || hit.formFields,
         category: item.category || hit.category,
@@ -131,7 +141,13 @@ function schemaToScenes(
       })
       continue
     }
-    const cap = item.capability_key || 'chat_qa'
+    const rawCap = item.capability_key || 'chat_qa'
+    const live = resolveLiveCap({
+      capabilityHint: rawCap,
+      name: item.label,
+      summary: item.summary,
+    })
+    const cap = live || rawCap
     const kind: ScenePageKind =
       mock || item.page_kind
         ? 'understood'
@@ -152,6 +168,14 @@ function schemaToScenes(
   return out.length ? out : catalog
 }
 
+function DemoOnlyNote({ scene }: { scene: IndustryRuntimeScene }) {
+  return (
+    <p className="irp-summary" style={{ marginBottom: 12 }}>
+      「{scene.name}」当前为布局示意，按钮不可提交。请用对话加「请假 / 报销 / 团建经费 / 报修」等正式能力，或选已挂真 API 的场景。
+    </p>
+  )
+}
+
 function UnderstoodBody({ scene }: { scene: IndustryRuntimeScene }) {
   const mock = scene.pageMock
   const action = mock?.primary_action || '提交'
@@ -159,6 +183,7 @@ function UnderstoodBody({ scene }: { scene: IndustryRuntimeScene }) {
   if (mock?.kpis?.length) {
     return (
       <div className="irp-stack">
+        <DemoOnlyNote scene={scene} />
         <div className="irp-kpi-row">
           {mock.kpis.map((k) => (
             <div key={k.label} className="irp-kpi">
@@ -171,13 +196,17 @@ function UnderstoodBody({ scene }: { scene: IndustryRuntimeScene }) {
         {mock.list_title ? (
           <section className="irp-panel">
             <h3>{mock.list_title}</h3>
-            {(mock.list || []).map((row) => (
-              <div key={row.id} className="irp-row">
-                <strong>{row.id}</strong>
-                <span>{row.title}</span>
-                <em>{row.status}</em>
-              </div>
-            ))}
+            {(mock.list || []).length === 0 ? (
+              <p className="irp-summary">空库无数据</p>
+            ) : (
+              (mock.list || []).map((row) => (
+                <div key={row.id} className="irp-row">
+                  <strong>{row.id}</strong>
+                  <span>{row.title}</span>
+                  <em>{row.status}</em>
+                </div>
+              ))
+            )}
           </section>
         ) : null}
       </div>
@@ -188,6 +217,7 @@ function UnderstoodBody({ scene }: { scene: IndustryRuntimeScene }) {
     return (
       <div className="irp-grid-2">
         <section className="irp-panel irp-chat">
+          <DemoOnlyNote scene={scene} />
           <h3>{mock.chat_title || `${scene.name}助手`}</h3>
           {mock.chat.map((m, i) => (
             <div key={`${m.role}-${i}`} className={`irp-bubble ${m.role === 'user' ? 'user' : 'bot'}`}>
@@ -195,8 +225,10 @@ function UnderstoodBody({ scene }: { scene: IndustryRuntimeScene }) {
             </div>
           ))}
           <div className="irp-chat-input">
-            <input placeholder={`向「${scene.name}」提问…`} />
-            <button type="button" className="irp-btn">{action}</button>
+            <input placeholder={`向「${scene.name}」提问…`} disabled />
+            <button type="button" className="irp-btn" disabled title="示意页不可提交">
+              {action}
+            </button>
           </div>
         </section>
         <section className="irp-panel">
@@ -215,37 +247,41 @@ function UnderstoodBody({ scene }: { scene: IndustryRuntimeScene }) {
         { label: '标题', value: scene.name },
         { label: '说明', value: scene.summary },
       ]
-  const list = mock?.list?.length
-    ? mock.list
-    : [
-        { id: '01', title: `${scene.name}示例`, status: '处理中' },
-      ]
+  // 禁止假 seed 列表冒充业务数据
+  const list = mock?.list || []
 
   return (
     <div className="irp-grid-2">
       <section className="irp-panel">
+        <DemoOnlyNote scene={scene} />
         <h3>{mock?.form_title || `新建${scene.name}`}</h3>
         {fields.map((f) => (
           <label key={f.label}>
             {f.label}
             {f.label.includes('说明') || f.label.includes('事由') || f.label.includes('现象') ? (
-              <textarea defaultValue={f.value || ''} rows={3} />
+              <textarea defaultValue={f.value || ''} rows={3} disabled />
             ) : (
-              <input type={(f as { type?: string }).type || 'text'} defaultValue={f.value || ''} />
+              <input type={(f as { type?: string }).type || 'text'} defaultValue={f.value || ''} disabled />
             )}
           </label>
         ))}
-        <button type="button" className="irp-btn">{action}</button>
+        <button type="button" className="irp-btn" disabled title="示意页不可提交">
+          {action}
+        </button>
       </section>
       <section className="irp-panel">
         <h3>{mock?.list_title || `${scene.name}记录`}</h3>
-        {list.map((row) => (
-          <div key={row.id} className="irp-row">
-            <strong>{row.id}</strong>
-            <span>{row.title}</span>
-            <em>{row.status}</em>
-          </div>
-        ))}
+        {list.length === 0 ? (
+          <p className="irp-summary">空库无数据 — 接入真 API 后提交会出现在这里</p>
+        ) : (
+          list.map((row) => (
+            <div key={row.id} className="irp-row">
+              <strong>{row.id}</strong>
+              <span>{row.title}</span>
+              <em>{row.status}</em>
+            </div>
+          ))
+        )}
       </section>
     </div>
   )
@@ -258,6 +294,10 @@ function SceneWorkspace({
   scene: IndustryRuntimeScene
   token: string
 }) {
+  const liveCap = resolveLiveCap(scene)
+  const liveScene: IndustryRuntimeScene = liveCap
+    ? { ...scene, capabilityHint: liveCap }
+    : scene
   return (
     <div className="irp-workspace" data-kind={scene.kind}>
       <header className="irp-workspace-head">
@@ -265,12 +305,12 @@ function SceneWorkspace({
         <h1 className="irp-scene-title">{scene.name}</h1>
         <p className="irp-summary">{scene.summary}</p>
       </header>
-      {token && isLiveOfficeCap(scene.capabilityHint) ? (
-        <LiveOfficeSceneBody scene={scene} token={token} />
+      {token && liveCap ? (
+        <LiveOfficeSceneBody scene={liveScene} token={token} />
       ) : (
         <SceneBody kind={scene.kind} scene={scene} />
       )}
-      {!token && isLiveOfficeCap(scene.capabilityHint) ? (
+      {!token && isLiveOfficeScene(scene) ? (
         <p className="irp-summary" style={{ marginTop: 12 }}>
           登录后可真提交并推进流程（右侧开发者面板登录，或等待自动 demo 登录）。
         </p>
@@ -283,34 +323,33 @@ function SceneBody({ kind, scene }: { kind: ScenePageKind; scene: IndustryRuntim
   if (kind === 'understood' || scene.pageMock) {
     return <UnderstoodBody scene={scene} />
   }
+  return (
+    <div className="irp-demo-static">
+      <DemoOnlyNote scene={scene} />
+      <SceneBodyStatic kind={kind} scene={scene} />
+    </div>
+  )
+}
+
+function SceneBodyStatic({ kind, scene }: { kind: ScenePageKind; scene: IndustryRuntimeScene }) {
   switch (kind) {
     case 'repair':
       return (
         <div className="irp-grid-2">
           <section className="irp-panel">
             <h3>新建报修单</h3>
-            <label>产线 / 工位<input defaultValue="A3 冲压线 · 工位 07" /></label>
-            <label>故障现象<textarea defaultValue="液压站异响，压力波动，需尽快派工。" rows={3} /></label>
+            <label>产线 / 工位<input defaultValue="A3 冲压线 · 工位 07" disabled /></label>
+            <label>故障现象<textarea defaultValue="液压站异响，压力波动，需尽快派工。" rows={3} disabled /></label>
             <label>紧急程度
-              <select defaultValue="高">
+              <select defaultValue="高" disabled>
                 <option>高</option><option>中</option><option>低</option>
               </select>
             </label>
-            <button type="button" className="irp-btn">提交并派工</button>
+            <button type="button" className="irp-btn" disabled>提交并派工</button>
           </section>
           <section className="irp-panel">
             <h3>在办工单</h3>
-            {[
-              ['WO-24016', '注塑机 #2 温控异常', '维修中'],
-              ['WO-24015', '传送带偏移', '待接单'],
-              ['WO-24012', '空压机漏油', '待验收'],
-            ].map(([id, title, st]) => (
-              <div key={id} className="irp-row">
-                <strong>{id}</strong>
-                <span>{title}</span>
-                <em>{st}</em>
-              </div>
-            ))}
+            <p className="irp-summary">空库无数据 — 「设备报修」场景已接真 API，请从左侧进入该场景提交</p>
           </section>
         </div>
       )
@@ -323,8 +362,8 @@ function SceneBody({ kind, scene }: { kind: ScenePageKind; scene: IndustryRuntim
             <div className="irp-bubble user">换模时压力参数怎么设？</div>
             <div className="irp-bubble bot">推荐合模压力 12.5 MPa，保压 3s。相关图纸已附在右侧知识库。</div>
             <div className="irp-chat-input">
-              <input placeholder={`向「${scene.name}」提问…`} />
-              <button type="button" className="irp-btn">发送</button>
+              <input placeholder={`向「${scene.name}」提问…`} disabled />
+              <button type="button" className="irp-btn" disabled>发送</button>
             </div>
           </section>
           <section className="irp-panel">
@@ -383,8 +422,8 @@ function SceneBody({ kind, scene }: { kind: ScenePageKind; scene: IndustryRuntim
               <label key={x} className="irp-check"><input type="checkbox" defaultChecked={x !== '标识完整'} />{x}</label>
             ))}
             <div className="irp-actions">
-              <button type="button" className="irp-btn">通过</button>
-              <button type="button" className="irp-btn ghost">驳回</button>
+              <button type="button" className="irp-btn" disabled>通过</button>
+              <button type="button" className="irp-btn ghost" disabled>驳回</button>
             </div>
           </section>
         </div>
@@ -403,7 +442,7 @@ function SceneBody({ kind, scene }: { kind: ScenePageKind; scene: IndustryRuntim
               <div key={row[0]} className="irp-tr">{row.map((c) => <span key={c}>{c}</span>)}</div>
             ))}
           </div>
-          <button type="button" className="irp-btn">提交领料审批</button>
+          <button type="button" className="irp-btn" disabled>提交领料审批</button>
         </section>
       )
     case 'safety':
@@ -413,7 +452,7 @@ function SceneBody({ kind, scene }: { kind: ScenePageKind; scene: IndustryRuntim
             <h3>隐患上报</h3>
             <div className="irp-photo">现场拍照占位 · 可标注区域</div>
             <label>隐患描述<textarea rows={3} defaultValue="通道堆放纸箱，遮挡消防栓。" /></label>
-            <button type="button" className="irp-btn">上报并流转审批</button>
+            <button type="button" className="irp-btn" disabled>上报并流转审批</button>
           </section>
           <section className="irp-panel">
             <h3>本周隐患</h3>
@@ -435,7 +474,7 @@ function SceneBody({ kind, scene }: { kind: ScenePageKind; scene: IndustryRuntim
               </div>
             ))}
           </div>
-          <button type="button" className="irp-btn ghost">班次申诉</button>
+          <button type="button" className="irp-btn ghost" disabled>班次申诉</button>
         </section>
       )
     case 'maintain':
@@ -564,9 +603,9 @@ export default function IndustryRuntimePreviewPage() {
       .catch(() => undefined)
   }, [homeToken])
 
-  // 办公预览：无 token 时自动 demo 登录，便于真提交验收
+  // 预览页无 token 时自动 demo 登录，便于真提交验收
   useEffect(() => {
-    if (homeToken || preview?.key !== 'office') return
+    if (homeToken || !preview) return
     let cancelled = false
     void (async () => {
       try {
@@ -588,7 +627,7 @@ export default function IndustryRuntimePreviewPage() {
     return () => {
       cancelled = true
     }
-  }, [homeToken, preview?.key])
+  }, [homeToken, preview])
 
   if (!preview) {
     return (

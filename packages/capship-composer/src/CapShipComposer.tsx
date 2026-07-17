@@ -188,6 +188,15 @@ export function applyComposeOps(schema: ComposerPageSchema, ops: ComposeEditOp[]
       }
       if (op.page_mock) {
         childProps.page_mock = op.page_mock
+        const mockFields = (op.page_mock.fields || [])
+          .filter((f) => f.label)
+          .map((f, i) => ({
+            key: f.key || `f_${i}`,
+            label: f.label,
+            type: f.type,
+            placeholder: f.value,
+          }))
+        if (mockFields.length) childProps.form_fields = mockFields
       }
       next = {
         ...next,
