@@ -318,6 +318,72 @@ def reject_change(
     return {"success": True, "change": _row_to_dict(row), **schema_meta(app)}
 
 
+def supersede_open_changes_after_publish(
+    db: Session,
+    app: AppRecord,
+    *,
+    user: User,
+    published_rev: int,
+    reason: str = "管理员已直接发布正式版",
+) -> int:
+    """管理员直接写正式 schema 后，关闭仍 open 的 draft/pending，避免前端徽章卡在「待审批」。"""
+    now = datetime.now(timezone.utc)
+    rows = (
+        db.query(AppSchemaChangeRequest)
+        .filter(
+            AppSchemaChangeRequest.public_id == app.public_id,
+            AppSchemaChangeRequest.status.in_(("draft", "pending")),
+        )
+        .all()
+    )
+    if not rows:
+        return 0
+    reviewer = _editor_name(user)
+    for row in rows:
+        prev = row.status
+        row.status = "cancelled"
+        row.reviewer_id = user.id
+        row.reviewer_name = reviewer
+        row.review_comment = f"{reason}（原状态 {prev} → 已关闭）"[:500]
+        row.published_rev = int(published_rev)
+        row.reviewed_at = now
+        row.updated_at = now
+        db.add(row)
+        try:
+            from app.services.notification_service import create_notification
+            from app.db.models import Notification
+
+            # 关闭管理员侧「改页待审批」未读
+            if row.id:
+                for note in (
+                    db.query(Notification)
+                    .filter(
+                        Notification.tenant_id == app.tenant_id,
+                        Notification.reference_id == row.id,
+                        Notification.type == "schema_change",
+                        Notification.read.is_(False),
+                    )
+                    .all()
+                ):
+                    note.read = True
+                    db.add(note)
+
+            if row.author_id and row.author_id != user.id:
+                create_notification(
+                    db,
+                    tenant_id=app.tenant_id,
+                    title=f"改页已由管理员发布 · {app.name or app.public_id}",
+                    content=f"管理员 {reviewer} 已直接发布正式 v{published_rev}，你的待审/草稿已自动关闭。",
+                    type="schema_change",
+                    recipient_user_id=row.author_id,
+                    reference_id=row.id,
+                )
+        except Exception:
+            pass
+    db.commit()
+    return len(rows)
+
+
 def cancel_change(
     db: Session,
     app: AppRecord,

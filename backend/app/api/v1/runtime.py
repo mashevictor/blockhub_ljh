@@ -318,7 +318,7 @@ def patch_runtime_schema(
         validate_page_schema(schema)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
-    return commit_schema_revision(
+    result = commit_schema_revision(
         db,
         app,
         user=user,
@@ -327,6 +327,22 @@ def patch_runtime_schema(
         source=body.source or "compose",
         force=body.force,
     )
+    # 直接发布后关闭排队中的草稿/待审批，避免 Composer「待审批」徽章与通知不同步
+    try:
+        from app.services import schema_change_approval as sca
+
+        closed = sca.supersede_open_changes_after_publish(
+            db,
+            app,
+            user=user,
+            published_rev=int(result.get("schema_rev") or getattr(app, "schema_rev", 0) or 0),
+            reason="管理员已直接发布正式版",
+        )
+        if closed:
+            result = {**result, "superseded_changes": closed}
+    except Exception:
+        pass
+    return result
 
 
 @router.get("/{public_id}/schema/changes")

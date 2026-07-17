@@ -618,11 +618,13 @@ export function CapShipComposer({
     try {
       const data = await listSchemaChanges(appId, { token })
       setIsAdmin(Boolean(data.is_admin))
-      setChangeItems(data.items || [])
-      const mine = (data.items || []).find(
+      const items = data.items || []
+      setChangeItems(items)
+      const mine = items.find(
         (c) => c.status === 'draft' || c.status === 'pending' || c.status === 'rejected',
       )
-      if (mine) setChangeId(mine.id)
+      // 无 open 单时必须清空，否则直接发布后仍挂着旧 pending id → 徽章卡「待审批」
+      setChangeId(mine?.id ?? null)
     } catch {
       /* ignore */
     }
@@ -689,6 +691,14 @@ export function CapShipComposer({
       lastSavedSchemaRef.current = cloned
       setSchemaDirty(false)
       setChangeId(null)
+      // 本地先清掉 pending，避免 loadChangeQueue 返回前徽章仍显示「待审批」
+      setChangeItems((prev) =>
+        prev.map((c) =>
+          c.status === 'draft' || c.status === 'pending'
+            ? { ...c, status: 'cancelled' }
+            : c,
+        ),
+      )
       setSchemaRev(res.schema_rev)
       setEditorName(res.schema_editor_name || '')
       setConflict(null)
