@@ -116,8 +116,10 @@ fi
 
 echo ""
 echo "=== 2) publish office full (66) ==="
-PUB=$(curl -sf -X POST "$API/creation/publish" \
+# 发布「通用办公」全量应用：assemble_full_scenes=true → 菜单挂满 Catalog 66 场景
+PUB_CODE=$(curl -sS -o /tmp/office66_publish.json -w "%{http_code}" -X POST "$API/creation/publish" \
   -H "$AUTH" -H "Content-Type: application/json" \
+  --max-time 180 \
   -d '{
     "name":"Office66-Smoke",
     "industry_key":"office",
@@ -128,10 +130,15 @@ PUB=$(curl -sf -X POST "$API/creation/publish" \
     "assemble_full_scenes":true,
     "web_template_id":"sidebar_admin",
     "app_ui_id":"drawer_nav"
-  }' || echo "")
+  }' || echo "000")
+PUB=$(cat /tmp/office66_publish.json 2>/dev/null || echo "")
 APP_ID=""
-if [[ -z "$PUB" ]]; then
-  bad "publish office"
+if [[ "$PUB_CODE" != "200" || -z "$PUB" ]]; then
+  bad "publish office (HTTP $PUB_CODE)"
+  echo "  body=$(head -c 500 /tmp/office66_publish.json 2>/dev/null || true)"
+  echo "  含义: POST /creation/publish 用 industry_key=office + assemble_full_scenes 生成 Runtime 应用失败"
+  echo "  常见原因: API 超时/未登录/DB 错误/内存不足。可手动:"
+  echo "    curl -sS -w '\\n%{http_code}\\n' -X POST $API/creation/publish -H \"\$AUTH\" -H 'Content-Type: application/json' -d '{...}'"
 else
   APP_ID=$(echo "$PUB" | python3 -c 'import sys,json;d=json.load(sys.stdin);print((d.get("app") or d).get("id",""))' 2>/dev/null || echo "")
   MENU_N=$(echo "$PUB" | python3 -c '
