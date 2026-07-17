@@ -1,8 +1,10 @@
 /**
  * 办公 Runtime 预览：真 API 提交 + 列表 + 状态推进（非静态假表单）。
- * 依赖 home 已登录 token（或自动 demo 登录）。
+ * 填表走 >> GtgtStepComposer（与正式 Runtime / 预约演示同构）。
  */
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { GtgtStepComposer } from '@blockhub/web-core/gtgt'
+import { resolveFormSteps } from '@blockhub/web-core/resolveFormSteps'
 import type { IndustryRuntimeScene } from '../data/industryRuntimeScenes'
 
 type Row = {
@@ -16,7 +18,7 @@ type CapApi = {
   listPath: string
   createPath: string
   buildBody: (vals: Record<string, string>, scene: IndustryRuntimeScene) => Record<string, unknown>
-  fields: Array<{ key: string; label: string; placeholder?: string }>
+  fields: Array<{ key: string; label: string; placeholder?: string; type?: string; optional?: boolean }>
   advances?: Array<{ action: string; label: string }>
   mapItem: (raw: Record<string, unknown>) => Row
   itemsKey?: string
@@ -50,9 +52,19 @@ function apiFor(cap: string, scene: IndustryRuntimeScene): CapApi | null {
       listPath: '/api/v1/leave-request/records',
       createPath: '/api/v1/leave-request/records',
       fields: [
-        { key: 'start_at', label: overtime ? '开始时间' : '开始日期', placeholder: overtime ? '2026-07-20 18:00' : '2026-07-20' },
-        { key: 'end_at', label: overtime ? '结束时间' : '结束日期', placeholder: overtime ? '2026-07-20 21:00' : '2026-07-22' },
-        { key: 'note', label: '事由', placeholder: '可空' },
+        {
+          key: 'start_at',
+          label: overtime ? '开始时间' : '开始日期',
+          placeholder: overtime ? '选择开始时间' : '选择开始日期',
+          type: overtime ? 'datetime-local' : 'date',
+        },
+        {
+          key: 'end_at',
+          label: overtime ? '结束时间' : '结束日期',
+          placeholder: overtime ? '选择结束时间' : '选择结束日期',
+          type: overtime ? 'datetime-local' : 'date',
+        },
+        { key: 'note', label: '事由', placeholder: '可空', optional: true },
       ],
       buildBody: (v) => ({
         category: cat,
@@ -84,8 +96,8 @@ function apiFor(cap: string, scene: IndustryRuntimeScene): CapApi | null {
       createPath: '/api/v1/expense-claim/records',
       fields: [
         { key: 'title', label: '标题', placeholder: name },
-        { key: 'amount', label: '金额', placeholder: '1280' },
-        { key: 'note', label: '说明', placeholder: '可空' },
+        { key: 'amount', label: '金额', placeholder: '1280', type: 'number' },
+        { key: 'note', label: '说明', placeholder: '可空', optional: true },
       ],
       buildBody: (v) => ({
         category: cat,
@@ -115,8 +127,8 @@ function apiFor(cap: string, scene: IndustryRuntimeScene): CapApi | null {
       fields: [
         { key: 'room_name', label: '会议室', placeholder: 'A301' },
         { key: 'title', label: '会议主题', placeholder: '周会' },
-        { key: 'start_at', label: '开始', placeholder: '2026-07-20 14:00' },
-        { key: 'end_at', label: '结束', placeholder: '2026-07-20 15:00' },
+        { key: 'start_at', label: '开始', placeholder: '选择开始时间', type: 'datetime-local' },
+        { key: 'end_at', label: '结束', placeholder: '选择结束时间', type: 'datetime-local' },
       ],
       buildBody: (v) => ({
         room_name: v.room_name?.trim() || '会议室',
@@ -300,11 +312,20 @@ export function LiveOfficeSceneBody({
 }) {
   const cap = scene.capabilityHint.split(/\s*\+\s*/)[0].trim()
   const api = useMemo(() => apiFor(cap, scene), [cap, scene])
+  const steps = useMemo(() => {
+    if (!api) return []
+    return resolveFormSteps({
+      defaults: api.fields,
+      formFields: scene.formFields,
+      pageMockFields: scene.pageMock?.fields,
+    })
+  }, [api, scene.formFields, scene.pageMock])
   const [vals, setVals] = useState<Record<string, string>>({})
   const [rows, setRows] = useState<Row[]>([])
   const [msg, setMsg] = useState('')
   const [busy, setBusy] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [resetKey, setResetKey] = useState(0)
 
   const load = useCallback(async () => {
     if (!api || !token) {
@@ -342,12 +363,11 @@ export function LiveOfficeSceneBody({
   }
 
   const submit = async () => {
-    if (!token || busy) return
+    if (!token || busy || !api) return
     const body = api.buildBody(vals, scene)
-    // 简单必填：第一个字段
-    const first = api.fields[0]?.key
+    const first = steps[0]?.key
     if (first && !String(body[first] ?? vals[first] ?? '').toString().trim()) {
-      setMsg(`请填写「${api.fields[0].label}」`)
+      setMsg(`请填写「${steps[0].label}」`)
       return
     }
     setBusy(true)
@@ -355,6 +375,7 @@ export function LiveOfficeSceneBody({
     try {
       await apiJson(api.createPath, token, { method: 'POST', body: JSON.stringify(body) })
       setVals({})
+      setResetKey((k) => k + 1)
       setMsg('已提交 · 右侧列表已刷新（真库）')
       await load()
     } catch (e) {
@@ -415,25 +436,26 @@ export function LiveOfficeSceneBody({
 
   return (
     <div className="irp-grid-2">
-      <section className="irp-panel">
-        <h3>{scene.name} · 提交</h3>
+      <section className="irp-panel irp-gtgt-panel">
         <p className="irp-summary" style={{ marginBottom: 12 }}>
-          真 API · {cap} · 提交后写入数据库，右侧可见；可点按钮推进状态
+          真 API · {cap} · >> 单字段推进 · 提交写入数据库
         </p>
-        {api.fields.map((f) => (
-          <label key={f.key}>
-            {f.label}
-            <input
-              value={vals[f.key] || ''}
-              placeholder={f.placeholder}
-              onChange={(e) => setVals((p) => ({ ...p, [f.key]: e.target.value }))}
-            />
-          </label>
-        ))}
-        <button type="button" className="irp-btn" disabled={busy} onClick={() => void submit()}>
-          {busy ? '提交中…' : '提交'}
-        </button>
-        {msg ? <p className="irp-summary" style={{ marginTop: 10 }}>{msg}</p> : null}
+        {steps.length > 0 ? (
+          <GtgtStepComposer
+            title={`${scene.name} · 提交`}
+            accent="#8b5cf6"
+            flowHint="填写 → 确认 → 提交真库"
+            steps={steps}
+            values={vals}
+            onChange={(k, v) => setVals((p) => ({ ...p, [k]: v }))}
+            onComplete={submit}
+            busy={busy}
+            resetKey={resetKey}
+            submitLabel="提交"
+          >
+            {msg ? <p className="irp-summary" style={{ marginTop: 10 }}>{msg}</p> : null}
+          </GtgtStepComposer>
+        ) : null}
       </section>
       <section className="irp-panel">
         <h3>

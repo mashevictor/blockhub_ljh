@@ -98,13 +98,37 @@ function schemaToScenes(
 ): IndustryRuntimeScene[] {
   const byId = new Map(catalog.map((s) => [s.id, s]))
   const byName = new Map(catalog.map((s) => [s.name, s]))
+  const childById = new Map((schema.root?.children || []).map((c) => [c.id, c]))
   const out: IndustryRuntimeScene[] = []
   for (const item of schema.menu || []) {
     // 只按 id / 名称对齐样板；禁止按 capability 误套到无关场景（如 chat_qa → SOP）
     const hit = byId.get(item.key) || byName.get(item.label)
     const mock = asPageMock(item.page_mock)
-    if (hit && !mock) {
-      out.push({ ...hit, name: item.label || hit.name, id: item.key || hit.id })
+    const child = childById.get(item.key)
+    const formFieldsRaw = child?.props?.form_fields
+    const formFields = Array.isArray(formFieldsRaw)
+      ? formFieldsRaw
+          .filter((f): f is Record<string, unknown> => Boolean(f) && typeof f === 'object')
+          .map((f) => ({
+            key: String(f.key || ''),
+            label: String(f.label || ''),
+            type: f.type ? String(f.type) : undefined,
+            placeholder: f.placeholder ? String(f.placeholder) : undefined,
+            optional: Boolean(f.optional),
+          }))
+          .filter((f) => f.key && f.label)
+      : undefined
+    if (hit) {
+      out.push({
+        ...hit,
+        name: item.label || hit.name,
+        id: item.key || hit.id,
+        capabilityHint: item.capability_key || hit.capabilityHint,
+        pageMock: mock || hit.pageMock,
+        formFields: formFields || hit.formFields,
+        category: item.category || hit.category,
+        summary: item.summary || hit.summary,
+      })
       continue
     }
     const cap = item.capability_key || 'chat_qa'
@@ -122,6 +146,7 @@ function schemaToScenes(
       kind,
       capabilityHint: cap,
       pageMock: mock,
+      formFields,
     })
   }
   return out.length ? out : catalog
@@ -206,7 +231,7 @@ function UnderstoodBody({ scene }: { scene: IndustryRuntimeScene }) {
             {f.label.includes('说明') || f.label.includes('事由') || f.label.includes('现象') ? (
               <textarea defaultValue={f.value || ''} rows={3} />
             ) : (
-              <input defaultValue={f.value || ''} />
+              <input type={(f as { type?: string }).type || 'text'} defaultValue={f.value || ''} />
             )}
           </label>
         ))}

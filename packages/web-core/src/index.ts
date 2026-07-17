@@ -4,6 +4,13 @@ export * from './RuntimeContext'
 export * from './widget-registry'
 export { GtgtStepComposer, type GtgtStep } from './GtgtStepComposer'
 export {
+  resolveFormSteps,
+  resolveFormFieldDefs,
+  normalizeInputType,
+  type FormFieldDef,
+  type ResolveFormStepsOptions,
+} from './resolveFormSteps'
+export {
   DeveloperBlueprintPanel,
   type DeveloperBlueprint,
   type DeveloperBlueprintPanelProps,

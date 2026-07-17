@@ -475,6 +475,115 @@
   color: #0f172a;
 }
 
+/* LiveOffice >> 填表（同源 GtgtStepComposer，浅色卡片压在深色面板上） */
+.irp-gtgt-panel .bh-gtgt-form,
+.irp-gtgt-panel .booking-float-composer {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 100%;
+  color: #0f172a;
+}
+.irp-gtgt-panel .bh-flow-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+.irp-gtgt-panel .bh-flow-head h3 {
+  margin: 0;
+  color: #f8fafc;
+  font-size: 18px;
+}
+.irp-gtgt-panel .bh-flow-meta,
+.irp-gtgt-panel .bh-gtgt-flow,
+.irp-gtgt-panel .bh-gtgt-hint {
+  color: #94a3b8;
+  font-size: 12px;
+  margin: 0;
+}
+.irp-gtgt-panel .booking-float-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.irp-gtgt-panel .booking-float-progress {
+  font-size: 12px;
+  font-weight: 700;
+  color: #c4b5fd;
+  background: rgba(139, 92, 246, 0.2);
+  padding: 3px 10px;
+  border-radius: 999px;
+}
+.irp-gtgt-panel .bh-gtgt-dots {
+  display: flex;
+  gap: 6px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.irp-gtgt-panel .bh-gtgt-dots li {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #475569;
+}
+.irp-gtgt-panel .bh-gtgt-dots li.is-active { background: #a78bfa; }
+.irp-gtgt-panel .bh-gtgt-dots li.is-done { background: #64748b; }
+.irp-gtgt-panel .booking-float-input-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 12px 14px;
+  border: 1.5px solid rgba(167, 139, 250, 0.45);
+  border-radius: 14px;
+  background: #fff;
+}
+.irp-gtgt-panel .booking-float-prefix {
+  flex-shrink: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: #7c3aed;
+  white-space: nowrap;
+}
+.irp-gtgt-panel .bh-gtgt-chev {
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  letter-spacing: -0.06em;
+}
+.irp-gtgt-panel .booking-float-input {
+  flex: 1;
+  min-width: 120px;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 15px;
+  color: #0f172a;
+}
+.irp-gtgt-panel .booking-float-go,
+.irp-gtgt-panel .bh-gtgt-go {
+  border: none;
+  border-radius: 10px;
+  padding: 8px 14px;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+.irp-gtgt-panel .bh-gtgt-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.irp-gtgt-panel .btn-ghost {
+  background: transparent;
+  border: 1px solid #475569;
+  color: #cbd5e1;
+  border-radius: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
 @media (max-width: 960px) {
   .irp-body {
     grid-template-columns: 1fr;

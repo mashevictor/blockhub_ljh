@@ -6,6 +6,8 @@ export type GtgtStep = {
   placeholder?: string
   hint?: string
   optional?: boolean
+  /** 原生 input type，如 date / datetime-local / number */
+  inputType?: string
   /** 自定义输入控件；默认单行 input */
   render?: (ctx: {
     value: string
@@ -116,10 +118,27 @@ export function GtgtStepComposer({
               accent,
             })}
           </div>
+        ) : current.inputType === 'textarea' ? (
+          <textarea
+            className="booking-float-input bh-gtgt-input"
+            value={draft}
+            onChange={(e) => onChange(current.key, e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault()
+                void advance()
+              }
+            }}
+            placeholder={current.placeholder || current.hint || `填写${current.label}`}
+            disabled={busy}
+            aria-label={current.label}
+            rows={3}
+          />
         ) : (
           <input
             ref={inputRef}
             className="booking-float-input bh-gtgt-input"
+            type={current.inputType && current.inputType !== 'text' ? current.inputType : 'text'}
             value={draft}
             onChange={(e) => onChange(current.key, e.target.value)}
             onKeyDown={onKeyDown}

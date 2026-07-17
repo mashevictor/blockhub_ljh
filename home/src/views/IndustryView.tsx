@@ -182,6 +182,12 @@ export default function IndustryView({
 
   const handlePublish = () => setContactOpen(true)
 
+  const clipIndustryDesc = (desc: string, max = 3) => {
+    const parts = desc.split(/[、,，·]/).map((s) => s.trim()).filter(Boolean)
+    if (parts.length <= max) return { text: parts.join(' · '), more: 0 }
+    return { text: parts.slice(0, max).join(' · '), more: parts.length - max }
+  }
+
   return (
     <div className="view industry-view">
       <div className="view-hero compact cube-panel">
@@ -221,6 +227,7 @@ export default function IndustryView({
           <div className="industry-grid industry-grid-20">
             {INDUSTRIES.map((p) => {
               const ic = industryColor(p.key, theme)
+              const short = clipIndustryDesc(p.desc, 3)
               return (
               <button
                 key={p.key}
@@ -234,11 +241,14 @@ export default function IndustryView({
                 <div className="ind-icon icon-themed" style={iconWrapStyle(ic)}>
                   <DynamicIcon name={p.iconKey} size={28} color={ic} />
                 </div>
-                <strong>{p.name}</strong>
-                <span>{p.desc}</span>
+                <strong className="ind-name">{p.name}</strong>
+                <span className="ind-desc">
+                  {short.text}
+                  {short.more > 0 ? <em className="ind-desc-more"> +{short.more}</em> : null}
+                </span>
                 <Link
                   to={ROUTES.industryDetail(p.key)}
-                  className="ind-detail-link"
+                  className="ind-detail-btn"
                   onClick={(e) => e.stopPropagation()}
                 >
                   方案站

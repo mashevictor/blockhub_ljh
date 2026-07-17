@@ -211,9 +211,12 @@ export default function B2BProductSection({ onTry }: Props) {
                   </div>
                 </header>
                 <ul className="b2b-industry-solutions">
-                  {ind.solutions.map((s) => (
+                  {ind.solutions.slice(0, 3).map((s) => (
                     <li key={s}>{s}</li>
                   ))}
+                  {ind.solutions.length > 3 ? (
+                    <li className="b2b-industry-solutions-more">+{ind.solutions.length - 3}</li>
+                  ) : null}
                 </ul>
                 <button
                   type="button"
@@ -223,7 +226,7 @@ export default function B2BProductSection({ onTry }: Props) {
                     openIndustryDetail(ind.key)
                   }}
                 >
-                  进入独立站 →
+                  进入独立站
                 </button>
                 </div>
               </article>

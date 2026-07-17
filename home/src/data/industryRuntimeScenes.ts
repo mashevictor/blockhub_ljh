@@ -19,7 +19,7 @@ export type ScenePageKind =
 
 export interface ScenePageMock {
   form_title?: string
-  fields?: Array<{ label: string; value?: string }>
+  fields?: Array<{ key?: string; label: string; value?: string; type?: string }>
   list_title?: string
   list?: Array<{ id: string; title: string; status: string }>
   chat_title?: string
@@ -41,6 +41,8 @@ export interface IndustryRuntimeScene {
   capabilityHint: string
   /** 大模型理解后的页面样例（用户新增场景） */
   pageMock?: ScenePageMock
+  /** 对话改页写入的表单字段（含 type） */
+  formFields?: Array<{ key: string; label: string; type?: string; placeholder?: string; optional?: boolean }>
 }
 
 export interface IndustryRuntimePackPreview {

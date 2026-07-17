@@ -69,6 +69,55 @@ describe('capship composer contract', () => {
     expect(child?.type).toBe('leaverequest')
   })
 
+  it('patches existing page form fields (date picker)', () => {
+    const base: ComposerPageSchema = {
+      version: '1',
+      appId: 't',
+      title: 't',
+      capability_keys: ['leave_request'],
+      menu: [
+        { key: 'leave', label: '请假审批', route: '/s/leave', capability_key: 'leave_request' },
+        { key: 'ot', label: '加班申请', route: '/s/ot', capability_key: 'leave_request' },
+      ],
+      root: {
+        id: 'root',
+        type: 'page',
+        children: [
+          { id: 'leave', type: 'leaverequest', props: { capability_key: 'leave_request' } },
+          { id: 'ot', type: 'leaverequest', props: { capability_key: 'leave_request' } },
+        ],
+      },
+    }
+    const next = applyComposeOps(base, [
+      {
+        op: 'patch_page',
+        label: '请假审批',
+        capability_key: 'leave_request',
+        page_mock: {
+          form_title: '请假审批 · 提交',
+          fields: [
+            { key: 'start_at', label: '开始日期', type: 'date' },
+            { key: 'end_at', label: '结束日期', type: 'date' },
+          ],
+        },
+        form_fields: [
+          { key: 'start_at', label: '开始日期', type: 'date' },
+          { key: 'end_at', label: '结束日期', type: 'date' },
+        ],
+      },
+    ])
+    expect(next.menu[0].page_mock?.fields?.[0]?.type).toBe('date')
+    expect(next.root.children?.[0]?.props?.form_fields).toEqual([
+      { key: 'start_at', label: '开始日期', type: 'date' },
+      { key: 'end_at', label: '结束日期', type: 'date' },
+    ])
+    // 同 capability 多场景一并同步
+    expect(next.root.children?.[1]?.props?.form_fields).toEqual([
+      { key: 'start_at', label: '开始日期', type: 'date' },
+      { key: 'end_at', label: '结束日期', type: 'date' },
+    ])
+  })
+
   it('applies flow edit ops', () => {
     const flow = buildDefaultModuleFlow('t', ['设备报修', '知识库'])
     const next = applyFlowEditOps(flow, [

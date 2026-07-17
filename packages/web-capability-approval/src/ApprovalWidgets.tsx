@@ -1,5 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
-import { apiFetch, GtgtStepComposer, useRuntime, type GtgtStep } from '@blockhub/web-core'
+import {
+  apiFetch,
+  GtgtStepComposer,
+  resolveFormFieldDefs,
+  useRuntime,
+  type GtgtStep,
+} from '@blockhub/web-core'
 import type { SchemaNode } from '@blockhub/web-core'
 
 interface ApprovalItem {
@@ -91,32 +97,19 @@ function resolveFormCopy(node: SchemaNode): FormCopy {
   return base
 }
 
-type FieldDef = { key: string; label: string; placeholder?: string; optional?: boolean }
+type FieldDef = { key: string; label: string; placeholder?: string; optional?: boolean; type?: string }
 
 function resolveFormFields(node: SchemaNode, copy: FormCopy): FieldDef[] {
-  const raw = node.props?.form_fields
-  if (Array.isArray(raw) && raw.length > 0) {
-    return raw
-      .map((f) => {
-        if (!f || typeof f !== 'object') return null
-        const rec = f as Record<string, unknown>
-        const key = String(rec.key || '').trim()
-        const label = String(rec.label || '').trim()
-        if (!key || !label) return null
-        return {
-          key,
-          label,
-          placeholder: String(rec.placeholder || ''),
-          optional: Boolean(rec.optional),
-        }
-      })
-      .filter((x): x is FieldDef => Boolean(x))
-  }
-  return [
+  const defaults: FieldDef[] = [
     { key: 'title', label: copy.titleLabel, placeholder: copy.titlePlaceholder },
     { key: 'department', label: copy.deptLabel, placeholder: copy.deptPlaceholder, optional: true },
     { key: 'summary', label: copy.summaryLabel, placeholder: copy.summaryPlaceholder, optional: true },
   ]
+  return resolveFormFieldDefs({
+    defaults,
+    formFields: node.props?.form_fields,
+    pageMockFields: (node.props?.page_mock as { fields?: unknown } | undefined)?.fields,
+  })
 }
 
 export function FormWidget({ node }: { node: SchemaNode }) {
@@ -136,6 +129,7 @@ export function FormWidget({ node }: { node: SchemaNode }) {
         label: f.label,
         placeholder: f.placeholder || '',
         optional: f.optional,
+        inputType: f.type || 'text',
       })),
     [fieldDefs],
   )

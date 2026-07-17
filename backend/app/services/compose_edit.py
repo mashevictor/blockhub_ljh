@@ -109,12 +109,13 @@ def _select_add_caps(matches: list[dict[str, Any]], text: str) -> list[dict[str,
             break
     return selected
 
-_SYSTEM = f"""你是积木仓 Runtime 编排助手。用户用中文描述业务需求或要怎么改当前应用菜单。
+_SYSTEM = f"""你是积木仓 Runtime 编排助手。用户用中文描述业务需求或要怎么改当前应用菜单/表单交互。
 你必须先真正理解用户的业务语言与意图，再落到可执行 ops。页面要先能打开、且贴合用户说法（禁止千篇一律空壳）。
+**禁止**在未产出有效 ops 时回复「页面已更新」「已改好」——无 ops 只能澄清或提问。
 
 输出 JSON（不要 markdown）：
 {{
-  "reply": "用两三句中文说明：你理解的需求、挂了什么页面、真 API 是否已就绪或稍后异步生成",
+  "reply": "用两三句中文说明：你理解的需求、改了什么（菜单/控件）、真 API 是否已就绪",
   "intent_summary": "一句话业务意图",
   "ops": [
     {{
@@ -127,11 +128,30 @@ _SYSTEM = f"""你是积木仓 Runtime 编排助手。用户用中文描述业务
       "widget":"可选；未知能力用 GeneratedPageWidget",
       "page_mock":{{
         "form_title":"贴合场景的表单标题",
-        "fields":[{{"label":"字段名","value":"示例"}}],
+        "fields":[{{"key":"start_at","label":"开始日期","type":"date","value":""}}],
         "list_title":"列表标题",
         "list":[{{"id":"01","title":"示例条目","status":"待办"}}],
         "primary_action":"提交按钮文案"
       }}
+    }},
+    {{
+      "op":"patch_page",
+      "label":"已有场景名（须与当前菜单匹配，如「请假审批」）",
+      "capability_key":"可选；leave_request",
+      "page_mock":{{
+        "form_title":"请假审批 · 提交",
+        "fields":[
+          {{"key":"start_at","label":"开始日期","type":"date","value":""}},
+          {{"key":"end_at","label":"结束日期","type":"date","value":""}},
+          {{"key":"note","label":"事由","type":"text","value":""}}
+        ],
+        "primary_action":"提交"
+      }},
+      "form_fields":[
+        {{"key":"start_at","label":"开始日期","type":"date"}},
+        {{"key":"end_at","label":"结束日期","type":"date"}},
+        {{"key":"note","label":"事由","type":"text"}}
+      ]
     }},
     {{"op":"remove","label":"场景名"}},
     {{"op":"rename","from":"旧名","to":"新名"}},
@@ -147,8 +167,9 @@ _SYSTEM = f"""你是积木仓 Runtime 编排助手。用户用中文描述业务
 5. 没有合适正式能力时：capability_key 用 gen_拼音或英文短 slug，widget=GeneratedPageWidget，page_mock 写清表单；接口可异步落地，reply 里说明「页面已出，接口后台生成」。
 6. 同一正式能力可对应多个不同 label 场景页（加班申请与请假申请可并存）。
 7. 已有相同 label 不要重复 add；可 rename/move。
-8. ops 可为空（仅澄清时）。
-9. {NO_MARKDOWN_STYLE_RULE}
+8. **改交互控件**（日期弹框/选择器、金额改数字、把文本框改成 date/number）：必须用 **patch_page**，针对当前菜单已有项写完整 page_mock.fields 与 form_fields（含 key/label/type）。type 可用 date / datetime-local / number / text / textarea。禁止空 ops 却说已更新。
+9. ops 可为空（仅澄清时）；此时 reply 只能提问或说明未改动，禁止谎称已更新。
+10. {NO_MARKDOWN_STYLE_RULE}
 """
 
 
@@ -183,6 +204,206 @@ def _menu_has_label(menu: list[dict[str, Any]], label: str) -> bool:
         if existing == lab or lab in existing or existing in lab:
             return True
     return False
+
+
+def _looks_like_date_ui_intent(text: str) -> bool:
+    t = text.strip().lower()
+    hints = (
+        "日期弹框", "日期选择", "选日期", "datepicker", "date picker",
+        "日历", "时间选择", "datetime", "日期控件", "改成日期", "改成时间",
+    )
+    if any(h in text or h in t for h in hints):
+        return True
+    if re.search(r"日期.{0,6}(弹|选|改|框)", text) or re.search(r"(弹|选|改).{0,6}日期", text):
+        return True
+    if re.search(r"(开始|结束).{0,4}(日期|时间).{0,8}(选|弹|改)", text):
+        return True
+    return False
+
+
+def _looks_like_number_ui_intent(text: str) -> bool:
+    if any(w in text for w in ("金额改数字", "金额用数字", "数字输入", "number", "改成数字")):
+        return True
+    if re.search(r"金额.{0,6}(数字|number|控件)", text):
+        return True
+    return False
+
+
+def _looks_like_ui_patch_intent(text: str) -> bool:
+    return _looks_like_date_ui_intent(text) or _looks_like_number_ui_intent(text)
+
+
+def _pick_patch_targets(text: str, menu: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """从当前菜单挑出要改控件的场景。"""
+    scored: list[tuple[int, dict[str, Any]]] = []
+    for m in menu:
+        lab = str(m.get("label") or "")
+        cap = str(m.get("capability_key") or m.get("key") or "")
+        score = 0
+        if any(w in text for w in ("请假", "年假", "病假", "事假")) and (
+            "请假" in lab or cap == "leave_request"
+        ):
+            score += 5
+        if "加班" in text and ("加班" in lab or cap == "leave_request"):
+            score += 5
+        if "出差" in text and ("出差" in lab or cap == "leave_request"):
+            score += 5
+        if any(w in text for w in ("会议", "会议室")) and (
+            "会议" in lab or cap == "meeting_booking"
+        ):
+            score += 5
+        if any(w in text for w in ("报销", "借款", "付款", "金额")) and (
+            "报销" in lab or "借款" in lab or "付款" in lab or cap == "expense_claim"
+        ):
+            score += 5
+        if cap == "leave_request" and _looks_like_date_ui_intent(text):
+            score += 2
+        if cap == "expense_claim" and _looks_like_number_ui_intent(text):
+            score += 2
+        if any(w in lab for w in ("开始", "结束", "日期")) and "日期" in text:
+            score += 1
+        if score:
+            scored.append((score, m))
+    scored.sort(key=lambda x: -x[0])
+    if scored:
+        top = scored[0][0]
+        return [m for s, m in scored if s >= top]
+    if _looks_like_date_ui_intent(text):
+        for m in menu:
+            lab = str(m.get("label") or "")
+            cap = str(m.get("capability_key") or "")
+            if cap == "leave_request" or "请假" in lab:
+                return [m]
+    if _looks_like_number_ui_intent(text):
+        for m in menu:
+            lab = str(m.get("label") or "")
+            cap = str(m.get("capability_key") or "")
+            if cap == "expense_claim" or any(w in lab for w in ("报销", "借款", "付款")):
+                return [m]
+    return []
+
+
+def _date_patch_op_for_menu_item(m: dict[str, Any]) -> dict[str, Any]:
+    lab = str(m.get("label") or "表单")
+    cap = str(m.get("capability_key") or "leave_request")
+    overtime = "加班" in lab
+    meeting = cap == "meeting_booking" or "会议" in lab
+    itype = "datetime-local" if (overtime or meeting) else "date"
+    start_label = "开始时间" if itype == "datetime-local" else "开始日期"
+    end_label = "结束时间" if itype == "datetime-local" else "结束日期"
+    fields = [
+        {"key": "start_at", "label": start_label, "type": itype, "value": ""},
+        {"key": "end_at", "label": end_label, "type": itype, "value": ""},
+        {"key": "note", "label": "事由", "type": "text", "value": ""},
+    ]
+    if meeting:
+        fields = [
+            {"key": "room_name", "label": "会议室", "type": "text", "value": ""},
+            {"key": "title", "label": "会议主题", "type": "text", "value": ""},
+            {"key": "start_at", "label": start_label, "type": itype, "value": ""},
+            {"key": "end_at", "label": end_label, "type": itype, "value": ""},
+        ]
+    form_fields = [{"key": f["key"], "label": f["label"], "type": f["type"]} for f in fields]
+    return {
+        "op": "patch_page",
+        "label": lab,
+        "capability_key": cap,
+        "page_mock": {
+            "form_title": f"{lab} · 提交",
+            "fields": fields,
+            "primary_action": "提交",
+        },
+        "form_fields": form_fields,
+        "summary": f"将「{lab}」起止字段改为原生日期/时间选择器",
+    }
+
+
+def _number_patch_op_for_menu_item(m: dict[str, Any]) -> dict[str, Any]:
+    lab = str(m.get("label") or "报销")
+    cap = str(m.get("capability_key") or "expense_claim")
+    fields = [
+        {"key": "title", "label": "标题", "type": "text", "value": ""},
+        {"key": "amount", "label": "金额", "type": "number", "value": ""},
+        {"key": "note", "label": "说明", "type": "text", "value": ""},
+    ]
+    form_fields = [{"key": f["key"], "label": f["label"], "type": f["type"]} for f in fields]
+    return {
+        "op": "patch_page",
+        "label": lab,
+        "capability_key": cap,
+        "page_mock": {
+            "form_title": f"{lab} · 提交",
+            "fields": fields,
+            "primary_action": "提交",
+        },
+        "form_fields": form_fields,
+        "summary": f"将「{lab}」金额字段改为数字输入控件",
+    }
+
+
+def _infer_patch_ops(instruction: str, menu: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    targets = _pick_patch_targets(instruction, menu)
+    if not targets:
+        return []
+    ops: list[dict[str, Any]] = []
+    if _looks_like_date_ui_intent(instruction):
+        ops.extend(_date_patch_op_for_menu_item(m) for m in targets)
+    if _looks_like_number_ui_intent(instruction):
+        # 金额意图优先打到 expense；若 targets 已是 expense 则补 number patch
+        for m in targets:
+            cap = str(m.get("capability_key") or "")
+            lab = str(m.get("label") or "")
+            if cap == "expense_claim" or any(w in lab for w in ("报销", "借款", "付款", "费用")):
+                ops.append(_number_patch_op_for_menu_item(m))
+        if not any(o.get("capability_key") == "expense_claim" for o in ops):
+            for m in menu:
+                cap = str(m.get("capability_key") or "")
+                lab = str(m.get("label") or "")
+                if cap == "expense_claim" or any(w in lab for w in ("报销", "借款", "付款")):
+                    ops.append(_number_patch_op_for_menu_item(m))
+                    break
+    # 去重 label
+    seen: set[str] = set()
+    deduped: list[dict[str, Any]] = []
+    for o in ops:
+        lab = str(o.get("label") or "")
+        kind = "date" if any(f.get("type") in {"date", "datetime-local"} for f in (o.get("form_fields") or [])) else "num"
+        key = f"{lab}:{kind}"
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append(o)
+    return deduped
+
+
+def _clean_patch_op(op: dict[str, Any]) -> dict[str, Any] | None:
+    lab = str(op.get("label") or "").strip()
+    if not lab:
+        return None
+    cleaned: dict[str, Any] = {"op": "patch_page", "label": lab}
+    if op.get("capability_key"):
+        cleaned["capability_key"] = str(op.get("capability_key"))
+    if op.get("summary"):
+        cleaned["summary"] = str(op.get("summary"))
+    mock = op.get("page_mock")
+    if isinstance(mock, dict):
+        cleaned["page_mock"] = mock
+    ff = op.get("form_fields")
+    if isinstance(ff, list) and ff:
+        cleaned["form_fields"] = ff
+    elif isinstance(mock, dict) and isinstance(mock.get("fields"), list):
+        cleaned["form_fields"] = [
+            {
+                "key": str(f.get("key") or f"f_{i}"),
+                "label": str(f.get("label") or ""),
+                "type": str(f.get("type") or "text"),
+            }
+            for i, f in enumerate(mock["fields"])
+            if isinstance(f, dict) and f.get("label")
+        ]
+    if not cleaned.get("page_mock") and not cleaned.get("form_fields"):
+        return None
+    return cleaned
 
 
 def _resolve_matches(text: str) -> list[dict[str, Any]]:
@@ -561,12 +782,24 @@ def _fallback_ops(instruction: str, menu: list[dict[str, Any]]) -> dict[str, Any
             break
 
     if not ops:
-        for add_op in _infer_add_from_text(text):
-            lab = str(add_op.get("label") or "")
-            # 同名已有则跳过；不同场景标签可共用同一能力 key
-            if _menu_has_label(menu, lab):
-                continue
-            ops.append(add_op)
+        # 改控件意图优先：菜单已有目标则 patch，禁止误 add
+        if _looks_like_ui_patch_intent(text):
+            patch_ops = _infer_patch_ops(text, menu)
+            if patch_ops:
+                ops.extend(patch_ops)
+        if not ops:
+            for add_op in _infer_add_from_text(text):
+                lab = str(add_op.get("label") or "")
+                # 同名已有则跳过；不同场景标签可共用同一能力 key
+                if _menu_has_label(menu, lab):
+                    continue
+                # 改控件话术且能力已在菜单：不要再 add
+                ck = str(add_op.get("capability_key") or "")
+                if _looks_like_ui_patch_intent(text) and ck and _menu_has_cap(menu, ck):
+                    continue
+                ops.append(add_op)
+        if not ops:
+            ops.extend(_infer_patch_ops(text, menu))
 
     pending = [
         str(o.get("capability_key"))
@@ -578,6 +811,7 @@ def _fallback_ops(instruction: str, menu: list[dict[str, Any]]) -> dict[str, Any
     if ops:
         added = [str(o.get("label") or o.get("capability_key") or "") for o in ops if o.get("op") == "add"]
         removed = [str(o.get("label") or "") for o in ops if o.get("op") == "remove"]
+        patched = [str(o.get("label") or "") for o in ops if o.get("op") == "patch_page"]
         parts = []
         if added and pending:
             parts.append(f"已理解并挂上页面：{'、'.join(added)}")
@@ -587,16 +821,23 @@ def _fallback_ops(instruction: str, menu: list[dict[str, Any]]) -> dict[str, Any
             parts.append("打开菜单即可办理（正式能力走真 API，空库为空列表）")
         if removed:
             parts.append(f"已移除：{'、'.join(removed)}")
+        if patched:
+            parts.append(f"已改控件：{'、'.join(patched)}（日期/时间改为原生选择器，打开左侧菜单即可体验）")
         reply = "；".join(parts) + "。"
     else:
         hits = _resolve_matches(text)
-        if hits:
+        if _looks_like_ui_patch_intent(text):
+            reply = (
+                "已理解你想改表单交互，但当前菜单里没定位到目标场景。"
+                "请说明要改哪一项（如「请假审批」或「费用报销」）。"
+            )
+        elif hits:
             tips = "、".join(f"{h['label']}({h['key']})" for h in hits[:3])
             reply = f"理解到可能相关能力：{tips}。可以说「加上{hits[0]['label']}」直接挂进菜单。"
         else:
             reply = (
                 "已收到。请用自然语言描述新页面/功能（如「加一个团建经费审批」「要一个季度 OKR 看板」），"
-                "我会先生成差异化页面；没有现成能力时接口可异步落地。"
+                "或说明要改哪个已有表单的控件（如「请假开始结束日期改成日期选择」）。"
             )
 
     return {
@@ -615,17 +856,24 @@ def _merge_llm_with_matches(
     instruction: str,
     menu: list[dict[str, Any]],
 ) -> list[dict[str, Any]]:
-    """LLM 未产出 add 时，用本地匹配补齐；已有 add 则按匹配纠正错误 key。"""
+    """LLM 未产出 add/patch 时，用本地匹配补齐；已有 add 则按匹配纠正错误 key。"""
     has_add = any(o.get("op") == "add" for o in ops)
+    has_patch = any(o.get("op") == "patch_page" for o in ops)
     has_mutate = any(o.get("op") in {"remove", "rename", "move"} for o in ops)
 
-    if not has_add and not has_mutate:
+    if not has_add and not has_mutate and not has_patch:
         for add_op in _infer_add_from_text(instruction):
             lab = str(add_op.get("label") or "")
             if _menu_has_label(menu, lab):
                 continue
             ops.append(add_op)
+        if not any(o.get("op") == "add" for o in ops):
+            ops.extend(_infer_patch_ops(instruction, menu))
         return ops
+
+    # 改控件意图但 LLM 没出 patch：本地补
+    if not has_patch and _looks_like_ui_patch_intent(instruction):
+        ops.extend(_infer_patch_ops(instruction, menu))
 
     # 纠正 LLM 误选的 approval_flow / chat_qa
     matches = _resolve_matches(instruction)
@@ -685,7 +933,7 @@ def compose_edit_from_instruction(
     if not isinstance(data, dict):
         return _fallback_ops(q, menu_list)
 
-    reply = sanitize_llm_plain_text(str(data.get("reply") or "已更新"))
+    reply = sanitize_llm_plain_text(str(data.get("reply") or ""))
     intent_summary = sanitize_llm_plain_text(str(data.get("intent_summary") or ""))
     ops_raw = data.get("ops") if isinstance(data.get("ops"), list) else []
     ops: list[dict[str, Any]] = []
@@ -693,7 +941,12 @@ def compose_edit_from_instruction(
         if not isinstance(op, dict):
             continue
         kind = str(op.get("op") or "").strip()
-        if kind not in {"add", "remove", "rename", "move"}:
+        if kind not in {"add", "remove", "rename", "move", "patch_page"}:
+            continue
+        if kind == "patch_page":
+            cleaned_patch = _clean_patch_op(op)
+            if cleaned_patch:
+                ops.append(cleaned_patch)
             continue
         cleaned: dict[str, Any] = {"op": kind}
         for k in ("label", "from", "to", "capability_key", "category", "summary", "page_kind", "widget"):
@@ -725,15 +978,28 @@ def compose_edit_from_instruction(
     # 再次 enrich（纠正后的 key）
     ops = [_enrich_add_op(o) if o.get("op") == "add" else o for o in ops]
 
-    # 去重：同 label 已在菜单或本批重复；同 capability 允许不同场景页
+    # 去重：同 label 已在菜单或本批重复；同 capability 允许不同场景页；patch 不去重菜单已有
     deduped: list[dict[str, Any]] = []
     seen_labels: set[str] = set()
+    seen_patches: set[str] = set()
     for o in ops:
         if o.get("op") == "add":
             lab = str(o.get("label") or "").strip()
             if not lab or lab in seen_labels or _menu_has_label(menu_list, lab):
                 continue
             seen_labels.add(lab)
+        if o.get("op") == "patch_page":
+            lab = str(o.get("label") or "").strip()
+            if not lab or lab in seen_patches:
+                continue
+            # 菜单必须能对上
+            if not _menu_has_label(menu_list, lab) and not any(
+                str(m.get("capability_key") or "") == str(o.get("capability_key") or "")
+                for m in menu_list
+                if o.get("capability_key")
+            ):
+                continue
+            seen_patches.add(lab)
         deduped.append(o)
     ops = deduped
 
@@ -743,9 +1009,34 @@ def compose_edit_from_instruction(
         if o.get("op") == "add" and (o.get("pending_codegen") or str(o.get("capability_key") or "").startswith("gen_"))
     ]
 
-    if not reply or reply == "已更新":
-        added = [str(o.get("label")) for o in ops if o.get("op") == "add"]
-        if added and pending:
+    patched = [str(o.get("label")) for o in ops if o.get("op") == "patch_page"]
+    added = [str(o.get("label")) for o in ops if o.get("op") == "add"]
+
+    if not ops:
+        # 禁止空 ops 却谎称已更新
+        if not reply or any(w in reply for w in ("已更新", "已改", "页面已", "已将")):
+            if _looks_like_ui_patch_intent(q):
+                reply = (
+                    "已理解你想改表单交互，但未能落到可执行修改。"
+                    "请指明菜单项名称（如「请假审批」「费用报销」），我会写入字段控件配置。"
+                )
+            else:
+                reply = (
+                    intent_summary
+                    or "我理解了你的说法，但这次没有改到菜单或控件。请更具体说明要加什么页面，或改哪个字段。"
+                )
+    elif not reply or reply == "已更新":
+        if patched and pending:
+            reply = (
+                f"已改控件：{'、'.join(patched)}；并挂上 {'、'.join(added)}。"
+                "可先打开左侧菜单体验；未覆盖接口将异步生成。"
+            )
+        elif patched:
+            reply = (
+                f"已按你的要求改控件：{'、'.join(patched)}。"
+                "开始/结束日期现为原生日期（或时间）选择器，打开左侧菜单即可体验；仍走原有真 API。"
+            )
+        elif added and pending:
             reply = (
                 f"已理解并挂上页面：{'、'.join(added)}。"
                 "可先在菜单打开使用；未匹配正式能力的接口将异步生成。"
@@ -756,7 +1047,7 @@ def compose_edit_from_instruction(
             reply = intent_summary
 
     return {
-        "reply": reply or "已更新",
+        "reply": reply or ("已应用修改。" if ops else "未改动，请补充说明。"),
         "ops": ops,
         "intent_summary": intent_summary,
         "matched": local_matches,

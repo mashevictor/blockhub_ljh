@@ -22,7 +22,7 @@ export interface ComposerMenuItem {
 
 export interface ComposerPageMock {
   form_title?: string
-  fields?: Array<{ label: string; value?: string }>
+  fields?: Array<{ key?: string; label: string; value?: string; type?: string }>
   list_title?: string
   list?: Array<{ id: string; title: string; status: string }>
   chat_title?: string
@@ -116,6 +116,14 @@ export type ComposeEditOp =
   | { op: 'remove'; label: string }
   | { op: 'rename'; from: string; to: string }
   | { op: 'move'; label: string; index?: number }
+  | {
+      /** 改已有场景页的表单控件 / page_mock（如日期文本框→日期选择器） */
+      op: 'patch_page'
+      label: string
+      capability_key?: string
+      page_mock?: ComposerPageMock
+      form_fields?: Array<{ key: string; label: string; type?: string; placeholder?: string }>
+    }
 
 export type FlowEditOp =
   | { op: 'add'; label: string; note?: string; after?: string }

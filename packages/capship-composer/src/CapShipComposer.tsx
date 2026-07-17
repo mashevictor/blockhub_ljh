@@ -205,6 +205,68 @@ export function applyComposeOps(schema: ComposerPageSchema, ops: ComposeEditOp[]
           ],
         },
       }
+      continue
+    }
+    if (op.op === 'patch_page') {
+      const hit =
+        matchMenuLabel(next.menu, op.label) ||
+        (op.capability_key
+          ? next.menu.find((m) => m.capability_key === op.capability_key)
+          : undefined)
+      if (!hit) continue
+      const formFields =
+        op.form_fields ||
+        (op.page_mock?.fields || [])
+          .filter((f) => f.label)
+          .map((f, i) => ({
+            key: f.key || `f_${i}`,
+            label: f.label,
+            type: f.type,
+            placeholder: f.value,
+          }))
+      const targetKeys = new Set<string>([hit.key])
+      // 预览里同 capability 多场景（请假/加班）一并同步 form_fields
+      if (op.capability_key || hit.capability_key) {
+        const cap = op.capability_key || hit.capability_key
+        for (const m of next.menu) {
+          if (m.capability_key === cap) targetKeys.add(m.key)
+        }
+      }
+      next = {
+        ...next,
+        menu: next.menu.map((m) =>
+          targetKeys.has(m.key)
+            ? {
+                ...m,
+                page_mock: op.page_mock
+                  ? { ...(m.page_mock || {}), ...op.page_mock }
+                  : m.page_mock,
+              }
+            : m,
+        ),
+        root: {
+          ...next.root,
+          children: (next.root.children || []).map((c) =>
+            targetKeys.has(c.id)
+              ? {
+                  ...c,
+                  props: {
+                    ...(c.props || {}),
+                    ...(op.page_mock
+                      ? {
+                          page_mock: {
+                            ...((c.props?.page_mock as object) || {}),
+                            ...op.page_mock,
+                          },
+                        }
+                      : {}),
+                    ...(formFields.length ? { form_fields: formFields } : {}),
+                  },
+                }
+              : c,
+          ),
+        },
+      }
     }
   }
   return next
@@ -575,7 +637,13 @@ export function CapShipComposer({
         ...prev,
         { role: 'assistant', text: `${result.reply}${src}${asyncHint}` },
       ])
-      setStatus(result.ops?.length ? '页面已更新；可先打开左侧菜单体验' : '')
+      setStatus(
+        result.ops?.length
+          ? result.ops.some((o) => o.op === 'patch_page')
+            ? '控件已更新；请打开左侧对应菜单体验'
+            : '页面已更新；可先打开左侧菜单体验'
+          : '',
+      )
     } catch (e) {
       if (e instanceof SchemaRevConflictError) {
         handleConflict(e)

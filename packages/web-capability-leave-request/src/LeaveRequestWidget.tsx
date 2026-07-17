@@ -1,6 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { SchemaNode } from '@blockhub/web-core'
-import { apiFetch, GtgtStepComposer, useRuntime, type GtgtStep } from '@blockhub/web-core'
+import {
+  apiFetch,
+  GtgtStepComposer,
+  resolveFormSteps,
+  useRuntime,
+  type FormFieldDef,
+  type GtgtStep,
+} from '@blockhub/web-core'
 
 interface RecordItem {
   id: string
@@ -69,11 +76,38 @@ export function LeaveRequestWidget({ node }: { node: SchemaNode }) {
     ] as const
   }, [isOvertime, isTrip])
 
-  const steps: GtgtStep[] = useMemo(
-    () => [
+  const steps: GtgtStep[] = useMemo(() => {
+    const dateType = isOvertime ? 'datetime-local' : 'date'
+    const defaults: FormFieldDef[] = [
+      { key: 'category', label: isOvertime || isTrip ? '申请类型' : '假种' },
       {
-        key: 'category',
-        label: isOvertime || isTrip ? '申请类型' : '假种',
+        key: 'start_at',
+        label: isOvertime ? '开始时间' : '开始日期',
+        placeholder: isOvertime ? '选择开始时间' : '选择开始日期',
+        type: dateType,
+      },
+      {
+        key: 'end_at',
+        label: isOvertime ? '结束时间' : '结束日期',
+        placeholder: isOvertime ? '选择结束时间' : '选择结束日期',
+        type: dateType,
+      },
+      {
+        key: 'note',
+        label: '事由（可空）',
+        placeholder: isOvertime ? '项目上线 / 盘点…' : '探亲 / 看病…',
+        optional: true,
+      },
+    ]
+    const resolved = resolveFormSteps({
+      defaults,
+      formFields: node.props?.form_fields,
+      pageMockFields: (node.props?.page_mock as { fields?: unknown } | undefined)?.fields,
+    })
+    return resolved.map((s) => {
+      if (s.key !== 'category') return s
+      return {
+        ...s,
         render: ({ value, setValue, accent: a }) => (
           <div className="row-actions">
             {catOptions.map(([k, lab]) => (
@@ -89,13 +123,9 @@ export function LeaveRequestWidget({ node }: { node: SchemaNode }) {
             ))}
           </div>
         ),
-      },
-      { key: 'start_at', label: isOvertime ? '开始时间' : '开始日期', placeholder: isOvertime ? '2026-07-20 18:00' : '2026-07-20' },
-      { key: 'end_at', label: isOvertime ? '结束时间' : '结束日期', placeholder: isOvertime ? '2026-07-20 21:00' : '2026-07-22' },
-      { key: 'note', label: '事由（可空）', placeholder: isOvertime ? '项目上线 / 盘点…' : '探亲 / 看病…', optional: true },
-    ],
-    [catOptions, initialCat, isOvertime, isTrip],
-  )
+      }
+    })
+  }, [catOptions, initialCat, isOvertime, isTrip, node.props?.form_fields, node.props?.page_mock])
 
   const load = useCallback(async () => {
     if (!token) {

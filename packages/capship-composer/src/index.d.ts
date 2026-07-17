@@ -7,7 +7,7 @@ export declare const COMPOSER_MODES: Array<{ id: ComposerMode; label: string; de
 
 export interface ComposerPageMock {
   form_title?: string
-  fields?: Array<{ label: string; value?: string }>
+  fields?: Array<{ key?: string; label: string; value?: string; type?: string }>
   list_title?: string
   list?: Array<{ id: string; title: string; status: string }>
   chat_title?: string
@@ -75,6 +75,7 @@ export type ComposeEditOp =
       op: 'add'
       label: string
       capability_key?: string
+      widget?: string
       category?: string
       summary?: string
       page_kind?: string
@@ -83,6 +84,13 @@ export type ComposeEditOp =
   | { op: 'remove'; label: string }
   | { op: 'rename'; from: string; to: string }
   | { op: 'move'; label: string; index?: number }
+  | {
+      op: 'patch_page'
+      label: string
+      capability_key?: string
+      page_mock?: ComposerPageMock
+      form_fields?: Array<{ key: string; label: string; type?: string; placeholder?: string }>
+    }
 
 export type FlowEditOp =
   | { op: 'add'; label: string; note?: string; after?: string }
