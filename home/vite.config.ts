@@ -37,28 +37,33 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [react(), htmlCacheVersionPlugin({ appName: 'home', appVersion }), industryHubRedirectPlugin()],
     resolve: {
-      alias: {
-        '@shared': path.resolve(__dirname, '../shared'),
-        // 仅暴露开发者契约面板（样式由组件内 import），避免把整个 web-core 打进 home
-        '@blockhub/web-core': path.resolve(
-          __dirname,
-          '../packages/web-core/src/DeveloperBlueprintPanel.tsx',
-        ),
-        // 办公预览填表：>> 步进 + form_fields 解析（与 Runtime 同源）
-        '@blockhub/web-core/gtgt': path.resolve(
-          __dirname,
-          '../packages/web-core/src/GtgtStepComposer.tsx',
-        ),
-        '@blockhub/web-core/resolveFormSteps': path.resolve(
-          __dirname,
-          '../packages/web-core/src/resolveFormSteps.ts',
-        ),
-        '@capship/composer': path.resolve(__dirname, '../packages/capship-composer/src'),
-        '@capship/composer/styles.css': path.resolve(
-          __dirname,
-          '../packages/capship-composer/src/styles.css',
-        ),
-      },
+      alias: [
+        { find: '@shared', replacement: path.resolve(__dirname, '../shared') },
+        // 子路径必须精确匹配，且排在 @blockhub/web-core 之前，避免拼成 DeveloperBlueprintPanel.tsx/xxx
+        {
+          find: /^@blockhub\/web-core\/gtgt$/,
+          replacement: path.resolve(__dirname, '../packages/web-core/src/GtgtStepComposer.tsx'),
+        },
+        {
+          find: /^@blockhub\/web-core\/resolveFormSteps$/,
+          replacement: path.resolve(__dirname, '../packages/web-core/src/resolveFormSteps.ts'),
+        },
+        {
+          find: /^@blockhub\/web-core$/,
+          replacement: path.resolve(
+            __dirname,
+            '../packages/web-core/src/DeveloperBlueprintPanel.tsx',
+          ),
+        },
+        {
+          find: '@capship/composer/styles.css',
+          replacement: path.resolve(__dirname, '../packages/capship-composer/src/styles.css'),
+        },
+        {
+          find: '@capship/composer',
+          replacement: path.resolve(__dirname, '../packages/capship-composer/src'),
+        },
+      ],
     },
     build: {
       rollupOptions: {
