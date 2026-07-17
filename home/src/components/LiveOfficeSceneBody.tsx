@@ -447,7 +447,7 @@ export function LiveOfficeSceneBody({
             flowHint="填写 → 确认 → 提交真库"
             steps={steps}
             values={vals}
-            onChange={(k, v) => setVals((p) => ({ ...p, [k]: v }))}
+            onChange={(k: string, v: string) => setVals((p) => ({ ...p, [k]: v }))}
             onComplete={submit}
             busy={busy}
             resetKey={resetKey}

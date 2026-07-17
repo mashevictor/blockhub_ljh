@@ -19,6 +19,8 @@
     "paths": {
       "@shared/*": ["../shared/*"],
       "@blockhub/web-core": ["../packages/web-core/src/developer-panel.d.ts"],
+      "@blockhub/web-core/gtgt": ["./src/types/web-core-gtgt.d.ts"],
+      "@blockhub/web-core/resolveFormSteps": ["./src/types/web-core-resolveFormSteps.d.ts"],
       "@capship/composer": ["./node_modules/@capship/composer/src/index.d.ts"],
       "@capship/composer/styles.css": ["./src/types/css-modules.d.ts"]
     }
