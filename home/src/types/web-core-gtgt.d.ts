@@ -26,6 +26,8 @@ export declare function GtgtStepComposer(props: {
   submitLabel?: string
   flowHint?: string
   resetKey?: string | number
+  /** Soft：柔和分区底（Runtime 默认） */
+  variant?: 'default' | 'soft'
   children?: ReactNode
 }): ReactNode
 
