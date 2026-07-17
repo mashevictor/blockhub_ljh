@@ -29,9 +29,10 @@ function resolveFormCopy(node: SchemaNode): FormCopy {
   const key = String(node.props?.capability_key || 'approval_flow')
   const type = String(node.props?.approval_type || key)
   const fromProps = node.props || {}
+  const sceneLabel = String(fromProps.scene_label || fromProps.form_headline || '')
 
   const base: FormCopy = {
-    headline: String(fromProps.form_headline || '发起审批'),
+    headline: String(fromProps.form_headline || sceneLabel || '发起审批'),
     hint: String(fromProps.form_hint || '>> 单字段推进，提交后进入待办'),
     titleLabel: '事项标题',
     titlePlaceholder: String(fromProps.title_placeholder || '简要说明要办的事'),
@@ -43,34 +44,41 @@ function resolveFormCopy(node: SchemaNode): FormCopy {
     successMsg: '申请已提交，等待审批',
   }
 
-  if (type.includes('leave') || /请假|年假|调休/.test(key + String(fromProps.form_headline || ''))) {
+  if (type.includes('leave') || /请假|年假|调休/.test(key + sceneLabel)) {
     return {
       ...base,
-      headline: '请假申请',
+      headline: String(fromProps.form_headline || '请假申请'),
       hint: '填写假种与时段，提交后主管审批',
       titlePlaceholder: '如：年假 3 天（4/1–4/3）',
       summaryPlaceholder: '事由、代理人、是否出国…',
       submitLabel: '提交请假',
     }
   }
-  if (type.includes('expense') || /报销/.test(String(fromProps.form_headline || ''))) {
+  if (type.includes('expense') || /报销/.test(sceneLabel + String(fromProps.form_headline || ''))) {
     return {
       ...base,
-      headline: '费用报销',
+      headline: String(fromProps.form_headline || '费用报销'),
       hint: '填写金额与用途，提交财务审批',
       titlePlaceholder: '如：差旅报销 ¥1280',
       summaryPlaceholder: '行程、发票张数、是否已垫付…',
       submitLabel: '提交报销',
     }
   }
-  if (type.includes('seal') || key.includes('seal') || /用印|盖章/.test(String(fromProps.form_headline || ''))) {
+  if (type.includes('seal') || key.includes('seal') || /用印|盖章/.test(sceneLabel + String(fromProps.form_headline || ''))) {
     return {
       ...base,
-      headline: '用印申请',
+      headline: String(fromProps.form_headline || '用印申请'),
       hint: '说明印章类型与文件用途',
       titlePlaceholder: '如：合同章 · 《采购协议》',
       summaryPlaceholder: '份数、是否外带、法务是否已审…',
       submitLabel: '提交用印',
+    }
+  }
+  if (fromProps.form_headline || sceneLabel) {
+    return {
+      ...base,
+      headline: String(fromProps.form_headline || sceneLabel),
+      submitLabel: `提交${sceneLabel || '申请'}`.slice(0, 12),
     }
   }
   if (key === 'approval_flow') {
@@ -83,9 +91,38 @@ function resolveFormCopy(node: SchemaNode): FormCopy {
   return base
 }
 
+type FieldDef = { key: string; label: string; placeholder?: string; optional?: boolean }
+
+function resolveFormFields(node: SchemaNode, copy: FormCopy): FieldDef[] {
+  const raw = node.props?.form_fields
+  if (Array.isArray(raw) && raw.length > 0) {
+    return raw
+      .map((f) => {
+        if (!f || typeof f !== 'object') return null
+        const rec = f as Record<string, unknown>
+        const key = String(rec.key || '').trim()
+        const label = String(rec.label || '').trim()
+        if (!key || !label) return null
+        return {
+          key,
+          label,
+          placeholder: String(rec.placeholder || ''),
+          optional: Boolean(rec.optional),
+        }
+      })
+      .filter((x): x is FieldDef => Boolean(x))
+  }
+  return [
+    { key: 'title', label: copy.titleLabel, placeholder: copy.titlePlaceholder },
+    { key: 'department', label: copy.deptLabel, placeholder: copy.deptPlaceholder, optional: true },
+    { key: 'summary', label: copy.summaryLabel, placeholder: copy.summaryPlaceholder, optional: true },
+  ]
+}
+
 export function FormWidget({ node }: { node: SchemaNode }) {
   const { token, primaryColor, user } = useRuntime()
   const copy = useMemo(() => resolveFormCopy(node), [node])
+  const fieldDefs = useMemo(() => resolveFormFields(node, copy), [node, copy])
   const [values, setValues] = useState<Record<string, string>>({})
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState('')
@@ -93,26 +130,44 @@ export function FormWidget({ node }: { node: SchemaNode }) {
   const accent = primaryColor || '#4338ca'
 
   const steps: GtgtStep[] = useMemo(
-    () => [
-      { key: 'title', label: copy.titleLabel, placeholder: copy.titlePlaceholder },
-      { key: 'department', label: copy.deptLabel, placeholder: copy.deptPlaceholder, optional: true },
-      { key: 'summary', label: copy.summaryLabel, placeholder: copy.summaryPlaceholder, optional: true },
-    ],
-    [copy],
+    () =>
+      fieldDefs.map((f) => ({
+        key: f.key,
+        label: f.label,
+        placeholder: f.placeholder || '',
+        optional: f.optional,
+      })),
+    [fieldDefs],
   )
 
+  const primaryKey = fieldDefs[0]?.key || 'title'
+
   const handleSubmit = async () => {
-    if (!token || !values.title?.trim()) return
+    const primaryVal = (values[primaryKey] || values.title || '').trim()
+    if (!token || !primaryVal) return
     setBusy(true)
     setMsg('')
     try {
+      const approvalType = String(
+        node.props?.approval_type ||
+          (String(node.props?.capability_key || '').includes('seal') ? 'seal' : 'general'),
+      )
+      const dept = (values.department || '').trim() || '未填写'
+      const summary =
+        (values.summary || '').trim() ||
+        fieldDefs
+          .slice(1)
+          .map((f) => `${f.label}:${(values[f.key] || '').trim()}`)
+          .filter((s) => !s.endsWith(':'))
+          .join('；') ||
+        primaryVal
       await apiFetch('/api/v1/approvals', token, {
         method: 'POST',
         body: JSON.stringify({
-          title: values.title.trim(),
-          type: String(node.props?.approval_type || (String(node.props?.capability_key || '').includes('seal') ? 'seal' : 'general')),
-          department: (values.department || '').trim() || '未填写',
-          summary: (values.summary || '').trim() || values.title.trim(),
+          title: primaryVal,
+          type: approvalType,
+          department: dept,
+          summary,
         }),
       })
       setMsg(copy.successMsg)

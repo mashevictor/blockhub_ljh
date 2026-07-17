@@ -190,6 +190,8 @@ export async function askComposeEdit(
   llm_configured: boolean
   intent_summary?: string
   matched?: Array<{ key: string; label?: string; score?: number }>
+  pending_codegen_keys?: string[]
+  codegen_job_id?: string
 }> {
   const res = await fetch('/api/v1/creation/compose-edit', {
     method: 'POST',

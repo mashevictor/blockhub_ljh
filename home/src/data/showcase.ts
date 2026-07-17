@@ -72,7 +72,7 @@ export const PLATFORMS_SHOWCASE: PlatformItem[] = [
 ]
 
 export const SCENARIO_BREAKDOWN = [
-  { label: '通用办公', count: 96, color: '#6366f1', iconKey: 'office' },
+  { label: '通用办公', count: 66, color: '#6366f1', iconKey: 'office' },
   { label: '制造业', count: 12, color: '#3b82f6', iconKey: 'mfg' },
   { label: '销售', count: 12, color: '#ef4444', iconKey: 'sales' },
   { label: '医疗', count: 12, color: '#10b981', iconKey: 'med' },

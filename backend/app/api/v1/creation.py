@@ -320,13 +320,31 @@ def flow_ask_api(body: FlowAskRequest) -> dict:
 
 @router.post("/compose-edit")
 def compose_edit_api(body: ComposeEditRequest) -> dict:
-    """自然语言改 Runtime 菜单/场景，优先大模型。"""
-    return compose_edit_from_instruction(
+    """自然语言改 Runtime 菜单/场景，优先大模型；未知能力可异步 codegen。"""
+    result = compose_edit_from_instruction(
         instruction=body.instruction,
         menu=body.menu,
         capability_keys=body.capability_keys,
         app_name=body.app_name,
     )
+    pending = list(result.get("pending_codegen_keys") or [])
+    codegen_job_id = ""
+    if pending:
+        try:
+            codegen_job_id = enqueue_codegen_job(
+                app_id=f"compose-{body.app_name or 'draft'}"[:48],
+                app_name=body.app_name or "Runtime 编排",
+                unknown_keys=pending,
+                prompt=body.instruction,
+                web_template_id="web-capability-approval",
+                app_ui_id="ui.generated_page",
+            )
+        except Exception:
+            logger.exception("compose-edit enqueue codegen failed")
+            codegen_job_id = ""
+    if codegen_job_id:
+        result = {**result, "codegen_job_id": codegen_job_id}
+    return result
 
 
 @router.post("/flow-edit")

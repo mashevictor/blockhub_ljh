@@ -53,7 +53,7 @@ export const CASE_STUDIES: CaseStudy[] = [
     metrics: [
       { value: '5min', label: '首场景上线' },
       { value: '120+', label: '门店覆盖' },
-      { value: '96', label: '办公场景' },
+      { value: '66', label: '办公场景' },
     ],
     story: [
       '区域连锁零售企业覆盖总部与 120 余家门店，员工频繁咨询 HR 制度与排班问题。',

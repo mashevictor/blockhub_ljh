@@ -17,7 +17,7 @@ export interface ClientIndustryEnrichment {
 }
 
 const PACK_CAPSHIP: Record<string, string[]> = {
-  office: ['leave_request', 'expense_claim', 'policy_qa', 'hire_onboard', 'chat_qa', 'approval_inbox'],
+  office: ['leave_request', 'expense_claim', 'policy_qa', 'hire_onboard', 'chat_qa', 'approval_inbox', 'seal_request', 'meeting_booking', 'approval_flow', 'ops_kpi', 'kb_document', 'it_ticket', 'asset_manage', 'notify_im', 'notify_inapp', 'chart_dashboard', 'data_nl_query', 'legal_case', 'erp_connector', 'rbac_page', 'shift_attendance'],
   mfg: ['device_repair', 'quality_inspect', 'inventory_count', 'chat_qa', 'notify_im', 'kb_document'],
   sales: ['sales_lead', 'quote_contract', 'ops_kpi', 'chat_qa', 'chart_funnel', 'notify_im'],
   med: ['med_triage', 'nurse_shift', 'kb_document', 'chat_qa', 'approval_flow', 'notify_im'],

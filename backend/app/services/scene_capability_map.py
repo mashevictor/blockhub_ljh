@@ -10,6 +10,7 @@ import re
 from typing import Any
 
 from app.data.industry_packs_all import ALL_INDUSTRY_PACKS, pack_meta
+from app.data.office_scene_capabilities import enrich_menu_plan_item
 from app.services.effective_capability_registry import is_registry_key
 
 # 场景 agent 字段 → 正式 capability key
@@ -42,7 +43,6 @@ _AGENT_TO_CAPABILITY: dict[str, str] = {
     "asset_manage": "asset_manage",
     "sales_lead": "sales_lead",
     "quote_contract": "quote_contract",
-    "ops_kpi": "ops_kpi",
     "med_triage": "med_triage",
     "nurse_shift": "nurse_shift",
     "game_support": "game_support",
@@ -66,6 +66,9 @@ _AGENT_TO_CAPABILITY: dict[str, str] = {
     "energy_carbon": "energy_carbon",
     "training_record": "training_record",
     "erp_connector": "erp_connector",
+    "data_nl_query": "data_nl_query",
+    "rbac_page": "rbac_page",
+    "chat_qa": "chat_qa",
 }
 
 # 场景名关键词 → 更贴切的正式能力（覆盖泛化 agent=approval/report）
@@ -144,6 +147,19 @@ def resolve_scene_capability_keys(scene: dict[str, Any]) -> list[str]:
     """单场景 → 有序 capability keys。"""
     keys: list[str] = []
     name = str(scene.get("name") or "")
+
+    # 办公 66 SSOT 优先（避免 CRM 等词误命中 sales_lead）
+    try:
+        from app.data.office_scene_capabilities import OFFICE_SCENES_BY_NAME
+
+        office_row = OFFICE_SCENES_BY_NAME.get(name)
+        if office_row:
+            ck = str(office_row.get("capability_key") or "")
+            if ck and is_registry_key(ck):
+                return [ck]
+    except Exception:
+        pass
+
     for k in _keys_from_name(name):
         if k not in keys:
             keys.append(k)
@@ -242,10 +258,27 @@ def assemble_industry_pack(
         if primary == "seal_request":
             plan_item["approval_type"] = "seal"
             plan_item["form_headline"] = "用印申请"
+        if pack_key == "office":
+            plan_item = enrich_menu_plan_item(plan_item, name)
+            primary = str(plan_item.get("capability_key") or primary)
+            if modules:
+                modules[-1]["key"] = primary
+            if primary not in capability_keys:
+                capability_keys.append(primary)
         menu_plan.append(plan_item)
 
     if not capability_keys:
         capability_keys = ["chat_qa", "approval_flow", "kb_document"]
+
+    # office：以映射表 menu_plan 为准重建 keys，避免名称关键词误伤（如 CRM→sales_lead）
+    if pack_key == "office" and menu_plan:
+        rebuilt: list[str] = []
+        for item in menu_plan:
+            ck = str(item.get("capability_key") or "").strip()
+            if ck and ck not in rebuilt and is_registry_key(ck):
+                rebuilt.append(ck)
+        if rebuilt:
+            capability_keys = rebuilt
 
     meta = pack_meta(pack_key) or {"name": pack_key, "tagline": ""}
     return {

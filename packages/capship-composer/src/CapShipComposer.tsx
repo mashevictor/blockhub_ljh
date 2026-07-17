@@ -105,6 +105,7 @@ const CAP_WIDGET_FALLBACK: Record<string, string> = {
 
 function resolveAddWidget(cap: string, explicit?: string): string {
   if (explicit && /Widget$/.test(explicit)) return explicit
+  if (cap.startsWith('gen_')) return 'GeneratedPageWidget'
   return CAP_WIDGET_FALLBACK[cap] || 'ListWidget'
 }
 
@@ -149,7 +150,15 @@ export function applyComposeOps(schema: ComposerPageSchema, ops: ComposeEditOp[]
       if (!label) continue
       if (next.menu.some((m) => m.label === label)) continue
       const cap = op.capability_key || 'chat_qa'
-      if ([...keys].includes(cap) && next.menu.some((m) => m.capability_key === cap)) continue
+      // 预览 / 带 page_mock：允许同一正式能力对应多个场景页（加班 vs 请假）
+      const allowDupCap = Boolean(next.meta?.preview) || Boolean(op.page_mock) || cap.startsWith('gen_')
+      if (
+        !allowDupCap &&
+        [...keys].includes(cap) &&
+        next.menu.some((m) => m.capability_key === cap)
+      ) {
+        continue
+      }
       const widget = resolveAddWidget(cap, op.widget)
       const nodeType = widget.replace(/Widget$/i, '').toLowerCase() || cap
       const key = `scene_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`
@@ -165,8 +174,8 @@ export function applyComposeOps(schema: ComposerPageSchema, ops: ComposeEditOp[]
         summary: op.summary,
         page_kind: op.page_kind,
       }
-      // 正式能力包不依赖 page_mock；仅兜底 ListWidget 时保留
-      if (op.page_mock && widget === 'ListWidget') {
+      // UI 先行：有 page_mock 一律保留（办公 Runtime 预览靠它展示差异化页面）
+      if (op.page_mock) {
         menuItem.page_mock = op.page_mock
       }
       const childProps: Record<string, unknown> = {
@@ -177,7 +186,7 @@ export function applyComposeOps(schema: ComposerPageSchema, ops: ComposeEditOp[]
         summary: op.summary,
         page_kind: op.page_kind,
       }
-      if (op.page_mock && widget === 'ListWidget') {
+      if (op.page_mock) {
         childProps.page_mock = op.page_mock
       }
       next = {
@@ -244,7 +253,7 @@ export function CapShipComposer({
   const [messages, setMessages] = useState<ChatMsg[]>([
     {
       role: 'assistant',
-      text: '直接说业务需求即可，例如「产线设备常坏要报修」「员工要请假和报销」。我会理解意图并挂上正式能力包（真表单/真 API），不只改菜单文案。也可说「去掉某某」。',
+      text: '直接说业务需求即可，例如「加一个团建经费审批」「要季度 OKR 看板」「员工要请假和报销」。我会理解自然语言：有正式能力就挂真表单/真 API；没有则先出差异化页面，接口可异步生成。也可说「去掉某某」。',
     },
   ])
   const [flowMessages, setFlowMessages] = useState<ChatMsg[]>([
@@ -453,7 +462,11 @@ export function CapShipComposer({
     mergeMeta?: Record<string, unknown>,
     opts?: { force?: boolean; source?: string },
   ) => {
-    if (!appId) {
+    const previewLocal =
+      Boolean(next.meta?.preview) ||
+      Boolean(schema?.meta?.preview) ||
+      String(appId || next.appId || '').startsWith('preview-')
+    if (!appId || previewLocal) {
       onPublish?.({ schema: next, keys: next.capability_keys })
       return
     }
@@ -553,8 +566,16 @@ export function CapShipComposer({
       }
 
       const src = result.source === 'deepseek' ? '' : '（本地规则）'
-      setMessages((prev) => [...prev, { role: 'assistant', text: `${result.reply}${src}` }])
-      setStatus(result.ops?.length ? '页面已更新并写入新版本' : '')
+      const pending = result.pending_codegen_keys
+      const asyncHint =
+        pending?.length
+          ? ` 未覆盖的正式接口将异步生成（${pending.length} 项）。`
+          : ''
+      setMessages((prev) => [
+        ...prev,
+        { role: 'assistant', text: `${result.reply}${src}${asyncHint}` },
+      ])
+      setStatus(result.ops?.length ? '页面已更新；可先打开左侧菜单体验' : '')
     } catch (e) {
       if (e instanceof SchemaRevConflictError) {
         handleConflict(e)

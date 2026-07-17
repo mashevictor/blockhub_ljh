@@ -2,9 +2,9 @@
 export const PLATFORM_STATS = {
   capabilities: 43,
   agents: 12,
-  scenarios: 145,
+  scenarios: 115,
   platforms: 5,
-  officeScenarios: 96,
+  officeScenarios: 66,
   industryScenarios: 49,
   officeGroups: 8,
   industryPacks: 20,

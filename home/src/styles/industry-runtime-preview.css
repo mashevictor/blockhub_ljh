@@ -85,6 +85,16 @@
   color: #fde68a;
 }
 
+.irp-compose-hint {
+  margin: 0;
+  padding: 8px 20px 10px;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--irp-muted);
+  border-bottom: 1px solid var(--irp-line);
+  background: rgba(8, 12, 22, 0.55);
+}
+
 .irp-link {
   color: #93c5fd;
   text-decoration: none;

@@ -62,7 +62,7 @@ describe('capship composer contract', () => {
       },
     ])
     expect(next.menu[0].capability_key).toBe('leave_request')
-    expect(next.menu[0].page_mock).toBeUndefined()
+    expect(next.menu[0].page_mock).toBeDefined()
     expect(next.menu[0].summary).toContain('请假')
     const child = next.root.children?.[0]
     expect(child?.props?.widget).toBe('LeaveRequestWidget')

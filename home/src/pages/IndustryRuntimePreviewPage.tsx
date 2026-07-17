@@ -15,6 +15,7 @@ import type {
   CapShipComposerDockProps,
 } from '@capship/composer'
 import { DeveloperBlueprintPanel } from '@blockhub/web-core'
+import { LiveOfficeSceneBody, isLiveOfficeCap } from '../components/LiveOfficeSceneBody'
 import { getToken, setToken } from '../auth/storage'
 import {
   getIndustryRuntimePreview,
@@ -55,10 +56,10 @@ function asPageMock(raw: ComposerPageMock | ScenePageMock | undefined): ScenePag
   return raw as ScenePageMock
 }
 
-function scenesToSchema(packName: string, scenes: IndustryRuntimeScene[]): ComposerPageSchema {
+function scenesToSchema(packName: string, scenes: IndustryRuntimeScene[], packKey = 'mfg'): ComposerPageSchema {
   return {
     version: '1',
-    appId: 'preview-mfg',
+    appId: `preview-${packKey}`,
     title: `${packName}工作台`,
     capability_keys: [...new Set(scenes.map((s) => s.capabilityHint.split(/\s*\+\s*/)[0].trim()))],
     menu: scenes.map((s) => ({
@@ -71,7 +72,7 @@ function scenesToSchema(packName: string, scenes: IndustryRuntimeScene[]): Compo
       page_kind: s.kind === 'understood' ? 'form_list' : undefined,
       page_mock: s.pageMock,
     })),
-    meta: { preview: true },
+    meta: { preview: true, industry_pack: packKey },
     root: {
       id: 'root',
       type: 'page',
@@ -225,7 +226,13 @@ function UnderstoodBody({ scene }: { scene: IndustryRuntimeScene }) {
   )
 }
 
-function SceneWorkspace({ scene }: { scene: IndustryRuntimeScene }) {
+function SceneWorkspace({
+  scene,
+  token,
+}: {
+  scene: IndustryRuntimeScene
+  token: string
+}) {
   return (
     <div className="irp-workspace" data-kind={scene.kind}>
       <header className="irp-workspace-head">
@@ -233,7 +240,16 @@ function SceneWorkspace({ scene }: { scene: IndustryRuntimeScene }) {
         <h1 className="irp-scene-title">{scene.name}</h1>
         <p className="irp-summary">{scene.summary}</p>
       </header>
-      <SceneBody kind={scene.kind} scene={scene} />
+      {token && isLiveOfficeCap(scene.capabilityHint) ? (
+        <LiveOfficeSceneBody scene={scene} token={token} />
+      ) : (
+        <SceneBody kind={scene.kind} scene={scene} />
+      )}
+      {!token && isLiveOfficeCap(scene.capabilityHint) ? (
+        <p className="irp-summary" style={{ marginTop: 12 }}>
+          登录后可真提交并推进流程（右侧开发者面板登录，或等待自动 demo 登录）。
+        </p>
+      ) : null}
     </div>
   )
 }
@@ -510,7 +526,7 @@ export default function IndustryRuntimePreviewPage() {
     if (!preview) return
     setScenes(preview.scenes)
     setActiveId(preview.scenes[0]?.id ?? '')
-    setSchema(scenesToSchema(preview.name, preview.scenes))
+    setSchema(scenesToSchema(preview.name, preview.scenes, preview.key))
   }, [preview])
 
   useEffect(() => {
@@ -522,6 +538,32 @@ export default function IndustryRuntimePreviewPage() {
       })
       .catch(() => undefined)
   }, [homeToken])
+
+  // 办公预览：无 token 时自动 demo 登录，便于真提交验收
+  useEffect(() => {
+    if (homeToken || preview?.key !== 'office') return
+    let cancelled = false
+    void (async () => {
+      try {
+        const res = await fetch('/api/v1/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: 'admin@trackchat.local', password: 'admin123' }),
+        })
+        if (!res.ok) return
+        const data = (await res.json()) as { access_token?: string; user?: { role?: string } }
+        if (cancelled || !data.access_token) return
+        setToken(data.access_token)
+        setHomeToken(data.access_token)
+        if (data.user?.role) setHomeRole(data.user.role)
+      } catch {
+        /* 后端未起时忽略 */
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [homeToken, preview?.key])
 
   if (!preview) {
     return (
@@ -560,7 +602,7 @@ export default function IndustryRuntimePreviewPage() {
           </div>
         </div>
         <div className="irp-top-actions">
-          <span className="irp-pill">{scenes.length} 场景 · 契约仅本预览包</span>
+          <span className="irp-pill">{scenes.length} 场景 · DeepSeek 可加新页</span>
           <a className="irp-link" href={ROUTES.industrySiteHtml(preview.key)}>
             {preview.key === 'office' ? '办公独立站' : preview.key === 'mfg' ? '制造独立站' : '行业独立站'}
           </a>
@@ -568,6 +610,12 @@ export default function IndustryRuntimePreviewPage() {
           <Link className="irp-link" to={ROUTES.home}>首页</Link>
         </div>
       </header>
+
+      <p className="irp-compose-hint">
+        {preview.key === 'office'
+          ? '66 场景已挂真能力。请假/报销/会议室/IT/资产/审批等可真提交并推进状态；登录态会自动尝试 demo 账号。完整 Widget 流程也可发布后打开 /r/应用。'
+          : '用右下角编排助手描述新需求，DeepSeek 会理解意图并先生成差异化页面；正式接口可异步落地。'}
+      </p>
 
       <div className="irp-body">
         <aside className="irp-nav" aria-label="场景清单">
@@ -589,7 +637,11 @@ export default function IndustryRuntimePreviewPage() {
           ))}
         </aside>
         <main className="irp-main">
-          {active ? <SceneWorkspace scene={active} /> : <p className="irp-summary">请从左侧选择场景</p>}
+          {active ? (
+            <SceneWorkspace scene={active} token={homeToken} />
+          ) : (
+            <p className="irp-summary">请从左侧选择场景</p>
+          )}
         </main>
       </div>
 
@@ -622,7 +674,7 @@ export default function IndustryRuntimePreviewPage() {
             )
             const next = kept.length ? kept : catalog
             setScenes(next)
-            setSchema(scenesToSchema(preview.name, next))
+            setSchema(scenesToSchema(preview.name, next, preview.key))
             if (!next.some((s) => s.id === activeId)) setActiveId(next[0]?.id ?? '')
           }) satisfies NonNullable<CapShipComposerDockProps['onModulesChange']>}
           onSaved={((result) => {

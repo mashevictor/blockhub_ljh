@@ -84,8 +84,15 @@ def generate_menu_from_plan(menu_plan: list[dict[str, Any]]) -> tuple[list[dict[
             props["category"] = category
         if item.get("standard"):
             props["standard"] = item["standard"]
-        for passthrough in ("approval_type", "default_category", "form_headline", "form_hint"):
-            if item.get(passthrough):
+        for passthrough in (
+            "approval_type",
+            "default_category",
+            "form_headline",
+            "form_hint",
+            "form_fields",
+            "page_kind",
+        ):
+            if item.get(passthrough) is not None:
                 props[passthrough] = item[passthrough]
         node["props"] = props
         children.append(node)

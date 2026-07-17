@@ -245,6 +245,10 @@ export declare function askComposeEdit(
   ops: ComposeEditOp[]
   source: 'deepseek' | 'fallback'
   llm_configured: boolean
+  intent_summary?: string
+  matched?: Array<{ key: string; label?: string; score?: number }>
+  pending_codegen_keys?: string[]
+  codegen_job_id?: string
 }>
 
 export declare function askFlowEdit(

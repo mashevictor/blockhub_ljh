@@ -110,20 +110,28 @@ def _select_add_caps(matches: list[dict[str, Any]], text: str) -> list[dict[str,
     return selected
 
 _SYSTEM = f"""你是积木仓 Runtime 编排助手。用户用中文描述业务需求或要怎么改当前应用菜单。
-你的任务：理解真实业务意图，把需求落到「已有正式能力」（capability_key），输出可执行 ops。
+你必须先真正理解用户的业务语言与意图，再落到可执行 ops。页面要先能打开、且贴合用户说法（禁止千篇一律空壳）。
 
 输出 JSON（不要 markdown）：
 {{
-  "reply": "用两三句中文说明你理解了什么、挂了哪些正式能力、用户接下来能做什么",
+  "reply": "用两三句中文说明：你理解的需求、挂了什么页面、真 API 是否已就绪或稍后异步生成",
   "intent_summary": "一句话业务意图",
   "ops": [
     {{
       "op":"add",
-      "label":"场景名",
-      "capability_key":"registry_key",
+      "label":"场景名（用用户原话里的业务名，如「团建经费审批」）",
+      "capability_key":"registry_key 或 gen_自定义slug",
       "category":"分类",
-      "summary":"一句业务说明",
-      "page_kind":"form_list|chat_kb|chart|roster|notify|approval|files"
+      "summary":"一句业务说明（回应用户语境）",
+      "page_kind":"form_list|chat_kb|chart|roster|notify|approval|files",
+      "widget":"可选；未知能力用 GeneratedPageWidget",
+      "page_mock":{{
+        "form_title":"贴合场景的表单标题",
+        "fields":[{{"label":"字段名","value":"示例"}}],
+        "list_title":"列表标题",
+        "list":[{{"id":"01","title":"示例条目","status":"待办"}}],
+        "primary_action":"提交按钮文案"
+      }}
     }},
     {{"op":"remove","label":"场景名"}},
     {{"op":"rename","from":"旧名","to":"新名"}},
@@ -132,14 +140,15 @@ _SYSTEM = f"""你是积木仓 Runtime 编排助手。用户用中文描述业务
 }}
 
 规则：
-1. 即使用户没说「增加/添加」，只要在描述业务痛点（如「产线常坏要报修」「员工要请假报销」），也应 add 对应正式能力。
-2. capability_key 必须来自可用列表。优先：请假→leave_request，报销→expense_claim，设备报修→device_repair，会议室→meeting_booking，IT报障→it_ticket，制度→policy_qa/kb_document。禁止用 approval_flow 顶替上述专用能力。
-3. 禁止使用 contract_editor / contract_sign / contract_seal 等无 Web 真包能力；劳动合同/入职→hire_onboard，法务合同→legal_case，销售合同→quote_contract。
-4. 一句需求可挂多个能力（例如「要请假和报销」→ 两个 add）。
-5. 已在当前菜单的同类能力不要重复 add；可 rename/move。
-6. 仅当完全无法匹配正式能力时才用 chat_qa；不要用 page_mock 伪造业务数据。
-7. ops 可为空（仅回答问题、澄清时）。
-8. {NO_MARKDOWN_STYLE_RULE}
+1. 即使用户没说「增加/添加」，只要在描述业务痛点，也应 add 对应页面。
+2. 能匹配正式能力则用正式 key（请假→leave_request，报销→expense_claim，报修→device_repair，会议室→meeting_booking，IT→it_ticket，制度→policy_qa 等）。禁止用 approval_flow 顶替专用能力。
+3. 禁止 contract_editor 等无 Web 真包；劳动合同/入职→hire_onboard，法务→legal_case。
+4. **每个 add 必须带 page_mock**，字段名/列表示例要反映用户原话（如「团建」「差旅」「季度 OKR」），禁止复制无关制造/产线话术。
+5. 没有合适正式能力时：capability_key 用 gen_拼音或英文短 slug，widget=GeneratedPageWidget，page_mock 写清表单；接口可异步落地，reply 里说明「页面已出，接口后台生成」。
+6. 同一正式能力可对应多个不同 label 场景页（加班申请与请假申请可并存）。
+7. 已有相同 label 不要重复 add；可 rename/move。
+8. ops 可为空（仅澄清时）。
+9. {NO_MARKDOWN_STYLE_RULE}
 """
 
 
@@ -292,16 +301,28 @@ def _page_kind_for(cap: str) -> str:
     return "chat_kb"
 
 
+def _slug_gen_key(label: str) -> str:
+    raw = re.sub(r"[^\w\u4e00-\u9fff]+", "_", (label or "").strip(), flags=re.UNICODE)
+    raw = raw.strip("_").lower()[:28] or "custom"
+    # 中文保留时用 hash 缩短，避免 key 过长
+    if re.search(r"[\u4e00-\u9fff]", raw):
+        h = abs(hash(label)) % 100000
+        return f"gen_{h}"
+    return f"gen_{raw}"
+
+
 def _enrich_add_op(op: dict[str, Any]) -> dict[str, Any]:
-    """补全 capability / widget；正式能力不塞 page_mock 假数据。"""
+    """补全 capability / widget；页面先出（page_mock），正式能力仍挂真 widget。"""
     label = str(op.get("label") or "").strip()
     if not label:
         return op
     text = label + str(op.get("summary") or "")
     cap = str(op.get("capability_key") or "").strip()
+    pending_codegen = False
 
-    if not cap or cap not in ALL_CAPABILITIES:
-        # 先走匹配
+    if cap.startswith("gen_"):
+        pending_codegen = True
+    elif not cap or cap not in ALL_CAPABILITIES:
         hits = _resolve_matches(text)
         if hits:
             cap = str(hits[0]["key"])
@@ -311,9 +332,10 @@ def _enrich_add_op(op: dict[str, Any]) -> dict[str, Any]:
                     cap = key
                     break
             else:
-                cap = "chat_qa"
+                # 路径 B：先出页面，接口异步
+                cap = _slug_gen_key(label)
+                pending_codegen = True
 
-    # 禁止用 approval_flow 顶替专用能力（若 label 已点名专用场景）
     if cap == "approval_flow":
         for aliases, key in _SYNONYM_TO_CAP:
             if key == "approval_flow":
@@ -322,51 +344,69 @@ def _enrich_add_op(op: dict[str, Any]) -> dict[str, Any]:
                 cap = key
                 break
 
-    # 硬闸：假 web / 未 registerWidget → 正式 Path-A（禁「尚未接入」）
-    cap = ensure_web_ready_key(cap if cap in ALL_CAPABILITIES else "", hint=text)
-    if not is_web_ready_capability(cap):
-        cap = ensure_web_ready_key("chat_qa", hint=text)
-
-    op["capability_key"] = cap
-    cap_def = ALL_CAPABILITIES.get(cap)
-    if cap_def:
-        op["widget"] = cap_def.widget
-        if not op.get("category"):
-            op["category"] = cap_def.category
-        if not label or label == cap:
-            op["label"] = cap_def.menu_label or cap_def.name
-            label = op["label"]
+    if cap.startswith("gen_"):
+        pending_codegen = True
+        op["capability_key"] = cap
+        op["widget"] = "GeneratedPageWidget"
+        cap_def = None
     else:
-        op["widget"] = "ListWidget"
+        # 假 web seed → 正式 Path-A
+        cap = ensure_web_ready_key(cap if cap in ALL_CAPABILITIES else "", hint=text)
+        if not is_web_ready_capability(cap):
+            # 仍无 Web 就绪：改为 gen_ 预览页
+            cap = _slug_gen_key(label)
+            pending_codegen = True
+            op["capability_key"] = cap
+            op["widget"] = "GeneratedPageWidget"
+            cap_def = None
+        else:
+            op["capability_key"] = cap
+            cap_def = ALL_CAPABILITIES.get(cap)
+            if cap_def:
+                op["widget"] = cap_def.widget
+                if not op.get("category"):
+                    op["category"] = cap_def.category
+                if not label or label == cap:
+                    op["label"] = cap_def.menu_label or cap_def.name
+                    label = op["label"]
+            else:
+                op["widget"] = "ListWidget"
+                if not op.get("category"):
+                    op["category"] = "自定义"
+
+    if pending_codegen:
+        op["pending_codegen"] = True
         if not op.get("category"):
             op["category"] = "自定义"
+        if not op.get("summary"):
+            op["summary"] = f"{label}：页面已生成预览，业务接口后台异步落地"
 
-    if not op.get("summary"):
+    if not op.get("summary") and not pending_codegen:
         name = cap_def.name if cap_def else label
         op["summary"] = f"{label}：接入正式能力「{name}」，提交写入真 API"
 
     kind = str(op.get("page_kind") or "").strip()
     if kind not in _PAGE_KINDS:
-        kind = _page_kind_for(cap)
+        kind = _page_kind_for(cap if not cap.startswith("gen_") else "chat_qa")
     op["page_kind"] = kind
 
-    # 正式注册能力：不依赖 page_mock；仅未知/兜底才给轻量 mock
-    if cap in ALL_CAPABILITIES and cap != "chat_qa":
-        op.pop("page_mock", None)
+    # UI 先行：一律保留/补齐 page_mock（贴合 label，避免千篇一律）
+    mock = op.get("page_mock") if isinstance(op.get("page_mock"), dict) else None
+    if not mock:
+        op["page_mock"] = _intent_page_mock(label, cap, kind, text)
     else:
-        mock = op.get("page_mock") if isinstance(op.get("page_mock"), dict) else None
-        if not mock:
-            op["page_mock"] = _default_page_mock(label, cap, kind)
-        else:
-            blob = json.dumps(mock, ensure_ascii=False)
-            if any(k in label for k in ("请假", "报销", "入职")) and any(
-                k in blob for k in ("冲压", "换模", "SOP-", "工艺")
-            ):
-                op["page_mock"] = _default_page_mock(label, cap, kind)
+        blob = json.dumps(mock, ensure_ascii=False)
+        if any(k in blob for k in ("冲压", "换模", "SOP-", "工艺卡")) and not any(
+            k in text for k in ("冲压", "换模", "SOP", "工艺", "产线")
+        ):
+            op["page_mock"] = _intent_page_mock(label, cap, kind, text)
     return op
 
 
-def _default_page_mock(label: str, cap: str, kind: str) -> dict[str, Any]:
+def _intent_page_mock(label: str, cap: str, kind: str, hint: str = "") -> dict[str, Any]:
+    """按用户场景文案生成差异化预览页（非假业务数据冒充真 API）。"""
+    ctx = (hint or label).strip()
+    blob = f"{label} {ctx}"
     if kind == "roster" or cap == "shift_attendance":
         return {
             "list_title": f"{label} · 本周安排",
@@ -375,26 +415,131 @@ def _default_page_mock(label: str, cap: str, kind: str) -> dict[str, Any]:
                 {"id": "二", "title": "白班", "status": "正常"},
                 {"id": "三", "title": "夜班", "status": "正常"},
             ],
-            "primary_action": "班次申诉",
+            "primary_action": "提交申诉",
         }
-    if kind == "chart":
+    if kind == "chart" or cap in {"ops_kpi", "chart_dashboard", "mfg_oee"}:
         return {
             "kpis": [
                 {"label": "本周", "value": "—", "hint": "接真数据后刷新"},
                 {"label": "待办", "value": "—", "hint": "—"},
+                {"label": label[:6] or "指标", "value": "—", "hint": "—"},
             ],
             "list_title": f"{label}趋势",
             "primary_action": "刷新数据",
         }
+    if kind in {"chat_kb", "files"} or cap in {"chat_qa", "policy_qa", "kb_document"}:
+        return {
+            "chat_title": f"{label}助手",
+            "chat": [
+                {"role": "bot", "text": f"已理解「{ctx[:40]}」。可以问规则、查进度或说明办理要点。"},
+            ],
+            "files_title": "相关资料",
+            "files": [f"{label}说明.md"],
+            "primary_action": "发送",
+        }
+
+    # 办公常见场景：字段随语义变化，避免千篇一律
+    if any(w in blob for w in ("请假", "年假", "事假", "病假")):
+        fields = [
+            {"label": "请假类型", "value": ""},
+            {"label": "起止时间", "value": ""},
+            {"label": "事由", "value": ""},
+        ]
+        action = "提交请假"
+    elif any(w in blob for w in ("加班",)):
+        fields = [
+            {"label": "加班日期", "value": ""},
+            {"label": "时段", "value": ""},
+            {"label": "加班事由", "value": ""},
+        ]
+        action = "提交加班"
+    elif any(w in blob for w in ("出差", "差旅", "外勤")):
+        fields = [
+            {"label": "目的地", "value": ""},
+            {"label": "行程日期", "value": ""},
+            {"label": "出差事由", "value": ""},
+        ]
+        action = "提交出差"
+    elif any(w in blob for w in ("报销", "发票", "团建", "经费")):
+        fields = [
+            {"label": "费用类型", "value": "团建经费" if "团建" in blob else ""},
+            {"label": "金额（元）", "value": ""},
+            {"label": "事由说明", "value": ""},
+        ]
+        action = "提交报销"
+    elif any(w in blob for w in ("借款", "预支")):
+        fields = [
+            {"label": "借款金额", "value": ""},
+            {"label": "预计归还日", "value": ""},
+            {"label": "用途", "value": ""},
+        ]
+        action = "提交借款"
+    elif any(w in blob for w in ("付款", "对公")):
+        fields = [
+            {"label": "收款方", "value": ""},
+            {"label": "付款金额", "value": ""},
+            {"label": "合同/单据号", "value": ""},
+        ]
+        action = "提交付款"
+    elif any(w in blob for w in ("会议室", "预约", "会议")):
+        fields = [
+            {"label": "会议室", "value": ""},
+            {"label": "时段", "value": ""},
+            {"label": "会议主题", "value": ""},
+        ]
+        action = "提交预约"
+    elif any(w in blob for w in ("用印", "印章")):
+        fields = [
+            {"label": "印章类型", "value": ""},
+            {"label": "文件名称", "value": ""},
+            {"label": "用途说明", "value": ""},
+        ]
+        action = "提交用印"
+    elif any(w in blob for w in ("入职", "招聘", "办理")):
+        fields = [
+            {"label": "候选人", "value": ""},
+            {"label": "入职日期", "value": ""},
+            {"label": "岗位", "value": ""},
+        ]
+        action = "提交办理"
+    elif any(w in blob for w in ("资产", "领用", "盘点")):
+        fields = [
+            {"label": "资产名称", "value": ""},
+            {"label": "数量", "value": ""},
+            {"label": "领用人", "value": ""},
+        ]
+        action = "提交领用"
+    elif any(w in blob for w in ("报障", "IT", "工单", "报修")):
+        fields = [
+            {"label": "故障现象", "value": ""},
+            {"label": "影响范围", "value": ""},
+            {"label": "紧急程度", "value": ""},
+        ]
+        action = "提交工单"
+    else:
+        field_a = "事项说明" if any(w in blob for w in ("审批", "申请")) else "标题"
+        field_b = "金额" if any(w in blob for w in ("费", "款", "预算", "付款")) else "负责人"
+        field_c = "期望完成日" if any(w in blob for w in ("计划", "排期", "OKR")) else "备注"
+        fields = [
+            {"label": field_a, "value": ""},
+            {"label": field_b, "value": ""},
+            {"label": field_c, "value": ""},
+        ]
+        action = "提交"
+
     return {
-        "chat_title": f"{label}助手",
-        "chat": [
-            {"role": "bot", "text": f"你好，我是「{label}」助手，可以帮你查询规则与办理指引。"},
+        "form_title": f"新建 · {label}",
+        "fields": fields,
+        "list_title": f"{label}记录",
+        "list": [
+            {"id": "01", "title": f"{label}（空库无业务数据）", "status": "待办"},
         ],
-        "files_title": "相关资料",
-        "files": [f"{label}说明.md"],
-        "primary_action": "发送",
+        "primary_action": action,
     }
+
+
+def _default_page_mock(label: str, cap: str, kind: str) -> dict[str, Any]:
+    return _intent_page_mock(label, cap, kind, label)
 
 
 def _fallback_ops(instruction: str, menu: list[dict[str, Any]]) -> dict[str, Any]:
@@ -417,21 +562,32 @@ def _fallback_ops(instruction: str, menu: list[dict[str, Any]]) -> dict[str, Any
 
     if not ops:
         for add_op in _infer_add_from_text(text):
-            cap = str(add_op.get("capability_key") or "")
             lab = str(add_op.get("label") or "")
-            if _menu_has_cap(menu, cap) or _menu_has_label(menu, lab):
+            # 同名已有则跳过；不同场景标签可共用同一能力 key
+            if _menu_has_label(menu, lab):
                 continue
             ops.append(add_op)
+
+    pending = [
+        str(o.get("capability_key"))
+        for o in ops
+        if o.get("op") == "add"
+        and (o.get("pending_codegen") or str(o.get("capability_key") or "").startswith("gen_"))
+    ]
 
     if ops:
         added = [str(o.get("label") or o.get("capability_key") or "") for o in ops if o.get("op") == "add"]
         removed = [str(o.get("label") or "") for o in ops if o.get("op") == "remove"]
         parts = []
-        if added:
-            parts.append(f"已挂上正式能力：{'、'.join(added)}")
+        if added and pending:
+            parts.append(f"已理解并挂上页面：{'、'.join(added)}")
+            parts.append("可先打开菜单体验；未匹配正式能力的接口将异步生成")
+        elif added:
+            parts.append(f"已挂上：{'、'.join(added)}")
+            parts.append("打开菜单即可办理（正式能力走真 API，空库为空列表）")
         if removed:
             parts.append(f"已移除：{'、'.join(removed)}")
-        reply = "；".join(parts) + "。打开对应菜单即可用真表单/真 API（空库为空列表）。"
+        reply = "；".join(parts) + "。"
     else:
         hits = _resolve_matches(text)
         if hits:
@@ -439,17 +595,18 @@ def _fallback_ops(instruction: str, menu: list[dict[str, Any]]) -> dict[str, Any
             reply = f"理解到可能相关能力：{tips}。可以说「加上{hits[0]['label']}」直接挂进菜单。"
         else:
             reply = (
-                "已收到。可以说业务痛点（如「产线设备常坏要报修」），"
-                "或「增加请假管理 / 去掉保养计划」，我会挂上正式能力包。"
+                "已收到。请用自然语言描述新页面/功能（如「加一个团建经费审批」「要一个季度 OKR 看板」），"
+                "我会先生成差异化页面；没有现成能力时接口可异步落地。"
             )
 
     return {
         "reply": reply,
         "ops": ops,
-        "intent_summary": (ops and "按本地语义匹配落地正式能力") or "待澄清",
+        "intent_summary": (ops and "按本地语义匹配落地页面/能力") or "待澄清",
         "matched": _resolve_matches(text)[:5],
         "source": "fallback",
         "llm_configured": bool(settings.deepseek_api_key),
+        "pending_codegen_keys": pending,
     }
 
 
@@ -464,9 +621,8 @@ def _merge_llm_with_matches(
 
     if not has_add and not has_mutate:
         for add_op in _infer_add_from_text(instruction):
-            cap = str(add_op.get("capability_key") or "")
             lab = str(add_op.get("label") or "")
-            if _menu_has_cap(menu, cap) or _menu_has_label(menu, lab):
+            if _menu_has_label(menu, lab):
                 continue
             ops.append(add_op)
         return ops
@@ -551,7 +707,12 @@ def compose_edit_from_instruction(
             except (TypeError, ValueError):
                 pass
         ck = cleaned.get("capability_key")
-        if ck and (ck not in ALL_CAPABILITIES or not is_web_ready_capability(str(ck))):
+        ck_s = str(ck or "")
+        if ck_s.startswith("gen_"):
+            cleaned["capability_key"] = ck_s
+            cleaned["widget"] = cleaned.get("widget") or "GeneratedPageWidget"
+            cleaned["pending_codegen"] = True
+        elif ck and (ck not in ALL_CAPABILITIES or not is_web_ready_capability(str(ck))):
             cleaned["capability_key"] = ensure_web_ready_key(
                 str(ck or ""),
                 hint=str(cleaned.get("label") or instruction),
@@ -564,22 +725,33 @@ def compose_edit_from_instruction(
     # 再次 enrich（纠正后的 key）
     ops = [_enrich_add_op(o) if o.get("op") == "add" else o for o in ops]
 
-    # 去重：同 capability 已在菜单或本批重复
+    # 去重：同 label 已在菜单或本批重复；同 capability 允许不同场景页
     deduped: list[dict[str, Any]] = []
-    seen_caps: set[str] = set()
+    seen_labels: set[str] = set()
     for o in ops:
         if o.get("op") == "add":
-            ck = str(o.get("capability_key") or "")
-            if ck in seen_caps or _menu_has_cap(menu_list, ck):
+            lab = str(o.get("label") or "").strip()
+            if not lab or lab in seen_labels or _menu_has_label(menu_list, lab):
                 continue
-            seen_caps.add(ck)
+            seen_labels.add(lab)
         deduped.append(o)
     ops = deduped
 
+    pending = [
+        str(o.get("capability_key"))
+        for o in ops
+        if o.get("op") == "add" and (o.get("pending_codegen") or str(o.get("capability_key") or "").startswith("gen_"))
+    ]
+
     if not reply or reply == "已更新":
         added = [str(o.get("label")) for o in ops if o.get("op") == "add"]
-        if added:
-            reply = f"理解需求后已挂上：{'、'.join(added)}。菜单打开即可使用正式能力（真 API）。"
+        if added and pending:
+            reply = (
+                f"已理解并挂上页面：{'、'.join(added)}。"
+                "可先在菜单打开使用；未匹配正式能力的接口将异步生成。"
+            )
+        elif added:
+            reply = f"理解需求后已挂上：{'、'.join(added)}。打开菜单即可办理（正式能力走真 API）。"
         elif intent_summary:
             reply = intent_summary
 
@@ -590,4 +762,5 @@ def compose_edit_from_instruction(
         "matched": local_matches,
         "source": "deepseek",
         "llm_configured": True,
+        "pending_codegen_keys": pending,
     }

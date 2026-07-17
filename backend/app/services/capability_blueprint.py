@@ -252,6 +252,13 @@ PREVIEW_PACK_KEYS: dict[str, list[str]] = {
         "it_ticket",
         "asset_manage",
         "notify_im",
+        "notify_inapp",
+        "chart_dashboard",
+        "data_nl_query",
+        "legal_case",
+        "chat_qa",
+        "erp_connector",
+        "rbac_page",
     ],
 }
 
