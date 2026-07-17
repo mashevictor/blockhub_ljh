@@ -219,9 +219,9 @@ function apiFor(cap: string, scene: IndustryRuntimeScene): CapApi | null {
         room_name: v.room_name?.trim() || '会议室',
         title: v.title?.trim() || name,
         start_at: v.start_at?.trim() || '',
-        end_at: v.end_at?.trim() || '',
+        end_at: v.end_at?.trim() || v.start_at?.trim() || '',
         attendees: '',
-        note: '',
+        note: v.note?.trim() || '',
         app_public_id: 'preview-office',
       }),
       advances: [

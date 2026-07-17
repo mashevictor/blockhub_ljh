@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { Link } from 'react-router-dom'
 import type { AudienceSelection } from '../../data/plazaAudience'
 import { audienceAtLabel } from '../../data/plazaAudience'
 import PlazaAudiencePicker from '../PlazaAudiencePicker'
@@ -9,6 +10,7 @@ import {
   type PlazaAudienceMeta,
   type StoredMyApp,
 } from '../../lib/myAppsStorage'
+import { ROUTES } from '../../routes/paths'
 
 interface Props {
   app: StoredMyApp
@@ -24,7 +26,14 @@ export default function PlazaPublishButton({ app, className = '', onPublished }:
   const [open, setOpen] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [flash, setFlash] = useState<PlazaAudienceMeta | null>(null)
   const published = Boolean(app.plaza?.onPlazaFeed)
+
+  useEffect(() => {
+    if (!flash) return
+    const t = window.setTimeout(() => setFlash(null), 8000)
+    return () => window.clearTimeout(t)
+  }, [flash])
 
   const initialSelection: AudienceSelection | null = app.plaza
     ? {
@@ -47,9 +56,15 @@ export default function PlazaPublishButton({ app, className = '', onPublished }:
       }
       setMyAppPlazaAudience(appKey(app), meta)
       onPublished?.(meta)
+      setFlash(meta)
       setOpen(false)
-    } catch {
-      setError('发布到广场失败，请稍后重试')
+    } catch (e) {
+      const detail = e instanceof Error && e.message ? e.message : ''
+      setError(
+        detail && !detail.startsWith('HTTP')
+          ? `发布到广场失败：${detail}`
+          : '发布到广场失败，请确认已登录且应用已正式创建，稍后重试',
+      )
     } finally {
       setBusy(false)
     }
@@ -76,6 +91,20 @@ export default function PlazaPublishButton({ app, className = '', onPublished }:
           '📡 发布到广场'
         )}
       </button>
+
+      {flash ? (
+        <span className="plaza-publish-inline-ok" role="status">
+          已发布 {flash.label}
+          {flash.onPlazaFeed ? (
+            <>
+              {' · '}
+              <Link to={ROUTES.plazaFeed} onClick={(e) => e.stopPropagation()}>
+                去广场查看
+              </Link>
+            </>
+          ) : null}
+        </span>
+      ) : null}
 
       {open && createPortal(
         <div

@@ -46,6 +46,9 @@ export default function PlazaMyAppsPage() {
   const [orchApp, setOrchApp] = useState<StoredMyApp | null>(null)
   const [focusKey, setFocusKey] = useState<string | null>(null)
   const [user, setUser] = useState<AuthUser | null>(null)
+  const [plazaFlash, setPlazaFlash] = useState<{ appName: string; label: string; onFeed: boolean } | null>(
+    null,
+  )
   const scrolledRef = useRef(false)
   const orchDismissedRef = useRef(false)
   const { setFocus, registerOrchestrationHandler } = usePlazaFocus()
@@ -128,6 +131,12 @@ export default function PlazaMyAppsPage() {
     return () => registerOrchestrationHandler(null)
   }, [apps, openOrchestration, registerOrchestrationHandler])
 
+  useEffect(() => {
+    if (!plazaFlash) return
+    const t = window.setTimeout(() => setPlazaFlash(null), 10000)
+    return () => window.clearTimeout(t)
+  }, [plazaFlash])
+
   const handleRemove = (app: StoredMyApp) => {
     const key = appKey(app)
     removeMyApp(key)
@@ -158,6 +167,20 @@ export default function PlazaMyAppsPage() {
 
       {justPublishedId && apps.some((a) => appKey(a) === justPublishedId) && (
         <p className="plaza-my-success-banner">🎉 发布成功 — 请确认交付进度与分享链接，模块编排可稍后展开</p>
+      )}
+
+      {plazaFlash && (
+        <p className="plaza-my-success-banner plaza-my-plaza-flash" role="status">
+          已发布到应用广场 · <strong>{plazaFlash.label}</strong> —「{plazaFlash.appName}」
+          {plazaFlash.onFeed ? (
+            <>
+              {' '}
+              <Link to={ROUTES.plazaFeed}>去应用广场查看 →</Link>
+            </>
+          ) : (
+            <span className="plaza-my-plaza-flash-hint">（当前范围不在公开 Feed，仅目标成员可见）</span>
+          )}
+        </p>
       )}
 
       {apps.length === 0 && (
@@ -213,7 +236,16 @@ export default function PlazaMyAppsPage() {
                     >
                       <span className="plaza-mflow-chev">&gt;&gt;</span> 编排
                     </button>
-                    <PlazaPublishButton app={app} />
+                    <PlazaPublishButton
+                      app={app}
+                      onPublished={(meta) => {
+                        setPlazaFlash({
+                          appName: app.appName,
+                          label: meta.label,
+                          onFeed: Boolean(meta.onPlazaFeed && meta.type === 'public'),
+                        })
+                      }}
+                    />
                     <a className="btn-ghost plaza-my-card-icon-btn" href={app.webUrl} target="_blank" rel="noreferrer" title="打开网页">
                       <IconGlobe size={16} />
                     </a>
@@ -240,7 +272,14 @@ export default function PlazaMyAppsPage() {
           justPublished={justPublishedId === appKey(orchApp)}
           onClose={closeOrchestration}
           onRemove={() => handleRemove(orchApp)}
-          onPlazaPublished={(meta) => setOrchApp((prev) => (prev ? { ...prev, plaza: meta } : null))}
+          onPlazaPublished={(meta) => {
+            setOrchApp((prev) => (prev ? { ...prev, plaza: meta } : null))
+            setPlazaFlash({
+              appName: orchApp.appName,
+              label: meta.label,
+              onFeed: Boolean(meta.onPlazaFeed && meta.type === 'public'),
+            })
+          }}
         />
       )}
     </main>

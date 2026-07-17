@@ -5756,6 +5756,34 @@ body.modal-scroll-lock {
   border: 1px solid color-mix(in srgb, var(--pri) 25%, var(--border));
   color: var(--text);
 }
+.plaza-my-success-banner a {
+  color: var(--pri);
+  font-weight: 700;
+  margin-left: 6px;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.plaza-my-plaza-flash-hint {
+  margin-left: 6px;
+  font-weight: 500;
+  color: var(--muted);
+  font-size: 12px;
+}
+.plaza-publish-inline-ok {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--pri-dark, #0f766e);
+  white-space: nowrap;
+}
+.plaza-publish-inline-ok a {
+  color: var(--pri);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
 .plaza-my-empty { text-align: center; padding: 48px 20px; color: var(--muted); }
 .plaza-my-empty-hint { font-size: 12px; margin: 8px 0 20px; }
 .plaza-my-empty-cta { display: inline-block; text-decoration: none; padding: 10px 24px; border-radius: 10px; }

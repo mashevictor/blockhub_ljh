@@ -117,7 +117,8 @@ export async function publishToPlazaFeed(
       if (res.feed_item?.webUrl) webUrl = res.feed_item.webUrl
       if (res.app?.plaza_published_at) savedAt = res.app.plaza_published_at
     } catch (err) {
-      console.warn('[plaza] API publish failed, fallback to local cache', err)
+      // 有正式 appId 时禁止「假成功」：广场看不到却显示已发布
+      throw err instanceof Error ? err : new Error('发布到广场失败')
     }
   }
 
@@ -156,18 +157,28 @@ export async function publishToPlazaFeed(
   return entry
 }
 
-/** 从服务端加载广场 Feed；失败时仅回退本浏览器已发布缓存（不含演示 mock） */
+/** 从服务端加载广场 Feed；与本机公开帖合并（按 appKey 去重，API 优先） */
 export async function loadPlazaFeedItemsAsync(): Promise<PlazaFeedItem[]> {
+  const local = loadPlazaFeedItems()
   try {
     const apiItems = await fetchPlazaFeed()
     const fromApi = apiItems
       .filter((item) => item.plaza_visibility === 'public' || item.visibility === 'public')
       .map(apiItemToFeedItem)
-    if (fromApi.length > 0) return fromApi
+    const byKey = new Map<string, PlazaFeedItem>()
+    for (const item of fromApi) {
+      byKey.set(String(item.appKey || item.id), item)
+    }
+    for (const item of local) {
+      const k = String(item.appKey || item.id)
+      if (!byKey.has(k)) byKey.set(k, item)
+    }
+    const merged = Array.from(byKey.values())
+    return merged.length > 0 ? merged : local
   } catch (err) {
     console.warn('[plaza] feed API failed, using local cache', err)
   }
-  return loadPlazaFeedItems()
+  return local
 }
 
 /** 本浏览器已 @公开 发布的缓存（API 不可用时的兜底，不再注入 PLAZA_MOCK_FEED） */
