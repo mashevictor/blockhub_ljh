@@ -2,18 +2,20 @@
 # Batch A + 行业预览 / 真发布 · 服务器冒烟验证
 #
 # 用法（在仓库根或 ~/blockhub）:
-#   bash scripts/smoke-batch-a.sh
+#   # 完整站（API + 前端 SPA）— 推荐验收
 #   bash scripts/smoke-batch-a.sh https://blockhub.club
+#
+#   # 仅 API（uvicorn :8001）— 跳过 SPA 预览路由，不报假失败
 #   bash scripts/smoke-batch-a.sh http://127.0.0.1:8001
+#
+#   # API 与站点分离时
+#   SITE_WEB=https://blockhub.club bash scripts/smoke-batch-a.sh http://127.0.0.1:8001
+#
 #   ADMIN_EMAIL=... ADMIN_PASSWORD=... bash scripts/smoke-batch-a.sh https://blockhub.club
 #
-# 覆盖：
-#   - health / 登录
-#   - ops_kpi 创建+列表+发布/归档
-#   - kb/stats · notifications · integrations · stats/dashboard · reports/nl-query
-#   - policy-qa / legal-case / mfg-ops 列表
-#   - POST /creation/publish（industry · assemble_full_scenes=false）→ /r/{id} 可访问
-#   - 预览页 /preview/industry-runtime/office|mfg HTTP 200
+# 登录失败时（生产站）:
+#   cd ~/blockhub && bash scripts/repair-auth.sh
+#   然后用 http://127.0.0.1:8001 或带正确密码再跑正式站
 set -euo pipefail
 
 BASE="${1:-http://127.0.0.1:8001}"
@@ -26,48 +28,92 @@ else
   SITE="$BASE"
 fi
 
+# SPA 站点根（预览页 /r/ 等）；默认同 SITE，可用 SITE_WEB 覆盖
+SITE_WEB="${SITE_WEB:-$SITE}"
+
 ADMIN_EMAIL="${ADMIN_EMAIL:-admin@trackchat.local}"
 ADMIN_PASSWORD="${ADMIN_PASSWORD:-admin123}"
-APP_TAG="smoke-batch-a"
 
 PASS=0
 FAIL=0
+SKIP=0
 ok() { echo "  ✓ $1"; PASS=$((PASS + 1)); }
 bad() { echo "  ✗ $1"; FAIL=$((FAIL + 1)); }
+skip() { echo "  ○ skip $1"; SKIP=$((SKIP + 1)); }
+
+# 判断是否「仅 API」：常见 :8001，或 /health 无而 /api 有
+is_api_only() {
+  case "$SITE" in
+    *":8001"|*"127.0.0.1:8001"|*"localhost:8001") return 0 ;;
+  esac
+  return 1
+}
 
 echo "=========================================="
-echo " Batch A Smoke · $SITE"
+echo " Batch A Smoke · API=$API"
+echo " SITE_WEB=$SITE_WEB"
 echo "=========================================="
 
-# ── health ──
-if curl -sf "$SITE/health" >/dev/null 2>&1 || curl -sf "$SITE/api/v1/../health" >/dev/null 2>&1; then
-  ok "health"
-else
-  # 部分部署只有 API 根
-  if curl -sf "$API/auth/login" -o /dev/null -w "" -X OPTIONS 2>/dev/null; then
-    ok "API reachable (no /health)"
+# ── health（多路径；API-only 用 openapi/docs 探测）──
+health_ok=0
+for u in \
+  "$SITE/health" \
+  "$SITE_WEB/health" \
+  "$API/../health" \
+  "http://127.0.0.1:8001/health"
+do
+  if curl -sf --max-time 5 "$u" >/dev/null 2>&1; then
+    ok "health ($u)"
+    health_ok=1
+    break
+  fi
+done
+if [[ "$health_ok" -eq 0 ]]; then
+  # FastAPI 常挂 /docs 或 openapi
+  if curl -sf --max-time 5 "$API/openapi.json" >/dev/null 2>&1 \
+    || curl -sf --max-time 5 "${API%/api/v1}/docs" >/dev/null 2>&1 \
+    || curl -sf --max-time 5 -o /dev/null -w "" -X POST "$API/auth/login" \
+         -H "Content-Type: application/json" -d '{}' 2>/dev/null; then
+    ok "API reachable (no /health endpoint — OK for API-only)"
   else
     bad "health / API unreachable"
   fi
 fi
 
 login_once() {
-  curl -sf -X POST "$API/auth/login" \
+  curl -sf --max-time 15 -X POST "$API/auth/login" \
     -H "Content-Type: application/json" \
     -d "{\"email\":\"$ADMIN_EMAIL\",\"password\":\"$ADMIN_PASSWORD\"}" \
     | python3 -c "import sys,json; print(json.load(sys.stdin).get('access_token',''))" 2>/dev/null || echo ""
 }
 
+login_diag() {
+  echo "  login POST $API/auth/login as $ADMIN_EMAIL"
+  local code body
+  code=$(curl -sS --max-time 15 -o /tmp/smoke_batch_a_login.json -w "%{http_code}" -X POST "$API/auth/login" \
+    -H "Content-Type: application/json" \
+    -d "{\"email\":\"$ADMIN_EMAIL\",\"password\":\"$ADMIN_PASSWORD\"}" || echo "000")
+  body=$(head -c 400 /tmp/smoke_batch_a_login.json 2>/dev/null || true)
+  echo "  HTTP $code body=${body}"
+  if [[ "$code" == "401" ]]; then
+    echo "  hint: 生产站密码可能已改。在服务器执行:"
+    echo "        cd ~/blockhub && bash scripts/repair-auth.sh"
+    echo "        再: bash scripts/smoke-batch-a.sh http://127.0.0.1:8001"
+    echo "        或: ADMIN_PASSWORD=实际密码 bash scripts/smoke-batch-a.sh https://blockhub.club"
+  fi
+}
+
 TOKEN=$(login_once)
 if [[ -z "$TOKEN" ]]; then
-  curl -sf -X POST "$API/auth/demo-bootstrap" -H "Content-Type: application/json" -d '{}' >/dev/null 2>&1 || true
+  curl -sf --max-time 15 -X POST "$API/auth/demo-bootstrap" -H "Content-Type: application/json" -d '{}' >/dev/null 2>&1 || true
   TOKEN=$(login_once)
 fi
 if [[ -n "$TOKEN" ]]; then
   ok "login"
 else
-  bad "login (try: bash scripts/repair-auth.sh)"
-  echo "FAIL=$FAIL PASS=$PASS"
+  bad "login"
+  login_diag
+  echo "FAIL=$FAIL PASS=$PASS SKIP=$SKIP"
   exit 1
 fi
 
@@ -86,25 +132,25 @@ print(json.dumps({
 }))
 PY
 )
-OPS_CREATE=$(curl -sf -X POST "$API/ops-kpi/records" "${AUTH[@]}" -d "$OPS_BODY" || echo "")
+OPS_CREATE=$(curl -sf --max-time 30 -X POST "$API/ops-kpi/records" "${AUTH[@]}" -d "$OPS_BODY" || echo "")
 OPS_ID=$(echo "$OPS_CREATE" | python3 -c "import sys,json; d=json.load(sys.stdin); print((d.get('record') or {}).get('id',''))" 2>/dev/null || echo "")
 if [[ -n "$OPS_ID" ]]; then
   ok "ops_kpi create id=$OPS_ID"
-  curl -sf -X POST "$API/ops-kpi/records/$OPS_ID/published" "${AUTH[@]}" -d '{}' >/dev/null && ok "ops_kpi publish" || bad "ops_kpi publish"
-  curl -sf -X POST "$API/ops-kpi/records/$OPS_ID/archived" "${AUTH[@]}" -d '{}' >/dev/null && ok "ops_kpi archive" || bad "ops_kpi archive"
+  curl -sf --max-time 15 -X POST "$API/ops-kpi/records/$OPS_ID/published" "${AUTH[@]}" -d '{}' >/dev/null && ok "ops_kpi publish" || bad "ops_kpi publish"
+  curl -sf --max-time 15 -X POST "$API/ops-kpi/records/$OPS_ID/archived" "${AUTH[@]}" -d '{}' >/dev/null && ok "ops_kpi archive" || bad "ops_kpi archive"
 else
   bad "ops_kpi create"
 fi
-OPS_LIST=$(curl -sf "$API/ops-kpi/records?app_id=smoke-batch-a" "${AUTH[@]}" || echo "")
+OPS_LIST=$(curl -sf --max-time 15 "$API/ops-kpi/records?app_id=smoke-batch-a" "${AUTH[@]}" || echo "")
 echo "$OPS_LIST" | python3 -c "import sys,json; d=json.load(sys.stdin); assert 'items' in d" 2>/dev/null && ok "ops_kpi list" || bad "ops_kpi list"
 
 # ── 只读真 API（空库可空）──
-curl -sf "$API/kb/stats" "${AUTH[@]}" >/dev/null && ok "kb/stats" || bad "kb/stats"
-curl -sf "$API/notifications" "${AUTH[@]}" >/dev/null && ok "notifications" || bad "notifications"
-curl -sf "$API/integrations" "${AUTH[@]}" >/dev/null && ok "integrations" || bad "integrations"
-curl -sf "$API/stats/dashboard" "${AUTH[@]}" >/dev/null && ok "stats/dashboard" || bad "stats/dashboard"
+curl -sf --max-time 15 "$API/kb/stats" "${AUTH[@]}" >/dev/null && ok "kb/stats" || bad "kb/stats"
+curl -sf --max-time 15 "$API/notifications" "${AUTH[@]}" >/dev/null && ok "notifications" || bad "notifications"
+curl -sf --max-time 15 "$API/integrations" "${AUTH[@]}" >/dev/null && ok "integrations" || bad "integrations"
+curl -sf --max-time 15 "$API/stats/dashboard" "${AUTH[@]}" >/dev/null && ok "stats/dashboard" || bad "stats/dashboard"
 
-NL=$(curl -sf -X POST "$API/reports/nl-query" "${AUTH[@]}" \
+NL=$(curl -sf --max-time 60 -X POST "$API/reports/nl-query" "${AUTH[@]}" \
   -d '{"question":"待审批有多少？"}' || echo "")
 echo "$NL" | python3 -c "import sys,json; json.load(sys.stdin)" 2>/dev/null && ok "reports/nl-query" || bad "reports/nl-query"
 
@@ -116,7 +162,7 @@ for path in \
   "expense-claim/records" \
   "mfg-ops/mfg_oee/records"
 do
-  curl -sf "$API/$path" "${AUTH[@]}" >/dev/null && ok "GET $path" || bad "GET $path"
+  curl -sf --max-time 15 "$API/$path" "${AUTH[@]}" >/dev/null && ok "GET $path" || bad "GET $path"
 done
 
 # ── 行业真发布 → /r/{id} ──
@@ -148,9 +194,8 @@ print(json.dumps({
 }, ensure_ascii=False))
 PY
 )
-PUB_OUT=$(curl -sf -X POST "$API/creation/publish" "${AUTH[@]}" -d "$PUB_BODY" || echo "")
+PUB_OUT=$(curl -sf --max-time 90 -X POST "$API/creation/publish" "${AUTH[@]}" -d "$PUB_BODY" || echo "")
 APP_ID=$(echo "$PUB_OUT" | python3 -c "import sys,json; d=json.load(sys.stdin); print((d.get('app') or {}).get('id',''))" 2>/dev/null || echo "")
-WEB_URL=$(echo "$PUB_OUT" | python3 -c "import sys,json; d=json.load(sys.stdin); print((d.get('runtime') or {}).get('web_url') or (d.get('app') or {}).get('web_url',''))" 2>/dev/null || echo "")
 
 if [[ -n "$APP_ID" && "$APP_ID" != cache-* ]]; then
   ok "creation/publish app_id=$APP_ID (not cache-*)"
@@ -159,20 +204,19 @@ else
 fi
 
 if [[ -n "$APP_ID" ]]; then
-  # Runtime 页面（经站点）
-  CODE=$(curl -sS -o /dev/null -w "%{http_code}" "$SITE/r/$APP_ID" || echo "000")
+  CODE=$(curl -sS --max-time 15 -o /dev/null -w "%{http_code}" "$SITE_WEB/r/$APP_ID" || echo "000")
   if [[ "$CODE" == "200" || "$CODE" == "301" || "$CODE" == "302" ]]; then
-    ok "GET /r/$APP_ID → HTTP $CODE"
+    ok "GET $SITE_WEB/r/$APP_ID → HTTP $CODE"
   else
-    # 部分环境 SPA fallback 仍 200；schema API 更可靠
-    SCHEMA=$(curl -sf "$API/runtime/$APP_ID/schema" "${AUTH[@]}" 2>/dev/null || curl -sf "$API/creation/apps/$APP_ID" "${AUTH[@]}" 2>/dev/null || echo "")
+    SCHEMA=$(curl -sf --max-time 15 "$API/runtime/$APP_ID/schema" "${AUTH[@]}" 2>/dev/null \
+      || curl -sf --max-time 15 "$API/creation/apps/$APP_ID" "${AUTH[@]}" 2>/dev/null \
+      || echo "")
     if [[ -n "$SCHEMA" ]]; then
-      ok "runtime schema for $APP_ID"
+      ok "runtime schema for $APP_ID (SPA /r 未测或 API-only)"
     else
       bad "GET /r/$APP_ID HTTP $CODE (and no schema)"
     fi
   fi
-  # 禁止误装全量：解析 resolved_keys 应接近请求 keys
   echo "$PUB_OUT" | python3 -c '
 import sys, json
 d = json.load(sys.stdin)
@@ -185,21 +229,25 @@ if len(res) > 25:
 ' && ok "assemble_full_scenes=false (keys bounded)" || bad "capability assembly too wide"
 fi
 
-# ── 预览页静态路由 ──
-for path in \
-  "/preview/industry-runtime/office" \
-  "/preview/industry-runtime/mfg"
-do
-  CODE=$(curl -sS -o /dev/null -w "%{http_code}" "$SITE$path" || echo "000")
-  if [[ "$CODE" == "200" ]]; then
-    ok "GET $path → 200"
+# ── 预览页 SPA 路由（仅完整站）──
+check_spa_preview() {
+  local path="$1"
+  local code
+  code=$(curl -sS --max-time 15 -o /dev/null -w "%{http_code}" "$SITE_WEB$path" || echo "000")
+  if [[ "$code" == "200" ]]; then
+    ok "GET $SITE_WEB$path → 200"
+  elif is_api_only && [[ "$SITE_WEB" == "$SITE" ]]; then
+    skip "$path (API-only :8001 无 SPA；用 SITE_WEB=https://blockhub.club 或对正式站跑)"
   else
-    bad "GET $path → HTTP $CODE"
+    bad "GET $SITE_WEB$path → HTTP $code"
   fi
-done
+}
+
+check_spa_preview "/preview/industry-runtime/office"
+check_spa_preview "/preview/industry-runtime/mfg"
 
 echo "=========================================="
-echo " RESULT · pass=$PASS fail=$FAIL"
+echo " RESULT · pass=$PASS fail=$FAIL skip=$SKIP"
 echo "=========================================="
 if [[ "$FAIL" -gt 0 ]]; then
   exit 1
