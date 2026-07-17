@@ -438,7 +438,7 @@ export function LiveOfficeSceneBody({
     <div className="irp-grid-2">
       <section className="irp-panel irp-gtgt-panel">
         <p className="irp-summary" style={{ marginBottom: 12 }}>
-          真 API · {cap} · >> 单字段推进 · 提交写入数据库
+          真 API · {cap} · {'>>'} 单字段推进 · 提交写入数据库
         </p>
         {steps.length > 0 ? (
           <GtgtStepComposer
