@@ -48,10 +48,7 @@ export default function IndustryView({
   const [scenes, setScenes] = useState<CachedIndustryScene[]>(() =>
     getCachedIndustryScenes(resolveIndustryApiKey(initialIndustry ?? 'office')),
   )
-  const [selected, setSelected] = useState<Set<string>>(() => {
-    const list = getCachedIndustryScenes(resolveIndustryApiKey(initialIndustry ?? 'office'))
-    return new Set(list.map((s) => s.id))
-  })
+  const [selected, setSelected] = useState<Set<string>>(() => new Set())
   const [loading, setLoading] = useState(false)
   const [boxOpenSignal, setBoxOpenSignal] = useState(0)
   const [lastAddedId, setLastAddedId] = useState<string | null>(null)
@@ -73,7 +70,8 @@ export default function IndustryView({
     const apiKey = resolveIndustryApiKey(packKey)
     const items = getCachedIndustryScenes(apiKey)
     setScenes(items)
-    setSelected(new Set(items.map((s) => s.id)))
+    // 默认不勾选：避免误装整包；用户需显式选择场景
+    setSelected(new Set())
   }
 
   useEffect(() => {
@@ -156,6 +154,10 @@ export default function IndustryView({
   }
 
   const doPublish = async (contact: ContactInfo) => {
+    if (selected.size === 0) {
+      setPublishError('请至少勾选 1 个场景后再生成（默认不再全选整包）')
+      return
+    }
     await runLoadingPublishPipeline({
       closeContact: () => setContactOpen(false),
       setLoading,

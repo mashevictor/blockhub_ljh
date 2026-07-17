@@ -158,26 +158,27 @@ def persist_published_app(
     menu_plan: list[dict[str, Any]] | None = None
     scene_groups: list[dict[str, Any]] | None = None
     industry_assembly: dict[str, Any] | None = None
-    # 行业包：按场景清单装配（industry 来源或显式 assemble_full_scenes）
+    # 行业包：仅显式 assemble_full_scenes 或 industry 源且「有勾选场景」时装配
+    # 禁止：空场景 / 仅「自定义应用」时静默灌整包
     use_scene_pack = assemble_full_scenes or source in ("industry", "industry_pack", "industry_site")
     if use_scene_pack and pack_meta(industry_key):
-        # 无有效场景名 / 仅「自定义应用」→ 全量；否则按所选场景
         meaningful = [s for s in scenarios if s and s != "自定义应用"]
-        industry_assembly = assemble_industry_pack(
-            industry_key,
-            scene_names=meaningful or None,
-        )
-        if industry_assembly.get("scene_count", 0) > 0:
-            capability_keys = list(
-                dict.fromkeys([*(capability_keys or []), *industry_assembly["capability_keys"]])
+        if meaningful or assemble_full_scenes:
+            industry_assembly = assemble_industry_pack(
+                industry_key,
+                scene_names=meaningful if meaningful else None,
             )
-            # 场景模块优先；保留调用方额外 modules
-            scene_mods = list(industry_assembly.get("modules") or [])
-            extra = [m for m in (modules or []) if m.get("source") != "industry_scene"]
-            modules = scene_mods + extra
-            scenarios = list(industry_assembly.get("scenario_names") or scenarios)
-            menu_plan = list(industry_assembly.get("menu_plan") or [])
-            scene_groups = list(industry_assembly.get("groups") or [])
+            if industry_assembly.get("scene_count", 0) > 0:
+                capability_keys = list(
+                    dict.fromkeys([*(capability_keys or []), *industry_assembly["capability_keys"]])
+                )
+                # 场景模块优先；保留调用方额外 modules
+                scene_mods = list(industry_assembly.get("modules") or [])
+                extra = [m for m in (modules or []) if m.get("source") != "industry_scene"]
+                modules = scene_mods + extra
+                scenarios = list(industry_assembly.get("scenario_names") or scenarios)
+                menu_plan = list(industry_assembly.get("menu_plan") or [])
+                scene_groups = list(industry_assembly.get("groups") or [])
 
     assembly = resolve_publish_capability_keys_detailed(
         scenario_names=scenarios,

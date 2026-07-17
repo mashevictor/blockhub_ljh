@@ -116,7 +116,7 @@ export function buildHeroDockDemoSuggestions(): SuggestItem[] {
     { pick: { type: 'capability', key: 'approval', label: '审批流程' }, score: 7, reason: '高频办公能力', iconKey: approval.iconKey, color: approval.color },
     { pick: { type: 'office', key: '知识协同', label: '知识协同' }, score: 7, reason: '制度 · 文档 · 问答', iconKey: 'kb', color: '#059669' },
     { pick: { type: 'module', key: 'chat_qa', label: '智能问答' }, score: 8, reason: 'RAG 知识库问答', iconKey: 'chat_qa', color: chatQa.color },
-    { pick: { type: 'module', key: 'approval_flow', label: '审批流' }, score: 8, reason: '请假 · 报销 · 通用审批', iconKey: 'approval', color: approval.color },
+    { pick: { type: 'module', key: 'leave_request', label: '请假审批' }, score: 8, reason: '请假 · 真能力 leave_request', iconKey: 'approval', color: approval.color },
     { pick: { type: 'module', key: 'kb_document', label: '知识库' }, score: 7, reason: '文档切片与检索', iconKey: 'kb', color: '#059669' },
     { pick: { type: 'scenario', key: 'hero-demo-create', label: '描述创建' }, score: 8, reason: '三种创建方式之一', iconKey: 'creation', color: creation.color },
     { pick: { type: 'supplement', key: 'llm-intent', label: '意图解析' }, score: 8, reason: '大模型拆解需求', iconKey: 'creation', color: '#1d4ed8' },

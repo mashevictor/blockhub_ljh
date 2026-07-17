@@ -119,14 +119,16 @@ function apiFor(cap: string, scene: IndustryRuntimeScene): CapApi | null {
     const loan = name.includes('借款')
     const pay = name.includes('付款')
     const team = name.includes('团建') || name.includes('经费')
-    const cat = loan ? 'loan' : pay ? 'payment' : team || name.includes('发票') ? 'office' : 'travel'
+    const invoice = name.includes('发票')
+    // 发票核验暂复用报销 API，表单标签标明语义
+    const cat = loan ? 'loan' : pay ? 'payment' : team || invoice ? 'office' : 'travel'
     return {
       listPath: '/api/v1/expense-claim/records',
       createPath: '/api/v1/expense-claim/records',
       fields: [
-        { key: 'title', label: team ? '活动名称' : '标题', placeholder: name },
+        { key: 'title', label: invoice ? '发票摘要（复用报销能力）' : team ? '活动名称' : '标题', placeholder: name },
         { key: 'amount', label: team ? '预算金额' : '金额', placeholder: '1280', type: 'number' },
-        { key: 'note', label: '说明', placeholder: '可空', optional: true },
+        { key: 'note', label: invoice ? '核验说明' : '说明', placeholder: '可空', optional: true },
       ],
       buildBody: (v, scene) => {
         const vals = Object.fromEntries(
@@ -257,6 +259,134 @@ function apiFor(cap: string, scene: IndustryRuntimeScene): CapApi | null {
       }),
     }
   }
+  if (cap === 'policy_qa') {
+    return {
+      listPath: '/api/v1/policy-qa/records',
+      createPath: '/api/v1/policy-qa/records',
+      fields: [
+        { key: 'title', label: '制度 / 问题', placeholder: '年假怎么算？' },
+        { key: 'dept', label: '适用部门', placeholder: '全员', optional: true },
+        { key: 'answer', label: '解答要点', placeholder: '可空，后续可追问', type: 'textarea', optional: true },
+      ],
+      buildBody: (v) => ({
+        category: 'policy',
+        title: v.title?.trim() || name,
+        dept: v.dept?.trim() || '',
+        answer: v.answer?.trim() || '',
+        note: '',
+        app_public_id: 'preview-office',
+      }),
+      advances: [{ action: 'archived', label: '归档' }],
+      mapItem: (r) => ({
+        id: String(r.id || ''),
+        title: String(r.title || ''),
+        status: String(r.status || ''),
+        raw: r,
+      }),
+    }
+  }
+  if (cap === 'legal_case') {
+    return {
+      listPath: '/api/v1/legal-case/records',
+      createPath: '/api/v1/legal-case/records',
+      fields: [
+        { key: 'title', label: '案件 / 合同标题', placeholder: '采购协议审查' },
+        { key: 'party', label: '相对方', placeholder: '某某公司', optional: true },
+        { key: 'deadline', label: '节点日期', type: 'date', placeholder: '点选日期', optional: true },
+        { key: 'note', label: '说明', type: 'textarea', placeholder: '可空', optional: true },
+      ],
+      buildBody: (v) => ({
+        category: name.includes('签') ? 'contract' : 'case',
+        title: v.title?.trim() || name,
+        party: v.party?.trim() || '',
+        deadline: v.deadline?.trim() || '',
+        note: v.note?.trim() || '',
+        app_public_id: 'preview-office',
+      }),
+      advances: [{ action: 'done', label: '结案' }],
+      mapItem: (r) => ({
+        id: String(r.id || ''),
+        title: `${String(r.title || '')} · ${String(r.party || '')}`,
+        status: String(r.status || ''),
+        raw: r,
+      }),
+    }
+  }
+  const MFG_KINDS = new Set([
+    'mfg_oee',
+    'material_issue',
+    'maintenance_plan',
+    'shift_attendance',
+    'energy_carbon',
+    'training_record',
+  ])
+  if (MFG_KINDS.has(cap)) {
+    const fieldHints: Record<string, Array<{ key: string; label: string; placeholder?: string; type?: string; optional?: boolean }>> = {
+      mfg_oee: [
+        { key: 'title', label: '产线 / 班组', placeholder: 'A3 冲压线 · 白班' },
+        { key: 'field_a', label: 'OEE %', placeholder: '78.4', type: 'number' },
+        { key: 'field_b', label: '产量（件）', placeholder: '12480', type: 'number' },
+        { key: 'field_c', label: '停机（分钟）', placeholder: '46', type: 'number', optional: true },
+        { key: 'note', label: '备注', optional: true },
+      ],
+      material_issue: [
+        { key: 'title', label: '物料名称/编码', placeholder: '轴承 6205' },
+        { key: 'field_a', label: '数量', placeholder: '40', type: 'number' },
+        { key: 'field_b', label: '产线工位', placeholder: 'A3-07', optional: true },
+        { key: 'field_c', label: '类型', placeholder: '领料 / 退料', optional: true },
+        { key: 'note', label: '用途说明', optional: true },
+      ],
+      maintenance_plan: [
+        { key: 'title', label: '设备', placeholder: '注塑机 #2' },
+        { key: 'field_a', label: '到期日', type: 'date', placeholder: '点选日期' },
+        { key: 'field_b', label: '优先级', placeholder: '高 / 中 / 低', optional: true },
+        { key: 'field_c', label: '保养项目', placeholder: '液压油更换', optional: true },
+        { key: 'note', label: '备注', optional: true },
+      ],
+      shift_attendance: [
+        { key: 'title', label: '员工', placeholder: '李强' },
+        { key: 'field_a', label: '日期', type: 'date', placeholder: '点选日期' },
+        { key: 'field_b', label: '班次', placeholder: '白班 / 夜班' },
+        { key: 'field_c', label: '类型', placeholder: '排班 / 申诉', optional: true },
+        { key: 'note', label: '说明', optional: true },
+      ],
+      energy_carbon: [
+        { key: 'title', label: '指标', placeholder: '车间电耗' },
+        { key: 'field_a', label: '周期', placeholder: '本周' },
+        { key: 'field_b', label: '数值', placeholder: '18.2', type: 'number' },
+        { key: 'field_c', label: '单位', placeholder: 'MWh', optional: true },
+        { key: 'note', label: '备注', optional: true },
+      ],
+      training_record: [
+        { key: 'title', label: '学员', placeholder: '王敏' },
+        { key: 'field_a', label: '证书/课程', placeholder: '冲压上岗证' },
+        { key: 'field_b', label: '有效期', type: 'date', placeholder: '点选日期', optional: true },
+        { key: 'field_c', label: '状态', placeholder: '有效 / 待考试', optional: true },
+        { key: 'note', label: '备注', optional: true },
+      ],
+    }
+    return {
+      listPath: `/api/v1/mfg-ops/${cap}/records`,
+      createPath: `/api/v1/mfg-ops/${cap}/records`,
+      fields: fieldHints[cap] || [{ key: 'title', label: '标题', placeholder: name }],
+      buildBody: (v) => ({
+        title: v.title?.trim() || name,
+        field_a: v.field_a?.trim() || '',
+        field_b: v.field_b?.trim() || '',
+        field_c: v.field_c?.trim() || '',
+        field_d: v.field_d?.trim() || '',
+        note: v.note?.trim() || '',
+        app_public_id: 'preview-mfg',
+      }),
+      advances: [{ action: 'done', label: '归档' }],
+      mapItem: (r) => ({
+        id: String(r.id || ''),
+        title: String(r.title || r.record_no || ''),
+        status: String(r.status || ''),
+        raw: r,
+      }),
+    }
+  }
   if (cap === 'meeting_booking') {
     return {
       listPath: '/api/v1/meeting-booking/records',
@@ -349,12 +479,17 @@ function apiFor(cap: string, scene: IndustryRuntimeScene): CapApi | null {
     }
   }
   if (cap === 'hire_onboard') {
+    const offboard = name.includes('离职')
     return {
       listPath: '/api/v1/hire-onboard/records',
       createPath: '/api/v1/hire-onboard/records',
       fields: [
-        { key: 'candidate', label: '候选人', placeholder: '张三' },
-        { key: 'stage', label: '阶段/岗位', placeholder: '初试 · 产品经理' },
+        {
+          key: 'candidate',
+          label: offboard ? '离职人（复用入职能力）' : '候选人',
+          placeholder: offboard ? '姓名 · 岗位' : '张三',
+        },
+        { key: 'stage', label: offboard ? '交接阶段' : '阶段/岗位', placeholder: offboard ? '资产/权限交接' : '初试 · 产品经理' },
         { key: 'note', label: '说明', placeholder: '可空' },
       ],
       buildBody: (v) => ({
@@ -596,6 +731,30 @@ export function LiveOfficeSceneBody({
           method: 'POST',
           body: '{}',
         })
+      } else if (cap === 'policy_qa') {
+        await apiJson(`/api/v1/policy-qa/records/${id}/archived`, token, {
+          method: 'POST',
+          body: '{}',
+        })
+      } else if (cap === 'legal_case') {
+        await apiJson(`/api/v1/legal-case/records/${id}/done`, token, {
+          method: 'POST',
+          body: '{}',
+        })
+      } else if (
+        [
+          'mfg_oee',
+          'material_issue',
+          'maintenance_plan',
+          'shift_attendance',
+          'energy_carbon',
+          'training_record',
+        ].includes(cap)
+      ) {
+        await apiJson(`/api/v1/mfg-ops/${cap}/records/${id}/${action}`, token, {
+          method: 'POST',
+          body: '{}',
+        })
       }
       setMsg(`已${action} · 流程已更新`)
       await load()
@@ -674,6 +833,14 @@ const LIVE_OFFICE_CAPS = [
   'device_repair',
   'quality_inspect',
   'site_patrol',
+  'policy_qa',
+  'legal_case',
+  'mfg_oee',
+  'material_issue',
+  'maintenance_plan',
+  'shift_attendance',
+  'energy_carbon',
+  'training_record',
 ] as const
 
 /** 口语 / gen_* 场景名 → 可真提交的正式能力 */

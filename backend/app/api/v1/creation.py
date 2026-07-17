@@ -116,7 +116,7 @@ class PublishRequest(BaseModel):
     modules: list[PublishModuleItem] = []
     audience: str = "both"
     deliver: str = "both"
-    source: str = "industry"
+    source: str = "prompt"
     prompt: str = ""
     contact_email: str = ""
     contact_phone: str = ""
@@ -124,7 +124,7 @@ class PublishRequest(BaseModel):
     primary_color: str = "#4338ca"
     web_template_id: str = "tabs_portal"
     app_ui_id: str = "bottom_tabs"
-    # True：按行业场景清单装配；行业向导显式开启，弹幕/选模块默认 False
+    # True：按行业场景清单装配；须显式开启，禁止默认全量
     assemble_full_scenes: bool = False
 
 

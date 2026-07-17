@@ -357,7 +357,7 @@ export async function publishApp(
       })),
       audience: opts.audience ?? 'both',
       deliver: opts.deliver ?? 'both',
-      source: opts.source ?? 'industry',
+      source: opts.source ?? 'prompt',
       prompt: opts.prompt ?? '',
       contact_email: opts.contactEmail ?? '',
       contact_phone: opts.contactPhone ?? '',
@@ -365,7 +365,7 @@ export async function publishApp(
       primary_color: opts.primaryColor ?? '#4338ca',
       web_template_id: opts.webTemplateId ?? 'tabs_portal',
       app_ui_id: opts.appUiId ?? 'bottom_tabs',
-      assemble_full_scenes: opts.assembleFullScenes ?? opts.source === 'industry',
+      assemble_full_scenes: opts.assembleFullScenes ?? false,
     },
     { timeout: 90000 },
   )

@@ -357,238 +357,71 @@ function SceneBody({ kind, scene }: { kind: ScenePageKind; scene: IndustryRuntim
 }
 
 function SceneBodyStatic({ kind, scene }: { kind: ScenePageKind; scene: IndustryRuntimeScene }) {
+  /** 无真 API 时只空态 + 说明，禁止假业务数字/假工单 */
+  const empty = (title: string) => (
+    <section className="irp-panel">
+      <DemoOnlyNote scene={scene} />
+      <h3>{title}</h3>
+      <p className="irp-summary">空库无数据 — 接入真 API 或选已挂真提交的场景后，记录会出现在这里</p>
+    </section>
+  )
+
   switch (kind) {
     case 'repair':
-      return (
-        <div className="irp-grid-2">
-          <section className="irp-panel">
-            <h3>新建报修单</h3>
-            <label>产线 / 工位<input defaultValue="A3 冲压线 · 工位 07" disabled /></label>
-            <label>故障现象<textarea defaultValue="液压站异响，压力波动，需尽快派工。" rows={3} disabled /></label>
-            <label>紧急程度
-              <select defaultValue="高" disabled>
-                <option>高</option><option>中</option><option>低</option>
-              </select>
-            </label>
-            <button type="button" className="irp-btn" disabled>提交并派工</button>
-          </section>
-          <section className="irp-panel">
-            <h3>在办工单</h3>
-            <p className="irp-summary">空库无数据 — 「设备报修」场景已接真 API，请从左侧进入该场景提交</p>
-          </section>
-        </div>
-      )
+      return empty('设备报修')
     case 'chat_kb':
       return (
         <div className="irp-grid-2">
           <section className="irp-panel irp-chat">
-            <h3>工艺问答</h3>
-            <div className="irp-bubble bot">已命中 SOP-冲压-08：换模步骤 1–6，注意油温 ≥40℃。</div>
-            <div className="irp-bubble user">换模时压力参数怎么设？</div>
-            <div className="irp-bubble bot">推荐合模压力 12.5 MPa，保压 3s。相关图纸已附在右侧知识库。</div>
+            <DemoOnlyNote scene={scene} />
+            <h3>{scene.name}</h3>
+            <div className="irp-bubble bot">空库无文档时仅作引导；正式 Runtime 请使用知识库 / 问答能力。</div>
             <div className="irp-chat-input">
               <input placeholder={`向「${scene.name}」提问…`} disabled />
               <button type="button" className="irp-btn" disabled>发送</button>
             </div>
           </section>
           <section className="irp-panel">
-            <h3>作业指导书</h3>
-            {['SOP-冲压换模-08.pdf', '工艺卡-A3线.pdf', '安全操作要点.docx'].map((f) => (
-              <div key={f} className="irp-file">{f}</div>
-            ))}
+            <h3>相关资料</h3>
+            <p className="irp-summary">空库无文件</p>
           </section>
         </div>
       )
     case 'oee':
+    case 'energy':
       return (
         <div className="irp-stack">
+          <DemoOnlyNote scene={scene} />
           <div className="irp-kpi-row">
-            {[
-              ['OEE', '78.4%', '+2.1%'],
-              ['产量', '12,480', '件/班'],
-              ['停机', '46 min', '计划外'],
-              ['良品率', '98.2%', '—'],
-            ].map(([k, v, s]) => (
+            {['指标 A', '指标 B', '指标 C'].map((k) => (
               <div key={k} className="irp-kpi">
                 <span>{k}</span>
-                <strong>{v}</strong>
-                <em>{s}</em>
+                <strong>—</strong>
+                <em>接真数据后刷新</em>
               </div>
             ))}
           </div>
           <section className="irp-panel">
-            <h3>本班稼动趋势</h3>
-            <div className="irp-bars" aria-hidden>
-              {[42, 68, 55, 80, 74, 90, 66, 78, 84, 71, 76, 82].map((h, i) => (
-                <i key={i} style={{ height: `${h}%` }} />
-              ))}
-            </div>
+            <h3>{scene.name}</h3>
+            <p className="irp-summary">空库无趋势数据</p>
           </section>
         </div>
       )
     case 'quality':
-      return (
-        <div className="irp-grid-2">
-          <section className="irp-panel">
-            <h3>待质检批次</h3>
-            {[
-              ['IQC-091', '轴承座来料', '待检'],
-              ['FQC-224', '成品抽检 A3', '复检中'],
-              ['OQC-088', '出货抽检', '待审批'],
-            ].map(([id, t, st]) => (
-              <div key={id} className="irp-row">
-                <strong>{id}</strong><span>{t}</span><em>{st}</em>
-              </div>
-            ))}
-          </section>
-          <section className="irp-panel">
-            <h3>检验项 · SOP</h3>
-            {['外观无磕碰', '尺寸公差 ±0.05', '硬度 HRC 58–62', '标识完整'].map((x) => (
-              <label key={x} className="irp-check"><input type="checkbox" defaultChecked={x !== '标识完整'} />{x}</label>
-            ))}
-            <div className="irp-actions">
-              <button type="button" className="irp-btn" disabled>通过</button>
-              <button type="button" className="irp-btn ghost" disabled>驳回</button>
-            </div>
-          </section>
-        </div>
-      )
     case 'material':
-      return (
-        <section className="irp-panel">
-          <h3>生产领退料</h3>
-          <div className="irp-table">
-            <div className="irp-tr head"><span>物料</span><span>需求</span><span>库存</span><span>状态</span></div>
-            {[
-              ['轴承 6205', '40', '128', '可领'],
-              ['液压油 ISO46', '2 桶', '1 桶', '待补货'],
-              ['密封圈 Φ32', '20', '56', '可领'],
-            ].map((row) => (
-              <div key={row[0]} className="irp-tr">{row.map((c) => <span key={c}>{c}</span>)}</div>
-            ))}
-          </div>
-          <button type="button" className="irp-btn" disabled>提交领料审批</button>
-        </section>
-      )
     case 'safety':
-      return (
-        <div className="irp-grid-2">
-          <section className="irp-panel">
-            <h3>隐患上报</h3>
-            <div className="irp-photo">现场拍照占位 · 可标注区域</div>
-            <label>隐患描述<textarea rows={3} defaultValue="通道堆放纸箱，遮挡消防栓。" /></label>
-            <button type="button" className="irp-btn" disabled>上报并流转审批</button>
-          </section>
-          <section className="irp-panel">
-            <h3>本周隐患</h3>
-            {['消防通道占用', '防护罩缺失', '油污地面'].map((t, i) => (
-              <div key={t} className="irp-row"><strong>H-{120 + i}</strong><span>{t}</span><em>处理中</em></div>
-            ))}
-          </section>
-        </div>
-      )
     case 'roster':
-      return (
-        <section className="irp-panel">
-          <h3>本周排班</h3>
-          <div className="irp-roster">
-            {['一', '二', '三', '四', '五', '六', '日'].map((d, i) => (
-              <div key={d} className="irp-roster-cell">
-                <span>周{d}</span>
-                <strong>{i === 5 || i === 6 ? '休' : i % 2 ? '夜班' : '白班'}</strong>
-              </div>
-            ))}
-          </div>
-          <button type="button" className="irp-btn ghost" disabled>班次申诉</button>
-        </section>
-      )
     case 'maintain':
-      return (
-        <section className="irp-panel">
-          <h3>保养到期提醒</h3>
-          {[
-            ['注塑机 #2', '明日到期', '高'],
-            ['空压机站', '3 天后', '中'],
-            ['行车 01', '已超期 1 天', '高'],
-          ].map(([name, when, lv]) => (
-            <div key={name} className="irp-notify">
-              <strong>{name}</strong>
-              <span>{when}</span>
-              <em data-lv={lv}>{lv}</em>
-            </div>
-          ))}
-        </section>
-      )
+    case 'training':
+      return empty(scene.name)
     case 'bom':
-      return (
-        <div className="irp-grid-2">
-          <section className="irp-panel">
-            <h3>图纸 / BOM 检索</h3>
-            <input className="irp-search" placeholder="零件号 / 图号 / 工艺名…" defaultValue="A3-支架-BOM" />
-            {['A3-支架-装配图.dwg', 'BOM-REV.C.xlsx', '公差说明.pdf'].map((f) => (
-              <div key={f} className="irp-file">{f}</div>
-            ))}
-          </section>
-          <section className="irp-panel">
-            <h3>语义问答</h3>
-            <div className="irp-bubble bot">BOM REV.C 中密封件已由 NBR 切换为 FKM，注意库存替代关系。</div>
-          </section>
-        </div>
-      )
+      return empty('图纸 / BOM')
     case 'integration':
       return (
         <section className="irp-panel irp-integration">
-          <h3>MES / ERP 对接</h3>
-          <p>连接制造执行与企业资源系统，同步工单、物料与报工回写。</p>
-          <div className="irp-int-grid">
-            {[
-              ['MES 工单同步', '待配置'],
-              ['ERP 物料主数据', '沙箱连通'],
-              ['报工回写', '未开通'],
-            ].map(([n, st]) => (
-              <div key={n}><strong>{n}</strong><em>{st}</em></div>
-            ))}
-          </div>
-        </section>
-      )
-    case 'energy':
-      return (
-        <div className="irp-stack">
-          <div className="irp-kpi-row">
-            {[
-              ['电耗', '18.2 MWh', '本周'],
-              ['碳排', '9.4 tCO₂e', '估算'],
-              ['峰谷比', '1.32', '—'],
-            ].map(([k, v, s]) => (
-              <div key={k} className="irp-kpi green">
-                <span>{k}</span><strong>{v}</strong><em>{s}</em>
-              </div>
-            ))}
-          </div>
-          <section className="irp-panel">
-            <h3>能耗曲线</h3>
-            <div className="irp-bars green" aria-hidden>
-              {[30, 45, 52, 40, 68, 72, 55, 60, 48, 70, 65, 58].map((h, i) => (
-                <i key={i} style={{ height: `${h}%` }} />
-              ))}
-            </div>
-          </section>
-        </div>
-      )
-    case 'training':
-      return (
-        <section className="irp-panel">
-          <h3>上岗证 / 培训档案</h3>
-          {[
-            ['李强', '冲压上岗证', '有效至 2027-03'],
-            ['王敏', '叉车证', '有效至 2026-11'],
-            ['赵磊', '安规复训', '待考试'],
-          ].map(([name, cert, exp]) => (
-            <div key={name} className="irp-row">
-              <strong>{name}</strong><span>{cert}</span><em>{exp}</em>
-            </div>
-          ))}
-          <div className="irp-file">培训课件库 · 12 份文档</div>
+          <DemoOnlyNote scene={scene} />
+          <h3>系统对接</h3>
+          <p className="irp-summary">对接配置在正式 Runtime 中完成；本预览不展示假连通状态。</p>
         </section>
       )
     default:
@@ -702,8 +535,8 @@ export default function IndustryRuntimePreviewPage() {
 
       <p className="irp-compose-hint">
         {preview.key === 'office'
-          ? '66 场景已挂真能力。表单统一 Gtgt 步进 · Soft；请假/报销/会议室/IT/资产/审批等可真提交。登录态会自动尝试 demo 账号。'
-          : '制造表单统一 Gtgt 步进 · Soft。报修 / 质检 / 安环隐患已接真 API；其余场景为 Soft 步进示意。用右下角编排助手可加新页。'}
+          ? '办公预览：请假/报销/会议室/IT/资产/审批/制度问答/法务等可真提交；知识库/看板/通知/对接等为示意。登录态会尝试 demo 账号。'
+          : '制造预览：报修 / 质检 / 安环 / OEE·领料·保养·排班·能耗·培训可真提交；SOP/BOM/MES 等为示意。用右下角编排助手可加新页。'}
       </p>
 
       <div className="irp-body">

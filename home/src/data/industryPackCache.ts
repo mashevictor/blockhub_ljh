@@ -99,7 +99,39 @@ export function buildCachedIndustryPublish(opts: {
   const selected = opts.scenes.filter((s) =>
     opts.selectedIds instanceof Set ? opts.selectedIds.has(s.id) : opts.selectedIds.includes(s.id),
   )
-  const useScenes = selected.length > 0 ? selected : opts.scenes
+  // 禁止空选 fallback 全量：空选 = 空能力（由调用方拦截）
+  const useScenes = selected
+  if (useScenes.length === 0) {
+    const packLabel = PACK_LABEL[opts.packKey] ?? opts.packKey
+    return {
+      webUrl: industryRuntimeWebUrl(opts.packKey),
+      appQr: industryRuntimeWebUrl(opts.packKey),
+      downloadUrl: undefined,
+      appName: opts.appName || `${packLabel}应用`,
+      iconUrl: opts.iconUrl,
+      primaryColor: opts.primaryColor ?? '#4338ca',
+      moduleCount: 0,
+      modules: [],
+      scenarios: [],
+      appId: `cache-${opts.packKey}-empty`,
+      schemaUrl: industryRuntimeWebUrl(opts.packKey),
+      source: 'industry-cache',
+      deliver: 'web',
+      contactEmail: opts.contactEmail,
+      emailSent: false,
+      emailConfigured: false,
+      apkReady: false,
+      webTemplateId: opts.webTemplateId ?? 'tabs_portal',
+      appUiId: opts.appUiId ?? 'bottom_tabs',
+      capabilityKeys: [],
+      capabilityAssembly: {
+        requested_keys: [],
+        resolved_keys: [],
+        dropped_keys: [],
+        scenario_added_keys: [],
+      },
+    }
+  }
   const packLabel = PACK_LABEL[opts.packKey] ?? opts.packKey
 
   const modules: PublishedModuleItem[] = []

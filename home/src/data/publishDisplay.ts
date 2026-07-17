@@ -181,9 +181,9 @@ const SCENARIO_CAPABILITY_MAP: Array<{ match: string[]; caps: Array<{ key: strin
     { key: 'site_patrol', label: '巡检打卡' },
     { key: 'notify_im', label: '企微钉钉飞书' },
   ]},
-  { match: ['请假', '年假', '调休'], caps: [{ key: 'approval_flow', label: '审批流' }, { key: 'chat_qa', label: '智能问答' }] },
-  { match: ['报销', '费用报销'], caps: [{ key: 'approval_flow', label: '审批流' }, { key: 'kb_document', label: '知识库' }] },
-  { match: ['用印', '盖章'], caps: [{ key: 'approval_flow', label: '审批流' }] },
+  { match: ['请假', '年假', '调休'], caps: [{ key: 'leave_request', label: '请假审批' }] },
+  { match: ['报销', '费用报销'], caps: [{ key: 'expense_claim', label: '报销记账' }] },
+  { match: ['用印', '盖章'], caps: [{ key: 'seal_request', label: '用印申请' }] },
   { match: ['待办', '已办'], caps: [{ key: 'approval_inbox', label: '待办中心' }, { key: 'approval_flow', label: '审批流' }] },
 ]
 

@@ -13,8 +13,8 @@ export interface ScenarioPick {
 /** 从业务场景库抽取的可点选场景卡片 */
 export const SCENARIO_PICKS: ScenarioPick[] = [
   // 人事行政
-  { key: 'leave', category: '人事行政', icon: '📝', title: '请假申请', desc: '在线请假，多级审批自动流转', capability: 'approval_flow', agent: '审批', promptLine: '请假申请与多级审批（含年假/事假/病假）' },
-  { key: 'expense', category: '人事行政', icon: '💰', title: '费用报销', desc: '上传发票，财务审核，自动入账提醒', capability: 'approval_flow', agent: '审批', promptLine: '费用报销审批流（发票上传+财务审核+打款提醒）' },
+  { key: 'leave', category: '人事行政', icon: '📝', title: '请假申请', desc: '在线请假，多级审批自动流转', capability: 'leave_request', agent: 'HR', promptLine: '请假申请与多级审批（含年假/事假/病假）' },
+  { key: 'expense', category: '人事行政', icon: '💰', title: '费用报销', desc: '上传发票，财务审核，自动入账提醒', capability: 'expense_claim', agent: '财务', promptLine: '费用报销审批流（发票上传+财务审核+打款提醒）' },
   { key: 'attendance', category: '人事行政', icon: '⏰', title: '考勤查询', desc: '打卡记录、异常申诉、部门统计', capability: 'chart_basic', agent: '报表', promptLine: '考勤查询与异常申诉（对接考勤数据看板）' },
   { key: 'handbook', category: '人事行政', icon: '📖', title: '制度手册问答', desc: '制度、福利、入职政策智能问答', capability: 'chat_qa', agent: '问答', promptLine: '制度手册与福利政策智能问答' },
 
@@ -22,7 +22,7 @@ export const SCENARIO_PICKS: ScenarioPick[] = [
   { key: 'approval_general', category: '流程审批', icon: '✅', title: '通用审批', desc: '自定义表单 + 工作流，适配各类申请', capability: 'approval_flow', agent: '审批', promptLine: '通用审批工作流（表单+多级路由+待办中心）' },
   { key: 'approval_inbox', category: '流程审批', icon: '📥', title: '待办中心', desc: '待办/已办/代理审批，一键处理', capability: 'approval_inbox', agent: '审批', promptLine: '待办已办中心（审批提醒+超时催办）' },
   { key: 'contract', category: '流程审批', icon: '📄', title: '合同审批', desc: '法务/财务会签，电子签批', capability: 'approval_countersign', agent: '审批', promptLine: '合同法务财务会签审批（支持会签/或签）' },
-  { key: 'seal', category: '流程审批', icon: '🔏', title: '用印申请', desc: '公章/合同章在线申请与留痕', capability: 'approval_flow', agent: '审批', promptLine: '用印申请与用印记录归档' },
+  { key: 'seal', category: '流程审批', icon: '🔏', title: '用印申请', desc: '公章/合同章在线申请与留痕', capability: 'seal_request', agent: '审批', promptLine: '用印申请与用印记录归档' },
 
   // 知识协同
   { key: 'kb_policy', category: '知识协同', icon: '📚', title: '制度文档库', desc: 'PDF/Word 上传，切片检索，权限管控', capability: 'kb_document', agent: '知识库', promptLine: '制度文档知识库（上传+切片+语义检索）' },
