@@ -30,6 +30,8 @@ fi
 
 # SPA 站点根（预览页 /r/ 等）；默认同 SITE，可用 SITE_WEB 覆盖
 SITE_WEB="${SITE_WEB:-$SITE}"
+# FastAPI 根（openapi/docs/health 不在 /api/v1 下）
+API_ROOT="${API%/api/v1}"
 
 ADMIN_EMAIL="${ADMIN_EMAIL:-admin@trackchat.local}"
 ADMIN_PASSWORD="${ADMIN_PASSWORD:-admin123}"
@@ -41,7 +43,7 @@ ok() { echo "  ✓ $1"; PASS=$((PASS + 1)); }
 bad() { echo "  ✗ $1"; FAIL=$((FAIL + 1)); }
 skip() { echo "  ○ skip $1"; SKIP=$((SKIP + 1)); }
 
-# 判断是否「仅 API」：常见 :8001，或 /health 无而 /api 有
+# 判断是否「仅 API」：常见 :8001
 is_api_only() {
   case "$SITE" in
     *":8001"|*"127.0.0.1:8001"|*"localhost:8001") return 0 ;;
@@ -54,13 +56,14 @@ echo " Batch A Smoke · API=$API"
 echo " SITE_WEB=$SITE_WEB"
 echo "=========================================="
 
-# ── health（多路径；API-only 用 openapi/docs 探测）──
+# ── health（站点 /health 或 API 根 openapi；勿探 /api/v1/openapi.json）──
 health_ok=0
 for u in \
-  "$SITE/health" \
   "$SITE_WEB/health" \
-  "$API/../health" \
-  "http://127.0.0.1:8001/health"
+  "$SITE/health" \
+  "$API_ROOT/health" \
+  "$API_ROOT/openapi.json" \
+  "$API_ROOT/docs"
 do
   if curl -sf --max-time 5 "$u" >/dev/null 2>&1; then
     ok "health ($u)"
@@ -69,22 +72,42 @@ do
   fi
 done
 if [[ "$health_ok" -eq 0 ]]; then
-  # FastAPI 常挂 /docs 或 openapi
-  if curl -sf --max-time 5 "$API/openapi.json" >/dev/null 2>&1 \
-    || curl -sf --max-time 5 "${API%/api/v1}/docs" >/dev/null 2>&1 \
-    || curl -sf --max-time 5 -o /dev/null -w "" -X POST "$API/auth/login" \
-         -H "Content-Type: application/json" -d '{}' 2>/dev/null; then
-    ok "API reachable (no /health endpoint — OK for API-only)"
+  # 最后用登录接口探测（不要求 200，只要能连上有 body/状态码）
+  code=$(curl -sS --max-time 5 -o /dev/null -w "%{http_code}" -X POST "$API/auth/login" \
+    -H "Content-Type: application/json" \
+    -d '{"email":"x","password":"y"}' 2>/dev/null || echo "000")
+  if [[ "$code" != "000" && "$code" != "" ]]; then
+    ok "API reachable (login HTTP $code, no /health — OK)"
   else
     bad "health / API unreachable"
   fi
 fi
 
+# 可靠取 token：写文件解析 + 重试（避免 pipe + restart 竞态导致空 stdin）
 login_once() {
-  curl -sf --max-time 15 -X POST "$API/auth/login" \
+  local tmp="/tmp/smoke_batch_a_token_$$.json"
+  local code=""
+  code=$(curl -sS --max-time 15 -o "$tmp" -w "%{http_code}" -X POST "$API/auth/login" \
     -H "Content-Type: application/json" \
-    -d "{\"email\":\"$ADMIN_EMAIL\",\"password\":\"$ADMIN_PASSWORD\"}" \
-    | python3 -c "import sys,json; print(json.load(sys.stdin).get('access_token',''))" 2>/dev/null || echo ""
+    -d "{\"email\":\"$ADMIN_EMAIL\",\"password\":\"$ADMIN_PASSWORD\"}" 2>/dev/null || echo "000")
+  if [[ "$code" != "200" ]]; then
+    echo ""
+    return 0
+  fi
+  python3 -c "import json; print(json.load(open('$tmp')).get('access_token',''))" 2>/dev/null || echo ""
+}
+
+login_with_retry() {
+  local t="" i
+  for i in 1 2 3 4 5; do
+    t=$(login_once)
+    if [[ -n "$t" ]]; then
+      echo "$t"
+      return 0
+    fi
+    sleep 1
+  done
+  echo ""
 }
 
 login_diag() {
@@ -100,13 +123,15 @@ login_diag() {
     echo "        cd ~/blockhub && bash scripts/repair-auth.sh"
     echo "        再: bash scripts/smoke-batch-a.sh http://127.0.0.1:8001"
     echo "        或: ADMIN_PASSWORD=实际密码 bash scripts/smoke-batch-a.sh https://blockhub.club"
+  elif [[ "$code" == "200" ]]; then
+    echo "  hint: 登录实际已成功；若上方仍 ✗ login，多为旧脚本 pipe 解析问题，请 git pull 后重跑"
   fi
 }
 
-TOKEN=$(login_once)
+TOKEN=$(login_with_retry)
 if [[ -z "$TOKEN" ]]; then
   curl -sf --max-time 15 -X POST "$API/auth/demo-bootstrap" -H "Content-Type: application/json" -d '{}' >/dev/null 2>&1 || true
-  TOKEN=$(login_once)
+  TOKEN=$(login_with_retry)
 fi
 if [[ -n "$TOKEN" ]]; then
   ok "login"
