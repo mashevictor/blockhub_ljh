@@ -198,29 +198,42 @@ export function FormWidget({ node }: { node: SchemaNode }) {
 export function ApprovalInboxWidget(_props: { node: SchemaNode }) {
   const { token, primaryColor, user } = useRuntime()
   const [items, setItems] = useState<ApprovalItem[]>([])
+  const [loading, setLoading] = useState(true)
+  const [msg, setMsg] = useState('')
   const isAdmin = user.role === 'admin'
 
   const load = () => {
+    setLoading(true)
     apiFetch<{ items: ApprovalItem[] }>('/api/v1/approvals?status=pending', token)
-      .then((d) => setItems(d.items))
+      .then((d) => setItems(d.items || []))
       .catch(() => setItems([]))
+      .finally(() => setLoading(false))
   }
 
   useEffect(() => { load() }, [token])
 
   const handleAction = async (id: string, action: 'approve' | 'reject') => {
-    await apiFetch(`/api/v1/approvals/${id}/action`, token, {
-      method: 'POST',
-      body: JSON.stringify({ action }),
-    })
-    load()
+    try {
+      await apiFetch(`/api/v1/approvals/${id}/action`, token, {
+        method: 'POST',
+        body: JSON.stringify({ action, comment: '' }),
+      })
+      setMsg(action === 'approve' ? '已通过' : '已拒绝')
+      load()
+    } catch (e) {
+      setMsg(`操作失败：${String(e)}`)
+    }
   }
 
   return (
     <div className="widget inbox-widget">
       <h3>待办中心</h3>
-      {!isAdmin && <p className="muted">管理员账号可在此审批；员工账号可查看自己的待办。</p>}
-      {items.length === 0 && <p className="muted">暂无待审批项</p>}
+      <p className="muted">
+        真 inbox · 列表来自 /api/v1/approvals?status=pending
+        {!isAdmin ? ' · 员工可查看；管理员可审批' : ' · 管理员可直接通过/拒绝'}
+      </p>
+      {loading && <p className="muted">加载中…</p>}
+      {!loading && items.length === 0 && <p className="muted">空库无待审批项</p>}
       {items.map((a) => (
         <div key={a.id} className="list-card">
           <div className="list-card-head">
@@ -237,6 +250,7 @@ export function ApprovalInboxWidget(_props: { node: SchemaNode }) {
           )}
         </div>
       ))}
+      {msg ? <p className="status-msg">{msg}</p> : null}
     </div>
   )
 }

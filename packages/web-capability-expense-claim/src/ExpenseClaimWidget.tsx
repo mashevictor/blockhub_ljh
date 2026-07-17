@@ -20,6 +20,7 @@ const CAT_LABEL: Record<string, string> = {
   office: '办公',
   loan: '借款',
   payment: '付款',
+  invoice: '发票',
 }
 
 const STATUS_LABEL: Record<string, string> = {
@@ -35,7 +36,8 @@ export function ExpenseClaimWidget({ node }: { node: SchemaNode }) {
   const sceneLabel = String(node.props?.scene_label || '')
   const isLoan = defaultCat === 'loan' || sceneLabel.includes('借款')
   const isPayment = defaultCat === 'payment' || sceneLabel.includes('付款')
-  const initialCat = isLoan ? 'loan' : isPayment ? 'payment' : defaultCat || 'travel'
+  const isInvoice = defaultCat === 'invoice' || sceneLabel.includes('发票')
+  const initialCat = isInvoice ? 'invoice' : isLoan ? 'loan' : isPayment ? 'payment' : defaultCat || 'travel'
 
   const [items, setItems] = useState<RecordItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -49,21 +51,29 @@ export function ExpenseClaimWidget({ node }: { node: SchemaNode }) {
   const pending = items.filter((t) => t.status === 'open' || t.status === 'reviewing')
   const done = items.filter((t) => t.status === 'paid' || t.status === 'rejected')
 
-  const formTitle = isLoan ? '借款申请' : isPayment ? '付款申请' : '费用报销'
-  const submitLabel = isLoan ? '提交借款' : isPayment ? '提交付款' : '提交报销'
-  const titlePlaceholder = isLoan ? '如：备用金借款' : isPayment ? '如：供应商货款' : '如：上海出差高铁'
+  const formTitle = isInvoice ? '发票核验/报销' : isLoan ? '借款申请' : isPayment ? '付款申请' : '费用报销'
+  const submitLabel = isInvoice ? '提交核验' : isLoan ? '提交借款' : isPayment ? '提交付款' : '提交报销'
+  const titlePlaceholder = isInvoice
+    ? '如：增值税专票报销'
+    : isLoan
+      ? '如：备用金借款'
+      : isPayment
+        ? '如：供应商货款'
+        : '如：上海出差高铁'
 
   const catOptions = useMemo(() => {
     if (isLoan) return [['loan', '借款']] as const
     if (isPayment) return [['payment', '付款']] as const
+    if (isInvoice) return [['invoice', '发票']] as const
     return [
       ['travel', '差旅'],
       ['meal', '餐饮'],
       ['office', '办公'],
+      ['invoice', '发票'],
       ['loan', '借款'],
       ['payment', '付款'],
     ] as const
-  }, [isLoan, isPayment])
+  }, [isLoan, isPayment, isInvoice])
 
   const steps: GtgtStep[] = useMemo(
     () => [
@@ -86,11 +96,11 @@ export function ExpenseClaimWidget({ node }: { node: SchemaNode }) {
           </div>
         ),
       },
-      { key: 'title', label: isLoan || isPayment ? '申请事由' : '报销内容', placeholder: titlePlaceholder },
+      { key: 'title', label: isLoan || isPayment ? '申请事由' : isInvoice ? '发票事由' : '报销内容', placeholder: titlePlaceholder },
       { key: 'amount', label: '金额（元）', placeholder: '328.00' },
       { key: 'invoice_no', label: '发票/单号（可空）', placeholder: '发票或合同号', optional: true },
     ],
-    [catOptions, initialCat, isLoan, isPayment, titlePlaceholder],
+    [catOptions, initialCat, isLoan, isPayment, isInvoice, titlePlaceholder],
   )
 
   const load = useCallback(async () => {
@@ -120,11 +130,13 @@ export function ExpenseClaimWidget({ node }: { node: SchemaNode }) {
     if (!token || !values.title?.trim() || !values.amount?.trim()) return
     setBusy(true)
     setMsg('')
+    const cat = values.category || initialCat
+    const resolvedCat = cat === 'invoice' ? 'office' : cat
     try {
       await apiFetch('/api/v1/expense-claim/records', token, {
         method: 'POST',
         body: JSON.stringify({
-          category: values.category || initialCat,
+          category: resolvedCat,
           title: values.title.trim(),
           amount: values.amount.trim(),
           invoice_no: (values.invoice_no || '').trim(),

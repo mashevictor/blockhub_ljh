@@ -20,8 +20,11 @@ const COLUMNS = [
   { key: 'joined', label: '已入职', action: 'joined' },
 ] as const
 
-export function HireOnboardWidget(_props: { node: SchemaNode }) {
+export function HireOnboardWidget({ node }: { node: SchemaNode }) {
   const { token, primaryColor, appId, user } = useRuntime()
+  const sceneLabel = String(node.props?.scene_label || node.props?.default || '')
+  const isOffboard = sceneLabel.includes('离职')
+
   const [items, setItems] = useState<RecordItem[]>([])
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
@@ -32,11 +35,20 @@ export function HireOnboardWidget(_props: { node: SchemaNode }) {
 
   const steps: GtgtStep[] = useMemo(
     () => [
-      { key: 'candidate', label: '候选人 / 岗位', placeholder: '如：张三 · 前端工程师' },
-      { key: 'stage', label: '当前阶段（可空）', placeholder: '初筛 / 一面…', optional: true },
+      {
+        key: 'candidate',
+        label: isOffboard ? '离职人' : '候选人 / 岗位',
+        placeholder: isOffboard ? '姓名 · 岗位' : '如：张三 · 前端工程师',
+      },
+      {
+        key: 'stage',
+        label: isOffboard ? '交接阶段' : '当前阶段（可空）',
+        placeholder: isOffboard ? '资产/权限交接' : '初筛 / 一面…',
+        optional: true,
+      },
       { key: 'note', label: '备注（可空）', placeholder: '渠道、期望到岗…', optional: true },
     ],
-    [],
+    [isOffboard],
   )
 
   const load = useCallback(async () => {
@@ -66,21 +78,23 @@ export function HireOnboardWidget(_props: { node: SchemaNode }) {
     if (!token || !values.candidate?.trim()) return
     setBusy(true)
     setMsg('')
+    const noteRaw = (values.note || '').trim()
+    const note = isOffboard && noteRaw && !noteRaw.startsWith('[离职]') ? `[离职] ${noteRaw}` : isOffboard && !noteRaw ? '[离职]' : noteRaw
     try {
       await apiFetch('/api/v1/hire-onboard/records', token, {
         method: 'POST',
         body: JSON.stringify({
           category: 'job',
           candidate: values.candidate.trim(),
-          stage: (values.stage || '').trim() || '初筛',
+          stage: (values.stage || '').trim() || (isOffboard ? '交接中' : '初筛'),
           owner: user?.display_name || '',
-          note: (values.note || '').trim(),
+          note,
           app_public_id: appId || '',
         }),
       })
       setValues({})
       setResetKey((k) => k + 1)
-      setMsg('已加入招聘板')
+      setMsg(isOffboard ? '已加入离职交接板' : '已加入招聘板')
       await load()
     } catch (e) {
       setMsg(String(e))
@@ -98,17 +112,18 @@ export function HireOnboardWidget(_props: { node: SchemaNode }) {
   return (
     <div>
       <GtgtStepComposer
-        title="招聘入职"
+        title={isOffboard ? '离职交接' : '招聘入职'}
         meta={user?.display_name || 'HR'}
         accent={accent}
-        flowHint="候选人 → 阶段 → 写入数据库看板"
+        variant="soft"
+        flowHint=">> 单字段推进 → 提交真库"
         steps={steps}
         values={values}
         onChange={(k, v) => setValues((p) => ({ ...p, [k]: v }))}
         onComplete={submit}
         busy={busy}
         resetKey={resetKey}
-        submitLabel="录入候选人"
+        submitLabel={isOffboard ? '录入离职人' : '录入候选人'}
       />
       {msg && <p className="status-msg">{msg}</p>}
       {loading && <p className="muted">加载中…</p>}

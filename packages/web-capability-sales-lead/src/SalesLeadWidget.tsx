@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { SchemaNode } from '@blockhub/web-core'
-import { apiFetch, useRuntime } from '@blockhub/web-core'
+import { apiFetch, GtgtStepComposer, useRuntime, type GtgtStep } from '@blockhub/web-core'
 
 interface RecordItem {
   id: string
@@ -26,11 +26,19 @@ export function SalesLeadWidget(_props: { node: SchemaNode }) {
   const [items, setItems] = useState<RecordItem[]>([])
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
-  const [customer, setCustomer] = useState('')
-  const [amount, setAmount] = useState('')
+  const [resetKey, setResetKey] = useState(0)
+  const [values, setValues] = useState<Record<string, string>>({})
   const [msg, setMsg] = useState('')
 
   const accent = primaryColor || '#ef4444'
+
+  const steps: GtgtStep[] = useMemo(
+    () => [
+      { key: 'customer', label: '客户名称', placeholder: '客户名称' },
+      { key: 'amount', label: '金额（可空）', placeholder: '金额（可空）', optional: true },
+    ],
+    [],
+  )
 
   const load = useCallback(async () => {
     if (!token) {
@@ -56,7 +64,7 @@ export function SalesLeadWidget(_props: { node: SchemaNode }) {
   }, [load])
 
   const submit = async () => {
-    if (!token || !customer.trim()) return
+    if (!token || !values.customer?.trim()) return
     setBusy(true)
     setMsg('')
     try {
@@ -64,15 +72,15 @@ export function SalesLeadWidget(_props: { node: SchemaNode }) {
         method: 'POST',
         body: JSON.stringify({
           category: 'lead',
-          customer: customer.trim(),
-          amount: amount.trim(),
+          customer: values.customer.trim(),
+          amount: (values.amount || '').trim(),
           owner: user?.display_name || '',
           note: '',
           app_public_id: appId || '',
         }),
       })
-      setCustomer('')
-      setAmount('')
+      setValues({})
+      setResetKey((k) => k + 1)
       setMsg('已加入看板')
       await load()
     } catch (e) {
@@ -94,35 +102,20 @@ export function SalesLeadWidget(_props: { node: SchemaNode }) {
 
   return (
     <div>
-      <div
-        className="list-card"
-        style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', marginBottom: 16 }}
-      >
-        <strong style={{ marginRight: 4 }}>新线索</strong>
-        <input
-          className="input"
-          style={{ flex: '1 1 160px', minWidth: 140 }}
-          placeholder="客户名称"
-          value={customer}
-          onChange={(e) => setCustomer(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') void submit()
-          }}
-        />
-        <input
-          className="input"
-          style={{ flex: '0 1 120px', width: 120 }}
-          placeholder="金额（可空）"
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') void submit()
-          }}
-        />
-        <button type="button" className="btn" style={{ background: accent }} disabled={busy || !customer.trim()} onClick={() => void submit()}>
-          录入
-        </button>
-      </div>
+      <GtgtStepComposer
+        title="新线索"
+        meta={user?.display_name || '销售'}
+        accent={accent}
+        variant="soft"
+        flowHint=">> 单字段推进 → 提交真库"
+        steps={steps}
+        values={values}
+        onChange={(k, v) => setValues((p) => ({ ...p, [k]: v }))}
+        onComplete={submit}
+        busy={busy}
+        resetKey={resetKey}
+        submitLabel="录入"
+      />
       {msg && <p className="status-msg">{msg}</p>}
       {loading && <p className="muted">加载中…</p>}
 
@@ -132,6 +125,7 @@ export function SalesLeadWidget(_props: { node: SchemaNode }) {
           gridTemplateColumns: 'repeat(4, minmax(140px, 1fr))',
           gap: 10,
           overflowX: 'auto',
+          marginTop: 16,
         }}
       >
         {COLUMNS.map((col) => {
