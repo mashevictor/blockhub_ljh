@@ -86,7 +86,8 @@ export function StudyCoachWidget(_props: { node: SchemaNode }) {
   const [resetKey, setResetKey] = useState(0)
   const [drillResetKey, setDrillResetKey] = useState(0)
   const [queryValues, setQueryValues] = useState<Record<string, string>>({})
-  const [drillValues, setDrillValues] = useState<Record<string, string>>({ kind: 'dictation' })
+  /** 跟进表单：先选 kind，勿预填 unit/notes（避免跳步、把大纲提示误当结果） */
+  const [drillValues, setDrillValues] = useState<Record<string, string>>({})
   const [activeCourseId, setActiveCourseId] = useState('')
   const [msg, setMsg] = useState('')
   const [phase, setPhase] = useState<'ask' | 'confirm'>('ask')
@@ -96,6 +97,7 @@ export function StudyCoachWidget(_props: { node: SchemaNode }) {
 
   const accent = primaryColor || '#6366f1'
   const activeCourse = courses.find((c) => c.id === activeCourseId) || courses[0]
+  const drillKind = drillValues.kind || ''
 
   const askSteps: GtgtStep[] = useMemo(
     () => [
@@ -109,91 +111,199 @@ export function StudyCoachWidget(_props: { node: SchemaNode }) {
     [],
   )
 
+  const selectedUnit = useMemo(() => {
+    const name = (drillValues.unit_name || '').trim()
+    return (activeCourse?.plan || []).find((u) => u.unit_name === name)
+  }, [activeCourse?.plan, drillValues.unit_name])
+
   const drillSteps: GtgtStep[] = useMemo(() => {
     const unitChoices = (activeCourse?.plan || []).map((u) => u.unit_name)
-    const kind = drillValues.kind || 'dictation'
-    const kindHint =
-      kind === 'dictation'
-        ? '家默/听写：写下本次默写范围、对了几个、错词清单（如：apple→aple）。家长也可代记。'
-        : kind === 'review'
-          ? '复习：写下薄弱点或「已过一遍 Unit X」。可附错题页码，方便下次盯。'
-          : '考试：写下测验名称、得分或等第（如：单元测 92 / 口试 B）。可选写错题单元。'
-    const notesPh =
-      kind === 'dictation'
-        ? '例：听写 20 词，对 17；错：friend / because'
-        : kind === 'review'
-          ? '例：复习 Unit3 过去式，不规则动词仍不熟'
-          : '例：Unit4 单元测 88 分；阅读丢 2 题'
-    return [
-      {
-        key: 'kind',
-        label: '这次记什么？',
-        hint: '家默=听写默写 · 复习=过单元巩固 · 考试=测验成绩。点选后下一步选对应单元。',
-        render: ({ value, setValue, accent: a }) => (
-          <div className="row-actions" style={{ flexWrap: 'wrap' }}>
-            {([
-              ['dictation', '家默 / 听写'],
-              ['review', '复习巩固'],
-              ['exam', '考试成绩'],
-            ] as const).map(([k, lab]) => (
+    const kind = drillKind
+    const unitHintBlock = selectedUnit
+      ? [
+          selectedUnit.focus ? `本单元重点：${selectedUnit.focus}` : '',
+          selectedUnit.dictation_hint ? `大纲家默范围（仅供参考，勿当结果）：${selectedUnit.dictation_hint}` : '',
+        ]
+          .filter(Boolean)
+          .join(' · ')
+      : ''
+
+    const kindStep: GtgtStep = {
+      key: 'kind',
+      label: '① 先选任务类型',
+      hint: '必须先选类型，再逐步填写。家默=听写默写 · 复习=巩固薄弱 · 考试=测验成绩。',
+      render: ({ value, setValue, accent: a }) => (
+        <div style={{ display: 'grid', gap: 10 }}>
+          {(
+            [
+              ['dictation', '家默 / 听写', '默写范围 → 对了几个 → 错词清单（家长可代记）'],
+              ['review', '复习巩固', '复习了哪一块 → 还卡在哪 → 下次怎么盯'],
+              ['exam', '考试成绩', '哪次测验 → 得分/等第 → 错题与丢分点'],
+            ] as const
+          ).map(([k, lab, desc]) => {
+            const on = value === k
+            return (
               <button
                 key={k}
                 type="button"
-                className={(value || 'dictation') === k ? 'btn' : 'btn btn-ghost'}
-                style={(value || 'dictation') === k ? { background: a } : undefined}
+                className={on ? 'btn' : 'btn btn-ghost'}
+                style={{
+                  textAlign: 'left',
+                  padding: '12px 14px',
+                  background: on ? a : undefined,
+                  display: 'block',
+                  width: '100%',
+                }}
                 onClick={() => setValue(k)}
               >
-                {lab}
+                <strong style={{ display: 'block', fontSize: 14 }}>{lab}</strong>
+                <span style={{ display: 'block', fontSize: 12, marginTop: 4, opacity: on ? 0.95 : 0.75 }}>
+                  {desc}
+                </span>
               </button>
-            ))}
-          </div>
-        ),
-      },
-      {
-        key: 'unit_name',
-        label: '对应哪个单元？',
-        placeholder: unitChoices[0] || '第一单元 / Module 1',
-        hint: unitChoices.length
-          ? '点选大纲里的单元；有「家默提示」的会自动填到下一步备注。'
-          : '还没有大纲单元时，可手填如「Unit 2 · My family」。',
-        render: unitChoices.length
-          ? ({ value, setValue, accent: a }) => (
-              <div className="row-actions" style={{ flexWrap: 'wrap' }}>
-                {unitChoices.map((name) => (
+            )
+          })}
+        </div>
+      ),
+    }
+
+    const unitStep: GtgtStep = {
+      key: 'unit_name',
+      label: '② 对应哪个单元？',
+      placeholder: unitChoices[0] || '第一单元 / Module 1',
+      hint: unitChoices.length
+        ? '点选大纲单元。下一步会按任务类型逐项填写；大纲里的「家默提示」只作参考，不会自动当成结果。'
+        : '还没有大纲单元时，可手填如「Unit 2 · My family」。',
+      render: unitChoices.length
+        ? ({ value, setValue, accent: a }) => (
+            <div className="row-actions" style={{ flexWrap: 'wrap' }}>
+              {unitChoices.map((name) => {
+                const u = (activeCourse?.plan || []).find((x) => x.unit_name === name)
+                const short = name.length > 22 ? `${name.slice(0, 22)}…` : name
+                return (
                   <button
                     key={name}
                     type="button"
-                    className={(value || unitChoices[0]) === name ? 'btn' : 'btn btn-ghost'}
-                    style={(value || unitChoices[0]) === name ? { background: a, fontSize: 12 } : { fontSize: 12 }}
-                    onClick={() => {
-                      setValue(name)
-                      const unit = (activeCourse?.plan || []).find((u) => u.unit_name === name)
-                      if (unit?.dictation_hint) {
-                        setDrillValues((p) => ({
-                          ...p,
-                          unit_name: name,
-                          notes: p.notes || unit.dictation_hint || '',
-                        }))
-                      }
-                    }}
+                    className={value === name ? 'btn' : 'btn btn-ghost'}
+                    style={
+                      value === name
+                        ? { background: a, fontSize: 12, textAlign: 'left' }
+                        : { fontSize: 12, textAlign: 'left' }
+                    }
+                    title={[u?.focus, u?.dictation_hint].filter(Boolean).join(' | ')}
+                    onClick={() => setValue(name)}
                   >
-                    {name.length > 18 ? `${name.slice(0, 18)}…` : name}
+                    {short}
                   </button>
-                ))}
-              </div>
-            )
-          : undefined,
-      },
-      {
-        key: 'notes',
-        label: kind === 'exam' ? '得分与错题（可空）' : kind === 'review' ? '复习小结（可空）' : '家默结果（可空）',
-        placeholder: notesPh,
-        hint: kindHint,
-        optional: true,
-        inputType: 'textarea',
-      },
-    ]
-  }, [activeCourse?.plan, drillValues.kind])
+                )
+              })}
+            </div>
+          )
+        : undefined,
+    }
+
+    if (kind === 'dictation') {
+      return [
+        kindStep,
+        unitStep,
+        {
+          key: 'dictation_range',
+          label: '③ 本次默写范围',
+          placeholder: '例：Unit1 单词 listen/hear/dog… + 句子 Listen! I can hear a dog.',
+          hint: unitHintBlock || '写清：听写了哪些词/句。可对照大纲家默范围，但请用自己的话记下「这一次」实际默的内容。',
+          inputType: 'textarea',
+        },
+        {
+          key: 'dictation_score',
+          label: '④ 对了几个 / 一共几个',
+          placeholder: '例：对 17 / 共 20；或 85 分',
+          hint: '数字即可，方便以后对比进步。',
+        },
+        {
+          key: 'dictation_wrong',
+          label: '⑤ 错词 / 错句（可空）',
+          placeholder: '例：friend→freind；because 漏写 e',
+          hint: '按「正确→错误」列更好复习；全对可跳过。',
+          optional: true,
+          inputType: 'textarea',
+        },
+        {
+          key: 'notes',
+          label: '⑥ 补充说明（可空）',
+          placeholder: '例：家长代记；今晚再默一遍错词',
+          hint: '谁代记、下次计划等。',
+          optional: true,
+          inputType: 'textarea',
+        },
+      ]
+    }
+
+    if (kind === 'review') {
+      return [
+        kindStep,
+        unitStep,
+        {
+          key: 'review_focus',
+          label: '③ 复习了什么',
+          placeholder: '例：Unit3 过去式不规则动词 + 课文跟读两遍',
+          hint: unitHintBlock || '写具体块：词汇 / 语法 / 课文 / 练习页码。',
+          inputType: 'textarea',
+        },
+        {
+          key: 'review_weak',
+          label: '④ 还卡在哪（可空）',
+          placeholder: '例：went/gone 仍混；朗读断句不稳',
+          hint: '写出薄弱点，下次跟进可对着盯。',
+          optional: true,
+          inputType: 'textarea',
+        },
+        {
+          key: 'notes',
+          label: '⑤ 下次怎么盯（可空）',
+          placeholder: '例：明天只默不规则动词表',
+          optional: true,
+          inputType: 'textarea',
+        },
+      ]
+    }
+
+    if (kind === 'exam') {
+      return [
+        kindStep,
+        unitStep,
+        {
+          key: 'exam_name',
+          label: '③ 哪一次测验',
+          placeholder: '例：Unit4 单元测 / 期中口试 / 校内周测',
+          hint: unitHintBlock || '写清测验名称与范围，避免和上次混在一起。',
+        },
+        {
+          key: 'exam_score',
+          label: '④ 得分或等第',
+          placeholder: '例：92 分 / A / 口试 B+',
+          hint: '分数、等级、及格与否都可以。',
+        },
+        {
+          key: 'exam_wrong',
+          label: '⑤ 错题与丢分点（可空）',
+          placeholder: '例：阅读理解丢 2 题；拼写 friend；听力最后一题',
+          hint: '记下题型或知识点，方便订正。',
+          optional: true,
+          inputType: 'textarea',
+        },
+        {
+          key: 'notes',
+          label: '⑥ 补充说明（可空）',
+          placeholder: '例：需订正后家长签字',
+          optional: true,
+          inputType: 'textarea',
+        },
+      ]
+    }
+
+    // 尚未选类型：只展示第一步，迫使先选
+    return [kindStep]
+  }, [activeCourse?.plan, drillKind, selectedUnit])
 
   const load = useCallback(async () => {
     if (!token) {
@@ -311,15 +421,53 @@ export function StudyCoachWidget(_props: { node: SchemaNode }) {
 
   const submitDrill = async () => {
     if (!token || !activeCourse) return
-    const unit = (drillValues.unit_name || activeCourse.plan?.[0]?.unit_name || '').trim()
+    const kind = drillValues.kind || ''
+    if (!['review', 'dictation', 'exam'].includes(kind)) {
+      setMsg('请先选择任务类型：家默 / 复习 / 考试')
+      return
+    }
+    const unit = (drillValues.unit_name || '').trim()
     if (!unit) {
       setMsg('请先选择学习单元')
       return
     }
     setBusy(true)
     setMsg('')
-    const kind = ['review', 'dictation', 'exam'].includes(drillValues.kind) ? drillValues.kind : 'dictation'
-    const notes = (drillValues.notes || '').trim()
+    let score = ''
+    let result = ''
+    let notes = ''
+    if (kind === 'dictation') {
+      score = (drillValues.dictation_score || '').trim()
+      result = (drillValues.dictation_wrong || '').trim() ? '有错词' : score ? '已默写' : '已记录'
+      notes = [
+        drillValues.dictation_range && `范围：${drillValues.dictation_range.trim()}`,
+        drillValues.dictation_score && `正确情况：${drillValues.dictation_score.trim()}`,
+        drillValues.dictation_wrong && `错词：${drillValues.dictation_wrong.trim()}`,
+        drillValues.notes && `备注：${drillValues.notes.trim()}`,
+      ]
+        .filter(Boolean)
+        .join('\n')
+    } else if (kind === 'review') {
+      result = '已复习'
+      notes = [
+        drillValues.review_focus && `复习：${drillValues.review_focus.trim()}`,
+        drillValues.review_weak && `薄弱：${drillValues.review_weak.trim()}`,
+        drillValues.notes && `下次：${drillValues.notes.trim()}`,
+      ]
+        .filter(Boolean)
+        .join('\n')
+    } else {
+      score = (drillValues.exam_score || '').trim()
+      result = score || '已考试'
+      notes = [
+        drillValues.exam_name && `测验：${drillValues.exam_name.trim()}`,
+        drillValues.exam_score && `成绩：${drillValues.exam_score.trim()}`,
+        drillValues.exam_wrong && `错题：${drillValues.exam_wrong.trim()}`,
+        drillValues.notes && `备注：${drillValues.notes.trim()}`,
+      ]
+        .filter(Boolean)
+        .join('\n')
+    }
     try {
       await apiFetch('/api/v1/study-coach/drills', token, {
         method: 'POST',
@@ -327,21 +475,30 @@ export function StudyCoachWidget(_props: { node: SchemaNode }) {
           course_id: activeCourse.id,
           unit_name: unit,
           kind,
-          score: '',
-          result: '',
+          score,
+          result,
           notes,
           app_public_id: appId || '',
         }),
       })
-      setDrillValues({ kind: 'dictation', unit_name: unit })
+      setDrillValues({})
       setDrillResetKey((k) => k + 1)
-      setMsg(`${KIND_LABEL[kind] || '跟进'}已记录`)
+      setMsg(`${KIND_LABEL[kind] || '跟进'}已记录 · ${unit}`)
       await load()
     } catch (e) {
       setMsg(`提交失败：${String(e)}`)
     } finally {
       setBusy(false)
     }
+  }
+
+  const onDrillChange = (k: string, v: string) => {
+    if (k === 'kind') {
+      setDrillValues((p) => (p.kind === v ? p : { kind: v }))
+      setDrillResetKey((n) => n + 1)
+      return
+    }
+    setDrillValues((p) => ({ ...p, [k]: v }))
   }
 
   const courseDrills = drills.filter((d) => d.course_id === (activeCourse?.id || ''))
@@ -498,25 +655,41 @@ export function StudyCoachWidget(_props: { node: SchemaNode }) {
 
           <GtgtStepComposer
             title="记一次学习跟进"
-            meta={`${activeCourse.textbook_name} · 家默 / 复习 / 考试`}
+            meta={
+              drillKind
+                ? `${activeCourse.textbook_name} · ${KIND_LABEL[drillKind] || drillKind}`
+                : `${activeCourse.textbook_name} · 请先选任务类型`
+            }
             accent={accent}
             variant="soft"
-            flowHint="选类型 → 选单元 → 写一句结果（可跳过）→ 写入真库"
+            flowHint={
+              drillKind === 'dictation'
+                ? '①类型 → ②单元 → ③默写范围 → ④对错数量 → ⑤错词 → ⑥备注 → 写入真库'
+                : drillKind === 'review'
+                  ? '①类型 → ②单元 → ③复习内容 → ④薄弱点 → ⑤下次计划 → 写入真库'
+                  : drillKind === 'exam'
+                    ? '①类型 → ②单元 → ③测验名 → ④得分 → ⑤错题 → ⑥备注 → 写入真库'
+                    : '①先选任务类型（家默 / 复习 / 考试），再按步骤填写'
+            }
             steps={drillSteps}
-            values={{
-              kind: drillValues.kind || 'dictation',
-              unit_name: drillValues.unit_name || activeCourse.plan?.[0]?.unit_name || '',
-              notes: drillValues.notes || '',
-            }}
-            onChange={(k, v) => setDrillValues((p) => ({ ...p, [k]: v }))}
+            values={drillValues}
+            onChange={onDrillChange}
             onComplete={submitDrill}
             busy={busy}
             resetKey={drillResetKey}
-            submitLabel="记下这次跟进"
+            submitLabel={
+              drillKind === 'dictation'
+                ? '提交家默记录'
+                : drillKind === 'review'
+                  ? '提交复习记录'
+                  : drillKind === 'exam'
+                    ? '提交考试记录'
+                    : '下一步'
+            }
           />
 
           <h4 style={{ margin: '16px 0 8px', fontSize: 14 }}>跟进记录</h4>
-          {courseDrills.length === 0 && <p className="muted">暂无家默/考试记录</p>}
+          {courseDrills.length === 0 && <p className="muted">暂无家默 / 复习 / 考试记录</p>}
           <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 8 }}>
             {courseDrills.map((d) => (
               <li key={d.id} className="list-card">
@@ -524,9 +697,13 @@ export function StudyCoachWidget(_props: { node: SchemaNode }) {
                   <strong>
                     {KIND_LABEL[d.kind] || d.kind} · {d.unit_name}
                   </strong>
-                  <span className="tag">{d.result || d.score || '已记录'}</span>
+                  <span className="tag">
+                    {[d.score, d.result].filter(Boolean).join(' · ') || '已记录'}
+                  </span>
                 </div>
-                {d.notes && <p style={{ margin: '6px 0 0', fontSize: 13 }}>{d.notes}</p>}
+                {d.notes && (
+                  <p style={{ margin: '6px 0 0', fontSize: 13, whiteSpace: 'pre-wrap' }}>{d.notes}</p>
+                )}
               </li>
             ))}
           </ul>
