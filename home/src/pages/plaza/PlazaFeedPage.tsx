@@ -20,13 +20,11 @@ function visLabel(v: PlazaFeedItem['visibility']) {
 
 function FeedCard({
   item,
-  selected,
-  onSelect,
+  onOpen,
   onInteraction,
 }: {
   item: PlazaFeedItem
-  selected: boolean
-  onSelect: () => void
+  onOpen: () => void
   onInteraction: () => void
 }) {
   const appId = feedAppKey(item)
@@ -90,52 +88,75 @@ function FeedCard({
 
   return (
     <article
-      className={`plaza-feed-card${selected ? ' selected' : ''}`}
-      onClick={onSelect}
-      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onSelect() }}
+      className="plaza-feed-card"
+      onClick={onOpen}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          onOpen()
+        }
+      }}
       role="button"
       tabIndex={0}
-      aria-pressed={selected}
+      aria-label={`打开应用 ${item.appName}`}
     >
       <div className="plaza-feed-head">
         <div className="plaza-feed-avatar">{item.authorInitial}</div>
         <div className="plaza-feed-meta">
-          <strong>{item.authorName} · {item.authorMeta}</strong>
+          <strong>
+            {item.authorName} · {item.authorMeta}
+          </strong>
           <span>{item.timeLabel} · 通过「描述需求」创建</span>
         </div>
         <span className={`plaza-vis-badge ${vis.cls}`}>{item.atLabel || vis.text}</span>
         {creator && <span className="plaza-creator-badge">创建者</span>}
       </div>
       <div className="plaza-feed-app">
-        <h4><span className="plaza-at-tag">{item.atLabel}</span> {item.appName}</h4>
+        <h4>
+          <span className="plaza-at-tag">{item.atLabel}</span> {item.appName}
+        </h4>
         <div className="plaza-feed-modules">
-          {item.modules.map((m) => (
-            <span key={m} className="plaza-feed-mod">{m}</span>
+          {item.modules.slice(0, 4).map((m) => (
+            <span key={m} className="plaza-feed-mod">
+              {m}
+            </span>
           ))}
+          {item.modules.length > 4 ? (
+            <span className="plaza-feed-mod plaza-feed-mod-more">+{item.modules.length - 4}</span>
+          ) : null}
         </div>
         <p className="plaza-feed-desc">{item.summary}</p>
       </div>
-      <div className="plaza-feed-actions" onClick={(e) => e.stopPropagation()}>
-        <button
-          type="button"
-          className={`plaza-feed-act${liked ? ' liked' : ''}`}
-          disabled={busy}
-          onClick={handleLike}
-        >
-          ♥ <span>{likes}</span>
-        </button>
-        <button type="button" className="plaza-feed-act" onClick={() => setShowComments((v) => !v)}>
-          💬 {comments}
-        </button>
-        <button type="button" className="plaza-feed-act">↗ 转发 {item.reposts}</button>
-        <a className="plaza-feed-act open" href={item.webUrl} target="_blank" rel="noreferrer">
-          打开应用 →
-        </a>
+      <div className="plaza-feed-card-foot">
+        <span className="plaza-feed-open-hint">
+          <span className="plaza-mflow-chev" aria-hidden>
+            &gt;&gt;
+          </span>{' '}
+          进入查看编排
+        </span>
+        <div className="plaza-feed-actions" onClick={(e) => e.stopPropagation()}>
+          <button
+            type="button"
+            className={`plaza-feed-act${liked ? ' liked' : ''}`}
+            disabled={busy}
+            onClick={handleLike}
+          >
+            ♥ <span>{likes}</span>
+          </button>
+          <button type="button" className="plaza-feed-act" onClick={() => setShowComments((v) => !v)}>
+            💬 {comments}
+          </button>
+          <button type="button" className="plaza-feed-act">
+            ↗ 转发 {item.reposts}
+          </button>
+        </div>
       </div>
       {showComments && (
         <div className="plaza-feed-comments" onClick={(e) => e.stopPropagation()}>
           {commentRows.map((c) => (
-            <p key={c.id}><strong>{c.author}</strong> {c.text}</p>
+            <p key={c.id}>
+              <strong>{c.author}</strong> {c.text}
+            </p>
           ))}
           <div className="plaza-feed-comment-form">
             <input
@@ -143,9 +164,16 @@ function FeedCard({
               value={commentText}
               placeholder="写评论…"
               onChange={(e) => setCommentText(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter') handleComment() }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleComment()
+              }}
             />
-            <button type="button" className="btn-secondary" disabled={busy || !commentText.trim()} onClick={handleComment}>
+            <button
+              type="button"
+              className="btn-secondary"
+              disabled={busy || !commentText.trim()}
+              onClick={handleComment}
+            >
               发送
             </button>
           </div>
@@ -165,7 +193,8 @@ export default function PlazaFeedPage() {
   const [filter, setFilter] = useState<FeedFilter>('latest')
   const [items, setItems] = useState<PlazaFeedItem[]>([])
   const [loading, setLoading] = useState(true)
-  const [selectedId, setSelectedId] = useState<string | null>(null)
+  /** 仅用户点进某应用后才有值；列表态不自动选中第一项 */
+  const [openedId, setOpenedId] = useState<string | null>(null)
   const { setFocus } = usePlazaFocus()
 
   const refresh = useCallback(() => {
@@ -195,43 +224,79 @@ export default function PlazaFeedPage() {
     return items
   }, [items, filter])
 
-  const selected = useMemo(
-    () => filtered.find((i) => i.id === selectedId) ?? filtered[0] ?? null,
-    [filtered, selectedId],
+  const opened = useMemo(
+    () => (openedId ? filtered.find((i) => i.id === openedId) ?? null : null),
+    [filtered, openedId],
   )
 
   useEffect(() => {
-    if (filtered.length === 0) {
-      setSelectedId(null)
-      return
+    if (openedId && !filtered.some((i) => i.id === openedId)) {
+      setOpenedId(null)
     }
-    if (!selectedId || !filtered.some((i) => i.id === selectedId)) {
-      setSelectedId(filtered[0].id)
-    }
-  }, [filtered, selectedId])
+  }, [filtered, openedId])
 
   useEffect(() => {
-    if (!selected) {
+    if (!opened) {
       setFocus(null)
       return
     }
     setFocus({
-      appKey: feedAppKey(selected),
-      appName: selected.appName,
-      webUrl: selected.webUrl,
-      moduleCount: selected.modules.length,
-      moduleLabels: selected.modules,
-      plazaLabel: selected.atLabel,
-      isCreator: isFeedCreator(selected),
+      appKey: feedAppKey(opened),
+      appName: opened.appName,
+      webUrl: opened.webUrl,
+      moduleCount: opened.modules.length,
+      moduleLabels: opened.modules,
+      plazaLabel: opened.atLabel,
+      isCreator: isFeedCreator(opened),
       source: 'feed',
     })
-  }, [selected, setFocus])
+  }, [opened, setFocus])
+
+  const backToList = () => setOpenedId(null)
+
+  if (opened) {
+    return (
+      <main className="plaza-main plaza-main--detail">
+        <div className="plaza-detail-bar">
+          <button type="button" className="plaza-detail-back" onClick={backToList}>
+            ← 返回列表
+          </button>
+          <div className="plaza-detail-title">
+            <span className="plaza-at-tag">{opened.atLabel}</span>
+            <strong>{opened.appName}</strong>
+          </div>
+          <a
+            className="plaza-detail-open"
+            href={opened.webUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            打开应用
+          </a>
+        </div>
+        <p className="plaza-main-hint plaza-main-hint--full">
+          功能编排与数据编排仅对本应用生效；可在底部工作台试运营。
+        </p>
+        <p className="plaza-main-hint plaza-main-hint--short">本应用编排 · 底部可试运营</p>
+        <PlazaDualRailFlowPanel
+          appKey={feedAppKey(opened)}
+          appName={opened.appName}
+          moduleLabels={opened.modules}
+          isCreator={isFeedCreator(opened)}
+          embedded
+          webUrl={opened.webUrl}
+        />
+      </main>
+    )
+  }
 
   return (
-    <main className="plaza-main">
+    <main className="plaza-main plaza-main--list">
       <div className="plaza-main-head">
         <h1>
-          <span className="plaza-title-chev" aria-hidden>&gt;&gt;</span>
+          <span className="plaza-title-chev" aria-hidden>
+            &gt;&gt;
+          </span>
           应用广场
         </h1>
         <div className="plaza-filters">
@@ -249,28 +314,13 @@ export default function PlazaFeedPage() {
       </div>
 
       <p className="plaza-main-hint plaza-main-hint--full">
-        浏览大家公开的应用；点选后可在下方查看能力与数据编排，并在底部工作台继续试运营。
+        浏览公开应用列表；点进某个应用后，再查看功能编排、数据编排与试运营。
         {loading && <span> · 加载中…</span>}
       </p>
       <p className="plaza-main-hint plaza-main-hint--short">
-        点选公开应用，查看编排并试运营
+        先列表 · 点进应用看编排
         {loading && <span> · 加载中…</span>}
       </p>
-
-      {selected ? (
-        <PlazaDualRailFlowPanel
-          appKey={feedAppKey(selected)}
-          appName={selected.appName}
-          moduleLabels={selected.modules}
-          isCreator={isFeedCreator(selected)}
-          embedded
-        />
-      ) : (
-        <div className="plaza-mflow-placeholder">
-          <span className="plaza-mflow-chev">&gt;&gt;</span>
-          选择下方应用 · 查看模块数据流
-        </div>
-      )}
 
       <div className="plaza-feed-list">
         {!loading && filtered.length === 0 && (
@@ -282,8 +332,7 @@ export default function PlazaFeedPage() {
           <FeedCard
             key={item.id}
             item={item}
-            selected={selected?.id === item.id}
-            onSelect={() => setSelectedId(item.id)}
+            onOpen={() => setOpenedId(item.id)}
             onInteraction={refresh}
           />
         ))}

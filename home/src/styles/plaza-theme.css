@@ -301,6 +301,69 @@
   color: #93c5fd;
 }
 
+/* —— 应用广场：列表 / 详情 —— */
+.b2b-brand-scope .plaza-detail-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #f8fbff 0%, #fff 100%);
+  border: 1px solid #dbeafe;
+}
+.b2b-brand-scope .plaza-detail-back {
+  border: 1px solid #93c5fd;
+  background: #fff;
+  color: var(--b2b-primary, #1d4ed8);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.b2b-brand-scope .plaza-detail-back:hover {
+  background: #eff6ff;
+}
+.b2b-brand-scope .plaza-detail-title {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.b2b-brand-scope .plaza-detail-title strong {
+  font-size: 16px;
+  color: #0f172a;
+}
+.b2b-brand-scope .plaza-detail-open {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--b2b-primary, #1d4ed8);
+  text-decoration: none;
+}
+.b2b-brand-scope .plaza-detail-open:hover {
+  text-decoration: underline;
+}
+.b2b-brand-scope .plaza-feed-card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+.b2b-brand-scope .plaza-feed-open-hint {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--b2b-primary, #1d4ed8);
+}
+.b2b-brand-scope .plaza-feed-mod-more {
+  opacity: 0.75;
+}
+
 .b2b-brand-scope .plaza-mflow-api-list li.on {
   border-color: #93c5fd;
   background: var(--b2b-panel);
