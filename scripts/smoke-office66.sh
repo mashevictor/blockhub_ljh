@@ -47,13 +47,50 @@ login_once() {
     | python3 -c "import sys,json; print(json.load(sys.stdin).get('access_token',''))" 2>/dev/null || echo ""
 }
 
+login_diag() {
+  echo "  login POST $API/auth/login as $ADMIN_EMAIL"
+  local code body
+  code=$(curl -sS -o /tmp/office66_login.json -w "%{http_code}" -X POST "$API/auth/login" \
+    -H "Content-Type: application/json" \
+    -d "{\"email\":\"$ADMIN_EMAIL\",\"password\":\"$ADMIN_PASSWORD\"}" || echo "000")
+  body=$(head -c 400 /tmp/office66_login.json 2>/dev/null || true)
+  echo "  HTTP $code body=${body}"
+  if [[ "$code" == "401" ]]; then
+    echo "  hint: 密码可能已改。在服务器执行: bash scripts/repair-auth.sh"
+    echo "        或: ADMIN_EMAIL=... ADMIN_PASSWORD=... bash scripts/smoke-office66.sh $SITE"
+  elif [[ "$code" == "000" || "$code" == "502" || "$code" == "503" ]]; then
+    echo "  hint: API 不可达。检查: curl -sf $API/../health ; systemctl status blockhub-api"
+  elif echo "$body" | grep -q '数据库'; then
+    echo "  hint: 数据库不可用。检查 PostgreSQL / DATABASE_URL"
+  fi
+}
+
 TOKEN=$(login_once)
 if [[ -z "$TOKEN" ]]; then
   echo "  … login failed, try demo-bootstrap"
   curl -sf -X POST "$API/auth/demo-bootstrap" -H "Content-Type: application/json" -d '{}' >/dev/null 2>&1 || true
   TOKEN=$(login_once)
 fi
-if [[ -n "$TOKEN" ]]; then ok "admin login"; else bad "admin login"; echo "fail=$FAIL"; exit 1; fi
+if [[ -n "$TOKEN" ]]; then
+  ok "admin login"
+else
+  bad "admin login"
+  login_diag
+  # 本机直连 API（部署机上常比经 Nginx 更稳）
+  if [[ "$API" != "http://127.0.0.1:8001/api/v1" ]]; then
+    echo "  … retry via http://127.0.0.1:8001"
+    API="http://127.0.0.1:8001/api/v1"
+    TOKEN=$(login_once)
+    if [[ -n "$TOKEN" ]]; then
+      ok "admin login (localhost:8001)"
+      SITE="http://127.0.0.1:8001"
+    fi
+  fi
+fi
+if [[ -z "$TOKEN" ]]; then
+  echo "fail=$FAIL"
+  exit 1
+fi
 AUTH="Authorization: Bearer $TOKEN"
 
 echo ""
