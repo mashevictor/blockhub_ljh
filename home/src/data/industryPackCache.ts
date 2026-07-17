@@ -1,6 +1,7 @@
 /**
- * 行业包场景 / 生成应用 — 前端静态缓存（零网络）。
- * 与 backend industry_packs_all + industryRuntimeScenes 对齐；生成不打 /creation/publish。
+ * 行业包场景清单 — 前端静态缓存（零网络拉清单）。
+ * 正式「生成应用」走 IndustryView → POST /creation/publish → /r/{id}。
+ * buildCachedIndustryPublish 仅保留作兼容/离线调试，产品路径勿再调用。
  */
 
 import type { PublishResult, PublishedModuleItem } from './constants'

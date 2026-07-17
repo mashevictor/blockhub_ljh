@@ -223,7 +223,7 @@ export interface PublishOptions {
   appId?: string
   webTemplateId?: string
   appUiId?: string
-  /** 行业包按场景清单全量装配（默认 true） */
+  /** 是否按行业场景全量装配（默认 false；空场景禁止整包） */
   assembleFullScenes?: boolean
 }
 

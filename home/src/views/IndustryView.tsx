@@ -1,17 +1,18 @@
 import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
+import { publishApp } from '../api/client'
+import { publishApiToResult } from '../api/publishHelpers'
 import { runLoadingPublishPipeline } from '../lib/publishFlow'
 import { GENERATE_APP_LABEL, GENERATE_APP_LOADING } from '../data/publishUi'
 import { AgentButtonContent } from '../components/AgentChevron'
-import { INDUSTRIES, type Audience, type PublishResult } from '../data/constants'
+import { INDUSTRIES, type Audience, type PublishResult, type PublishedModuleItem } from '../data/constants'
 import { DynamicIcon } from '../components/icons'
 import { useTheme } from '../context/ThemeContext'
-import { categoryColor, industryColor, iconWrapStyle } from '../data/iconPalette'
+import { categoryColor, industryColor, iconWrapStyle, MODULE_ICON_KEYS } from '../data/iconPalette'
 import { resolveCategoryIcon, resolveIndustryApiKey } from '../data/showcase'
 import { ROUTES } from '../routes/paths'
 import { buildClientStaticEnrichment } from '../data/industryEnrichStatic'
 import {
-  buildCachedIndustryPublish,
   getCachedIndustryScenes,
   type CachedIndustryScene,
 } from '../data/industryPackCache'
@@ -165,18 +166,56 @@ export default function IndustryView({
       onSuccess: onPublish,
       errorMessage: '生成失败，请重试',
       execute: async () => {
-        // 行业包：本地静态装配，不打 /creation/publish（避免网关 60s 超时）
-        return buildCachedIndustryPublish({
-          packKey: resolveIndustryApiKey(industry),
-          appName: resolveAppName(branding.appName, appName),
-          scenes,
-          selectedIds: selected,
+        const packKey = resolveIndustryApiKey(industry)
+        const selectedScenes = scenes.filter((s) => selected.has(s.id))
+        const capabilityKeys = [
+          ...new Set(
+            selectedScenes
+              .map((s) => s.capabilityKey)
+              .filter((k) => k && !k.startsWith('gen_')),
+          ),
+        ]
+        const publishedModules: PublishedModuleItem[] = [
+          {
+            key: packKey,
+            label: pack.name,
+            iconKey: pack.iconKey,
+            kind: 'industry',
+            source: 'user',
+          },
+          ...capabilityKeys.map((key) => ({
+            key,
+            label: selectedScenes.find((s) => s.capabilityKey === key)?.name || key,
+            iconKey: MODULE_ICON_KEYS[key] ?? 'creation',
+            kind: 'module' as const,
+            source: 'auto' as const,
+          })),
+        ]
+        const res = await publishApp(resolveAppName(branding.appName, appName), packKey, {
+          scenarioIds: selectedScenes.map((s) => s.id),
+          scenarioNames: selectedScenes.map((s) => s.name),
+          capabilityKeys,
+          modules: publishedModules.map((m) => ({
+            key: m.key,
+            label: m.label,
+            kind: m.kind,
+            iconKey: m.iconKey,
+            source: m.source,
+          })),
+          deliver: 'web',
+          source: 'industry',
           iconUrl: branding.iconUrl,
           primaryColor: branding.primaryColor,
           webTemplateId: webTemplateId === 'landing_single' ? 'tabs_portal' : webTemplateId,
           appUiId,
           contactEmail: contact.type === 'email' ? contact.value : undefined,
           contactPhone: contact.type === 'phone' ? contact.value : undefined,
+          assembleFullScenes: false,
+        })
+        return publishApiToResult(res, {
+          moduleCount: publishedModules.length,
+          modules: publishedModules,
+          scenarios: selectedScenes.map((s) => s.name),
         })
       },
     })

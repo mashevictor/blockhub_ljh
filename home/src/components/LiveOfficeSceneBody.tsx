@@ -6,6 +6,11 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { GtgtStepComposer } from '@blockhub/web-core/gtgt'
 import { resolveFormSteps } from '@blockhub/web-core/resolveFormSteps'
 import type { IndustryRuntimeScene } from '../data/industryRuntimeScenes'
+import {
+  isReadonlyLiveCap,
+  LiveReadonlySceneBody,
+  READONLY_LIVE_CAPS,
+} from './LiveReadonlySceneBody'
 
 type Row = {
   id: string
@@ -39,6 +44,8 @@ function statusLabel(s: string): string {
     interview: '面试中',
     offered: '已发 offer',
     joined: '已入职',
+    published: '已发布',
+    archived: '已归档',
   }
   return m[s] || s || '—'
 }
@@ -387,6 +394,36 @@ function apiFor(cap: string, scene: IndustryRuntimeScene): CapApi | null {
       }),
     }
   }
+  if (cap === 'ops_kpi') {
+    return {
+      listPath: '/api/v1/ops-kpi/records',
+      createPath: '/api/v1/ops-kpi/records',
+      fields: [
+        { key: 'title', label: '指标名称', placeholder: '本月审批通过率' },
+        { key: 'value', label: '数值', placeholder: '92%' },
+        { key: 'period', label: '周期', placeholder: '2026-07', optional: true },
+        { key: 'note', label: '备注', type: 'textarea', placeholder: '可空', optional: true },
+      ],
+      buildBody: (v) => ({
+        category: 'ops',
+        title: v.title?.trim() || name,
+        period: v.period?.trim() || '',
+        value: v.value?.trim() || '',
+        note: v.note?.trim() || '',
+        app_public_id: 'preview-office',
+      }),
+      advances: [
+        { action: 'published', label: '发布' },
+        { action: 'archived', label: '归档' },
+      ],
+      mapItem: (r) => ({
+        id: String(r.id || ''),
+        title: `${String(r.title || '')}${r.value ? ` · ${String(r.value)}` : ''}`,
+        status: String(r.status || ''),
+        raw: r,
+      }),
+    }
+  }
   if (cap === 'meeting_booking') {
     return {
       listPath: '/api/v1/meeting-booking/records',
@@ -625,10 +662,13 @@ export function LiveOfficeSceneBody({
   }, [load, scene.id])
 
   if (!api) {
+    if (isReadonlyLiveCap(cap)) {
+      return <LiveReadonlySceneBody cap={cap} scene={scene} token={token} />
+    }
     return (
       <div className="irp-panel">
         <p className="irp-summary">
-          「{scene.name}」挂接能力 <code>{cap}</code>。问答/看板/通知类请在正式 Runtime（发布后的 /r/应用）中使用对应 Widget；本预览对表单审批类能力已接真 API。
+          「{scene.name}」挂接能力 <code>{cap}</code>。本预览尚未接入；发布后的 /r/应用中可使用对应 Widget。
         </p>
       </div>
     )
@@ -741,6 +781,11 @@ export function LiveOfficeSceneBody({
           method: 'POST',
           body: '{}',
         })
+      } else if (cap === 'ops_kpi') {
+        await apiJson(`/api/v1/ops-kpi/records/${id}/${action}`, token, {
+          method: 'POST',
+          body: '{}',
+        })
       } else if (
         [
           'mfg_oee',
@@ -835,12 +880,14 @@ const LIVE_OFFICE_CAPS = [
   'site_patrol',
   'policy_qa',
   'legal_case',
+  'ops_kpi',
   'mfg_oee',
   'material_issue',
   'maintenance_plan',
   'shift_attendance',
   'energy_carbon',
   'training_record',
+  ...READONLY_LIVE_CAPS,
 ] as const
 
 /** 口语 / gen_* 场景名 → 可真提交的正式能力 */
@@ -866,6 +913,13 @@ export function resolveLiveCap(scene: {
     { words: ['IT报障', 'IT 报障', '电脑坏', '网络不通'], cap: 'it_ticket' },
     { words: ['资产领用', '固定资产'], cap: 'asset_manage' },
     { words: ['团建经费', '通用审批', '会签', '经费审批'], cap: 'approval_flow' },
+    { words: ['运营看板', 'KPI', '指标看板'], cap: 'ops_kpi' },
+    { words: ['知识库', '文档库'], cap: 'kb_document' },
+    { words: ['站内信', '消息中心'], cap: 'notify_inapp' },
+    { words: ['企微', '钉钉', '飞书', 'IM 推送'], cap: 'notify_im' },
+    { words: ['ERP', '用友', '金蝶', '对接'], cap: 'erp_connector' },
+    { words: ['自然语言查', '问数'], cap: 'data_nl_query' },
+    { words: ['数据看板', '仪表盘'], cap: 'chart_dashboard' },
   ]
   for (const r of rules) {
     if (r.words.some((w) => blob.includes(w))) return r.cap

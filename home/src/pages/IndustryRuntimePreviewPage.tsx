@@ -256,25 +256,16 @@ function UnderstoodBody({ scene }: { scene: IndustryRuntimeScene }) {
           {mock.kpis.map((k) => (
             <div key={k.label} className="irp-kpi">
               <span>{k.label}</span>
-              <strong>{k.value}</strong>
-              <em>{k.hint || '—'}</em>
+              {/* 禁止 pageMock 假数字；登录后走 Live 真统计 */}
+              <strong>—</strong>
+              <em>接真数据后刷新</em>
             </div>
           ))}
         </div>
         {mock.list_title ? (
           <section className="irp-panel">
             <h3>{mock.list_title}</h3>
-            {(mock.list || []).length === 0 ? (
-              <p className="irp-summary">空库无数据</p>
-            ) : (
-              (mock.list || []).map((row) => (
-                <div key={row.id} className="irp-row">
-                  <strong>{row.id}</strong>
-                  <span>{row.title}</span>
-                  <em>{row.status}</em>
-                </div>
-              ))
-            )}
+            <p className="irp-summary">空库无数据</p>
           </section>
         ) : null}
       </div>
@@ -287,11 +278,9 @@ function UnderstoodBody({ scene }: { scene: IndustryRuntimeScene }) {
         <section className="irp-panel irp-chat">
           <DemoOnlyNote scene={scene} />
           <h3>{mock.chat_title || `${scene.name}助手`}</h3>
-          {mock.chat.map((m, i) => (
-            <div key={`${m.role}-${i}`} className={`irp-bubble ${m.role === 'user' ? 'user' : 'bot'}`}>
-              {m.text}
-            </div>
-          ))}
+          <div className="irp-bubble bot">
+            空库无会话 — 登录后可查看知识库/问答真状态；正式对话在 /r/应用中进行。
+          </div>
           <div className="irp-chat-input">
             <input placeholder={`向「${scene.name}」提问…`} disabled />
             <button type="button" className="irp-btn" disabled title="示意页不可提交">
@@ -301,9 +290,7 @@ function UnderstoodBody({ scene }: { scene: IndustryRuntimeScene }) {
         </section>
         <section className="irp-panel">
           <h3>{mock.files_title || '相关资料'}</h3>
-          {(mock.files || [`${scene.name}说明.pdf`]).map((f) => (
-            <div key={f} className="irp-file">{f}</div>
-          ))}
+          <p className="irp-summary">空库无文件</p>
         </section>
       </div>
     )
@@ -535,7 +522,7 @@ export default function IndustryRuntimePreviewPage() {
 
       <p className="irp-compose-hint">
         {preview.key === 'office'
-          ? '办公预览：请假/报销/会议室/IT/资产/审批/制度问答/法务等可真提交；知识库/看板/通知/对接等为示意。登录态会尝试 demo 账号。'
+          ? '办公预览：表单类可真提交；ops_kpi / 知识库 / 通知 / 对接 / 问数 / 看板为真 API 只读或可问；其余示意。登录态会尝试 demo 账号。'
           : '制造预览：报修 / 质检 / 安环 / OEE·领料·保养·排班·能耗·培训可真提交；SOP/BOM/MES 等为示意。用右下角编排助手可加新页。'}
       </p>
 
