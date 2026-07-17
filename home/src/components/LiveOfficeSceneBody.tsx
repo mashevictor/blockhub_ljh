@@ -67,14 +67,41 @@ function apiFor(cap: string, scene: IndustryRuntimeScene): CapApi | null {
         },
         { key: 'note', label: '事由', placeholder: '可空', optional: true },
       ],
-      buildBody: (v) => ({
-        category: cat,
-        applicant: '',
-        start_at: v.start_at?.trim() || '',
-        end_at: v.end_at?.trim() || '',
-        note: v.note?.trim() || '',
-        app_public_id: 'preview-office',
-      }),
+      buildBody: (v, scene) => {
+        const vals = Object.fromEntries(
+          Object.entries(v).map(([k, val]) => [k, String(val ?? '').trim()]),
+        )
+        const labeled = [
+          ...(scene.formFields || []),
+          ...((scene.pageMock?.fields || []).map((f, i) => ({
+            key: f.key || `f_${i}`,
+            label: f.label,
+          })) || []),
+        ]
+        const byHints = (hints: string[]) => {
+          for (const f of labeled) {
+            if (hints.some((h) => (f.label || '').includes(h) || (f.key || '').includes(h))) {
+              const x = vals[f.key]
+              if (x) return x
+            }
+          }
+          for (const [k, val] of Object.entries(vals)) {
+            if (val && hints.some((h) => k.includes(h))) return val
+          }
+          return ''
+        }
+        const start =
+          vals.start_at || byHints(['开始', '起始', '起止', '请假日期', '加班日期', '出差', '行程', '时段']) || ''
+        const end = vals.end_at || byHints(['结束', '截止']) || start
+        return {
+          category: cat,
+          applicant: '',
+          start_at: start,
+          end_at: end,
+          note: vals.note || byHints(['事由', '说明', '备注']) || '',
+          app_public_id: 'preview-office',
+        }
+      },
       advances: [
         { action: 'approved', label: '通过' },
         { action: 'rejected', label: '驳回' },
@@ -422,12 +449,27 @@ export function LiveOfficeSceneBody({
 
   const submit = async () => {
     if (!token || busy || !api) return
-    const first = steps[0]
-    if (first && !first.optional && !String(vals[first.key] ?? '').trim()) {
-      setMsg(`请填写「${first.label}」`)
+    const missing = steps.find((s) => !s.optional && !String(vals[s.key] ?? '').trim())
+    if (missing) {
+      setMsg(`请填写「${missing.label}」`)
       return
     }
     const body = api.buildBody(vals, scene)
+    // 请假/会议等：API 必填日期，防止 mock 字段未对齐导致空串 422
+    if (cap === 'leave_request' || cap === 'meeting_booking') {
+      const start = String(body.start_at ?? '').trim()
+      const end = String(body.end_at ?? '').trim()
+      if (!start || !end) {
+        setMsg('请填写开始与结束时间（需选择日期，不能为空）')
+        return
+      }
+    }
+    if (cap === 'expense_claim') {
+      if (!String(body.title ?? '').trim() || !String(body.amount ?? '').trim()) {
+        setMsg('请填写标题与金额')
+        return
+      }
+    }
     setBusy(true)
     setMsg('')
     try {
@@ -437,7 +479,12 @@ export function LiveOfficeSceneBody({
       setMsg('已提交 · 右侧列表已刷新（真库）')
       await load()
     } catch (e) {
-      setMsg(`提交失败：${String(e)}`)
+      const raw = String(e)
+      if (raw.includes('string_too_short') || raw.includes('min_length')) {
+        setMsg('提交失败：必填项为空，请用日期控件重新填写开始/结束后再提交')
+      } else {
+        setMsg(`提交失败：${raw}`)
+      }
     } finally {
       setBusy(false)
     }
