@@ -126,6 +126,10 @@ class PublishRequest(BaseModel):
     app_ui_id: str = "bottom_tabs"
     # True：按行业场景清单装配；须显式开启，禁止默认全量
     assemble_full_scenes: bool = False
+    # 独立站所选视觉模板 id（law-firm / helios 等）；写入 page_schema.meta.microsite_id
+    microsite_id: str = ""
+    # industry_site | capship_workbench；空则按 source 推断
+    entry_source: str = ""
 
 
 class PlazaPublishRequest(BaseModel):
@@ -399,6 +403,8 @@ def publish_app(
             web_template_id=body.web_template_id,
             app_ui_id=body.app_ui_id,
             assemble_full_scenes=body.assemble_full_scenes,
+            microsite_id=body.microsite_id,
+            entry_source=body.entry_source,
         )
         deliver = app.get("deliver", "both")
         public_id = app["id"]

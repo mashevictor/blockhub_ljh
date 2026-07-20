@@ -899,6 +899,7 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
       })),
       deliver,
       source: 'prompt',
+      entrySource: 'capship_workbench',
       prompt: bundle.promptText,
       iconUrl: branding.iconUrl,
       primaryColor: branding.primaryColor,

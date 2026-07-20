@@ -6590,6 +6590,12 @@ a.b2b-nav-btn-link {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  transition: opacity 0.16s ease, transform 0.16s ease;
+}
+
+.industry-tpl-preview-panel.is-fading {
+  opacity: 0.4;
+  transform: translateY(4px);
 }
 
 .industry-tpl-preview-glow {

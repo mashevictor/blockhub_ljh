@@ -129,6 +129,7 @@ export default function ModuleView({ onPublish, active = true }: Props) {
           })),
           deliver: device,
           source: 'module',
+          entrySource: 'capship_workbench',
           iconUrl: branding.iconUrl,
           primaryColor: branding.primaryColor,
           webTemplateId,

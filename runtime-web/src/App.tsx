@@ -23,6 +23,8 @@ import {
 import type { CapShipComposerDockProps } from '@capship/composer'
 import '@capship/composer/styles.css'
 import { bootWidgetsFromManifest } from './register-widgets'
+import { getMicrositeRuntimeSkin, isIndustrySiteEntry } from './micrositeRuntimeSkin'
+import './styles-microsite-skins.css'
 
 const CapShipComposerDock = lazy(() =>
   import('@capship/composer').then((m) => ({
@@ -276,6 +278,12 @@ export default function App() {
   const primaryColor = config.primary_color || schema.theme?.primaryColor || '#4338ca'
   const menu = schema.menu?.length ? schema.menu : config.menu.map((m) => ({ ...m, route: m.route || `/${m.key}` }))
   const layout = layoutOf(schema)
+  const meta = (schema.meta || {}) as Record<string, unknown>
+  const micrositeId = String(
+    meta.microsite_id || (schema.theme as { micrositeId?: string } | undefined)?.micrositeId || '',
+  )
+  const industryEntry = isIndustrySiteEntry(meta)
+  const skin = industryEntry ? getMicrositeRuntimeSkin(micrositeId) : null
   const activeKey = menu.find((m) => m.route === route)?.key || menu[0]?.key
   const children = schema.root.children || []
   const heroNodes = children.filter((c) => c.type === 'landing_hero')
@@ -296,7 +304,7 @@ export default function App() {
     manifest,
     token,
     user,
-    primaryColor,
+    primaryColor: skin?.accent || primaryColor,
     entrySource,
   }
 
@@ -309,20 +317,43 @@ export default function App() {
         ? 'runtime-shell is-landing'
         : 'runtime-shell'
   const shellExtra = entrySource === 'im' ? ' is-im-entry' : ' is-portal-entry'
+  const entryShell = industryEntry ? ' is-industry-site' : ' is-capship-workbench'
+  const skinShell = skin ? ` ${skin.shellClass}` : ''
+  const shellStyle = {
+    '--accent': skin?.accent || primaryColor,
+    ...(skin
+      ? {
+          '--rt-page-bg': skin.pageBg,
+          '--rt-surface': skin.surface,
+          '--rt-header-bg': skin.headerBg,
+          '--rt-header-fg': skin.headerFg,
+          '--rt-radius': skin.radius,
+        }
+      : {}),
+  } as CSSProperties
 
   return (
     <RuntimeContext.Provider value={ctx}>
-      <div className={`${shellClass}${shellExtra}`} style={{ '--accent': primaryColor } as CSSProperties}>
+      <div className={`${shellClass}${shellExtra}${entryShell}${skinShell}`} style={shellStyle}>
         <div className={`entry-banner ${entrySource === 'im' ? 'im' : 'portal'}`} role="status">
           {entrySource === 'im' ? (
             <>
               <strong>群消息协作入口</strong>
               <span>流程：提单 → 派工选人 → 维修 → 完工。当前请处理工单或确认状态。</span>
             </>
+          ) : industryEntry ? (
+            <>
+              <strong>独立站方案工作台</strong>
+              <span>
+                {skin
+                  ? `视觉模板：${skin.styleLabel} · 与独立站选择关联`
+                  : '来自行业独立站 / 行业向导 · 场景工作台'}
+              </span>
+            </>
           ) : (
             <>
-              <strong>应用工作台</strong>
-              <span>官网生成链接打开 · 可提单、配置企微推送、智能问答。</span>
+              <strong>CapShip 能力工作台</strong>
+              <span>弹幕 / 选模块 / 描述需求生成 · 标准 Tabs 门户壳</span>
             </>
           )}
         </div>

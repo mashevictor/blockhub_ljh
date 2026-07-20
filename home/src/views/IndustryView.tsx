@@ -17,10 +17,13 @@ import {
   type CachedIndustryScene,
 } from '../data/industryPackCache'
 import {
+  INDUSTRY_MICROSITE_TEMPLATES,
   getMicrositeTemplate,
   loadSavedMicrositeId,
   saveMicrositeId,
 } from '../data/industryMicrositeTemplates'
+import { buildIndustryMicrositeSrcDoc } from '../data/industryMicrositePreviewHtml'
+import { getMicrositeRuntimeSkin } from '../data/micrositeRuntimeSkin'
 import ContactGateModal, { type ContactInfo } from '../components/ContactGateModal'
 import GenerateLoadingOverlay from '../components/GenerateLoadingOverlay'
 import AppBrandingFields from '../components/AppBrandingFields'
@@ -49,7 +52,10 @@ export default function IndustryView({
   const [scenes, setScenes] = useState<CachedIndustryScene[]>(() =>
     getCachedIndustryScenes(resolveIndustryApiKey(initialIndustry ?? 'office')),
   )
-  const [selected, setSelected] = useState<Set<string>>(() => new Set())
+  const [selected, setSelected] = useState<Set<string>>(() => {
+    const items = getCachedIndustryScenes(resolveIndustryApiKey(initialIndustry ?? 'office'))
+    return new Set(items.map((s) => s.id))
+  })
   const [loading, setLoading] = useState(false)
   const [boxOpenSignal, setBoxOpenSignal] = useState(0)
   const [lastAddedId, setLastAddedId] = useState<string | null>(null)
@@ -57,8 +63,8 @@ export default function IndustryView({
   const [contactOpen, setContactOpen] = useState(false)
   const [appName, setAppName] = useState('我的行业应用')
   const [branding, setBranding] = useState(() => emptyBranding('我的行业应用'))
-  // 业务 Runtime 默认 tabs；落地页模板仅作投放预览，发布时若仍是 landing 会自动升为 tabs_portal
-  const [webTemplateId, setWebTemplateId] = useState('tabs_portal')
+  // 业务 Runtime：独立站入口默认落地壳；皮肤由 micrositeId 驱动（勿强行改回 tabs）
+  const [webTemplateId, setWebTemplateId] = useState('landing_single')
   const [appUiId, setAppUiId] = useState('bottom_tabs')
   const [preferKeys, setPreferKeys] = useState<string[]>(() =>
     buildClientStaticEnrichment(initialIndustry ?? 'office').recommended_modules,
@@ -66,17 +72,22 @@ export default function IndustryView({
   const [micrositeId, setMicrositeId] = useState(
     () => initialMicrosite ?? loadSavedMicrositeId(initialIndustry ?? 'office'),
   )
+  const [previewFade, setPreviewFade] = useState(false)
 
   const loadScenesFromCache = (packKey: string) => {
     const apiKey = resolveIndustryApiKey(packKey)
     const items = getCachedIndustryScenes(apiKey)
     setScenes(items)
-    // 默认不勾选：避免误装整包；用户需显式选择场景
-    setSelected(new Set())
+    // 深度包默认全选：用户可再取消不需要的场景
+    setSelected(new Set(items.map((s) => s.id)))
   }
 
   useEffect(() => {
-    if (initialIndustry) setIndustry(initialIndustry)
+    if (initialIndustry) {
+      setIndustry(initialIndustry)
+      // 从行业站「用此模板去编排」进入时，直接落到选场景（已全选）
+      setStep(2)
+    }
   }, [initialIndustry])
 
   useEffect(() => {
@@ -97,8 +108,7 @@ export default function IndustryView({
     const fallback = buildClientStaticEnrichment(apiKey)
     setPreferKeys(fallback.recommended_modules)
     setMicrositeId((prev) => initialMicrosite || loadSavedMicrositeId(apiKey) || prev)
-    // 独立站落地页风格 → 默认用单页落地壳，用户仍可在交付模板里改
-    setWebTemplateId((prev) => (prev === 'tabs_portal' ? 'landing_single' : prev))
+    setWebTemplateId('landing_single')
   }, [industry, active, initialMicrosite])
 
   useEffect(() => {
@@ -108,6 +118,41 @@ export default function IndustryView({
 
   const pack = INDUSTRIES.find((p) => p.key === industry)!
   const micrositeMeta = getMicrositeTemplate(micrositeId)
+  const apiPackKey = resolveIndustryApiKey(industry)
+
+  const micrositeSrcDoc = useMemo(() => {
+    if (!micrositeMeta) return ''
+    const origin = typeof window !== 'undefined' ? window.location.origin : ''
+    return buildIndustryMicrositeSrcDoc(
+      {
+        packKey: apiPackKey,
+        packName: pack.name,
+        tagline: pack.desc,
+        overview: `${pack.name}深度包 · ${scenes.length} 个业务场景可按需裁剪`,
+        highlights: preferKeys.slice(0, 4),
+        scenes: scenes.slice(0, 8).map((s) => ({ name: s.name, detail: s.summary })),
+      },
+      micrositeMeta,
+      origin,
+    )
+  }, [micrositeMeta, apiPackKey, pack.name, pack.desc, scenes, preferKeys])
+
+  const switchMicrosite = (id: string) => {
+    if (id === micrositeId) return
+    setPreviewFade(true)
+    window.setTimeout(() => {
+      setMicrositeId(id)
+      saveMicrositeId(apiPackKey, id)
+      setPreviewFade(false)
+    }, 160)
+  }
+
+  const selectAllScenes = () => setSelected(new Set(scenes.map((s) => s.id)))
+
+  const openRuntimePreview = () => {
+    const q = micrositeId ? `?microsite=${encodeURIComponent(micrositeId)}` : ''
+    window.location.assign(`/preview/industry-runtime/${apiPackKey}${q}`)
+  }
 
   const sceneGroups = useMemo(() => {
     const map = new Map<string, CachedIndustryScene[]>()
@@ -156,7 +201,7 @@ export default function IndustryView({
 
   const doPublish = async (contact: ContactInfo) => {
     if (selected.size === 0) {
-      setPublishError('请至少勾选 1 个场景后再生成（默认不再全选整包）')
+      setPublishError('请至少勾选 1 个场景后再生成（默认已全选，可取消不需要的项）')
       return
     }
     await runLoadingPublishPipeline({
@@ -191,6 +236,7 @@ export default function IndustryView({
             source: 'auto' as const,
           })),
         ]
+        const skin = getMicrositeRuntimeSkin(micrositeId)
         const res = await publishApp(resolveAppName(branding.appName, appName), packKey, {
           scenarioIds: selectedScenes.map((s) => s.id),
           scenarioNames: selectedScenes.map((s) => s.name),
@@ -203,10 +249,13 @@ export default function IndustryView({
             source: m.source,
           })),
           deliver: 'web',
-          source: 'industry',
+          source: 'industry_site',
+          entrySource: 'industry_site',
+          micrositeId,
           iconUrl: branding.iconUrl,
-          primaryColor: branding.primaryColor,
-          webTemplateId: webTemplateId === 'landing_single' ? 'tabs_portal' : webTemplateId,
+          primaryColor: branding.primaryColor || skin?.accent || '#4338ca',
+          // 独立站：保留落地壳 + 模板皮肤；用户在交付步骤可改 tabs/sidebar
+          webTemplateId,
           appUiId,
           contactEmail: contact.type === 'email' ? contact.value : undefined,
           contactPhone: contact.type === 'phone' ? contact.value : undefined,
@@ -241,7 +290,7 @@ export default function IndustryView({
           {micrositeMeta ? (
             <p>
               已选落地页模板：<strong>{micrositeMeta.styleLabel}</strong>（{micrositeMeta.brand}）
-              · 交付壳默认「单页落地」，可在发布步骤改模板
+              · 下方可切换 20 套视觉模板 · 交付壳默认「单页落地」，可在发布步骤改模板
             </p>
           ) : null}
           {preferKeys.length > 0 ? (
@@ -252,8 +301,52 @@ export default function IndustryView({
               ))}
             </p>
           ) : null}
+          <div className="industry-wizard-quick">
+            <button type="button" className="btn-ghost" onClick={openRuntimePreview}>
+              打开 {pack.name} Runtime 预览 →
+            </button>
+            <span className="industry-wizard-quick-hint">约定页：全场景工作台预览（无需先发布）</span>
+          </div>
         </div>
       )}
+
+      {step <= 2 && micrositeMeta ? (
+        <div className="industry-wizard-microsite cube-panel">
+          <div className="industry-wizard-microsite-head">
+            <strong>20 套视觉模板</strong>
+            <span>切换仅改版式气质，行业文案保持「{pack.name}」</span>
+          </div>
+          <div className="industry-wizard-microsite-picker" role="listbox" aria-label="视觉模板">
+            {INDUSTRY_MICROSITE_TEMPLATES.map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                role="option"
+                aria-selected={t.id === micrositeId}
+                className={`industry-wizard-ms-chip${t.id === micrositeId ? ' on' : ''}`}
+                onClick={() => switchMicrosite(t.id)}
+              >
+                <strong>{t.styleLabel}</strong>
+                <span>{t.name}</span>
+              </button>
+            ))}
+          </div>
+          <div className={`industry-wizard-ms-frame-wrap${previewFade ? ' is-fading' : ''}`}>
+            <div className="industry-wizard-ms-frame-bar">
+              <span>{pack.name}</span>
+              <span>{micrositeMeta.styleLabel}</span>
+            </div>
+            <iframe
+              key={`${apiPackKey}-${micrositeId}`}
+              title={`${pack.name} · ${micrositeMeta.styleLabel}`}
+              className="industry-wizard-ms-frame"
+              srcDoc={micrositeSrcDoc}
+              sandbox="allow-same-origin allow-scripts"
+              loading="lazy"
+            />
+          </div>
+        </div>
+      ) : null}
 
       <div className="step-bar">
         {['选行业', '选场景', '选受众', '发布'].map((s, i) => (
@@ -304,6 +397,18 @@ export default function IndustryView({
 
       {step === 2 && (
         <>
+          <div className="scene-toolbar">
+            <p style={{ fontSize: 13, color: 'var(--muted)', margin: 0 }}>
+              深度包默认<strong>全选</strong> {selected.size} / {scenes.length} · 可取消不需要的场景
+            </p>
+            <div className="scene-toolbar-actions">
+              <button type="button" className="btn-ghost" onClick={selectAllScenes}>全选</button>
+              <button type="button" className="btn-ghost" onClick={clearSelection}>清空</button>
+              <button type="button" className="btn-ghost" onClick={openRuntimePreview}>
+                先看 Runtime 预览
+              </button>
+            </div>
+          </div>
           {scenes.length === 0 ? (
             <div className="catalog-error">
               <p>该行业暂无缓存场景清单</p>
@@ -356,7 +461,14 @@ export default function IndustryView({
           </p>
           <div className="step-actions">
             <button type="button" className="btn-ghost" onClick={() => setStep(1)}>上一步</button>
-            <button type="button" className="btn-primary" onClick={() => setStep(3)}>下一步：选择受众</button>
+            <button
+              type="button"
+              className="btn-primary"
+              disabled={selected.size === 0}
+              onClick={() => setStep(3)}
+            >
+              下一步：选择受众
+            </button>
           </div>
         </>
       )}

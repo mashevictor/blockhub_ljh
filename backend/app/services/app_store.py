@@ -145,6 +145,8 @@ def persist_published_app(
     web_template_id: str = "tabs_portal",
     app_ui_id: str = "bottom_tabs",
     assemble_full_scenes: bool = False,
+    microsite_id: str = "",
+    entry_source: str = "",
 ) -> dict[str, Any]:
     from app.data.delivery_templates import normalize_app_ui_id, normalize_web_template_id
     from app.data.industry_packs_all import pack_meta
@@ -198,6 +200,9 @@ def persist_published_app(
         app_ui_id=app_ui,
         menu_plan=menu_plan,
         scene_groups=scene_groups,
+        entry_source=entry_source or None,
+        microsite_id=microsite_id or None,
+        publish_source=source,
     )
     validate_page_schema(page_schema)
     try:

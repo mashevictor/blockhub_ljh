@@ -121,6 +121,9 @@ def generate_page_schema(
     app_ui_id: str = "bottom_tabs",
     menu_plan: list[dict[str, Any]] | None = None,
     scene_groups: list[dict[str, Any]] | None = None,
+    entry_source: str | None = None,
+    microsite_id: str | None = None,
+    publish_source: str | None = None,
 ) -> dict[str, Any]:
     keys = [k for k in capability_keys if k]
     if not keys:
@@ -168,15 +171,35 @@ def generate_page_schema(
     if menu_plan:
         meta["menu_plan"] = menu_plan
 
+    # 入口分流：industry_site（独立站模板皮肤）vs capship_workbench（弹幕/模块默认壳）
+    entry = (entry_source or "").strip()
+    if not entry:
+        src = (publish_source or "").strip().lower()
+        if src in ("industry", "industry_pack", "industry_site", "microsite"):
+            entry = "industry_site"
+        else:
+            entry = "capship_workbench"
+    meta["entry_source"] = entry
+    if publish_source:
+        meta["publish_source"] = publish_source
+    mid = (microsite_id or "").strip()
+    if mid:
+        meta["microsite_id"] = mid
+
+    theme: dict[str, Any] = {
+        "primaryColor": primary_color,
+        "mode": "light",
+        "templateId": tpl,
+    }
+    if mid:
+        theme["micrositeId"] = mid
+        theme["skin"] = mid
+
     return {
         "version": "1",
         "appId": app_id,
         "title": app_name,
-        "theme": {
-            "primaryColor": primary_color,
-            "mode": "light",
-            "templateId": tpl,
-        },
+        "theme": theme,
         "menu": menu,
         "capability_keys": keys,
         "meta": meta,

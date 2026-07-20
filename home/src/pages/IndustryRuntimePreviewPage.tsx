@@ -8,7 +8,7 @@ import {
   type CSSProperties,
   type LazyExoticComponent,
 } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams, useSearchParams } from 'react-router-dom'
 import type {
   ComposerPageMock,
   ComposerPageSchema,
@@ -32,6 +32,8 @@ import {
 } from '../data/industryRuntimeScenes'
 import { ROUTES } from '../routes/paths'
 import { usePageMeta } from '../hooks/usePageMeta'
+import { getMicrositeRuntimeSkin } from '../data/micrositeRuntimeSkin'
+import { loadSavedMicrositeId } from '../data/industryMicrositeTemplates'
 import '../styles/industry-runtime-preview.css'
 import '@capship/composer/styles.css'
 
@@ -418,6 +420,9 @@ function SceneBodyStatic({ kind, scene }: { kind: ScenePageKind; scene: Industry
 
 export default function IndustryRuntimePreviewPage() {
   const { pack = 'mfg' } = useParams()
+  const [search] = useSearchParams()
+  const micrositeId = search.get('microsite') || loadSavedMicrositeId(pack)
+  const skin = getMicrositeRuntimeSkin(micrositeId)
   const preview = useMemo(() => getIndustryRuntimePreview(pack), [pack])
   const catalog = preview?.scenes ?? []
   const [scenes, setScenes] = useState<IndustryRuntimeScene[]>(catalog)
@@ -427,8 +432,8 @@ export default function IndustryRuntimePreviewPage() {
   const [homeRole, setHomeRole] = useState('')
 
   usePageMeta({
-    title: preview ? `${preview.name} · Runtime 场景预览` : 'Runtime 场景预览',
-    description: '行业场景清单一一对应的 Runtime 工作台预览（本地演示）',
+    title: preview ? `${preview.name} · 独立站 Runtime 预览` : '独立站 Runtime 预览',
+    description: '行业独立站入口的场景工作台预览（与弹幕/模块工作台壳分离）',
   })
 
   useEffect(() => {
@@ -501,17 +506,42 @@ export default function IndustryRuntimePreviewPage() {
   }
 
   return (
-    <div className="irp-root" style={{ '--irp-accent': preview.accent } as CSSProperties}>
-      <header className="irp-top">
+    <div
+      className={`irp-root irp-industry-site${skin ? ` ${skin.shellClass}` : ''}`}
+      style={{
+        '--irp-accent': skin?.accent || preview.accent,
+        ...(skin
+          ? {
+              '--rt-page-bg': skin.pageBg,
+              '--rt-surface': skin.surface,
+              '--rt-header-bg': skin.headerBg,
+              '--rt-header-fg': skin.headerFg,
+              '--rt-radius': skin.radius,
+              background: skin.pageBg,
+            }
+          : {}),
+      } as CSSProperties}
+    >
+      <header
+        className="irp-top"
+        style={
+          skin
+            ? { background: skin.headerBg, color: skin.headerFg, borderRadius: `0 0 ${skin.radius} ${skin.radius}` }
+            : undefined
+        }
+      >
         <div className="irp-brand">
           <span className="irp-mark" aria-hidden />
           <div>
-            <p className="irp-brand-label">行业 Runtime 工作台预览（非独立站）</p>
+            <p className="irp-brand-label">独立站 → Runtime（模板皮肤预览）</p>
             <strong className="irp-brand-name">{preview.name}</strong>
           </div>
         </div>
         <div className="irp-top-actions">
-          <span className="irp-pill">{scenes.length} 场景 · DeepSeek 可加新页</span>
+          <span className="irp-pill">
+            {scenes.length} 场景
+            {skin ? ` · ${skin.styleLabel}` : ''}
+          </span>
           <a className="irp-link" href={ROUTES.industrySiteHtml(preview.key)}>
             {preview.key === 'office' ? '办公独立站' : preview.key === 'mfg' ? '制造独立站' : '行业独立站'}
           </a>
@@ -521,9 +551,9 @@ export default function IndustryRuntimePreviewPage() {
       </header>
 
       <p className="irp-compose-hint">
-        {preview.key === 'office'
-          ? '办公预览：表单类可真提交；ops_kpi / 知识库 / 通知 / 对接 / 问数 / 看板为真 API 只读或可问；其余示意。登录态会尝试 demo 账号。'
-          : '制造预览：报修 / 质检 / 安环 / OEE·领料·保养·排班·能耗·培训可真提交；SOP/BOM/MES 等为示意。用右下角编排助手可加新页。'}
+        本页是<strong>独立站入口</strong>的场景工作台预览
+        {skin ? `，视觉关联模板「${skin.styleLabel}」` : ''}
+        。弹幕 / 选模块 / 描述需求生成的是另一套 CapShip 标准工作台壳（/r/应用，无独立站皮肤）。
       </p>
 
       <div className="irp-body">

@@ -10,9 +10,19 @@ interface Props {
 
 export default function IndustryPageTemplateGallery({ templates, accent, packName }: Props) {
   const [active, setActive] = useState(0)
+  const [fading, setFading] = useState(false)
   const current = templates[active] ?? templates[0]
 
   if (!current) return null
+
+  const pick = (i: number) => {
+    if (i === active) return
+    setFading(true)
+    window.setTimeout(() => {
+      setActive(i)
+      setFading(false)
+    }, 140)
+  }
 
   return (
     <section
@@ -38,9 +48,13 @@ export default function IndustryPageTemplateGallery({ templates, accent, packNam
       </div>
 
       <div className="industry-tpl-showcase">
-        <div className="industry-tpl-preview-panel" style={{ '--tpl-accent': accent } as CSSProperties}>
+        <div
+          className={`industry-tpl-preview-panel${fading ? ' is-fading' : ''}`}
+          style={{ '--tpl-accent': accent } as CSSProperties}
+        >
           <div className="industry-tpl-preview-glow" aria-hidden />
           <IndustryPageTemplateMock
+            key={`${current.kind}-${current.sceneName}`}
             kind={current.kind}
             accent={accent}
             sceneName={current.sceneName}
@@ -65,7 +79,7 @@ export default function IndustryPageTemplateGallery({ templates, accent, packNam
               role="tab"
               aria-selected={i === active}
               className={`industry-tpl-pick${i === active ? ' on' : ''}`}
-              onClick={() => setActive(i)}
+              onClick={() => pick(i)}
             >
               <span className="industry-tpl-pick-num">{String(i + 1).padStart(2, '0')}</span>
               <span className="industry-tpl-pick-label">{tpl.sceneName}</span>

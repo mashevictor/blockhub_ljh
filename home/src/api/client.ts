@@ -214,7 +214,7 @@ export interface PublishOptions {
   modules?: Array<{ key: string; label: string; kind: string; iconKey?: string; source?: string }>
   audience?: string
   deliver?: string
-  source?: 'prompt' | 'industry' | 'module'
+  source?: 'prompt' | 'industry' | 'industry_site' | 'module'
   prompt?: string
   contactEmail?: string
   contactPhone?: string
@@ -225,6 +225,10 @@ export interface PublishOptions {
   appUiId?: string
   /** 是否按行业场景全量装配（默认 false；空场景禁止整包） */
   assembleFullScenes?: boolean
+  /** 独立站视觉模板 id → Runtime 皮肤 */
+  micrositeId?: string
+  /** industry_site | capship_workbench */
+  entrySource?: 'industry_site' | 'capship_workbench'
 }
 
 export interface WebTemplate {
@@ -366,6 +370,8 @@ export async function publishApp(
       web_template_id: opts.webTemplateId ?? 'tabs_portal',
       app_ui_id: opts.appUiId ?? 'bottom_tabs',
       assemble_full_scenes: opts.assembleFullScenes ?? false,
+      microsite_id: opts.micrositeId ?? '',
+      entry_source: opts.entrySource ?? '',
     },
     { timeout: 90000 },
   )

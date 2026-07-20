@@ -1132,6 +1132,12 @@
   border-radius: 12px;
   overflow: hidden;
   background: #0f172a;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.industry-microsite-frame-wrap.is-fading {
+  opacity: 0.35;
+  transform: scale(0.985);
 }
 
 .industry-microsite-frame-bar {

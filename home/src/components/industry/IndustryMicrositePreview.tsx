@@ -30,6 +30,7 @@ export default function IndustryMicrositePreview({
   onCompose,
 }: Props) {
   const [activeId, setActiveId] = useState(() => loadSavedMicrositeId(packKey))
+  const [fading, setFading] = useState(false)
 
   useEffect(() => {
     setActiveId(loadSavedMicrositeId(packKey))
@@ -51,8 +52,13 @@ export default function IndustryMicrositePreview({
   }, [current, packKey, packName, tagline, overview, highlights, scenes])
 
   const handleSelect = (id: string) => {
-    setActiveId(id)
-    saveMicrositeId(packKey, id)
+    if (id === activeId) return
+    setFading(true)
+    window.setTimeout(() => {
+      setActiveId(id)
+      saveMicrositeId(packKey, id)
+      setFading(false)
+    }, 160)
   }
 
   if (!current) return null
@@ -113,7 +119,7 @@ export default function IndustryMicrositePreview({
         ))}
       </div>
 
-      <div className="industry-microsite-frame-wrap">
+      <div className={`industry-microsite-frame-wrap${fading ? ' is-fading' : ''}`}>
         <div className="industry-microsite-frame-bar">
           <span>{packName}方案</span>
           <span>{current.styleLabel}</span>
