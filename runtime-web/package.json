@@ -1,11 +1,11 @@
 {
   "name": "trackchat-runtime-web",
   "private": true,
-  "version": "0.2.32",
+  "version": "0.2.33",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && node ../scripts/gzip-dist.mjs dist",
     "preview": "vite preview"
   },
   "dependencies": {

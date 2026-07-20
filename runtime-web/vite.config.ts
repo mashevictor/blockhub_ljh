@@ -36,6 +36,22 @@ export default defineConfig({
       ...capabilityAliases,
     },
   },
+  build: {
+    target: 'es2020',
+    cssCodeSplit: true,
+    modulePreload: { polyfill: true },
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return
+          if (id.includes('react-dom') || id.includes('/react/') || id.endsWith('/react')) {
+            return 'react-vendor'
+          }
+          return 'vendor'
+        },
+      },
+    },
+  },
   server: {
     port: 5175,
     proxy: {

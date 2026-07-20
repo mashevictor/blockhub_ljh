@@ -21,8 +21,7 @@ import {
   type TenantRuntimeConfig,
 } from '@blockhub/web-core'
 import type { CapShipComposerDockProps } from '@capship/composer'
-import '@capship/composer/styles.css'
-import { bootWidgetsFromManifest } from './register-widgets'
+import { bootWidgetsFromManifest, ensurePkgsLoaded } from './register-widgets'
 import {
   getMicrositeRuntimeSkin,
   isIndustrySiteEntry,
@@ -31,9 +30,12 @@ import IndustrySiteHome from './IndustrySiteHome'
 import './styles-microsite-skins.css'
 
 const CapShipComposerDock = lazy(() =>
-  import('@capship/composer').then((m) => ({
-    default: m.CapShipComposerDock as ComponentType<CapShipComposerDockProps>,
-  })),
+  import('@capship/composer').then(async (m) => {
+    await import('@capship/composer/styles.css')
+    return {
+      default: m.CapShipComposerDock as ComponentType<CapShipComposerDockProps>,
+    }
+  }),
 )
 
 function parseAppId(): string | null {
@@ -113,6 +115,20 @@ function scopeManifestToApp(manifest: BuildManifest, schema: PageSchema): BuildM
   }
 }
 
+function folderMatch(pkg: string, capabilityKey: string): boolean {
+  const folder = pkg.split('/').pop() || pkg
+  const slug = capabilityKey.replace(/_/g, '-')
+  // 共享包：approval_flow → web-capability-approval
+  if (folder === `web-capability-${slug}`) return true
+  if (folder === `web-capability-${slug.split('-')[0]}`) return true
+  if (capabilityKey.startsWith('approval') && folder === 'web-capability-approval') return true
+  if (capabilityKey.startsWith('notify') && folder === 'web-capability-integration') return true
+  if ((capabilityKey.startsWith('chat') || capabilityKey === 'kb_document') && folder === 'web-capability-chat') {
+    return true
+  }
+  return folder.includes(slug)
+}
+
 export default function App() {
   const appId = useMemo(parseAppId, [])
   const entrySource = useMemo(parseEntrySource, [])
@@ -169,8 +185,7 @@ export default function App() {
       Authorization: `Bearer ${token}`,
     }
 
-    // 关键路径：config + schema + manifest（并行）→ 能力包并行 boot
-    // schema/manifest 带登录态：作者有 draft/pending 时单侧返回个人草稿
+    // 关键路径：config + schema + manifest 并行 → 先出壳，能力包限并发/按需
     withTimeout(
       Promise.all([
         fetch(`/api/v1/runtime/${appId}/config`, { headers: authHeaders }).then((r) => {
@@ -208,17 +223,77 @@ export default function App() {
         setManifest(bm)
         if (cfgObj.deliver) setDeliver(cfgObj.deliver)
         if (cfgObj.apk_ready) setApkReady(true)
-        await withTimeout(bootWidgetsFromManifest(bm), 25000, '能力模块')
+
+        const meta = (pageSchema.meta || {}) as Record<string, unknown>
+        const industryHome =
+          isIndustrySiteEntry(meta) && (!routeFromPath(appId) || routeFromPath(appId) === '/')
+
+        // 独立站标题首页不依赖能力 Widget：立刻出壳，能力包后台预热
+        if (industryHome) {
+          setWidgetsReady(true)
+          void bootWidgetsFromManifest(bm, { background: true, concurrency: 2 })
+          return
+        }
+
+        // 非首页：先拉当前路由相关包，其余后台，避免 20+ 包抢带宽
+        const routeNow = routeFromPath(appId)
+        const active = (pageSchema.menu || []).find(
+          (m) => String((m as { route?: string }).route || '') === routeNow,
+        ) as { capability_key?: string; key?: string } | undefined
+        const cap = String(active?.capability_key || active?.key || '').trim()
+        const priorityPkgs = cap
+          ? bm.web_pkgs.filter(
+              (p) =>
+                p.includes(cap.replace(/_/g, '-')) ||
+                p.endsWith(`/${cap}`) ||
+                folderMatch(p, cap),
+            )
+          : bm.web_pkgs.slice(0, 2)
+
+        await withTimeout(
+          bootWidgetsFromManifest(bm, { priorityPkgs, background: true, concurrency: 2 }),
+          20000,
+          '能力模块',
+        )
         if (cancelled) return
         setWidgetsReady(true)
       })
       .catch((e) => {
-        if (!cancelled) setError(String(e))
+        if (cancelled) return
+        setError(e instanceof Error ? e.message : String(e))
+        setWidgetsReady(false)
       })
+
     return () => {
       cancelled = true
     }
   }, [appId, token])
+
+  // 切场景时按需补齐能力包（不挡整壳，只挡该页 Widget）
+  const [routePkgsReady, setRoutePkgsReady] = useState(true)
+  useEffect(() => {
+    if (!manifest || !schema || !widgetsReady) return
+    const atHome = !route || route === '/'
+    if (atHome) {
+      setRoutePkgsReady(true)
+      return
+    }
+    let cancelled = false
+    setRoutePkgsReady(false)
+    const item = (schema.menu || []).find((m) => String((m as { route?: string }).route || '') === route) as
+      | { capability_key?: string; key?: string }
+      | undefined
+    const cap = String(item?.capability_key || item?.key || '').trim()
+    const pkgs = cap
+      ? manifest.web_pkgs.filter((p) => folderMatch(p, cap) || p.includes(cap.replace(/_/g, '-')))
+      : manifest.web_pkgs.slice(0, 1)
+    void ensurePkgsLoaded(pkgs.length ? pkgs : manifest.web_pkgs.slice(0, 1)).finally(() => {
+      if (!cancelled) setRoutePkgsReady(true)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [route, manifest, schema, widgetsReady])
 
   const handleLogin = async () => {
     setLoginBusy(true)
@@ -609,7 +684,11 @@ export default function App() {
                   ))}
                 </div>
               ) : activeNode ? (
-                <WidgetHost node={activeNode} ctx={ctx} />
+                routePkgsReady ? (
+                  <WidgetHost node={activeNode} ctx={ctx} />
+                ) : (
+                  <p className="muted">加载场景模块…</p>
+                )
               ) : (
                 <p className="muted">暂无页面</p>
               )
