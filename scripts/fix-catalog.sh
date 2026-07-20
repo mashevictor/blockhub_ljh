@@ -7,11 +7,23 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT/backend"
-source .venv/bin/activate
+
+# Ubuntu 通常无 `python` 命令；优先 venv，再回落 python3
+if [ -x "$ROOT/backend/.venv/bin/python" ]; then
+  # shellcheck disable=SC1091
+  source .venv/bin/activate
+  PY="$ROOT/backend/.venv/bin/python"
+elif command -v python3 >/dev/null 2>&1; then
+  PY="$(command -v python3)"
+else
+  echo "ERROR: 需要 backend/.venv 或系统 python3"
+  exit 1
+fi
+echo "==> using PY=$PY"
 
 echo "==> [1/6] 检查 catalog 表与 enrichment 列"
 NEED_REPAIR=0
-python3 <<'PY' || NEED_REPAIR=1
+"$PY" <<'PY' || NEED_REPAIR=1
 from sqlalchemy import inspect
 from app.db.session import engine
 
@@ -46,12 +58,11 @@ alembic current
 # 不依赖 stamp：用 Alembic Operations 上下文直接跑 017 / 033 的幂等 DDL
 if [ "$NEED_REPAIR" -eq 1 ]; then
   echo "==> [3/6] 幂等补表/补列（017 + 033，不改 alembic_version）"
-  python3 <<'PY'
+  "$PY" <<'PY'
 from pathlib import Path
 import importlib.util
 import sys
 
-import sqlalchemy as sa
 from alembic.operations import Operations
 from alembic.runtime.migration import MigrationContext
 
@@ -83,7 +94,7 @@ else
 fi
 
 echo "==> [4/6] 复查 catalog 表"
-python3 <<'PY'
+"$PY" <<'PY'
 from sqlalchemy import inspect
 from app.db.session import engine
 
@@ -104,7 +115,7 @@ print("  all catalog tables + enrichment OK")
 PY
 
 echo "==> [5/6] 强制 seed catalog"
-python3 <<'PY'
+"$PY" <<'PY'
 from app.db.session import SessionLocal
 from app.services.catalog_seed import seed_catalog
 from app.services.db_seed import ensure_seed_data
@@ -126,12 +137,13 @@ curl -sf --max-time 10 http://127.0.0.1:8001/api/v1/health && echo " API OK"
 SUMMARY=$(curl -sf --max-time 10 http://127.0.0.1:8001/api/v1/catalog/summary || echo "")
 if echo "$SUMMARY" | grep -q '"source":"database"'; then
   echo " catalog/summary OK (database)"
-  echo "$SUMMARY" | python3 -c "import sys,json; d=json.load(sys.stdin); print(f\"  source={d.get('source')} hero={d.get('hero_preset_count')} chips={d.get('chip_template_count')}\")" 2>/dev/null || true
+  echo "$SUMMARY" | "$PY" -c "import sys,json; d=json.load(sys.stdin); print(f\"  source={d.get('source')} hero={d.get('hero_preset_count')} chips={d.get('chip_template_count')}\")" 2>/dev/null || true
 elif echo "$SUMMARY" | grep -q '"source"'; then
   echo "ERROR: catalog still not database: $SUMMARY"
   exit 1
 else
   echo "ERROR: catalog/summary still failing: $SUMMARY"
+  echo "  请查看: journalctl -u blockhub-api -n 40 --no-pager"
   exit 1
 fi
 

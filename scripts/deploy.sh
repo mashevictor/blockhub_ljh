@@ -49,7 +49,7 @@ bash "$ROOT/scripts/repair-db.sh" || {
   cd "$ROOT/backend"
   source .venv/bin/activate
   if ! alembic current 2>/dev/null | grep -qE '[0-9a-f]+|001|002|003|004|005'; then
-    if python -c "from app.db.session import engine; from sqlalchemy import inspect; print('yes' if inspect(engine).has_table('users') else 'no')" 2>/dev/null | grep -q yes; then
+    if python3 -c "from app.db.session import engine; from sqlalchemy import inspect; print('yes' if inspect(engine).has_table('users') else 'no')" 2>/dev/null | grep -q yes; then
       echo "    legacy DB detected → alembic stamp 001"
       alembic stamp 001
     fi

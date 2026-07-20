@@ -25,8 +25,9 @@
 验收：
 
 ```bash
-pip install -e packages/capship-contract
-python -m pytest packages/capship-contract/tests -q
+python3 packages/capship-contract/tests/run_smoke.py
+# 或
+cd packages/capship-contract && python3 tests/run_smoke.py
 ```
 
 ```text

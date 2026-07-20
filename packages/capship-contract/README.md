@@ -23,5 +23,8 @@ pip install -e packages/capship-contract
 ## 验收
 
 ```bash
-python -m pytest packages/capship-contract/tests -q
+# Ubuntu 请用 python3（无 python 命令）
+python3 packages/capship-contract/tests/run_smoke.py
+# 或
+backend/.venv/bin/python packages/capship-contract/tests/run_smoke.py
 ```
