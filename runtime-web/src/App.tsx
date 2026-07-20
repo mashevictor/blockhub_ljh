@@ -569,7 +569,7 @@ export default function App() {
 
   return (
     <RuntimeContext.Provider value={ctx}>
-      <div className={`${shellClass}${shellExtra}${entryShell}${skinShell}${layoutShell}`} style={shellStyle}>
+      <div className={`${shellClass}${shellExtra}${entryShell}${skinShell}${layoutShell}${homeGuideShell}`} style={shellStyle}>
         <div className={`entry-banner ${entrySource === 'im' ? 'im' : 'portal'}`} role="status">
           {entrySource === 'im' ? (
             <>
