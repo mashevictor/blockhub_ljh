@@ -103,13 +103,26 @@ PY
     echo ">>> [3/4] 重启 blockhub-api（加载新路由）"
     if command -v systemctl >/dev/null 2>&1; then
       sudo systemctl restart blockhub-api
-      sleep 2
-      curl -sf --max-time 8 http://127.0.0.1:8001/api/v1/health >/dev/null \
-        && echo "  ✓ API health OK" \
-        || {
-          echo "  ✗ API health 失败 — journalctl -u blockhub-api -n 40 --no-pager"
-          exit 1
-        }
+      # 冷启动 / seed 可能超过 2s
+      ok_health=0
+      for i in 1 2 3 4 5 6 7 8 9 10; do
+        sleep 1
+        if curl -sf --max-time 5 http://127.0.0.1:8001/api/v1/health >/dev/null 2>&1; then
+          ok_health=1
+          echo "  ✓ API health OK (wait ${i}s)"
+          break
+        fi
+      done
+      if [ "$ok_health" -ne 1 ]; then
+        echo "  ✗ API health 失败 — 最近 journal："
+        journalctl -u blockhub-api -n 50 --no-pager || true
+        echo ""
+        echo "  手动诊断:"
+        echo "    sudo systemctl status blockhub-api --no-pager"
+        echo "    cd ~/blockhub/backend && source .venv/bin/activate && python3 -c 'from app.main import app; print(app.title)'"
+        echo "    curl -sv http://127.0.0.1:8001/api/v1/health"
+        exit 1
+      fi
     else
       echo "  WARN: 无 systemctl，请自行重启 API 进程后再冒烟"
     fi
