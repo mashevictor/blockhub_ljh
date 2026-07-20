@@ -88,6 +88,7 @@ export interface ComposerEvents {
     page_schema?: ComposerPageSchema
     capability_keys?: string[]
     schema_rev?: number
+    change_status?: string
   }) => void
   onError?: (message: string) => void
 }

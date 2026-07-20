@@ -485,10 +485,10 @@ bash scripts/smoke-schema-sync.sh https://blockhub.club
           </tr>
         </tbody>
       </table>
-      <div class="callout">
-        <strong>一句话：</strong>「要审批才能动正式业务」这条主逻辑是对的；
-        截图里的混乱来自<strong>管理员快捷发布未收口变更单/徽章/通知</strong>。
-        现逻辑要求：<em>凡写正式 schema，open 变更单与 UI 徽章必须同步结束「待审批」语义。</em>
+      <div class="callout ok">
+        <strong>作者单侧生效（必须）：</strong>保存草稿 / 待审批后，作者带登录态访问
+        <code>GET /runtime/{id}/schema</code> 返回 <code>schema_view=personal_draft</code>，
+        Runtime 菜单与能力包按草稿 boot；同事与匿名仍见正式版。管理员通过或直接发布后全员同步。
       </div>
     </section>
 

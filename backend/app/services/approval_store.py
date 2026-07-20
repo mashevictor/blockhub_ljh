@@ -63,25 +63,8 @@ def approval_to_dict(record: ApprovalRecord) -> dict[str, Any]:
 
 
 def ensure_demo_approvals(db: Session, tenant_id: str) -> None:
-    if db.query(ApprovalRecord).filter(ApprovalRecord.tenant_id == tenant_id).first():
-        return
-    for item in DEMO_APPROVALS:
-        user = db.query(User).filter(User.email == item["applicant_email"]).first()
-        if not user:
-            continue
-        db.add(
-            ApprovalRecord(
-                tenant_id=tenant_id,
-                applicant_id=user.id,
-                title=item["title"],
-                approval_type=item["approval_type"],
-                department=item["department"],
-                summary=item["summary"],
-                status=item["status"],
-                payload_json={},
-            )
-        )
-    db.commit()
+    """已废弃：禁止自动插入演示审批。空库必须保持空列表。"""
+    return
 
 
 def approval_stats(db: Session, tenant_id: str) -> dict[str, int]:

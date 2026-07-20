@@ -12,7 +12,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
-from app.core.deps import get_current_user, require_admin
+from app.core.deps import get_current_user, get_optional_user, require_admin
 from app.db.models import AppRecord, User
 from app.db.session import get_db
 from app.services.apk_builder import get_apk_build_detail, get_apk_build_status, per_app_apk_path, per_app_apk_ready
@@ -262,27 +262,63 @@ async def _read_body(request: Request) -> Any:
 
 
 @router.get("/{public_id}/schema")
-def runtime_schema(public_id: str, db: Session = Depends(get_db)) -> dict:
-    """Page schema for runtime-web / Flutter（含 schema_rev 供协作）。"""
+def runtime_schema(
+    public_id: str,
+    db: Session = Depends(get_db),
+    user: Annotated[User | None, Depends(get_optional_user)] = None,
+    view: str | None = Query(
+        None,
+        description="formal=强制正式版；personal/auto=作者登录时优先个人 draft/pending",
+    ),
+) -> dict:
+    """Page schema for runtime-web / Flutter。
+
+    - 匿名 / view=formal → 正式 apps.page_schema（全员真相）
+    - 登录作者且存在 draft/pending → **个人草稿单侧生效**（仅该用户；他人仍见正式）
+    - 管理员审批通过前，正式库不变
+    """
     from app.services.web_capability_gate import sanitize_page_schema
 
     app = db.query(AppRecord).filter(AppRecord.public_id == public_id).first()
     if not app:
         raise HTTPException(status_code=404, detail="应用不存在")
-    if not app.page_schema:
-        schema = generate_page_schema(
+
+    formal_raw = (
+        dict(app.page_schema)
+        if app.page_schema
+        else generate_page_schema(
             app_id=app.public_id,
             app_name=app.name,
             capability_keys=app.capability_keys or [],
             primary_color=app.primary_color or "#4338ca",
         )
-        return {"public_id": app.public_id, "page_schema": sanitize_page_schema(schema), **schema_meta(app)}
-    # 读时清洗：历史页里 ContractEditorWidget 等未注册 widget → 正式 Path-A，避免「尚未接入」
-    return {
+    )
+    formal = sanitize_page_schema(formal_raw)
+    base = {
         "public_id": app.public_id,
-        "page_schema": sanitize_page_schema(dict(app.page_schema)),
         **schema_meta(app),
+        "schema_view": "formal",
     }
+
+    want_personal = (view or "auto").lower() in ("auto", "personal", "draft", "mine")
+    if want_personal and user is not None and (view or "").lower() != "formal":
+        from app.services import schema_change_approval as sca
+
+        open_change = sca.get_author_open_change(db, app, user=user)
+        if open_change and isinstance(open_change.page_schema, dict) and open_change.page_schema:
+            personal = sanitize_page_schema(dict(open_change.page_schema))
+            personal["appId"] = app.public_id
+            return {
+                **base,
+                "page_schema": personal,
+                "schema_view": "personal_draft",
+                "change_id": open_change.id,
+                "change_status": open_change.status,
+                "change_summary": open_change.summary or "",
+                "formal_schema_rev": int(getattr(app, "schema_rev", None) or 1),
+            }
+
+    return {**base, "page_schema": formal}
 
 
 @router.patch("/{public_id}/schema")
@@ -613,24 +649,50 @@ def runtime_config(public_id: str, db: Session = Depends(get_db)) -> dict:
 
 
 @router.get("/{public_id}/manifest")
-def runtime_manifest(public_id: str, db: Session = Depends(get_db)) -> dict:
-    """Build manifest — Web/App package list for modular assembly."""
+def runtime_manifest(
+    public_id: str,
+    db: Session = Depends(get_db),
+    user: Annotated[User | None, Depends(get_optional_user)] = None,
+    view: str | None = Query(None),
+) -> dict:
+    """Build manifest — Web/App package list for modular assembly。
+
+    作者有个人草稿时，按草稿 capability_keys 现算 manifest，保证单侧新增菜单能 boot 到包。
+    """
     from app.services.web_capability_gate import filter_web_ready_keys, sanitize_page_schema
 
     app = db.query(AppRecord).filter(AppRecord.public_id == public_id).first()
     if not app:
         raise HTTPException(status_code=404, detail="应用不存在")
-    # 与 schema 读时清洗对齐：按可 Web 交付的 keys 现算 manifest，保证 registerWidget 包被 boot
+
+    page_for_keys: dict | None = None
+    schema_view = "formal"
+    want_personal = (view or "auto").lower() in ("auto", "personal", "draft", "mine")
+    if want_personal and user is not None and (view or "").lower() != "formal":
+        from app.services import schema_change_approval as sca
+
+        open_change = sca.get_author_open_change(db, app, user=user)
+        if open_change and isinstance(open_change.page_schema, dict) and open_change.page_schema:
+            page_for_keys = sanitize_page_schema(dict(open_change.page_schema))
+            schema_view = "personal_draft"
+
+    if page_for_keys is None and isinstance(app.page_schema, dict):
+        page_for_keys = sanitize_page_schema(dict(app.page_schema))
+
     keys = filter_web_ready_keys(list(app.capability_keys or []))
-    if isinstance(app.page_schema, dict):
-        cleaned = sanitize_page_schema(dict(app.page_schema))
-        schema_keys = [str(k) for k in (cleaned.get("capability_keys") or []) if k]
+    if page_for_keys:
+        schema_keys = [str(k) for k in (page_for_keys.get("capability_keys") or []) if k]
         if schema_keys:
             keys = filter_web_ready_keys(schema_keys)
     if not keys:
         keys = ["chat_qa"]
     manifest = build_manifest(keys, deliver=app.deliver or "both")
-    return {"public_id": app.public_id, "build_manifest": manifest}
+    return {
+        "public_id": app.public_id,
+        "build_manifest": manifest,
+        "schema_view": schema_view,
+        "capability_keys": keys,
+    }
 
 
 @router.get("/{public_id}")

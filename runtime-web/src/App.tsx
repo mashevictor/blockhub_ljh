@@ -119,6 +119,8 @@ export default function App() {
   const [widgetsReady, setWidgetsReady] = useState(false)
   const [deliver, setDeliver] = useState('both')
   const [apkReady, setApkReady] = useState(false)
+  const [schemaView, setSchemaView] = useState<'formal' | 'personal_draft'>('formal')
+  const [changeStatus, setChangeStatus] = useState('')
   const [error, setError] = useState('')
   const [loginEmail, setLoginEmail] = useState('employee@trackchat.local')
   const [loginPassword, setLoginPassword] = useState('emp123')
@@ -145,19 +147,23 @@ export default function App() {
         }),
       ])
 
+    const authHeaders: HeadersInit = {
+      Authorization: `Bearer ${token}`,
+    }
+
     // 关键路径：config + schema + manifest（并行）→ 能力包并行 boot
-    // 不拉整包 GET /runtime/{id}（含重复巨型 schema，且会查 APK 状态，拖慢「加载应用」）
+    // schema/manifest 带登录态：作者有 draft/pending 时单侧返回个人草稿
     withTimeout(
       Promise.all([
-        fetch(`/api/v1/runtime/${appId}/config`).then((r) => {
+        fetch(`/api/v1/runtime/${appId}/config`, { headers: authHeaders }).then((r) => {
           if (!r.ok) throw new Error(`config ${r.status}`)
           return r.json()
         }),
-        fetch(`/api/v1/runtime/${appId}/schema`).then((r) => {
+        fetch(`/api/v1/runtime/${appId}/schema`, { headers: authHeaders }).then((r) => {
           if (!r.ok) throw new Error(`schema ${r.status}`)
           return r.json()
         }),
-        fetch(`/api/v1/runtime/${appId}/manifest`).then((r) => {
+        fetch(`/api/v1/runtime/${appId}/manifest`, { headers: authHeaders }).then((r) => {
           if (!r.ok) throw new Error(`manifest ${r.status}`)
           return r.json()
         }),
@@ -168,13 +174,17 @@ export default function App() {
       .then(async ([cfg, sch, man]) => {
         if (cancelled) return
         const pageSchema = (sch as { page_schema: PageSchema }).page_schema
+        const view = (sch as { schema_view?: string }).schema_view === 'personal_draft'
+          ? 'personal_draft'
+          : 'formal'
+        setSchemaView(view)
+        setChangeStatus(String((sch as { change_status?: string }).change_status || ''))
         const rawBm = (man as { build_manifest: BuildManifest }).build_manifest
         const bm = scopeManifestToApp(rawBm, pageSchema)
         const cfgObj = cfg as TenantRuntimeConfig & {
           deliver?: string
           apk_ready?: boolean
         }
-        // 先写入壳数据，再按「本应用菜单」精简 boot；禁止加载平台全量能力包
         setConfig(cfgObj)
         setSchema(pageSchema)
         setManifest(bm)
@@ -316,6 +326,22 @@ export default function App() {
             </>
           )}
         </div>
+        {schemaView === 'personal_draft' ? (
+          <div
+            className="entry-banner"
+            role="status"
+            style={{
+              background: changeStatus === 'pending' ? '#fffbeb' : '#eef2ff',
+              borderBottom: '1px solid #c7d2fe',
+              color: '#312e81',
+            }}
+          >
+            <strong>{changeStatus === 'pending' ? '个人待审稿生效中' : '个人草稿生效中'}</strong>
+            <span>
+              当前菜单/页面仅你可见（后端已按你的草稿返回）。同事仍看正式版；管理员通过或直接发布后全员同步。
+            </span>
+          </div>
+        ) : null}
         <header className="runtime-header">
           <div className="brand">
             {config.app_icon_url ? (
@@ -421,15 +447,27 @@ export default function App() {
             build_manifest={manifest}
             defaultMode={"live_edit" as const}
             onSchemaPatch={(next: unknown) => setSchema(next as PageSchema)}
-            onSaved={(result: { page_schema?: unknown; capability_keys?: string[] }) => {
+            onSaved={(result: {
+              page_schema?: unknown
+              capability_keys?: string[]
+              change_status?: string
+            }) => {
               const nextSchema = (result.page_schema as PageSchema | undefined) || schema
-              if (result.page_schema) setSchema(result.page_schema as PageSchema)
-              void fetch(`/api/v1/runtime/${appId}/manifest`)
+              if (result.page_schema) {
+                setSchema(result.page_schema as PageSchema)
+                setSchemaView('personal_draft')
+              }
+              if (result.change_status) setChangeStatus(result.change_status)
+              else if (result.page_schema) setChangeStatus((s) => s || 'draft')
+              void fetch(`/api/v1/runtime/${appId}/manifest`, {
+                headers: { Authorization: `Bearer ${token}` },
+              })
                 .then((r) => (r.ok ? r.json() : null))
                 .then((data) => {
                   if (!data?.build_manifest) return
-                  const scoped = scopeManifestToApp(data.build_manifest, nextSchema)
+                  const scoped = scopeManifestToApp(data.build_manifest, nextSchema!)
                   setManifest(scoped)
+                  if (data.schema_view === 'personal_draft') setSchemaView('personal_draft')
                   return bootWidgetsFromManifest(scoped)
                 })
                 .catch(() => undefined)

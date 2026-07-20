@@ -8,7 +8,6 @@ from app.db.session import get_db
 from app.services.approval_store import (
     action_approval,
     approval_stats,
-    ensure_demo_approvals,
     get_approval,
     list_approvals,
     submit_approval,
@@ -35,7 +34,6 @@ def get_stats(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> dict:
-    ensure_demo_approvals(db, user.tenant_id)
     return approval_stats(db, user.tenant_id)
 
 
@@ -45,7 +43,6 @@ def list_approvals_api(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> dict:
-    ensure_demo_approvals(db, user.tenant_id)
     items = list_approvals(db, user.tenant_id, status=status, user=user)
     return {"total": len(items), "items": items}
 

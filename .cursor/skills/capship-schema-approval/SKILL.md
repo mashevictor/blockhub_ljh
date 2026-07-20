@@ -112,9 +112,12 @@ sequenceDiagram
 1. 非管理员 **禁止** 静默 `PATCH /schema` 写正式库（应 403 `SCHEMA_APPROVAL_REQUIRED`）
 2. `approve` 必须走 `commit_schema_revision`（乐观锁 `base_rev`；冲突可 `force`）
 3. 提交审批必须通知管理员（`schema_change` 类型通知）
-4. Runtime 读路径只读 `apps.page_schema`，不要读 pending 当正式
+4. Runtime 读路径：
+   - **正式全员**：`apps.page_schema`（`schema_view=formal`）
+   - **作者单侧**：登录作者若有 `draft`/`pending`，`GET /schema`（带 Bearer）返回个人草稿（`schema_view=personal_draft`）；他人/匿名仍见正式
+   - `?view=formal` 可强制正式版
 5. 迁移：`038_app_schema_change_requests.py`；部署后 `alembic upgrade head`
-6. 禁止用假列表冒充「已生效」；未通过 = 正式菜单不变
+6. 禁止用假列表冒充「已全员生效」；未通过 = 他人正式菜单不变；作者单侧可见草稿是预期
 
 ## 与选型即交付的关系
 

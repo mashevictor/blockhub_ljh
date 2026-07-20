@@ -318,6 +318,25 @@ def reject_change(
     return {"success": True, "change": _row_to_dict(row), **schema_meta(app)}
 
 
+def get_author_open_change(
+    db: Session,
+    app: AppRecord,
+    *,
+    user: User,
+) -> AppSchemaChangeRequest | None:
+    """当前用户在该应用上最新的 draft/pending（用于作者单侧 Runtime）。"""
+    return (
+        db.query(AppSchemaChangeRequest)
+        .filter(
+            AppSchemaChangeRequest.public_id == app.public_id,
+            AppSchemaChangeRequest.author_id == user.id,
+            AppSchemaChangeRequest.status.in_(("draft", "pending")),
+        )
+        .order_by(AppSchemaChangeRequest.updated_at.desc())
+        .first()
+    )
+
+
 def supersede_open_changes_after_publish(
     db: Session,
     app: AppRecord,

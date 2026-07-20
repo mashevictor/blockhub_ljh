@@ -731,11 +731,21 @@ export function CapShipComposer({
     setChangeId(res.change.id)
     setSchemaDirty(false)
     lastSavedSchemaRef.current = cloneSchema(next)
-    setStatus(`草稿已保存（账号绑定）· 基于正式 v${res.schema_rev}`)
+    // 作者单侧：草稿写入后立刻驱动 Runtime 菜单/页（他人仍读正式 schema）
+    onSchemaPatch?.(next)
+    onSaved?.({
+      page_schema: next,
+      capability_keys: next.capability_keys,
+      schema_rev: res.schema_rev,
+      change_status: 'draft',
+    })
+    setStatus(
+      `个人工作台已按草稿更新（仅你可见）· 正式仍为 v${res.schema_rev} · 管理员通过后全员生效`,
+    )
     await loadChangeQueue()
   }
 
-  /** 将当前改动保存为账号草稿（不进正式 Runtime） */
+  /** 将当前改动保存为账号草稿（作者单侧 Runtime 立刻生效；正式全员仍待审批） */
   const saveDraftSchema = async (force = false) => {
     if (!schema || busy) return
     if (!schemaDirty && !force && changeId) {
@@ -757,7 +767,7 @@ export function CapShipComposer({
           role: 'assistant',
           text: isPreviewLocal
             ? '草稿已保存到本地版本历史。'
-            : '草稿已保存到你的账号。点「提交审批」后管理员才能通过并生效。',
+            : '草稿已保存：你的 Runtime 菜单/页面已按草稿生效（仅你账号）；同事仍看正式版。提交审批并由管理员通过后，全员才会看到。',
         },
       ])
     } catch (e) {
@@ -790,11 +800,22 @@ export function CapShipComposer({
       setChangeId(res.change.id)
       setSchemaDirty(false)
       lastSavedSchemaRef.current = cloneSchema(schema)
-      setStatus('已提交审批 · 等待管理员通过')
+      // 提交后仍是作者单侧生效（pending）；正式全员仍待管理员通过
+      onSchemaPatch?.(schema)
+      onSaved?.({
+        page_schema: schema,
+        capability_keys: schema.capability_keys,
+        schema_rev: res.schema_rev,
+        change_status: 'pending',
+      })
+      setStatus('已提交审批 · 你的 Runtime 仍按此稿生效（仅你）；管理员通过后全员同步')
       setHistoryOpen(true)
       setMessages((prev) => [
         ...prev,
-        { role: 'assistant', text: '已提交审批，管理员将收到通知。通过后才会更新正式 Runtime 业务页面。' },
+        {
+          role: 'assistant',
+          text: '已提交审批。你的账号下 Runtime 已按此稿生效；同事仍看正式版。管理员通过后才会全员更新。',
+        },
       ])
       await loadChangeQueue()
     } catch (e) {
