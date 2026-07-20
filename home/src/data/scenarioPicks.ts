@@ -42,7 +42,7 @@ export const SCENARIO_PICKS: ScenarioPick[] = [
 
   // 行业场景（抽样）
   { key: 'mfg_repair', category: '制造业', icon: '🔧', title: '设备报修', desc: '产线故障拍照报修，派工跟踪', capability: 'device_repair', agent: '报修', promptLine: '产线设备报修派工（拍照+工单流转）' },
-  { key: 'sales_quote', category: '销售行业', icon: '💼', title: '报价折扣审批', desc: '超权限折扣需主管审批', capability: 'approval_flow', agent: '审批', promptLine: '销售报价/折扣超权限审批' },
+  { key: 'sales_quote', category: '销售行业', icon: '💼', title: '报价折扣审批', desc: '超权限折扣需主管审批', capability: 'quote_contract', agent: '销售', promptLine: '销售报价/折扣超权限审批' },
   { key: 'sales_script', category: '销售行业', icon: '🎯', title: '产品话术问答', desc: '竞品对比、参数查询，销售随身助手', capability: 'chat_qa', agent: '问答', promptLine: '销售产品话术与竞品参数问答' },
   { key: 'med_triage', category: '医疗行业', icon: '🏥', title: '智能导诊', desc: '患者预问诊，对外轻量网页或 App', capability: 'med_triage', agent: '导诊', promptLine: '对外智能导诊与预问诊' },
   { key: 'nurse_shift', category: '医疗行业', icon: '🗓️', title: '护士排班', desc: '调班申请与护士长批复', capability: 'nurse_shift', agent: '排班', promptLine: '护士调班申请与批复' },

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import type { SchemaNode } from '@blockhub/web-core'
-import { apiFetch, GtgtStepComposer, useRuntime, type GtgtStep } from '@blockhub/web-core'
+import type { FormFieldDef, SchemaNode } from '@blockhub/web-core'
+import { apiFetch, GtgtStepComposer, resolveFormSteps, useRuntime, type GtgtStep } from '@blockhub/web-core'
 
 interface RecordItem {
   id: string
@@ -21,8 +21,19 @@ const COLUMNS: { key: string; label: string; action?: string }[] = [
   { key: 'lost', label: '丢单', action: 'lost' },
 ]
 
-export function SalesLeadWidget(_props: { node: SchemaNode }) {
+function pick(values: Record<string, string>, ...keys: string[]) {
+  for (const k of keys) {
+    const v = (values[k] || '').trim()
+    if (v) return v
+  }
+  return ''
+}
+
+export function SalesLeadWidget({ node }: { node: SchemaNode }) {
   const { token, primaryColor, appId, user } = useRuntime()
+  const defaultCat = String(node.props?.default_category || 'lead')
+  const formHeadline = String(node.props?.form_headline || '新线索')
+
   const [items, setItems] = useState<RecordItem[]>([])
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
@@ -30,15 +41,21 @@ export function SalesLeadWidget(_props: { node: SchemaNode }) {
   const [values, setValues] = useState<Record<string, string>>({})
   const [msg, setMsg] = useState('')
 
-  const accent = primaryColor || '#ef4444'
+  const accent = primaryColor || '#6366f1'
 
-  const steps: GtgtStep[] = useMemo(
-    () => [
-      { key: 'customer', label: '客户名称', placeholder: '客户名称' },
-      { key: 'amount', label: '金额（可空）', placeholder: '金额（可空）', optional: true },
-    ],
-    [],
-  )
+  const steps: GtgtStep[] = useMemo(() => {
+    const defaults: FormFieldDef[] = [
+      { key: 'customer', label: '客户名称', placeholder: '客户 / 公司名称' },
+      { key: 'amount', label: '金额（可空）', placeholder: '预计金额', optional: true },
+      { key: 'owner', label: '负责人（可空）', placeholder: '跟进人', optional: true },
+      { key: 'note', label: '备注（可空）', placeholder: '跟进纪要 / 来源', type: 'textarea', optional: true },
+    ]
+    return resolveFormSteps({
+      defaults,
+      formFields: node.props?.form_fields,
+      pageMockFields: (node.props?.page_mock as { fields?: unknown } | undefined)?.fields,
+    })
+  }, [node.props?.form_fields, node.props?.page_mock])
 
   const load = useCallback(async () => {
     if (!token) {
@@ -64,24 +81,25 @@ export function SalesLeadWidget(_props: { node: SchemaNode }) {
   }, [load])
 
   const submit = async () => {
-    if (!token || !values.customer?.trim()) return
+    const customer = pick(values, 'customer', 'company', 'title', 'lead_name', 'name')
+    if (!token || !customer) return
     setBusy(true)
     setMsg('')
     try {
       await apiFetch('/api/v1/sales-lead/records', token, {
         method: 'POST',
         body: JSON.stringify({
-          category: 'lead',
-          customer: values.customer.trim(),
-          amount: (values.amount || '').trim(),
-          owner: user?.display_name || '',
-          note: '',
+          category: defaultCat || 'lead',
+          customer,
+          amount: pick(values, 'amount', 'score', 'phone', 'quantity'),
+          owner: pick(values, 'owner', 'contact', 'assignee', 'phone') || user?.display_name || '',
+          note: pick(values, 'note', 'content', 'reason', 'source', 'next_action', 'summary'),
           app_public_id: appId || '',
         }),
       })
       setValues({})
       setResetKey((k) => k + 1)
-      setMsg('已加入看板')
+      setMsg('已写入真库')
       await load()
     } catch (e) {
       setMsg(`提交失败：${String(e)}`)
@@ -94,16 +112,22 @@ export function SalesLeadWidget(_props: { node: SchemaNode }) {
     if (!token) return
     try {
       await apiFetch(`/api/v1/sales-lead/records/${id}/${action}`, token, { method: 'POST', body: '{}' })
+      setMsg('')
       await load()
     } catch (e) {
-      setMsg(`更新失败：${String(e)}`)
+      const detail = String(e)
+      setMsg(
+        action === 'following' || action === 'won'
+          ? `晋级被拦：${detail}（请先到「成交证据」登记）`
+          : `更新失败：${detail}`,
+      )
     }
   }
 
   return (
     <div>
       <GtgtStepComposer
-        title="新线索"
+        title={formHeadline}
         meta={user?.display_name || '销售'}
         accent={accent}
         variant="soft"
@@ -152,7 +176,13 @@ export function SalesLeadWidget(_props: { node: SchemaNode }) {
                     <p className="muted" style={{ margin: '4px 0 0', fontSize: 12 }}>
                       {t.amount ? `¥${t.amount}` : '金额待定'}
                       {t.owner ? ` · ${t.owner}` : ''}
+                      {t.category ? ` · ${t.category}` : ''}
                     </p>
+                    {t.note ? (
+                      <p className="muted" style={{ margin: '4px 0 0', fontSize: 12 }}>
+                        {t.note.slice(0, 80)}
+                      </p>
+                    ) : null}
                     <div className="row-actions" style={{ marginTop: 8, flexWrap: 'wrap' }}>
                       {COLUMNS.filter((c) => c.action && c.key !== t.status).map((c) => (
                         <button

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import type { SchemaNode } from '@blockhub/web-core'
-import { apiFetch, GtgtStepComposer, useRuntime, type GtgtStep } from '@blockhub/web-core'
+import type { FormFieldDef, SchemaNode } from '@blockhub/web-core'
+import { apiFetch, GtgtStepComposer, resolveFormSteps, useRuntime, type GtgtStep } from '@blockhub/web-core'
 
 interface RecordItem {
   id: string
@@ -18,10 +18,12 @@ interface NLQueryResult {
   answer?: string
 }
 
-const SUGGESTIONS = ['本月审批通过率？', '本周新增报销多少？', '哪个模块用得最多？']
+const SUGGESTIONS = ['本月线索成交多少？', '销售漏斗各阶段？', '报价合同签约几单？']
 
-export function OpsKpiWidget(_props: { node: SchemaNode }) {
+export function OpsKpiWidget({ node }: { node: SchemaNode }) {
   const { token, primaryColor, appId } = useRuntime()
+  const defaultCat = String(node.props?.default_category || 'kpi')
+  const formHeadline = String(node.props?.form_headline || '经营指标')
   const [items, setItems] = useState<RecordItem[]>([])
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
@@ -40,14 +42,19 @@ export function OpsKpiWidget(_props: { node: SchemaNode }) {
     return published.slice(0, 4)
   }, [items])
 
-  const manualSteps: GtgtStep[] = useMemo(
-    () => [
-      { key: 'title', label: '指标名', placeholder: '如：月营收' },
+  const manualSteps: GtgtStep[] = useMemo(() => {
+    const defaults: FormFieldDef[] = [
+      { key: 'title', label: '指标名', placeholder: '如：月营收 / 区域业绩' },
       { key: 'value', label: '数值', placeholder: '128.5万' },
       { key: 'period', label: '周期（可空）', placeholder: '2026-07', optional: true },
-    ],
-    [],
-  )
+      { key: 'note', label: '备注（可空）', placeholder: '提成规则等', type: 'textarea', optional: true },
+    ]
+    return resolveFormSteps({
+      defaults,
+      formFields: node.props?.form_fields,
+      pageMockFields: (node.props?.page_mock as { fields?: unknown } | undefined)?.fields,
+    })
+  }, [node.props?.form_fields, node.props?.page_mock])
 
   const load = useCallback(async () => {
     if (!token) {
@@ -117,17 +124,19 @@ export function OpsKpiWidget(_props: { node: SchemaNode }) {
   }
 
   const submitManual = async () => {
-    if (!token || !values.title?.trim() || !values.value?.trim()) return
+    const title = (values.title || values.region || values.name || '').trim()
+    const value = (values.value || values.amount || '').trim()
+    if (!token || !title || !value) return
     setBusy(true)
     try {
       await apiFetch('/api/v1/ops-kpi/records', token, {
         method: 'POST',
         body: JSON.stringify({
-          category: 'kpi',
-          title: values.title.trim(),
+          category: defaultCat || 'kpi',
+          title,
           period: (values.period || '').trim(),
-          value: values.value.trim(),
-          note: '',
+          value,
+          note: (values.note || '').trim(),
           app_public_id: appId || '',
         }),
       })
@@ -223,10 +232,10 @@ export function OpsKpiWidget(_props: { node: SchemaNode }) {
         </button>
       ) : (
         <GtgtStepComposer
-          title="补录指标"
+          title={formHeadline}
           meta="次要入口"
           accent={accent}
-          flowHint="指标名 → 数值 → 周期"
+          flowHint=">> 单字段推进 → 提交真库"
           steps={manualSteps}
           values={values}
           onChange={(k, v) => setValues((p) => ({ ...p, [k]: v }))}

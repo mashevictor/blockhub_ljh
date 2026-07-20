@@ -13,6 +13,11 @@ VALID_STATUS = frozenset(('open', 'reviewing', 'approved', 'signed'))
 VALID_CATEGORY = frozenset(('quote', 'contract', 'special'))
 
 
+def _norm_category(raw: str, default: str = 'quote') -> str:
+    cat = (raw or '').strip().lower()[:64]
+    return cat if cat else default
+
+
 def _no() -> str:
     now = datetime.now(timezone.utc)
     return f"QC-{now.strftime('%Y%m%d')}-{now.strftime('%H%M%S')}{now.microsecond // 1000:03d}"
@@ -69,9 +74,7 @@ def create_record(
     note: str = "",
     app_public_id: str = "",
 ) -> dict[str, Any]:
-    cat = (category or "quote").strip().lower()
-    if cat not in VALID_CATEGORY:
-        cat = "quote"
+    cat = _norm_category(category, 'quote')
     row = QuoteContractRecord(
         tenant_id=user.tenant_id,
         app_public_id=(app_public_id or "").strip(),

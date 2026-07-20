@@ -1,6 +1,7 @@
 /** 行业 Runtime 场景页预览数据（与行业方案站清单一一对应） */
 
 import { OFFICE_SCENE_SEEDS } from './officeScenes66'
+import { SALES_SCENE_SEEDS } from './salesScenes66'
 
 export type ScenePageKind =
   | 'repair'
@@ -282,9 +283,28 @@ export const OFFICE_RUNTIME_PREVIEW: IndustryRuntimePackPreview = {
   })),
 }
 
+export const SALES_RUNTIME_PREVIEW: IndustryRuntimePackPreview = {
+  key: 'sales',
+  name: '销售行业',
+  tagline: '64 场景 · 纯销售/CRM · 不混通用办公',
+  accent: '#6366f1',
+  scenes: SALES_SCENE_SEEDS.map((s) => ({
+    id: s.id,
+    name: s.name,
+    category: s.category,
+    summary: s.summary,
+    pages: s.pages,
+    standard: '✓' as const,
+    kind: s.kind as ScenePageKind,
+    capabilityHint: s.capabilityHint,
+    pageMock: s.pageMock as ScenePageMock | undefined,
+  })),
+}
+
 export function getIndustryRuntimePreview(packKey: string): IndustryRuntimePackPreview | null {
   if (packKey === 'mfg') return MFG_RUNTIME_PREVIEW
   if (packKey === 'office') return OFFICE_RUNTIME_PREVIEW
+  if (packKey === 'sales') return SALES_RUNTIME_PREVIEW
   return null
 }
 

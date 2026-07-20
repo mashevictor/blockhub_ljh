@@ -19,7 +19,7 @@ export interface ClientIndustryEnrichment {
 const PACK_CAPSHIP: Record<string, string[]> = {
   office: ['leave_request', 'expense_claim', 'policy_qa', 'hire_onboard', 'chat_qa', 'approval_inbox', 'seal_request', 'meeting_booking', 'approval_flow', 'ops_kpi', 'kb_document', 'it_ticket', 'asset_manage', 'notify_im', 'notify_inapp', 'chart_dashboard', 'data_nl_query', 'legal_case', 'erp_connector', 'rbac_page', 'shift_attendance'],
   mfg: ['device_repair', 'quality_inspect', 'inventory_count', 'chat_qa', 'notify_im', 'kb_document'],
-  sales: ['sales_lead', 'quote_contract', 'ops_kpi', 'chat_qa', 'chart_funnel', 'notify_im'],
+  sales: ['sales_lead', 'quote_contract', 'ops_kpi', 'chat_qa', 'chart_funnel', 'notify_im', 'kb_document', 'expense_claim', 'site_patrol', 'erp_connector', 'campaign_ops', 'data_nl_query', 'chart_dashboard'],
   med: ['med_triage', 'nurse_shift', 'kb_document', 'chat_qa', 'approval_flow', 'notify_im'],
   game: ['game_support', 'chat_qa', 'approval_flow', 'notify_im', 'kb_document', 'chart_dashboard'],
   retail: ['inventory_count', 'member_loyalty', 'chat_qa', 'notify_im', 'approval_flow', 'chart_dashboard'],
@@ -61,13 +61,17 @@ const PACK_COPY: Record<string, { overview: string; highlights: string[]; tipSce
     ],
   },
   sales: {
-    overview: '销售深度包打通销售线索、报价合同与经营看板，销售在移动端跟进，老板一眼看漏斗。',
-    highlights: ['线索跟进', '报价合同', '经营看板', '话术知识库'],
+    overview: '销售深度包只收录销售/CRM 特有场景，不搬用通用办公人事行政；正式能力接真 API，空库空列表。',
+    highlights: ['纯销售场景 · 不混办公审批人事', '线索到回款真库闭环', '漏斗与提成看板接真数据', 'Salesforce / 纷享等 CRM 可对接'],
     tipScenes: [
-      { name: '产品/话术问答', tip: '产品参数竞品话术；落地 chat_qa + kb。' },
-      { name: '报价/折扣审批', tip: '超权限折扣；落地 quote_contract。' },
-      { name: '销售漏斗看板', tip: '线索商机转化；落地 chart_funnel / ops_kpi。' },
-      { name: '客户跟进记录', tip: '拜访纪要；落地 sales_lead。' },
+      { name: '线索录入', tip: '新线索快速落库；落地 sales_lead。' },
+      { name: '特价折扣', tip: '超权限折扣；落地 quote_contract。' },
+      { name: '销售漏斗分析', tip: '阶段转化；落地 chart_funnel。' },
+      { name: '拜访纪要', tip: '客户跟进留痕；落地 sales_lead。' },
+      { name: '销售合同审批', tip: '销售合同会签；落地 quote_contract。' },
+      { name: '外勤签到', tip: '拜访定位；落地 site_patrol。' },
+      { name: 'Salesforce线索同步', tip: 'CRM 同步；落地 erp_connector。' },
+      { name: '产品话术库', tip: '话术竞品；落地 chat_qa。' },
     ],
   },
   med: {

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import type { SchemaNode } from '@blockhub/web-core'
-import { apiFetch, GtgtStepComposer, useRuntime, type GtgtStep } from '@blockhub/web-core'
+import type { FormFieldDef, SchemaNode } from '@blockhub/web-core'
+import { apiFetch, GtgtStepComposer, resolveFormSteps, useRuntime, type GtgtStep } from '@blockhub/web-core'
 
 interface RecordItem {
   id: string
@@ -15,8 +15,10 @@ interface RecordItem {
 const TRACK = ['open', 'running', 'closed'] as const
 const LABEL: Record<string, string> = { open: '筹备', running: '进行中', closed: '已关闭' }
 
-export function CampaignOpsWidget(_props: { node: SchemaNode }) {
+export function CampaignOpsWidget({ node }: { node: SchemaNode }) {
   const { token, primaryColor, appId } = useRuntime()
+  const formHeadline = String(node.props?.form_headline || '会销活动')
+  const defaultCat = String(node.props?.default_category || 'plan')
   const [items, setItems] = useState<RecordItem[]>([])
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
@@ -25,14 +27,18 @@ export function CampaignOpsWidget(_props: { node: SchemaNode }) {
   const [msg, setMsg] = useState('')
   const accent = primaryColor || '#db2777'
 
-  const steps: GtgtStep[] = useMemo(
-    () => [
-      { key: 'title', label: '活动名称', placeholder: '活动名称' },
-      { key: 'channel', label: '渠道', placeholder: '渠道', optional: true },
-      { key: 'metric', label: '目标指标', placeholder: '目标指标', optional: true },
-    ],
-    [],
-  )
+  const steps: GtgtStep[] = useMemo(() => {
+    const defaults: FormFieldDef[] = [
+      { key: 'title', label: '活动名称', placeholder: '会销 / 路演名称' },
+      { key: 'channel', label: '渠道', placeholder: '线下 / 线上', optional: true },
+      { key: 'metric', label: '目标指标', placeholder: '到场人数 / 线索数', optional: true },
+    ]
+    return resolveFormSteps({
+      defaults,
+      formFields: node.props?.form_fields,
+      pageMockFields: (node.props?.page_mock as { fields?: unknown } | undefined)?.fields,
+    })
+  }, [node.props?.form_fields, node.props?.page_mock])
 
   const load = useCallback(async () => {
     if (!token) {
@@ -68,7 +74,7 @@ export function CampaignOpsWidget(_props: { node: SchemaNode }) {
       await apiFetch('/api/v1/campaign-ops/records', token, {
         method: 'POST',
         body: JSON.stringify({
-          category: 'plan',
+          category: defaultCat || 'plan',
           title: values.title.trim(),
           channel: (values.channel || '').trim(),
           metric: (values.metric || '').trim(),
@@ -99,7 +105,7 @@ export function CampaignOpsWidget(_props: { node: SchemaNode }) {
     <div>
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(280px, 1fr) minmax(280px, 1fr)', gap: 16 }}>
         <GtgtStepComposer
-          title="活动运营"
+          title={formHeadline}
           meta="Gtgt · Soft · 真库"
           accent={accent}
           variant="soft"

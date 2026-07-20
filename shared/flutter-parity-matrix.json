@@ -547,6 +547,30 @@
       ],
       "module_class": "OpsKpiModule",
       "dart_import": "package:capability_ops_kpi/capability_ops_kpi.dart"
+    },
+    {
+      "web_pkg": "@blockhub/web-capability-deal-evidence",
+      "web_folder": "web-capability-deal-evidence",
+      "flutter_pkg": "capability_deal_evidence",
+      "p1_scope": "app",
+      "status_target": "ok",
+      "capability_keys": [
+        "deal_evidence"
+      ],
+      "module_class": "DealEvidenceModule",
+      "dart_import": "package:capability_deal_evidence/capability_deal_evidence.dart"
+    },
+    {
+      "web_pkg": "@blockhub/web-capability-kill-pipeline",
+      "web_folder": "web-capability-kill-pipeline",
+      "flutter_pkg": "capability_kill_pipeline",
+      "p1_scope": "app",
+      "status_target": "ok",
+      "capability_keys": [
+        "kill_pipeline"
+      ],
+      "module_class": "KillPipelineModule",
+      "dart_import": "package:capability_kill_pipeline/capability_kill_pipeline.dart"
     }
   ]
 }

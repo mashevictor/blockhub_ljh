@@ -13,6 +13,19 @@ VALID_STATUS = frozenset(('open', 'following', 'won', 'lost'))
 VALID_CATEGORY = frozenset(('lead', 'opportunity', 'account'))
 
 
+class EvidenceGateError(Exception):
+    """线索晋级缺少成交证据。"""
+
+    def __init__(self, detail: str):
+        self.detail = detail
+        super().__init__(detail)
+
+
+def _norm_category(raw: str, default: str = 'lead') -> str:
+    cat = (raw or '').strip().lower()[:64]
+    return cat if cat else default
+
+
 def _no() -> str:
     now = datetime.now(timezone.utc)
     return f"SL-{now.strftime('%Y%m%d')}-{now.strftime('%H%M%S')}{now.microsecond // 1000:03d}"
@@ -69,9 +82,7 @@ def create_record(
     note: str = "",
     app_public_id: str = "",
 ) -> dict[str, Any]:
-    cat = (category or "lead").strip().lower()
-    if cat not in VALID_CATEGORY:
-        cat = "lead"
+    cat = _norm_category(category, 'lead')
     row = SalesLeadRecord(
         tenant_id=user.tenant_id,
         app_public_id=(app_public_id or "").strip(),
@@ -104,6 +115,58 @@ def create_record(
     return to_dict(row)
 
 
+def funnel_stats(
+    db: Session,
+    tenant_id: str,
+    *,
+    app_public_id: str | None = None,
+) -> list[dict[str, Any]]:
+    """按线索状态聚合漏斗阶段（空库 = 空列表，禁止假数）。"""
+    q = db.query(SalesLeadRecord).filter(SalesLeadRecord.tenant_id == tenant_id)
+    if app_public_id:
+        q = q.filter(SalesLeadRecord.app_public_id == app_public_id)
+    rows = q.all()
+    if not rows:
+        return []
+    labels = {
+        "open": "新线索",
+        "following": "跟进中",
+        "won": "成交",
+        "lost": "丢单",
+    }
+    counts = {k: 0 for k in labels}
+    for r in rows:
+        st = (r.status or "").strip()
+        if st in counts:
+            counts[st] += 1
+    return [{"name": labels[k], "value": counts[k]} for k in ("open", "following", "won", "lost")]
+
+
+def stale_opportunities(
+    db: Session,
+    tenant_id: str,
+    *,
+    app_public_id: str | None = None,
+    days: int = 7,
+) -> list[dict[str, Any]]:
+    """长期未更新的跟进中/新线索（供商机到期提醒场景）。"""
+    from datetime import timedelta
+
+    cutoff = datetime.now(timezone.utc) - timedelta(days=max(1, min(days, 90)))
+    q = (
+        db.query(SalesLeadRecord)
+        .options(joinedload(SalesLeadRecord.reporter))
+        .filter(
+            SalesLeadRecord.tenant_id == tenant_id,
+            SalesLeadRecord.status.in_(("open", "following")),
+            SalesLeadRecord.updated_at < cutoff,
+        )
+    )
+    if app_public_id:
+        q = q.filter(SalesLeadRecord.app_public_id == app_public_id)
+    return [to_dict(r) for r in q.order_by(SalesLeadRecord.updated_at.asc()).limit(100).all()]
+
+
 def mark_following(db: Session, tenant_id: str, record_id: str) -> dict[str, Any] | None:
     row = (
         db.query(SalesLeadRecord)
@@ -115,6 +178,12 @@ def mark_following(db: Session, tenant_id: str, record_id: str) -> dict[str, Any
         return None
     if row.status == "following":
         return to_dict(row)
+    from app.services.deal_evidence_store import has_gate_evidence
+
+    if not has_gate_evidence(db, tenant_id, lead_id=row.id, target="following", customer=row.customer, app_public_id=row.app_public_id):
+        raise EvidenceGateError(
+            "晋级「跟进中」需先在成交证据登记会议纪要或买方回执（可关联本线索客户名）"
+        )
     row.status = "following"
     db.commit()
     db.refresh(row)
@@ -140,6 +209,12 @@ def mark_won(db: Session, tenant_id: str, record_id: str) -> dict[str, Any] | No
         return None
     if row.status == "won":
         return to_dict(row)
+    from app.services.deal_evidence_store import has_gate_evidence
+
+    if not has_gate_evidence(db, tenant_id, lead_id=row.id, target="won", customer=row.customer, app_public_id=row.app_public_id):
+        raise EvidenceGateError(
+            "晋级「成交」需先登记 POC 结果、签约意向或回款证明类成交证据"
+        )
     row.status = "won"
     db.commit()
     db.refresh(row)

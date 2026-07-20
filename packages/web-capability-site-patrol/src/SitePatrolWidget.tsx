@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import type { SchemaNode } from '@blockhub/web-core'
-import { apiFetch, GtgtStepComposer, useRuntime, type GtgtStep } from '@blockhub/web-core'
+import type { FormFieldDef, SchemaNode } from '@blockhub/web-core'
+import { apiFetch, GtgtStepComposer, resolveFormSteps, useRuntime, type GtgtStep } from '@blockhub/web-core'
 
 interface RecordItem {
   id: string
@@ -12,10 +12,11 @@ interface RecordItem {
   status: string
 }
 
-const POINTS = ['大门', '电梯厅', '消防通道', '配电间', '楼顶', '地下室']
+const POINTS = ['客户前台', '会议室', '展厅', '大门', '电梯厅', '停车场']
 
-export function SitePatrolWidget(_props: { node: SchemaNode }) {
+export function SitePatrolWidget({ node }: { node: SchemaNode }) {
   const { token, primaryColor, appId } = useRuntime()
+  const formHeadline = String(node.props?.form_headline || '外勤签到')
   const [items, setItems] = useState<RecordItem[]>([])
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
@@ -24,69 +25,67 @@ export function SitePatrolWidget(_props: { node: SchemaNode }) {
   const [msg, setMsg] = useState('')
   const accent = primaryColor || '#15803d'
 
-  const steps: GtgtStep[] = useMemo(
-    () => [
-      {
-        key: 'site_name',
-        label: '站点 / 区域',
-        placeholder: 'A区物业 / A3 冲压车间',
-        hint: '填写巡逻站点或车间区域。',
-      },
-      {
-        key: 'checkpoint',
-        label: '打卡点',
-        hint: '点选检查点。',
-        render: ({ value, setValue, accent: a }) => (
-          <div className="row-actions" style={{ flexWrap: 'wrap' }}>
-            {POINTS.map((p) => (
-              <button
-                key={p}
-                type="button"
-                className={(value || POINTS[0]) === p ? 'btn' : 'btn btn-ghost'}
-                style={(value || POINTS[0]) === p ? { background: a, fontSize: 12 } : { fontSize: 12 }}
-                onClick={() => setValue(p)}
-              >
-                {p}
-              </button>
-            ))}
-          </div>
-        ),
-      },
-      {
-        key: 'result',
-        label: '巡检结果',
-        hint: '合格打卡或发现隐患。',
-        render: ({ value, setValue, accent: a }) => (
-          <div className="row-actions">
-            {(
-              [
-                ['ok', '合格'],
-                ['issue', '隐患'],
-              ] as const
-            ).map(([k, lab]) => (
-              <button
-                key={k}
-                type="button"
-                className={(value || 'ok') === k ? 'btn' : 'btn btn-ghost'}
-                style={(value || 'ok') === k ? { background: a } : undefined}
-                onClick={() => setValue(k)}
-              >
-                {lab}
-              </button>
-            ))}
-          </div>
-        ),
-      },
-      {
-        key: 'note',
-        label: '隐患描述（可空）',
-        optional: true,
-        inputType: 'textarea',
-        placeholder: '通道堆放纸箱，遮挡消防栓…',
-      },
-    ],
-    [],
-  )
+  const steps: GtgtStep[] = useMemo(() => {
+    const defaults: FormFieldDef[] = [
+      { key: 'site_name', label: '客户 / 地点', placeholder: '客户名称或拜访地址' },
+      { key: 'checkpoint', label: '打卡点' },
+      { key: 'result', label: '拜访结果' },
+      { key: 'note', label: '备注（可空）', placeholder: '拜访说明', type: 'textarea', optional: true },
+    ]
+    const resolved = resolveFormSteps({
+      defaults,
+      formFields: node.props?.form_fields,
+      pageMockFields: (node.props?.page_mock as { fields?: unknown } | undefined)?.fields,
+    })
+    return resolved.map((s) => {
+      if (s.key === 'checkpoint') {
+        return {
+          ...s,
+          render: ({ value, setValue, accent: a }) => (
+            <div className="row-actions" style={{ flexWrap: 'wrap' }}>
+              {POINTS.map((p) => (
+                <button
+                  key={p}
+                  type="button"
+                  className={(value || POINTS[0]) === p ? 'btn' : 'btn btn-ghost'}
+                  style={(value || POINTS[0]) === p ? { background: a, fontSize: 12 } : { fontSize: 12 }}
+                  onClick={() => setValue(p)}
+                >
+                  {p}
+                </button>
+              ))}
+            </div>
+          ),
+        }
+      }
+      if (s.key === 'result') {
+        return {
+          ...s,
+          render: ({ value, setValue, accent: a }) => (
+            <div className="row-actions">
+              {(
+                [
+                  ['ok', '已拜访'],
+                  ['issue', '待跟进'],
+                ] as const
+              ).map(([k, lab]) => (
+                <button
+                  key={k}
+                  type="button"
+                  className={(value || 'ok') === k ? 'btn' : 'btn btn-ghost'}
+                  style={(value || 'ok') === k ? { background: a } : undefined}
+                  onClick={() => setValue(k)}
+                >
+                  {lab}
+                </button>
+              ))}
+            </div>
+          ),
+        }
+      }
+      return s
+    })
+  }, [node.props?.form_fields, node.props?.page_mock])
 
   const load = useCallback(async () => {
     if (!token) {
@@ -112,8 +111,9 @@ export function SitePatrolWidget(_props: { node: SchemaNode }) {
   }, [load])
 
   const submit = async () => {
-    if (!token || !values.site_name?.trim()) {
-      setMsg('请先填写巡逻站点')
+    const site = (values.site_name || values.site || values.customer || values.location || '').trim()
+    if (!token || !site) {
+      setMsg('请先填写客户 / 地点')
       return
     }
     setBusy(true)
@@ -123,16 +123,16 @@ export function SitePatrolWidget(_props: { node: SchemaNode }) {
       await apiFetch('/api/v1/site-patrol/records', token, {
         method: 'POST',
         body: JSON.stringify({
-          site_name: values.site_name.trim(),
+          site_name: site,
           checkpoint: values.checkpoint || POINTS[0],
           result,
-          note: (values.note || '').trim() || (result === 'issue' ? '发现隐患，待跟进' : ''),
+          note: (values.note || values.remark || '').trim() || (result === 'issue' ? '待跟进' : ''),
           app_public_id: appId || '',
         }),
       })
       setValues({ checkpoint: POINTS[0], result: 'ok' })
       setResetKey((k) => k + 1)
-      setMsg(result === 'ok' ? '已打卡：合格（真库）' : '已记录隐患（真库）')
+      setMsg(result === 'ok' ? '已签到（真库）' : '已记录待跟进（真库）')
       await load()
     } catch (e) {
       setMsg(String(e))
@@ -152,18 +152,18 @@ export function SitePatrolWidget(_props: { node: SchemaNode }) {
   return (
     <div>
       <GtgtStepComposer
-        title="巡检打卡"
+        title={formHeadline}
         meta="Gtgt · Soft"
         accent={accent}
         variant="soft"
-        flowHint="站点 → 打卡点 → 结果 → 备注（可跳过）"
+        flowHint=">> 单字段推进 → 提交真库"
         steps={steps}
         values={values}
         onChange={(k, v) => setValues((p) => ({ ...p, [k]: v }))}
         onComplete={submit}
         busy={busy}
         resetKey={resetKey}
-        submitLabel="提交打卡"
+        submitLabel="提交签到"
       />
       {msg && <p className="status-msg">{msg}</p>}
       <h4 style={{ margin: '16px 0 8px', fontSize: 14 }}>待结案{open.length ? ` · ${open.length}` : ''}</h4>

@@ -17,10 +17,10 @@ const PRESETS: Record<
   { title: string; desc: string; actions: string[]; samples: string[] }
 > = {
   erp: {
-    title: 'ERP 对接',
-    desc: '连接用友 / 金蝶 / SAP（P4-I3 签约驱动 Adapter）。',
-    actions: ['测试连接', '同步主数据', '查看映射'],
-    samples: ['采购订单 PO-2026-0412', '库存快照 已同步', '供应商主数据 128 条'],
+    title: 'CRM / ERP 对接',
+    desc: '登记 Salesforce / 纷享 / 销售易等对接通道（Webhook 或 API 标识写入真库）。',
+    actions: ['登记对接', '查看已配置', '发送测试'],
+    samples: [],
   },
   meeting: {
     title: '会议室预约',
@@ -285,10 +285,141 @@ function ImChannelPanel() {
   )
 }
 
+function CrmConnectorPanel({ node }: { node: SchemaNode }) {
+  const { token, primaryColor, appId } = useRuntime()
+  const formHeadline = String(node.props?.form_headline || 'CRM 对接')
+  const [items, setItems] = useState<Connector[]>([])
+  const [values, setValues] = useState<Record<string, string>>({ system: 'salesforce' })
+  const [busy, setBusy] = useState(false)
+  const [msg, setMsg] = useState('')
+  const [resetKey, setResetKey] = useState(0)
+  const accent = primaryColor || '#6366f1'
+
+  const load = useCallback(async () => {
+    if (!token) return
+    try {
+      const data = await apiFetch<{ items: Connector[] }>('/api/v1/integrations', token)
+      setItems((data.items || []).filter((c) => {
+        const t = String(c.connector_type || '').toLowerCase()
+        return t.includes('crm') || t.includes('salesforce') || t.includes('erp') || t.includes('fenxiang')
+      }))
+    } catch {
+      setItems([])
+    }
+  }, [token])
+
+  useEffect(() => {
+    void load()
+  }, [load])
+
+  const steps: GtgtStep[] = useMemo(
+    () => [
+      {
+        key: 'system',
+        label: '目标系统',
+        render: ({ value, setValue, accent: a }) => (
+          <div className="row-actions" style={{ flexWrap: 'wrap' }}>
+            {(
+              [
+                ['salesforce', 'Salesforce'],
+                ['fenxiang', '纷享销客'],
+                ['xiaoshouyi', '销售易'],
+                ['erp', 'ERP'],
+              ] as const
+            ).map(([k, lab]) => (
+              <button
+                key={k}
+                type="button"
+                className={(value || 'salesforce') === k ? 'btn' : 'btn btn-ghost'}
+                style={(value || 'salesforce') === k ? { background: a } : undefined}
+                onClick={() => setValue(k)}
+              >
+                {lab}
+              </button>
+            ))}
+          </div>
+        ),
+      },
+      { key: 'endpoint', label: 'API / Webhook', placeholder: 'https://… 或实例标识' },
+      { key: 'note', label: '同步说明（可空）', placeholder: '线索 / 商机 / 字段范围', optional: true },
+    ],
+    [],
+  )
+
+  const save = async () => {
+    const endpoint = (values.endpoint || '').trim()
+    if (!token || !endpoint) {
+      setMsg('请填写 API / Webhook / 实例标识')
+      return
+    }
+    setBusy(true)
+    setMsg('')
+    const system = values.system || 'salesforce'
+    try {
+      await apiFetch('/api/v1/integrations', token, {
+        method: 'POST',
+        body: JSON.stringify({
+          name: `${formHeadline} · ${system}`,
+          connector_type: `crm_${system}`,
+          config: {
+            vendor: system,
+            endpoint,
+            webhook_url: endpoint.startsWith('http') ? endpoint : '',
+            instance: endpoint,
+            note: (values.note || '').trim(),
+            app_public_id: appId || '',
+          },
+        }),
+      })
+      setValues({ system })
+      setResetKey((k) => k + 1)
+      setMsg('已写入对接配置（真库）')
+      await load()
+    } catch (e) {
+      setMsg(`保存失败：${String(e)}`)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div>
+      <GtgtStepComposer
+        title={formHeadline}
+        meta="CRM · 真库"
+        accent={accent}
+        flowHint=">> 选系统 → 填地址 → 保存"
+        steps={steps}
+        values={values}
+        onChange={(k, v) => setValues((p) => ({ ...p, [k]: v }))}
+        onComplete={save}
+        busy={busy}
+        resetKey={resetKey}
+        submitLabel="保存对接"
+      />
+      {msg && <p className="status-msg">{msg}</p>}
+      <h4 style={{ margin: '16px 0 8px', fontSize: 14 }}>已配置</h4>
+      {items.length === 0 && <p className="muted">空库无 CRM 对接配置</p>}
+      {items.map((c) => (
+        <div key={c.id} className="list-card">
+          <div className="list-card-head">
+            <strong>{c.name}</strong>
+            <span className="tag">{c.connector_type}</span>
+          </div>
+          <p className="muted" style={{ fontSize: 12, wordBreak: 'break-all' }}>
+            {String((c.config || {}).endpoint || (c.config || {}).webhook_url || (c.config || {}).instance || '')}
+          </p>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 function IntegrationPanel({ node }: { node: SchemaNode }) {
   const { primaryColor } = useRuntime()
   const kind = kindFromNode(node)
   if (kind === 'im') return <ImChannelPanel />
+  if (kind === 'erp') return <CrmConnectorPanel node={node} />
 
   const preset = PRESETS[kind]
   const [msg, setMsg] = useState('')
@@ -303,7 +434,7 @@ function IntegrationPanel({ node }: { node: SchemaNode }) {
             key={a}
             type="button"
             className="btn-ghost"
-            onClick={() => setMsg(`「${a}」已记录（${kind === 'erp' ? '待 P4-I3 Adapter' : '演示'}）`)}
+            onClick={() => setMsg(`「${a}」已记录（演示）`)}
           >
             {a}
           </button>
