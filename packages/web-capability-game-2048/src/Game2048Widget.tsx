@@ -1,11 +1,13 @@
-import { useCallback, useEffect, useState, type TouchEvent } from 'react'
+import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
 import type { SchemaNode } from '@blockhub/web-core'
 import { useRuntime } from '@blockhub/web-core'
 
 type Board = number[][]
+type Dir = 'left' | 'right' | 'up' | 'down'
 
 const SIZE = 4
 const LS_BEST = 'blockhub_game_2048_best'
+const SWIPE_MIN = 28
 
 function emptyBoard(): Board {
   return Array.from({ length: SIZE }, () => Array(SIZE).fill(0))
@@ -74,7 +76,7 @@ function reverseRows(b: Board): Board {
   return b.map((row) => [...row].reverse())
 }
 
-function move(b: Board, dir: 'left' | 'right' | 'up' | 'down'): { board: Board; gained: number; moved: boolean } {
+function move(b: Board, dir: Dir): { board: Board; gained: number; moved: boolean } {
   if (dir === 'left') return moveLeft(b)
   if (dir === 'right') {
     const rev = reverseRows(b)
@@ -142,6 +144,12 @@ function newGame(): Board {
   return spawn(spawn(emptyBoard()))
 }
 
+function dirFromDelta(dx: number, dy: number): Dir | null {
+  if (Math.abs(dx) < SWIPE_MIN && Math.abs(dy) < SWIPE_MIN) return null
+  if (Math.abs(dx) > Math.abs(dy)) return dx > 0 ? 'right' : 'left'
+  return dy > 0 ? 'down' : 'up'
+}
+
 export function Game2048Widget(_props: { node: SchemaNode }) {
   const { primaryColor } = useRuntime()
   const accent = primaryColor || '#edc22e'
@@ -150,30 +158,35 @@ export function Game2048Widget(_props: { node: SchemaNode }) {
   const [best, setBest] = useState(() => readBest())
   const [won, setWon] = useState(false)
   const [over, setOver] = useState(false)
-  const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null)
+  const [hintFlash, setHintFlash] = useState(false)
+  const pointerStart = useRef<{ x: number; y: number; id: number } | null>(null)
+  const boardRef = useRef<HTMLDivElement>(null)
 
-  const applyMove = useCallback((dir: 'left' | 'right' | 'up' | 'down') => {
-    setBoard((prev) => {
-      if (over) return prev
-      const res = move(prev, dir)
-      if (!res.moved) return prev
-      const next = spawn(res.board)
-      setScore((s) => {
-        const ns = s + res.gained
-        setBest((b) => {
-          if (ns > b) {
-            writeBest(ns)
-            return ns
-          }
-          return b
+  const applyMove = useCallback(
+    (dir: Dir) => {
+      setBoard((prev) => {
+        if (over) return prev
+        const res = move(prev, dir)
+        if (!res.moved) return prev
+        const next = spawn(res.board)
+        setScore((s) => {
+          const ns = s + res.gained
+          setBest((b) => {
+            if (ns > b) {
+              writeBest(ns)
+              return ns
+            }
+            return b
+          })
+          return ns
         })
-        return ns
+        if (!won && next.some((row) => row.some((c) => c >= 2048))) setWon(true)
+        if (!canMove(next)) setOver(true)
+        return next
       })
-      if (!won && next.some((row) => row.some((c) => c >= 2048))) setWon(true)
-      if (!canMove(next)) setOver(true)
-      return next
-    })
-  }, [over, won])
+    },
+    [over, won],
+  )
 
   const reset = () => {
     setBoard(newGame())
@@ -184,7 +197,7 @@ export function Game2048Widget(_props: { node: SchemaNode }) {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      const map: Record<string, 'left' | 'right' | 'up' | 'down'> = {
+      const map: Record<string, Dir> = {
         ArrowLeft: 'left',
         ArrowRight: 'right',
         ArrowUp: 'up',
@@ -203,31 +216,62 @@ export function Game2048Widget(_props: { node: SchemaNode }) {
     return () => window.removeEventListener('keydown', onKey)
   }, [applyMove])
 
-  const onTouchStart = (e: TouchEvent) => {
-    const t = e.changedTouches[0]
-    if (!t) return
-    setTouchStart({ x: t.clientX, y: t.clientY })
+  const onPointerDown = (e: ReactPointerEvent) => {
+    if (e.button !== 0 && e.pointerType === 'mouse') return
+    pointerStart.current = { x: e.clientX, y: e.clientY, id: e.pointerId }
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId)
+    } catch {
+      /* ignore */
+    }
   }
 
-  const onTouchEnd = (e: TouchEvent) => {
-    if (!touchStart) return
-    const t = e.changedTouches[0]
-    if (!t) return
-    const dx = t.clientX - touchStart.x
-    const dy = t.clientY - touchStart.y
-    setTouchStart(null)
-    if (Math.abs(dx) < 24 && Math.abs(dy) < 24) return
-    if (Math.abs(dx) > Math.abs(dy)) applyMove(dx > 0 ? 'right' : 'left')
-    else applyMove(dy > 0 ? 'down' : 'up')
+  const finishPointer = (e: ReactPointerEvent) => {
+    const start = pointerStart.current
+    if (!start || start.id !== e.pointerId) return
+    pointerStart.current = null
+    try {
+      e.currentTarget.releasePointerCapture(e.pointerId)
+    } catch {
+      /* ignore */
+    }
+    const dir = dirFromDelta(e.clientX - start.x, e.clientY - start.y)
+    if (dir) applyMove(dir)
+    else {
+      // 单击无滑动：轻提示怎么玩（不是反应慢）
+      setHintFlash(true)
+      window.setTimeout(() => setHintFlash(false), 1600)
+    }
   }
+
+  const padBtn = (dir: Dir, label: string, gridArea: string) => (
+    <button
+      type="button"
+      aria-label={`向${label}滑动`}
+      onClick={() => applyMove(dir)}
+      style={{
+        gridArea,
+        border: 'none',
+        borderRadius: 10,
+        background: '#8f7a66',
+        color: '#f9f6f2',
+        fontWeight: 800,
+        fontSize: 18,
+        cursor: 'pointer',
+        minHeight: 44,
+      }}
+    >
+      {label}
+    </button>
+  )
 
   return (
     <div className="widget-panel game-2048" style={{ maxWidth: 420, margin: '0 auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginBottom: 12 }}>
         <div>
           <h3 style={{ margin: 0 }}>2048</h3>
-          <p className="muted" style={{ margin: '4px 0 0', fontSize: 13 }}>
-            方向键 / WASD / 滑动合并相同数字
+          <p className="muted" style={{ margin: '4px 0 0', fontSize: 13, lineHeight: 1.45 }}>
+            在棋盘上<strong>按住拖拽</strong>滑动合并 · 也可用下方方向键 / 键盘方向键 / WASD
           </p>
         </div>
         <button type="button" className="btn" style={{ background: accent }} onClick={reset}>
@@ -247,10 +291,15 @@ export function Game2048Widget(_props: { node: SchemaNode }) {
       </div>
 
       <div
+        ref={boardRef}
         role="application"
-        aria-label="2048 棋盘"
-        onTouchStart={onTouchStart}
-        onTouchEnd={onTouchEnd}
+        aria-label="2048 棋盘，按住拖拽滑动"
+        tabIndex={0}
+        onPointerDown={onPointerDown}
+        onPointerUp={finishPointer}
+        onPointerCancel={() => {
+          pointerStart.current = null
+        }}
         style={{
           position: 'relative',
           background: '#bbada0',
@@ -258,6 +307,8 @@ export function Game2048Widget(_props: { node: SchemaNode }) {
           padding: 10,
           touchAction: 'none',
           userSelect: 'none',
+          cursor: 'grab',
+          outline: hintFlash ? `2px solid ${accent}` : 'none',
         }}
       >
         <div
@@ -265,6 +316,7 @@ export function Game2048Widget(_props: { node: SchemaNode }) {
             display: 'grid',
             gridTemplateColumns: `repeat(${SIZE}, 1fr)`,
             gap: 10,
+            pointerEvents: 'none',
           }}
         >
           {board.flatMap((row, r) =>
@@ -290,6 +342,26 @@ export function Game2048Widget(_props: { node: SchemaNode }) {
             }),
           )}
         </div>
+
+        {hintFlash ? (
+          <div
+            style={{
+              position: 'absolute',
+              left: 12,
+              right: 12,
+              bottom: 12,
+              padding: '8px 10px',
+              borderRadius: 8,
+              background: 'rgba(15,23,42,0.88)',
+              color: '#fff',
+              fontSize: 12,
+              textAlign: 'center',
+              pointerEvents: 'none',
+            }}
+          >
+            请按住棋盘拖拽滑动（不是移动鼠标悬停）；也可用下方 ↑↓←→ 按钮
+          </div>
+        ) : null}
 
         {(won || over) && (
           <div
@@ -324,6 +396,30 @@ export function Game2048Widget(_props: { node: SchemaNode }) {
             </div>
           </div>
         )}
+      </div>
+
+      <div
+        aria-label="方向控制"
+        style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr 1fr',
+          gridTemplateRows: '1fr 1fr 1fr',
+          gridTemplateAreas: `
+            ". up ."
+            "left . right"
+            ". down ."
+          `,
+          gap: 8,
+          marginTop: 12,
+          maxWidth: 200,
+          marginLeft: 'auto',
+          marginRight: 'auto',
+        }}
+      >
+        {padBtn('up', '↑', 'up')}
+        {padBtn('left', '←', 'left')}
+        {padBtn('right', '→', 'right')}
+        {padBtn('down', '↓', 'down')}
       </div>
     </div>
   )

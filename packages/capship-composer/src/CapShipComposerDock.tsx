@@ -96,6 +96,8 @@ function clampPos(pos: DockPos, dockW: number, dockH: number): DockPos {
 /**
  * CapShip 悬浮编排壳：结构与视觉对齐 home FloatingAgentDock capsule
  * （握把 + >> 标题 + caret 折叠/展开按钮，不用文字链）
+ *
+ * 折叠时仍挂载 CapShipComposer（display:none），避免对话历史被卸载清空。
  */
 export function CapShipComposerDock({
   defaultOpen = true,
@@ -273,49 +275,56 @@ export function CapShipComposerDock({
             </button>
           </div>
         ) : (
-          <>
-            <div className="floating-agent-dock-chrome" onPointerDown={onDragStart}>
-              <button
-                type="button"
-                className="floating-agent-dock-toggle capsule-toggle"
-                onPointerDown={(e) => e.stopPropagation()}
-                onClick={(e) => {
-                  e.preventDefault()
-                  e.stopPropagation()
-                  setOpenSafe(false)
-                }}
-                aria-expanded
-                aria-controls={panelId}
-                aria-label="折叠悬浮框"
-                title="折叠"
-              >
-                <span className="floating-agent-dock-caret open" aria-hidden />
-              </button>
-              <span className="floating-agent-dock-grip" aria-hidden />
-              <span className="floating-agent-dock-brand-static">
-                <span className="floating-agent-dock-chev" aria-hidden>
-                  &gt;&gt;
-                </span>
-                <span className="floating-agent-dock-title">CapShip</span>
+          <div className="floating-agent-dock-chrome" onPointerDown={onDragStart}>
+            <button
+              type="button"
+              className="floating-agent-dock-toggle capsule-toggle"
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                setOpenSafe(false)
+              }}
+              aria-expanded
+              aria-controls={panelId}
+              aria-label="折叠悬浮框"
+              title="折叠"
+            >
+              <span className="floating-agent-dock-caret open" aria-hidden />
+            </button>
+            <span className="floating-agent-dock-grip" aria-hidden />
+            <span className="floating-agent-dock-brand-static">
+              <span className="floating-agent-dock-chev" aria-hidden>
+                &gt;&gt;
               </span>
-              <button
-                type="button"
-                className="floating-agent-dock-toggle"
-                onPointerDown={(e) => e.stopPropagation()}
-                onClick={() => setFullscreen((v) => !v)}
-                aria-label={fullscreen ? '退出全屏' : '全屏'}
-                title={fullscreen ? '退出全屏' : '全屏'}
-              >
-                <span className={`floating-agent-dock-fs${fullscreen ? ' is-exit' : ''}`} aria-hidden />
-              </button>
-            </div>
-            <div id={panelId} className="floating-agent-dock-body" role="dialog" aria-label="CapShip 编排">
-              <Suspense fallback={<p className="capship-composer-hint">加载编排器…</p>}>
-                <CapShipComposer {...composerProps} defaultMode={defaultMode} compact />
-              </Suspense>
-            </div>
-          </>
+              <span className="floating-agent-dock-title">CapShip</span>
+            </span>
+            <button
+              type="button"
+              className="floating-agent-dock-toggle"
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={() => setFullscreen((v) => !v)}
+              aria-label={fullscreen ? '退出全屏' : '全屏'}
+              title={fullscreen ? '退出全屏' : '全屏'}
+            >
+              <span className={`floating-agent-dock-fs${fullscreen ? ' is-exit' : ''}`} aria-hidden />
+            </button>
+          </div>
         )}
+
+        {/* 始终挂载编排器：折叠仅隐藏，保留对话历史与进行中的请求状态 */}
+        <div
+          id={panelId}
+          className="floating-agent-dock-body"
+          role="dialog"
+          aria-label="CapShip 编排"
+          hidden={!open}
+          aria-hidden={!open}
+        >
+          <Suspense fallback={<p className="capship-composer-hint">加载编排器…</p>}>
+            <CapShipComposer {...composerProps} defaultMode={defaultMode} compact />
+          </Suspense>
+        </div>
       </div>
     </div>
   )

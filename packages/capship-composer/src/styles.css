@@ -102,6 +102,44 @@
   font-size: 13px;
   line-height: 1.45;
   white-space: pre-wrap;
+  position: relative;
+}
+
+.capship-composer-msg-text {
+  white-space: pre-wrap;
+}
+
+.capship-composer-msg-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+  opacity: 0.55;
+}
+
+.capship-composer-msg:hover .capship-composer-msg-actions,
+.capship-composer-msg:focus-within .capship-composer-msg-actions {
+  opacity: 1;
+}
+
+.capship-composer-msg-act {
+  border: none;
+  background: transparent;
+  padding: 0;
+  font: inherit;
+  font-size: 11px;
+  color: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+  opacity: 0.85;
+}
+
+.capship-composer-msg-act:hover {
+  opacity: 1;
+}
+
+.capship-composer-msg-act:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 .capship-composer-msg.is-user {
@@ -137,6 +175,16 @@
   padding: 10px 12px;
   font: inherit;
   background: #fff;
+}
+
+.capship-composer-btn.is-stop {
+  background: #b91c1c;
+  border-color: #b91c1c;
+  color: #fff;
+}
+
+.capship-composer-btn.is-stop:hover {
+  filter: brightness(1.05);
 }
 
 .capship-composer-chat-input .capship-composer-btn {
@@ -587,6 +635,12 @@
   min-height: 0;
   max-height: none;
   color: #0f172a;
+}
+
+/* 折叠时隐藏 body，但保持 React 树挂载，对话历史不丢 */
+.capship-floating-dock.is-collapsed .floating-agent-dock-body,
+.capship-floating-dock .floating-agent-dock-body[hidden] {
+  display: none !important;
 }
 
 .capship-floating-dock.is-fullscreen {

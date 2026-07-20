@@ -31,8 +31,33 @@ export function isMicrositeCached(packKey: string, templateId: string): boolean 
   return getCachedMicrositeIds(packKey).includes(templateId)
 }
 
-export function micrositeCacheHint(cached: boolean): string {
-  return cached
-    ? '已预载 · 点击即切'
-    : '未预载 · 点选后即时生成'
+export type MicrositeLoadState = 'cached' | 'ready' | 'loading' | 'idle'
+
+export function micrositeCacheHint(state: boolean | MicrositeLoadState): string {
+  if (typeof state === 'boolean') {
+    return state ? '已预载 · 点击即切' : '未预载 · 点选后即时生成'
+  }
+  switch (state) {
+    case 'cached':
+      return '已预载 · 点击即切'
+    case 'ready':
+      return '已加载 · 可再次切换'
+    case 'loading':
+      return '加载中…'
+    default:
+      return '未预载 · 点选后即时生成'
+  }
+}
+
+export function micrositeChipBadge(state: MicrositeLoadState, cssReady = true): string {
+  switch (state) {
+    case 'cached':
+      return cssReady ? '已预载' : '预载中…'
+    case 'ready':
+      return '已加载'
+    case 'loading':
+      return '加载中…'
+    default:
+      return '未预载'
+  }
 }

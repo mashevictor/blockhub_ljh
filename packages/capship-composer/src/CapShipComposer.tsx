@@ -412,6 +412,42 @@ function withModuleFlow(schema: ComposerPageSchema, flow: ModuleFlowPersist): Co
 
 type ChatMsg = { role: 'user' | 'assistant'; text: string }
 
+function chatStorageKey(appKey: string, kind: 'live' | 'flow') {
+  return `capship-composer-chat:${kind}:${appKey}`
+}
+
+function loadChatMsgs(appKey: string, kind: 'live' | 'flow', fallback: ChatMsg[]): ChatMsg[] {
+  try {
+    const raw = sessionStorage.getItem(chatStorageKey(appKey, kind))
+    if (!raw) return fallback
+    const parsed = JSON.parse(raw) as ChatMsg[]
+    if (!Array.isArray(parsed) || !parsed.length) return fallback
+    return parsed.filter(
+      (m) => m && (m.role === 'user' || m.role === 'assistant') && typeof m.text === 'string',
+    )
+  } catch {
+    return fallback
+  }
+}
+
+function saveChatMsgs(appKey: string, kind: 'live' | 'flow', msgs: ChatMsg[]) {
+  try {
+    sessionStorage.setItem(chatStorageKey(appKey, kind), JSON.stringify(msgs.slice(-80)))
+  } catch {
+    /* ignore */
+  }
+}
+
+const WELCOME_LIVE: ChatMsg = {
+  role: 'assistant',
+  text: '直接说业务需求即可。改页先落「本地草稿」（左侧立刻可见）→「保存草稿」（绑你的账号）→「提交审批」；管理员通过后才影响正式 Runtime。',
+}
+
+const WELCOME_FLOW: ChatMsg = {
+  role: 'assistant',
+  text: '可以说「在报修后面加审批流」。改动先落草稿，保存后提交审批。',
+}
+
 export function CapShipComposer({
   appId,
   capability_keys: initialKeys,
@@ -448,18 +484,18 @@ export function CapShipComposer({
   const [changeId, setChangeId] = useState<string | null>(null)
   const [isAdmin, setIsAdmin] = useState(false)
   const [changeItems, setChangeItems] = useState<SchemaChangeItem[]>([])
-  const [messages, setMessages] = useState<ChatMsg[]>([
-    {
-      role: 'assistant',
-      text: '直接说业务需求即可。改页先落「本地草稿」（左侧立刻可见）→「保存草稿」（绑你的账号）→「提交审批」；管理员通过后才影响正式 Runtime。',
-    },
-  ])
-  const [flowMessages, setFlowMessages] = useState<ChatMsg[]>([
-    { role: 'assistant', text: '可以说「在报修后面加审批流」。改动先落草稿，保存后提交审批。' },
-  ])
+  const chatAppKey = String(appId || initialSchema?.appId || 'preview-local')
+  const [messages, setMessages] = useState<ChatMsg[]>(() =>
+    loadChatMsgs(chatAppKey, 'live', [WELCOME_LIVE]),
+  )
+  const [flowMessages, setFlowMessages] = useState<ChatMsg[]>(() =>
+    loadChatMsgs(chatAppKey, 'flow', [WELCOME_FLOW]),
+  )
   const listRef = useRef<HTMLDivElement>(null)
   const flowListRef = useRef<HTMLDivElement>(null)
   const lastSavedSchemaRef = useRef<ComposerPageSchema | null>(cloneSchema(initialSchema))
+  const abortRef = useRef<AbortController | null>(null)
+  const codegenAbortRef = useRef<AbortController | null>(null)
 
   const activeMode = controlledMode ?? mode
   const versionAppKey = String(appId || schema?.appId || 'preview-local')
@@ -522,6 +558,50 @@ export function CapShipComposer({
   useEffect(() => {
     flowListRef.current?.scrollTo({ top: flowListRef.current.scrollHeight, behavior: 'smooth' })
   }, [flowMessages, busy])
+
+  useEffect(() => {
+    saveChatMsgs(chatAppKey, 'live', messages)
+  }, [chatAppKey, messages])
+
+  useEffect(() => {
+    saveChatMsgs(chatAppKey, 'flow', flowMessages)
+  }, [chatAppKey, flowMessages])
+
+  const abortInFlight = () => {
+    abortRef.current?.abort()
+    abortRef.current = null
+    codegenAbortRef.current?.abort()
+    codegenAbortRef.current = null
+    setBusy(false)
+  }
+
+  const stopChat = () => {
+    abortInFlight()
+    setStatus('已停止')
+    setMessages((prev) => [
+      ...prev,
+      { role: 'assistant', text: '已停止当前指令。可点「编辑」改写后重发，或继续输入新需求。' },
+    ])
+  }
+
+  const deleteMessage = (index: number, kind: 'live' | 'flow' = 'live') => {
+    const setter = kind === 'live' ? setMessages : setFlowMessages
+    setter((prev) => prev.filter((_, i) => i !== index))
+  }
+
+  const editUserMessage = (index: number, kind: 'live' | 'flow' = 'live') => {
+    const list = kind === 'live' ? messages : flowMessages
+    const hit = list[index]
+    if (!hit || hit.role !== 'user') return
+    if (busy) abortInFlight()
+    if (kind === 'live') {
+      setDraft(hit.text)
+      setMessages((prev) => prev.slice(0, index))
+    } else {
+      setFlowDraft(hit.text)
+      setFlowMessages((prev) => prev.slice(0, index))
+    }
+  }
 
   const menuLabels = useMemo(() => (schema?.menu || []).map((m) => m.label).filter(Boolean), [schema])
   const flow = useMemo(
@@ -1075,6 +1155,9 @@ export function CapShipComposer({
     setMessages((prev) => [...prev, { role: 'user', text }])
     setBusy(true)
     setStatus('')
+    abortRef.current?.abort()
+    const ac = new AbortController()
+    abortRef.current = ac
     try {
       const base =
         schema ??
@@ -1100,8 +1183,10 @@ export function CapShipComposer({
           })),
           capability_keys: keys,
         },
-        { token },
+        { token, signal: ac.signal },
       )
+
+      if (ac.signal.aborted) return
 
       let next = base
       if (result.ops?.length) {
@@ -1143,11 +1228,16 @@ export function CapShipComposer({
 
       if (jobId) {
         const snapshot = next
+        codegenAbortRef.current?.abort()
+        const jobAc = new AbortController()
+        codegenAbortRef.current = jobAc
         void (async () => {
           for (let i = 0; i < 40; i += 1) {
+            if (jobAc.signal.aborted) return
             await new Promise((r) => window.setTimeout(r, 1500))
+            if (jobAc.signal.aborted) return
             try {
-              const job = await fetchCodegenJob(jobId, { token })
+              const job = await fetchCodegenJob(jobId, { token, signal: jobAc.signal })
               if (job.status === 'failed') {
                 setMessages((prev) => [
                   ...prev,
@@ -1187,17 +1277,21 @@ export function CapShipComposer({
                 }
               }
               return
-            } catch {
+            } catch (err) {
+              if (jobAc.signal.aborted || (err instanceof DOMException && err.name === 'AbortError')) return
               /* 继续轮询 */
             }
           }
-          setMessages((prev) => [
-            ...prev,
-            { role: 'assistant', text: 'AI 出页超时，可稍后刷新或再说一次需求。即时预览草稿仍可用。' },
-          ])
+          if (!jobAc.signal.aborted) {
+            setMessages((prev) => [
+              ...prev,
+              { role: 'assistant', text: 'AI 出页超时，可稍后刷新或再说一次需求。即时预览草稿仍可用。' },
+            ])
+          }
         })()
       }
     } catch (e) {
+      if (ac.signal.aborted || (e instanceof DOMException && e.name === 'AbortError')) return
       if (e instanceof SchemaRevConflictError) {
         handleConflict(e)
         return
@@ -1206,7 +1300,8 @@ export function CapShipComposer({
       onError?.(msg)
       setMessages((prev) => [...prev, { role: 'assistant', text: msg }])
     } finally {
-      setBusy(false)
+      if (abortRef.current === ac) abortRef.current = null
+      if (!ac.signal.aborted) setBusy(false)
     }
   }
 
@@ -1217,6 +1312,9 @@ export function CapShipComposer({
     setFlowMessages((prev) => [...prev, { role: 'user', text }])
     setBusy(true)
     setStatus('')
+    abortRef.current?.abort()
+    const ac = new AbortController()
+    abortRef.current = ac
     try {
       const result = await askFlowEdit(
         {
@@ -1225,8 +1323,9 @@ export function CapShipComposer({
           steps: flow.steps,
           available_labels: [...menuLabels, ...catalog.map((c) => c.label)],
         },
-        { token },
+        { token, signal: ac.signal },
       )
+      if (ac.signal.aborted) return
       if (result.ops?.length) {
         const nextFlow = applyFlowEditOps(flow, result.ops)
         if (!nextFlow.steps.length) {
@@ -1250,6 +1349,7 @@ export function CapShipComposer({
       setFlowMessages((prev) => [...prev, { role: 'assistant', text: `${result.reply}${src}` }])
       setStatus(result.ops?.length ? '数据流已写入草稿（未保存）' : '')
     } catch (e) {
+      if (ac.signal.aborted || (e instanceof DOMException && e.name === 'AbortError')) return
       if (e instanceof SchemaRevConflictError) {
         handleConflict(e)
         return
@@ -1258,7 +1358,8 @@ export function CapShipComposer({
       onError?.(msg)
       setFlowMessages((prev) => [...prev, { role: 'assistant', text: msg }])
     } finally {
-      setBusy(false)
+      if (abortRef.current === ac) abortRef.current = null
+      if (!ac.signal.aborted) setBusy(false)
     }
   }
 
@@ -1522,8 +1623,29 @@ export function CapShipComposer({
           <p className="capship-composer-hint">说业务痛点或改页指令；左侧先出预览 → 保存草稿（绑账号）→ 提交审批 → 管理员通过后正式生效。</p>
           <div className="capship-composer-chat-list" ref={listRef} aria-live="polite">
             {messages.map((m, i) => (
-              <div key={`${m.role}-${i}`} className={`capship-composer-msg is-${m.role}`}>
-                {m.text}
+              <div key={`live-${i}-${m.role}-${m.text.slice(0, 12)}`} className={`capship-composer-msg is-${m.role}`}>
+                <div className="capship-composer-msg-text">{m.text}</div>
+                <div className="capship-composer-msg-actions">
+                  {m.role === 'user' ? (
+                    <button
+                      type="button"
+                      className="capship-composer-msg-act"
+                      disabled={busy && i === messages.length - 1}
+                      onClick={() => editUserMessage(i, 'live')}
+                      title="编辑并重发"
+                    >
+                      编辑
+                    </button>
+                  ) : null}
+                  <button
+                    type="button"
+                    className="capship-composer-msg-act"
+                    onClick={() => deleteMessage(i, 'live')}
+                    title="删除"
+                  >
+                    删除
+                  </button>
+                </div>
               </div>
             ))}
             {busy ? <div className="capship-composer-msg is-assistant is-pending">正在理解…</div> : null}
@@ -1542,9 +1664,15 @@ export function CapShipComposer({
                 }
               }}
             />
-            <button type="button" className="capship-composer-btn" disabled={busy || !draft.trim()} onClick={() => void sendChat()}>
-              {busy ? '…' : '发送'}
-            </button>
+            {busy ? (
+              <button type="button" className="capship-composer-btn is-stop" onClick={stopChat}>
+                停止
+              </button>
+            ) : (
+              <button type="button" className="capship-composer-btn" disabled={!draft.trim()} onClick={() => void sendChat()}>
+                发送
+              </button>
+            )}
           </div>
         </div>
       )}
@@ -1597,8 +1725,28 @@ export function CapShipComposer({
           </ol>
           <div className="capship-composer-chat-list" ref={flowListRef} aria-live="polite">
             {flowMessages.map((m, i) => (
-              <div key={`flow-${m.role}-${i}`} className={`capship-composer-msg is-${m.role}`}>
-                {m.text}
+              <div key={`flow-${i}-${m.role}-${m.text.slice(0, 12)}`} className={`capship-composer-msg is-${m.role}`}>
+                <div className="capship-composer-msg-text">{m.text}</div>
+                <div className="capship-composer-msg-actions">
+                  {m.role === 'user' ? (
+                    <button
+                      type="button"
+                      className="capship-composer-msg-act"
+                      onClick={() => editUserMessage(i, 'flow')}
+                      title="编辑并重发"
+                    >
+                      编辑
+                    </button>
+                  ) : null}
+                  <button
+                    type="button"
+                    className="capship-composer-msg-act"
+                    onClick={() => deleteMessage(i, 'flow')}
+                    title="删除"
+                  >
+                    删除
+                  </button>
+                </div>
               </div>
             ))}
             {busy ? <div className="capship-composer-msg is-assistant is-pending">正在理解…</div> : null}
@@ -1617,14 +1765,20 @@ export function CapShipComposer({
                 }
               }}
             />
-            <button
-              type="button"
-              className="capship-composer-btn"
-              disabled={busy || !flowDraft.trim()}
-              onClick={() => void sendFlowChat()}
-            >
-              {busy ? '…' : '发送'}
-            </button>
+            {busy ? (
+              <button type="button" className="capship-composer-btn is-stop" onClick={stopChat}>
+                停止
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="capship-composer-btn"
+                disabled={!flowDraft.trim()}
+                onClick={() => void sendFlowChat()}
+              >
+                发送
+              </button>
+            )}
           </div>
         </div>
       )}

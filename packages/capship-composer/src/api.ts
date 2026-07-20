@@ -296,7 +296,7 @@ export async function askComposeEdit(
     menu?: Array<{ key?: string; label?: string; capability_key?: string; category?: string }>
     capability_keys?: string[]
   },
-  opts?: { token?: string | null },
+  opts?: { token?: string | null; signal?: AbortSignal },
 ): Promise<{
   reply: string
   ops: ComposeEditOp[]
@@ -311,6 +311,7 @@ export async function askComposeEdit(
     method: 'POST',
     headers: authHeaders(opts?.token),
     body: JSON.stringify(body),
+    signal: opts?.signal,
   })
   if (!res.ok) {
     const detail = await res.text()
@@ -321,7 +322,7 @@ export async function askComposeEdit(
 
 export async function fetchCodegenJob(
   jobId: string,
-  opts?: { token?: string | null },
+  opts?: { token?: string | null; signal?: AbortSignal },
 ): Promise<{
   id?: string
   status: string
@@ -342,6 +343,7 @@ export async function fetchCodegenJob(
 }> {
   const res = await fetch(`/api/v1/creation/codegen-jobs/${encodeURIComponent(jobId)}`, {
     headers: authHeaders(opts?.token),
+    signal: opts?.signal,
   })
   if (!res.ok) {
     const detail = await res.text()
@@ -357,7 +359,7 @@ export async function askFlowEdit(
     steps?: Array<{ id?: string; label?: string; note?: string; order?: number }>
     available_labels?: string[]
   },
-  opts?: { token?: string | null },
+  opts?: { token?: string | null; signal?: AbortSignal },
 ): Promise<{
   reply: string
   ops: FlowEditOp[]
@@ -368,6 +370,7 @@ export async function askFlowEdit(
     method: 'POST',
     headers: authHeaders(opts?.token),
     body: JSON.stringify(body),
+    signal: opts?.signal,
   })
   if (!res.ok) {
     const detail = await res.text()

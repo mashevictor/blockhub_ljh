@@ -27,6 +27,8 @@ import {
   MICROSITE_PREVIEW_CACHE_LIMIT,
   getCachedMicrositeIds,
   micrositeCacheHint,
+  micrositeChipBadge,
+  type MicrositeLoadState,
 } from '../data/industryMicrositePreviewCache'
 import { getMicrositeRuntimeSkin } from '../data/micrositeRuntimeSkin'
 import ContactGateModal, { type ContactInfo } from '../components/ContactGateModal'
@@ -78,6 +80,8 @@ export default function IndustryView({
     () => initialMicrosite ?? loadSavedMicrositeId(initialIndustry ?? 'office'),
   )
   const [previewFade, setPreviewFade] = useState(false)
+  const [previewBusy, setPreviewBusy] = useState(false)
+  const [sessionLoadedMicrosites, setSessionLoadedMicrosites] = useState<Set<string>>(() => new Set())
 
   const loadScenesFromCache = (packKey: string) => {
     const apiKey = resolveIndustryApiKey(packKey)
@@ -114,6 +118,8 @@ export default function IndustryView({
     setPreferKeys(fallback.recommended_modules)
     setMicrositeId((prev) => initialMicrosite || loadSavedMicrositeId(apiKey) || prev)
     setWebTemplateId('sidebar_admin')
+    setSessionLoadedMicrosites(new Set())
+    setPreviewBusy(false)
   }, [industry, active, initialMicrosite])
 
   useEffect(() => {
@@ -144,14 +150,30 @@ export default function IndustryView({
     )
   }, [micrositeMeta, apiPackKey, pack.name, pack.desc, scenes, preferKeys])
 
+  // 进入未预载模板时先标加载中，iframe onLoad 后改为「已加载」
+  useEffect(() => {
+    if (!micrositeMeta) return
+    if (cachedMicrositeSet.has(micrositeId) || sessionLoadedMicrosites.has(micrositeId)) return
+    setPreviewBusy(true)
+  }, [micrositeId, apiPackKey, micrositeMeta, cachedMicrositeSet, sessionLoadedMicrosites])
+
   const switchMicrosite = (id: string) => {
     if (id === micrositeId) return
+    const instant = cachedMicrositeSet.has(id) || sessionLoadedMicrosites.has(id)
     setPreviewFade(true)
+    if (!instant) setPreviewBusy(true)
     window.setTimeout(() => {
       setMicrositeId(id)
       saveMicrositeId(apiPackKey, id)
       setPreviewFade(false)
-    }, 160)
+    }, instant ? 80 : 160)
+  }
+
+  const micrositeLoadState = (id: string): MicrositeLoadState => {
+    if (cachedMicrositeSet.has(id)) return 'cached'
+    if (sessionLoadedMicrosites.has(id)) return 'ready'
+    if (id === micrositeId && previewBusy) return 'loading'
+    return 'idle'
   }
 
   const selectAllScenes = () => setSelected(new Set(scenes.map((s) => s.id)))
@@ -322,7 +344,7 @@ export default function IndustryView({
           <div className="industry-wizard-microsite-head">
             <strong>20 套页面模板</strong>
             <span>
-              前 {MICROSITE_PREVIEW_CACHE_LIMIT} 套预载可点即切；其余未预载 · 点选后即时生成。行业文案保持「{pack.name}」
+              前 {MICROSITE_PREVIEW_CACHE_LIMIT} 套预载可点即切；其余未预载 · 点选后即时生成，完成后标记「已加载」。行业文案保持「{pack.name}」
             </span>
           </div>
           <p className="industry-microsite-cache-legend" role="status">
@@ -330,33 +352,43 @@ export default function IndustryView({
               已预载 {cachedMicrositeIds.length}/{MICROSITE_PREVIEW_CACHE_LIMIT}
             </span>
             <span className="industry-microsite-cache-pill is-live">
-              {micrositeCacheHint(cachedMicrositeSet.has(micrositeId))}
+              {micrositeCacheHint(micrositeLoadState(micrositeId))}
             </span>
-            {!cachedMicrositeSet.has(micrositeId) ? (
+            {sessionLoadedMicrosites.size > 0 ? (
+              <span className="industry-microsite-cache-pill is-session">
+                本会话已加载 {sessionLoadedMicrosites.size}
+              </span>
+            ) : null}
+            {micrositeLoadState(micrositeId) === 'idle' ? (
               <span className="industry-microsite-cache-warn">
                 当前模板未纳入预载槽，首次打开需短暂生成预览
               </span>
+            ) : null}
+            {previewBusy ? (
+              <span className="industry-microsite-cache-warn">正在加载预览…</span>
             ) : null}
           </p>
           <div className="industry-wizard-microsite-picker" role="listbox" aria-label="视觉模板">
             {INDUSTRY_MICROSITE_TEMPLATES.map((t) => {
               const skin = getMicrositeRuntimeSkin(t.id)
-              const cached = cachedMicrositeSet.has(t.id)
+              const state = micrositeLoadState(t.id)
+              const chipClass =
+                state === 'cached' ? ' is-cached' : state === 'ready' || state === 'loading' ? ' is-session' : ' is-uncached'
               return (
               <button
                 key={t.id}
                 type="button"
                 role="option"
                 aria-selected={t.id === micrositeId}
-                className={`industry-wizard-ms-chip${t.id === micrositeId ? ' on' : ''}${cached ? ' is-cached' : ' is-uncached'}`}
-                title={micrositeCacheHint(cached)}
+                className={`industry-wizard-ms-chip${t.id === micrositeId ? ' on' : ''}${chipClass}`}
+                title={micrositeCacheHint(state)}
                 onClick={() => switchMicrosite(t.id)}
               >
                 <strong>{t.styleLabel}</strong>
                 <span>
                   {skin ? `${skin.layout} · ${skin.nav}` : t.name}
                 </span>
-                <em className="industry-microsite-chip-badge">{cached ? '已预载' : '未预载'}</em>
+                <em className="industry-microsite-chip-badge">{micrositeChipBadge(state)}</em>
               </button>
               )
             })}
@@ -366,17 +398,41 @@ export default function IndustryView({
               <span>{pack.name}</span>
               <span>
                 {micrositeMeta.styleLabel}
-                {cachedMicrositeSet.has(micrositeId) ? ' · 预载切换' : ' · 即时预览'}
+                {cachedMicrositeSet.has(micrositeId)
+                  ? ' · 预载切换'
+                  : previewBusy
+                    ? ' · 生成中…'
+                    : sessionLoadedMicrosites.has(micrositeId)
+                      ? ' · 已加载'
+                      : ' · 即时预览'}
               </span>
             </div>
-            <iframe
-              key={`${apiPackKey}-${micrositeId}`}
-              title={`${pack.name} · ${micrositeMeta.styleLabel}`}
-              className="industry-wizard-ms-frame"
-              srcDoc={micrositeSrcDoc}
-              sandbox="allow-same-origin allow-scripts"
-              loading="lazy"
-            />
+            <div className="industry-wizard-ms-frame-stack">
+              <iframe
+                key={`${apiPackKey}-${micrositeId}`}
+                title={`${pack.name} · ${micrositeMeta.styleLabel}`}
+                className={`industry-wizard-ms-frame${previewBusy ? ' is-loading' : ''}`}
+                srcDoc={micrositeSrcDoc}
+                sandbox="allow-same-origin allow-scripts"
+                loading="lazy"
+                onLoad={() => {
+                  setPreviewBusy(false)
+                  if (!cachedMicrositeSet.has(micrositeId)) {
+                    setSessionLoadedMicrosites((prev) => {
+                      if (prev.has(micrositeId)) return prev
+                      const next = new Set(prev)
+                      next.add(micrositeId)
+                      return next
+                    })
+                  }
+                }}
+              />
+              {previewBusy ? (
+                <div className="industry-wizard-ms-frame-loading" role="status">
+                  未预载模板 · 正在生成预览…
+                </div>
+              ) : null}
+            </div>
           </div>
         </div>
       ) : null}

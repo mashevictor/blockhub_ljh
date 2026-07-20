@@ -1120,6 +1120,12 @@
   border: 1px solid #e2e8f0;
 }
 
+.industry-microsite-cache-pill.is-session {
+  background: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+}
+
 .industry-microsite-cache-warn {
   color: #b45309;
   background: #fffbeb;
@@ -1178,6 +1184,15 @@
 
 .industry-microsite-chip.is-uncached .industry-microsite-chip-badge {
   color: #b45309;
+}
+
+.industry-microsite-chip.is-session .industry-microsite-chip-badge {
+  color: #047857;
+}
+
+.industry-microsite-chip.is-session {
+  background: #f0fdf4;
+  border-style: solid;
 }
 
 .industry-microsite-chip.is-uncached {

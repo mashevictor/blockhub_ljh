@@ -3495,6 +3495,13 @@ h1, h2, h3, h4, h5, h6 {
 .industry-wizard-ms-chip.is-uncached .industry-microsite-chip-badge {
   color: #b45309;
 }
+.industry-wizard-ms-chip.is-session {
+  border-style: solid;
+  background: color-mix(in srgb, #ecfdf5 75%, var(--surface));
+}
+.industry-wizard-ms-chip.is-session .industry-microsite-chip-badge {
+  color: #047857;
+}
 .industry-wizard-ms-frame-wrap {
   border: 1px solid var(--border);
   border-radius: 12px;
@@ -3521,6 +3528,30 @@ h1, h2, h3, h4, h5, h6 {
   height: min(420px, 58vh);
   border: 0;
   background: #fff;
+}
+.industry-wizard-ms-frame-stack {
+  position: relative;
+  width: 100%;
+  height: min(420px, 58vh);
+  background: #fff;
+}
+.industry-wizard-ms-frame-stack .industry-wizard-ms-frame {
+  height: 100%;
+}
+.industry-wizard-ms-frame-stack .industry-wizard-ms-frame.is-loading {
+  opacity: 0.35;
+}
+.industry-wizard-ms-frame-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 23, 42, 0.55);
+  color: #f8fafc;
+  font-size: 13px;
+  font-weight: 600;
+  pointer-events: none;
 }
 
 .audience-panel { margin-bottom: 16px; }

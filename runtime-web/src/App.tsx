@@ -3,6 +3,7 @@ import {
   Suspense,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ComponentType,
   type CSSProperties,
@@ -104,12 +105,14 @@ function scopedKeysFromSchema(schema: PageSchema | null | undefined): string[] {
 function scopeManifestToApp(manifest: BuildManifest, schema: PageSchema): BuildManifest {
   const keys = scopedKeysFromSchema(schema)
   if (!keys.length) return manifest
-  // 后端 GET /manifest 已按 registry.web_pkg（含 chat/approval/integration 共享包）现算；
-  // 勿按 slug≈key 过滤，否则 notify_im→integration 会被误删，导致「尚未接入」。
-  const pkgs =
-    (manifest.web_pkgs || []).length > 0
-      ? [...manifest.web_pkgs]
-      : keys.map((k) => `@blockhub/web-capability-${k.replace(/_/g, '-')}`)
+  const pkgs = [...(manifest.web_pkgs || [])]
+  for (const k of keys) {
+    // Path B 生成页走内置 GeneratedPageWidget，无需能力包
+    if (k.startsWith('gen_')) continue
+    const conv = `@blockhub/web-capability-${k.replace(/_/g, '-')}`
+    const has = pkgs.some((p) => folderMatch(p, k) || p === conv)
+    if (!has) pkgs.push(conv)
+  }
   return {
     ...manifest,
     capability_keys: keys,
@@ -286,10 +289,20 @@ export default function App() {
     const item = (schema.menu || []).find((m) => String((m as { route?: string }).route || '') === route) as
       | { capability_key?: string; key?: string }
       | undefined
-    const cap = String(item?.capability_key || item?.key || '').trim()
-    const pkgs = cap
-      ? manifest.web_pkgs.filter((p) => folderMatch(p, cap) || p.includes(cap.replace(/_/g, '-')))
-      : manifest.web_pkgs.slice(0, 1)
+    const node = (schema.root?.children || []).find(
+      (c) => String(c.props?.route || '') === route || c.id === item?.key,
+    )
+    const cap = String(
+      item?.capability_key || node?.props?.capability_key || item?.key || '',
+    ).trim()
+    const slug = cap.replace(/_/g, '-')
+    const fromManifest = cap
+      ? manifest.web_pkgs.filter((p) => folderMatch(p, cap) || p.includes(slug))
+      : []
+    // compose 新加能力时 manifest 可能尚未含包名：按约定补上，避免误报「尚未接入」
+    const convention =
+      cap && !cap.startsWith('gen_') ? [`@blockhub/web-capability-${slug}`] : []
+    const pkgs = [...new Set([...fromManifest, ...convention])]
     void ensurePkgsLoaded(pkgs.length ? pkgs : manifest.web_pkgs.slice(0, 1)).finally(() => {
       if (!cancelled) setRoutePkgsReady(true)
     })
@@ -297,6 +310,18 @@ export default function App() {
       cancelled = true
     }
   }, [route, manifest, schema, widgetsReady])
+
+  // schema 草稿刚写入新能力时，后台预热新增包（避免点进菜单才开始拉）
+  const warmedPkgsRef = useRef<string>('')
+  useEffect(() => {
+    if (!manifest?.web_pkgs?.length || !widgetsReady) return
+    const key = manifest.web_pkgs.join('|')
+    if (key === warmedPkgsRef.current) return
+    const prev = new Set(warmedPkgsRef.current ? warmedPkgsRef.current.split('|') : [])
+    const added = manifest.web_pkgs.filter((p) => !prev.has(p))
+    warmedPkgsRef.current = key
+    if (added.length) void ensurePkgsLoaded(added)
+  }, [manifest?.web_pkgs?.join('|'), widgetsReady])
 
   const handleLogin = async () => {
     setLoginBusy(true)
@@ -727,7 +752,11 @@ export default function App() {
                 routePkgsReady ? (
                   <WidgetHost key={activeNode.id} node={activeNode} ctx={ctx} />
                 ) : (
-                  <p className="muted">加载场景模块…</p>
+                  <div className="widget-loading" role="status">
+                    <div className="widget-loading-spinner" aria-hidden />
+                    <strong>正在加载场景模块…</strong>
+                    <p className="muted">首次打开该能力需拉取前端包，请稍候</p>
+                  </div>
                 )
               ) : (
                 <p className="muted">暂无页面</p>
@@ -771,7 +800,12 @@ export default function App() {
             page_schema={schema as never}
             build_manifest={manifest}
             defaultMode={"live_edit" as const}
-            onSchemaPatch={(next: unknown) => setSchema(next as PageSchema)}
+            onSchemaPatch={(next: unknown) => {
+              const s = next as PageSchema
+              setSchema(s)
+              // 对话改页新增能力后，立刻把约定 web_pkg 并入 manifest，触发按需加载
+              setManifest((prev) => (prev ? scopeManifestToApp(prev, s) : prev))
+            }}
             onSaved={(result: {
               page_schema?: unknown
               capability_keys?: string[]

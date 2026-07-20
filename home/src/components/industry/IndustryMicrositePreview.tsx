@@ -11,6 +11,8 @@ import {
   MICROSITE_PREVIEW_CACHE_LIMIT,
   getCachedMicrositeIds,
   micrositeCacheHint,
+  micrositeChipBadge,
+  type MicrositeLoadState,
 } from '../../data/industryMicrositePreviewCache'
 
 interface Props {
@@ -39,6 +41,9 @@ export default function IndustryMicrositePreview({
   const [ondemandBusy, setOndemandBusy] = useState(false)
   const [ondemandSrcDoc, setOndemandSrcDoc] = useState('')
   const [cssReady, setCssReady] = useState<Record<string, boolean>>({})
+  /** 本会话内已点开并渲染完成的非预载模板 */
+  const [sessionLoaded, setSessionLoaded] = useState<Set<string>>(() => new Set())
+  const [sessionSrcDocs, setSessionSrcDocs] = useState<Record<string, string>>({})
 
   const cachedIds = useMemo(() => getCachedMicrositeIds(packKey), [packKey])
   const cachedSet = useMemo(() => new Set(cachedIds), [cachedIds])
@@ -47,6 +52,8 @@ export default function IndustryMicrositePreview({
     setActiveId(loadSavedMicrositeId(packKey))
     setOndemandSrcDoc('')
     setOndemandBusy(false)
+    setSessionLoaded(new Set())
+    setSessionSrcDocs({})
   }, [packKey])
 
   const copy = useMemo<MicrositePreviewCopy>(
@@ -105,45 +112,81 @@ export default function IndustryMicrositePreview({
 
   const activeCached = Boolean(current && cachedSet.has(current.id))
 
+  const loadStateFor = (id: string): MicrositeLoadState => {
+    if (cachedSet.has(id)) return 'cached'
+    if (sessionLoaded.has(id)) return 'ready'
+    if (id === activeId && ondemandBusy) return 'loading'
+    return 'idle'
+  }
+
+  const markSessionLoaded = (id: string, srcDoc?: string) => {
+    setSessionLoaded((prev) => {
+      if (prev.has(id)) return prev
+      const next = new Set(prev)
+      next.add(id)
+      return next
+    })
+    if (srcDoc) {
+      setSessionSrcDocs((prev) => (prev[id] === srcDoc ? prev : { ...prev, [id]: srcDoc }))
+    }
+  }
+
   const handleSelect = (id: string) => {
     if (id === activeId) return
     const instant = cachedSet.has(id)
+    const sessionHit = sessionSrcDocs[id]
     setFading(true)
     window.setTimeout(() => {
       setActiveId(id)
       saveMicrositeId(packKey, id)
-      if (!instant) {
+      if (instant) {
+        setOndemandBusy(false)
+      } else if (sessionHit) {
+        setOndemandSrcDoc(sessionHit)
+        setOndemandBusy(false)
+        markSessionLoaded(id)
+      } else {
         setOndemandBusy(true)
         setOndemandSrcDoc('')
         const tpl = getMicrositeTemplate(id)
         if (tpl) {
           const origin = window.location.origin
-          // 下一帧写入，让「未预载」提示先出现
           window.requestAnimationFrame(() => {
-            setOndemandSrcDoc(buildIndustryMicrositeSrcDoc(copy, tpl, origin))
-            setOndemandBusy(false)
+            const doc = buildIndustryMicrositeSrcDoc(copy, tpl, origin)
+            setOndemandSrcDoc(doc)
+            setSessionSrcDocs((prev) => ({ ...prev, [id]: doc }))
+            // 保持 busy 直到 iframe onLoad，徽章同步为「加载中…」
           })
         } else {
           setOndemandBusy(false)
         }
-      } else {
-        setOndemandBusy(false)
       }
       setFading(false)
-    }, instant ? 80 : 160)
+    }, instant || sessionHit ? 80 : 160)
   }
 
   // 首次进入若当前已是未缓存模板，补一次 on-demand
   useEffect(() => {
     if (!current || cachedSet.has(current.id)) return
     if (ondemandSrcDoc) return
+    const hit = sessionSrcDocs[current.id]
+    if (hit) {
+      setOndemandSrcDoc(hit)
+      return
+    }
     const origin = typeof window !== 'undefined' ? window.location.origin : ''
-    setOndemandSrcDoc(buildIndustryMicrositeSrcDoc(copy, current, origin))
-  }, [current, cachedSet, copy, ondemandSrcDoc])
+    setOndemandBusy(true)
+    const doc = buildIndustryMicrositeSrcDoc(copy, current, origin)
+    setOndemandSrcDoc(doc)
+    setSessionSrcDocs((prev) => ({ ...prev, [current.id]: doc }))
+    // 仅随 activeId / pack 变化补载；sessionSrcDocs 由本 effect 写入，勿放入 deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeId, packKey, current, cachedSet, copy, ondemandSrcDoc])
 
   if (!current) return null
 
-  const cacheLabel = micrositeCacheHint(activeCached)
+  const activeState = loadStateFor(current.id)
+  const cacheLabel = micrositeCacheHint(activeState)
 
   return (
     <section className="industry-microsite-preview industry-site-section industry-site-panel">
@@ -154,7 +197,7 @@ export default function IndustryMicrositePreview({
         </h2>
         <p>
           正文固定为「{packName}」行业方案文案；切换模板只改版式与视觉气质。
-          前 {MICROSITE_PREVIEW_CACHE_LIMIT} 套已预载，点击即可切换；其余模板点选后即时生成。
+          前 {MICROSITE_PREVIEW_CACHE_LIMIT} 套已预载，点击即可切换；其余模板点选后即时生成，加载完成后标记为「已加载」。
         </p>
       </div>
 
@@ -169,13 +212,16 @@ export default function IndustryMicrositePreview({
           onChange={(e) => handleSelect(e.target.value)}
           style={{ borderColor: accent }}
         >
-          {INDUSTRY_MICROSITE_TEMPLATES.map((t) => (
-            <option key={t.id} value={t.id}>
-              {cachedSet.has(t.id) ? '● ' : '○ '}
-              {t.styleLabel} · {packName}
-              {cachedSet.has(t.id) ? '（已预载）' : '（未预载）'}
-            </option>
-          ))}
+          {INDUSTRY_MICROSITE_TEMPLATES.map((t) => {
+            const state = loadStateFor(t.id)
+            const badge = micrositeChipBadge(state, cssReady[t.id] !== false)
+            return (
+              <option key={t.id} value={t.id}>
+                {state === 'idle' ? '○ ' : '● '}
+                {t.styleLabel} · {packName}（{badge}）
+              </option>
+            )
+          })}
         </select>
         <button
           type="button"
@@ -187,33 +233,43 @@ export default function IndustryMicrositePreview({
       </div>
 
       <p className="industry-microsite-cache-legend" role="status">
-        <span className="industry-microsite-cache-pill is-cached">已预载 {cachedIds.length}/{MICROSITE_PREVIEW_CACHE_LIMIT}</span>
+        <span className="industry-microsite-cache-pill is-cached">
+          已预载 {cachedIds.length}/{MICROSITE_PREVIEW_CACHE_LIMIT}
+        </span>
         <span className="industry-microsite-cache-pill is-live">{cacheLabel}</span>
-        {!activeCached ? (
+        {sessionLoaded.size > 0 ? (
+          <span className="industry-microsite-cache-pill is-session">本会话已加载 {sessionLoaded.size}</span>
+        ) : null}
+        {activeState === 'idle' ? (
           <span className="industry-microsite-cache-warn">
             当前模板未纳入预载槽，首次打开需短暂生成预览（不占预载配额）
           </span>
+        ) : null}
+        {activeState === 'loading' ? (
+          <span className="industry-microsite-cache-warn">正在加载预览…</span>
         ) : null}
       </p>
 
       <div className="industry-microsite-picker" role="listbox" aria-label="视觉模板列表">
         {INDUSTRY_MICROSITE_TEMPLATES.map((t) => {
-          const cached = cachedSet.has(t.id)
+          const state = loadStateFor(t.id)
+          const cached = state === 'cached'
+          const ready = state === 'ready' || state === 'loading'
           return (
             <button
               key={t.id}
               type="button"
               role="option"
               aria-selected={t.id === current.id}
-              className={`industry-microsite-chip${t.id === current.id ? ' on' : ''}${cached ? ' is-cached' : ' is-uncached'}`}
+              className={`industry-microsite-chip${t.id === current.id ? ' on' : ''}${cached ? ' is-cached' : ready ? ' is-session' : ' is-uncached'}`}
               onClick={() => handleSelect(t.id)}
-              title={micrositeCacheHint(cached)}
+              title={micrositeCacheHint(state)}
               style={t.id === current.id ? { borderColor: accent, color: accent } : undefined}
             >
               <strong>{t.styleLabel}</strong>
               <span>{packName}</span>
               <em className="industry-microsite-chip-badge">
-                {cached ? (cssReady[t.id] ? '已预载' : '预载中…') : '未预载'}
+                {micrositeChipBadge(state, cssReady[t.id] !== false)}
               </em>
             </button>
           )
@@ -225,7 +281,13 @@ export default function IndustryMicrositePreview({
           <span>{packName}方案</span>
           <span>
             {current.styleLabel}
-            {activeCached ? ' · 预载切换' : ondemandBusy ? ' · 生成中…' : ' · 即时预览'}
+            {activeCached
+              ? ' · 预载切换'
+              : ondemandBusy
+                ? ' · 生成中…'
+                : sessionLoaded.has(current.id)
+                  ? ' · 已加载'
+                  : ' · 即时预览'}
           </span>
         </div>
 
@@ -246,9 +308,14 @@ export default function IndustryMicrositePreview({
               key={`ondemand-${packKey}-${current.id}`}
               title={`${packName} · ${current.styleLabel} 即时预览`}
               className={`industry-microsite-frame is-visible${ondemandBusy ? ' is-loading' : ''}`}
-              srcDoc={ondemandSrcDoc}
+              srcDoc={ondemandSrcDoc || sessionSrcDocs[current.id] || ''}
               sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"
               loading="lazy"
+              onLoad={() => {
+                if (!ondemandSrcDoc && !sessionSrcDocs[current.id]) return
+                setOndemandBusy(false)
+                markSessionLoaded(current.id, ondemandSrcDoc || sessionSrcDocs[current.id])
+              }}
             />
           ) : null}
           {ondemandBusy ? (
