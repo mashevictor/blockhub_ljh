@@ -247,10 +247,12 @@ export declare function askComposeEdit(
   body: {
     instruction: string
     app_name?: string
+    app_id?: string
     menu?: Array<{ key?: string; label?: string; capability_key?: string; category?: string }>
     capability_keys?: string[]
+    images?: string[]
   },
-  opts?: { token?: string | null },
+  opts?: { token?: string | null; signal?: AbortSignal },
 ): Promise<{
   reply: string
   ops: ComposeEditOp[]

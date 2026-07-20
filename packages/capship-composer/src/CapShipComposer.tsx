@@ -447,7 +447,7 @@ function withModuleFlow(schema: ComposerPageSchema, flow: ModuleFlowPersist): Co
   }
 }
 
-type ChatMsg = { role: 'user' | 'assistant'; text: string }
+type ChatMsg = { role: 'user' | 'assistant'; text: string; images?: string[] }
 
 function chatStorageKey(appKey: string, kind: 'live' | 'flow') {
   return `capship-composer-chat:${kind}:${appKey}`
@@ -469,15 +469,37 @@ function loadChatMsgs(appKey: string, kind: 'live' | 'flow', fallback: ChatMsg[]
 
 function saveChatMsgs(appKey: string, kind: 'live' | 'flow', msgs: ChatMsg[]) {
   try {
-    sessionStorage.setItem(chatStorageKey(appKey, kind), JSON.stringify(msgs.slice(-80)))
+    // 截图 dataURL 很大，持久化时去掉图片只留标记，避免撑爆 sessionStorage
+    const slim = msgs.slice(-80).map((m) =>
+      m.images?.length
+        ? { role: m.role, text: m.text || `（附 ${m.images.length} 张截图）` }
+        : { role: m.role, text: m.text },
+    )
+    sessionStorage.setItem(chatStorageKey(appKey, kind), JSON.stringify(slim))
   } catch {
     /* ignore */
   }
 }
 
+/** 压缩截图为 jpeg data URL（边长≤960、质量偏低，加快视觉识别） */
+async function compressImageFile(file: Blob, maxEdge = 960, quality = 0.55): Promise<string> {
+  const bitmap = await createImageBitmap(file)
+  const scale = Math.min(1, maxEdge / Math.max(bitmap.width, bitmap.height))
+  const w = Math.max(1, Math.round(bitmap.width * scale))
+  const h = Math.max(1, Math.round(bitmap.height * scale))
+  const canvas = document.createElement('canvas')
+  canvas.width = w
+  canvas.height = h
+  const ctx = canvas.getContext('2d')
+  if (!ctx) throw new Error('无法压缩图片')
+  ctx.drawImage(bitmap, 0, 0, w, h)
+  bitmap.close()
+  return canvas.toDataURL('image/jpeg', quality)
+}
+
 const WELCOME_LIVE: ChatMsg = {
   role: 'assistant',
-  text: '直接说业务需求即可。改页先落「本地草稿」（左侧立刻可见）→「保存草稿」（绑你的账号）→「提交审批」；管理员通过后才影响正式 Runtime。',
+  text: '直接说业务需求即可；也可 Ctrl+V 粘贴或上传界面截图，让我看懂当前页。改页先落「本地草稿」→「保存草稿」→「提交审批」；管理员通过后才影响正式 Runtime。',
 }
 
 const WELCOME_FLOW: ChatMsg = {
@@ -510,6 +532,7 @@ export function CapShipComposer({
   const [busy, setBusy] = useState(false)
   const [status, setStatus] = useState('')
   const [draft, setDraft] = useState('')
+  const [pendingImages, setPendingImages] = useState<string[]>([])
   const [flowDraft, setFlowDraft] = useState('')
   const [schemaRev, setSchemaRev] = useState(1)
   const [editorName, setEditorName] = useState('')
@@ -530,6 +553,7 @@ export function CapShipComposer({
   )
   const listRef = useRef<HTMLDivElement>(null)
   const flowListRef = useRef<HTMLDivElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const lastSavedSchemaRef = useRef<ComposerPageSchema | null>(cloneSchema(initialSchema))
   const abortRef = useRef<AbortController | null>(null)
   const codegenAbortRef = useRef<AbortController | null>(null)
@@ -1185,11 +1209,36 @@ export function CapShipComposer({
     setStatus('数据流已写入草稿（未保存）')
   }
 
+  const addPendingImages = async (files: FileList | File[] | null) => {
+    if (!files?.length) return
+    const list = Array.from(files).filter((f) => f.type.startsWith('image/'))
+    if (!list.length) return
+    try {
+      const next: string[] = []
+      for (const f of list) {
+        if (pendingImages.length + next.length >= 3) break
+        next.push(await compressImageFile(f))
+      }
+      if (next.length) setPendingImages((prev) => [...prev, ...next].slice(0, 3))
+    } catch (e) {
+      setStatus(e instanceof Error ? e.message : '图片处理失败')
+    }
+  }
+
   const sendChat = async () => {
     const text = draft.trim()
-    if (!text || busy) return
+    const images = [...pendingImages]
+    if ((!text && !images.length) || busy) return
     setDraft('')
-    setMessages((prev) => [...prev, { role: 'user', text }])
+    setPendingImages([])
+    setMessages((prev) => [
+      ...prev,
+      {
+        role: 'user',
+        text: text || '（请看截图，说明这个页面是什么意思）',
+        images: images.length ? images : undefined,
+      },
+    ])
     setBusy(true)
     setStatus('')
     abortRef.current?.abort()
@@ -1209,7 +1258,7 @@ export function CapShipComposer({
 
       const result = await askComposeEdit(
         {
-          instruction: text,
+          instruction: text || '请根据截图说明当前页面是什么意思，并指出可改进点',
           app_name: base.title || '',
           app_id: appId || base.appId || '',
           menu: base.menu.map((m) => ({
@@ -1219,6 +1268,7 @@ export function CapShipComposer({
             category: m.category,
           })),
           capability_keys: keys,
+          images,
         },
         { token, signal: ac.signal },
       )
@@ -1657,10 +1707,19 @@ export function CapShipComposer({
 
       {activeMode === 'live_edit' && (
         <div className="capship-composer-pane capship-composer-chat">
-          <p className="capship-composer-hint">说业务痛点或改页指令；左侧先出预览 → 保存草稿（绑账号）→ 提交审批 → 管理员通过后正式生效。</p>
+          <p className="capship-composer-hint">
+            说业务痛点或改页指令；可 Ctrl+V 粘贴 / 上传界面截图让模型看懂当前页。左侧先出预览 → 保存草稿 → 提交审批 → 管理员通过后正式生效。
+          </p>
           <div className="capship-composer-chat-list" ref={listRef} aria-live="polite">
             {messages.map((m, i) => (
               <div key={`live-${i}-${m.role}-${m.text.slice(0, 12)}`} className={`capship-composer-msg is-${m.role}`}>
+                {m.images?.length ? (
+                  <div className="capship-composer-msg-imgs">
+                    {m.images.map((src, j) => (
+                      <img key={j} src={src} alt={`截图 ${j + 1}`} />
+                    ))}
+                  </div>
+                ) : null}
                 <div className="capship-composer-msg-text">{m.text}</div>
                 <div className="capship-composer-msg-actions">
                   {m.role === 'user' ? (
@@ -1687,13 +1746,65 @@ export function CapShipComposer({
             ))}
             {busy ? <div className="capship-composer-msg is-assistant is-pending">正在理解…</div> : null}
           </div>
+          {pendingImages.length > 0 ? (
+            <div className="capship-composer-pending-imgs">
+              {pendingImages.map((src, i) => (
+                <div key={i} className="capship-composer-pending-img">
+                  <img src={src} alt={`待发截图 ${i + 1}`} />
+                  <button
+                    type="button"
+                    aria-label="移除截图"
+                    onClick={() => setPendingImages((prev) => prev.filter((_, j) => j !== i))}
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : null}
           <div className="capship-composer-chat-input">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/png,image/jpeg,image/webp,image/gif"
+              multiple
+              hidden
+              onChange={(e) => {
+                void addPendingImages(e.target.files)
+                e.target.value = ''
+              }}
+            />
+            <button
+              type="button"
+              className="capship-composer-btn is-ghost"
+              disabled={busy || pendingImages.length >= 3}
+              title="上传截图"
+              aria-label="上传截图"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              截图
+            </button>
             <textarea
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
-              placeholder="例如：产线老坏要报修；或 增加请假和报销"
+              placeholder="例如：这页啥意思？或 Ctrl+V 粘贴截图 + 说明要改什么"
               rows={2}
               aria-label="改页指令"
+              onPaste={(e) => {
+                const items = e.clipboardData?.items
+                if (!items) return
+                const files: File[] = []
+                for (const it of Array.from(items)) {
+                  if (it.type.startsWith('image/')) {
+                    const f = it.getAsFile()
+                    if (f) files.push(f)
+                  }
+                }
+                if (files.length) {
+                  e.preventDefault()
+                  void addPendingImages(files)
+                }
+              }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault()
@@ -1706,7 +1817,12 @@ export function CapShipComposer({
                 停止
               </button>
             ) : (
-              <button type="button" className="capship-composer-btn" disabled={!draft.trim()} onClick={() => void sendChat()}>
+              <button
+                type="button"
+                className="capship-composer-btn"
+                disabled={!draft.trim() && !pendingImages.length}
+                onClick={() => void sendChat()}
+              >
                 发送
               </button>
             )}

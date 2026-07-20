@@ -85,11 +85,13 @@ class FlowAskRequest(BaseModel):
 
 
 class ComposeEditRequest(BaseModel):
-    instruction: str
+    instruction: str = ""
     app_name: str = ""
     app_id: str = ""
     menu: list[dict] = []
     capability_keys: list[str] = []
+    # data:image/...;base64,... 截图（最多 3 张，由前端压缩）
+    images: list[str] = []
 
 
 class FlowEditRequest(BaseModel):
@@ -331,6 +333,7 @@ def compose_edit_api(body: ComposeEditRequest) -> dict:
         menu=body.menu,
         capability_keys=body.capability_keys,
         app_name=body.app_name,
+        images=body.images,
     )
     pending = list(result.get("pending_codegen_keys") or [])
     codegen_job_id = ""

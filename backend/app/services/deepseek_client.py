@@ -82,6 +82,184 @@ def deepseek_json_chat(system: str, user: str, *, temperature: float = 0.25) -> 
             return None
 
 
+def _vision_api_key() -> str:
+    return (settings.vision_api_key or settings.llm_api_key or settings.deepseek_api_key or "").strip()
+
+
+def _vision_base_url() -> str:
+    return (
+        settings.vision_base_url or settings.llm_base_url or settings.deepseek_base_url or ""
+    ).rstrip("/")
+
+
+def _vision_model() -> str:
+    return (settings.vision_model or settings.llm_model or settings.deepseek_model or "").strip()
+
+
+def vision_configured() -> bool:
+    """是否具备多模态截图理解（WaveSpeed 优先，其次 VISION_*/LLM_* VL）。"""
+    from app.services.wavespeed_vision import wavespeed_configured
+
+    if wavespeed_configured():
+        return True
+    if not _vision_api_key() or not _vision_base_url():
+        return False
+    model = _vision_model().lower()
+    base = _vision_base_url().lower()
+    text_only = model in (
+        "deepseek-chat",
+        "deepseek-reasoner",
+        "deepseek-v4-flash",
+        "deepseek-v4-pro",
+        "",
+    )
+    if "deepseek.com" in base and text_only and not (settings.vision_model or "").strip():
+        if not (settings.llm_base_url or "").strip() or "deepseek.com" in (settings.llm_base_url or "").lower():
+            return False
+    if "deepseek.com" in base and text_only:
+        return False
+    return True
+
+
+def _normalize_data_url(raw: str) -> str | None:
+    s = (raw or "").strip()
+    if not s:
+        return None
+    if s.startswith("data:image/"):
+        return s
+    if s.startswith("http://") or s.startswith("https://"):
+        return s
+    # 裸 base64 → 当 png
+    if re.fullmatch(r"[A-Za-z0-9+/=\s]+", s) and len(s) > 64:
+        return f"data:image/png;base64,{re.sub(r'\s+', '', s)}"
+    return None
+
+
+def _parse_json_object(raw: str) -> dict | None:
+    if not raw:
+        return None
+    try:
+        data = json.loads(raw)
+        return data if isinstance(data, dict) else None
+    except json.JSONDecodeError:
+        m = re.search(r"\{[\s\S]*\}", raw)
+        if not m:
+            return None
+        try:
+            data = json.loads(m.group())
+            return data if isinstance(data, dict) else None
+        except json.JSONDecodeError:
+            return None
+
+
+def deepseek_json_chat_with_images(
+    system: str,
+    user: str,
+    images: list[str] | None = None,
+    *,
+    temperature: float = 0.25,
+) -> dict | None:
+    """带截图的 JSON 对话。优先 WaveSpeed Vision，其次 OpenAI 兼容 VL，再文本回退。"""
+    urls: list[str] = []
+    for raw in images or []:
+        u = _normalize_data_url(raw)
+        if u:
+            urls.append(u)
+        if len(urls) >= 3:
+            break
+    if not urls:
+        return deepseek_json_chat(system, user, temperature=temperature)
+
+    # 1) WaveSpeed.ai any-llm/vision（推荐）
+    from app.services.wavespeed_vision import WaveSpeedVisionError, describe_images, wavespeed_configured
+
+    if wavespeed_configured():
+        vision_prompt = (
+            "你正在协助 CapShip 对话改页。请仔细看截图中的界面（标题、菜单、按钮、表单），"
+            "结合用户指令，只返回一个 JSON 对象（不要 Markdown 代码围栏），字段与系统要求一致。\n\n"
+            f"{user}"
+        )
+        try:
+            raw_text = describe_images(
+                prompt=vision_prompt,
+                images=urls,
+                system_prompt=system,
+                temperature=temperature,
+                max_tokens=768,
+            )
+        except WaveSpeedVisionError as e:
+            return {
+                "reply": f"{e.detail}。也可先用文字描述页面，我继续帮你改页。",
+                "intent_summary": "视觉识别不可用",
+                "ops": [],
+            }
+        parsed = _parse_json_object(raw_text or "")
+        if parsed:
+            return parsed
+        if raw_text:
+            return {
+                "reply": raw_text.strip(),
+                "intent_summary": "已根据截图理解界面",
+                "ops": [],
+            }
+
+    # 2) OpenAI 兼容多模态（需独立 VISION_*/LLM_*，不能仅因 WaveSpeed key 误判）
+    openai_ok = bool(_vision_api_key() and _vision_base_url())
+    base_l = _vision_base_url().lower()
+    model_l = _vision_model().lower()
+    if openai_ok and "deepseek.com" in base_l and model_l in (
+        "deepseek-chat",
+        "deepseek-reasoner",
+        "deepseek-v4-flash",
+        "deepseek-v4-pro",
+        "",
+    ):
+        openai_ok = False
+
+    if not openai_ok:
+        hint = (
+            f"（用户附带了 {len(urls)} 张界面截图，视觉通道不可用；"
+            "请仅根据文字理解，并在 reply 中提示配置 WAVESPEED_API_KEY。）\n"
+        )
+        return deepseek_json_chat(system, hint + user, temperature=temperature)
+
+    key = _vision_api_key()
+    base = _vision_base_url()
+    model = _vision_model() or "gpt-4o-mini"
+    content: list[dict] = [{"type": "text", "text": user}]
+    for u in urls:
+        content.append({"type": "image_url", "image_url": {"url": u}})
+    url = f"{base}/chat/completions"
+    payload = {
+        "model": model,
+        "messages": [
+            {"role": "system", "content": system},
+            {"role": "user", "content": content},
+        ],
+        "temperature": temperature,
+        "response_format": {"type": "json_object"},
+    }
+    body = json.dumps(payload).encode("utf-8")
+    req = urllib.request.Request(
+        url,
+        data=body,
+        headers={
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {key}",
+        },
+        method="POST",
+    )
+    timeout = max(settings.vision_timeout, settings.deepseek_timeout, 30)
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+            raw = data["choices"][0]["message"]["content"]
+    except (urllib.error.URLError, KeyError, json.JSONDecodeError, TimeoutError, OSError):
+        hint = f"（用户附带了 {len(urls)} 张截图，视觉调用失败；请根据文字理解。）\n"
+        return deepseek_json_chat(system, hint + user, temperature=temperature)
+    return _parse_json_object(raw or "")
+
+
 def suggest_with_deepseek(user_text: str) -> dict | None:
     """返回 { items: [{key,label,reason,score,source}], supplemented: [...] }"""
     catalog = capability_catalog_for_llm()
