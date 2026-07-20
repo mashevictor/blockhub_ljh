@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CapShip · 开源范围与能力边界</title>
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs'
+    mermaid.initialize({ startOnLoad: true, theme: 'neutral', securityLevel: 'loose' })
+  </script>
+  <style>
+    :root {
+      --bg: #07131a; --surface: #0d1c24; --line: rgba(148,163,184,.22);
+      --fg: #e7f2f6; --muted: #8ea3ae; --accent: #2dd4bf; --blue: #38bdf8;
+      --ok: #34d399; --no: #fb7185; --warn: #fbbf24;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; background: var(--bg); color: var(--fg); line-height: 1.6; }
+    body::before {
+      content:""; position:fixed; inset:0; z-index:-1; pointer-events:none;
+      background:
+        radial-gradient(780px 400px at 0% 0%, rgba(45,212,191,.18), transparent 55%),
+        radial-gradient(640px 360px at 100% 0%, rgba(56,189,248,.12), transparent 50%);
+    }
+    .wrap { max-width: 1120px; margin: 0 auto; padding: 36px 20px 80px; }
+    .hero {
+      border: 1px solid var(--line); border-radius: 18px; padding: 28px; margin-bottom: 18px;
+      background: linear-gradient(145deg, #0f2a30, #0d1c24 55%, #0a1a28);
+    }
+    .hero h1 { margin: 0 0 8px; font-size: clamp(24px, 4vw, 34px); letter-spacing: -.02em; }
+    .hero h1 em { font-style: normal; color: var(--accent); }
+    .hero .meta { margin: 0; color: var(--muted); font-size: 14px; max-width: 74ch; }
+    .links { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+    .links a {
+      text-decoration: none; color: var(--blue); font-size: 12px; padding: 6px 12px;
+      border: 1px solid var(--line); border-radius: 999px; background: rgba(56,189,248,.08);
+    }
+    .pills { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+    .pill {
+      font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 999px;
+      border: 1px solid var(--line); color: var(--accent); background: rgba(45,212,191,.08);
+    }
+    nav.toc {
+      position: sticky; top: 0; z-index: 20; display: flex; flex-wrap: wrap; gap: 8px;
+      padding: 12px 0; margin-bottom: 16px; background: color-mix(in srgb, var(--bg) 90%, transparent);
+      backdrop-filter: blur(8px); border-bottom: 1px solid var(--line);
+    }
+    nav.toc a {
+      font-size: 12px; color: var(--muted); text-decoration: none; padding: 6px 10px;
+      border-radius: 8px; border: 1px solid var(--line); background: var(--surface);
+    }
+    section {
+      background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+      padding: 20px 22px; margin-bottom: 14px; scroll-margin-top: 64px;
+    }
+    section h2 { margin: 0 0 8px; font-size: 18px; color: var(--accent); }
+    section h3 { margin: 14px 0 8px; font-size: 15px; color: var(--blue); }
+    p, li { font-size: 14px; }
+    .muted { color: var(--muted); }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 10px 0; }
+    th, td { border: 1px solid var(--line); padding: 8px 10px; vertical-align: top; text-align: left; }
+    th { background: #08141a; color: #cbd5e1; font-size: 12px; }
+    code { font-family: ui-monospace, Consolas, monospace; font-size: 12px; background: #08141a; padding: 1px 5px; border-radius: 4px; }
+    pre {
+      background: #061018; color: #9fb4bf; padding: 14px; border-radius: 10px;
+      overflow: auto; font-size: 12px; line-height: 1.5;
+    }
+    .mermaid { background: #061018; border-radius: 10px; padding: 12px; margin: 12px 0; overflow-x: auto; }
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 800px) { .grid2 { grid-template-columns: 1fr; } }
+    .card {
+      border: 1px solid var(--line); border-radius: 12px; padding: 14px; background: #0a1820;
+    }
+    .card h3 { margin: 0 0 8px; font-size: 14px; }
+    .card.in h3 { color: var(--ok); }
+    .card.out h3 { color: var(--no); }
+    .card ul { margin: 0; padding-left: 18px; color: var(--muted); font-size: 13px; }
+    .tag-in { color: var(--ok); font-weight: 700; }
+    .tag-out { color: var(--no); font-weight: 700; }
+    .footer { margin-top: 24px; font-size: 12px; color: var(--muted); }
+    .footer a { color: var(--blue); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="hero">
+      <h1><em>CapShip</em> · 开源范围与能力边界</h1>
+      <p class="meta">
+        Capability → Ship：选型即交付引擎。本文划定「开源 CapShip 做什么 / 不做什么」，
+        以及与积木仓 BlockHub 产品仓的数据流转分界。许可建议 Apache-2.0；契约 SSOT 仍以
+        <code>capship.html</code> 为准。
+      </p>
+      <div class="pills">
+        <span class="pill">选型即交付</span>
+        <span class="pill">热路径无 LLM</span>
+        <span class="pill">Web ⟂ App</span>
+        <span class="pill">路径 A/B</span>
+        <span class="pill">产品面外置</span>
+      </div>
+      <div class="links">
+        <a href="./capship.html">契约 SSOT</a>
+        <a href="./EXTRACTION.md">抽取步骤</a>
+        <a href="../功能清单-v3.0.html">功能清单 v3.0</a>
+        <a href="../解耦清单-v3.0.html">解耦清单 v3.0</a>
+        <a href="../项目计划-v3.0.html">项目计划 v3.0</a>
+      </div>
+    </header>
+
+    <nav class="toc">
+      <a href="#one">一句话</a>
+      <a href="#in-out">In / Out</a>
+      <a href="#arch">架构边界</a>
+      <a href="#data">数据流转</a>
+      <a href="#vs">与 Lang*/RAG</a>
+      <a href="#repo">仓形态</a>
+      <a href="#api">最小 API</a>
+      <a href="#rules">贡献红线</a>
+    </nav>
+
+    <section id="one">
+      <h2>1. 一句话定义</h2>
+      <p>
+        <strong>CapShip</strong> = 把「选中的能力 + 壳模板」编译成可运行的
+        <code>page_schema</code> + <code>build_manifest</code>，并在 Web / App 运行时按清单裁剪加载。
+      </p>
+      <p class="muted">
+        它解决「如何建成可交付产品」；不解决「智能体如何思考」「如何做向量检索」「如何运营广场」。
+      </p>
+    </section>
+
+    <section id="in-out">
+      <h2>2. 范围：In Scope / Out of Scope</h2>
+      <div class="grid2">
+        <article class="card in">
+          <h3>✓ 开源必须包含</h3>
+          <ul>
+            <li>Capability Registry（能力定义与推导）</li>
+            <li>Resolver：keys → 合法集合 + dropped_keys</li>
+            <li>Schema / Manifest 生成器</li>
+            <li>Web / App 壳模板枚举（tabs / sidebar / landing × bottom_tabs / drawer / immersive）</li>
+            <li>web-core + 最小 web-runtime（WidgetHost）</li>
+            <li>flutter-core + 最小 runtime 壳 + manifest 裁剪脚本</li>
+            <li>示范能力包：如 chat_qa、approval_flow（含真 API 参考实现）</li>
+            <li>Composer 契约（对话改页 / 选模块）— 可与 runtime 同仓或 peer</li>
+            <li>路径 B：codegen 预览接口（可选插件，文案禁止夸大）</li>
+          </ul>
+        </article>
+        <article class="card out">
+          <h3>✗ 开源明确不包含</h3>
+          <ul>
+            <li>积木仓 Home 官网 / 广场 / 预约演示</li>
+            <li>上海话语音、电信星级方案等产品插件</li>
+            <li>20 行业独立站营销 HTML 与行业 Catalog 全文</li>
+            <li>B2B 商务运营、邮件投递网关、租户计费</li>
+            <li>完整 Admin 后台与多租户商业策略</li>
+            <li>把 LangGraph / RAG 做成 CapShip 内核</li>
+            <li>「一键生成完整 Flutter 工程」级承诺（除非实现水位达标）</li>
+            <li>像素级复刻 20 套 microsite 营销站</li>
+          </ul>
+        </article>
+      </div>
+      <table>
+        <tr><th>主题</th><th>CapShip</th><th>BlockHub 产品面</th></tr>
+        <tr><td>行业向导 / 独立站皮肤</td><td class="tag-out">Out（可作为 example profile）</td><td class="tag-in">In</td></tr>
+        <tr><td>改页审批（draft→approve）</td><td class="tag-in">In（参考 API）</td><td class="tag-in">In（完整通知/权限）</td></tr>
+        <tr><td>个人草稿单侧 Runtime</td><td class="tag-in">In（契约行为）</td><td class="tag-in">In</td></tr>
+        <tr><td>Gtgt 填表交互</td><td class="tag-in">In（web-core / flutter-core）</td><td>消费</td></tr>
+        <tr><td>广场 Feed</td><td class="tag-out">Out</td><td class="tag-in">In</td></tr>
+      </table>
+    </section>
+
+    <section id="arch">
+      <h2>3. 架构边界图</h2>
+      <div class="mermaid">
+flowchart TB
+  subgraph product [BlockHub 产品面 · 可闭源]
+    Home[Home / 行业向导 / 弹幕]
+    Plaza[广场 / 预约 / 上海话]
+    Admin[Admin 商业后台]
+  end
+  subgraph capship [CapShip 开源核]
+    Reg[Registry]
+    Res[Resolver]
+    Sch[Schema + Manifest]
+    Comp[Composer]
+    WR[Web Runtime]
+    FR[Flutter Runtime]
+    Packs[示范能力包]
+  end
+  subgraph data [数据]
+    PG[(PostgreSQL / 文件后端)]
+  end
+  Home -->|publish keys+shells| Res
+  Plaza -.->|不进入内核| Reg
+  Res --> Sch
+  Sch --> WR
+  Sch --> FR
+  Comp -->|schema/changes| PG
+  Packs --> WR
+  Packs --> FR
+  Packs --> PG
+  Reg --> Res
+      </div>
+      <p class="muted">虚线 = 禁止依赖方向：开源核不得 import 产品面模块。</p>
+    </section>
+
+    <section id="data">
+      <h2>4. 开源视角的数据流转</h2>
+      <h3>4.1 发布热路径（确定性）</h3>
+      <pre>选中 capability_keys
+ + web_template_id / app_ui_id
+ + entry_source（可选，产品扩展）
+        │
+        ▼
+ CapShip Resolver / Schema / Manifest
+        │
+        ├── page_schema.menu / root.children
+        └── build_manifest.web_pkgs / flutter_pkgs
+        │
+        ▼
+ Runtime 按包懒加载 / APK 按包裁剪
+        │
+        ▼
+ 能力包 ↔ 业务 API ↔ 存储
+ （空库 = 空列表；禁止假 seed）</pre>
+
+      <h3>4.2 改页路径（建议开源参考实现）</h3>
+      <div class="mermaid">
+sequenceDiagram
+  participant Dev as 开发者/用户
+  participant RT as CapShip Runtime
+  participant API as Reference API
+  participant DB as Store
+
+  Dev->>RT: 对话改页
+  RT->>RT: 本地预览 schema
+  Dev->>API: POST /schema/changes
+  API->>DB: draft (author)
+  Note over RT,DB: 作者 GET → personal_draft
+  Dev->>API: submit → pending
+  Dev->>API: approve（管理员）
+  API->>DB: 正式 page_schema + rev
+  Note over RT: 全员读正式版
+      </div>
+
+      <h3>4.3 开源核不拥有的数据</h3>
+      <table>
+        <tr><th>数据</th><th>归属</th><th>原因</th></tr>
+        <tr><td>广场帖 / 点赞</td><td>产品面</td><td>社交运营</td></tr>
+        <tr><td>预约演示线索</td><td>产品面</td><td>增长</td></tr>
+        <tr><td>行业 66 场景文案库</td><td>产品面 / 可作 example</td><td>内容资产</td></tr>
+        <tr><td>microsite 营销整站</td><td>产品面</td><td>品牌站，非 Runtime 契约</td></tr>
+      </table>
+    </section>
+
+    <section id="vs">
+      <h2>5. 与相邻开源项目的边界</h2>
+      <table>
+        <tr><th></th><th>管什么</th><th>与 CapShip</th></tr>
+        <tr><td>LangChain / LangGraph</td><td>Agent 推理图</td><td>可放在<strong>能力包内部</strong>；不进 publish 热路径</td></tr>
+        <tr><td>LlamaIndex / RAG</td><td>检索增强</td><td>作为某 Capability 的实现细节</td></tr>
+        <tr><td>低代码画布</td><td>拖拽排版</td><td>CapShip 用 schema 契约，不主打画布</td></tr>
+        <tr><td>CapShip</td><td>能力选型→双端制品</td><td>本项目</td></tr>
+      </table>
+    </section>
+
+    <section id="repo">
+      <h2>6. 建议开源仓形态</h2>
+      <pre>capship/
+  packages/
+    contract/           # Python：registry, resolver, schema, manifest, templates
+    web-core/           # TS：WidgetHost, GtgtStepComposer, types
+    web-runtime/        # 最小 SPA
+    composer/           # 改页 / 选模块 dock
+    flutter-core/
+    flutter-runtime/
+    web-capability-chat/
+    web-capability-approval/
+    capability_chat_qa/
+    capability_approval_flow/
+  examples/
+    minimal-publish/
+  docs/
+    capship.html
+    SPEC.md
+    ARCHITECTURE.md
+    THIS: scope-boundary.html</pre>
+      <p class="muted">积木仓 monorepo 继续做「产品面超集」；抽出后通过 path / 包版本依赖 CapShip，避免双份 registry。</p>
+    </section>
+
+    <section id="api">
+      <h2>7. 参考 API 最小集合</h2>
+      <table>
+        <tr><th>方法</th><th>路径</th><th>开源是否必须</th></tr>
+        <tr><td>POST</td><td><code>/v1/publish</code></td><td>必须（可文件后端）</td></tr>
+        <tr><td>GET</td><td><code>/v1/apps/{id}/schema</code></td><td>必须（含 personal_draft 语义）</td></tr>
+        <tr><td>GET</td><td><code>/v1/apps/{id}/manifest</code></td><td>必须</td></tr>
+        <tr><td>POST</td><td><code>/v1/apps/{id}/schema/changes</code></td><td>建议</td></tr>
+        <tr><td>POST</td><td><code>/.../changes/{id}/approve</code></td><td>建议</td></tr>
+        <tr><td>GET</td><td><code>/v1/apps/{id}/download</code></td><td>可选（APK worker）</td></tr>
+        <tr><td>*</td><td>plaza / booking / voice</td><td><span class="tag-out">禁止进入开源核</span></td></tr>
+      </table>
+    </section>
+
+    <section id="rules">
+      <h2>8. 贡献红线（开源治理）</h2>
+      <ul>
+        <li>新增能力必须路径 A：registry + 双端包 + 真存储说明；禁止只交预览页冒充完成</li>
+        <li>Runtime 业务写入必须 <code>&gt;&gt;</code> 单字段步进（Gtgt），禁止多框同屏作为主路径</li>
+        <li>不得把产品品牌硬编码进 contract 默认推荐</li>
+        <li>路径 B 文案只能写「预览/生成中」，禁止「已生成完整 App 工程」</li>
+        <li>PR 若引入产品面模块到 packages/contract 或 web-runtime 核心 → 驳回</li>
+      </ul>
+      <div class="card" style="margin-top:12px">
+        <h3 style="color:var(--warn)">与积木仓的一句话关系</h3>
+        <p class="muted" style="margin:0">
+          <strong>BlockHub = CapShip 核心 + 产品面。</strong>
+          开源只保证「能力如何被建成产品」；行业独立站、广场增长、语音特色继续由产品仓交付。
+        </p>
+      </div>
+    </section>
+
+    <p class="footer">
+      CapShip 开源范围与能力边界 · 2026-07-20 ·
+      开发 skill：<code>.cursor/skills/capship-capability/SKILL.md</code> ·
+      抽取：<a href="./EXTRACTION.md">EXTRACTION.md</a>
+    </p>
+  </div>
+</body>
+</html>

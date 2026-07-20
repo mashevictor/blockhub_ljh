@@ -63,13 +63,15 @@ function routeFromPath(appId: string): string {
 
 function navigateRoute(appId: string, route: string) {
   const base = `/r/${appId}`
-  const target = route === '/' ? base : `${base}${route}`
+  const normalized = !route || route === '/' ? '/' : route.startsWith('/') ? route : `/${route}`
+  const target = normalized === '/' ? base : `${base}${normalized}`
   const qs = window.location.search || ''
   const next = `${target}${qs}`
   if (`${window.location.pathname}${window.location.search}` !== next) {
     window.history.pushState({}, '', next)
-    window.dispatchEvent(new PopStateEvent('popstate'))
   }
+  window.dispatchEvent(new PopStateEvent('popstate'))
+  return normalized
 }
 
 function layoutOf(schema: PageSchema): string {
@@ -149,6 +151,7 @@ export default function App() {
   const [loginBusy, setLoginBusy] = useState(false)
   /** 独立站：仅会话内换皮；初始以 schema 发布选择为准（勿被旧 localStorage 抢默认） */
   const [skinOverride, setSkinOverride] = useState<string | null>(null)
+  const [sidebarOpen, setSidebarOpen] = useState<Record<string, boolean>>({})
 
   useEffect(() => {
     if (!appId) return
@@ -228,7 +231,7 @@ export default function App() {
         const industryHome =
           isIndustrySiteEntry(meta) && (!routeFromPath(appId) || routeFromPath(appId) === '/')
 
-        // 独立站标题首页不依赖能力 Widget：立刻出壳，能力包后台预热
+        // 独立站行业首页不依赖能力 Widget：立刻出壳，能力包后台预热
         if (industryHome) {
           setWidgetsReady(true)
           void bootWidgetsFromManifest(bm, { background: true, concurrency: 2 })
@@ -417,7 +420,7 @@ export default function App() {
     contentNodes.find((c) => c.id === activeKey) ||
     contentNodes[0]
 
-  // 非独立站落地页：首屏可堆叠；独立站首页用标题页
+  // 非独立站落地页：首屏可堆叠；独立站首页用行业封面
   const landingAll = !industryEntry && layoutRaw === 'landing' && atHome
 
   const menuGroups = (() => {
@@ -480,41 +483,66 @@ export default function App() {
       .catch(() => undefined)
   }
 
+  const goRoute = (nextRoute: string) => {
+    if (!appId) return
+    const normalized = navigateRoute(appId, nextRoute)
+    setRoute(normalized)
+  }
+
   const renderNavButtons = (className: string) => (
     <>
       {industryEntry ? (
         <button
           type="button"
           className={`${className}${atHome ? ' active' : ''}`}
-          onClick={() => navigateRoute(appId!, '/')}
+          onClick={(e) => {
+            e.preventDefault()
+            e.stopPropagation()
+            goRoute('/')
+          }}
         >
-          标题首页
+          行业首页
         </button>
       ) : null}
       {industryEntry
         ? menuGroups.map(([cat, items], gi) => {
             const childActive = items.some((item) => item.route === route || item.key === activeKey)
+            const isOpen =
+              sidebarOpen[cat] !== undefined
+                ? sidebarOpen[cat]
+                : childActive || (atHome && gi === 0)
             return (
-              <details
-                key={cat}
-                className="runtime-sidebar-tree"
-                open={childActive || (atHome && gi === 0)}
-              >
-                <summary className="runtime-sidebar-cat">
+              <div key={cat} className={`runtime-sidebar-tree${isOpen ? ' is-open' : ''}`}>
+                <button
+                  type="button"
+                  className="runtime-sidebar-cat"
+                  aria-expanded={isOpen}
+                  onClick={(e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    setSidebarOpen((prev) => ({ ...prev, [cat]: !isOpen }))
+                  }}
+                >
                   <span>{cat}</span>
                   <span className="runtime-sidebar-count">{items.length}</span>
-                </summary>
-                {items.map((item) => (
-                  <button
-                    key={item.key}
-                    type="button"
-                    className={`${className}${item.route === route || item.key === activeKey ? ' active' : ''}`}
-                    onClick={() => navigateRoute(appId!, item.route || '/')}
-                  >
-                    {item.label}
-                  </button>
-                ))}
-              </details>
+                </button>
+                {isOpen
+                  ? items.map((item) => (
+                      <button
+                        key={item.key}
+                        type="button"
+                        className={`${className}${item.route === route || item.key === activeKey ? ' active' : ''}`}
+                        onClick={(e) => {
+                          e.preventDefault()
+                          e.stopPropagation()
+                          goRoute(item.route || `/${item.key}`)
+                        }}
+                      >
+                        {item.label}
+                      </button>
+                    ))
+                  : null}
+              </div>
             )
           })
         : menu.map((item) => (
@@ -522,7 +550,11 @@ export default function App() {
               key={item.key}
               type="button"
               className={`${className}${item.route === route || item.key === activeKey ? ' active' : ''}`}
-              onClick={() => navigateRoute(appId!, item.route || '/')}
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                goRoute(item.route || `/${item.key}`)
+              }}
             >
               {item.label}
             </button>
@@ -629,8 +661,15 @@ export default function App() {
           </div>
           <div className="runtime-header-actions">
             {industryEntry && !atHome ? (
-              <button type="button" className="btn btn-ghost" onClick={() => navigateRoute(appId, '/')}>
-                标题页
+              <button
+                type="button"
+                className="btn btn-ghost"
+                onClick={(e) => {
+                  e.preventDefault()
+                  goRoute('/')
+                }}
+              >
+                行业首页
               </button>
             ) : null}
             <button type="button" className="btn btn-ghost" onClick={handleLogout}>
@@ -668,7 +707,7 @@ export default function App() {
                   skin={skin}
                   micrositeId={micrositeId || 'consulting'}
                   menu={menu as never}
-                  onEnterScene={(r) => navigateRoute(appId, r)}
+                  onEnterScene={(r) => goRoute(r)}
                   onPickSkin={persistSkin}
                 />
               ) : landingAll ? (
@@ -686,7 +725,7 @@ export default function App() {
                 </div>
               ) : activeNode ? (
                 routePkgsReady ? (
-                  <WidgetHost node={activeNode} ctx={ctx} />
+                  <WidgetHost key={activeNode.id} node={activeNode} ctx={ctx} />
                 ) : (
                   <p className="muted">加载场景模块…</p>
                 )
@@ -723,7 +762,7 @@ export default function App() {
 
         <Suspense fallback={null}>
           <CapShipComposerDock
-            storageKey="capship-runtime-dock-v4"
+            storageKey="capship-runtime-dock-v5"
             defaultOpen={false}
             defaultPlacement="top-right"
             appId={appId}

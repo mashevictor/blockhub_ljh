@@ -231,15 +231,21 @@
   margin: 0;
 }
 
-.runtime-sidebar-tree > summary.runtime-sidebar-cat {
+.runtime-sidebar-tree > .runtime-sidebar-cat {
   list-style: none;
   cursor: pointer;
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 8px;
+  width: 100%;
   margin: 0;
   padding: 6px 8px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
   font-size: 11px;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -247,17 +253,13 @@
   user-select: none;
 }
 
-.runtime-sidebar-tree > summary::-webkit-details-marker {
-  display: none;
-}
-
-.runtime-sidebar-tree > summary::after {
+.runtime-sidebar-tree > .runtime-sidebar-cat::after {
   content: '+';
   opacity: 0.5;
   font-size: 12px;
 }
 
-.runtime-sidebar-tree[open] > summary::after {
+.runtime-sidebar-tree.is-open > .runtime-sidebar-cat::after {
   content: '−';
 }
 

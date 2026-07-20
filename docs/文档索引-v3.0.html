@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BlockHub / CapShip · 文档索引 v3.0</title>
+  <style>
+    :root { --bg:#0b1220; --fg:#e2e8f0; --muted:#94a3b8; --accent:#2dd4bf; --line:rgba(148,163,184,.22); --card:#121a2b; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family:"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif; background:var(--bg); color:var(--fg); }
+    .wrap { max-width:820px; margin:0 auto; padding:40px 20px 80px; }
+    h1 { font-size:28px; margin:0 0 8px; }
+    h1 em { font-style:normal; color:var(--accent); }
+    p { color:var(--muted); line-height:1.6; }
+    a.card {
+      display:block; text-decoration:none; color:inherit; background:var(--card);
+      border:1px solid var(--line); border-radius:14px; padding:16px 18px; margin:10px 0;
+      transition: border-color .15s, transform .15s;
+    }
+    a.card:hover { border-color: color-mix(in srgb, var(--accent) 50%, transparent); transform: translateY(-1px); }
+    a.card strong { display:block; color:var(--accent); margin-bottom:4px; }
+    a.card span { font-size:13px; color:var(--muted); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>文档索引 · <em>v3.0</em></h1>
+    <p>2026-07-20 重拟的四份主文档 + CapShip 契约 SSOT。浏览器直接打开即可。</p>
+    <a class="card" href="./功能清单-v3.0.html">
+      <strong>功能清单 v3.0</strong>
+      <span>交付模型、双入口、草稿审批、独立站封面、能力路径 A/B、状态位</span>
+    </a>
+    <a class="card" href="./项目计划-v3.0.html">
+      <strong>项目计划 v3.0</strong>
+      <span>北极星、四周波次、关键数据流、里程碑与运维节奏</span>
+    </a>
+    <a class="card" href="./解耦清单-v3.0.html">
+      <strong>解耦清单 v3.0</strong>
+      <span>五层模型、必须切开的耦合边、数据归属、反模式</span>
+    </a>
+    <a class="card" href="./opensource/capship-scope-boundary.html">
+      <strong>CapShip 开源范围与能力边界</strong>
+      <span>In/Out、与产品面分界、数据流转、参考 API、贡献红线</span>
+    </a>
+    <a class="card" href="./opensource/capship.html">
+      <strong>CapShip 契约 SSOT（既有）</strong>
+      <span>路径 A/B、双端约定、检查清单 — 开发时以该页为准</span>
+    </a>
+  </div>
+</body>
+</html>

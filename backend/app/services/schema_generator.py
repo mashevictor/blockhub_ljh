@@ -186,7 +186,7 @@ def generate_page_schema(
     if mid:
         meta["microsite_id"] = mid
 
-    # 独立站：强制侧栏场景工作台（标题首页 + 单场景），避免 landing/tabs 能力墙
+    # 独立站：强制侧栏场景工作台（行业首页 + 单场景），避免 landing/tabs 能力墙
     if entry == "industry_site":
         tpl = "sidebar_admin"
         layout_type = "sidebar"

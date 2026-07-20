@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>积木仓 BlockHub · 解耦清单 v3.0</title>
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs'
+    mermaid.initialize({ startOnLoad: true, theme: 'neutral', securityLevel: 'loose' })
+  </script>
+  <style>
+    :root {
+      --bg: #0c1020; --surface: #141a2e; --line: rgba(148,163,184,.22);
+      --fg: #e8eef8; --muted: #9aa8bd; --accent: #a78bfa; --ok: #34d399; --warn: #fbbf24; --teal: #2dd4bf;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; background: var(--bg); color: var(--fg); line-height: 1.6; }
+    body::before {
+      content:""; position:fixed; inset:0; z-index:-1; pointer-events:none;
+      background: radial-gradient(720px 380px at 12% -5%, rgba(167,139,250,.15), transparent 55%),
+                  radial-gradient(640px 340px at 100% 10%, rgba(45,212,191,.1), transparent 50%);
+    }
+    .wrap { max-width: 1120px; margin: 0 auto; padding: 36px 20px 80px; }
+    .hero {
+      border: 1px solid var(--line); border-radius: 18px; padding: 28px; margin-bottom: 18px;
+      background: linear-gradient(145deg, #1a1630, #141a2e 60%, #102028);
+    }
+    .hero h1 { margin: 0 0 8px; font-size: clamp(24px, 4vw, 32px); }
+    .hero h1 em { font-style: normal; color: var(--accent); }
+    .hero .meta { margin: 0; color: var(--muted); font-size: 14px; max-width: 72ch; }
+    .links { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+    .links a {
+      text-decoration: none; color: var(--teal); font-size: 12px; padding: 6px 12px;
+      border: 1px solid var(--line); border-radius: 999px; background: rgba(45,212,191,.07);
+    }
+    nav.toc {
+      position: sticky; top: 0; z-index: 20; display: flex; flex-wrap: wrap; gap: 8px;
+      padding: 12px 0; margin-bottom: 16px; background: color-mix(in srgb, var(--bg) 90%, transparent);
+      backdrop-filter: blur(8px); border-bottom: 1px solid var(--line);
+    }
+    nav.toc a {
+      font-size: 12px; color: var(--muted); text-decoration: none; padding: 6px 10px;
+      border-radius: 8px; border: 1px solid var(--line); background: var(--surface);
+    }
+    section {
+      background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+      padding: 20px 22px; margin-bottom: 14px; scroll-margin-top: 64px;
+    }
+    section h2 { margin: 0 0 8px; font-size: 18px; color: var(--accent); }
+    section h3 { margin: 14px 0 8px; font-size: 15px; }
+    p, li { font-size: 14px; }
+    .muted { color: var(--muted); }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 10px 0; }
+    th, td { border: 1px solid var(--line); padding: 8px 10px; vertical-align: top; text-align: left; }
+    th { background: #0e1324; color: #cbd5e1; font-size: 12px; }
+    code { font-family: ui-monospace, Consolas, monospace; font-size: 12px; background: #0e1324; padding: 1px 5px; border-radius: 4px; }
+    .mermaid { background: #090d18; border-radius: 10px; padding: 12px; margin: 12px 0; overflow-x: auto; }
+    .tag { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 4px; }
+    .tag-ok { background: rgba(52,211,153,.15); color: var(--ok); }
+    .tag-wip { background: rgba(251,191,36,.15); color: var(--warn); }
+    .tag-todo { background: rgba(167,139,250,.15); color: var(--accent); }
+    .footer { margin-top: 24px; font-size: 12px; color: var(--muted); }
+    .footer a { color: var(--teal); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="hero">
+      <h1>积木仓 · 解耦清单 <em>v3.0</em></h1>
+      <p class="meta">
+        2026-07-20。目标：让「契约 / 运行时 / 产品面 / 行业内容 / 开源」边界清晰，
+        改一处不炸全局，并为 CapShip 抽出做准备。解耦 ≠ 拆微服务；优先包边界与数据契约。
+      </p>
+      <div class="links">
+        <a href="./功能清单-v3.0.html">功能清单</a>
+        <a href="./项目计划-v3.0.html">项目计划</a>
+        <a href="./opensource/capship-scope-boundary.html">CapShip 开源边界</a>
+        <a href="./previews/catalog-taxonomy-decoupling.html">能力体系旧版说明</a>
+      </div>
+    </header>
+
+    <nav class="toc">
+      <a href="#layers">分层</a>
+      <a href="#edges">关键耦合边</a>
+      <a href="#checklist">解耦任务</a>
+      <a href="#data">数据归属</a>
+      <a href="#anti">反模式</a>
+    </nav>
+
+    <section id="layers">
+      <h2>1. 五层解耦模型</h2>
+      <div class="mermaid">
+flowchart TB
+  L5[L5 产品面<br/>Home/广场/预约/上海话/Admin]
+  L4[L4 入口壳与皮肤<br/>industry_site / workbench / microsite]
+  L3[L3 Composer 编排<br/>改页草稿审批 / 选模块]
+  L2[L2 契约引擎<br/>registry resolver schema manifest]
+  L1[L1 能力包 + 真 API<br/>web-capability-* / capability_* / PG]
+  L5 --> L4 --> L3 --> L2 --> L1
+      </div>
+      <table>
+        <tr><th>层</th><th>可独立演进的标志</th><th>允许依赖</th></tr>
+        <tr><td>L1 能力</td><td>只改一包不影响其它能力</td><td>web-core / flutter-core / 自身 API</td></tr>
+        <tr><td>L2 契约</td><td>纯函数：keys→schema/manifest</td><td>无产品文案、无 LLM</td></tr>
+        <tr><td>L3 Composer</td><td>可对任意 app 的 schema 操作</td><td>L2 API；不直连广场</td></tr>
+        <tr><td>L4 入口壳</td><td>换 entry_source 只换壳</td><td>L2 meta；不改能力实现</td></tr>
+        <tr><td>L5 产品面</td><td>可闭源；可换品牌</td><td>调用发布 API；不反向污染 registry</td></tr>
+      </table>
+    </section>
+
+    <section id="edges">
+      <h2>2. 必须切开的耦合边</h2>
+      <table>
+        <tr><th>耦合</th><th>现状问题</th><th>目标边界</th><th>状态</th></tr>
+        <tr>
+          <td>场景 ↔ 后端</td>
+          <td>误以为 66 场景 = 66 服务</td>
+          <td>场景 = 配置；能力 = 正式包（约 21 key）</td>
+          <td><span class="tag tag-ok">已澄清</span></td>
+        </tr>
+        <tr>
+          <td>独立站皮肤 ↔ 工作台壳</td>
+          <td>入口混用导致按钮墙 / 错皮</td>
+          <td><code>entry_source</code> 分流；独立站固定左树</td>
+          <td><span class="tag tag-ok">已落地</span></td>
+        </tr>
+        <tr>
+          <td>草稿 ↔ 正式 schema</td>
+          <td>本地预览误当全员生效</td>
+          <td>changes 表；作者 personal_draft；approve 写正式</td>
+          <td><span class="tag tag-ok">已落地</span></td>
+        </tr>
+        <tr>
+          <td>草稿 schema ↔ 业务表</td>
+          <td>担心草稿改库结构</td>
+          <td>业务 API 始终正式表；草稿只改菜单/布局契约</td>
+          <td><span class="tag tag-ok">已约定</span></td>
+        </tr>
+        <tr>
+          <td>home 皮肤表 ↔ runtime 皮肤表</td>
+          <td>双份漂移</td>
+          <td>单一 SSOT 或生成同步；字段 layout/nav 对齐</td>
+          <td><span class="tag tag-wip">已同步字段 · 待单源化</span></td>
+        </tr>
+        <tr>
+          <td>registry 双份</td>
+          <td>抽出开源后双维护</td>
+          <td>BlockHub 依赖 CapShip contract 包</td>
+          <td><span class="tag tag-todo">待抽</span></td>
+        </tr>
+        <tr>
+          <td>产品推荐 ↔ 核心 resolver</td>
+          <td>上海话等硬编码进热路径</td>
+          <td>产品 profile plugin；开源 registry 无品牌项</td>
+          <td><span class="tag tag-todo">待抽</span></td>
+        </tr>
+        <tr>
+          <td>营销站 HTML ↔ Runtime</td>
+          <td>期望像素级复刻 20 站</td>
+          <td>设计关联（色板/封面）；非整页克隆</td>
+          <td><span class="tag tag-ok">边界已定</span></td>
+        </tr>
+        <tr>
+          <td>壳模板 ↔ 能力逻辑</td>
+          <td>改 Tabs 误伤业务包</td>
+          <td>只动 delivery_templates / APP_UI_ID</td>
+          <td><span class="tag tag-ok">skill 强制</span></td>
+        </tr>
+        <tr>
+          <td>LLM ↔ publish 热路径</td>
+          <td>时延与不确定</td>
+          <td>LLM 仅路径 B codegen / 包内 Agent</td>
+          <td><span class="tag tag-ok">契约强制</span></td>
+        </tr>
+      </table>
+    </section>
+
+    <section id="checklist">
+      <h2>3. 解耦任务清单（可执行）</h2>
+      <h3>P0 · 守住已切开的边</h3>
+      <ul>
+        <li>CI 保留 personal-draft / schema-approval smoke</li>
+        <li>独立站回归：无顶栏场景墙；封面显示 industry_name</li>
+        <li>新增能力必须走路径 A checklist（含 Gtgt）</li>
+      </ul>
+      <h3>P1 · 单源与包化</h3>
+      <ul>
+        <li>micrositeRuntimeSkin：home/runtime 抽 shared 或 codegen 拷贝</li>
+        <li><code>capability_registry</code> + schema/manifest → 可安装 contract 包</li>
+        <li>Composer 以 npm 工作区包发布，产品页不绑死 UI</li>
+      </ul>
+      <h3>P2 · 产品面剥离</h3>
+      <ul>
+        <li>plaza / booking / shanghai_voice / 邮件投递 标为 product plugins</li>
+        <li>开源示例仅 chat + approval + 假租户文件后端</li>
+        <li>白标：android_app_id / npm scope / 文案去 BlockHub</li>
+      </ul>
+    </section>
+
+    <section id="data">
+      <h2>4. 数据归属（谁读写什么）</h2>
+      <div class="mermaid">
+flowchart LR
+  subgraph contract [契约数据]
+    PS[page_schema]
+    BM[build_manifest]
+    CR[capability_registry]
+  end
+  subgraph personal [个人改页]
+    CH[app_schema_change_requests]
+  end
+  subgraph formal [正式运行]
+    APPS[apps.page_schema]
+    REV[app_schema_revisions]
+  end
+  subgraph biz [业务数据]
+    T1[各能力业务表]
+  end
+  CR --> PS
+  CR --> BM
+  CH -->|作者可见| PS
+  CH -->|approve| APPS
+  APPS --> REV
+  BM --> WEB[runtime-web]
+  APPS --> WEB
+  WEB --> T1
+      </div>
+      <table>
+        <tr><th>数据</th><th>写入方</th><th>读取方</th><th>备注</th></tr>
+        <tr><td>page_schema 正式</td><td>publish / approve / admin patch</td><td>全员 Runtime</td><td>升 schema_rev</td></tr>
+        <tr><td>change_requests</td><td>作者 Composer</td><td>作者 + 管理员</td><td>不影响他人菜单</td></tr>
+        <tr><td>业务表</td><td>能力 API</td><td>能力 Widget</td><td>与草稿无关</td></tr>
+        <tr><td>microsite_id</td><td>行业向导 / Runtime 换皮</td><td>皮肤解析</td><td>不改 capability_keys</td></tr>
+        <tr><td>industry_name</td><td>publish / GET 补全</td><td>封面大字</td><td>可与 app.name 不同</td></tr>
+      </table>
+    </section>
+
+    <section id="anti">
+      <h2>5. 反模式（发现即改）</h2>
+      <table>
+        <tr><th>反模式</th><th>正确做法</th></tr>
+        <tr><td>home 里 hardcode 某能力特例</td><td>能力包 registerWidget + manifest 懒加载</td></tr>
+        <tr><td>localStorage 冒充工单列表</td><td>真 API；空库空列表</td></tr>
+        <tr><td>多框同屏业务表单</td><td>GtgtStepComposer <code>&gt;&gt;</code> 步进</td></tr>
+        <tr><td>用 approval_flow 顶替报修</td><td>弹幕映射真 capability（如 device_repair）</td></tr>
+        <tr><td>开源仓塞入广场/预约</td><td>产品面保留；开源只留契约+运行时+示范包</td></tr>
+      </table>
+    </section>
+
+    <p class="footer">
+      解耦清单 v3.0 · 2026-07-20 ·
+      <a href="./opensource/EXTRACTION.md">EXTRACTION.md</a> ·
+      <a href="./opensource/capship-scope-boundary.html">开源边界</a>
+    </p>
+  </div>
+</body>
+</html>

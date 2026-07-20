@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>积木仓 BlockHub · 功能清单 v3.0</title>
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs'
+    mermaid.initialize({ startOnLoad: true, theme: 'neutral', securityLevel: 'loose' })
+  </script>
+  <style>
+    :root {
+      --bg: #0b1220; --surface: #121a2b; --card: #182235; --line: rgba(148,163,184,.22);
+      --fg: #e2e8f0; --muted: #94a3b8; --accent: #2dd4bf; --accent2: #38bdf8;
+      --ok: #34d399; --warn: #fbbf24; --plan: #818cf8;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; background: var(--bg); color: var(--fg); line-height: 1.6; }
+    body::before {
+      content: ""; position: fixed; inset: 0; pointer-events: none; z-index: -1;
+      background:
+        radial-gradient(800px 420px at 8% -8%, rgba(45,212,191,.16), transparent 55%),
+        radial-gradient(700px 380px at 92% 0%, rgba(56,189,248,.12), transparent 50%);
+    }
+    .wrap { max-width: 1120px; margin: 0 auto; padding: 36px 20px 80px; }
+    .hero {
+      background: linear-gradient(145deg, #152238, #0f1a2c 55%, #12303a);
+      border: 1px solid var(--line); border-radius: 18px; padding: 28px 28px 22px; margin-bottom: 20px;
+    }
+    .hero h1 { margin: 0 0 8px; font-size: clamp(24px, 4vw, 32px); letter-spacing: -.02em; }
+    .hero h1 em { font-style: normal; color: var(--accent); }
+    .hero .meta { margin: 0; color: var(--muted); font-size: 14px; max-width: 70ch; }
+    .links { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+    .links a {
+      text-decoration: none; color: var(--accent2); font-size: 12px; padding: 6px 12px;
+      border: 1px solid var(--line); border-radius: 999px; background: rgba(56,189,248,.08);
+    }
+    .stats { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+    .stat {
+      min-width: 92px; padding: 10px 12px; border-radius: 12px;
+      background: rgba(255,255,255,.04); border: 1px solid var(--line);
+    }
+    .stat .n { font-size: 20px; font-weight: 800; color: var(--accent); }
+    .stat .l { font-size: 11px; color: var(--muted); }
+    nav.toc {
+      position: sticky; top: 0; z-index: 20; display: flex; flex-wrap: wrap; gap: 8px;
+      padding: 12px 0; margin-bottom: 18px; background: color-mix(in srgb, var(--bg) 88%, transparent);
+      backdrop-filter: blur(8px); border-bottom: 1px solid var(--line);
+    }
+    nav.toc a {
+      font-size: 12px; color: var(--muted); text-decoration: none; padding: 6px 10px;
+      border-radius: 8px; border: 1px solid var(--line); background: var(--surface);
+    }
+    nav.toc a:hover { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 40%, transparent); }
+    section {
+      background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+      padding: 20px 22px; margin-bottom: 16px; scroll-margin-top: 64px;
+    }
+    section h2 { margin: 0 0 8px; font-size: 18px; color: var(--accent2); }
+    section h3 { margin: 16px 0 8px; font-size: 15px; }
+    p, li { font-size: 14px; color: var(--fg); }
+    .muted { color: var(--muted); }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 10px 0 4px; }
+    th, td { border: 1px solid var(--line); padding: 8px 10px; text-align: left; vertical-align: top; }
+    th { background: #0f172a; color: #cbd5e1; font-size: 12px; }
+    code { font-family: ui-monospace, Consolas, monospace; font-size: 12px; background: #0f172a; padding: 1px 5px; border-radius: 4px; }
+    .tag { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 4px; }
+    .tag-done { background: rgba(52,211,153,.15); color: var(--ok); }
+    .tag-wip { background: rgba(251,191,36,.15); color: var(--warn); }
+    .tag-plan { background: rgba(129,140,248,.15); color: var(--plan); }
+    .mermaid { background: #0a101c; border-radius: 10px; padding: 12px; margin: 12px 0; overflow-x: auto; }
+    .note {
+      font-size: 13px; color: var(--muted); border-left: 3px solid var(--accent);
+      padding: 8px 12px; margin: 10px 0; background: rgba(45,212,191,.06);
+    }
+    .footer { margin-top: 28px; font-size: 12px; color: var(--muted); }
+    .footer a { color: var(--accent2); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="hero">
+      <h1>积木仓 <em>BlockHub</em> · 功能清单 <em>v3.0</em></h1>
+      <p class="meta">
+        2026-07-20 重拟。对齐近期落地：个人草稿单侧 Runtime、改页审批、独立站 / CapShip 工作台入口分流、
+        行业封面（01+02）、66 场景→能力复用、选型即交付与 <code>GtgtStepComposer</code> 填表契约。
+        产品仓 = CapShip 核心 + 积木仓产品面。
+      </p>
+      <div class="links">
+        <a href="./项目计划-v3.0.html">项目计划 v3.0</a>
+        <a href="./解耦清单-v3.0.html">解耦清单 v3.0</a>
+        <a href="./opensource/capship-scope-boundary.html">CapShip 开源范围与边界</a>
+        <a href="./opensource/capship.html">CapShip 契约 SSOT</a>
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="n">2</div><div class="l">Runtime 入口壳</div></div>
+        <div class="stat"><div class="n">20</div><div class="l">独立站模板皮肤</div></div>
+        <div class="stat"><div class="n">66→21</div><div class="l">办公场景→能力</div></div>
+        <div class="stat"><div class="n">A/B</div><div class="l">能力交付路径</div></div>
+        <div class="stat"><div class="n">3</div><div class="l">schema 视图</div></div>
+      </div>
+    </header>
+
+    <nav class="toc">
+      <a href="#model">交付模型</a>
+      <a href="#flow">主数据流</a>
+      <a href="#entries">入口能力</a>
+      <a href="#schema">改页与草稿</a>
+      <a href="#industry">独立站</a>
+      <a href="#caps">能力与场景</a>
+      <a href="#runtime">Runtime</a>
+      <a href="#product">产品面</a>
+      <a href="#status">状态位</a>
+    </nav>
+
+    <section id="model">
+      <h2>1. 交付模型（不变式）</h2>
+      <p class="muted">一切可交付功能 = Capability。热路径无 LLM。</p>
+      <pre style="background:#0a101c;padding:14px;border-radius:10px;overflow:auto;font-size:12px;line-height:1.5;color:#94a3b8">capability_keys + web_template_id + app_ui_id + entry_source
+        │
+        ▼
+  resolver → page_schema + build_manifest
+        │
+        ├── runtime-web（web_pkgs 懒加载）
+        └── Flutter APK（flutter_pkgs 裁剪）
+        │
+业务写入 ──▶ PostgreSQL 真 API（空库=空列表；禁止假 seed）</pre>
+      <table>
+        <tr><th>层级</th><th>职责</th><th>不做什么</th></tr>
+        <tr><td>Capability</td><td>双端包 + 真 API + <code>&gt;&gt;</code> 填表</td><td>不决定营销站 HTML</td></tr>
+        <tr><td>Shell</td><td>Tabs / 侧栏 / 落地壳</td><td>不塞业务假数据</td></tr>
+        <tr><td>Entry skin</td><td>独立站色板 / 封面布局</td><td>不复刻 20 套完整营销站 DOM</td></tr>
+        <tr><td>Composer</td><td>对话改页 / 选模块 / 数据流</td><td>不绕过审批写他人正式版</td></tr>
+      </table>
+    </section>
+
+    <section id="flow">
+      <h2>2. 主数据流转</h2>
+      <div class="mermaid">
+flowchart LR
+  H[Home 向导/弹幕/模块] --> P[POST /creation/publish]
+  P --> DB[(apps + page_schema + manifest)]
+  DB --> RW[runtime-web /r/id]
+  DB --> APK[Flutter 裁剪构建]
+  RW --> API[/api/v1 业务能力/]
+  API --> PG[(PostgreSQL)]
+  C[CapShipComposer] --> CH[schema/changes 草稿]
+  CH --> AD[管理员 approve]
+  AD --> DB
+  CH -.->|作者 GET schema| RW
+      </div>
+      <div class="note">
+        <strong>个人草稿单侧生效</strong>：作者带 Bearer 的 GET schema/manifest 可读 <code>personal_draft</code>；
+        同事/匿名读正式 <code>apps.page_schema</code>。业务 API 始终真库，不按草稿分叉业务表。
+      </div>
+    </section>
+
+    <section id="entries">
+      <h2>3. 两条入口（产品功能）</h2>
+      <table>
+        <tr><th>入口</th><th>用户路径</th><th>meta</th><th>Runtime 表现</th><th>状态</th></tr>
+        <tr>
+          <td>独立站 / 行业向导</td>
+          <td><code>/industry/*</code> 选行业·场景·模板 → 发布</td>
+          <td><code>entry_source=industry_site</code> + <code>microsite_id</code> + <code>industry_name</code></td>
+          <td>行业大字封面 + 左侧父子树 + STEP 引导 + 换皮芯片</td>
+          <td><span class="tag tag-done">已交付</span></td>
+        </tr>
+        <tr>
+          <td>CapShip 工作台</td>
+          <td>弹幕 / 选模块 / 描述需求 → 发布</td>
+          <td><code>entry_source=capship_workbench</code></td>
+          <td>标准 Tabs/侧栏壳，无独立站皮肤</td>
+          <td><span class="tag tag-done">已交付</span></td>
+        </tr>
+      </table>
+      <p class="muted">禁止混用：弹幕应用不套 Helios 营销皮；独立站不退化成能力按钮墙。</p>
+    </section>
+
+    <section id="schema">
+      <h2>4. 对话改页 · 草稿 · 审批</h2>
+      <table>
+        <tr><th>能力</th><th>说明</th><th>状态</th></tr>
+        <tr><td>本地预览</td><td>Composer 即时 apply ops，不写正式库</td><td><span class="tag tag-done">已交付</span></td></tr>
+        <tr><td>保存草稿</td><td><code>POST .../schema/changes</code> → draft，绑 author</td><td><span class="tag tag-done">已交付</span></td></tr>
+        <tr><td>作者单侧 Runtime</td><td>GET schema 返回 personal_draft</td><td><span class="tag tag-done">已交付</span></td></tr>
+        <tr><td>提交审批</td><td>pending + 通知管理员</td><td><span class="tag tag-done">已交付</span></td></tr>
+        <tr><td>通过 / 驳回 / 直接发布</td><td>approve → schema_rev++；管理员可直写</td><td><span class="tag tag-done">已交付</span></td></tr>
+        <tr><td>版本历史 / 回滚</td><td>revisions + restore</td><td><span class="tag tag-done">已交付</span></td></tr>
+        <tr><td>改标题语义精度</td><td>compose-edit 常映射成加模块，需收紧意图</td><td><span class="tag tag-wip">增强中</span></td></tr>
+      </table>
+    </section>
+
+    <section id="industry">
+      <h2>5. 独立站功能包</h2>
+      <table>
+        <tr><th>功能</th><th>细节</th><th>状态</th></tr>
+        <tr><td>20 行业包 Catalog</td><td>场景清单 + 装配 capability_keys</td><td><span class="tag tag-done">已交付</span></td></tr>
+        <tr><td>办公 66 场景</td><td>复用约 21 个正式能力 key + 场景配置</td><td><span class="tag tag-done">已交付</span></td></tr>
+        <tr><td>20 套 microsite 皮肤</td><td>色板关联；换皮不改业务 API</td><td><span class="tag tag-done">已交付</span></td></tr>
+        <tr><td>行业封面首页</td><td>大字行业名 + STEP1/2/3 + 场景→能力路径</td><td><span class="tag tag-done">已交付</span></td></tr>
+        <tr><td>左侧父子导航</td><td>按 category 折叠；禁止顶栏 Tab 墙</td><td><span class="tag tag-done">已交付</span></td></tr>
+        <tr><td>场景默认全选</td><td>行业向导默认选中全部场景</td><td><span class="tag tag-done">已交付</span></td></tr>
+        <tr><td>营销站 HTML 像素级复刻</td><td>不在范围内（设计关联，非整页克隆）</td><td><span class="tag tag-plan">不做</span></td></tr>
+      </table>
+    </section>
+
+    <section id="caps">
+      <h2>6. Capability 与双端</h2>
+      <h3>路径 A（正式）</h3>
+      <p>registry → DB/Alembic → API → <code>web-capability-*</code> + <code>capability_*</code>；Runtime 写入用 <code>GtgtStepComposer</code>。</p>
+      <h3>路径 B（预览）</h3>
+      <p>未知 key → codegen 预览页；已知 keys 照常交付；转正必须回路径 A。</p>
+      <table>
+        <tr><th>域</th><th>代表能力</th><th>状态</th></tr>
+        <tr><td>审批 / IM</td><td>approval_flow、notify_im</td><td><span class="tag tag-done">Web+App 主路径</span></td></tr>
+        <tr><td>设备 / 质检 / 库存</td><td>device_repair、quality_inspect、inventory_count</td><td><span class="tag tag-done">已交付</span></td></tr>
+        <tr><td>行业弹幕包</td><td>member_loyalty、med_triage、hotel_booking 等</td><td><span class="tag tag-done">多数已交付</span></td></tr>
+        <tr><td>办公场景全覆盖 Flutter</td><td>部分场景复用同一能力，App 壳 parity</td><td><span class="tag tag-wip">补齐中</span></td></tr>
+      </table>
+    </section>
+
+    <section id="runtime">
+      <h2>7. Runtime 壳能力</h2>
+      <table>
+        <tr><th>功能</th><th>说明</th><th>状态</th></tr>
+        <tr><td>schema / manifest 加载</td><td>支持正式 / 个人草稿视图</td><td><span class="tag tag-done">已交付</span></td></tr>
+        <tr><td>WidgetHost 懒加载</td><td>按 manifest.web_pkgs</td><td><span class="tag tag-done">已交付</span></td></tr>
+        <tr><td>Composer Dock</td><td>改页 / 数据流 / 选模块</td><td><span class="tag tag-done">已交付</span></td></tr>
+        <tr><td>开发者蓝图面板</td><td>库表 / API / 代码路径</td><td><span class="tag tag-done">已交付</span></td></tr>
+        <tr><td>HTML 缓存版本</td><td>build version + version.json 强刷</td><td><span class="tag tag-done">已交付</span></td></tr>
+        <tr><td>IM 群消息入口壳</td><td>报修协作横幅与流程提示</td><td><span class="tag tag-done">已交付</span></td></tr>
+      </table>
+    </section>
+
+    <section id="product">
+      <h2>8. 积木仓产品面（相对 CapShip 开源）</h2>
+      <table>
+        <tr><th>功能</th><th>归属</th><th>状态</th></tr>
+        <tr><td>Home / 广场 / 预约演示</td><td>产品面</td><td><span class="tag tag-done">已交付</span></td></tr>
+        <tr><td>Admin 审批 / 租户</td><td>产品面</td><td><span class="tag tag-done">已交付</span></td></tr>
+        <tr><td>上海话语音</td><td>产品面插件</td><td><span class="tag tag-done">已交付</span></td></tr>
+        <tr><td>行业独立站向导</td><td>产品面消费 CapShip 契约</td><td><span class="tag tag-done">已交付</span></td></tr>
+        <tr><td>B2B 订单闭环增强</td><td>产品面</td><td><span class="tag tag-plan">规划</span></td></tr>
+      </table>
+    </section>
+
+    <section id="status">
+      <h2>9. 本版相对 v2.0 的增量</h2>
+      <ul>
+        <li>明确双入口壳与禁止混用规则</li>
+        <li>个人草稿驱动作者 Runtime（非等管理员）</li>
+        <li>独立站首页从按钮墙改为行业封面 + 引导串联</li>
+        <li>场景≠后端：66 场景复用正式能力包</li>
+        <li>开源边界单列文档，避免产品面误抽进 CapShip</li>
+      </ul>
+    </section>
+
+    <p class="footer">
+      BlockHub 功能清单 v3.0 · 2026-07-20 ·
+      契约以 <a href="./opensource/capship.html">capship.html</a> 与 skills 为准 ·
+      上版 <a href="./功能清单-v2.0.html">v2.0</a>
+    </p>
+  </div>
+</body>
+</html>

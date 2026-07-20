@@ -23,6 +23,11 @@ import {
   saveMicrositeId,
 } from '../data/industryMicrositeTemplates'
 import { buildIndustryMicrositeSrcDoc } from '../data/industryMicrositePreviewHtml'
+import {
+  MICROSITE_PREVIEW_CACHE_LIMIT,
+  getCachedMicrositeIds,
+  micrositeCacheHint,
+} from '../data/industryMicrositePreviewCache'
 import { getMicrositeRuntimeSkin } from '../data/micrositeRuntimeSkin'
 import ContactGateModal, { type ContactInfo } from '../components/ContactGateModal'
 import GenerateLoadingOverlay from '../components/GenerateLoadingOverlay'
@@ -119,6 +124,8 @@ export default function IndustryView({
   const pack = INDUSTRIES.find((p) => p.key === industry)!
   const micrositeMeta = getMicrositeTemplate(micrositeId)
   const apiPackKey = resolveIndustryApiKey(industry)
+  const cachedMicrositeIds = useMemo(() => getCachedMicrositeIds(apiPackKey), [apiPackKey])
+  const cachedMicrositeSet = useMemo(() => new Set(cachedMicrositeIds), [cachedMicrositeIds])
 
   const micrositeSrcDoc = useMemo(() => {
     if (!micrositeMeta) return ''
@@ -314,24 +321,42 @@ export default function IndustryView({
         <div className="industry-wizard-microsite cube-panel">
           <div className="industry-wizard-microsite-head">
             <strong>20 套页面模板</strong>
-            <span>切换会改 Runtime 布局结构（侧栏/全屏/拼贴…），行业文案保持「{pack.name}」</span>
+            <span>
+              前 {MICROSITE_PREVIEW_CACHE_LIMIT} 套预载可点即切；其余未预载 · 点选后即时生成。行业文案保持「{pack.name}」
+            </span>
           </div>
+          <p className="industry-microsite-cache-legend" role="status">
+            <span className="industry-microsite-cache-pill is-cached">
+              已预载 {cachedMicrositeIds.length}/{MICROSITE_PREVIEW_CACHE_LIMIT}
+            </span>
+            <span className="industry-microsite-cache-pill is-live">
+              {micrositeCacheHint(cachedMicrositeSet.has(micrositeId))}
+            </span>
+            {!cachedMicrositeSet.has(micrositeId) ? (
+              <span className="industry-microsite-cache-warn">
+                当前模板未纳入预载槽，首次打开需短暂生成预览
+              </span>
+            ) : null}
+          </p>
           <div className="industry-wizard-microsite-picker" role="listbox" aria-label="视觉模板">
             {INDUSTRY_MICROSITE_TEMPLATES.map((t) => {
               const skin = getMicrositeRuntimeSkin(t.id)
+              const cached = cachedMicrositeSet.has(t.id)
               return (
               <button
                 key={t.id}
                 type="button"
                 role="option"
                 aria-selected={t.id === micrositeId}
-                className={`industry-wizard-ms-chip${t.id === micrositeId ? ' on' : ''}`}
+                className={`industry-wizard-ms-chip${t.id === micrositeId ? ' on' : ''}${cached ? ' is-cached' : ' is-uncached'}`}
+                title={micrositeCacheHint(cached)}
                 onClick={() => switchMicrosite(t.id)}
               >
                 <strong>{t.styleLabel}</strong>
                 <span>
                   {skin ? `${skin.layout} · ${skin.nav}` : t.name}
                 </span>
+                <em className="industry-microsite-chip-badge">{cached ? '已预载' : '未预载'}</em>
               </button>
               )
             })}
@@ -339,7 +364,10 @@ export default function IndustryView({
           <div className={`industry-wizard-ms-frame-wrap${previewFade ? ' is-fading' : ''}`}>
             <div className="industry-wizard-ms-frame-bar">
               <span>{pack.name}</span>
-              <span>{micrositeMeta.styleLabel}</span>
+              <span>
+                {micrositeMeta.styleLabel}
+                {cachedMicrositeSet.has(micrositeId) ? ' · 预载切换' : ' · 即时预览'}
+              </span>
             </div>
             <iframe
               key={`${apiPackKey}-${micrositeId}`}

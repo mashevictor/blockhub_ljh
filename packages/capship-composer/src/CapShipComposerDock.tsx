@@ -127,8 +127,8 @@ export function CapShipComposerDock({
       const nearBottom = stored.y > window.innerHeight - h - 80
       const nearCenter =
         Math.abs(stored.x - (window.innerWidth - w) / 2) < 80 && stored.y > window.innerHeight * 0.15
-      // 独立站：旧的中部宽盒会挡住侧栏，强制迁到右上
-      if (defaultPlacement === 'top-right' && (nearBottom || nearCenter || stored.x < 120)) {
+      // 独立站：旧的中部/左侧宽盒会挡住侧栏，强制迁到右上
+      if (defaultPlacement === 'top-right' && (nearBottom || nearCenter || stored.x < 280)) {
         setPos(resolveDefaultPos(w, h))
       } else {
         setPos(nearBottom ? resolveDefaultPos(w, h) : clampPos(stored, w, h))

@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>积木仓 BlockHub · 项目计划 v3.0</title>
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs'
+    mermaid.initialize({ startOnLoad: true, theme: 'neutral', securityLevel: 'loose' })
+  </script>
+  <style>
+    :root {
+      --bg: #0a0f14; --surface: #12191f; --line: rgba(148,163,184,.2);
+      --fg: #e7eef5; --muted: #93a4b5; --accent: #f59e0b; --teal: #2dd4bf; --blue: #60a5fa;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; background: var(--bg); color: var(--fg); line-height: 1.6; }
+    body::before {
+      content:""; position:fixed; inset:0; z-index:-1; pointer-events:none;
+      background: radial-gradient(700px 360px at 70% -10%, rgba(245,158,11,.14), transparent 55%),
+                  radial-gradient(600px 320px at 0% 20%, rgba(45,212,191,.1), transparent 50%);
+    }
+    .wrap { max-width: 1120px; margin: 0 auto; padding: 36px 20px 80px; }
+    .hero {
+      border: 1px solid var(--line); border-radius: 18px; padding: 28px; margin-bottom: 18px;
+      background: linear-gradient(140deg, #1a2218, #12191f 50%, #1a2430);
+    }
+    .hero h1 { margin: 0 0 8px; font-size: clamp(24px, 4vw, 32px); }
+    .hero h1 em { font-style: normal; color: var(--accent); }
+    .hero .meta { margin: 0; color: var(--muted); font-size: 14px; max-width: 72ch; }
+    .links { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+    .links a {
+      text-decoration: none; color: var(--teal); font-size: 12px; padding: 6px 12px;
+      border: 1px solid var(--line); border-radius: 999px; background: rgba(45,212,191,.07);
+    }
+    nav.toc {
+      position: sticky; top: 0; z-index: 20; display: flex; flex-wrap: wrap; gap: 8px;
+      padding: 12px 0; margin-bottom: 16px; background: color-mix(in srgb, var(--bg) 90%, transparent);
+      backdrop-filter: blur(8px); border-bottom: 1px solid var(--line);
+    }
+    nav.toc a {
+      font-size: 12px; color: var(--muted); text-decoration: none; padding: 6px 10px;
+      border-radius: 8px; border: 1px solid var(--line); background: var(--surface);
+    }
+    section {
+      background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+      padding: 20px 22px; margin-bottom: 14px; scroll-margin-top: 64px;
+    }
+    section h2 { margin: 0 0 8px; font-size: 18px; color: var(--accent); }
+    section h3 { margin: 14px 0 8px; font-size: 15px; color: var(--blue); }
+    p, li { font-size: 14px; }
+    .muted { color: var(--muted); }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 10px 0; }
+    th, td { border: 1px solid var(--line); padding: 8px 10px; vertical-align: top; text-align: left; }
+    th { background: #0c1218; color: #cbd5e1; font-size: 12px; }
+    code { font-family: ui-monospace, Consolas, monospace; font-size: 12px; background: #0c1218; padding: 1px 5px; border-radius: 4px; }
+    .mermaid { background: #080c10; border-radius: 10px; padding: 12px; margin: 12px 0; overflow-x: auto; }
+    .phase {
+      display: grid; grid-template-columns: 88px 1fr; gap: 12px; padding: 12px;
+      border: 1px solid var(--line); border-radius: 12px; margin: 8px 0; background: #0e141a;
+    }
+    .phase .w { font-weight: 800; color: var(--accent); font-size: 13px; }
+    .footer { margin-top: 24px; font-size: 12px; color: var(--muted); }
+    .footer a { color: var(--teal); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="hero">
+      <h1>积木仓 · 项目计划 <em>v3.0</em></h1>
+      <p class="meta">
+        2026-07-20。以「选型即交付」为北极星：契约稳定、入口不混用、草稿可自测、开源可抽出。
+        本计划承接 v2.0 GA 收口之后的产品化与 CapShip 解耦抽取。
+      </p>
+      <div class="links">
+        <a href="./功能清单-v3.0.html">功能清单 v3.0</a>
+        <a href="./解耦清单-v3.0.html">解耦清单 v3.0</a>
+        <a href="./opensource/capship-scope-boundary.html">CapShip 开源边界</a>
+      </div>
+    </header>
+
+    <nav class="toc">
+      <a href="#north">北极星</a>
+      <a href="#waves">波次</a>
+      <a href="#data">关键数据流</a>
+      <a href="#milestones">里程碑</a>
+      <a href="#risks">风险</a>
+      <a href="#ops">运维节奏</a>
+    </nav>
+
+    <section id="north">
+      <h2>1. 北极星与成功标准</h2>
+      <table>
+        <tr><th>目标</th><th>可验收标准</th></tr>
+        <tr><td>选型即交付</td><td>勾选能力 → 发布 → Web/App 真 API 可用；空库空列表</td></tr>
+        <tr><td>双入口不串味</td><td>独立站封面壳 ≠ 弹幕工作台壳；meta.entry_source 可测</td></tr>
+        <tr><td>改页可闭环</td><td>作者草稿立即自见；管理员通过后全员正式</td></tr>
+        <tr><td>开源可抽出</td><td>CapShip 契约/运行时与广场/预约/上海话可物理分仓</td></tr>
+      </table>
+    </section>
+
+    <section id="waves">
+      <h2>2. 四周波次（建议排期）</h2>
+      <div class="phase">
+        <div class="w">W1<br>稳契约</div>
+        <div>
+          <strong>已基本完成 · 巩固</strong>
+          <ul>
+            <li>个人草稿 GET schema/manifest、审批 CI smoke</li>
+            <li>独立站封面 + 左侧树导航上线与回归</li>
+            <li>生产 <code>deploy-one.sh</code> + HTML 缓存版本例行 bump</li>
+          </ul>
+        </div>
+      </div>
+      <div class="phase">
+        <div class="w">W2<br>体验收口</div>
+        <div>
+          <ul>
+            <li>compose-edit 意图：改标题 / 改文案 vs 加模块 语义分离</li>
+            <li>办公 66 场景验收矩阵（场景→能力→真 API）自动化冒烟</li>
+            <li>Flutter parity：高频办公场景 App 与 Web 同路径</li>
+          </ul>
+        </div>
+      </div>
+      <div class="phase">
+        <div class="w">W3<br>解耦抽取</div>
+        <div>
+          <ul>
+            <li>按《解耦清单》拆 L2–L4 依赖边</li>
+            <li>CapShip contract 包可单测：keys→schema/manifest</li>
+            <li>产品仓改为 path / 包依赖，消灭双份 registry</li>
+          </ul>
+        </div>
+      </div>
+      <div class="phase">
+        <div class="w">W4<br>开源成型</div>
+        <div>
+          <ul>
+            <li>CapShip 示范仓：chat + approval + 最小 runtime</li>
+            <li>白标：vendor / npm / pub 前缀可配置</li>
+            <li>文档：范围边界 HTML 与 EXTRACTION 对齐并对外可见</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="data">
+      <h2>3. 计划中的关键数据流（勿破坏）</h2>
+      <div class="mermaid">
+sequenceDiagram
+  participant U as 用户
+  participant H as Home
+  participant API as Backend
+  participant DB as PG
+  participant R as Runtime
+
+  Note over H,R: 发布主路径（热路径无 LLM）
+  U->>H: 选行业/模块/弹幕
+  H->>API: publish
+  API->>DB: apps + page_schema + manifest
+  API-->>H: public_id / web_url
+  U->>R: 打开 /r/{id}
+  R->>API: GET schema + manifest
+  API->>DB: 正式或作者 personal_draft
+  R->>API: 业务 CRUD
+  API->>DB: 能力表真数据
+
+  Note over U,R: 改页路径
+  U->>R: Composer 改页
+  R->>API: POST schema/changes
+  API->>DB: draft/pending
+  U->>R: 刷新仍见草稿
+  Note over API,DB: 管理员 approve 后全员正式
+      </div>
+      <p class="muted">任何排期任务若引入「假列表冒充业务」或「把 LLM 塞进 resolver」= 直接否决。</p>
+    </section>
+
+    <section id="milestones">
+      <h2>4. 里程碑检查单</h2>
+      <table>
+        <tr><th>里程碑</th><th>检查项</th><th>Owner 建议</th></tr>
+        <tr><td>M1 生产同步</td><td>main 含草稿/独立站封面；version.txt 可 curl</td><td>运维 + 前端</td></tr>
+        <tr><td>M2 场景验收</td><td>办公 Top20 场景 Web 读写通过 smoke</td><td>后端 + QA</td></tr>
+        <tr><td>M3 意图精度</td><td>「改标题」不再默认加模块</td><td>Composer</td></tr>
+        <tr><td>M4 契约包</td><td><code>capship/contract</code> 单测绿；BlockHub 切依赖</td><td>平台</td></tr>
+        <tr><td>M5 开源预览</td><td>公开 README + 边界 HTML + 示例应用</td><td>开源</td></tr>
+      </table>
+    </section>
+
+    <section id="risks">
+      <h2>5. 风险与对策</h2>
+      <table>
+        <tr><th>风险</th><th>影响</th><th>对策</th></tr>
+        <tr><td>旧应用仍是能力墙</td><td>用户观感回退</td><td>读 schema 时补 industry_name；引导重新发布 / 换皮</td></tr>
+        <tr><td>66 场景误解为 66 后端</td><td>排期爆炸</td><td>坚持场景配置复用能力；清单写清 66→21</td></tr>
+        <tr><td>开源抽太多产品面</td><td>仓臃肿、许可冲突</td><td>以边界文档为准，产品面留闭源</td></tr>
+        <tr><td>HTML 缓存导致「没改」</td><td>验收误判</td><td>每次上线 bump package version + deploy</td></tr>
+      </table>
+    </section>
+
+    <section id="ops">
+      <h2>6. 运维节奏</h2>
+      <ul>
+        <li>合并 main → <code>git pull && bash scripts/deploy-one.sh</code></li>
+        <li>发布前确认 home / runtime / admin 的 <code>package.json</code> 版本已升</li>
+        <li>改页/审批回归：<code>scripts/smoke-schema-approval-full.sh</code>、<code>smoke-personal-draft.sh</code></li>
+        <li>DB 问题走 <code>blockhub-db-deploy</code> skill，禁止盲目 stamp</li>
+      </ul>
+    </section>
+
+    <p class="footer">
+      项目计划 v3.0 · 2026-07-20 · 关联
+      <a href="./功能清单-v3.0.html">功能清单</a> ·
+      <a href="./解耦清单-v3.0.html">解耦清单</a> ·
+      上版 <a href="./项目计划-v2.0.html">v2.0</a>
+    </p>
+  </div>
+</body>
+</html>

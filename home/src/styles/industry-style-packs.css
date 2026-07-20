@@ -1088,12 +1088,52 @@
   font-size: 14px;
 }
 
+.industry-microsite-cache-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+  margin: 0 0 12px;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.industry-microsite-cache-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.02em;
+}
+
+.industry-microsite-cache-pill.is-cached {
+  background: color-mix(in srgb, var(--site-primary, #0d47a1) 12%, #fff);
+  color: var(--site-primary, #0d47a1);
+  border: 1px solid color-mix(in srgb, var(--site-primary, #0d47a1) 28%, #fff);
+}
+
+.industry-microsite-cache-pill.is-live {
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+}
+
+.industry-microsite-cache-warn {
+  color: #b45309;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 8px;
+  padding: 4px 8px;
+}
+
 .industry-microsite-picker {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 14px;
-  max-height: 140px;
+  max-height: 160px;
   overflow-y: auto;
 }
 
@@ -1110,6 +1150,7 @@
   text-align: left;
   min-width: 120px;
   transition: border-color 0.15s, box-shadow 0.15s;
+  position: relative;
 }
 
 .industry-microsite-chip strong {
@@ -1120,6 +1161,28 @@
 .industry-microsite-chip span {
   font-size: 11px;
   color: #64748b;
+}
+
+.industry-microsite-chip-badge {
+  margin-top: 4px;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.industry-microsite-chip.is-cached .industry-microsite-chip-badge {
+  color: var(--site-primary, #0d47a1);
+}
+
+.industry-microsite-chip.is-uncached .industry-microsite-chip-badge {
+  color: #b45309;
+}
+
+.industry-microsite-chip.is-uncached {
+  background: #fffdf8;
+  border-style: dashed;
 }
 
 .industry-microsite-chip.on,
@@ -1150,6 +1213,13 @@
   background: #1e293b;
 }
 
+.industry-microsite-frame-stack {
+  position: relative;
+  width: 100%;
+  height: min(72vh, 720px);
+  background: #fff;
+}
+
 .industry-microsite-frame {
   display: block;
   width: 100%;
@@ -1158,8 +1228,93 @@
   background: #fff;
 }
 
+.industry-microsite-frame-stack .industry-microsite-frame {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+  transition: opacity 0.12s ease;
+}
+
+.industry-microsite-frame-stack .industry-microsite-frame.is-hidden {
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+  z-index: 0;
+}
+
+.industry-microsite-frame-stack .industry-microsite-frame.is-visible {
+  opacity: 1;
+  visibility: visible;
+  z-index: 1;
+}
+
+.industry-microsite-frame-stack .industry-microsite-frame.is-loading {
+  opacity: 0.4;
+}
+
+.industry-microsite-frame-loading {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, #0f172a 18%, #fff);
+  color: #0f172a;
+  font-size: 14px;
+  font-weight: 600;
+  pointer-events: none;
+}
+
 @media (max-width: 720px) {
-  .industry-microsite-frame {
+  .industry-microsite-frame,
+  .industry-microsite-frame-stack {
     height: 64vh;
   }
 }
+
+/* 深色行业壳（制造 industrial 等）：预览区交互与浅色同源，仅调色 */
+.industry-site--pack-industrial .industry-microsite-select,
+.industry-site--pack-velocity .industry-microsite-select,
+.industry-site--pack-vault .industry-microsite-select,
+.industry-site--pack-cyber .industry-microsite-select,
+.industry-site--pack-broadcast .industry-microsite-select {
+  background: color-mix(in srgb, #0f172a 70%, #fff 8%);
+  color: #e2e8f0;
+  border-color: color-mix(in srgb, var(--site-primary, #94a3b8) 40%, #334155);
+}
+
+.industry-site--pack-industrial .industry-microsite-chip,
+.industry-site--pack-velocity .industry-microsite-chip,
+.industry-site--pack-vault .industry-microsite-chip,
+.industry-site--pack-cyber .industry-microsite-chip,
+.industry-site--pack-broadcast .industry-microsite-chip {
+  background: color-mix(in srgb, #0f172a 82%, #fff 6%);
+  border-color: #334155;
+}
+
+.industry-site--pack-industrial .industry-microsite-chip strong,
+.industry-site--pack-velocity .industry-microsite-chip strong,
+.industry-site--pack-vault .industry-microsite-chip strong,
+.industry-site--pack-cyber .industry-microsite-chip strong,
+.industry-site--pack-broadcast .industry-microsite-chip strong {
+  color: #f8fafc;
+}
+
+.industry-site--pack-industrial .industry-microsite-chip.is-uncached,
+.industry-site--pack-velocity .industry-microsite-chip.is-uncached,
+.industry-site--pack-vault .industry-microsite-chip.is-uncached,
+.industry-site--pack-cyber .industry-microsite-chip.is-uncached,
+.industry-site--pack-broadcast .industry-microsite-chip.is-uncached {
+  background: color-mix(in srgb, #78350f 35%, #0f172a);
+  border-color: #b45309;
+}
+
+.industry-site--pack-industrial .industry-microsite-cache-legend,
+.industry-site--pack-velocity .industry-microsite-cache-legend,
+.industry-site--pack-vault .industry-microsite-cache-legend,
+.industry-site--pack-cyber .industry-microsite-cache-legend,
+.industry-site--pack-broadcast .industry-microsite-cache-legend {
+  color: #94a3b8;
+}
+
+
