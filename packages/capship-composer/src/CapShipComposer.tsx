@@ -218,7 +218,7 @@ function applyGeneratedPages(
   }
 }
 
-function applyComposeOps(schema: ComposerPageSchema, ops: ComposeEditOp[]): ComposerPageSchema {
+export function applyComposeOps(schema: ComposerPageSchema, ops: ComposeEditOp[]): ComposerPageSchema {
   let next = cloneSchema(schema)!
   const keys = new Set(next.capability_keys || [])
 
