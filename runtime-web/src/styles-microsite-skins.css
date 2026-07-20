@@ -240,23 +240,29 @@
   gap: 8px;
   width: 100%;
   margin: 0;
-  padding: 6px 8px;
+  padding: 8px 10px;
   border: 0;
-  background: transparent;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
   color: inherit;
   font: inherit;
   text-align: left;
-  font-size: 11px;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  opacity: 0.7;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  opacity: 1;
   user-select: none;
+}
+
+.runtime-sidebar-tree > .runtime-sidebar-cat:hover {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
 }
 
 .runtime-sidebar-tree > .runtime-sidebar-cat::after {
   content: '+';
-  opacity: 0.5;
+  opacity: 0.85;
   font-size: 12px;
+  font-weight: 700;
 }
 
 .runtime-sidebar-tree.is-open > .runtime-sidebar-cat::after {
@@ -265,12 +271,15 @@
 
 .runtime-sidebar-count {
   font-variant-numeric: tabular-nums;
-  opacity: 0.7;
+  opacity: 0.85;
+  font-weight: 600;
 }
 
 .runtime-sidebar-tree .sidebar-btn {
   width: 100%;
   margin: 2px 0;
+  opacity: 1;
+  color: inherit;
 }
 
 .runtime-header-actions {

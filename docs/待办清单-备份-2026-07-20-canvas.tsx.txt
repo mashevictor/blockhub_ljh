@@ -1,0 +1,398 @@
+import {
+  Callout,
+  Card,
+  CardBody,
+  CardHeader,
+  Divider,
+  Grid,
+  H1,
+  H2,
+  H3,
+  Pill,
+  Row,
+  Spacer,
+  Stack,
+  Stat,
+  Text,
+  TodoListCard,
+  useHostTheme,
+} from 'cursor/canvas'
+
+/**
+ * 分类规则（2026-07-20 重排）
+ * - 当前主线：功能 / 架构 / 技术
+ * - 第 4 周顺延：备份·运维 / 体验收口 / 验证·冒烟
+ * 备份原件：blockhub-remaining-todos.backup-20260720.canvas.tsx
+ */
+
+/** 当前主线：功能 · 架构 · 技术 */
+const NOW_BACKLOG = [
+  {
+    id: 'feat-custom-ui',
+    content: '【功能】custom_capabilities 审核台 Admin UI（列表/通过/驳回）',
+    status: 'pending' as const,
+  },
+  {
+    id: 'arch-l2',
+    content: '【架构】抽出 capship/contract：keys→schema/manifest 纯函数',
+    status: 'pending' as const,
+  },
+  {
+    id: 'arch-l3',
+    content: '【架构】Composer L3 依赖边清理，不直连广场/预约',
+    status: 'pending' as const,
+  },
+  {
+    id: 'arch-l4',
+    content: '【架构】入口壳 L4：industry_site / workbench 换壳不改能力',
+    status: 'pending' as const,
+  },
+  {
+    id: 'arch-reg',
+    content: '【架构】消灭双份 registry：产品仓改 path/包依赖',
+    status: 'pending' as const,
+  },
+  {
+    id: 'tech-demo',
+    content: '【技术】CapShip 示范仓骨架：chat + approval + 最小 runtime（可后置到 W4 开源周）',
+    status: 'pending' as const,
+  },
+  {
+    id: 'tech-vendor',
+    content: '【技术】白标前缀可配置：vendor / npm / pub',
+    status: 'pending' as const,
+  },
+  {
+    id: 'tech-erp',
+    content: '【技术】ERP Adapter 接口骨架（金蝶/用友，按签约再深做）',
+    status: 'pending' as const,
+  },
+]
+
+/** 第 4 周：备份 / 体验 / 验证（从主线移出） */
+const WEEK4_DEFERRED = [
+  { id: 'p1-https', content: '【备份·运维】域名正式 HTTPS 证书巡检（非自签）', status: 'pending' as const },
+  { id: 'p1-jwt', content: '【备份·运维】JWT 密钥轮换流程与文档（可选/可不做）', status: 'pending' as const },
+  { id: 'p1-pgbak', content: '【备份·运维】pg-backup cron 上线并验证恢复', status: 'pending' as const },
+  {
+    id: 'p1-ver',
+    content: '【备份·运维】生产 version.txt / deploy 例行 bump',
+    status: 'pending' as const,
+  },
+  {
+    id: 'ops-smoke',
+    content: '【验证】每周 smoke-schema-approval + personal-draft + deploy-one',
+    status: 'pending' as const,
+  },
+  {
+    id: 'w2-intent',
+    content: '【体验】compose-edit：改标题/文案 vs 加模块语义分离验收',
+    status: 'pending' as const,
+  },
+  {
+    id: 'w2-agent-ui',
+    content: '【体验】Agent interactive schema（tool_pad）覆盖计算器类，禁止文字假 UI',
+    status: 'pending' as const,
+  },
+  {
+    id: 'w2-flutter',
+    content: '【体验】Flutter parity：高频办公场景与 Web 同路径',
+    status: 'pending' as const,
+  },
+  {
+    id: 'w2-66',
+    content: '【验证】办公 Top20→66 场景 smoke：场景→能力→真 API',
+    status: 'pending' as const,
+  },
+  {
+    id: 'p4-sso',
+    content: '【验证】企微 SSO WECOM_* 生产联调验收',
+    status: 'pending' as const,
+  },
+  {
+    id: 'w4-docs',
+    content: '【验证·文档】开源边界 HTML 与 EXTRACTION 对外可见勾选',
+    status: 'pending' as const,
+  },
+  {
+    id: 'p4-crm',
+    content: '【体验·可选】纷享/销售易 Webhook · Azure AD',
+    status: 'pending' as const,
+  },
+  {
+    id: 'p3-mt',
+    content: '【体验·增长】多租户深化 · Catalog CRUD · 插件 SDK · i18n',
+    status: 'pending' as const,
+  },
+]
+
+/** 当前周起：第 3 周解耦（5 日）+ 第 4 周顺延（5 日） */
+const DAILY: Array<{
+  week: string
+  day: string
+  date: string
+  focus: string
+  kind: 'now' | 'w4'
+  todos: Array<{ id: string; content: string; status: 'pending' | 'in_progress' | 'completed' }>
+}> = [
+  {
+    week: '第 3 周',
+    day: 'D1',
+    date: '本周 · 日1',
+    focus: '架构 · L2 契约包',
+    kind: 'now',
+    todos: [
+      { id: 'n1-1', content: '定 capship/contract 边界（对照解耦清单）', status: 'pending' },
+      { id: 'n1-2', content: '迁出 keys→schema/manifest 纯函数', status: 'pending' },
+      { id: 'n1-3', content: '单测：无产品文案、无 LLM', status: 'pending' },
+    ],
+  },
+  {
+    week: '第 3 周',
+    day: 'D2',
+    date: '本周 · 日2',
+    focus: '架构 · 单源 registry',
+    kind: 'now',
+    todos: [
+      { id: 'n2-1', content: '盘点第二份 registry / 能力表引用', status: 'pending' },
+      { id: 'n2-2', content: '产品仓改为 path/包依赖单源', status: 'pending' },
+      { id: 'n2-3', content: 'CI 防契约漂移', status: 'pending' },
+    ],
+  },
+  {
+    week: '第 3 周',
+    day: 'D3',
+    date: '本周 · 日3',
+    focus: '架构 · L3 Composer',
+    kind: 'now',
+    todos: [
+      { id: 'n3-1', content: '去掉广场/预约等产品面直连', status: 'pending' },
+      { id: 'n3-2', content: '改页审批只依赖 L2 API', status: 'pending' },
+      { id: 'n3-3', content: 'schema_change 闭环不变（架构 Review）', status: 'pending' },
+    ],
+  },
+  {
+    week: '第 3 周',
+    day: 'D4',
+    date: '本周 · 日4',
+    focus: '架构 · L4 入口壳 + 功能审核台',
+    kind: 'now',
+    todos: [
+      { id: 'n4-1', content: 'entry_source 换壳不改能力实现', status: 'pending' },
+      { id: 'n4-2', content: '旧应用能力墙：补 industry_name / 引导换皮', status: 'pending' },
+      { id: 'n4-3', content: '【功能】custom_capabilities 审核台 Admin UI', status: 'pending' },
+    ],
+  },
+  {
+    week: '第 3 周',
+    day: 'D5',
+    date: '本周 · 日5',
+    focus: '技术 · 解耦收口 + 开源骨架',
+    kind: 'now',
+    todos: [
+      { id: 'n5-1', content: '更新解耦清单标签（已抽/待抽）', status: 'pending' },
+      { id: 'n5-2', content: '白标前缀配置点落地（技术）', status: 'pending' },
+      { id: 'n5-3', content: '示范仓 MVP 范围与目录骨架', status: 'pending' },
+    ],
+  },
+  {
+    week: '第 4 周',
+    day: 'D6',
+    date: 'W4 · 日1',
+    focus: '顺延 · 备份 / 运维',
+    kind: 'w4',
+    todos: [
+      { id: 'w4d1-1', content: 'pg-backup cron 安装 + 恢复演练记录', status: 'pending' },
+      { id: 'w4d1-2', content: 'HTTPS / version.txt / deploy bump 巡检', status: 'pending' },
+      { id: 'w4d1-3', content: 'JWT 轮换：不做则关闭项；做则写 runbook', status: 'pending' },
+    ],
+  },
+  {
+    week: '第 4 周',
+    day: 'D7',
+    date: 'W4 · 日2',
+    focus: '顺延 · 体验收口（意图 / Agent UI）',
+    kind: 'w4',
+    todos: [
+      { id: 'w4d2-1', content: '「改标题」不得默认 add 模块', status: 'pending' },
+      { id: 'w4d2-2', content: 'interactive tool_pad 泛化（计算器等同路径）', status: 'pending' },
+      { id: 'w4d2-3', content: 'Composer 折叠保历史 / 编辑删除停止', status: 'pending' },
+    ],
+  },
+  {
+    week: '第 4 周',
+    day: 'D8',
+    date: 'W4 · 日3',
+    focus: '顺延 · 体验（Flutter）+ 验证（Top20）',
+    kind: 'w4',
+    todos: [
+      { id: 'w4d3-1', content: 'Flutter 高频场景与 Web 同路径', status: 'pending' },
+      { id: 'w4d3-2', content: 'Top20→66：场景→能力→真 API smoke', status: 'pending' },
+      { id: 'w4d3-3', content: '每周 smoke-schema-approval 例行', status: 'pending' },
+    ],
+  },
+  {
+    week: '第 4 周',
+    day: 'D9',
+    date: 'W4 · 日4',
+    focus: '顺延 · 验证（SSO）+ 开源文档勾选',
+    kind: 'w4',
+    todos: [
+      { id: 'w4d4-1', content: '企微 SSO WECOM_* 联调验收', status: 'pending' },
+      { id: 'w4d4-2', content: '边界 HTML / EXTRACTION 对外可见', status: 'pending' },
+      { id: 'w4d4-3', content: '示范仓 README 选型即交付路径', status: 'pending' },
+    ],
+  },
+  {
+    week: '第 4 周',
+    day: 'D10',
+    date: 'W4 · 日5',
+    focus: '顺延 · 可选增长 / 总收口',
+    kind: 'w4',
+    todos: [
+      { id: 'w4d5-1', content: '有签约：ERP Adapter 深做；无签约跳过', status: 'pending' },
+      { id: 'w4d5-2', content: '可选：纷享/销售易 / Azure AD', status: 'pending' },
+      { id: 'w4d5-3', content: 'P3 增长项进下一迭代 backlog', status: 'pending' },
+    ],
+  },
+]
+
+export default function ProjectTodoCanvas() {
+  const nowDays = DAILY.filter((d) => d.kind === 'now')
+  const w4Days = DAILY.filter((d) => d.kind === 'w4')
+
+  return (
+    <Stack gap={20} style={{ padding: 20, maxWidth: 960 }}>
+      <Stack gap={6}>
+        <H1>积木仓 · 剩余待办与每日清单</H1>
+        <Text tone="secondary" size="small">
+          2026-07-20 重排 · 当前焦点：功能 / 架构 / 技术（第 3 周）· 备份原件见
+          blockhub-remaining-todos.backup-20260720
+        </Text>
+      </Stack>
+
+      <Grid columns={4} gap={12}>
+        <Stat value={String(NOW_BACKLOG.length)} label="当前主线项" tone="info" />
+        <Stat value={String(WEEK4_DEFERRED.length)} label="第4周顺延项" tone="warning" />
+        <Stat value="5" label="本周日程" />
+        <Stat value="5" label="W4 顺延日程" />
+      </Grid>
+
+      <Callout tone="info" title="排期口径">
+        当前只做功能 / 架构 / 技术。备份·运维、体验收口、冒烟/联调验收已全部挪到第 4 周，不占本周带宽。
+      </Callout>
+
+      <H2>从主线删除 → 第 4 周（备份 / 体验 / 验证）</H2>
+      <Text tone="secondary" size="small">
+        原「生产/P1/运维」整卡 +「体验收口 W2」整卡 + 验证类（smoke / SSO 验收 / 文档勾选）
+      </Text>
+      <Card>
+        <CardHeader trailing={<Pill tone="warning" size="small">W4 顺延</Pill>}>
+          备份 · 体验 · 验证
+        </CardHeader>
+        <CardBody>
+          <TodoListCard defaultExpanded todos={WEEK4_DEFERRED} />
+        </CardBody>
+      </Card>
+
+      <Divider />
+
+      <H2>当前主线 Backlog（功能 / 架构 / 技术）</H2>
+      <Grid columns={2} gap={12}>
+        <Card>
+          <CardHeader>功能</CardHeader>
+          <CardBody>
+            <TodoListCard
+              defaultExpanded
+              todos={NOW_BACKLOG.filter((x) => x.id.startsWith('feat'))}
+            />
+          </CardBody>
+        </Card>
+        <Card>
+          <CardHeader>架构 · 解耦 W3</CardHeader>
+          <CardBody>
+            <TodoListCard
+              defaultExpanded
+              todos={NOW_BACKLOG.filter((x) => x.id.startsWith('arch'))}
+            />
+          </CardBody>
+        </Card>
+        <Card>
+          <CardHeader>技术</CardHeader>
+          <CardBody>
+            <TodoListCard
+              defaultExpanded
+              todos={NOW_BACKLOG.filter((x) => x.id.startsWith('tech'))}
+            />
+          </CardBody>
+        </Card>
+      </Grid>
+
+      <Divider />
+      <H2>每日清单 · 第 3 周（当前）</H2>
+      <Stack gap={12}>
+        {nowDays.map((d) => (
+          <Card key={d.day}>
+            <CardHeader
+              trailing={
+                <Row gap={8}>
+                  <Pill tone="info" size="small">
+                    {d.week}
+                  </Pill>
+                  <Pill tone="neutral" size="small">
+                    {d.day}
+                  </Pill>
+                </Row>
+              }
+            >
+              {d.focus}
+            </CardHeader>
+            <CardBody>
+              <TodoListCard todos={d.todos} defaultExpanded />
+            </CardBody>
+          </Card>
+        ))}
+      </Stack>
+
+      <Divider />
+      <H2>每日清单 · 第 4 周（顺延）</H2>
+      <Text tone="secondary" size="small">
+        解耦主线完成后再做；不穿插进本周。
+      </Text>
+      <Stack gap={12}>
+        {w4Days.map((d) => (
+          <Card key={d.day}>
+            <CardHeader
+              trailing={
+                <Row gap={8}>
+                  <Pill tone="warning" size="small">
+                    {d.week}
+                  </Pill>
+                  <Pill tone="neutral" size="small">
+                    {d.day}
+                  </Pill>
+                </Row>
+              }
+            >
+              {d.focus}
+            </CardHeader>
+            <CardBody>
+              <TodoListCard todos={d.todos} defaultExpanded={false} />
+            </CardBody>
+          </Card>
+        ))}
+      </Stack>
+
+      <Spacer height={8} />
+      <H3>建议优先级</H3>
+      <Text size="small">
+        本周：L2 contract → registry 单源 → L3 Composer → L4 入口壳 → 审核台 UI → 白标/示范仓骨架 →（第 4
+        周）备份 / 体验 / 验证
+      </Text>
+      <Text tone="secondary" size="small">
+        备份原件：canvases/blockhub-remaining-todos.backup-20260720.canvas.tsx ·
+        docs/待办清单-备份-2026-07-20-canvas.tsx.txt · docs/待办清单-每日-2026-07.md
+      </Text>
+    </Stack>
+  )
+}

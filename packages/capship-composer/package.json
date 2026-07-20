@@ -11,6 +11,10 @@
       "import": "./src/index.ts",
       "default": "./src/index.ts"
     },
+    "./product": {
+      "import": "./src/productAdapters.ts",
+      "default": "./src/productAdapters.ts"
+    },
     "./styles.css": "./src/styles.css"
   },
   "peerDependencies": {

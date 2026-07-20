@@ -38,6 +38,9 @@ uploads/
 *.log
 logs/
 .cache/
+
+# DB backups / restore drills
+backups/
 .eslintcache
 
 # OS / IDE

@@ -6,32 +6,35 @@
 
 - [x] 写下开源叙事与差异化（见 ARCHITECTURE.md）
 - [x] 冻结契约草案（见 SPEC.md）
-- [ ] 选定 vendor 前缀：`com.capship.app.*` / npm `@capship/*` / pub `capship_*`
+- [x] 选定 vendor 前缀（可配置）：默认 `com.blockhub` / `@blockhub/web-capability`；开源设 `CAPSHIP_ANDROID_VENDOR=com.capship` · `CAPSHIP_WEB_PKG_PREFIX=@capship/web-capability` · `CAPSHIP_PUB_PREFIX=capship_`（见 `packages/capship-contract`）
 - [ ] 许可证 Apache-2.0 + CLA / DCO 决策
 
 ## 阶段 1 — 契约库（最先可独立测试）
 
-从本仓复制并去品牌：
+**已落地骨架**：`packages/capship-contract`（`capship_contract`）
 
-| 源 | 目标包 |
-|----|--------|
-| `backend/app/data/delivery_templates.py` | `capship/contract/templates.py` |
-| `backend/app/data/capability_registry.py`（删上海话条目或改为 example） | `capship/contract/registry.py` |
-| `backend/app/services/capability_resolver.py` | `capship/contract/resolver.py` |
-| `backend/app/services/schema_generator.py` | `capship/contract/schema.py` |
-| `backend/app/services/build_manifest.py` | `capship/contract/manifest.py` |
-| `apk_build_profiles.android_app_id_for_public_id` | `capship/contract/android_id.py` |
+| 模块 | 状态 |
+|------|------|
+| `vendor.py` 白标前缀 | ✅ |
+| `registry_core.py` 示范子集 chat_qa / approval_flow | ✅ |
+| `manifest.py` / `schema_minimal.py` | ✅ |
+| `android_id.py` | ✅；BlockHub `apk_build_profiles` 已委托 |
+| `build_manifest.WEB_PKG_PREFIX` | ✅ 读 contract vendor |
+| 全量 registry / resolver / delivery_templates 迁入 | ⬜ 下一迭代（backend 仍为产品全集 SSOT） |
 
-验收：纯 Python 单测：
+验收：
 
-```text
-keys=[chat_qa, approval_flow] + shells
- → page_schema 含 2 路由
- → manifest.web_pkgs / flutter_pkgs 非空
- → android_app_id 对 digit-leading id 合规
+```bash
+pip install -e packages/capship-contract
+python -m pytest packages/capship-contract/tests -q
 ```
 
-BlockHub 改为 `pip install -e ../capship/contract` 或 monorepo path 依赖，避免双份漂移。
+```text
+keys=[chat_qa, approval_flow]
+ → page_schema 含 2 路由
+ → manifest.web_pkgs / flutter_pkgs 非空
+ → android_app_id 对 digit-leading id 合规 + vendor env
+```
 
 ## 阶段 1.5 — Composer（L2–L4 编排面，已在 monorepo 落地）
 

@@ -31,6 +31,10 @@ export interface ComposerPageMock {
   files?: string[]
   kpis?: Array<{ label: string; value: string; hint?: string }>
   primary_action?: string
+  /** 特殊交互壳标记（兼容）；优先用 interactive */
+  ui_kind?: string
+  /** Agent 泛化后的声明式交互（tool_pad 等） */
+  interactive?: Record<string, unknown>
 }
 
 export interface ComposerPageSchema {

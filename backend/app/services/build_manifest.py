@@ -2,13 +2,32 @@
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path
 from typing import Any
 
 from app.data.capability_registry import ALL_CAPABILITIES
 from app.services import effective_capability_registry as _effective_registry  # noqa: F401 — bootstrap seed caps
 
-# Convention-based web package names (physical packages under packages/)
-WEB_PKG_PREFIX = "@blockhub/web-capability"
+# L2 contract（白标前缀）；未安装时回落默认
+_ROOT = Path(__file__).resolve().parents[3]
+_CONTRACT_ROOT = _ROOT / "packages" / "capship-contract"
+if _CONTRACT_ROOT.is_dir() and str(_CONTRACT_ROOT) not in sys.path:
+    sys.path.insert(0, str(_CONTRACT_ROOT))
+
+try:
+    from capship_contract.vendor import web_pkg_prefix as _web_pkg_prefix_fn
+except ImportError:  # pragma: no cover
+    def _web_pkg_prefix_fn() -> str:
+        return "@blockhub/web-capability"
+
+
+def _web_pkg_prefix() -> str:
+    return _web_pkg_prefix_fn()
+
+
+# 兼容旧引用
+WEB_PKG_PREFIX = _web_pkg_prefix()
 
 
 def _web_pkg(key: str) -> str | None:
@@ -22,7 +41,7 @@ def _web_pkg(key: str) -> str | None:
     if cap.web_pkg:
         return cap.web_pkg
     slug = key.replace("_", "-")
-    return f"{WEB_PKG_PREFIX}-{slug}"
+    return f"{_web_pkg_prefix()}-{slug}"
 
 
 def _flutter_pkg(key: str) -> str:

@@ -44,6 +44,15 @@ case "$CMD" in
   pg-backup)
     run pg-backup.sh "$@"
     ;;
+  pg-restore)
+    run pg-restore.sh "$@"
+    ;;
+  pg-backup-drill|pg-drill)
+    run pg-backup-drill.sh "$@"
+    ;;
+  setup-p1-cron|p1-cron)
+    run setup-p1-cron.sh "$@"
+    ;;
   health-watch|health)
     run health-watch.sh "$@"
     ;;
@@ -129,6 +138,9 @@ BlockHub CLI · 仓库根: $ROOT
   blockhub.sh web-packages                          校验 13 个 Web 包
   blockhub.sh secrets-check                         JWT/生产密钥检查
   blockhub.sh pg-backup                             PostgreSQL 备份
+  blockhub.sh pg-restore <dump.sql.gz>              恢复（DRILL=1 或 CONFIRM=YES）
+  blockhub.sh pg-backup-drill                       备份+演练恢复（不碰业务库）
+  blockhub.sh setup-p1-cron [BASE]                  预览/安装 pg-backup+health cron
   blockhub.sh health-watch [BASE_URL] [--strict]    健康检查（cron/告警）
   blockhub.sh batch0 [BASE_URL]                     批次0 基线验收（GA 9/9）
   blockhub.sh batch1 [BASE_URL]                     批次1 P1 生产脚本验收

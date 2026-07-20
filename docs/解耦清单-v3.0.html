@@ -139,14 +139,14 @@ flowchart TB
         <tr>
           <td>home 皮肤表 ↔ runtime 皮肤表</td>
           <td>双份漂移</td>
-          <td>单一 SSOT 或生成同步；字段 layout/nav 对齐</td>
-          <td><span class="tag tag-wip">已同步字段 · 待单源化</span></td>
+          <td>单一 SSOT：<code>shared/micrositeRuntimeSkin.ts</code>；home/runtime re-export</td>
+          <td><span class="tag tag-ok">已单源</span></td>
         </tr>
         <tr>
           <td>registry 双份</td>
           <td>抽出开源后双维护</td>
-          <td>BlockHub 依赖 CapShip contract 包</td>
-          <td><span class="tag tag-todo">待抽</span></td>
+          <td>L2 骨架 <code>packages/capship-contract</code>；产品全集仍在 backend，Composer 兜底读 capability-manifest</td>
+          <td><span class="tag tag-wip">骨架已接</span></td>
         </tr>
         <tr>
           <td>产品推荐 ↔ 核心 resolver</td>

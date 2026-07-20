@@ -1,8 +1,10 @@
-# BlockHub PG 每日备份 cron 示例（复制到 root crontab）
+# BlockHub PG 每日备份 cron 示例（复制到 root crontab，或一键安装）
 #
-# 安装:
-#   crontab -e
-#   粘贴下面一行（路径按实际部署目录调整）
+# 推荐（生产机）:
+#   cd ~/blockhub && git pull
+#   INSTALL=1 bash scripts/setup-p1-cron.sh https://www.blockhub.club
+#   bash scripts/pg-backup-drill.sh
 #
+# 手动 crontab -e 时粘贴（路径按实际部署目录调整）:
 # 每天 03:00 备份，保留 14 天
-0 3 * * * cd /root/blockhub && bash scripts/pg-backup.sh >> /var/log/blockhub-pg-backup.log 2>&1
+0 3 * * * cd /root/blockhub && RETENTION_DAYS=14 bash scripts/pg-backup.sh >> /var/log/blockhub-pg-backup.log 2>&1

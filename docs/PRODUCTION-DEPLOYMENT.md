@@ -232,11 +232,33 @@ server {
 
 ### 运维待办（生产正式化）
 
-- [ ] 域名 + HTTPS 全站
-- [ ] JWT_SECRET / 默认密码轮换（`bash blockhub.sh secrets-check`）
-- [ ] PG 每日备份：参考 `scripts/cron-pg-backup.example` 写入 crontab
-- [ ] 监控告警（health + 5xx）
+- [x] 域名 + HTTPS 全站（`www.blockhub.club` · Let's Encrypt）
+- [x] JWT 轮换：**本期不做**（密钥保持现状即可）
+- [x] PG 每日备份脚本 + 恢复演练脚本（见下）
+- [ ] 生产机执行：`INSTALL=1 bash scripts/setup-p1-cron.sh` + `bash scripts/pg-backup-drill.sh`
+- [ ] 监控告警（health cron 随 setup-p1-cron 安装）
 - [ ] 腾讯云 PG 可选迁移（`migrate-tencentdb.sh`，**当前跳过**）
+
+### PG 备份与恢复（P1-3）
+
+```bash
+cd ~/blockhub && git pull
+
+# 安装 cron：每日 03:00 备份（保留 14 天）+ 每 5 分钟 health-watch
+INSTALL=1 bash scripts/setup-p1-cron.sh https://www.blockhub.club
+
+# 立即试跑 + 演练恢复到临时库 *_restore_drill（随后删除，不碰业务库）
+bash scripts/pg-backup-drill.sh
+
+# 仅备份 / 仅恢复演练
+bash blockhub.sh pg-backup
+DRILL=1 bash blockhub.sh pg-restore backups/postgres/trackchat_YYYYMMDD_HHMMSS.sql.gz
+
+# 覆盖生产库（危险）
+CONFIRM=YES bash blockhub.sh pg-restore backups/postgres/trackchat_YYYYMMDD_HHMMSS.sql.gz
+```
+
+演练记录默认写在 `backups/postgres/DRILL-*.txt`。
 
 ### CLI 提示
 

@@ -20,7 +20,6 @@ export {
   fetchSchemaRevisions,
   restoreSchemaRevision,
   SchemaRevConflictError,
-  fetchIndustryAssembly,
   askComposeEdit,
   askFlowEdit,
   fetchCodegenJob,
@@ -31,6 +30,8 @@ export {
   rejectSchemaChange,
 } from './api'
 export type { SchemaChangeItem } from './api'
+/** @deprecated 产品面 API — 请改从 `@capship/composer/product` 或 `./productAdapters` 引入 */
+export { fetchIndustryAssembly } from './productAdapters'
 export {
   applyFlowEditOps,
   buildDefaultModuleFlow,

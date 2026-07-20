@@ -12,17 +12,35 @@ from sqlalchemy.orm import Session
 from app.services.app_store import get_app_by_public_id
 
 
+def _page_props(page: dict[str, Any], *, key: str, title: str, route: str) -> dict[str, Any]:
+    props: dict[str, Any] = {
+        "widget": "GeneratedPageWidget",
+        "capability_key": key,
+        "route": route,
+        "source": "generated",
+        "title": title,
+        "summary": page.get("summary") or "",
+        "blocks": page.get("blocks") or [],
+        "codegen_pending": False,
+    }
+    interactive = page.get("interactive")
+    if isinstance(interactive, dict):
+        props["interactive"] = interactive
+        props["page_mock"] = {
+            "interactive": interactive,
+            "ui_kind": "tool_pad",
+            "form_title": title,
+        }
+    return props
+
+
 def _patch_child(child: dict[str, Any], page: dict[str, Any]) -> dict[str, Any]:
+    key = str(page.get("key") or "")
+    title = str(page.get("title") or key)
+    route = str(page.get("route") or f"/gen/{key}")
+    base = _page_props(page, key=key, title=title, route=route)
     props = dict(child.get("props") or {})
-    props["widget"] = "GeneratedPageWidget"
-    props["capability_key"] = str(page.get("key") or props.get("capability_key") or "")
-    props["title"] = str(page.get("title") or props.get("title") or props.get("scene_label") or "")
-    props["summary"] = str(page.get("summary") or props.get("summary") or "")
-    props["blocks"] = page.get("blocks") or props.get("blocks") or []
-    props["source"] = "generated"
-    props["codegen_pending"] = False
-    if page.get("route"):
-        props["route"] = page["route"]
+    props.update(base)
     return {
         **child,
         "type": "generated_page",
@@ -94,16 +112,7 @@ def merge_generated_into_app(
             {
                 "id": key,
                 "type": "generated_page",
-                "props": {
-                    "widget": "GeneratedPageWidget",
-                    "capability_key": key,
-                    "route": route,
-                    "source": "generated",
-                    "title": title,
-                    "summary": page.get("summary") or "",
-                    "blocks": page.get("blocks") or [],
-                    "codegen_pending": False,
-                },
+                "props": _page_props(page, key=key, title=title, route=route),
             }
         )
         menu.append(
@@ -181,16 +190,7 @@ def apply_generated_pages_to_schema(
             {
                 "id": key,
                 "type": "generated_page",
-                "props": {
-                    "widget": "GeneratedPageWidget",
-                    "capability_key": key,
-                    "route": route,
-                    "source": "generated",
-                    "title": title,
-                    "summary": page.get("summary") or "",
-                    "blocks": page.get("blocks") or [],
-                    "codegen_pending": False,
-                },
+                "props": _page_props(page, key=key, title=title, route=route),
             }
         )
         if not any(isinstance(m, dict) and str(m.get("capability_key") or "") == key for m in menu):

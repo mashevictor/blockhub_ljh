@@ -530,14 +530,15 @@ export default function App() {
         </button>
       ) : null}
       {industryEntry
-        ? menuGroups.map(([cat, items], gi) => {
+        ? menuGroups.map(([cat, items]) => {
             const childActive = items.some((item) => item.route === route || item.key === activeKey)
-            const isOpen =
-              sidebarOpen[cat] !== undefined
-                ? sidebarOpen[cat]
-                : childActive || (atHome && gi === 0)
+            // 默认可点场景全部展开，避免折叠后只剩灰色分类标题
+            const isOpen = sidebarOpen[cat] !== undefined ? sidebarOpen[cat] : true
             return (
-              <div key={cat} className={`runtime-sidebar-tree${isOpen ? ' is-open' : ''}`}>
+              <div
+                key={cat}
+                className={`runtime-sidebar-tree${isOpen ? ' is-open' : ''}${childActive ? ' has-active' : ''}`}
+              >
                 <button
                   type="button"
                   className="runtime-sidebar-cat"

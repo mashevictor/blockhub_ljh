@@ -64,7 +64,7 @@ warn_step() {
   echo ""
   echo "=============================================="
   if [ "$FAIL" -eq 0 ]; then
-    echo " ✅ Batch 1 scripts: OK ($WARN warn — HTTPS/JWT/cron 需运维落地)"
+    echo " ✅ Batch 1 scripts: OK ($WARN warn — 生产机跑 INSTALL=1 setup-p1-cron + pg-backup-drill)"
   else
     echo " ⚠ Batch 1: $FAIL fail, $WARN warn"
   fi

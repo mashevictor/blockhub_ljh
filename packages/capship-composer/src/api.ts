@@ -271,23 +271,6 @@ export async function patchRuntimeModules(
   return res.json()
 }
 
-export async function fetchIndustryAssembly(packKey: string, sceneNames?: string[]) {
-  const q = sceneNames?.length ? `?scenes=${encodeURIComponent(sceneNames.join(','))}` : ''
-  const res = await fetch(`/api/v1/creation/industry/${packKey}/assembly${q}`)
-  if (!res.ok) throw new Error('industry assembly failed')
-  return res.json() as Promise<{
-    success: boolean
-    assembly: {
-      capability_keys: string[]
-      scenario_names: string[]
-      menu_plan: Array<Record<string, string>>
-      groups: Array<{ category: string; scenes: string[] }>
-      scene_count: number
-      pack_name: string
-    }
-  }>
-}
-
 export async function askComposeEdit(
   body: {
     instruction: string
@@ -338,6 +321,7 @@ export async function fetchCodegenJob(
       route?: string
       summary?: string
       blocks?: Array<{ type?: string; text?: string; items?: string[] }>
+      interactive?: Record<string, unknown>
     }>
   }
 }> {

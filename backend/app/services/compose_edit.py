@@ -93,6 +93,76 @@ def _looks_like_minigame(text: str) -> bool:
     return ("小游戏" in t or "单机游戏" in t) and any(w in t for w in ("生成", "做", "加", "来个", "玩", "页面"))
 
 
+def _looks_like_calculator(text: str) -> bool:
+    t = (text or "").strip()
+    if not t:
+        return False
+    if any(w in t for w in ("科学计算器", "计算器", "calculator", "scientific calc")):
+        return True
+    if "计算" in t and any(w in t for w in ("手机", "苹果", "按键", "科学", "sin", "cos")):
+        return True
+    return False
+
+
+def _interactive_schema_for_intent(text: str) -> dict[str, Any] | None:
+    """按意图泛化 tool_pad schema（模板库），禁止为每个需求写死前端组件。"""
+    t = text or ""
+    if _looks_like_calculator(t) or ("数字按钮" in t and "sin" in t.lower()):
+        return {
+            "type": "tool_pad",
+            "theme": "phone_dark",
+            "columns": 4,
+            "hint": "Agent 泛化 · 科学/普通计算器 tool_pad",
+            "buttons": [
+                {"label": "AC", "style": "fn", "ops": [{"op": "clear_all"}]},
+                {"label": "C", "style": "fn", "ops": [{"op": "clear"}]},
+                {"label": "±", "style": "fn", "ops": [{"op": "unary", "fn": "neg"}]},
+                {"label": "÷", "style": "op", "ops": [{"op": "push_binop", "value": "/"}]},
+                {"label": "7", "style": "digit", "ops": [{"op": "append_digit", "value": "7"}]},
+                {"label": "8", "style": "digit", "ops": [{"op": "append_digit", "value": "8"}]},
+                {"label": "9", "style": "digit", "ops": [{"op": "append_digit", "value": "9"}]},
+                {"label": "×", "style": "op", "ops": [{"op": "push_binop", "value": "*"}]},
+                {"label": "4", "style": "digit", "ops": [{"op": "append_digit", "value": "4"}]},
+                {"label": "5", "style": "digit", "ops": [{"op": "append_digit", "value": "5"}]},
+                {"label": "6", "style": "digit", "ops": [{"op": "append_digit", "value": "6"}]},
+                {"label": "-", "style": "op", "ops": [{"op": "push_binop", "value": "-"}]},
+                {"label": "1", "style": "digit", "ops": [{"op": "append_digit", "value": "1"}]},
+                {"label": "2", "style": "digit", "ops": [{"op": "append_digit", "value": "2"}]},
+                {"label": "3", "style": "digit", "ops": [{"op": "append_digit", "value": "3"}]},
+                {"label": "+", "style": "op", "ops": [{"op": "push_binop", "value": "+"}]},
+                {"label": "0", "style": "digit", "ops": [{"op": "append_digit", "value": "0"}]},
+                {"label": ".", "style": "digit", "ops": [{"op": "append_dot"}]},
+                {"label": "=", "style": "accent", "ops": [{"op": "evaluate"}]},
+                {"label": "sin", "style": "fn", "ops": [{"op": "unary", "fn": "sin_deg"}]},
+            ],
+        }
+    if any(w in t for w in ("计数器", "counter", "点数器")):
+        return {
+            "type": "tool_pad",
+            "theme": "light",
+            "columns": 3,
+            "hint": "Agent 泛化 · 计数器 tool_pad",
+            "buttons": [
+                {"label": "+1", "style": "accent", "ops": [{"op": "add", "value": 1}]},
+                {"label": "+5", "style": "op", "ops": [{"op": "add", "value": 5}]},
+                {"label": "-1", "style": "fn", "ops": [{"op": "add", "value": -1}]},
+                {"label": "归零", "style": "fn", "ops": [{"op": "clear_all"}]},
+            ],
+        }
+    if any(w in t for w in ("骰子", "随机数", "抽签")):
+        return {
+            "type": "tool_pad",
+            "theme": "light",
+            "columns": 2,
+            "hint": "Agent 泛化 · 随机 tool_pad",
+            "buttons": [
+                {"label": "掷骰子", "style": "accent", "ops": [{"op": "random_int", "min": 1, "max": 6}]},
+                {"label": "重置", "style": "fn", "ops": [{"op": "clear_all"}]},
+            ],
+        }
+    return None
+
+
 def _companion_explicit(text: str, key: str) -> bool:
     t = text.lower()
     if key == "chat_qa":
@@ -126,7 +196,7 @@ def _select_add_caps(matches: list[dict[str, Any]], text: str) -> list[dict[str,
     return selected
 
 _SYSTEM = f"""你是积木仓 Runtime 编排助手。用户用中文描述业务需求或要怎么改当前应用菜单/表单交互。
-你必须先真正理解用户的业务语言与意图，再落到可执行 ops。页面要先能打开、且贴合用户说法（禁止千篇一律空壳）。
+你必须先真正理解用户的业务语言与意图，再**泛化**到可执行 ops（同类需求共用同一交互模型，禁止每来一个产品名就只吐文字列表）。
 **禁止**在未产出有效 ops 时回复「页面已更新」「已改好」——无 ops 只能澄清或提问。
 
 输出 JSON（不要 markdown）：
@@ -181,6 +251,7 @@ _SYSTEM = f"""你是积木仓 Runtime 编排助手。用户用中文描述业务
 3. 禁止 contract_editor 等无 Web 真包；劳动合同/入职→hire_onboard，法务→legal_case。
 4. **每个 add 必须带 page_mock**，字段名/列表示例要反映用户原话（如「团建」「差旅」「季度 OKR」），禁止复制无关制造/产线话术。
 5. 没有合适正式能力时：capability_key 用 gen_拼音或英文短 slug，widget=GeneratedPageWidget，page_mock 写清表单；接口可异步落地，reply 里说明「页面已出，接口后台生成」。
+5b. **可点按工具 UI**（计算器/计数器/骰子/按键面板等）：必须理解并泛化，在 page_mock 写 `"interactive":{"type":"tool_pad","buttons":[...]}`（白名单 ops），**禁止**用 list 文字罗列按键冒充 UI。改交互同样用 patch_page 更新 interactive。
 6. 同一正式能力可对应多个不同 label 场景页（加班申请与请假申请可并存）。
 7. 已有相同 label 不要重复 add；可 rename/move。
 8. **改交互控件**（日期弹框/选择器、金额改数字、把文本框改成 date/number）：必须用 **patch_page**，针对当前菜单已有项写完整 page_mock.fields 与 form_fields（含 key/label/type）。type 可用 date / datetime-local / number / text / textarea。禁止空 ops 却说已更新。
@@ -606,9 +677,42 @@ def _enrich_add_op(op: dict[str, Any]) -> dict[str, Any]:
                 cap = key
                 break
 
-    # 可玩小游戏：禁止落到 chat_qa / game_support FAQ，强制 Path B 出 GeneratedPageWidget
+    # 可点按工具 / 小游戏：Path B + 声明式 interactive（泛化，不写死组件）
     blob = f"{label} {text} {op.get('summary') or ''}"
-    if _looks_like_minigame(blob) and cap != "game_2048":
+    interactive = op.get("interactive") if isinstance(op.get("interactive"), dict) else None
+    if not interactive:
+        mock0 = op.get("page_mock") if isinstance(op.get("page_mock"), dict) else {}
+        if isinstance(mock0.get("interactive"), dict):
+            interactive = mock0.get("interactive")
+    if not interactive:
+        interactive = _interactive_schema_for_intent(blob)
+
+    if interactive:
+        pending_codegen = True
+        if not str(cap).startswith("gen_"):
+            cap = _slug_gen_key(label or "tool")
+        op["capability_key"] = cap
+        op["widget"] = "GeneratedPageWidget"
+        op["interactive"] = interactive
+        mock = op.get("page_mock") if isinstance(op.get("page_mock"), dict) else {}
+        op["page_mock"] = {
+            **mock,
+            "interactive": interactive,
+            "ui_kind": "tool_pad",
+            "form_title": label or mock.get("form_title") or "交互工具",
+            "primary_action": mock.get("primary_action") or "开始",
+        }
+        # 清掉文字假按键列表
+        if isinstance(op["page_mock"].get("list"), list):
+            op["page_mock"]["list"] = [
+                row
+                for row in op["page_mock"]["list"]
+                if not any(w in str(row) for w in ("数字按钮", "运算符", "科学函数"))
+            ]
+        if not op.get("summary"):
+            op["summary"] = f"{label}：已按意图泛化为可交互 tool_pad"
+        cap_def = None
+    elif _looks_like_minigame(blob) and cap != "game_2048":
         cap = _slug_gen_key(label or "minigame")
         pending_codegen = True
 
@@ -684,6 +788,14 @@ def _intent_page_mock(label: str, cap: str, kind: str, hint: str = "") -> dict[s
     """按用户场景文案生成差异化预览页（非假业务数据冒充真 API）。"""
     ctx = (hint or label).strip()
     blob = f"{label} {ctx}"
+    if _looks_like_calculator(blob) or str(cap).startswith("gen_calculator"):
+        schema = _interactive_schema_for_intent(blob) or _interactive_schema_for_intent("计算器")
+        return {
+            "ui_kind": "tool_pad",
+            "interactive": schema,
+            "form_title": label or "科学计算器",
+            "primary_action": "开始计算",
+        }
     if kind == "game" or cap == "game_2048":
         return {
             "list_title": "2048",

@@ -106,9 +106,9 @@
         <div>
           <strong>已基本完成 · 巩固</strong>
           <ul>
-            <li>个人草稿 GET schema/manifest、审批 CI smoke</li>
-            <li>独立站封面 + 左侧树导航上线与回归</li>
-            <li>生产 <code>deploy-one.sh</code> + HTML 缓存版本例行 bump</li>
+            <li>个人草稿 GET schema/manifest、改页审批闭环</li>
+            <li>独立站封面 + 左侧树导航</li>
+            <li>（部署/缓存 bump 属运维，不占本周功能项）</li>
           </ul>
         </div>
       </div>
@@ -117,7 +117,7 @@
         <div>
           <ul>
             <li>compose-edit 意图：改标题 / 改文案 vs 加模块 语义分离</li>
-            <li>办公 66 场景验收矩阵（场景→能力→真 API）自动化冒烟</li>
+            <li>办公 Top20 / 66→能力：真 API 读写（空库空列表）</li>
             <li>Flutter parity：高频办公场景 App 与 Web 同路径</li>
           </ul>
         </div>
@@ -178,13 +178,13 @@ sequenceDiagram
     <section id="milestones">
       <h2>4. 里程碑检查单</h2>
       <table>
-        <tr><th>里程碑</th><th>检查项</th><th>Owner 建议</th></tr>
-        <tr><td>M1 生产同步</td><td>main 含草稿/独立站封面；version.txt 可 curl</td><td>运维 + 前端</td></tr>
-        <tr><td>M2 场景验收</td><td>办公 Top20 场景 Web 读写通过 smoke</td><td>后端 + QA</td></tr>
+        <tr><th>里程碑</th><th>检查项（功能结果）</th><th>Owner 建议</th></tr>
+        <tr><td>M2 场景</td><td>办公 Top20 真 API 读写；66→能力复用说清（非 66 套后端）</td><td>后端 + 产品</td></tr>
         <tr><td>M3 意图精度</td><td>「改标题」不再默认加模块</td><td>Composer</td></tr>
-        <tr><td>M4 契约包</td><td><code>capship/contract</code> 单测绿；BlockHub 切依赖</td><td>平台</td></tr>
+        <tr><td>M4 契约包</td><td><code>capship/contract</code> 可单测；BlockHub 切依赖</td><td>平台</td></tr>
         <tr><td>M5 开源预览</td><td>公开 README + 边界 HTML + 示例应用</td><td>开源</td></tr>
       </table>
+      <p class="muted">域名 / HTTPS / 备份 / JWT / deploy / smoke 等<strong>不进功能里程碑</strong>，见 <code>PRODUCTION-DEPLOYMENT.md</code>。</p>
     </section>
 
     <section id="risks">
@@ -199,13 +199,8 @@ sequenceDiagram
     </section>
 
     <section id="ops">
-      <h2>6. 运维节奏</h2>
-      <ul>
-        <li>合并 main → <code>git pull && bash scripts/deploy-one.sh</code></li>
-        <li>发布前确认 home / runtime / admin 的 <code>package.json</code> 版本已升</li>
-        <li>改页/审批回归：<code>scripts/smoke-schema-approval-full.sh</code>、<code>smoke-personal-draft.sh</code></li>
-        <li>DB 问题走 <code>blockhub-db-deploy</code> skill，禁止盲目 stamp</li>
-      </ul>
+      <h2>6. 运维说明（不占功能排期）</h2>
+      <p class="muted">备份、证书、cron、部署命令、冒烟脚本<strong>不属于功能清单周次</strong>。需要时查 <code>docs/PRODUCTION-DEPLOYMENT.md</code>；DB 漂移走 <code>blockhub-db-deploy</code> skill。</p>
     </section>
 
     <p class="footer">

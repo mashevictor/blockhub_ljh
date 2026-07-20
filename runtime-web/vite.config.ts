@@ -30,6 +30,7 @@ export default defineConfig({
   plugins: [react(), htmlCacheVersionPlugin({ appName: 'runtime', appVersion })],
   resolve: {
     alias: {
+      '@shared': path.join(root, 'shared'),
       '@blockhub/web-core': path.join(root, 'packages/web-core/src'),
       '@capship/composer': path.join(root, 'packages/capship-composer/src'),
       '@capship/composer/styles.css': path.join(root, 'packages/capship-composer/src/styles.css'),

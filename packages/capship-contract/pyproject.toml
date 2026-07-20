@@ -1,0 +1,15 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "capship-contract"
+version = "0.1.0"
+description = "CapShip L2 contract: keys → page_schema / build_manifest (no product surface)"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["capship_contract*"]

@@ -38,6 +38,7 @@ import {
   getLocalSchemaRevision,
   listLocalSchemaRevisions,
 } from './localSchemaRevisions'
+import { CAPABILITY_MANIFEST } from '../../../shared/capability-manifest'
 
 const DEMO_CATALOG: ComposerModuleItem[] = [
   { key: 'chat_qa', label: '智能问答', kind: 'module' },
@@ -73,47 +74,23 @@ function matchMenuLabel(
   return menu.find((m) => m.label === t) || menu.find((m) => m.label.includes(t) || t.includes(m.label))
 }
 
-/** 与 backend capability_registry.widget 对齐的兜底表（后端 op.widget 优先） */
-const CAP_WIDGET_FALLBACK: Record<string, string> = {
-  chat_qa: 'ChatWidget',
-  leave_request: 'LeaveRequestWidget',
-  expense_claim: 'ExpenseClaimWidget',
-  hire_onboard: 'HireOnboardWidget',
-  device_repair: 'DeviceRepairWidget',
-  quality_inspect: 'QualityInspectWidget',
-  inventory_count: 'InventoryCountWidget',
-  member_loyalty: 'MemberLoyaltyWidget',
-  meeting_booking: 'MeetingBookingWidget',
-  it_ticket: 'ItTicketWidget',
-  it_helpdesk: 'ItTicketWidget',
-  asset_manage: 'AssetManageWidget',
-  seal_request: 'FormWidget',
-  approval_flow: 'FormWidget',
-  approval_inbox: 'InboxWidget',
-  policy_qa: 'PolicyQaWidget',
-  kb_document: 'KBUploadWidget',
-  chart_dashboard: 'DashboardWidget',
-  data_nl_query: 'NLQueryWidget',
-  notify_inapp: 'InboxWidget',
-  notify_im: 'IMWidget',
-  med_triage: 'MedTriageWidget',
-  nurse_shift: 'NurseShiftWidget',
-  property_repair: 'PropertyRepairWidget',
-  hotel_booking: 'HotelBookingWidget',
-  house_viewing: 'HouseViewingWidget',
-  delivery_order: 'DeliveryOrderWidget',
-  site_patrol: 'SitePatrolWidget',
-  sales_lead: 'SalesLeadWidget',
-  quote_contract: 'QuoteContractWidget',
-  ops_kpi: 'OpsKpiWidget',
-  school_notice: 'SchoolNoticeWidget',
-  homework_qa: 'HomeworkQaWidget',
-  class_schedule: 'ClassScheduleWidget',
-  game_support: 'GameSupportWidget',
-  game_2048: 'Game2048Widget',
-  legal_case: 'LegalCaseWidget',
-  gov_service: 'GovServiceWidget',
-  shanghai_voice: 'ShanghaiVoiceWidget',
+/** 与 shared/capability-manifest 对齐；后端 op.widget 优先，此处仅兜底 */
+const CAP_WIDGET_FALLBACK: Record<string, string> = Object.fromEntries(
+  CAPABILITY_MANIFEST.map((e) => [e.key, e.widget]),
+)
+
+function resolveInteractiveUi(op: {
+  label?: string
+  summary?: string
+  capability_key?: string
+  interactive_ui?: string
+  page_mock?: { ui_kind?: string } | ComposeEditOp['page_mock']
+}): string | undefined {
+  const explicit = String(op.interactive_ui || (op.page_mock as { ui_kind?: string } | undefined)?.ui_kind || '').trim()
+  if (explicit) return explicit
+  const blob = `${op.label || ''} ${op.summary || ''} ${op.capability_key || ''}`
+  if (/计算器|科学计算|calculator/i.test(blob)) return 'calculator'
+  return undefined
 }
 
 function resolveAddWidget(cap: string, explicit?: string): string {
@@ -153,6 +130,7 @@ function applyGeneratedPages(
     route?: string
     summary?: string
     blocks?: Array<{ type?: string; text?: string; items?: string[] }>
+    interactive?: Record<string, unknown>
   }>,
 ): ComposerPageSchema {
   let next = schema
@@ -165,6 +143,7 @@ function applyGeneratedPages(
     if (!key) continue
     const title = String(page.title || key)
     const route = String(page.route || `/gen/${key}`)
+    const interactive = page.interactive
     const idx = children.findIndex((c) => {
       const props = (c.props || {}) as Record<string, unknown>
       return String(props.capability_key || '') === key || String(c.id) === key
@@ -180,6 +159,14 @@ function applyGeneratedPages(
       props.codegen_pending = false
       props.source = 'generated'
       if (page.route) props.route = route
+      if (interactive) {
+        props.interactive = interactive
+        props.page_mock = {
+          ...((props.page_mock as object) || {}),
+          interactive,
+          ui_kind: 'tool_pad',
+        }
+      }
       children[idx] = { ...child, type: 'generated_page', props }
       keys.add(key)
       continue
@@ -196,6 +183,12 @@ function applyGeneratedPages(
         blocks: page.blocks || [],
         source: 'generated',
         codegen_pending: false,
+        ...(interactive
+          ? {
+              interactive,
+              page_mock: { interactive, ui_kind: 'tool_pad', form_title: title },
+            }
+          : {}),
       },
     })
     if (!menu.some((m) => m.capability_key === key || m.key === key)) {
@@ -308,8 +301,30 @@ export function applyComposeOps(schema: ComposerPageSchema, ops: ComposeEditOp[]
           ]
         }
       }
-      if (op.page_mock) {
-        childProps.page_mock = op.page_mock
+      const interactiveUi = resolveInteractiveUi(op)
+      const interactive =
+        (op as { interactive?: Record<string, unknown> }).interactive ||
+        (op.page_mock as { interactive?: Record<string, unknown> } | undefined)?.interactive
+      if (interactive) {
+        childProps.interactive = interactive
+        childProps.page_mock = {
+          ...(op.page_mock || {}),
+          interactive,
+          ui_kind: 'tool_pad',
+        }
+      } else if (interactiveUi) {
+        childProps.interactive_ui = interactiveUi
+        childProps.ui_kind = interactiveUi
+        if (op.page_mock) {
+          childProps.page_mock = { ...op.page_mock, ui_kind: interactiveUi }
+        } else {
+          childProps.page_mock = { ui_kind: interactiveUi, form_title: label }
+        }
+      }
+      if (op.page_mock && !interactive) {
+        childProps.page_mock = interactiveUi
+          ? { ...op.page_mock, ui_kind: interactiveUi }
+          : op.page_mock
         const mockFields = (op.page_mock.fields || [])
           .filter((f) => f.label)
           .map((f, i) => ({
@@ -363,6 +378,11 @@ export function applyComposeOps(schema: ComposerPageSchema, ops: ComposeEditOp[]
           if (m.capability_key === cap) targetKeys.add(m.key)
         }
       }
+      const interactiveUi = resolveInteractiveUi({
+        ...op,
+        label: op.label || hit.label,
+        capability_key: op.capability_key || hit.capability_key,
+      })
       next = {
         ...next,
         menu: next.menu.map((m) =>
@@ -370,8 +390,14 @@ export function applyComposeOps(schema: ComposerPageSchema, ops: ComposeEditOp[]
             ? {
                 ...m,
                 page_mock: op.page_mock
-                  ? { ...(m.page_mock || {}), ...op.page_mock }
-                  : m.page_mock,
+                  ? {
+                      ...(m.page_mock || {}),
+                      ...op.page_mock,
+                      ...(interactiveUi ? { ui_kind: interactiveUi } : {}),
+                    }
+                  : interactiveUi
+                    ? { ...(m.page_mock || {}), ui_kind: interactiveUi }
+                    : m.page_mock,
               }
             : m,
         ),
@@ -388,10 +414,21 @@ export function applyComposeOps(schema: ComposerPageSchema, ops: ComposeEditOp[]
                           page_mock: {
                             ...((c.props?.page_mock as object) || {}),
                             ...op.page_mock,
+                            ...(interactiveUi ? { ui_kind: interactiveUi } : {}),
                           },
                         }
-                      : {}),
+                      : interactiveUi
+                        ? {
+                            page_mock: {
+                              ...((c.props?.page_mock as object) || {}),
+                              ui_kind: interactiveUi,
+                            },
+                          }
+                        : {}),
                     ...(formFields.length ? { form_fields: formFields } : {}),
+                    ...(interactiveUi
+                      ? { interactive_ui: interactiveUi, ui_kind: interactiveUi }
+                      : {}),
                   },
                 }
               : c,

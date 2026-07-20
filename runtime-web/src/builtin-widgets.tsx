@@ -7,6 +7,11 @@ import {
   type GtgtStep,
   type SchemaNode,
 } from '@blockhub/web-core'
+import {
+  InteractiveToolPad,
+  interactiveSchemaFromIntent,
+  parseInteractiveSchema,
+} from './interactive-tool-pad'
 
 type Block = { type?: string; text?: string; items?: string[] }
 
@@ -19,6 +24,8 @@ type PageMock = {
   chat_title?: string
   chat?: Array<{ role?: string; text?: string }>
   kpis?: Array<{ label?: string; value?: string; hint?: string }>
+  ui_kind?: string
+  interactive?: unknown
 }
 
 type LocalRecord = {
@@ -102,6 +109,32 @@ function LandingHeroWidget({ node }: { node: SchemaNode }) {
   )
 }
 
+function resolveInteractiveForNode(node: SchemaNode) {
+  const props = node.props || {}
+  const mock = props.page_mock as (PageMock & { interactive?: unknown }) | undefined
+  const fromProp = parseInteractiveSchema(props.interactive)
+  if (fromProp) return fromProp
+  const fromMock = parseInteractiveSchema(mock?.interactive)
+  if (fromMock) return fromMock
+  const blob = [
+    props.title,
+    props.scene_label,
+    props.summary,
+    props.capability_key,
+    props.interactive_ui,
+    props.ui_kind,
+    mock?.ui_kind,
+    mock?.form_title,
+    node.id,
+    ...(Array.isArray(props.blocks)
+      ? (props.blocks as Block[]).flatMap((b) => [b.text, ...(b.items || [])])
+      : []),
+  ]
+    .filter(Boolean)
+    .join(' ')
+  return interactiveSchemaFromIntent(blob)
+}
+
 /**
  * Path B / gen_* 即时预览页：GtgtStepComposer 可交互录入 + 本机记录列表。
  * 接口未落地前数据仅存本机，徽章标明非正式业务库。
@@ -115,6 +148,11 @@ function GeneratedPageWidget({ node }: { node: SchemaNode }) {
   const pending = Boolean(node.props?.codegen_pending)
   const mock = node.props?.page_mock as PageMock | undefined
   const rawBlocks = (Array.isArray(node.props?.blocks) ? node.props?.blocks : []) as Block[]
+
+  const interactive = resolveInteractiveForNode(node)
+  if (interactive) {
+    return <InteractiveToolPad schema={interactive} title={title || '交互工具'} summary={summary} />
+  }
 
   const fieldDefs = useMemo(() => {
     const hasCustom =

@@ -218,6 +218,49 @@ body { margin: 0; font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
   padding: 6px 10px;
   font-size: 12px;
 }
+
+.sci-calc-shell {
+  max-width: 360px;
+  margin: 0 auto;
+  padding: 16px;
+  border-radius: 28px;
+  background: #1c1c1e;
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.28);
+}
+.sci-calc-display {
+  background: #000;
+  border-radius: 16px;
+  padding: 16px 18px 12px;
+  margin-bottom: 12px;
+  min-height: 88px;
+  text-align: right;
+}
+.sci-calc-expr {
+  min-height: 18px;
+  font-size: 13px;
+  color: #a1a1a6;
+  word-break: break-all;
+}
+.sci-calc-value {
+  margin-top: 6px;
+  font-size: 40px;
+  font-weight: 700;
+  color: #f5f5f7;
+  line-height: 1.1;
+  word-break: break-all;
+}
+.sci-calc-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.sci-calc-sci {
+  grid-template-columns: repeat(6, 1fr);
+}
+.sci-calc-ops {
+  grid-template-columns: repeat(5, 1fr);
+}
 @media (max-width: 720px) {
   .runtime-shell.is-sidebar .runtime-body { grid-template-columns: 1fr; }
   .runtime-sidebar { position: static; flex-direction: row; flex-wrap: wrap; }
