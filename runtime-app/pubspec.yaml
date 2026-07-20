@@ -11,90 +11,94 @@ dependencies:
     sdk: flutter
   blockhub_flutter_core:
     path: ../packages/blockhub_flutter_core
-  capability_chat_qa:
-    path: ../packages/capability_chat_qa
-  capability_shanghai_voice:
-    path: ../packages/capability_shanghai_voice
   capability_approval_flow:
     path: ../packages/capability_approval_flow
-  capability_device_repair:
-    path: ../packages/capability_device_repair
-  capability_quality_inspect:
-    path: ../packages/capability_quality_inspect
-  capability_inventory_count:
-    path: ../packages/capability_inventory_count
-  capability_member_loyalty:
-    path: ../packages/capability_member_loyalty
-  capability_med_triage:
-    path: ../packages/capability_med_triage
-  capability_nurse_shift:
-    path: ../packages/capability_nurse_shift
-  capability_game_support:
-    path: ../packages/capability_game_support
-  capability_school_notice:
-    path: ../packages/capability_school_notice
-  capability_property_repair:
-    path: ../packages/capability_property_repair
-  capability_site_patrol:
-    path: ../packages/capability_site_patrol
-  capability_class_schedule:
-    path: ../packages/capability_class_schedule
-  capability_hotel_booking:
-    path: ../packages/capability_hotel_booking
-  capability_study_coach:
-    path: ../packages/capability_study_coach
-  capability_homework_qa:
-    path: ../packages/capability_homework_qa
-  capability_audit_log:
-    path: ../packages/capability_audit_log
-  capability_kb:
-    path: ../packages/capability_kb
-  capability_dashboard:
-    path: ../packages/capability_dashboard
-  capability_data_nl_query:
-    path: ../packages/capability_data_nl_query
   capability_integration:
     path: ../packages/capability_integration
-  capability_multi_agent:
-    path: ../packages/capability_multi_agent
-  capability_security_mask:
-    path: ../packages/capability_security_mask
-  capability_delivery_order:
-    path: ../packages/capability_delivery_order
-  capability_house_viewing:
-    path: ../packages/capability_house_viewing
+  capability_audit_log:
+    path: ../packages/capability_audit_log
   capability_campaign_ops:
     path: ../packages/capability_campaign_ops
-  capability_fitness_checkin:
-    path: ../packages/capability_fitness_checkin
-  capability_travel_plan:
-    path: ../packages/capability_travel_plan
-  capability_wedding_plan:
-    path: ../packages/capability_wedding_plan
+  capability_dashboard:
+    path: ../packages/capability_dashboard
+  capability_chat_qa:
+    path: ../packages/capability_chat_qa
+  capability_class_schedule:
+    path: ../packages/capability_class_schedule
+  capability_data_nl_query:
+    path: ../packages/capability_data_nl_query
+  capability_deal_evidence:
+    path: ../packages/capability_deal_evidence
   capability_deco_material:
     path: ../packages/capability_deco_material
-  capability_pet_clinic:
-    path: ../packages/capability_pet_clinic
-  capability_gov_service:
-    path: ../packages/capability_gov_service
-  capability_legal_case:
-    path: ../packages/capability_legal_case
-  capability_leave_request:
-    path: ../packages/capability_leave_request
+  capability_delivery_order:
+    path: ../packages/capability_delivery_order
+  capability_device_repair:
+    path: ../packages/capability_device_repair
   capability_expense_claim:
     path: ../packages/capability_expense_claim
-  capability_policy_qa:
-    path: ../packages/capability_policy_qa
+  capability_fitness_checkin:
+    path: ../packages/capability_fitness_checkin
+  capability_game_support:
+    path: ../packages/capability_game_support
+  capability_gov_service:
+    path: ../packages/capability_gov_service
   capability_hire_onboard:
     path: ../packages/capability_hire_onboard
-  capability_sales_lead:
-    path: ../packages/capability_sales_lead
-  capability_quote_contract:
-    path: ../packages/capability_quote_contract
+  capability_homework_qa:
+    path: ../packages/capability_homework_qa
+  capability_hotel_booking:
+    path: ../packages/capability_hotel_booking
+  capability_house_viewing:
+    path: ../packages/capability_house_viewing
+  capability_inventory_count:
+    path: ../packages/capability_inventory_count
+  capability_kb:
+    path: ../packages/capability_kb
+  capability_kill_pipeline:
+    path: ../packages/capability_kill_pipeline
+  capability_leave_request:
+    path: ../packages/capability_leave_request
+  capability_legal_case:
+    path: ../packages/capability_legal_case
+  capability_med_triage:
+    path: ../packages/capability_med_triage
+  capability_member_loyalty:
+    path: ../packages/capability_member_loyalty
+  capability_multi_agent:
+    path: ../packages/capability_multi_agent
+  capability_nurse_shift:
+    path: ../packages/capability_nurse_shift
   capability_ops_kpi:
     path: ../packages/capability_ops_kpi
   capability_flutter_tools:
     path: ../packages/capability_flutter_tools
+  capability_pet_clinic:
+    path: ../packages/capability_pet_clinic
+  capability_policy_qa:
+    path: ../packages/capability_policy_qa
+  capability_property_repair:
+    path: ../packages/capability_property_repair
+  capability_quality_inspect:
+    path: ../packages/capability_quality_inspect
+  capability_quote_contract:
+    path: ../packages/capability_quote_contract
+  capability_sales_lead:
+    path: ../packages/capability_sales_lead
+  capability_school_notice:
+    path: ../packages/capability_school_notice
+  capability_security_mask:
+    path: ../packages/capability_security_mask
+  capability_shanghai_voice:
+    path: ../packages/capability_shanghai_voice
+  capability_site_patrol:
+    path: ../packages/capability_site_patrol
+  capability_study_coach:
+    path: ../packages/capability_study_coach
+  capability_travel_plan:
+    path: ../packages/capability_travel_plan
+  capability_wedding_plan:
+    path: ../packages/capability_wedding_plan
   dio: ^5.7.0
   http: ^1.2.2
   shared_preferences: ^2.3.3

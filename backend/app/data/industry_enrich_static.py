@@ -10,7 +10,7 @@ from app.data.industry_packs_all import ALL_INDUSTRY_PACKS, pack_meta, scene_cou
 PACK_CAPSHIP_MODULES: dict[str, list[str]] = {
     "office": ["leave_request", "expense_claim", "policy_qa", "hire_onboard", "seal_request", "meeting_booking", "approval_flow", "approval_inbox", "ops_kpi", "shift_attendance", "kb_document", "it_ticket", "asset_manage", "notify_im", "notify_inapp", "chart_dashboard", "data_nl_query", "legal_case", "chat_qa", "erp_connector", "rbac_page"],
     "mfg": ["device_repair", "quality_inspect", "inventory_count", "chat_qa", "notify_im", "kb_document"],
-    "sales": ["sales_lead", "quote_contract", "ops_kpi", "chat_qa", "chart_funnel", "notify_im", "kb_document", "expense_claim", "site_patrol", "erp_connector", "campaign_ops", "data_nl_query", "chart_dashboard"],
+    "sales": ["sales_lead", "deal_evidence", "kill_pipeline", "quote_contract", "ops_kpi", "chat_qa", "chart_funnel", "notify_im", "kb_document", "expense_claim", "site_patrol", "erp_connector", "campaign_ops", "data_nl_query", "chart_dashboard"],
     "med": ["med_triage", "nurse_shift", "kb_document", "chat_qa", "approval_flow", "notify_im"],
     "game": ["game_support", "chat_qa", "approval_flow", "notify_im", "kb_document", "chart_dashboard"],
     "retail": ["inventory_count", "member_loyalty", "chat_qa", "notify_im", "approval_flow", "chart_dashboard"],
@@ -46,9 +46,9 @@ _STATIC_BASE: dict[str, dict[str, Any]] = {
         ),
         "highlights": [
             "纯销售场景 · 不混办公审批人事",
+            "成交证据门禁 · 打假漏斗",
+            "杀单工作台 · 结构化丢单学习",
             "线索到回款真库闭环",
-            "漏斗与提成看板接真数据",
-            "Salesforce / 纷享等 CRM 可对接",
         ],
     },
     "med": {

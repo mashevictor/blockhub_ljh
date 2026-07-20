@@ -112,9 +112,15 @@ export function SalesLeadWidget({ node }: { node: SchemaNode }) {
     if (!token) return
     try {
       await apiFetch(`/api/v1/sales-lead/records/${id}/${action}`, token, { method: 'POST', body: '{}' })
+      setMsg('')
       await load()
     } catch (e) {
-      setMsg(`更新失败：${String(e)}`)
+      const detail = String(e)
+      setMsg(
+        action === 'following' || action === 'won'
+          ? `晋级被拦：${detail}（请先到「成交证据」登记）`
+          : `更新失败：${detail}`,
+      )
     }
   }
 

@@ -72,6 +72,7 @@ required = [
     "plaza_feed_likes", "notifications", "demo_bookings",
     "catalog_agents", "catalog_office_scenarios", "catalog_hero_presets",
     "catalog_chip_templates",
+    "sales_lead_records", "deal_evidence_records", "kill_pipeline_records",
 ]
 missing = [t for t in required if not insp.has_table(t)]
 if missing:

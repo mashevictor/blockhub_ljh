@@ -74,7 +74,10 @@ def create_api(body: CreateBody, db: Session = Depends(get_db), user: User = Dep
 
 @router.post("/records/{record_id}/following")
 def following_api(record_id: str, db: Session = Depends(get_db), user: User = Depends(get_current_user)) -> dict:
-    item = store.mark_following(db, user.tenant_id, record_id)
+    try:
+        item = store.mark_following(db, user.tenant_id, record_id)
+    except store.EvidenceGateError as e:
+        raise HTTPException(status_code=400, detail=e.detail) from e
     if not item:
         raise HTTPException(status_code=404, detail="记录不存在")
     return {"success": True, "record": item}
@@ -82,7 +85,10 @@ def following_api(record_id: str, db: Session = Depends(get_db), user: User = De
 
 @router.post("/records/{record_id}/won")
 def won_api(record_id: str, db: Session = Depends(get_db), user: User = Depends(get_current_user)) -> dict:
-    item = store.mark_won(db, user.tenant_id, record_id)
+    try:
+        item = store.mark_won(db, user.tenant_id, record_id)
+    except store.EvidenceGateError as e:
+        raise HTTPException(status_code=400, detail=e.detail) from e
     if not item:
         raise HTTPException(status_code=404, detail="记录不存在")
     return {"success": True, "record": item}

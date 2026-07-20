@@ -41,6 +41,8 @@ from app.api.v1 import (
     ops_kpi,
     quote_contract,
     sales_lead,
+    deal_evidence,
+    kill_pipeline,
     hire_onboard,
     policy_qa,
     expense_claim,
@@ -153,6 +155,8 @@ app.include_router(legal_case.router, prefix=settings.api_prefix, dependencies=_
 app.include_router(ops_kpi.router, prefix=settings.api_prefix, dependencies=_auth)
 app.include_router(quote_contract.router, prefix=settings.api_prefix, dependencies=_auth)
 app.include_router(sales_lead.router, prefix=settings.api_prefix, dependencies=_auth)
+app.include_router(deal_evidence.router, prefix=settings.api_prefix, dependencies=_auth)
+app.include_router(kill_pipeline.router, prefix=settings.api_prefix, dependencies=_auth)
 app.include_router(hire_onboard.router, prefix=settings.api_prefix, dependencies=_auth)
 app.include_router(policy_qa.router, prefix=settings.api_prefix, dependencies=_auth)
 app.include_router(expense_claim.router, prefix=settings.api_prefix, dependencies=_auth)

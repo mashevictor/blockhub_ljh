@@ -1311,6 +1311,52 @@ class SalesLeadRecord(Base):
     reporter: Mapped[User] = relationship(foreign_keys=[reporter_id])
 
 
+class DealEvidenceRecord(Base):
+    """CapShip · deal_evidence 成交证据（晋级门禁）。"""
+
+    __tablename__ = "deal_evidence_records"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenants.id"), nullable=False, index=True)
+    app_public_id: Mapped[str] = mapped_column(String(64), nullable=False, default="", index=True)
+    reporter_id: Mapped[str] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
+    record_no: Mapped[str] = mapped_column(String(32), nullable=False, index=True)
+    lead_id: Mapped[str] = mapped_column(String(36), nullable=False, default="", index=True)
+    customer: Mapped[str] = mapped_column(String(200), nullable=False, default="")
+    evidence_type: Mapped[str] = mapped_column(String(64), nullable=False, default="other")
+    title: Mapped[str] = mapped_column(String(200), nullable=False, default="")
+    summary: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    target_stage: Mapped[str] = mapped_column(String(32), nullable=False, default="following")
+    status: Mapped[str] = mapped_column(String(32), nullable=False, default="open", index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    reporter: Mapped[User] = relationship(foreign_keys=[reporter_id])
+
+
+class KillPipelineRecord(Base):
+    """CapShip · kill_pipeline 杀单工作台。"""
+
+    __tablename__ = "kill_pipeline_records"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenants.id"), nullable=False, index=True)
+    app_public_id: Mapped[str] = mapped_column(String(64), nullable=False, default="", index=True)
+    reporter_id: Mapped[str] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
+    record_no: Mapped[str] = mapped_column(String(32), nullable=False, index=True)
+    lead_id: Mapped[str] = mapped_column(String(36), nullable=False, default="", index=True)
+    customer: Mapped[str] = mapped_column(String(200), nullable=False, default="")
+    kill_reason: Mapped[str] = mapped_column(String(64), nullable=False, default="other")
+    learning: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    amount_lost: Mapped[str] = mapped_column(String(64), nullable=False, default="")
+    competitor: Mapped[str] = mapped_column(String(120), nullable=False, default="")
+    status: Mapped[str] = mapped_column(String(32), nullable=False, default="killed", index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    reporter: Mapped[User] = relationship(foreign_keys=[reporter_id])
+
+
 class QuoteContractRecord(Base):
     """CapShip · quote_contract 报价合同。"""
 

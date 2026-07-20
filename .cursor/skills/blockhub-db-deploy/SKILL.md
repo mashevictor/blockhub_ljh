@@ -133,6 +133,8 @@ from ops_utils import create_table_if_missing, create_index_if_missing
 | `scripts/fix-catalog.sh` | 补 catalog 表 + force seed + 重启 API（用 venv/`python3`） |
 | `scripts/repair-db.sh` | alembic 漂移检测 + upgrade |
 | `scripts/smoke-db.sh` | DB 冒烟 |
+| `scripts/server-sales-breakthrough.sh` | 销售突破：039 迁移 + 重启 API + 冒烟 |
+| `scripts/smoke-sales-breakthrough.sh` | 成交证据门禁 + 杀单工作台 API 冒烟 |
 | `packages/capship-contract/tests/run_smoke.py` | L2 契约冒烟（`python3` 跑，不依赖 catalog） |
 
 ## 详细 runbook

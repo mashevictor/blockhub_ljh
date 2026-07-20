@@ -5,7 +5,7 @@
       "key": "announce_board",
       "name": "公告栏",
       "category": "通知集成",
-      "widget": "BannerWidget",
+      "widget": "InboxWidget",
       "agent_id": "notify",
       "web_pkg": "@blockhub/web-capability-dashboard",
       "flutter_pkg": "capability_announce_board",
@@ -16,7 +16,7 @@
       "key": "approval_conditional",
       "name": "条件分支审批",
       "category": "流程审批",
-      "widget": "WorkflowWidget",
+      "widget": "FormWidget",
       "agent_id": "approval",
       "web_pkg": "@blockhub/web-capability-approval",
       "flutter_pkg": "capability_approval_conditional",
@@ -27,7 +27,7 @@
       "key": "approval_countersign",
       "name": "会签/或签",
       "category": "流程审批",
-      "widget": "WorkflowWidget",
+      "widget": "FormWidget",
       "agent_id": "approval",
       "web_pkg": "@blockhub/web-capability-approval",
       "flutter_pkg": "capability_approval_countersign",
@@ -38,7 +38,7 @@
       "key": "approval_esign",
       "name": "电子签批",
       "category": "流程审批",
-      "widget": "EsignWidget",
+      "widget": "FormWidget",
       "agent_id": "approval",
       "web_pkg": "@blockhub/web-capability-approval",
       "flutter_pkg": "capability_approval_esign",
@@ -89,26 +89,28 @@
       "key": "approval_remind",
       "name": "超时催办",
       "category": "流程审批",
-      "widget": "NotifyWidget",
+      "widget": "ListWidget",
       "agent_id": "approval",
       "web_pkg": "@blockhub/web-capability-approval",
       "flutter_pkg": "capability_approval_remind",
-      "route": "/approval",
+      "route": "/inbox",
       "keywords": []
     },
     {
       "key": "asset_manage",
       "name": "资产管理",
-      "category": "外部集成",
-      "widget": "AssetWidget",
-      "agent_id": "integration",
-      "web_pkg": "@blockhub/web-capability-integration",
+      "category": "IT与资产",
+      "widget": "AssetManageWidget",
+      "agent_id": "asset_manage",
+      "web_pkg": "@blockhub/web-capability-asset-manage",
       "flutter_pkg": "capability_asset_manage",
-      "route": "/assets",
+      "route": "/asset-manage",
       "keywords": [
         "资产",
         "领用",
-        "固定资产"
+        "固定资产",
+        "资产盘点",
+        "资产报废"
       ]
     },
     {
@@ -154,7 +156,7 @@
       "key": "chart_basic",
       "name": "折线/柱状图",
       "category": "可视化",
-      "widget": "ChartWidget",
+      "widget": "DashboardWidget",
       "agent_id": "report",
       "web_pkg": "@blockhub/web-capability-dashboard",
       "flutter_pkg": "capability_chart_basic",
@@ -197,7 +199,7 @@
       "key": "chart_kpi_card",
       "name": "KPI 卡片",
       "category": "可视化",
-      "widget": "KpiCardWidget",
+      "widget": "DashboardWidget",
       "agent_id": "report",
       "web_pkg": "@blockhub/web-capability-dashboard",
       "flutter_pkg": "capability_chart_kpi_card",
@@ -271,44 +273,44 @@
       "key": "contract_editor",
       "name": "合同编辑器",
       "category": "合同签章",
-      "widget": "ContractEditorWidget",
+      "widget": "LegalCaseWidget",
       "agent_id": "contract_esign",
-      "web_pkg": "@blockhub/web-capability-approval",
+      "web_pkg": "@blockhub/web-capability-legal-case",
       "flutter_pkg": "capability_contract_editor",
-      "route": "/approval",
+      "route": "/legal-case",
       "keywords": []
     },
     {
       "key": "contract_pdf",
       "name": "合同 PDF",
       "category": "合同签章",
-      "widget": "PdfWidget",
+      "widget": "LegalCaseWidget",
       "agent_id": "contract_esign",
-      "web_pkg": "@blockhub/web-capability-approval",
+      "web_pkg": "@blockhub/web-capability-legal-case",
       "flutter_pkg": "capability_contract_pdf",
-      "route": "/approval",
+      "route": "/legal-case",
       "keywords": []
     },
     {
       "key": "contract_seal",
       "name": "电子公章",
       "category": "合同签章",
-      "widget": "SealWidget",
+      "widget": "LegalCaseWidget",
       "agent_id": "contract_esign",
-      "web_pkg": "@blockhub/web-capability-approval",
+      "web_pkg": "@blockhub/web-capability-legal-case",
       "flutter_pkg": "capability_contract_seal",
-      "route": "/approval",
+      "route": "/legal-case",
       "keywords": []
     },
     {
       "key": "contract_sign",
       "name": "手写签名",
       "category": "合同签章",
-      "widget": "SignWidget",
+      "widget": "LegalCaseWidget",
       "agent_id": "contract_esign",
-      "web_pkg": "@blockhub/web-capability-approval",
+      "web_pkg": "@blockhub/web-capability-legal-case",
       "flutter_pkg": "capability_contract_sign",
-      "route": "/approval",
+      "route": "/legal-case",
       "keywords": []
     },
     {
@@ -326,7 +328,7 @@
       "key": "data_export",
       "name": "数据导出",
       "category": "知识数据",
-      "widget": "ExportWidget",
+      "widget": "DashboardWidget",
       "agent_id": "report",
       "web_pkg": "@blockhub/web-capability-dashboard",
       "flutter_pkg": "capability_data_export",
@@ -349,6 +351,23 @@
         "查销售",
         "查数据",
         "业绩数据"
+      ]
+    },
+    {
+      "key": "deal_evidence",
+      "name": "成交证据",
+      "category": "销售行业",
+      "widget": "DealEvidenceWidget",
+      "agent_id": "deal_evidence",
+      "web_pkg": "@blockhub/web-capability-deal-evidence",
+      "flutter_pkg": "capability_deal_evidence",
+      "route": "/deal-evidence",
+      "keywords": [
+        "成交证据",
+        "证据门禁",
+        "买方回执",
+        "POC结果",
+        "阶段晋级"
       ]
     },
     {
@@ -402,6 +421,22 @@
         "维修工单",
         "产线故障",
         "设备故障"
+      ]
+    },
+    {
+      "key": "energy_carbon",
+      "name": "能耗碳排",
+      "category": "绿色制造",
+      "widget": "EnergyCarbonWidget",
+      "agent_id": "energy_carbon",
+      "web_pkg": "@blockhub/web-capability-mfg-ops",
+      "flutter_pkg": "capability_energy_carbon",
+      "route": "/energy-carbon",
+      "keywords": [
+        "能耗",
+        "碳排",
+        "用电",
+        "绿色制造"
       ]
     },
     {
@@ -693,6 +728,25 @@
       ]
     },
     {
+      "key": "game_2048",
+      "name": "2048",
+      "category": "游戏娱乐",
+      "widget": "Game2048Widget",
+      "agent_id": "game_support",
+      "web_pkg": "@blockhub/web-capability-game-2048",
+      "flutter_pkg": "capability_game_2048",
+      "route": "/game-2048",
+      "keywords": [
+        "2048",
+        "数字合成",
+        "合成2048",
+        "益智2048",
+        "玩2048",
+        "2048小游戏",
+        "数字方块"
+      ]
+    },
+    {
       "key": "game_support",
       "name": "玩家FAQ",
       "category": "游戏娱乐",
@@ -798,11 +852,11 @@
       "key": "integration",
       "name": "外部数据对接",
       "category": "外部集成",
-      "widget": "ConnectorWidget",
+      "widget": "ERPWidget",
       "agent_id": "integration",
       "web_pkg": "@blockhub/web-capability-integration",
       "flutter_pkg": "capability_integration",
-      "route": "/integration",
+      "route": "/erp",
       "keywords": []
     },
     {
@@ -826,12 +880,12 @@
     {
       "key": "it_helpdesk",
       "name": "IT报障",
-      "category": "外部集成",
-      "widget": "HelpdeskWidget",
-      "agent_id": "integration",
-      "web_pkg": "@blockhub/web-capability-integration",
+      "category": "IT与资产",
+      "widget": "ItTicketWidget",
+      "agent_id": "it_ticket",
+      "web_pkg": "@blockhub/web-capability-it-ticket",
       "flutter_pkg": "capability_it_helpdesk",
-      "route": "/helpdesk",
+      "route": "/it-ticket",
       "keywords": [
         "报障",
         "it工单",
@@ -839,6 +893,24 @@
         "helpdesk",
         "售后工单",
         "工单"
+      ]
+    },
+    {
+      "key": "it_ticket",
+      "name": "IT报障",
+      "category": "IT与资产",
+      "widget": "ItTicketWidget",
+      "agent_id": "it_ticket",
+      "web_pkg": "@blockhub/web-capability-it-ticket",
+      "flutter_pkg": "capability_it_ticket",
+      "route": "/it-ticket",
+      "keywords": [
+        "IT报障",
+        "报障",
+        "电脑故障",
+        "网络故障",
+        "账号权限",
+        "helpdesk"
       ]
     },
     {
@@ -862,12 +934,29 @@
       "key": "kb_search",
       "name": "语义检索",
       "category": "知识数据",
-      "widget": "KBSearchWidget",
+      "widget": "KBUploadWidget",
       "agent_id": "kb",
       "web_pkg": "@blockhub/web-capability-kb",
       "flutter_pkg": "capability_kb_search",
       "route": "/kb",
       "keywords": []
+    },
+    {
+      "key": "kill_pipeline",
+      "name": "杀单工作台",
+      "category": "销售行业",
+      "widget": "KillPipelineWidget",
+      "agent_id": "kill_pipeline",
+      "web_pkg": "@blockhub/web-capability-kill-pipeline",
+      "flutter_pkg": "capability_kill_pipeline",
+      "route": "/kill-pipeline",
+      "keywords": [
+        "杀单",
+        "丢单原因",
+        "清理管线",
+        "假管线",
+        "赢率学习"
+      ]
     },
     {
       "key": "leave_request",
@@ -919,6 +1008,38 @@
       ]
     },
     {
+      "key": "maintenance_plan",
+      "name": "保养计划",
+      "category": "设备管理",
+      "widget": "MaintenancePlanWidget",
+      "agent_id": "maintenance_plan",
+      "web_pkg": "@blockhub/web-capability-mfg-ops",
+      "flutter_pkg": "capability_maintenance_plan",
+      "route": "/maintenance-plan",
+      "keywords": [
+        "保养",
+        "维保计划",
+        "设备保养",
+        "到期提醒"
+      ]
+    },
+    {
+      "key": "material_issue",
+      "name": "物料领用",
+      "category": "物料管理",
+      "widget": "MaterialIssueWidget",
+      "agent_id": "material_issue",
+      "web_pkg": "@blockhub/web-capability-mfg-ops",
+      "flutter_pkg": "capability_material_issue",
+      "route": "/material-issue",
+      "keywords": [
+        "领料",
+        "退料",
+        "物料领用",
+        "生产领料"
+      ]
+    },
+    {
       "key": "med_triage",
       "name": "医疗导诊",
       "category": "患者服务",
@@ -940,20 +1061,18 @@
     {
       "key": "meeting_booking",
       "name": "会议室预约",
-      "category": "外部集成",
-      "widget": "MeetingWidget",
-      "agent_id": "integration",
-      "web_pkg": "@blockhub/web-capability-integration",
+      "category": "人事行政",
+      "widget": "MeetingBookingWidget",
+      "agent_id": "meeting_booking",
+      "web_pkg": "@blockhub/web-capability-meeting-booking",
       "flutter_pkg": "capability_meeting_booking",
-      "route": "/meeting",
+      "route": "/meeting-booking",
       "keywords": [
         "会议室",
         "预约会议",
         "订会议室",
         "客房预订",
-        "课程预约",
-        "酒店",
-        "健身房"
+        "课程预约"
       ]
     },
     {
@@ -973,6 +1092,23 @@
         "券码",
         "积分兑换",
         "触达"
+      ]
+    },
+    {
+      "key": "mfg_oee",
+      "name": "生产日报OEE",
+      "category": "生产管理",
+      "widget": "MfgOeeWidget",
+      "agent_id": "mfg_oee",
+      "web_pkg": "@blockhub/web-capability-mfg-ops",
+      "flutter_pkg": "capability_mfg_oee",
+      "route": "/mfg-oee",
+      "keywords": [
+        "OEE",
+        "稼动率",
+        "生产日报",
+        "产量",
+        "停机"
       ]
     },
     {
@@ -1187,7 +1323,7 @@
       "key": "report_scheduled",
       "name": "定时报表",
       "category": "知识数据",
-      "widget": "ReportWidget",
+      "widget": "DashboardWidget",
       "agent_id": "report",
       "web_pkg": "@blockhub/web-capability-dashboard",
       "flutter_pkg": "capability_report_scheduled",
@@ -1250,6 +1386,23 @@
       ]
     },
     {
+      "key": "seal_request",
+      "name": "用印申请",
+      "category": "人事行政",
+      "widget": "FormWidget",
+      "agent_id": "approval",
+      "web_pkg": "@blockhub/web-capability-approval",
+      "flutter_pkg": "capability_seal_request",
+      "route": "/seal-request",
+      "keywords": [
+        "用印",
+        "盖章",
+        "签章",
+        "合同章",
+        "公章"
+      ]
+    },
+    {
       "key": "security_mask",
       "name": "数据脱敏展示",
       "category": "权限安全",
@@ -1294,6 +1447,22 @@
       ]
     },
     {
+      "key": "shift_attendance",
+      "name": "排班考勤",
+      "category": "人事管理",
+      "widget": "ShiftAttendanceWidget",
+      "agent_id": "shift_attendance",
+      "web_pkg": "@blockhub/web-capability-mfg-ops",
+      "flutter_pkg": "capability_shift_attendance",
+      "route": "/shift-attendance",
+      "keywords": [
+        "排班",
+        "考勤",
+        "班次",
+        "打卡申诉"
+      ]
+    },
+    {
       "key": "site_patrol",
       "name": "巡检打卡",
       "category": "现场运维",
@@ -1329,6 +1498,22 @@
         "复习跟进",
         "考试",
         "课本"
+      ]
+    },
+    {
+      "key": "training_record",
+      "name": "技能培训",
+      "category": "人事管理",
+      "widget": "TrainingRecordWidget",
+      "agent_id": "training_record",
+      "web_pkg": "@blockhub/web-capability-mfg-ops",
+      "flutter_pkg": "capability_training_record",
+      "route": "/training-record",
+      "keywords": [
+        "培训",
+        "上岗证",
+        "技能档案",
+        "复训"
       ]
     },
     {

@@ -13,6 +13,14 @@ VALID_STATUS = frozenset(('open', 'following', 'won', 'lost'))
 VALID_CATEGORY = frozenset(('lead', 'opportunity', 'account'))
 
 
+class EvidenceGateError(Exception):
+    """线索晋级缺少成交证据。"""
+
+    def __init__(self, detail: str):
+        self.detail = detail
+        super().__init__(detail)
+
+
 def _norm_category(raw: str, default: str = 'lead') -> str:
     cat = (raw or '').strip().lower()[:64]
     return cat if cat else default
@@ -170,6 +178,12 @@ def mark_following(db: Session, tenant_id: str, record_id: str) -> dict[str, Any
         return None
     if row.status == "following":
         return to_dict(row)
+    from app.services.deal_evidence_store import has_gate_evidence
+
+    if not has_gate_evidence(db, tenant_id, lead_id=row.id, target="following", customer=row.customer, app_public_id=row.app_public_id):
+        raise EvidenceGateError(
+            "晋级「跟进中」需先在成交证据登记会议纪要或买方回执（可关联本线索客户名）"
+        )
     row.status = "following"
     db.commit()
     db.refresh(row)
@@ -195,6 +209,12 @@ def mark_won(db: Session, tenant_id: str, record_id: str) -> dict[str, Any] | No
         return None
     if row.status == "won":
         return to_dict(row)
+    from app.services.deal_evidence_store import has_gate_evidence
+
+    if not has_gate_evidence(db, tenant_id, lead_id=row.id, target="won", customer=row.customer, app_public_id=row.app_public_id):
+        raise EvidenceGateError(
+            "晋级「成交」需先登记 POC 结果、签约意向或回款证明类成交证据"
+        )
     row.status = "won"
     db.commit()
     db.refresh(row)
