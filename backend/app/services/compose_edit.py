@@ -12,7 +12,7 @@ from typing import Any
 
 from app.core.config import settings
 from app.data.capability_registry import ALL_CAPABILITIES
-from app.services.deepseek_client import deepseek_json_chat
+from app.services.deepseek_client import deepseek_json_chat, deepseek_json_chat_with_images, vision_configured
 from app.services.hero_preset_match import match_hero_presets
 from app.services.keyword_match import match_modules_keyword
 from app.services.llm_text import NO_MARKDOWN_STYLE_RULE, sanitize_llm_plain_text
@@ -1145,18 +1145,22 @@ def compose_edit_from_instruction(
     menu: list[dict[str, Any]] | None = None,
     capability_keys: list[str] | None = None,
     app_name: str = "",
+    images: list[str] | None = None,
 ) -> dict[str, Any]:
     q = (instruction or "").strip()
+    imgs = [u for u in (images or []) if isinstance(u, str) and u.strip()][:3]
     menu_list = [m for m in (menu or []) if isinstance(m, dict)]
     keys = [k for k in (capability_keys or []) if k]
     llm_ok = bool(settings.deepseek_api_key)
-    if len(q) < 1:
+    if len(q) < 1 and not imgs:
         return {
-            "reply": "请输入要修改的内容或业务需求。",
+            "reply": "请输入要修改的内容或业务需求；也可粘贴/上传界面截图让我看懂当前页。",
             "ops": [],
             "source": "fallback",
             "llm_configured": llm_ok,
         }
+    if not q and imgs:
+        q = "请根据截图说明当前页面是什么意思，并指出可改进点；若适合改页请给出 ops。"
 
     local_matches = _resolve_matches(q)
 
@@ -1171,15 +1175,24 @@ def compose_edit_from_instruction(
             + "\n"
         )
 
+    vision_hint = ""
+    if imgs:
+        vision_hint = (
+            "用户附带了界面截图。请先看图理解当前页（菜单、标题、交互控件），"
+            "再结合文字指令回答；若只是问「这页什么意思」可只解释不改页（ops 可空）。"
+            f"{' 已配置视觉模型。' if vision_configured() else ' 若无法看图，请诚实说明并据文字推断。'}\n"
+        )
+
     user = (
         f"应用：{app_name or 'Runtime 预览'}\n"
         f"当前菜单：{json.dumps([{'label': m.get('label'), 'key': m.get('key'), 'capability_key': m.get('capability_key')} for m in menu_list], ensure_ascii=False)}\n"
         f"已选能力：{', '.join(keys) if keys else '无'}\n"
         f"{match_hint}"
+        f"{vision_hint}"
         f"可用能力目录：{_catalog_brief()}\n"
         f"用户指令：{q}"
     )
-    data = deepseek_json_chat(_SYSTEM, user, temperature=0.25)
+    data = deepseek_json_chat_with_images(_SYSTEM, user, imgs, temperature=0.25)
     if not isinstance(data, dict):
         return _fallback_ops(q, menu_list)
 

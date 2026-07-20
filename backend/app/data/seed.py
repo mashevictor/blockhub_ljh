@@ -597,7 +597,7 @@ CAPABILITIES = [
     {"key": "expense_claim", "name": "报销记账", "category": "财务法务", "widget": "ExpenseClaimWidget", "agent_id": "expense_claim"},
     {"key": "policy_qa", "name": "制度问答", "category": "知识协同", "widget": "PolicyQaWidget", "agent_id": "policy_qa"},
     {"key": "hire_onboard", "name": "招聘入职", "category": "人事行政", "widget": "HireOnboardWidget", "agent_id": "hire_onboard"},
-    {"key": "sales_lead", "name": "销售线索", "category": "销售行业", "widget": "SalesLeadWidget", "agent_id": "sales_lead"},
+    {"key": "sales_lead", "name": "销售获客", "category": "销售行业", "widget": "SalesLeadWidget", "agent_id": "sales_lead"},
     {"key": "deal_evidence", "name": "成交证据", "category": "销售行业", "widget": "DealEvidenceWidget", "agent_id": "deal_evidence"},
     {"key": "kill_pipeline", "name": "杀单工作台", "category": "销售行业", "widget": "KillPipelineWidget", "agent_id": "kill_pipeline"},
     {"key": "quote_contract", "name": "报价合同", "category": "销售行业", "widget": "QuoteContractWidget", "agent_id": "quote_contract"},

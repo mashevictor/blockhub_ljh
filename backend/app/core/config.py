@@ -21,6 +21,22 @@ class Settings(BaseSettings):
     llm_model: str = ""
     llm_timeout: int = 60
 
+    # 视觉 / 截图理解（OpenAI 兼容多模态；未设则回退 llm_*）
+    vision_api_key: str = ""
+    vision_base_url: str = ""
+    vision_model: str = ""
+    vision_timeout: int = 90
+
+    # WaveSpeed.ai 截图识别（优先于 VISION_*；any-llm/vision）
+    wavespeed_api_key: str = ""
+    # 交互改页默认 flash（低延迟）；要更准可改 google/gemini-2.5-pro
+    wavespeed_vision_model: str = "google/gemini-2.5-flash"
+    wavespeed_timeout: int = 45
+
+    # TinyPNG / Tinify：截图识别前压缩 https://tinypng.com/developers
+    tinypng_api_key: str = ""
+    tinify_api_key: str = ""  # 与 TINIFY_API_KEY 别名兼容
+
     # PostgreSQL only — set DATABASE_URL in .env (see .env.example)
     database_url: str = "postgresql+psycopg2://trackchat:trackchat@localhost:5432/trackchat"
     jwt_secret: str = "change-me-in-production-trackchat-d1"

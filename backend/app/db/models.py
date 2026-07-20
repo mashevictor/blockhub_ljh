@@ -1290,7 +1290,7 @@ class HireOnboardRecord(Base):
 
 
 class SalesLeadRecord(Base):
-    """CapShip · sales_lead 销售线索。"""
+    """CapShip · sales_lead 销售线索（获客方法 + 漏斗状态）。"""
 
     __tablename__ = "sales_lead_records"
 
@@ -1299,12 +1299,18 @@ class SalesLeadRecord(Base):
     app_public_id: Mapped[str] = mapped_column(String(64), nullable=False, default="", index=True)
     reporter_id: Mapped[str] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
     record_no: Mapped[str] = mapped_column(String(32), nullable=False, index=True)
-    category: Mapped[str] = mapped_column(String(32), nullable=False, default="")
+    category: Mapped[str] = mapped_column(String(64), nullable=False, default="")
     customer: Mapped[str] = mapped_column(String(200), nullable=False, default="")
     amount: Mapped[str] = mapped_column(String(64), nullable=False, default="")
     owner: Mapped[str] = mapped_column(String(120), nullable=False, default="")
     note: Mapped[str] = mapped_column(Text, nullable=False, default="")
     status: Mapped[str] = mapped_column(String(32), nullable=False, default="open", index=True)
+    source: Mapped[str] = mapped_column(String(64), nullable=False, default="")
+    score: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    pool_status: Mapped[str] = mapped_column(String(32), nullable=False, default="private", index=True)
+    owner_user_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+    assignee_user_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    referrer: Mapped[str] = mapped_column(String(200), nullable=False, default="")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 

@@ -92,15 +92,16 @@ export const ROLE_PRESETS: RolePreset[] = [
     ],
     ['>> 招聘入职 · 候选人登记', '>> 面试/Offer · 入职闭环', '>> 企微钉钉飞书 · 进度推送', '>> CapShip · 双端真接口'], 'HR'),
 
-  scene('s05', '销售线索', 'CRM · 跟进', '#ef4444',
-    '线索录入、客户跟进与销售漏斗管理。',
+  scene('s05', '销售线索', '获客 · 角色视图', '#ef4444',
+    '按身份看获客方法：录入/分配/公海；跟进成交另开漏斗。',
     [
       { type: 'industry', key: 'sales', label: '销售行业' },
       { type: 'scenario', key: 's05-main', label: '销售线索' },
       { type: 'module', key: 'sales_lead', label: '销售线索' },
+      { type: 'module', key: 'deal_evidence', label: '成交证据' },
       { type: 'module', key: 'notify_im', label: '企微钉钉飞书' },
     ],
-    ['>> 销售线索 · 客户登记', '>> 跟进成交 · 漏斗闭环', '>> 企微钉钉飞书 · 跟进提醒', '>> CapShip · 双端真接口'], '销售'),
+    ['>> 获客方法 · 身份首页', '>> 跟进成交 · 证据门禁', '>> 企微钉钉飞书 · 跟进提醒', '>> CapShip · 双端真接口'], '销售'),
 
   scene('s06', '报价合同', '销售 · 签单', '#dc2626',
     '报价审批、合同评审与特价申请。',

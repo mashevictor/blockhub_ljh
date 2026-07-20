@@ -278,6 +278,8 @@ export async function askComposeEdit(
     app_id?: string
     menu?: Array<{ key?: string; label?: string; capability_key?: string; category?: string }>
     capability_keys?: string[]
+    /** data URL 截图，最多 3 张 */
+    images?: string[]
   },
   opts?: { token?: string | null; signal?: AbortSignal },
 ): Promise<{
