@@ -60,7 +60,17 @@ if [[ -n "$TOKEN" ]]; then
   ok "admin login"
 else
   bad "admin login"
-  echo "  hint: bash scripts/repair-auth.sh 或检查 blockhub-api / DATABASE_URL"
+  code=$(curl -sS --max-time 10 -o "$TMP" -w "%{http_code}" -X POST "$API/auth/login" \
+    -H "Content-Type: application/json" \
+    -d "{\"email\":\"$ADMIN_EMAIL\",\"password\":\"$ADMIN_PASSWORD\"}" || echo "000")
+  echo "  login HTTP=$code body=$(head -c 240 "$TMP" 2>/dev/null || true)"
+  if [[ "$code" == "401" ]]; then
+    echo "  hint: 演示密码漂移 → 在服务器执行: bash scripts/repair-auth.sh"
+  elif [[ "$code" == "000" || "$code" == "502" || "$code" == "503" ]]; then
+    echo "  hint: API 未就绪 → curl -sf $API/health ; journalctl -u blockhub-api -n 30 --no-pager"
+  else
+    echo "  hint: bash scripts/repair-auth.sh 或检查 DATABASE_URL"
+  fi
   echo "fail=$FAIL pass=$PASS"
   exit 1
 fi
