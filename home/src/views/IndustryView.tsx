@@ -313,11 +313,13 @@ export default function IndustryView({
       {step <= 2 && micrositeMeta ? (
         <div className="industry-wizard-microsite cube-panel">
           <div className="industry-wizard-microsite-head">
-            <strong>20 套视觉模板</strong>
-            <span>切换仅改版式气质，行业文案保持「{pack.name}」</span>
+            <strong>20 套页面模板</strong>
+            <span>切换会改 Runtime 布局结构（侧栏/全屏/拼贴…），行业文案保持「{pack.name}」</span>
           </div>
           <div className="industry-wizard-microsite-picker" role="listbox" aria-label="视觉模板">
-            {INDUSTRY_MICROSITE_TEMPLATES.map((t) => (
+            {INDUSTRY_MICROSITE_TEMPLATES.map((t) => {
+              const skin = getMicrositeRuntimeSkin(t.id)
+              return (
               <button
                 key={t.id}
                 type="button"
@@ -327,9 +329,12 @@ export default function IndustryView({
                 onClick={() => switchMicrosite(t.id)}
               >
                 <strong>{t.styleLabel}</strong>
-                <span>{t.name}</span>
+                <span>
+                  {skin ? `${skin.layout} · ${skin.nav}` : t.name}
+                </span>
               </button>
-            ))}
+              )
+            })}
           </div>
           <div className={`industry-wizard-ms-frame-wrap${previewFade ? ' is-fading' : ''}`}>
             <div className="industry-wizard-ms-frame-bar">

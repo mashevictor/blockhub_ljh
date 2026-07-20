@@ -301,8 +301,14 @@ export default function App() {
   const industryEntry = isIndustrySiteEntry(meta)
   const micrositeId = skinOverride || baseMicrositeId
   const skin = industryEntry ? getMicrositeRuntimeSkin(micrositeId) : null
-  // 独立站：强制侧栏场景工作台（禁止 landing 能力墙）
-  const layout = industryEntry ? 'sidebar' : layoutRaw
+  // 独立站：按模板决定导航位置；非独立站沿用 schema
+  const navMode = industryEntry ? skin?.nav || 'left' : layoutRaw === 'sidebar' ? 'left' : 'top'
+  const layout = industryEntry
+    ? navMode === 'left'
+      ? 'sidebar'
+      : 'tabs'
+    : layoutRaw
+  const layoutMode = industryEntry ? skin?.layout || 'sidebar' : layoutRaw
   const activeKey = menu.find((m) => m.route === route)?.key || menu[0]?.key
   const children = schema.root.children || []
   const contentNodes = children.filter((c) => c.type !== 'landing_hero')
@@ -317,7 +323,8 @@ export default function App() {
   const landingAll = !industryEntry && layoutRaw === 'landing' && atHome
 
   const menuGroups = (() => {
-    const map = new Map<string, typeof menu>()
+    type MenuRow = (typeof menu)[number]
+    const map = new Map<string, MenuRow[]>()
     for (const m of menu) {
       const cat = String((m as { category?: string }).category || '场景')
       const list = map.get(cat) ?? []
@@ -335,19 +342,23 @@ export default function App() {
     } catch {
       /* ignore */
     }
-    // 写入个人草稿，刷新后作者仍见所选模板
+    const nextSkin = getMicrositeRuntimeSkin(id)
     const nextSchema = {
       ...schema,
       theme: {
         ...(schema.theme || {}),
-        primaryColor: getMicrositeRuntimeSkin(id)?.accent || schema.theme?.primaryColor,
+        primaryColor: nextSkin?.accent || schema.theme?.primaryColor,
         micrositeId: id,
         skin: id,
+        layoutMode: nextSkin?.layout,
+        navMode: nextSkin?.nav,
       },
       meta: {
         ...(schema.meta || {}),
         entry_source: 'industry_site',
         microsite_id: id,
+        layout_mode: nextSkin?.layout,
+        nav_mode: nextSkin?.nav,
       },
     }
     setSchema(nextSchema as PageSchema)
@@ -359,7 +370,7 @@ export default function App() {
       },
       body: JSON.stringify({
         page_schema: nextSchema,
-        summary: `切换独立站视觉模板 → ${id}`,
+        summary: `切换独立站模板布局 → ${id} (${nextSkin?.layout}/${nextSkin?.nav})`,
       }),
     })
       .then((r) => (r.ok ? r.json() : null))
@@ -368,6 +379,46 @@ export default function App() {
       })
       .catch(() => undefined)
   }
+
+  const renderNavButtons = (className: string) => (
+    <>
+      {industryEntry ? (
+        <button
+          type="button"
+          className={`${className}${atHome ? ' active' : ''}`}
+          onClick={() => navigateRoute(appId!, '/')}
+        >
+          标题首页
+        </button>
+      ) : null}
+      {industryEntry && navMode === 'left'
+        ? menuGroups.map(([cat, items]) => (
+            <div key={cat} className="runtime-sidebar-group">
+              <p className="runtime-sidebar-cat">{cat}</p>
+              {items.map((item) => (
+                <button
+                  key={item.key}
+                  type="button"
+                  className={`${className}${item.route === route || item.key === activeKey ? ' active' : ''}`}
+                  onClick={() => navigateRoute(appId!, item.route || '/')}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          ))
+        : menu.map((item) => (
+            <button
+              key={item.key}
+              type="button"
+              className={`${className}${item.route === route || item.key === activeKey ? ' active' : ''}`}
+              onClick={() => navigateRoute(appId!, item.route || '/')}
+            >
+              {item.label}
+            </button>
+          ))}
+    </>
+  )
 
   const ctx = {
     appId,
@@ -385,12 +436,13 @@ export default function App() {
   const shellClass =
     layout === 'sidebar'
       ? 'runtime-shell is-sidebar'
-      : layoutRaw === 'landing'
+      : layoutRaw === 'landing' && !industryEntry
         ? 'runtime-shell is-landing'
         : 'runtime-shell'
   const shellExtra = entrySource === 'im' ? ' is-im-entry' : ' is-portal-entry'
   const entryShell = industryEntry ? ' is-industry-site' : ' is-capship-workbench'
   const skinShell = skin ? ` ${skin.shellClass}` : ''
+  const layoutShell = industryEntry ? ` layout-${layoutMode} nav-${navMode}` : ''
   const shellStyle = {
     '--accent': skin?.accent || primaryColor,
     ...(skin
@@ -406,7 +458,7 @@ export default function App() {
 
   return (
     <RuntimeContext.Provider value={ctx}>
-      <div className={`${shellClass}${shellExtra}${entryShell}${skinShell}`} style={shellStyle}>
+      <div className={`${shellClass}${shellExtra}${entryShell}${skinShell}${layoutShell}`} style={shellStyle}>
         <div className={`entry-banner ${entrySource === 'im' ? 'im' : 'portal'}`} role="status">
           {entrySource === 'im' ? (
             <>
@@ -418,8 +470,8 @@ export default function App() {
               <strong>独立站方案工作台</strong>
               <span>
                 {skin
-                  ? `视觉模板：${skin.styleLabel} · 首页为标题页，左侧进场景`
-                  : '来自行业独立站 · 侧栏场景工作台'}
+                  ? `模板 ${skin.styleLabel} · 布局 ${skin.layout} · 导航 ${skin.nav}`
+                  : '来自行业独立站 · 可切换 20 套模板重排'}
               </span>
             </>
           ) : (
@@ -477,45 +529,15 @@ export default function App() {
         </header>
 
         <div className="runtime-body">
-          {layout === 'sidebar' ? (
-            <aside className="runtime-sidebar">
-              {industryEntry ? (
-                <button
-                  type="button"
-                  className={`nav-btn sidebar-btn${atHome ? ' active' : ''}`}
-                  onClick={() => navigateRoute(appId, '/')}
-                >
-                  标题首页
-                </button>
-              ) : null}
-              {industryEntry
-                ? menuGroups.map(([cat, items]) => (
-                    <div key={cat} className="runtime-sidebar-group">
-                      <p className="runtime-sidebar-cat">{cat}</p>
-                      {items.map((item) => (
-                        <button
-                          key={item.key}
-                          type="button"
-                          className={`nav-btn sidebar-btn${item.route === route || item.key === activeKey ? ' active' : ''}`}
-                          onClick={() => navigateRoute(appId, item.route || '/')}
-                        >
-                          {item.label}
-                        </button>
-                      ))}
-                    </div>
-                  ))
-                : menu.map((item) => (
-                    <button
-                      key={item.key}
-                      type="button"
-                      className={`nav-btn sidebar-btn${item.route === route || item.key === activeKey ? ' active' : ''}`}
-                      onClick={() => navigateRoute(appId, item.route || '/')}
-                    >
-                      {item.label}
-                    </button>
-                  ))}
-            </aside>
-          ) : (
+          {navMode === 'left' || (!industryEntry && layout === 'sidebar') ? (
+            <aside className="runtime-sidebar">{renderNavButtons('nav-btn sidebar-btn')}</aside>
+          ) : null}
+
+          {industryEntry && navMode === 'top' ? (
+            <nav className="runtime-nav runtime-nav-topstrip">{renderNavButtons('nav-btn')}</nav>
+          ) : null}
+
+          {!industryEntry && layout !== 'sidebar' ? (
             <nav className="runtime-nav runtime-nav-mobile">
               {menu.map((item) => (
                 <button
@@ -528,7 +550,7 @@ export default function App() {
                 </button>
               ))}
             </nav>
-          )}
+          ) : null}
 
           <main className="runtime-main">
             {showWeb ? (
@@ -564,6 +586,12 @@ export default function App() {
             )}
           </main>
         </div>
+
+        {industryEntry && navMode === 'bottom' ? (
+          <nav className="runtime-nav runtime-nav-bottomdock" aria-label="底部场景">
+            {renderNavButtons('nav-btn dock-btn')}
+          </nav>
+        ) : null}
 
         {showApp && (
           <footer className="runtime-footer">

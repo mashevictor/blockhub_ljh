@@ -12,7 +12,7 @@ description: >-
 
 | 入口 | 典型路径 | `entry_source` / `source` | Runtime 表现 |
 |------|----------|---------------------------|--------------|
-| **A. 独立站 / 行业向导** | `/industry/{pack}` → 选模板 → 编排/发布 → `/r/{id}` 或 `/preview/industry-runtime/{pack}?microsite=` | `industry_site` / `industry` / `industry_site` | **带 microsite 皮肤**（色板/圆角/顶栏与所选 20 套模板关联）+ 常为落地壳 |
+| **A. 独立站 / 行业向导** | `/industry/{pack}` → 选模板 → 编排/发布 → `/r/{id}` 或 `/preview/industry-runtime/{pack}?microsite=` | `industry_site` / `industry` / `industry_site` | **按 microsite 重排结构**（`layout` + `nav`）+ 色板；标题首页，非整页 HTML 复刻 |
 | **B. 弹幕 / 选模块 / 描述需求** | Hero 弹幕、ModuleView、PromptView → 发布 → `/r/{id}` | `capship_workbench` / `prompt` / `module` | **标准 CapShip 工作台壳**（Tabs/侧栏），**无**独立站皮肤 |
 
 禁止混用：弹幕生成的应用不要套 Helios 等营销站皮肤；独立站选了 Helios 的发布结果不要静默改成默认紫蓝 Tabs。
@@ -58,9 +58,10 @@ description: >-
 
 ## 独立站 Runtime 体验（强制）
 
-1. **标题首页**（`/`）：大标题 + 模板切换器 + 场景入口卡片；禁止把全部能力摊成按钮墙
-2. **侧栏**：按 category 分组；点场景进入**单页** Widget
-3. **模板切换**：Runtime 内可换 20 套 microsite 皮肤（localStorage + 个人草稿）
-4. 后端 `entry_source=industry_site` 时强制 `sidebar_admin`，去掉 landing_hero 堆叠
+1. **标题首页**（`/`）：大标题 + 模板切换器 + 按 `layout` 组装的场景入口；禁止能力按钮墙
+2. **导航位置**由 `skin.nav` 决定：`left` 侧栏 / `top` 顶条 / `bottom` 底栏 / `none` 仅首页卡片
+3. **布局模式**由 `skin.layout` 决定：fullscreen / bento / magazine / feature / split / story …
+4. **模板切换**：Runtime 内可换 20 套（localStorage + 个人草稿写入 `microsite_id` + `layout_mode`）
+5. 后端 `entry_source=industry_site` 时仍生成可导航 schema；前端按皮肤覆盖壳结构
 
 弹幕/模块入口仍为 Tabs 工作台，互不污染。
