@@ -633,8 +633,46 @@ export function CapShipComposer({
   useEffect(() => {
     if (!appId || isPreviewLocal) return
     void loadChangeQueue()
+    const timer = window.setInterval(() => {
+      void loadChangeQueue()
+    }, 30_000)
+    return () => window.clearInterval(timer)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [appId, token, isPreviewLocal])
+
+  const confirmDirectPublish = (): boolean => {
+    const open = changeItems.filter((c) => c.status === 'draft' || c.status === 'pending')
+    if (open.length === 0) {
+      return window.confirm(
+        '将直接发布正式版到全员 Runtime。\n\n当前无待作废草稿/待审批单。确认继续？',
+      )
+    }
+    const lines = open
+      .slice(0, 8)
+      .map((c) => `· ${c.status === 'pending' ? '待审批' : '草稿'}：${c.summary || c.author_name || c.id.slice(0, 8)}`)
+    const more = open.length > 8 ? `\n… 另有 ${open.length - 8} 条` : ''
+    return window.confirm(
+      `⚠ 直接发布将覆盖所有未生效内容\n\n将作废 ${open.length} 条草稿/待审批：\n${lines.join('\n')}${more}\n\n建议优先在审批列表逐条「通过」。确认一键发布？`,
+    )
+  }
+
+  const runDirectPublish = async () => {
+    if (!schema || busy || !appId || isPreviewLocal) return
+    if (!confirmDirectPublish()) return
+    setBusy(true)
+    setStatus('')
+    try {
+      await persistSchema(schema, undefined, {
+        directPublish: true,
+        source: 'admin_direct',
+        summary: '管理员直接发布',
+      })
+    } catch (e) {
+      setStatus(e instanceof Error ? e.message : '发布失败')
+    } finally {
+      setBusy(false)
+    }
+  }
 
   const persistSchema = async (
     next: ComposerPageSchema,
@@ -708,6 +746,21 @@ export function CapShipComposer({
         capability_keys: res.page_schema.capability_keys,
         schema_rev: res.schema_rev,
       })
+      const closed = res.supersede_detail?.closed_count ?? res.superseded_changes ?? 0
+      setStatus(
+        closed
+          ? `已直接发布正式 v${res.schema_rev} · 作废 ${closed} 条草稿/待审批`
+          : `已直接发布正式 v${res.schema_rev}`,
+      )
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: 'assistant',
+          text: closed
+            ? `已更新线上配置（v${res.schema_rev}）。${closed} 条待审批/草稿已自动作废，相关通知已处理。`
+            : `已更新线上配置（v${res.schema_rev}）。当前无待作废单据。`,
+        },
+      ])
       await loadChangeQueue()
       try {
         const hist = await fetchSchemaRevisions(appId, { token })
@@ -1064,29 +1117,33 @@ export function CapShipComposer({
         )}
         <span className="capship-composer-version-meta">
           {schemaDirty
-            ? `本地草稿 · 正式仍为 v${schemaRev}`
+            ? `本地未保存改动 · 正式线上仍为 v${schemaRev}`
             : isPreviewLocal
               ? '预览本地版本（无审批流）'
               : changeItems.some((c) => c.id === changeId && c.status === 'pending')
-                ? '已提交 · 等待管理员通过后影响正式业务'
-                : isAdmin
-                  ? `正式 v${schemaRev} · 管理员可审批/直接发布`
-                  : `正式 v${schemaRev} · 改页需审批后生效`}
+                ? '已提交审批 · 管理员通过后才会全员生效'
+                : changeItems.some((c) => c.id === changeId && c.status === 'draft')
+                  ? `个人草稿已保存 · 仅你可见 · 正式仍为 v${schemaRev}`
+                  : isAdmin
+                    ? `正式线上 v${schemaRev} · 审批列表「通过」逐单处理 · 「直接发布」会作废全部未生效单`
+                    : `正式线上 v${schemaRev} · 改页需提交审批后由管理员通过`}
         </span>
         <button
           type="button"
           className="capship-composer-btn capship-composer-btn-save"
           disabled={busy || !schema || (!schemaDirty && Boolean(changeId))}
           onClick={() => void saveDraftSchema(true)}
+          title="保存到账号草稿；你的 Runtime 立刻按草稿生效，同事仍看正式版"
         >
           {busy ? '…' : '保存草稿'}
         </button>
-        {!isPreviewLocal && appId ? (
+        {!isPreviewLocal && appId && !isAdmin ? (
           <button
             type="button"
             className="capship-composer-btn capship-composer-btn-save"
             disabled={busy || !schema}
             onClick={() => void submitForApproval()}
+            title="提交后管理员审核通过才会更新全员正式 Runtime"
           >
             提交审批
           </button>
@@ -1094,23 +1151,10 @@ export function CapShipComposer({
         {!isPreviewLocal && isAdmin && appId && schema ? (
           <button
             type="button"
-            className="capship-composer-link"
+            className="capship-composer-link capship-composer-link-danger"
             disabled={busy}
-            onClick={() => {
-              void persistSchema(schema, undefined, {
-                directPublish: true,
-                source: 'admin_direct',
-                summary: '管理员直接发布',
-              })
-                .then(() => {
-                  setStatus('已直接发布正式版本')
-                  setMessages((prev) => [
-                    ...prev,
-                    { role: 'assistant', text: '管理员已直接发布，正式 Runtime 已更新。' },
-                  ])
-                })
-                .catch((e) => setStatus(e instanceof Error ? e.message : '发布失败'))
-            }}
+            title="一键覆盖正式版，并作废所有未生效草稿/待审批"
+            onClick={() => void runDirectPublish()}
           >
             直接发布
           </button>

@@ -114,6 +114,14 @@ export async function patchRuntimeSchema(
   page_schema: ComposerPageSchema
   schema_rev: number
   schema_editor_name?: string
+  superseded_changes?: number
+  supersede_detail?: {
+    closed_count: number
+    change_ids: string[]
+    by_status?: { draft?: number; pending?: number }
+    notifications_cleared?: number
+    notifications_sent?: number
+  }
 }> {
   const res = await fetch(`/api/v1/runtime/${appId}/schema`, {
     method: 'PATCH',

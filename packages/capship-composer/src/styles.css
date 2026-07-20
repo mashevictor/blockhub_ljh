@@ -217,6 +217,16 @@
   cursor: not-allowed;
 }
 
+.capship-composer-link-danger {
+  color: #b91c1c;
+  font-weight: 600;
+}
+
+.capship-composer-link-danger:hover:not(:disabled) {
+  color: #991b1b;
+  text-decoration: underline;
+}
+
 .capship-composer-status {
   margin: 0;
   font-size: 12px;

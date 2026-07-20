@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Annotated, Any
@@ -33,6 +34,7 @@ from app.services.schema_versioning import (
 from app.services.tenant_config import get_tenant_config
 
 router = APIRouter(prefix="/runtime", tags=["runtime"])
+logger = logging.getLogger(__name__)
 
 
 class RuntimeSchemaPatch(BaseModel):
@@ -367,17 +369,26 @@ def patch_runtime_schema(
     try:
         from app.services import schema_change_approval as sca
 
-        closed = sca.supersede_open_changes_after_publish(
+        supersede = sca.supersede_open_changes_after_publish(
             db,
             app,
             user=user,
             published_rev=int(result.get("schema_rev") or getattr(app, "schema_rev", 0) or 0),
             reason="管理员已直接发布正式版",
         )
-        if closed:
-            result = {**result, "superseded_changes": closed}
-    except Exception:
-        pass
+        if supersede.get("closed_count"):
+            result = {
+                **result,
+                "superseded_changes": supersede["closed_count"],
+                "supersede_detail": supersede,
+            }
+    except Exception as exc:
+        logger.exception(
+            "schema direct publish supersede failed public_id=%s actor=%s",
+            app.public_id,
+            user.id,
+        )
+        result = {**result, "supersede_error": str(exc)[:200]}
     return result
 
 

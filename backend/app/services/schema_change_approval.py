@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from datetime import datetime, timezone
 from typing import Any
 
@@ -10,6 +11,8 @@ from sqlalchemy.orm import Session
 
 from app.db.models import AppRecord, AppSchemaChangeRequest, User
 from app.services.schema_versioning import _editor_name, _summarize, commit_schema_revision, schema_meta
+
+logger = logging.getLogger(__name__)
 
 STATUSES = frozenset({"draft", "pending", "approved", "rejected", "cancelled"})
 
@@ -344,7 +347,7 @@ def supersede_open_changes_after_publish(
     user: User,
     published_rev: int,
     reason: str = "管理员已直接发布正式版",
-) -> int:
+) -> dict[str, Any]:
     """管理员直接写正式 schema 后，关闭仍 open 的 draft/pending，避免前端徽章卡在「待审批」。"""
     now = datetime.now(timezone.utc)
     rows = (
@@ -356,10 +359,25 @@ def supersede_open_changes_after_publish(
         .all()
     )
     if not rows:
-        return 0
+        return {
+            "closed_count": 0,
+            "change_ids": [],
+            "by_status": {"draft": 0, "pending": 0},
+            "notifications_cleared": 0,
+            "notifications_sent": 0,
+        }
+
     reviewer = _editor_name(user)
+    change_ids: list[str] = []
+    by_status = {"draft": 0, "pending": 0}
+    notifications_cleared = 0
+    notifications_sent = 0
+
     for row in rows:
         prev = row.status
+        if prev in by_status:
+            by_status[prev] += 1
+        change_ids.append(row.id)
         row.status = "cancelled"
         row.reviewer_id = user.id
         row.reviewer_name = reviewer
@@ -372,7 +390,6 @@ def supersede_open_changes_after_publish(
             from app.services.notification_service import create_notification
             from app.db.models import Notification
 
-            # 关闭管理员侧「改页待审批」未读
             if row.id:
                 for note in (
                     db.query(Notification)
@@ -386,6 +403,7 @@ def supersede_open_changes_after_publish(
                 ):
                     note.read = True
                     db.add(note)
+                    notifications_cleared += 1
 
             if row.author_id and row.author_id != user.id:
                 create_notification(
@@ -397,10 +415,32 @@ def supersede_open_changes_after_publish(
                     recipient_user_id=row.author_id,
                     reference_id=row.id,
                 )
+                notifications_sent += 1
         except Exception:
             pass
     db.commit()
-    return len(rows)
+
+    detail = {
+        "closed_count": len(rows),
+        "change_ids": change_ids,
+        "by_status": by_status,
+        "notifications_cleared": notifications_cleared,
+        "notifications_sent": notifications_sent,
+    }
+    logger.info(
+        "schema direct publish supersede public_id=%s rev=%s closed=%s ids=%s "
+        "draft=%s pending=%s notif_cleared=%s notif_sent=%s actor=%s",
+        app.public_id,
+        published_rev,
+        detail["closed_count"],
+        ",".join(change_ids),
+        by_status["draft"],
+        by_status["pending"],
+        notifications_cleared,
+        notifications_sent,
+        user.id,
+    )
+    return detail
 
 
 def cancel_change(

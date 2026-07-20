@@ -124,6 +124,13 @@ sequenceDiagram
 - 审批通过后的正式 schema 仍须挂 **web_ready** 真能力；`gen_*` 预览页不能冒充已交付业务 API。
 - 业务工单数据仍走各 capability 真 API；本流程只管 **页面/菜单配置** 的发布门禁。
 
+## 运维与回归
+
+- **CI**：`.github/workflows/ci-smoke.yml` 含 `smoke-schema-sync.sh`、`smoke-schema-approval-full.sh`、`smoke-personal-draft.sh`
+- **直接发布埋点**：`PATCH /runtime/{id}/schema` → `supersede_detail`（closed_count / change_ids / notifications_*）+ 服务端 `logger.info`
+- **前端兜底**：Composer 30s 轮询变更单；直接发布前 confirm 列出待作废单；发布后 `loadChangeQueue`
+- **入口文案**：员工仅「提交审批」；管理员审批列表「通过」逐单 vs 编辑器「直接发布」一键作废
+
 ## 相关文件
 
 | 层 | 路径 |
