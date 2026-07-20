@@ -251,7 +251,7 @@ _SYSTEM = f"""你是积木仓 Runtime 编排助手。用户用中文描述业务
 3. 禁止 contract_editor 等无 Web 真包；劳动合同/入职→hire_onboard，法务→legal_case。
 4. **每个 add 必须带 page_mock**，字段名/列表示例要反映用户原话（如「团建」「差旅」「季度 OKR」），禁止复制无关制造/产线话术。
 5. 没有合适正式能力时：capability_key 用 gen_拼音或英文短 slug，widget=GeneratedPageWidget，page_mock 写清表单；接口可异步落地，reply 里说明「页面已出，接口后台生成」。
-5b. **可点按工具 UI**（计算器/计数器/骰子/按键面板等）：必须理解并泛化，在 page_mock 写 `"interactive":{"type":"tool_pad","buttons":[...]}`（白名单 ops），**禁止**用 list 文字罗列按键冒充 UI。改交互同样用 patch_page 更新 interactive。
+5b. **可点按工具 UI**（计算器/计数器/骰子/按键面板等）：必须理解并泛化，在 page_mock 写入 interactive 对象（type=tool_pad，buttons 数组，白名单 ops），**禁止**用 list 文字罗列按键冒充 UI。改交互同样用 patch_page 更新 interactive。
 6. 同一正式能力可对应多个不同 label 场景页（加班申请与请假申请可并存）。
 7. 已有相同 label 不要重复 add；可 rename/move。
 8. **改交互控件**（日期弹框/选择器、金额改数字、把文本框改成 date/number）：必须用 **patch_page**，针对当前菜单已有项写完整 page_mock.fields 与 form_fields（含 key/label/type）。type 可用 date / datetime-local / number / text / textarea。禁止空 ops 却说已更新。
