@@ -52,7 +52,8 @@ _git_try_fetch() {
   GIT_TERMINAL_PROMPT=0 git fetch origin "$@"
 }
 
-# Pull latest main without interactive HTTPS username/password.
+# Pull latest branch without interactive HTTPS username/password.
+# 服务器部署默认 main；功能分支可用: DEPLOY_BRANCH=feat/xxx bash scripts/deploy-one.sh
 blockhub_git_pull() {
   local branch="${1:-main}"
 
@@ -91,9 +92,25 @@ blockhub_git_pull() {
       ;;
   esac
 
+  _sync_branch() {
+    # 先拉再对齐到 origin/<branch>，避免「当前在 feat、却 pull main」导致 divergent
+    git fetch origin "$branch"
+    if git show-ref --verify --quiet "refs/heads/$branch"; then
+      git checkout "$branch"
+    elif git show-ref --verify --quiet "refs/remotes/origin/$branch"; then
+      git checkout -B "$branch" "origin/$branch"
+    else
+      echo "ERROR: branch origin/$branch 不存在"
+      return 1
+    fi
+    # 服务器部署以远程为准（丢弃本地漂移），避免 pull.rebase 交互提示
+    git reset --hard "origin/$branch"
+    echo "    checked out $branch @ $(git rev-parse --short HEAD)"
+  }
+
   if [[ "$origin_url" == git@github.com:* ]] || [[ "$origin_url" == ssh://git@github.com/* ]]; then
     _ensure_github_ssh_443
-    if _git_try_fetch && git pull origin "$branch"; then
+    if _sync_branch; then
       return 0
     fi
     echo "WARN: git over SSH failed — if you see 'Permission denied (publickey)':"
@@ -102,7 +119,7 @@ blockhub_git_pull() {
     return 1
   fi
 
-  if _git_try_fetch && git pull origin "$branch"; then
+  if _sync_branch; then
     return 0
   fi
 
@@ -110,7 +127,7 @@ blockhub_git_pull() {
   if [ "$https_url" != "$origin_url" ]; then
     echo "WARN: trying HTTPS (only works for public repos without login)"
     git remote set-url origin "$https_url"
-    if GIT_TERMINAL_PROMPT=0 git -c credential.helper= fetch origin && git pull origin "$branch"; then
+    if GIT_TERMINAL_PROMPT=0 git -c credential.helper= fetch origin "$branch" && _sync_branch; then
       return 0
     fi
   fi
@@ -118,5 +135,6 @@ blockhub_git_pull() {
   echo "ERROR: git pull failed."
   echo "  Private repo: use SSH + deploy key (bash scripts/fix-github-git.sh)"
   echo "  Skip pull:    SKIP_GIT_PULL=1 bash scripts/deploy.sh"
+  echo "  Feature branch: DEPLOY_BRANCH=feat/xxx bash scripts/deploy-one.sh"
   return 1
 }

@@ -5,6 +5,8 @@
 #
 # 用法:
 #   bash scripts/deploy-one.sh
+#   DEPLOY_BRANCH=feat/sales-64-capship-path-a bash scripts/deploy-one.sh
+#   SKIP_GIT_PULL=1 bash scripts/deploy-one.sh   # 已 checkout 好分支时跳过 pull
 #
 # 上海话网页+APK 请用:
 #   bash scripts/deploy-shanghai-one.sh

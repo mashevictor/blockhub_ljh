@@ -27,7 +27,9 @@ echo "==> [1/9] git pull (discard local lockfile & generated preview drift)"
 # 未跟踪冲突由 scripts/lib/git-pull.sh 按需清理。
 # shellcheck disable=SC1091
 source "$ROOT/scripts/lib/git-pull.sh"
-blockhub_git_pull main
+DEPLOY_BRANCH="${DEPLOY_BRANCH:-main}"
+echo "    DEPLOY_BRANCH=$DEPLOY_BRANCH"
+blockhub_git_pull "$DEPLOY_BRANCH"
 echo "    now at $(git rev-parse --short HEAD)"
 # pull 后若工作区缺 codegen，从 HEAD 恢复
 git checkout HEAD -- \
