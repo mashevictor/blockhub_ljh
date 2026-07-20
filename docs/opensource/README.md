@@ -19,6 +19,8 @@
 | [SPEC.md](./SPEC.md) | 契约规范（schema / manifest / templates / packs） |
 | [EXTRACTION.md](./EXTRACTION.md) | 从本仓库抽出开源包的步骤与白标清单 |
 | [ROADMAP.md](./ROADMAP.md) | MVP → 1.0 开源路线图 |
+| [capship-demo/README.md](./capship-demo/README.md) | 示范仓骨架（chat + approval） |
+| [capship-scope-boundary.html](./capship-scope-boundary.html) | 开源范围与产品面边界（对外可见） |
 
 开发时 Cursor Skill：`.cursor/skills/capship-capability/SKILL.md`（与 `capship.html` 同步遵循）。
 

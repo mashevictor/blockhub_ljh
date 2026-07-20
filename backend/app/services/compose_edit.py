@@ -252,12 +252,67 @@ _SYSTEM = f"""你是积木仓 Runtime 编排助手。用户用中文描述业务
 4. **每个 add 必须带 page_mock**，字段名/列表示例要反映用户原话（如「团建」「差旅」「季度 OKR」），禁止复制无关制造/产线话术。
 5. 没有合适正式能力时：capability_key 用 gen_拼音或英文短 slug，widget=GeneratedPageWidget，page_mock 写清表单；接口可异步落地，reply 里说明「页面已出，接口后台生成」。
 5b. **可点按工具 UI**（计算器/计数器/骰子/按键面板等）：必须理解并泛化，在 page_mock 写入 interactive 对象（type=tool_pad，buttons 数组，白名单 ops），**禁止**用 list 文字罗列按键冒充 UI。改交互同样用 patch_page 更新 interactive。
+5c. **仅改标题/菜单名/文案**：用 **rename**（from→to）或 patch_page 文案，**禁止** add 新模块。用户说「改标题」「改名叫」「把请假改成事假」时不得默认挂新能力。
 6. 同一正式能力可对应多个不同 label 场景页（加班申请与请假申请可并存）。
 7. 已有相同 label 不要重复 add；可 rename/move。
 8. **改交互控件**（日期弹框/选择器、金额改数字、把文本框改成 date/number）：必须用 **patch_page**，针对当前菜单已有项写完整 page_mock.fields 与 form_fields（含 key/label/type）。type 可用 date / datetime-local / number / text / textarea。禁止空 ops 却说已更新。
 9. ops 可为空（仅澄清时）；此时 reply 只能提问或说明未改动，禁止谎称已更新。
 10. {NO_MARKDOWN_STYLE_RULE}
 """
+
+
+def _looks_like_title_rename_intent(text: str) -> bool:
+    """改标题 / 重命名菜单 — 不得走 add。"""
+    t = (text or "").strip()
+    if not t:
+        return False
+    if _looks_like_ui_patch_intent(t):
+        return False
+    if any(w in t for w in ("增加", "添加", "加上", "新建", "挂上", "开通", "做一个", "来个")):
+        return False
+    if re.search(r"(改|修改|更换|调整).{0,6}(标题|名称|名字|菜单名|显示名)", t):
+        return True
+    if re.search(r"重命名|改名叫|改名为|叫做|叫成", t):
+        return True
+    if re.search(r"把\s*[「『\"].+[」』\"]\s*改成", t) or re.search(r"把.{1,16}改成.{1,16}", t):
+        return True
+    return False
+
+
+def _infer_rename_ops(instruction: str, menu: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    text = instruction.strip()
+    labels = [str(m.get("label") or "") for m in menu if m.get("label")]
+    if not labels:
+        return []
+
+    m = re.search(
+        r"把\s*[「『\"]?([^「『」』\"，,]{1,24})[」』\"]?\s*改成\s*[「『\"]?([^「『」』\"，,]{1,24})[」』\"]?",
+        text,
+    )
+    if m:
+        src, dst = m.group(1).strip(), m.group(2).strip()
+        for lab in labels:
+            if src == lab or src in lab or lab in src:
+                return [{"op": "rename", "from": lab, "to": dst}]
+
+    m2 = re.search(
+        r"(?:标题|名称|名字|菜单名|显示名)\s*(?:改成|改为|改叫|叫)\s*[「『\"]?([^「『」』\"，,]{1,24})[」』\"]?",
+        text,
+    )
+    if m2:
+        return [{"op": "rename", "from": labels[0], "to": m2.group(1).strip()}]
+
+    m3 = re.search(
+        r"重命名\s*[「『\"]?([^「『」』\"，,]{1,24})[」』\"]?\s*(?:为|成|叫)\s*[「『\"]?([^「『」』\"，,]{1,24})",
+        text,
+    )
+    if m3:
+        src, dst = m3.group(1).strip(), m3.group(2).strip()
+        for lab in labels:
+            if src == lab or src in lab or lab in src:
+                return [{"op": "rename", "from": lab, "to": dst}]
+
+    return []
 
 
 def _catalog_brief() -> str:
@@ -960,12 +1015,17 @@ def _fallback_ops(instruction: str, menu: list[dict[str, Any]]) -> dict[str, Any
             break
 
     if not ops:
+        # 改标题 / 重命名：优先 rename，禁止误 add
+        if _looks_like_title_rename_intent(text):
+            rename_ops = _infer_rename_ops(text, menu)
+            if rename_ops:
+                ops.extend(rename_ops)
         # 改控件意图优先：菜单已有目标则 patch，禁止误 add
-        if _looks_like_ui_patch_intent(text):
+        if not ops and _looks_like_ui_patch_intent(text):
             patch_ops = _infer_patch_ops(text, menu)
             if patch_ops:
                 ops.extend(patch_ops)
-        if not ops:
+        if not ops and not _looks_like_title_rename_intent(text):
             for add_op in _infer_add_from_text(text):
                 lab = str(add_op.get("label") or "")
                 # 同名已有则跳过；不同场景标签可共用同一能力 key
@@ -990,6 +1050,11 @@ def _fallback_ops(instruction: str, menu: list[dict[str, Any]]) -> dict[str, Any
         added = [str(o.get("label") or o.get("capability_key") or "") for o in ops if o.get("op") == "add"]
         removed = [str(o.get("label") or "") for o in ops if o.get("op") == "remove"]
         patched = [str(o.get("label") or "") for o in ops if o.get("op") == "patch_page"]
+        renamed = [
+            f"{o.get('from')}→{o.get('to')}"
+            for o in ops
+            if o.get("op") == "rename"
+        ]
         parts = []
         if added and pending:
             parts.append(f"已理解并挂上页面：{'、'.join(added)}")
@@ -999,12 +1064,19 @@ def _fallback_ops(instruction: str, menu: list[dict[str, Any]]) -> dict[str, Any
             parts.append("打开菜单即可办理（正式能力走真 API，空库为空列表）")
         if removed:
             parts.append(f"已移除：{'、'.join(removed)}")
+        if renamed:
+            parts.append(f"已改名：{'、'.join(renamed)}")
         if patched:
             parts.append(f"已改控件：{'、'.join(patched)}（日期/时间改为原生选择器，打开左侧菜单即可体验）")
         reply = "；".join(parts) + "。"
     else:
         hits = _resolve_matches(text)
-        if _looks_like_ui_patch_intent(text):
+        if _looks_like_title_rename_intent(text):
+            reply = (
+                "已理解你想改标题/菜单名，但没定位到目标项。"
+                "请说明从哪个名字改到哪个（如「把请假审批改成事假申请」）。"
+            )
+        elif _looks_like_ui_patch_intent(text):
             reply = (
                 "已理解你想改表单交互，但当前菜单里没定位到目标场景。"
                 "请说明要改哪一项（如「请假审批」或「费用报销」）。"
@@ -1155,6 +1227,17 @@ def compose_edit_from_instruction(
     ops = _merge_llm_with_matches(ops, q, menu_list)
     # 再次 enrich（纠正后的 key）
     ops = [_enrich_add_op(o) if o.get("op") == "add" else o for o in ops]
+
+    # 改标题意图：丢掉误 add，优先本地 rename
+    if _looks_like_title_rename_intent(q):
+        renames = [o for o in ops if o.get("op") == "rename"]
+        if not renames:
+            renames = _infer_rename_ops(q, menu_list)
+        ops = [o for o in ops if o.get("op") != "add"]
+        if renames:
+            # 保留非 add 的其它操作，但 rename 放前面
+            rest = [o for o in ops if o.get("op") != "rename"]
+            ops = renames + rest
 
     # 去重：同 label 已在菜单或本批重复；同 capability 允许不同场景页；patch 不去重菜单已有
     deduped: list[dict[str, Any]] = []
