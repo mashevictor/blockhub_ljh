@@ -419,6 +419,11 @@
   border-bottom: none;
 }
 
+.capship-floating-dock.is-collapsed {
+  width: max-content !important;
+  max-width: min(420px, calc(100vw - 32px));
+}
+
 .capship-floating-dock.is-collapsed .floating-agent-dock-frame {
   flex-direction: row;
   align-items: center;
@@ -426,6 +431,8 @@
   min-height: 44px;
   max-height: 48px;
   padding: 0 6px 0 10px;
+  width: max-content;
+  max-width: min(420px, calc(100vw - 32px));
 }
 
 .capship-floating-dock.is-collapsed .floating-agent-dock-chrome {

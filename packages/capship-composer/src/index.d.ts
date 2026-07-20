@@ -145,6 +145,8 @@ export interface CapShipComposerDockProps extends ComposerInput, ComposerEvents 
   defaultMode?: ComposerMode
   defaultOpen?: boolean
   storageKey?: string
+  /** 初始角落：独立站用 top-right，避免挡住左侧导航 */
+  defaultPlacement?: 'center' | 'top-right'
 }
 
 export declare const CapShipComposer: ComponentType<CapShipComposerProps>

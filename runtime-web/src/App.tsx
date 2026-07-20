@@ -147,14 +147,14 @@ export default function App() {
   const [loginEmail, setLoginEmail] = useState('employee@trackchat.local')
   const [loginPassword, setLoginPassword] = useState('emp123')
   const [loginBusy, setLoginBusy] = useState(false)
-  /** 独立站 Runtime 内可切换的视觉模板（优先于 schema.meta） */
+  /** 独立站：仅会话内换皮；初始以 schema 发布选择为准（勿被旧 localStorage 抢默认） */
   const [skinOverride, setSkinOverride] = useState<string | null>(null)
 
   useEffect(() => {
     if (!appId) return
+    // 清理会覆盖「用户向导所选模板」的陈旧缓存
     try {
-      const saved = localStorage.getItem(`blockhub_rt_microsite_${appId}`)
-      if (saved) setSkinOverride(saved)
+      localStorage.removeItem(`blockhub_rt_microsite_${appId}`)
     } catch {
       /* ignore */
     }
@@ -553,6 +553,7 @@ export default function App() {
   const entryShell = industryEntry ? ' is-industry-site' : ' is-capship-workbench'
   const skinShell = skin ? ` ${skin.shellClass}` : ''
   const layoutShell = industryEntry ? ` layout-${layoutMode} nav-${navMode}` : ''
+  const homeGuideShell = industryEntry && atHome ? ' is-home-guide' : ''
   const shellStyle = {
     '--accent': skin?.accent || primaryColor,
     ...(skin
@@ -722,8 +723,9 @@ export default function App() {
 
         <Suspense fallback={null}>
           <CapShipComposerDock
-            storageKey="capship-runtime-dock-v3"
-            defaultOpen
+            storageKey="capship-runtime-dock-v4"
+            defaultOpen={false}
+            defaultPlacement="top-right"
             appId={appId}
             token={token}
             capability_keys={scopedKeysFromSchema(schema)}

@@ -20,6 +20,8 @@ export interface CapShipComposerDockProps extends ComposerInput, ComposerEvents 
   defaultMode?: ComposerMode
   defaultOpen?: boolean
   storageKey?: string
+  /** 初始角落：独立站用 top-right，避免挡住左侧导航 */
+  defaultPlacement?: 'center' | 'top-right'
 }
 
 interface DockPos {
@@ -74,6 +76,14 @@ function defaultPos(width: number, height: number): DockPos {
   return clampPos({ x, y }, w, height)
 }
 
+/** 右上角：折叠胶囊默认位置，不挡左侧导航 */
+function defaultPosTopRight(width: number, height: number): DockPos {
+  const w = Math.min(width, 420, window.innerWidth - MARGIN * 2)
+  const x = Math.max(MARGIN, window.innerWidth - w - MARGIN)
+  const y = MARGIN
+  return clampPos({ x, y }, w, height)
+}
+
 function clampPos(pos: DockPos, dockW: number, dockH: number): DockPos {
   const maxX = Math.max(MARGIN, window.innerWidth - dockW - MARGIN)
   const maxY = Math.max(MARGIN, window.innerHeight - dockH - MARGIN)
@@ -91,6 +101,7 @@ export function CapShipComposerDock({
   defaultOpen = true,
   defaultMode = 'live_edit',
   storageKey = 'capship-composer-dock-v3',
+  defaultPlacement = 'center',
   ...composerProps
 }: CapShipComposerDockProps) {
   const rootRef = useRef<HTMLDivElement>(null)
@@ -101,18 +112,31 @@ export function CapShipComposerDock({
   const [dragging, setDragging] = useState(false)
   const [pos, setPos] = useState<DockPos | null>(null)
 
+  const resolveDefaultPos = useCallback(
+    (w: number, h: number) =>
+      defaultPlacement === 'top-right' ? defaultPosTopRight(w, h) : defaultPos(w, h),
+    [defaultPlacement],
+  )
+
   useEffect(() => {
     const el = rootRef.current
-    const w = el?.offsetWidth || DOCK_WIDTH
+    const w = el?.offsetWidth || (open ? DOCK_WIDTH : 280)
     const h = el?.offsetHeight || 48
     const stored = loadPos(storageKey)
     if (stored) {
       const nearBottom = stored.y > window.innerHeight - h - 80
-      setPos(nearBottom ? defaultPos(w, h) : clampPos(stored, w, h))
+      const nearCenter =
+        Math.abs(stored.x - (window.innerWidth - w) / 2) < 80 && stored.y > window.innerHeight * 0.15
+      // 独立站：旧的中部宽盒会挡住侧栏，强制迁到右上
+      if (defaultPlacement === 'top-right' && (nearBottom || nearCenter || stored.x < 120)) {
+        setPos(resolveDefaultPos(w, h))
+      } else {
+        setPos(nearBottom ? resolveDefaultPos(w, h) : clampPos(stored, w, h))
+      }
     } else {
-      setPos(defaultPos(w, h))
+      setPos(resolveDefaultPos(w, h))
     }
-  }, [storageKey])
+  }, [storageKey, defaultPlacement, open, resolveDefaultPos])
 
   useEffect(() => {
     saveOpen(storageKey, open)
@@ -137,7 +161,7 @@ export function CapShipComposerDock({
           const el = rootRef.current
           if (!el) return
           setPos((prev) => {
-            const base = prev || defaultPos(el.offsetWidth || DOCK_WIDTH, el.offsetHeight || 48)
+            const base = prev || resolveDefaultPos(el.offsetWidth || DOCK_WIDTH, el.offsetHeight || 48)
             const nextPos = clampPos(base, el.offsetWidth || DOCK_WIDTH, el.offsetHeight || 48)
             savePos(storageKey, nextPos)
             return nextPos
@@ -145,7 +169,7 @@ export function CapShipComposerDock({
         })
       }
     },
-    [storageKey],
+    [storageKey, resolveDefaultPos],
   )
 
   const onDragStart = useCallback(
@@ -193,8 +217,21 @@ export function CapShipComposerDock({
   const style: CSSProperties | undefined = fullscreen
     ? undefined
     : pos
-      ? { left: pos.x, top: pos.y, right: 'auto', bottom: 'auto', transform: 'none', width: Math.min(DOCK_WIDTH, window.innerWidth - MARGIN * 2) }
-      : { visibility: 'hidden', width: Math.min(DOCK_WIDTH, typeof window !== 'undefined' ? window.innerWidth - MARGIN * 2 : DOCK_WIDTH) }
+      ? {
+          left: pos.x,
+          top: pos.y,
+          right: 'auto',
+          bottom: 'auto',
+          transform: 'none',
+          // 折叠时按内容收缩，禁止 720px 透明热区挡住左侧菜单
+          width: open ? Math.min(DOCK_WIDTH, window.innerWidth - MARGIN * 2) : 'max-content',
+          maxWidth: Math.min(DOCK_WIDTH, window.innerWidth - MARGIN * 2),
+          pointerEvents: 'auto',
+        }
+      : {
+          visibility: 'hidden',
+          width: open ? Math.min(DOCK_WIDTH, typeof window !== 'undefined' ? window.innerWidth - MARGIN * 2 : DOCK_WIDTH) : 'max-content',
+        }
 
   return (
     <div

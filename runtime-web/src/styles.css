@@ -137,8 +137,12 @@ body { margin: 0; font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
   padding: 12px;
   position: sticky;
   top: 12px;
+  z-index: 6;
+  max-height: calc(100vh - 24px);
+  overflow: auto;
+  pointer-events: auto;
 }
-.sidebar-btn { width: 100%; text-align: left; }
+.sidebar-btn { width: 100%; text-align: left; position: relative; z-index: 1; }
 .landing-hero {
   background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 18%, #fff), #fff);
   border: 1px solid var(--border);
