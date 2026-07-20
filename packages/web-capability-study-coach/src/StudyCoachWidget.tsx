@@ -25,13 +25,6 @@ interface PlanUnit {
   planned_end?: string
 }
 
-interface PlanModule {
-  order: number
-  name: string
-  goal?: string
-  unit_orders?: number[]
-}
-
 interface ScheduleItem {
   date: string
   unit_order: number
@@ -47,7 +40,6 @@ interface ScheduleItem {
 interface SubjectTips {
   subject?: string
   rhythm?: string
-  primary_kinds?: string[]
   follow_labels?: Record<string, string>
 }
 
@@ -62,52 +54,11 @@ interface CatalogInfo {
   full_title?: string
   confidence?: number
   note?: string
-}
-
-interface CourseItem {
-  id: string
-  record_no: string
-  textbook_name: string
-  subject: string
-  grade: string
-  role: string
-  student_name: string
-  catalog?: CatalogInfo & { toc_source?: string; toc_book_id?: string; edition_label?: string }
-  plan: PlanUnit[]
-  modules?: PlanModule[]
-  schedule?: ScheduleItem[]
-  subject_tips?: SubjectTips
-  plan_source: string
-  progress_pct: number
-  status: string
-  unit_progress?: UnitProgress
-  progress_meta?: {
-    current_unit_order?: number
-    term_start?: string
-    term_end?: string
-    edition_label?: string
-    adjusted?: boolean
-    warning?: string
-  }
   toc_source?: string
-  toc_book_id?: string
+  edition_label?: string
 }
-
-interface DrillItem {
-  id: string
-  record_no: string
-  course_id: string
-  unit_name: string
-  kind: string
-  score: string
-  result: string
-  notes: string
-}
-
-type HubTab = 'today' | 'progress' | 'modules' | 'calendar' | 'follow'
 
 interface UnitProgress {
-  today?: string
   planned_unit_order?: number
   actual_unit_order?: number
   delta_units?: number
@@ -116,6 +67,40 @@ interface UnitProgress {
   planned_unit_name?: string
   actual_unit_name?: string
 }
+
+interface CourseItem {
+  id: string
+  textbook_name: string
+  subject: string
+  catalog?: CatalogInfo
+  plan: PlanUnit[]
+  schedule?: ScheduleItem[]
+  subject_tips?: SubjectTips
+  plan_source: string
+  progress_pct: number
+  unit_progress?: UnitProgress
+  progress_meta?: {
+    current_unit_order?: number
+    term_start?: string
+    term_end?: string
+    edition_label?: string
+    warning?: string
+  }
+  toc_source?: string
+}
+
+interface DrillItem {
+  id: string
+  course_id: string
+  unit_name: string
+  kind: string
+  score: string
+  result: string
+  notes: string
+}
+
+/** 主路径：学这一课 / 课本目录 / 记一次；日历与校正为辅助 */
+type HubTab = 'learn' | 'catalog' | 'record' | 'calendar'
 
 const UNIT_LABEL: Record<string, string> = {
   pending: '未开始',
@@ -138,24 +123,19 @@ function catalogLine(c: CatalogInfo) {
 
 function todayIso() {
   const d = new Date()
-  const m = `${d.getMonth() + 1}`.padStart(2, '0')
-  const day = `${d.getDate()}`.padStart(2, '0')
-  return `${d.getFullYear()}-${m}-${day}`
+  return `${d.getFullYear()}-${`${d.getMonth() + 1}`.padStart(2, '0')}-${`${d.getDate()}`.padStart(2, '0')}`
 }
 
 function addDaysIso(iso: string, delta: number) {
   const [y, m, d] = iso.split('-').map(Number)
   const dt = new Date(y, m - 1, d)
   dt.setDate(dt.getDate() + delta)
-  const mm = `${dt.getMonth() + 1}`.padStart(2, '0')
-  const dd = `${dt.getDate()}`.padStart(2, '0')
-  return `${dt.getFullYear()}-${mm}-${dd}`
+  return `${dt.getFullYear()}-${`${dt.getMonth() + 1}`.padStart(2, '0')}-${`${dt.getDate()}`.padStart(2, '0')}`
 }
 
 function weekdayLabel(iso: string) {
   const [y, m, d] = iso.split('-').map(Number)
-  const w = new Date(y, m - 1, d).getDay()
-  return ['日', '一', '二', '三', '四', '五', '六'][w]
+  return ['日', '一', '二', '三', '四', '五', '六'][new Date(y, m - 1, d).getDay()]
 }
 
 export function StudyCoachWidget(_props: { node: SchemaNode }) {
@@ -166,33 +146,54 @@ export function StudyCoachWidget(_props: { node: SchemaNode }) {
   const [busy, setBusy] = useState(false)
   const [resetKey, setResetKey] = useState(0)
   const [drillResetKey, setDrillResetKey] = useState(0)
+  const [paceResetKey, setPaceResetKey] = useState(0)
   const [queryValues, setQueryValues] = useState<Record<string, string>>({})
   const [drillValues, setDrillValues] = useState<Record<string, string>>({})
+  const [paceValues, setPaceValues] = useState<Record<string, string>>({})
   const [activeCourseId, setActiveCourseId] = useState('')
+  const [focusUnitOrder, setFocusUnitOrder] = useState<number | null>(null)
   const [msg, setMsg] = useState('')
   const [phase, setPhase] = useState<'ask' | 'confirm'>('ask')
   const [lastQuery, setLastQuery] = useState('')
   const [candidates, setCandidates] = useState<CatalogInfo[]>([])
   const [showAsk, setShowAsk] = useState(entrySource !== 'im')
-  const [hubTab, setHubTab] = useState<HubTab>('progress')
-  const [expandedUnit, setExpandedUnit] = useState<number | null>(null)
+  const [hubTab, setHubTab] = useState<HubTab>('learn')
+  const [showPaceFix, setShowPaceFix] = useState(false)
   const [calAnchor, setCalAnchor] = useState(todayIso())
-  const [paceValues, setPaceValues] = useState<Record<string, string>>({})
-  const [paceResetKey, setPaceResetKey] = useState(0)
 
   const accent = primaryColor || '#0f766e'
   const activeCourse = courses.find((c) => c.id === activeCourseId) || courses[0]
-  const drillKind = drillValues.kind || ''
   const tips = activeCourse?.subject_tips
   const followLabels = tips?.follow_labels || KIND_LABEL
+  const drillKind = drillValues.kind || ''
+
+  const currentUnit = useMemo(() => {
+    const plan = activeCourse?.plan || []
+    if (!plan.length) return null
+    if (focusUnitOrder != null) {
+      const hit = plan.find((u) => u.order === focusUnitOrder)
+      if (hit) return hit
+    }
+    const actual = activeCourse?.unit_progress?.actual_unit_order
+    if (actual) {
+      const hit = plan.find((u) => u.order === actual)
+      if (hit && hit.status !== 'mastered') return hit
+    }
+    return plan.find((u) => u.status !== 'mastered') || plan[plan.length - 1]
+  }, [activeCourse, focusUnitOrder])
+
+  const nextStep = useMemo(() => {
+    if (!currentUnit) return null
+    return (currentUnit.steps || []).find((s) => s.status !== 'done') || null
+  }, [currentUnit])
 
   const askSteps: GtgtStep[] = useMemo(
     () => [
       {
         key: 'query',
         label: '学哪一科、哪一本？',
-        placeholder: '例：沪教版英语二年级下 / 人教语文三上 / 北师大数学七下',
-        hint: '说清科目+年级+上下册。已入库：部编语文三上 / 人教数学三上 / 沪教英语三上（真实目录，无需上传 PDF）。',
+        placeholder: '例：部编语文三上 / 人教数学三上 / 沪教英语三上',
+        hint: '已入库真实目录的册次可直接跟学；确认后默认进入「学这一课」。',
       },
     ],
     [],
@@ -201,26 +202,25 @@ export function StudyCoachWidget(_props: { node: SchemaNode }) {
   const paceSteps: GtgtStep[] = useMemo(() => {
     const choices = (activeCourse?.plan || []).map((u) => ({
       order: u.order,
-      label: `${u.order}. ${u.unit_name.length > 28 ? `${u.unit_name.slice(0, 28)}…` : u.unit_name}`,
-      name: u.unit_name,
+      label: `${u.order}. ${u.unit_name.length > 26 ? `${u.unit_name.slice(0, 26)}…` : u.unit_name}`,
     }))
     return [
       {
         key: 'unit_order',
-        label: '老师/孩子现在实际讲到哪一课？',
-        hint: '选课后，会把前面单元标为已掌握，并从今天起重排后续日历。用于校正「预测进度 vs 实际进度」。',
+        label: '实际讲到哪一课？（辅助校正）',
+        hint: '仅当与老师进度差很多时用。选课后会同步标记前面已掌握，并重排后续日历。',
         render: ({ value, setValue, accent: a }) => (
-          <div className="row-actions" style={{ flexWrap: 'wrap', maxHeight: 280, overflow: 'auto' }}>
+          <div className="row-actions" style={{ flexWrap: 'wrap', maxHeight: 220, overflow: 'auto' }}>
             {choices.map((c) => (
               <button
                 key={c.order}
                 type="button"
                 className={value === String(c.order) ? 'btn' : 'btn btn-ghost'}
-                style={
-                  value === String(c.order)
-                    ? { background: a, fontSize: 12, textAlign: 'left' }
-                    : { fontSize: 12, textAlign: 'left' }
-                }
+                style={{
+                  fontSize: 12,
+                  textAlign: 'left',
+                  ...(value === String(c.order) ? { background: a } : {}),
+                }}
                 onClick={() => setValue(String(c.order))}
               >
                 {c.label}
@@ -237,40 +237,104 @@ export function StudyCoachWidget(_props: { node: SchemaNode }) {
     return (activeCourse?.plan || []).find((u) => u.unit_name === name)
   }, [activeCourse?.plan, drillValues.unit_name])
 
-  const todayItems = useMemo(() => {
-    const day = todayIso()
-    const sched = (activeCourse?.schedule || []).filter((s) => s.date === day)
-    if (sched.length) return sched
-    // 无当日排期：推第一个未完成小步骤
-    for (const u of activeCourse?.plan || []) {
-      if (u.status === 'mastered') continue
-      for (const step of u.steps || []) {
-        if (step.status === 'done') continue
-        return [
-          {
-            date: day,
-            unit_order: u.order,
-            unit_name: u.unit_name,
-            module_name: u.module_name,
-            step_id: step.id,
-            title: step.title,
-            reminder: step.detail || u.focus || '',
-            kind: step.kind || 'review',
-            done: false,
-          } as ScheduleItem,
-        ]
-      }
+  const drillSteps: GtgtStep[] = useMemo(() => {
+    const unitChoices = (activeCourse?.plan || []).map((u) => u.unit_name)
+    const kind = drillKind
+    const unitHint = selectedUnit
+      ? [selectedUnit.focus, selectedUnit.dictation_hint].filter(Boolean).join(' · ')
+      : ''
+
+    const kindStep: GtgtStep = {
+      key: 'kind',
+      label: '① 记什么',
+      hint: tips?.rhythm ? `本科目：${tips.rhythm}` : '家默 / 复习 / 考试',
+      render: ({ value, setValue, accent: a }) => (
+        <div style={{ display: 'grid', gap: 8 }}>
+          {(
+            [
+              ['dictation', followLabels.dictation || '家默'],
+              ['review', followLabels.review || '复习'],
+              ['exam', followLabels.exam || '考试'],
+            ] as const
+          ).map(([k, lab]) => (
+            <button
+              key={k}
+              type="button"
+              className={value === k ? 'btn' : 'btn btn-ghost'}
+              style={{ textAlign: 'left', background: value === k ? a : undefined }}
+              onClick={() => setValue(k)}
+            >
+              {lab}
+            </button>
+          ))}
+        </div>
+      ),
     }
-    return [] as ScheduleItem[]
-  }, [activeCourse])
+
+    const unitStep: GtgtStep = {
+      key: 'unit_name',
+      label: '② 对应哪一课',
+      placeholder: currentUnit?.unit_name || unitChoices[0] || '',
+      render: unitChoices.length
+        ? ({ value, setValue, accent: a }) => (
+            <div className="row-actions" style={{ flexWrap: 'wrap' }}>
+              {unitChoices.slice(0, 24).map((name) => (
+                <button
+                  key={name}
+                  type="button"
+                  className={value === name ? 'btn' : 'btn btn-ghost'}
+                  style={{
+                    fontSize: 12,
+                    textAlign: 'left',
+                    ...(value === name ? { background: a } : {}),
+                  }}
+                  onClick={() => setValue(name)}
+                >
+                  {name.length > 20 ? `${name.slice(0, 20)}…` : name}
+                </button>
+              ))}
+            </div>
+          )
+        : undefined,
+    }
+
+    if (kind === 'dictation') {
+      return [
+        kindStep,
+        unitStep,
+        { key: 'dictation_range', label: '③ 默写范围', inputType: 'textarea', hint: unitHint || undefined },
+        { key: 'dictation_score', label: '④ 对了几个 / 一共几个' },
+        { key: 'dictation_wrong', label: '⑤ 错项（可空）', optional: true, inputType: 'textarea' },
+        { key: 'notes', label: '⑥ 备注（可空）', optional: true, inputType: 'textarea' },
+      ]
+    }
+    if (kind === 'review') {
+      return [
+        kindStep,
+        unitStep,
+        { key: 'review_focus', label: '③ 复习了什么', inputType: 'textarea', hint: unitHint || undefined },
+        { key: 'review_weak', label: '④ 还卡在哪（可空）', optional: true, inputType: 'textarea' },
+        { key: 'notes', label: '⑤ 下次计划（可空）', optional: true, inputType: 'textarea' },
+      ]
+    }
+    if (kind === 'exam') {
+      return [
+        kindStep,
+        unitStep,
+        { key: 'exam_name', label: '③ 哪次测验', hint: unitHint || undefined },
+        { key: 'exam_score', label: '④ 得分或等第' },
+        { key: 'exam_wrong', label: '⑤ 错题（可空）', optional: true, inputType: 'textarea' },
+        { key: 'notes', label: '⑥ 备注（可空）', optional: true, inputType: 'textarea' },
+      ]
+    }
+    return [kindStep]
+  }, [activeCourse?.plan, drillKind, selectedUnit, followLabels, tips, currentUnit])
 
   const weekDays = useMemo(() => {
-    const start = calAnchor
-    // 对齐到本周一
-    const [y, m, d] = start.split('-').map(Number)
+    const [y, m, d] = calAnchor.split('-').map(Number)
     const dt = new Date(y, m - 1, d)
     const wd = dt.getDay() || 7
-    const monday = addDaysIso(start, 1 - wd)
+    const monday = addDaysIso(calAnchor, 1 - wd)
     return Array.from({ length: 14 }, (_, i) => addDaysIso(monday, i))
   }, [calAnchor])
 
@@ -283,229 +347,6 @@ export function StudyCoachWidget(_props: { node: SchemaNode }) {
     }
     return map
   }, [activeCourse?.schedule])
-
-  const modules = useMemo(() => {
-    if (activeCourse?.modules?.length) return activeCourse.modules
-    const buckets = new Map<number, PlanModule>()
-    for (const u of activeCourse?.plan || []) {
-      const mo = u.module_order || 1
-      const b = buckets.get(mo) || {
-        order: mo,
-        name: u.module_name || `阶段 ${mo}`,
-        goal: '',
-        unit_orders: [],
-      }
-      b.unit_orders = [...(b.unit_orders || []), u.order]
-      if (!b.goal && u.focus) b.goal = u.focus
-      buckets.set(mo, b)
-    }
-    return [...buckets.values()].sort((a, b) => a.order - b.order)
-  }, [activeCourse])
-
-  const drillSteps: GtgtStep[] = useMemo(() => {
-    const unitChoices = (activeCourse?.plan || []).map((u) => u.unit_name)
-    const kind = drillKind
-    const unitHintBlock = selectedUnit
-      ? [
-          selectedUnit.focus ? `本单元重点：${selectedUnit.focus}` : '',
-          selectedUnit.dictation_hint ? `大纲提示：${selectedUnit.dictation_hint}` : '',
-          (selectedUnit.steps || [])
-            .map((s) => s.title)
-            .filter(Boolean)
-            .slice(0, 3)
-            .join(' → ')
-            ? `小步骤：${(selectedUnit.steps || [])
-                .map((s) => s.title)
-                .slice(0, 3)
-                .join(' → ')}`
-            : '',
-        ]
-          .filter(Boolean)
-          .join(' · ')
-      : ''
-
-    const kindOptions: [string, string, string][] = [
-      [
-        'dictation',
-        followLabels.dictation || '家默 / 听写',
-        tips?.subject?.includes('数学')
-          ? '公式/定义默写 → 对错 → 错项'
-          : '默写范围 → 对了几个 → 错词清单',
-      ],
-      [
-        'review',
-        followLabels.review || '复习巩固',
-        '复习了哪一块 → 还卡在哪 → 下次怎么盯',
-      ],
-      [
-        'exam',
-        followLabels.exam || '考试成绩',
-        '哪次测验 → 得分/等第 → 错题与丢分点',
-      ],
-    ]
-
-    const kindStep: GtgtStep = {
-      key: 'kind',
-      label: '① 先选跟进类型',
-      hint: tips?.rhythm
-        ? `本科目节奏：${tips.rhythm}`
-        : '按科目选家默 / 复习 / 考试，再逐步填写。',
-      render: ({ value, setValue, accent: a }) => (
-        <div style={{ display: 'grid', gap: 10 }}>
-          {kindOptions.map(([k, lab, desc]) => {
-            const on = value === k
-            return (
-              <button
-                key={k}
-                type="button"
-                className={on ? 'btn' : 'btn btn-ghost'}
-                style={{
-                  textAlign: 'left',
-                  padding: '12px 14px',
-                  background: on ? a : undefined,
-                  display: 'block',
-                  width: '100%',
-                }}
-                onClick={() => setValue(k)}
-              >
-                <strong style={{ display: 'block', fontSize: 14 }}>{lab}</strong>
-                <span style={{ display: 'block', fontSize: 12, marginTop: 4, opacity: on ? 0.95 : 0.75 }}>
-                  {desc}
-                </span>
-              </button>
-            )
-          })}
-        </div>
-      ),
-    }
-
-    const unitStep: GtgtStep = {
-      key: 'unit_name',
-      label: '② 对应哪个单元？',
-      placeholder: unitChoices[0] || '第一单元',
-      hint: unitChoices.length
-        ? '点选大纲单元。小步骤详情仅供参考，不会自动当成结果。'
-        : '还没有大纲时可手填单元名。',
-      render: unitChoices.length
-        ? ({ value, setValue, accent: a }) => (
-            <div className="row-actions" style={{ flexWrap: 'wrap' }}>
-              {unitChoices.map((name) => {
-                const short = name.length > 22 ? `${name.slice(0, 22)}…` : name
-                return (
-                  <button
-                    key={name}
-                    type="button"
-                    className={value === name ? 'btn' : 'btn btn-ghost'}
-                    style={
-                      value === name
-                        ? { background: a, fontSize: 12, textAlign: 'left' }
-                        : { fontSize: 12, textAlign: 'left' }
-                    }
-                    onClick={() => setValue(name)}
-                  >
-                    {short}
-                  </button>
-                )
-              })}
-            </div>
-          )
-        : undefined,
-    }
-
-    if (kind === 'dictation') {
-      return [
-        kindStep,
-        unitStep,
-        {
-          key: 'dictation_range',
-          label: '③ 本次默写范围',
-          placeholder: '例：Unit1 单词 listen/hear… + 关键句',
-          hint: unitHintBlock || '写清这一次实际默的内容。',
-          inputType: 'textarea',
-        },
-        {
-          key: 'dictation_score',
-          label: '④ 对了几个 / 一共几个',
-          placeholder: '例：对 17 / 共 20；或 85 分',
-        },
-        {
-          key: 'dictation_wrong',
-          label: '⑤ 错词 / 错项（可空）',
-          placeholder: '例：friend→freind',
-          optional: true,
-          inputType: 'textarea',
-        },
-        {
-          key: 'notes',
-          label: '⑥ 补充说明（可空）',
-          placeholder: '例：家长代记；今晚再默错词',
-          optional: true,
-          inputType: 'textarea',
-        },
-      ]
-    }
-
-    if (kind === 'review') {
-      return [
-        kindStep,
-        unitStep,
-        {
-          key: 'review_focus',
-          label: '③ 复习了什么',
-          placeholder: '例：课文跟读两遍 + 练习 P23',
-          hint: unitHintBlock || '写具体块：词汇 / 语法 / 例题 / 页码。',
-          inputType: 'textarea',
-        },
-        {
-          key: 'review_weak',
-          label: '④ 还卡在哪（可空）',
-          placeholder: '例：不规则动词仍混',
-          optional: true,
-          inputType: 'textarea',
-        },
-        {
-          key: 'notes',
-          label: '⑤ 下次怎么盯（可空）',
-          placeholder: '例：明天只盯错题本',
-          optional: true,
-          inputType: 'textarea',
-        },
-      ]
-    }
-
-    if (kind === 'exam') {
-      return [
-        kindStep,
-        unitStep,
-        {
-          key: 'exam_name',
-          label: '③ 哪一次测验',
-          placeholder: '例：Unit4 单元测 / 校内周测',
-          hint: unitHintBlock || '写清测验名称与范围。',
-        },
-        {
-          key: 'exam_score',
-          label: '④ 得分或等第',
-          placeholder: '例：92 分 / A',
-        },
-        {
-          key: 'exam_wrong',
-          label: '⑤ 错题与丢分点（可空）',
-          placeholder: '例：阅读丢 2 题；拼写 friend',
-          optional: true,
-          inputType: 'textarea',
-        },
-        {
-          key: 'notes',
-          label: '⑥ 补充说明（可空）',
-          optional: true,
-          inputType: 'textarea',
-        },
-      ]
-    }
-
-    return [kindStep]
-  }, [activeCourse?.plan, drillKind, selectedUnit, followLabels, tips])
 
   const load = useCallback(async () => {
     if (!token) {
@@ -541,6 +382,10 @@ export function StudyCoachWidget(_props: { node: SchemaNode }) {
     void load()
   }, [load])
 
+  const patchCourse = (course: CourseItem) => {
+    setCourses((prev) => prev.map((c) => (c.id === course.id ? course : c)))
+  }
+
   const locateBook = async () => {
     if (!token || !queryValues.query?.trim()) return
     setBusy(true)
@@ -552,11 +397,10 @@ export function StudyCoachWidget(_props: { node: SchemaNode }) {
         token,
         { method: 'POST', body: JSON.stringify({ query: q, role: 'student' }) },
       )
-      const list = data.candidates || []
       setLastQuery(data.query || q)
-      setCandidates(list)
+      setCandidates(data.candidates || [])
       setPhase('confirm')
-      setMsg(list.length ? '请点选正确的册次' : '没定位到，换个说法再试')
+      setMsg((data.candidates || []).length ? '请确认册次，确认后开始跟学' : '没定位到，换个说法')
     } catch (e) {
       setMsg(`定位失败：${String(e)}`)
     } finally {
@@ -567,7 +411,7 @@ export function StudyCoachWidget(_props: { node: SchemaNode }) {
   const confirmBook = async (catalog: CatalogInfo) => {
     if (!token || !catalog.full_title) return
     setBusy(true)
-    setMsg('正在按科目生成大任务、小步骤与日历…')
+    setMsg('正在生成学习计划…')
     try {
       const data = await apiFetch<{ course: CourseItem }>('/api/v1/study-coach/courses', token, {
         method: 'POST',
@@ -585,17 +429,10 @@ export function StudyCoachWidget(_props: { node: SchemaNode }) {
       setPhase('ask')
       setResetKey((k) => k + 1)
       setShowAsk(false)
-      setHubTab('progress')
+      setHubTab('learn')
+      setFocusUnitOrder(null)
       const c = data.course
-      const src =
-        c?.toc_source === 'library' || c?.plan_source === 'toc_library'
-          ? '真实目录库'
-          : c?.plan_source === 'deepseek'
-            ? 'DeepSeek'
-            : '模板'
-      setMsg(
-        `已就绪 · ${c?.textbook_name || ''} · ${c?.plan?.length || 0} 个单元（${src}）· 学期进度可校正`,
-      )
+      setMsg(`可以开始学了 · ${c?.textbook_name || ''} · ${c?.plan?.length || 0} 课`)
       await load()
       if (c?.id) setActiveCourseId(c.id)
     } catch (e) {
@@ -603,19 +440,6 @@ export function StudyCoachWidget(_props: { node: SchemaNode }) {
     } finally {
       setBusy(false)
     }
-  }
-
-  const resetAsk = () => {
-    setPhase('ask')
-    setCandidates([])
-    setQueryValues({})
-    setResetKey((k) => k + 1)
-    setShowAsk(true)
-    setMsg('')
-  }
-
-  const patchCourse = (course: CourseItem) => {
-    setCourses((prev) => prev.map((c) => (c.id === course.id ? course : c)))
   }
 
   const completeStep = async (unitOrder: number, stepId: string, done = true) => {
@@ -628,7 +452,7 @@ export function StudyCoachWidget(_props: { node: SchemaNode }) {
         { method: 'POST', body: JSON.stringify({ unit_order: unitOrder, step_id: stepId, done }) },
       )
       if (data.course) patchCourse(data.course)
-      setMsg(done ? '小任务已完成' : '已撤销完成')
+      setMsg(done ? '本步已完成，继续下一步' : '已撤销')
     } catch (e) {
       setMsg(`更新失败：${String(e)}`)
     } finally {
@@ -636,54 +460,19 @@ export function StudyCoachWidget(_props: { node: SchemaNode }) {
     }
   }
 
-  const completeSchedule = async (item: ScheduleItem, done = true) => {
+  const openUnit = async (order: number) => {
+    setFocusUnitOrder(order)
+    setHubTab('learn')
     if (!token || !activeCourse) return
-    setBusy(true)
+    // 安静进入学习：标记学习中，不把「设为当前」当主操作暴露
     try {
-      const data = await apiFetch<{ course: CourseItem }>(
-        `/api/v1/study-coach/courses/${activeCourse.id}/schedule/done`,
-        token,
-        {
-          method: 'POST',
-          body: JSON.stringify({
-            date: item.date,
-            unit_order: item.unit_order,
-            step_id: item.step_id,
-            done,
-          }),
-        },
-      )
-      if (data.course) patchCourse(data.course)
-      setMsg(done ? `已完成：${item.title}` : '已撤销')
-    } catch (e) {
-      // 兼容：旧服务无 schedule/done 时走 steps
-      try {
-        await completeStep(item.unit_order, item.step_id, done)
-      } catch {
-        setMsg(`更新失败：${String(e)}`)
-      }
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  const rebuildSchedule = async () => {
-    if (!token || !activeCourse) return
-    setBusy(true)
-    try {
-      const data = await apiFetch<{ course: CourseItem }>(
-        `/api/v1/study-coach/courses/${activeCourse.id}/schedule/rebuild`,
-        token,
-        { method: 'POST', body: JSON.stringify({ start_offset_days: 0 }) },
-      )
-      if (data.course) patchCourse(data.course)
-      setCalAnchor(todayIso())
-      setMsg('已按当前单元进度重排后续日历')
-      setHubTab('calendar')
-    } catch (e) {
-      setMsg(`重排失败：${String(e)}`)
-    } finally {
-      setBusy(false)
+      await apiFetch(`/api/v1/study-coach/courses/${activeCourse.id}/progress`, token, {
+        method: 'POST',
+        body: JSON.stringify({ order, status: 'learning' }),
+      })
+      await load()
+    } catch {
+      /* 忽略，本地仍可聚焦该课 */
     }
   }
 
@@ -691,7 +480,7 @@ export function StudyCoachWidget(_props: { node: SchemaNode }) {
     if (!token || !activeCourse) return
     const order = Number(paceValues.unit_order || 0)
     if (!order) {
-      setMsg('请先选择当前讲到的单元')
+      setMsg('请先选择实际讲到的课')
       return
     }
     setBusy(true)
@@ -701,37 +490,20 @@ export function StudyCoachWidget(_props: { node: SchemaNode }) {
         token,
         {
           method: 'POST',
-          body: JSON.stringify({
-            unit_order: order,
-            mark_previous_mastered: true,
-            rebuild: true,
-          }),
+          body: JSON.stringify({ unit_order: order, mark_previous_mastered: true, rebuild: true }),
         },
       )
       if (data.course) patchCourse(data.course)
       setPaceValues({})
       setPaceResetKey((k) => k + 1)
-      setMsg(`已校正：当前单元 → 第 ${order} 课，后续日历已重排`)
-      setHubTab('progress')
+      setFocusUnitOrder(order)
+      setShowPaceFix(false)
+      setHubTab('learn')
+      setMsg(`已同步到第 ${order} 课，可以继续学`)
     } catch (e) {
-      setMsg(`校正失败：${String(e)}`)
+      setMsg(`同步失败：${String(e)}`)
     } finally {
       setBusy(false)
-    }
-  }
-
-  const setProgress = async (courseId: string, order: number, status: string) => {
-    if (!token) return
-    try {
-      const data = await apiFetch<{ course: CourseItem }>(
-        `/api/v1/study-coach/courses/${courseId}/progress`,
-        token,
-        { method: 'POST', body: JSON.stringify({ order, status }) },
-      )
-      if (data.course) patchCourse(data.course)
-      else await load()
-    } catch (e) {
-      setMsg(`更新进度失败：${String(e)}`)
     }
   }
 
@@ -739,16 +511,15 @@ export function StudyCoachWidget(_props: { node: SchemaNode }) {
     if (!token || !activeCourse) return
     const kind = drillValues.kind || ''
     if (!['review', 'dictation', 'exam'].includes(kind)) {
-      setMsg('请先选择任务类型')
+      setMsg('请先选择要记的类型')
       return
     }
-    const unit = (drillValues.unit_name || '').trim()
+    const unit = (drillValues.unit_name || currentUnit?.unit_name || '').trim()
     if (!unit) {
-      setMsg('请先选择学习单元')
+      setMsg('请选择对应课文/单元')
       return
     }
     setBusy(true)
-    setMsg('')
     let score = ''
     let result = ''
     let notes = ''
@@ -757,7 +528,7 @@ export function StudyCoachWidget(_props: { node: SchemaNode }) {
       result = (drillValues.dictation_wrong || '').trim() ? '有错词' : score ? '已默写' : '已记录'
       notes = [
         drillValues.dictation_range && `范围：${drillValues.dictation_range.trim()}`,
-        drillValues.dictation_score && `正确情况：${drillValues.dictation_score.trim()}`,
+        drillValues.dictation_score && `正确：${drillValues.dictation_score.trim()}`,
         drillValues.dictation_wrong && `错词：${drillValues.dictation_wrong.trim()}`,
         drillValues.notes && `备注：${drillValues.notes.trim()}`,
       ]
@@ -799,8 +570,9 @@ export function StudyCoachWidget(_props: { node: SchemaNode }) {
       })
       setDrillValues({})
       setDrillResetKey((k) => k + 1)
-      setMsg(`${followLabels[kind] || KIND_LABEL[kind] || '跟进'}已记录 · ${unit}`)
+      setMsg(`${followLabels[kind] || KIND_LABEL[kind]}已记下`)
       await load()
+      setHubTab('learn')
     } catch (e) {
       setMsg(`提交失败：${String(e)}`)
     } finally {
@@ -810,38 +582,42 @@ export function StudyCoachWidget(_props: { node: SchemaNode }) {
 
   const onDrillChange = (k: string, v: string) => {
     if (k === 'kind') {
-      setDrillValues((p) => (p.kind === v ? p : { kind: v }))
+      setDrillValues((p) => (p.kind === v ? p : { kind: v, unit_name: currentUnit?.unit_name || p.unit_name || '' }))
       setDrillResetKey((n) => n + 1)
       return
     }
     setDrillValues((p) => ({ ...p, [k]: v }))
   }
 
-  const startFollowFromStep = (unitName: string, kind?: string) => {
-    const k = kind && ['review', 'dictation', 'exam'].includes(kind) ? kind : 'review'
-    setDrillValues({ kind: k, unit_name: unitName })
+  const startRecord = (kind?: string) => {
+    setDrillValues({
+      kind: kind && ['dictation', 'review', 'exam'].includes(kind) ? kind : '',
+      unit_name: currentUnit?.unit_name || '',
+    })
     setDrillResetKey((n) => n + 1)
-    setHubTab('follow')
+    setHubTab('record')
   }
 
   const courseDrills = drills.filter((d) => d.course_id === (activeCourse?.id || ''))
   const tabs: { id: HubTab; label: string }[] = [
-    { id: 'progress', label: '单元进度' },
-    { id: 'today', label: '今日跟进' },
-    { id: 'modules', label: '大任务' },
-    { id: 'calendar', label: '日历提醒' },
-    { id: 'follow', label: '记一次' },
+    { id: 'learn', label: '学这一课' },
+    { id: 'catalog', label: '课本目录' },
+    { id: 'record', label: '记一次' },
+    { id: 'calendar', label: '日历' },
   ]
+
+  const stepDone = (currentUnit?.steps || []).filter((s) => s.status === 'done').length
+  const stepAll = (currentUnit?.steps || []).length
 
   return (
     <div>
       {phase === 'ask' && (showAsk || courses.length === 0) && (
         <GtgtStepComposer
           title={entrySource === 'im' ? '课本学习协作' : '课本学习'}
-          meta={entrySource === 'im' ? '群消息入口 · Soft 步进' : '学生 / 家长 · Soft 步进'}
+          meta="先选课本，再按课跟学"
           accent={accent}
           variant="soft"
-          flowHint="说科目课本 → 确认册次 → 生成大任务/小步骤/日历 → 每日跟进"
+          flowHint="说课本 → 确认册次 → 学这一课的小步骤 → 需要时再记家默/考试"
           steps={askSteps}
           values={queryValues}
           onChange={(k, v) => setQueryValues((p) => ({ ...p, [k]: v }))}
@@ -861,11 +637,11 @@ export function StudyCoachWidget(_props: { node: SchemaNode }) {
       {phase === 'confirm' && (
         <div className="list-card" style={{ marginBottom: 12 }}>
           <div className="list-card-head">
-            <strong>是这几本吗？</strong>
-            <span className="tag">根据「{lastQuery}」定位</span>
+            <strong>确认要学的册次</strong>
+            <span className="tag">「{lastQuery}」</span>
           </div>
           <p className="muted" style={{ margin: '8px 0 12px', fontSize: 13 }}>
-            点选正确册次后，会按该科目生成：大任务（阶段）→ 单元小步骤 → 学习日历与提醒。
+            点选后按真实目录生成学期跟学计划，默认进入「学这一课」。
           </p>
           <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 8 }}>
             {candidates.map((c, i) => (
@@ -878,58 +654,54 @@ export function StudyCoachWidget(_props: { node: SchemaNode }) {
                     width: '100%',
                     textAlign: 'left',
                     background: i === 0 ? accent : undefined,
-                    opacity: busy ? 0.7 : 1,
                   }}
                   onClick={() => void confirmBook(c)}
                 >
                   <div style={{ fontWeight: 600 }}>{c.full_title}</div>
-                  <div style={{ fontSize: 12, marginTop: 4, opacity: 0.9 }}>
-                    {catalogLine(c)}
-                    {typeof c.confidence === 'number' ? ` · ${Math.round(c.confidence * 100)}%` : ''}
-                  </div>
-                  {c.note ? <div style={{ fontSize: 12, marginTop: 4, opacity: 0.85 }}>{c.note}</div> : null}
+                  <div style={{ fontSize: 12, marginTop: 4, opacity: 0.9 }}>{catalogLine(c)}</div>
                 </button>
               </li>
             ))}
           </ul>
-          <div className="row-actions" style={{ marginTop: 12 }}>
-            <button type="button" className="btn btn-ghost" disabled={busy} onClick={resetAsk}>
-              不对，换个说法
-            </button>
-          </div>
+          <button
+            type="button"
+            className="btn btn-ghost"
+            style={{ marginTop: 10 }}
+            onClick={() => {
+              setPhase('ask')
+              setCandidates([])
+              setResetKey((k) => k + 1)
+            }}
+          >
+            不对，换个说法
+          </button>
         </div>
       )}
 
       {msg && <p className="status-msg">{msg}</p>}
 
       {courses.length > 0 && (
-        <>
-          <h4 style={{ margin: '16px 0 8px', fontSize: 14 }}>我的课本</h4>
-          {loading && <p className="muted">加载中…</p>}
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
-            {courses.map((c) => (
-              <button
-                key={c.id}
-                type="button"
-                className={c.id === activeCourse?.id ? 'btn' : 'btn btn-ghost'}
-                style={c.id === activeCourse?.id ? { background: accent, fontSize: 12 } : { fontSize: 12 }}
-                onClick={() => {
-                  setActiveCourseId(c.id)
-                  setHubTab('progress')
-                  setExpandedUnit(null)
-                }}
-              >
-                {c.subject || c.catalog?.subject || '课本'} · {c.progress_pct}%
-              </button>
-            ))}
-          </div>
-        </>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, margin: '12px 0' }}>
+          {courses.map((c) => (
+            <button
+              key={c.id}
+              type="button"
+              className={c.id === activeCourse?.id ? 'btn' : 'btn btn-ghost'}
+              style={c.id === activeCourse?.id ? { background: accent, fontSize: 12 } : { fontSize: 12 }}
+              onClick={() => {
+                setActiveCourseId(c.id)
+                setFocusUnitOrder(null)
+                setHubTab('learn')
+              }}
+            >
+              {(c.subject || c.catalog?.subject || '课本') + ` · ${c.progress_pct}%`}
+            </button>
+          ))}
+        </div>
       )}
 
       {!loading && courses.length === 0 && phase === 'ask' && (
-        <p className="muted">
-          推荐输入：部编语文三上 / 人教数学三上 / 沪教英语三上。命中目录库后按真实课名排学期进度，无需上传 PDF。
-        </p>
+        <p className="muted">推荐：部编语文三上 / 人教数学三上 / 沪教英语三上</p>
       )}
 
       {activeCourse && (
@@ -937,37 +709,11 @@ export function StudyCoachWidget(_props: { node: SchemaNode }) {
           <div className="list-card" style={{ marginBottom: 12 }}>
             <div className="list-card-head">
               <strong>{activeCourse.textbook_name}</strong>
-              <span className="tag">
-                {activeCourse.progress_pct}% ·{' '}
-                {activeCourse.toc_source === 'library' || activeCourse.plan_source === 'toc_library'
-                  ? '真实目录库'
-                  : activeCourse.plan_source === 'deepseek'
-                    ? 'DeepSeek'
-                    : '模板'}
-              </span>
+              <span className="tag">{activeCourse.progress_pct}% 学完</span>
             </div>
-            {activeCourse.catalog && (
-              <p className="muted" style={{ margin: '6px 0 0', fontSize: 12 }}>
-                {catalogLine(activeCourse.catalog)}
-                {activeCourse.progress_meta?.edition_label
-                  ? ` · ${activeCourse.progress_meta.edition_label}`
-                  : ''}
-              </p>
-            )}
-            {activeCourse.unit_progress?.pace_label && (
-              <p style={{ margin: '8px 0 0', fontSize: 13 }}>
-                进度对照：{activeCourse.unit_progress.pace_label}
-                {activeCourse.unit_progress.planned_unit_name
-                  ? ` · 预测应在「${activeCourse.unit_progress.planned_unit_name}」`
-                  : ''}
-                {activeCourse.unit_progress.actual_unit_name
-                  ? ` · 实际「${activeCourse.unit_progress.actual_unit_name}」`
-                  : ''}
-              </p>
-            )}
             {tips?.rhythm && (
               <p className="muted" style={{ margin: '6px 0 0', fontSize: 12 }}>
-                科目节奏：{tips.rhythm}
+                {tips.rhythm}
               </p>
             )}
             <div className="row-actions" style={{ marginTop: 10, flexWrap: 'wrap' }}>
@@ -982,389 +728,283 @@ export function StudyCoachWidget(_props: { node: SchemaNode }) {
                   {t.label}
                 </button>
               ))}
-              <button
-                type="button"
-                className="btn btn-ghost"
-                style={{ fontSize: 12 }}
-                disabled={busy}
-                onClick={() => void rebuildSchedule()}
-              >
-                重排后续日历
-              </button>
             </div>
           </div>
 
-          {hubTab === 'progress' && (
-            <div style={{ display: 'grid', gap: 12, marginBottom: 12 }}>
-              <div className="list-card">
-                <div className="list-card-head">
-                  <strong>单元进度 · 预测 vs 实际</strong>
-                  <span className="tag">
-                    {activeCourse.progress_meta?.term_start || '?'} ~{' '}
-                    {activeCourse.progress_meta?.term_end || '?'}
-                  </span>
-                </div>
-                <p className="muted" style={{ margin: '8px 0', fontSize: 13 }}>
-                  目录来自入库课本（非 PDF）。按学期教学周预测每课起止日；若与老师进度不一致，下方校正「讲到哪一课」。
+          {hubTab === 'learn' && currentUnit && (
+            <div className="list-card" style={{ marginBottom: 12 }}>
+              <div className="list-card-head">
+                <strong>
+                  {currentUnit.unit_code ? `${currentUnit.unit_code} · ` : ''}
+                  {currentUnit.unit_name}
+                </strong>
+                <span className="tag">
+                  {UNIT_LABEL[currentUnit.status] || currentUnit.status}
+                  {stepAll ? ` · ${stepDone}/${stepAll}` : ''}
+                </span>
+              </div>
+              {currentUnit.focus && (
+                <p style={{ margin: '8px 0 0', fontSize: 13 }}>本课重点：{currentUnit.focus}</p>
+              )}
+              {currentUnit.dictation_hint && (
+                <p className="muted" style={{ margin: '4px 0 0', fontSize: 12 }}>
+                  提示：{currentUnit.dictation_hint}
                 </p>
-                {activeCourse.progress_meta?.warning && (
-                  <p className="status-msg">{activeCourse.progress_meta.warning}</p>
-                )}
-                <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 6 }}>
-                  {(activeCourse.plan || []).map((u) => {
-                    const up = activeCourse.unit_progress
-                    const isPlanned = up?.planned_unit_order === u.order
-                    const isActual = up?.actual_unit_order === u.order
-                    return (
-                      <li
-                        key={u.order}
-                        style={{
-                          display: 'flex',
-                          flexWrap: 'wrap',
-                          gap: 8,
-                          alignItems: 'center',
-                          fontSize: 13,
-                          padding: '8px 0',
-                          borderTop: '1px solid color-mix(in srgb, currentColor 10%, transparent)',
-                          background: isActual
-                            ? 'color-mix(in srgb, currentColor 6%, transparent)'
-                            : undefined,
-                        }}
-                      >
-                        <span style={{ flex: '1 1 220px' }}>
-                          {u.unit_code ? `${u.unit_code} · ` : ''}
-                          {u.unit_name}
-                          <span className="muted" style={{ display: 'block', fontSize: 12 }}>
-                            预测 {u.planned_start || '?'} ~ {u.planned_end || '?'}
-                            {u.focus ? ` · ${u.focus}` : ''}
-                          </span>
-                        </span>
-                        <span className="tag">{UNIT_LABEL[u.status] || u.status}</span>
-                        {isPlanned && <span className="tag">学期预测</span>}
-                        {isActual && <span className="tag">当前实际</span>}
+              )}
+
+              {nextStep ? (
+                <div
+                  style={{
+                    marginTop: 14,
+                    padding: 12,
+                    borderRadius: 10,
+                    border: `1px solid ${accent}`,
+                  }}
+                >
+                  <div className="muted" style={{ fontSize: 12 }}>
+                    下一步要做
+                  </div>
+                  <div style={{ fontWeight: 600, marginTop: 4 }}>{nextStep.title}</div>
+                  {nextStep.detail && (
+                    <p style={{ margin: '8px 0 0', fontSize: 13, lineHeight: 1.5 }}>{nextStep.detail}</p>
+                  )}
+                  <div className="row-actions" style={{ marginTop: 12, flexWrap: 'wrap' }}>
+                    <button
+                      type="button"
+                      className="btn"
+                      style={{ background: accent }}
+                      disabled={busy}
+                      onClick={() => void completeStep(currentUnit.order, nextStep.id, true)}
+                    >
+                      做完了，下一步
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-ghost"
+                      onClick={() => startRecord(nextStep.kind)}
+                    >
+                      记详细结果
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <p style={{ marginTop: 12, fontSize: 13 }}>
+                  本课小步骤都完成了。可去「课本目录」学下一课，或「记一次」留下家默/测验记录。
+                </p>
+              )}
+
+              <h4 style={{ margin: '16px 0 8px', fontSize: 13 }}>本课小步骤</h4>
+              <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 6 }}>
+                {(currentUnit.steps || []).map((step, idx) => {
+                  const done = step.status === 'done'
+                  const active = nextStep?.id === step.id
+                  return (
+                    <li
+                      key={step.id}
+                      style={{
+                        padding: '10px 0',
+                        borderTop: '1px solid color-mix(in srgb, currentColor 10%, transparent)',
+                        opacity: done ? 0.55 : 1,
+                      }}
+                    >
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'flex-start' }}>
+                        <div style={{ flex: '1 1 200px' }}>
+                          <div style={{ fontSize: 13, fontWeight: active ? 700 : 600 }}>
+                            {idx + 1}. {step.title}
+                            {done ? ' · 已完成' : active ? ' · 进行中' : ''}
+                          </div>
+                          {step.detail && (
+                            <p className="muted" style={{ margin: '4px 0 0', fontSize: 12 }}>
+                              {step.detail}
+                            </p>
+                          )}
+                        </div>
                         <button
                           type="button"
                           className="btn btn-ghost"
                           style={{ fontSize: 12 }}
                           disabled={busy}
-                          onClick={() => {
-                            setPaceValues({ unit_order: String(u.order) })
-                            setPaceResetKey((k) => k + 1)
-                            void (async () => {
-                              if (!token) return
-                              setBusy(true)
-                              try {
-                                const data = await apiFetch<{ course: CourseItem }>(
-                                  `/api/v1/study-coach/courses/${activeCourse.id}/units/set-current`,
-                                  token,
-                                  {
-                                    method: 'POST',
-                                    body: JSON.stringify({
-                                      unit_order: u.order,
-                                      mark_previous_mastered: true,
-                                      rebuild: true,
-                                    }),
-                                  },
-                                )
-                                if (data.course) patchCourse(data.course)
-                                setMsg(`已设为当前：${u.unit_name}`)
-                              } catch (e) {
-                                setMsg(`校正失败：${String(e)}`)
-                              } finally {
-                                setBusy(false)
-                              }
-                            })()
-                          }}
+                          onClick={() => void completeStep(currentUnit.order, step.id, !done)}
                         >
-                          设为当前
+                          {done ? '撤销' : '完成'}
                         </button>
-                      </li>
-                    )
-                  })}
-                </ul>
-              </div>
+                      </div>
+                    </li>
+                  )
+                })}
+              </ul>
 
-              <GtgtStepComposer
-                title="校正单元进度"
-                meta="当预测与老师进度不一致时"
-                accent={accent}
-                variant="soft"
-                flowHint="点选实际讲到的课 → 前面标掌握 → 从今天重排后续日历"
-                steps={paceSteps}
-                values={paceValues}
-                onChange={(k, v) => setPaceValues((p) => ({ ...p, [k]: v }))}
-                onComplete={setCurrentUnit}
-                busy={busy}
-                resetKey={paceResetKey}
-                submitLabel="按此课校正进度"
-              />
+              <div className="row-actions" style={{ marginTop: 12 }}>
+                <button
+                  type="button"
+                  className="btn btn-ghost"
+                  style={{ fontSize: 12 }}
+                  onClick={() => {
+                    const plan = activeCourse.plan || []
+                    const idx = plan.findIndex((u) => u.order === currentUnit.order)
+                    const next = plan.slice(idx + 1).find((u) => u.status !== 'mastered') || plan[idx + 1]
+                    if (next) void openUnit(next.order)
+                    else setHubTab('catalog')
+                  }}
+                >
+                  学下一课
+                </button>
+                <button type="button" className="btn btn-ghost" style={{ fontSize: 12 }} onClick={() => startRecord()}>
+                  记一次跟进
+                </button>
+              </div>
             </div>
           )}
 
-          {hubTab === 'today' && (
+          {hubTab === 'catalog' && (
             <div className="list-card" style={{ marginBottom: 12 }}>
               <div className="list-card-head">
-                <strong>今日跟进 · {todayIso()}</strong>
-                <span className="tag">{todayItems.filter((x) => !x.done).length} 待办</span>
+                <strong>课本目录</strong>
+                <span className="tag">{(activeCourse.plan || []).length} 课</span>
               </div>
-              {todayItems.length === 0 && (
-                <p className="muted" style={{ marginTop: 8 }}>
-                  今天没有待办。可去「大任务」展开小步骤，或「记一次」写入家默/复习/考试。
-                </p>
-              )}
-              <ul style={{ listStyle: 'none', margin: '10px 0 0', padding: 0, display: 'grid', gap: 10 }}>
-                {todayItems.map((item) => (
-                  <li
-                    key={`${item.date}-${item.unit_order}-${item.step_id}`}
-                    style={{
-                      padding: '12px 0',
-                      borderTop: '1px solid color-mix(in srgb, currentColor 12%, transparent)',
-                      opacity: item.done ? 0.55 : 1,
-                    }}
-                  >
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'flex-start' }}>
-                      <div style={{ flex: '1 1 220px' }}>
-                        <div style={{ fontWeight: 600, fontSize: 14 }}>{item.title}</div>
-                        <div className="muted" style={{ fontSize: 12, marginTop: 4 }}>
-                          {[item.module_name, item.unit_name].filter(Boolean).join(' · ')}
-                          {item.kind ? ` · ${followLabels[item.kind] || KIND_LABEL[item.kind] || item.kind}` : ''}
+              <p className="muted" style={{ margin: '6px 0 10px', fontSize: 12 }}>
+                点某一课开始学。进度校正在底部折叠里，不是主操作。
+              </p>
+              <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 4 }}>
+                {(activeCourse.plan || []).map((u) => {
+                  const focused = currentUnit?.order === u.order
+                  const doneN = (u.steps || []).filter((s) => s.status === 'done').length
+                  const allN = (u.steps || []).length
+                  return (
+                    <li key={u.order}>
+                      <button
+                        type="button"
+                        className="btn btn-ghost"
+                        style={{
+                          width: '100%',
+                          textAlign: 'left',
+                          padding: '10px 12px',
+                          background: focused
+                            ? 'color-mix(in srgb, currentColor 8%, transparent)'
+                            : undefined,
+                        }}
+                        onClick={() => void openUnit(u.order)}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
+                          <span style={{ fontWeight: 600, fontSize: 13 }}>
+                            {u.unit_code ? `${u.unit_code} · ` : ''}
+                            {u.unit_name}
+                          </span>
+                          <span className="tag">{UNIT_LABEL[u.status] || u.status}</span>
                         </div>
-                        {item.reminder && (
-                          <p style={{ margin: '8px 0 0', fontSize: 13, lineHeight: 1.5 }}>{item.reminder}</p>
-                        )}
-                      </div>
-                      <div className="row-actions" style={{ flexWrap: 'wrap' }}>
-                        {!item.done && (
-                          <button
-                            type="button"
-                            className="btn"
-                            style={{ background: accent, fontSize: 12 }}
-                            disabled={busy}
-                            onClick={() => void completeSchedule(item, true)}
-                          >
-                            完成小任务
-                          </button>
-                        )}
-                        {item.done && (
-                          <button
-                            type="button"
-                            className="btn btn-ghost"
-                            style={{ fontSize: 12 }}
-                            disabled={busy}
-                            onClick={() => void completeSchedule(item, false)}
-                          >
-                            撤销
-                          </button>
-                        )}
-                        <button
-                          type="button"
-                          className="btn btn-ghost"
-                          style={{ fontSize: 12 }}
-                          onClick={() =>
-                            startFollowFromStep(item.unit_name || '', item.kind)
-                          }
-                        >
-                          记详细结果
-                        </button>
-                      </div>
+                        <span className="muted" style={{ display: 'block', fontSize: 12, marginTop: 4 }}>
+                          {u.focus || '点此开始学'}
+                          {allN ? ` · 步骤 ${doneN}/${allN}` : ''}
+                        </span>
+                      </button>
+                    </li>
+                  )
+                })}
+              </ul>
+
+              <details style={{ marginTop: 16 }} open={showPaceFix}>
+                <summary
+                  style={{ cursor: 'pointer', fontSize: 13 }}
+                  onClick={(e) => {
+                    e.preventDefault()
+                    setShowPaceFix((v) => !v)
+                  }}
+                >
+                  辅助：老师进度不一致时，同步到某一课
+                  {activeCourse.unit_progress?.pace_label
+                    ? `（${activeCourse.unit_progress.pace_label}）`
+                    : ''}
+                </summary>
+                <div style={{ marginTop: 10 }}>
+                  <p className="muted" style={{ fontSize: 12 }}>
+                    这是辅助功能，不是日常学习主路径。
+                  </p>
+                  {showPaceFix && (
+                    <GtgtStepComposer
+                      title="同步实际进度"
+                      meta="低频辅助"
+                      accent={accent}
+                      variant="soft"
+                      flowHint="选实际讲到的课 → 前面标掌握 → 重排后续日历"
+                      steps={paceSteps}
+                      values={paceValues}
+                      onChange={(k, v) => setPaceValues((p) => ({ ...p, [k]: v }))}
+                      onComplete={setCurrentUnit}
+                      busy={busy}
+                      resetKey={paceResetKey}
+                      submitLabel="同步并继续学"
+                    />
+                  )}
+                </div>
+              </details>
+            </div>
+          )}
+
+          {hubTab === 'record' && (
+            <>
+              <GtgtStepComposer
+                title="记一次学习结果"
+                meta={currentUnit ? currentUnit.unit_name : activeCourse.textbook_name}
+                accent={accent}
+                variant="soft"
+                flowHint="类型 → 课文 → 按科目填写 → 写入真库"
+                steps={drillSteps}
+                values={drillValues}
+                onChange={onDrillChange}
+                onComplete={submitDrill}
+                busy={busy}
+                resetKey={drillResetKey}
+                submitLabel="提交记录"
+              />
+              <h4 style={{ margin: '16px 0 8px', fontSize: 14 }}>最近记录</h4>
+              {courseDrills.length === 0 && <p className="muted">还没有家默 / 复习 / 考试记录</p>}
+              <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 8 }}>
+                {courseDrills.slice(0, 8).map((d) => (
+                  <li key={d.id} className="list-card">
+                    <div className="list-card-head">
+                      <strong>
+                        {followLabels[d.kind] || KIND_LABEL[d.kind] || d.kind} · {d.unit_name}
+                      </strong>
+                      <span className="tag">{[d.score, d.result].filter(Boolean).join(' · ') || '已记'}</span>
                     </div>
+                    {d.notes && (
+                      <p style={{ margin: '6px 0 0', fontSize: 13, whiteSpace: 'pre-wrap' }}>{d.notes}</p>
+                    )}
                   </li>
                 ))}
               </ul>
-            </div>
-          )}
-
-          {hubTab === 'modules' && (
-            <div style={{ display: 'grid', gap: 12, marginBottom: 12 }}>
-              {modules.map((mod) => {
-                const units = (activeCourse.plan || []).filter(
-                  (u) =>
-                    (mod.unit_orders || []).includes(u.order) ||
-                    u.module_order === mod.order ||
-                    u.module_name === mod.name,
-                )
-                const doneUnits = units.filter((u) => u.status === 'mastered').length
-                return (
-                  <div key={mod.order} className="list-card">
-                    <div className="list-card-head">
-                      <strong>
-                        大任务 {mod.order} · {mod.name}
-                      </strong>
-                      <span className="tag">
-                        {doneUnits}/{units.length || (mod.unit_orders || []).length} 单元
-                      </span>
-                    </div>
-                    {mod.goal && (
-                      <p className="muted" style={{ margin: '6px 0 0', fontSize: 13 }}>
-                        目标：{mod.goal}
-                      </p>
-                    )}
-                    <ul style={{ listStyle: 'none', margin: '10px 0 0', padding: 0, display: 'grid', gap: 8 }}>
-                      {units.map((u) => {
-                        const open = expandedUnit === u.order
-                        const stepDone = (u.steps || []).filter((s) => s.status === 'done').length
-                        const stepAll = (u.steps || []).length
-                        return (
-                          <li key={u.order}>
-                            <button
-                              type="button"
-                              className="btn btn-ghost"
-                              style={{
-                                width: '100%',
-                                textAlign: 'left',
-                                padding: '10px 12px',
-                                display: 'block',
-                              }}
-                              onClick={() => setExpandedUnit(open ? null : u.order)}
-                            >
-                              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
-                                <span style={{ fontWeight: 600, fontSize: 13 }}>
-                                  {u.unit_code ? `${u.unit_code} · ` : ''}
-                                  {u.unit_name}
-                                </span>
-                                <span className="tag">{UNIT_LABEL[u.status] || u.status}</span>
-                              </div>
-                              <span className="muted" style={{ display: 'block', fontSize: 12, marginTop: 4 }}>
-                                {u.focus || '展开查看小步骤'}
-                                {stepAll ? ` · 小任务 ${stepDone}/${stepAll}` : ''}
-                                {u.estimated_days ? ` · 约 ${u.estimated_days} 天` : ''}
-                              </span>
-                            </button>
-                            {open && (
-                              <div style={{ padding: '0 4px 8px 12px' }}>
-                                {(u.steps || []).length === 0 && (
-                                  <p className="muted" style={{ fontSize: 12 }}>暂无小步骤</p>
-                                )}
-                                {(u.steps || []).map((step) => (
-                                  <div
-                                    key={step.id}
-                                    style={{
-                                      display: 'flex',
-                                      flexWrap: 'wrap',
-                                      gap: 8,
-                                      alignItems: 'flex-start',
-                                      padding: '8px 0',
-                                      borderTop: '1px solid color-mix(in srgb, currentColor 10%, transparent)',
-                                      opacity: step.status === 'done' ? 0.55 : 1,
-                                    }}
-                                  >
-                                    <div style={{ flex: '1 1 200px' }}>
-                                      <div style={{ fontSize: 13, fontWeight: 600 }}>{step.title}</div>
-                                      {step.detail && (
-                                        <p className="muted" style={{ margin: '4px 0 0', fontSize: 12, lineHeight: 1.45 }}>
-                                          {step.detail}
-                                        </p>
-                                      )}
-                                    </div>
-                                    <div className="row-actions">
-                                      <button
-                                        type="button"
-                                        className="btn btn-ghost"
-                                        style={{ fontSize: 12 }}
-                                        disabled={busy}
-                                        onClick={() =>
-                                          void completeStep(u.order, step.id, step.status !== 'done')
-                                        }
-                                      >
-                                        {step.status === 'done' ? '撤销' : '完成'}
-                                      </button>
-                                      <button
-                                        type="button"
-                                        className="btn btn-ghost"
-                                        style={{ fontSize: 12 }}
-                                        onClick={() => startFollowFromStep(u.unit_name, step.kind)}
-                                      >
-                                        记结果
-                                      </button>
-                                    </div>
-                                  </div>
-                                ))}
-                                <div className="row-actions" style={{ marginTop: 8 }}>
-                                  <button
-                                    type="button"
-                                    className="btn btn-ghost"
-                                    style={{ fontSize: 12 }}
-                                    onClick={() => void setProgress(activeCourse.id, u.order, 'learning')}
-                                  >
-                                    标记学习中
-                                  </button>
-                                  <button
-                                    type="button"
-                                    className="btn btn-ghost"
-                                    style={{ fontSize: 12 }}
-                                    onClick={() => void setProgress(activeCourse.id, u.order, 'mastered')}
-                                  >
-                                    整单元掌握
-                                  </button>
-                                </div>
-                              </div>
-                            )}
-                          </li>
-                        )
-                      })}
-                    </ul>
-                  </div>
-                )
-              })}
-            </div>
+            </>
           )}
 
           {hubTab === 'calendar' && (
             <div className="list-card" style={{ marginBottom: 12 }}>
               <div className="list-card-head">
-                <strong>学习日历与提醒</strong>
+                <strong>学习日历</strong>
                 <span className="tag">{(activeCourse.schedule || []).length} 条</span>
               </div>
-              <p className="muted" style={{ margin: '6px 0 10px', fontSize: 12 }}>
-                按教学进度展开的两周视图。点「完成」会同步对应小任务；落后时可「按进度重排日历」。
-              </p>
               <div className="row-actions" style={{ marginBottom: 10 }}>
-                <button
-                  type="button"
-                  className="btn btn-ghost"
-                  style={{ fontSize: 12 }}
-                  onClick={() => setCalAnchor(addDaysIso(calAnchor, -7))}
-                >
+                <button type="button" className="btn btn-ghost" style={{ fontSize: 12 }} onClick={() => setCalAnchor(addDaysIso(calAnchor, -7))}>
                   上一周
                 </button>
-                <button
-                  type="button"
-                  className="btn btn-ghost"
-                  style={{ fontSize: 12 }}
-                  onClick={() => setCalAnchor(todayIso())}
-                >
-                  回到今天
+                <button type="button" className="btn btn-ghost" style={{ fontSize: 12 }} onClick={() => setCalAnchor(todayIso())}>
+                  今天
                 </button>
-                <button
-                  type="button"
-                  className="btn btn-ghost"
-                  style={{ fontSize: 12 }}
-                  onClick={() => setCalAnchor(addDaysIso(calAnchor, 7))}
-                >
+                <button type="button" className="btn btn-ghost" style={{ fontSize: 12 }} onClick={() => setCalAnchor(addDaysIso(calAnchor, 7))}>
                   下一周
                 </button>
               </div>
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
-                  gap: 8,
-                }}
-              >
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 8 }}>
                 {weekDays.map((day) => {
                   const items = scheduleByDate.get(day) || []
                   const isToday = day === todayIso()
-                  const pending = items.filter((x) => !x.done).length
                   return (
                     <div
                       key={day}
                       style={{
-                        border: isToday
-                          ? `2px solid ${accent}`
-                          : '1px solid color-mix(in srgb, currentColor 14%, transparent)',
+                        border: isToday ? `2px solid ${accent}` : '1px solid color-mix(in srgb, currentColor 14%, transparent)',
                         borderRadius: 10,
                         padding: 10,
-                        minHeight: 88,
+                        minHeight: 72,
                       }}
                     >
                       <div style={{ fontSize: 12, fontWeight: 600 }}>
@@ -1376,12 +1016,11 @@ export function StudyCoachWidget(_props: { node: SchemaNode }) {
                           无安排
                         </p>
                       )}
-                      {items.slice(0, 3).map((it) => (
+                      {items.slice(0, 2).map((it) => (
                         <button
                           key={`${it.step_id}-${it.unit_order}`}
                           type="button"
                           className="btn btn-ghost"
-                          disabled={busy}
                           style={{
                             display: 'block',
                             width: '100%',
@@ -1390,79 +1029,20 @@ export function StudyCoachWidget(_props: { node: SchemaNode }) {
                             marginTop: 6,
                             padding: '4px 6px',
                             textDecoration: it.done ? 'line-through' : undefined,
-                            opacity: it.done ? 0.55 : 1,
                           }}
-                          title={it.reminder || it.title}
-                          onClick={() => void completeSchedule(it, !it.done)}
+                          onClick={() => {
+                            setFocusUnitOrder(it.unit_order)
+                            setHubTab('learn')
+                          }}
                         >
                           {it.title}
                         </button>
                       ))}
-                      {items.length > 3 && (
-                        <span className="muted" style={{ fontSize: 11 }}>
-                          +{items.length - 3} · 待办 {pending}
-                        </span>
-                      )}
                     </div>
                   )
                 })}
               </div>
             </div>
-          )}
-
-          {hubTab === 'follow' && (
-            <>
-              <GtgtStepComposer
-                title="记一次学习跟进"
-                meta={
-                  drillKind
-                    ? `${activeCourse.textbook_name} · ${followLabels[drillKind] || KIND_LABEL[drillKind] || drillKind}`
-                    : `${activeCourse.textbook_name} · 请先选类型`
-                }
-                accent={accent}
-                variant="soft"
-                flowHint={
-                  tips?.rhythm
-                    ? `本科目：${tips.rhythm} · Soft 单字段推进`
-                    : '①类型 → ②单元 → ③按类型填写 → 写入真库'
-                }
-                steps={drillSteps}
-                values={drillValues}
-                onChange={onDrillChange}
-                onComplete={submitDrill}
-                busy={busy}
-                resetKey={drillResetKey}
-                submitLabel={
-                  drillKind === 'dictation'
-                    ? `提交${followLabels.dictation || '家默'}记录`
-                    : drillKind === 'review'
-                      ? `提交${followLabels.review || '复习'}记录`
-                      : drillKind === 'exam'
-                        ? `提交${followLabels.exam || '考试'}记录`
-                        : '下一步'
-                }
-              />
-
-              <h4 style={{ margin: '16px 0 8px', fontSize: 14 }}>跟进记录</h4>
-              {courseDrills.length === 0 && <p className="muted">暂无家默 / 复习 / 考试记录</p>}
-              <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 8 }}>
-                {courseDrills.map((d) => (
-                  <li key={d.id} className="list-card">
-                    <div className="list-card-head">
-                      <strong>
-                        {followLabels[d.kind] || KIND_LABEL[d.kind] || d.kind} · {d.unit_name}
-                      </strong>
-                      <span className="tag">
-                        {[d.score, d.result].filter(Boolean).join(' · ') || '已记录'}
-                      </span>
-                    </div>
-                    {d.notes && (
-                      <p style={{ margin: '6px 0 0', fontSize: 13, whiteSpace: 'pre-wrap' }}>{d.notes}</p>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </>
           )}
         </>
       )}
