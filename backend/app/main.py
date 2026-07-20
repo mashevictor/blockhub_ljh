@@ -82,6 +82,7 @@ async def lifespan(_: FastAPI):
     except Exception:
         import logging
 
+        db.rollback()
         logging.getLogger("uvicorn.error").exception(
             "Startup seed failed — API will still run; check DB and run POST /api/v1/seed"
         )

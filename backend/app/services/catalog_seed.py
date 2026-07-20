@@ -29,6 +29,10 @@ from app.db.models import (
 def _ensure_capship_agents(db: Session) -> int:
     """保证 CAPABILITIES 引用的 agent_id 均存在于 catalog_agents（防 FK 失败）。"""
     existing = {row.id for row in db.query(CatalogAgent.id).all()}
+    # 同一事务里尚未 flush 的 pending insert 也要算进去，避免 UniqueViolation
+    for obj in db.new:
+        if isinstance(obj, CatalogAgent) and getattr(obj, "id", None):
+            existing.add(obj.id)
     by_id = {a["id"]: a for a in AGENTS}
     added = 0
     for cap in CAPABILITIES:
@@ -325,6 +329,14 @@ def sync_industry_packs_delta(db: Session) -> int:
 
 def sync_catalog_delta(db: Session) -> int:
     """增量同步 seed 中新增的 Agent/能力，无需 force 全量重建。"""
+    try:
+        return _sync_catalog_delta_inner(db)
+    except Exception:
+        db.rollback()
+        raise
+
+
+def _sync_catalog_delta_inner(db: Session) -> int:
     existing_agents = {row.id for row in db.query(CatalogAgent.id).all()}
     existing_caps = {row.key for row in db.query(CatalogCapability.key).all()}
     added = 0
@@ -348,6 +360,9 @@ def sync_catalog_delta(db: Session) -> int:
         )
         existing_agents.add(agent["id"])
         added += 1
+    # 先 flush，避免 _ensure_capship_agents 因读不到 pending 行而重复 INSERT
+    if added:
+        db.flush()
     added += _ensure_capship_agents(db)
 
     for cap in CAPABILITIES:
