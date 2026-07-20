@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CapShip 对话改页 · 状态 / 数据流 / 权限 · 逻辑确认</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+  <style>
+    :root {
+      --bg: #f1f5f9;
+      --card: #fff;
+      --border: #cbd5e1;
+      --text: #0f172a;
+      --muted: #64748b;
+      --ok: #047857;
+      --ok-bg: #ecfdf5;
+      --warn: #b45309;
+      --warn-bg: #fffbeb;
+      --danger: #b91c1c;
+      --danger-bg: #fef2f2;
+      --pri: #1e3a5f;
+      --pri-soft: #e8eef5;
+      --accent: #2563eb;
+      --font: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      font-size: 14px;
+    }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 28px 20px 80px; }
+    header.hero {
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 55%, #334155 100%);
+      color: #e2e8f0;
+      border-radius: 12px;
+      padding: 28px 28px 24px;
+      margin-bottom: 24px;
+    }
+    header.hero h1 { margin: 0 0 8px; font-size: 22px; font-weight: 800; color: #fff; }
+    header.hero p { margin: 0; color: #94a3b8; font-size: 13px; max-width: 52em; }
+    .verdict {
+      margin-top: 16px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(4, 120, 87, 0.2);
+      border: 1px solid rgba(52, 211, 153, 0.45);
+      color: #a7f3d0;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 13px;
+    }
+    section {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px 22px;
+      margin-bottom: 16px;
+    }
+    section h2 {
+      margin: 0 0 12px;
+      font-size: 16px;
+      color: var(--pri);
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+    }
+    section h3 { margin: 16px 0 8px; font-size: 14px; color: var(--text); }
+    p, li { color: var(--text); }
+    .muted { color: var(--muted); }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      margin: 10px 0 4px;
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 8px 10px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th { background: var(--pri-soft); font-weight: 700; }
+    code {
+      font-family: ui-monospace, "SF Mono", Consolas, monospace;
+      font-size: 12px;
+      background: #f8fafc;
+      padding: 1px 5px;
+      border-radius: 4px;
+      border: 1px solid #e2e8f0;
+    }
+    .tag {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 4px;
+      vertical-align: middle;
+    }
+    .tag-ok { background: var(--ok-bg); color: var(--ok); }
+    .tag-warn { background: var(--warn-bg); color: var(--warn); }
+    .tag-bad { background: var(--danger-bg); color: var(--danger); }
+    .tag-pending { background: #fef3c7; color: #92400e; }
+    .tag-draft { background: #e0e7ff; color: #3730a3; }
+    .callout {
+      border-left: 4px solid var(--accent);
+      background: #eff6ff;
+      padding: 10px 14px;
+      margin: 12px 0;
+      border-radius: 0 8px 8px 0;
+      font-size: 13px;
+    }
+    .callout.warn { border-left-color: var(--warn); background: var(--warn-bg); }
+    .callout.ok { border-left-color: var(--ok); background: var(--ok-bg); }
+    .callout.bad { border-left-color: var(--danger); background: var(--danger-bg); }
+    .mermaid {
+      background: #fafafa;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      margin: 12px 0;
+      overflow-x: auto;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    @media (max-width: 800px) { .grid-2 { grid-template-columns: 1fr; } }
+    .card-mini {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      background: #f8fafc;
+    }
+    .card-mini h4 { margin: 0 0 6px; font-size: 13px; }
+    .badge-demo {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin: 8px 0;
+    }
+    .badge-demo .b {
+      font-size: 12px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 6px;
+    }
+    .b-dirty { background: #e0e7ff; color: #3730a3; }
+    .b-pending { background: #fef3c7; color: #92400e; }
+    .b-formal { background: #e2e8f0; color: #334155; }
+    footer.note {
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    ol.check { padding-left: 1.3em; }
+    ol.check li { margin: 6px 0; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="hero">
+      <h1>CapShip 对话改页 · 状态 / 数据流 / 人员权限</h1>
+      <p>
+        对照截图问题（「已直接发布」仍挂「待审批」）、契约
+        <code>.cursor/skills/capship-schema-approval/SKILL.md</code>
+        与修复提交 <code>3e5c1c5</code>，确认逻辑与交互是否合理正确。
+      </p>
+      <div class="verdict">✓ 结论：审批门禁设计合理；直接发布后状态/通知同步缺口已修复，交互与数据流一致</div>
+    </header>
+
+    <!-- 1. 问题复盘 -->
+    <section>
+      <h2>1. 截图暴露的问题（为何觉得「没同步」）</h2>
+      <div class="callout bad">
+        <strong>现象：</strong>聊天区已写「管理员已直接发布，正式 Runtime 已更新」，页脚「已直接发布正式版本」，
+        但顶栏徽章仍是黄色「待审批 · 已提交，等待管理员通过后影响正式业务」。
+        用户侧会认为<strong>状态与消息通知没及时同步</strong>——判断正确，这是前端徽章状态机与后端变更单不同步的 bug，不是「审批设计本身错误」。
+      </div>
+      <table>
+        <thead>
+          <tr><th>层</th><th>当时实际发生了什么</th><th>用户看到什么</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>正式 Runtime</td>
+            <td><code>PATCH /schema</code> 已写入 <code>apps.page_schema</code>，<code>schema_rev++</code></td>
+            <td>左侧菜单可已变（同会话 React 状态）</td>
+          </tr>
+          <tr>
+            <td>变更单 DB</td>
+            <td>原 <code>pending</code> 单<strong>未关闭</strong></td>
+            <td>—</td>
+          </tr>
+          <tr>
+            <td>Composer UI</td>
+            <td><code>loadChangeQueue</code> 又把旧 pending 挂回 <code>changeId</code></td>
+            <td>徽章仍「待审批」</td>
+          </tr>
+          <tr>
+            <td>站内信</td>
+            <td>提交时发给管理员的「改页待审批」可能仍未读</td>
+            <td>通知与正式发布脱节</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 2. 正确原则 -->
+    <section>
+      <h2>2. 正确原则（必须成立）</h2>
+      <ol class="check">
+        <li><strong>本地预览 ≠ 正式业务</strong>：对话改页立刻改左侧预览（<code>schemaDirty</code>），默认不写 <code>apps.page_schema</code>。</li>
+        <li><strong>草稿绑个人</strong>：<code>app_schema_change_requests.author_id</code> = 当前用户。</li>
+        <li><strong>正式 Runtime 唯一真相</strong>：读路径只读 <code>apps.page_schema</code> + <code>schema_rev</code>；pending 不得冒充正式菜单。</li>
+        <li><strong>非管理员不能静默写正式</strong>：<code>PATCH /schema</code> → 403 <code>SCHEMA_APPROVAL_REQUIRED</code>。</li>
+        <li><strong>管理员两条合法路径</strong>：① 审批通过；② 直接发布——二者都必须让 UI 徽章与变更单状态一致。</li>
+        <li><strong>预览包</strong>（<code>preview-*</code>）走 localStorage，无审批——与正式 <code>/r/{id}</code> 分流正确。</li>
+      </ol>
+    </section>
+
+    <!-- 3. 状态机 -->
+    <section>
+      <h2>3. 变更单状态机</h2>
+      <div class="mermaid">
+stateDiagram-v2
+  [*] --> Dirty: 对话改页\n仅前端 schemaDirty
+  Dirty --> Draft: 保存草稿\nPOST /schema/changes
+  Draft --> Pending: 提交审批\n+ 通知管理员
+  Draft --> Cancelled: 取消
+  Pending --> Approved: 管理员通过\n写正式 schema
+  Pending --> Rejected: 管理员驳回
+  Pending --> Cancelled: 取消 / 直接发布超驰
+  Draft --> Cancelled: 直接发布超驰
+  Rejected --> Draft: 再编辑保存
+  Approved --> [*]
+  Cancelled --> [*]
+  note right of Approved
+    影响正式 Runtime
+    schema_rev++
+  end note
+  note right of Pending
+    不影响正式 Runtime
+  end note
+      </div>
+      <table>
+        <thead>
+          <tr><th>status</th><th>含义</th><th>影响正式 Runtime？</th><th>Composer 徽章</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>（仅 dirty）</td><td>本机会话未保存</td><td>否</td><td><span class="tag tag-draft">未保存</span></td></tr>
+          <tr><td><code>draft</code></td><td>账号草稿</td><td>否</td><td>正式 vN（无 pending）</td></tr>
+          <tr><td><code>pending</code></td><td>待管理员审批</td><td>否</td><td><span class="tag tag-pending">待审批</span></td></tr>
+          <tr><td><code>approved</code></td><td>已通过并发布</td><td><strong>是</strong></td><td><span class="tag">v{N}</span></td></tr>
+          <tr><td><code>rejected</code></td><td>已驳回</td><td>否</td><td>正式 vN</td></tr>
+          <tr><td><code>cancelled</code></td><td>取消 / 被直接发布关闭</td><td>否</td><td>正式 vN</td></tr>
+        </tbody>
+      </table>
+      <div class="badge-demo">
+        <span class="muted">徽章优先级（前端）：</span>
+        <span class="b b-dirty">1. 未保存</span>
+        <span>→</span>
+        <span class="b b-pending">2. 待审批</span>
+        <span>→</span>
+        <span class="b b-formal">3. 正式 vN</span>
+      </div>
+    </section>
+
+    <!-- 4. 数据流 -->
+    <section>
+      <h2>4. 数据流与存储</h2>
+      <div class="mermaid">
+sequenceDiagram
+  participant U as 员工/作者
+  participant C as CapShipComposer
+  participant API as /api/v1/runtime
+  participant DB as PostgreSQL
+  participant A as 管理员
+  participant N as notifications
+
+  U->>C: 对话改页
+  C->>C: onSchemaPatch 左侧即时预览
+  Note over C: schemaDirty=true<br/>正式 schema 不变
+
+  U->>C: 保存草稿
+  C->>API: POST /{id}/schema/changes
+  API->>DB: app_schema_change_requests draft
+
+  U->>C: 提交审批
+  C->>API: POST /.../changes/submit
+  API->>DB: status=pending
+  API->>N: notify_tenant_admins
+
+  alt 路径甲：审批通过
+    A->>API: POST /.../changes/{id}/approve
+    API->>DB: commit_schema_revision
+    API->>DB: change=approved
+    API->>N: 通知作者「已通过」
+  else 路径乙：管理员直接发布
+    A->>API: PATCH /schema
+    API->>DB: commit_schema_revision
+    API->>DB: 关闭全部 draft/pending → cancelled
+    API->>N: 标已读待审通知 + 通知作者「已直接发布」
+    Note over C: changeId 清空<br/>徽章 → 正式 vN
+  end
+      </div>
+      <h3>关键表</h3>
+      <table>
+        <thead><tr><th>表 / 字段</th><th>职责</th></tr></thead>
+        <tbody>
+          <tr><td><code>apps.page_schema</code> + <code>schema_rev</code></td><td>正式唯一真相；Runtime GET 只读这里</td></tr>
+          <tr><td><code>app_schema_revisions</code></td><td>每次正式写回快照（approve / admin_direct / restore）</td></tr>
+          <tr><td><code>app_schema_change_requests</code></td><td>草稿与审批单；绑 author_id</td></tr>
+          <tr><td><code>notifications</code></td><td>提交→管理员；通过/驳回/直接发布超驰→作者</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 5. 权限 -->
+    <section>
+      <h2>5. 人员权限矩阵</h2>
+      <p class="muted">角色以 Runtime 登录用户 <code>role</code> 为准（演示账号：admin / employee）。</p>
+      <table>
+        <thead>
+          <tr>
+            <th>动作</th>
+            <th>员工 employee</th>
+            <th>管理员 admin</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>对话改页 · 左侧即时预览</td>
+            <td><span class="tag tag-ok">允许</span></td>
+            <td><span class="tag tag-ok">允许</span></td>
+          </tr>
+          <tr>
+            <td>保存草稿</td>
+            <td><span class="tag tag-ok">仅自己的</span></td>
+            <td><span class="tag tag-ok">允许</span></td>
+          </tr>
+          <tr>
+            <td>提交审批</td>
+            <td><span class="tag tag-ok">自己的草稿</span></td>
+            <td><span class="tag tag-ok">允许</span></td>
+          </tr>
+          <tr>
+            <td>通过 / 驳回变更单</td>
+            <td><span class="tag tag-bad">禁止</span></td>
+            <td><span class="tag tag-ok">允许</span></td>
+          </tr>
+          <tr>
+            <td>直接发布 <code>PATCH /schema</code></td>
+            <td><span class="tag tag-bad">403</span></td>
+            <td><span class="tag tag-ok">允许</span></td>
+          </tr>
+          <tr>
+            <td>回滚正式版 restore</td>
+            <td><span class="tag tag-bad">禁止</span></td>
+            <td><span class="tag tag-ok">允许</span></td>
+          </tr>
+          <tr>
+            <td>看变更列表</td>
+            <td>自己的全部 + 租户内 pending（只读）</td>
+            <td>全量</td>
+          </tr>
+          <tr>
+            <td>刷新后看到正式菜单</td>
+            <td>仅已 approve / 已直接发布</td>
+            <td>同左</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="grid-2" style="margin-top:12px">
+        <div class="card-mini">
+          <h4>员工正确路径</h4>
+          <p class="muted" style="margin:0">改页 → 预览确认 → 保存草稿 → 提交审批 → 等通知「已通过」→ 刷新 /r 见正式版</p>
+        </div>
+        <div class="card-mini">
+          <h4>管理员正确路径</h4>
+          <p class="muted" style="margin:0">版本/审批里「通过」；或「直接发布」覆盖排队单。二者结束后徽章必须是正式 vN，不能再待审批。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. 交互核对 -->
+    <section>
+      <h2>6. 交互是否合理（Composer UI）</h2>
+      <table>
+        <thead><tr><th>交互</th><th>期望</th><th>判定</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>对话后左侧立刻变</td>
+            <td>即时预览；正式未变</td>
+            <td><span class="tag tag-ok">合理</span></td>
+          </tr>
+          <tr>
+            <td>提交审批后徽章「待审批」</td>
+            <td>提示正式未生效</td>
+            <td><span class="tag tag-ok">合理</span></td>
+          </tr>
+          <tr>
+            <td>审批通过后徽章 → vN</td>
+            <td>与 DB approved 一致</td>
+            <td><span class="tag tag-ok">合理</span></td>
+          </tr>
+          <tr>
+            <td>直接发布后徽章仍「待审批」</td>
+            <td>不一致 → 必须修</td>
+            <td><span class="tag tag-bad">曾不合理</span> → <span class="tag tag-ok">已修</span></td>
+          </tr>
+          <tr>
+            <td>提交 → 管理员站内信</td>
+            <td>type=schema_change</td>
+            <td><span class="tag tag-ok">合理</span></td>
+          </tr>
+          <tr>
+            <td>通过/驳回 → 作者站内信</td>
+            <td>作者可感知结果</td>
+            <td><span class="tag tag-ok">合理</span></td>
+          </tr>
+          <tr>
+            <td>直接发布 → 关闭 pending + 通知作者 + 待审通知标已读</td>
+            <td>与「已发布」文案一致</td>
+            <td><span class="tag tag-ok">修复后合理</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 7. 修复点 -->
+    <section>
+      <h2>7. 修复要点（3e5c1c5）——确认闭环</h2>
+      <div class="callout ok">
+        直接发布与「待审批」徽章冲突，根因是：<strong>正式库已更新，变更单仍 pending</strong>。
+        修复后两条路径在「正式生效」语义上对齐。
+      </div>
+      <ol class="check">
+        <li><strong>后端</strong> <code>PATCH /schema</code> 成功后调用 <code>supersede_open_changes_after_publish</code>：该应用所有 <code>draft</code>/<code>pending</code> → <code>cancelled</code>。</li>
+        <li><strong>通知</strong>：相关未读「改页待审批」标已读；作者收到「管理员已直接发布，草稿/待审已关闭」。</li>
+        <li><strong>前端</strong>：<code>loadChangeQueue</code> 无 open 单时 <code>setChangeId(null)</code>；直接发布后先本地清 pending，再拉列表。</li>
+      </ol>
+      <h3>验收脚本</h3>
+      <pre style="background:#0f172a;color:#e2e8f0;padding:12px 14px;border-radius:8px;overflow:auto;font-size:12px;line-height:1.5">cd ~/blockhub &amp;&amp; git pull &amp;&amp; bash scripts/deploy-one.sh
+bash scripts/smoke-schema-sync.sh https://blockhub.club
+# 期望：submit→pending → direct publish → no pending left / change→cancelled</pre>
+    </section>
+
+    <!-- 8. 总判定 -->
+    <section>
+      <h2>8. 总判定</h2>
+      <table>
+        <thead><tr><th>维度</th><th>是否合理正确</th><th>说明</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>审批门禁（员工改页不影响正式）</td>
+            <td><span class="tag tag-ok">正确</span></td>
+            <td>符合「草稿→审批→正式」产品契约</td>
+          </tr>
+          <tr>
+            <td>权限分离（admin / employee）</td>
+            <td><span class="tag tag-ok">正确</span></td>
+            <td>PATCH 仅 admin；approve/reject 仅 admin</td>
+          </tr>
+          <tr>
+            <td>即时预览 vs 持久正式</td>
+            <td><span class="tag tag-ok">正确</span></td>
+            <td>对话即时；刷新后以 GET /schema 为准</td>
+          </tr>
+          <tr>
+            <td>直接发布与待审批状态</td>
+            <td><span class="tag tag-ok">修复后正确</span></td>
+            <td>截图问题已从根因关闭；需部署后跑 smoke-schema-sync</td>
+          </tr>
+          <tr>
+            <td>版本历史 / 回滚</td>
+            <td><span class="tag tag-ok">正确</span></td>
+            <td>revisions + admin restore 产新 rev</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="callout">
+        <strong>一句话：</strong>「要审批才能动正式业务」这条主逻辑是对的；
+        截图里的混乱来自<strong>管理员快捷发布未收口变更单/徽章/通知</strong>。
+        现逻辑要求：<em>凡写正式 schema，open 变更单与 UI 徽章必须同步结束「待审批」语义。</em>
+      </div>
+    </section>
+
+    <footer class="note">
+      文档生成用于核对上一条任务（状态同步 / 数据流 / 权限）。实现锚点：
+      <code>schema_change_approval.py</code> ·
+      <code>runtime.py</code> PATCH ·
+      <code>CapShipComposer.tsx</code> ·
+      <code>scripts/smoke-schema-sync.sh</code>
+    </footer>
+  </div>
+  <script>
+    mermaid.initialize({ startOnLoad: true, theme: 'neutral', securityLevel: 'loose' });
+  </script>
+</body>
+</html>
