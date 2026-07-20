@@ -142,6 +142,9 @@ def _run_job(job_id: str) -> None:
                     "flutter_screen_count": len(result.get("generated_flutter_screens") or []),
                     "llm": bool(result.get("llm")),
                     "routes": [p.get("route") for p in (result.get("generated_pages") or [])],
+                    # Runtime 草稿可直接合并，不依赖 DB merge 成功
+                    "generated_pages": result.get("generated_pages") or [],
+                    "generated_flutter_screens": result.get("generated_flutter_screens") or [],
                 },
                 "merged": bool(merged),
                 "finished_at": datetime.now(timezone.utc).isoformat(),

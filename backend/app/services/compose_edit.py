@@ -77,6 +77,21 @@ _WEAK_COMPANION = frozenset({
     "notify_im", "notify_inapp", "chat_qa", "approval_flow", "kb_document", "flutter_push",
 })
 
+# 可玩小游戏（非 2048）→ Path B gen_* + DeepSeek 出页，勿落到 FAQ/问答
+_MINIGAME_HINTS = (
+    "贪吃蛇", "俄罗斯方块", "消消乐", "扫雷", "连连看", "飞机大战", "打砖块",
+    "五子棋", "象棋", "扑克", "麻将", "节奏游戏", "跑酷", "消除",
+)
+
+
+def _looks_like_minigame(text: str) -> bool:
+    t = (text or "").strip()
+    if not t or "2048" in t:
+        return False
+    if any(w in t for w in _MINIGAME_HINTS):
+        return True
+    return ("小游戏" in t or "单机游戏" in t) and any(w in t for w in ("生成", "做", "加", "来个", "玩", "页面"))
+
 
 def _companion_explicit(text: str, key: str) -> bool:
     t = text.lower()
@@ -474,7 +489,7 @@ def _infer_add_from_text(text: str) -> list[dict[str, Any]]:
     # 显式「增加 X」
     explicit_labels: list[str] = []
     for m in re.finditer(
-        r"(?:增加|添加|加上|新建|加一个|加个|挂上|开通|启用)\s*[「『\"]?([^「『」』\"，,。；;\s]{2,20})",
+        r"(?:增加|添加|加上|新建|加一个|加个|挂上|开通|启用|生成|做一个|做个|来个|创建)\s*[「『\"]?([^「『」』\"，,。；;\s]{2,24})",
         text,
     ):
         lab = m.group(1).strip().strip("「」『』\"'")
@@ -590,6 +605,12 @@ def _enrich_add_op(op: dict[str, Any]) -> dict[str, Any]:
             if any(a in text for a in aliases) and key in ALL_CAPABILITIES:
                 cap = key
                 break
+
+    # 可玩小游戏：禁止落到 chat_qa / game_support FAQ，强制 Path B 出 GeneratedPageWidget
+    blob = f"{label} {text} {op.get('summary') or ''}"
+    if _looks_like_minigame(blob) and cap != "game_2048":
+        cap = _slug_gen_key(label or "minigame")
+        pending_codegen = True
 
     if cap.startswith("gen_"):
         pending_codegen = True

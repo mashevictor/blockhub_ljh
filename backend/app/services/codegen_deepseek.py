@@ -72,10 +72,17 @@ def _normalize(raw: dict[str, Any], unknown: list[str]) -> dict[str, Any]:
     for i, p in enumerate(raw.get("generated_pages") or []):
         if not isinstance(p, dict):
             continue
-        key = str(p.get("key") or unknown[min(i, len(unknown) - 1)])
-        key = _slug(key)
+        # 保留 compose 传来的 gen_* key，避免二次 slug 对不上菜单
+        orig = unknown[min(i, len(unknown) - 1)] if unknown else ""
+        raw_key = str(p.get("key") or orig or "generated")
+        if str(orig).startswith("gen_"):
+            key = str(orig)
+        elif raw_key.startswith("gen_"):
+            key = raw_key
+        else:
+            key = f"gen_{_slug(raw_key)}"
         title = str(p.get("title") or key)[:64]
-        route = str(p.get("route") or f"/gen/{key}")
+        route = str(p.get("route") or f"/gen/{_slug(key)}")
         if not route.startswith("/"):
             route = f"/{route}"
         blocks = []
@@ -92,9 +99,9 @@ def _normalize(raw: dict[str, Any], unknown: list[str]) -> dict[str, Any]:
             blocks = [{"type": "paragraph", "text": str(p.get("summary") or title), "items": []}]
         pages.append(
             {
-                "key": f"gen_{key}",
+                "key": key,
                 "title": title,
-                "route": route if route.startswith("/gen/") else f"/gen/{key}",
+                "route": route if "/gen/" in route or route.startswith("/s/") else f"/gen/{_slug(key)}",
                 "summary": str(p.get("summary") or "")[:400],
                 "blocks": blocks,
                 "source": "deepseek",
@@ -142,13 +149,16 @@ def _fallback(app_name: str, unknown: list[str], prompt: str) -> dict[str, Any]:
     pages = []
     screens = []
     for key in unknown:
+        page_key = key if str(key).startswith("gen_") else f"gen_{_slug(key)}"
         slug = _slug(key)
         title = key if any("\u4e00" <= c <= "\u9fff" for c in key) else key.replace("_", " ").title()
+        if str(key).startswith("gen_"):
+            title = key.replace("gen_", "").replace("_", " ")[:64] or title
         route = f"/gen/{slug}"
         summary = (prompt or f"「{app_name}」的「{title}」能力正在由 AI 生成预览页。").strip()[:400]
         pages.append(
             {
-                "key": f"gen_{slug}",
+                "key": page_key,
                 "title": title[:64],
                 "route": route,
                 "summary": summary,
@@ -157,17 +167,17 @@ def _fallback(app_name: str, unknown: list[str], prompt: str) -> dict[str, Any]:
                     {"type": "paragraph", "text": summary, "items": []},
                     {
                         "type": "list",
-                        "text": "计划能力点",
-                        "items": ["需求澄清", "页面预览", "后续可接入正式能力包"],
+                        "text": "下一步",
+                        "items": ["可在 Runtime 继续用对话改页", "转正为正式能力包后接真 API"],
                     },
-                    {"type": "button", "text": "返回首页", "items": []},
+                    {"type": "button", "text": "返回顶部", "items": []},
                 ],
                 "source": "fallback",
             }
         )
         screens.append(
             {
-                "key": f"gen_{slug}",
+                "key": page_key,
                 "title": title[:64],
                 "route": route,
                 "body": summary,

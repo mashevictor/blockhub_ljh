@@ -113,6 +113,7 @@ export type ComposeEditOp =
       summary?: string
       page_kind?: string
       page_mock?: ComposerPageMock
+      pending_codegen?: boolean
     }
   | { op: 'remove'; label: string }
   | { op: 'rename'; from: string; to: string }

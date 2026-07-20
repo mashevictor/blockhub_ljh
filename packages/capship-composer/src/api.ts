@@ -292,6 +292,7 @@ export async function askComposeEdit(
   body: {
     instruction: string
     app_name?: string
+    app_id?: string
     menu?: Array<{ key?: string; label?: string; capability_key?: string; category?: string }>
     capability_keys?: string[]
   },
@@ -314,6 +315,37 @@ export async function askComposeEdit(
   if (!res.ok) {
     const detail = await res.text()
     throw new Error(detail || `compose-edit failed (${res.status})`)
+  }
+  return res.json()
+}
+
+export async function fetchCodegenJob(
+  jobId: string,
+  opts?: { token?: string | null },
+): Promise<{
+  id?: string
+  status: string
+  error?: string
+  merged?: boolean
+  result?: {
+    page_count?: number
+    llm?: boolean
+    routes?: string[]
+    generated_pages?: Array<{
+      key?: string
+      title?: string
+      route?: string
+      summary?: string
+      blocks?: Array<{ type?: string; text?: string; items?: string[] }>
+    }>
+  }
+}> {
+  const res = await fetch(`/api/v1/creation/codegen-jobs/${encodeURIComponent(jobId)}`, {
+    headers: authHeaders(opts?.token),
+  })
+  if (!res.ok) {
+    const detail = await res.text()
+    throw new Error(detail || `codegen job failed (${res.status})`)
   }
   return res.json()
 }

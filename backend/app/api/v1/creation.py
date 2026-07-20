@@ -87,6 +87,7 @@ class FlowAskRequest(BaseModel):
 class ComposeEditRequest(BaseModel):
     instruction: str
     app_name: str = ""
+    app_id: str = ""
     menu: list[dict] = []
     capability_keys: list[str] = []
 
@@ -335,13 +336,16 @@ def compose_edit_api(body: ComposeEditRequest) -> dict:
     codegen_job_id = ""
     if pending:
         try:
+            # 优先真实 Runtime app_id，便于 merge；否则仍入队，前端靠 job.result.generated_pages 合并草稿
+            real_id = (body.app_id or "").strip()
+            job_app_id = real_id if real_id and not real_id.startswith("preview-") else f"compose-{(body.app_name or 'draft')}"[:48]
             codegen_job_id = enqueue_codegen_job(
-                app_id=f"compose-{body.app_name or 'draft'}"[:48],
+                app_id=job_app_id,
                 app_name=body.app_name or "Runtime 编排",
                 unknown_keys=pending,
                 prompt=body.instruction,
-                web_template_id="web-capability-approval",
-                app_ui_id="ui.generated_page",
+                web_template_id="tabs_portal",
+                app_ui_id="bottom_tabs",
             )
         except Exception:
             logger.exception("compose-edit enqueue codegen failed")

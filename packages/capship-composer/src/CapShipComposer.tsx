@@ -15,6 +15,7 @@ import {
   askComposeEdit,
   askFlowEdit,
   approveSchemaChange,
+  fetchCodegenJob,
   fetchRuntimeSchema,
   fetchSchemaRevisions,
   listSchemaChanges,
@@ -121,7 +122,103 @@ function resolveAddWidget(cap: string, explicit?: string): string {
   return CAP_WIDGET_FALLBACK[cap] || 'ListWidget'
 }
 
-export function applyComposeOps(schema: ComposerPageSchema, ops: ComposeEditOp[]): ComposerPageSchema {
+export function pageMockToBlocks(mock: ComposeEditOp['page_mock']): Array<{ type: string; text?: string; items?: string[] }> {
+  if (!mock) return []
+  const blocks: Array<{ type: string; text?: string; items?: string[] }> = []
+  if (mock.form_title) blocks.push({ type: 'heading', text: mock.form_title })
+  for (const f of mock.fields || []) {
+    if (!f.label) continue
+    blocks.push({
+      type: 'paragraph',
+      text: `${f.label}${f.type ? `（${f.type}）` : ''}${f.value ? `：${f.value}` : ''}`,
+    })
+  }
+  if (mock.list_title) blocks.push({ type: 'heading', text: mock.list_title })
+  if (mock.list?.length) {
+    blocks.push({
+      type: 'list',
+      text: mock.list_title || '列表',
+      items: mock.list.map((row) => (row.status ? `${row.title || row.id} · ${row.status}` : String(row.title || row.id || '条目'))),
+    })
+  }
+  if (mock.primary_action) blocks.push({ type: 'button', text: mock.primary_action })
+  return blocks
+}
+
+function applyGeneratedPages(
+  schema: ComposerPageSchema,
+  pages: Array<{
+    key?: string
+    title?: string
+    route?: string
+    summary?: string
+    blocks?: Array<{ type?: string; text?: string; items?: string[] }>
+  }>,
+): ComposerPageSchema {
+  let next = schema
+  const children = [...(next.root.children || [])]
+  const menu = [...next.menu]
+  const keys = new Set(next.capability_keys || [])
+
+  for (const page of pages) {
+    const key = String(page.key || '').trim()
+    if (!key) continue
+    const title = String(page.title || key)
+    const route = String(page.route || `/gen/${key}`)
+    const idx = children.findIndex((c) => {
+      const props = (c.props || {}) as Record<string, unknown>
+      return String(props.capability_key || '') === key || String(c.id) === key
+    })
+    if (idx >= 0) {
+      const child = children[idx]!
+      const props = { ...(child.props || {}) } as Record<string, unknown>
+      props.widget = 'GeneratedPageWidget'
+      props.capability_key = key
+      props.title = title
+      props.summary = page.summary || props.summary || ''
+      props.blocks = page.blocks || []
+      props.codegen_pending = false
+      props.source = 'generated'
+      if (page.route) props.route = route
+      children[idx] = { ...child, type: 'generated_page', props }
+      keys.add(key)
+      continue
+    }
+    children.push({
+      id: key,
+      type: 'generated_page',
+      props: {
+        widget: 'GeneratedPageWidget',
+        capability_key: key,
+        route,
+        title,
+        summary: page.summary || '',
+        blocks: page.blocks || [],
+        source: 'generated',
+        codegen_pending: false,
+      },
+    })
+    if (!menu.some((m) => m.capability_key === key || m.key === key)) {
+      menu.push({
+        key,
+        label: title,
+        route,
+        capability_key: key,
+        icon: 'sparkles',
+      })
+    }
+    keys.add(key)
+  }
+
+  return {
+    ...next,
+    capability_keys: [...keys],
+    menu,
+    root: { ...next.root, children },
+  }
+}
+
+function applyComposeOps(schema: ComposerPageSchema, ops: ComposeEditOp[]): ComposerPageSchema {
   let next = cloneSchema(schema)!
   const keys = new Set(next.capability_keys || [])
 
@@ -198,6 +295,19 @@ export function applyComposeOps(schema: ComposerPageSchema, ops: ComposeEditOp[]
         summary: op.summary,
         page_kind: op.page_kind,
       }
+      if (widget === 'GeneratedPageWidget' || cap.startsWith('gen_')) {
+        childProps.title = label
+        childProps.codegen_pending = Boolean(op.pending_codegen)
+        childProps.source = 'generated'
+        const fromMock = pageMockToBlocks(op.page_mock)
+        if (fromMock.length) childProps.blocks = fromMock
+        else if (op.summary) {
+          childProps.blocks = [
+            { type: 'heading', text: label },
+            { type: 'paragraph', text: op.summary },
+          ]
+        }
+      }
       if (op.page_mock) {
         childProps.page_mock = op.page_mock
         const mockFields = (op.page_mock.fields || [])
@@ -220,7 +330,7 @@ export function applyComposeOps(schema: ComposerPageSchema, ops: ComposeEditOp[]
             ...(next.root.children || []),
             {
               id: key,
-              type: nodeType,
+              type: widget === 'GeneratedPageWidget' || cap.startsWith('gen_') ? 'generated_page' : nodeType,
               props: childProps,
             },
           ],
@@ -981,6 +1091,7 @@ export function CapShipComposer({
         {
           instruction: text,
           app_name: base.title || '',
+          app_id: appId || base.appId || '',
           menu: base.menu.map((m) => ({
             key: m.key,
             label: m.label,
@@ -1010,9 +1121,12 @@ export function CapShipComposer({
 
       const src = result.source === 'deepseek' ? '' : '（本地规则）'
       const pending = result.pending_codegen_keys
+      const jobId = result.codegen_job_id
       const asyncHint =
         pending?.length
-          ? ` 未覆盖的正式接口将异步生成（${pending.length} 项）。`
+          ? jobId
+            ? ` 未覆盖能力已交 DeepSeek 异步出页（${pending.length} 项），生成完成后会自动刷新预览。`
+            : ` 未覆盖能力将异步生成（${pending.length} 项）。`
           : ''
       const draftHint = result.ops?.length ? ' 已写入草稿，点「保存」记入版本历史。' : ''
       setMessages((prev) => [
@@ -1026,6 +1140,63 @@ export function CapShipComposer({
             : '草稿已更新页面 · 未保存'
           : '',
       )
+
+      if (jobId) {
+        const snapshot = next
+        void (async () => {
+          for (let i = 0; i < 40; i += 1) {
+            await new Promise((r) => window.setTimeout(r, 1500))
+            try {
+              const job = await fetchCodegenJob(jobId, { token })
+              if (job.status === 'failed') {
+                setMessages((prev) => [
+                  ...prev,
+                  { role: 'assistant', text: `AI 出页失败：${job.error || '未知错误'}。当前仍保留即时预览草稿。` },
+                ])
+                return
+              }
+              if (job.status !== 'ready') continue
+              const pages = job.result?.generated_pages || []
+              if (pages.length) {
+                const merged = applyGeneratedPages(snapshot, pages)
+                setSchema(merged)
+                setKeys(merged.capability_keys)
+                setSchemaDirty(true)
+                onSchemaPatch?.(merged)
+                setMessages((prev) => [
+                  ...prev,
+                  {
+                    role: 'assistant',
+                    text: `AI 预览页已生成${job.result?.llm ? '（DeepSeek）' : '（规则兜底）'}：${pages.length} 页，可在左侧菜单打开查看。`,
+                  },
+                ])
+                setStatus('AI 预览页已合并 · 未保存')
+                return
+              }
+              if (job.merged && appId && !String(appId).startsWith('preview-')) {
+                const data = await fetchRuntimeSchema(appId, { token })
+                if (data?.page_schema) {
+                  const remote = data.page_schema as ComposerPageSchema
+                  setSchema(remote)
+                  setKeys(remote.capability_keys || [])
+                  onSchemaPatch?.(remote)
+                  setMessages((prev) => [
+                    ...prev,
+                    { role: 'assistant', text: 'AI 预览页已写入应用 schema，已自动刷新。' },
+                  ])
+                }
+              }
+              return
+            } catch {
+              /* 继续轮询 */
+            }
+          }
+          setMessages((prev) => [
+            ...prev,
+            { role: 'assistant', text: 'AI 出页超时，可稍后刷新或再说一次需求。即时预览草稿仍可用。' },
+          ])
+        })()
+      }
     } catch (e) {
       if (e instanceof SchemaRevConflictError) {
         handleConflict(e)
