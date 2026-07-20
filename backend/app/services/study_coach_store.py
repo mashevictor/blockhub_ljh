@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session, joinedload
 
 from app.db.models import StudyCoachCourse, StudyCoachDrill, User
 from app.services.deepseek_client import deepseek_json_chat
+from app.services import textbook_toc as toc_lib
 
 VALID_ROLE = frozenset({"student", "parent", "teacher"})
 VALID_UNIT_STATUS = frozenset({"pending", "learning", "review", "mastered"})
@@ -78,29 +79,665 @@ def _heuristic_catalog(textbook_name: str, subject: str, grade: str) -> dict[str
     }
 
 
-def _fallback_plan(textbook_name: str, catalog: dict[str, Any]) -> list[dict[str, Any]]:
-    subj = catalog.get("subject") or "课本"
-    title = catalog.get("full_title") or textbook_name.strip() or "未命名课本"
-    units = [
-        f"确认教材 · {title}",
-        f"{subj} · Module/Unit 1 预习精读",
-        f"{subj} · Module/Unit 2 词句巩固",
-        f"{subj} · Module/Unit 3 练习与听说",
-        "阶段复习 · 家默跟进",
-        "综合测验 · 查漏补缺",
-    ]
-    return [
-        {
-            "order": i + 1,
-            "unit_code": f"U{i + 1}",
+def _fallback_units_for_subject(subj: str, title: str) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    """无 DeepSeek 时：按科目给出可跟进的大任务 + 带细步骤的单元（小学语数英示范级）。"""
+    s = subj or "课本"
+
+    def u(
+        order: int,
+        *,
+        module_order: int,
+        module_name: str,
+        code: str,
+        name: str,
+        focus: str,
+        hint: str,
+        days: int,
+        steps: list[dict[str, Any]],
+    ) -> dict[str, Any]:
+        return {
+            "order": order,
+            "module_order": module_order,
+            "module_name": module_name,
+            "unit_code": code,
             "unit_name": name,
-            "focus": "",
-            "dictation_hint": "",
-            "estimated_days": 2 if i < 4 else 1,
+            "focus": focus,
+            "dictation_hint": hint,
+            "estimated_days": days,
             "status": "pending",
+            "steps": steps,
         }
-        for i, name in enumerate(units)
+
+    if "语文" in s:
+        modules = [
+            {"order": 1, "name": "识字与课文精读", "goal": "读通前几课，会认会写本课生字词，能有感情朗读", "unit_orders": [1, 2, 3]},
+            {"order": 2, "name": "阅读与表达", "goal": "读懂短文大意，能口头复述并写一段连贯话", "unit_orders": [4, 5]},
+            {"order": 3, "name": "阶段验收", "goal": "字词听写 + 阅读小测，查漏补缺", "unit_orders": [6]},
+        ]
+        units = [
+            u(
+                1,
+                module_order=1,
+                module_name="识字与课文精读",
+                code="第1课",
+                name="第1课 · 大青树下的小学（精读）",
+                focus="感受校园生活画面，会认会写本课生字",
+                hint="听写：校园、安静、热闹、敬礼、礼貌",
+                days=2,
+                steps=[
+                    {"id": "read", "title": "朗读课文 2 遍", "kind": "review", "detail": "第一遍通读；第二遍标自然段，圈生字。约 15 分钟", "status": "pending"},
+                    {"id": "chars", "title": "生字词：认读 + 组词", "kind": "dictation", "detail": "会认本课生字；会写重点字。家长抽查读音", "status": "pending"},
+                    {"id": "retell", "title": "口头说：课文讲了什么", "kind": "review", "detail": "用 3～5 句话说清谁、在哪、做什么", "status": "pending"},
+                ],
+            ),
+            u(
+                2,
+                module_order=1,
+                module_name="识字与课文精读",
+                code="第2课",
+                name="第2课 · 花的学校（朗读与想象）",
+                focus="展开想象，积累优美词语",
+                hint="听写：阵雨、狂欢、水塘、绿草、回家",
+                days=2,
+                steps=[
+                    {"id": "read", "title": "有感情朗读优美句", "kind": "review", "detail": "选出 2 句喜欢的话朗读并背一句", "status": "pending"},
+                    {"id": "chars", "title": "听写本课词语", "kind": "dictation", "detail": "听写 8～10 个词语，错词当晚订正再默", "status": "pending"},
+                    {"id": "write", "title": "仿写一句", "kind": "review", "detail": "仿课文写一句带比喻或想象的话", "status": "pending"},
+                ],
+            ),
+            u(
+                3,
+                module_order=1,
+                module_name="识字与课文精读",
+                code="古诗",
+                name="古诗二首 · 朗读背诵",
+                focus="读准字音，理解大意，能背诵",
+                hint="听写诗题与关键字：夜书所见、九月九日忆山东兄弟",
+                days=2,
+                steps=[
+                    {"id": "read", "title": "读准、读顺两首诗", "kind": "review", "detail": "对照注释理解大意，约 15 分钟", "status": "pending"},
+                    {"id": "recite", "title": "背诵验收", "kind": "review", "detail": "家长抽背；卡壳处再读 3 遍", "status": "pending"},
+                    {"id": "chars", "title": "听写关键字词", "kind": "dictation", "detail": "听写诗题 + 易错字", "status": "pending"},
+                ],
+            ),
+            u(
+                4,
+                module_order=2,
+                module_name="阅读与表达",
+                code="阅读",
+                name="短文阅读 · 抓关键句",
+                focus="能找出关键句，回答简单问题",
+                hint="",
+                days=2,
+                steps=[
+                    {"id": "read", "title": "读短文并划关键句", "kind": "review", "detail": "用笔标出每段主要意思，约 20 分钟", "status": "pending"},
+                    {"id": "qa", "title": "口头答 3 个问题", "kind": "review", "detail": "谁、做了什么、结果怎样", "status": "pending"},
+                    {"id": "check", "title": "阅读小测 1 篇", "kind": "exam", "detail": "限时 15 分钟，错题订正并写原因", "status": "pending"},
+                ],
+            ),
+            u(
+                5,
+                module_order=2,
+                module_name="阅读与表达",
+                code="习作",
+                name="习作 · 写一件校园里的事",
+                focus="把事情写清楚：时间、地点、人物、经过",
+                hint="",
+                days=2,
+                steps=[
+                    {"id": "outline", "title": "说提纲：先说后写", "kind": "review", "detail": "口头说清四要素，再动笔", "status": "pending"},
+                    {"id": "draft", "title": "写 150 字左右", "kind": "review", "detail": "注意标点；写完大声读一遍改不通顺处", "status": "pending"},
+                    {"id": "polish", "title": "改一处具体描写", "kind": "review", "detail": "把一个动作写具体（怎么做、什么表情）", "status": "pending"},
+                ],
+            ),
+            u(
+                6,
+                module_order=3,
+                module_name="阶段验收",
+                code="阶段测",
+                name="语文阶段测 · 字词 + 阅读",
+                focus="检验前半阶段掌握度",
+                hint="复默错词本",
+                days=1,
+                steps=[
+                    {"id": "dict", "title": "错词复默", "kind": "dictation", "detail": "只默前几课错词，全对再过关", "status": "pending"},
+                    {"id": "exam", "title": "综合小测", "kind": "exam", "detail": "字词 10 分 + 阅读 1 篇，记下丢分点", "status": "pending"},
+                ],
+            ),
+        ]
+        return modules, units
+
+    if "数学" in s:
+        modules = [
+            {"order": 1, "name": "数与计算", "goal": "掌握万以内数与加减，能正确列竖式", "unit_orders": [1, 2, 3]},
+            {"order": 2, "name": "量与几何入门", "goal": "认识毫米/分米与简单图形，会解决一步应用题", "unit_orders": [4, 5]},
+            {"order": 3, "name": "阶段验收", "goal": "限时练习 + 错题订正", "unit_orders": [6]},
+        ]
+        units = [
+            u(
+                1,
+                module_order=1,
+                module_name="数与计算",
+                code="1.1",
+                name="万以内数的认识",
+                focus="读、写、比较万以内的数",
+                hint="默写：数位顺序表（个十百千万）",
+                days=2,
+                steps=[
+                    {"id": "concept", "title": "看数位表，读 5 个数", "kind": "review", "detail": "家长报数，孩子读写；约 15 分钟", "status": "pending"},
+                    {"id": "practice", "title": "练习：比大小 8 题", "kind": "review", "detail": "独立完成，错题用红笔订正", "status": "pending"},
+                    {"id": "check", "title": "口述：相邻数是谁", "kind": "exam", "detail": "抽 3 个数说前一个、后一个", "status": "pending"},
+                ],
+            ),
+            u(
+                2,
+                module_order=1,
+                module_name="数与计算",
+                code="1.2",
+                name="万以内加减法（不进退位）",
+                focus="正确列竖式，对齐数位",
+                hint="默写竖式口诀：相同数位对齐",
+                days=2,
+                steps=[
+                    {"id": "example", "title": "跟做 2 道例题", "kind": "review", "detail": "边说边写：从哪一位算起", "status": "pending"},
+                    {"id": "practice", "title": "巩固练 10 题", "kind": "review", "detail": "限时 15 分钟；错题重做一遍", "status": "pending"},
+                    {"id": "check", "title": "家长抽 3 题计时", "kind": "exam", "detail": "每题 ≤1 分钟，错则回看数位对齐", "status": "pending"},
+                ],
+            ),
+            u(
+                3,
+                module_order=1,
+                module_name="数与计算",
+                code="1.3",
+                name="万以内加减法（进退位）",
+                focus="进位加法、退位减法，避免漏借1",
+                hint="",
+                days=2,
+                steps=[
+                    {"id": "example", "title": "进位/退位各跟做 1 题", "kind": "review", "detail": "用圆点或小棒说清「满十进一」「退一当十」", "status": "pending"},
+                    {"id": "practice", "title": "混合练 12 题", "kind": "review", "detail": "做完自查：进位点、退位点有没有标", "status": "pending"},
+                    {"id": "wrong", "title": "错题本整理", "kind": "review", "detail": "每道错题写一句错因（如：忘借1）", "status": "pending"},
+                ],
+            ),
+            u(
+                4,
+                module_order=2,
+                module_name="量与几何入门",
+                code="2.1",
+                name="毫米、分米的认识",
+                focus="建立长度单位表象，会换算简单关系",
+                hint="默写：1 厘米=10 毫米；1 分米=10 厘米",
+                days=2,
+                steps=[
+                    {"id": "concept", "title": "量身边 3 样物品", "kind": "review", "detail": "用尺量橡皮、铅笔、课本厚度并记录", "status": "pending"},
+                    {"id": "dict", "title": "单位换算默写", "kind": "dictation", "detail": "默写基本换算关系，错的当晚再默", "status": "pending"},
+                    {"id": "practice", "title": "练习页完成", "kind": "review", "detail": "完成课本对应练习，家长对答案", "status": "pending"},
+                ],
+            ),
+            u(
+                5,
+                module_order=2,
+                module_name="量与几何入门",
+                code="2.2",
+                name="长方形与正方形（初步）",
+                focus="辨认边和角，能说出特征",
+                hint="",
+                days=2,
+                steps=[
+                    {"id": "concept", "title": "找家中的长方形/正方形", "kind": "review", "detail": "各找 2 个，说清有几条边、几个角", "status": "pending"},
+                    {"id": "practice", "title": "判断对错 6 题", "kind": "review", "detail": "根据特征判断图形，错题改", "status": "pending"},
+                    {"id": "check", "title": "口述特征验收", "kind": "exam", "detail": "不看书说出长方形、正方形各 1 条特征", "status": "pending"},
+                ],
+            ),
+            u(
+                6,
+                module_order=3,
+                module_name="阶段验收",
+                code="阶段测",
+                name="数学阶段测 · 计算 + 应用",
+                focus="限时正确率，整理错因",
+                hint="",
+                days=1,
+                steps=[
+                    {"id": "exam", "title": "限时测 20 分钟", "kind": "exam", "detail": "计算 8 题 + 应用 2 题；记下超时题", "status": "pending"},
+                    {"id": "wrong", "title": "错题订正并重做", "kind": "review", "detail": "每题写错因，隔日再做一遍", "status": "pending"},
+                ],
+            ),
+        ]
+        return modules, units
+
+    if "英语" in s:
+        modules = [
+            {"order": 1, "name": "Module 听说入门", "goal": "听懂课堂指令，会读会说本模块核心句", "unit_orders": [1, 2, 3]},
+            {"order": 2, "name": "词汇与家默巩固", "goal": "单词听写过关，能用句型做简单问答", "unit_orders": [4, 5]},
+            {"order": 3, "name": "阶段验收", "goal": "听说小测 + 错词复默", "unit_orders": [6]},
+        ]
+        units = [
+            u(
+                1,
+                module_order=1,
+                module_name="Module 听说入门",
+                code="M1-U1",
+                name="Module 1 Unit 1 · Greetings",
+                focus="见面问候：Hello / Good morning / How are you?",
+                hint="家默：hello, morning, fine, thank you, goodbye",
+                days=2,
+                steps=[
+                    {"id": "listen", "title": "听读课文音频 2 遍", "kind": "review", "detail": "跟读；注意升降调。约 10 分钟", "status": "pending"},
+                    {"id": "speak", "title": "和家长对答 5 组", "kind": "review", "detail": "用 Hello / How are you? — I'm fine, thank you.", "status": "pending"},
+                    {"id": "dict", "title": "家默本课 5 词", "kind": "dictation", "detail": "听写英文；错词抄 2 遍再默", "status": "pending"},
+                ],
+            ),
+            u(
+                2,
+                module_order=1,
+                module_name="Module 听说入门",
+                code="M1-U2",
+                name="Module 1 Unit 2 · My name",
+                focus="介绍自己：What's your name? My name is…",
+                hint="家默：name, my, your, is, I",
+                days=2,
+                steps=[
+                    {"id": "listen", "title": "听读并跟读对话", "kind": "review", "detail": "分角色读：问名字 / 答名字", "status": "pending"},
+                    {"id": "speak", "title": "自我介绍一遍", "kind": "review", "detail": "完整说：Hello, my name is … Nice to meet you.", "status": "pending"},
+                    {"id": "dict", "title": "家默句型关键词", "kind": "dictation", "detail": "听写 5 词 + 1 句 My name is …", "status": "pending"},
+                ],
+            ),
+            u(
+                3,
+                module_order=1,
+                module_name="Module 听说入门",
+                code="M2-U1",
+                name="Module 2 Unit 1 · Colours",
+                focus="颜色词与指认：What colour is it?",
+                hint="家默：red, blue, yellow, green, colour",
+                days=2,
+                steps=[
+                    {"id": "listen", "title": "看图听颜色词", "kind": "review", "detail": "指物说色：This is red.", "status": "pending"},
+                    {"id": "speak", "title": "指家里物品说颜色", "kind": "review", "detail": "至少 6 样物品，家长纠音", "status": "pending"},
+                    {"id": "dict", "title": "家默 5 个颜色词", "kind": "dictation", "detail": "可听中文写英文，或听英文写英文", "status": "pending"},
+                ],
+            ),
+            u(
+                4,
+                module_order=2,
+                module_name="词汇与家默巩固",
+                code="复习",
+                name="Module 1–2 词汇复现",
+                focus="隔日复现错词，听说不丢",
+                hint="只默错词本 + 核心句",
+                days=2,
+                steps=[
+                    {"id": "review", "title": "错词本朗读一遍", "kind": "review", "detail": "英→中、中→英各一遍", "status": "pending"},
+                    {"id": "dict", "title": "错词复默", "kind": "dictation", "detail": "全对过关；仍错的隔日再默", "status": "pending"},
+                    {"id": "speak", "title": "串讲：问候+名字+颜色", "kind": "review", "detail": "30 秒小演讲，家长录像或打分", "status": "pending"},
+                ],
+            ),
+            u(
+                5,
+                module_order=2,
+                module_name="词汇与家默巩固",
+                code="M2-U2",
+                name="Module 2 Unit 2 · Classroom",
+                focus="教室用品：book / pen / pencil / bag",
+                hint="家默：book, pen, pencil, bag, desk",
+                days=2,
+                steps=[
+                    {"id": "listen", "title": "听读课文并指物", "kind": "review", "detail": "指真实文具说英文", "status": "pending"},
+                    {"id": "dict", "title": "家默 5 个文具词", "kind": "dictation", "detail": "听写后自己对答案", "status": "pending"},
+                    {"id": "speak", "title": "问答：What's this?", "kind": "review", "detail": "It's a … 练 8 组", "status": "pending"},
+                ],
+            ),
+            u(
+                6,
+                module_order=3,
+                module_name="阶段验收",
+                code="阶段测",
+                name="英语阶段测 · 听写 + 口语",
+                focus="听写正确率与开口完整度",
+                hint="复默本阶段全部错词",
+                days=1,
+                steps=[
+                    {"id": "dict", "title": "综合听写 10 词", "kind": "dictation", "detail": "含问候/颜色/文具；记录错词", "status": "pending"},
+                    {"id": "exam", "title": "口语小测 1 分钟", "kind": "exam", "detail": "问候 + 自我介绍 + 指 3 样物品说颜色/名称", "status": "pending"},
+                ],
+            ),
+        ]
+        return modules, units
+
+    # 通用
+    modules = [
+        {"order": 1, "name": "基础推进", "goal": f"吃透 {s} 前半册核心内容", "unit_orders": [1, 2, 3, 4]},
+        {"order": 2, "name": "阶段验收", "goal": "复习巩固并完成阶段性测验", "unit_orders": [5, 6]},
     ]
+    generic = [
+        (f"确认教材 · {title}", "熟悉目录与学习节奏", "读目录并标出本周单元", 2),
+        (f"{s} · 第一单元预习精读", "建立本单元知识地图", "通读课文/例题并划重点", 2),
+        (f"{s} · 第二单元巩固练习", "掌握本单元重点", "完成一次小测或默写", 2),
+        (f"{s} · 第三单元应用", "迁移到练习与表达", "完成配套练习并订正", 2),
+        ("阶段复习 · 查漏补缺", "巩固前几单元薄弱点", "整理错题本", 1),
+        ("综合测验 · 阶段性验收", "检验阶段掌握度", "完成单元测并记录错题", 1),
+    ]
+    units = []
+    for i, (name, focus, hint, days) in enumerate(generic):
+        units.append(
+            u(
+                i + 1,
+                module_order=1 if i < 4 else 2,
+                module_name="基础推进" if i < 4 else "阶段验收",
+                code=f"U{i + 1}",
+                name=name,
+                focus=focus,
+                hint=hint,
+                days=days,
+                steps=_default_steps_for_subject(s, name, focus, hint),
+            )
+        )
+    return modules, units
+
+
+def _fallback_plan(textbook_name: str, catalog: dict[str, Any]) -> dict[str, Any]:
+    subj = str(catalog.get("subject") or "课本")
+    title = str(catalog.get("full_title") or textbook_name.strip() or "未命名课本")
+    modules, units = _fallback_units_for_subject(subj, title)
+    # 若模型未带 steps，补默认
+    for item in units:
+        if not item.get("steps"):
+            item["steps"] = _default_steps_for_subject(
+                subj, item["unit_name"], item.get("focus") or "", item.get("dictation_hint") or ""
+            )
+    schedule = _build_schedule_from_units(units, start_offset_days=0)
+    return {
+        "version": 2,
+        "modules": modules,
+        "units": units,
+        "schedule": schedule,
+        "subject_tips": _subject_tips(subj),
+    }
+
+
+def _subject_tips(subject: str) -> dict[str, Any]:
+    s = (subject or "").strip()
+    if "英语" in s:
+        return {
+            "subject": s or "英语",
+            "rhythm": "听读 → 家默 → 复习 → 小测，隔日复现错词",
+            "primary_kinds": ["dictation", "review", "exam"],
+            "follow_labels": {"dictation": "家默听写", "review": "听说复习", "exam": "单元测"},
+        }
+    if "语文" in s:
+        return {
+            "subject": s or "语文",
+            "rhythm": "朗读背诵 → 字词 → 阅读理解 → 练笔，周末复盘",
+            "primary_kinds": ["review", "dictation", "exam"],
+            "follow_labels": {"dictation": "听写字词", "review": "朗读/背诵", "exam": "阅读与作文测"},
+        }
+    if "数学" in s:
+        return {
+            "subject": s or "数学",
+            "rhythm": "概念例题 → 巩固练 → 错题订正 → 限时小测",
+            "primary_kinds": ["review", "exam"],
+            "follow_labels": {"dictation": "公式默写", "review": "练习订正", "exam": "限时测"},
+        }
+    return {
+        "subject": s or "课本",
+        "rhythm": "预习 → 精学 → 练习 → 复盘 → 测验",
+        "primary_kinds": ["review", "dictation", "exam"],
+        "follow_labels": {"dictation": "默写/记忆", "review": "复习巩固", "exam": "测验验收"},
+    }
+
+
+def _default_steps_for_subject(subject: str, unit_name: str, focus: str, hint: str) -> list[dict[str, Any]]:
+    s = subject or ""
+    tips = _subject_tips(s)
+    labels = tips.get("follow_labels") or {}
+    base = [
+        {
+            "id": "prep",
+            "title": f"预习：{unit_name[:40]}",
+            "kind": "review",
+            "detail": focus or hint or "通读本单元内容并标出不懂处",
+            "status": "pending",
+        },
+        {
+            "id": "core",
+            "title": str(labels.get("dictation") or labels.get("review") or "核心练习"),
+            "kind": "dictation" if "英语" in s or "语文" in s else "review",
+            "detail": hint or focus or "完成本单元核心练习",
+            "status": "pending",
+        },
+        {
+            "id": "check",
+            "title": str(labels.get("exam") or "小测验收"),
+            "kind": "exam",
+            "detail": "用 10~20 分钟自测或家长抽查，记下错题",
+            "status": "pending",
+        },
+    ]
+    return base
+
+
+def _build_schedule_from_units(units: list[dict[str, Any]], *, start_offset_days: int = 0) -> list[dict[str, Any]]:
+    """按单元 estimated_days 展开日历提醒（从今天起）。"""
+    from datetime import date, timedelta
+
+    today = date.today()
+    cursor = today + timedelta(days=max(0, start_offset_days))
+    schedule: list[dict[str, Any]] = []
+    for u in units:
+        if not isinstance(u, dict):
+            continue
+        days = int(u.get("estimated_days") or 2)
+        steps = u.get("steps") if isinstance(u.get("steps"), list) else []
+        if not steps:
+            steps = [{"id": "day", "title": u.get("unit_name") or "学习", "kind": "review", "detail": u.get("focus") or ""}]
+        # 把小步骤铺到若干天上
+        for d in range(max(1, days)):
+            step = steps[min(d, len(steps) - 1)]
+            if not isinstance(step, dict):
+                continue
+            day = cursor + timedelta(days=d)
+            schedule.append(
+                {
+                    "date": day.isoformat(),
+                    "unit_order": int(u.get("order") or 0),
+                    "unit_name": str(u.get("unit_name") or ""),
+                    "module_name": str(u.get("module_name") or ""),
+                    "step_id": str(step.get("id") or f"s{d}"),
+                    "title": str(step.get("title") or u.get("unit_name") or "学习任务"),
+                    "reminder": str(step.get("detail") or u.get("focus") or "按计划完成本日小任务"),
+                    "kind": str(step.get("kind") or "review"),
+                    "done": False,
+                }
+            )
+        cursor = cursor + timedelta(days=max(1, days))
+    return schedule[:60]
+
+
+def _clean_steps(raw: Any, *, subject: str, unit_name: str, focus: str, hint: str) -> list[dict[str, Any]]:
+    if not isinstance(raw, list) or not raw:
+        return _default_steps_for_subject(subject, unit_name, focus, hint)
+    out: list[dict[str, Any]] = []
+    for i, s in enumerate(raw[:8]):
+        if not isinstance(s, dict):
+            continue
+        title = str(s.get("title") or s.get("name") or "").strip()
+        if not title:
+            continue
+        kind = str(s.get("kind") or "review").strip().lower()
+        if kind not in VALID_DRILL_KIND and kind not in {"listen", "read", "practice", "prep"}:
+            kind = "review"
+        if kind in {"listen", "read", "practice", "prep"}:
+            kind = "review"
+        out.append(
+            {
+                "id": str(s.get("id") or f"s{i + 1}")[:40],
+                "title": title[:120],
+                "kind": kind,
+                "detail": str(s.get("detail") or s.get("hint") or "").strip()[:240],
+                "status": "pending" if str(s.get("status") or "pending") not in ("done", "mastered") else "done",
+            }
+        )
+    return out or _default_steps_for_subject(subject, unit_name, focus, hint)
+
+
+def _clean_units(units_raw: Any, *, subject: str = "", modules_raw: Any = None) -> list[dict[str, Any]]:
+    if not isinstance(units_raw, list):
+        return []
+    module_by_order: dict[int, str] = {}
+    if isinstance(modules_raw, list):
+        for m in modules_raw:
+            if isinstance(m, dict):
+                try:
+                    mo = int(m.get("order") or 0)
+                except (TypeError, ValueError):
+                    mo = 0
+                if mo:
+                    module_by_order[mo] = str(m.get("name") or f"大任务{mo}")[:80]
+    cleaned: list[dict[str, Any]] = []
+    for i, u in enumerate(units_raw[:16]):
+        if not isinstance(u, dict):
+            continue
+        name = str(u.get("unit_name") or u.get("name") or "").strip()
+        if not name:
+            continue
+        try:
+            days = int(u.get("estimated_days") or 2)
+        except (TypeError, ValueError):
+            days = 2
+        try:
+            module_order = int(u.get("module_order") or ((i // 3) + 1))
+        except (TypeError, ValueError):
+            module_order = (i // 3) + 1
+        focus = str(u.get("focus") or "").strip()[:200]
+        hint = str(u.get("dictation_hint") or u.get("dictation") or "").strip()[:200]
+        st = str(u.get("status") or "pending").strip().lower()
+        if st not in VALID_UNIT_STATUS:
+            st = "pending"
+        raw_steps = u.get("steps")
+        steps = _clean_steps(raw_steps, subject=subject, unit_name=name, focus=focus, hint=hint)
+        if isinstance(raw_steps, list):
+            by_id = {
+                str(s.get("id") or ""): s
+                for s in raw_steps
+                if isinstance(s, dict) and s.get("id")
+            }
+            for step in steps:
+                prev = by_id.get(str(step.get("id") or ""))
+                if prev and str(prev.get("status") or "") in ("done", "mastered"):
+                    step["status"] = "done"
+        cleaned.append(
+            {
+                "order": i + 1,
+                "module_order": module_order,
+                "module_name": str(u.get("module_name") or module_by_order.get(module_order) or f"阶段 {module_order}")[:80],
+                "unit_code": str(u.get("unit_code") or f"U{i + 1}").strip()[:40],
+                "unit_name": name[:160],
+                "focus": focus,
+                "dictation_hint": hint,
+                "estimated_days": max(1, min(days, 14)),
+                "status": st,
+                "steps": steps,
+                "planned_start": str(u.get("planned_start") or "")[:16],
+                "planned_end": str(u.get("planned_end") or "")[:16],
+                "planned_weeks": u.get("planned_weeks"),
+                "unit_kind": str(u.get("unit_kind") or "")[:40],
+                "toc_source": str(u.get("toc_source") or "")[:40],
+            }
+        )
+    return cleaned
+
+
+def _clean_modules(raw: Any, units: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    if isinstance(raw, list) and raw:
+        out: list[dict[str, Any]] = []
+        for i, m in enumerate(raw[:8]):
+            if not isinstance(m, dict):
+                continue
+            name = str(m.get("name") or m.get("title") or "").strip()
+            if not name:
+                continue
+            try:
+                order = int(m.get("order") or i + 1)
+            except (TypeError, ValueError):
+                order = i + 1
+            uos = m.get("unit_orders")
+            if not isinstance(uos, list):
+                uos = [u["order"] for u in units if int(u.get("module_order") or 0) == order]
+            out.append(
+                {
+                    "order": order,
+                    "name": name[:80],
+                    "goal": str(m.get("goal") or m.get("focus") or "").strip()[:200],
+                    "unit_orders": [int(x) for x in uos if str(x).isdigit() or isinstance(x, int)][:12],
+                }
+            )
+        if out:
+            return out
+    # 由 units 聚合
+    buckets: dict[int, dict[str, Any]] = {}
+    for u in units:
+        mo = int(u.get("module_order") or 1)
+        b = buckets.setdefault(
+            mo,
+            {"order": mo, "name": str(u.get("module_name") or f"阶段 {mo}"), "goal": "", "unit_orders": []},
+        )
+        b["unit_orders"].append(int(u.get("order") or 0))
+        if not b["goal"] and u.get("focus"):
+            b["goal"] = str(u.get("focus"))[:200]
+    return [buckets[k] for k in sorted(buckets.keys())]
+
+
+def normalize_plan_payload(raw: Any, *, catalog: dict[str, Any] | None = None) -> dict[str, Any]:
+    """兼容旧版 list plan → v2 {modules,units,schedule,subject_tips,progress_meta}。"""
+    cat = catalog if isinstance(catalog, dict) else {}
+    subject = str(cat.get("subject") or "")
+    if isinstance(raw, dict) and int(raw.get("version") or 0) >= 2:
+        units = _clean_units(raw.get("units"), subject=subject, modules_raw=raw.get("modules"))
+        if not units and isinstance(raw.get("plan"), list):
+            units = _clean_units(raw.get("plan"), subject=subject, modules_raw=raw.get("modules"))
+        modules = _clean_modules(raw.get("modules"), units)
+        schedule = raw.get("schedule") if isinstance(raw.get("schedule"), list) else []
+        if not schedule:
+            if any(u.get("planned_start") for u in units):
+                schedule = toc_lib.build_schedule_from_planned(units)
+            else:
+                schedule = _build_schedule_from_units(units)
+        tips = raw.get("subject_tips") if isinstance(raw.get("subject_tips"), dict) else _subject_tips(subject)
+        meta = raw.get("progress_meta") if isinstance(raw.get("progress_meta"), dict) else {}
+        return {
+            "version": 2,
+            "modules": modules,
+            "units": units,
+            "schedule": schedule,
+            "subject_tips": tips,
+            "progress_meta": meta,
+            "toc_book_id": str(raw.get("toc_book_id") or cat.get("toc_book_id") or ""),
+            "toc_source": str(raw.get("toc_source") or cat.get("toc_source") or ""),
+        }
+    if isinstance(raw, list):
+        legacy = []
+        for i, u in enumerate(raw):
+            if isinstance(u, dict):
+                item = dict(u)
+                item.setdefault("order", i + 1)
+                legacy.append(item)
+        units = _clean_units(legacy, subject=subject)
+        for i, u in enumerate(units):
+            if i < len(legacy) and legacy[i].get("status"):
+                u["status"] = str(legacy[i].get("status"))
+        modules = _clean_modules(None, units)
+        return {
+            "version": 2,
+            "modules": modules,
+            "units": units,
+            "schedule": _build_schedule_from_units(units),
+            "subject_tips": _subject_tips(subject),
+            "progress_meta": {},
+            "toc_book_id": "",
+            "toc_source": "legacy",
+        }
+    return _fallback_plan(str(cat.get("full_title") or "课本"), cat)
 
 
 def _clean_catalog(raw: Any, fallback: dict[str, Any]) -> dict[str, Any]:
@@ -132,34 +769,6 @@ def _clean_catalog(raw: Any, fallback: dict[str, Any]) -> dict[str, Any]:
     return out
 
 
-def _clean_units(units_raw: Any) -> list[dict[str, Any]]:
-    if not isinstance(units_raw, list):
-        return []
-    cleaned: list[dict[str, Any]] = []
-    for i, u in enumerate(units_raw[:16]):
-        if not isinstance(u, dict):
-            continue
-        name = str(u.get("unit_name") or u.get("name") or "").strip()
-        if not name:
-            continue
-        try:
-            days = int(u.get("estimated_days") or 2)
-        except (TypeError, ValueError):
-            days = 2
-        cleaned.append(
-            {
-                "order": i + 1,
-                "unit_code": str(u.get("unit_code") or f"U{i + 1}").strip()[:40],
-                "unit_name": name[:160],
-                "focus": str(u.get("focus") or "").strip()[:200],
-                "dictation_hint": str(u.get("dictation_hint") or u.get("dictation") or "").strip()[:200],
-                "estimated_days": max(1, min(days, 14)),
-                "status": "pending",
-            }
-        )
-    return cleaned
-
-
 def _candidate_from_raw(raw: Any, fallback: dict[str, Any]) -> dict[str, Any] | None:
     if not isinstance(raw, dict):
         return None
@@ -171,10 +780,16 @@ def _candidate_from_raw(raw: Any, fallback: dict[str, Any]) -> dict[str, Any] | 
 
 
 def locate_textbooks(*, query: str, role: str = "student") -> list[dict[str, Any]]:
-    """仅定位册次候选（不落库、不生成大纲）。返回 1~3 条 catalog。"""
+    """定位册次：优先目录库命中，再补 DeepSeek/规则候选。"""
     q = (query or "").strip()
     if not q:
         return []
+    out: list[dict[str, Any]] = []
+    for book, score in toc_lib.match_books(q, limit=3):
+        out.append(toc_lib.catalog_from_book(book, confidence=score))
+    if out:
+        return out
+
     hint = _heuristic_catalog(q, "", "")
     system = (
         "你是中国K12教材定位助手。用户口语描述课本，你只输出可能的具体册次候选，不要生成学习单元。"
@@ -196,7 +811,6 @@ def locate_textbooks(*, query: str, role: str = "student") -> list[dict[str, Any
         "请给出可点选确认的册次候选。"
     )
     parsed = deepseek_json_chat(system, user, temperature=0.1)
-    out: list[dict[str, Any]] = []
     if isinstance(parsed, dict):
         raw_list = parsed.get("candidates")
         if not isinstance(raw_list, list) and isinstance(parsed.get("catalog"), dict):
@@ -205,11 +819,20 @@ def locate_textbooks(*, query: str, role: str = "student") -> list[dict[str, Any
             for raw in raw_list[:3]:
                 item = _candidate_from_raw(raw, hint)
                 if item:
-                    out.append(item)
+                    # 二次尝试用 full_title 撞目录库
+                    lib_hits = toc_lib.match_books(str(item.get("full_title") or q), limit=1)
+                    if lib_hits:
+                        out.append(toc_lib.catalog_from_book(lib_hits[0][0], confidence=max(0.88, lib_hits[0][1])))
+                    else:
+                        item["toc_source"] = "llm_guess"
+                        out.append(item)
     if not out:
-        # 无模型时至少给出规则定位，方便用户确认或纠错
-        out = [hint]
-    # 去重 full_title
+        lib_again = toc_lib.match_books(q, limit=1)
+        if lib_again:
+            out = [toc_lib.catalog_from_book(lib_again[0][0], confidence=lib_again[0][1])]
+        else:
+            hint["toc_source"] = "heuristic"
+            out = [hint]
     seen: set[str] = set()
     uniq: list[dict[str, Any]] = []
     for c in out:
@@ -221,47 +844,101 @@ def locate_textbooks(*, query: str, role: str = "student") -> list[dict[str, Any
     return uniq
 
 
+def _enrich_unit_steps_with_deepseek(
+    units: list[dict[str, Any]],
+    *,
+    catalog: dict[str, Any],
+    subject: str,
+) -> list[dict[str, Any]]:
+    """在真实目录单元上补 focus/steps。默认用科目模板（可靠、离线）；可选 DeepSeek 润色。"""
+    tips = _subject_tips(subject)
+    _ = tips
+    for u in units:
+        if not u.get("focus"):
+            kind = str(u.get("unit_kind") or "")
+            name = u["unit_name"]
+            if "习作" in kind or "习作" in name:
+                u["focus"] = "把事情写清楚，注意标点与字数"
+            elif "古诗" in name:
+                u["focus"] = "读准背熟，理解大意"
+            elif "测验" in kind or "阶段测" in name:
+                u["focus"] = "限时验收，整理错题"
+            elif subject == "英语":
+                u["focus"] = "听读跟说，核心词句过关"
+            elif subject == "数学":
+                u["focus"] = "例题跟做 → 巩固练 → 错题订正"
+            else:
+                u["focus"] = "通读本课，掌握生字词与主要内容"
+        if not u.get("steps"):
+            u["steps"] = _default_steps_for_subject(
+                subject, u["unit_name"], u.get("focus") or "", u.get("dictation_hint") or ""
+            )
+    # 不在热路径调用 DeepSeek：目录权威性靠 library；步骤用科目模板即可。
+    return units
+
+
+def plan_from_toc_book(book: dict[str, Any], catalog: dict[str, Any]) -> dict[str, Any]:
+    """目录库册次 → 带学期预测日期的完整计划。"""
+    subject = str(book.get("subject") or catalog.get("subject") or "")
+    modules, units = toc_lib.flatten_toc_units(book)
+    units = _enrich_unit_steps_with_deepseek(units, catalog=catalog, subject=subject)
+    units = toc_lib.assign_planned_dates(units, semester=str(book.get("semester") or catalog.get("semester") or "上册"))
+    schedule = toc_lib.build_schedule_from_planned(units)
+    term_start, term_end = toc_lib.semester_window(semester=str(book.get("semester") or "上册"))
+    pace = toc_lib.compute_pace(units, current_unit_order=1)
+    return {
+        "version": 2,
+        "modules": modules,
+        "units": units,
+        "schedule": schedule,
+        "subject_tips": _subject_tips(subject),
+        "toc_book_id": book.get("id") or "",
+        "toc_source": "library",
+        "progress_meta": {
+            "current_unit_order": 1,
+            "term_start": term_start.isoformat(),
+            "term_end": term_end.isoformat(),
+            "edition_label": book.get("edition_label") or "",
+            "pace": pace,
+            "adjusted": False,
+        },
+    }
+
+
 def generate_units_for_catalog(
     *,
     catalog: dict[str, Any],
     query: str = "",
     role: str = "student",
-) -> tuple[list[dict[str, Any]], str, dict[str, Any]]:
-    """用户已确认册次后，按该册目录生成 Module/Unit 级规划。"""
+) -> tuple[dict[str, Any], str, dict[str, Any]]:
+    """确认册次后生成计划：优先真实目录库；无库命中才走启发式/DeepSeek 大纲。"""
     cleaned = _clean_catalog(catalog, _heuristic_catalog(str(catalog.get("full_title") or query or ""), "", ""))
     title = str(cleaned.get("full_title") or query or "未命名课本").strip()
-    system = (
-        "你是中国K12教材目录专家。用户已确认具体课本册次，请按该册真实目录输出学习单元。"
-        "规则："
-        "1) units 必须对齐 Module/Unit/课文级目录名，禁止「第一单元预习」空泛标题；"
-        "2) 每个 unit 给 focus 与 dictation_hint（家默听写要点）；"
-        "3) 本册覆盖尽量完整，6~12 个单元；不要抄袭教材全文；"
-        "4) 可微调 catalog 字段，但不要改成另一册书。"
-        "只返回 JSON：{\"catalog\":{...},\"units\":[{\"order\":1,\"unit_code\":\"Module1-U1\","
-        "\"unit_name\":\"具体目录名\",\"focus\":\"\",\"dictation_hint\":\"\",\"estimated_days\":1}]}"
-    )
-    user = (
-        f"已确认教材：{cleaned}\n"
-        f"用户原话：{query or title}\n"
-        f"发起角色：{role}\n"
-        "请输出该册目录级学习规划。"
-    )
-    parsed = deepseek_json_chat(system, user, temperature=0.2)
-    if not isinstance(parsed, dict):
-        return _fallback_plan(title, cleaned), "fallback", cleaned
-    final_catalog = _clean_catalog(parsed.get("catalog"), cleaned)
-    # 防止模型漂到别的书
-    if cleaned.get("full_title") and not final_catalog.get("full_title"):
-        final_catalog["full_title"] = cleaned["full_title"]
-    units = _clean_units(parsed.get("units"))
-    generic_hits = sum(
-        1
-        for u in units
-        if any(x in u["unit_name"] for x in ("预习与精读", "练习巩固", "重点回顾", "熟悉目录", "Module/Unit 1 预习"))
-    )
-    if len(units) < 4 or generic_hits >= max(2, len(units) // 2):
-        return _fallback_plan(title, final_catalog), "fallback", final_catalog
-    return units, "deepseek", final_catalog
+    book_id = str(cleaned.get("toc_book_id") or "") or toc_lib.guess_book_id_from_catalog(cleaned)
+    if not book_id:
+        hits = toc_lib.match_books(title or query, limit=1)
+        if hits:
+            book_id = str(hits[0][0].get("id") or "")
+    book = toc_lib.get_book(book_id) if book_id else None
+    if book:
+        final_catalog = {**toc_lib.catalog_from_book(book), **{k: v for k, v in cleaned.items() if v}}
+        final_catalog["toc_book_id"] = book["id"]
+        final_catalog["toc_source"] = "library"
+        final_catalog["full_title"] = book.get("full_title") or final_catalog.get("full_title")
+        plan = plan_from_toc_book(book, final_catalog)
+        return plan, "toc_library", final_catalog
+
+    # 无目录库：明确标记不可靠，使用科目模板（仍可跟踪，但 unit 名非权威）
+    plan = _fallback_plan(title, cleaned)
+    plan["toc_source"] = "fallback_no_library"
+    plan["progress_meta"] = {
+        "current_unit_order": 1,
+        "pace": {},
+        "adjusted": False,
+        "warning": "目录库暂无该册，单元名为模板；可换「语文/数学/英语三上」等已入库册次",
+    }
+    cleaned["toc_source"] = "fallback_no_library"
+    return plan, "fallback", cleaned
 
 
 def generate_study_plan(
@@ -271,7 +948,7 @@ def generate_study_plan(
     grade: str = "",
     role: str = "student",
     catalog: dict[str, Any] | None = None,
-) -> tuple[list[dict[str, Any]], str, dict[str, Any]]:
+) -> tuple[dict[str, Any], str, dict[str, Any]]:
     """兼容旧接口：有确认 catalog 则只生成大纲，否则 locate 取首条再生成。"""
     if isinstance(catalog, dict) and str(catalog.get("full_title") or "").strip():
         return generate_units_for_catalog(catalog=catalog, query=textbook_name, role=role)
@@ -284,23 +961,43 @@ def generate_study_plan(
     return generate_units_for_catalog(catalog=picked, query=textbook_name, role=role)
 
 
-def _progress_pct(plan: list[Any]) -> int:
-    if not plan:
+def _units_from_plan(plan: Any) -> list[dict[str, Any]]:
+    payload = normalize_plan_payload(plan)
+    return [u for u in payload.get("units") or [] if isinstance(u, dict)]
+
+
+def _progress_pct(plan: Any) -> int:
+    units = _units_from_plan(plan)
+    if not units:
         return 0
-    weight = {"pending": 0, "learning": 40, "review": 70, "mastered": 100}
+    weight = {"pending": 0, "learning": 40, "review": 70, "mastered": 100, "done": 100}
     total = 0
-    for u in plan:
-        if isinstance(u, dict):
-            total += weight.get(str(u.get("status") or "pending"), 0)
-    return min(100, round(total / (len(plan) * 100) * 100))
+    step_done = 0
+    step_all = 0
+    for u in units:
+        total += weight.get(str(u.get("status") or "pending"), 0)
+        for s in u.get("steps") or []:
+            if not isinstance(s, dict):
+                continue
+            step_all += 1
+            if str(s.get("status") or "") in ("done", "mastered"):
+                step_done += 1
+    unit_pct = total / (len(units) * 100) * 100
+    step_pct = (step_done / step_all * 100) if step_all else unit_pct
+    return min(100, round(unit_pct * 0.55 + step_pct * 0.45))
 
 
 def course_to_dict(row: StudyCoachCourse) -> dict[str, Any]:
     name = ""
     if row.reporter is not None:
         name = row.reporter.display_name or row.reporter.email or ""
-    plan = row.plan_json if isinstance(row.plan_json, list) else []
     catalog = row.catalog_json if isinstance(row.catalog_json, dict) else {}
+    payload = normalize_plan_payload(row.plan_json, catalog=catalog)
+    units = payload.get("units") or []
+    meta = dict(payload.get("progress_meta") or {})
+    current = int(meta.get("current_unit_order") or 0) or None
+    pace = toc_lib.compute_pace(units, current_unit_order=current)
+    meta["pace"] = pace
     return {
         "id": row.id,
         "record_no": row.record_no,
@@ -311,7 +1008,15 @@ def course_to_dict(row: StudyCoachCourse) -> dict[str, Any]:
         "role": row.role,
         "student_name": row.student_name,
         "catalog": catalog,
-        "plan": plan,
+        "plan": units,
+        "modules": payload.get("modules") or [],
+        "schedule": payload.get("schedule") or [],
+        "subject_tips": payload.get("subject_tips") or _subject_tips(str(catalog.get("subject") or row.subject or "")),
+        "progress_meta": meta,
+        "unit_progress": pace,
+        "toc_book_id": payload.get("toc_book_id") or catalog.get("toc_book_id") or "",
+        "toc_source": payload.get("toc_source") or catalog.get("toc_source") or row.plan_source or "",
+        "plan_version": int(payload.get("version") or 2),
         "plan_source": row.plan_source,
         "progress_pct": row.progress_pct,
         "status": row.status,
@@ -427,7 +1132,9 @@ def create_course(
             title="课本学习 · 已定位并生成规划",
             content=(
                 f"{row.record_no} · {row.textbook_name}\n"
-                f"定位置信度 {catalog.get('confidence', '')} · {len(plan)} 个单元 · {source}\n"
+                f"定位置信度 {catalog.get('confidence', '')} · "
+                f"{len(plan.get('units') or [])} 个单元 · "
+                f"{len(plan.get('modules') or [])} 个大任务 · {source}\n"
                 f"{(catalog.get('note') or '')[:120]}"
             ),
             app_public_id=row.app_public_id,
@@ -437,6 +1144,16 @@ def create_course(
     except Exception:
         pass
     return course_to_dict(row)
+
+
+def _load_plan_payload(row: StudyCoachCourse) -> dict[str, Any]:
+    catalog = row.catalog_json if isinstance(row.catalog_json, dict) else {}
+    return normalize_plan_payload(row.plan_json, catalog=catalog)
+
+
+def _save_plan_payload(row: StudyCoachCourse, payload: dict[str, Any]) -> None:
+    row.plan_json = payload
+    row.progress_pct = _progress_pct(payload)
 
 
 def update_unit_progress(
@@ -458,25 +1175,310 @@ def update_unit_progress(
     st = (status or "").strip().lower()
     if st not in VALID_UNIT_STATUS:
         st = "learning"
-    plan = list(row.plan_json) if isinstance(row.plan_json, list) else []
+    payload = _load_plan_payload(row)
+    units = list(payload.get("units") or [])
     found = False
-    new_plan: list[Any] = []
-    for u in plan:
+    new_units: list[Any] = []
+    for u in units:
         if not isinstance(u, dict):
-            new_plan.append(u)
+            new_units.append(u)
             continue
         item = dict(u)
         if int(item.get("order") or 0) == int(order):
             item["status"] = st
+            if st == "mastered":
+                steps = []
+                for s in item.get("steps") or []:
+                    if isinstance(s, dict):
+                        steps.append({**s, "status": "done"})
+                    else:
+                        steps.append(s)
+                item["steps"] = steps
             found = True
-        new_plan.append(item)
+        new_units.append(item)
     if not found:
         return None
-    row.plan_json = new_plan
-    row.progress_pct = _progress_pct(new_plan)
+    payload["units"] = new_units
+    # 同步 schedule done 标记（该单元全部 mastered 时）
+    if st == "mastered":
+        sched = []
+        for s in payload.get("schedule") or []:
+            if isinstance(s, dict) and int(s.get("unit_order") or 0) == int(order):
+                sched.append({**s, "done": True})
+            else:
+                sched.append(s)
+        payload["schedule"] = sched
+    _save_plan_payload(row, payload)
     db.commit()
     db.refresh(row)
     return course_to_dict(row)
+
+
+def complete_step(
+    db: Session,
+    tenant_id: str,
+    course_id: str,
+    *,
+    unit_order: int,
+    step_id: str,
+    done: bool = True,
+) -> dict[str, Any] | None:
+    row = (
+        db.query(StudyCoachCourse)
+        .options(joinedload(StudyCoachCourse.reporter))
+        .filter(StudyCoachCourse.tenant_id == tenant_id, StudyCoachCourse.id == course_id)
+        .first()
+    )
+    if not row:
+        return None
+    payload = _load_plan_payload(row)
+    sid = (step_id or "").strip()
+    new_units: list[Any] = []
+    found = False
+    for u in payload.get("units") or []:
+        if not isinstance(u, dict):
+            new_units.append(u)
+            continue
+        item = dict(u)
+        if int(item.get("order") or 0) != int(unit_order):
+            new_units.append(item)
+            continue
+        steps = []
+        for s in item.get("steps") or []:
+            if not isinstance(s, dict):
+                steps.append(s)
+                continue
+            step = dict(s)
+            if str(step.get("id") or "") == sid:
+                step["status"] = "done" if done else "pending"
+                found = True
+            steps.append(step)
+        item["steps"] = steps
+        # 小步骤全完成 → 单元进入 review；有进行中 → learning
+        done_n = sum(1 for s in steps if isinstance(s, dict) and s.get("status") == "done")
+        if done_n and done_n >= len([s for s in steps if isinstance(s, dict)]):
+            if str(item.get("status") or "") != "mastered":
+                item["status"] = "review"
+        elif done_n > 0 and str(item.get("status") or "pending") == "pending":
+            item["status"] = "learning"
+        new_units.append(item)
+    if not found:
+        return None
+    payload["units"] = new_units
+    sched = []
+    for s in payload.get("schedule") or []:
+        if not isinstance(s, dict):
+            sched.append(s)
+            continue
+        item = dict(s)
+        if int(item.get("unit_order") or 0) == int(unit_order) and str(item.get("step_id") or "") == sid:
+            item["done"] = bool(done)
+        sched.append(item)
+    payload["schedule"] = sched
+    _save_plan_payload(row, payload)
+    db.commit()
+    db.refresh(row)
+    return course_to_dict(row)
+
+
+def complete_schedule_item(
+    db: Session,
+    tenant_id: str,
+    course_id: str,
+    *,
+    date: str,
+    unit_order: int,
+    step_id: str,
+    done: bool = True,
+) -> dict[str, Any] | None:
+    """标记日历提醒完成，并同步对应小步骤。"""
+    course = complete_step(
+        db, tenant_id, course_id, unit_order=unit_order, step_id=step_id, done=done
+    )
+    if course is None:
+        # 步骤可能不存在，仅改 schedule
+        row = (
+            db.query(StudyCoachCourse)
+            .options(joinedload(StudyCoachCourse.reporter))
+            .filter(StudyCoachCourse.tenant_id == tenant_id, StudyCoachCourse.id == course_id)
+            .first()
+        )
+        if not row:
+            return None
+        payload = _load_plan_payload(row)
+        sched = []
+        found = False
+        for s in payload.get("schedule") or []:
+            if not isinstance(s, dict):
+                sched.append(s)
+                continue
+            item = dict(s)
+            if (
+                str(item.get("date") or "") == str(date)
+                and int(item.get("unit_order") or 0) == int(unit_order)
+                and str(item.get("step_id") or "") == str(step_id)
+            ):
+                item["done"] = bool(done)
+                found = True
+            sched.append(item)
+        if not found:
+            return None
+        payload["schedule"] = sched
+        _save_plan_payload(row, payload)
+        db.commit()
+        db.refresh(row)
+        return course_to_dict(row)
+    return course
+
+
+def rebuild_schedule(
+    db: Session,
+    tenant_id: str,
+    course_id: str,
+    *,
+    start_offset_days: int = 0,
+) -> dict[str, Any] | None:
+    from datetime import date as date_cls, timedelta
+
+    row = (
+        db.query(StudyCoachCourse)
+        .options(joinedload(StudyCoachCourse.reporter))
+        .filter(StudyCoachCourse.tenant_id == tenant_id, StudyCoachCourse.id == course_id)
+        .first()
+    )
+    if not row:
+        return None
+    payload = _load_plan_payload(row)
+    catalog = row.catalog_json if isinstance(row.catalog_json, dict) else {}
+    units = [u for u in (payload.get("units") or []) if isinstance(u, dict)]
+    meta = dict(payload.get("progress_meta") or {})
+    current = int(meta.get("current_unit_order") or 1)
+    # 已完成单元保留；未完成从今天起重铺预测日期
+    done_keys = {
+        (int(s.get("unit_order") or 0), str(s.get("step_id") or ""))
+        for s in (payload.get("schedule") or [])
+        if isinstance(s, dict) and s.get("done")
+    }
+    start = date_cls.today() + timedelta(days=max(0, start_offset_days))
+    ahead = [u for u in units if int(u.get("order") or 0) < current]
+    rest = [u for u in units if int(u.get("order") or 0) >= current]
+    rest = toc_lib.assign_planned_dates(
+        rest,
+        semester=str(catalog.get("semester") or "上册"),
+        start_from=start,
+    )
+    # 合并：ahead 不动日期
+    by_order = {int(u.get("order") or 0): u for u in ahead}
+    for u in rest:
+        by_order[int(u.get("order") or 0)] = u
+    new_units = [by_order[k] for k in sorted(by_order.keys())]
+    payload["units"] = new_units
+    schedule = toc_lib.build_schedule_from_planned(new_units)
+    for s in schedule:
+        key = (int(s.get("unit_order") or 0), str(s.get("step_id") or ""))
+        if key in done_keys:
+            s["done"] = True
+    payload["schedule"] = schedule
+    meta["pace"] = toc_lib.compute_pace(new_units, current_unit_order=current)
+    payload["progress_meta"] = meta
+    _save_plan_payload(row, payload)
+    db.commit()
+    db.refresh(row)
+    return course_to_dict(row)
+
+
+def set_current_unit(
+    db: Session,
+    tenant_id: str,
+    course_id: str,
+    *,
+    unit_order: int,
+    mark_previous_mastered: bool = True,
+    rebuild: bool = True,
+) -> dict[str, Any] | None:
+    """用户校正：老师/孩子实际讲到哪一课 → 对齐单元进度并重排后续日历。"""
+    row = (
+        db.query(StudyCoachCourse)
+        .options(joinedload(StudyCoachCourse.reporter))
+        .filter(StudyCoachCourse.tenant_id == tenant_id, StudyCoachCourse.id == course_id)
+        .first()
+    )
+    if not row:
+        return None
+    payload = _load_plan_payload(row)
+    units = [dict(u) for u in (payload.get("units") or []) if isinstance(u, dict)]
+    if not units:
+        return None
+    order = int(unit_order)
+    if order < 1 or order > len(units):
+        return None
+    new_units: list[dict[str, Any]] = []
+    for u in units:
+        item = dict(u)
+        o = int(item.get("order") or 0)
+        if o < order and mark_previous_mastered:
+            item["status"] = "mastered"
+            steps = []
+            for s in item.get("steps") or []:
+                if isinstance(s, dict):
+                    steps.append({**s, "status": "done"})
+                else:
+                    steps.append(s)
+            item["steps"] = steps
+        elif o == order:
+            if str(item.get("status") or "") == "pending":
+                item["status"] = "learning"
+        new_units.append(item)
+    payload["units"] = new_units
+    meta = dict(payload.get("progress_meta") or {})
+    meta["current_unit_order"] = order
+    meta["adjusted"] = True
+    meta["adjusted_at"] = datetime.now(timezone.utc).isoformat()
+    meta["pace"] = toc_lib.compute_pace(new_units, current_unit_order=order)
+    payload["progress_meta"] = meta
+    _save_plan_payload(row, payload)
+    db.commit()
+    if rebuild:
+        return rebuild_schedule(db, tenant_id, course_id, start_offset_days=0)
+    db.refresh(row)
+    return course_to_dict(row)
+
+
+def today_tasks(course: dict[str, Any], *, on_date: str | None = None) -> list[dict[str, Any]]:
+    from datetime import date as date_cls
+
+    day = on_date or date_cls.today().isoformat()
+    out = []
+    for s in course.get("schedule") or []:
+        if isinstance(s, dict) and str(s.get("date") or "") == day:
+            out.append(s)
+    if out:
+        return out
+    # 无当日日程：推送第一个未完成小步骤
+    for u in course.get("plan") or []:
+        if not isinstance(u, dict):
+            continue
+        if str(u.get("status") or "") == "mastered":
+            continue
+        for step in u.get("steps") or []:
+            if not isinstance(step, dict):
+                continue
+            if str(step.get("status") or "") == "done":
+                continue
+            return [
+                {
+                    "date": day,
+                    "unit_order": int(u.get("order") or 0),
+                    "unit_name": str(u.get("unit_name") or ""),
+                    "module_name": str(u.get("module_name") or ""),
+                    "step_id": str(step.get("id") or ""),
+                    "title": str(step.get("title") or ""),
+                    "reminder": str(step.get("detail") or u.get("focus") or ""),
+                    "kind": str(step.get("kind") or "review"),
+                    "done": False,
+                }
+            ]
+    return []
 
 
 def list_drills(
@@ -536,11 +1538,11 @@ def create_drill(
         notes=(notes or "").strip(),
         status="done",
     )
-    plan = list(course.plan_json) if isinstance(course.plan_json, list) else []
-    new_plan: list[Any] = []
-    for u in plan:
+    payload = _load_plan_payload(course)
+    new_units: list[Any] = []
+    for u in payload.get("units") or []:
         if not isinstance(u, dict):
-            new_plan.append(u)
+            new_units.append(u)
             continue
         item = dict(u)
         if item.get("unit_name") == row.unit_name:
@@ -550,9 +1552,9 @@ def create_drill(
                 cur = str(item.get("status") or "pending")
                 if cur != "mastered":
                     item["status"] = "review"
-        new_plan.append(item)
-    course.plan_json = new_plan
-    course.progress_pct = _progress_pct(new_plan)
+        new_units.append(item)
+    payload["units"] = new_units
+    _save_plan_payload(course, payload)
     db.add(row)
     db.commit()
     db.refresh(row)

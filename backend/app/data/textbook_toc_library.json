@@ -1,0 +1,197 @@
+{
+  "version": 1,
+  "note": "仅目录级（课名/Unit），无课文正文。用于无 PDF 时的可靠单元进度。edition 以公开教辅/课本目录页交叉核对；用户可校正当前课序。",
+  "books": [
+    {
+      "id": "cn_tongbian_yuwen_3a_classic",
+      "aliases": ["部编语文三上", "统编语文三上", "人教语文三年级上", "部编版小学语文三年级上册", "语文三年级上"],
+      "publisher": "部编版/统编",
+      "series": "义务教育教科书",
+      "subject": "语文",
+      "school_system": "",
+      "stage": "小学",
+      "grade": "三年级",
+      "semester": "上册",
+      "full_title": "统编版 小学 三年级 上册 语文",
+      "edition_label": "经典统编目录（公开教辅交叉核对）",
+      "modules": [
+        {
+          "order": 1,
+          "name": "第一单元",
+          "goal": "校园生活与开学适应，会认会写本单元生字",
+          "units": [
+            {"code": "1", "name": "第1课 · 大青树下的小学", "kind": "课文", "weeks": 1},
+            {"code": "2", "name": "第2课 · 花的学校", "kind": "课文", "weeks": 1},
+            {"code": "3", "name": "第3课 · 不懂就要问", "kind": "课文", "weeks": 1},
+            {"code": "口语1", "name": "口语交际 · 我的暑假生活", "kind": "口语交际", "weeks": 0.5},
+            {"code": "习作1", "name": "习作 · 猜猜他是谁", "kind": "习作", "weeks": 0.5}
+          ]
+        },
+        {
+          "order": 2,
+          "name": "第二单元",
+          "goal": "秋天主题：古诗朗读与写景短文",
+          "units": [
+            {"code": "4", "name": "第4课 · 古诗三首（山行/赠刘景文/夜书所见）", "kind": "课文", "weeks": 1},
+            {"code": "5", "name": "第5课 · 铺满金色巴掌的水泥道", "kind": "课文", "weeks": 1},
+            {"code": "6", "name": "第6课 · 秋天的雨", "kind": "课文", "weeks": 1},
+            {"code": "7", "name": "第7课 · 听听，秋的声音", "kind": "课文", "weeks": 0.5},
+            {"code": "习作2", "name": "习作 · 写日记", "kind": "习作", "weeks": 0.5}
+          ]
+        },
+        {
+          "order": 3,
+          "name": "第三单元",
+          "goal": "童话想象与续写",
+          "units": [
+            {"code": "8", "name": "第8课 · 卖火柴的小女孩", "kind": "课文", "weeks": 1},
+            {"code": "9", "name": "第9课 · 那一定会很好", "kind": "课文", "weeks": 0.5},
+            {"code": "10", "name": "第10课 · 在牛肚子里旅行", "kind": "课文", "weeks": 1},
+            {"code": "11", "name": "第11课 · 一块奶酪", "kind": "课文", "weeks": 0.5},
+            {"code": "习作3", "name": "习作 · 我来编童话", "kind": "习作", "weeks": 1}
+          ]
+        },
+        {
+          "order": 4,
+          "name": "第四单元",
+          "goal": "预测与续写故事",
+          "units": [
+            {"code": "12", "name": "第12课 · 总也倒不了的老屋", "kind": "课文", "weeks": 1},
+            {"code": "13", "name": "第13课 · 胡萝卜先生的长胡子", "kind": "课文", "weeks": 0.5},
+            {"code": "14", "name": "第14课 · 小狗学叫", "kind": "课文", "weeks": 0.5},
+            {"code": "习作4", "name": "习作 · 续写故事", "kind": "习作", "weeks": 1}
+          ]
+        },
+        {
+          "order": 5,
+          "name": "第五～六单元",
+          "goal": "观察写景与祖国风光",
+          "units": [
+            {"code": "15", "name": "第15课 · 搭船的鸟", "kind": "课文", "weeks": 1},
+            {"code": "16", "name": "第16课 · 金色的草地", "kind": "课文", "weeks": 1},
+            {"code": "17", "name": "第17课 · 古诗三首（望天门山等）", "kind": "课文", "weeks": 1},
+            {"code": "18", "name": "第18课 · 富饶的西沙群岛", "kind": "课文", "weeks": 1},
+            {"code": "19", "name": "第19课 · 海滨小城", "kind": "课文", "weeks": 0.5},
+            {"code": "20", "name": "第20课 · 美丽的小兴安岭", "kind": "课文", "weeks": 1}
+          ]
+        },
+        {
+          "order": 6,
+          "name": "第七～八单元",
+          "goal": "自然观察与人物故事，阶段验收",
+          "units": [
+            {"code": "21", "name": "第21课 · 大自然的声音", "kind": "课文", "weeks": 1},
+            {"code": "22", "name": "第22课 · 读不完的大书", "kind": "课文", "weeks": 0.5},
+            {"code": "23", "name": "第23课 · 父亲、树林和鸟", "kind": "课文", "weeks": 0.5},
+            {"code": "24", "name": "第24课 · 司马光", "kind": "课文", "weeks": 1},
+            {"code": "25", "name": "第25课 · 掌声", "kind": "课文", "weeks": 0.5},
+            {"code": "26", "name": "第26课 · 灰雀", "kind": "课文", "weeks": 0.5},
+            {"code": "阶段测", "name": "语文阶段测 · 字词+阅读", "kind": "测验", "weeks": 1}
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cn_renjiao_shuxue_3a_classic",
+      "aliases": ["人教数学三上", "人教版数学三年级上", "数学三年级上册", "小学数学三上"],
+      "publisher": "人教版",
+      "series": "义务教育教科书",
+      "subject": "数学",
+      "school_system": "",
+      "stage": "小学",
+      "grade": "三年级",
+      "semester": "上册",
+      "full_title": "人教版 小学 三年级 上册 数学",
+      "edition_label": "人教经典单元目录（公开课本目录页核对）",
+      "modules": [
+        {
+          "order": 1,
+          "name": "数与计算（一）",
+          "goal": "时间与万以内加减",
+          "units": [
+            {"code": "1", "name": "第一单元 · 时、分、秒", "kind": "单元", "weeks": 2},
+            {"code": "2", "name": "第二单元 · 万以内的加法和减法（一）", "kind": "单元", "weeks": 3},
+            {"code": "3", "name": "第三单元 · 测量", "kind": "单元", "weeks": 2}
+          ]
+        },
+        {
+          "order": 2,
+          "name": "数与计算（二）",
+          "goal": "万以内加减进退位与倍",
+          "units": [
+            {"code": "4", "name": "第四单元 · 万以内的加法和减法（二）", "kind": "单元", "weeks": 3},
+            {"code": "5", "name": "第五单元 · 倍的认识", "kind": "单元", "weeks": 2},
+            {"code": "6", "name": "第六单元 · 多位数乘一位数", "kind": "单元", "weeks": 3}
+          ]
+        },
+        {
+          "order": 3,
+          "name": "图形与分数",
+          "goal": "周长与分数初步认识",
+          "units": [
+            {"code": "7", "name": "第七单元 · 长方形和正方形", "kind": "单元", "weeks": 2},
+            {"code": "8", "name": "第八单元 · 分数的初步认识", "kind": "单元", "weeks": 2},
+            {"code": "9", "name": "第九单元 · 数学广角（集合）", "kind": "单元", "weeks": 1},
+            {"code": "总复", "name": "总复习与阶段测", "kind": "测验", "weeks": 1}
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cn_oxford_shanghai_en_3a_54",
+      "aliases": ["沪教英语三上", "牛津英语三上", "沪教牛津三年级上", "牛津上海版英语三年级上", "五四制英语三上"],
+      "publisher": "沪教版",
+      "series": "牛津上海版/沪教牛津",
+      "subject": "英语",
+      "school_system": "五四制",
+      "stage": "小学",
+      "grade": "三年级",
+      "semester": "上册",
+      "full_title": "沪教牛津版（五四制）小学 三年级 上册 英语",
+      "edition_label": "沪教牛津五四制公开课件目录核对",
+      "modules": [
+        {
+          "order": 1,
+          "name": "Module 1 Getting to know you",
+          "goal": "问候、姓名、年龄听说过关",
+          "units": [
+            {"code": "M1-U1", "name": "Module 1 Unit 1 · How are you?", "kind": "Unit", "weeks": 1.5},
+            {"code": "M1-U2", "name": "Module 1 Unit 2 · What's your name?", "kind": "Unit", "weeks": 1.5},
+            {"code": "M1-U3", "name": "Module 1 Unit 3 · How old are you?", "kind": "Unit", "weeks": 1.5}
+          ]
+        },
+        {
+          "order": 2,
+          "name": "Module 2 Me, my family and friends",
+          "goal": "朋友与家庭介绍",
+          "units": [
+            {"code": "M2-U1", "name": "Module 2 Unit 1 · My friends", "kind": "Unit", "weeks": 1.5},
+            {"code": "M2-U2", "name": "Module 2 Unit 2 · My family", "kind": "Unit", "weeks": 1.5},
+            {"code": "M2-U3", "name": "Module 2 Unit 3 · About me", "kind": "Unit", "weeks": 1.5}
+          ]
+        },
+        {
+          "order": 3,
+          "name": "Module 3 Places and activities",
+          "goal": "学校、购物、公园场景",
+          "units": [
+            {"code": "M3-U1", "name": "Module 3 Unit 1 · My school", "kind": "Unit", "weeks": 1.5},
+            {"code": "M3-U2", "name": "Module 3 Unit 2 · Shopping", "kind": "Unit", "weeks": 1.5},
+            {"code": "M3-U3", "name": "Module 3 Unit 3 · In the park", "kind": "Unit", "weeks": 1.5}
+          ]
+        },
+        {
+          "order": 4,
+          "name": "Module 4 The natural world",
+          "goal": "自然主题词汇与阶段测",
+          "units": [
+            {"code": "M4-U1", "name": "Module 4 Unit 1 · Insects", "kind": "Unit", "weeks": 1.5},
+            {"code": "M4-U2", "name": "Module 4 Unit 2 · On the farm", "kind": "Unit", "weeks": 1.5},
+            {"code": "M4-U3", "name": "Module 4 Unit 3 · Plants", "kind": "Unit", "weeks": 1.5},
+            {"code": "阶段测", "name": "英语阶段测 · 听写+口语", "kind": "测验", "weeks": 1}
+          ]
+        }
+      ]
+    }
+  ]
+}

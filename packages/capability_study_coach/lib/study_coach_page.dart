@@ -20,6 +20,8 @@ class _StudyCoachPageState extends State<StudyCoachPage> {
   String _lastQuery = '';
   List<Map<String, dynamic>> _candidates = [];
   bool _showAsk = true;
+  String _hubTab = 'today'; // today | modules | calendar | follow
+  int? _expandedUnit;
   final Map<String, String> _values = {};
   final Map<String, String> _drillValues = {'kind': 'dictation'};
 
@@ -33,6 +35,11 @@ class _StudyCoachPageState extends State<StudyCoachPage> {
     }
     if (_courses.isEmpty) return null;
     return Map<String, dynamic>.from(_courses.first as Map);
+  }
+
+  String get _today {
+    final n = DateTime.now();
+    return '${n.year}-${n.month.toString().padLeft(2, '0')}-${n.day.toString().padLeft(2, '0')}';
   }
 
   @override
@@ -100,6 +107,7 @@ class _StudyCoachPageState extends State<StudyCoachPage> {
       _candidates = [];
       _phase = 'ask';
       _showAsk = false;
+      _hubTab = 'today';
       _resetKey++;
       if (course != null) _activeId = '${course['id']}';
       await _load();
@@ -122,6 +130,63 @@ class _StudyCoachPageState extends State<StudyCoachPage> {
     final dio = getRuntimeAuthedDio();
     await dio.post('$_base/courses/$courseId/progress', data: {'order': order, 'status': status});
     await _load();
+  }
+
+  Future<void> _completeStep(int unitOrder, String stepId, {bool done = true}) async {
+    final active = _active;
+    if (active == null) return;
+    setState(() => _busy = true);
+    try {
+      final dio = getRuntimeAuthedDio();
+      await dio.post('$_base/courses/${active['id']}/steps/complete', data: {
+        'unit_order': unitOrder,
+        'step_id': stepId,
+        'done': done,
+      });
+      await _load();
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _completeSchedule(Map<String, dynamic> item, {bool done = true}) async {
+    final active = _active;
+    if (active == null) return;
+    setState(() => _busy = true);
+    try {
+      final dio = getRuntimeAuthedDio();
+      await dio.post('$_base/courses/${active['id']}/schedule/done', data: {
+        'date': '${item['date']}',
+        'unit_order': int.tryParse('${item['unit_order']}') ?? 0,
+        'step_id': '${item['step_id']}',
+        'done': done,
+      });
+      await _load();
+    } catch (_) {
+      await _completeStep(
+        int.tryParse('${item['unit_order']}') ?? 0,
+        '${item['step_id']}',
+        done: done,
+      );
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _rebuildSchedule() async {
+    final active = _active;
+    if (active == null) return;
+    setState(() => _busy = true);
+    try {
+      final dio = getRuntimeAuthedDio();
+      await dio.post('$_base/courses/${active['id']}/schedule/rebuild', data: {
+        'start_offset_days': 0,
+      });
+      _hubTab = 'calendar';
+      await _load();
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
   }
 
   Future<void> _submitDrill() async {
@@ -165,6 +230,65 @@ class _StudyCoachPageState extends State<StudyCoachPage> {
     ].join(' · ');
   }
 
+  List<Map<String, dynamic>> _todayItems(Map<String, dynamic> active) {
+    final schedule = (active['schedule'] as List?) ?? [];
+    final today = _today;
+    final fromCal = schedule
+        .whereType<Map>()
+        .map((e) => Map<String, dynamic>.from(e))
+        .where((e) => '${e['date']}' == today)
+        .toList();
+    if (fromCal.isNotEmpty) return fromCal;
+    final plan = (active['plan'] as List?) ?? [];
+    for (final raw in plan) {
+      final u = Map<String, dynamic>.from(raw as Map);
+      if ('${u['status']}' == 'mastered') continue;
+      final steps = (u['steps'] as List?) ?? [];
+      for (final sRaw in steps) {
+        final s = Map<String, dynamic>.from(sRaw as Map);
+        if ('${s['status']}' == 'done') continue;
+        return [
+          {
+            'date': today,
+            'unit_order': u['order'],
+            'unit_name': u['unit_name'],
+            'module_name': u['module_name'],
+            'step_id': s['id'],
+            'title': s['title'],
+            'reminder': s['detail'] ?? u['focus'] ?? '',
+            'kind': s['kind'] ?? 'review',
+            'done': false,
+          }
+        ];
+      }
+    }
+    return [];
+  }
+
+  List<Map<String, dynamic>> _modulesOf(Map<String, dynamic> active) {
+    final raw = (active['modules'] as List?) ?? [];
+    if (raw.isNotEmpty) {
+      return raw.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+    }
+    final buckets = <int, Map<String, dynamic>>{};
+    for (final p in (active['plan'] as List?) ?? []) {
+      final u = Map<String, dynamic>.from(p as Map);
+      final mo = int.tryParse('${u['module_order'] ?? 1}') ?? 1;
+      final b = buckets.putIfAbsent(mo, () => {
+            'order': mo,
+            'name': '${u['module_name'] ?? '阶段 $mo'}',
+            'goal': '',
+            'unit_orders': <int>[],
+          });
+      (b['unit_orders'] as List).add(int.tryParse('${u['order']}') ?? 0);
+      if ('${b['goal']}'.isEmpty && '${u['focus'] ?? ''}'.isNotEmpty) {
+        b['goal'] = '${u['focus']}';
+      }
+    }
+    final keys = buckets.keys.toList()..sort();
+    return [for (final k in keys) buckets[k]!];
+  }
+
   @override
   Widget build(BuildContext context) {
     final color = Color(widget.branding.primaryColorValue);
@@ -174,6 +298,15 @@ class _StudyCoachPageState extends State<StudyCoachPage> {
     final courseDrills = _drills
         .where((e) => '${(e as Map)['course_id']}' == '${active?['id']}')
         .toList();
+    final tips = active?['subject_tips'] is Map
+        ? Map<String, dynamic>.from(active!['subject_tips'] as Map)
+        : <String, dynamic>{};
+    final todayItems = active == null ? <Map<String, dynamic>>[] : _todayItems(active);
+    final modules = active == null ? <Map<String, dynamic>>[] : _modulesOf(active);
+    final schedule = ((active?['schedule'] as List?) ?? [])
+        .whereType<Map>()
+        .map((e) => Map<String, dynamic>.from(e))
+        .toList();
 
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -181,13 +314,13 @@ class _StudyCoachPageState extends State<StudyCoachPage> {
         if (_phase == 'ask' && (_showAsk || _courses.isEmpty))
           GtgtStepComposer(
             title: '课本学习',
-            flowHint: '一句话书名 → 确认册次 → 生成规划',
+            flowHint: '科目课本 → 确认册次 → 大任务/小步骤/日历 → 每日跟进',
             accent: color,
             steps: const [
               GtgtStep(
                 key: 'query',
-                label: '你在学哪本课本？',
-                placeholder: '例如：沪教英语二年级下',
+                label: '学哪一科、哪一本？',
+                placeholder: '例如：沪教英语二年级下 / 人教语文三上',
               ),
             ],
             values: _values,
@@ -207,7 +340,7 @@ class _StudyCoachPageState extends State<StudyCoachPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('是这几本吗？', style: Theme.of(context).textTheme.titleMedium),
-                  Text('根据「$_lastQuery」定位 · 点选后生成大纲', style: TextStyle(color: Colors.grey.shade700)),
+                  Text('点选后按科目生成大任务、小步骤与日历', style: TextStyle(color: Colors.grey.shade700)),
                   const SizedBox(height: 8),
                   ..._candidates.asMap().entries.map((e) {
                     final c = e.value;
@@ -251,10 +384,15 @@ class _StudyCoachPageState extends State<StudyCoachPage> {
               final c = Map<String, dynamic>.from(raw as Map);
               final id = '${c['id']}';
               final selected = id == _activeId;
+              final subj = '${c['subject'] ?? (c['catalog'] is Map ? (c['catalog'] as Map)['subject'] : '')}';
               return ChoiceChip(
-                label: Text('${c['textbook_name']} · ${c['progress_pct']}%'),
+                label: Text('${subj.isNotEmpty ? subj : c['textbook_name']} · ${c['progress_pct']}%'),
                 selected: selected,
-                onSelected: (_) => setState(() => _activeId = id),
+                onSelected: (_) => setState(() {
+                  _activeId = id;
+                  _hubTab = 'today';
+                  _expandedUnit = null;
+                }),
               );
             }).toList(),
           ),
@@ -268,98 +406,234 @@ class _StudyCoachPageState extends State<StudyCoachPage> {
                   children: [
                     Text('${active['textbook_name']}', style: const TextStyle(fontWeight: FontWeight.bold)),
                     Text('进度 ${active['progress_pct']}% · ${active['plan_source']}'),
-                    if (active['catalog'] is Map) ...[
+                    if ('${tips['rhythm'] ?? ''}'.isNotEmpty) ...[
                       const SizedBox(height: 4),
-                      Text(
-                        _catalogLine(Map<String, dynamic>.from(active['catalog'] as Map)),
-                        style: TextStyle(color: Colors.grey.shade700, fontSize: 12),
-                      ),
+                      Text('科目节奏：${tips['rhythm']}', style: const TextStyle(fontSize: 13)),
                     ],
                     const SizedBox(height: 8),
-                    ...plan.map((raw) {
-                      final u = Map<String, dynamic>.from(raw as Map);
-                      final order = int.tryParse('${u['order']}') ?? 0;
-                      final code = '${u['unit_code'] ?? ''}';
-                      final focus = '${u['focus'] ?? ''}';
-                      final hint = '${u['dictation_hint'] ?? ''}';
-                      return ListTile(
-                        dense: true,
-                        contentPadding: EdgeInsets.zero,
-                        title: Text('${code.isNotEmpty ? '$code · ' : ''}${u['order']}. ${u['unit_name']}'),
-                        subtitle: Text(
-                          [
-                            '${u['status']}',
-                            if (focus.isNotEmpty) '重点:$focus',
-                            if (hint.isNotEmpty) '家默:$hint',
-                          ].join(' · '),
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: [
+                        for (final t in const [
+                          ('today', '今日跟进'),
+                          ('modules', '大任务'),
+                          ('calendar', '日历'),
+                          ('follow', '记一次'),
+                        ])
+                          ChoiceChip(
+                            label: Text(t.$2),
+                            selected: _hubTab == t.$1,
+                            onSelected: (_) => setState(() => _hubTab = t.$1),
+                          ),
+                        TextButton(
+                          onPressed: _busy ? null : _rebuildSchedule,
+                          child: const Text('重排日历'),
                         ),
-                        trailing: Wrap(
-                          spacing: 4,
-                          children: [
-                            TextButton(
-                              onPressed: () => _progress('${active['id']}', order, 'learning'),
-                              child: const Text('开始'),
-                            ),
-                            TextButton(
-                              onPressed: () => _progress('${active['id']}', order, 'mastered'),
-                              child: const Text('掌握'),
-                            ),
-                          ],
-                        ),
-                      );
-                    }),
+                      ],
+                    ),
                   ],
                 ),
               ),
             ),
             const SizedBox(height: 12),
-            GtgtStepComposer(
-              title: '复习 / 家默 / 考试',
-              flowHint: '类型 → 单元 → 可选备注',
-              accent: color,
-              steps: [
-                const GtgtStep(
-                  key: 'kind',
-                  label: '记一次跟进',
-                  choices: [
-                    (value: 'dictation', label: '家默'),
-                    (value: 'review', label: '复习'),
-                    (value: 'exam', label: '考试'),
-                  ],
+            if (_hubTab == 'today')
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('今日跟进 · $_today', style: const TextStyle(fontWeight: FontWeight.bold)),
+                      if (todayItems.isEmpty)
+                        const Padding(
+                          padding: EdgeInsets.only(top: 8),
+                          child: Text('今天没有待办，可去大任务展开小步骤。'),
+                        ),
+                      ...todayItems.map((item) {
+                        final done = item['done'] == true;
+                        return ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          title: Text('${item['title']}',
+                              style: TextStyle(
+                                decoration: done ? TextDecoration.lineThrough : null,
+                              )),
+                          subtitle: Text(
+                            [
+                              if ('${item['module_name'] ?? ''}'.isNotEmpty) '${item['module_name']}',
+                              if ('${item['unit_name'] ?? ''}'.isNotEmpty) '${item['unit_name']}',
+                              if ('${item['reminder'] ?? ''}'.isNotEmpty) '${item['reminder']}',
+                            ].join(' · '),
+                          ),
+                          trailing: TextButton(
+                            onPressed: _busy
+                                ? null
+                                : () => _completeSchedule(item, done: !done),
+                            child: Text(done ? '撤销' : '完成'),
+                          ),
+                        );
+                      }),
+                    ],
+                  ),
                 ),
-                GtgtStep(
-                  key: 'unit_name',
-                  label: '对应单元',
-                  placeholder: unitNames.isEmpty ? '第一单元' : unitNames.first,
-                  choices: unitNames.isEmpty
-                      ? null
-                      : unitNames
-                          .map((n) => (value: n, label: n.length > 18 ? '${n.substring(0, 18)}…' : n))
-                          .toList(),
+              ),
+            if (_hubTab == 'modules')
+              ...modules.map((mod) {
+                final orders = ((mod['unit_orders'] as List?) ?? [])
+                    .map((e) => int.tryParse('$e') ?? -1)
+                    .toSet();
+                final units = plan
+                    .map((e) => Map<String, dynamic>.from(e as Map))
+                    .where((u) {
+                      final o = int.tryParse('${u['order']}') ?? 0;
+                      final mo = int.tryParse('${u['module_order'] ?? ''}') ?? 0;
+                      return orders.contains(o) ||
+                          mo == (int.tryParse('${mod['order']}') ?? -1) ||
+                          '${u['module_name']}' == '${mod['name']}';
+                    })
+                    .toList();
+                return Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('大任务 · ${mod['name']}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                        if ('${mod['goal'] ?? ''}'.isNotEmpty)
+                          Text('目标：${mod['goal']}', style: TextStyle(color: Colors.grey.shade700, fontSize: 12)),
+                        ...units.map((u) {
+                          final order = int.tryParse('${u['order']}') ?? 0;
+                          final open = _expandedUnit == order;
+                          final steps = ((u['steps'] as List?) ?? [])
+                              .whereType<Map>()
+                              .map((e) => Map<String, dynamic>.from(e))
+                              .toList();
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              ListTile(
+                                contentPadding: EdgeInsets.zero,
+                                title: Text('${u['unit_name']}'),
+                                subtitle: Text('${u['status']} · ${u['focus'] ?? ''}'),
+                                trailing: Icon(open ? Icons.expand_less : Icons.expand_more),
+                                onTap: () => setState(() => _expandedUnit = open ? null : order),
+                              ),
+                              if (open) ...[
+                                ...steps.map((s) {
+                                  final done = '${s['status']}' == 'done';
+                                  return ListTile(
+                                    dense: true,
+                                    contentPadding: const EdgeInsets.only(left: 8),
+                                    title: Text('${s['title']}'),
+                                    subtitle: Text('${s['detail'] ?? ''}'),
+                                    trailing: TextButton(
+                                      onPressed: _busy
+                                          ? null
+                                          : () => _completeStep(order, '${s['id']}', done: !done),
+                                      child: Text(done ? '撤销' : '完成'),
+                                    ),
+                                  );
+                                }),
+                                Row(
+                                  children: [
+                                    TextButton(
+                                      onPressed: () => _progress('${active['id']}', order, 'learning'),
+                                      child: const Text('学习中'),
+                                    ),
+                                    TextButton(
+                                      onPressed: () => _progress('${active['id']}', order, 'mastered'),
+                                      child: const Text('整单元掌握'),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ],
+                          );
+                        }),
+                      ],
+                    ),
+                  ),
+                );
+              }),
+            if (_hubTab == 'calendar')
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('日历提醒（近两周）', style: TextStyle(fontWeight: FontWeight.bold)),
+                      if (schedule.isEmpty)
+                        const Padding(
+                          padding: EdgeInsets.only(top: 8),
+                          child: Text('暂无日程，可点「重排日历」'),
+                        ),
+                      ...schedule.take(20).map((item) {
+                        final done = item['done'] == true;
+                        return ListTile(
+                          dense: true,
+                          contentPadding: EdgeInsets.zero,
+                          title: Text('${item['date']} · ${item['title']}'),
+                          subtitle: Text('${item['reminder'] ?? item['unit_name'] ?? ''}'),
+                          trailing: TextButton(
+                            onPressed: _busy ? null : () => _completeSchedule(item, done: !done),
+                            child: Text(done ? '撤销' : '完成'),
+                          ),
+                        );
+                      }),
+                    ],
+                  ),
                 ),
-                const GtgtStep(key: 'notes', label: '结果备注（可空）', optional: true, multiline: true),
-              ],
-              values: {
-                'kind': _drillValues['kind'] ?? 'dictation',
-                'unit_name': _drillValues['unit_name'] ?? (unitNames.isEmpty ? '' : unitNames.first),
-                'notes': _drillValues['notes'] ?? '',
-              },
-              onChanged: (k, v) => setState(() => _drillValues[k] = v),
-              onComplete: _submitDrill,
-              busy: _busy,
-              resetKey: _drillResetKey,
-              submitLabel: '记下这次跟进',
-            ),
-            const SizedBox(height: 12),
-            ...courseDrills.map((raw) {
-              final d = Map<String, dynamic>.from(raw as Map);
-              return Card(
-                child: ListTile(
-                  title: Text('${d['kind']} · ${d['unit_name']}'),
-                  subtitle: Text('${d['notes'] ?? d['result'] ?? d['score'] ?? '已记录'}'),
-                ),
-              );
-            }),
+              ),
+            if (_hubTab == 'follow') ...[
+              GtgtStepComposer(
+                title: '复习 / 家默 / 考试',
+                flowHint: tips['rhythm'] != null ? '本科目：${tips['rhythm']}' : '类型 → 单元 → 可选备注',
+                accent: color,
+                steps: [
+                  const GtgtStep(
+                    key: 'kind',
+                    label: '记一次跟进',
+                    choices: [
+                      (value: 'dictation', label: '家默'),
+                      (value: 'review', label: '复习'),
+                      (value: 'exam', label: '考试'),
+                    ],
+                  ),
+                  GtgtStep(
+                    key: 'unit_name',
+                    label: '对应单元',
+                    placeholder: unitNames.isEmpty ? '第一单元' : unitNames.first,
+                    choices: unitNames.isEmpty
+                        ? null
+                        : unitNames
+                            .map((n) => (value: n, label: n.length > 18 ? '${n.substring(0, 18)}…' : n))
+                            .toList(),
+                  ),
+                  const GtgtStep(key: 'notes', label: '结果备注（可空）', optional: true, multiline: true),
+                ],
+                values: {
+                  'kind': _drillValues['kind'] ?? 'dictation',
+                  'unit_name': _drillValues['unit_name'] ?? (unitNames.isEmpty ? '' : unitNames.first),
+                  'notes': _drillValues['notes'] ?? '',
+                },
+                onChanged: (k, v) => setState(() => _drillValues[k] = v),
+                onComplete: _submitDrill,
+                busy: _busy,
+                resetKey: _drillResetKey,
+                submitLabel: '记下这次跟进',
+              ),
+              const SizedBox(height: 12),
+              ...courseDrills.map((raw) {
+                final d = Map<String, dynamic>.from(raw as Map);
+                return Card(
+                  child: ListTile(
+                    title: Text('${d['kind']} · ${d['unit_name']}'),
+                    subtitle: Text('${d['notes'] ?? d['result'] ?? d['score'] ?? '已记录'}'),
+                  ),
+                );
+              }),
+            ],
           ],
         ],
       ],
