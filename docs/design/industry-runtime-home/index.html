@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>独立站 Runtime 首页 · 5 套设计稿</title>
+  <style>
+    :root {
+      --bg: #0c1118;
+      --fg: #e8eef6;
+      --muted: #8b9bb0;
+      --line: rgba(255,255,255,.08);
+      --card: #151c27;
+      --accent: #2dd4bf;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background:
+        radial-gradient(900px 480px at 10% -10%, rgba(45,212,191,.18), transparent 55%),
+        radial-gradient(700px 420px at 90% 0%, rgba(56,189,248,.12), transparent 50%),
+        var(--bg);
+      color: var(--fg);
+      min-height: 100vh;
+    }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 40px 24px 80px; }
+    h1 { margin: 0 0 8px; font-size: clamp(28px, 4vw, 40px); letter-spacing: -.02em; }
+    .lead { color: var(--muted); max-width: 62ch; line-height: 1.6; margin: 0 0 28px; }
+    .problems {
+      display: grid; gap: 10px; margin-bottom: 32px;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+    .problems article {
+      background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px;
+    }
+    .problems strong { display: block; margin-bottom: 4px; }
+    .problems span { color: var(--muted); font-size: 13px; line-height: 1.5; }
+    .grid {
+      display: grid; gap: 16px;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    }
+    a.card {
+      display: block; text-decoration: none; color: inherit;
+      background: linear-gradient(180deg, #1a2331, #121821);
+      border: 1px solid var(--line); border-radius: 16px; overflow: hidden;
+      transition: transform .15s, border-color .15s;
+    }
+    a.card:hover { transform: translateY(-2px); border-color: color-mix(in srgb, var(--accent) 50%, transparent); }
+    .preview {
+      height: 140px; position: relative; overflow: hidden;
+      background: #0a0f16;
+    }
+    .preview iframe {
+      width: 200%; height: 200%; transform: scale(.5); transform-origin: 0 0;
+      border: 0; pointer-events: none;
+    }
+    .body { padding: 16px 18px 18px; }
+    .tag {
+      display: inline-block; font-size: 11px; letter-spacing: .06em; text-transform: uppercase;
+      color: var(--accent); margin-bottom: 8px;
+    }
+    .body h2 { margin: 0 0 6px; font-size: 18px; }
+    .body p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.55; }
+    .num {
+      position: absolute; top: 12px; left: 12px; z-index: 2;
+      width: 28px; height: 28px; border-radius: 8px;
+      background: rgba(0,0,0,.55); display: grid; place-items: center;
+      font-size: 12px; font-weight: 700; border: 1px solid var(--line);
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>独立站 Runtime 首页 · 5 套设计稿</h1>
+    <p class="lead">
+      针对当前截图问题：英雄区密密麻麻 Tab、模板字号过大、场景/能力关系不清。
+      五套方案统一约束——<strong>行业大字英雄区</strong>、<strong>左侧父子导航</strong>、<strong>模板区克制可操作</strong>、<strong>说清「怎么用」</strong>。
+      点开即可对比交互效果（本地静态 HTML，不连后端）。
+    </p>
+    <div class="problems">
+      <article><strong>问题 1</strong><span>顶栏 Tab 墙 → 应改为行业大字标题页</span></article>
+      <article><strong>问题 2</strong><span>场景应进左侧父子导航，按分类折叠</span></article>
+      <article><strong>问题 3</strong><span>模板切换要小字、可理解，并说明场景如何串联</span></article>
+    </div>
+    <div class="grid">
+      <a class="card" href="./01-editorial-tree.html">
+        <div class="preview"><span class="num">01</span><iframe src="./01-editorial-tree.html" title="01"></iframe></div>
+        <div class="body">
+          <div class="tag">Editorial Tree</div>
+          <h2>侧栏树 + 行业大字封面</h2>
+          <p>经典后台编辑感：左树父子级，右英雄区只放行业名与一句引导。</p>
+        </div>
+      </a>
+      <a class="card" href="./02-guided-flow.html">
+        <div class="preview"><span class="num">02</span><iframe src="./02-guided-flow.html" title="02"></iframe></div>
+        <div class="body">
+          <div class="tag">Guided Flow</div>
+          <h2>三步引导 · 场景→能力→开跑</h2>
+          <p>用步骤条把「选场景 / 看能力 / 进入填写」串成一条操作路径。</p>
+        </div>
+      </a>
+      <a class="card" href="./03-scene-capability-map.html">
+        <div class="preview"><span class="num">03</span><iframe src="./03-scene-capability-map.html" title="03"></iframe></div>
+        <div class="body">
+          <div class="tag">Relation Map</div>
+          <h2>场景—能力关系图</h2>
+          <p>点左侧场景，右侧显示对应真能力包与「打开」按钮，关系一目了然。</p>
+        </div>
+      </a>
+      <a class="card" href="./04-command-rail.html">
+        <div class="preview"><span class="num">04</span><iframe src="./04-command-rail.html" title="04"></iframe></div>
+        <div class="body">
+          <div class="tag">Command Rail</div>
+          <h2>极简指挥台</h2>
+          <p>大字行业 + 搜索过滤导航；模板缩成一行小芯片，不抢英雄区。</p>
+        </div>
+      </a>
+      <a class="card" href="./05-onboarding-journey.html">
+        <div class="preview"><span class="num">05</span><iframe src="./05-onboarding-journey.html" title="05"></iframe></div>
+        <div class="body">
+          <div class="tag">First-run Journey</div>
+          <h2>首次使用旅程卡</h2>
+          <p>首次进入用旅程卡片教操作；日常回到「行业封面 + 推荐下一场景」。</p>
+        </div>
+      </a>
+    </div>
+  </div>
+</body>
+</html>

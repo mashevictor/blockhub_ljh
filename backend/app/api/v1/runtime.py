@@ -280,10 +280,26 @@ def runtime_schema(
     - 管理员审批通过前，正式库不变
     """
     from app.services.web_capability_gate import sanitize_page_schema
+    from app.data.industry_packs_all import pack_meta
 
     app = db.query(AppRecord).filter(AppRecord.public_id == public_id).first()
     if not app:
         raise HTTPException(status_code=404, detail="应用不存在")
+
+    def _enrich_industry_meta(schema: dict) -> dict:
+        meta = schema.setdefault("meta", {})
+        if not isinstance(meta, dict):
+            return schema
+        ik = str(meta.get("industry_key") or app.industry_key or "").strip()
+        if ik and not meta.get("industry_key"):
+            meta["industry_key"] = ik
+        if ik and not meta.get("industry_name"):
+            pack = pack_meta(ik) or {}
+            meta["industry_name"] = pack.get("name") or ik
+            theme = schema.setdefault("theme", {})
+            if isinstance(theme, dict) and not theme.get("industryName"):
+                theme["industryName"] = meta["industry_name"]
+        return schema
 
     formal_raw = (
         dict(app.page_schema)
@@ -295,7 +311,7 @@ def runtime_schema(
             primary_color=app.primary_color or "#4338ca",
         )
     )
-    formal = sanitize_page_schema(formal_raw)
+    formal = _enrich_industry_meta(sanitize_page_schema(formal_raw))
     base = {
         "public_id": app.public_id,
         **schema_meta(app),
@@ -308,7 +324,7 @@ def runtime_schema(
 
         open_change = sca.get_author_open_change(db, app, user=user)
         if open_change and isinstance(open_change.page_schema, dict) and open_change.page_schema:
-            personal = sanitize_page_schema(dict(open_change.page_schema))
+            personal = _enrich_industry_meta(sanitize_page_schema(dict(open_change.page_schema)))
             personal["appId"] = app.public_id
             return {
                 **base,

@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>02 · 三步引导 · 场景→能力→开跑</title>
+  <style>
+    :root {
+      --bg: #f6f7f4;
+      --ink: #1c1917;
+      --muted: #78716c;
+      --line: #e7e5e4;
+      --card: #ffffff;
+      --accent: #c2410c;
+      --accent2: #1d4ed8;
+      --side: #1c1917;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: "Avenir Next", "PingFang SC", "Segoe UI", sans-serif; background: var(--bg); color: var(--ink); }
+    .shell { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; }
+    aside { background: var(--side); color: #fafaf9; padding: 16px 12px; }
+    .logo { font-size: 11px; letter-spacing: .16em; text-transform: uppercase; opacity: .55; margin-bottom: 10px; }
+    .search {
+      width: 100%; border: 1px solid rgba(255,255,255,.15); background: rgba(255,255,255,.06);
+      color: #fff; border-radius: 8px; padding: 8px 10px; font-size: 12px; margin-bottom: 12px;
+    }
+    .group-label { font-size: 10px; letter-spacing: .08em; text-transform: uppercase; opacity: .5; margin: 12px 6px 4px; }
+    .item {
+      display: block; width: 100%; text-align: left; border: 0; background: transparent; color: inherit;
+      padding: 8px 10px; border-radius: 8px; font-size: 13px; cursor: pointer;
+    }
+    .item:hover, .item.on { background: rgba(194,65,12,.28); }
+    main { padding: 24px 28px 56px; }
+    .top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; font-size: 12px; color: var(--muted); }
+    .top a { color: var(--accent2); text-decoration: none; }
+    .hero {
+      border-radius: 20px; overflow: hidden; background: #292524; color: #fafaf9;
+      padding: 36px 32px; margin-bottom: 16px;
+      background-image:
+        linear-gradient(135deg, rgba(194,65,12,.55), rgba(28,25,23,.85) 55%),
+        radial-gradient(500px 220px at 80% 20%, rgba(251,191,36,.35), transparent 60%);
+    }
+    .hero .kicker { font-size: 12px; opacity: .75; margin: 0 0 8px; }
+    .hero h1 { margin: 0; font-size: clamp(36px, 6vw, 56px); letter-spacing: -.03em; }
+    .hero p { margin: 12px 0 0; max-width: 46ch; opacity: .85; line-height: 1.5; font-size: 14px; }
+    .steps {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 18px 0 0;
+    }
+    .step {
+      background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.12);
+      border-radius: 12px; padding: 12px; cursor: pointer; transition: background .15s;
+    }
+    .step.on, .step:hover { background: rgba(255,255,255,.16); }
+    .step .n { font-size: 11px; opacity: .6; }
+    .step strong { display: block; margin: 4px 0; font-size: 14px; }
+    .step span { font-size: 12px; opacity: .75; line-height: 1.4; }
+    .board {
+      display: grid; grid-template-columns: 1.2fr .8fr; gap: 14px;
+    }
+    .card {
+      background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px;
+    }
+    .card h2 { margin: 0 0 4px; font-size: 14px; }
+    .card .sub { margin: 0 0 12px; font-size: 12px; color: var(--muted); }
+    .path {
+      display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 14px;
+    }
+    .pill {
+      background: #fff7ed; color: var(--accent); border: 1px solid #fed7aa;
+      border-radius: 999px; padding: 6px 10px; font-size: 12px; font-weight: 600;
+    }
+    .arrow { color: var(--muted); }
+    .cap {
+      border: 1px solid var(--line); border-radius: 10px; padding: 12px; margin-bottom: 8px;
+      display: flex; justify-content: space-between; gap: 10px; align-items: center;
+    }
+    .cap strong { display: block; font-size: 13px; }
+    .cap small { color: var(--muted); font-size: 11px; }
+    .btn {
+      border: 0; background: var(--accent); color: #fff; border-radius: 999px;
+      padding: 8px 12px; font-size: 12px; cursor: pointer; white-space: nowrap;
+    }
+    .tpl { display: flex; gap: 6px; flex-wrap: wrap; }
+    .tpl button {
+      border: 1px solid var(--line); background: #fff; border-radius: 8px;
+      padding: 6px 8px; font-size: 11px; color: var(--muted); cursor: pointer;
+    }
+    .tpl button.on { border-color: var(--accent2); color: var(--accent2); background: #eff6ff; }
+    .help { font-size: 12px; color: var(--muted); line-height: 1.5; }
+    @media (max-width: 900px) {
+      .shell { grid-template-columns: 1fr; }
+      .board, .steps { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <aside>
+      <div class="logo">场景目录</div>
+      <input class="search" id="q" placeholder="过滤场景…" />
+      <div id="nav"></div>
+    </aside>
+    <main>
+      <div class="top">
+        <a href="./index.html">← 返回目录</a>
+        <span>方案 02 · Guided Flow</span>
+      </div>
+      <section class="hero">
+        <p class="kicker">行业封面 · 不再铺 Tab</p>
+        <h1>通用办公</h1>
+        <p>按下面三步操作：先选场景，再确认绑定的能力，最后进入填写。左侧是完整父子目录。</p>
+        <div class="steps" id="steps">
+          <div class="step on" data-step="1"><div class="n">STEP 1</div><strong>选场景</strong><span>从左侧点「请假申请」等</span></div>
+          <div class="step" data-step="2"><div class="n">STEP 2</div><strong>看串联</strong><span>场景如何落到能力包</span></div>
+          <div class="step" data-step="3"><div class="n">STEP 3</div><strong>开始用</strong><span>进入 Runtime 填表</span></div>
+        </div>
+      </section>
+      <div class="board">
+        <section class="card">
+          <h2>当前串联路径</h2>
+          <p class="sub">选中场景后，这里清楚显示「场景 → 能力 → 操作」。</p>
+          <div class="path">
+            <span class="pill" id="scenePill">请假申请</span>
+            <span class="arrow">→</span>
+            <span class="pill" id="capPill">approval_flow</span>
+            <span class="arrow">→</span>
+            <span class="pill">打开填写</span>
+          </div>
+          <div class="cap">
+            <div>
+              <strong id="capName">审批流 · 请假</strong>
+              <small>真 API · 空库即空列表 · &gt;&gt; 单字段推进</small>
+            </div>
+            <button class="btn" type="button" id="open">进入场景 →</button>
+          </div>
+          <p class="help" id="helpText">提示：点左侧任意场景，中间路径会更新。第三步点「进入场景」即可开跑。</p>
+        </section>
+        <section class="card">
+          <h2>换皮（可选）</h2>
+          <p class="sub">小字芯片 · 不改场景与能力关系</p>
+          <div class="tpl" id="tpl"></div>
+          <p class="help" style="margin-top:12px">模板只改布局气质（侧栏/全屏/拼贴）。业务串联始终在中间「路径」里。</p>
+        </section>
+      </div>
+    </main>
+  </div>
+  <script>
+    const data = [
+      { cat: '人事行政', items: [
+        { name: '请假申请', cap: 'approval_flow', label: '审批流 · 请假' },
+        { name: '加班申请', cap: 'approval_flow', label: '审批流 · 加班' },
+        { name: '入职办理', cap: 'hr_onboard', label: '入职办理' },
+      ]},
+      { cat: '审批协作', items: [
+        { name: '报销审批', cap: 'expense', label: '报销审批' },
+        { name: '合同签署', cap: 'contract', label: '合同签署' },
+      ]},
+      { cat: '行政后勤', items: [
+        { name: '报修工单', cap: 'device_repair', label: '设备报修' },
+        { name: '会议室预订', cap: 'meeting_booking', label: '会议室预订' },
+      ]},
+    ];
+    const nav = document.getElementById('nav');
+    function render(filter = '') {
+      nav.innerHTML = '';
+      data.forEach(g => {
+        const items = g.items.filter(i => i.name.includes(filter));
+        if (!items.length) return;
+        const lab = document.createElement('div');
+        lab.className = 'group-label';
+        lab.textContent = g.cat;
+        nav.appendChild(lab);
+        items.forEach((it, idx) => {
+          const b = document.createElement('button');
+          b.className = 'item' + (g.cat === '人事行政' && idx === 0 && !filter ? ' on' : '');
+          b.type = 'button';
+          b.textContent = it.name;
+          b.onclick = () => {
+            nav.querySelectorAll('.item').forEach(x => x.classList.remove('on'));
+            b.classList.add('on');
+            document.getElementById('scenePill').textContent = it.name;
+            document.getElementById('capPill').textContent = it.cap;
+            document.getElementById('capName').textContent = it.label;
+            document.querySelectorAll('.step').forEach(s => s.classList.toggle('on', s.dataset.step === '2'));
+            document.getElementById('helpText').textContent = `已选「${it.name}」→ 能力 ${it.cap}。点右侧「进入场景」开始用。`;
+          };
+          nav.appendChild(b);
+        });
+      });
+    }
+    render();
+    document.getElementById('q').oninput = (e) => render(e.target.value.trim());
+    document.getElementById('steps').onclick = (e) => {
+      const step = e.target.closest('.step');
+      if (!step) return;
+      document.querySelectorAll('.step').forEach(s => s.classList.toggle('on', s === step));
+    };
+    document.getElementById('open').onclick = () => {
+      document.querySelectorAll('.step').forEach(s => s.classList.toggle('on', s.dataset.step === '3'));
+      alert('原型：进入能力页 · ' + document.getElementById('capName').textContent);
+    };
+    const tpl = document.getElementById('tpl');
+    ['Helios','Landed','Nova','Tessellate','Hyperspace'].forEach((t,i) => {
+      const b = document.createElement('button');
+      b.textContent = t;
+      if (i===2) b.className = 'on';
+      b.onclick = () => { [...tpl.children].forEach(x => x.classList.remove('on')); b.classList.add('on'); };
+      tpl.appendChild(b);
+    });
+  </script>
+</body>
+</html>

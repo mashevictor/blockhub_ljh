@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>04 · 极简指挥台</title>
+  <style>
+    :root {
+      --bg: #fafafa;
+      --ink: #171717;
+      --muted: #737373;
+      --line: #e5e5e5;
+      --accent: #171717;
+      --side: #f5f5f5;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: "Neue Haas Grotesk", "Helvetica Neue", "PingFang SC", sans-serif; background: var(--bg); color: var(--ink); }
+    .shell { display: grid; grid-template-columns: 280px 1fr; min-height: 100vh; }
+    aside {
+      background: var(--side); border-right: 1px solid var(--line);
+      padding: 20px 14px; display: flex; flex-direction: column; gap: 12px;
+    }
+    .meta { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+    input {
+      width: 100%; border: 1px solid var(--line); border-radius: 0; background: #fff;
+      padding: 10px 12px; font-size: 13px;
+    }
+    .cat { margin-top: 8px; }
+    .cat-h {
+      width: 100%; text-align: left; border: 0; background: transparent; padding: 8px 4px;
+      font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); cursor: pointer;
+      display: flex; justify-content: space-between;
+    }
+    .kids { display: none; padding-left: 6px; }
+    .cat.open .kids { display: block; }
+    .kid {
+      display: block; width: 100%; text-align: left; border: 0; background: transparent;
+      padding: 9px 8px; font-size: 14px; cursor: pointer; border-left: 2px solid transparent;
+    }
+    .kid.on { border-left-color: var(--ink); font-weight: 600; background: #fff; }
+    main { padding: 28px 40px 64px; max-width: 920px; }
+    .top { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 40px; }
+    .top a { color: inherit; }
+    .hero h1 {
+      margin: 0; font-size: clamp(56px, 9vw, 96px); line-height: .9; letter-spacing: -.05em;
+      max-width: 8ch;
+    }
+    .hero p { margin: 20px 0 0; font-size: 15px; color: var(--muted); max-width: 36ch; line-height: 1.55; }
+    .actions { margin-top: 28px; display: flex; gap: 10px; flex-wrap: wrap; }
+    .btn {
+      border: 1px solid var(--ink); background: var(--ink); color: #fff;
+      padding: 12px 18px; font-size: 13px; cursor: pointer;
+    }
+    .btn.ghost { background: transparent; color: var(--ink); }
+    .rail {
+      margin-top: 48px; border-top: 1px solid var(--line); padding-top: 16px;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
+    }
+    .rail h2 { margin: 0 0 6px; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+    .rail p { margin: 0 0 10px; font-size: 13px; color: var(--muted); line-height: 1.45; }
+    .lineage {
+      font-size: 14px; padding: 14px; border: 1px solid var(--line); background: #fff;
+    }
+    .lineage b { font-weight: 600; }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .chips button {
+      border: 1px solid var(--line); background: #fff; padding: 5px 8px; font-size: 11px; cursor: pointer; color: var(--muted);
+    }
+    .chips button.on { border-color: var(--ink); color: var(--ink); }
+    @media (max-width: 860px) {
+      .shell { grid-template-columns: 1fr; }
+      .rail { grid-template-columns: 1fr; }
+      main { padding: 24px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <aside>
+      <div class="meta">导航 · 父子级</div>
+      <input id="q" placeholder="搜索场景" />
+      <div id="nav"></div>
+    </aside>
+    <main>
+      <div class="top">
+        <a href="./index.html">← 目录</a>
+        <span>方案 04 · Command Rail</span>
+      </div>
+      <section class="hero">
+        <h1>通用办公</h1>
+        <p>英雄区只保留行业大字。所有场景在左侧；下方两行说明「怎么串」和「怎么换皮」。</p>
+        <div class="actions">
+          <button class="btn" type="button" id="primary">继续上次：报修工单</button>
+          <button class="btn ghost" type="button">浏览全部场景</button>
+        </div>
+      </section>
+      <section class="rail">
+        <div>
+          <h2>当前串联</h2>
+          <p>选中导航后即时更新，避免猜。</p>
+          <div class="lineage" id="lineage"><b>报修工单</b> → 能力 <b>device_repair</b> → 打开填写</div>
+        </div>
+        <div>
+          <h2>模板</h2>
+          <p>一行小芯片，不抢封面。</p>
+          <div class="chips" id="tpl"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+  <script>
+    const groups = [
+      { cat: '人事行政', items: [['请假申请','approval_flow'],['加班申请','approval_flow'],['入职办理','hr_onboard']] },
+      { cat: '审批协作', items: [['报销审批','expense'],['合同签署','contract']] },
+      { cat: '行政后勤', items: [['报修工单','device_repair'],['会议室预订','meeting_booking'],['访客登记','visitor']] },
+    ];
+    const nav = document.getElementById('nav');
+    function paint(filter='') {
+      nav.innerHTML = '';
+      groups.forEach((g, gi) => {
+        const items = g.items.filter(([n]) => n.includes(filter));
+        if (!items.length) return;
+        const box = document.createElement('div');
+        box.className = 'cat' + (gi === 2 || filter ? ' open' : '');
+        const h = document.createElement('button');
+        h.className = 'cat-h';
+        h.type = 'button';
+        h.innerHTML = `<span>${g.cat}</span><span>${items.length}</span>`;
+        h.onclick = () => box.classList.toggle('open');
+        const kids = document.createElement('div');
+        kids.className = 'kids';
+        items.forEach(([name, cap], ii) => {
+          const b = document.createElement('button');
+          b.className = 'kid' + (name === '报修工单' && !filter ? ' on' : '');
+          b.type = 'button';
+          b.textContent = name;
+          b.onclick = () => {
+            nav.querySelectorAll('.kid').forEach(x => x.classList.remove('on'));
+            b.classList.add('on');
+            document.getElementById('lineage').innerHTML = `<b>${name}</b> → 能力 <b>${cap}</b> → 打开填写`;
+            document.getElementById('primary').textContent = `打开：${name}`;
+          };
+          kids.appendChild(b);
+        });
+        box.appendChild(h);
+        box.appendChild(kids);
+        nav.appendChild(box);
+      });
+    }
+    paint();
+    document.getElementById('q').oninput = e => paint(e.target.value.trim());
+    document.getElementById('primary').onclick = () => alert('原型：' + document.getElementById('primary').textContent);
+    const tpl = document.getElementById('tpl');
+    ['Helios','Nova','Tessellate','Hyperspace','Read Only','Massively'].forEach((t,i) => {
+      const b = document.createElement('button');
+      b.textContent = t;
+      if (i===1) b.className='on';
+      b.onclick = () => { [...tpl.children].forEach(x=>x.classList.remove('on')); b.classList.add('on'); };
+      tpl.appendChild(b);
+    });
+  </script>
+</body>
+</html>

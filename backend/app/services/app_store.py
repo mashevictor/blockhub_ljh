@@ -204,6 +204,20 @@ def persist_published_app(
         microsite_id=microsite_id or None,
         publish_source=source,
     )
+    # 独立站封面大字：写入行业中文名（Runtime 英雄区用，不依赖应用自定义名）
+    meta = page_schema.setdefault("meta", {})
+    if isinstance(meta, dict):
+        meta["industry_key"] = industry_key
+        pack = pack_meta(industry_key) or {}
+        industry_name = (
+            (industry_assembly or {}).get("pack_name")
+            or pack.get("name")
+            or industry_key
+        )
+        meta["industry_name"] = industry_name
+        theme = page_schema.setdefault("theme", {})
+        if isinstance(theme, dict):
+            theme["industryName"] = industry_name
     validate_page_schema(page_schema)
     try:
         from app.services.web_capability_gate import filter_web_ready_keys, sanitize_page_schema

@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react'
+import { useMemo, useState, type CSSProperties } from 'react'
 import type { MicrositeRuntimeSkin } from './micrositeRuntimeSkin'
 import { listMicrositeRuntimeSkins } from './micrositeRuntimeSkin'
 
@@ -12,6 +12,8 @@ export type IndustryMenuItem = {
 
 type Props = {
   appName: string
+  /** 行业包中文名，如「通用办公」；优先于 appName 做英雄大字 */
+  industryLabel: string
   skin: MicrositeRuntimeSkin | null
   micrositeId: string
   menu: IndustryMenuItem[]
@@ -19,237 +21,206 @@ type Props = {
   onPickSkin: (id: string) => void
 }
 
-function SceneCard({
-  m,
-  variant,
-  onEnter,
-}: {
-  m: IndustryMenuItem
-  variant?: 'tile' | 'row' | 'pill' | 'feature'
-  onEnter: () => void
-}) {
-  return (
-    <button type="button" className={`ind-scene-card is-${variant || 'tile'}`} onClick={onEnter}>
-      <span className="ind-scene-cat">{m.category || '场景'}</span>
-      <strong>{m.label}</strong>
-      <span className="ind-scene-go">打开 →</span>
-    </button>
-  )
-}
-
-function SkinPicker({
-  skins,
-  micrositeId,
-  onPickSkin,
-}: {
-  skins: MicrositeRuntimeSkin[]
-  micrositeId: string
-  onPickSkin: (id: string) => void
-}) {
-  return (
-    <section className="ind-skin-picker" aria-label="视觉模板">
-      <div className="ind-skin-picker-head">
-        <strong>页面模板 · 切换即重排布局</strong>
-        <span>20 套结构不同（侧栏 / 全屏 / 拼贴 / 杂志…），场景与真 API 不变</span>
-      </div>
-      <div className="ind-skin-chips">
-        {skins.map((s) => (
-          <button
-            key={s.id}
-            type="button"
-            className={`ind-skin-chip${s.id === micrositeId ? ' on' : ''}`}
-            style={
-              s.id === micrositeId
-                ? ({ borderColor: s.accent, color: s.accent } as CSSProperties)
-                : undefined
-            }
-            onClick={() => onPickSkin(s.id)}
-          >
-            <strong>{s.styleLabel}</strong>
-            <span>
-              {s.layout} · {s.nav}
-            </span>
-          </button>
-        ))}
-      </div>
-    </section>
-  )
-}
-
-/** 独立站 Runtime 标题首页：按模板 layout 重排结构 */
+/**
+ * 独立站 Runtime 首页 = 设计稿 01（侧栏树封面）+ 02（三步引导串联）
+ * 英雄区只放行业大字；场景在壳侧栏；模板为小芯片。
+ */
 export default function IndustrySiteHome({
   appName,
+  industryLabel,
   skin,
   micrositeId,
   menu,
   onEnterScene,
   onPickSkin,
 }: Props) {
-  const layout = skin?.layout || 'sidebar'
-  const featured = menu.slice(0, layout === 'bento' || layout === 'magazine' || layout === 'waterfall' ? 12 : 8)
   const skins = listMicrositeRuntimeSkins()
-  const primary = featured[0]
+  const primary = menu[0]
+  const [focusKey, setFocusKey] = useState(primary?.key || '')
+  const [guideStep, setGuideStep] = useState<1 | 2 | 3>(1)
 
-  const hero = (
-    <section className={`ind-hero ind-hero--${layout}`} style={{ borderRadius: skin?.radius || '16px' }}>
-      <p className="ind-hero-eyebrow">独立站方案 · Runtime · {skin?.styleLabel || '默认'}</p>
-      <h2 className="ind-hero-title">{appName}</h2>
-      <p className="ind-hero-sub">
-        当前布局：<strong>{layout}</strong>
-        {skin ? `（${skin.styleLabel}）` : ''}。切换上方模板会重新排版整页。
-      </p>
-      {primary?.route ? (
-        <button type="button" className="btn ind-hero-cta" onClick={() => onEnterScene(primary.route || '/')}>
-          进入「{primary.label}」→
-        </button>
-      ) : null}
-    </section>
+  const focused = useMemo(
+    () => menu.find((m) => m.key === focusKey) || primary || null,
+    [menu, focusKey, primary],
   )
 
-  const picker = <SkinPicker skins={skins} micrositeId={micrositeId} onPickSkin={onPickSkin} />
+  const capKey =
+    focused?.capability_key ||
+    (focused as { capabilityKey?: string } | null)?.capabilityKey ||
+    focused?.key ||
+    '—'
 
-  const cards = (variant: 'tile' | 'row' | 'pill' | 'feature' = 'tile') => (
-    <section className={`ind-scene-grid ind-scene-grid--${layout}`} aria-label="场景入口">
-      <h3>场景入口</h3>
-      <div className={`ind-scene-cards ind-scene-cards--${layout}`}>
-        {featured.map((m) => (
-          <SceneCard
-            key={m.key}
-            m={m}
-            variant={variant}
-            onEnter={() => onEnterScene(m.route || `/${m.key}`)}
-          />
-        ))}
-      </div>
-      {menu.length > featured.length ? (
-        <p className="ind-scene-more">其余 {menu.length - featured.length} 个场景见导航</p>
-      ) : null}
-    </section>
-  )
+  const title = industryLabel || appName || '行业应用'
+  const sceneCount = menu.length
 
-  // —— 按 layout 组装不同结构 ——
-  if (layout === 'fullscreen') {
-    return (
-      <div className={`ind-home ind-layout-fullscreen`} key={micrositeId}>
-        <div className="ind-fullbleed">
-          {hero}
-          <div className="ind-fullbleed-dock">
-            {featured.slice(0, 5).map((m) => (
+  const enterFocused = () => {
+    if (!focused) return
+    setGuideStep(3)
+    onEnterScene(focused.route || `/${focused.key}`)
+  }
+
+  return (
+    <div className="ind-home ind-home--editorial-guided" key={micrositeId}>
+      <section className="ind-hero ind-hero--cover" style={{ borderRadius: skin?.radius || '16px' }}>
+        <p className="ind-hero-eyebrow">已选行业 · 独立站 Runtime</p>
+        <h2 className="ind-hero-title">{title}</h2>
+        <p className="ind-hero-sub">
+          共 <strong>{sceneCount}</strong> 个场景在左侧按分类展开。首页不做 Tab 墙；按下面三步进入能力填写。
+        </p>
+
+        <div className="ind-guide-steps" role="tablist" aria-label="使用引导">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={guideStep === 1}
+            className={`ind-guide-step${guideStep === 1 ? ' on' : ''}`}
+            onClick={() => setGuideStep(1)}
+          >
+            <span className="ind-guide-n">STEP 1</span>
+            <strong>左侧选场景</strong>
+            <span>父子级分类，点名称即可</span>
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={guideStep === 2}
+            className={`ind-guide-step${guideStep === 2 ? ' on' : ''}`}
+            onClick={() => setGuideStep(2)}
+          >
+            <span className="ind-guide-n">STEP 2</span>
+            <strong>看串联路径</strong>
+            <span>场景如何落到能力包</span>
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={guideStep === 3}
+            className={`ind-guide-step${guideStep === 3 ? ' on' : ''}`}
+            onClick={() => setGuideStep(3)}
+          >
+            <span className="ind-guide-n">STEP 3</span>
+            <strong>开始填写</strong>
+            <span>进入 Runtime · &gt;&gt; 推进</span>
+          </button>
+        </div>
+
+        <div className="ind-hero-cta-row">
+          {primary ? (
+            <button
+              type="button"
+              className="btn ind-hero-cta"
+              onClick={() => {
+                setFocusKey(primary.key)
+                setGuideStep(3)
+                onEnterScene(primary.route || `/${primary.key}`)
+              }}
+            >
+              从「{primary.label}」开始 →
+            </button>
+          ) : null}
+          <button
+            type="button"
+            className="btn btn-ghost"
+            onClick={() => {
+              const el = document.querySelector('.runtime-sidebar details')
+              if (el instanceof HTMLDetailsElement) el.open = true
+              setGuideStep(1)
+            }}
+          >
+            查看左侧 {sceneCount} 个场景
+          </button>
+        </div>
+      </section>
+
+      <div className="ind-board">
+        <section className="ind-path-card" aria-label="场景能力串联">
+          <div className="ind-path-head">
+            <h3>当前串联路径</h3>
+            <p>点左侧场景后这里会更新；再点「进入」开跑。</p>
+          </div>
+          <div className="ind-path-pills">
+            <span className="ind-pill">{focused?.label || '未选场景'}</span>
+            <span className="ind-path-arrow" aria-hidden>
+              →
+            </span>
+            <span className="ind-pill ind-pill--cap">{capKey}</span>
+            <span className="ind-path-arrow" aria-hidden>
+              →
+            </span>
+            <span className="ind-pill">打开填写</span>
+          </div>
+          <div className="ind-path-action">
+            <div>
+              <strong>{focused?.label || '请先选场景'}</strong>
+              <small>
+                {focused?.category || '业务场景'} · 真 API · 空库即空列表
+              </small>
+            </div>
+            <button type="button" className="btn" disabled={!focused} onClick={enterFocused}>
+              进入场景 →
+            </button>
+          </div>
+          {/* 焦点列表：便于在首页预览串联，不铺满 60+ Tab */}
+          <div className="ind-focus-list" aria-label="快速聚焦场景">
+            {menu.slice(0, 8).map((m) => (
               <button
                 key={m.key}
                 type="button"
-                className="ind-dock-btn"
-                onClick={() => onEnterScene(m.route || `/${m.key}`)}
+                className={`ind-focus-chip${m.key === focused?.key ? ' on' : ''}`}
+                onClick={() => {
+                  setFocusKey(m.key)
+                  setGuideStep(2)
+                }}
               >
                 {m.label}
               </button>
             ))}
-          </div>
-        </div>
-        {picker}
-      </div>
-    )
-  }
-
-  if (layout === 'feature') {
-    return (
-      <div className="ind-home ind-layout-feature" key={micrositeId}>
-        {picker}
-        <div className="ind-feature-split">
-          <div className="ind-feature-main">
-            {hero}
-            {primary ? (
-              <SceneCard
-                m={primary}
-                variant="feature"
-                onEnter={() => onEnterScene(primary.route || '/')}
-              />
+            {menu.length > 8 ? (
+              <span className="ind-focus-more">其余 {menu.length - 8} 个见左侧导航</span>
             ) : null}
           </div>
-          <aside className="ind-feature-rail">
-            <h3>更多场景</h3>
-            {featured.slice(1).map((m) => (
-              <SceneCard key={m.key} m={m} variant="row" onEnter={() => onEnterScene(m.route || `/${m.key}`)} />
+        </section>
+
+        <section className="ind-skin-picker ind-skin-picker--compact" aria-label="页面模板">
+          <div className="ind-skin-picker-head">
+            <strong>换皮（可选）</strong>
+            <span>小芯片 · 只改版式气质，不改场景与能力关系</span>
+          </div>
+          <div className="ind-skin-chips">
+            {skins.map((s) => (
+              <button
+                key={s.id}
+                type="button"
+                className={`ind-skin-chip${s.id === micrositeId ? ' on' : ''}`}
+                style={
+                  s.id === micrositeId
+                    ? ({ borderColor: s.accent, color: s.accent } as CSSProperties)
+                    : undefined
+                }
+                onClick={() => onPickSkin(s.id)}
+                title={`${s.styleLabel} · ${s.layout}/${s.nav}`}
+              >
+                {s.styleLabel.split('·')[0].trim()}
+              </button>
             ))}
-          </aside>
+          </div>
+        </section>
+      </div>
+
+      <section className="ind-how" aria-label="怎么用">
+        <div>
+          <b>① 左侧选场景</b>
+          <span>父子级折叠，避免顶栏密密麻麻。</span>
         </div>
-      </div>
-    )
-  }
-
-  if (layout === 'split') {
-    return (
-      <div className="ind-home ind-layout-split" key={micrositeId}>
-        {picker}
-        <div className="ind-asym">
-          <div className="ind-asym-left">{hero}</div>
-          <div className="ind-asym-right">{cards('row')}</div>
+        <div>
+          <b>② 看串联路径</b>
+          <span>一个场景对应能力包，真 API 读写。</span>
         </div>
-      </div>
-    )
-  }
-
-  if (layout === 'centered') {
-    return (
-      <div className="ind-home ind-layout-centered" key={micrositeId}>
-        {picker}
-        <div className="ind-center-col">
-          {hero}
-          {cards('pill')}
+        <div>
+          <b>③ 进入填写</b>
+          <span>用 &gt;&gt; 单字段推进；换皮不影响数据。</span>
         </div>
-      </div>
-    )
-  }
-
-  if (layout === 'story' || layout === 'cinema') {
-    return (
-      <div className={`ind-home ind-layout-${layout}`} key={micrositeId}>
-        {picker}
-        {hero}
-        <div className="ind-story-chapters">
-          {featured.map((m, i) => (
-            <article key={m.key} className="ind-story-chapter">
-              <span className="ind-story-num">{String(i + 1).padStart(2, '0')}</span>
-              <div>
-                <h3>{m.label}</h3>
-                <p>{m.category || '业务场景'}</p>
-                <button type="button" className="btn btn-ghost" onClick={() => onEnterScene(m.route || `/${m.key}`)}>
-                  打开场景 →
-                </button>
-              </div>
-            </article>
-          ))}
-        </div>
-      </div>
-    )
-  }
-
-  if (layout === 'rows') {
-    return (
-      <div className="ind-home ind-layout-rows" key={micrositeId}>
-        {picker}
-        {hero}
-        {cards('row')}
-      </div>
-    )
-  }
-
-  if (layout === 'bento' || layout === 'magazine' || layout === 'waterfall' || layout === 'topstrip') {
-    return (
-      <div className={`ind-home ind-layout-${layout}`} key={micrositeId}>
-        {picker}
-        {hero}
-        {cards(layout === 'topstrip' ? 'pill' : 'tile')}
-      </div>
-    )
-  }
-
-  // sidebar / default
-  return (
-    <div className="ind-home ind-layout-sidebar" key={micrositeId}>
-      {picker}
-      {hero}
-      {cards('tile')}
+      </section>
     </div>
   )
 }

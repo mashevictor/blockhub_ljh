@@ -58,10 +58,9 @@ description: >-
 
 ## 独立站 Runtime 体验（强制）
 
-1. **标题首页**（`/`）：大标题 + 模板切换器 + 按 `layout` 组装的场景入口；禁止能力按钮墙
-2. **导航位置**由 `skin.nav` 决定：`left` 侧栏 / `top` 顶条 / `bottom` 底栏 / `none` 仅首页卡片
-3. **布局模式**由 `skin.layout` 决定：fullscreen / bento / magazine / feature / split / story …
-4. **模板切换**：Runtime 内可换 20 套（localStorage + 个人草稿写入 `microsite_id` + `layout_mode`）
-5. 后端 `entry_source=industry_site` 时仍生成可导航 schema；前端按皮肤覆盖壳结构
+1. **标题首页**（`/`）：**行业大字封面**（`meta.industry_name`）+ STEP1/2/3 引导 + 场景→能力串联路径；禁止能力/场景 Tab 墙
+2. **导航**：固定左侧 **父子折叠树**（按 category）；禁止顶栏/底栏密密场景按钮
+3. **模板换皮**：右侧/下方小芯片，只改色板气质，不改导航结构
+4. 发布写入 `meta.industry_key` / `meta.industry_name`
 
 弹幕/模块入口仍为 Tabs 工作台，互不污染。

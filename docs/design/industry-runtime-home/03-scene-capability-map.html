@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>03 · 场景—能力关系图</title>
+  <style>
+    :root {
+      --bg: #0b1220;
+      --panel: #121a2b;
+      --line: rgba(148,163,184,.2);
+      --fg: #e2e8f0;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --ok: #34d399;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: "IBM Plex Sans", "Segoe UI", "PingFang SC", sans-serif; background: var(--bg); color: var(--fg); }
+    .shell { display: grid; grid-template-columns: 250px 1fr; min-height: 100vh; }
+    aside { border-right: 1px solid var(--line); padding: 16px 12px; background: #0a101c; }
+    .back { font-size: 12px; color: var(--accent); text-decoration: none; }
+    .aside h3 { margin: 14px 0 8px; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+    details { margin-bottom: 6px; }
+    summary { cursor: pointer; font-size: 12px; color: var(--muted); padding: 6px; }
+    .child {
+      display: block; width: 100%; text-align: left; border: 0; background: transparent; color: var(--fg);
+      padding: 8px 10px; border-radius: 8px; font-size: 13px; cursor: pointer;
+    }
+    .child.on, .child:hover { background: rgba(56,189,248,.12); color: var(--accent); }
+    main { padding: 20px 24px 48px; }
+    .hero {
+      border: 1px solid var(--line); border-radius: 16px; padding: 28px 28px 22px; margin-bottom: 14px;
+      background:
+        radial-gradient(700px 260px at 0% 0%, rgba(56,189,248,.18), transparent 55%),
+        var(--panel);
+    }
+    .hero .k { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); margin: 0 0 8px; }
+    .hero h1 { margin: 0; font-size: clamp(40px, 6vw, 64px); letter-spacing: -.04em; }
+    .hero p { margin: 10px 0 0; color: var(--muted); max-width: 52ch; font-size: 14px; line-height: 1.5; }
+    .map {
+      display: grid; grid-template-columns: 1fr 48px 1fr; gap: 8px; align-items: stretch;
+      border: 1px solid var(--line); border-radius: 16px; padding: 16px; background: var(--panel); margin-bottom: 14px;
+    }
+    .col h4 { margin: 0 0 10px; font-size: 12px; color: var(--muted); font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
+    .node {
+      border: 1px solid var(--line); border-radius: 12px; padding: 14px; background: #0d1524;
+      min-height: 120px;
+    }
+    .node strong { display: block; font-size: 18px; margin-bottom: 6px; }
+    .node p { margin: 0; font-size: 12px; color: var(--muted); line-height: 1.45; }
+    .bridge {
+      display: grid; place-items: center; color: var(--accent); font-size: 22px;
+    }
+    .caps { display: flex; flex-direction: column; gap: 8px; }
+    .cap {
+      border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; background: #0d1524;
+      display: flex; justify-content: space-between; align-items: center; gap: 8px;
+    }
+    .cap b { font-size: 13px; }
+    .cap code { font-size: 11px; color: var(--ok); }
+    .btn {
+      border: 0; background: var(--accent); color: #0b1220; font-weight: 700;
+      border-radius: 999px; padding: 8px 12px; font-size: 12px; cursor: pointer;
+    }
+    .footer-row {
+      display: flex; justify-content: space-between; gap: 12px; align-items: center; flex-wrap: wrap;
+      font-size: 12px; color: var(--muted);
+    }
+    .tpl { display: flex; gap: 6px; flex-wrap: wrap; }
+    .tpl button {
+      border: 1px solid var(--line); background: transparent; color: var(--muted);
+      border-radius: 999px; padding: 5px 9px; font-size: 11px; cursor: pointer;
+    }
+    .tpl button.on { color: var(--accent); border-color: var(--accent); }
+    @media (max-width: 900px) {
+      .shell { grid-template-columns: 1fr; }
+      .map { grid-template-columns: 1fr; }
+      .bridge { transform: rotate(90deg); padding: 4px 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <aside>
+      <a class="back" href="./index.html">← 目录</a>
+      <h3>场景（父→子）</h3>
+      <div id="nav"></div>
+    </aside>
+    <main>
+      <section class="hero">
+        <p class="k">行业封面</p>
+        <h1>通用办公</h1>
+        <p>点左侧场景，中间关系图解释它绑定了哪个能力包。模板只在页脚小字切换。</p>
+      </section>
+      <section class="map">
+        <div class="col">
+          <h4>场景</h4>
+          <div class="node">
+            <strong id="sceneName">请假申请</strong>
+            <p id="sceneDesc">分类：人事行政 · 用户从导航进入的业务入口</p>
+          </div>
+        </div>
+        <div class="bridge">⟶</div>
+        <div class="col">
+          <h4>能力（可复用）</h4>
+          <div class="caps" id="caps"></div>
+        </div>
+      </section>
+      <div class="footer-row">
+        <div>
+          <div style="margin-bottom:6px">页面模板（小芯片）</div>
+          <div class="tpl" id="tpl"></div>
+        </div>
+        <button class="btn" type="button" id="go">打开当前能力 →</button>
+      </div>
+    </main>
+  </div>
+  <script>
+    const tree = [
+      { cat: '人事行政', items: [
+        { name: '请假申请', desc: '员工发起假期申请，走审批', caps: [{ key: 'approval_flow', label: '审批流' }] },
+        { name: '入职办理', desc: '新员工资料与任务清单', caps: [{ key: 'hr_onboard', label: '入职办理' }, { key: 'approval_flow', label: '审批流' }] },
+      ]},
+      { cat: '行政后勤', items: [
+        { name: '报修工单', desc: '设备故障报修到完工', caps: [{ key: 'device_repair', label: '设备报修' }] },
+        { name: '会议室预订', desc: '会议室占用与冲突检测', caps: [{ key: 'meeting_booking', label: '会议室' }] },
+      ]},
+      { cat: '知识培训', items: [
+        { name: 'SOP 手册', desc: '制度与操作文档库', caps: [{ key: 'knowledge_base', label: '知识库' }] },
+      ]},
+    ];
+    const nav = document.getElementById('nav');
+    function show(item, cat) {
+      document.getElementById('sceneName').textContent = item.name;
+      document.getElementById('sceneDesc').textContent = `分类：${cat} · ${item.desc}`;
+      const caps = document.getElementById('caps');
+      caps.innerHTML = '';
+      item.caps.forEach(c => {
+        const row = document.createElement('div');
+        row.className = 'cap';
+        row.innerHTML = `<div><b>${c.label}</b><div><code>${c.key}</code></div></div>`;
+        caps.appendChild(row);
+      });
+    }
+    tree.forEach((g, gi) => {
+      const d = document.createElement('details');
+      d.open = gi === 0;
+      d.innerHTML = `<summary>${g.cat}</summary>`;
+      g.items.forEach((it, ii) => {
+        const b = document.createElement('button');
+        b.className = 'child' + (gi === 0 && ii === 0 ? ' on' : '');
+        b.type = 'button';
+        b.textContent = it.name;
+        b.onclick = () => {
+          nav.querySelectorAll('.child').forEach(x => x.classList.remove('on'));
+          b.classList.add('on');
+          show(it, g.cat);
+        };
+        d.appendChild(b);
+      });
+      nav.appendChild(d);
+    });
+    show(tree[0].items[0], tree[0].cat);
+    const tpl = document.getElementById('tpl');
+    ['Nova','Helios','Tessellate','Hyperspace','Sonar'].forEach((t,i) => {
+      const b = document.createElement('button');
+      b.textContent = t;
+      if (i===0) b.className='on';
+      b.onclick = () => { [...tpl.children].forEach(x=>x.classList.remove('on')); b.classList.add('on'); };
+      tpl.appendChild(b);
+    });
+    document.getElementById('go').onclick = () => alert('原型：打开 ' + document.getElementById('sceneName').textContent);
+  </script>
+</body>
+</html>

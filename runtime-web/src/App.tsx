@@ -301,14 +301,37 @@ export default function App() {
   const industryEntry = isIndustrySiteEntry(meta)
   const micrositeId = skinOverride || baseMicrositeId
   const skin = industryEntry ? getMicrositeRuntimeSkin(micrositeId) : null
-  // 独立站：按模板决定导航位置；非独立站沿用 schema
-  const navMode = industryEntry ? skin?.nav || 'left' : layoutRaw === 'sidebar' ? 'left' : 'top'
-  const layout = industryEntry
-    ? navMode === 'left'
-      ? 'sidebar'
-      : 'tabs'
-    : layoutRaw
+  // 独立站：固定左侧父子导航（设计 01+02），禁止顶栏/底栏场景 Tab 墙
+  const navMode = industryEntry ? 'left' : layoutRaw === 'sidebar' ? 'left' : 'top'
+  const layout = industryEntry ? 'sidebar' : layoutRaw
   const layoutMode = industryEntry ? skin?.layout || 'sidebar' : layoutRaw
+  const industryLabel =
+    String(
+      meta.industry_name ||
+        meta.pack_name ||
+        (schema.theme as { industryName?: string } | undefined)?.industryName ||
+        '',
+    ).trim() ||
+    ({
+      office: '通用办公',
+      mfg: '传统制造',
+      sales: '销售行业',
+      med: '医疗健康',
+      game: '游戏娱乐',
+      retail: '零售电商',
+      edu: '教育培训',
+      finance: '金融服务',
+      logistics: '物流仓储',
+      realestate: '房地产',
+      hotel: '酒店餐饮',
+      energy: '能源电力',
+      gov: '政务公用',
+      legal: '法律服务',
+      hr: '人力资源',
+      marketing: '市场营销',
+      construction: '建筑工程',
+    } as Record<string, string>)[String(meta.industry_key || '')] ||
+    config.app_name
   const activeKey = menu.find((m) => m.route === route)?.key || menu[0]?.key
   const children = schema.root.children || []
   const contentNodes = children.filter((c) => c.type !== 'landing_hero')
@@ -351,14 +374,16 @@ export default function App() {
         micrositeId: id,
         skin: id,
         layoutMode: nextSkin?.layout,
-        navMode: nextSkin?.nav,
+        navMode: 'left',
+        industryName: industryLabel,
       },
       meta: {
         ...(schema.meta || {}),
         entry_source: 'industry_site',
         microsite_id: id,
         layout_mode: nextSkin?.layout,
-        nav_mode: nextSkin?.nav,
+        nav_mode: 'left',
+        industry_name: industryLabel,
       },
     }
     setSchema(nextSchema as PageSchema)
@@ -370,7 +395,7 @@ export default function App() {
       },
       body: JSON.stringify({
         page_schema: nextSchema,
-        summary: `切换独立站模板布局 → ${id} (${nextSkin?.layout}/${nextSkin?.nav})`,
+        summary: `切换独立站模板 → ${id}（导航保持左侧父子）`,
       }),
     })
       .then((r) => (r.ok ? r.json() : null))
@@ -391,22 +416,32 @@ export default function App() {
           标题首页
         </button>
       ) : null}
-      {industryEntry && navMode === 'left'
-        ? menuGroups.map(([cat, items]) => (
-            <div key={cat} className="runtime-sidebar-group">
-              <p className="runtime-sidebar-cat">{cat}</p>
-              {items.map((item) => (
-                <button
-                  key={item.key}
-                  type="button"
-                  className={`${className}${item.route === route || item.key === activeKey ? ' active' : ''}`}
-                  onClick={() => navigateRoute(appId!, item.route || '/')}
-                >
-                  {item.label}
-                </button>
-              ))}
-            </div>
-          ))
+      {industryEntry
+        ? menuGroups.map(([cat, items], gi) => {
+            const childActive = items.some((item) => item.route === route || item.key === activeKey)
+            return (
+              <details
+                key={cat}
+                className="runtime-sidebar-tree"
+                open={childActive || (atHome && gi === 0)}
+              >
+                <summary className="runtime-sidebar-cat">
+                  <span>{cat}</span>
+                  <span className="runtime-sidebar-count">{items.length}</span>
+                </summary>
+                {items.map((item) => (
+                  <button
+                    key={item.key}
+                    type="button"
+                    className={`${className}${item.route === route || item.key === activeKey ? ' active' : ''}`}
+                    onClick={() => navigateRoute(appId!, item.route || '/')}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </details>
+            )
+          })
         : menu.map((item) => (
             <button
               key={item.key}
@@ -469,9 +504,9 @@ export default function App() {
             <>
               <strong>独立站方案工作台</strong>
               <span>
-                {skin
-                  ? `模板 ${skin.styleLabel} · 布局 ${skin.layout} · 导航 ${skin.nav}`
-                  : '来自行业独立站 · 可切换 20 套模板重排'}
+                {industryLabel}
+                {skin ? ` · 模板 ${skin.styleLabel.split('·')[0].trim()}` : ''}
+                {' · 左侧父子导航 · 首页行业封面'}
               </span>
             </>
           ) : (
@@ -509,7 +544,7 @@ export default function App() {
               <p className="muted">
                 {user.display_name} · {user.role}
                 {industryEntry
-                  ? ` · 独立站${skin ? ` · ${skin.style}` : ''}`
+                  ? ` · ${industryLabel}${skin ? ` · ${skin.style}` : ''}`
                   : entrySource === 'im'
                     ? ' · 来自企微/钉钉/飞书'
                     : ' · 应用门户'}
@@ -533,10 +568,6 @@ export default function App() {
             <aside className="runtime-sidebar">{renderNavButtons('nav-btn sidebar-btn')}</aside>
           ) : null}
 
-          {industryEntry && navMode === 'top' ? (
-            <nav className="runtime-nav runtime-nav-topstrip">{renderNavButtons('nav-btn')}</nav>
-          ) : null}
-
           {!industryEntry && layout !== 'sidebar' ? (
             <nav className="runtime-nav runtime-nav-mobile">
               {menu.map((item) => (
@@ -557,6 +588,7 @@ export default function App() {
               industryEntry && atHome ? (
                 <IndustrySiteHome
                   appName={config.app_name}
+                  industryLabel={industryLabel}
                   skin={skin}
                   micrositeId={micrositeId || 'consulting'}
                   menu={menu as never}
@@ -586,12 +618,6 @@ export default function App() {
             )}
           </main>
         </div>
-
-        {industryEntry && navMode === 'bottom' ? (
-          <nav className="runtime-nav runtime-nav-bottomdock" aria-label="底部场景">
-            {renderNavButtons('nav-btn dock-btn')}
-          </nav>
-        ) : null}
 
         {showApp && (
           <footer className="runtime-footer">
