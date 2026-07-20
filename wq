@@ -1,0 +1,211 @@
+[33mcommit 0f32c12ee394c824767193ba374d08198bfeb120[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m
+Author: mashevictor <a8491087@163.com>
+Date:   Fri Jul 17 13:09:49 2026 +0800
+
+    fix(preview): map gen_ scenes to live submit APIs with real feedback
+    
+    Remap team-building and similar compose adds to expense_claim, route preview forms through LiveOffice true APIs, and disable static demo buttons so submit flow is honest.
+    
+    Co-authored-by: Cursor <cursoragent@cursor.com>
+
+[33mcommit 1fb6e073072f2df0314b3b5a10920e21476944a1[m
+Author: mashevictor <a8491087@163.com>
+Date:   Fri Jul 17 12:01:08 2026 +0800
+
+    fix(home): keep orb done button below scrollable module grid
+    
+    Prevent overflowing grid from painting under the footer; pin CTA as full-width bar and scroll only the body.
+    
+    Co-authored-by: Cursor <cursoragent@cursor.com>
+
+[33mcommit e5e1a7799bd86bd6c2828ac6f4fa4383708992c0[m
+Author: mashevictor <a8491087@163.com>
+Date:   Fri Jul 17 11:43:21 2026 +0800
+
+    fix(home): exact-match Vite aliases for web-core gtgt subpaths
+    
+    Prevent @blockhub/web-core file alias from swallowing /resolveFormSteps as ENOTDIR.
+    
+    Co-authored-by: Cursor <cursoragent@cursor.com>
+
+[33mcommit ecef712c581464d9aa66281bbf3ea7852caaa7a4[m
+Author: mashevictor <a8491087@163.com>
+Date:   Fri Jul 17 11:40:26 2026 +0800
+
+    fix(home): add TS path stubs for web-core gtgt imports
+    
+    tsc -b only saw Vite aliases before; declare modules like DeveloperBlueprintPanel and type onChange callbacks.
+    
+    Co-authored-by: Cursor <cursoragent@cursor.com>
+
+[33mcommit f78f4a574ae795b7d6b062bbbe71c3ac01d35e4e[m
+Author: mashevictor <a8491087@163.com>
+Date:   Fri Jul 17 11:36:56 2026 +0800
+
+    fix(home): escape >> in LiveOffice JSX text for tsc build
+    
+    Co-authored-by: Cursor <cursoragent@cursor.com>
+
+[33mcommit dcf15389db5f8bcc80b08e75b1fe59d4085d1bb0[m
+Author: mashevictor <a8491087@163.com>
+Date:   Fri Jul 17 11:34:54 2026 +0800
+
+    feat(capship): real compose-edit patches and unified form field controls
+    
+    DeepSeek/local rules emit patch_page for date/number UI changes; widgets and LiveOffice preview consume form_fields via GtgtStepComposer. Also unify industry card heights and keep warehouse above footer.
+    
+    Co-authored-by: Cursor <cursoragent@cursor.com>
+
+[33mcommit 0e553091de81ea531fbef484c72e2bf483324b90[m
+Author: mashevictor <a8491087@163.com>
+Date:   Fri Jul 17 11:01:34 2026 +0800
+
+    fix(smoke): print publish HTTP status/body when office66 publish fails
+    
+    Co-authored-by: Cursor <cursoragent@cursor.com>
+
+[33mcommit 98940600fe40649da9f96afec3ab65f7a124e065[m
+Author: mashevictor <a8491087@163.com>
+Date:   Fri Jul 17 10:55:56 2026 +0800
+
+    fix(smoke): diagnose office66 login failures and retry localhost API
+    
+    Co-authored-by: Cursor <cursoragent@cursor.com>
+
+[33mcommit 6436d9dc95a8e855c22bca19acf4c94f58784508[m
+Author: mashevictor <a8491087@163.com>
+Date:   Fri Jul 17 10:53:31 2026 +0800
+
+    test(office): add API and UI smoke scripts for 66-scene delivery
+    
+    Provide server-ready smoke-office66 / smoke-office66-ui / all runner to verify assembly, publish, CRUD flows, and Runtime interaction after deploy.
+    
+    Co-authored-by: Cursor <cursoragent@cursor.com>
+
+[33mcommit 70b0b6134dbd552c65031289b0988078c72ca16c[m
+Author: mashevictor <a8491087@163.com>
+Date:   Fri Jul 17 10:50:33 2026 +0800
+
+    feat(office): deliver 66 catalog scenes with real Path-A APIs and live submit flow
+    
+    Expand office Runtime from 18 to Catalog SSOT 66, map each scene to web-ready capabilities, and wire preview/approval forms so submit updates lists and status advances.
+    
+    Co-authored-by: Cursor <cursoragent@cursor.com>
+
+[33mcommit 7847c26aa293dff7f165e6e340aea522b30aa724[m
+Author: mashevictor <a8491087@163.com>
+Date:   Thu Jul 16 19:08:43 2026 +0800
+
+    chore(ops): add ICP beian landing as nginx switchable backup, keep prod site intact
+    
+    Co-authored-by: Cursor <cursoragent@cursor.com>
+
+[33mcommit 4444aa7b56b7a3b7cbef6153223e714aba4abd3f[m
+Author: mashevictor <a8491087@163.com>
+Date:   Thu Jul 16 19:01:47 2026 +0800
+
+    fix(home): industry-cache apps open preview runtime, not /r/cache-* 404
+    
+    Co-authored-by: Cursor <cursoragent@cursor.com>
+
+[33mcommit 745dd69609c0a52b8fb0fb1e7827ff6e081dd036[m
+Author: mashevictor <a8491087@163.com>
+Date:   Thu Jul 16 18:54:54 2026 +0800
+
+    feat(home): industry pack scenes/publish from local cache, bump html cache v1.1.57
+    
+    Co-authored-by: Cursor <cursoragent@cursor.com>
+
+[33mcommit 6d53115c6709c994c84a3397d1350e8d924d6fef[m
+Author: mashevictor <a8491087@163.com>
+Date:   Thu Jul 16 18:40:10 2026 +0800
+
+    fix(runtime): gate fake seed widgets so publish/schema never show missing Web widgets
+    
+    Co-authored-by: Cursor <cursoragent@cursor.com>
+
+[33mcommit 2e20b52ce217ecfe5542456b1cac070fa314971e[m
+Author: mashevictor <a8491087@163.com>
+Date:   Thu Jul 16 18:20:28 2026 +0800
+
+    feat(api): add /api/v1/smoke/danmaku for hero preset end-to-end checks
+    
+    Expose a curl-friendly smoke endpoint covering registry, web packages, OpenAPI routes, store list probes, and danmaku label matching for all CapShip hero modules.
+    
+    Co-authored-by: Cursor <cursoragent@cursor.com>
+
+[33mcommit b1dd0d3c443a2942bc94a67b19a270142110c269[m
+Author: mashevictor <a8491087@163.com>
+Date:   Thu Jul 16 18:01:38 2026 +0800
+
+    feat(home): generate 9 real business download PDFs with DeepSeek
+    
+    Replace printable HTML stubs with ReportLab PDFs, normalize titles and confidence notes, and point all trust/case/footer download links to .pdf.
+    
+    Co-authored-by: Cursor <cursoragent@cursor.com>
+
+[33mcommit e83837c4987a64257bd0480241afcffa5ba063ad[m
+Author: mashevictor <a8491087@163.com>
+Date:   Thu Jul 16 17:44:03 2026 +0800
+
+    feat: CapShip EN landing, Runtime intent→real widgets, office Path-A caps
+    
+    Simplify CapShip hero (English, drop can-do list); compose-edit maps free text to registry widgets and syncs manifest; add IT/meeting/asset Path-A with migrations; compress static industry/news images.
+    
+    Co-authored-by: Cursor <cursoragent@cursor.com>
+
+[33mcommit 0068f36fc5acddcabff11ca668d58b2a83388bff[m
+Author: mashevictor <a8491087@163.com>
+Date:   Thu Jul 16 14:56:59 2026 +0800
+
+    perf(home): 行业/新闻配图长缓存与懒加载，可选 CDN
+    
+    Co-authored-by: Cursor <cursoragent@cursor.com>
+
+[33mcommit f80ff29d051a743055438be667f47e408ebc23a8[m
+Author: mashevictor <a8491087@163.com>
+Date:   Thu Jul 16 14:36:57 2026 +0800
+
+    feat(runtime): 行业包真 Runtime（mfg/office）装配同源，移除 mock 预览
+    
+    Co-authored-by: Cursor <cursoragent@cursor.com>
+
+[33mcommit ce00d8cd730ab0f7f492aa5917eb0bb74612ea25[m
+Author: mashevictor <a8491087@163.com>
+Date:   Thu Jul 16 14:03:43 2026 +0800
+
+    fix(runtime): 契约面板与能力包按本应用菜单解耦，区分独立站与 Runtime
+    
+    Co-authored-by: Cursor <cursoragent@cursor.com>
+
+[33mcommit a5b2755390ef5f5941c98f1f738faedfc37e71d2[m
+Author: mashevictor <a8491087@163.com>
+Date:   Thu Jul 16 13:51:58 2026 +0800
+
+    chore(home): 更新资讯封面图资源
+    
+    Co-authored-by: Cursor <cursoragent@cursor.com>
+
+[33mcommit ede90d087367d480abe3685b62aaecf4d69b50cd[m
+Author: mashevictor <a8491087@163.com>
+Date:   Thu Jul 16 13:50:24 2026 +0800
+
+    fix(deploy): 部署流程强制跑 fix-catalog，永久消除 catalog 表漂移
+    
+    Co-authored-by: Cursor <cursoragent@cursor.com>
+
+[33mcommit 5d733a7695ce3c133d67a00212682b84908d40cd[m
+Author: mashevictor <a8491087@163.com>
+Date:   Thu Jul 16 13:46:50 2026 +0800
+
+    fix(home): 契约面板样式改为组件内导入，修复 Vite ENOTDIR 构建失败
+    
+    Co-authored-by: Cursor <cursoragent@cursor.com>
+
+[33mcommit 7a5219720e842b13835c20f82550d8a9121bdd78[m
+Author: mashevictor <a8491087@163.com>
+Date:   Thu Jul 16 13:40:53 2026 +0800
+
+    feat: 后端契约面板、对话改页版本管理与 Nginx HTTPS 加固
+    
+    Runtime/制造业预览可查看库表字段与接口，管理员可下载代码包；对话改页�

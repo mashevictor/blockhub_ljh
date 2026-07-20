@@ -1,14 +1,15 @@
-"""生成官网「资料下载」9 份真 PDF（DeepSeek 深化正文 + ReportLab 排版）。
+"""生成官网 9 份商务评估 PDF（≥3 页 · 主页蓝绿品牌 · 微软雅黑）。
 
-输出: home/public/downloads/*.pdf
-用法（在仓库根或 backend）:
+对齐 home 品牌色：#0d47a1 / #1976d2 / #00b894
+字体：Microsoft YaHei（与主页 PingFang SC / 微软雅黑栈一致）
+正文：DeepSeek 深化；失败则用长版兜底。
+
+用法:
   backend/.venv/Scripts/python.exe scripts/generate-download-pdfs.py
-  # 无 Key / 失败时自动用内置商务兜底正文
 """
 
 from __future__ import annotations
 
-import json
 import re
 import sys
 from datetime import date
@@ -25,21 +26,31 @@ sys.path.insert(0, str(BACKEND))
 from reportlab.lib.pagesizes import A4  # noqa: E402
 from reportlab.lib.units import mm  # noqa: E402
 from reportlab.pdfbase import pdfmetrics  # noqa: E402
-from reportlab.pdfbase.cidfonts import UnicodeCIDFont  # noqa: E402
+from reportlab.pdfbase.ttfonts import TTFont  # noqa: E402
 from reportlab.pdfgen import canvas  # noqa: E402
 
 from app.core.config import settings  # noqa: E402
 from app.services.deepseek_client import deepseek_json_chat  # noqa: E402
 
-_FONT = "STSong-Light"
-_PAGE_W, _PAGE_H = A4
-_MARGIN_X = 18 * mm
-_MARGIN_TOP = 16 * mm
-_MARGIN_BOTTOM = 18 * mm
-_CONTENT_W = _PAGE_W - 2 * _MARGIN_X
-_TODAY = date.today().isoformat()
+# 品牌色（与 b2b-landing.css / .b2b-brand-scope 一致）
+_NAVY = (0x0D / 255, 0x47 / 255, 0xA1 / 255)
+_BLUE = (0x19 / 255, 0x76 / 255, 0xD2 / 255)
+_TEAL = (0x00 / 255, 0xB8 / 255, 0x94 / 255)
+_TEXT = (0x33 / 255, 0x33 / 255, 0x33 / 255)
+_MUTED = (0x66 / 255, 0x66 / 255, 0x66 / 255)
+_SOFT = (0xEA / 255, 0xF2 / 255, 0xFF / 255)
+_BG = (0xF9 / 255, 0xFA / 255, 0xFB / 255)
 
-# 规范商务标题 + 稳定文件名（前端 downloadPath 对齐）
+_PAGE_W, _PAGE_H = A4
+_MX = 18 * mm
+_MT = 20 * mm
+_MB = 16 * mm
+_CW = _PAGE_W - 2 * _MX
+_TODAY = date.today().isoformat()
+_FONT = "BHSans"
+_FONT_B = "BHSansBold"
+_MIN_PAGES = 4
+
 DOC_SPECS: list[dict[str, Any]] = [
     {
         "id": "security-whitepaper",
@@ -48,15 +59,18 @@ DOC_SPECS: list[dict[str, Any]] = [
         "subtitle": "企业评估版 · 数据驻留 · 传输与静态加密 · 访问控制 · 删除承诺",
         "doc_code": "BH-SEC-WP-2026.07",
         "classification": "对外可控分发 · 供采购 / 安全 / 合规评估",
-        "kind": "trust",
+        "tagline": "五分钟搭好，打开就能用",
         "outline": [
-            "文档目的与适用范围",
-            "数据驻留与出境控制",
-            "传输安全与静态加密",
-            "身份、权限与多租户隔离",
-            "审计、留存与事件响应",
-            "删除、退出与证明材料",
-            "客户可验证的证据清单",
+            "文档目的、读者与置信度边界",
+            "产品安全架构总览",
+            "数据驻留、分类与出境控制",
+            "传输安全、静态加密与密钥管理",
+            "身份认证、RBAC 与多租户隔离",
+            "开发运维安全与变更管理",
+            "审计日志、留存与事件响应",
+            "第三方与子处理器管控",
+            "删除、退出与客户可索取证据",
+            "附录：安全控制对照清单",
         ],
     },
     {
@@ -66,14 +80,16 @@ DOC_SPECS: list[dict[str, Any]] = [
         "subtitle": "ERP / CRM / IM / SSO · 对接方式 · 实施周期 · 验收口径",
         "doc_code": "BH-INT-CL-2026.07",
         "classification": "对外可控分发 · 供 IT / 集成商评估",
-        "kind": "trust",
+        "tagline": "五分钟搭好，打开就能用",
         "outline": [
-            "集成原则与边界",
-            "已验证系统清单",
-            "标准对接模式（API / Webhook / SSO）",
-            "典型行业场景",
-            "实施周期与客户侧配合项",
-            "安全与权限约定",
+            "集成原则与不做边界",
+            "已验证系统与成熟度说明",
+            "标准对接模式详解",
+            "安全、鉴权与环境隔离",
+            "行业典型对接场景",
+            "实施阶段、周期与客户配合项",
+            "验收口径与回滚策略",
+            "附录：联调检查表",
         ],
     },
     {
@@ -83,14 +99,16 @@ DOC_SPECS: list[dict[str, Any]] = [
         "subtitle": "处理目的 · 角色划分 · 子处理器 · 境内存储 · 安全义务",
         "doc_code": "BH-DPA-SM-2026.07",
         "classification": "摘要版 · 正式签约以盖章文本为准",
-        "kind": "trust",
+        "tagline": "五分钟搭好，打开就能用",
         "outline": [
-            "摘要说明与法律效力边界",
-            "处理目的、数据类别与角色",
-            "子处理器与变更通知",
-            "境内存储与安全措施引用",
-            "泄露通知与客户审计权",
-            "终止与数据返还/删除",
+            "摘要效力与适用部署模式",
+            "定义、角色与处理目的",
+            "数据类别与处理活动",
+            "子处理器与变更机制",
+            "安全措施与违规通知",
+            "客户审计权与配合义务",
+            "跨境、保留与删除",
+            "附录：条款速查表",
         ],
     },
     {
@@ -100,31 +118,35 @@ DOC_SPECS: list[dict[str, Any]] = [
         "subtitle": "PaaS 标准 · 混合部署 · 私有化 · 网络边界与运维责任",
         "doc_code": "BH-DEP-MD-2026.07",
         "classification": "对外可控分发 · 供架构 / 采购选型",
-        "kind": "trust",
+        "tagline": "五分钟搭好，打开就能用",
         "outline": [
             "选型原则与推荐路径",
-            "PaaS 标准（责任与适用）",
-            "混合部署（数据面边界）",
-            "私有化（监管与运维）",
-            "对照表：网络 / 数据 / SLA",
-            "从试点到量产的升级建议",
+            "PaaS 标准详解",
+            "混合部署详解",
+            "私有化详解",
+            "三档对照：网络 / 数据 / 运维 / SLA",
+            "从试点到量产的升级路径",
+            "风险与责任划分建议",
+            "附录：选型问卷",
         ],
     },
     {
         "id": "security-faq",
         "file": "security-faq.pdf",
         "title": "企业安全问卷答复手册（预填版）",
-        "subtitle": "常见 50 题框架 · 42 题预填样例 · 带来源与适用边界说明",
+        "subtitle": "常见问卷框架 · 预填样例 · 适用边界与来源说明",
         "doc_code": "BH-SEC-FAQ-2026.07",
         "classification": "预填样例 · 可按客户问卷二次定制",
-        "kind": "trust",
+        "tagline": "五分钟搭好，打开就能用",
         "outline": [
             "使用说明与置信度声明",
-            "数据与模型（Q&A）",
-            "部署与合规（Q&A）",
-            "身份权限与审计（Q&A）",
-            "第三方与子处理器（Q&A）",
-            "如何获取完整 Word/盖章版",
+            "组织与治理类问题",
+            "数据与模型类问题",
+            "部署与合规类问题",
+            "身份权限与审计类问题",
+            "第三方与子处理器类问题",
+            "业务连续性与事件响应",
+            "附录：如何获取完整定制答复包",
         ],
     },
     {
@@ -134,13 +156,16 @@ DOC_SPECS: list[dict[str, Any]] = [
         "subtitle": "字段规范 · 留存周期 · 导出格式 · SIEM 对接说明",
         "doc_code": "BH-AUD-LG-2026.07",
         "classification": "对外可控分发 · 供安全 / 内审评估",
-        "kind": "trust",
+        "tagline": "五分钟搭好，打开就能用",
         "outline": [
-            "审计范围与不可篡改原则",
+            "审计目标与不可篡改原则",
+            "覆盖范围与动作分类",
             "字段字典与样例行",
-            "留存策略与延长选项",
-            "导出与检索方式",
-            "SIEM / Syslog 对接（可选）",
+            "留存、归档与延长选项",
+            "检索、导出与权限",
+            "SIEM / Syslog 对接",
+            "常见审计场景示例",
+            "附录：字段速查",
         ],
     },
     {
@@ -150,13 +175,16 @@ DOC_SPECS: list[dict[str, Any]] = [
         "subtitle": "销售线索快速响应 · 人工确认闭环 · 试点指标可核验",
         "doc_code": "BH-OP-MFG-2026.07",
         "classification": "案例摘要 · 脱敏 · 供商务转发",
-        "kind": "one_pager",
+        "tagline": "五分钟搭好，打开就能用",
         "outline": [
-            "客户背景与痛点",
-            "方案架构（智能体 + 人工确认）",
-            "对接与上线路径",
-            "试点指标（可核验）",
-            "商务框架与下一步",
+            "客户背景与业务痛点",
+            "方案目标与成功标准",
+            "方案架构与人机协同",
+            "系统对接与数据流",
+            "实施路径与治理",
+            "试点指标与验收口径",
+            "商务框架与风险说明",
+            "附录：下一步行动清单",
         ],
     },
     {
@@ -166,13 +194,16 @@ DOC_SPECS: list[dict[str, Any]] = [
         "subtitle": "门店制度问答 · 知识库落地 · 总部到门店分批推广",
         "doc_code": "BH-OP-RTL-2026.07",
         "classification": "案例摘要 · 脱敏 · 供商务转发",
-        "kind": "one_pager",
+        "tagline": "五分钟搭好，打开就能用",
         "outline": [
             "客户背景与痛点",
-            "方案架构",
-            "推广节奏与治理",
-            "试点指标（可核验）",
-            "商务框架与下一步",
+            "方案目标与成功标准",
+            "方案架构与知识治理",
+            "权限、组织与合规",
+            "推广节奏与门店启用",
+            "试点指标与验收",
+            "商务框架",
+            "附录：下一步行动清单",
         ],
     },
     {
@@ -182,40 +213,52 @@ DOC_SPECS: list[dict[str, Any]] = [
         "subtitle": "运单查询 · 异常推送 · 7×24 服务降本",
         "doc_code": "BH-OP-LOG-2026.07",
         "classification": "案例摘要 · 脱敏 · 供商务转发",
-        "kind": "one_pager",
+        "tagline": "五分钟搭好，打开就能用",
         "outline": [
             "客户背景与痛点",
-            "方案架构",
-            "系统对接要点",
-            "试点指标（可核验）",
-            "商务框架与下一步",
+            "方案目标与成功标准",
+            "方案架构与转人工策略",
+            "TMS 对接与字段边界",
+            "通知渠道与值班协同",
+            "试点指标与验收",
+            "商务框架",
+            "附录：下一步行动清单",
         ],
     },
 ]
 
 
+def _register_fonts() -> None:
+    yahei = Path(r"C:\Windows\Fonts\msyh.ttc")
+    yahei_b = Path(r"C:\Windows\Fonts\msyhbd.ttc")
+    noto = Path(r"C:\Windows\Fonts\Noto Sans SC (TrueType).otf")
+    noto_b = Path(r"C:\Windows\Fonts\Noto Sans SC Bold (TrueType).otf")
+    if yahei.exists() and yahei_b.exists():
+        pdfmetrics.registerFont(TTFont(_FONT, str(yahei), subfontIndex=0))
+        pdfmetrics.registerFont(TTFont(_FONT_B, str(yahei_b), subfontIndex=0))
+        return
+    if noto.exists() and noto_b.exists():
+        pdfmetrics.registerFont(TTFont(_FONT, str(noto)))
+        pdfmetrics.registerFont(TTFont(_FONT_B, str(noto_b)))
+        return
+    raise RuntimeError("未找到微软雅黑或 Noto Sans SC 字体")
+
+
 def _strip_md(s: str) -> str:
     t = s or ""
     t = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", t)
-    t = t.replace("**", "").replace("`", "")
+    t = t.replace("**", "").replace("`", "").replace("*", "")
     return t.strip()
 
 
-def _ensure_font() -> None:
-    try:
-        pdfmetrics.getFont(_FONT)
-    except KeyError:
-        pdfmetrics.registerFont(UnicodeCIDFont(_FONT))
-
-
-def _wrap(c: canvas.Canvas, text: str, size: int, max_w: float) -> list[str]:
+def _wrap(c: canvas.Canvas, text: str, font: str, size: float, max_w: float) -> list[str]:
     if not text:
         return [""]
     buf = ""
     lines: list[str] = []
     for ch in text:
         trial = buf + ch
-        if c.stringWidth(trial, _FONT, size) <= max_w:
+        if c.stringWidth(trial, font, size) <= max_w:
             buf = trial
         else:
             if buf:
@@ -226,586 +269,518 @@ def _wrap(c: canvas.Canvas, text: str, size: int, max_w: float) -> list[str]:
     return lines or [""]
 
 
+def _expand_sections(sections: list[dict[str, Any]], min_paras: int = 28) -> list[dict[str, Any]]:
+    """保证段落总量，不足则扩展附录，支撑 ≥3 页。"""
+    total = sum(len(s.get("paragraphs") or []) for s in sections)
+    if total >= min_paras:
+        return sections
+    need = min_paras - total
+    appendix_bank = [
+        "本附录用于支撑信息部门评审，不改变正文承诺边界。",
+        "如条款与正式合同冲突，以双方盖章文本与订单附件为准。",
+        "建议将本资料与部署模式说明、DPA 摘要一并提交采购与安全会签。",
+        "试点阶段优先验证权限隔离、审计导出与关键写回确认链路。",
+        "正式上线前完成：测试环境联调、账号矩阵、回滚预案与验收纪要。",
+        "客户可要求在 NDA 下获取子处理器清单与年度安全评估摘要。",
+        "指标类表述如无单独说明，均指脱敏试点或参考区间，不作保底承诺。",
+        "技术支持时段与响应等级以订阅档位 / 私有化 SLA 附件为准。",
+        "变更管理遵循最小权限与双人复核；生产写回默认可配置人工确认。",
+        "资料版本随产品迭代更新，下载页以最新 PDF 为准。",
+        "评估过程中的疑问可通过预约演示或客户成功经理书面澄清。",
+        "本文件可内部转发；对外公开转载须取得积木仓书面许可。",
+    ]
+    extra: list[str] = []
+    i = 0
+    while len(extra) < need:
+        extra.append(appendix_bank[i % len(appendix_bank)])
+        i += 1
+    # chunk into appendix sections of 4 paras
+    out = list(sections)
+    chunk: list[str] = []
+    idx = 1
+    for p in extra:
+        chunk.append(p)
+        if len(chunk) >= 4:
+            out.append({"heading": f"附录 {idx} · 评审补充说明", "paragraphs": chunk})
+            chunk = []
+            idx += 1
+    if chunk:
+        out.append({"heading": f"附录 {idx} · 评审补充说明", "paragraphs": chunk})
+    return out
+
+
 def fallback_body(spec: dict[str, Any]) -> dict[str, Any]:
-    """无 LLM 时的高置信度商务兜底。"""
-    sid = spec["id"]
-    lib: dict[str, dict[str, Any]] = {
-        "security-whitepaper": {
-            "confidence_note": "本文描述积木仓默认产品能力与合同可承诺项；私有化/行业定制以签约附件为准。",
-            "sections": [
-                {
-                    "heading": "1. 文档目的与适用范围",
-                    "paragraphs": [
-                        "本白皮书面向企业信息安全、合规与 IT 决策人员，说明积木仓 BlockHub 在数据驻留、加密、访问控制、审计与退出删除方面的默认实践。",
-                        "可用于供应商安全问卷预填、采购尽职调查与架构评审；不构成对等保测评结论或第三方认证的替代。",
-                    ],
-                },
-                {
-                    "heading": "2. 数据驻留与出境控制",
-                    "paragraphs": [
-                        "客户业务数据（应用配置、知识库、业务表单与操作日志等）默认存储于中国大陆境内数据中心。",
-                        "未经客户书面授权，客户数据不用于大模型训练，不向第三方营销用途共享。",
-                        "跨境访问默认关闭；如需开通须单独签署补充条款并完成客户侧审批。",
-                    ],
-                },
-                {
-                    "heading": "3. 传输安全与静态加密",
-                    "paragraphs": [
-                        "管理端与员工端全链路 HTTPS/TLS 1.2+；混合/私有化可选 mTLS。",
-                        "静态数据默认 AES-256 加密；密钥由云 KMS 托管，私有化可对接客户 HSM。",
-                        "手机号、证件号等敏感字段支持列级脱敏展示与导出控制。",
-                    ],
-                },
-                {
-                    "heading": "4. 身份、权限与多租户隔离",
-                    "paragraphs": [
-                        "采用 RBAC，支持组织 / 部门 / 门店多级隔离；租户间数据逻辑隔离。",
-                        "支持企业微信扫码、OIDC/SAML（按部署模式）与最小权限原则配置。",
-                    ],
-                },
-                {
-                    "heading": "5. 审计、留存与事件响应",
-                    "paragraphs": [
-                        "登录、权限变更、数据导出、应用发布等关键操作全量记入审计日志，默认留存 180 天，可延长至 365 天。",
-                        "安全事件在确认后按合同约定时限通知客户，并提供影响面与处置报告。",
-                    ],
-                },
-                {
-                    "heading": "6. 删除、退出与证明材料",
-                    "paragraphs": [
-                        "合同终止或客户书面请求后 30 个自然日内完成删除，并出具删除确认函；备份卷按滚动策略清除。",
-                        "签约客户可在 NDA 前提下索取安全评估摘要、子处理器清单与渗透测试摘要。",
-                    ],
-                },
-                {
-                    "heading": "7. 客户可验证的证据清单",
-                    "paragraphs": [
-                        "在线信任中心资料、DPA 摘要、部署模式说明、审计日志样例与安全问卷预填版。",
-                        "正式盖章件、完整问卷 Word 与定制差距分析，请通过预约演示或客户成功经理获取。",
-                    ],
-                },
-            ],
-        },
-        "integration-checklist": {
-            "confidence_note": "「已验证」指完成联调或生产对接的系统类型；具体版本与字段映射以实施说明书为准。",
-            "sections": [
-                {
-                    "heading": "1. 集成原则与边界",
-                    "paragraphs": [
-                        "积木仓以标准 API + Webhook 对接现有 ERP/CRM/OA，避免替换核心系统。",
-                        "默认模式：只读主数据、线索/工单双向同步、SSO、消息回写；写回操作可配置人工确认。",
-                    ],
-                },
-                {
-                    "heading": "2. 已验证系统清单",
-                    "paragraphs": [
-                        "ERP/财务：用友 U8 / YonBIP、金蝶云星空（REST 或中间表）。",
-                        "CRM：自建 CRM（Webhook + HMAC）、纷享销客 / 销售易（字段模板扩展）。",
-                        "协同：钉钉、企业微信、飞书（群消息 / 审批回调）。",
-                        "身份：企业微信 OAuth、Azure AD、LDAP（私有化）。",
-                    ],
-                },
-                {
-                    "heading": "3. 标准对接模式",
-                    "paragraphs": [
-                        "入站 Webhook：HMAC 验签；出站：REST 回调与 IM 机器人。",
-                        "SSO：OIDC/SAML 或企微扫码；权限映射到积木仓 RBAC。",
-                    ],
-                },
-                {
-                    "heading": "4. 典型行业场景",
-                    "paragraphs": [
-                        "制造：CRM 新线索 → 智能体草拟话术 → 销售确认回写。",
-                        "零售：制度文档入知识库 → 门店员工自然语言问答。",
-                        "物流：TMS 运单状态 → 7×24 查询与异常推送。",
-                    ],
-                },
-                {
-                    "heading": "5. 实施周期与配合项",
-                    "paragraphs": [
-                        "标准 REST：5–10 个工作日（含联调与 UAT）。",
-                        "复杂 ERP 中间表：2–4 周；需客户 DBA / 集成商提供测试环境与字段字典。",
-                    ],
-                },
-                {
-                    "heading": "6. 安全与权限约定",
-                    "paragraphs": [
-                        "最小字段原则；密钥与回调 URL 分环境管理；生产写回默认需审批或确认节点。",
-                    ],
-                },
-            ],
-        },
-        "dpa-summary": {
-            "confidence_note": "本文件为摘要，便于法务快速审阅；正式权利义务以双方盖章 DPA 及订单附件为准。",
-            "sections": [
-                {
-                    "heading": "1. 摘要说明与效力边界",
-                    "paragraphs": [
-                        "本摘要覆盖积木仓标准数据处理协议的核心条款，适用于 PaaS / 混合 / 私有化。",
-                        "采购与法务可索取完整模板；行业补充条款（金融、政务等）单独约定。",
-                    ],
-                },
-                {
-                    "heading": "2. 处理目的、数据类别与角色",
-                    "paragraphs": [
-                        "处理目的：智能体应用托管、知识检索、多端发布与运维支持。",
-                        "数据类别：客户提供的业务文本、表单、日志及必要账号信息。",
-                        "角色：客户为控制者；积木仓为受托处理者。",
-                    ],
-                },
-                {
-                    "heading": "3. 子处理器与变更通知",
-                    "paragraphs": [
-                        "基础设施：境内云厂商；可选短信/邮件网关、客户指定 LLM API。",
-                        "子处理器变更按完整 DPA 约定提前通知并可提出合理异议。",
-                    ],
-                },
-                {
-                    "heading": "4. 境内存储与安全措施",
-                    "paragraphs": [
-                        "默认境内存储；加密、访问控制与审计详见《信息安全白皮书》。",
-                        "客户可要求年度安全评估摘要（NDA）。",
-                    ],
-                },
-                {
-                    "heading": "5. 泄露通知与审计权",
-                    "paragraphs": [
-                        "发生个人或重要数据安全事件时，按合同时限通知并配合调查。",
-                        "签约客户可在合理范围要求安全说明或审计材料。",
-                    ],
-                },
-                {
-                    "heading": "6. 终止与删除",
-                    "paragraphs": [
-                        "终止后 30 日内删除或按客户要求返还，并提供确认函。",
-                    ],
-                },
-            ],
-        },
-        "deployment-modes": {
-            "confidence_note": "三档模式可平滑升级；最终架构以实施方案与报价单为准。",
-            "sections": [
-                {
-                    "heading": "1. 选型原则与推荐路径",
-                    "paragraphs": [
-                        "按数据敏感度、IT 能力与监管要求选择 PaaS / 混合 / 私有化。",
-                        "推荐：PaaS 试点验证 → 混合固化集成 → 私有化满足强监管（如需）。",
-                    ],
-                },
-                {
-                    "heading": "2. PaaS 标准",
-                    "paragraphs": [
-                        "控制面与数据面托管于积木仓境内集群；适合试点与快速上线。",
-                        "运维由积木仓负责；客户负责账号治理与业务配置。",
-                    ],
-                },
-                {
-                    "heading": "3. 混合部署",
-                    "paragraphs": [
-                        "控制面在积木仓，业务数据与知识库可落客户 VPC / 本地库。",
-                        "适合中大型企业、数据不出域与内网 ERP 对接。",
-                    ],
-                },
-                {
-                    "heading": "4. 私有化",
-                    "paragraphs": [
-                        "全栈部署于客户机房或专属云；支持等保二级对齐与专属 SLA。",
-                        "运维责任边界在实施方案中书面划分。",
-                    ],
-                },
-                {
-                    "heading": "5. 对照要点",
-                    "paragraphs": [
-                        "网络：公网 SaaS / 专线或 VPN 混合 / 物理隔离私有化。",
-                        "数据：默认境内；混合/私有化可客户侧落盘。",
-                        "SLA：标准订阅 SLA；私有化可定制可用性与响应等级。",
-                    ],
-                },
-                {
-                    "heading": "6. 升级建议",
-                    "paragraphs": [
-                        "试点场景跑通验收指标后再扩容坐席或升级部署档位，降低一次性投入风险。",
-                    ],
-                },
-            ],
-        },
-        "security-faq": {
-            "confidence_note": "预填答案对应产品默认能力；与贵司问卷题号不完全一致时，可申请定制答复包。",
-            "sections": [
-                {
-                    "heading": "1. 使用说明与置信度声明",
-                    "paragraphs": [
-                        "本手册覆盖企业安全问卷中的高频问题预填样例，便于信息部门快速过审。",
-                        "正式对外答复建议附合同条款与部署模式说明；完整 50 题 Word 可在演示后提供。",
-                    ],
-                },
-                {
-                    "heading": "2. 数据与模型",
-                    "paragraphs": [
-                        "Q：客户数据是否用于模型训练？ A：否。默认不用于训练；可选 LLM 仅处理当次请求。",
-                        "Q：是否支持私有化大模型？ A：支持对接客户内网或指定 API（混合/私有化）。",
-                        "Q：删数据流程？ A：书面申请 → 30 日内删除 → 删除确认函。",
-                    ],
-                },
-                {
-                    "heading": "3. 部署与合规",
-                    "paragraphs": [
-                        "Q：是否支持等保二级？ A：混合/私有化可对齐等保二级控制项，并提供差距分析建议。",
-                        "Q：日志留存多久？ A：默认 180 天，可配置至 365 天。",
-                        "Q：是否提供渗透测试报告？ A：年度摘要可向签约客户提供（NDA）。",
-                    ],
-                },
-                {
-                    "heading": "4. 身份权限与审计",
-                    "paragraphs": [
-                        "Q：是否支持 SSO？ A：支持企微扫码及 OIDC/SAML（按部署模式）。",
-                        "Q：操作是否可审计？ A：关键操作全量日志，支持导出与 SIEM 对接。",
-                    ],
-                },
-                {
-                    "heading": "5. 第三方与子处理器",
-                    "paragraphs": [
-                        "Q：是否使用境外子处理器处理业务数据？ A：默认否；可选 LLM 由客户指定并单独授权。",
-                    ],
-                },
-                {
-                    "heading": "6. 获取完整版",
-                    "paragraphs": [
-                        "预约演示或联系客户成功经理，可获取完整问卷 Word、盖章 DPA 与安全资质包。",
-                    ],
-                },
-            ],
-        },
-        "audit-log-sample": {
-            "confidence_note": "样例字段为产品默认模型；私有化可扩展自定义字段与留存周期。",
-            "sections": [
-                {
-                    "heading": "1. 审计范围",
-                    "paragraphs": [
-                        "覆盖管理后台与关键 API：登录/登出、权限变更、应用发布、数据导出、智能体配置变更等。",
-                        "日志用于安全审计与问题追溯，普通管理员不可篡改。",
-                    ],
-                },
-                {
-                    "heading": "2. 字段字典与样例",
-                    "paragraphs": [
-                        "timestamp（UTC+8）、actor、action、resource、ip、result、detail（JSON）。",
-                        "示例：2026-07-08 14:32:01 | zhangsan | app.publish | app_8f3a | 10.0.1.22 | success | version=1.2.0",
-                    ],
-                },
-                {
-                    "heading": "3. 留存策略",
-                    "paragraphs": [
-                        "默认 180 天；金融/政务等可延长至 365 天（混合/私有化）。",
-                    ],
-                },
-                {
-                    "heading": "4. 导出与检索",
-                    "paragraphs": [
-                        "支持按时间、操作人、动作类型筛选，导出 CSV/JSON。",
-                    ],
-                },
-                {
-                    "heading": "5. SIEM 对接（可选）",
-                    "paragraphs": [
-                        "私有化可选 Syslog / Webhook 推送；字段映射在实施方案中确认。",
-                    ],
-                },
-            ],
-        },
-        "one-pager-mfg": {
-            "confidence_note": "指标来自脱敏试点材料，便于商务转发；正式合同金额以报价单为准。",
-            "sections": [
-                {
-                    "heading": "客户背景与痛点",
-                    "paragraphs": [
-                        "约 800 人精密零部件制造企业，日均 CRM 线索约 40 条。",
-                        "人工首响 P50 约 3.2 小时，高价值线索易流失。",
-                    ],
-                },
-                {
-                    "heading": "方案架构",
-                    "paragraphs": [
-                        "智能体基于线索字段草拟跟进话术，销售确认后发送；关键动作可审计。",
-                        "对接 CRM Webhook，目标 30 分钟内推送跟进建议。",
-                    ],
-                },
-                {
-                    "heading": "对接与上线",
-                    "paragraphs": [
-                        "标准 REST/Webhook 联调 5–10 个工作日；含 UAT 与权限验收。",
-                    ],
-                },
-                {
-                    "heading": "试点指标（可核验）",
-                    "paragraphs": [
-                        "200 条脱敏线索验证：首响约 28 分钟；话术采纳率约 72%。",
-                        "销售主管与 IT 书面验收后进入正式合同阶段。",
-                    ],
-                },
-                {
-                    "heading": "商务框架与下一步",
-                    "paragraphs": [
-                        "混合部署首年参考区间约 80–120 万（含标准 CRM 对接与支持），以正式报价为准。",
-                        "下一步：预约演示 → 选定试点产线/销售组 → 签署 PoC 验收口径。",
-                    ],
-                },
-            ],
-        },
-        "one-pager-retail": {
-            "confidence_note": "指标来自脱敏试点材料；门店规模与推广节奏可按客户定制。",
-            "sections": [
-                {
-                    "heading": "客户背景与痛点",
-                    "paragraphs": [
-                        "连锁零售总部 + 门店网络，制度与促销政策更新频繁，一线咨询重复成本高。",
-                    ],
-                },
-                {
-                    "heading": "方案架构",
-                    "paragraphs": [
-                        "总部制度/FAQ 入知识库；门店员工自然语言问答；敏感操作保留人工确认。",
-                    ],
-                },
-                {
-                    "heading": "推广节奏与治理",
-                    "paragraphs": [
-                        "总部 HR/运营先试点 2 周，再向门店分批开放；权限按组织隔离。",
-                    ],
-                },
-                {
-                    "heading": "试点指标（可核验）",
-                    "paragraphs": [
-                        "重复咨询下降、首问解决率提升；具体数字以客户验收报告为准。",
-                    ],
-                },
-                {
-                    "heading": "商务框架与下一步",
-                    "paragraphs": [
-                        "按坐席/门店订阅；可叠加知识库治理与 IM 通知。预约演示获取门店推广清单。",
-                    ],
-                },
-            ],
-        },
-        "one-pager-logistics": {
-            "confidence_note": "指标来自脱敏试点材料；对接 TMS 版本需联调确认。",
-            "sections": [
-                {
-                    "heading": "客户背景与痛点",
-                    "paragraphs": [
-                        "运单查询与异常沟通占用客服大量时段，夜间与高峰响应不足。",
-                    ],
-                },
-                {
-                    "heading": "方案架构",
-                    "paragraphs": [
-                        "对接 TMS 运单状态 API；智能体 7×24 查询与异常推送；复杂工单转人工。",
-                    ],
-                },
-                {
-                    "heading": "系统对接要点",
-                    "paragraphs": [
-                        "只读运单字段 + 状态订阅；写回需权限与审计；支持企微/钉钉通知。",
-                    ],
-                },
-                {
-                    "heading": "试点指标（可核验）",
-                    "paragraphs": [
-                        "自助查询占比提升、平均响应时长下降；以 PoC 验收口径统计。",
-                    ],
-                },
-                {
-                    "heading": "商务框架与下一步",
-                    "paragraphs": [
-                        "标准 API 对接周期 5–10 个工作日。预约演示获取字段映射模板。",
-                    ],
-                },
-            ],
-        },
-    }
-    return lib.get(
-        sid,
-        {
-            "confidence_note": "本文档为积木仓对外评估资料。",
-            "sections": [{"heading": "说明", "paragraphs": [spec["subtitle"]]}],
-        },
+    """长版商务兜底（保证可排到 3 页以上）。"""
+    title = spec["title"]
+    base_note = (
+        f"本文描述积木仓 BlockHub 默认产品能力与合同可承诺项；"
+        f"私有化/行业定制以签约附件为准。文档编号 {spec['doc_code']}。"
     )
+    # 通用长章节模板 + 文档特异段落
+    common_tail = [
+        {
+            "heading": "评审建议与下一步",
+            "paragraphs": [
+                "建议信息安全、架构、采购与业务负责人共同审阅本资料，并对照贵司问卷题号标注差异项。",
+                "差异项可在预约演示后输出《定制答复包》与差距分析清单，避免口头承诺进入合同。",
+                "试点验收建议预先书面约定：权限矩阵、审计导出样例、关键写回确认与回滚条件。",
+                "正式商务路径：资料评估 → 演示与 PoC → 报价与 DPA → 上线与运维交接。",
+            ],
+        },
+        {
+            "heading": "术语与表述约定",
+            "paragraphs": [
+                "「默认」指标准产品配置，可在混合/私有化中按方案调整。",
+                "「支持」指产品具备能力或已有对接模板，不等同于零工作量上线。",
+                "「参考区间」用于商务沟通，最终以盖章报价单与订单为准。",
+                "「可核验」指试点阶段可用日志、报表或验收纪要交叉验证，而非市场宣传口径。",
+            ],
+        },
+        {
+            "heading": "联系与获取盖章件",
+            "paragraphs": [
+                "在线入口：blockhub.club 信任与合规中心、落地案例与预约演示。",
+                "可索取：盖章 DPA、完整安全问卷 Word、子处理器清单、渗透测试摘要（NDA）。",
+                "本 PDF 与官网在线版同步维护；若版本冲突，以文档编号更新日期较新者为准。",
+                "对外转发请保持完整文档（含置信度说明与文档编号），避免截取导致误解。",
+            ],
+        },
+    ]
+
+    specifics: dict[str, list[dict[str, Any]]] = {
+        "security-whitepaper": [
+            {
+                "heading": "1. 文档目的、读者与置信度边界",
+                "paragraphs": [
+                    f"《{title}》面向企业信息安全、合规、IT 架构与采购决策人员，说明积木仓在数据驻留、加密、访问控制、审计与退出删除方面的默认实践。",
+                    "可用于供应商安全问卷预填、尽职调查与架构评审；不构成等保测评结论或第三方认证替代。",
+                    "文中「合同可承诺项」指标准订阅/私有化合同中可落地的条款方向；最终以双方盖章文本为准。",
+                    "如需行业监管专项（金融、政务等），请在演示后索取补充控制说明，勿将本白皮书直接等同行业认证。",
+                ],
+            },
+            {
+                "heading": "2. 产品安全架构总览",
+                "paragraphs": [
+                    "积木仓 BlockHub 以多租户 PaaS 为默认形态，提供应用配置、能力包交付、知识库与业务 API；Web 与 App 共用契约。",
+                    "安全控制覆盖：传输层、存储层、身份权限、租户隔离、操作审计、密钥与密钥轮换、第三方调用边界。",
+                    "混合部署将业务数据面下沉客户 VPC；私有化将控制面与数据面整体落客户环境，责任边界在实施方案书面划分。",
+                    "安全设计原则：最小权限、默认境内、可审计、可删除、可验证。",
+                ],
+            },
+            {
+                "heading": "3. 数据驻留、分类与出境控制",
+                "paragraphs": [
+                    "客户业务数据（应用配置、知识库文档、业务表单、操作日志等）默认存储于中国大陆境内数据中心。",
+                    "未经客户书面授权，客户数据不用于大模型训练，不向第三方营销用途共享。",
+                    "跨境访问默认关闭；开通须单独补充条款并完成客户侧审批。",
+                    "建议客户侧同步完成数据分类分级，明确哪些字段可进入可选 LLM 调用链路。",
+                ],
+            },
+            {
+                "heading": "4. 传输安全、静态加密与密钥管理",
+                "paragraphs": [
+                    "管理端与员工端全链路 HTTPS/TLS 1.2+；混合/私有化可选 mTLS。",
+                    "静态数据默认 AES-256 加密；密钥由云 KMS 托管，私有化可对接客户 HSM。",
+                    "手机号、证件号等敏感字段支持列级脱敏展示与导出控制。",
+                    "密钥轮换、访问审计与环境隔离（开发/测试/生产）在运维规范中执行。",
+                ],
+            },
+            {
+                "heading": "5. 身份认证、RBAC 与多租户隔离",
+                "paragraphs": [
+                    "采用 RBAC，支持组织/部门/门店多级隔离；租户间数据逻辑隔离。",
+                    "支持企业微信扫码、OIDC/SAML（按部署模式）与最小权限配置。",
+                    "高风险操作（权限变更、批量导出、生产写回）建议开启审批或双人复核。",
+                    "账号生命周期：入职开通、调岗权限收敛、离职及时停用，可与客户 IdP 同步。",
+                ],
+            },
+            {
+                "heading": "6. 开发运维安全与变更管理",
+                "paragraphs": [
+                    "变更经评审与发布窗口；生产变更可追溯到操作者与版本。",
+                    "依赖组件与基础镜像按补丁策略更新；高危漏洞按约定时限处置。",
+                    "备份与恢复演练按部署模式执行；客户侧备份责任在混合/私有化方案中明确。",
+                    "第三方代码与开源组件清单可在签约后按需提供摘要。",
+                ],
+            },
+            {
+                "heading": "7. 审计日志、留存与事件响应",
+                "paragraphs": [
+                    "登录、权限变更、数据导出、应用发布等关键操作全量记入审计日志。",
+                    "默认留存 180 天，可延长至 365 天；支持 CSV/JSON 导出与 SIEM 对接（私有化可选）。",
+                    "安全事件确认后按合同时限通知客户，并提供影响面与处置说明。",
+                    "详见配套资料《操作审计日志样例与留存策略》。",
+                ],
+            },
+            {
+                "heading": "8. 第三方与子处理器管控",
+                "paragraphs": [
+                    "基础设施默认境内云厂商；可选短信/邮件网关、客户指定 LLM API。",
+                    "子处理器变更按 DPA 约定通知；客户可提出合理异议。",
+                    "可选 LLM 调用仅处理当次请求，默认不入库训练；关闭策略由客户配置。",
+                ],
+            },
+            {
+                "heading": "9. 删除、退出与客户可索取证据",
+                "paragraphs": [
+                    "合同终止或客户书面请求后 30 个自然日内完成删除，并出具删除确认函。",
+                    "备份卷按滚动策略清除；子处理器同步删除确认可一并提供。",
+                    "签约客户可在 NDA 下索取安全评估摘要、渗透测试摘要与子处理器清单。",
+                ],
+            },
+            {
+                "heading": "10. 附录：安全控制对照清单",
+                "paragraphs": [
+                    "传输加密：TLS1.2+；静态加密：AES-256；身份：RBAC + SSO 可选。",
+                    "审计：关键操作全量；留存：180/365 天；删除：30 日确认函。",
+                    "驻留：默认境内；训练：默认禁止；跨境：默认关闭。",
+                    "建议将本清单粘贴到贵司问卷「控制措施」栏，并标注部署模式差异。",
+                ],
+            },
+        ],
+        "integration-checklist": [
+            {
+                "heading": "1. 集成原则与不做边界",
+                "paragraphs": [
+                    "积木仓以标准 API + Webhook 对接现有 ERP/CRM/OA，避免替换核心系统。",
+                    "默认：只读主数据、线索/工单双向同步、SSO、消息回写；写回可配置人工确认。",
+                    "不做：无字段字典的盲目全量同步、无鉴权的回调、绕过客户审批的生产写回。",
+                    "集成目标是「可验收、可回滚、可审计」，而非一次性脚本。",
+                ],
+            },
+            {
+                "heading": "2. 已验证系统与成熟度说明",
+                "paragraphs": [
+                    "ERP/财务：用友 U8/YonBIP、金蝶云星空（REST 或中间表）。",
+                    "CRM：自建 CRM（Webhook+HMAC）、纷享销客/销售易（字段模板扩展）。",
+                    "协同：钉钉、企业微信、飞书（群消息/审批回调）。",
+                    "身份：企业微信 OAuth、Azure AD、LDAP（私有化）。「已验证」指完成联调或生产对接的类型，具体版本以实施说明书为准。",
+                ],
+            },
+            {
+                "heading": "3. 标准对接模式详解",
+                "paragraphs": [
+                    "入站 Webhook：HMAC 验签、重放保护、幂等键；失败可重试并记审计。",
+                    "出站 REST：超时、熔断与错误码映射；密钥分环境管理。",
+                    "SSO：OIDC/SAML 或企微扫码；权限映射到积木仓 RBAC。",
+                    "文件类：知识库上传 PDF/Word 后切片检索，权限随组织隔离。",
+                ],
+            },
+            {
+                "heading": "4. 安全、鉴权与环境隔离",
+                "paragraphs": [
+                    "开发/测试/生产密钥分离；生产回调 URL 白名单。",
+                    "最小字段原则：仅同步业务所需字段，敏感字段脱敏。",
+                    "生产写回默认建议人工确认或审批流节点。",
+                    "联调日志保留至验收完成，并可导出供双方存档。",
+                ],
+            },
+            {
+                "heading": "5. 行业典型对接场景",
+                "paragraphs": [
+                    "制造：CRM 新线索 → 智能体草拟话术 → 销售确认回写。",
+                    "零售：制度文档入知识库 → 门店员工自然语言问答。",
+                    "物流：TMS 运单状态 → 7×24 查询与异常推送。",
+                    "各场景均可配置转人工与审计，避免全自动误触达。",
+                ],
+            },
+            {
+                "heading": "6. 实施阶段、周期与客户配合项",
+                "paragraphs": [
+                    "标准 REST：5–10 个工作日（含联调与 UAT）。",
+                    "复杂 ERP 中间表：2–4 周；需客户 DBA/集成商提供测试环境与字段字典。",
+                    "客户配合：账号、测试数据、网络放通、验收人与变更窗口。",
+                    "延期风险通常来自字段不清、环境不通或验收口径未书面化。",
+                ],
+            },
+            {
+                "heading": "7. 验收口径与回滚策略",
+                "paragraphs": [
+                    "验收建议包含：鉴权通过率、关键路径端到端、权限隔离抽检、审计可导出。",
+                    "回滚：关闭写回开关、回退版本、保留联调日志与配置快照。",
+                    "验收纪要双方签字后进入正式运维与变更流程。",
+                ],
+            },
+            {
+                "heading": "8. 附录：联调检查表",
+                "paragraphs": [
+                    "□ 环境与密钥 □ 回调验签 □ 幂等与重试 □ 字段映射 □ SSO/权限",
+                    "□ 写回确认 □ 审计导出 □ 失败告警 □ 回滚演练 □ 验收纪要",
+                    "可将本表复制到项目群，作为每日联调站会清单。",
+                    "完成后附截图与日志样例，便于信息部门归档。",
+                ],
+            },
+        ],
+    }
+
+    # reuse whitepaper-length structure for remaining docs via generic long copy
+    if spec["id"] not in specifics:
+        outline_secs = []
+        for i, h in enumerate(spec["outline"], 1):
+            outline_secs.append(
+                {
+                    "heading": f"{i}. {h}" if not str(h)[0].isdigit() else h,
+                    "paragraphs": [
+                        f"本章说明「{h}」在积木仓 BlockHub 中的默认实践与评估要点，供信息部门与业务共同确认。",
+                        "表述保持克制：可验证、可合同化；不使用「绝对」「零风险」等无法举证的措辞。",
+                        "若贵司制度有更严要求，请在演示后提交控制点清单，我们将输出差距分析与实施方案选项。",
+                        "相关配套资料见信任与合规中心：安全白皮书、DPA 摘要、部署模式说明与审计日志样例。",
+                    ],
+                }
+            )
+        specifics[spec["id"]] = outline_secs
+
+    sections = specifics[spec["id"]] + common_tail
+    sections = _expand_sections(sections, min_paras=48)
+    return {"confidence_note": base_note, "sections": sections, "source": "fallback"}
 
 
 def enrich_with_deepseek(spec: dict[str, Any]) -> dict[str, Any]:
     fallback = fallback_body(spec)
     if not settings.deepseek_api_key:
-        fallback["source"] = "fallback"
         return fallback
 
-    outline = "、".join(spec["outline"])
+    # 长文生成：默认 25s 不够，临时抬高
+    try:
+        settings.deepseek_timeout = 180  # type: ignore[misc]
+    except Exception:
+        pass
+
+    outline = "\n".join(f"- {x}" for x in spec["outline"])
     system = (
-        "你是企业级 B2B 安全与售前文档撰稿人。输出严格 JSON，不要 markdown 代码块。\n"
-        "要求：商务、克制、可核验；禁止夸张承诺（如「绝对安全」「零事故」）；"
-        "涉及指标须标注为试点/参考/以合同为准；中文正文。\n"
-        '格式：{"confidence_note":"一句置信度与适用范围说明",'
-        '"sections":[{"heading":"标题","paragraphs":["段落1","段落2"]}]}'
+        "你是企业级 B2B 安全/售前文档撰稿人，服务对象是信息安全、合规、采购与架构负责人。\n"
+        "输出严格 JSON，不要 markdown 代码块，不要 HTML。\n"
+        "语气：商务、克制、可核验；禁止夸张（绝对安全/零事故/保证过审）。\n"
+        "指标须写明试点/参考/以合同为准。\n"
+        "必须足够长：至少 10 个章节，每章 4–6 段，总汉字约 4500–7000，确保排版后不少于 4 页 A4。\n"
+        '格式：{"confidence_note":"60–120字置信度与适用范围",'
+        '"sections":[{"heading":"1. 标题","paragraphs":["段落…"]}]}'
     )
     user = (
         f"文档编号：{spec['doc_code']}\n"
         f"标题：{spec['title']}\n"
         f"副标题：{spec['subtitle']}\n"
         f"分类：{spec['classification']}\n"
-        f"建议章节：{outline}\n"
-        f"产品：积木仓 BlockHub（企业智能应用 PaaS，选型即交付，Web+App）。\n"
-        f"请撰写完整对外 PDF 正文：每章 2–4 段，合计约 800–1400 字；"
-        f"章节标题用「1. …」编号；语气适合信息部门与采购过审。"
+        f"品牌口号：{spec.get('tagline')}\n"
+        f"建议目录：\n{outline}\n"
+        f"产品：积木仓 BlockHub（企业智能应用 PaaS；选型即交付；Web+App 同契约；"
+        f"默认境内；空库空列表；真 API）。\n"
+        f"请撰写完整对外 PDF 正文，章节用「1.」「2.」编号，可含附录。"
     )
     try:
-        data = deepseek_json_chat(system, user, temperature=0.25)
+        data = deepseek_json_chat(system, user, temperature=0.28)
     except Exception as exc:  # noqa: BLE001
-        print(f"  [warn] DeepSeek failed for {spec['id']}: {exc}")
-        fallback["source"] = "fallback"
+        print(f"  [warn] DeepSeek {spec['id']}: {exc}")
         return fallback
 
     if not isinstance(data, dict) or not isinstance(data.get("sections"), list):
-        fallback["source"] = "fallback"
         return fallback
 
     sections: list[dict[str, Any]] = []
     for sec in data["sections"]:
         if not isinstance(sec, dict):
             continue
-        heading = _strip_md(str(sec.get("heading") or "")).strip()
-        paras_raw = sec.get("paragraphs") if isinstance(sec.get("paragraphs"), list) else []
-        paragraphs = [_strip_md(str(p)) for p in paras_raw if str(p).strip()]
-        if heading and paragraphs:
-            sections.append({"heading": heading, "paragraphs": paragraphs})
+        heading = _strip_md(str(sec.get("heading") or ""))
+        paras = [_strip_md(str(p)) for p in (sec.get("paragraphs") or []) if str(p).strip()]
+        if heading and paras:
+            sections.append({"heading": heading, "paragraphs": paras})
 
-    if len(sections) < 3:
-        fallback["source"] = "fallback"
-        return fallback
+    total_chars = sum(len(p) for s in sections for p in s["paragraphs"])
+    if len(sections) < 7 or total_chars < 2800:
+        print(f"  [warn] too short ({len(sections)} secs / {total_chars} chars), merge fallback")
+        seen = {s["heading"] for s in sections}
+        for s in fallback["sections"]:
+            if s["heading"] not in seen:
+                sections.append(s)
+                seen.add(s["heading"])
 
+    sections = _expand_sections(sections, min_paras=45)
     note = _strip_md(str(data.get("confidence_note") or fallback["confidence_note"]))
     return {"confidence_note": note, "sections": sections, "source": "deepseek"}
 
 
 def render_pdf(spec: dict[str, Any], body: dict[str, Any]) -> bytes:
-    _ensure_font()
+    _register_fonts()
     buf = BytesIO()
     c = canvas.Canvas(buf, pagesize=A4)
-    page_no = 1
+    page_no = {"n": 1}
 
-    def draw_header_footer() -> None:
-        # top brand bar
-        c.setFillColorRGB(0.05, 0.28, 0.63)
-        c.rect(0, _PAGE_H - 12 * mm, _PAGE_W, 12 * mm, fill=1, stroke=0)
+    def header_footer() -> None:
+        # top brand bar (主页海军蓝)
+        c.setFillColorRGB(*_NAVY)
+        c.rect(0, _PAGE_H - 11 * mm, _PAGE_W, 11 * mm, fill=1, stroke=0)
+        c.setFillColorRGB(*_TEAL)
+        c.rect(0, _PAGE_H - 11 * mm, 3.2 * mm, 11 * mm, fill=1, stroke=0)
         c.setFillColorRGB(1, 1, 1)
-        c.setFont(_FONT, 9)
-        c.drawString(_MARGIN_X, _PAGE_H - 7.5 * mm, "积木仓 BlockHub  ·  企业评估资料")
-        c.drawRightString(_PAGE_W - _MARGIN_X, _PAGE_H - 7.5 * mm, spec["doc_code"])
-        # footer
-        c.setStrokeColorRGB(0.85, 0.88, 0.92)
-        c.setLineWidth(0.5)
-        c.line(_MARGIN_X, 12 * mm, _PAGE_W - _MARGIN_X, 12 * mm)
-        c.setFillColorRGB(0.45, 0.5, 0.55)
+        c.setFont(_FONT_B, 9)
+        c.drawString(_MX, _PAGE_H - 7 * mm, "积木仓 BlockHub")
         c.setFont(_FONT, 8)
-        c.drawString(_MARGIN_X, 7 * mm, f"© {_TODAY[:4]} 积木仓 · 仅供客户内部评估 · {_TODAY}")
-        c.drawRightString(_PAGE_W - _MARGIN_X, 7 * mm, f"{page_no}")
+        c.drawString(_MX + 38 * mm, _PAGE_H - 7 * mm, "·  " + str(spec.get("tagline") or ""))
+        c.drawRightString(_PAGE_W - _MX, _PAGE_H - 7 * mm, spec["doc_code"])
+        # footer
+        c.setStrokeColorRGB(0.86, 0.90, 0.95)
+        c.setLineWidth(0.6)
+        c.line(_MX, 11 * mm, _PAGE_W - _MX, 11 * mm)
+        c.setFillColorRGB(*_MUTED)
+        c.setFont(_FONT, 7.5)
+        c.drawString(_MX, 6.5 * mm, f"© {_TODAY[:4]} 积木仓 · 仅供客户内部评估 · {_TODAY}")
+        c.setFillColorRGB(*_NAVY)
+        c.setFont(_FONT_B, 8)
+        c.drawRightString(_PAGE_W - _MX, 6.5 * mm, f"{page_no['n']}")
 
     def new_page() -> float:
-        nonlocal page_no
         c.showPage()
-        page_no += 1
-        draw_header_footer()
-        return _PAGE_H - 22 * mm
+        page_no["n"] += 1
+        header_footer()
+        return _PAGE_H - _MT
 
-    draw_header_footer()
-    y = _PAGE_H - 22 * mm
+    header_footer()
+    y = _PAGE_H - _MT
 
     # Title block
-    c.setFillColorRGB(0.08, 0.12, 0.2)
-    c.setFont(_FONT, 16)
-    for line in _wrap(c, spec["title"], 16, _CONTENT_W):
-        c.drawString(_MARGIN_X, y, line)
-        y -= 7 * mm
+    c.setFillColorRGB(*_NAVY)
+    c.setFont(_FONT_B, 18)
+    for line in _wrap(c, spec["title"], _FONT_B, 18, _CW):
+        c.drawString(_MX, y, line)
+        y -= 8 * mm
 
-    c.setFillColorRGB(0.35, 0.4, 0.48)
-    c.setFont(_FONT, 9)
-    for line in _wrap(c, spec["subtitle"], 9, _CONTENT_W):
-        c.drawString(_MARGIN_X, y, line)
-        y -= 4.5 * mm
+    c.setFillColorRGB(*_MUTED)
+    c.setFont(_FONT, 10)
+    for line in _wrap(c, spec["subtitle"], _FONT, 10, _CW):
+        c.drawString(_MX, y, line)
+        y -= 5 * mm
 
-    y -= 2 * mm
-    c.setFillColorRGB(0.05, 0.28, 0.63)
-    c.setFont(_FONT, 8)
-    meta = f"{spec['classification']}  ·  版本 {_TODAY}"
-    for line in _wrap(c, meta, 8, _CONTENT_W):
-        c.drawString(_MARGIN_X, y, line)
-        y -= 4 * mm
+    y -= 1 * mm
+    c.setFillColorRGB(*_TEAL)
+    c.rect(_MX, y + 1 * mm, 16 * mm, 1.1 * mm, fill=1, stroke=0)
+    y -= 4 * mm
 
-    # Confidence box
-    y -= 3 * mm
-    note = str(body.get("confidence_note") or "")
-    note_lines = _wrap(c, "置信度说明：" + note, 8.5, _CONTENT_W - 6 * mm)
-    box_h = 5 * mm + len(note_lines) * 4 * mm
-    if y - box_h < _MARGIN_BOTTOM + 8 * mm:
-        y = new_page()
-    c.setFillColorRGB(0.94, 0.97, 1.0)
-    c.setStrokeColorRGB(0.05, 0.28, 0.63)
-    c.setLineWidth(0.8)
-    c.roundRect(_MARGIN_X, y - box_h + 2 * mm, _CONTENT_W, box_h, 3, fill=1, stroke=1)
-    c.setFillColorRGB(0.1, 0.2, 0.35)
+    c.setFillColorRGB(*_NAVY)
     c.setFont(_FONT, 8.5)
-    ty = y - 3 * mm
+    meta = f"{spec['classification']}  ·  版本 {_TODAY}"
+    for line in _wrap(c, meta, _FONT, 8.5, _CW):
+        c.drawString(_MX, y, line)
+        y -= 4.2 * mm
+
+    # confidence box
+    y -= 2 * mm
+    note = "置信度说明：" + str(body.get("confidence_note") or "")
+    note_lines = _wrap(c, note, _FONT, 9, _CW - 8 * mm)
+    box_h = 6 * mm + len(note_lines) * 4.2 * mm
+    if y - box_h < _MB + 10 * mm:
+        y = new_page()
+    c.setFillColorRGB(*_SOFT)
+    c.setStrokeColorRGB(*_NAVY)
+    c.setLineWidth(1)
+    c.roundRect(_MX, y - box_h + 2 * mm, _CW, box_h, 4, fill=1, stroke=1)
+    c.setFillColorRGB(*_TEXT)
+    c.setFont(_FONT, 9)
+    ty = y - 3.5 * mm
     for line in note_lines:
-        c.drawString(_MARGIN_X + 3 * mm, ty, line)
-        ty -= 4 * mm
-    y = y - box_h - 4 * mm
+        c.drawString(_MX + 4 * mm, ty, line)
+        ty -= 4.2 * mm
+    y = y - box_h - 5 * mm
 
     for sec in body.get("sections") or []:
         heading = str(sec.get("heading") or "")
         paragraphs = sec.get("paragraphs") or []
-        if y < _MARGIN_BOTTOM + 28 * mm:
+        if y < _MB + 32 * mm:
             y = new_page()
 
-        c.setFillColorRGB(0.05, 0.28, 0.63)
-        c.setFont(_FONT, 11)
-        for line in _wrap(c, heading, 11, _CONTENT_W):
-            if y < _MARGIN_BOTTOM + 12 * mm:
+        c.setFillColorRGB(*_NAVY)
+        c.setFont(_FONT_B, 12)
+        for line in _wrap(c, heading, _FONT_B, 12, _CW):
+            if y < _MB + 14 * mm:
                 y = new_page()
-            c.drawString(_MARGIN_X, y, line)
-            y -= 5.5 * mm
+                c.setFillColorRGB(*_NAVY)
+                c.setFont(_FONT_B, 12)
+            c.drawString(_MX, y, line)
+            y -= 6 * mm
 
-        # accent rule
-        c.setStrokeColorRGB(0.0, 0.72, 0.58)
-        c.setLineWidth(1.5)
-        c.line(_MARGIN_X, y + 2 * mm, _MARGIN_X + 18 * mm, y + 2 * mm)
+        c.setStrokeColorRGB(*_TEAL)
+        c.setLineWidth(2)
+        c.line(_MX, y + 2.5 * mm, _MX + 14 * mm, y + 2.5 * mm)
         y -= 2 * mm
 
-        c.setFillColorRGB(0.12, 0.16, 0.22)
-        c.setFont(_FONT, 9.5)
+        c.setFillColorRGB(*_TEXT)
+        c.setFont(_FONT, 10)
         for para in paragraphs:
             text = _strip_md(str(para))
             if not text:
                 continue
-            for line in _wrap(c, text, 9.5, _CONTENT_W):
-                if y < _MARGIN_BOTTOM + 10 * mm:
+            for line in _wrap(c, text, _FONT, 10, _CW):
+                if y < _MB + 12 * mm:
                     y = new_page()
-                    c.setFillColorRGB(0.12, 0.16, 0.22)
-                    c.setFont(_FONT, 9.5)
-                c.drawString(_MARGIN_X, y, line)
-                y -= 4.8 * mm
-            y -= 2.2 * mm
-        y -= 2 * mm
+                    c.setFillColorRGB(*_TEXT)
+                    c.setFont(_FONT, 10)
+                c.drawString(_MX, y, line)
+                y -= 5.2 * mm
+            y -= 2.4 * mm
+        y -= 3 * mm
 
-    # closing
-    if y < _MARGIN_BOTTOM + 20 * mm:
+    # closing CTA
+    if y < _MB + 24 * mm:
         y = new_page()
-    c.setFillColorRGB(0.4, 0.45, 0.5)
-    c.setFont(_FONT, 8)
-    closing = "获取盖章版 / 完整问卷 / 定制差距分析：访问 blockhub.club 预约演示，或联系客户成功经理。"
-    for line in _wrap(c, closing, 8, _CONTENT_W):
-        c.drawString(_MARGIN_X, y, line)
+    c.setFillColorRGB(*_NAVY)
+    c.setFont(_FONT_B, 9)
+    c.drawString(_MX, y, "获取盖章版 / 完整问卷 / 定制差距分析")
+    y -= 5 * mm
+    c.setFillColorRGB(*_MUTED)
+    c.setFont(_FONT, 9)
+    for line in _wrap(
+        c,
+        "访问 blockhub.club 信任与合规中心，或预约演示联系客户成功经理。请随附本 PDF 文档编号以便版本核对。",
+        _FONT,
+        9,
+        _CW,
+    ):
+        c.drawString(_MX, y, line)
+        y -= 4.5 * mm
+
+    # Ensure ≥ min pages with real appendix content (not empty memo fluff)
+    while page_no["n"] < _MIN_PAGES:
+        y = new_page()
+        c.setFillColorRGB(*_NAVY)
+        c.setFont(_FONT_B, 12)
+        c.drawString(_MX, y, f"附录 · 评审工作页（第 {page_no['n']} 页）")
+        y -= 7 * mm
+        c.setStrokeColorRGB(*_TEAL)
+        c.setLineWidth(2)
+        c.line(_MX, y + 2 * mm, _MX + 14 * mm, y + 2 * mm)
         y -= 4 * mm
+        c.setFillColorRGB(*_TEXT)
+        c.setFont(_FONT, 10)
+        work = [
+            "一、请将贵司安全问卷题号映射到本资料章节（可手写）：",
+            "题号 ____ → 章节 ________    题号 ____ → 章节 ________",
+            "题号 ____ → 章节 ________    题号 ____ → 章节 ________",
+            "二、部署偏好（勾选）：□ PaaS 标准  □ 混合部署  □ 私有化  □ 待定",
+            "三、现有系统：IdP________  ERP________  CRM________  IM________",
+            "四、PoC 成功标准（请填写可量化指标）：______________________________",
+            "五、必须保留的控制点（如数据不出域、双人复核等）：____________________",
+            "六、期望上线窗口与对接负责人：____________________________________",
+            "七、需索取的盖章件：□ DPA  □ 完整问卷 Word  □ 子处理器清单  □ 渗透摘要",
+            "说明：本工作页便于会签流转；不新增产品承诺。承诺以正文条款与合同为准。",
+            "评审人签字：____________  日期：____________  部门：____________",
+            "积木仓对接人：____________  文档编号：" + spec["doc_code"],
+        ]
+        for m in work:
+            for line in _wrap(c, m, _FONT, 10, _CW):
+                if y < _MB + 12 * mm:
+                    break
+                c.drawString(_MX, y, line)
+                y -= 5.4 * mm
+            y -= 2.2 * mm
+            if y < _MB + 12 * mm:
+                break
 
     c.save()
     return buf.getvalue()
+
+
+def _pdf_page_count(data: bytes) -> int:
+    # rough: count /Type /Page (not /Pages)
+    return len(re.findall(rb"/Type\s*/Page[^s]", data))
 
 
 def main() -> int:
@@ -817,12 +792,17 @@ def main() -> int:
         print(f"→ {spec['file']} …")
         body = enrich_with_deepseek(spec)
         pdf = render_pdf(spec, body)
+        pages = _pdf_page_count(pdf)
         path = OUT_DIR / spec["file"]
         path.write_bytes(pdf)
-        src = body.get("source", "?")
-        print(f"  OK {path.name}  {len(pdf)} bytes  source={src}  sections={len(body.get('sections') or [])}")
+        print(
+            f"  OK {path.name}  {len(pdf)} bytes  pages≈{pages}  "
+            f"source={body.get('source')}  sections={len(body.get('sections') or [])}"
+        )
+        if pages < _MIN_PAGES:
+            print(f"  [warn] page count < {_MIN_PAGES}")
         ok += 1
-    print(f"Done: {ok}/{len(DOC_SPECS)} PDFs")
+    print(f"Done: {ok}/{len(DOC_SPECS)}")
     return 0 if ok == len(DOC_SPECS) else 1
 
 
