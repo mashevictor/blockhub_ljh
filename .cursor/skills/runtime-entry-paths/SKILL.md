@@ -56,8 +56,11 @@ description: >-
 - Runtime 壳：`runtime-web/src/App.tsx` + `styles-microsite-skins.css`
 - 独立站预览页：`/preview/industry-runtime/:pack?microsite=`
 
-## 验收
+## 独立站 Runtime 体验（强制）
 
-1. 独立站选 Helios → 发布或预览 → 顶栏/背景偏深色海军，文案「独立站方案工作台」
-2. 弹幕选请假 → 发布 → 标准 Tabs，「CapShip 能力工作台」，无 microsite class
-3. 同一 capability API 共用；仅壳与皮肤不同
+1. **标题首页**（`/`）：大标题 + 模板切换器 + 场景入口卡片；禁止把全部能力摊成按钮墙
+2. **侧栏**：按 category 分组；点场景进入**单页** Widget
+3. **模板切换**：Runtime 内可换 20 套 microsite 皮肤（localStorage + 个人草稿）
+4. 后端 `entry_source=industry_site` 时强制 `sidebar_admin`，去掉 landing_hero 堆叠
+
+弹幕/模块入口仍为 Tabs 工作台，互不污染。

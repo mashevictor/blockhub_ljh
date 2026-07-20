@@ -39,6 +39,10 @@ const SKINS: Record<string, MicrositeRuntimeSkin> = {
   photography: { id: 'photography', style: 'sonar', styleLabel: 'Sonar · 摄影瀑布流', accent: '#525252', pageBg: '#fafafa', surface: '#ffffff', headerBg: '#171717', headerFg: '#fafafa', radius: '0px', shellClass: 'skin-sonar' },
 }
 
+export function listMicrositeRuntimeSkins(): MicrositeRuntimeSkin[] {
+  return Object.values(SKINS)
+}
+
 export function getMicrositeRuntimeSkin(micrositeId: string | null | undefined): MicrositeRuntimeSkin | null {
   if (!micrositeId) return null
   return SKINS[micrositeId] ?? null

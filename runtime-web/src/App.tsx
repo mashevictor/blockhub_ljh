@@ -23,7 +23,11 @@ import {
 import type { CapShipComposerDockProps } from '@capship/composer'
 import '@capship/composer/styles.css'
 import { bootWidgetsFromManifest } from './register-widgets'
-import { getMicrositeRuntimeSkin, isIndustrySiteEntry } from './micrositeRuntimeSkin'
+import {
+  getMicrositeRuntimeSkin,
+  isIndustrySiteEntry,
+} from './micrositeRuntimeSkin'
+import IndustrySiteHome from './IndustrySiteHome'
 import './styles-microsite-skins.css'
 
 const CapShipComposerDock = lazy(() =>
@@ -127,6 +131,18 @@ export default function App() {
   const [loginEmail, setLoginEmail] = useState('employee@trackchat.local')
   const [loginPassword, setLoginPassword] = useState('emp123')
   const [loginBusy, setLoginBusy] = useState(false)
+  /** 独立站 Runtime 内可切换的视觉模板（优先于 schema.meta） */
+  const [skinOverride, setSkinOverride] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!appId) return
+    try {
+      const saved = localStorage.getItem(`blockhub_rt_microsite_${appId}`)
+      if (saved) setSkinOverride(saved)
+    } catch {
+      /* ignore */
+    }
+  }, [appId])
 
   useEffect(() => {
     if (!appId) return
@@ -277,25 +293,81 @@ export default function App() {
 
   const primaryColor = config.primary_color || schema.theme?.primaryColor || '#4338ca'
   const menu = schema.menu?.length ? schema.menu : config.menu.map((m) => ({ ...m, route: m.route || `/${m.key}` }))
-  const layout = layoutOf(schema)
+  const layoutRaw = layoutOf(schema)
   const meta = (schema.meta || {}) as Record<string, unknown>
-  const micrositeId = String(
+  const baseMicrositeId = String(
     meta.microsite_id || (schema.theme as { micrositeId?: string } | undefined)?.micrositeId || '',
   )
   const industryEntry = isIndustrySiteEntry(meta)
+  const micrositeId = skinOverride || baseMicrositeId
   const skin = industryEntry ? getMicrositeRuntimeSkin(micrositeId) : null
+  // 独立站：强制侧栏场景工作台（禁止 landing 能力墙）
+  const layout = industryEntry ? 'sidebar' : layoutRaw
   const activeKey = menu.find((m) => m.route === route)?.key || menu[0]?.key
   const children = schema.root.children || []
-  const heroNodes = children.filter((c) => c.type === 'landing_hero')
   const contentNodes = children.filter((c) => c.type !== 'landing_hero')
+  const atHome = !route || route === '/'
 
   let activeNode: SchemaNode | undefined =
     contentNodes.find((c) => String(c.props?.route) === route) ||
     contentNodes.find((c) => c.id === activeKey) ||
     contentNodes[0]
 
-  // 落地页：首屏展示全部内容块；有 route 时仍可点进单能力
-  const landingAll = layout === 'landing' && (!route || route === '/')
+  // 非独立站落地页：首屏可堆叠；独立站首页用标题页
+  const landingAll = !industryEntry && layoutRaw === 'landing' && atHome
+
+  const menuGroups = (() => {
+    const map = new Map<string, typeof menu>()
+    for (const m of menu) {
+      const cat = String((m as { category?: string }).category || '场景')
+      const list = map.get(cat) ?? []
+      list.push(m)
+      map.set(cat, list)
+    }
+    return [...map.entries()]
+  })()
+
+  const persistSkin = (id: string) => {
+    setSkinOverride(id)
+    if (!appId) return
+    try {
+      localStorage.setItem(`blockhub_rt_microsite_${appId}`, id)
+    } catch {
+      /* ignore */
+    }
+    // 写入个人草稿，刷新后作者仍见所选模板
+    const nextSchema = {
+      ...schema,
+      theme: {
+        ...(schema.theme || {}),
+        primaryColor: getMicrositeRuntimeSkin(id)?.accent || schema.theme?.primaryColor,
+        micrositeId: id,
+        skin: id,
+      },
+      meta: {
+        ...(schema.meta || {}),
+        entry_source: 'industry_site',
+        microsite_id: id,
+      },
+    }
+    setSchema(nextSchema as PageSchema)
+    void fetch(`/api/v1/runtime/${appId}/schema/changes`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        page_schema: nextSchema,
+        summary: `切换独立站视觉模板 → ${id}`,
+      }),
+    })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data?.change) setSchemaView('personal_draft')
+      })
+      .catch(() => undefined)
+  }
 
   const ctx = {
     appId,
@@ -313,7 +385,7 @@ export default function App() {
   const shellClass =
     layout === 'sidebar'
       ? 'runtime-shell is-sidebar'
-      : layout === 'landing'
+      : layoutRaw === 'landing'
         ? 'runtime-shell is-landing'
         : 'runtime-shell'
   const shellExtra = entrySource === 'im' ? ' is-im-entry' : ' is-portal-entry'
@@ -346,8 +418,8 @@ export default function App() {
               <strong>独立站方案工作台</strong>
               <span>
                 {skin
-                  ? `视觉模板：${skin.styleLabel} · 与独立站选择关联`
-                  : '来自行业独立站 / 行业向导 · 场景工作台'}
+                  ? `视觉模板：${skin.styleLabel} · 首页为标题页，左侧进场景`
+                  : '来自行业独立站 · 侧栏场景工作台'}
               </span>
             </>
           ) : (
@@ -384,27 +456,64 @@ export default function App() {
               <h1>{config.app_name}</h1>
               <p className="muted">
                 {user.display_name} · {user.role}
-                {entrySource === 'im' ? ' · 来自企微/钉钉/飞书' : ' · 应用门户'}
-                {layout === 'sidebar' ? ' · 侧栏' : layout === 'landing' ? ' · 落地' : ''}
+                {industryEntry
+                  ? ` · 独立站${skin ? ` · ${skin.style}` : ''}`
+                  : entrySource === 'im'
+                    ? ' · 来自企微/钉钉/飞书'
+                    : ' · 应用门户'}
               </p>
             </div>
           </div>
-          <button type="button" className="btn btn-ghost" onClick={handleLogout}>退出</button>
+          <div className="runtime-header-actions">
+            {industryEntry && !atHome ? (
+              <button type="button" className="btn btn-ghost" onClick={() => navigateRoute(appId, '/')}>
+                标题页
+              </button>
+            ) : null}
+            <button type="button" className="btn btn-ghost" onClick={handleLogout}>
+              退出
+            </button>
+          </div>
         </header>
 
         <div className="runtime-body">
           {layout === 'sidebar' ? (
             <aside className="runtime-sidebar">
-              {menu.map((item) => (
+              {industryEntry ? (
                 <button
-                  key={item.key}
                   type="button"
-                  className={`nav-btn sidebar-btn${item.route === route || item.key === activeKey ? ' active' : ''}`}
-                  onClick={() => navigateRoute(appId, item.route || '/')}
+                  className={`nav-btn sidebar-btn${atHome ? ' active' : ''}`}
+                  onClick={() => navigateRoute(appId, '/')}
                 >
-                  {item.label}
+                  标题首页
                 </button>
-              ))}
+              ) : null}
+              {industryEntry
+                ? menuGroups.map(([cat, items]) => (
+                    <div key={cat} className="runtime-sidebar-group">
+                      <p className="runtime-sidebar-cat">{cat}</p>
+                      {items.map((item) => (
+                        <button
+                          key={item.key}
+                          type="button"
+                          className={`nav-btn sidebar-btn${item.route === route || item.key === activeKey ? ' active' : ''}`}
+                          onClick={() => navigateRoute(appId, item.route || '/')}
+                        >
+                          {item.label}
+                        </button>
+                      ))}
+                    </div>
+                  ))
+                : menu.map((item) => (
+                    <button
+                      key={item.key}
+                      type="button"
+                      className={`nav-btn sidebar-btn${item.route === route || item.key === activeKey ? ' active' : ''}`}
+                      onClick={() => navigateRoute(appId, item.route || '/')}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
             </aside>
           ) : (
             <nav className="runtime-nav runtime-nav-mobile">
@@ -423,11 +532,22 @@ export default function App() {
 
           <main className="runtime-main">
             {showWeb ? (
-              landingAll ? (
+              industryEntry && atHome ? (
+                <IndustrySiteHome
+                  appName={config.app_name}
+                  skin={skin}
+                  micrositeId={micrositeId || 'consulting'}
+                  menu={menu as never}
+                  onEnterScene={(r) => navigateRoute(appId, r)}
+                  onPickSkin={persistSkin}
+                />
+              ) : landingAll ? (
                 <div className="landing-stack">
-                  {heroNodes.map((n) => (
-                    <WidgetHost key={n.id} node={n} ctx={ctx} />
-                  ))}
+                  {children
+                    .filter((c) => c.type === 'landing_hero')
+                    .map((n) => (
+                      <WidgetHost key={n.id} node={n} ctx={ctx} />
+                    ))}
                   {contentNodes.map((n) => (
                     <section key={n.id} className="landing-block">
                       <WidgetHost node={n} ctx={ctx} />

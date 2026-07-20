@@ -63,8 +63,8 @@ export default function IndustryView({
   const [contactOpen, setContactOpen] = useState(false)
   const [appName, setAppName] = useState('我的行业应用')
   const [branding, setBranding] = useState(() => emptyBranding('我的行业应用'))
-  // 业务 Runtime：独立站入口默认落地壳；皮肤由 micrositeId 驱动（勿强行改回 tabs）
-  const [webTemplateId, setWebTemplateId] = useState('landing_single')
+  // 业务 Runtime：独立站入口默认侧栏场景工作台（标题页 + 单场景），皮肤由 micrositeId 驱动
+  const [webTemplateId, setWebTemplateId] = useState('sidebar_admin')
   const [appUiId, setAppUiId] = useState('bottom_tabs')
   const [preferKeys, setPreferKeys] = useState<string[]>(() =>
     buildClientStaticEnrichment(initialIndustry ?? 'office').recommended_modules,
@@ -108,7 +108,7 @@ export default function IndustryView({
     const fallback = buildClientStaticEnrichment(apiKey)
     setPreferKeys(fallback.recommended_modules)
     setMicrositeId((prev) => initialMicrosite || loadSavedMicrositeId(apiKey) || prev)
-    setWebTemplateId('landing_single')
+    setWebTemplateId('sidebar_admin')
   }, [industry, active, initialMicrosite])
 
   useEffect(() => {
