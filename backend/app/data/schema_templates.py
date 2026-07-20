@@ -141,10 +141,40 @@ SCENARIO_TEMPLATES: list[dict[str, Any]] = [
         "match": ["作业答疑", "作业提交", "课程答疑", "错题巩固", "错题"],
         "capability_keys": ["homework_qa", "notify_im", "chat_qa"],
     },
+    # Sales TOP4（对齐 66 场景深度包）
+    {
+        "id": "tpl-sales-lead",
+        "name": "销售线索",
+        "industry": "sales",
+        "match": ["线索录入", "线索分配", "公海领取", "拜访纪要", "新建商机", "销售线索", "跟进任务"],
+        "capability_keys": ["sales_lead", "notify_im"],
+    },
+    {
+        "id": "tpl-sales-quote",
+        "name": "报价合同",
+        "industry": "sales",
+        "match": ["标准报价", "特价折扣", "销售合同审批", "合同变更申请", "报价版本", "销售开票"],
+        "capability_keys": ["quote_contract", "notify_im"],
+    },
+    {
+        "id": "tpl-sales-funnel",
+        "name": "销售漏斗",
+        "industry": "sales",
+        "match": ["销售漏斗", "业绩排行", "区域销售", "提成核算", "销售问数"],
+        "capability_keys": ["chart_funnel", "ops_kpi", "data_nl_query"],
+    },
+    {
+        "id": "tpl-sales-crm",
+        "name": "CRM对接",
+        "industry": "sales",
+        "match": ["Salesforce", "纷享", "销售易", "CRM线索", "CRM商机"],
+        "capability_keys": ["erp_connector", "notify_im"],
+    },
 ]
 
 OFFICE_DEFAULT_KEYS = ["chat_qa", "approval_flow", "kb_document", "chart_dashboard"]
 MFG_DEFAULT_KEYS = ["chat_qa", "approval_flow", "kb_document", "chart_dashboard"]
+SALES_DEFAULT_KEYS = ["sales_lead", "quote_contract", "chart_funnel", "notify_im"]
 
 
 def match_template(scenario_name: str) -> dict[str, Any] | None:
@@ -183,7 +213,12 @@ def resolve_capability_keys(
             add(list(tpl["capability_keys"]))
 
     if not ordered:
-        add(MFG_DEFAULT_KEYS if industry_key == "mfg" else OFFICE_DEFAULT_KEYS)
+        if industry_key == "mfg":
+            add(MFG_DEFAULT_KEYS)
+        elif industry_key == "sales":
+            add(SALES_DEFAULT_KEYS)
+        else:
+            add(OFFICE_DEFAULT_KEYS)
 
     return ordered
 

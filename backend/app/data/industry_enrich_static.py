@@ -10,7 +10,7 @@ from app.data.industry_packs_all import ALL_INDUSTRY_PACKS, pack_meta, scene_cou
 PACK_CAPSHIP_MODULES: dict[str, list[str]] = {
     "office": ["leave_request", "expense_claim", "policy_qa", "hire_onboard", "seal_request", "meeting_booking", "approval_flow", "approval_inbox", "ops_kpi", "shift_attendance", "kb_document", "it_ticket", "asset_manage", "notify_im", "notify_inapp", "chart_dashboard", "data_nl_query", "legal_case", "chat_qa", "erp_connector", "rbac_page"],
     "mfg": ["device_repair", "quality_inspect", "inventory_count", "chat_qa", "notify_im", "kb_document"],
-    "sales": ["sales_lead", "quote_contract", "ops_kpi", "chat_qa", "chart_funnel", "notify_im"],
+    "sales": ["sales_lead", "quote_contract", "ops_kpi", "chat_qa", "chart_funnel", "notify_im", "kb_document", "expense_claim", "site_patrol", "erp_connector", "campaign_ops", "data_nl_query", "chart_dashboard"],
     "med": ["med_triage", "nurse_shift", "kb_document", "chat_qa", "approval_flow", "notify_im"],
     "game": ["game_support", "chat_qa", "approval_flow", "notify_im", "kb_document", "chart_dashboard"],
     "retail": ["inventory_count", "member_loyalty", "chat_qa", "notify_im", "approval_flow", "chart_dashboard"],
@@ -40,8 +40,16 @@ _STATIC_BASE: dict[str, dict[str, Any]] = {
         "highlights": ["设备报修派工闭环", "质检 SOP 现场执行", "库存盘点移动化", "安环隐患拍图上报"],
     },
     "sales": {
-        "overview": "销售行业深度包打通销售线索、报价合同与经营看板，销售可在移动端录入线索、发起特价审批，老板一句话看懂漏斗转化。",
-        "highlights": ["线索录入与跟进", "报价合同审批", "经营看板自然语言查数", "话术知识库问答"],
+        "overview": (
+            "销售行业深度包只收录销售/CRM 特有场景（线索·跟进·报价·回款·赋能·漏斗·外勤·CRM），"
+            "不搬用通用办公人事行政场景；正式能力接真 API，空库空列表。"
+        ),
+        "highlights": [
+            "纯销售场景 · 不混办公审批人事",
+            "线索到回款真库闭环",
+            "漏斗与提成看板接真数据",
+            "Salesforce / 纷享等 CRM 可对接",
+        ],
     },
     "med": {
         "overview": "医疗健康深度包覆盖智能导诊、护士排班与临床知识检索，支撑预问诊、调班审批与不良事件上报，助力院内数字化协同。",

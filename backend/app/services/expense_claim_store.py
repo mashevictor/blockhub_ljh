@@ -10,7 +10,21 @@ from sqlalchemy.orm import Session, joinedload
 from app.db.models import ExpenseClaimRecord, User
 
 VALID_STATUS = frozenset(('open', 'reviewing', 'paid', 'rejected'))
-VALID_CATEGORY = frozenset(('travel', 'meal', 'office'))
+VALID_CATEGORY = frozenset(('travel', 'meal', 'office', 'sample', 'loan', 'payment', 'invoice', 'hospitality'))
+
+
+def _norm_category(raw: str, default: str = 'travel') -> str:
+    cat = (raw or '').strip().lower()[:64]
+    # 销售场景 slug 归一到可识别类别
+    if cat in {'sample', 'sales-enablement', 'field-coordination', 'invoice-request'}:
+        if 'invoice' in cat:
+            return 'invoice'
+        if cat == 'field-coordination':
+            return 'hospitality'
+        return 'sample'
+    if cat in VALID_CATEGORY:
+        return cat
+    return cat if cat else default
 
 
 def _no() -> str:
@@ -69,9 +83,7 @@ def create_record(
     note: str = "",
     app_public_id: str = "",
 ) -> dict[str, Any]:
-    cat = (category or "travel").strip().lower()
-    if cat not in VALID_CATEGORY:
-        cat = "travel"
+    cat = _norm_category(category, 'travel')
     row = ExpenseClaimRecord(
         tenant_id=user.tenant_id,
         app_public_id=(app_public_id or "").strip(),

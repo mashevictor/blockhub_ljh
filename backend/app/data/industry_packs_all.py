@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from app.data.office_scene_capabilities import office_pack_scenes
+from app.data.sales_scene_capabilities import sales_pack_scenes
 
 
 def _scene(
@@ -62,22 +63,9 @@ _SALES = {
     "key": "sales",
     "name": "销售行业",
     "icon": "📈",
-    "color": "#ef4444",
-    "tagline": "话术、漏斗、合同、CRM 一体",
-    "scenes": [
-        _scene("产品/话术问答", "知识管理", "产品参数竞品话术", pages="chat+kb", agent="chat_qa"),
-        _scene("报价/折扣审批", "审批流程", "超权限折扣", agent="approval"),
-        _scene("销售漏斗看板", "数据分析", "线索商机转化", pages="chart_funnel", standard="部分", agent="report"),
-        _scene("客户跟进记录", "客户管理", "拜访纪要", pages="form+list", agent="approval"),
-        _scene("合同审批", "审批流程", "法务财务会签", agent="approval"),
-        _scene("商机到期提醒", "消息通知", "长期未跟进", pages="notify", agent="notify"),
-        _scene("业绩排行/提成", "数据分析", "团队PK", pages="chart", standard="部分", agent="report"),
-        _scene("案例/方案库", "知识管理", "成功案例检索", pages="kb", agent="kb"),
-        _scene("样品/礼品申请", "审批流程", "市场物料领用", agent="approval"),
-        _scene("对接Salesforce/纷享", "系统集成", "CRM同步", standard="定制", pages="integration", agent="integration"),
-        _scene("外勤签到", "客户管理", "拜访定位", pages="form+map", standard="部分", agent="approval"),
-        _scene("区域销售分析", "数据分析", "按区产品线", pages="chart", agent="report"),
-    ],
+    "color": "#6366f1",
+    "tagline": "话术、漏斗、合同、CRM · 纯销售场景",
+    "scenes": sales_pack_scenes(),
 }
 
 _MED = {

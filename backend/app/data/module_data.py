@@ -29,9 +29,9 @@ INDUSTRY_PACK_OPTIONS = [
         "name": "销售行业",
         "icon": "📈",
         "color": "#dc2626",
-        "scene_count": 12,
-        "description": "12 项销售专属场景",
-        "preview": "产品话术、报价审批、销售漏斗、合同审批等 12 项",
+        "scene_count": 64,
+        "description": "64 项销售/CRM 特有场景",
+        "preview": "线索跟进、报价合同、销售漏斗、CRM 对接等 64 项",
     },
     {
         "key": "med",

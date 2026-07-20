@@ -10,7 +10,8 @@ import re
 from typing import Any
 
 from app.data.industry_packs_all import ALL_INDUSTRY_PACKS, pack_meta
-from app.data.office_scene_capabilities import enrich_menu_plan_item
+from app.data.office_scene_capabilities import enrich_menu_plan_item as enrich_office_menu_plan_item
+from app.data.sales_scene_capabilities import enrich_menu_plan_item as enrich_sales_menu_plan_item
 from app.services.effective_capability_registry import is_registry_key
 
 # 场景 agent 字段 → 正式 capability key
@@ -97,7 +98,8 @@ _NAME_HINTS: list[tuple[tuple[str, ...], str]] = [
     (("报价", "合同"), "quote_contract"),
     (("OEE", "稼动", "生产日报"), "mfg_oee"),
     (("能耗", "碳排"), "energy_carbon"),
-    (("漏斗", "KPI"), "chart_dashboard"),
+    (("漏斗",), "chart_funnel"),
+    (("KPI", "业绩排行", "区域分析"), "ops_kpi"),
     (("SOP作业", "作业指导"), "kb_document"),
     (("SOP", "工艺"), "chat_qa"),
     (("图纸", "BOM"), "kb_document"),
@@ -148,7 +150,14 @@ def resolve_scene_capability_keys(scene: dict[str, Any]) -> list[str]:
     keys: list[str] = []
     name = str(scene.get("name") or "")
 
-    # 办公 66 SSOT 优先（避免 CRM 等词误命中 sales_lead）
+    # Catalog 已写正式 agent（sales/mfg 深度包）时优先，避免与办公同名场景串 key
+    agent = str(scene.get("agent") or "").strip()
+    if agent and agent not in {"—", "-", "custom", "approval", "report", "notify", "kb", "integration"}:
+        mapped = _AGENT_TO_CAPABILITY.get(agent, agent if is_registry_key(agent) else "")
+        if mapped and is_registry_key(mapped):
+            return [mapped]
+
+    # 办公 / 销售深度包 SSOT（名称精确匹配）
     try:
         from app.data.office_scene_capabilities import OFFICE_SCENES_BY_NAME
 
@@ -159,12 +168,21 @@ def resolve_scene_capability_keys(scene: dict[str, Any]) -> list[str]:
                 return [ck]
     except Exception:
         pass
+    try:
+        from app.data.sales_scene_capabilities import SALES_SCENES_BY_NAME
+
+        sales_row = SALES_SCENES_BY_NAME.get(name)
+        if sales_row:
+            ck = str(sales_row.get("capability_key") or "")
+            if ck and is_registry_key(ck):
+                return [ck]
+    except Exception:
+        pass
 
     for k in _keys_from_name(name):
         if k not in keys:
             keys.append(k)
 
-    agent = str(scene.get("agent") or "").strip()
     if agent and agent not in {"—", "-", "custom"}:
         mapped = _AGENT_TO_CAPABILITY.get(agent, agent if is_registry_key(agent) else "")
         if mapped and is_registry_key(mapped) and mapped not in keys:
@@ -259,7 +277,14 @@ def assemble_industry_pack(
             plan_item["approval_type"] = "seal"
             plan_item["form_headline"] = "用印申请"
         if pack_key == "office":
-            plan_item = enrich_menu_plan_item(plan_item, name)
+            plan_item = enrich_office_menu_plan_item(plan_item, name)
+            primary = str(plan_item.get("capability_key") or primary)
+            if modules:
+                modules[-1]["key"] = primary
+            if primary not in capability_keys:
+                capability_keys.append(primary)
+        elif pack_key == "sales":
+            plan_item = enrich_sales_menu_plan_item(plan_item, name)
             primary = str(plan_item.get("capability_key") or primary)
             if modules:
                 modules[-1]["key"] = primary
@@ -270,8 +295,8 @@ def assemble_industry_pack(
     if not capability_keys:
         capability_keys = ["chat_qa", "approval_flow", "kb_document"]
 
-    # office：以映射表 menu_plan 为准重建 keys，避免名称关键词误伤（如 CRM→sales_lead）
-    if pack_key == "office" and menu_plan:
+    # office / sales：以映射表 menu_plan 为准重建 keys，避免名称关键词误伤
+    if pack_key in {"office", "sales"} and menu_plan:
         rebuilt: list[str] = []
         for item in menu_plan:
             ck = str(item.get("capability_key") or "").strip()

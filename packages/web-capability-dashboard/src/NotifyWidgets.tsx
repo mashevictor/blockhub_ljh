@@ -19,27 +19,32 @@ interface FunnelStage {
 export function FunnelWidget(_props: { node: SchemaNode }) {
   const { token, primaryColor, appId } = useRuntime()
   const [stages, setStages] = useState<FunnelStage[]>([])
+  const [stale, setStale] = useState<Array<{ id: string; customer: string; status: string; updated_at?: string }>>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (!token) {
       setStages([])
+      setStale([])
       setLoading(false)
       return
     }
     setLoading(true)
     const q = appId ? `?app_id=${encodeURIComponent(appId)}` : ''
-    // 优先读销售漏斗真接口；无数据或失败 → 空态
-    void apiFetch<{ items?: FunnelStage[]; stages?: FunnelStage[] }>(
-      `/api/v1/sales-lead/funnel${q}`,
-      token,
-    )
-      .then((d) => {
-        const list = d.stages || d.items || []
-        setStages(Array.isArray(list) ? list : [])
-      })
-      .catch(() => setStages([]))
-      .finally(() => setLoading(false))
+    void Promise.all([
+      apiFetch<{ items?: FunnelStage[]; stages?: FunnelStage[] }>(`/api/v1/sales-lead/funnel${q}`, token)
+        .then((d) => {
+          const list = d.stages || d.items || []
+          setStages(Array.isArray(list) ? list : [])
+        })
+        .catch(() => setStages([])),
+      apiFetch<{ items?: Array<{ id: string; customer: string; status: string; updated_at?: string }> }>(
+        `/api/v1/sales-lead/stale${q}${q ? '&' : '?'}days=7`,
+        token,
+      )
+        .then((d) => setStale(Array.isArray(d.items) ? d.items : []))
+        .catch(() => setStale([])),
+    ]).finally(() => setLoading(false))
   }, [token, appId])
 
   const max = Math.max(1, ...stages.map((s) => s.value))
@@ -65,6 +70,19 @@ export function FunnelWidget(_props: { node: SchemaNode }) {
           </div>
         ))}
       </div>
+      <h4 style={{ margin: '16px 0 8px', fontSize: 14 }}>商机到期提醒（≥7 天未更新）</h4>
+      {!loading && stale.length === 0 && <p className="muted">暂无滞留商机</p>}
+      <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 8 }}>
+        {stale.map((t) => (
+          <li key={t.id} className="list-card" style={{ padding: 10 }}>
+            <strong style={{ fontSize: 13 }}>{t.customer}</strong>
+            <p className="muted" style={{ margin: '4px 0 0', fontSize: 12 }}>
+              {t.status}
+              {t.updated_at ? ` · 更新于 ${t.updated_at.slice(0, 10)}` : ''}
+            </p>
+          </li>
+        ))}
+      </ul>
     </div>
   )
 }

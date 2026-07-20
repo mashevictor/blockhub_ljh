@@ -23,6 +23,27 @@ class CreateBody(BaseModel):
     app_public_id: str = Field(default="", max_length=64)
 
 
+@router.get("/funnel")
+def funnel_api(
+    app_id: str | None = Query(None),
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> dict:
+    stages = store.funnel_stats(db, user.tenant_id, app_public_id=app_id or None)
+    return {"total": len(stages), "stages": stages, "items": stages}
+
+
+@router.get("/stale")
+def stale_api(
+    app_id: str | None = Query(None),
+    days: int = Query(7, ge=1, le=90),
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> dict:
+    items = store.stale_opportunities(db, user.tenant_id, app_public_id=app_id or None, days=days)
+    return {"total": len(items), "items": items, "days": days}
+
+
 @router.get("/records")
 def list_api(
     app_id: str | None = Query(None),

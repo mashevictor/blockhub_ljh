@@ -44,7 +44,7 @@ export const PACK_DEFAULT_MICROSITE: Record<string, string> = {
   finance: 'accounting',
   office: 'consulting',
   med: 'clinic',
-  sales: 'dental',
+  sales: 'consulting',
   hotel: 'hotel',
   edu: 'education',
   hr: 'training',

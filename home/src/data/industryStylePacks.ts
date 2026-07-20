@@ -59,7 +59,7 @@ export const INDUSTRY_STYLE_PACK: Record<string, IndustryStylePack> = {
   gov: 'vault',
   mfg: 'industrial',
   construction: 'freight',
-  sales: 'velocity',
+  sales: 'classic',
   marketing: 'market',
   med: 'serenity',
   hotel: 'horizon',
