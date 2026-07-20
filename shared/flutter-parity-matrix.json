@@ -305,6 +305,16 @@
       "dart_import": "package:capability_security_mask/capability_security_mask.dart"
     },
     {
+      "web_pkg": "@blockhub/web-capability-game-2048",
+      "web_folder": "web-capability-game-2048",
+      "flutter_pkg": null,
+      "p1_scope": "web_only",
+      "status_target": "web_only",
+      "capability_keys": [
+        "game_2048"
+      ]
+    },
+    {
       "web_pkg": "@blockhub/web-capability-auth-sso",
       "web_folder": "web-capability-auth-sso",
       "flutter_pkg": null,

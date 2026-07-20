@@ -371,7 +371,9 @@ def publish_app(
     try:
         has_description = len(body.prompt.strip()) >= 2
         has_selection = bool(body.scenario_ids or body.scenario_names or body.capability_keys or body.modules)
-        if not has_description and not has_selection:
+        # 行业全量装配：仅 industry_key + assemble_full_scenes 即可（smoke / 独立站一键发布）
+        has_industry_full = bool(body.assemble_full_scenes and (body.industry_key or "").strip())
+        if not has_description and not has_selection and not has_industry_full:
             raise HTTPException(status_code=400, detail="请先选择功能模块或填写至少 2 个字的应用描述")
 
         names: list[str] = []

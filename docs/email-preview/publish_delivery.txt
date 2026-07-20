@@ -1,0 +1,18 @@
+老刘，您好：
+
+您在积木仓创建的应用「示例智能门店助手」已发布（网页 + App）。
+
+网页版：
+https://blockhub.club/r/demo123
+
+Android 安装包下载（本邮件不含 .apk 附件，请用链接下载）：
+https://blockhub.club/api/v1/runtime/demo123/download
+
+
+已包含能力：
+智能问答、请假审批、知识库
+
+如有问题请直接回复本邮件。
+
+积木仓团队
+https://blockhub.club

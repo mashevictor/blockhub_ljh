@@ -109,6 +109,7 @@ const CAP_WIDGET_FALLBACK: Record<string, string> = {
   homework_qa: 'HomeworkQaWidget',
   class_schedule: 'ClassScheduleWidget',
   game_support: 'GameSupportWidget',
+  game_2048: 'Game2048Widget',
   legal_case: 'LegalCaseWidget',
   gov_service: 'GovServiceWidget',
   shanghai_voice: 'ShanghaiVoiceWidget',

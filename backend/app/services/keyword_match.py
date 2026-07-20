@@ -205,6 +205,10 @@ def filter_spurious_modules(text: str, items: list[dict]) -> list[dict]:
 def _contextual_game_modules(text: str) -> list[tuple[str, str, str, float]]:
     """对战/角色/C 端玩法类描述，补充游戏向模块。"""
     hints: list[tuple[str, str, str, float]] = []
+    puzzle = any(w in text for w in ("2048", "数字合成", "合成2048", "益智2048", "数字方块", "玩2048"))
+    if puzzle:
+        hints.append(("game_2048", "2048", "可玩数字合成小游戏", 9.5))
+        return hints
     combat = any(w in text for w in ("剑", "打", "对战", "战斗", "四个", "五个", "角色", "npc", "副本", "关卡"))
     if combat:
         hints.append(("chat_qa", "智能问答", "NPC/角色对话", 7.5))

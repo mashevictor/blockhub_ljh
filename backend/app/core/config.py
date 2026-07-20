@@ -43,13 +43,15 @@ class Settings(BaseSettings):
     cos_bucket: str = ""
     cos_cdn_base_url: str = ""
 
-    # 邮件（QQ SMTP，参考 D:\product\邮件模板\发送邮件的js.txt）
+    # 邮件（QQ SMTP）
     smtp_enabled: bool = False
     smtp_host: str = "smtp.qq.com"
     smtp_port: int = 465
     smtp_user: str = ""
     smtp_password: str = ""
     smtp_from_name: str = "积木仓 BlockHub"
+    # 默认不附带 .apk：多数邮箱会退信/进垃圾箱；改为下载链接
+    smtp_attach_apk: bool = False
     publish_email_enabled: bool = True
 
     # 电信星辰 MaaS · 上海话语音 Agent

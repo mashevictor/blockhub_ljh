@@ -59,6 +59,7 @@ _SYNONYM_TO_CAP: list[tuple[tuple[str, ...], str]] = [
     (("审批流", "通用审批", "流程审批"), "approval_flow"),
     (("待办", "审批中心", "待我审批"), "approval_inbox"),
     (("智能问答", "客服faq", "对话助手"), "chat_qa"),
+    (("2048", "合成2048", "数字合成", "益智2048", "玩2048", "2048小游戏", "数字方块游戏"), "game_2048"),
 ]
 
 _FORM_CAPS = frozenset({
@@ -451,7 +452,8 @@ def _resolve_matches(text: str) -> list[dict[str, Any]]:
         hit = any(a.lower() in t or a in text for a in aliases)
         if not hit:
             continue
-        score = 8.0
+        # 精准口语（如 2048）抬高分，避免行业包附带的看板/ERP 一并灌入
+        score = 9.5 if cap_key == "game_2048" else 8.0
         prev = by_key.get(cap_key)
         if prev is None or score > float(prev.get("score") or 0):
             by_key[cap_key] = {
@@ -507,6 +509,8 @@ def _infer_add_from_text(text: str) -> list[dict[str, Any]]:
 
 
 def _page_kind_for(cap: str) -> str:
+    if cap == "game_2048":
+        return "game"
     if cap in _FORM_CAPS:
         return "form_list"
     if cap in {"shift_attendance", "nurse_shift", "class_schedule"}:
@@ -659,6 +663,12 @@ def _intent_page_mock(label: str, cap: str, kind: str, hint: str = "") -> dict[s
     """按用户场景文案生成差异化预览页（非假业务数据冒充真 API）。"""
     ctx = (hint or label).strip()
     blob = f"{label} {ctx}"
+    if kind == "game" or cap == "game_2048":
+        return {
+            "list_title": "2048",
+            "list": [{"id": "tip", "title": "方向键 / 滑动合并数字", "status": "可玩"}],
+            "primary_action": "开始游戏",
+        }
     if kind == "roster" or cap == "shift_attendance":
         return {
             "list_title": f"{label} · 本周安排",

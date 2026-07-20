@@ -217,11 +217,22 @@
 
 ### 6.3 退信常见原因与规避
 
-1. **HTML 过于复杂** → 简化 DOM，减少嵌套
-2. **外链图片被拦** → Logo 使用自有域名 HTTPS；正文信息不依赖图片
-3. **纯图片邮件** → 保证文字占比 > 60%
-4. **可疑链接** → 使用 `public_base_url` 正式域名
-5. **缺 plain text** → `email_service.py` 已发 multipart/alternative
+1. **附带 .apk / .exe** → 默认 `SMTP_ATTACH_APK=false`，只发 HTTPS 下载链接
+2. **黑金深色花哨 HTML / 大量 emoji** → 改用浅色商务表格模板（`#0F172A` + `#F8FAFC`）
+3. **标题过长、符号过多（【】✦）** → 短标题：`积木仓：应用「xxx」已发布`
+4. **HTML 过于复杂 / 缺 plain text** → 表格布局 + multipart/alternative
+5. **外链图片依赖** → 正文不依赖 Logo 图；品牌用文字顶栏
+6. **可疑链接** → 一律 `public_base_url` 正式域名（blockhub.club）
+7. **缺标准头** → `Date` / `Message-ID` / `List-Unsubscribe` / `Reply-To`
+
+本地预览：
+
+```bash
+bash scripts/smoke-email-templates.sh
+# 可选试发（需 backend/.env 配好 SMTP）
+bash scripts/smoke-email-templates.sh --send you@example.com
+```
+
 
 ---
 

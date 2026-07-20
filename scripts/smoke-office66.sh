@@ -137,7 +137,8 @@ if [[ "$PUB_CODE" != "200" || -z "$PUB" ]]; then
   bad "publish office (HTTP $PUB_CODE)"
   echo "  body=$(head -c 500 /tmp/office66_publish.json 2>/dev/null || true)"
   echo "  含义: POST /creation/publish 用 industry_key=office + assemble_full_scenes 生成 Runtime 应用失败"
-  echo "  常见原因: API 超时/未登录/DB 错误/内存不足。可手动:"
+  echo "  常见原因: 旧版 API 未放行 assemble_full_scenes（需部署含 has_industry_full 的 creation.py）；或超时/未登录/DB。"
+  echo "  可手动:"
   echo "    curl -sS -w '\\n%{http_code}\\n' -X POST $API/creation/publish -H \"\$AUTH\" -H 'Content-Type: application/json' -d '{...}'"
 else
   APP_ID=$(echo "$PUB" | python3 -c 'import sys,json;d=json.load(sys.stdin);print((d.get("app") or d).get("id",""))' 2>/dev/null || echo "")
