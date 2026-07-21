@@ -243,19 +243,30 @@
   padding: 8px 10px;
   border: 0;
   border-radius: 8px;
-  background: color-mix(in srgb, var(--accent) 6%, transparent);
+  /* 分类标题 ≠ 选中态：透明底，避免与子项 .active 同时「像高亮」 */
+  background: transparent;
   color: inherit;
   font: inherit;
   text-align: left;
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.02em;
-  opacity: 1;
+  opacity: 0.72;
   user-select: none;
 }
 
 .runtime-sidebar-tree > .runtime-sidebar-cat:hover {
-  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  opacity: 1;
+}
+
+.runtime-sidebar-tree.has-active > .runtime-sidebar-cat {
+  /* 仅提示本组有选中子项，仍弱于 .sidebar-btn.active */
+  opacity: 0.9;
+  color: inherit;
+  background: transparent;
+  box-shadow: none;
+  font-weight: 700;
 }
 
 .runtime-sidebar-tree > .runtime-sidebar-cat::after {
@@ -412,6 +423,24 @@
   color: #0f172a;
   border-color: color-mix(in srgb, var(--accent) 40%, transparent);
   font-weight: 700;
+}
+
+/* 行业工作台：同一时刻只允许一个叶子菜单呈选中态；分类条永不带 active 填充 */
+.runtime-shell.is-industry-site .runtime-sidebar-cat {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  font-weight: 700;
+  opacity: 0.7;
+}
+.runtime-shell.is-industry-site .runtime-sidebar-tree.has-active > .runtime-sidebar-cat {
+  opacity: 0.85;
+}
+.runtime-shell.is-industry-site .runtime-sidebar .sidebar-btn:not(.active),
+.runtime-shell.is-industry-site .runtime-sidebar-tree .sidebar-btn:not(.active) {
+  background: transparent;
+  border-color: transparent;
+  font-weight: 500;
 }
 
 .runtime-shell.is-industry-site .btn:not(.btn-ghost) {

@@ -436,15 +436,16 @@ export default function App() {
       construction: '建筑工程',
     } as Record<string, string>)[String(meta.industry_key || '')] ||
     config.app_name
-  const activeKey = menu.find((m) => m.route === route)?.key || menu[0]?.key
+  const atHome = !route || route === '/'
+  // 高亮只跟当前 route：首页时不要 fallback 到 menu[0]，否则会与「行业首页」双高亮
+  const activeKey = menu.find((m) => m.route === route)?.key
   const children = schema.root.children || []
   const contentNodes = children.filter((c) => c.type !== 'landing_hero')
-  const atHome = !route || route === '/'
 
   let activeNode: SchemaNode | undefined =
     contentNodes.find((c) => String(c.props?.route) === route) ||
-    contentNodes.find((c) => c.id === activeKey) ||
-    contentNodes[0]
+    (activeKey ? contentNodes.find((c) => c.id === activeKey) : undefined) ||
+    (!atHome ? contentNodes[0] : undefined)
 
   // 非独立站落地页：首屏可堆叠；独立站首页用行业封面
   const landingAll = !industryEntry && layoutRaw === 'landing' && atHome
@@ -532,7 +533,7 @@ export default function App() {
       ) : null}
       {industryEntry
         ? menuGroups.map(([cat, items]) => {
-            const childActive = items.some((item) => item.route === route || item.key === activeKey)
+            const childActive = items.some((item) => item.route === route || (activeKey != null && item.key === activeKey))
             // 默认可点场景全部展开，避免折叠后只剩灰色分类标题
             const isOpen = sidebarOpen[cat] !== undefined ? sidebarOpen[cat] : true
             return (
@@ -558,7 +559,7 @@ export default function App() {
                       <button
                         key={item.key}
                         type="button"
-                        className={`${className}${item.route === route || item.key === activeKey ? ' active' : ''}`}
+                        className={`${className}${item.route === route || (activeKey != null && item.key === activeKey) ? ' active' : ''}`}
                         onClick={(e) => {
                           e.preventDefault()
                           e.stopPropagation()
@@ -576,7 +577,7 @@ export default function App() {
             <button
               key={item.key}
               type="button"
-              className={`${className}${item.route === route || item.key === activeKey ? ' active' : ''}`}
+              className={`${className}${item.route === route || (activeKey != null && item.key === activeKey) ? ' active' : ''}`}
               onClick={(e) => {
                 e.preventDefault()
                 e.stopPropagation()
