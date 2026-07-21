@@ -277,13 +277,20 @@ export function SalesLeadWidget({ node }: { node: SchemaNode }) {
             category: method === 'referral' ? 'referral-lead' : 'lead-capture',
             customer,
             amount: '',
-            owner: user?.display_name || '',
+            owner: '',
             note: [pick(values, 'contact', 'contact_name'), pick(values, 'note', 'phone')].filter(Boolean).join(' · '),
             source: method === 'referral' ? '转介绍' : pick(values, 'source') || '未标注',
             referrer: pick(values, 'referrer'),
+            pool_status: 'pool',
             app_public_id,
           }),
         })
+        setMsg('已写入待领取')
+        setValues({})
+        setResetKey((k) => k + 1)
+        setMethod('pool')
+        // method 变更后 load effect 会拉「待领取」列表
+        return
       } else if (method === 'assign') {
         await apiFetch('/api/v1/sales-lead/records/assign', token, {
           method: 'POST',
@@ -367,11 +374,13 @@ export function SalesLeadWidget({ node }: { node: SchemaNode }) {
   }
 
   const listHint =
-    role === 'sales_rep'
-      ? '我的线索 + 待领取'
-      : role === 'sales_manager'
-        ? '待跟进全员线索'
-        : '全部渠道线索'
+    method === 'pool'
+      ? '待领取线索'
+      : role === 'sales_rep'
+        ? '我的线索 + 待领取'
+        : role === 'sales_manager'
+          ? '待跟进全员线索'
+          : '全部渠道线索'
 
   return (
     <div>
@@ -444,7 +453,7 @@ export function SalesLeadWidget({ node }: { node: SchemaNode }) {
         </div>
       )}
 
-      {method !== 'pipeline' && steps.length > 0 && (
+      {method !== 'pipeline' && steps.length > 0 && !(method === 'pool' && !loading && items.length === 0) && (
         <GtgtStepComposer
           title={formTitle}
           meta={ROLE_LABEL[role]}
@@ -459,6 +468,38 @@ export function SalesLeadWidget({ node }: { node: SchemaNode }) {
           resetKey={resetKey}
           submitLabel="确认"
         />
+      )}
+
+      {method === 'pool' && !loading && items.length === 0 && (
+        <div
+          className="list-card"
+          style={{
+            padding: 16,
+            marginBottom: 12,
+            border: `1px dashed ${accent}`,
+            background: 'rgba(13,71,161,0.04)',
+          }}
+        >
+          <strong style={{ fontSize: 14 }}>暂无待领取线索</strong>
+          <p className="muted" style={{ margin: '8px 0 0', fontSize: 13, lineHeight: 1.55 }}>
+            「待领取」只显示池里无人认领的线索。你之前在「录入」里写进的线索若已是「已认领」，这里不会出现。
+            <br />
+            请先点上方 <b>录入</b> 新建一条（会进入待领取），或让主管把线索「退回待领取」。
+          </p>
+          <button
+            type="button"
+            className="btn"
+            style={{ marginTop: 12, background: accent, border: 'none', color: '#fff', fontSize: 13 }}
+            onClick={() => {
+              setMethod('capture')
+              setValues({})
+              setResetKey((k) => k + 1)
+              setMsg('')
+            }}
+          >
+            去录入（写入待领取）
+          </button>
+        </div>
       )}
 
       {msg && <p className="status-msg">{msg}</p>}
@@ -566,7 +607,7 @@ export function SalesLeadWidget({ node }: { node: SchemaNode }) {
                       领取
                     </button>
                   )}
-                  {role === 'sales_manager' && t.pool_status === 'private' && t.status === 'open' && (
+                  {t.pool_status === 'private' && t.status === 'open' && (role === 'sales_manager' || role === 'sales_rep') && (
                     <button
                       type="button"
                       className="btn btn-ghost"

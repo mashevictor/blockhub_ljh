@@ -161,6 +161,7 @@ class _SalesLeadPageState extends State<SalesLeadPage> {
           'note': (_values['note'] ?? '').trim(),
           'owner': '',
           'amount': '',
+          'pool_status': 'pool',
           'app_public_id': app,
         });
       } else if (_method == 'assign') {
