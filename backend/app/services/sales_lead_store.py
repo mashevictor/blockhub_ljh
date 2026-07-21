@@ -221,18 +221,26 @@ def create_record(
                 .filter(User.tenant_id == user.tenant_id, User.role.in_(("employee", "admin")))
                 .all()
             )
+            # reference_id 列最长 64；不可拼两个 UUID
+            ref = f"pool:{row.id}"[:64]
             for peer in peers:
-                create_notification(
-                    db,
-                    tenant_id=user.tenant_id,
-                    title=f"新待领取线索 · {row.customer}",
-                    content=f"{row.record_no} · 来源 {row.source or '未标注'} · 打开「待领取」认领",
-                    type="sales_lead",
-                    recipient_user_id=peer.id,
-                    reference_id=f"pool:{row.id}:{peer.id}",
-                )
+                try:
+                    create_notification(
+                        db,
+                        tenant_id=user.tenant_id,
+                        title=f"新待领取线索 · {row.customer}",
+                        content=f"{row.record_no} · 来源 {row.source or '未标注'} · 打开「待领取」认领",
+                        type="sales_lead",
+                        recipient_user_id=peer.id,
+                        reference_id=ref,
+                    )
+                except Exception:
+                    db.rollback()
         except Exception:
-            pass
+            try:
+                db.rollback()
+            except Exception:
+                pass
     try:
         from app.services.im_delivery_service import notify_business_event
 
@@ -283,6 +291,7 @@ def _notify_lead(
     reference_id: str | None = None,
     app_public_id: str = "",
 ) -> None:
+    ref = (reference_id or "")[:64] or None
     try:
         from app.services.notification_service import create_notification, notify_tenant_admins
 
@@ -294,7 +303,7 @@ def _notify_lead(
                 content=content,
                 type="sales_lead",
                 recipient_user_id=recipient_user_id,
-                reference_id=reference_id,
+                reference_id=ref,
             )
         else:
             notify_tenant_admins(
@@ -303,10 +312,13 @@ def _notify_lead(
                 title=title,
                 content=content,
                 type="sales_lead",
-                reference_id=reference_id,
+                reference_id=ref,
             )
     except Exception:
-        pass
+        try:
+            db.rollback()
+        except Exception:
+            pass
     try:
         from app.services.im_delivery_service import notify_business_event
 
