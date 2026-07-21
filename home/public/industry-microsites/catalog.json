@@ -22,7 +22,7 @@
     "name": "企业管理咨询",
     "category": "商业服务",
     "style": "readonly",
-    "styleLabel": "Read Only · 极简名片",
+    "styleLabel": "Read Only · 黑金名片",
     "brand": "观澜咨询",
     "path": "sites/consulting/index.html"
   },
@@ -112,7 +112,7 @@
     "name": "室内设计",
     "category": "地产建筑",
     "style": "paradigm",
-    "styleLabel": "Paradigm Shift · 非对称编辑",
+    "styleLabel": "Paradigm · 黑金编辑",
     "brand": "界线设计",
     "path": "sites/interior/index.html"
   },
@@ -175,7 +175,7 @@
     "name": "摄影工作室",
     "category": "创意文化",
     "style": "sonar",
-    "styleLabel": "Sonar · 摄影瀑布流",
+    "styleLabel": "Sonar · 黑金瀑布流",
     "brand": "噪点工作室",
     "path": "sites/photography/index.html"
   }

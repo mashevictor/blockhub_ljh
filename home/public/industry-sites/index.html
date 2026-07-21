@@ -6,19 +6,21 @@
   <title>行业独立网页目录 · BlockHub</title>
   <meta name="description" content="20 个行业落地页，静态解耦生成，不依赖应用运行时。" />
   <style>
-    :root { --bg:#f4f7fb; --text:#0f172a; --muted:#64748b; --line:#dbeafe; --pri:#0d47a1; }
+    :root { --bg:#0a0908; --text:#fef9e7; --muted:rgba(254,243,199,.7); --line:rgba(212,175,55,.28); --pri:#d4af37; }
     * { box-sizing: border-box; }
-    body { margin:0; font-family: "Segoe UI", "PingFang SC", sans-serif; background:var(--bg); color:var(--text); }
+    body { margin:0; font-family: "Segoe UI", "PingFang SC", sans-serif; background:
+      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(212,175,55,.14), transparent), var(--bg);
+      color:var(--text); }
     .wrap { max-width:1080px; margin:0 auto; padding:32px 20px 64px; }
     h1 { font-size:28px; margin:0 0 8px; }
     .lead { color:var(--muted); margin:0 0 28px; line-height:1.6; }
     .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:14px; }
     .site-card {
       display:flex; flex-direction:column; gap:6px; text-decoration:none; color:inherit;
-      background:#fff; border:1px solid var(--line); border-radius:12px; padding:16px;
-      box-shadow:0 4px 16px rgba(13,71,161,.06);
+      background:rgba(212,175,55,.06); border:1px solid var(--line); border-radius:12px; padding:16px;
+      box-shadow:0 8px 28px rgba(0,0,0,.35);
     }
-    .site-card:hover { border-color:var(--pri); }
+    .site-card:hover { border-color:var(--pri); background:rgba(212,175,55,.12); }
     .site-card strong { font-size:16px; }
     .site-card span { font-size:13px; color:var(--muted); line-height:1.45; }
     .site-card em { font-style:normal; font-size:12px; color:var(--pri); }
@@ -38,7 +40,7 @@
 <a class="site-card" href="./office/index.html">
   <strong>通用办公</strong>
   <span>人事、财务、审批、知识库一体化</span>
-  <em>Read Only · 极简名片</em>
+  <em>Read Only · 黑金名片</em>
 </a>
 <a class="site-card" href="./mfg/index.html">
   <strong>传统制造</strong>
@@ -47,7 +49,7 @@
 </a>
 <a class="site-card" href="./sales/index.html">
   <strong>销售行业</strong>
-  <span>话术、漏斗、合同、CRM 一体</span>
+  <span>话术、漏斗、合同、CRM · 纯销售场景</span>
   <em>Fractal · 产品焦点</em>
 </a>
 <a class="site-card" href="./med/index.html">
@@ -118,12 +120,12 @@
 <a class="site-card" href="./construction/index.html">
   <strong>建筑工程</strong>
   <span>进度、安全、材料、验收</span>
-  <em>Paradigm Shift · 非对称编辑</em>
+  <em>Paradigm · 黑金编辑</em>
 </a>
 <a class="site-card" href="./agriculture/index.html">
   <strong>农业</strong>
   <span>溯源、巡检、补贴、产销</span>
-  <em>Sonar · 摄影瀑布流</em>
+  <em>Sonar · 黑金瀑布流</em>
 </a>
 <a class="site-card" href="./media/index.html">
   <strong>传媒内容</strong>

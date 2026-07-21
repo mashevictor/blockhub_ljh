@@ -113,7 +113,7 @@ export function SalesLeadWidget({ node }: { node: SchemaNode }) {
       { key: 'referral', label: '转介绍' },
       { key: 'assign', label: '分配' },
       { key: 'clean', label: '清洗' },
-      { key: 'pool', label: '公海' },
+      { key: 'pool', label: '待领取' },
       { key: 'score', label: '评分' },
       { key: 'pipeline', label: '跟进成交' },
     ]
@@ -209,10 +209,10 @@ export function SalesLeadWidget({ node }: { node: SchemaNode }) {
         {
           key: 'result',
           label: '清洗结果',
-          placeholder: '有效 / 无效 / 重复 / 公海',
+          placeholder: '有效 / 无效 / 重复 / 待领取',
           render: ({ value, setValue, accent }) => (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              {['有效', '无效', '重复', '公海'].map((opt) => (
+              {['有效', '无效', '重复', '待领取'].map((opt) => (
                 <button
                   key={opt}
                   type="button"
@@ -235,7 +235,7 @@ export function SalesLeadWidget({ node }: { node: SchemaNode }) {
     }
     if (method === 'pool') {
       return [
-        { key: 'lead_key', label: '公海线索', placeholder: '客户名 / 单号 / ID' },
+        { key: 'lead_key', label: '待领取线索', placeholder: '客户名 / 单号 / ID' },
         { key: 'reason', label: '领取理由（可空）', placeholder: '可选', inputType: 'textarea', optional: true },
       ]
     }
@@ -255,7 +255,7 @@ export function SalesLeadWidget({ node }: { node: SchemaNode }) {
       referral: '转介绍线索',
       assign: '分配线索',
       clean: '清洗线索',
-      pool: '领取公海',
+      pool: '领取线索',
       score: '线索评分',
       pipeline: '跟进成交',
     }
@@ -359,16 +359,16 @@ export function SalesLeadWidget({ node }: { node: SchemaNode }) {
         method: 'POST',
         body: JSON.stringify({ lead_key: id, app_public_id: appId || '' }),
       })
-      setMsg('已退回公海')
+      setMsg('已退回待领取')
       await load()
     } catch (e) {
-      setMsg(`退公海失败：${String(e)}`)
+      setMsg(`退回失败：${String(e)}`)
     }
   }
 
   const listHint =
     role === 'sales_rep'
-      ? '我的线索 + 公海'
+      ? '我的线索 + 待领取'
       : role === 'sales_manager'
         ? '待跟进全员线索'
         : '全部渠道线索'
@@ -536,7 +536,7 @@ export function SalesLeadWidget({ node }: { node: SchemaNode }) {
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
                   <strong style={{ fontSize: 14 }}>{t.customer}</strong>
                   <span className="muted" style={{ fontSize: 11 }}>
-                    {t.pool_status === 'pool' ? '公海' : t.pool_status || '私有'} · {t.status}
+                    {t.pool_status === 'pool' ? '待领取' : t.pool_status === 'private' ? '已认领' : t.pool_status || '已认领'} · {t.status}
                   </span>
                 </div>
                 <p className="muted" style={{ margin: '4px 0 0', fontSize: 12 }}>
@@ -573,7 +573,7 @@ export function SalesLeadWidget({ node }: { node: SchemaNode }) {
                       style={{ fontSize: 11 }}
                       onClick={() => void releaseToPool(t.id)}
                     >
-                      退公海
+                      退回待领取
                     </button>
                   )}
                 </div>

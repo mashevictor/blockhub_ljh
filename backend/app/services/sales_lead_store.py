@@ -266,11 +266,12 @@ def clean_record(
         "重复": "duplicate",
         "duplicate": "duplicate",
         "公海": "pool",
+        "待领取": "pool",
         "pool": "pool",
     }
     pool = mapping.get(r)
     if not pool:
-        raise AcqError("清洗结果须为：有效/无效/重复/公海")
+        raise AcqError("清洗结果须为：有效/无效/重复/待领取")
     row.pool_status = pool
     row.category = "lead-cleaning"
     if pool in ("invalid", "duplicate"):
@@ -293,7 +294,7 @@ def claim_record(
     if not row:
         return None
     if (row.pool_status or "") != "pool":
-        raise AcqError("仅公海线索可领取")
+        raise AcqError("仅「待领取」线索可领取")
     row.owner = user.display_name or user.email or ""
     row.owner_user_id = user.id
     row.assignee_user_id = user.id
@@ -317,14 +318,14 @@ def release_record(
     if not row:
         return None
     if row.status in ("won", "lost"):
-        raise AcqError("已成交/丢单线索不可退回公海")
+        raise AcqError("已成交/丢单线索不可退回待领取")
     row.pool_status = "pool"
     row.owner = ""
     row.owner_user_id = None
     row.assignee_user_id = None
     row.category = "lead-pool"
     if reason.strip():
-        row.note = f"{row.note}\n[退公海] {reason.strip()}".strip() if row.note else f"[退公海] {reason.strip()}"
+        row.note = f"{row.note}\n[退回待领取] {reason.strip()}".strip() if row.note else f"[退回待领取] {reason.strip()}"
     db.commit()
     db.refresh(row)
     return to_dict(row)

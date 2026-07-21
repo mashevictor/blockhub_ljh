@@ -193,19 +193,21 @@ def build_catalog_html(items: list[dict]) -> str:
   <title>行业独立网页目录 · BlockHub</title>
   <meta name="description" content="20 个行业落地页，静态解耦生成，不依赖应用运行时。" />
   <style>
-    :root {{ --bg:#f4f7fb; --text:#0f172a; --muted:#64748b; --line:#dbeafe; --pri:#0d47a1; }}
+    :root {{ --bg:#0a0908; --text:#fef9e7; --muted:rgba(254,243,199,.7); --line:rgba(212,175,55,.28); --pri:#d4af37; }}
     * {{ box-sizing: border-box; }}
-    body {{ margin:0; font-family: "Segoe UI", "PingFang SC", sans-serif; background:var(--bg); color:var(--text); }}
+    body {{ margin:0; font-family: "Segoe UI", "PingFang SC", sans-serif; background:
+      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(212,175,55,.14), transparent), var(--bg);
+      color:var(--text); }}
     .wrap {{ max-width:1080px; margin:0 auto; padding:32px 20px 64px; }}
     h1 {{ font-size:28px; margin:0 0 8px; }}
     .lead {{ color:var(--muted); margin:0 0 28px; line-height:1.6; }}
     .grid {{ display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:14px; }}
     .site-card {{
       display:flex; flex-direction:column; gap:6px; text-decoration:none; color:inherit;
-      background:#fff; border:1px solid var(--line); border-radius:12px; padding:16px;
-      box-shadow:0 4px 16px rgba(13,71,161,.06);
+      background:rgba(212,175,55,.06); border:1px solid var(--line); border-radius:12px; padding:16px;
+      box-shadow:0 8px 28px rgba(0,0,0,.35);
     }}
-    .site-card:hover {{ border-color:var(--pri); }}
+    .site-card:hover {{ border-color:var(--pri); background:rgba(212,175,55,.12); }}
     .site-card strong {{ font-size:16px; }}
     .site-card span {{ font-size:13px; color:var(--muted); line-height:1.45; }}
     .site-card em {{ font-style:normal; font-size:12px; color:var(--pri); }}

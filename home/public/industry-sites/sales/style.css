@@ -1,12 +1,12 @@
 
 :root {
-  --accent: #4f46e5;
-  --bg: #f8fafc;
-  --text: #0f172a;
-  --muted: rgba(15,23,42,.62);
+  --accent: #3d6b8a;
+  --bg: #f5fafc;
+  --text: #1a1a1a;
+  --muted: rgba(0,0,0,.62);
   --surface: rgba(255,255,255,.72);
-  --fd: "DM Serif Display", Georgia, serif;
-  --fb: "DM Sans", system-ui, sans-serif;
+  --fd: "Outfit", Georgia, serif;
+  --fb: "Outfit", system-ui, sans-serif;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
@@ -90,12 +90,12 @@ footer {
   .nav { display: none; }
 }
 
-.hero { padding: 5rem 0 3rem; display: grid; justify-items: center; text-align: center; }
-.avatar {
-  width: 120px; height: 120px; border-radius: 50%; margin-bottom: 1.2rem;
-  background: linear-gradient(145deg, var(--accent), color-mix(in srgb, var(--accent) 40%, #fff));
-  box-shadow: 0 12px 40px color-mix(in srgb, var(--accent) 30%, transparent);
+.hero { padding: 4rem 0; display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; align-items: center; }
+.product-orb {
+  aspect-ratio: 1; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff, color-mix(in srgb, var(--accent) 55%, #9ad) 45%, transparent 70%);
+  filter: drop-shadow(0 20px 50px color-mix(in srgb, var(--accent) 35%, transparent));
+  animation: float 5s ease-in-out infinite;
 }
-.hero h1 { max-width: 16ch; }
-.chips { display: flex; gap: .5rem; flex-wrap: wrap; justify-content: center; margin-top: 1.2rem; }
-.chip { border: 1px solid color-mix(in srgb, var(--text) 18%, transparent); padding: .35rem .75rem; font-size: .85rem; }
+@keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+@media (max-width: 860px) { .hero { grid-template-columns: 1fr; } }
