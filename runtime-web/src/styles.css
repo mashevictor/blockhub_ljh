@@ -218,6 +218,69 @@ body { margin: 0; font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
 .generated-skeleton-head {
   margin-bottom: 8px;
 }
+.generated-badge {
+  display: inline-block;
+  margin: 0 0 8px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: color-mix(in srgb, var(--accent, #4338ca) 85%, #0f172a);
+  background: color-mix(in srgb, var(--accent, #4338ca) 12%, #fff);
+  border-radius: 6px;
+}
+.generated-progress-steps {
+  list-style: none;
+  margin: 4px 0 12px;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.generated-progress-steps li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: #94a3b8;
+}
+.generated-progress-steps li.is-done {
+  color: #64748b;
+}
+.generated-progress-steps li.is-active {
+  color: #0f172a;
+  font-weight: 600;
+}
+.generated-progress-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: #cbd5e1;
+}
+.generated-progress-steps li.is-done .generated-progress-dot {
+  background: color-mix(in srgb, var(--accent, #4338ca) 70%, #22c55e);
+}
+.generated-progress-steps li.is-active .generated-progress-dot {
+  background: var(--accent, #4338ca);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent, #4338ca) 22%, transparent);
+  animation: generated-progress-pulse 1.2s ease-in-out infinite;
+}
+.generated-progress-eta {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #334155;
+}
+.generated-progress-tip {
+  margin: 0 0 12px;
+  font-size: 13px;
+  color: #64748b;
+  min-height: 1.4em;
+}
+@keyframes generated-progress-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.15); opacity: 0.85; }
+}
 .generated-skeleton-body {
   display: flex;
   flex-direction: column;

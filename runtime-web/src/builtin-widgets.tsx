@@ -154,9 +154,89 @@ function GeneratedCodeFrame({ title, html }: { title: string; html: string }) {
   )
 }
 
+const GEN_STEPS = [
+  { key: 'understand', label: '理解需求' },
+  { key: 'codegen', label: '生成可运行页面' },
+  { key: 'verify', label: '后台自检' },
+  { key: 'ready', label: '即将可用' },
+] as const
+
+const GEN_TIPS = [
+  '正在把你的需求变成可交互页面…',
+  '生成完成后会自动出现，无需刷新…',
+  '小游戏 / 小工具通常约半分钟内就绪…',
+]
+
+function GeneratingProgress({ title, summary, accent }: { title: string; summary: string; accent: string }) {
+  const [elapsed, setElapsed] = useState(0)
+  const [tipIdx, setTipIdx] = useState(0)
+
+  useEffect(() => {
+    const t0 = Date.now()
+    const tick = window.setInterval(() => setElapsed(Math.floor((Date.now() - t0) / 1000)), 1000)
+    return () => window.clearInterval(tick)
+  }, [])
+
+  useEffect(() => {
+    const tip = window.setInterval(() => setTipIdx((i) => (i + 1) % GEN_TIPS.length), 4500)
+    return () => window.clearInterval(tip)
+  }, [])
+
+  // 按耗时推进步骤观感（真实完成仍靠 codegen 合并 source_html）
+  const stepIdx =
+    elapsed < 8 ? 0 : elapsed < 25 ? 1 : elapsed < 45 ? 2 : 3
+  const etaHint =
+    elapsed < 20
+      ? '预计还要大约 20–40 秒'
+      : elapsed < 50
+        ? '即将完成，请稍候'
+        : elapsed < 90
+          ? '比平时稍慢，仍在生成中…'
+          : '仍在处理。可先去其他菜单，稍后再回来看本页。'
+
+  return (
+    <article
+      className="generated-page generated-page--skeleton generated-page--progress"
+      data-source="generating"
+      aria-busy="true"
+      aria-label={`${title} 生成中`}
+      style={{ ['--accent' as string]: accent }}
+    >
+      <header className="generated-skeleton-head">
+        <p className="generated-badge">生成中 · {elapsed}s</p>
+        <h2>{title}</h2>
+        <p className="generated-summary">{summary || '正在为你生成可交互页面'}</p>
+      </header>
+
+      <ol className="generated-progress-steps" aria-label="生成进度">
+        {GEN_STEPS.map((s, i) => (
+          <li
+            key={s.key}
+            className={
+              i < stepIdx ? 'is-done' : i === stepIdx ? 'is-active' : ''
+            }
+          >
+            <span className="generated-progress-dot" aria-hidden />
+            <span>{s.label}</span>
+          </li>
+        ))}
+      </ol>
+
+      <p className="generated-progress-eta">{etaHint}</p>
+      <p className="generated-progress-tip muted">{GEN_TIPS[tipIdx]}</p>
+
+      <div className="generated-skeleton-body" aria-hidden>
+        <div className="generated-skel-line generated-skel-line--lg" />
+        <div className="generated-skel-card" />
+        <div className="generated-skel-card" />
+      </div>
+    </article>
+  )
+}
+
 /**
  * Path B：有 source_html 直接 iframe；tool_pad 可点；业务才用 Gtgt。
- * 生成中仅简骨架，不把校验过程暴露给用户。
+ * 生成中展示进度与预期，不把校验细节暴露给用户。
  */
 function GeneratedPageWidget({ node }: { node: SchemaNode }) {
   const { primaryColor, user, schema } = useRuntime()
@@ -241,23 +321,7 @@ function GeneratedPageWidget({ node }: { node: SchemaNode }) {
   }
 
   if (pending || pageKind === 'generated_code') {
-    return (
-      <article
-        className={`generated-page generated-page--skeleton${industrySite ? ' generated-page--industry' : ''}`}
-        data-source="generating"
-        aria-busy="true"
-        aria-label={`${title} 生成中`}
-      >
-        <header className="generated-skeleton-head">
-          <h2>{title}</h2>
-          <p className="generated-summary">{summary || '页面生成中，稍候即可使用…'}</p>
-        </header>
-        <div className="generated-skeleton-body" aria-hidden>
-          <div className="generated-skel-line generated-skel-line--lg" />
-          <div className="generated-skel-card" />
-        </div>
-      </article>
-    )
+    return <GeneratingProgress title={title} summary={summary} accent={accent} />
   }
 
   if (interactive) {
