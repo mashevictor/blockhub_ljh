@@ -1,36 +1,63 @@
+/* CapShip Composer — 品牌蓝统一（#0d47a1） */
+
 .capship-composer {
+  --cs-primary: #0d47a1;
+  --cs-primary-hover: #1565c0;
+  --cs-primary-soft: #eaf2ff;
+  --cs-primary-line: #93c5fd;
+  --cs-primary-mid: #bfdbfe;
+  --cs-ink: #0f172a;
+  --cs-muted: #64748b;
+  --cs-line: #e2e8f0;
+  --cs-danger: #b91c1c;
+  --cs-danger-soft: #fef2f2;
+  --cs-accent: #0369a1;
+  --cs-ok: #0f766e;
+
   display: flex;
   flex-direction: column;
   gap: 12px;
-  font-family: ui-sans-serif, system-ui, sans-serif;
-  color: #0f172a;
+  font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", ui-sans-serif, system-ui, sans-serif;
+  color: var(--cs-ink);
 }
 
 .capship-composer.is-compact {
-  gap: 8px;
+  gap: 10px;
   font-size: 13px;
 }
 
+/* —— Tabs —— */
 .capship-composer-tabs {
   display: flex;
-  gap: 4px;
-  border-bottom: 1px solid #e2e8f0;
-  padding-bottom: 4px;
+  gap: 6px;
+  padding: 4px;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #f0f7ff 0%, #eef4fb 100%);
+  border: 1px solid var(--cs-primary-mid);
 }
 
 .capship-composer-tab {
+  flex: 1;
   border: 0;
   background: transparent;
-  padding: 6px 12px;
-  border-radius: 999px;
+  padding: 8px 12px;
+  border-radius: 9px;
   cursor: pointer;
-  color: #64748b;
-  font-weight: 600;
+  color: var(--cs-muted);
+  font-weight: 650;
+  font-size: 13px;
+  transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.capship-composer-tab:hover {
+  color: var(--cs-primary);
+  background: rgba(13, 71, 161, 0.06);
 }
 
 .capship-composer-tab.active {
-  background: #0f172a;
+  background: var(--cs-primary);
   color: #fff;
+  box-shadow: 0 2px 8px rgba(13, 71, 161, 0.28);
 }
 
 .capship-composer-pane {
@@ -41,9 +68,13 @@
 
 .capship-composer-hint {
   margin: 0;
-  color: #64748b;
+  color: var(--cs-muted);
   font-size: 12px;
-  line-height: 1.4;
+  line-height: 1.45;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: var(--cs-primary-soft);
+  border: 1px solid var(--cs-primary-mid);
 }
 
 .capship-composer-grid {
@@ -58,11 +89,17 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
-  padding: 8px;
-  border: 1px solid #e2e8f0;
+  padding: 8px 10px;
+  border: 1px solid var(--cs-primary-mid);
   border-radius: 10px;
   cursor: pointer;
-  background: #f8fafc;
+  background: #fff;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.capship-composer-chip:has(input:checked) {
+  border-color: var(--cs-primary);
+  background: var(--cs-primary-soft);
 }
 
 .capship-composer-chip code {
@@ -70,20 +107,125 @@
   color: #94a3b8;
 }
 
+/* —— Buttons（统一四级） ——
+   默认 primary 实心蓝
+   is-accent 强调（提交审批）
+   is-ghost 描边次要
+   is-danger 危险
+   is-sm 工具条小钮
+   is-icon 方图标钮
+*/
 .capship-composer-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
   align-self: flex-start;
-  border: 0;
-  border-radius: 999px;
+  border: 1px solid transparent;
+  border-radius: 10px;
   padding: 8px 16px;
-  background: #0f172a;
+  background: var(--cs-primary);
   color: #fff;
-  font-weight: 600;
+  font: inherit;
+  font-weight: 650;
+  font-size: 13px;
+  line-height: 1.2;
   cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, filter 0.15s ease;
+}
+
+.capship-composer-btn:hover:not(:disabled) {
+  background: var(--cs-primary-hover);
 }
 
 .capship-composer-btn:disabled {
-  opacity: 0.55;
-  cursor: wait;
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.capship-composer-btn.is-sm {
+  padding: 5px 12px;
+  font-size: 12px;
+  min-height: 30px;
+  border-radius: 8px;
+}
+
+.capship-composer-btn.is-accent {
+  background: var(--cs-accent);
+  border-color: var(--cs-accent);
+}
+
+.capship-composer-btn.is-accent:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+.capship-composer-btn.is-ghost {
+  background: #fff;
+  border-color: var(--cs-primary-line);
+  color: var(--cs-primary);
+}
+
+.capship-composer-btn.is-ghost:hover:not(:disabled) {
+  background: var(--cs-primary-soft);
+  border-color: var(--cs-primary);
+}
+
+.capship-composer-btn.is-ghost.is-active {
+  background: var(--cs-primary-soft);
+  border-color: var(--cs-primary);
+  color: var(--cs-primary);
+  box-shadow: inset 0 0 0 1px var(--cs-primary-line);
+}
+
+.capship-composer-btn.is-danger {
+  background: var(--cs-danger);
+  border-color: var(--cs-danger);
+  color: #fff;
+}
+
+.capship-composer-btn.is-danger:hover:not(:disabled) {
+  filter: brightness(1.06);
+}
+
+.capship-composer-btn.is-icon {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  min-height: 28px;
+  border-radius: 8px;
+  background: #fff;
+  border-color: var(--cs-primary-line);
+  color: var(--cs-primary);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.capship-composer-btn.is-icon:hover:not(:disabled) {
+  background: var(--cs-primary-soft);
+  border-color: var(--cs-primary);
+}
+
+.capship-composer-btn.is-icon.is-danger {
+  background: #fff;
+  border-color: #fecaca;
+  color: var(--cs-danger);
+}
+
+.capship-composer-btn.is-icon.is-danger:hover:not(:disabled) {
+  background: var(--cs-danger-soft);
+  border-color: var(--cs-danger);
+}
+
+/* 兼容旧类名 */
+.capship-composer-btn-save {
+  /* no-op: 已用 is-sm */
+}
+
+.capship-composer-btn.is-stop {
+  background: var(--cs-danger);
+  border-color: var(--cs-danger);
+  color: #fff;
 }
 
 .capship-composer-chat-list {
@@ -92,7 +234,10 @@
   gap: 8px;
   max-height: 180px;
   overflow: auto;
-  padding: 4px 2px;
+  padding: 8px;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #f8fbff 0%, #f1f5f9 100%);
+  border: 1px solid var(--cs-primary-mid);
 }
 
 .capship-composer-msg {
@@ -111,9 +256,9 @@
 
 .capship-composer-msg-actions {
   display: flex;
-  gap: 6px;
+  gap: 8px;
   margin-top: 6px;
-  opacity: 0.55;
+  opacity: 0.7;
 }
 
 .capship-composer-msg:hover .capship-composer-msg-actions,
@@ -127,10 +272,12 @@
   padding: 0;
   font: inherit;
   font-size: 11px;
+  font-weight: 650;
   color: inherit;
   cursor: pointer;
   text-decoration: underline;
-  opacity: 0.85;
+  text-underline-offset: 2px;
+  opacity: 0.9;
 }
 
 .capship-composer-msg-act:hover {
@@ -144,15 +291,16 @@
 
 .capship-composer-msg.is-user {
   align-self: flex-end;
-  background: #0f172a;
+  background: var(--cs-primary);
   color: #fff;
   border-bottom-right-radius: 4px;
 }
 
 .capship-composer-msg.is-assistant {
   align-self: flex-start;
-  background: #f1f5f9;
-  color: #0f172a;
+  background: #fff;
+  color: var(--cs-ink);
+  border: 1px solid var(--cs-primary-mid);
   border-bottom-left-radius: 4px;
 }
 
@@ -170,26 +318,19 @@
   flex: 1;
   min-height: 44px;
   resize: vertical;
-  border: 1px solid #cbd5e1;
-  border-radius: 14px;
+  border: 1px solid var(--cs-primary-line);
+  border-radius: 12px;
   padding: 10px 12px;
   font: inherit;
   background: #fff;
+  color: var(--cs-ink);
+  box-shadow: inset 0 1px 2px rgba(13, 71, 161, 0.04);
 }
 
-.capship-composer-btn.is-ghost {
-  background: #f8fafc;
-  border: 1px solid #cbd5e1;
-  color: #334155;
-}
-
-.capship-composer-btn.is-ghost:hover:not(:disabled) {
-  background: #f1f5f9;
-}
-
-.capship-composer-btn.is-ghost:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.capship-composer-chat-input textarea:focus {
+  outline: none;
+  border-color: var(--cs-primary);
+  box-shadow: 0 0 0 3px rgba(13, 71, 161, 0.12);
 }
 
 .capship-composer-msg-imgs {
@@ -203,7 +344,7 @@
   max-width: 160px;
   max-height: 120px;
   border-radius: 8px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--cs-primary-mid);
   object-fit: cover;
 }
 
@@ -225,7 +366,7 @@
   height: 100%;
   object-fit: cover;
   border-radius: 8px;
-  border: 1px solid #cbd5e1;
+  border: 1px solid var(--cs-primary-line);
 }
 
 .capship-composer-pending-img button {
@@ -236,26 +377,17 @@
   height: 20px;
   border-radius: 999px;
   border: none;
-  background: #0f172a;
+  background: var(--cs-primary);
   color: #fff;
   font-size: 12px;
   line-height: 1;
   cursor: pointer;
 }
 
-.capship-composer-btn.is-stop {
-  background: #b91c1c;
-  border-color: #b91c1c;
-  color: #fff;
-}
-
-.capship-composer-btn.is-stop:hover {
-  filter: brightness(1.05);
-}
-
 .capship-composer-chat-input .capship-composer-btn {
   flex-shrink: 0;
   align-self: stretch;
+  min-width: 72px;
 }
 
 .capship-composer-flow-list {
@@ -274,9 +406,9 @@
   align-items: center;
   gap: 8px;
   padding: 8px 10px;
-  background: #f8fafc;
+  background: #fff;
   border-radius: 12px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--cs-primary-mid);
 }
 
 .capship-composer-flow-idx {
@@ -284,7 +416,7 @@
   width: 22px;
   height: 22px;
   border-radius: 999px;
-  background: #0f172a;
+  background: var(--cs-primary);
   color: #fff;
   font-size: 11px;
   font-weight: 700;
@@ -308,7 +440,7 @@
 .capship-composer-flow-body em {
   font-style: normal;
   font-size: 11px;
-  color: #64748b;
+  color: var(--cs-muted);
 }
 
 .capship-composer-flow-actions {
@@ -317,44 +449,64 @@
   flex-shrink: 0;
 }
 
+/* 旧 link 类：落到 ghost 按钮观感，避免裸蓝字链 */
 .capship-composer-link {
-  border: 0;
-  background: transparent;
-  color: #2563eb;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--cs-primary-line);
+  background: #fff;
+  color: var(--cs-primary);
   cursor: pointer;
   font-size: 12px;
-  padding: 2px 4px;
+  font-weight: 650;
+  padding: 5px 10px;
+  border-radius: 8px;
+  min-height: 28px;
+}
+
+.capship-composer-link:hover:not(:disabled) {
+  background: var(--cs-primary-soft);
+  border-color: var(--cs-primary);
 }
 
 .capship-composer-link:disabled {
-  opacity: 0.35;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
 .capship-composer-link-danger {
-  color: #b91c1c;
-  font-weight: 600;
+  border-color: #fecaca;
+  color: var(--cs-danger);
+  background: #fff;
 }
 
 .capship-composer-link-danger:hover:not(:disabled) {
-  color: #991b1b;
-  text-decoration: underline;
+  background: var(--cs-danger-soft);
+  border-color: var(--cs-danger);
+  color: var(--cs-danger);
+  text-decoration: none;
 }
 
 .capship-composer-status {
   margin: 0;
   font-size: 12px;
-  color: #0f766e;
+  color: var(--cs-ok);
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
 }
 
 .capship-composer-version {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
-  padding: 6px 2px 10px;
-  border-bottom: 1px solid #e2e8f0;
-  margin-bottom: 8px;
+  gap: 8px 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #f8fbff 0%, #f1f7ff 100%);
+  border: 1px solid var(--cs-primary-mid);
 }
 
 .capship-composer-version-badge {
@@ -362,10 +514,10 @@
   align-items: center;
   justify-content: center;
   min-width: 36px;
-  padding: 2px 8px;
+  padding: 3px 10px;
   border-radius: 999px;
   background: #dbeafe;
-  color: #1d4ed8;
+  color: var(--cs-primary);
   font-weight: 800;
   font-size: 12px;
 }
@@ -380,10 +532,20 @@
   color: #b45309;
 }
 
-.capship-composer-btn-save {
-  padding: 4px 12px !important;
-  font-size: 12px !important;
-  min-height: 28px;
+.capship-composer-version-meta {
+  flex: 1 1 160px;
+  min-width: 120px;
+  font-size: 12px;
+  color: var(--cs-muted);
+  line-height: 1.4;
+}
+
+.capship-composer-version-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin-left: auto;
 }
 
 .capship-composer-history li.is-draft-row {
@@ -402,15 +564,9 @@
 
 .capship-composer-history-actions {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   flex-shrink: 0;
-}
-
-.capship-composer-version-meta {
-  flex: 1;
-  min-width: 120px;
-  font-size: 12px;
-  color: #64748b;
+  flex-wrap: wrap;
 }
 
 .capship-composer-conflict {
@@ -431,22 +587,11 @@
 .capship-composer-conflict-actions {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .capship-composer-conflict-actions button {
-  border: 1px solid #cbd5e1;
-  background: #fff;
-  border-radius: 8px;
-  padding: 5px 10px;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.capship-composer-conflict-actions button.danger {
-  background: #b91c1c;
-  border-color: #b91c1c;
-  color: #fff;
+  /* 走 .capship-composer-btn */
 }
 
 .capship-composer-history {
@@ -455,8 +600,9 @@
   padding: 0;
   max-height: 160px;
   overflow: auto;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
+  border: 1px solid var(--cs-primary-mid);
+  border-radius: 12px;
+  background: #fff;
 }
 
 .capship-composer-history li {
@@ -479,25 +625,25 @@
 
 .capship-composer-history strong {
   margin-right: 6px;
-  color: #1d4ed8;
+  color: var(--cs-primary);
 }
 
 .capship-composer-history span {
-  color: #64748b;
+  color: var(--cs-muted);
 }
 
-/* —— 与 home FloatingAgentDock capsule 同构（Runtime / 预览自带样式） —— */
+/* —— 与 home FloatingAgentDock capsule 同构 —— */
 .capship-floating-dock.floating-agent-dock {
   position: fixed;
   z-index: 80;
   touch-action: none;
   user-select: none;
-  color: #0f172a;
+  color: var(--cs-ink, #0f172a);
 }
 
 .capship-floating-dock .floating-agent-dock-frame {
   background: #ffffff;
-  border: 2px solid #93c5fd;
+  border: 2px solid var(--cs-primary-line, #93c5fd);
   border-radius: 14px;
   box-shadow:
     0 0 0 1px rgba(255, 255, 255, 0.95) inset,
@@ -558,13 +704,14 @@
 
 .capship-floating-dock.is-expanded .floating-agent-dock-frame {
   border-radius: 18px;
-  max-height: min(72vh, 540px);
+  max-height: min(72vh, 560px);
+  background: linear-gradient(180deg, #f8fbff 0%, #ffffff 48px);
 }
 
 .capship-floating-dock.is-expanded .floating-agent-dock-chrome {
   padding: 10px 12px;
-  border-bottom: 1px solid #e2e8f0;
-  background: transparent;
+  border-bottom: 2px solid #bfdbfe;
+  background: linear-gradient(180deg, #eaf2ff 0%, #f4f8ff 100%);
 }
 
 .capship-floating-dock .floating-agent-dock-grip {
@@ -625,6 +772,17 @@
   white-space: nowrap;
 }
 
+.capship-floating-dock .floating-agent-dock-subtitle {
+  font-size: 11px;
+  font-weight: 650;
+  color: #64748b;
+  background: #fff;
+  border: 1px solid #dbeafe;
+  border-radius: 999px;
+  padding: 2px 8px;
+  white-space: nowrap;
+}
+
 .capship-floating-dock .floating-agent-dock-collapsed-hint {
   flex: 1;
   min-width: 0;
@@ -677,7 +835,6 @@
   flex-shrink: 0;
 }
 
-/* 全屏图标按钮（方框），不用文字 */
 .capship-floating-dock .floating-agent-dock-fs {
   width: 12px;
   height: 12px;
@@ -694,16 +851,16 @@
 }
 
 .capship-floating-dock .floating-agent-dock-body {
-  padding: 0 14px 14px;
+  padding: 12px 14px 14px;
   user-select: text;
   overflow: auto;
   flex: 1 1 auto;
   min-height: 0;
   max-height: none;
   color: #0f172a;
+  background: linear-gradient(180deg, #f8fbff 0%, #ffffff 28px);
 }
 
-/* 折叠时隐藏 body，但保持 React 树挂载，对话历史不丢 */
 .capship-floating-dock.is-collapsed .floating-agent-dock-body,
 .capship-floating-dock .floating-agent-dock-body[hidden] {
   display: none !important;
@@ -737,24 +894,4 @@
 .capship-floating-dock.is-fullscreen .capship-composer-grid {
   max-height: none;
   flex: 1;
-}
-
-/* 数据流操作：统一成方钮，不用文字链 */
-.capship-composer-flow-actions .capship-composer-link {
-  width: 28px;
-  height: 28px;
-  border: 1px solid #dbeafe;
-  border-radius: 8px;
-  background: #fff;
-  color: #0d47a1;
-  font-size: 11px;
-  font-weight: 700;
-  padding: 0;
-  display: inline-grid;
-  place-items: center;
-}
-
-.capship-composer-flow-actions .capship-composer-link:hover:not(:disabled) {
-  border-color: #93c5fd;
-  background: #f0f9ff;
 }

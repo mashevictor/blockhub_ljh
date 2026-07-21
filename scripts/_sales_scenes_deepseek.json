@@ -1,0 +1,369 @@
+{
+  "overview": "为销售团队提供从线索到回款的全流程数字化支撑，提升客户转化与业绩管理效率。",
+  "highlights": [
+    "统一管理客户跟进与商机阶段",
+    "快速报价、合同审批与折扣控制",
+    "实时销售漏斗与业绩排行看板",
+    "集成CRM、IM与费用申请，打通业务闭环"
+  ],
+  "scenes": [
+    {
+      "name": "产品/话术问答",
+      "category": "销售赋能",
+      "capability_key": "chat_qa",
+      "pages": "知识问答",
+      "problem": "销售无法快速获取产品参数或标准话术，影响客户沟通效率。",
+      "page_kind": "chat_kb",
+      "default_category": "话术库",
+      "form_headline": "话术问答",
+      "fields": [
+        {
+          "key": "question",
+          "label": "问题",
+          "type": "text",
+          "placeholder": "例如：产品A的定价策略",
+          "optional": false
+        },
+        {
+          "key": "answer",
+          "label": "答案",
+          "type": "textarea",
+          "placeholder": "输入标准话术或产品说明",
+          "optional": false
+        }
+      ]
+    },
+    {
+      "name": "报价/折扣审批",
+      "category": "销售流程",
+      "capability_key": "quote_contract",
+      "pages": "报价审批",
+      "problem": "销售报价或折扣超出权限时，需要快速提交审批，避免丢单。",
+      "page_kind": "form_list",
+      "default_category": "报价审批",
+      "form_headline": "报价/折扣审批",
+      "fields": [
+        {
+          "key": "customer",
+          "label": "客户名称",
+          "type": "text",
+          "placeholder": "输入客户名称",
+          "optional": false
+        },
+        {
+          "key": "amount",
+          "label": "报价金额",
+          "type": "number",
+          "placeholder": "输入金额",
+          "optional": false
+        },
+        {
+          "key": "discount",
+          "label": "折扣比例",
+          "type": "number",
+          "placeholder": "例如：10",
+          "optional": true
+        },
+        {
+          "key": "reason",
+          "label": "折扣原因",
+          "type": "textarea",
+          "placeholder": "说明折扣理由",
+          "optional": false
+        }
+      ]
+    },
+    {
+      "name": "销售漏斗看板",
+      "category": "销售分析",
+      "capability_key": "chart_funnel",
+      "pages": "漏斗图表",
+      "problem": "管理层无法直观了解各阶段商机数量与转化率，难以定位瓶颈。",
+      "page_kind": "chart",
+      "default_category": "销售漏斗",
+      "form_headline": "销售漏斗看板",
+      "fields": []
+    },
+    {
+      "name": "客户跟进记录",
+      "category": "客户管理",
+      "capability_key": "sales_lead",
+      "pages": "跟进列表",
+      "problem": "销售跟进客户后缺乏统一记录，容易遗忘或重复跟进。",
+      "page_kind": "form_list",
+      "default_category": "客户跟进",
+      "form_headline": "客户跟进记录",
+      "fields": [
+        {
+          "key": "customer",
+          "label": "客户名称",
+          "type": "text",
+          "placeholder": "输入客户名称",
+          "optional": false
+        },
+        {
+          "key": "contact",
+          "label": "联系人",
+          "type": "text",
+          "placeholder": "输入联系人",
+          "optional": true
+        },
+        {
+          "key": "content",
+          "label": "跟进内容",
+          "type": "textarea",
+          "placeholder": "描述跟进情况",
+          "optional": false
+        },
+        {
+          "key": "next_action",
+          "label": "下一步计划",
+          "type": "text",
+          "placeholder": "例如：下周演示",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "name": "合同审批",
+      "category": "销售流程",
+      "capability_key": "quote_contract",
+      "pages": "合同审批",
+      "problem": "合同条款需要法务或领导审核，纸质流程慢且易遗漏。",
+      "page_kind": "form_list",
+      "default_category": "合同审批",
+      "form_headline": "合同审批",
+      "fields": [
+        {
+          "key": "contract_name",
+          "label": "合同名称",
+          "type": "text",
+          "placeholder": "输入合同名称",
+          "optional": false
+        },
+        {
+          "key": "customer",
+          "label": "客户名称",
+          "type": "text",
+          "placeholder": "输入客户名称",
+          "optional": false
+        },
+        {
+          "key": "amount",
+          "label": "合同金额",
+          "type": "number",
+          "placeholder": "输入金额",
+          "optional": false
+        },
+        {
+          "key": "attachment",
+          "label": "合同附件",
+          "type": "file",
+          "placeholder": "上传合同文件",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "name": "商机到期提醒",
+      "category": "销售提醒",
+      "capability_key": "notify_im",
+      "pages": "提醒通知",
+      "problem": "商机跟进超期或即将到期时，销售容易忽略，导致丢单。",
+      "page_kind": "notify",
+      "default_category": "商机提醒",
+      "form_headline": "商机到期提醒",
+      "fields": [
+        {
+          "key": "opportunity",
+          "label": "商机名称",
+          "type": "text",
+          "placeholder": "输入商机名称",
+          "optional": false
+        },
+        {
+          "key": "deadline",
+          "label": "截止日期",
+          "type": "date",
+          "placeholder": "选择日期",
+          "optional": false
+        },
+        {
+          "key": "remind_time",
+          "label": "提醒时间",
+          "type": "datetime",
+          "placeholder": "选择提醒时间",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "name": "业绩排行/提成",
+      "category": "销售分析",
+      "capability_key": "ops_kpi",
+      "pages": "业绩排行",
+      "problem": "销售团队需要实时了解个人业绩排名与提成计算，激励竞争。",
+      "page_kind": "chart",
+      "default_category": "业绩排行",
+      "form_headline": "业绩排行/提成",
+      "fields": []
+    },
+    {
+      "name": "案例/方案库",
+      "category": "销售赋能",
+      "capability_key": "kb_document",
+      "pages": "知识库",
+      "problem": "销售缺乏成功案例或解决方案参考，难以说服客户。",
+      "page_kind": "files",
+      "default_category": "案例库",
+      "form_headline": "案例/方案库",
+      "fields": [
+        {
+          "key": "title",
+          "label": "标题",
+          "type": "text",
+          "placeholder": "输入案例或方案标题",
+          "optional": false
+        },
+        {
+          "key": "industry",
+          "label": "所属行业",
+          "type": "text",
+          "placeholder": "例如：金融",
+          "optional": true
+        },
+        {
+          "key": "description",
+          "label": "描述",
+          "type": "textarea",
+          "placeholder": "简要描述案例或方案",
+          "optional": false
+        },
+        {
+          "key": "attachment",
+          "label": "附件",
+          "type": "file",
+          "placeholder": "上传文档",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "name": "样品/礼品申请",
+      "category": "销售费用",
+      "capability_key": "expense_claim",
+      "pages": "费用申请",
+      "problem": "销售需要申请样品或礼品用于客户拜访，流程不清晰。",
+      "page_kind": "form_list",
+      "default_category": "样品礼品",
+      "form_headline": "样品/礼品申请",
+      "fields": [
+        {
+          "key": "item",
+          "label": "物品名称",
+          "type": "text",
+          "placeholder": "输入样品或礼品名称",
+          "optional": false
+        },
+        {
+          "key": "quantity",
+          "label": "数量",
+          "type": "number",
+          "placeholder": "输入数量",
+          "optional": false
+        },
+        {
+          "key": "purpose",
+          "label": "用途",
+          "type": "textarea",
+          "placeholder": "说明用途",
+          "optional": false
+        },
+        {
+          "key": "customer",
+          "label": "客户名称",
+          "type": "text",
+          "placeholder": "可选",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "name": "对接Salesforce/纷享",
+      "category": "系统集成",
+      "capability_key": "erp_connector",
+      "pages": "集成配置",
+      "problem": "企业已有CRM系统，需要与内部审批、数据同步打通。",
+      "page_kind": "integration",
+      "default_category": "CRM对接",
+      "form_headline": "对接Salesforce/纷享",
+      "fields": [
+        {
+          "key": "system",
+          "label": "目标系统",
+          "type": "text",
+          "placeholder": "例如：Salesforce",
+          "optional": false
+        },
+        {
+          "key": "api_url",
+          "label": "API地址",
+          "type": "text",
+          "placeholder": "输入API地址",
+          "optional": false
+        },
+        {
+          "key": "auth_type",
+          "label": "认证方式",
+          "type": "text",
+          "placeholder": "例如：OAuth",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "name": "外勤签到",
+      "category": "销售外勤",
+      "capability_key": "site_patrol",
+      "pages": "签到记录",
+      "problem": "销售外出拜访客户时，需要签到打卡，便于考勤管理。",
+      "page_kind": "form_list",
+      "default_category": "外勤签到",
+      "form_headline": "外勤签到",
+      "fields": [
+        {
+          "key": "customer",
+          "label": "客户名称",
+          "type": "text",
+          "placeholder": "输入客户名称",
+          "optional": false
+        },
+        {
+          "key": "location",
+          "label": "签到位置",
+          "type": "text",
+          "placeholder": "自动获取或手动输入",
+          "optional": false
+        },
+        {
+          "key": "remark",
+          "label": "备注",
+          "type": "textarea",
+          "placeholder": "可选",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "name": "区域销售分析",
+      "category": "销售分析",
+      "capability_key": "ops_kpi",
+      "pages": "区域分析",
+      "problem": "管理层需要按区域查看销售业绩，发现高潜或低效区域。",
+      "page_kind": "chart",
+      "default_category": "区域分析",
+      "form_headline": "区域销售分析",
+      "fields": []
+    }
+  ]
+}
