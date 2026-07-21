@@ -18,6 +18,35 @@ export function resolveAppName(custom: string, fallback: string): string {
   return trimmed || fallback
 }
 
+/** 20 行业深度包 · 生成应用默认名称（可改） */
+export const INDUSTRY_DEFAULT_APP_NAMES: Record<string, string> = {
+  office: '办公协同助手',
+  mfg: '产线智造工作台',
+  sales: '销售获客工作台',
+  med: '医疗协同助手',
+  game: '玩家服务台',
+  retail: '门店经营助手',
+  edu: '教培办学助手',
+  finance: '金融合规工作台',
+  logistics: '仓储调度助手',
+  realestate: '楼盘物业助手',
+  hotel: '酒店餐饮助手',
+  energy: '能源运维助手',
+  gov: '政务办事助手',
+  legal: '律所办案助手',
+  hr: '人力人事助手',
+  marketing: '营销获客助手',
+  construction: '工程现场助手',
+  agriculture: '农事产销助手',
+  media: '内容传媒助手',
+  auto: '车服售后助手',
+}
+
+export function defaultAppNameForIndustry(industryKey: string): string {
+  const key = (industryKey || '').trim()
+  return INDUSTRY_DEFAULT_APP_NAMES[key] || '行业智能应用'
+}
+
 function cleanIntentTitle(text: string, max = 14): string {
   const t = text
     .trim()
@@ -49,7 +78,7 @@ export function deriveDefaultAppName(opts: {
     if (funcs.length >= 2) return `${funcs[0].label}${funcs[1].label}`
     if (funcs.length === 1 && industry) return `${industry.label}·${funcs[0].label}`
     if (funcs.length === 1) return funcs[0].label
-    if (industry) return `${industry.label}助手`
+    if (industry) return defaultAppNameForIndustry(industry.key) || `${industry.label}助手`
     return ''
   }
 

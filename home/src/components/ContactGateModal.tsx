@@ -236,7 +236,7 @@ export default function ContactGateModal({
         <div className="contact-gate-field contact-gate-appname">
           <label htmlFor="contact-gate-appname">
             应用名称
-            <span className="contact-gate-optional">已根据你的描述自动生成，可改可不改</span>
+            <span className="contact-gate-optional">已按行业预填，可改可不改</span>
           </label>
           <input
             id="contact-gate-appname"
@@ -244,7 +244,7 @@ export default function ContactGateModal({
             className="contact-gate-appname-input"
             value={appName}
             disabled={busy}
-            placeholder="例如：请假助手、门店看板"
+            placeholder={defaultAppName.trim() || '例如：销售获客工作台'}
             onChange={(e) => setAppName(e.target.value)}
           />
         </div>

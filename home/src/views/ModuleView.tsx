@@ -108,8 +108,9 @@ export default function ModuleView({ onPublish, active = true }: Props) {
     color: moduleColor(w.key, theme),
   }))
 
-  const doPublish = async (contact: ContactInfo) => {
+  const doPublish = async (contact: ContactInfo, nameOverride?: string) => {
     if (!widgets.length) return
+    const finalName = (nameOverride || branding.appName || '模块组装应用').trim() || '模块组装应用'
     await runLoadingPublishPipeline({
       closeContact: () => setContactOpen(false),
       setLoading,
@@ -117,7 +118,7 @@ export default function ModuleView({ onPublish, active = true }: Props) {
       onSuccess: onPublish,
       execute: async () => {
         const publishedModules = buildPublishedModulesFromWidgets(widgets)
-        const res = await publishApp(branding.appName || '模块组装应用', 'office', {
+        const res = await publishApp(finalName, 'office', {
           scenarioNames: widgets.map((w) => w.name),
           capabilityKeys: widgets.map((w) => w.key),
           modules: publishedModules.map((m) => ({
@@ -269,8 +270,13 @@ export default function ModuleView({ onPublish, active = true }: Props) {
 
       <ContactGateModal
         open={active && contactOpen}
+        defaultAppName={branding.appName || '模块组装应用'}
         onClose={() => setContactOpen(false)}
-        onConfirm={(c) => { void doPublish(c) }}
+        onConfirm={(c, opts) => {
+          const named = opts?.appName?.trim()
+          if (named) setBranding((prev) => ({ ...prev, appName: named }))
+          void doPublish(c)
+        }}
       />
     </div>
   )

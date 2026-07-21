@@ -34,7 +34,7 @@ import { getMicrositeRuntimeSkin } from '../data/micrositeRuntimeSkin'
 import ContactGateModal, { type ContactInfo } from '../components/ContactGateModal'
 import GenerateLoadingOverlay from '../components/GenerateLoadingOverlay'
 import AppBrandingFields from '../components/AppBrandingFields'
-import { emptyBranding, resolveAppName } from '../data/appBranding'
+import { emptyBranding, resolveAppName, defaultAppNameForIndustry } from '../data/appBranding'
 import SelectionBox, { type SelectionItem } from '../components/SelectionBox'
 import DeliveryTemplatePicker from '../components/DeliveryTemplatePicker'
 
@@ -68,8 +68,10 @@ export default function IndustryView({
   const [lastAddedId, setLastAddedId] = useState<string | null>(null)
   const [publishError, setPublishError] = useState<string | null>(null)
   const [contactOpen, setContactOpen] = useState(false)
-  const [appName, setAppName] = useState('我的行业应用')
-  const [branding, setBranding] = useState(() => emptyBranding('我的行业应用'))
+  const [appName, setAppName] = useState(() => defaultAppNameForIndustry(initialIndustry ?? 'office'))
+  const [branding, setBranding] = useState(() =>
+    emptyBranding(defaultAppNameForIndustry(initialIndustry ?? 'office')),
+  )
   // 业务 Runtime：独立站入口默认侧栏场景工作台（标题页 + 单场景），皮肤由 micrositeId 驱动
   const [webTemplateId, setWebTemplateId] = useState('sidebar_admin')
   const [appUiId, setAppUiId] = useState('bottom_tabs')
@@ -110,6 +112,12 @@ export default function IndustryView({
     if (!active) return
     loadScenesFromCache(industry)
   }, [industry, active])
+
+  useEffect(() => {
+    const next = defaultAppNameForIndustry(industry)
+    setAppName(next)
+    setBranding((prev) => ({ ...prev, appName: next }))
+  }, [industry])
 
   useEffect(() => {
     if (!active) return
@@ -228,11 +236,15 @@ export default function IndustryView({
     setSelected(new Set())
   }
 
-  const doPublish = async (contact: ContactInfo) => {
+  const doPublish = async (contact: ContactInfo, nameOverride?: string) => {
     if (selected.size === 0) {
       setPublishError('请至少勾选 1 个场景后再生成（默认已全选，可取消不需要的项）')
       return
     }
+    const finalName = resolveAppName(
+      nameOverride || branding.appName,
+      appName || defaultAppNameForIndustry(industry),
+    )
     await runLoadingPublishPipeline({
       closeContact: () => setContactOpen(false),
       setLoading,
@@ -266,7 +278,7 @@ export default function IndustryView({
           })),
         ]
         const skin = getMicrositeRuntimeSkin(micrositeId)
-        const res = await publishApp(resolveAppName(branding.appName, appName), packKey, {
+        const res = await publishApp(finalName, packKey, {
           scenarioIds: selectedScenes.map((s) => s.id),
           scenarioNames: selectedScenes.map((s) => s.name),
           capabilityKeys,
@@ -618,8 +630,16 @@ export default function IndustryView({
 
       <ContactGateModal
         open={active && contactOpen}
+        defaultAppName={appName || defaultAppNameForIndustry(industry)}
         onClose={() => setContactOpen(false)}
-        onConfirm={(c) => { void doPublish(c) }}
+        onConfirm={(c, opts) => {
+          const named = opts?.appName?.trim()
+          if (named) {
+            setAppName(named)
+            setBranding((prev) => ({ ...prev, appName: named }))
+          }
+          void doPublish(c, named)
+        }}
       />
     </div>
   )
