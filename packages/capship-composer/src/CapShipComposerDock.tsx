@@ -298,6 +298,7 @@ export function CapShipComposerDock({
                 &gt;&gt;
               </span>
               <span className="floating-agent-dock-title">CapShip</span>
+              <span className="floating-agent-dock-subtitle">对话改页</span>
             </span>
             <button
               type="button"

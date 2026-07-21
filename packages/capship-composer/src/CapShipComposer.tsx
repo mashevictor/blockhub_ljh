@@ -1488,58 +1488,70 @@ export function CapShipComposer({
                     ? `正式线上 v${schemaRev} · 审批列表「通过」逐单处理 · 「直接发布」会作废全部未生效单`
                     : `正式线上 v${schemaRev} · 改页需提交审批后由管理员通过`}
         </span>
-        <button
-          type="button"
-          className="capship-composer-btn capship-composer-btn-save"
-          disabled={busy || !schema || (!schemaDirty && Boolean(changeId))}
-          onClick={() => void saveDraftSchema(true)}
-          title="保存到账号草稿；你的 Runtime 立刻按草稿生效，同事仍看正式版"
-        >
-          {busy ? '…' : '保存草稿'}
-        </button>
-        {!isPreviewLocal && appId && !isAdmin ? (
+        <div className="capship-composer-version-actions">
           <button
             type="button"
-            className="capship-composer-btn capship-composer-btn-save"
-            disabled={busy || !schema}
-            onClick={() => void submitForApproval()}
-            title="提交后管理员审核通过才会更新全员正式 Runtime"
+            className="capship-composer-btn is-sm"
+            disabled={busy || !schema || (!schemaDirty && Boolean(changeId))}
+            onClick={() => void saveDraftSchema(true)}
+            title="保存到账号草稿；你的 Runtime 立刻按草稿生效，同事仍看正式版"
           >
-            提交审批
+            {busy ? '…' : '保存草稿'}
           </button>
-        ) : null}
-        {!isPreviewLocal && isAdmin && appId && schema ? (
+          {!isPreviewLocal && appId && !isAdmin ? (
+            <button
+              type="button"
+              className="capship-composer-btn is-sm is-accent"
+              disabled={busy || !schema}
+              onClick={() => void submitForApproval()}
+              title="提交后管理员审核通过才会更新全员正式 Runtime"
+            >
+              提交审批
+            </button>
+          ) : null}
+          {!isPreviewLocal && isAdmin && appId && schema ? (
+            <button
+              type="button"
+              className="capship-composer-btn is-sm is-danger"
+              disabled={busy}
+              title="一键覆盖正式版，并作废所有未生效草稿/待审批"
+              onClick={() => void runDirectPublish()}
+            >
+              直接发布
+            </button>
+          ) : null}
+          {schemaDirty ? (
+            <button
+              type="button"
+              className="capship-composer-btn is-sm is-ghost"
+              disabled={busy}
+              onClick={discardDraft}
+            >
+              丢弃
+            </button>
+          ) : null}
+          {!isPreviewLocal && appId ? (
+            <button
+              type="button"
+              className="capship-composer-btn is-sm is-ghost"
+              disabled={busy}
+              onClick={() => void pullLatest()}
+            >
+              同步正式
+            </button>
+          ) : null}
           <button
             type="button"
-            className="capship-composer-link capship-composer-link-danger"
+            className={`capship-composer-btn is-sm is-ghost${historyOpen ? ' is-active' : ''}`}
             disabled={busy}
-            title="一键覆盖正式版，并作废所有未生效草稿/待审批"
-            onClick={() => void runDirectPublish()}
+            onClick={() => {
+              void loadHistory()
+              void loadChangeQueue()
+            }}
           >
-            直接发布
+            {historyOpen ? '收起' : '版本记录'}
           </button>
-        ) : null}
-        {schemaDirty ? (
-          <button type="button" className="capship-composer-link" disabled={busy} onClick={discardDraft}>
-            丢弃改动
-          </button>
-        ) : null}
-        {!isPreviewLocal && appId ? (
-          <button type="button" className="capship-composer-link" disabled={busy} onClick={() => void pullLatest()}>
-            拉最新正式版
-          </button>
-        ) : null}
-        <button
-          type="button"
-          className="capship-composer-link"
-          disabled={busy}
-          onClick={() => {
-            void loadHistory()
-            void loadChangeQueue()
-          }}
-        >
-          {historyOpen ? '收起历史' : '版本/审批'}
-        </button>
+        </div>
       </div>
 
       {conflict && (
@@ -1549,13 +1561,18 @@ export function CapShipComposer({
             {conflict.schema_editor_name ? `（${conflict.schema_editor_name}）` : ''}。请先同步，或强制覆盖。
           </p>
           <div className="capship-composer-conflict-actions">
-            <button type="button" disabled={busy} onClick={() => void pullLatest()}>
-              拉取最新
+            <button
+              type="button"
+              className="capship-composer-btn is-sm is-ghost"
+              disabled={busy}
+              onClick={() => void pullLatest()}
+            >
+              同步正式
             </button>
             {isAdmin ? (
               <button
                 type="button"
-                className="danger"
+                className="capship-composer-btn is-sm is-danger"
                 disabled={busy || !schema}
                 onClick={() => {
                   if (!schema) return
@@ -1585,7 +1602,7 @@ export function CapShipComposer({
               </div>
               <button
                 type="button"
-                className="capship-composer-link"
+                className="capship-composer-btn is-sm"
                 disabled={busy}
                 onClick={() => void saveDraftSchema(true)}
               >
@@ -1618,7 +1635,7 @@ export function CapShipComposer({
                     <>
                       <button
                         type="button"
-                        className="capship-composer-link"
+                        className="capship-composer-btn is-sm"
                         disabled={busy}
                         onClick={() => void reviewChange(c.id, 'approve')}
                       >
@@ -1626,7 +1643,7 @@ export function CapShipComposer({
                       </button>
                       <button
                         type="button"
-                        className="capship-composer-link"
+                        className="capship-composer-btn is-sm is-danger"
                         disabled={busy}
                         onClick={() => void reviewChange(c.id, 'reject')}
                       >
@@ -1637,7 +1654,7 @@ export function CapShipComposer({
                   {c.page_schema && (c.status === 'draft' || c.status === 'rejected') ? (
                     <button
                       type="button"
-                      className="capship-composer-link"
+                      className="capship-composer-btn is-sm is-ghost"
                       disabled={busy}
                       onClick={() => {
                         const cloned = cloneSchema(c.page_schema!)
@@ -1670,11 +1687,11 @@ export function CapShipComposer({
                 {isAdmin || isPreviewLocal ? (
                   <button
                     type="button"
-                    className="capship-composer-link"
+                    className="capship-composer-btn is-sm is-ghost"
                     disabled={busy || (!schemaDirty && r.rev === schemaRev)}
                     onClick={() => void restoreRev(r.rev)}
                   >
-                    回滚到此
+                    回滚
                   </button>
                 ) : null}
               </li>
@@ -1700,7 +1717,7 @@ export function CapShipComposer({
             ))}
           </div>
           <button type="button" className="capship-composer-btn" disabled={busy} onClick={() => void applyModules()}>
-            {busy ? '保存中…' : appId ? '保存模块' : '应用选型'}
+            {busy ? '保存中…' : appId ? '保存模块' : '保存选型'}
           </button>
         </div>
       )}
@@ -1782,7 +1799,7 @@ export function CapShipComposer({
               aria-label="上传截图"
               onClick={() => fileInputRef.current?.click()}
             >
-              截图
+              上传截图
             </button>
             <textarea
               value={draft}
@@ -1813,7 +1830,7 @@ export function CapShipComposer({
               }}
             />
             {busy ? (
-              <button type="button" className="capship-composer-btn is-stop" onClick={stopChat}>
+              <button type="button" className="capship-composer-btn is-danger" onClick={stopChat}>
                 停止
               </button>
             ) : (
@@ -1844,7 +1861,7 @@ export function CapShipComposer({
                 <div className="capship-composer-flow-actions">
                   <button
                     type="button"
-                    className="capship-composer-link"
+                    className="capship-composer-btn is-icon"
                     disabled={busy || i === 0}
                     aria-label="上移"
                     title="上移"
@@ -1854,7 +1871,7 @@ export function CapShipComposer({
                   </button>
                   <button
                     type="button"
-                    className="capship-composer-link"
+                    className="capship-composer-btn is-icon"
                     disabled={busy || i === flow.steps.length - 1}
                     aria-label="下移"
                     title="下移"
@@ -1864,7 +1881,7 @@ export function CapShipComposer({
                   </button>
                   <button
                     type="button"
-                    className="capship-composer-link"
+                    className="capship-composer-btn is-icon is-danger"
                     disabled={busy || flow.steps.length <= 1}
                     aria-label="移除"
                     title="移除"
@@ -1919,7 +1936,7 @@ export function CapShipComposer({
               }}
             />
             {busy ? (
-              <button type="button" className="capship-composer-btn is-stop" onClick={stopChat}>
+              <button type="button" className="capship-composer-btn is-danger" onClick={stopChat}>
                 停止
               </button>
             ) : (
