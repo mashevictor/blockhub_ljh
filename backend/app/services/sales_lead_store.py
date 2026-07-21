@@ -212,6 +212,27 @@ def create_record(
     db.commit()
     db.refresh(row)
     row.reporter = user
+    if desired_pool == "pool":
+        try:
+            from app.services.notification_service import create_notification
+
+            peers = (
+                db.query(User)
+                .filter(User.tenant_id == user.tenant_id, User.role.in_(("employee", "admin")))
+                .all()
+            )
+            for peer in peers:
+                create_notification(
+                    db,
+                    tenant_id=user.tenant_id,
+                    title=f"新待领取线索 · {row.customer}",
+                    content=f"{row.record_no} · 来源 {row.source or '未标注'} · 打开「待领取」认领",
+                    type="sales_lead",
+                    recipient_user_id=peer.id,
+                    reference_id=f"pool:{row.id}:{peer.id}",
+                )
+        except Exception:
+            pass
     try:
         from app.services.im_delivery_service import notify_business_event
 
@@ -229,6 +250,79 @@ def create_record(
     return to_dict(row)
 
 
+def _find_user(
+    db: Session,
+    tenant_id: str,
+    *,
+    user_id: str = "",
+    name: str = "",
+) -> User | None:
+    uid = (user_id or "").strip()
+    if uid:
+        u = db.query(User).filter(User.tenant_id == tenant_id, User.id == uid).first()
+        if u:
+            return u
+    n = (name or "").strip()
+    if not n:
+        return None
+    return (
+        db.query(User)
+        .filter(User.tenant_id == tenant_id)
+        .filter(or_(User.display_name == n, User.email == n))
+        .first()
+    )
+
+
+def _notify_lead(
+    db: Session,
+    *,
+    tenant_id: str,
+    title: str,
+    content: str,
+    recipient_user_id: str | None = None,
+    reference_id: str | None = None,
+    app_public_id: str = "",
+) -> None:
+    try:
+        from app.services.notification_service import create_notification, notify_tenant_admins
+
+        if recipient_user_id:
+            create_notification(
+                db,
+                tenant_id=tenant_id,
+                title=title,
+                content=content,
+                type="sales_lead",
+                recipient_user_id=recipient_user_id,
+                reference_id=reference_id,
+            )
+        else:
+            notify_tenant_admins(
+                db,
+                tenant_id=tenant_id,
+                title=title,
+                content=content,
+                type="sales_lead",
+                reference_id=reference_id,
+            )
+    except Exception:
+        pass
+    try:
+        from app.services.im_delivery_service import notify_business_event
+
+        notify_business_event(
+            db,
+            tenant_id=tenant_id,
+            title=title,
+            content=content,
+            app_public_id=app_public_id or None,
+            path="/sales-lead",
+            link_label="打开销售线索",
+        )
+    except Exception:
+        pass
+
+
 def assign_record(
     db: Session,
     tenant_id: str,
@@ -244,8 +338,9 @@ def assign_record(
     name = (assignee or "").strip()
     if not name:
         raise AcqError("请指定负责人")
+    target = _find_user(db, tenant_id, user_id=assignee_user_id, name=name)
     row.owner = name
-    row.assignee_user_id = (assignee_user_id or "").strip() or None
+    row.assignee_user_id = (target.id if target else None) or ((assignee_user_id or "").strip() or None)
     row.owner_user_id = row.assignee_user_id
     row.pool_status = "private"
     row.category = "lead-assignment"
@@ -253,6 +348,15 @@ def assign_record(
         row.note = f"{row.note}\n[分配] {note.strip()}".strip() if row.note else f"[分配] {note.strip()}"
     db.commit()
     db.refresh(row)
+    _notify_lead(
+        db,
+        tenant_id=tenant_id,
+        title=f"线索已分配给你 · {row.customer}",
+        content=f"{row.record_no} · 请到「跟进成交」继续推进",
+        recipient_user_id=row.owner_user_id,
+        reference_id=f"assign:{row.id}",
+        app_public_id=row.app_public_id or "",
+    )
     return to_dict(row)
 
 
@@ -314,6 +418,15 @@ def claim_record(
         row.note = f"{row.note}\n[领取] {reason.strip()}".strip() if row.note else f"[领取] {reason.strip()}"
     db.commit()
     db.refresh(row)
+    _notify_lead(
+        db,
+        tenant_id=user.tenant_id,
+        title=f"你已领取线索 · {row.customer}",
+        content=f"{row.record_no} · 下一步：打开「跟进成交」点 →跟进中",
+        recipient_user_id=user.id,
+        reference_id=f"claim:{row.id}",
+        app_public_id=row.app_public_id or "",
+    )
     return to_dict(row)
 
 

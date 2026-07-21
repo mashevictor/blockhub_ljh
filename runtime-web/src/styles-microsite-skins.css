@@ -290,6 +290,18 @@
 
 .runtime-shell.is-industry-site {
   max-width: 1180px;
+  /* CRM 工作台强制浅底深字（营销独立站可深色，Runtime 必须可读） */
+  color: #0f172a;
+  background: #f1f5f9;
+  --bg: #f1f5f9;
+  --card: #ffffff;
+  --text: #0f172a;
+  --muted: #475569;
+  --border: #e2e8f0;
+  --rt-page-bg: #f1f5f9;
+  --rt-surface: #ffffff;
+  --rt-header-bg: #ffffff;
+  --rt-header-fg: #0f172a;
 }
 
 .runtime-shell.is-industry-site .runtime-nav {
@@ -297,19 +309,43 @@
 }
 
 .runtime-shell.is-industry-site .runtime-header {
-  background: var(--rt-header-bg, #fff);
-  color: var(--rt-header-fg, #0f172a);
-  border-bottom: 1px solid color-mix(in srgb, var(--accent) 28%, transparent);
+  background: #ffffff;
+  color: #0f172a;
+  border-bottom: 1px solid #e2e8f0;
   border-radius: 0 0 var(--rt-radius, 12px) var(--rt-radius, 12px);
 }
 
 .runtime-shell.is-industry-site .runtime-header h1,
 .runtime-shell.is-industry-site .runtime-header .muted {
-  color: inherit;
+  color: #0f172a;
 }
 
 .runtime-shell.is-industry-site .runtime-header .muted {
-  opacity: 0.78;
+  opacity: 1;
+  color: #475569;
+}
+
+.runtime-shell.is-industry-site .runtime-header .btn-ghost {
+  color: #0f172a;
+  border-color: #cbd5e1;
+  background: #fff;
+}
+
+.runtime-shell.is-industry-site .runtime-sidebar {
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid #e2e8f0;
+}
+
+.runtime-shell.is-industry-site .runtime-sidebar-cat,
+.runtime-shell.is-industry-site .runtime-sidebar .sidebar-btn,
+.runtime-shell.is-industry-site .runtime-sidebar-tree .sidebar-btn {
+  color: #0f172a;
+  opacity: 1;
+}
+
+.runtime-shell.is-industry-site .runtime-sidebar-count {
+  color: #64748b;
 }
 
 .runtime-shell.is-industry-site .runtime-body,
@@ -320,25 +356,97 @@
 }
 
 .runtime-shell.is-industry-site .runtime-main,
-.runtime-shell.is-industry-site .widget-panel {
-  background: var(--rt-surface, #fff);
+.runtime-shell.is-industry-site .widget-panel,
+.runtime-shell.is-industry-site .widget-host {
+  background: #ffffff;
+  color: #0f172a;
+}
+
+.runtime-shell.is-industry-site .entry-banner.portal {
+  background: #eff6ff;
+  border-bottom: 1px solid #bfdbfe;
+  color: #1e3a8a;
+}
+
+.runtime-shell.is-industry-site .ind-hero--cover {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 16%, #fff), #fff);
+  color: #0f172a;
+}
+
+.runtime-shell.is-industry-site .ind-hero-title,
+.runtime-shell.is-industry-site .ind-hero-sub,
+.runtime-shell.is-industry-site .ind-hero-eyebrow,
+.runtime-shell.is-industry-site .ind-step-rail-item,
+.runtime-shell.is-industry-site .ind-step-rail-item strong,
+.runtime-shell.is-industry-site .ind-step-rail-item p,
+.runtime-shell.is-industry-site .ind-primary-hint,
+.runtime-shell.is-industry-site .ind-primary-hint strong {
+  color: #0f172a;
+  opacity: 1;
+}
+
+.runtime-shell.is-industry-site .ind-step-rail-item {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+.runtime-shell.is-industry-site .ind-step-rail-item.is-current {
+  background: color-mix(in srgb, var(--accent) 10%, #fff);
+}
+
+.runtime-shell.is-industry-site .ind-primary-hint {
+  background: #eff6ff;
+  border-color: #93c5fd;
+}
+
+.runtime-shell.is-industry-site .muted,
+.runtime-shell.is-industry-site .list-card .muted,
+.runtime-shell.is-industry-site .status-msg {
+  color: #475569;
+  opacity: 1;
 }
 
 .runtime-shell.is-industry-site .nav-btn.active,
 .runtime-shell.is-industry-site .sidebar-btn.active {
-  background: color-mix(in srgb, var(--accent) 16%, transparent);
-  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 14%, #fff);
+  color: #0f172a;
   border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+  font-weight: 700;
 }
 
 .runtime-shell.is-industry-site .btn:not(.btn-ghost) {
   background: var(--accent);
   border-color: var(--accent);
+  color: #fff;
 }
 
 .runtime-shell.is-industry-site .btn:disabled {
   opacity: 0.45;
   cursor: not-allowed;
+}
+
+/* 深色营销皮肤挂在行业工作台时，仍保持浅底深字 */
+.runtime-shell.is-industry-site.skin-helios,
+.runtime-shell.is-industry-site.skin-bigpicture,
+.runtime-shell.is-industry-site.skin-nova,
+.runtime-shell.is-industry-site.skin-solidstate,
+.runtime-shell.is-industry-site.skin-dimension,
+.runtime-shell.is-industry-site.skin-readonly,
+.runtime-shell.is-industry-site.skin-paradigm,
+.runtime-shell.is-industry-site.skin-sonar {
+  color: #0f172a;
+}
+
+.runtime-shell.is-industry-site.skin-helios .runtime-main,
+.runtime-shell.is-industry-site.skin-bigpicture .runtime-main,
+.runtime-shell.is-industry-site.skin-nova .runtime-main,
+.runtime-shell.is-industry-site.skin-solidstate .runtime-main,
+.runtime-shell.is-industry-site.skin-dimension .runtime-main,
+.runtime-shell.is-industry-site.skin-readonly .runtime-main,
+.runtime-shell.is-industry-site.skin-paradigm .runtime-main,
+.runtime-shell.is-industry-site.skin-sonar .runtime-main {
+  color: #0f172a;
+  background: #ffffff;
 }
 
 .runtime-shell.is-capship-workbench .entry-banner.portal {

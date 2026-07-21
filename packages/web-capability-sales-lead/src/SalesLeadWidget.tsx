@@ -353,7 +353,7 @@ export function SalesLeadWidget({ node }: { node: SchemaNode }) {
       const detail = String(e)
       setMsg(
         action === 'following' || action === 'won'
-          ? `晋级被拦：${detail}（请先到「成交证据」登记）`
+          ? `晋级被拦：${detail} → 左侧「客户跟进 · 赢单复盘」登记证据后再点`
           : `更新失败：${detail}`,
       )
     }

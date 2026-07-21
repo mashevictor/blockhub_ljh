@@ -28,6 +28,7 @@ import {
   isIndustrySiteEntry,
 } from './micrositeRuntimeSkin'
 import IndustrySiteHome from './IndustrySiteHome'
+import RuntimeNotifyBell from './RuntimeNotifyBell'
 import './styles-microsite-skins.css'
 
 const CapShipComposerDock = lazy(() =>
@@ -615,13 +616,22 @@ export default function App() {
   const shellStyle = {
     '--accent': skin?.accent || primaryColor,
     ...(skin
-      ? {
-          '--rt-page-bg': skin.pageBg,
-          '--rt-surface': skin.surface,
-          '--rt-header-bg': skin.headerBg,
-          '--rt-header-fg': skin.headerFg,
-          '--rt-radius': skin.radius,
-        }
+      ? industryEntry
+        ? {
+            /* 行业 CRM 工作台固定浅色；accent 仍随模板 */
+            '--rt-page-bg': '#f1f5f9',
+            '--rt-surface': '#ffffff',
+            '--rt-header-bg': '#ffffff',
+            '--rt-header-fg': '#0f172a',
+            '--rt-radius': skin.radius,
+          }
+        : {
+            '--rt-page-bg': skin.pageBg,
+            '--rt-surface': skin.surface,
+            '--rt-header-bg': skin.headerBg,
+            '--rt-header-fg': skin.headerFg,
+            '--rt-radius': skin.radius,
+          }
       : {}),
   } as CSSProperties
 
@@ -686,6 +696,7 @@ export default function App() {
             </div>
           </div>
           <div className="runtime-header-actions">
+            <RuntimeNotifyBell />
             {industryEntry && !atHome ? (
               <button
                 type="button"
