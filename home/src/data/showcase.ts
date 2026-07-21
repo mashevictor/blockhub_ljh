@@ -1,4 +1,4 @@
-/** 首页展示：41 项能力 · 11 个助手 · 145 业务场景 · 5 端交付 */
+/** 首页展示：能力 / 助手 / 业务场景 / 5 端交付（场景数以 PLATFORM_STATS / 行业包 SSOT 为准） */
 
 export interface CapabilityItem {
   id: string

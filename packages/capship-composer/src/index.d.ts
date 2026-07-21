@@ -80,6 +80,20 @@ export type ComposeEditOp =
       summary?: string
       page_kind?: string
       page_mock?: ComposerPageMock
+      pending_codegen?: boolean
+      scene_key?: string
+      scene_name?: string
+      form_headline?: string
+      form_hint?: string
+      default_category?: string
+      approval_type?: string
+      form_fields?: Array<{
+        key: string
+        label: string
+        type?: string
+        placeholder?: string
+        optional?: boolean
+      }>
     }
   | { op: 'remove'; label: string }
   | { op: 'rename'; from: string; to: string }
@@ -251,6 +265,11 @@ export declare function askComposeEdit(
     menu?: Array<{ key?: string; label?: string; capability_key?: string; category?: string }>
     capability_keys?: string[]
     images?: string[]
+    entry_source?: string
+    industry_key?: string
+    microsite_id?: string
+    web_template_id?: string
+    app_ui_id?: string
   },
   opts?: { token?: string | null; signal?: AbortSignal },
 ): Promise<{

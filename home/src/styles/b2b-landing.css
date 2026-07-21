@@ -678,11 +678,75 @@ a.b2b-nav-btn-link {
   word-break: keep-all;
 }
 
-.b2b-hero-text > p {
+.b2b-hero-text > p,
+.b2b-hero-lead {
   font-size: 16px;
   color: var(--b2b-muted);
   margin-bottom: 30px;
   max-width: 640px;
+}
+
+.b2b-hero-lead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 6px;
+}
+
+.b2b-hero-lead-sep {
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.b2b-hero-compose-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  color: #0f766e;
+  background: linear-gradient(135deg, #ccfbf1 0%, #99f6e4 100%);
+  border: 1px solid #5eead4;
+  box-shadow: 0 1px 0 rgba(15, 118, 110, 0.08);
+  transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
+}
+
+.b2b-hero-compose-pill:hover {
+  transform: translateY(-1px);
+  background: linear-gradient(135deg, #99f6e4 0%, #5eead4 100%);
+  box-shadow: 0 4px 12px rgba(13, 148, 136, 0.22);
+  color: #115e59;
+}
+
+.b2b-btn-compose {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 22px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  color: #fff;
+  background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
+  box-shadow: 0 3px 12px rgba(13, 148, 136, 0.32);
+  transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
+}
+
+.b2b-btn-compose:hover {
+  background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(13, 148, 136, 0.4);
+  color: #fff;
+}
+
+.b2b-btn-compose .agent-chevron-glyph {
+  color: #ccfbf1;
 }
 
 .b2b-hero-btns {
@@ -1987,6 +2051,51 @@ a.b2b-nav-btn-link {
   text-decoration: none;
   background: color-mix(in srgb, var(--ind-color) 14%, #fff);
   border-color: color-mix(in srgb, var(--ind-color) 50%, #e2e8f0);
+}
+
+/* ── CapShip 平台编排：对话改页 ── */
+.b2b-orchestrate-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.b2b-orchestrate-card {
+  background: #fff;
+  border: 1px solid #e8edf3;
+  border-radius: 10px;
+  padding: 20px 18px;
+  border-top: 3px solid #0d9488;
+}
+
+.b2b-orchestrate-step {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #0d9488;
+  margin-bottom: 10px;
+}
+
+.b2b-orchestrate-card h4 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #111;
+  margin: 0 0 8px;
+}
+
+.b2b-orchestrate-card p {
+  font-size: 13px;
+  color: var(--b2b-muted);
+  line-height: 1.55;
+  margin: 0;
+}
+
+.b2b-orchestrate-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 18px;
 }
 
 /* ── 原子能力 ── */
@@ -5207,6 +5316,10 @@ a.b2b-nav-btn-link {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .b2b-orchestrate-grid {
+    grid-template-columns: 1fr;
+  }
+
   .b2b-deepseek-grid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -5384,24 +5497,25 @@ a.b2b-nav-btn-link {
     font-size: 28px;
   }
 
-  /* 预约演示 / 在线体验：手机并排小按钮，勿通栏堆叠 */
+  /* 预约演示 / 在线体验 / 对话改页：手机并排小按钮 */
   .b2b-hero-btns {
     flex-direction: row;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     width: 100%;
-    max-width: 360px;
+    max-width: 420px;
     gap: 8px;
   }
 
   .b2b-hero-btns .b2b-btn-primary,
-  .b2b-hero-btns .b2b-btn-outline {
-    flex: 1 1 0;
+  .b2b-hero-btns .b2b-btn-outline,
+  .b2b-hero-btns .b2b-btn-compose {
+    flex: 1 1 calc(33.33% - 6px);
     width: auto;
     min-width: 0;
     justify-content: center;
     text-align: center;
-    padding: 8px 10px;
-    font-size: 13px;
+    padding: 8px 8px;
+    font-size: 12px;
     font-weight: 600;
     border-radius: 8px;
     gap: 4px;
@@ -5410,6 +5524,10 @@ a.b2b-nav-btn-link {
 
   .b2b-hero-btns .b2b-btn-outline {
     box-shadow: none;
+  }
+
+  .b2b-hero-btns .b2b-btn-compose {
+    box-shadow: 0 2px 8px rgba(13, 148, 136, 0.28);
   }
 
   .b2b-hero-btns .agent-chevron-glyph {

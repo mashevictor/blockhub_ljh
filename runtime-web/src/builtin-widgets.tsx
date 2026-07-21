@@ -140,9 +140,15 @@ function resolveInteractiveForNode(node: SchemaNode) {
  * 接口未落地前数据仅存本机，徽章标明非正式业务库。
  */
 function GeneratedPageWidget({ node }: { node: SchemaNode }) {
-  const { primaryColor, user } = useRuntime()
+  const { primaryColor, user, schema } = useRuntime()
   const accent = primaryColor || '#4338ca'
-  const title = String(node.props?.title || node.props?.scene_label || node.id || '生成页')
+  const meta = (schema?.meta || {}) as Record<string, unknown>
+  const theme = (schema?.theme || {}) as { micrositeId?: string }
+  const industrySite =
+    String(meta.entry_source || '') === 'industry_site' ||
+    Boolean(meta.microsite_id) ||
+    Boolean(theme.micrositeId)
+  const title = String(node.props?.title || node.props?.scene_label || node.id || '新页面')
   const summary = String(node.props?.summary || '')
   const capKey = String(node.props?.capability_key || node.id || 'gen_page')
   const pending = Boolean(node.props?.codegen_pending)
@@ -150,6 +156,36 @@ function GeneratedPageWidget({ node }: { node: SchemaNode }) {
   const rawBlocks = (Array.isArray(node.props?.blocks) ? node.props?.blocks : []) as Block[]
 
   const interactive = resolveInteractiveForNode(node)
+  // 异步 DeepSeek 出页中：只显示骨架，不提前露出弱表单
+  if (pending) {
+    return (
+      <article
+        className={`generated-page generated-page--skeleton${industrySite ? ' generated-page--industry' : ''}`}
+        data-source="generating"
+        aria-busy="true"
+        aria-label={`${title} 生成中`}
+      >
+        <header className="generated-skeleton-head">
+          <p className="generated-badge">DeepSeek 生成中</p>
+          <h2>{title}</h2>
+          <p className="generated-summary">
+            {summary || '正在根据你的需求生成页面结构与字段，完成后自动展示可交互预览。'}
+          </p>
+        </header>
+        <div className="generated-skeleton-body" aria-hidden>
+          <div className="generated-skel-line generated-skel-line--lg" />
+          <div className="generated-skel-line" />
+          <div className="generated-skel-line" />
+          <div className="generated-skel-card" />
+          <div className="generated-skel-card" />
+        </div>
+        <p className="muted" style={{ margin: 0, fontSize: 13 }}>
+          请稍候，勿重复提交同一需求…
+        </p>
+      </article>
+    )
+  }
+
   if (interactive) {
     return <InteractiveToolPad schema={interactive} title={title || '交互工具'} summary={summary} />
   }
@@ -214,12 +250,15 @@ function GeneratedPageWidget({ node }: { node: SchemaNode }) {
     ...seedList.filter((s) => !records.some((r) => r.title === s.title)),
   ]
 
-  const infoBlocks = rawBlocks.length
-    ? rawBlocks.filter((b) => b.type !== 'button')
-    : pageMockToBlocks(mock).filter((b) => b.type !== 'button')
+  const hasFormFields = fieldDefs.length > 0
+  // 有表单时不再渲染 page_mock 静态块，避免「模板说明 + 表单」双重堆砌
+  const infoBlocks =
+    hasFormFields
+      ? []
+      : (rawBlocks.length ? rawBlocks : pageMockToBlocks(mock)).filter((b) => b.type !== 'button')
 
   const submitLabel = String(mock?.primary_action || node.props?.primary_action || `提交${title}`).slice(0, 16)
-  const formTitle = String(mock?.form_title || title)
+  const formTitle = String(mock?.form_title || node.props?.form_headline || title)
   const listTitle = String(mock?.list_title || '记录')
 
   const handleSubmit = async () => {
@@ -283,9 +322,15 @@ function GeneratedPageWidget({ node }: { node: SchemaNode }) {
   }
 
   return (
-    <article className="generated-page" data-source="generated">
+    <article
+      className={`generated-page${industrySite ? ' generated-page--industry' : ''}`}
+      data-source="generated"
+      data-entry={industrySite ? 'industry_site' : 'workbench'}
+    >
       <header>
-        <p className="generated-badge">{pending ? 'AI 生成中 · 可先填单预览' : 'AI 生成页 · 可交互'}</p>
+        {!industrySite ? (
+          <p className="generated-badge">{pending ? '预览录入 · 接口生成中' : '预览页 · 可交互'}</p>
+        ) : null}
         <h2>{title}</h2>
         {summary ? <p className="generated-summary">{summary}</p> : null}
         <p className="muted" style={{ margin: '0 0 8px', fontSize: 13 }}>
@@ -319,7 +364,7 @@ function GeneratedPageWidget({ node }: { node: SchemaNode }) {
       <div className="generated-page-form">
         <GtgtStepComposer
           title={formTitle}
-          meta="生成页录入"
+          meta={industrySite ? '业务录入' : '预览录入'}
           accent={accent}
           flowHint=">> 单字段 Enter 推进 · 提交后写入本机列表（非正式业务库）"
           steps={steps}

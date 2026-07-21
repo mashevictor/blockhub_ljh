@@ -94,9 +94,40 @@ function resolveInteractiveUi(op: {
 }
 
 function resolveAddWidget(cap: string, explicit?: string): string {
-  if (explicit && /Widget$/.test(explicit)) return explicit
+  // 正式能力一律用 registry widget，禁止降级 GeneratedPageWidget
+  if (!cap.startsWith('gen_') && CAP_WIDGET_FALLBACK[cap]) {
+    return CAP_WIDGET_FALLBACK[cap]
+  }
+  if (explicit && /Widget$/.test(explicit) && explicit !== 'GeneratedPageWidget') {
+    return explicit
+  }
   if (cap.startsWith('gen_')) return 'GeneratedPageWidget'
   return CAP_WIDGET_FALLBACK[cap] || 'ListWidget'
+}
+
+function inheritMenuCategory(schema: ComposerPageSchema, opCategory?: string): string {
+  const explicit = (opCategory || '').trim()
+  if (explicit && explicit !== '自定义') return explicit
+  const meta = (schema.meta || {}) as Record<string, unknown>
+  const industryName = String(meta.industry_name || '').trim()
+  if (industryName) return industryName
+  const cats = schema.menu.map((m) => String(m.category || '').trim()).filter((c) => c && c !== '自定义')
+  if (cats.length) {
+    const freq = new Map<string, number>()
+    for (const c of cats) freq.set(c, (freq.get(c) || 0) + 1)
+    return [...freq.entries()].sort((a, b) => b[1] - a[1])[0]![0]
+  }
+  return explicit || '自定义'
+}
+
+function stableSceneKey(op: Extract<ComposeEditOp, { op: 'add' }>, label: string, cap: string): string {
+  const fromOp = String(op.scene_key || '').trim()
+  if (fromOp) return fromOp
+  // 确定性短 key，避免每次随机导致 diff 噪音
+  const raw = `${cap}:${label}`
+  let h = 0
+  for (let i = 0; i < raw.length; i++) h = (Math.imul(31, h) + raw.charCodeAt(i)) | 0
+  return `scene_${(h >>> 0).toString(16)}`
 }
 
 export function pageMockToBlocks(mock: ComposeEditOp['page_mock']): Array<{ type: string; text?: string; items?: string[] }> {
@@ -253,7 +284,7 @@ export function applyComposeOps(schema: ComposerPageSchema, ops: ComposeEditOp[]
       if (next.menu.some((m) => m.label === label)) continue
       const cap = op.capability_key || 'chat_qa'
       // 预览 / 带 page_mock：允许同一正式能力对应多个场景页（加班 vs 请假）
-      const allowDupCap = Boolean(next.meta?.preview) || Boolean(op.page_mock) || cap.startsWith('gen_')
+      const allowDupCap = Boolean(next.meta?.preview) || Boolean(op.page_mock) || Boolean(op.scene_key) || cap.startsWith('gen_')
       if (
         !allowDupCap &&
         [...keys].includes(cap) &&
@@ -261,16 +292,27 @@ export function applyComposeOps(schema: ComposerPageSchema, ops: ComposeEditOp[]
       ) {
         continue
       }
+      const isGenerated = cap.startsWith('gen_')
       const widget = resolveAddWidget(cap, op.widget)
-      const nodeType = widget.replace(/Widget$/i, '').toLowerCase() || cap
-      const key = `scene_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`
+      const forceFormal = !isGenerated && widget !== 'GeneratedPageWidget'
+      const nodeType = forceFormal
+        ? widget.replace(/Widget$/i, '').toLowerCase() || cap
+        : 'generated_page'
+      const key = (() => {
+        const preferred = stableSceneKey(op, label, cap)
+        if (!next.menu.some((m) => m.key === preferred) && !(next.root.children || []).some((c) => c.id === preferred)) {
+          return preferred
+        }
+        return `scene_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`
+      })()
       const route = `/s/${key}`
       keys.add(cap)
+      const category = inheritMenuCategory(next, op.category)
       const menuItem: ComposerPageSchema['menu'][number] = {
         key,
         label,
         route,
-        category: op.category || '自定义',
+        category,
         capability_key: cap,
         icon: 'module',
         summary: op.summary,
@@ -288,17 +330,53 @@ export function applyComposeOps(schema: ComposerPageSchema, ops: ComposeEditOp[]
         summary: op.summary,
         page_kind: op.page_kind,
       }
-      if (widget === 'GeneratedPageWidget' || cap.startsWith('gen_')) {
+      if (op.form_headline) childProps.form_headline = op.form_headline
+      if (op.form_hint) childProps.form_hint = op.form_hint
+      if (op.default_category) childProps.default_category = op.default_category
+      if (op.approval_type) childProps.approval_type = op.approval_type
+      if (op.scene_name) childProps.scene_name = op.scene_name
+
+      const formFieldsFromOp = (op.form_fields || [])
+        .filter((f) => f.label)
+        .map((f, i) => ({
+          key: f.key || `f_${i}`,
+          label: f.label,
+          type: f.type,
+          placeholder: f.placeholder,
+          optional: f.optional,
+        }))
+      const formFieldsFromMock = (op.page_mock?.fields || [])
+        .filter((f) => f.label)
+        .map((f, i) => ({
+          key: f.key || `f_${i}`,
+          label: f.label,
+          type: f.type,
+          placeholder: f.value || f.placeholder,
+          optional: f.optional,
+        }))
+      const formFields = formFieldsFromOp.length ? formFieldsFromOp : formFieldsFromMock
+      if (formFields.length) childProps.form_fields = formFields
+
+      // 仅真正 gen_* 页才挂 GeneratedPage；异步出页中只挂骨架所需 props
+      if (!forceFormal) {
         childProps.title = label
         childProps.codegen_pending = Boolean(op.pending_codegen)
         childProps.source = 'generated'
-        const fromMock = pageMockToBlocks(op.page_mock)
-        if (fromMock.length) childProps.blocks = fromMock
-        else if (op.summary) {
-          childProps.blocks = [
-            { type: 'heading', text: label },
-            { type: 'paragraph', text: op.summary },
-          ]
+        childProps.ui_phase = op.pending_codegen ? 'skeleton' : 'ready'
+        // pending 时不塞弱表单/blocks，避免骨架阶段露出半成品
+        if (!op.pending_codegen && !formFields.length) {
+          const fromMock = pageMockToBlocks(op.page_mock)
+          if (fromMock.length) childProps.blocks = fromMock
+          else if (op.summary) {
+            childProps.blocks = [
+              { type: 'heading', text: label },
+              { type: 'paragraph', text: op.summary },
+            ]
+          }
+        }
+        if (op.pending_codegen) {
+          // 保留 page_mock 供生成完成后合并参考，但不渲染表单
+          delete childProps.form_fields
         }
       }
       const interactiveUi = resolveInteractiveUi(op)
@@ -325,15 +403,6 @@ export function applyComposeOps(schema: ComposerPageSchema, ops: ComposeEditOp[]
         childProps.page_mock = interactiveUi
           ? { ...op.page_mock, ui_kind: interactiveUi }
           : op.page_mock
-        const mockFields = (op.page_mock.fields || [])
-          .filter((f) => f.label)
-          .map((f, i) => ({
-            key: f.key || `f_${i}`,
-            label: f.label,
-            type: f.type,
-            placeholder: f.value,
-          }))
-        if (mockFields.length) childProps.form_fields = mockFields
       }
       next = {
         ...next,
@@ -345,7 +414,7 @@ export function applyComposeOps(schema: ComposerPageSchema, ops: ComposeEditOp[]
             ...(next.root.children || []),
             {
               id: key,
-              type: widget === 'GeneratedPageWidget' || cap.startsWith('gen_') ? 'generated_page' : nodeType,
+              type: nodeType,
               props: childProps,
             },
           ],
@@ -1269,6 +1338,18 @@ export function CapShipComposer({
           })),
           capability_keys: keys,
           images,
+          entry_source: String((base.meta as Record<string, unknown> | undefined)?.entry_source || ''),
+          industry_key: String((base.meta as Record<string, unknown> | undefined)?.industry_key || ''),
+          microsite_id: String(
+            (base.meta as Record<string, unknown> | undefined)?.microsite_id ||
+              (base.theme as { micrositeId?: string } | undefined)?.micrositeId ||
+              '',
+          ),
+          web_template_id: String(
+            (base.meta as Record<string, unknown> | undefined)?.web_template_id ||
+              (base.theme as { templateId?: string } | undefined)?.templateId ||
+              '',
+          ),
         },
         { token, signal: ac.signal },
       )
@@ -1297,9 +1378,30 @@ export function CapShipComposer({
       const asyncHint =
         pending?.length
           ? jobId
-            ? ` 未覆盖能力已交 DeepSeek 异步出页（${pending.length} 项），生成完成后会自动刷新预览。`
-            : ` 未覆盖能力将异步生成（${pending.length} 项）。`
+            ? ` 未覆盖能力交 DeepSeek 异步出页（${pending.length} 项）：左侧先显示骨架，生成完成并自检后自动展开可交互预览。`
+            : ` 未覆盖能力暂无异步任务，将先用本地可预见模板展示（${pending.length} 项）。`
           : ''
+      // 无 job：不要一直卡在骨架，放开本地 foresight 表单
+      if (pending?.length && !jobId && result.ops?.length) {
+        next = {
+          ...next,
+          root: {
+            ...next.root,
+            children: (next.root.children || []).map((c) => {
+              const props = { ...(c.props || {}) } as Record<string, unknown>
+              if (props.codegen_pending) {
+                props.codegen_pending = false
+                props.ui_phase = 'ready'
+              }
+              return { ...c, props }
+            }),
+          },
+        }
+        setSchema(next)
+        setKeys(next.capability_keys)
+        setSchemaDirty(true)
+        onSchemaPatch?.(next)
+      }
       const draftHint = result.ops?.length ? ' 已写入草稿，点「保存」记入版本历史。' : ''
       setMessages((prev) => [
         ...prev,
@@ -1309,7 +1411,9 @@ export function CapShipComposer({
         result.ops?.length
           ? result.ops.some((o) => o.op === 'patch_page')
             ? '草稿已更新控件 · 未保存'
-            : '草稿已更新页面 · 未保存'
+            : pending?.length && jobId
+              ? '骨架占位 · DeepSeek 生成中'
+              : '草稿已更新页面 · 未保存'
           : '',
       )
 
@@ -1326,10 +1430,31 @@ export function CapShipComposer({
             try {
               const job = await fetchCodegenJob(jobId, { token, signal: jobAc.signal })
               if (job.status === 'failed') {
+                // 失败：放开骨架，回退本地 foresight/草稿
+                const fallback = {
+                  ...snapshot,
+                  root: {
+                    ...snapshot.root,
+                    children: (snapshot.root.children || []).map((c) => {
+                      const props = { ...(c.props || {}) } as Record<string, unknown>
+                      if (props.codegen_pending) {
+                        props.codegen_pending = false
+                        props.ui_phase = 'ready'
+                      }
+                      return { ...c, props }
+                    }),
+                  },
+                }
+                setSchema(fallback)
+                onSchemaPatch?.(fallback)
                 setMessages((prev) => [
                   ...prev,
-                  { role: 'assistant', text: `AI 出页失败：${job.error || '未知错误'}。当前仍保留即时预览草稿。` },
+                  {
+                    role: 'assistant',
+                    text: `AI 出页失败：${job.error || '未知错误'}。已展开本地可预见草稿，可继续改或重试。`,
+                  },
                 ])
+                setStatus('生成失败 · 已回退本地预览')
                 return
               }
               if (job.status !== 'ready') continue
@@ -1344,10 +1469,10 @@ export function CapShipComposer({
                   ...prev,
                   {
                     role: 'assistant',
-                    text: `AI 预览页已生成${job.result?.llm ? '（DeepSeek）' : '（规则兜底）'}：${pages.length} 页，可在左侧菜单打开查看。`,
+                    text: `页面已生成并通过预览合并${job.result?.llm ? '（DeepSeek）' : '（规则兜底）'}：${pages.length} 页，可在左侧菜单打开使用。`,
                   },
                 ])
-                setStatus('AI 预览页已合并 · 未保存')
+                setStatus('AI 预览页已就绪 · 未保存')
                 return
               }
               if (job.merged && appId && !String(appId).startsWith('preview-')) {
@@ -1370,10 +1495,27 @@ export function CapShipComposer({
             }
           }
           if (!jobAc.signal.aborted) {
+            const timedOut = {
+              ...snapshot,
+              root: {
+                ...snapshot.root,
+                children: (snapshot.root.children || []).map((c) => {
+                  const props = { ...(c.props || {}) } as Record<string, unknown>
+                  if (props.codegen_pending) {
+                    props.codegen_pending = false
+                    props.ui_phase = 'ready'
+                  }
+                  return { ...c, props }
+                }),
+              },
+            }
+            setSchema(timedOut)
+            onSchemaPatch?.(timedOut)
             setMessages((prev) => [
               ...prev,
-              { role: 'assistant', text: 'AI 出页超时，可稍后刷新或再说一次需求。即时预览草稿仍可用。' },
+              { role: 'assistant', text: 'AI 出页超时，已展开本地可预见草稿；可稍后刷新或再说一次需求。' },
             ])
+            setStatus('生成超时 · 已回退本地预览')
           }
         })()
       }

@@ -141,6 +141,7 @@
         <li><a href="#s9">契约字段与壳矩阵</a></li>
         <li><a href="#s10">开发检查清单</a></li>
         <li><a href="#s11">与 Cursor Skill 的关系</a></li>
+        <li><a href="#s12">对话改页与 Schema 审批（平台编排）</a></li>
       </ol>
     </nav>
 
@@ -536,7 +537,48 @@ flowchart TD
         Agent 在「新增能力 / 模块 / Agent / 双端包 / codegen」时应自动遵循本页。
         <strong>冲突时以本 HTML 为准</strong>；Skill 是执行流程，本页是结构法。
       </p>
-      <p class="muted">相关文档：<code>docs/opensource/README.md</code> · <code>ARCHITECTURE.md</code> · <code>SPEC.md</code> · <code>EXTRACTION.md</code></p>
+      <p>
+        对话改页审批另见：<code>.cursor/skills/capship-schema-approval/SKILL.md</code>
+        （草稿 → 审批 → 正式 <code>page_schema</code>）。
+      </p>
+      <p class="muted">相关文档：<code>docs/opensource/README.md</code> · <code>ARCHITECTURE.md</code> · <code>SPEC.md</code> · <code>EXTRACTION.md</code> · <code>capship-scope-boundary.html</code></p>
+    </section>
+
+    <!-- 12 -->
+    <section id="s12">
+      <h2>12. 对话改页与 Schema 审批（平台编排）</h2>
+      <div class="callout ok">
+        <strong>定位：</strong>这是 CapShip <strong>开源核心能力之一</strong>（Composer + Runtime 写回门禁），
+        <strong>不是</strong>路径 A 的业务 <code>capability_key</code>。
+        禁止注册为 <code>compose_edit</code> / <code>schema_change</code> 假模块并挂进 <code>capability_keys</code>。
+      </div>
+      <p>
+        Composer 三模式：<code>live_edit</code>（对话改页，默认）· <code>module_flow</code>（数据流）·
+        <code>select_modules</code>（选模块）。产品首页「对话改页」创建入口与 Runtime Dock 对齐。
+      </p>
+      <h3>状态机</h3>
+      <pre>对话改页 → 本地预览 (schemaDirty，正式 schema 不变)
+     ↓ 保存草稿
+  draft (绑 author_id) ──取消→ cancelled
+     ↓ 提交审批
+  pending ──管理员──┐
+     ↓ 通过          ↓ 驳回
+  approved         rejected
+     ↓
+  正式 page_schema + schema_rev++ + app_schema_revisions</pre>
+      <h3>参考 API</h3>
+      <table>
+        <tr><th>方法</th><th>路径</th><th>作用</th></tr>
+        <tr><td>POST</td><td><code>/api/v1/creation/compose-edit</code></td><td>LLM 产出改页 ops</td></tr>
+        <tr><td>POST</td><td><code>/api/v1/runtime/{id}/schema/changes</code></td><td>保存个人草稿</td></tr>
+        <tr><td>POST</td><td><code>.../schema/changes/submit</code></td><td>提交审批</td></tr>
+        <tr><td>POST</td><td><code>.../changes/{id}/approve</code></td><td>管理员通过并写入正式 Schema</td></tr>
+      </table>
+      <div class="callout">
+        边界与序列图见
+        <a href="./capship-scope-boundary.html#data">capship-scope-boundary.html §4.2</a>。
+        实现包：<code>@capship/composer</code>（平台包，非 <code>web-capability-*</code>）。
+      </div>
     </section>
 
     <footer class="note">

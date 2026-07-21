@@ -416,6 +416,44 @@ export const ATOMIC_AI_CAPABILITIES: AtomicCapability[] = [
     iconKey: 'creation',
     color: '#6366f1',
   },
+  {
+    id: 'atom-compose-edit',
+    name: '对话改页',
+    tag: 'CapShip',
+    summary: '用对话改菜单和页面，先自己预览；保存草稿、提交审批后，全员才看到正式效果',
+    iconKey: 'creation',
+    color: '#0d9488',
+    highlight: true,
+  },
+]
+
+/** CapShip 对话改页 · 首页产品说明（对用户文案，避免技术术语） */
+export interface PlatformOrchestrationStep {
+  id: string
+  step: string
+  title: string
+  summary: string
+}
+
+export const PLATFORM_ORCHESTRATION_STEPS: PlatformOrchestrationStep[] = [
+  {
+    id: 'compose',
+    step: '01',
+    title: '对话改页',
+    summary: '用自然语言改菜单与页面布局，左侧马上能看到效果；此时只影响你的预览，不影响其他人',
+  },
+  {
+    id: 'draft',
+    step: '02',
+    title: '个人草稿',
+    summary: '改满意后保存为自己的草稿，仅本人可见；还可继续改，或取消草稿',
+  },
+  {
+    id: 'approve',
+    step: '03',
+    title: '审批发布',
+    summary: '提交给管理员审批，通过后才正式生效，全员打开应用都能看到新页面',
+  },
 ]
 
 /** 大模型驱动的 5 类 AI 能力 */

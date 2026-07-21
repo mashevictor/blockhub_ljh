@@ -80,6 +80,10 @@ export const CAPSHIP_PILLARS = [
     body: 'Type >> on the product home or in Runtime chat — CapShip mounts real modules (leave, repair, expense…), not a mock carousel.',
   },
   {
+    title: 'Compose Edit → Approve',
+    body: 'Chat to reshape page_schema with live preview. Personal draft → submit → admin approve before the formal Runtime updates for everyone. Platform orchestration — not a business capability key.',
+  },
+  {
     title: 'Ship in 5 minutes',
     body: 'Select → publish → Web Runtime / App on the same contract. Empty DB = empty lists; submits hit real tables and APIs.',
   },
@@ -89,11 +93,34 @@ export const CAPSHIP_PILLARS = [
   },
 ] as const
 
+/** Platform orchestration features (Composer / schema approval) — not capability_registry keys */
+export const CAPSHIP_PLATFORM_FEATURES = [
+  {
+    id: 'compose_edit',
+    title: 'Compose Edit (对话改页)',
+    mode: 'live_edit',
+    summary: 'Natural-language page edits with instant left-pane preview; formal page_schema unchanged until approved.',
+  },
+  {
+    id: 'schema_approval',
+    title: 'Schema Approval (草稿审批)',
+    mode: 'draft → pending → approved',
+    summary: 'Personal draft on app_schema_change_requests; admin approve commits schema_rev and formal Runtime.',
+  },
+  {
+    id: 'module_flow',
+    title: 'Module Flow (数据流)',
+    mode: 'module_flow',
+    summary: 'Composer mode for wiring capability data paths alongside compose edit and module pick.',
+  },
+] as const
+
 export function buildCapshipCatalog() {
   return {
     product: 'CapShip',
     generatedAt: new Date().toISOString(),
     github: CAPSHIP_GITHUB,
+    platformFeatures: CAPSHIP_PLATFORM_FEATURES,
     scenarios: ROLE_PRESETS.map((p) => ({
       id: p.id,
       title: capshipSceneTitle(p.id, p.label),
@@ -129,9 +156,17 @@ export function catalogToMarkdown(catalog: ReturnType<typeof buildCapshipCatalog
     `- Edge: ${catalog.github.edge.url}`,
     `- Stable: ${catalog.github.stable.url}`,
     '',
-    '## Scenarios',
+    '## Platform features (orchestration)',
     '',
   ]
+  for (const f of catalog.platformFeatures) {
+    lines.push(`### ${f.id} · ${f.title}`)
+    lines.push(`- Mode: ${f.mode}`)
+    lines.push(`- ${f.summary}`)
+    lines.push('')
+  }
+  lines.push('## Scenarios')
+  lines.push('')
   for (const s of catalog.scenarios) {
     lines.push(`### ${s.id} · ${s.title}`)
     lines.push(`- Modules: ${s.modules.map((m) => m.key).join(', ') || '—'}`)

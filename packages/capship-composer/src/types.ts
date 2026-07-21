@@ -22,7 +22,14 @@ export interface ComposerMenuItem {
 
 export interface ComposerPageMock {
   form_title?: string
-  fields?: Array<{ key?: string; label: string; value?: string; type?: string }>
+  fields?: Array<{
+    key?: string
+    label: string
+    value?: string
+    type?: string
+    placeholder?: string
+    optional?: boolean
+  }>
   list_title?: string
   list?: Array<{ id: string; title: string; status: string }>
   chat_title?: string
@@ -118,6 +125,14 @@ export type ComposeEditOp =
       page_kind?: string
       page_mock?: ComposerPageMock
       pending_codegen?: boolean
+      /** SSOT 稳定菜单 key，优先于随机 scene_* */
+      scene_key?: string
+      scene_name?: string
+      form_headline?: string
+      form_hint?: string
+      default_category?: string
+      approval_type?: string
+      form_fields?: Array<{ key: string; label: string; type?: string; placeholder?: string; optional?: boolean }>
     }
   | { op: 'remove'; label: string }
   | { op: 'rename'; from: string; to: string }

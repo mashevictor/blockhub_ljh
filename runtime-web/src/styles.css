@@ -160,24 +160,29 @@ body { margin: 0; font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
   padding: 16px;
   background: #fff;
 }
-.generated-page { display: flex; flex-direction: column; gap: 16px; }
+.generated-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  color: inherit;
+}
 .generated-badge {
   display: inline-block;
   margin: 0 0 8px;
   font-size: 11px;
   font-weight: 700;
   color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 12%, #fff);
-  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 12%, var(--rt-surface, #fff));
+  border-radius: var(--rt-radius, 999px);
   padding: 3px 8px;
 }
 .generated-summary { color: var(--muted); margin: 0 0 8px; }
 .generated-blocks h3 { margin: 12px 0 6px; }
 .generated-blocks-info {
   padding: 12px 14px;
-  background: #f8fafc;
-  border: 1px solid var(--border);
-  border-radius: 12px;
+  background: color-mix(in srgb, var(--accent) 4%, var(--rt-surface, #f8fafc));
+  border: 1px solid color-mix(in srgb, var(--accent) 14%, var(--border, #e2e8f0));
+  border-radius: var(--rt-radius, 12px);
   font-size: 13px;
 }
 .generated-page-form { margin-top: 4px; }
@@ -202,9 +207,50 @@ body { margin: 0; font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
   align-items: flex-start;
   gap: 12px;
   padding: 12px 14px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: #fff;
+  border: 1px solid color-mix(in srgb, var(--accent) 12%, var(--border, #e2e8f0));
+  border-radius: var(--rt-radius, 12px);
+  background: var(--rt-surface, #fff);
+}
+.generated-page--skeleton {
+  min-height: 280px;
+  justify-content: flex-start;
+}
+.generated-skeleton-head {
+  margin-bottom: 8px;
+}
+.generated-skeleton-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 8px 0 16px;
+}
+.generated-skel-line,
+.generated-skel-card {
+  border-radius: var(--rt-radius, 10px);
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--accent) 6%, var(--rt-surface, #f1f5f9)) 0%,
+    color-mix(in srgb, var(--accent) 14%, var(--rt-surface, #e2e8f0)) 50%,
+    color-mix(in srgb, var(--accent) 6%, var(--rt-surface, #f1f5f9)) 100%
+  );
+  background-size: 200% 100%;
+  animation: generated-skel-shimmer 1.2s ease-in-out infinite;
+}
+.generated-skel-line {
+  height: 14px;
+  width: 72%;
+}
+.generated-skel-line--lg {
+  height: 18px;
+  width: 48%;
+}
+.generated-skel-card {
+  height: 72px;
+  width: 100%;
+}
+@keyframes generated-skel-shimmer {
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
 }
 .generated-page-list-actions {
   display: flex;

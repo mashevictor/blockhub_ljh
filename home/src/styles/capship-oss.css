@@ -547,10 +547,20 @@
 
 .cs-pillar-list {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 20px;
   border-top: 1px solid var(--cs-line);
   padding-top: 24px;
+}
+
+.cs-feature-mode {
+  display: block;
+  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--cs-accent);
+  margin-bottom: 8px;
+  letter-spacing: -0.02em;
 }
 
 .cs-pillar h3 {

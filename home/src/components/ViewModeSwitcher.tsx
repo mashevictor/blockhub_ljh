@@ -11,7 +11,7 @@ const MODES: {
   icon: typeof IconMessage
   badge?: string
 }[] = [
-  { id: 'prompt', label: '描述需求', icon: IconMessage, badge: '推荐' },
+  { id: 'prompt', label: '对话改页', icon: IconMessage, badge: '推荐' },
   { id: 'industry', label: '按行业创建', icon: IconBuilding },
   { id: 'module', label: '自由搭配', icon: IconPuzzle },
 ]

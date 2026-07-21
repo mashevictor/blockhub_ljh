@@ -9,7 +9,7 @@ import {
 import { PLATFORM_STATS } from '@shared/platformStats'
 
 export const HERO_PLATFORM_INTRO =
-  `${PLATFORM_STATS.scenarios}+ 场景 · ${PLATFORM_STATS.capabilities} 项模块 · ${AGENT_TEMPLATES.length} 套 AI 模板 · ${PLATFORM_STATS.agents} 个智能体`
+  `${PLATFORM_STATS.scenarios} 场景 · ${PLATFORM_STATS.capabilities} 项模块 · ${AGENT_TEMPLATES.length} 套 AI 模板 · ${PLATFORM_STATS.agents} 个智能体`
 
 export interface HeroStatModule {
   target: number
@@ -22,7 +22,6 @@ export interface HeroStatModule {
 export const HERO_PLATFORM_STATS: HeroStatModule[] = [
   {
     target: PLATFORM_STATS.scenarios,
-    suffix: '+',
     label: '业务场景',
     sub: '典型流程开箱即用',
   },
@@ -54,7 +53,7 @@ export const HERO_PLATFORM_STATS: HeroStatModule[] = [
   {
     target: PLATFORM_STATS.agents,
     label: '智能体',
-    sub: '大模型驱动编排',
+    sub: '核心助手 · 大模型编排',
   },
   {
     target: ATOMIC_AI_CAPABILITIES.length,
@@ -79,6 +78,6 @@ export const HERO_PLATFORM_STATS: HeroStatModule[] = [
   {
     target: 3,
     label: '创建方式',
-    sub: '描述 · 行业 · 模块',
+    sub: '对话改页 · 行业 · 模块',
   },
 ]

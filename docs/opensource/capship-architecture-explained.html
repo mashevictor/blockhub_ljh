@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CapShip · Registry 与开源解耦 · 架构图解</title>
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs'
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'base',
+      securityLevel: 'loose',
+      themeVariables: {
+        primaryColor: '#d1fae5',
+        primaryTextColor: '#064e3b',
+        primaryBorderColor: '#0d9488',
+        secondaryColor: '#e0f2fe',
+        tertiaryColor: '#f8fafc',
+        lineColor: '#64748b',
+        fontFamily: 'Segoe UI, PingFang SC, Microsoft YaHei, sans-serif',
+      },
+    })
+  </script>
+  <style>
+    :root {
+      --bg: #f4f7f5;
+      --paper: #ffffff;
+      --ink: #0f172a;
+      --muted: #64748b;
+      --line: #e2e8f0;
+      --teal: #0d9488;
+      --teal-soft: #ccfbf1;
+      --blue: #0369a1;
+      --blue-soft: #e0f2fe;
+      --amber: #b45309;
+      --amber-soft: #fef3c7;
+      --rose: #be123c;
+      --rose-soft: #ffe4e6;
+      --violet: #5b21b6;
+      --violet-soft: #ede9fe;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background:
+        radial-gradient(900px 420px at 10% -10%, rgba(13, 148, 136, 0.12), transparent 55%),
+        radial-gradient(700px 380px at 100% 0%, rgba(3, 105, 161, 0.08), transparent 50%),
+        var(--bg);
+      color: var(--ink);
+      line-height: 1.65;
+    }
+    .wrap { max-width: 1080px; margin: 0 auto; padding: 32px 20px 72px; }
+    .hero {
+      background: linear-gradient(145deg, #0f3d3a 0%, #0b2a33 55%, #0a1f2e 100%);
+      color: #ecfdf5;
+      border-radius: 18px;
+      padding: 28px 30px;
+      margin-bottom: 18px;
+      box-shadow: 0 18px 40px rgba(15, 61, 58, 0.22);
+    }
+    .hero h1 {
+      margin: 0 0 10px;
+      font-size: clamp(22px, 3.5vw, 30px);
+      letter-spacing: -0.02em;
+      font-weight: 750;
+    }
+    .hero h1 em { font-style: normal; color: #5eead4; }
+    .hero p { margin: 0; color: #b6d4ce; max-width: 70ch; font-size: 14px; }
+    .hero .links { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+    .hero .links a {
+      color: #99f6e4;
+      text-decoration: none;
+      font-size: 12px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(94, 234, 212, 0.28);
+      background: rgba(15, 118, 110, 0.35);
+    }
+    nav.toc {
+      position: sticky; top: 0; z-index: 10;
+      display: flex; flex-wrap: wrap; gap: 8px;
+      padding: 12px 0 14px;
+      margin-bottom: 8px;
+      background: color-mix(in srgb, var(--bg) 88%, transparent);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--line);
+    }
+    nav.toc a {
+      font-size: 12px; color: var(--muted); text-decoration: none;
+      padding: 6px 10px; border-radius: 8px; border: 1px solid var(--line);
+      background: var(--paper);
+    }
+    nav.toc a:hover { color: var(--teal); border-color: #99f6e4; }
+    section {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 22px 24px;
+      margin-bottom: 14px;
+      scroll-margin-top: 64px;
+    }
+    section h2 {
+      margin: 0 0 8px;
+      font-size: 18px;
+      color: var(--teal);
+      letter-spacing: -0.01em;
+    }
+    section h3 {
+      margin: 18px 0 8px;
+      font-size: 15px;
+      color: var(--blue);
+    }
+    p, li { font-size: 14px; }
+    .muted { color: var(--muted); }
+    .callout {
+      border-left: 4px solid var(--teal);
+      background: var(--teal-soft);
+      padding: 12px 14px;
+      border-radius: 0 10px 10px 0;
+      margin: 12px 0;
+      font-size: 14px;
+    }
+    .callout.warn {
+      border-left-color: var(--amber);
+      background: var(--amber-soft);
+    }
+    .callout.rose {
+      border-left-color: var(--rose);
+      background: var(--rose-soft);
+    }
+    .mermaid {
+      background: #f8fafc;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 14px;
+      margin: 14px 0;
+      overflow-x: auto;
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 12px 0; }
+    th, td {
+      border: 1px solid var(--line);
+      padding: 9px 11px;
+      vertical-align: top;
+      text-align: left;
+    }
+    th { background: #f1f5f9; color: #334155; font-size: 12px; }
+    code {
+      font-family: ui-monospace, Consolas, "SF Mono", monospace;
+      font-size: 12px;
+      background: #f1f5f9;
+      padding: 1px 5px;
+      border-radius: 4px;
+    }
+    pre {
+      background: #0f172a;
+      color: #cbd5e1;
+      padding: 14px 16px;
+      border-radius: 10px;
+      overflow: auto;
+      font-size: 12px;
+      line-height: 1.55;
+    }
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 12px 0; }
+    @media (max-width: 800px) { .grid2 { grid-template-columns: 1fr; } }
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 14px 16px;
+      background: #fafbfc;
+    }
+    .card h4 { margin: 0 0 8px; font-size: 14px; }
+    .card.oss h4 { color: var(--teal); }
+    .card.prod h4 { color: var(--violet); }
+    .card.plat h4 { color: var(--blue); }
+    .card.biz h4 { color: var(--amber); }
+    .card ul { margin: 0; padding-left: 18px; color: var(--muted); font-size: 13px; }
+    .legend {
+      display: flex; flex-wrap: wrap; gap: 10px;
+      margin: 10px 0 4px; font-size: 12px; color: var(--muted);
+    }
+    .legend span {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line);
+      background: #fff;
+    }
+    .dot { width: 8px; height: 8px; border-radius: 50%; }
+    .dot.oss { background: var(--teal); }
+    .dot.prod { background: var(--violet); }
+    .dot.plat { background: var(--blue); }
+    .dot.biz { background: var(--amber); }
+    .visio-box {
+      border: 2px dashed #94a3b8;
+      border-radius: 14px;
+      padding: 16px;
+      margin: 14px 0;
+      background: linear-gradient(180deg, #fff, #f8fafc);
+    }
+    .visio-box > .caption {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+    footer {
+      margin-top: 20px;
+      font-size: 12px;
+      color: var(--muted);
+      text-align: center;
+    }
+    .eq {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 10px;
+      align-items: center;
+      margin: 14px 0;
+    }
+    .eq .mid { font-weight: 800; color: var(--teal); font-size: 20px; }
+    @media (max-width: 700px) {
+      .eq { grid-template-columns: 1fr; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="hero">
+      <h1>CapShip 架构图解：<em>Registry</em> 是什么？开源如何解耦？</h1>
+      <p>
+        用一张「像 Visio 一样」的分层图，讲清三件事：
+        <strong>registry（能力黄页）</strong>、
+        <strong>业务能力包</strong>、
+        <strong>平台编排（对话改页）</strong>
+        ——以及它们与 CapShip 开源核、本仓产品面的关系。
+      </p>
+      <div class="links">
+        <a href="./capship.html">结构 SSOT · capship.html</a>
+        <a href="./capship-scope-boundary.html">开源边界</a>
+        <a href="./README.md">文档索引</a>
+        <a href="./capship.html#s12">§12 对话改页</a>
+      </div>
+    </header>
+
+    <nav class="toc">
+      <a href="#reg">1. Registry 是什么</a>
+      <a href="#layers">2. 整体分层（Visio）</a>
+      <a href="#two">3. 两类「能力」</a>
+      <a href="#oss">4. 开源解耦</a>
+      <a href="#flow">5. 选型 → 交付</a>
+      <a href="#compose">6. 对话改页落在哪</a>
+      <a href="#faq">7. 一分钟 FAQ</a>
+    </nav>
+
+    <!-- 1 -->
+    <section id="reg">
+      <h2>1. Registry 是什么？（别被英文吓到）</h2>
+      <div class="callout">
+        <strong>Registry = 能力黄页 / 能力目录表。</strong>
+        本仓里主要指 <code>backend/app/data/capability_registry.py</code>：
+        登记「有哪些业务能力可被选型」，每个条目有稳定的 <code>key</code>（如 <code>device_repair</code>、<code>approval_flow</code>）。
+      </div>
+
+      <div class="eq">
+        <div class="card biz">
+          <h4>生活类比</h4>
+          <ul>
+            <li>超市货架目录 = registry</li>
+            <li>货架上的商品 = 能力包（Web Widget + Flutter 包）</li>
+            <li>你勾选放进购物车 = <code>capability_keys</code></li>
+            <li>收银出单 = publish → <code>page_schema</code> + <code>build_manifest</code></li>
+          </ul>
+        </div>
+        <div class="mid">≈</div>
+        <div class="card oss">
+          <h4>工程对应</h4>
+          <ul>
+            <li>目录表：<code>capability_registry.py</code></li>
+            <li>商品：<code>web-capability-*</code> + <code>capability_*</code></li>
+            <li>购物车：发布时传入的 keys</li>
+            <li>出单：菜单/路由/要装哪些包</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="mermaid">
+flowchart LR
+  REG["Capability Registry<br/>能力黄页"]
+  KEY["key = device_repair"]
+  WEB["web-capability-device-repair"]
+  APP["capability_device_repair"]
+  API["/api/v1/... 真表真接口"]
+
+  REG --> KEY
+  KEY --> WEB
+  KEY --> APP
+  KEY --> API
+      </div>
+
+      <div class="callout warn">
+        <strong>Registry 不是</strong>：业务数据库、审批流引擎、也不是「对话改页」本身。
+        它只回答：「这个 key 存在吗？对应哪个双端包？菜单怎么挂？」
+      </div>
+    </section>
+
+    <!-- 2 -->
+    <section id="layers">
+      <h2>2. 整体分层（Visio 风格总图）</h2>
+      <div class="legend">
+        <span><i class="dot oss"></i> CapShip 开源核</span>
+        <span><i class="dot prod"></i> 产品面（本仓可闭源）</span>
+        <span><i class="dot plat"></i> 平台编排</span>
+        <span><i class="dot biz"></i> 业务能力包</span>
+      </div>
+
+      <div class="visio-box">
+        <div class="caption">Layer diagram · CapShip + BlockHub monorepo</div>
+        <div class="mermaid">
+flowchart TB
+  subgraph L0["L0 产品面 · 本仓营销/运营（可闭源）"]
+    Home["home 官网 / Hero / 行业站"]
+    Plaza["广场 · 预约演示"]
+  end
+
+  subgraph L1["L1 发布入口"]
+    Pub["POST /creation/publish"]
+  end
+
+  subgraph L2["L2 CapShip Contract Engine ★开源核"]
+    Reg["Capability Registry<br/>能力黄页"]
+    Res["Resolver 解析 keys"]
+    Sch["page_schema 生成"]
+    Man["build_manifest 生成"]
+  end
+
+  subgraph PLAT["平台编排 ★开源核 · 不进 Registry"]
+    Comp["Composer<br/>对话改页 / 选模块"]
+    Appr["schema/changes<br/>草稿→审批→正式"]
+  end
+
+  subgraph L3["L3 Dual Runtime ★开源核"]
+    Web["runtime-web"]
+    App["runtime-app / Flutter"]
+  end
+
+  subgraph L4["L4 业务能力包 ★开源核约定"]
+    Packs["web-capability-* + capability_*"]
+  end
+
+  Home --> Pub
+  Pub --> Res
+  Res --> Reg
+  Res --> Sch
+  Res --> Man
+  Sch --> Web
+  Man --> Web
+  Man --> App
+  Packs --> Web
+  Packs --> App
+  Comp --> Appr
+  Appr -->|approve 后写回| Sch
+  Web -.->|Dock 打开| Comp
+        </div>
+      </div>
+
+      <table>
+        <tr>
+          <th>层</th>
+          <th>管什么</th>
+          <th>开源？</th>
+        </tr>
+        <tr>
+          <td>L0 产品面</td>
+          <td>官网文案、广场、预约、行业营销站</td>
+          <td>通常<strong>留在本仓</strong>（产品面）</td>
+        </tr>
+        <tr>
+          <td>L2 契约引擎</td>
+          <td>Registry + 解析 + schema/manifest</td>
+          <td><strong>开源核</strong></td>
+        </tr>
+        <tr>
+          <td>平台编排</td>
+          <td>Composer、对话改页审批写回</td>
+          <td><strong>开源核</strong>（不是业务 key）</td>
+        </tr>
+        <tr>
+          <td>L3 Runtime</td>
+          <td>Web / App 壳，按 manifest 装包</td>
+          <td><strong>开源核</strong></td>
+        </tr>
+        <tr>
+          <td>L4 能力包</td>
+          <td>报修、审批、会员… 真业务 UI+API</td>
+          <td><strong>开源约定</strong>；具体包可示例或商业扩展</td>
+        </tr>
+      </table>
+    </section>
+
+    <!-- 3 -->
+    <section id="two">
+      <h2>3. 两类「能力」——最容易混的地方</h2>
+      <p class="muted">中文都叫「能力」，工程上要拆开，否则就会问「对话改页要不要进 registry？」</p>
+
+      <div class="grid2">
+        <div class="card biz">
+          <h4>A. 业务 Capability（进 Registry）</h4>
+          <ul>
+            <li>例子：报修 <code>device_repair</code>、审批 <code>approval_flow</code></li>
+            <li>用户<strong>勾选</strong>后进菜单</li>
+            <li>必须有双端包 + 真 API + 真表</li>
+            <li>空库 = 空列表（选型即交付）</li>
+            <li>路径：写 registry → Alembic → API → web/app 包</li>
+          </ul>
+        </div>
+        <div class="card plat">
+          <h4>B. 平台编排（不进 Registry）</h4>
+          <ul>
+            <li>例子：对话改页、草稿审批、选模块 Dock</li>
+            <li>用户<strong>不勾选</strong>也能用（Runtime 自带）</li>
+            <li>改的是 <code>page_schema</code>，不是业务单据</li>
+            <li>包名：<code>@capship/composer</code>，不是 <code>web-capability-*</code></li>
+            <li>文档：capship.html §12 / schema-approval skill</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="mermaid">
+flowchart TB
+  subgraph Biz["业务能力 · 进 Registry"]
+    K1["device_repair"]
+    K2["member_loyalty"]
+    K3["kill_pipeline"]
+  end
+
+  subgraph Plat["平台编排 · 不进 Registry"]
+    P1["compose_edit / live_edit"]
+    P2["schema_approval"]
+    P3["module_flow / select_modules"]
+  end
+
+  RegBox["capability_registry.py"]
+  CompBox["@capship/composer + Runtime API"]
+
+  Biz --> RegBox
+  Plat --> CompBox
+      </div>
+
+      <div class="callout rose">
+        <strong>为什么对话改页不进 registry？</strong>
+        因为它不是「可选业务模块」，而是改整个应用页面契约的<strong>壳级工具</strong>。
+        若硬注册成 <code>schema_change</code> 假 key，会破坏「选型即交付」语义（勾了却没有业务表）。
+      </div>
+    </section>
+
+    <!-- 4 -->
+    <section id="oss">
+      <h2>4. CapShip 开源与本仓如何解耦</h2>
+      <p>
+        本 monorepo（积木仓 / BlockHub）= <strong>CapShip 开源核</strong> + <strong>产品面超集</strong>。
+        开源抽出后，产品仓通过包依赖 CapShip，而不是复制两份 registry。
+      </p>
+
+      <div class="mermaid">
+flowchart LR
+  subgraph Mono["当前 monorepo（本仓）"]
+    Core["CapShip 核<br/>registry · runtime · composer · packs"]
+    Face["产品面<br/>home · plaza · 预约 · 行业站"]
+  end
+
+  subgraph OSS["抽出后的开源仓 capship/"]
+    C2["contract / web-runtime / composer / examples"]
+  end
+
+  subgraph Prod["产品仓继续演进"]
+    Face2["官网 / 增长 / 行业内容"]
+  end
+
+  Core -.->|抽取| C2
+  Face -.->|留在产品仓| Face2
+  Face2 -->|依赖| C2
+      </div>
+
+      <div class="grid2">
+        <div class="card oss">
+          <h4>开源核要带走什么</h4>
+          <ul>
+            <li>Registry 契约与解析</li>
+            <li>page_schema / build_manifest</li>
+            <li>双端 Runtime 壳</li>
+            <li>Composer + 改页审批参考实现</li>
+            <li>示范能力包（如 chat + approval）</li>
+          </ul>
+        </div>
+        <div class="card prod">
+          <h4>产品面通常留下什么</h4>
+          <ul>
+            <li>B2B 官网文案与 Hero</li>
+            <li>广场、预约演示线索</li>
+            <li>行业深度包营销内容</li>
+            <li>上海话等运营特色场景包装</li>
+          </ul>
+        </div>
+      </div>
+      <p class="muted">细节边界表见 <a href="./capship-scope-boundary.html">capship-scope-boundary.html</a>。</p>
+    </section>
+
+    <!-- 5 -->
+    <section id="flow">
+      <h2>5. 主路径：选型 → 双端交付（业务能力）</h2>
+      <div class="mermaid">
+sequenceDiagram
+  autonumber
+  actor U as 用户
+  participant Home as 首页选型
+  participant API as Publish API
+  participant Reg as Registry
+  participant C as schema + manifest
+  participant RT as Runtime
+
+  U->>Home: 勾选 capability_keys
+  Home->>API: POST /publish
+  API->>Reg: 查黄页 resolve(keys)
+  Reg-->>API: 包名 / 路由 / 元数据
+  API->>C: 编译 page_schema + build_manifest
+  API-->>Home: web_url
+  Home->>RT: 打开应用
+  RT->>RT: 按 manifest 懒加载业务包
+  Note over RT: 空库 = 空列表；提交打真 API
+      </div>
+    </section>
+
+    <!-- 6 -->
+    <section id="compose">
+      <h2>6. 对话改页落在哪？（相对 Registry 的旁路）</h2>
+      <p>
+        发布之后，用户在 Runtime 里用 Composer「对话改页」。
+        这是<strong>改契约</strong>的路径，不经过「再勾选一个 registry key」。
+      </p>
+
+      <div class="mermaid">
+sequenceDiagram
+  autonumber
+  actor U as 用户
+  participant Dock as Composer Dock
+  participant LLM as compose-edit API
+  participant DB as schema_change_requests
+  actor Admin as 管理员
+  participant App as apps.page_schema
+
+  U->>Dock: 对话改页
+  Dock->>LLM: 生成 ops
+  Dock->>Dock: 左侧即时预览（正式 schema 未变）
+  U->>DB: 保存草稿 draft
+  U->>DB: 提交审批 pending
+  Admin->>DB: approve
+  DB->>App: 写入正式 page_schema + rev++
+  Note over App: 全员 Runtime 读正式版
+      </div>
+
+      <pre>业务能力路径：  勾选 key → Registry → 菜单挂业务包
+平台改页路径：  对话改页 → 草稿/审批 → 写回 page_schema
+二者正交：改页可以增删菜单项，但仍应指向已注册的真能力 key</pre>
+    </section>
+
+    <!-- 7 -->
+    <section id="faq">
+      <h2>7. 一分钟 FAQ</h2>
+      <table>
+        <tr>
+          <th>问题</th>
+          <th>短答</th>
+        </tr>
+        <tr>
+          <td>Registry 是数据库表吗？</td>
+          <td>主要是<strong>代码里的目录</strong>（可再同步到 catalog）；业务数据在各能力自己的表里。</td>
+        </tr>
+        <tr>
+          <td>开源 = 整个本仓吗？</td>
+          <td>否。开源是 L2–L4 + Composer；官网/广场等是产品面。</td>
+        </tr>
+        <tr>
+          <td>对话改页是开源能力吗？</td>
+          <td>是，但是<strong>平台编排能力</strong>，不是 registry 里的业务模块。</td>
+        </tr>
+        <tr>
+          <td>为什么首页也要写对话改页？</td>
+          <td>产品叙事对齐 Runtime；避免用户以为只有「勾选模块」一种创建方式。</td>
+        </tr>
+        <tr>
+          <td>新业务功能怎么加？</td>
+          <td>走路径 A：registry key → 表/API → 双端包。见 <a href="./capship.html#s6">capship.html §6</a>。</td>
+        </tr>
+      </table>
+
+      <div class="callout">
+        <strong>记住这句话：</strong>
+        Registry 管「有哪些积木可勾选」；
+        Composer 管「对话怎么改房子平面图」；
+        Runtime 管「房子怎么住人」；
+        产品面管「怎么把房子卖出去」。
+      </div>
+    </section>
+
+    <footer>
+      CapShip Architecture Explained · 便于分享的静态 HTML · 与 capship.html / scope-boundary 交叉引用
+    </footer>
+  </div>
+</body>
+</html>

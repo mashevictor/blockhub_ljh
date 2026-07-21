@@ -6,23 +6,30 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 from typing import Any
 
 from app.core.config import settings
+from app.data import office_scene_capabilities as office_ssot
+from app.data import sales_scene_capabilities as sales_ssot
 from app.data.capability_registry import ALL_CAPABILITIES
+from app.data.industry_packs_all import pack_meta
+from app.services.compose_intent import foresight_add_op, match_fragment_capability
 from app.services.deepseek_client import deepseek_json_chat, deepseek_json_chat_with_images, vision_configured
 from app.services.hero_preset_match import match_hero_presets
 from app.services.keyword_match import match_modules_keyword
 from app.services.llm_text import NO_MARKDOWN_STYLE_RULE, sanitize_llm_plain_text
 from app.services.web_capability_gate import ensure_web_ready_key, is_web_ready_capability
 
-_PAGE_KINDS = ("form_list", "chat_kb", "chart", "roster", "notify", "approval", "files")
+_PAGE_KINDS = ("form_list", "chat_kb", "chart", "roster", "notify", "approval", "files", "integration", "game")
+
+ComposeCtx = dict[str, str]
 
 # 口语 / 同义 → 正式能力（fallback 与 enrich 共用；优先于 approval_flow）
 _SYNONYM_TO_CAP: list[tuple[tuple[str, ...], str]] = [
-    (("请假", "年假", "调休", "病假", "事假", "休假", "加班申请", "出差申请"), "leave_request"),
+    (("请假", "年假", "调休", "病假", "事假", "休假", "加班申请", "加班", "出差申请", "出差"), "leave_request"),
     (("报销", "费用报销", "发票", "差旅费", "借款", "付款申请", "团建", "经费", "活动经费", "预算审批"), "expense_claim"),
     (("入职", "招聘", "面试", "候选人", "onboard", "劳动合同", "雇佣合同", "用工合同", "工资5000", "入职日期"), "hire_onboard"),
     (("设备报修", "报修", "产线坏", "机器坏", "故障", "维修工单", "派工维修"), "device_repair"),
@@ -30,14 +37,21 @@ _SYNONYM_TO_CAP: list[tuple[tuple[str, ...], str]] = [
     (("质检", "sop", "不合格", "终检"), "quality_inspect"),
     (("盘点", "库存", "sku", "货位", "补货"), "inventory_count"),
     (("会员", "积分", "券码", "促销触达"), "member_loyalty"),
-    (("会议室", "订会议室", "预约会议", "开会预约"), "meeting_booking"),
+    (("会议室", "订会议室", "预约会议", "开会预约", "约会议室", "会议室预约"), "meeting_booking"),
     (("it报障", "it 报障", "电脑坏", "网络不通", "帮我修电脑", "it工单"), "it_ticket"),
     (("用印", "盖章", "印章申请"), "seal_request"),
     (("资产领用", "固定资产", "资产台账"), "asset_manage"),
     (("制度", "政策问答", "福利政策", "制度查询"), "policy_qa"),
-    (("知识库", "上传文档", "制度文档", "手册"), "kb_document"),
+    (("知识库", "上传文档", "制度文档", "手册", "员工手册"), "kb_document"),
     (("导诊", "挂号指引", "科室", "预问诊"), "med_triage"),
     (("护士排班", "调班", "值班表"), "nurse_shift"),
+    (("线索", "录线索", "客户线索", "获客", "公海", "公海池", "销售线索", "客户跟进", "线索录入"), "sales_lead"),
+    (("丢单", "输单", "丢单原因", "杀单"), "kill_pipeline"),
+    (("赢单", "成交证据", "赢单复盘"), "deal_evidence"),
+    (("报价", "报价单", "出报价", "合同报价", "报价合同", "销售合同", "特价申请"), "quote_contract"),
+    (("问数", "查数", "自然语言查", "查审批量", "自然语言查数", "智能问数"), "data_nl_query"),
+    (("经营看板", "看板看一眼", "KPI看板", "老板看板", "kpi看板"), "ops_kpi"),
+    (("漏斗", "转化图", "销售漏斗"), "chart_funnel"),
     (("课表", "教室查询", "考试安排"), "class_schedule"),
     (("作业答疑", "错题", "课程答疑"), "homework_qa"),
     (("家校", "家长通知", "学校通知"), "school_notice"),
@@ -46,12 +60,8 @@ _SYNONYM_TO_CAP: list[tuple[tuple[str, ...], str]] = [
     (("外卖", "配送", "骑手", "运单"), "delivery_order"),
     (("巡检", "隐患上报", "安全巡检"), "site_patrol"),
     (("法务", "合同审查", "案件", "法务合同", "合同生成", "生成合同"), "legal_case"),
-    (("报价合同", "销售合同", "特价申请"), "quote_contract"),
     (("政务", "办事指南", "诉求提交"), "gov_service"),
-    (("销售线索", "客户跟进", "线索录入"), "sales_lead"),
-    (("经营看板", "问数", "老板看板", "kpi看板"), "ops_kpi"),
     (("数据看板", "统计报表", "可视化看板"), "chart_dashboard"),
-    (("自然语言查数", "智能问数"), "data_nl_query"),
     (("考勤", "排班", "班次"), "shift_attendance"),
     (("培训", "上岗证", "技能培训"), "training_record"),
     (("企微", "钉钉", "飞书", "群通知"), "notify_im"),
@@ -176,10 +186,21 @@ def _companion_explicit(text: str, key: str) -> bool:
     return True
 
 
+def _access_qr_intent(text: str) -> bool:
+    """门禁 / 通行码优先于会议室预约。"""
+    t = text or ""
+    return any(w in t for w in ("门禁", "通行码", "通行二维码", "访客码", "二维码通行"))
+
+
 def _select_add_caps(matches: list[dict[str, Any]], text: str) -> list[dict[str, Any]]:
     """挑主能力：高分、彼此接近，过滤未点名的弱附带。"""
     if not matches:
         return []
+    # 门禁话术勿挂会议室
+    if _access_qr_intent(text):
+        matches = [m for m in matches if str(m.get("key") or "") != "meeting_booking"]
+        if not matches:
+            return []
     strong = [m for m in matches if float(m.get("score") or 0) >= 7.0]
     pool = strong or matches[:1]
     top = float(pool[0].get("score") or 0)
@@ -194,6 +215,40 @@ def _select_add_caps(matches: list[dict[str, Any]], text: str) -> list[dict[str,
         if len(selected) >= 3:
             break
     return selected
+
+
+def _form_fields_count(op: dict[str, Any]) -> int:
+    mock = op.get("page_mock") if isinstance(op.get("page_mock"), dict) else {}
+    fields = op.get("form_fields") or mock.get("fields") or []
+    return len(fields) if isinstance(fields, list) else 0
+
+
+def _has_ready_foresight(op: dict[str, Any]) -> bool:
+    """意图模板已带可填字段 / 可点工具 → 可立即展示，不必卡骨架。"""
+    if op.get("interactive") or (
+        isinstance(op.get("page_mock"), dict) and op["page_mock"].get("interactive")
+    ):
+        return True
+    return _form_fields_count(op) >= 2
+
+
+def _scene_label_for_cap(cap: str, text: str, default: str) -> str:
+    """同能力多场景时用用户口语当菜单名（加班≠请假）。"""
+    t = text or ""
+    if cap == "leave_request":
+        if any(w in t for w in ("加班",)):
+            return "加班申请"
+        if any(w in t for w in ("出差",)):
+            return "出差申请"
+        if "事假" in t:
+            return "事假申请"
+        if "病假" in t:
+            return "病假申请"
+        if "年假" in t:
+            return "年假申请"
+    if cap == "meeting_booking" and any(w in t for w in ("约", "订", "预约")):
+        return "会议室预约"
+    return default
 
 _SYSTEM = f"""你是积木仓 Runtime 编排助手。用户用中文描述业务需求或要怎么改当前应用菜单/表单交互。
 你必须先真正理解用户的业务语言与意图，再**泛化**到可执行 ops（同类需求共用同一交互模型，禁止每来一个产品名就只吐文字列表）。
@@ -590,6 +645,8 @@ def _resolve_matches(text: str) -> list[dict[str, Any]]:
     for aliases, cap_key in _SYNONYM_TO_CAP:
         if cap_key not in ALL_CAPABILITIES:
             continue
+        if cap_key == "meeting_booking" and _access_qr_intent(text):
+            continue
         hit = any(a.lower() in t or a in text for a in aliases)
         if not hit:
             continue
@@ -610,12 +667,12 @@ def _resolve_matches(text: str) -> list[dict[str, Any]]:
     return [x for x in ranked if float(x["score"]) >= 5.0][:8]
 
 
-def _infer_add_from_text(text: str) -> list[dict[str, Any]]:
-    """本地兜底：从自然语言推断要新增的正式能力（可多个）。"""
+def _infer_add_from_text(text: str, ctx: ComposeCtx | None = None) -> list[dict[str, Any]]:
+    """本地兜底：Path-A → 碎片 → 意图模板(C) → 显式弱标签 → 真未知。"""
     # 显式「增加 X」
     explicit_labels: list[str] = []
     for m in re.finditer(
-        r"(?:增加|添加|加上|新建|加一个|加个|挂上|开通|启用|生成|做一个|做个|来个|创建)\s*[「『\"]?([^「『」』\"，,。；;\s]{2,24})",
+        r"(?:增加|添加|加上|新建|加一个|加个|挂上|开通|启用|生成|做一个|做个|来个|创建一个|搞个|要一个)\s*[「『\"]?([^「『」』\"，,。；;\s]{2,24})",
         text,
     ):
         lab = m.group(1).strip().strip("「」『』\"'")
@@ -631,6 +688,8 @@ def _infer_add_from_text(text: str) -> list[dict[str, Any]]:
             # 若用户写了显式场景名且只有一个匹配，用用户名
             if len(explicit_labels) == 1 and len(matches) == 1:
                 label = explicit_labels[0]
+            else:
+                label = _scene_label_for_cap(str(hit["key"]), text, label)
             ops.append(
                 _enrich_add_op(
                     {
@@ -638,14 +697,35 @@ def _infer_add_from_text(text: str) -> list[dict[str, Any]]:
                         "label": label,
                         "capability_key": hit["key"],
                         "summary": str(hit.get("reason") or ""),
-                    }
+                    },
+                    ctx,
                 )
             )
         return ops
 
-    # 仅有「增加 X」但未命中注册表：用标签 enrich
+    # 乱口语碎片 → 正式能力（加班/线索/公海/丢单…）
+    frag = match_fragment_capability(text)
+    if frag:
+        return [
+            _enrich_add_op(
+                {
+                    "op": "add",
+                    "label": frag["label"],
+                    "capability_key": frag["capability_key"],
+                    "summary": frag.get("reason") or "",
+                },
+                ctx,
+            )
+        ]
+
+    # 意图模板优先于「做个X」弱标签，避免问卷/抽奖变成空 chat 壳
+    foresight = foresight_add_op(text)
+    if foresight:
+        return [_enrich_add_op(foresight, ctx)]
+
+    # 仅有「增加 X」且无意图模板：弱标签 enrich（真未知 → 骨架+DeepSeek）
     for lab in explicit_labels:
-        ops.append(_enrich_add_op({"op": "add", "label": lab}))
+        ops.append(_enrich_add_op({"op": "add", "label": lab}, ctx))
     return ops
 
 
@@ -693,13 +773,92 @@ def _formal_cap_from_text(text: str) -> str | None:
     if any(w in blob for w in ("经费", "团建", "报销", "预算", "借款", "付款", "费用")):
         if is_web_ready_capability("expense_claim"):
             return "expense_claim"
-    if any(w in blob for w in ("审批", "申请")) and is_web_ready_capability("approval_flow"):
+    # 禁止仅凭「申请」挂通用审批（停车申请/通行码申请等会误伤）
+    if any(w in blob for w in ("审批流", "通用审批", "走审批", "流程审批")) and is_web_ready_capability(
+        "approval_flow"
+    ):
         return "approval_flow"
     return None
 
 
-def _enrich_add_op(op: dict[str, Any]) -> dict[str, Any]:
-    """补全 capability / widget；页面先出（page_mock），正式能力仍挂真 widget。"""
+def _stable_scene_menu_key(scene_name: str, cap: str) -> str:
+    dig = hashlib.md5(f"{cap}:{scene_name}".encode("utf-8")).hexdigest()[:10]
+    return f"scene_{dig}"
+
+
+def _match_scene_ssot(label: str, text: str = "") -> tuple[str, str] | None:
+    """命中办公/销售场景 SSOT → (source, scene_name)。"""
+    lab = (label or "").strip()
+    blob = f"{lab} {text or ''}".strip()
+    if not blob:
+        return None
+    candidates: list[tuple[int, str, str]] = []
+
+    def _score(name: str) -> int:
+        if name == lab:
+            return 1000 + len(name)
+        if lab and lab in name and len(lab) >= 2:
+            return 400 + len(lab)
+        if name in blob:
+            return 500 + len(name)
+        return 0
+
+    for name in office_ssot.OFFICE_SCENES_BY_NAME:
+        s = _score(name)
+        if s:
+            candidates.append((s, "office", name))
+    for name in sales_ssot.SALES_SCENES_BY_NAME:
+        s = _score(name)
+        if s:
+            candidates.append((s, "sales", name))
+    if not candidates:
+        return None
+    candidates.sort(key=lambda x: x[0], reverse=True)
+    return candidates[0][1], candidates[0][2]
+
+
+def _apply_scene_ssot(op: dict[str, Any], source: str, scene_name: str) -> dict[str, Any]:
+    """写入与行业首发一致的 capability / 表单 / page_mock / 分类。"""
+    plan: dict[str, Any] = {"label": str(op.get("label") or scene_name)}
+    if source == "sales":
+        plan = sales_ssot.enrich_menu_plan_item(plan, scene_name)
+        mock = sales_ssot.page_mock_for_scene(scene_name)
+        row = sales_ssot.SALES_SCENES_BY_NAME.get(scene_name)
+    else:
+        plan = office_ssot.enrich_menu_plan_item(plan, scene_name)
+        mock = office_ssot.page_mock_for_scene(scene_name)
+        row = office_ssot.OFFICE_SCENES_BY_NAME.get(scene_name)
+
+    cap = str(plan.get("capability_key") or op.get("capability_key") or "").strip()
+    if cap:
+        op["capability_key"] = cap
+    if row and row.get("category") and not op.get("category"):
+        op["category"] = str(row["category"])
+    for k in ("default_category", "form_headline", "form_hint", "form_fields", "approval_type", "page_kind"):
+        if plan.get(k) is not None:
+            op[k] = plan[k]
+    if mock:
+        op["page_mock"] = mock
+    if cap:
+        op["scene_key"] = _stable_scene_menu_key(scene_name, cap)
+        op["scene_name"] = scene_name
+    return op
+
+
+def _category_from_ctx(ctx: ComposeCtx | None) -> str | None:
+    if not ctx:
+        return None
+    industry_key = str(ctx.get("industry_key") or "").strip()
+    if not industry_key:
+        return None
+    meta = pack_meta(industry_key)
+    if meta and meta.get("name"):
+        return str(meta["name"])
+    return industry_key
+
+
+def _enrich_add_op(op: dict[str, Any], ctx: ComposeCtx | None = None) -> dict[str, Any]:
+    """补全 capability / widget；优先场景 SSOT，其次正式能力，最后才 gen_。"""
     label = str(op.get("label") or "").strip()
     if not label:
         return op
@@ -707,24 +866,35 @@ def _enrich_add_op(op: dict[str, Any]) -> dict[str, Any]:
     cap = str(op.get("capability_key") or "").strip()
     pending_codegen = False
     cap_def = None
+    foresight_ready = _has_ready_foresight(op)
+    ssot_hit = _match_scene_ssot(label, text)
+    if ssot_hit:
+        op = _apply_scene_ssot(op, ssot_hit[0], ssot_hit[1])
+        cap = str(op.get("capability_key") or "").strip()
+        pending_codegen = False
+        foresight_ready = _has_ready_foresight(op)
 
     # LLM 误给 gen_*：若文案能落到正式能力，改回 Path-A（可真提交）
+    # 意图模板已带齐全字段时勿被 approval_flow 等宽匹配抢走
     if cap.startswith("gen_"):
-        remapped = _formal_cap_from_text(text)
+        remapped = None if foresight_ready else _formal_cap_from_text(text)
         if remapped:
             cap = remapped
             pending_codegen = False
-        else:
-            pending_codegen = True
+        elif not ssot_hit:
+            pending_codegen = not foresight_ready
     elif not cap or cap not in ALL_CAPABILITIES:
-        remapped = _formal_cap_from_text(text)
+        remapped = None if foresight_ready else _formal_cap_from_text(text)
         if remapped:
             cap = remapped
-        else:
-            cap = _slug_gen_key(label)
-            pending_codegen = True
+        elif not ssot_hit:
+            if foresight_ready and cap.startswith("gen_"):
+                pending_codegen = False
+            else:
+                cap = cap if cap.startswith("gen_") else _slug_gen_key(label)
+                pending_codegen = not foresight_ready
 
-    if cap == "approval_flow":
+    if cap == "approval_flow" and not foresight_ready:
         for aliases, key in _SYNONYM_TO_CAP:
             if key == "approval_flow":
                 continue
@@ -732,18 +902,19 @@ def _enrich_add_op(op: dict[str, Any]) -> dict[str, Any]:
                 cap = key
                 break
 
-    # 可点按工具 / 小游戏：Path B + 声明式 interactive（泛化，不写死组件）
+    # 可点按工具 / 小游戏：Path B（业务 SSOT 命中时不抢）
     blob = f"{label} {text} {op.get('summary') or ''}"
     interactive = op.get("interactive") if isinstance(op.get("interactive"), dict) else None
     if not interactive:
         mock0 = op.get("page_mock") if isinstance(op.get("page_mock"), dict) else {}
         if isinstance(mock0.get("interactive"), dict):
             interactive = mock0.get("interactive")
-    if not interactive:
+    if not interactive and not ssot_hit:
         interactive = _interactive_schema_for_intent(blob)
 
-    if interactive:
-        pending_codegen = True
+    if interactive and not ssot_hit:
+        # 本地已有可点工具：立即展示（达 70% 观感），DeepSeek 仅作可选润色
+        pending_codegen = False
         if not str(cap).startswith("gen_"):
             cap = _slug_gen_key(label or "tool")
         op["capability_key"] = cap
@@ -757,7 +928,6 @@ def _enrich_add_op(op: dict[str, Any]) -> dict[str, Any]:
             "form_title": label or mock.get("form_title") or "交互工具",
             "primary_action": mock.get("primary_action") or "开始",
         }
-        # 清掉文字假按键列表
         if isinstance(op["page_mock"].get("list"), list):
             op["page_mock"]["list"] = [
                 row
@@ -767,16 +937,27 @@ def _enrich_add_op(op: dict[str, Any]) -> dict[str, Any]:
         if not op.get("summary"):
             op["summary"] = f"{label}：已按意图泛化为可交互 tool_pad"
         cap_def = None
-    elif _looks_like_minigame(blob) and cap != "game_2048":
+    elif _looks_like_minigame(blob) and cap != "game_2048" and not ssot_hit:
         cap = _slug_gen_key(label or "minigame")
         pending_codegen = True
 
-    if cap.startswith("gen_"):
-        pending_codegen = True
+    if interactive and not ssot_hit:
+        pass  # 已处理
+    elif cap.startswith("gen_") and not ssot_hit:
+        # 有可填意图模板 → 立即 ready；否则骨架等 DeepSeek
+        pending_codegen = not foresight_ready and not _has_ready_foresight(op)
         op["capability_key"] = cap
         op["widget"] = "GeneratedPageWidget"
+        if foresight_ready or _has_ready_foresight(op):
+            pending_codegen = False
+            if not op.get("summary"):
+                op["summary"] = f"{label}：已按意图挂可填预览，可继续对话细化"
         cap_def = None
     else:
+        # Path-A：web_ready 正式能力禁止留 gen_* / GeneratedPageWidget
+        if cap.startswith("gen_"):
+            remapped = _formal_cap_from_text(text)
+            cap = remapped or (str(op.get("capability_key") or "") if not str(op.get("capability_key") or "").startswith("gen_") else "")
         cap = ensure_web_ready_key(cap if cap in ALL_CAPABILITIES else "", hint=text)
         if not is_web_ready_capability(cap):
             remapped = _formal_cap_from_text(text)
@@ -791,22 +972,27 @@ def _enrich_add_op(op: dict[str, Any]) -> dict[str, Any]:
                         op["category"] = cap_def.category
             else:
                 cap = _slug_gen_key(label)
-                pending_codegen = True
+                pending_codegen = not _has_ready_foresight(op)
                 op["capability_key"] = cap
                 op["widget"] = "GeneratedPageWidget"
                 cap_def = None
         else:
+            pending_codegen = False
             op["capability_key"] = cap
             cap_def = ALL_CAPABILITIES.get(cap)
             if cap_def:
                 op["widget"] = cap_def.widget
                 if not op.get("category"):
                     op["category"] = cap_def.category
-                # 保留用户场景名（如「团建经费审批」）
             else:
                 op["widget"] = "ListWidget"
                 if not op.get("category"):
                     op["category"] = "自定义"
+
+    if not op.get("category"):
+        ctx_cat = _category_from_ctx(ctx)
+        if ctx_cat:
+            op["category"] = ctx_cat
 
     if pending_codegen:
         op["pending_codegen"] = True
@@ -819,23 +1005,27 @@ def _enrich_add_op(op: dict[str, Any]) -> dict[str, Any]:
 
     if not op.get("summary") and not pending_codegen:
         name = cap_def.name if cap_def else label
-        op["summary"] = f"{label}：接入正式能力「{name}」，提交写入真 API"
+        if str(op.get("capability_key") or "").startswith("gen_"):
+            op["summary"] = f"{label}：已挂可交互/可填预览"
+        else:
+            op["summary"] = f"{label}：接入正式能力「{name}」，提交写入真 API"
 
     kind = str(op.get("page_kind") or "").strip()
     if kind not in _PAGE_KINDS:
         kind = _page_kind_for(cap if not cap.startswith("gen_") else "chat_qa")
     op["page_kind"] = kind
 
-    # UI 先行：一律保留/补齐 page_mock（贴合 label，避免千篇一律）
+    # UI：SSOT / 意图模板已有 page_mock 则保留；否则按意图补齐
     mock = op.get("page_mock") if isinstance(op.get("page_mock"), dict) else None
     if not mock:
         op["page_mock"] = _intent_page_mock(label, cap, kind, text)
     else:
-        blob = json.dumps(mock, ensure_ascii=False)
-        if any(k in blob for k in ("冲压", "换模", "SOP-", "工艺卡")) and not any(
+        blob_mock = json.dumps(mock, ensure_ascii=False)
+        if any(k in blob_mock for k in ("冲压", "换模", "SOP-", "工艺卡")) and not any(
             k in text for k in ("冲压", "换模", "SOP", "工艺", "产线")
         ):
-            op["page_mock"] = _intent_page_mock(label, cap, kind, text)
+            if not ssot_hit and not foresight_ready:
+                op["page_mock"] = _intent_page_mock(label, cap, kind, text)
     return op
 
 
@@ -996,20 +1186,31 @@ def _default_page_mock(label: str, cap: str, kind: str) -> dict[str, Any]:
     return _intent_page_mock(label, cap, kind, label)
 
 
-def _fallback_ops(instruction: str, menu: list[dict[str, Any]]) -> dict[str, Any]:
+def _fallback_ops(
+    instruction: str,
+    menu: list[dict[str, Any]],
+    ctx: ComposeCtx | None = None,
+) -> dict[str, Any]:
     text = instruction.strip()
     labels = [str(m.get("label") or "") for m in menu]
     ops: list[dict[str, Any]] = []
 
-    # 删除
+    # 删除（支持「不要报销了」模糊命中「费用报销」）
     for prefix in ("去掉", "删除", "移除", "关掉", "不要"):
         if text.startswith(prefix) or prefix in text[:8]:
             target = text
             for p in ("去掉", "删除", "移除", "关掉", "不要"):
                 target = target.replace(p, "", 1)
-            target = target.strip(" ：:，,")
+            target = target.strip(" ：:，,了的吧啊哦")
             for lab in labels:
-                if target and (target in lab or lab in target):
+                if not target:
+                    continue
+                if target in lab or lab in target:
+                    ops.append({"op": "remove", "label": lab})
+                    break
+                # 核心词：报销 ⊂ 费用报销
+                core = re.sub(r"(申请|审批|功能|页面|模块)$", "", target)
+                if len(core) >= 2 and core in lab:
                     ops.append({"op": "remove", "label": lab})
                     break
             break
@@ -1026,7 +1227,7 @@ def _fallback_ops(instruction: str, menu: list[dict[str, Any]]) -> dict[str, Any
             if patch_ops:
                 ops.extend(patch_ops)
         if not ops and not _looks_like_title_rename_intent(text):
-            for add_op in _infer_add_from_text(text):
+            for add_op in _infer_add_from_text(text, ctx):
                 lab = str(add_op.get("label") or "")
                 # 同名已有则跳过；不同场景标签可共用同一能力 key
                 if _menu_has_label(menu, lab):
@@ -1042,8 +1243,7 @@ def _fallback_ops(instruction: str, menu: list[dict[str, Any]]) -> dict[str, Any
     pending = [
         str(o.get("capability_key"))
         for o in ops
-        if o.get("op") == "add"
-        and (o.get("pending_codegen") or str(o.get("capability_key") or "").startswith("gen_"))
+        if o.get("op") == "add" and o.get("pending_codegen")
     ]
 
     if ops:
@@ -1055,10 +1255,22 @@ def _fallback_ops(instruction: str, menu: list[dict[str, Any]]) -> dict[str, Any
             for o in ops
             if o.get("op") == "rename"
         ]
+        foresight_ready = [
+            o
+            for o in ops
+            if o.get("op") == "add"
+            and str(o.get("capability_key") or "").startswith("gen_")
+            and not o.get("pending_codegen")
+        ]
         parts = []
         if added and pending:
-            parts.append(f"已理解并挂上页面：{'、'.join(added)}")
-            parts.append("可先打开菜单体验；未匹配正式能力的接口将异步生成")
+            parts.append(f"已理解需求：{'、'.join(added)}")
+            parts.append("正式能力未覆盖的页面交 DeepSeek 异步生成，生成完成前左侧仅显示骨架")
+        elif added and foresight_ready and len(foresight_ready) == len(
+            [o for o in ops if o.get("op") == "add"]
+        ):
+            parts.append(f"已按意图挂上可填预览：{'、'.join(added)}")
+            parts.append("可打开左侧菜单试用，也可继续对话细化字段")
         elif added:
             parts.append(f"已挂上：{'、'.join(added)}")
             parts.append("打开菜单即可办理（正式能力走真 API，空库为空列表）")
@@ -1105,6 +1317,7 @@ def _merge_llm_with_matches(
     ops: list[dict[str, Any]],
     instruction: str,
     menu: list[dict[str, Any]],
+    ctx: ComposeCtx | None = None,
 ) -> list[dict[str, Any]]:
     """LLM 未产出 add/patch 时，用本地匹配补齐；已有 add 则按匹配纠正错误 key。"""
     has_add = any(o.get("op") == "add" for o in ops)
@@ -1112,7 +1325,7 @@ def _merge_llm_with_matches(
     has_mutate = any(o.get("op") in {"remove", "rename", "move"} for o in ops)
 
     if not has_add and not has_mutate and not has_patch:
-        for add_op in _infer_add_from_text(instruction):
+        for add_op in _infer_add_from_text(instruction, ctx):
             lab = str(add_op.get("label") or "")
             if _menu_has_label(menu, lab):
                 continue
@@ -1146,11 +1359,24 @@ def compose_edit_from_instruction(
     capability_keys: list[str] | None = None,
     app_name: str = "",
     images: list[str] | None = None,
+    entry_source: str = "",
+    industry_key: str = "",
+    microsite_id: str = "",
+    web_template_id: str = "",
 ) -> dict[str, Any]:
     q = (instruction or "").strip()
     imgs = [u for u in (images or []) if isinstance(u, str) and u.strip()][:3]
     menu_list = [m for m in (menu or []) if isinstance(m, dict)]
     keys = [k for k in (capability_keys or []) if k]
+    ctx: ComposeCtx = {}
+    if entry_source.strip():
+        ctx["entry_source"] = entry_source.strip()
+    if industry_key.strip():
+        ctx["industry_key"] = industry_key.strip()
+    if microsite_id.strip():
+        ctx["microsite_id"] = microsite_id.strip()
+    if web_template_id.strip():
+        ctx["web_template_id"] = web_template_id.strip()
     llm_ok = bool(settings.deepseek_api_key)
     if len(q) < 1 and not imgs:
         return {
@@ -1165,7 +1391,7 @@ def compose_edit_from_instruction(
     local_matches = _resolve_matches(q)
 
     if not llm_ok:
-        return _fallback_ops(q, menu_list)
+        return _fallback_ops(q, menu_list, ctx)
 
     match_hint = ""
     if local_matches:
@@ -1194,7 +1420,7 @@ def compose_edit_from_instruction(
     )
     data = deepseek_json_chat_with_images(_SYSTEM, user, imgs, temperature=0.25)
     if not isinstance(data, dict):
-        return _fallback_ops(q, menu_list)
+        return _fallback_ops(q, menu_list, ctx)
 
     reply = sanitize_llm_plain_text(str(data.get("reply") or ""))
     intent_summary = sanitize_llm_plain_text(str(data.get("intent_summary") or ""))
@@ -1212,9 +1438,26 @@ def compose_edit_from_instruction(
                 ops.append(cleaned_patch)
             continue
         cleaned: dict[str, Any] = {"op": kind}
-        for k in ("label", "from", "to", "capability_key", "category", "summary", "page_kind", "widget"):
+        for k in (
+            "label",
+            "from",
+            "to",
+            "capability_key",
+            "category",
+            "summary",
+            "page_kind",
+            "widget",
+            "scene_key",
+            "scene_name",
+            "form_headline",
+            "form_hint",
+            "default_category",
+            "approval_type",
+        ):
             if op.get(k) is not None:
                 cleaned[k] = str(op.get(k))
+        if isinstance(op.get("form_fields"), list):
+            cleaned["form_fields"] = op["form_fields"]
         if isinstance(op.get("page_mock"), dict):
             cleaned["page_mock"] = op["page_mock"]
         if "index" in op:
@@ -1234,12 +1477,12 @@ def compose_edit_from_instruction(
                 hint=str(cleaned.get("label") or instruction),
             )
         if kind == "add":
-            cleaned = _enrich_add_op(cleaned)
+            cleaned = _enrich_add_op(cleaned, ctx)
         ops.append(cleaned)
 
-    ops = _merge_llm_with_matches(ops, q, menu_list)
+    ops = _merge_llm_with_matches(ops, q, menu_list, ctx)
     # 再次 enrich（纠正后的 key）
-    ops = [_enrich_add_op(o) if o.get("op") == "add" else o for o in ops]
+    ops = [_enrich_add_op(o, ctx) if o.get("op") == "add" else o for o in ops]
 
     # 改标题意图：丢掉误 add，优先本地 rename
     if _looks_like_title_rename_intent(q):
@@ -1280,7 +1523,7 @@ def compose_edit_from_instruction(
     pending = [
         str(o.get("capability_key"))
         for o in ops
-        if o.get("op") == "add" and (o.get("pending_codegen") or str(o.get("capability_key") or "").startswith("gen_"))
+        if o.get("op") == "add" and o.get("pending_codegen")
     ]
 
     patched = [str(o.get("label")) for o in ops if o.get("op") == "patch_page"]

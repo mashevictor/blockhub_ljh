@@ -14,15 +14,18 @@
 
 | 文档 | 内容 |
 |------|------|
-| **[capship.html](./capship.html)** | **★ 结构方案 SSOT**：技术框架、流程图、路径 A/B、双端约定、检查清单 |
+| **[capship.html](./capship.html)** | **★ 结构方案 SSOT**：技术框架、流程图、路径 A/B、双端约定、检查清单、**对话改页审批（§12）** |
+| **[capship-architecture-explained.html](./capship-architecture-explained.html)** | **★ 图解入门**：Registry 是什么、开源核 vs 产品面、两类能力、对话改页落点（Visio 风格） |
 | [ARCHITECTURE.md](./ARCHITECTURE.md) | 深层分析、与 Lang\* / RAG 对比、解耦边界 |
 | [SPEC.md](./SPEC.md) | 契约规范（schema / manifest / templates / packs） |
 | [EXTRACTION.md](./EXTRACTION.md) | 从本仓库抽出开源包的步骤与白标清单 |
 | [ROADMAP.md](./ROADMAP.md) | MVP → 1.0 开源路线图 |
 | [capship-demo/README.md](./capship-demo/README.md) | 示范仓骨架（chat + approval） |
-| [capship-scope-boundary.html](./capship-scope-boundary.html) | 开源范围与产品面边界（对外可见） |
+| [capship-scope-boundary.html](./capship-scope-boundary.html) | 开源范围与产品面边界（含改页路径 §4.2） |
 
-开发时 Cursor Skill：`.cursor/skills/capship-capability/SKILL.md`（与 `capship.html` 同步遵循）。
+开发时 Cursor Skill：
+- `.cursor/skills/capship-capability/SKILL.md`（与 `capship.html` 同步遵循）
+- `.cursor/skills/capship-schema-approval/SKILL.md`（对话改页：草稿 → 审批 → 正式 `page_schema`）
 
 ## 30 秒理解
 
@@ -52,6 +55,7 @@ capability_keys + web_template_id + app_ui_id
 - ✅ **Capability Registry**：能力 = 双端组件 + 路由约定
 - ✅ **Delivery Contract**：选型结果编译为 schema / manifest
 - ✅ **Shell Composition**：网页壳 × App UI 壳正交组合
+- ✅ **Compose Edit → Approve**：对话改页即时预览；个人草稿 → 管理员审批后才写入正式 `page_schema`（平台编排，非业务 key）
 - ✅ **Trimmed Runtimes**：只打包选中的能力，每应用可独立 `applicationId`
 
 ## 建议仓库形态（抽出后）

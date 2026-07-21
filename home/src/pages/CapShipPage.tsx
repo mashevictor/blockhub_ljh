@@ -10,6 +10,7 @@ import { usePageMeta } from '../hooks/usePageMeta'
 import {
   CAPSHIP_GITHUB,
   CAPSHIP_PILLARS,
+  CAPSHIP_PLATFORM_FEATURES,
   CAPSHIP_STATS,
   buildCapshipCatalog,
   catalogToMarkdown,
@@ -107,7 +108,7 @@ export default function CapShipPage() {
   usePageMeta({
     title: 'CapShip · >> Ship in 5 minutes',
     description:
-      'CapShip: type >> to mount real capabilities. Publish Web + App in five minutes — leave, repair, expense, meetings with real APIs, not demos.',
+      'CapShip: type >> to mount real capabilities. Compose Edit drafts page_schema; approve to ship Web + App — leave, repair, expense with real APIs.',
   })
 
   useEffect(() => {
@@ -203,6 +204,9 @@ export default function CapShipPage() {
               <span className="cs-lead-line">
                 Type <em className="cs-inline-gtgt">&gt;&gt;</em> to mount real capabilities — publish Web + App.
               </span>
+              <span className="cs-lead-line">
+                Compose Edit: chat to reshape pages, draft → approve → formal <code>page_schema</code>.
+              </span>
             </p>
 
             <div className="cs-hero-cta">
@@ -283,6 +287,27 @@ export default function CapShipPage() {
               <div key={p.title} className="cs-pillar">
                 <h3>{p.title}</h3>
                 <p>{p.body}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="cs-section">
+          <div className="cs-section-head">
+            <h2>Platform orchestration</h2>
+            <p>
+              Core CapShip open-source capabilities beyond business modules — Composer modes and schema
+              write-back gates. Not registered as <code>capability_keys</code>.
+            </p>
+          </div>
+          <div className="cs-pillar-list">
+            {CAPSHIP_PLATFORM_FEATURES.map((f) => (
+              <div key={f.id} className="cs-pillar">
+                <h3>{f.title}</h3>
+                <p>
+                  <span className="cs-feature-mode">{f.mode}</span>
+                  {f.summary}
+                </p>
               </div>
             ))}
           </div>

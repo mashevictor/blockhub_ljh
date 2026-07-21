@@ -280,6 +280,11 @@ export async function askComposeEdit(
     capability_keys?: string[]
     /** data URL 截图，最多 3 张 */
     images?: string[]
+    entry_source?: string
+    industry_key?: string
+    microsite_id?: string
+    web_template_id?: string
+    app_ui_id?: string
   },
   opts?: { token?: string | null; signal?: AbortSignal },
 ): Promise<{

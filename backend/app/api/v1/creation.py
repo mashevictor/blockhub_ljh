@@ -92,6 +92,11 @@ class ComposeEditRequest(BaseModel):
     capability_keys: list[str] = []
     # data:image/...;base64,... 截图（最多 3 张，由前端压缩）
     images: list[str] = []
+    entry_source: str = ""
+    industry_key: str = ""
+    microsite_id: str = ""
+    web_template_id: str = ""
+    app_ui_id: str = ""
 
 
 class FlowEditRequest(BaseModel):
@@ -334,6 +339,10 @@ def compose_edit_api(body: ComposeEditRequest) -> dict:
         capability_keys=body.capability_keys,
         app_name=body.app_name,
         images=body.images,
+        entry_source=body.entry_source,
+        industry_key=body.industry_key,
+        microsite_id=body.microsite_id,
+        web_template_id=body.web_template_id,
     )
     pending = list(result.get("pending_codegen_keys") or [])
     codegen_job_id = ""
@@ -342,13 +351,16 @@ def compose_edit_api(body: ComposeEditRequest) -> dict:
             # 优先真实 Runtime app_id，便于 merge；否则仍入队，前端靠 job.result.generated_pages 合并草稿
             real_id = (body.app_id or "").strip()
             job_app_id = real_id if real_id and not real_id.startswith("preview-") else f"compose-{(body.app_name or 'draft')}"[:48]
+            tpl = (body.web_template_id or "").strip() or "tabs_portal"
+            if (body.entry_source or "").strip() == "industry_site" and tpl == "tabs_portal":
+                tpl = "sidebar_admin"
             codegen_job_id = enqueue_codegen_job(
                 app_id=job_app_id,
                 app_name=body.app_name or "Runtime 编排",
                 unknown_keys=pending,
                 prompt=body.instruction,
-                web_template_id="tabs_portal",
-                app_ui_id="bottom_tabs",
+                web_template_id=tpl,
+                app_ui_id=(body.app_ui_id or "").strip() or "bottom_tabs",
             )
         except Exception:
             logger.exception("compose-edit enqueue codegen failed")

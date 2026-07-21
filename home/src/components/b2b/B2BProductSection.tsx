@@ -6,6 +6,7 @@ import {
   COMMON_INSERT_MODULES,
   LLM_POWERED_AGENTS,
   INDUSTRY_SOLUTIONS,
+  PLATFORM_ORCHESTRATION_STEPS,
 } from '../../data/productShowcase'
 import { ROUTES } from '../../routes/paths'
 import { homeSectionHref } from '../../data/homeNav'
@@ -63,10 +64,41 @@ export default function B2BProductSection({ onTry }: Props) {
           丰富 <em>AI 模板</em>，模块积木 · 全行业方案 · 大模型驱动
         </h2>
         <p>
-          {PLATFORM_STATS.scenarios}+ 场景、{PLATFORM_STATS.capabilities} 项模块、{PLATFORM_STATS.agents} 个智能体开箱即用；
-          三种创建方式，一次发布五端可用。
+          {PLATFORM_STATS.scenarios} 场景、{PLATFORM_STATS.capabilities} 项模块、{PLATFORM_STATS.agents} 个智能体开箱即用；
+          对话改页即时预览，草稿审批后全员生效，一次发布五端可用。
         </p>
       </div>
+
+      {/* ── CapShip 平台编排：对话改页 ── */}
+      <SectionBlock
+        eyebrow="CapShip · 开源能力"
+        title={<>对话改页：先预览，审批后全员生效</>}
+        desc="用对话调整应用菜单和页面；改动先落在个人草稿，管理员通过后才正式发布"
+      >
+        <div className="b2b-orchestrate-grid">
+          {PLATFORM_ORCHESTRATION_STEPS.map((s) => (
+            <article key={s.id} className="b2b-orchestrate-card">
+              <span className="b2b-orchestrate-step" aria-hidden>
+                {s.step}
+              </span>
+              <h4>{s.title}</h4>
+              <p>{s.summary}</p>
+            </article>
+          ))}
+        </div>
+        <div className="b2b-orchestrate-actions">
+          <button type="button" className="b2b-btn-primary agent-action-btn" onClick={onTry}>
+            <AgentButtonContent>在线体验对话改页</AgentButtonContent>
+          </button>
+          <button
+            type="button"
+            className="b2b-btn-outline agent-action-btn"
+            onClick={() => navigate(ROUTES.capship)}
+          >
+            <AgentButtonContent>CapShip 开源说明</AgentButtonContent>
+          </button>
+        </div>
+      </SectionBlock>
 
       {/* ── 开箱模板 ── */}
       <SectionBlock
