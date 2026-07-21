@@ -119,14 +119,29 @@ def main() -> int:
     app = (pub_res.get("app") if isinstance(pub_res, dict) else None) or {}
     app_id = str(app.get("id") or app.get("public_id") or "")
     menu = ((app.get("page_schema") or pub_res.get("page_schema") or {}).get("menu")) or []
-    menu_blob = json.dumps(menu, ensure_ascii=False)
+    page_schema = app.get("page_schema") or pub_res.get("page_schema") or {}
+    schema_blob = json.dumps(page_schema, ensure_ascii=False)
     keys = list(app.get("capability_keys") or [])
     if code == 200 and app_id:
         ok(f"publish app={app_id}")
         for k in ("deal_evidence", "kill_pipeline", "sales_lead"):
             (ok if k in keys else bad)(f"publish capability_keys 含 {k}")
-        for route in ("/deal-evidence", "/kill-pipeline", "/sales-lead"):
-            (ok if route in menu_blob else bad)(f"publish menu 含 {route}")
+        # 行业全选 menu 走 /s/scene-* 场景路由，不以 /deal-evidence 为判据；
+        # 验收：场景名在 menu，且 page_schema 挂上对应 Widget
+        scene_labels = " ".join(
+            str(m.get("label") or m.get("key") or "") for m in menu if isinstance(m, dict)
+        )
+        for scene, widget in (
+            ("赢单复盘", "DealEvidenceWidget"),
+            ("丢单原因", "KillPipelineWidget"),
+            ("线索录入", "SalesLeadWidget"),
+        ):
+            hit_scene = scene in scene_labels or scene in schema_blob
+            hit_widget = widget in schema_blob
+            (ok if hit_scene and hit_widget else bad)(
+                f"场景「{scene}」→ {widget}（scene={hit_scene} widget={hit_widget}）"
+            )
+        print(f"    menu routes 示例: {[m.get('route') for m in menu[:6] if isinstance(m, dict)]}")
     else:
         bad(f"publish HTTP {code} {str(pub_res)[:200]}")
 
