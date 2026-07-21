@@ -237,8 +237,10 @@ fi
 
 echo ""
 echo "==> [9/9] seed + smoke (catalog + demo booking API)"
-bash "$ROOT/scripts/smoke-test.sh" "${SMOKE_BASE_URL:-http://127.0.0.1}" --seed-only || {
-  echo "WARN: seed-only failed; try: curl -X POST .../seed -d '{\"force\":true}'"
+# 必须直连 uvicorn :8001。勿用 http://127.0.0.1（无端口）——Nginx:80 常未代理/仅 HTTPS，会假报 API 不可达。
+bash "$ROOT/scripts/smoke-test.sh" "${SMOKE_BASE_URL:-http://127.0.0.1:8001}" --seed-only || {
+  echo "WARN: seed-only failed; try: bash scripts/repair-auth.sh"
+  echo "      或: curl -sf -X POST http://127.0.0.1:8001/api/v1/seed -H 'Authorization: Bearer <token>' -d '{\"force\":true}'"
 }
 
 DEMO_RESP="$(curl -sf --max-time 8 -X POST http://127.0.0.1:8001/api/v1/demo-bookings \

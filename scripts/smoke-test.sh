@@ -2,8 +2,8 @@
 # BlockHub 冒烟测试（本地或服务器）
 # 用法:
 #   bash scripts/smoke-test.sh                          # 默认 http://127.0.0.1:8001 直连 API
-#   bash scripts/smoke-test.sh http://101.32.209.251    # 经 Nginx（/api 代理）
-#   bash scripts/smoke-test.sh http://127.0.0.1 --seed-only
+#   bash scripts/smoke-test.sh http://101.32.209.251    # 经 Nginx（/api 代理）；不可达时回退 :8001
+#   bash scripts/smoke-test.sh http://127.0.0.1:8001 --seed-only
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -15,11 +15,37 @@ if [ "${2:-}" = "--seed-only" ] || [ "${1:-}" = "--seed-only" ]; then
   [ "$BASE" = "--seed-only" ] && BASE="http://127.0.0.1:8001"
 fi
 
-# Nginx 根路径 vs 直连 8001
-if [[ "$BASE" == *":8001"* ]]; then
-  API="$BASE/api/v1"
-else
-  API="$BASE/api/v1"
+# 部署机上常见误用 http://127.0.0.1（无端口）→ 打到 Nginx:80；
+# 若代理未就绪/仅 HTTPS，health 会假失败。优先探测，失败则回退 uvicorn :8001。
+resolve_api() {
+  local base="${1%/}"
+  local candidates=()
+  if [[ "$base" == *":8001"* ]]; then
+    candidates+=("$base/api/v1")
+  else
+    candidates+=("$base/api/v1")
+    candidates+=("http://127.0.0.1:8001/api/v1")
+  fi
+  local c body
+  for c in "${candidates[@]}"; do
+    body=$(curl -sf --max-time 5 "$c/health" 2>/dev/null || echo "")
+    if echo "$body" | grep -q '"status"'; then
+      echo "$c"
+      if [[ "$c" != "${candidates[0]}" ]]; then
+        echo "  … health 经 ${candidates[0]} 不可达，已回退 $c" >&2
+      fi
+      return 0
+    fi
+  done
+  # 都不可达时仍返回首选，后续步骤会报清晰错误
+  echo "${candidates[0]}"
+  return 0
+}
+
+API="$(resolve_api "$BASE")"
+# 同步 BASE：若已回退到 8001，后续静态站检查勿再误判
+if [[ "$API" == "http://127.0.0.1:8001/api/v1" ]]; then
+  BASE="http://127.0.0.1:8001"
 fi
 
 ADMIN_EMAIL="${ADMIN_EMAIL:-admin@trackchat.local}"
