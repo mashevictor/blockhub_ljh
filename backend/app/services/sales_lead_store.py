@@ -212,6 +212,8 @@ def create_record(
     db.commit()
     db.refresh(row)
     row.reporter = user
+    # 先序列化：后续站内信失败若 rollback，ORM 行会过期导致 to_dict 500
+    out = to_dict(row)
     if desired_pool == "pool":
         try:
             from app.services.notification_service import create_notification
@@ -228,14 +230,17 @@ def create_record(
                     create_notification(
                         db,
                         tenant_id=user.tenant_id,
-                        title=f"新待领取线索 · {row.customer}",
-                        content=f"{row.record_no} · 来源 {row.source or '未标注'} · 打开「待领取」认领",
+                        title=f"新待领取线索 · {out.get('customer') or ''}",
+                        content=f"{out.get('record_no') or ''} · 来源 {out.get('source') or '未标注'} · 打开「待领取」认领",
                         type="sales_lead",
                         recipient_user_id=peer.id,
                         reference_id=ref,
                     )
                 except Exception:
-                    db.rollback()
+                    try:
+                        db.rollback()
+                    except Exception:
+                        pass
         except Exception:
             try:
                 db.rollback()
@@ -248,14 +253,14 @@ def create_record(
             db,
             tenant_id=user.tenant_id,
             title="销售线索 · 新记录",
-            content=f"{row.record_no} · {getattr(row, 'customer', '')}",
-            app_public_id=row.app_public_id,
+            content=f"{out.get('record_no') or ''} · {out.get('customer') or ''}",
+            app_public_id=out.get("app_public_id") or "",
             path="/sales-lead",
             link_label="打开销售线索",
         )
     except Exception:
         pass
-    return to_dict(row)
+    return out
 
 
 def _find_user(
