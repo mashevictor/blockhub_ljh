@@ -430,7 +430,7 @@ export function StudyCoachWidget(_props: { node: SchemaNode }) {
   const flowIndex = FLOW.findIndex((f) => f.id === flow)
   const doneCount = practiceItems.filter((i) => i.done).length
   const practicePct = practiceItems.length ? Math.round((doneCount / practiceItems.length) * 100) : 0
-  const pickedMeta = SC_SC_TEMPLATES.find((t) => t.key === pickedTemplate)
+  const pickedMeta = SC_TEMPLATES.find((t) => t.key === pickedTemplate)
   const pickedTone = pickedMeta ? SC.tone[pickedMeta.key as ScTemplateKey] : accent
 
   return (
