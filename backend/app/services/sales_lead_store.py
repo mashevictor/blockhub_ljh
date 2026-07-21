@@ -172,10 +172,20 @@ def create_record(
     cat = _norm_category(category, "lead-capture")
     if cat == "referral-lead" and not (referrer or "").strip():
         raise AcqError("转介绍线索必须填写推荐人")
-    owner_name = (owner or "").strip() or (user.display_name or user.email or "")
+    # 获客录入/转介绍默认进「待领取」；只有显式 private 或已指定负责人时才进私海
+    acq_cats = ("lead-capture", "referral-lead", "lead", "channel-analysis")
+    default_pool = "pool" if cat in acq_cats else "private"
+    desired_pool = _norm_pool(pool_status, default_pool)
     src = (source or "").strip()[:64]
     if cat == "referral-lead" and not src:
         src = "转介绍"
+    display = (user.display_name or user.email or "").strip()
+    if desired_pool == "pool":
+        owner_name = (owner or "").strip() or "待领取"
+        owner_uid = None
+    else:
+        owner_name = (owner or "").strip() or display
+        owner_uid = user.id if not (owner or "").strip() or owner_name == display else None
     row = SalesLeadRecord(
         tenant_id=user.tenant_id,
         app_public_id=(app_public_id or "").strip(),
@@ -189,13 +199,13 @@ def create_record(
         status="open",
         source=src,
         score=None,
-        pool_status=_norm_pool(pool_status, "private"),
-        owner_user_id=user.id if not owner or owner_name == (user.display_name or "") else None,
+        pool_status=desired_pool,
+        owner_user_id=owner_uid,
         assignee_user_id=None,
         referrer=(referrer or "").strip()[:200],
     )
-    # 若显式指定了其他负责人名，暂不绑 user_id（待分配后 claim）
-    if owner and owner_name != (user.display_name or user.email or ""):
+    # 显式指定其他负责人 = 直接私海认领（分配场景）
+    if desired_pool != "pool" and owner and owner_name != display:
         row.owner_user_id = None
         row.pool_status = "private"
     db.add(row)

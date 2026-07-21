@@ -1,7 +1,7 @@
 {
   "name": "trackchat-runtime-web",
   "private": true,
-  "version": "0.2.42",
+  "version": "0.2.43",
   "type": "module",
   "scripts": {
     "dev": "vite",

@@ -22,7 +22,7 @@ class CreateBody(BaseModel):
     note: str = ""
     source: str = ""
     referrer: str = ""
-    pool_status: str = "private"
+    pool_status: str = "pool"  # 获客默认进待领取；认领后变 private
     app_public_id: str = Field(default="", max_length=64)
 
 
