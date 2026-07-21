@@ -7,7 +7,7 @@ from typing import Any
 
 from sqlalchemy.orm import Session, joinedload
 
-from app.db.models import StudyCoachCourse, StudyCoachDrill, User
+from app.db.models import StudyCoachCourse, StudyCoachDrill, StudyCoachTonight, User
 from app.services.deepseek_client import deepseek_json_chat
 from app.services import textbook_toc as toc_lib
 
@@ -15,6 +15,24 @@ VALID_ROLE = frozenset({"student", "parent", "teacher"})
 VALID_UNIT_STATUS = frozenset({"pending", "learning", "review", "mastered"})
 VALID_DRILL_KIND = frozenset({"review", "dictation", "exam"})
 VALID_RESULT = frozenset({"", "pass", "fail", "partial"})
+VALID_TONIGHT_TEMPLATE = frozenset(
+    {"dictation", "word_cards", "math_drill", "wrongbook", "read_aloud"}
+)
+VALID_TONIGHT_STATUS = frozenset({"draft", "preview", "practicing", "done", "abandoned"})
+TEMPLATE_LABEL = {
+    "dictation": "本课听写单",
+    "word_cards": "本课单词卡",
+    "math_drill": "本课口算/巩固",
+    "wrongbook": "错题巩固",
+    "read_aloud": "本课朗读清单",
+}
+TEMPLATE_DRILL_KIND = {
+    "dictation": "dictation",
+    "word_cards": "review",
+    "math_drill": "review",
+    "wrongbook": "review",
+    "read_aloud": "review",
+}
 
 
 def _no(prefix: str) -> str:
@@ -1580,3 +1598,528 @@ def create_drill(
     except Exception:
         pass
     return drill_to_dict(row)
+
+
+def tonight_to_dict(row: StudyCoachTonight) -> dict[str, Any]:
+    payload = row.payload_json if isinstance(row.payload_json, dict) else {}
+    return {
+        "id": row.id,
+        "record_no": row.record_no,
+        "course_id": row.course_id,
+        "unit_order": row.unit_order,
+        "unit_name": row.unit_name,
+        "template": row.template,
+        "template_label": TEMPLATE_LABEL.get(row.template, row.template),
+        "status": row.status,
+        "payload": payload,
+        "source": row.source,
+        "drill_id": row.drill_id or "",
+        "app_public_id": row.app_public_id,
+        "created_at": row.created_at.isoformat() if row.created_at else "",
+        "updated_at": row.updated_at.isoformat() if row.updated_at else "",
+    }
+
+
+def _split_hint_words(hint: str, limit: int = 10) -> list[str]:
+    raw = (hint or "").replace("：", ":").replace("听写", "").replace("范围", "")
+    for sep in ("、", ",", "，", ";", "；", "/", "|", " ", "\n", "\t"):
+        raw = raw.replace(sep, "|")
+    words = [w.strip() for w in raw.split("|") if w.strip() and len(w.strip()) <= 20]
+    # drop labels like "校园:"
+    cleaned: list[str] = []
+    for w in words:
+        if ":" in w:
+            w = w.split(":")[-1].strip()
+        if w and w not in cleaned:
+            cleaned.append(w)
+    # 无分隔的连续汉字：按 2 字切（课本听写常见「天地人你我他」）
+    if len(cleaned) == 1 and len(cleaned[0]) >= 4 and all("\u4e00" <= ch <= "\u9fff" for ch in cleaned[0]):
+        blob = cleaned[0]
+        cleaned = [blob[i : i + 2] for i in range(0, len(blob) - (len(blob) % 2), 2)]
+        if len(blob) % 2:
+            cleaned.append(blob[-1])
+    return cleaned[:limit]
+
+
+def _fallback_tonight_payload(
+    *,
+    template: str,
+    unit: dict[str, Any],
+    course: StudyCoachCourse,
+    child_name: str,
+    level: str,
+    note: str,
+    recent_drills: list[dict[str, Any]],
+) -> dict[str, Any]:
+    unit_name = str(unit.get("unit_name") or "本课")
+    focus = str(unit.get("focus") or "")
+    hint = str(unit.get("dictation_hint") or "")
+    steps = [s for s in (unit.get("steps") or []) if isinstance(s, dict)]
+    subject = (course.subject or "").strip()
+    kid = (child_name or course.student_name or "小朋友").strip() or "小朋友"
+    items: list[dict[str, Any]] = []
+    instructions = ""
+    title = f"{TEMPLATE_LABEL.get(template, template)} · {unit_name}"
+
+    if template == "dictation":
+        words = _split_hint_words(hint, 10)
+        if not words:
+            words = ["认真", "学习", "练习", "复习", "听写", "正确", "订正", "朗读"]
+        items = [
+            {"id": f"w{i+1}", "type": "word", "prompt": f"听写：{w}", "answer": w, "done": False, "correct": None}
+            for i, w in enumerate(words)
+        ]
+        instructions = f"{kid}，请合上课本，家长读词，你写在纸上或心里默写后勾选。"
+    elif template == "word_cards":
+        words = _split_hint_words(hint, 12)
+        if not words:
+            words = ["hello", "school", "friend", "happy", "read", "write", "family", "today"]
+        items = [
+            {
+                "id": f"c{i+1}",
+                "type": "card",
+                "prompt": w if i % 2 == 0 else f"中文义？({w})",
+                "answer": w,
+                "done": False,
+                "correct": None,
+            }
+            for i, w in enumerate(words)
+        ]
+        instructions = f"翻卡片：看英文说中文，或看提示想起单词。适合 {kid} 今晚巩固。"
+    elif template == "math_drill":
+        level_n = (level or "中").strip()
+        if level_n == "易":
+            pairs = [(a, b) for a in range(1, 6) for b in range(1, 6)][:10]
+            items = [
+                {
+                    "id": f"m{i+1}",
+                    "type": "math",
+                    "prompt": f"{a} + {b} = ?",
+                    "answer": str(a + b),
+                    "done": False,
+                    "correct": None,
+                }
+                for i, (a, b) in enumerate(pairs)
+            ]
+        else:
+            pairs = [(a, b) for a in range(2, 10) for b in range(2, 10)][:10]
+            items = [
+                {
+                    "id": f"m{i+1}",
+                    "type": "math",
+                    "prompt": f"{a} × {b} = ?",
+                    "answer": str(a * b),
+                    "done": False,
+                    "correct": None,
+                }
+                for i, (a, b) in enumerate(pairs)
+            ]
+        instructions = f"口算 10 题（{level_n}）。围绕：{focus or unit_name}。"
+    elif template == "wrongbook":
+        wrongs: list[str] = []
+        for d in recent_drills[:5]:
+            notes = str(d.get("notes") or "")
+            for line in notes.split("\n"):
+                if "错" in line:
+                    wrongs.extend(_split_hint_words(line.replace("错词", "").replace("错题", ""), 6))
+            if d.get("result") in ("有错词", "fail", "partial") and d.get("score"):
+                pass
+        wrongs = [w for w in wrongs if w][:5]
+        if not wrongs:
+            wrongs = _split_hint_words(hint, 5) or ["订正", "再练", "巩固", "重点", "易错"]
+        items = [
+            {
+                "id": f"x{i+1}",
+                "type": "retry",
+                "prompt": f"再练：{w}",
+                "answer": w,
+                "done": False,
+                "correct": None,
+            }
+            for i, w in enumerate(wrongs)
+        ]
+        instructions = "从最近错词/错题抽出同型再练，做对勾选。"
+    else:  # read_aloud
+        if steps:
+            for i, s in enumerate(steps[:6]):
+                items.append(
+                    {
+                        "id": str(s.get("id") or f"r{i+1}"),
+                        "type": "read",
+                        "prompt": str(s.get("title") or f"朗读任务{i+1}"),
+                        "answer": str(s.get("detail") or ""),
+                        "done": False,
+                        "correct": None,
+                    }
+                )
+        else:
+            items = [
+                {"id": "r1", "type": "read", "prompt": "朗读课文第 1 遍", "answer": "通读", "done": False, "correct": None},
+                {"id": "r2", "type": "read", "prompt": "朗读优美句 2 句", "answer": "摘句", "done": False, "correct": None},
+                {"id": "r3", "type": "read", "prompt": "口头说课文大意", "answer": "复述", "done": False, "correct": None},
+            ]
+        instructions = f"按清单朗读/复述，完成一项勾一项。科目：{subject or '语文'}。"
+
+    if note.strip():
+        instructions = f"{instructions}\n家长备注：{note.strip()}"
+
+    return {
+        "title": title,
+        "template": template,
+        "drill_kind": TEMPLATE_DRILL_KIND.get(template, "review"),
+        "child_name": kid,
+        "level": (level or "中").strip() or "中",
+        "instructions": instructions,
+        "unit_name": unit_name,
+        "unit_focus": focus,
+        "items": items,
+        "disclaimer": "AI/规则生成内容可能有误，重要知识点请家长过一眼再交给孩子。",
+    }
+
+
+def _llm_tonight_payload(
+    *,
+    template: str,
+    unit: dict[str, Any],
+    course: StudyCoachCourse,
+    child_name: str,
+    level: str,
+    note: str,
+    fallback: dict[str, Any],
+) -> tuple[dict[str, Any], str]:
+    system = (
+        "你是小学家庭练习助手。根据课本单元生成「今晚这一练」JSON。"
+        "只输出 JSON：title, instructions, items。"
+        "items 为数组，每项含 id,type,prompt,answer；最多 12 项。"
+        "不要编造超纲内容；听写/单词以给出的 hint 为主。"
+    )
+    user = (
+        f"模板={TEMPLATE_LABEL.get(template, template)} ({template})\n"
+        f"课本={course.textbook_name} 科目={course.subject} 年级={course.grade}\n"
+        f"单元={unit.get('unit_name')} 重点={unit.get('focus')} 听写提示={unit.get('dictation_hint')}\n"
+        f"步骤={unit.get('steps')}\n"
+        f"孩子称呼={child_name or course.student_name or '小朋友'} 难度={level or '中'} 备注={note}\n"
+        "请生成适合今晚 10～15 分钟的练习清单。"
+    )
+    parsed = deepseek_json_chat(system, user, temperature=0.2)
+    if not isinstance(parsed, dict):
+        return fallback, "fallback"
+    items_raw = parsed.get("items")
+    if not isinstance(items_raw, list) or not items_raw:
+        return fallback, "fallback"
+    items: list[dict[str, Any]] = []
+    for i, raw in enumerate(items_raw[:12]):
+        if not isinstance(raw, dict):
+            continue
+        prompt = str(raw.get("prompt") or raw.get("title") or "").strip()
+        if not prompt:
+            continue
+        items.append(
+            {
+                "id": str(raw.get("id") or f"i{i+1}")[:40],
+                "type": str(raw.get("type") or "item")[:32],
+                "prompt": prompt[:200],
+                "answer": str(raw.get("answer") or "")[:200],
+                "done": False,
+                "correct": None,
+            }
+        )
+    if not items:
+        return fallback, "fallback"
+    out = dict(fallback)
+    out["title"] = str(parsed.get("title") or fallback["title"])[:200]
+    out["instructions"] = str(parsed.get("instructions") or fallback["instructions"])[:800]
+    out["items"] = items
+    out["disclaimer"] = fallback.get("disclaimer") or ""
+    return out, "deepseek"
+
+
+def list_tonight(
+    db: Session,
+    tenant_id: str,
+    *,
+    course_id: str | None = None,
+    app_public_id: str | None = None,
+    status: str | None = None,
+) -> list[dict[str, Any]]:
+    q = db.query(StudyCoachTonight).filter(StudyCoachTonight.tenant_id == tenant_id)
+    if course_id:
+        q = q.filter(StudyCoachTonight.course_id == course_id)
+    if app_public_id:
+        q = q.filter(StudyCoachTonight.app_public_id == app_public_id)
+    if status and status in VALID_TONIGHT_STATUS:
+        q = q.filter(StudyCoachTonight.status == status)
+    return [tonight_to_dict(r) for r in q.order_by(StudyCoachTonight.created_at.desc()).limit(50).all()]
+
+
+def get_tonight(db: Session, tenant_id: str, tonight_id: str) -> dict[str, Any] | None:
+    row = (
+        db.query(StudyCoachTonight)
+        .filter(StudyCoachTonight.tenant_id == tenant_id, StudyCoachTonight.id == tonight_id)
+        .first()
+    )
+    return tonight_to_dict(row) if row else None
+
+
+def generate_tonight(
+    db: Session,
+    user: User,
+    *,
+    course_id: str,
+    unit_order: int,
+    template: str,
+    child_name: str = "",
+    level: str = "中",
+    note: str = "",
+    app_public_id: str = "",
+) -> dict[str, Any] | None:
+    course = (
+        db.query(StudyCoachCourse)
+        .filter(StudyCoachCourse.tenant_id == user.tenant_id, StudyCoachCourse.id == course_id)
+        .first()
+    )
+    if not course:
+        return None
+    tpl = (template or "").strip()
+    if tpl not in VALID_TONIGHT_TEMPLATE:
+        raise ValueError("未知练习模板")
+    payload_plan = _load_plan_payload(course)
+    units = [u for u in (payload_plan.get("units") or []) if isinstance(u, dict)]
+    unit = next((u for u in units if int(u.get("order") or 0) == int(unit_order)), None)
+    if not unit:
+        raise ValueError("单元不存在")
+    drills = list_drills(db, user.tenant_id, course_id=course.id)[:8]
+    fallback = _fallback_tonight_payload(
+        template=tpl,
+        unit=unit,
+        course=course,
+        child_name=child_name,
+        level=level,
+        note=note,
+        recent_drills=drills,
+    )
+    try:
+        payload, source = _llm_tonight_payload(
+            template=tpl,
+            unit=unit,
+            course=course,
+            child_name=child_name,
+            level=level,
+            note=note,
+            fallback=fallback,
+        )
+    except Exception:
+        payload, source = fallback, "fallback"
+    # abandon previous active drafts for same course
+    for old in (
+        db.query(StudyCoachTonight)
+        .filter(
+            StudyCoachTonight.tenant_id == user.tenant_id,
+            StudyCoachTonight.course_id == course.id,
+            StudyCoachTonight.status.in_(("draft", "preview", "practicing")),
+        )
+        .all()
+    ):
+        old.status = "abandoned"
+    row = StudyCoachTonight(
+        tenant_id=user.tenant_id,
+        app_public_id=(app_public_id or course.app_public_id or "").strip(),
+        reporter_id=user.id,
+        course_id=course.id,
+        record_no=_no("ST"),
+        unit_order=int(unit_order),
+        unit_name=str(unit.get("unit_name") or ""),
+        template=tpl,
+        status="preview",
+        payload_json=payload,
+        source=source,
+    )
+    db.add(row)
+    db.commit()
+    db.refresh(row)
+    return tonight_to_dict(row)
+
+
+def start_tonight(db: Session, tenant_id: str, tonight_id: str) -> dict[str, Any] | None:
+    row = (
+        db.query(StudyCoachTonight)
+        .filter(StudyCoachTonight.tenant_id == tenant_id, StudyCoachTonight.id == tonight_id)
+        .first()
+    )
+    if not row:
+        return None
+    if row.status not in ("preview", "draft", "practicing"):
+        raise ValueError("当前练习不可开练")
+    row.status = "practicing"
+    db.commit()
+    db.refresh(row)
+    return tonight_to_dict(row)
+
+
+def save_tonight_progress(
+    db: Session,
+    tenant_id: str,
+    tonight_id: str,
+    *,
+    items: list[dict[str, Any]] | None = None,
+) -> dict[str, Any] | None:
+    row = (
+        db.query(StudyCoachTonight)
+        .filter(StudyCoachTonight.tenant_id == tenant_id, StudyCoachTonight.id == tonight_id)
+        .first()
+    )
+    if not row:
+        return None
+    payload = dict(row.payload_json or {})
+    if items is not None:
+        # merge done/correct by id
+        by_id = {str(it.get("id")): it for it in items if isinstance(it, dict)}
+        merged = []
+        for old in payload.get("items") or []:
+            if not isinstance(old, dict):
+                continue
+            nid = str(old.get("id"))
+            if nid in by_id:
+                upd = dict(old)
+                src = by_id[nid]
+                if "done" in src:
+                    upd["done"] = bool(src.get("done"))
+                if "correct" in src:
+                    upd["correct"] = src.get("correct")
+                merged.append(upd)
+            else:
+                merged.append(old)
+        payload["items"] = merged
+        row.payload_json = payload
+    db.commit()
+    db.refresh(row)
+    return tonight_to_dict(row)
+
+
+def complete_tonight(
+    db: Session,
+    user: User,
+    tonight_id: str,
+    *,
+    items: list[dict[str, Any]] | None = None,
+    complete_first_step: bool = True,
+) -> dict[str, Any] | None:
+    row = (
+        db.query(StudyCoachTonight)
+        .filter(StudyCoachTonight.tenant_id == user.tenant_id, StudyCoachTonight.id == tonight_id)
+        .first()
+    )
+    if not row:
+        return None
+    if items is not None:
+        save_tonight_progress(db, user.tenant_id, tonight_id, items=items)
+        db.refresh(row)
+    payload = dict(row.payload_json or {})
+    its = [it for it in (payload.get("items") or []) if isinstance(it, dict)]
+    done_n = sum(1 for it in its if it.get("done"))
+    ok_n = sum(1 for it in its if it.get("correct") is True)
+    total = len(its) or 1
+    score = f"{done_n}/{total}"
+    if ok_n:
+        score = f"完成{done_n}/{total} · 正确{ok_n}"
+    kind = str(payload.get("drill_kind") or TEMPLATE_DRILL_KIND.get(row.template, "review"))
+    notes = (
+        f"[今晚这一练] {TEMPLATE_LABEL.get(row.template, row.template)}\n"
+        f"{payload.get('instructions') or ''}\n"
+        f"完成 {done_n}/{total}"
+    ).strip()
+    drill = create_drill(
+        db,
+        user,
+        course_id=row.course_id,
+        unit_name=row.unit_name or str(payload.get("unit_name") or ""),
+        kind=kind,
+        score=score,
+        result="pass" if done_n >= total else ("partial" if done_n else ""),
+        notes=notes[:2000],
+        app_public_id=row.app_public_id,
+    )
+    if complete_first_step:
+        try:
+            complete_step(
+                db,
+                user.tenant_id,
+                row.course_id,
+                unit_order=row.unit_order,
+                step_id="read" if row.template == "read_aloud" else "chars",
+                done=True,
+            )
+        except Exception:
+            try:
+                # fallback first pending step
+                course = (
+                    db.query(StudyCoachCourse)
+                    .filter(StudyCoachCourse.tenant_id == user.tenant_id, StudyCoachCourse.id == row.course_id)
+                    .first()
+                )
+                if course:
+                    plan = _load_plan_payload(course)
+                    for u in plan.get("units") or []:
+                        if isinstance(u, dict) and int(u.get("order") or 0) == row.unit_order:
+                            for s in u.get("steps") or []:
+                                if isinstance(s, dict) and s.get("status") != "done":
+                                    complete_step(
+                                        db,
+                                        user.tenant_id,
+                                        row.course_id,
+                                        unit_order=row.unit_order,
+                                        step_id=str(s.get("id") or ""),
+                                        done=True,
+                                    )
+                                    break
+                            break
+            except Exception:
+                pass
+    row.status = "done"
+    row.drill_id = (drill or {}).get("id") if drill else None
+    # mark all items done in payload snapshot
+    for it in its:
+        it["done"] = True
+    payload["items"] = its
+    payload["completed_score"] = score
+    row.payload_json = payload
+    db.commit()
+    db.refresh(row)
+    out = tonight_to_dict(row)
+    out["drill"] = drill
+    return out
+
+
+def record_tonight_without_practice(
+    db: Session,
+    user: User,
+    tonight_id: str,
+) -> dict[str, Any] | None:
+    """家长选择「先记下不练」：写一条 drill，练习标 done。"""
+    row = (
+        db.query(StudyCoachTonight)
+        .filter(StudyCoachTonight.tenant_id == user.tenant_id, StudyCoachTonight.id == tonight_id)
+        .first()
+    )
+    if not row:
+        return None
+    payload = dict(row.payload_json or {})
+    kind = str(payload.get("drill_kind") or TEMPLATE_DRILL_KIND.get(row.template, "review"))
+    drill = create_drill(
+        db,
+        user,
+        course_id=row.course_id,
+        unit_name=row.unit_name,
+        kind=kind,
+        score="",
+        result="",
+        notes=f"[今晚草稿已存未开练] {payload.get('title') or ''}\n{payload.get('instructions') or ''}"[:2000],
+        app_public_id=row.app_public_id,
+    )
+    row.status = "done"
+    row.drill_id = (drill or {}).get("id") if drill else None
+    db.commit()
+    db.refresh(row)
+    out = tonight_to_dict(row)
+    out["drill"] = drill
+    return out

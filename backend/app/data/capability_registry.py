@@ -130,7 +130,7 @@ CORE_CAPABILITIES: list[CapabilityDef] = [
                     web_pkg="@blockhub/web-capability-class-schedule",
                     menu_icon="notify", menu_label="课表查询", route="/class-schedule"),
     CapabilityDef("study_coach", "课本学习", "教育培训", "StudyCoachWidget", "study_coach",
-                    "", ("课本学习", "学习规划", "学习进度", "家默", "听写", "复习跟进", "考试", "课本"),
+                    "", ("课本学习", "今晚练什么", "听写", "单词卡", "学习规划", "家默", "复习跟进", "考试", "课本"),
                     web_pkg="@blockhub/web-capability-study-coach",
                     menu_icon="kb", menu_label="课本学习", route="/study-coach"),
     CapabilityDef("delivery_order", "外卖配送", "物流仓储", "DeliveryOrderWidget", "delivery_order",

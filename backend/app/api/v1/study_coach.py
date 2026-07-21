@@ -70,6 +70,25 @@ class SetCurrentUnitBody(BaseModel):
     rebuild: bool = True
 
 
+class TonightGenerateBody(BaseModel):
+    course_id: str = Field(min_length=1, max_length=36)
+    unit_order: int = Field(ge=1, le=80)
+    template: str = Field(min_length=1, max_length=32)
+    child_name: str = ""
+    level: str = "中"
+    note: str = ""
+    app_public_id: str = Field(default="", max_length=64)
+
+
+class TonightProgressBody(BaseModel):
+    items: list[dict[str, Any]] = Field(default_factory=list)
+
+
+class TonightCompleteBody(BaseModel):
+    items: list[dict[str, Any]] | None = None
+    complete_first_step: bool = True
+
+
 @router.post("/locate")
 def locate_api(
     body: LocateBody,
@@ -303,3 +322,134 @@ def create_drill_api(
     if not item:
         raise HTTPException(status_code=404, detail="课程不存在")
     return {"success": True, "drill": item}
+
+
+@router.get("/tonight/templates")
+def tonight_templates_api(user: User = Depends(get_current_user)) -> dict:
+    _ = user
+    items = [
+        {"key": k, "label": store.TEMPLATE_LABEL.get(k, k)}
+        for k in (
+            "dictation",
+            "word_cards",
+            "math_drill",
+            "wrongbook",
+            "read_aloud",
+        )
+    ]
+    return {"total": len(items), "items": items}
+
+
+@router.get("/tonight")
+def list_tonight_api(
+    course_id: str | None = Query(None),
+    app_id: str | None = Query(None),
+    status: str | None = Query(None),
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> dict:
+    items = store.list_tonight(
+        db,
+        user.tenant_id,
+        course_id=course_id or None,
+        app_public_id=app_id or None,
+        status=status,
+    )
+    return {"total": len(items), "items": items}
+
+
+@router.get("/tonight/{tonight_id}")
+def get_tonight_api(
+    tonight_id: str,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> dict:
+    item = store.get_tonight(db, user.tenant_id, tonight_id)
+    if not item:
+        raise HTTPException(status_code=404, detail="练习不存在")
+    return {"item": item}
+
+
+@router.post("/tonight/generate")
+def generate_tonight_api(
+    body: TonightGenerateBody,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> dict:
+    try:
+        item = store.generate_tonight(
+            db,
+            user,
+            course_id=body.course_id,
+            unit_order=body.unit_order,
+            template=body.template,
+            child_name=body.child_name,
+            level=body.level,
+            note=body.note,
+            app_public_id=body.app_public_id,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+    if not item:
+        raise HTTPException(status_code=404, detail="课程不存在")
+    return {"success": True, "tonight": item}
+
+
+@router.post("/tonight/{tonight_id}/start")
+def start_tonight_api(
+    tonight_id: str,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> dict:
+    try:
+        item = store.start_tonight(db, user.tenant_id, tonight_id)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+    if not item:
+        raise HTTPException(status_code=404, detail="练习不存在")
+    return {"success": True, "tonight": item}
+
+
+@router.post("/tonight/{tonight_id}/progress")
+def progress_tonight_api(
+    tonight_id: str,
+    body: TonightProgressBody,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> dict:
+    item = store.save_tonight_progress(db, user.tenant_id, tonight_id, items=body.items)
+    if not item:
+        raise HTTPException(status_code=404, detail="练习不存在")
+    return {"success": True, "tonight": item}
+
+
+@router.post("/tonight/{tonight_id}/complete")
+def complete_tonight_api(
+    tonight_id: str,
+    body: TonightCompleteBody | None = None,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> dict:
+    b = body or TonightCompleteBody()
+    item = store.complete_tonight(
+        db,
+        user,
+        tonight_id,
+        items=b.items,
+        complete_first_step=b.complete_first_step,
+    )
+    if not item:
+        raise HTTPException(status_code=404, detail="练习不存在")
+    return {"success": True, "tonight": item}
+
+
+@router.post("/tonight/{tonight_id}/record-only")
+def record_tonight_api(
+    tonight_id: str,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> dict:
+    item = store.record_tonight_without_practice(db, user, tonight_id)
+    if not item:
+        raise HTTPException(status_code=404, detail="练习不存在")
+    return {"success": True, "tonight": item}

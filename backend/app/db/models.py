@@ -959,6 +959,33 @@ class StudyCoachCourse(Base):
     reporter: Mapped[User] = relationship(foreign_keys=[reporter_id])
 
 
+class StudyCoachTonight(Base):
+    """CapShip · study_coach 今晚这一练（生成草稿 → 预览 → 开练）。"""
+
+    __tablename__ = "study_coach_tonight"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenants.id"), nullable=False, index=True)
+    app_public_id: Mapped[str] = mapped_column(String(64), nullable=False, default="", index=True)
+    reporter_id: Mapped[str] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
+    course_id: Mapped[str] = mapped_column(ForeignKey("study_coach_courses.id"), nullable=False, index=True)
+    record_no: Mapped[str] = mapped_column(String(32), nullable=False, index=True)
+    unit_order: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    unit_name: Mapped[str] = mapped_column(String(200), nullable=False, default="")
+    template: Mapped[str] = mapped_column(String(32), nullable=False, default="dictation")
+    # draft | preview | practicing | done | abandoned
+    status: Mapped[str] = mapped_column(String(32), nullable=False, default="preview", index=True)
+    payload_json: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False, default=dict)
+    source: Mapped[str] = mapped_column(String(32), nullable=False, default="fallback")  # deepseek | fallback
+    drill_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+    reporter: Mapped[User] = relationship(foreign_keys=[reporter_id])
+
+
 class StudyCoachDrill(Base):
     """CapShip · study_coach 复习 / 家默 / 考试记录。"""
 
