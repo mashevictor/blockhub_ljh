@@ -57,6 +57,180 @@ const PIPELINE_COLS: { key: string; label: string; action?: string }[] = [
 
 const ROLE_STORAGE = 'bh_sales_lead_role'
 
+/** 一线：获客入口 → 待领取 → 跟进；市场无待领取 Tab */
+function flowStepsForRole(role: SalesRole): { key: MethodTab; label: string; tip: string }[] {
+  if (role === 'sales_marketing') {
+    return [
+      { key: 'capture', label: '录入', tip: '展会/投放等新建' },
+      { key: 'referral', label: '转介绍', tip: '老客推荐新建' },
+      { key: 'pipeline', label: '跟进成交', tip: '看漏斗推进' },
+    ]
+  }
+  if (role === 'sales_manager') {
+    return [
+      { key: 'assign', label: '分配', tip: '指定负责人' },
+      { key: 'clean', label: '清洗', tip: '有效/退回池' },
+      { key: 'score', label: '评分', tip: '给意向打分' },
+      { key: 'pipeline', label: '跟进成交', tip: '看全员漏斗' },
+    ]
+  }
+  return [
+    { key: 'capture', label: '录入', tip: '写入待领取池' },
+    { key: 'referral', label: '转介绍', tip: '写入待领取池' },
+    { key: 'pool', label: '待领取', tip: '认领到我名下' },
+    { key: 'pipeline', label: '跟进成交', tip: '新线索→跟进→成交' },
+  ]
+}
+
+function SalesFlowGuide({
+  role,
+  method,
+  accent,
+  onJump,
+}: {
+  role: SalesRole
+  method: MethodTab
+  accent: string
+  onJump: (m: MethodTab) => void
+}) {
+  const steps = flowStepsForRole(role)
+  const isRepOrMkt = role === 'sales_rep' || role === 'sales_marketing'
+  const parallelNote =
+    role === 'sales_manager'
+      ? '主管侧是「分配 / 清洗 / 评分」管池子质量；跟进成交看全员漏斗。'
+      : '「录入」和「转介绍」是并列获客入口（不是一前一后），提交后都进同一待领取池；领完再到「跟进成交」推状态。'
+
+  const entryKeys: MethodTab[] = isRepOrMkt ? ['capture', 'referral'] : []
+  const afterKeys = steps.filter((s) => !entryKeys.includes(s.key))
+
+  return (
+    <div
+      style={{
+        marginBottom: 14,
+        padding: '12px 14px',
+        borderRadius: 12,
+        border: '1px solid #e2e8f0',
+        background: 'linear-gradient(180deg, #f8fafc, #fff)',
+      }}
+    >
+      <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: 8, marginBottom: 10 }}>
+        <strong style={{ fontSize: 13, color: '#0f172a' }}>流程与数据链路</strong>
+        <span className="muted" style={{ fontSize: 11, color: '#64748b' }}>
+          点节点可跳转
+        </span>
+      </div>
+
+      {isRepOrMkt ? (
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {steps
+              .filter((s) => entryKeys.includes(s.key))
+              .map((s) => {
+                const on = method === s.key
+                return (
+                  <button
+                    key={s.key}
+                    type="button"
+                    onClick={() => onJump(s.key)}
+                    style={{
+                      textAlign: 'left',
+                      minWidth: 120,
+                      padding: '8px 10px',
+                      borderRadius: 10,
+                      border: on ? `2px solid ${accent}` : '1px solid #e2e8f0',
+                      background: on ? `color-mix(in srgb, ${accent} 12%, #fff)` : '#fff',
+                      cursor: 'pointer',
+                      color: '#0f172a',
+                    }}
+                  >
+                    <div style={{ fontSize: 11, color: '#64748b' }}>获客入口（并列）</div>
+                    <strong style={{ fontSize: 13 }}>{s.label}</strong>
+                    <div style={{ fontSize: 11, color: '#475569' }}>{s.tip}</div>
+                  </button>
+                )
+              })}
+          </div>
+          <span style={{ color: '#94a3b8', fontWeight: 700, fontSize: 18 }}>→</span>
+          {afterKeys.map((s, i) => {
+            const on = method === s.key
+            return (
+              <div key={s.key} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <button
+                  type="button"
+                  onClick={() => onJump(s.key)}
+                  style={{
+                    textAlign: 'left',
+                    minWidth: 120,
+                    padding: '8px 10px',
+                    borderRadius: 10,
+                    border: on ? `2px solid ${accent}` : '1px solid #e2e8f0',
+                    background: on ? `color-mix(in srgb, ${accent} 12%, #fff)` : '#fff',
+                    cursor: 'pointer',
+                    color: '#0f172a',
+                  }}
+                >
+                  <div style={{ fontSize: 11, color: '#64748b' }}>下一步</div>
+                  <strong style={{ fontSize: 13 }}>{s.label}</strong>
+                  <div style={{ fontSize: 11, color: '#475569' }}>{s.tip}</div>
+                </button>
+                {i < afterKeys.length - 1 ? (
+                  <span style={{ color: '#94a3b8', fontWeight: 700, fontSize: 18 }}>→</span>
+                ) : null}
+              </div>
+            )
+          })}
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 6 }}>
+          {steps.map((s, i) => {
+            const on = method === s.key
+            return (
+              <div key={s.key} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <button
+                  type="button"
+                  onClick={() => onJump(s.key)}
+                  style={{
+                    textAlign: 'left',
+                    minWidth: 108,
+                    padding: '8px 10px',
+                    borderRadius: 10,
+                    border: on ? `2px solid ${accent}` : '1px solid #e2e8f0',
+                    background: on ? `color-mix(in srgb, ${accent} 12%, #fff)` : '#fff',
+                    cursor: 'pointer',
+                    color: '#0f172a',
+                  }}
+                >
+                  <div style={{ fontSize: 11, color: '#64748b' }}>步骤 {i + 1}</div>
+                  <strong style={{ fontSize: 13 }}>{s.label}</strong>
+                  <div style={{ fontSize: 11, color: '#475569' }}>{s.tip}</div>
+                </button>
+                {i < steps.length - 1 ? (
+                  <span style={{ color: '#94a3b8', fontWeight: 700, fontSize: 16 }}>→</span>
+                ) : null}
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      <div style={{ marginTop: 10, fontSize: 12, color: '#334155', lineHeight: 1.55 }}>
+        {role !== 'sales_manager' ? (
+          <>
+            <div>
+              <b>同一条线索怎么变：</b>
+              录入/转介绍写入 → <code>待领取</code> → 领取 → <code>已认领</code> → 跟进成交推进为{' '}
+              <code>跟进中 / 成交 / 丢单</code>
+            </div>
+            <div style={{ color: '#64748b', marginTop: 4 }}>{parallelNote}</div>
+          </>
+        ) : (
+          <div style={{ color: '#64748b' }}>{parallelNote}</div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 function pick(values: Record<string, string>, ...keys: string[]) {
   for (const k of keys) {
     const v = (values[k] || '').trim()
@@ -384,6 +558,17 @@ export function SalesLeadWidget({ node }: { node: SchemaNode }) {
 
   return (
     <div>
+      <SalesFlowGuide
+        role={role}
+        method={method}
+        accent={accent}
+        onJump={(m) => {
+          setMethod(m)
+          setValues({})
+          setResetKey((k) => k + 1)
+          setMsg('')
+        }}
+      />
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', marginBottom: 12 }}>
         <span className="muted" style={{ fontSize: 12 }}>
           身份
