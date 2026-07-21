@@ -56,6 +56,7 @@ export function GtgtStepComposer({
 }: Props) {
   const [step, setStep] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
+  const advancingRef = useRef(false)
   const current = steps[step]
   const isLast = step >= steps.length - 1
   const draft = current ? (values[current.key] ?? '') : ''
@@ -70,13 +71,18 @@ export function GtgtStepComposer({
   }, [step, resetKey])
 
   const advance = async () => {
-    if (!current || busy) return
+    if (!current || busy || advancingRef.current) return
     if (!current.optional && !draft.trim()) return
-    if (isLast) {
-      await onComplete()
-      return
+    advancingRef.current = true
+    try {
+      if (isLast) {
+        await onComplete()
+        return
+      }
+      setStep((s) => s + 1)
+    } finally {
+      advancingRef.current = false
     }
-    setStep((s) => s + 1)
   }
 
   const onKeyDown = (e: React.KeyboardEvent) => {

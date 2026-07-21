@@ -584,19 +584,6 @@ export default function IndustryRuntimePreviewPage() {
         </main>
       </div>
 
-      <DeveloperBlueprintPanel
-        mode="preview"
-        pack={preview.key}
-        token={homeToken}
-        role={homeRole}
-        accent={preview.accent}
-        onAuth={(auth) => {
-          setToken(auth.token)
-          setHomeToken(auth.token)
-          setHomeRole(auth.role)
-        }}
-      />
-
       <Suspense fallback={null}>
         <CapShipComposerDock
           storageKey="capship-irp-dock-v3"
@@ -607,6 +594,21 @@ export default function IndustryRuntimePreviewPage() {
           page_schema={schema}
           industry_pack={preview.key}
           token={homeToken || undefined}
+          deliverPanel={
+            <DeveloperBlueprintPanel
+              variant="embedded"
+              mode="preview"
+              pack={preview.key}
+              token={homeToken}
+              role={homeRole}
+              accent={preview.accent}
+              onAuth={(auth) => {
+                setToken(auth.token)
+                setHomeToken(auth.token)
+                setHomeRole(auth.role)
+              }}
+            />
+          }
           onSchemaPatch={applySchema}
           onModulesChange={((nextKeys) => {
             const kept = catalog.filter((s) =>

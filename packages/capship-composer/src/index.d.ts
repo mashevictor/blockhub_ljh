@@ -1,7 +1,7 @@
 /** 对外类型入口：供 home/runtime `tsc` 解析，避免编译进包内 .tsx（无独立 react 安装） */
-import type { ComponentType } from 'react'
+import type { ComponentType, ReactNode } from 'react'
 
-export type ComposerMode = 'live_edit' | 'module_flow' | 'select_modules'
+export type ComposerMode = 'live_edit' | 'module_flow' | 'select_modules' | 'deliver'
 
 export declare const COMPOSER_MODES: Array<{ id: ComposerMode; label: string; desc: string }>
 
@@ -122,6 +122,7 @@ export interface ComposerInput {
   scene_ids?: string[]
   modules?: ComposerModuleItem[]
   token?: string | null
+  deliverPanel?: ReactNode
 }
 
 export interface ComposerEvents {

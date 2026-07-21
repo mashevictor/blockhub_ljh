@@ -1,7 +1,7 @@
-"""DeepSeek：超出注册表能力 → 生成可预览网页/App 描述（不做完整写盘编译）。
+"""DeepSeek：未知能力 → 生成可执行单页 HTML，后台校验通过后再入库。
 
-关键：Agent 要理解并泛化用户需求，输出声明式 interactive schema，
-禁止用文字列表假冒按键；禁止指望 Runtime 为每个需求写死组件。
+用户端只看到成品（iframe），不展示生成/校验细节。
+计算器等仍可用 tool_pad；可玩/自定义页走 source_html。
 """
 
 from __future__ import annotations
@@ -11,29 +11,37 @@ import logging
 import re
 from typing import Any
 
+from app.services.codegen_verify import verify_full
 from app.services.deepseek_client import deepseek_json_chat
 
 logger = logging.getLogger(__name__)
 
-_SYSTEM = """你是积木仓 BlockHub 的低代码页面生成 Agent。
-任务：理解用户真实意图并**泛化**成可预览的页面 JSON（不要写恶意脚本）。
-只输出 JSON。
+_SYSTEM = """你是积木仓 BlockHub 的页面代码生成器。
+任务：按用户需求生成**可直接在 iframe 中运行**的完整单文件 HTML（含 CSS/JS）。
+只输出 JSON，不要 markdown。
 
-核心原则（必须遵守）：
-1. 不要把「可点按的工具 UI」写成 heading/list 文字清单（禁止「数字按钮: 7,8,9」这种伪 UI）。
-2. 用户要计算器、计数器、骰子、按键面板、小工具等 → 必须输出 interactive 字段（type=tool_pad）。
-3. 用户要填单/审批/列表业务 → 用 form 语义（可放在 summary/blocks 说明），interactive 可省略。
-4. 泛化：同类需求共用同一交互模型（tool_pad + 安全 ops），不要发明无法执行的自定义脚本。
+输出格式：
+{
+  "generated_pages": [
+    {
+      "key": "gen_xxx",
+      "title": "短标题",
+      "route": "/gen/xxx",
+      "summary": "一句话说明",
+      "source_html": "<!DOCTYPE html><html>...</html>",
+      "unit_tests": [
+        {"name": "core_logic", "code": "/* 纯函数断言，失败请 throw */ if (1+1!==2) throw new Error('math');"}
+      ]
+    }
+  ]
+}
 
-interactive.tool_pad 可用 ops（白名单）：
-append_digit, append_dot, set_value, clear, clear_all, push_binop(+|-|*|/), evaluate,
-add(value), random_int(min,max),
-unary.fn: neg|percent|sqrt|square|inv|sin_deg|cos_deg|tan_deg|log10|ln|const_pi|const_e
-
-按钮示例：
-{"label":"7","style":"digit","ops":[{"op":"append_digit","value":"7"}]}
-{"label":"+","style":"op","ops":[{"op":"push_binop","value":"+"}]}
-{"label":"=","style":"accent","ops":[{"op":"evaluate"}]}
+规则：
+1. source_html 必须是完整 HTML 文档，自包含，可交互（游戏/工具/小玩法），禁止只有「标题+说明」表单壳。
+2. 禁止：parent/top、eval、Function、fetch、XMLHttpRequest、WebSocket、document.cookie、localStorage。
+3. 核心逻辑尽量写成纯函数；unit_tests 用 Node 可跑的纯 JS（无 DOM），至少 1 条。
+4. 若是计算器/计数器/骰子，也可不写 source_html，改写 interactive.type=tool_pad（白名单 ops）。
+5. 贪吃蛇等小游戏：必须可键盘或点击操作，有得分或再来一局。
 """
 
 
@@ -55,33 +63,30 @@ def _looks_interactive_tool(text: str) -> bool:
 def _interactive_fallback(title: str, prompt: str) -> dict[str, Any] | None:
     blob = f"{title} {prompt}"
     if any(w in blob for w in ("计算器", "科学计算", "calculator")):
-        # 精简版 schema；完整科学版由 Runtime 意图模板兜底补齐亦可
         return {
             "type": "tool_pad",
             "theme": "phone_dark",
             "columns": 4,
-            "hint": "Agent 泛化 tool_pad · 计算器",
+            "hint": "tool_pad · 计算器",
             "buttons": [
                 {"label": "AC", "style": "fn", "ops": [{"op": "clear_all"}]},
                 {"label": "C", "style": "fn", "ops": [{"op": "clear"}]},
-                {"label": "±", "style": "fn", "ops": [{"op": "unary", "fn": "neg"}]},
                 {"label": "÷", "style": "op", "ops": [{"op": "push_binop", "value": "/"}]},
+                {"label": "×", "style": "op", "ops": [{"op": "push_binop", "value": "*"}]},
                 {"label": "7", "style": "digit", "ops": [{"op": "append_digit", "value": "7"}]},
                 {"label": "8", "style": "digit", "ops": [{"op": "append_digit", "value": "8"}]},
                 {"label": "9", "style": "digit", "ops": [{"op": "append_digit", "value": "9"}]},
-                {"label": "×", "style": "op", "ops": [{"op": "push_binop", "value": "*"}]},
+                {"label": "-", "style": "op", "ops": [{"op": "push_binop", "value": "-"}]},
                 {"label": "4", "style": "digit", "ops": [{"op": "append_digit", "value": "4"}]},
                 {"label": "5", "style": "digit", "ops": [{"op": "append_digit", "value": "5"}]},
                 {"label": "6", "style": "digit", "ops": [{"op": "append_digit", "value": "6"}]},
-                {"label": "-", "style": "op", "ops": [{"op": "push_binop", "value": "-"}]},
+                {"label": "+", "style": "op", "ops": [{"op": "push_binop", "value": "+"}]},
                 {"label": "1", "style": "digit", "ops": [{"op": "append_digit", "value": "1"}]},
                 {"label": "2", "style": "digit", "ops": [{"op": "append_digit", "value": "2"}]},
                 {"label": "3", "style": "digit", "ops": [{"op": "append_digit", "value": "3"}]},
-                {"label": "+", "style": "op", "ops": [{"op": "push_binop", "value": "+"}]},
+                {"label": "=", "style": "accent", "ops": [{"op": "evaluate"}]},
                 {"label": "0", "style": "digit", "ops": [{"op": "append_digit", "value": "0"}]},
                 {"label": ".", "style": "digit", "ops": [{"op": "append_dot"}]},
-                {"label": "=", "style": "accent", "ops": [{"op": "evaluate"}]},
-                {"label": "%", "style": "fn", "ops": [{"op": "unary", "fn": "percent"}]},
             ],
         }
     if any(w in blob for w in ("计数器", "counter")):
@@ -89,11 +94,10 @@ def _interactive_fallback(title: str, prompt: str) -> dict[str, Any] | None:
             "type": "tool_pad",
             "theme": "light",
             "columns": 3,
-            "hint": "Agent 泛化 tool_pad · 计数器",
+            "hint": "tool_pad · 计数器",
             "buttons": [
                 {"label": "+1", "style": "accent", "ops": [{"op": "add", "value": 1}]},
-                {"label": "+5", "style": "op", "ops": [{"op": "add", "value": 5}]},
-                {"label": "-1", "style": "fn", "ops": [{"op": "add", "value": -1}]},
+                {"label": "-1", "style": "op", "ops": [{"op": "add", "value": -1}]},
                 {"label": "归零", "style": "fn", "ops": [{"op": "clear_all"}]},
             ],
         }
@@ -102,13 +106,79 @@ def _interactive_fallback(title: str, prompt: str) -> dict[str, Any] | None:
             "type": "tool_pad",
             "theme": "light",
             "columns": 2,
-            "hint": "Agent 泛化 tool_pad · 随机",
+            "hint": "tool_pad · 随机",
             "buttons": [
                 {"label": "掷骰子", "style": "accent", "ops": [{"op": "random_int", "min": 1, "max": 6}]},
                 {"label": "重置", "style": "fn", "ops": [{"op": "clear_all"}]},
             ],
         }
     return None
+
+
+def _snake_fallback_html(title: str) -> str:
+    t = (title or "贪吃蛇").replace("<", "")[:40]
+    return f"""<!DOCTYPE html><html><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>{t}</title>
+<style>
+body{{margin:0;font-family:sans-serif;background:#0f172a;color:#e2e8f0;display:flex;flex-direction:column;align-items:center;gap:10px;padding:16px}}
+canvas{{background:#020617;border:2px solid #334155;border-radius:10px;image-rendering:pixelated}}
+button{{border:0;border-radius:8px;padding:8px 14px;background:#0d9488;color:#fff;cursor:pointer}}
+.row{{display:flex;gap:8px;align-items:center}}
+</style></head><body>
+<h2 style="margin:0">{t}</h2>
+<p style="margin:0;font-size:13px;opacity:.85">方向键 / WASD</p>
+<canvas id="c" width="320" height="320"></canvas>
+<div class="row"><button type="button" id="go">再来</button><span id="sc">0</span></div>
+<script>
+(function(){{
+const N=16,S=20,C=document.getElementById('c'),X=C.getContext('2d');
+let snake,dir,food,score,alive,timer;
+function rnd(){{return Math.floor(Math.random()*N)}}
+function place(){{let p;do{{p={{x:rnd(),y:rnd()}}}}while(snake.some(s=>s.x===p.x&&s.y===p.y));return p}}
+function reset(){{snake=[{{x:8,y:8}}];dir={{x:1,y:0}};food=place();score=0;alive=true;
+document.getElementById('sc').textContent=score;clearInterval(timer);timer=setInterval(tick,140);draw()}}
+function tick(){{if(!alive)return;const h={{x:snake[0].x+dir.x,y:snake[0].y+dir.y}};
+if(h.x<0||h.y<0||h.x>=N||h.y>=N||snake.some(s=>s.x===h.x&&s.y===h.y)){{alive=false;draw();return}}
+snake.unshift(h);if(h.x===food.x&&h.y===food.y){{score++;document.getElementById('sc').textContent=score;food=place()}}else snake.pop();draw()}}
+function draw(){{X.clearRect(0,0,320,320);X.fillStyle='#f59e0b';X.fillRect(food.x*S,food.y*S,S-1,S-1);
+X.fillStyle='#34d399';snake.forEach((s,i)=>{{X.fillStyle=i? '#34d399':'#6ee7b7';X.fillRect(s.x*S,s.y*S,S-1,S-1)}});
+if(!alive){{X.fillStyle='#f87171';X.font='20px sans-serif';X.fillText('Game Over',100,160)}}}}
+window.addEventListener('keydown',e=>{{const k=e.key;if(['ArrowUp','w','W'].includes(k)&&dir.y!==1)dir={{x:0,y:-1}};
+if(['ArrowDown','s','S'].includes(k)&&dir.y!==-1)dir={{x:0,y:1}};
+if(['ArrowLeft','a','A'].includes(k)&&dir.x!==1)dir={{x:-1,y:0}};
+if(['ArrowRight','d','D'].includes(k)&&dir.x!==-1)dir={{x:1,y:0}};e.preventDefault()}});
+document.getElementById('go').onclick=reset;reset();
+}})();
+</script></body></html>"""
+
+
+def _generic_fallback_html(title: str) -> str:
+    t = (title or "互动页").replace("<", "")[:40]
+    return f"""<!DOCTYPE html><html><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>{t}</title>
+<style>
+body{{margin:0;font-family:sans-serif;background:#f8fafc;color:#0f172a;display:flex;flex-direction:column;align-items:center;gap:12px;padding:24px}}
+button{{border:0;border-radius:10px;padding:12px 20px;background:#0d47a1;color:#fff;font-size:16px;cursor:pointer}}
+#n{{font-size:40px;font-weight:700}}
+</style></head><body>
+<h2 style="margin:0">{t}</h2>
+<p style="margin:0;color:#64748b">点击互动</p>
+<div id="n">0</div>
+<button type="button" id="b">+1</button>
+<script>
+let n=0;document.getElementById('b').onclick=()=>{{n++;document.getElementById('n').textContent=n}};
+</script></body></html>"""
+
+
+def _fallback_html_for(title: str, prompt: str) -> tuple[str, list[dict[str, Any]]]:
+    blob = f"{title} {prompt}"
+    if any(w in blob for w in ("贪吃蛇", "snake")):
+        return _snake_fallback_html(title or "贪吃蛇"), [
+            {"name": "smoke", "code": "if (typeof Math.max !== 'function') throw new Error('env');"}
+        ]
+    return _generic_fallback_html(title), [
+        {"name": "smoke", "code": "if (1+1!==2) throw new Error('math');"}
+    ]
 
 
 def generate_capability_pages(
@@ -119,7 +189,6 @@ def generate_capability_pages(
     web_template_id: str,
     app_ui_id: str,
 ) -> dict[str, Any]:
-    """Call DeepSeek; on failure return deterministic fallback pages."""
     unknown = [k for k in unknown_keys if k] or ["custom_feature"]
     user = {
         "app_name": app_name,
@@ -127,39 +196,6 @@ def generate_capability_pages(
         "user_prompt": (prompt or "")[:1200],
         "web_template_id": web_template_id,
         "app_ui_id": app_ui_id,
-        "schema": {
-            "generated_pages": [
-                {
-                    "key": "string",
-                    "title": "string",
-                    "route": "/gen/...",
-                    "summary": "string",
-                    "blocks": [
-                        {"type": "heading|paragraph|list|button", "text": "string", "items": ["optional"]}
-                    ],
-                    "interactive": {
-                        "type": "tool_pad",
-                        "theme": "phone_dark|light",
-                        "columns": 4,
-                        "hint": "string",
-                        "buttons": [
-                            {
-                                "label": "string",
-                                "style": "digit|op|fn|accent",
-                                "ops": [{"op": "append_digit", "value": "7"}],
-                            }
-                        ],
-                    },
-                }
-            ],
-            "generated_flutter_screens": [
-                {"key": "string", "title": "string", "route": "/gen/...", "body": "string", "actions": ["string"]}
-            ],
-        },
-        "rules": [
-            "若需求是可点按工具 UI，必须填 interactive，禁止只用 blocks 列表描述按键",
-            "理解并泛化：同类工具共用 tool_pad，不要为每个产品名发明无法执行的结构",
-        ],
     }
 
     raw = deepseek_json_chat(
@@ -167,10 +203,61 @@ def generate_capability_pages(
         user=json.dumps(user, ensure_ascii=False),
         temperature=0.35,
     )
+    result = None
     if isinstance(raw, dict) and (raw.get("generated_pages") or raw.get("generated_flutter_screens")):
-        return _normalize(raw, unknown, prompt)
+        result = _normalize(raw, unknown, prompt)
+        result = _verify_and_fix(result, unknown, prompt, retry_hint=None)
 
-    return _fallback(app_name, unknown, prompt)
+    if not result or not result.get("generated_pages"):
+        result = _fallback(app_name, unknown, prompt)
+        result = _verify_and_fix(result, unknown, prompt, retry_hint=None)
+
+    return result
+
+
+def _verify_and_fix(
+    result: dict[str, Any],
+    unknown: list[str],
+    prompt: str,
+    retry_hint: str | None,
+) -> dict[str, Any]:
+    pages = list(result.get("generated_pages") or [])
+    fixed: list[dict[str, Any]] = []
+    for i, page in enumerate(pages):
+        if not isinstance(page, dict):
+            continue
+        title = str(page.get("title") or unknown[min(i, len(unknown) - 1)])
+        html = str(page.get("source_html") or "").strip()
+        tests = page.get("unit_tests") if isinstance(page.get("unit_tests"), list) else []
+        interactive = page.get("interactive") if isinstance(page.get("interactive"), dict) else None
+
+        if interactive and interactive.get("type") == "tool_pad":
+            fixed.append(page)
+            continue
+
+        if not html:
+            html, tests = _fallback_html_for(title, prompt)
+            page = {**page, "source_html": html, "unit_tests": tests}
+
+        report = verify_full(html=str(page.get("source_html") or ""), unit_tests=tests if isinstance(tests, list) else [])
+        if not report.get("ok"):
+            logger.info("codegen verify fail %s: %s", title, report.get("errors"))
+            # 静默换本地可运行兜底，保证用户端能用
+            html2, tests2 = _fallback_html_for(title, prompt)
+            report2 = verify_full(html=html2, unit_tests=tests2)
+            page = {
+                **page,
+                "source_html": html2,
+                "unit_tests": tests2,
+                "summary": str(page.get("summary") or title)[:400],
+            }
+            if not report2.get("ok"):
+                page["source_html"] = html2  # 仍下发兜底
+        page.pop("blocks", None)  # 有源码就不靠静态块
+        fixed.append(page)
+
+    result = {**result, "generated_pages": fixed}
+    return result
 
 
 def _normalize_interactive(raw: Any, title: str, prompt: str) -> dict[str, Any] | None:
@@ -218,32 +305,30 @@ def _normalize(raw: dict[str, Any], unknown: list[str], prompt: str = "") -> dic
         route = str(p.get("route") or f"/gen/{_slug(key)}")
         if not route.startswith("/"):
             route = f"/{route}"
-        blocks = []
-        for b in p.get("blocks") or []:
-            if not isinstance(b, dict):
-                continue
-            btype = str(b.get("type") or "paragraph")
-            if btype not in ("heading", "paragraph", "list", "button"):
-                btype = "paragraph"
-            text = str(b.get("text") or "")[:2000]
-            items = [str(x)[:200] for x in (b.get("items") or []) if x][:20]
-            # 丢弃「假按键列表」——若有 interactive 则不需要
-            if btype == "list" and any(w in text for w in ("数字按钮", "运算符", "科学函数")):
-                continue
-            blocks.append({"type": btype, "text": text, "items": items})
+        source_html = str(p.get("source_html") or p.get("html") or "").strip()
+        unit_tests = p.get("unit_tests") if isinstance(p.get("unit_tests"), list) else []
         interactive = _normalize_interactive(p.get("interactive"), title, prompt)
-        if not blocks and not interactive:
-            blocks = [{"type": "paragraph", "text": str(p.get("summary") or title), "items": []}]
         page: dict[str, Any] = {
             "key": key,
             "title": title,
             "route": route if "/gen/" in route or route.startswith("/s/") else f"/gen/{_slug(key)}",
             "summary": str(p.get("summary") or "")[:400],
-            "blocks": blocks,
             "source": "deepseek",
         }
-        if interactive:
+        if source_html:
+            page["source_html"] = source_html[:_MAX_KEEP]
+            page["unit_tests"] = [
+                {"name": str(t.get("name") or f"t{j}"), "code": str(t.get("code") or "")[:4000]}
+                for j, t in enumerate(unit_tests[:12])
+                if isinstance(t, dict) and t.get("code")
+            ]
+        elif interactive:
             page["interactive"] = interactive
+            page["blocks"] = [{"type": "paragraph", "text": "可交互工具", "items": []}]
+        else:
+            # 留给 verify 阶段补 fallback html
+            page["source_html"] = ""
+            page["unit_tests"] = []
         pages.append(page)
 
     screens: list[dict[str, Any]] = []
@@ -283,6 +368,9 @@ def _normalize(raw: dict[str, Any], unknown: list[str], prompt: str = "") -> dic
     }
 
 
+_MAX_KEEP = 180_000
+
+
 def _fallback(app_name: str, unknown: list[str], prompt: str) -> dict[str, Any]:
     pages = []
     screens = []
@@ -292,43 +380,34 @@ def _fallback(app_name: str, unknown: list[str], prompt: str) -> dict[str, Any]:
         title = key if any("\u4e00" <= c <= "\u9fff" for c in key) else key.replace("_", " ").title()
         if str(key).startswith("gen_"):
             title = key.replace("gen_", "").replace("_", " ")[:64] or title
+        # 用 prompt/label 做更好标题
+        if prompt and any("\u4e00" <= c <= "\u9fff" for c in prompt):
+            for w in ("贪吃蛇", "俄罗斯方块", "扫雷", "打砖块", "消消乐"):
+                if w in prompt:
+                    title = w
+                    break
         route = f"/gen/{slug}"
-        summary = (prompt or f"「{app_name}」的「{title}」能力正在由 AI 生成预览页。").strip()[:400]
         interactive = _interactive_fallback(title, prompt or "")
         page: dict[str, Any] = {
             "key": page_key,
             "title": title[:64],
             "route": route,
-            "summary": summary,
-            "blocks": [
-                {"type": "heading", "text": title, "items": []},
-                {"type": "paragraph", "text": summary, "items": []},
-            ],
+            "summary": (prompt or title)[:400],
             "source": "fallback",
         }
         if interactive:
             page["interactive"] = interactive
-            page["blocks"] = [
-                {"type": "paragraph", "text": "可交互工具已按意图泛化为 tool_pad。", "items": []},
-            ]
         else:
-            page["blocks"].extend(
-                [
-                    {
-                        "type": "list",
-                        "text": "下一步",
-                        "items": ["可在 Runtime 继续用对话改页", "转正为正式能力包后接真 API"],
-                    },
-                    {"type": "button", "text": "返回顶部", "items": []},
-                ]
-            )
+            html, tests = _fallback_html_for(title, prompt or "")
+            page["source_html"] = html
+            page["unit_tests"] = tests
         pages.append(page)
         screens.append(
             {
                 "key": page_key,
                 "title": title[:64],
                 "route": route,
-                "body": summary,
+                "body": page.get("summary") or title,
                 "actions": ["返回"],
                 "source": "fallback",
             }

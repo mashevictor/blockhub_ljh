@@ -205,23 +205,77 @@ def developer_app_blueprint(
 def download_app_code_zip(
     public_id: str,
     db: Annotated[Session, Depends(get_db)],
-    user: Annotated[User, Depends(require_admin)],
+    user: Annotated[User, Depends(get_current_user)],
 ) -> Response:
-    """下载应用开发者 zip（仅管理员）。"""
+    """下载应用契约包：管理员或已获批用户。"""
+    from app.services.code_download_access import can_download_code
+
     app = db.query(AppRecord).filter(AppRecord.public_id == public_id).first()
     if not app:
         raise HTTPException(status_code=404, detail="应用不存在")
     if user.tenant_id != app.tenant_id and user.role != "admin":
-        raise HTTPException(status_code=403, detail="无权下载其他租户源码包")
+        raise HTTPException(status_code=403, detail="无权下载其他租户契约包")
+    if not can_download_code(user, app):
+        raise HTTPException(status_code=403, detail="请先申请下载权限，由管理员批准后再下载")
     blueprint = _blueprint_for_app(app)
     data = build_code_zip(blueprint)
     return Response(
         content=data,
         media_type="application/zip",
         headers={
-            "Content-Disposition": f'attachment; filename="blockhub-{public_id}-developer.zip"'
+            "Content-Disposition": f'attachment; filename="blockhub-{public_id}-contract.zip"'
         },
     )
+
+
+@router.get("/{public_id}/developer/code-access")
+def get_code_access(
+    public_id: str,
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+) -> dict:
+    from app.services.code_download_access import access_status
+
+    app = db.query(AppRecord).filter(AppRecord.public_id == public_id).first()
+    if not app:
+        raise HTTPException(status_code=404, detail="应用不存在")
+    _assert_can_view_developer(user, app)
+    return access_status(user, app)
+
+
+@router.post("/{public_id}/developer/code-access/request")
+def request_code_access(
+    public_id: str,
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+) -> dict:
+    from app.services.code_download_access import request_access
+
+    app = db.query(AppRecord).filter(AppRecord.public_id == public_id).first()
+    if not app:
+        raise HTTPException(status_code=404, detail="应用不存在")
+    _assert_can_view_developer(user, app)
+    return request_access(db, user, app)
+
+
+@router.post("/{public_id}/developer/code-access/{target_user_id}/approve")
+def approve_code_access(
+    public_id: str,
+    target_user_id: str,
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(require_admin)],
+) -> dict:
+    from app.services.code_download_access import approve_access
+
+    app = db.query(AppRecord).filter(AppRecord.public_id == public_id).first()
+    if not app:
+        raise HTTPException(status_code=404, detail="应用不存在")
+    if user.tenant_id != app.tenant_id and user.role != "admin":
+        raise HTTPException(status_code=403, detail="无权操作其他租户")
+    try:
+        return approve_access(db, user, app, target_user_id)
+    except PermissionError as e:
+        raise HTTPException(status_code=403, detail=str(e)) from e
 
 
 APK_DIR = "apks"

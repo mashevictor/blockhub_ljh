@@ -1,11 +1,14 @@
+import type { ReactNode } from 'react'
+
 /** CapShip Composer 模式契约（与后端 Runtime PATCH / compose-edit / flow-edit 对齐） */
 
-export type ComposerMode = 'live_edit' | 'module_flow' | 'select_modules'
+export type ComposerMode = 'live_edit' | 'module_flow' | 'select_modules' | 'deliver'
 
 export const COMPOSER_MODES: Array<{ id: ComposerMode; label: string; desc: string }> = [
   { id: 'live_edit', label: '对话改页', desc: '说业务需求，理解后挂正式能力包' },
   { id: 'module_flow', label: '数据流', desc: '编排模块链路，对话或手动改流' },
   { id: 'select_modules', label: '选模块', desc: '从目录检索并多选正式能力' },
+  { id: 'deliver', label: '交付', desc: '草稿版本 · 库表接口 · 契约包下载' },
 ]
 
 export interface ComposerMenuItem {
@@ -87,6 +90,8 @@ export interface ComposerInput {
   scene_ids?: string[]
   modules?: ComposerModuleItem[]
   token?: string | null
+  /** 「交付」Tab 内嵌：库表/接口/契约包（由 Runtime 注入） */
+  deliverPanel?: ReactNode
 }
 
 export interface ComposerEvents {

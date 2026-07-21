@@ -23,7 +23,7 @@ from app.services.keyword_match import match_modules_keyword
 from app.services.llm_text import NO_MARKDOWN_STYLE_RULE, sanitize_llm_plain_text
 from app.services.web_capability_gate import ensure_web_ready_key, is_web_ready_capability
 
-_PAGE_KINDS = ("form_list", "chat_kb", "chart", "roster", "notify", "approval", "files", "integration", "game")
+_PAGE_KINDS = ("form_list", "chat_kb", "chart", "roster", "notify", "approval", "files", "integration", "game", "generated_code")
 
 ComposeCtx = dict[str, str]
 
@@ -87,7 +87,7 @@ _WEAK_COMPANION = frozenset({
     "notify_im", "notify_inapp", "chat_qa", "approval_flow", "kb_document", "flutter_push",
 })
 
-# 可玩小游戏（非 2048）→ Path B gen_* + DeepSeek 出页，勿落到 FAQ/问答
+# 可玩小游戏（非 2048）→ Path B：后台生成可执行代码并验证，勿落业务表单
 _MINIGAME_HINTS = (
     "贪吃蛇", "俄罗斯方块", "消消乐", "扫雷", "连连看", "飞机大战", "打砖块",
     "五子棋", "象棋", "扑克", "麻将", "节奏游戏", "跑酷", "消除",
@@ -101,6 +101,18 @@ def _looks_like_minigame(text: str) -> bool:
     if any(w in t for w in _MINIGAME_HINTS):
         return True
     return ("小游戏" in t or "单机游戏" in t) and any(w in t for w in ("生成", "做", "加", "来个", "玩", "页面"))
+
+
+def _needs_runnable_codegen(text: str) -> bool:
+    """需要后台生成可执行页（非 tool_pad、非正式业务表单）。"""
+    t = (text or "").strip()
+    if not t:
+        return False
+    if _looks_like_minigame(t):
+        return True
+    if any(w in t for w in ("小工具页", "自定义页面", "可视化小玩法", "可交互页面")):
+        return True
+    return False
 
 
 def _looks_like_calculator(text: str) -> bool:
@@ -265,7 +277,7 @@ _SYSTEM = f"""你是积木仓 Runtime 编排助手。用户用中文描述业务
       "capability_key":"registry_key 或 gen_自定义slug",
       "category":"分类",
       "summary":"一句业务说明（回应用户语境）",
-      "page_kind":"form_list|chat_kb|chart|roster|notify|approval|files",
+      "page_kind":"form_list|chat_kb|chart|roster|notify|approval|files|generated_code",
       "widget":"可选；未知能力用 GeneratedPageWidget",
       "page_mock":{{
         "form_title":"贴合场景的表单标题",
@@ -305,9 +317,10 @@ _SYSTEM = f"""你是积木仓 Runtime 编排助手。用户用中文描述业务
 2. 能匹配正式能力则用正式 key（请假→leave_request，报销→expense_claim，报修→device_repair，会议室→meeting_booking，IT→it_ticket，制度→policy_qa 等）。禁止用 approval_flow 顶替专用能力。
 3. 禁止 contract_editor 等无 Web 真包；劳动合同/入职→hire_onboard，法务→legal_case。
 4. **每个 add 必须带 page_mock**，字段名/列表示例要反映用户原话（如「团建」「差旅」「季度 OKR」），禁止复制无关制造/产线话术。
-5. 没有合适正式能力时：capability_key 用 gen_拼音或英文短 slug，widget=GeneratedPageWidget，page_mock 写清表单；接口可异步落地，reply 里说明「页面已出，接口后台生成」。
+5. 没有合适正式能力时：capability_key 用 gen_拼音或英文短 slug，widget=GeneratedPageWidget；业务表单写 page_mock；可玩/自定义交互页标记 pending_codegen，由后台生成可执行代码（用户端只看到成品）。
 5b. **可点按工具 UI**（计算器/计数器/骰子/按键面板等）：必须理解并泛化，在 page_mock 写入 interactive 对象（type=tool_pad，buttons 数组，白名单 ops），**禁止**用 list 文字罗列按键冒充 UI。改交互同样用 patch_page 更新 interactive。
 5c. **仅改标题/菜单名/文案**：用 **rename**（from→to）或 patch_page 文案，**禁止** add 新模块。用户说「改标题」「改名叫」「把请假改成事假」时不得默认挂新能力。
+5d. **小游戏等可执行页**（贪吃蛇等）：page_kind=generated_code，pending_codegen=true，**禁止**用「标题/说明」业务录入表单冒充。2048 用正式能力 game_2048。
 6. 同一正式能力可对应多个不同 label 场景页（加班申请与请假申请可并存）。
 7. 已有相同 label 不要重复 add；可 rename/move。
 8. **改交互控件**（日期弹框/选择器、金额改数字、把文本框改成 date/number）：必须用 **patch_page**，针对当前菜单已有项写完整 page_mock.fields 与 form_fields（含 key/label/type）。type 可用 date / datetime-local / number / text / textarea。禁止空 ops 却说已更新。
@@ -902,7 +915,7 @@ def _enrich_add_op(op: dict[str, Any], ctx: ComposeCtx | None = None) -> dict[st
                 cap = key
                 break
 
-    # 可点按工具 / 小游戏：Path B（业务 SSOT 命中时不抢）
+    # 可点按工具 / 可执行代码页：Path B（业务 SSOT 命中时不抢）
     blob = f"{label} {text} {op.get('summary') or ''}"
     interactive = op.get("interactive") if isinstance(op.get("interactive"), dict) else None
     if not interactive:
@@ -913,7 +926,7 @@ def _enrich_add_op(op: dict[str, Any], ctx: ComposeCtx | None = None) -> dict[st
         interactive = _interactive_schema_for_intent(blob)
 
     if interactive and not ssot_hit:
-        # 本地已有可点工具：立即展示（达 70% 观感），DeepSeek 仅作可选润色
+        # tool_pad：立即可点；不走代码生成
         pending_codegen = False
         if not str(cap).startswith("gen_"):
             cap = _slug_gen_key(label or "tool")
@@ -937,12 +950,27 @@ def _enrich_add_op(op: dict[str, Any], ctx: ComposeCtx | None = None) -> dict[st
         if not op.get("summary"):
             op["summary"] = f"{label}：已按意图泛化为可交互 tool_pad"
         cap_def = None
-    elif _looks_like_minigame(blob) and cap != "game_2048" and not ssot_hit:
-        cap = _slug_gen_key(label or "minigame")
+    elif _needs_runnable_codegen(blob) and cap != "game_2048" and not ssot_hit:
+        # 后台静默：生成可执行 HTML → 验证 → 合并；用户端只见骨架→成品
+        cap = _slug_gen_key(label or "page")
         pending_codegen = True
+        op["capability_key"] = cap
+        op["widget"] = "GeneratedPageWidget"
+        op["page_kind"] = "generated_code"
+        op.pop("form_fields", None)
+        op["page_mock"] = {
+            "ui_kind": "generated_code",
+            "form_title": label,
+            "primary_action": "开始",
+        }
+        if not op.get("summary"):
+            op["summary"] = f"{label}：正在生成可交互页面"
+        cap_def = None
 
     if interactive and not ssot_hit:
         pass  # 已处理
+    elif op.get("page_kind") == "generated_code" and pending_codegen:
+        pass  # 已处理：等 codegen
     elif cap.startswith("gen_") and not ssot_hit:
         # 有可填意图模板 → 立即 ready；否则骨架等 DeepSeek
         pending_codegen = not foresight_ready and not _has_ready_foresight(op)
@@ -1015,8 +1043,19 @@ def _enrich_add_op(op: dict[str, Any], ctx: ComposeCtx | None = None) -> dict[st
         kind = _page_kind_for(cap if not cap.startswith("gen_") else "chat_qa")
     op["page_kind"] = kind
 
-    # UI：SSOT / 意图模板已有 page_mock 则保留；否则按意图补齐
     mock = op.get("page_mock") if isinstance(op.get("page_mock"), dict) else None
+    if kind == "generated_code" or pending_codegen:
+        # 可执行代码页：不要用业务表单 mock 顶掉
+        if not mock or mock.get("ui_kind") != "generated_code":
+            op["page_mock"] = {
+                "ui_kind": "generated_code",
+                "form_title": label,
+                "primary_action": "开始",
+            }
+        op.pop("form_fields", None)
+        return op
+
+    # UI：SSOT / 意图模板已有 page_mock 则保留；否则按意图补齐
     if not mock:
         op["page_mock"] = _intent_page_mock(label, cap, kind, text)
     else:

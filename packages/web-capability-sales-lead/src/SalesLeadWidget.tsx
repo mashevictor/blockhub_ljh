@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { SchemaNode } from '@blockhub/web-core'
 import { apiFetch, GtgtStepComposer, useRuntime, type GtgtStep } from '@blockhub/web-core'
 
@@ -286,6 +286,7 @@ export function SalesLeadWidget({ node }: { node: SchemaNode }) {
   const [resetKey, setResetKey] = useState(0)
   const [values, setValues] = useState<Record<string, string>>({})
   const [msg, setMsg] = useState('')
+  const submittingRef = useRef(false)
 
   // 切换侧栏场景时：重置身份 + 方法，并清掉全局身份覆盖
   useEffect(() => {
@@ -317,13 +318,24 @@ export function SalesLeadWidget({ node }: { node: SchemaNode }) {
     ]
     if (sceneLocked) {
       const primary = METHOD_BY_CATEGORY[defaultCat] || method
-      // 场景页只保留本场景主方法；渠道分析只看看板
+      // 场景页：主方法 + 关联的待领取/跟进，便于看清数据链路（仍以本场景为主）
       if (channelOnly) {
         return [{ key: 'pipeline' as MethodTab, label: sceneTitle || '渠道来源分析' }]
       }
-      return all.filter((t) => t.key === primary).map((t) => ({
+      const related = new Set<MethodTab>([primary])
+      if (primary === 'capture' || primary === 'referral') {
+        related.add('pool')
+        related.add('pipeline')
+      } else if (primary === 'pool') {
+        related.add('capture')
+        related.add('pipeline')
+      } else if (primary === 'assign' || primary === 'clean' || primary === 'score') {
+        related.add('pool')
+        related.add('pipeline')
+      }
+      return all.filter((t) => related.has(t.key)).map((t) => ({
         ...t,
-        label: sceneTitle || t.label,
+        label: t.key === primary ? sceneTitle || t.label : t.label,
       }))
     }
     if (role === 'sales_marketing') {
@@ -473,14 +485,18 @@ export function SalesLeadWidget({ node }: { node: SchemaNode }) {
   }, [method, sceneTitle])
 
   const submit = async () => {
-    if (!token) return
+    if (!token || submittingRef.current || busy) return
+    submittingRef.current = true
     setBusy(true)
     setMsg('')
     try {
       const app_public_id = appId || ''
       if (method === 'capture' || method === 'referral') {
         const customer = pick(values, 'customer', 'company_name', 'company')
-        if (!customer) return
+        if (!customer) {
+          setMsg('请填写公司/客户')
+          return
+        }
         await apiFetch('/api/v1/sales-lead/records', token, {
           method: 'POST',
           body: JSON.stringify({
@@ -498,8 +514,12 @@ export function SalesLeadWidget({ node }: { node: SchemaNode }) {
         setMsg('已写入待领取')
         setValues({})
         setResetKey((k) => k + 1)
-        setMethod('pool')
-        // method 变更后 load effect 会拉「待领取」列表
+        // 场景锁定时勿切走主方法（否则会与 methodTabs 打架并易触发二次提交观感）
+        if (sceneLocked) {
+          await load()
+        } else {
+          setMethod('pool')
+        }
         return
       } else if (method === 'assign') {
         await apiFetch('/api/v1/sales-lead/records/assign', token, {
@@ -549,6 +569,7 @@ export function SalesLeadWidget({ node }: { node: SchemaNode }) {
     } catch (e) {
       setMsg(`提交失败：${String(e)}`)
     } finally {
+      submittingRef.current = false
       setBusy(false)
     }
   }
@@ -594,79 +615,84 @@ export function SalesLeadWidget({ node }: { node: SchemaNode }) {
 
   return (
     <div>
+      <SalesFlowGuide
+        role={role}
+        method={method}
+        accent={accent}
+        onJump={(m) => {
+          if (!methodTabs.some((t) => t.key === m)) {
+            setMsg(`当前场景侧重「${METHOD_LABEL[method]}」；可点上方链路看关联步骤`)
+            return
+          }
+          setMethod(m)
+          setValues({})
+          setResetKey((k) => k + 1)
+          setMsg('')
+        }}
+      />
+
       {sceneLocked ? (
-        <div style={{ marginBottom: 14 }}>
+        <div style={{ marginBottom: 12 }}>
           <h3 style={{ margin: '0 0 4px', fontSize: 16, color: '#0f172a' }}>
             {sceneTitle || METHOD_LABEL[method] || '销售获客'}
           </h3>
           <p className="muted" style={{ margin: 0, fontSize: 12 }}>
-            {ROLE_LABEL[role]} · 本场景固定为「{METHOD_LABEL[method]}」
-            {channelOnly ? '（渠道转化看板）' : ''}
+            {ROLE_LABEL[role]} · 本场景主方法「
+            {METHOD_LABEL[METHOD_BY_CATEGORY[defaultCat] || method]}」
+            {channelOnly ? '（渠道转化看板）' : ' · 上方为数据流转图'}
           </p>
         </div>
       ) : (
-        <>
-          <SalesFlowGuide
-            role={role}
-            method={method}
-            accent={accent}
-            onJump={(m) => {
-              setMethod(m)
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', marginBottom: 12 }}>
+          <span className="muted" style={{ fontSize: 12 }}>
+            身份
+          </span>
+          {(Object.keys(ROLE_LABEL) as SalesRole[]).map((r) => (
+            <button
+              key={r}
+              type="button"
+              className={role === r ? 'btn' : 'btn btn-ghost'}
+              style={{
+                fontSize: 12,
+                padding: '4px 10px',
+                background: role === r ? accent : undefined,
+                color: role === r ? '#fff' : undefined,
+                border: 'none',
+                borderRadius: 6,
+                cursor: 'pointer',
+              }}
+              onClick={() => onRoleChange(r)}
+            >
+              {ROLE_LABEL[r]}
+            </button>
+          ))}
+        </div>
+      )}
+
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 14 }}>
+        {methodTabs.map((t) => (
+          <button
+            key={t.key}
+            type="button"
+            className="btn btn-ghost"
+            style={{
+              fontSize: 12,
+              padding: '4px 10px',
+              fontWeight: method === t.key ? 700 : 400,
+              borderBottom: method === t.key ? `2px solid ${accent}` : '2px solid transparent',
+              borderRadius: 0,
+            }}
+            onClick={() => {
+              setMethod(t.key)
               setValues({})
               setResetKey((k) => k + 1)
               setMsg('')
             }}
-          />
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', marginBottom: 12 }}>
-            <span className="muted" style={{ fontSize: 12 }}>
-              身份
-            </span>
-            {(Object.keys(ROLE_LABEL) as SalesRole[]).map((r) => (
-              <button
-                key={r}
-                type="button"
-                className={role === r ? 'btn' : 'btn btn-ghost'}
-                style={{
-                  fontSize: 12,
-                  padding: '4px 10px',
-                  background: role === r ? accent : undefined,
-                  color: role === r ? '#fff' : undefined,
-                  border: 'none',
-                  borderRadius: 6,
-                  cursor: 'pointer',
-                }}
-                onClick={() => onRoleChange(r)}
-              >
-                {ROLE_LABEL[r]}
-              </button>
-            ))}
-          </div>
-
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 14 }}>
-            {methodTabs.map((t) => (
-              <button
-                key={t.key}
-                type="button"
-                className="btn btn-ghost"
-                style={{
-                  fontSize: 12,
-                  padding: '4px 10px',
-                  fontWeight: method === t.key ? 700 : 400,
-                  borderBottom: method === t.key ? `2px solid ${accent}` : '2px solid transparent',
-                  borderRadius: 0,
-                }}
-                onClick={() => {
-                  setMethod(t.key)
-                  setValues({})
-                  setResetKey((k) => k + 1)
-                }}
-              >
-                {t.label}
-              </button>
-            ))}
-          </div>
-        </>
-      )}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
 
       {(channelOnly || (role === 'sales_marketing' && channels.length > 0 && method !== 'pipeline')) && (
         <div

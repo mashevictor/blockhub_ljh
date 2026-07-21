@@ -794,14 +794,6 @@ export default function App() {
           </footer>
         )}
 
-        <DeveloperBlueprintPanel
-          mode="app"
-          appId={appId}
-          token={token}
-          role={user.role}
-          accent={primaryColor}
-        />
-
         <Suspense fallback={null}>
           <CapShipComposerDock
             storageKey="capship-runtime-dock-v5"
@@ -813,6 +805,16 @@ export default function App() {
             page_schema={schema as never}
             build_manifest={manifest}
             defaultMode={"live_edit" as const}
+            deliverPanel={
+              <DeveloperBlueprintPanel
+                variant="embedded"
+                mode="app"
+                appId={appId}
+                token={token}
+                role={user.role}
+                accent={primaryColor}
+              />
+            }
             onSchemaPatch={(next: unknown) => {
               const s = next as PageSchema
               setSchema(s)

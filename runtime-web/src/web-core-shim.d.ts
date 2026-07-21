@@ -9,6 +9,7 @@ export interface DeveloperBlueprintPanelProps {
   role?: string
   accent?: string
   className?: string
+  variant?: 'float' | 'embedded'
   onAuth?: (auth: { token: string; role: string; display_name: string }) => void
 }
 
@@ -22,6 +23,52 @@ export interface AuthUser {
   role: string
   display_name: string
 }
+
+export declare function apiFetch<T = unknown>(
+  path: string,
+  token: string,
+  init?: RequestInit,
+): Promise<T>
+
+export declare function useRuntime(): {
+  token: string
+  primaryColor?: string
+  appId?: string
+  user?: AuthUser & Record<string, unknown>
+  schema?: PageSchema | null
+}
+
+export type GtgtStep = {
+  key: string
+  label: string
+  placeholder?: string
+  hint?: string
+  optional?: boolean
+  inputType?: string
+  render?: (ctx: { value: string; setValue: (v: string) => void; accent: string }) => ReactNode
+}
+
+export declare function GtgtStepComposer(props: {
+  title: string
+  meta?: string
+  accent?: string
+  steps: GtgtStep[]
+  values: Record<string, string>
+  onChange: (key: string, value: string) => void
+  onComplete: () => void | Promise<void>
+  busy?: boolean
+  submitLabel?: string
+  flowHint?: string
+  resetKey?: string | number
+  variant?: 'default' | 'soft'
+  children?: ReactNode
+}): ReactNode
+
+export declare function resolveFormFieldDefs(opts: {
+  defaults?: Array<{ key: string; label: string; placeholder?: string; optional?: boolean; type?: string }>
+  formFields?: unknown
+  pageMockFields?: unknown
+}): Array<{ key: string; label: string; placeholder?: string; optional?: boolean; type?: string }>
 
 export interface BuildManifest {
   version?: string

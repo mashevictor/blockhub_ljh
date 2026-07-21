@@ -162,6 +162,7 @@ function applyGeneratedPages(
     summary?: string
     blocks?: Array<{ type?: string; text?: string; items?: string[] }>
     interactive?: Record<string, unknown>
+    source_html?: string
   }>,
 ): ComposerPageSchema {
   let next = schema
@@ -195,8 +196,16 @@ function applyGeneratedPages(
         props.page_mock = {
           ...((props.page_mock as object) || {}),
           interactive,
-          ui_kind: 'tool_pad',
+          ui_kind: String((interactive as { type?: string }).type || 'tool_pad'),
         }
+      }
+      if (page.source_html) {
+        props.source_html = page.source_html
+        props.page_kind = 'generated_code'
+        props.ui_kind = 'generated_code'
+        props.page_mock = { ui_kind: 'generated_code', form_title: title }
+        delete props.blocks
+        delete props.form_fields
       }
       children[idx] = { ...child, type: 'generated_page', props }
       keys.add(key)
@@ -211,15 +220,26 @@ function applyGeneratedPages(
         route,
         title,
         summary: page.summary || '',
-        blocks: page.blocks || [],
         source: 'generated',
         codegen_pending: false,
-        ...(interactive
+        ...(page.source_html
           ? {
-              interactive,
-              page_mock: { interactive, ui_kind: 'tool_pad', form_title: title },
+              source_html: page.source_html,
+              page_kind: 'generated_code',
+              ui_kind: 'generated_code',
+              page_mock: { ui_kind: 'generated_code', form_title: title },
             }
-          : {}),
+          : interactive
+            ? {
+                interactive,
+                page_mock: {
+                  interactive,
+                  ui_kind: String((interactive as { type?: string }).type || 'tool_pad'),
+                  form_title: title,
+                },
+                blocks: page.blocks || [],
+              }
+            : { blocks: page.blocks || [] }),
       },
     })
     if (!menu.some((m) => m.capability_key === key || m.key === key)) {
@@ -594,6 +614,7 @@ export function CapShipComposer({
   onPublish,
   onSaved,
   onError,
+  deliverPanel,
 }: CapShipComposerProps) {
   const [mode, setMode] = useState<ComposerMode>(controlledMode ?? defaultMode)
   const [keys, setKeys] = useState<string[]>(() => (initialKeys?.length ? [...initialKeys] : ['chat_qa']))
@@ -2092,6 +2113,20 @@ export function CapShipComposer({
               </button>
             )}
           </div>
+        </div>
+      )}
+
+      {activeMode === 'deliver' && (
+        <div className="capship-composer-pane capship-composer-deliver">
+          <p className="capship-composer-hint">
+            统一交付入口：上方是页面配置的草稿 / 审批 / 版本（影响 Runtime 菜单与页面）；下方是当前能力对应的库表、接口与契约包。
+            二者同一闭环——改页先草稿再审批；下载契约包需申请权限（管理员可直下或批准）。
+          </p>
+          {deliverPanel || (
+            <p className="muted" style={{ fontSize: 13 }}>
+              未注入交付面板（预览环境可忽略）。
+            </p>
+          )}
         </div>
       )}
 

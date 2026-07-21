@@ -23,12 +23,20 @@ def _page_props(page: dict[str, Any], *, key: str, title: str, route: str) -> di
         "blocks": page.get("blocks") or [],
         "codegen_pending": False,
     }
+    source_html = str(page.get("source_html") or "").strip()
+    if source_html:
+        props["source_html"] = source_html
+        props["page_kind"] = "generated_code"
+        props["ui_kind"] = "generated_code"
+        props["page_mock"] = {"ui_kind": "generated_code", "form_title": title}
+        props.pop("blocks", None)
+        return props
     interactive = page.get("interactive")
     if isinstance(interactive, dict):
         props["interactive"] = interactive
         props["page_mock"] = {
             "interactive": interactive,
-            "ui_kind": "tool_pad",
+            "ui_kind": str(interactive.get("type") or "tool_pad"),
             "form_title": title,
         }
     return props

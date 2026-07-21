@@ -44,6 +44,8 @@ export interface DeveloperBlueprintPanelProps {
   role?: string
   accent?: string
   className?: string
+  /** float=独立悬浮；embedded=嵌在 Composer「交付」Tab */
+  variant?: 'float' | 'embedded'
   onAuth?: (auth: { token: string; role: string; display_name: string }) => void
 }
 

@@ -1,8 +1,40 @@
-.dev-bp {
-  --dev-bp-accent: #2563eb;
-  font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
-  font-size: 13px;
-  color: #0f172a;
+.dev-bp.is-embedded .dev-bp-panel {
+  position: static;
+  width: 100%;
+  max-height: min(52vh, 520px);
+  box-shadow: none;
+  border-radius: 10px;
+  margin-top: 8px;
+}
+
+.dev-bp-grants {
+  padding: 8px 12px;
+  border-bottom: 1px solid #e2e8f0;
+  background: #fff7ed;
+}
+
+.dev-bp-grants ul {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+}
+
+.dev-bp-grants li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 0;
+  font-size: 12px;
+}
+
+.dev-bp-grants button {
+  border: 1px solid #fdba74;
+  background: #fff;
+  border-radius: 6px;
+  padding: 2px 10px;
+  cursor: pointer;
+  font-size: 12px;
 }
 
 .dev-bp-toggle {

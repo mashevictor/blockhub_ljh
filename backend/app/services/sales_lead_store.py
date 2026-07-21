@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from sqlalchemy import or_
@@ -179,6 +179,31 @@ def create_record(
     src = (source or "").strip()[:64]
     if cat == "referral-lead" and not src:
         src = "转介绍"
+    cust = (customer or "").strip()
+    note_s = (note or "").strip()
+    app_pid = (app_public_id or "").strip()
+
+    # 防双提交：同一租户/应用/客户/来源 90 秒内复用已有记录（忽略备注细微差异）
+    if cust and cat in ("lead-capture", "referral-lead", "lead"):
+        since = datetime.now(timezone.utc) - timedelta(seconds=90)
+        dup_q = (
+            db.query(SalesLeadRecord)
+            .options(joinedload(SalesLeadRecord.reporter))
+            .filter(
+                SalesLeadRecord.tenant_id == user.tenant_id,
+                SalesLeadRecord.app_public_id == app_pid,
+                SalesLeadRecord.customer == cust,
+                SalesLeadRecord.source == src,
+                SalesLeadRecord.category == cat,
+                SalesLeadRecord.reporter_id == user.id,
+                SalesLeadRecord.created_at >= since,
+            )
+            .order_by(SalesLeadRecord.created_at.desc())
+        )
+        existing = dup_q.first()
+        if existing:
+            return to_dict(existing)
+
     display = (user.display_name or user.email or "").strip()
     if desired_pool == "pool":
         owner_name = (owner or "").strip() or "待领取"
@@ -188,14 +213,14 @@ def create_record(
         owner_uid = user.id if not (owner or "").strip() or owner_name == display else None
     row = SalesLeadRecord(
         tenant_id=user.tenant_id,
-        app_public_id=(app_public_id or "").strip(),
+        app_public_id=app_pid,
         reporter_id=user.id,
         record_no=_no(),
         category=cat,
-        customer=(customer or "").strip(),
+        customer=cust,
         amount=(amount or "").strip(),
         owner=owner_name,
-        note=(note or "").strip(),
+        note=note_s,
         status="open",
         source=src,
         score=None,

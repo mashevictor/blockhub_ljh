@@ -135,9 +135,28 @@ function resolveInteractiveForNode(node: SchemaNode) {
   return interactiveSchemaFromIntent(blob)
 }
 
+function GeneratedCodeFrame({ title, html }: { title: string; html: string }) {
+  return (
+    <article className="generated-page generated-page--code" data-source="generated">
+      <iframe
+        title={title}
+        srcDoc={html}
+        sandbox="allow-scripts"
+        style={{
+          width: '100%',
+          minHeight: 420,
+          border: '1px solid #e2e8f0',
+          borderRadius: 12,
+          background: '#fff',
+        }}
+      />
+    </article>
+  )
+}
+
 /**
- * Path B / gen_* 即时预览页：GtgtStepComposer 可交互录入 + 本机记录列表。
- * 接口未落地前数据仅存本机，徽章标明非正式业务库。
+ * Path B：有 source_html 直接 iframe；tool_pad 可点；业务才用 Gtgt。
+ * 生成中仅简骨架，不把校验过程暴露给用户。
  */
 function GeneratedPageWidget({ node }: { node: SchemaNode }) {
   const { primaryColor, user, schema } = useRuntime()
@@ -152,50 +171,22 @@ function GeneratedPageWidget({ node }: { node: SchemaNode }) {
   const summary = String(node.props?.summary || '')
   const capKey = String(node.props?.capability_key || node.id || 'gen_page')
   const pending = Boolean(node.props?.codegen_pending)
+  const sourceHtml = String(node.props?.source_html || '').trim()
+  const pageKind = String(
+    node.props?.page_kind ||
+      node.props?.ui_kind ||
+      (node.props?.page_mock as PageMock | undefined)?.ui_kind ||
+      '',
+  )
   const mock = node.props?.page_mock as PageMock | undefined
   const rawBlocks = (Array.isArray(node.props?.blocks) ? node.props?.blocks : []) as Block[]
-
   const interactive = resolveInteractiveForNode(node)
-  // 异步 DeepSeek 出页中：只显示骨架，不提前露出弱表单
-  if (pending) {
-    return (
-      <article
-        className={`generated-page generated-page--skeleton${industrySite ? ' generated-page--industry' : ''}`}
-        data-source="generating"
-        aria-busy="true"
-        aria-label={`${title} 生成中`}
-      >
-        <header className="generated-skeleton-head">
-          <p className="generated-badge">DeepSeek 生成中</p>
-          <h2>{title}</h2>
-          <p className="generated-summary">
-            {summary || '正在根据你的需求生成页面结构与字段，完成后自动展示可交互预览。'}
-          </p>
-        </header>
-        <div className="generated-skeleton-body" aria-hidden>
-          <div className="generated-skel-line generated-skel-line--lg" />
-          <div className="generated-skel-line" />
-          <div className="generated-skel-line" />
-          <div className="generated-skel-card" />
-          <div className="generated-skel-card" />
-        </div>
-        <p className="muted" style={{ margin: 0, fontSize: 13 }}>
-          请稍候，勿重复提交同一需求…
-        </p>
-      </article>
-    )
-  }
-
-  if (interactive) {
-    return <InteractiveToolPad schema={interactive} title={title || '交互工具'} summary={summary} />
-  }
 
   const fieldDefs = useMemo(() => {
     const hasCustom =
       (Array.isArray(node.props?.form_fields) && (node.props?.form_fields as unknown[]).length > 0) ||
       (Array.isArray(mock?.fields) && mock!.fields!.length > 0)
     return resolveFormFieldDefs({
-      // 有 page_mock / form_fields 时不要用 title/note 默认顶掉业务字段
       defaults: hasCustom
         ? undefined
         : [
@@ -244,6 +235,34 @@ function GeneratedPageWidget({ node }: { node: SchemaNode }) {
     setMsg('')
     setResetKey((k) => k + 1)
   }, [capKey])
+
+  if (sourceHtml) {
+    return <GeneratedCodeFrame title={title} html={sourceHtml} />
+  }
+
+  if (pending || pageKind === 'generated_code') {
+    return (
+      <article
+        className={`generated-page generated-page--skeleton${industrySite ? ' generated-page--industry' : ''}`}
+        data-source="generating"
+        aria-busy="true"
+        aria-label={`${title} 生成中`}
+      >
+        <header className="generated-skeleton-head">
+          <h2>{title}</h2>
+          <p className="generated-summary">{summary || '页面生成中，稍候即可使用…'}</p>
+        </header>
+        <div className="generated-skeleton-body" aria-hidden>
+          <div className="generated-skel-line generated-skel-line--lg" />
+          <div className="generated-skel-card" />
+        </div>
+      </article>
+    )
+  }
+
+  if (interactive) {
+    return <InteractiveToolPad schema={interactive} title={title || '交互工具'} summary={summary} />
+  }
 
   const displayList: Array<LocalRecord | SeedRow> = [
     ...records,
