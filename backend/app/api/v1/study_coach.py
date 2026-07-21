@@ -19,6 +19,7 @@ router = APIRouter(prefix="/study-coach", tags=["study-coach"])
 class LocateBody(BaseModel):
     query: str = Field(min_length=1, max_length=200)
     role: str = "student"
+    region: str = Field(default="", max_length=64)
 
 
 class CreateCourseBody(BaseModel):
@@ -99,8 +100,8 @@ def locate_api(
     if not q:
         raise HTTPException(status_code=400, detail="请先说一下课本名")
     role = body.role if body.role in ("student", "parent", "teacher") else "student"
-    candidates = store.locate_textbooks(query=q, role=role)
-    return {"total": len(candidates), "candidates": candidates, "query": q}
+    candidates = store.locate_textbooks(query=q, role=role, region=(body.region or "").strip())
+    return {"total": len(candidates), "candidates": candidates, "query": q, "region": (body.region or "").strip()}
 
 
 @router.get("/courses")

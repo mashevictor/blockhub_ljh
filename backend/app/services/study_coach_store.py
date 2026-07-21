@@ -26,6 +26,33 @@ TEMPLATE_LABEL = {
     "wrongbook": "错题巩固",
     "read_aloud": "本课朗读清单",
 }
+
+
+def templates_allowed_for_subject(subject: str) -> set[str]:
+    """科目 ↔ 练习模板：禁止英语出口算、数学出单词卡等错配。"""
+    s = (subject or "").strip().lower()
+    if "英语" in s or "english" in s:
+        return {"word_cards", "read_aloud", "wrongbook", "dictation"}
+    if "数学" in s or "math" in s:
+        return {"math_drill", "wrongbook", "read_aloud"}
+    if "语文" in s or "chinese" in s:
+        return {"dictation", "read_aloud", "wrongbook"}
+    return set(VALID_TONIGHT_TEMPLATE)
+
+
+def coerce_tonight_template(template: str, subject: str) -> str:
+    tpl = (template or "").strip()
+    allowed = templates_allowed_for_subject(subject)
+    if tpl in allowed:
+        return tpl
+    s = (subject or "").strip()
+    if "英语" in s:
+        return "word_cards"
+    if "数学" in s:
+        return "math_drill"
+    if "语文" in s:
+        return "dictation"
+    return next(iter(sorted(allowed))) if allowed else "dictation"
 TEMPLATE_DRILL_KIND = {
     "dictation": "dictation",
     "word_cards": "review",
@@ -33,6 +60,33 @@ TEMPLATE_DRILL_KIND = {
     "wrongbook": "review",
     "read_aloud": "review",
 }
+
+
+def templates_allowed_for_subject(subject: str) -> set[str]:
+    """科目 ↔ 练习模板：禁止英语出口算、数学出单词卡等错配。"""
+    s = (subject or "").strip().lower()
+    if "英语" in s or "english" in s:
+        return {"word_cards", "read_aloud", "wrongbook", "dictation"}
+    if "数学" in s or "math" in s:
+        return {"math_drill", "wrongbook", "read_aloud"}
+    if "语文" in s or "chinese" in s:
+        return {"dictation", "read_aloud", "wrongbook"}
+    return set(VALID_TONIGHT_TEMPLATE)
+
+
+def coerce_tonight_template(template: str, subject: str) -> str:
+    tpl = (template or "").strip()
+    allowed = templates_allowed_for_subject(subject)
+    if tpl in allowed:
+        return tpl
+    s = (subject or "").strip()
+    if "英语" in s:
+        return "word_cards"
+    if "数学" in s:
+        return "math_drill"
+    if "语文" in s:
+        return "dictation"
+    return next(iter(sorted(allowed))) if allowed else "dictation"
 
 
 def _no(prefix: str) -> str:
@@ -797,36 +851,42 @@ def _candidate_from_raw(raw: Any, fallback: dict[str, Any]) -> dict[str, Any] | 
     return catalog
 
 
-def locate_textbooks(*, query: str, role: str = "student") -> list[dict[str, Any]]:
-    """定位册次：优先目录库命中，再补 DeepSeek/规则候选。"""
+def locate_textbooks(*, query: str, role: str = "student", region: str = "") -> list[dict[str, Any]]:
+    """定位册次：优先目录库命中，再补 DeepSeek/规则候选（可带地区偏好）。"""
     q = (query or "").strip()
     if not q:
         return []
+    region = (region or "").strip()
     out: list[dict[str, Any]] = []
-    for book, score in toc_lib.match_books(q, limit=3):
+    # 地区+查询一起撞目录库
+    match_q = f"{region} {q}".strip() if region else q
+    for book, score in toc_lib.match_books(match_q, limit=4):
         out.append(toc_lib.catalog_from_book(book, confidence=score))
-    if out:
-        return out
+    if len(out) >= 2:
+        return out[:3]
 
     hint = _heuristic_catalog(q, "", "")
     system = (
         "你是中国K12教材定位助手。用户口语描述课本，你只输出可能的具体册次候选，不要生成学习单元。"
-        "常见例子：沪教版/牛津上海版英语·五四制·小学二年级下；人教版语文·三年级上。"
+        "常见例子：沪教版/牛津上海版英语·五四制·小学二年级下；人教版语文·三年级上；苏教版数学。"
         "规则："
-        "1) 给出 1~3 个最可能的册次，按 confidence 从高到低；"
+        "1) 给出 2~4 个最可能的册次，按 confidence 从高到低，供家长点选；"
         "2) 每条拆开 publisher/series/subject/school_system/stage/grade/semester/full_title；"
-        "3) 沪教英语优先牛津上海版/沪教牛津，并写明五四制或六三制；"
-        "4) 信息不足也要给最合理猜测，并在 note 写清不确定点；"
-        "5) full_title 写成家长/老师能一眼确认的规范全称。"
+        "3) 若提供了地区（如上海/江苏/广东），优先该地区主流版本（上海→沪教/牛津上海；江苏→苏教；广东→粤教/人教；全国默认人教/部编）；"
+        "4) 沪教英语优先牛津上海版/沪教牛津，并写明五四制或六三制；"
+        "5) 信息不足也要给最合理猜测，并在 note 写清不确定点与地区假设；"
+        "6) full_title 写成家长/老师能一眼确认的规范全称；"
+        "7) subject 必须是 语文/数学/英语 之一（或准确学科名），禁止把英语册次标成数学。"
         "只返回 JSON：{\"candidates\":[{\"publisher\":\"\",\"series\":\"\",\"subject\":\"\","
         "\"school_system\":\"\",\"stage\":\"\",\"grade\":\"\",\"semester\":\"\","
         "\"full_title\":\"\",\"confidence\":0.0,\"note\":\"\"}]}"
     )
     user = (
         f"用户说的课本：{q}\n"
+        f"所在地区（可空）：{region or '未说明'}\n"
         f"发起角色：{role}\n"
         f"规则粗解析参考：{hint}\n"
-        "请给出可点选确认的册次候选。"
+        "请给出可点选确认的册次候选（至少 2 个，除非只有一种可能）。"
     )
     parsed = deepseek_json_chat(system, user, temperature=0.1)
     if isinstance(parsed, dict):
@@ -834,7 +894,7 @@ def locate_textbooks(*, query: str, role: str = "student") -> list[dict[str, Any
         if not isinstance(raw_list, list) and isinstance(parsed.get("catalog"), dict):
             raw_list = [parsed.get("catalog")]
         if isinstance(raw_list, list):
-            for raw in raw_list[:3]:
+            for raw in raw_list[:4]:
                 item = _candidate_from_raw(raw, hint)
                 if item:
                     # 二次尝试用 full_title 撞目录库
@@ -845,11 +905,13 @@ def locate_textbooks(*, query: str, role: str = "student") -> list[dict[str, Any
                         item["toc_source"] = "llm_guess"
                         out.append(item)
     if not out:
-        lib_again = toc_lib.match_books(q, limit=1)
+        lib_again = toc_lib.match_books(match_q, limit=2)
         if lib_again:
-            out = [toc_lib.catalog_from_book(lib_again[0][0], confidence=lib_again[0][1])]
+            out = [toc_lib.catalog_from_book(b, confidence=s) for b, s in lib_again]
         else:
             hint["toc_source"] = "heuristic"
+            if region:
+                hint["note"] = f"{hint.get('note') or ''}（按地区「{region}」猜测）".strip()
             out = [hint]
     seen: set[str] = set()
     uniq: list[dict[str, Any]] = []
@@ -859,7 +921,7 @@ def locate_textbooks(*, query: str, role: str = "student") -> list[dict[str, Any
             continue
         seen.add(key)
         uniq.append(c)
-    return uniq
+    return uniq[:4]
 
 
 def _enrich_unit_steps_with_deepseek(
@@ -1883,6 +1945,10 @@ def generate_tonight(
     tpl = (template or "").strip()
     if tpl not in VALID_TONIGHT_TEMPLATE:
         raise ValueError("未知练习模板")
+    subject = (course.subject or "").strip()
+    if not subject and isinstance(course.catalog_json, dict):
+        subject = str(course.catalog_json.get("subject") or "").strip()
+    tpl = coerce_tonight_template(tpl, subject)
     payload_plan = _load_plan_payload(course)
     units = [u for u in (payload_plan.get("units") or []) if isinstance(u, dict)]
     unit = next((u for u in units if int(u.get("order") or 0) == int(unit_order)), None)

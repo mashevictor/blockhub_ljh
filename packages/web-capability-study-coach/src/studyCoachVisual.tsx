@@ -61,6 +61,22 @@ export const SC_TEMPLATES: {
   { key: 'read_aloud', label: '本课朗读清单', tip: '按步骤朗读', meaning: '出声读 + 勾选' },
 ]
 
+/** 按科目过滤今晚模板，避免英语出口算等错配 */
+export function templatesForSubject(subject: string): typeof SC_TEMPLATES {
+  const s = (subject || '').trim().toLowerCase()
+  const allow = (keys: ScTemplateKey[]) => SC_TEMPLATES.filter((t) => keys.includes(t.key))
+  if (s.includes('英语') || s.includes('english')) {
+    return allow(['word_cards', 'read_aloud', 'wrongbook', 'dictation'])
+  }
+  if (s.includes('数学') || s.includes('math')) {
+    return allow(['math_drill', 'wrongbook', 'read_aloud'])
+  }
+  if (s.includes('语文') || s.includes('chinese')) {
+    return allow(['dictation', 'read_aloud', 'wrongbook'])
+  }
+  return SC_TEMPLATES
+}
+
 export function scVars(brand: string): CSSProperties {
   const b = brand || SC_FALLBACK_BRAND
   return {
@@ -358,8 +374,15 @@ export function ScSheet({ children, style }: { children: ReactNode; style?: CSSP
 }
 
 export const SC_CSS = `
-  .sc-root { color: var(--sc-ink); }
+  .sc-root { color: var(--sc-ink); width: 100%; box-sizing: border-box; }
   .sc-root button { font-family: inherit; }
+  .sc-root .bh-gtgt-form.booking-float-composer,
+  .sc-root .booking-float-composer {
+    max-width: none !important;
+    width: 100% !important;
+    box-sizing: border-box;
+  }
+  .sc-root .sc-book-panel { width: 100%; box-sizing: border-box; }
   @keyframes scPulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.05)} }
   @keyframes scPop { from{opacity:0;transform:translateY(8px) scale(.985)} to{opacity:1;transform:none} }
   .sc-flow-dot { transition: transform .2s ease, box-shadow .2s ease; }

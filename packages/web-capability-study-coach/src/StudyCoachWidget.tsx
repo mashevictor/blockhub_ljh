@@ -11,6 +11,7 @@ import {
   ScSheet,
   scType,
   scVars,
+  templatesForSubject,
   type ScTemplateKey,
 } from './studyCoachVisual'
 
@@ -206,7 +207,19 @@ export function StudyCoachWidget(_props: { node: SchemaNode }) {
   }, [activeCourse, focusUnitOrder])
 
   const askSteps: GtgtStep[] = useMemo(
-    () => [{ key: 'query', label: '学哪一科、哪一本？', placeholder: '部编语文三上 / 人教数学一下' }],
+    () => [
+      {
+        key: 'region',
+        label: '所在地区（可空）',
+        placeholder: '如：上海 / 江苏 / 广东',
+        optional: true,
+      },
+      {
+        key: 'query',
+        label: '学哪一科、哪一本？',
+        placeholder: '部编语文三上 / 人教数学一下 / 沪教英语二下',
+      },
+    ],
     [],
   )
   const genSteps: GtgtStep[] = useMemo(
@@ -248,20 +261,33 @@ export function StudyCoachWidget(_props: { node: SchemaNode }) {
     void load()
   }, [load])
 
+  // 切换课本科目时：模板若不适用则清空，避免英语仍选着口算
+  useEffect(() => {
+    if (!activeCourse) return
+    const allowed = templatesForSubject(activeCourse.subject || activeCourse.catalog?.subject || '')
+    if (pickedTemplate && !allowed.some((t) => t.key === pickedTemplate)) {
+      setPickedTemplate('')
+    }
+  }, [activeCourse?.id, activeCourse?.subject, activeCourse?.catalog?.subject, pickedTemplate])
+
   const locateBook = async () => {
     if (!token) return
     const query = (queryValues.query || '').trim()
     if (!query) return
+    const region = (queryValues.region || '').trim()
     setBusy(true)
     setMsg('')
     try {
       const data = await apiFetch<{ candidates: CatalogInfo[]; query: string }>('/api/v1/study-coach/locate', token, {
         method: 'POST',
-        body: JSON.stringify({ query, app_public_id: appId || '' }),
+        body: JSON.stringify({ query, region, role: 'parent', app_public_id: appId || '' }),
       })
       setLastQuery(data.query || query)
       setCandidates(data.candidates || [])
       setPhase('confirm')
+      if ((data.candidates || []).length > 1) {
+        setMsg(`已给出 ${(data.candidates || []).length} 个册次候选，请点选确认`)
+      }
     } catch (e) {
       setMsg(`定位失败：${String(e)}`)
     } finally {
@@ -558,14 +584,14 @@ export function StudyCoachWidget(_props: { node: SchemaNode }) {
 
       {/* 课本阶段 */}
       {(flow === 'book' || !activeCourse) && (
-        <>
+        <div className="sc-book-panel">
           {(showAsk || courses.length === 0) && phase === 'ask' && (
             <GtgtStepComposer
               title={entrySource === 'im' ? '课本学习协作' : '先定位课本'}
-              meta="说出科目与册次"
+              meta="地区 → 科目册次 → 点选确认"
               accent={accent}
               variant="soft"
-              flowHint="说课本 → 确认册次 → 今晚练什么"
+              flowHint="说地区与课本 → 确认册次 → 今晚练什么"
               steps={askSteps}
               values={queryValues}
               onChange={(k, v) => setQueryValues((p) => ({ ...p, [k]: v }))}
@@ -581,8 +607,11 @@ export function StudyCoachWidget(_props: { node: SchemaNode }) {
             </button>
           )}
           {phase === 'confirm' && (
-            <div style={{ animation: 'scPop .3s ease', marginBottom: 12 }}>
-              <div style={{ fontWeight: 800, marginBottom: 8 }}>确认要学的册次</div>
+            <div style={{ animation: 'scPop .3s ease', marginBottom: 12, width: '100%' }}>
+              <div style={{ fontWeight: 800, marginBottom: 8 }}>确认要学的册次（点选一项）</div>
+              <p style={{ margin: '0 0 10px', fontSize: 12, color: '#64748b' }}>
+                已按你的描述{queryValues.region ? `与地区「${queryValues.region}」` : ''}给出候选，请选最准的一本。
+              </p>
               <div style={{ display: 'grid', gap: 8 }}>
                 {candidates.map((c, i) => (
                   <button
@@ -600,6 +629,8 @@ export function StudyCoachWidget(_props: { node: SchemaNode }) {
                       display: 'flex',
                       gap: 12,
                       alignItems: 'center',
+                      width: '100%',
+                      boxSizing: 'border-box',
                     }}
                   >
                     <span
@@ -630,49 +661,49 @@ export function StudyCoachWidget(_props: { node: SchemaNode }) {
                 onClick={() => {
                   setPhase('ask')
                   setCandidates([])
-                  setResetKey((k) => k + 1)
                 }}
               >
-                不对，换个说法
+                ← 重新说课本
               </button>
             </div>
           )}
-          {courses.length > 0 && (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, margin: '12px 0' }}>
-              {courses.map((c) => {
-                const on = c.id === activeCourse?.id
-                return (
-                  <button
-                    key={c.id}
-                    type="button"
-                    onClick={() => {
-                      setActiveCourseId(c.id)
-                      setFocusUnitOrder(null)
-                      setFlow('tonight')
-                      setTonight(null)
-                    }}
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: 8,
-                      padding: '8px 12px',
-                      borderRadius: 999,
-                      border: on ? `2px solid ${accent}` : '1px solid #e2e8f0',
-                      background: on ? accent : '#fff',
-                      color: on ? '#fff' : '#0f172a',
-                      cursor: 'pointer',
-                      fontSize: 12,
-                      fontWeight: 700,
-                    }}
-                  >
-                    <ScIcon name="flowBook" size={14} color={on ? '#fff' : accent} />
-                    {(c.subject || c.catalog?.subject || '课本') + ` · ${c.progress_pct}%`}
-                  </button>
-                )
-              })}
-            </div>
-          )}
-        </>
+        </div>
+      )}
+
+      {(flow === 'book' || !activeCourse) && courses.length > 0 && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, margin: '12px 0' }}>
+          {courses.map((c) => {
+            const on = c.id === activeCourse?.id
+            return (
+              <button
+                key={c.id}
+                type="button"
+                onClick={() => {
+                  setActiveCourseId(c.id)
+                  setFocusUnitOrder(null)
+                  setFlow('tonight')
+                  setTonight(null)
+                }}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  padding: '8px 12px',
+                  borderRadius: 999,
+                  border: on ? `2px solid ${accent}` : '1px solid #e2e8f0',
+                  background: on ? accent : '#fff',
+                  color: on ? '#fff' : '#0f172a',
+                  cursor: 'pointer',
+                  fontSize: 12,
+                  fontWeight: 700,
+                }}
+              >
+                <ScIcon name="flowBook" size={14} color={on ? '#fff' : accent} />
+                {(c.subject || c.catalog?.subject || '课本') + ` · ${c.progress_pct}%`}
+              </button>
+            )
+          })}
+        </div>
       )}
 
       {/* 当前课本卡 */}
@@ -727,10 +758,14 @@ export function StudyCoachWidget(_props: { node: SchemaNode }) {
         <div style={{ animation: 'scPop .3s ease' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 10 }}>
             <strong style={scType.title}>今晚练什么？</strong>
-            <span style={scType.caption}>点一张卡片 · 图标即含义</span>
+            <span style={scType.caption}>
+              {activeCourse.subject || activeCourse.catalog?.subject
+                ? `已按「${activeCourse.subject || activeCourse.catalog?.subject}」过滤模板`
+                : '点一张卡片 · 图标即含义'}
+            </span>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(152px,1fr))', gap: 10 }}>
-            {SC_TEMPLATES.map((t) => {
+            {templatesForSubject(activeCourse.subject || activeCourse.catalog?.subject || '').map((t) => {
               const on = pickedTemplate === t.key
               const hot = hoverTpl === t.key
               const tone = SC.tone[t.key]

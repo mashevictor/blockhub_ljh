@@ -114,15 +114,15 @@
   letter-spacing: 0.04em;
 }
 
-/* —— 发布 / 受众（去青色）—— */
+/* —— 发布 / 受众（白底 + 品牌蓝，禁止奶油底/金色选中）—— */
 .b2b-brand-scope .plaza-audience-picker {
-  border-color: #93c5fd;
-  background: linear-gradient(180deg, #f8fbff, #fff);
+  border-color: #bfdbfe;
+  background: #fff;
 }
 
 .b2b-brand-scope .plaza-audience-opt:hover {
   border-color: var(--b2b-primary);
-  background: var(--b2b-panel);
+  background: #f8fbff;
 }
 
 .b2b-brand-scope .plaza-audience-opt.selected {
@@ -137,13 +137,18 @@
 
 .b2b-brand-scope .plaza-audience-dept-chips button.on {
   border-color: var(--b2b-primary);
-  background: var(--b2b-panel);
+  background: #eaf2ff;
   color: var(--b2b-primary);
 }
 
 .b2b-brand-scope .plaza-audience-badge {
-  background: var(--b2b-panel);
-  color: var(--b2b-primary);
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.b2b-brand-scope .plaza-audience-submit {
+  background: linear-gradient(135deg, var(--b2b-primary) 0%, #1976d2 100%) !important;
+  color: #fff !important;
 }
 
 /* —— 模块数据流（去金色）—— */

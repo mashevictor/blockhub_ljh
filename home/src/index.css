@@ -6032,50 +6032,54 @@ a.btn-my-apps:hover { border-color: var(--pri-light); color: var(--pri); }
 }
 .plaza-audience-picker {
   margin: 12px 0 0; padding: 16px; border-radius: 12px;
-  border: 1px solid color-mix(in srgb, var(--pri) 35%, var(--border));
-  background: linear-gradient(180deg, var(--pri-soft), #fff);
+  border: 1px solid #bfdbfe;
+  background: #fff;
 }
-.plaza-audience-picker h4 { margin: 0 0 8px; font-size: 14px; color: var(--text); }
-.plaza-audience-picker-hint { font-size: 11px; color: var(--muted); margin: 0 0 12px; line-height: 1.5; }
+.plaza-audience-picker h4 { margin: 0 0 8px; font-size: 14px; color: #0f172a; }
+.plaza-audience-picker-hint { font-size: 11px; color: #64748b; margin: 0 0 12px; line-height: 1.5; }
 .plaza-audience-options { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
 .plaza-audience-opt {
   display: flex; gap: 10px; padding: 10px 12px; border-radius: 10px; cursor: pointer;
-  border: 1px solid var(--border); background: #fff; transition: border-color .15s, box-shadow .15s;
+  border: 1px solid #e2e8f0; background: #fff; transition: border-color .15s, box-shadow .15s;
 }
-.plaza-audience-opt:hover { border-color: var(--pri); background: var(--pri-soft); }
+.plaza-audience-opt:hover { border-color: #0d47a1; background: #f8fbff; }
 .plaza-audience-opt.selected {
-  border-color: var(--pri); background: linear-gradient(135deg, var(--pri-soft), color-mix(in srgb, var(--pri-soft) 80%, #fff));
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--pri) 12%, transparent);
+  border-color: #0d47a1; background: linear-gradient(135deg, #eaf2ff, #f0f7ff);
+  box-shadow: 0 0 0 2px rgba(13, 71, 161, 0.12);
 }
-.plaza-audience-opt input { margin-top: 3px; accent-color: var(--pri); flex-shrink: 0; }
-.plaza-audience-opt strong { display: block; font-size: 13px; margin-bottom: 2px; }
-.plaza-audience-opt span { font-size: 11px; color: var(--muted); line-height: 1.45; }
+.plaza-audience-opt input { margin-top: 3px; accent-color: #0d47a1; flex-shrink: 0; }
+.plaza-audience-opt strong { display: block; font-size: 13px; margin-bottom: 2px; color: #0f172a; }
+.plaza-audience-opt span { font-size: 11px; color: #64748b; line-height: 1.45; }
 .plaza-audience-badge {
   font-size: 9px; padding: 2px 6px; border-radius: 4px; background: #dbeafe; color: #1d4ed8;
   margin-left: 6px; font-weight: 600; vertical-align: middle;
 }
 .plaza-audience-dept { margin-bottom: 12px; }
-.plaza-audience-dept-label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 6px; }
+.plaza-audience-dept-label { font-size: 11px; color: #64748b; display: block; margin-bottom: 6px; }
 .plaza-audience-dept-chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .plaza-audience-dept-chips button {
-  font-size: 11px; padding: 5px 10px; border-radius: 999px; border: 1px solid var(--border);
-  background: #fff; cursor: pointer; font-family: inherit; color: var(--muted);
+  font-size: 11px; padding: 5px 10px; border-radius: 999px; border: 1px solid #e2e8f0;
+  background: #fff; cursor: pointer; font-family: inherit; color: #64748b;
 }
 .plaza-audience-dept-chips button.on {
-  border-color: var(--pri); background: var(--pri-soft); color: var(--pri-dark); font-weight: 600;
+  border-color: #0d47a1; background: #eaf2ff; color: #0d47a1; font-weight: 600;
 }
 .plaza-audience-preview {
   font-size: 11px; padding: 10px 12px; border-radius: 8px; margin: 0 0 12px;
-  background: #fff; border: 1px dashed var(--border); color: var(--muted); line-height: 1.5;
+  background: #f8fafc; border: 1px dashed #cbd5e1; color: #475569; line-height: 1.5;
 }
 .plaza-audience-actions { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
 .plaza-audience-actions .btn-ghost {
-  font-size: 12px; padding: 8px 14px; border-radius: 8px; border: 1px solid var(--border);
-  background: #fff; cursor: pointer;
+  font-size: 12px; padding: 8px 14px; border-radius: 8px; border: 1px solid #e2e8f0;
+  background: #fff; cursor: pointer; color: #334155;
 }
-.plaza-audience-submit { font-size: 12px; padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer; }
-.plaza-audience-footnote { font-size: 10px; color: var(--muted); margin: 10px 0 0; text-align: right; }
-.plaza-audience-footnote a { color: var(--pri); }
+.plaza-audience-submit {
+  font-size: 12px; padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer;
+  background: linear-gradient(135deg, #0d47a1, #1565c0); color: #fff;
+  box-shadow: 0 4px 14px rgba(13, 71, 161, 0.28);
+}
+.plaza-audience-footnote { font-size: 10px; color: #94a3b8; margin: 10px 0 0; text-align: right; }
+.plaza-audience-footnote a { color: #0d47a1; }
 .plaza-my-at-badge {
   display: inline-block; margin-left: 8px; padding: 1px 7px; border-radius: 999px;
   font-size: 10px; background: var(--pri-soft); color: var(--pri); font-weight: 600;
@@ -7382,8 +7386,54 @@ a.btn-my-apps:hover { border-color: var(--pri-light); color: var(--pri); }
   overflow: auto;
   padding: 4px;
   border-radius: 16px;
-  background: var(--surface);
+  background: #fff;
+  border: 1px solid #e2e8f0;
   box-shadow: 0 24px 64px rgba(15, 23, 42, 0.22);
+  color: #0f172a;
+}
+.plaza-publish-modal .plaza-audience-picker {
+  margin: 8px;
+  padding: 18px 16px;
+  border-radius: 14px;
+  border: 1px solid #bfdbfe;
+  background: #fff;
+}
+.plaza-publish-modal .plaza-audience-opt {
+  background: #fff;
+  border-color: #e2e8f0;
+}
+.plaza-publish-modal .plaza-audience-opt:hover {
+  border-color: #0d47a1;
+  background: #f8fbff;
+}
+.plaza-publish-modal .plaza-audience-opt.selected {
+  border-color: #0d47a1;
+  background: linear-gradient(135deg, #eaf2ff, #f0f7ff);
+  box-shadow: 0 0 0 2px rgba(13, 71, 161, 0.12);
+}
+.plaza-publish-modal .plaza-audience-opt input {
+  accent-color: #0d47a1;
+}
+.plaza-publish-modal .plaza-audience-badge {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+.plaza-publish-modal .plaza-audience-preview {
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  color: #475569;
+}
+.plaza-publish-modal .plaza-audience-submit,
+.plaza-publish-modal .plaza-audience-actions .btn-primary {
+  background: linear-gradient(135deg, #0d47a1, #1565c0) !important;
+  color: #fff !important;
+  border: none !important;
+  box-shadow: 0 4px 14px rgba(13, 71, 161, 0.28) !important;
+}
+.plaza-publish-modal .plaza-audience-actions .btn-ghost {
+  background: #fff !important;
+  color: #334155 !important;
+  border: 1px solid #e2e8f0 !important;
 }
 .plaza-my-orch-btn {
   display: inline-flex;
