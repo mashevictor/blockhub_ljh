@@ -275,7 +275,7 @@ export default function ModuleView({ onPublish, active = true }: Props) {
         onConfirm={(c, opts) => {
           const named = opts?.appName?.trim()
           if (named) setBranding((prev) => ({ ...prev, appName: named }))
-          void doPublish(c)
+          void doPublish(c, named)
         }}
       />
     </div>
