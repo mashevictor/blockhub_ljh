@@ -1,10 +1,11 @@
 
 :root {
-  --accent: #2c2a26;
-  --bg: #f7f4ef;
-  --text: #1a1a1a;
-  --muted: rgba(0,0,0,.62);
-  --surface: rgba(255,255,255,.72);
+  /* 黑金 · 替代原灰米色极简模板 */
+  --accent: #d4af37;
+  --bg: #0a0908;
+  --text: #fef9e7;
+  --muted: rgba(254, 243, 199, 0.7);
+  --surface: rgba(212, 175, 55, 0.08);
   --fd: "DM Serif Display", Georgia, serif;
   --fb: "DM Sans", system-ui, sans-serif;
 }
@@ -29,7 +30,7 @@ img { max-width: 100%; display: block; }
 .btn {
   display: inline-flex; align-items: center; justify-content: center;
   padding: .85rem 1.4rem; border: 0; cursor: pointer;
-  background: var(--accent); color: #fff; font-weight: 600;
+  background: var(--accent); color: #0a0908; font-weight: 600;
   transition: transform .25s ease, opacity .25s ease;
 }
 .btn:hover { transform: translateY(-2px); opacity: .92; }

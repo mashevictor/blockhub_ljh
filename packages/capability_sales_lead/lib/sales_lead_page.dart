@@ -44,7 +44,7 @@ class _SalesLeadPageState extends State<SalesLeadPage> {
         ('pipeline', '跟进成交'),
       ];
     }
-    return const [('capture', '录入'), ('referral', '转介绍'), ('pool', '公海'), ('pipeline', '跟进成交')];
+    return const [('capture', '录入'), ('referral', '转介绍'), ('pool', '待领取'), ('pipeline', '跟进成交')];
   }
 
   @override
@@ -109,14 +109,14 @@ class _SalesLeadPageState extends State<SalesLeadPage> {
               (value: '有效', label: '有效'),
               (value: '无效', label: '无效'),
               (value: '重复', label: '重复'),
-              (value: '公海', label: '公海'),
+              (value: '待领取', label: '待领取'),
             ],
           ),
           GtgtStep(key: 'reason', label: '原因（可空）', placeholder: '空号…', multiline: true, optional: true),
         ];
       case 'pool':
         return const [
-          GtgtStep(key: 'lead_key', label: '公海线索', placeholder: '客户名 / 单号 / ID'),
+          GtgtStep(key: 'lead_key', label: '待领取线索', placeholder: '客户名 / 单号 / ID'),
           GtgtStep(key: 'reason', label: '领取理由（可空）', placeholder: '可选', multiline: true, optional: true),
         ];
       case 'score':
@@ -136,7 +136,7 @@ class _SalesLeadPageState extends State<SalesLeadPage> {
       'referral' => '转介绍线索',
       'assign' => '分配线索',
       'clean' => '清洗线索',
-      'pool' => '领取公海',
+      'pool' => '领取线索',
       'score' => '线索评分',
       _ => '跟进成交',
     };
@@ -218,7 +218,7 @@ class _SalesLeadPageState extends State<SalesLeadPage> {
     try {
       final dio = getRuntimeAuthedDio();
       await dio.post('$_base/records/release', data: {'lead_key': id, 'app_public_id': _appId});
-      setState(() => _msg = '已退回公海');
+      setState(() => _msg = '已退回待领取');
       await _load();
     } catch (e) {
       setState(() => _msg = '$e');
@@ -395,7 +395,7 @@ class _SalesLeadPageState extends State<SalesLeadPage> {
                       if (_role == 'sales_manager' && pool == 'private' && '${t['status']}' == 'open')
                         TextButton(
                           onPressed: () => _release('${t['id']}'),
-                          child: const Text('退公海', style: TextStyle(fontSize: 12)),
+                          child: const Text('退回待领取', style: TextStyle(fontSize: 12)),
                         ),
                     ],
                   ),

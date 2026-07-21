@@ -47,8 +47,8 @@ const SKINS: Record<string, MicrositeRuntimeSkin> = {
     radius: '10px', shellClass: 'skin-landed', layout: 'rows', nav: 'top',
   },
   consulting: {
-    id: 'consulting', style: 'readonly', styleLabel: 'Read Only · 极简名片',
-    accent: '#334155', pageBg: '#f8fafc', surface: '#ffffff', headerBg: '#ffffff', headerFg: '#0f172a',
+    id: 'consulting', style: 'readonly', styleLabel: 'Read Only · 黑金名片',
+    accent: '#d4af37', pageBg: '#0a0908', surface: '#141210', headerBg: '#0a0908', headerFg: '#fef9e7',
     radius: '2px', shellClass: 'skin-readonly', layout: 'centered', nav: 'none',
   },
   clinic: {
@@ -97,8 +97,8 @@ const SKINS: Record<string, MicrositeRuntimeSkin> = {
     radius: '4px', shellClass: 'skin-forty', layout: 'split', nav: 'top',
   },
   interior: {
-    id: 'interior', style: 'paradigm', styleLabel: 'Paradigm · 非对称编辑',
-    accent: '#57534e', pageBg: '#fafaf9', surface: '#ffffff', headerBg: '#ffffff', headerFg: '#1c1917',
+    id: 'interior', style: 'paradigm', styleLabel: 'Paradigm · 黑金编辑',
+    accent: '#d4af37', pageBg: '#0a0908', surface: '#141210', headerBg: '#0a0908', headerFg: '#fef9e7',
     radius: '0px', shellClass: 'skin-paradigm', layout: 'split', nav: 'left',
   },
   saas: {
@@ -132,8 +132,8 @@ const SKINS: Record<string, MicrositeRuntimeSkin> = {
     radius: '16px', shellClass: 'skin-multiverse', layout: 'waterfall', nav: 'top',
   },
   photography: {
-    id: 'photography', style: 'sonar', styleLabel: 'Sonar · 摄影瀑布流',
-    accent: '#525252', pageBg: '#fafafa', surface: '#ffffff', headerBg: '#171717', headerFg: '#fafafa',
+    id: 'photography', style: 'sonar', styleLabel: 'Sonar · 黑金瀑布流',
+    accent: '#d4af37', pageBg: '#0a0908', surface: '#141210', headerBg: '#0a0908', headerFg: '#fef9e7',
     radius: '0px', shellClass: 'skin-sonar', layout: 'waterfall', nav: 'none',
   },
 }

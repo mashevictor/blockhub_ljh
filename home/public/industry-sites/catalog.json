@@ -3,7 +3,7 @@
     "key": "office",
     "name": "通用办公",
     "tagline": "人事、财务、审批、知识库一体化",
-    "template": "Read Only · 极简名片",
+    "template": "Read Only · 黑金名片",
     "href": "./office/index.html"
   },
   {
@@ -16,7 +16,7 @@
   {
     "key": "sales",
     "name": "销售行业",
-    "tagline": "话术、漏斗、合同、CRM 一体",
+    "tagline": "话术、漏斗、合同、CRM · 纯销售场景",
     "template": "Fractal · 产品焦点",
     "href": "./sales/index.html"
   },
@@ -115,14 +115,14 @@
     "key": "construction",
     "name": "建筑工程",
     "tagline": "进度、安全、材料、验收",
-    "template": "Paradigm Shift · 非对称编辑",
+    "template": "Paradigm · 黑金编辑",
     "href": "./construction/index.html"
   },
   {
     "key": "agriculture",
     "name": "农业",
     "tagline": "溯源、巡检、补贴、产销",
-    "template": "Sonar · 摄影瀑布流",
+    "template": "Sonar · 黑金瀑布流",
     "href": "./agriculture/index.html"
   },
   {

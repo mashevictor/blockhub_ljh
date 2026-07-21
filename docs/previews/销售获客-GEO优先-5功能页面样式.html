@@ -1,0 +1,1302 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>销售获客 · GEO 落地 Visio + 5 功能页面样式</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+  <style>
+    :root {
+      --pri: #0d47a1;
+      --pri-2: #1565c0;
+      --soft: #eaf2ff;
+      --line: #bfdbfe;
+      --ink: #0f172a;
+      --muted: #64748b;
+      --ok: #047857;
+      --warn: #b45309;
+      --bg: #e8eef6;
+      --card: #fff;
+      --sans: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      --visio-node: #dce8f8;
+      --visio-bord: #2c5282;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: var(--sans);
+      color: var(--ink);
+      background:
+        radial-gradient(900px 420px at 10% -10%, #dbeafe 0%, transparent 55%),
+        radial-gradient(700px 380px at 100% 0%, #e0f2fe 0%, transparent 50%),
+        var(--bg);
+      line-height: 1.55;
+      font-size: 14px;
+    }
+    .top {
+      position: sticky; top: 0; z-index: 20;
+      background: linear-gradient(135deg, #0d47a1, #1565c0);
+      color: #fff;
+      padding: 18px 22px 16px;
+      box-shadow: 0 8px 28px rgba(13,71,161,.28);
+    }
+    .top h1 { margin: 0 0 6px; font-size: 20px; font-weight: 800; }
+    .top p { margin: 0; opacity: .92; font-size: 13px; max-width: 920px; }
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 22px 16px 72px; }
+    .note {
+      background: #fff7ed; border: 1px solid #fdba74; color: #9a3412;
+      border-radius: 12px; padding: 12px 14px; margin-bottom: 16px; font-size: 13px;
+    }
+    .note strong { color: #7c2d12; }
+    .diff {
+      background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+      padding: 14px 16px; margin-bottom: 18px;
+    }
+    .diff h2 { margin: 0 0 8px; font-size: 15px; color: var(--pri); }
+    .diff ul { margin: 0; padding-left: 18px; color: var(--muted); }
+    .diff li { margin: 4px 0; }
+    .nav {
+      display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 18px;
+      position: sticky; top: 86px; z-index: 10;
+      background: rgba(232,238,246,.92); backdrop-filter: blur(8px);
+      padding: 8px 0; border-bottom: 1px solid #dbeafe;
+    }
+    .nav a {
+      text-decoration: none; color: var(--pri); background: #fff;
+      border: 1px solid var(--line); border-radius: 999px;
+      padding: 6px 12px; font-size: 12px; font-weight: 700;
+    }
+    .nav a:hover { background: var(--soft); }
+    .feat {
+      scroll-margin-top: 140px;
+      margin-bottom: 28px;
+      background: var(--card);
+      border: 2px solid var(--line);
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(13,71,161,.08);
+    }
+    .feat-head {
+      display: flex; gap: 12px; align-items: flex-start; flex-wrap: wrap;
+      padding: 16px 18px;
+      background: linear-gradient(180deg, #eaf2ff, #f8fbff);
+      border-bottom: 1px solid var(--line);
+    }
+    .badge {
+      flex-shrink: 0;
+      background: var(--pri); color: #fff; font-weight: 800;
+      font-size: 12px; padding: 4px 10px; border-radius: 999px;
+    }
+    .badge.hot { background: #0369a1; }
+    .feat-head h3 { margin: 0 0 4px; font-size: 17px; }
+    .feat-head .one { margin: 0; color: var(--muted); font-size: 13px; }
+    .meta {
+      display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px;
+    }
+    .chip {
+      font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 999px;
+      background: #fff; border: 1px solid var(--line); color: var(--pri);
+    }
+    .chip.warn { color: var(--warn); border-color: #fde68a; background: #fffbeb; }
+    .body { display: grid; grid-template-columns: 1.15fr .85fr; gap: 0; }
+    @media (max-width: 900px) { .body { grid-template-columns: 1fr; } }
+    .spec { padding: 16px 18px; border-right: 1px solid #e2e8f0; }
+    @media (max-width: 900px) { .spec { border-right: 0; border-bottom: 1px solid #e2e8f0; } }
+    .spec h4 { margin: 0 0 8px; font-size: 13px; color: var(--pri); }
+    .spec p, .spec li { font-size: 13px; color: #334155; }
+    .spec ul { margin: 0 0 12px; padding-left: 18px; }
+    .logic {
+      background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 10px;
+      padding: 10px 12px; font-size: 12px; color: #065f46; margin-top: 8px;
+    }
+    .fake {
+      background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 10px;
+      padding: 8px 10px; font-size: 12px; color: var(--muted); margin-top: 8px;
+    }
+    /* phone mock */
+    .mock-wrap { padding: 16px; background: #f1f5f9; display: flex; justify-content: center; }
+    .phone {
+      width: 100%; max-width: 360px;
+      background: #fff;
+      border: 2px solid #93c5fd;
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 12px 28px rgba(13,71,161,.15);
+      min-height: 520px;
+      display: flex; flex-direction: column;
+    }
+    .ph-bar {
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 12px;
+      background: linear-gradient(180deg, #eaf2ff, #f8fbff);
+      border-bottom: 2px solid #bfdbfe;
+      font-weight: 800; color: var(--pri); font-size: 13px;
+    }
+    .ph-bar .chev { letter-spacing: -1px; }
+    .ph-sub { font-size: 11px; font-weight: 650; color: var(--muted);
+      border: 1px solid #dbeafe; background: #fff; border-radius: 999px; padding: 2px 8px; }
+    .ph-body { padding: 12px; flex: 1; display: flex; flex-direction: column; gap: 10px; }
+    .id-bar {
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+      font-size: 11px; color: var(--muted);
+      padding: 6px 8px; border-radius: 8px; background: #f8fafc; border: 1px solid #e2e8f0;
+    }
+    .id-bar strong { color: var(--pri); font-weight: 800; }
+    .id-bar .hint-mini { color: #94a3b8; font-size: 10px; }
+    .tabs { display: flex; gap: 4px; flex-wrap: wrap; }
+    .tab {
+      font-size: 11px; padding: 5px 9px; border-radius: 8px;
+      background: #f1f5f9; color: var(--muted); font-weight: 700;
+    }
+    .tab.on { background: var(--pri); color: #fff; }
+    .hint {
+      font-size: 11px; color: var(--muted); background: var(--soft);
+      border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px;
+    }
+    .kpi { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+    .kpi > div {
+      background: #f8fbff; border: 1px solid #dbeafe; border-radius: 10px;
+      padding: 8px; text-align: center;
+    }
+    .kpi strong { display: block; font-size: 16px; color: var(--pri); }
+    .kpi span { font-size: 10px; color: var(--muted); }
+    .card {
+      border: 1px solid #e2e8f0; border-radius: 12px; padding: 10px;
+      background: #fff;
+    }
+    .card h5 { margin: 0 0 4px; font-size: 13px; }
+    .card p { margin: 0; font-size: 11px; color: var(--muted); }
+    .gtgt {
+      border: 1px solid #93c5fd; border-radius: 12px; padding: 10px;
+      background: linear-gradient(180deg, #f8fbff, #fff);
+    }
+    .gtgt .lab { font-size: 11px; font-weight: 800; color: var(--pri); margin-bottom: 6px; }
+    .gtgt .inp {
+      border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px 10px;
+      font-size: 12px; color: #94a3b8; background: #fff;
+    }
+    .gtgt .row { display: flex; gap: 6px; margin-top: 8px; }
+    .btn {
+      border: 0; border-radius: 8px; padding: 7px 12px; font-size: 12px; font-weight: 700;
+      background: var(--pri); color: #fff; cursor: default;
+    }
+    .btn.ghost { background: #fff; color: var(--pri); border: 1px solid #93c5fd; }
+    .list { display: flex; flex-direction: column; gap: 6px; }
+    .row-item {
+      display: flex; justify-content: space-between; gap: 8px; align-items: center;
+      padding: 8px 10px; border-radius: 10px; border: 1px solid #e2e8f0; font-size: 12px;
+    }
+    .row-item em { font-style: normal; color: var(--muted); font-size: 11px; }
+    .tag { font-size: 10px; font-weight: 800; color: #0369a1; background: #e0f2fe; padding: 2px 6px; border-radius: 999px; }
+    .empty {
+      text-align: center; color: #94a3b8; font-size: 12px; padding: 28px 12px;
+      border: 1px dashed #cbd5e1; border-radius: 12px; background: #f8fafc;
+    }
+    .foot {
+      margin-top: 8px; font-size: 12px; color: var(--muted); text-align: center;
+    }
+
+    /* Visio 流程图区 */
+    .visio {
+      scroll-margin-top: 140px;
+      background: var(--card);
+      border: 2px solid var(--line);
+      border-radius: 18px;
+      overflow: hidden;
+      margin-bottom: 22px;
+      box-shadow: 0 10px 30px rgba(13,71,161,.08);
+    }
+    .visio-head {
+      padding: 16px 18px;
+      background: linear-gradient(180deg, #eaf2ff, #f8fbff);
+      border-bottom: 1px solid var(--line);
+    }
+    .visio-head h2 { margin: 0 0 6px; font-size: 17px; color: var(--pri); }
+    .visio-head p { margin: 0; font-size: 13px; color: var(--muted); }
+    .visio-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+    }
+    @media (max-width: 960px) { .visio-grid { grid-template-columns: 1fr; } }
+    .visio-explain {
+      padding: 16px 18px;
+      border-right: 1px solid #e2e8f0;
+      background: #fafcff;
+    }
+    @media (max-width: 960px) { .visio-explain { border-right: 0; border-bottom: 1px solid #e2e8f0; } }
+    .visio-explain h3 { margin: 14px 0 6px; font-size: 13px; color: var(--pri); }
+    .visio-explain h3:first-child { margin-top: 0; }
+    .visio-explain ul { margin: 0; padding-left: 18px; color: #334155; font-size: 13px; }
+    .visio-explain li { margin: 4px 0; }
+    .vs-table {
+      width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 8px;
+    }
+    .vs-table th, .vs-table td {
+      border: 1px solid var(--line); padding: 7px 8px; text-align: left; vertical-align: top;
+    }
+    .vs-table th { background: var(--soft); color: var(--pri); font-weight: 800; }
+    .visio-chart {
+      padding: 12px 10px 18px;
+      background: #eef2f7;
+      min-height: 420px;
+    }
+    .visio-chart .mermaid {
+      display: flex; justify-content: center;
+      background: #fff;
+      border: 1px solid #c5d4e8;
+      border-radius: 12px;
+      padding: 12px 8px;
+      overflow-x: auto;
+    }
+    .legend {
+      display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; font-size: 11px;
+    }
+    .legend span {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: #fff; border: 1px solid #c5d4e8; border-radius: 999px; padding: 3px 10px;
+    }
+    .dot { width: 10px; height: 10px; border-radius: 2px; border: 1.5px solid #2c5282; }
+    .dot.a { background: #dce8f8; }
+    .dot.b { background: #c6f6d5; border-color: #276749; }
+    .dot.c { background: #fef3c7; border-color: #b45309; }
+    .dot.d { background: #fed7d7; border-color: #9b2c2c; }
+    .dot.e { background: #e9d5ff; border-color: #6b21a8; }
+
+    /* 转化漏斗补充 */
+    .funnel-map {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .funnel-map .fm {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 11px;
+    }
+    .funnel-map .fm b { display: block; color: var(--pri); font-size: 12px; margin-bottom: 2px; }
+    .funnel-map .fm em { font-style: normal; color: #b45309; }
+    .stage-board {
+      display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px;
+    }
+    .stage-col {
+      flex: 0 0 88px;
+      background: #f8fbff;
+      border: 1px solid #dbeafe;
+      border-radius: 10px;
+      padding: 6px;
+      min-height: 120px;
+    }
+    .stage-col h6 {
+      margin: 0 0 6px; font-size: 10px; color: var(--pri); font-weight: 800;
+      line-height: 1.3; text-align: center;
+    }
+    .stage-col .exit {
+      margin-top: 6px; font-size: 9px; color: #b45309; text-align: center;
+      background: #fffbeb; border-radius: 6px; padding: 3px 2px; border: 1px dashed #fde68a;
+    }
+    .stage-col .chip-mini {
+      font-size: 9px; background: #fff; border: 1px solid #e2e8f0;
+      border-radius: 6px; padding: 4px; margin-bottom: 4px; color: #94a3b8; text-align: center;
+    }
+    .rate-row {
+      display: flex; align-items: stretch; gap: 0; overflow-x: auto;
+      padding: 4px 0 8px;
+    }
+    .rate-step {
+      flex: 0 0 auto;
+      display: flex; align-items: center; gap: 0;
+    }
+    .rate-box {
+      background: #fff;
+      border: 2px solid #93c5fd;
+      border-radius: 12px;
+      padding: 10px 12px;
+      min-width: 72px;
+      text-align: center;
+    }
+    .rate-box strong { display: block; font-size: 18px; color: var(--pri); line-height: 1.2; }
+    .rate-box span { font-size: 10px; color: var(--muted); font-weight: 700; }
+    .rate-box.win { border-color: #34d399; }
+    .rate-box.win strong { color: #047857; }
+    .rate-arrow {
+      padding: 0 4px;
+      font-size: 10px; font-weight: 800; color: #b45309;
+      white-space: nowrap;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      min-width: 44px;
+    }
+    .rate-arrow b { color: var(--pri); font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="top">
+    <h1>销售获客 · GEO 落地 Visio + 5 功能样式</h1>
+    <p>先讲清 GEO 营销如何落地，再对齐昨天差异化与 5 个功能页。双击本文件即可预览。</p>
+  </div>
+  <div class="wrap">
+    <div class="note">
+      <strong>GEO 不是爬 ChatGPT。</strong>
+      业界定义：让生成式引擎（豆包 / DeepSeek / Kimi / ChatGPT / Perplexity 等）在回答买家问题时
+      <strong>检索、引用、推荐你的公开内容</strong>。
+      我们能落地的产品闭环是：
+      <strong>可引用答案素材 → 公开可抓取页 → LLM 自检 → 留资进 sales_lead(source=geo) → 按权限跟进 → 素材归因</strong>。
+    </div>
+
+    <div class="note" style="background:#eff6ff;border-color:#93c5fd;color:#1e3a8a">
+      <strong>交互纠偏（针对你圈出的双 Tab）：</strong>
+      「一线 / 主管 / 市场」<strong>不是页面功能 Tab</strong>，而是登录账号的权限身份（系统下发，用户不点着切）。
+      顶栏只保留<strong>获客方法</strong>一条 Tab（GEO线索 / 待领取 / 跟进成交…）。
+      身份只在标题旁或灰条里只读展示；不同身份看到的方法与按钮不同，而不是两排都可点的 Tab。
+    </div>
+
+    <div class="diff">
+      <h2>昨天差异化（必须保留 · 装在 GEO 之后）</h2>
+      <ul>
+        <li>目的/方法优先，不按漏斗硬塞获客</li>
+        <li><strong>权限身份</strong>（非 Tab）：账号决定默认首页与可执行动作；禁止做成可切换的角色 Tab</li>
+        <li>真库 sales_lead + source 渠道聚合；跟进成交降为二级</li>
+        <li>Gtgt 单字段推进；空库 = 空列表</li>
+      </ul>
+    </div>
+
+    <!-- Visio -->
+    <section class="visio" id="visio">
+      <div class="visio-head">
+        <h2>Visio · GEO 营销获客如何实现与落地</h2>
+        <p>左：原理与边界 · 右：可落地业务流程图（对齐 CapShip 真库 / API / Runtime）</p>
+      </div>
+      <div class="visio-grid">
+        <div class="visio-explain">
+          <h3>1. GEO 到底在优化什么</h3>
+          <ul>
+            <li><strong>SEO</strong>：抢搜索结果里的「链接点击」</li>
+            <li><strong>GEO</strong>：抢 AI 回答里的「被引用 / 被推荐」</li>
+            <li>引擎链路：检索网页段落 → 排序权威来源 → <strong>合成答案并引用</strong></li>
+          </ul>
+
+          <h3>2. 业界公认可操作杠杆（我们只做能进系统的）</h3>
+          <table class="vs-table">
+            <thead>
+              <tr><th>杠杆</th><th>在产品里怎么做</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>答案优先结构</td><td>F1 素材：问题 → 40–60 字直答 → 证据 → CTA</td></tr>
+              <tr><td>可验证事实</td><td>素材强制写数字/案例/出处字段</td></tr>
+              <tr><td>可抓取公开页</td><td>发布 <code>/geo/:slug</code> 静态可抓 HTML</td></tr>
+              <tr><td>实体一致</td><td>品牌名、产品名写入 Organization 元信息</td></tr>
+              <tr><td>新鲜度</td><td>素材「上次更新」；逾期提醒（F1 列表）</td></tr>
+              <tr><td>自检可见度</td><td>F2 用 DeepSeek 模拟买家问，看是否提到要点（非爬外网）</td></tr>
+              <tr><td>获客收口</td><td>公开页留资 → <code>sales_lead.source=geo</code></td></tr>
+            </tbody>
+          </table>
+
+          <h3>3. 明确不做（避免假能力）</h3>
+          <ul>
+            <li>不定时调用 ChatGPT「偷听」别人会话</li>
+            <li>不伪造「已被豆包引用 N 次」的假仪表盘</li>
+            <li>不把 SEO 排名工具冒充 GEO 线索</li>
+          </ul>
+
+          <h3>4. 与整体销售的关系</h3>
+          <ul>
+            <li><strong>GEO</strong> = 获客方法之一（市场主责）</li>
+            <li>录入 / 转介绍 / 待领取… = 其它方法（F5）</li>
+            <li>线索进同一张 <code>sales_lead</code> 真表后，才进「跟进成交」漏斗</li>
+          </ul>
+        </div>
+        <div class="visio-chart">
+          <pre class="mermaid">
+flowchart TB
+  subgraph OUT["引擎侧_我们不可控"]
+    Buyer["买家向AI提问"]
+    Eng["生成式引擎检索与合成"]
+    Cite["可能引用我们的公开页"]
+  end
+
+  subgraph IN["CapShip可落地闭环"]
+    Ask["F1收集买家常问"]
+    Asset["写成答案素材_直答加证据加CTA"]
+    Pre["F2 DeepSeek自检可引用度"]
+    Pub["发布公开页_/geo/slug"]
+    Form["公开页留资表单"]
+    Lead["写入sales_lead_source等于geo"]
+    Pool["F3线索池_权限决定动作"]
+    Pipe["跟进成交漏斗_二级"]
+    Stats["F4按素材归因聚合"]
+  end
+
+  Ask --> Asset --> Pre
+  Pre -->|未通过| Asset
+  Pre -->|通过| Pub
+  Pub --> Form
+  Buyer --> Eng --> Cite
+  Cite -.->|用户点进或搜到公开页| Form
+  Form --> Lead --> Pool --> Pipe
+  Lead --> Stats
+  Pub --> Stats
+
+  classDef visio fill:#dce8f8,stroke:#2c5282,stroke-width:2px,color:#1a365d
+  classDef ok fill:#c6f6d5,stroke:#276749,stroke-width:2px,color:#1a4731
+  classDef warn fill:#fef3c7,stroke:#b45309,stroke-width:2px,color:#7c2d12
+  classDef ext fill:#e9d5ff,stroke:#6b21a8,stroke-width:2px,color:#4c1d95
+  classDef endn fill:#fed7d7,stroke:#9b2c2c,stroke-width:2px,color:#742a2a
+
+  class Ask,Asset,Pub,Form,Lead,Pool,Stats visio
+  class Pre warn
+  class Pipe ok
+  class Buyer,Eng,Cite ext
+          </pre>
+          <div class="legend">
+            <span><i class="dot a"></i>产品内可落地</span>
+            <span><i class="dot c"></i>预检门槛</span>
+            <span><i class="dot b"></i>跟进成交</span>
+            <span><i class="dot e"></i>引擎侧（不可控，只供理解）</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <nav class="nav">
+      <a href="#visio">GEO Visio</a>
+      <a href="#try-link">试用链接获客 ★</a>
+      <a href="#specialty">昨天特色</a>
+      <a href="#funnel">转化漏斗</a>
+      <a href="#f1">F1 GEO获客</a>
+      <a href="#f2">F2 预检</a>
+      <a href="#f3">F3 线索池</a>
+      <a href="#f4">F4 归因</a>
+      <a href="#f5">F5 方法获客</a>
+      <a href="#f6">F6 跟进成交板</a>
+      <a href="#f7">F7 转化看板 ★</a>
+    </nav>
+
+    <!-- 对话改页试用链接 = 主获客 -->
+    <section class="visio" id="try-link">
+      <div class="visio-head">
+        <h2>主获客路径 · 对话改页试用链接（开源框架 + &gt;&gt; 直接触达协作小组）</h2>
+        <p>不靠企微私聊。发一个链接 → 对方用 &gt;&gt; 对话改页随便改 → 想「确定下来」再留关键信息。改得越多，越容易成交。</p>
+      </div>
+      <div class="visio-grid">
+        <div class="visio-explain">
+          <h3>产品故事（给普通人）</h3>
+          <ul>
+            <li>你发：<code>https://blockhub.club/try/xxxx</code></li>
+            <li>对方打开就是<strong>可运行的业务页 + 右下角 CapShip &gt;&gt; 悬浮框</strong></li>
+            <li>协作小组同一链接（或再邀同事），各自用自然语言改菜单/表单/流程</li>
+            <li>改动先落<strong>试用草稿</strong>（真库存 token 会话），不进你们正式生产库</li>
+            <li>点「确定下来 / 生成我的正式应用」→ <strong>必须留：姓名、手机、公司</strong> → 写入销售线索</li>
+          </ul>
+
+          <h3>为什么这比企微私域管用</h3>
+          <ul>
+            <li>好处当场可见：改完左边页面立刻变，不用加好友聊天</li>
+            <li>触达的是<strong>协作小组</strong>（采购+业务+IT 一起改），不是单线销售私聊</li>
+            <li>试用本身就是你们的<strong>开源对话改页框架</strong>演示 → 与 GEO「可引用/可体验」一致</li>
+          </ul>
+
+          <h3>和销售漏斗怎么接</h3>
+          <table class="vs-table">
+            <thead><tr><th>动作</th><th>落入哪一环</th></tr></thead>
+            <tbody>
+              <tr><td>打开试用链接</td><td>线索池（匿名访客，可只记 UV）</td></tr>
+              <tr><td>产生 ≥1 次对话改页</td><td>升「高意向试用」标签</td></tr>
+              <tr><td>多人同链协作</td><td>标记「协作小组」· 决策链信号</td></tr>
+              <tr><td>提交关键信息「确定下来」</td><td><b>真线索</b> source=<code>capship_try</code> → 待领取</td></tr>
+              <tr><td>销售认领跟进</td><td>分配认领 → 初步接触…</td></tr>
+            </tbody>
+          </table>
+
+          <h3>落地边界（可做 / 不做）</h3>
+          <div class="logic">
+            <b>可做：</b> try_sessions 表（token、draft_schema、edit_count、collaborators）+
+            公开路由 <code>/try/:token</code>（Runtime 预览壳 + CapShipDock）+
+            「确定下来」表单 → sales_lead。<br/>
+            <b>不做：</b> 匿名用户直接写进客户正式 app；不做假演示线索。
+          </div>
+        </div>
+        <div class="visio-chart">
+          <pre class="mermaid">
+flowchart TB
+  Share["销售或官网发出试用链接"]
+  Open["协作小组打开 /try/token"]
+  Edit["CapShip 对话改页 随便改"]
+  Draft["草稿写入 try_sessions"]
+  More["可反复改 / 再邀同事"]
+  Gate{"想确定下来？"}
+  Form["留下姓名手机公司"]
+  Lead["sales_lead source=capship_try"]
+  Claim["待领取 → 销售认领"]
+  Keep["继续免费试用草稿"]
+
+  Share --> Open --> Edit --> Draft --> More --> Gate
+  Gate -->|否| Keep --> Edit
+  Gate -->|是| Form --> Lead --> Claim
+
+  classDef main fill:#dce8f8,stroke:#2c5282,stroke-width:2px,color:#1a365d
+  classDef ok fill:#c6f6d5,stroke:#276749,stroke-width:2px,color:#1a4731
+  classDef warn fill:#fef3c7,stroke:#b45309,stroke-width:1.5px,color:#7c2d12
+
+  class Share,Open,Edit,Draft,More,Form main
+  class Lead,Claim ok
+  class Gate,Keep warn
+          </pre>
+          <div class="legend">
+            <span><i class="dot a"></i>试用体验（开源对话改页）</span>
+            <span><i class="dot c"></i>门禁：确定才留资</span>
+            <span><i class="dot b"></i>成交入口</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="body" style="border-top:1px solid #e2e8f0">
+        <div class="spec">
+          <h4>页面怎么显示（试用端）</h4>
+          <ul>
+            <li>全屏 Runtime 预览 + 右下 <b>&gt;&gt; CapShip</b> 悬浮框（对话改页）</li>
+            <li>顶栏轻提示：「试用稿 · 改动仅对本链接有效」</li>
+            <li>主 CTA：<b>确定下来</b>（未留资时高亮）</li>
+            <li>次 CTA：复制链接给同事一起改</li>
+          </ul>
+          <h4>页面怎么显示（销售端）</h4>
+          <ul>
+            <li>获客 Tab「GEO获客 / 试用链接」：一键生成 try 链接</li>
+            <li>线索列表：来源 <code>对话改页试用</code> · 显示改页次数、协作者数</li>
+            <li>高改页次数自动进待领取前列</li>
+          </ul>
+        </div>
+        <div class="mock-wrap">
+          <div class="phone" style="max-width:380px">
+            <div class="ph-bar">
+              <span class="chev">&gt;&gt;</span> CapShip 试用
+              <span class="ph-sub">草稿</span>
+            </div>
+            <div class="ph-body">
+              <div class="hint">试用链接 · 改多少次都行 · 确定才留联系方式</div>
+              <div class="card">
+                <h5>左侧：业务页实时预览</h5>
+                <p>菜单 / 表单随对话改页立刻变</p>
+              </div>
+              <div class="gtgt">
+                <div class="lab">&gt;&gt; 对话改页</div>
+                <div class="inp">把右侧改成表格视图，并加审批流…</div>
+                <div class="row">
+                  <button class="btn ghost" type="button">复制给同事</button>
+                  <button class="btn" type="button">发送</button>
+                </div>
+              </div>
+              <div class="card" style="border-color:#93c5fd;background:#eaf2ff">
+                <h5>确定下来</h5>
+                <p>生成我的正式应用 → 需填写公司 / 姓名 / 手机</p>
+                <div class="row" style="margin-top:8px">
+                  <button class="btn" type="button" style="width:100%">确定下来 · 留下联系方式</button>
+                </div>
+              </div>
+              <div class="empty" style="font-size:11px">未留资前可无限改草稿 · 不产生销售线索</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 昨天头脑风暴特色 -->
+    <section class="visio" id="specialty">
+      <div class="visio-head">
+        <h2>昨天头脑风暴 · 特色销售能力（相对普通 CRM）</h2>
+        <p>这些才是差异化；普通「线索看板」不是特色。下面说明<strong>在哪个页面、用什么 UI 露出</strong>。</p>
+      </div>
+      <div style="padding:16px 18px">
+        <table class="vs-table">
+          <thead>
+            <tr>
+              <th style="width:18%">特色能力</th>
+              <th style="width:28%">一句话</th>
+              <th>页面上怎么显示</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><b>① 获客方法优先</b></td>
+              <td>不按漏斗硬塞获客；先选「怎么来的客」</td>
+              <td>
+                <b>获客工作台</b>顶栏一排方法 Tab：<code>GEO获客 / 录入 / 转介绍 / 待领取 / 分配 / 清洗 / 评分</code>。<br/>
+                「跟进成交」单独进 F6 板，不和获客混成一排乱 Tab。
+              </td>
+            </tr>
+            <tr>
+              <td><b>② 权限决定视图</b><br/><span style="color:#64748b;font-weight:400">（非角色 Tab）</span></td>
+              <td>一线 / 主管 / 市场看到的方法与按钮不同</td>
+              <td>
+                灰条只读：<code>当前权限 · 一线销售 · 不可切换</code>。<br/>
+                一线默认「待领取」；主管默认「分配」；市场默认「GEO获客」。按钮显隐，不扮演角色。
+              </td>
+            </tr>
+            <tr>
+              <td><b>③ 对话改页试用链接</b><br/><span style="color:#b45309">主获客 · 开源框架演示</span></td>
+              <td>发链接让协作小组用 &gt;&gt; 改页；确定才留资</td>
+              <td>
+                公开 <code>/try/:token</code> + CapShip 悬浮框；销售端一键生成链接。<br/>
+                「确定下来」门禁表单 → 线索 <code>source=capship_try</code> → 待领取。<br/>
+                GEO 答案页可链到试用链接（可引用 + 可体验）。
+              </td>
+            </tr>
+            <tr>
+              <td><b>③b GEO 答案素材</b></td>
+              <td>可引用答案页，可内嵌试用 CTA</td>
+              <td>
+                F1 素材发布页底部按钮：「打开对话改页试用」→ 同上 try 链接。
+              </td>
+            </tr>
+            <tr>
+              <td><b>④ 成交证据门禁</b><br/><code>deal_evidence</code></td>
+              <td>没证据不能乱晋级阶段（打假漏斗）</td>
+              <td>
+                在 <b>跟进成交板</b> 卡片上：推进下一阶段前弹「登记证据」；或侧栏菜单「成交证据」。<br/>
+                缺证据时按钮灰掉并提示「需 POC/回执/意向」。
+              </td>
+            </tr>
+            <tr>
+              <td><b>⑤ 杀单工作台</b><br/><code>kill_pipeline</code></td>
+              <td>结构化丢单原因 + 可复用教训</td>
+              <td>
+                跟进板分支出口「丢单」→ 打开杀单表单（原因 / 竞品 / 教训）。<br/>
+                或独立菜单「杀单复盘」列表；空库空列表。
+              </td>
+            </tr>
+            <tr>
+              <td><b>⑥ 待领取认领</b><br/>（原公海）</td>
+              <td>多人抢线索必须入库防冲突</td>
+              <td>
+                Tab「待领取」列表 + 卡片按钮「领取」；已认领显示负责人。<br/>
+                「退回待领取」给主管回收。
+              </td>
+            </tr>
+            <tr>
+              <td><b>⑦ IM 跟进提醒</b><br/><code>notify_im</code></td>
+              <td>企微/钉钉/飞书推送跟进节点</td>
+              <td>
+                不占主 Tab；在跟进板推进/逾期时出系统通知。<br/>
+                设置入口放「更多」或独立「协作提醒」页。
+              </td>
+            </tr>
+            <tr>
+              <td><b>⑧ CapShip 双端真接口</b></td>
+              <td>选型即交付 · Web/App 同一 API · 空库空列表</td>
+              <td>
+                全站原则：列表无数据就显示空态文案，禁止假演示单。
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3 style="margin:18px 0 8px;font-size:14px;color:var(--pri)">信息架构一屏（特色怎么摆）</h3>
+        <div class="mock-wrap" style="background:#eef2f7;border-radius:12px;padding:14px">
+          <div class="phone" style="max-width:420px;margin:0 auto">
+            <div class="ph-bar"><span class="chev">&gt;&gt;</span> 销售工作台</div>
+            <div class="ph-body">
+              <div class="id-bar">
+                <span>当前权限 · <strong>一线销售</strong></span>
+                <span class="hint-mini">特色② · 只读</span>
+              </div>
+              <div class="hint" style="font-weight:700;color:var(--pri)">① 获客方法（主 Tab）</div>
+              <div class="tabs">
+                <span class="tab on">GEO获客 ★</span>
+                <span class="tab">待领取</span>
+                <span class="tab">录入</span>
+                <span class="tab">跟进成交</span>
+              </div>
+              <div class="card">
+                <h5>③ GEO · 今日重点</h5>
+                <p>素材 / 预检 / 公开留资 → 真线索</p>
+              </div>
+              <div class="card">
+                <h5>⑥ 待领取 · 3 条可领</h5>
+                <p>点领取 → 入库绑定我</p>
+              </div>
+              <div class="hint">切到「跟进成交」后才看到：</div>
+              <div class="list">
+                <div class="row-item"><span>④ 推进需成交证据</span><em>门禁</em></div>
+                <div class="row-item"><span>⑤ 丢单 → 杀单表单</span><em>出口</em></div>
+                <div class="row-item"><span>⑦ 逾期 IM 提醒</span><em>推送</em></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 转化漏斗 -->
+    <section class="visio" id="funnel">
+      <div class="visio-head">
+        <h2>Visio · 销售转化全链路（获客 → 成交 → 续费）</h2>
+        <p>你给的主路径 + 分支出口。文案：「公海」对外叫 <strong>待领取</strong>；库字段仍可用 pool。</p>
+      </div>
+      <div class="visio-grid">
+        <div class="visio-explain">
+          <h3>主路径（必须入库推进）</h3>
+          <ol style="margin:0;padding-left:18px;font-size:13px;color:#334155">
+            <li><strong>线索池</strong> — 所有新线索总入口（含 GEO / 录入 / 转介绍）</li>
+            <li><strong>待领取</strong>（原公海）— 无人认领，可被领取或淘汰</li>
+            <li><strong>分配认领</strong> — 主管分或一线领 → 绑定负责人</li>
+            <li><strong>初步接触</strong> — 首次有效沟通</li>
+            <li><strong>需求确认</strong> — 明确痛点与预算边界</li>
+            <li><strong>方案报价</strong> — 方案 + 报价版本</li>
+            <li><strong>商务谈判</strong> — 条款 / 折扣 / 决策链</li>
+            <li><strong>合同签订</strong> — 合同审批通过</li>
+            <li><strong>交付回款</strong> — 履约 + 回款节点</li>
+            <li><strong>续费增购</strong> — 成功后经营</li>
+          </ol>
+
+          <h3>分支出口（每阶段可离开主路径）</h3>
+          <div class="funnel-map">
+            <div class="fm"><b>线索池</b>出口：<em>淘汰</em><br/>空号/广告党直接作废</div>
+            <div class="fm"><b>待领取</b>出口：<em>退回</em><br/>领错退回池 / 超时回收</div>
+            <div class="fm"><b>分配认领</b>出口：<em>无效退回</em><br/>清洗判定无效/重复</div>
+            <div class="fm"><b>初步接触</b>出口：<em>培育孵化</em><br/>暂无预算，进培育池</div>
+            <div class="fm"><b>需求确认→谈判</b>出口：可升<em>商机</em>或继续</div>
+            <div class="fm"><b>商务谈判</b>出口：<em>丢单</em></div>
+            <div class="fm"><b>合同及以后</b>出口：<em>赢单</em> / 履约异常</div>
+          </div>
+
+          <h3>和页面怎么拆（避免一个看板塞满）</h3>
+          <table class="vs-table">
+            <thead><tr><th>阶段</th><th>落在哪个页面</th></tr></thead>
+            <tbody>
+              <tr><td>线索池 · 待领取 · 分配认领</td><td><strong>获客工作台</strong>（方法 Tab：GEO / 待领取 / 分配 / 清洗）</td></tr>
+              <tr><td>初步接触 → 合同签订</td><td><strong>跟进成交板</strong>（阶段列；非获客 Tab）</td></tr>
+              <tr><td>交付回款 · 续费增购</td><td><strong>成交后经营</strong>（可二期；先占位列）</td></tr>
+              <tr><td>淘汰 / 无效 / 丢单 / 赢单</td><td>状态字段 + 列表筛选，不另开迷之模块名</td></tr>
+              <tr><td>培育孵化</td><td>跟进板旁路列「培育中」，定期回访再拉回主路径</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="visio-chart">
+          <pre class="mermaid">
+flowchart LR
+  S1["1线索池"] --> S2["2待领取"]
+  S2 --> S3["3分配认领"]
+  S3 --> S4["4初步接触"]
+  S4 --> S5["5需求确认"]
+  S5 --> S6["6方案报价"]
+  S6 --> S7["7商务谈判"]
+  S7 --> S8["8合同签订"]
+  S8 --> S9["9交付回款"]
+  S9 --> S10["10续费增购"]
+
+  S1 --> X1["淘汰"]
+  S2 --> X2["退回"]
+  S3 --> X3["无效退回"]
+  S4 --> X4["培育孵化"]
+  S5 --> X5["升商机"]
+  S6 --> X6["升商机"]
+  S7 --> X7["丢单"]
+  S8 --> X8["赢单"]
+
+  classDef main fill:#dce8f8,stroke:#2c5282,stroke-width:2px,color:#1a365d
+  classDef side fill:#fef3c7,stroke:#b45309,stroke-width:1.5px,color:#7c2d12
+  classDef win fill:#c6f6d5,stroke:#276749,stroke-width:2px,color:#1a4731
+  classDef lose fill:#fed7d7,stroke:#9b2c2c,stroke-width:1.5px,color:#742a2a
+
+  class S1,S2,S3,S4,S5,S6,S7,S8,S9,S10 main
+  class X1,X2,X3,X4,X5,X6 side
+  class X7 lose
+  class X8 win
+          </pre>
+          <div class="legend">
+            <span><i class="dot a"></i>主路径（真库 stage）</span>
+            <span><i class="dot c"></i>旁路/出口</span>
+            <span><i class="dot d"></i>丢单</span>
+            <span><i class="dot b"></i>赢单</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- F1 -->
+    <section class="feat" id="f1">
+      <div class="feat-head">
+        <span class="badge hot">F1 · 重点</span>
+        <div>
+          <h3>GEO 获客工作台</h3>
+          <p class="one">把「能被 AI 引用的答案」做成可发布素材，公开页留资直接进真线索库</p>
+          <div class="meta">
+            <span class="chip">权限：市场账号默认进此页</span>
+            <span class="chip warn">差异化：不是看板等线索，而是生产可引用资产并收口留资</span>
+          </div>
+        </div>
+      </div>
+      <div class="body">
+        <div class="spec">
+          <h4>页面区块</h4>
+          <ul>
+            <li>顶栏：方法 Tab（GEO / 录入 / 转介绍…）— <strong>仅一排</strong></li>
+            <li>灰条只读：当前账号权限（不可点切换）</li>
+            <li>KPI：素材数 · 公开中 · GEO线索</li>
+            <li>新建答案素材（Gtgt 步进）</li>
+            <li>素材列表（空库提示空态）</li>
+          </ul>
+          <h4>落地逻辑（可实现）</h4>
+          <div class="logic">
+            表 <code>geo_assets</code>（question / answer / evidence / public_slug / status）+
+            公开路由 <code>/geo/:slug</code> 留资表单 →
+            <code>POST /sales-lead</code> 写 <code>source=geo</code>、<code>geo_asset_id</code>。
+            不做 ChatGPT 全网爬取。
+          </div>
+          <div class="fake">空库：素材列表空、KPI 全 0、公开页无 slug 则 404，不造演示线索。</div>
+        </div>
+        <div class="mock-wrap">
+          <div class="phone">
+            <div class="ph-bar">
+              <span class="chev">&gt;&gt;</span> 销售获客
+              <span class="ph-sub">GEO</span>
+            </div>
+            <div class="ph-body">
+              <div class="id-bar">
+                <span>当前权限 · <strong>市场运营</strong></span>
+                <span class="hint-mini">由账号决定 · 不可切换</span>
+              </div>
+              <div class="tabs">
+                <span class="tab on">GEO获客</span>
+                <span class="tab">录入</span>
+                <span class="tab">转介绍</span>
+                <span class="tab">跟进成交</span>
+              </div>
+              <div class="kpi">
+                <div><strong>0</strong><span>素材</span></div>
+                <div><strong>0</strong><span>公开中</span></div>
+                <div><strong>0</strong><span>GEO线索</span></div>
+              </div>
+              <div class="hint">空库当前无素材。先建一条「买家常问答案」，发布后可收口留资。</div>
+              <div class="gtgt">
+                <div class="lab">&gt;&gt; 买家常问什么？</div>
+                <div class="inp">例：制造业销售线索怎么 30 分钟内首响？</div>
+                <div class="row">
+                  <button class="btn ghost" type="button">跳过</button>
+                  <button class="btn" type="button">下一步</button>
+                </div>
+              </div>
+              <div class="empty">暂无 GEO 素材 · 空列表</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- F2 -->
+    <section class="feat" id="f2">
+      <div class="feat-head">
+        <span class="badge">F2</span>
+        <div>
+          <h3>GEO 可引用预检</h3>
+          <p class="one">用自家 DeepSeek 模拟买家提问，检查答案是否「可被引用」——不是爬外网 AI</p>
+          <div class="meta">
+            <span class="chip">权限：市场账号</span>
+            <span class="chip warn">差异化：发布前有客观预检分，避免瞎投喂</span>
+          </div>
+        </div>
+      </div>
+      <div class="body">
+        <div class="spec">
+          <h4>页面区块</h4>
+          <ul>
+            <li>选中一条素材</li>
+            <li>一键预检（3 个标准买家问法）</li>
+            <li>得分 + 缺什么证据的修改建议</li>
+            <li>通过后才允许「发布公开页」</li>
+          </ul>
+          <div class="logic">
+            <code>POST /geo-assets/{id}/preflight</code> → DeepSeek JSON：cite_score、missing_evidence、rewrite_hints。
+            结果写入 <code>geo_assets.preflight_json</code>。阈值受限流。
+          </div>
+          <div class="fake">无素材时按钮禁用；无预检记录则右侧空白，不伪造 85 分。</div>
+        </div>
+        <div class="mock-wrap">
+          <div class="phone">
+            <div class="ph-bar"><span class="chev">&gt;&gt;</span> GEO 预检</div>
+            <div class="ph-body">
+              <div class="card">
+                <h5>素材 · 首响 28 分钟怎么做到？</h5>
+                <p>状态：草稿 · 尚未预检</p>
+              </div>
+              <div class="gtgt">
+                <div class="lab">&gt;&gt; 预检引擎</div>
+                <div class="inp">DeepSeek（已配置）</div>
+                <div class="row"><button class="btn" type="button">开始预检</button></div>
+              </div>
+              <div class="list">
+                <div class="row-item"><span>结构完整度</span><em>—</em></div>
+                <div class="row-item"><span>证据可引用</span><em>—</em></div>
+                <div class="row-item"><span>CTA 清晰度</span><em>—</em></div>
+              </div>
+              <div class="empty">尚未预检 · 无分数</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- F3 -->
+    <section class="feat" id="f3">
+      <div class="feat-head">
+        <span class="badge">F3</span>
+        <div>
+          <h3>GEO 线索池</h3>
+          <p class="one">只看 source=geo 的真线索；动作由账号权限决定（领 / 分 / 只读），顶栏只有方法 Tab</p>
+          <div class="meta">
+            <span class="chip">权限决定按钮，不是第二排 Tab</span>
+            <span class="chip warn">差异化：渠道固定 GEO；方法轴一条导航</span>
+          </div>
+        </div>
+      </div>
+      <div class="body">
+        <div class="spec">
+          <h4>页面区块</h4>
+          <ul>
+            <li><strong>一排方法 Tab</strong>：GEO线索 / 待领取 / 跟进成交</li>
+            <li>灰条只读显示账号权限（例：一线销售）</li>
+            <li>列表：公司 / 来自哪条素材 / 时间</li>
+            <li>权限动作：一线「领取」· 主管「分配」· 市场「回链素材」（按钮显隐，不是切 Tab）</li>
+          </ul>
+          <div class="logic">
+            复用 <code>GET /sales-lead/records?source=geo</code>；
+            服务端按 <code>user.role</code> 过滤可见范围与可执行动作。
+            前端<strong>禁止</strong>再放「一线/主管/市场」可点 Tab。
+          </div>
+          <div class="fake">空库空列表文案：「暂无 GEO 线索」。</div>
+        </div>
+        <div class="mock-wrap">
+          <div class="phone">
+            <div class="ph-bar"><span class="chev">&gt;&gt;</span> GEO 线索池</div>
+            <div class="ph-body">
+              <div class="id-bar">
+                <span>当前权限 · <strong>一线销售</strong></span>
+                <span class="hint-mini">由账号决定 · 不可切换</span>
+              </div>
+              <div class="tabs">
+                <span class="tab on">GEO线索</span>
+                <span class="tab">待领取</span>
+                <span class="tab">跟进成交</span>
+              </div>
+              <div class="empty">暂无 GEO 线索 · 空列表<br/>有人从公开答案页留资后会出现在这里</div>
+              <div class="row"><button class="btn ghost" type="button" style="width:100%">打开跟进成交</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- F4 -->
+    <section class="feat" id="f4">
+      <div class="feat-head">
+        <span class="badge">F4</span>
+        <div>
+          <h3>GEO 渠道归因</h3>
+          <p class="one">按「哪条答案素材」统计线索量与跟进结果——真库聚合</p>
+          <div class="meta">
+            <span class="chip">权限：市场 / 主管账号可见</span>
+            <span class="chip warn">差异化：归因到素材，不是模糊「线上」</span>
+          </div>
+        </div>
+      </div>
+      <div class="body">
+        <div class="spec">
+          <h4>页面区块</h4>
+          <ul>
+            <li>总览 KPI：GEO线索 / 跟进中 / 成交</li>
+            <li>按素材排行表</li>
+            <li>点进素材看明细线索</li>
+          </ul>
+          <div class="logic">
+            <code>GET /sales-lead/geo-stats</code>：
+            <code>GROUP BY geo_asset_id</code> 聚合 total/open/following/won。
+            扩展昨天 channel-stats 思路。
+          </div>
+          <div class="fake">无数据时 KPI=0、排行空表，不画假柱状图。</div>
+        </div>
+        <div class="mock-wrap">
+          <div class="phone">
+            <div class="ph-bar"><span class="chev">&gt;&gt;</span> GEO 归因</div>
+            <div class="ph-body">
+              <div class="kpi">
+                <div><strong>0</strong><span>GEO线索</span></div>
+                <div><strong>0</strong><span>跟进中</span></div>
+                <div><strong>0%</strong><span>成交率</span></div>
+              </div>
+              <div class="card">
+                <h5>按答案素材</h5>
+                <p>空库无排行</p>
+              </div>
+              <div class="empty">暂无归因数据</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- F5 -->
+    <section class="feat" id="f5">
+      <div class="feat-head">
+        <span class="badge">F5</span>
+        <div>
+          <h3>方法获客补全（昨天能力收口）</h3>
+          <p class="one">录入 / 转介绍 / 分配 / 清洗 / 待领取 / 评分 —— 与 GEO 并列的方法 Tab；权限只读，不再双排 Tab</p>
+          <div class="meta">
+            <span class="chip">一排方法 Tab</span>
+            <span class="chip warn">差异化：目的轴；漏斗只在「跟进成交」</span>
+          </div>
+        </div>
+      </div>
+      <div class="body">
+        <div class="spec">
+          <h4>页面区块</h4>
+          <ul>
+            <li>与 F1 同一壳：<strong>仅方法 Tab</strong> + 权限灰条</li>
+            <li>账号是主管 → 默认打开「分配」，并看到清洗/评分</li>
+            <li>账号是一线 → 默认「待领取/GEO线索」，看不到分配 Tab</li>
+            <li>各方法 Soft Gtgt 步进（040 API）</li>
+          </ul>
+          <div class="logic">
+            复用现有 <code>sales_lead</code> assign/clean/claim/score。
+            Tab 可见集合 = f(user.role)，不是用户点「我是主管」。
+          </div>
+          <div class="fake">与昨天约定一致：空库空列表。</div>
+        </div>
+        <div class="mock-wrap">
+          <div class="phone">
+            <div class="ph-bar"><span class="chev">&gt;&gt;</span> 方法获客</div>
+            <div class="ph-body">
+              <div class="id-bar">
+                <span>当前权限 · <strong>销售主管</strong></span>
+                <span class="hint-mini">由账号决定 · 不可切换</span>
+              </div>
+              <div class="tabs">
+                <span class="tab">GEO获客</span>
+                <span class="tab on">分配</span>
+                <span class="tab">清洗</span>
+                <span class="tab">评分</span>
+                <span class="tab">跟进成交</span>
+              </div>
+              <div class="gtgt">
+                <div class="lab">&gt;&gt; 选择线索 ID</div>
+                <div class="inp">输入线索编号</div>
+                <div class="row"><button class="btn" type="button">下一步</button></div>
+              </div>
+              <div class="empty">暂无待分配线索</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- F6 跟进成交板 -->
+    <section class="feat" id="f6">
+      <div class="feat-head">
+        <span class="badge hot">F6 · 补充</span>
+        <div>
+          <h3>跟进成交板（阶段列 + 分支出口）</h3>
+          <p class="one">获客结束后进这里。主路径列推进；每列底部是可执行的出口动作（淘汰/退回/培育/丢单/赢单）</p>
+          <div class="meta">
+            <span class="chip">权限：一线推进 · 主管可回收待领取</span>
+            <span class="chip warn">与获客 Tab 分离，避免「一个奇怪大看板」</span>
+          </div>
+        </div>
+      </div>
+      <div class="body">
+        <div class="spec">
+          <h4>页面区块</h4>
+          <ul>
+            <li>顶栏筛选：我的 / 全组 · 来源含 GEO</li>
+            <li>横向阶段列：接触→需求→报价→谈判→合同→交付→续费</li>
+            <li>卡片：公司名 · 负责人 · 停留天数</li>
+            <li>卡片菜单：推进下一阶段 / 分支出口</li>
+            <li>空库：每列空，不造演示商机</li>
+          </ul>
+          <h4>库字段建议（可落地）</h4>
+          <div class="logic">
+            <code>sales_lead.stage</code> ∈
+            pool_inbox / await_claim / owned / contact / need / quote / negotiate / contract / delivery / renew<br/>
+            <code>exit_reason</code> ∈ cull / return_pool / invalid / nurture / lost / won<br/>
+            推进与出口都写 API + 审计，禁止只改前端列。
+          </div>
+          <div class="fake">空库各列 0 张卡片；出口按钮点了会调 API，失败则提示。</div>
+        </div>
+        <div class="mock-wrap">
+          <div class="phone" style="max-width:100%">
+            <div class="ph-bar"><span class="chev">&gt;&gt;</span> 跟进成交</div>
+            <div class="ph-body">
+              <div class="id-bar">
+                <span>当前权限 · <strong>一线销售</strong></span>
+                <span class="hint-mini">只看我负责的</span>
+              </div>
+              <div class="tabs">
+                <span class="tab">GEO获客</span>
+                <span class="tab">待领取</span>
+                <span class="tab on">跟进成交</span>
+              </div>
+              <div class="hint">主路径向右推进；黄色小字 = 本阶段可离开主路径的出口。</div>
+              <div class="stage-board">
+                <div class="stage-col">
+                  <h6>初步接触</h6>
+                  <div class="chip-mini">空</div>
+                  <div class="exit">↓ 培育孵化</div>
+                </div>
+                <div class="stage-col">
+                  <h6>需求确认</h6>
+                  <div class="chip-mini">空</div>
+                  <div class="exit">↓ 升商机</div>
+                </div>
+                <div class="stage-col">
+                  <h6>方案报价</h6>
+                  <div class="chip-mini">空</div>
+                  <div class="exit">↓ 升商机</div>
+                </div>
+                <div class="stage-col">
+                  <h6>商务谈判</h6>
+                  <div class="chip-mini">空</div>
+                  <div class="exit">↓ 丢单</div>
+                </div>
+                <div class="stage-col">
+                  <h6>合同签订</h6>
+                  <div class="chip-mini">空</div>
+                  <div class="exit">↓ 赢单</div>
+                </div>
+                <div class="stage-col">
+                  <h6>交付回款</h6>
+                  <div class="chip-mini">空</div>
+                  <div class="exit">—</div>
+                </div>
+                <div class="stage-col">
+                  <h6>续费增购</h6>
+                  <div class="chip-mini">空</div>
+                  <div class="exit">—</div>
+                </div>
+              </div>
+              <div class="empty" style="margin-top:8px">暂无跟进中线索 · 从「待领取」认领后会出现在「初步接触」</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- F7 转化看板 -->
+    <section class="feat" id="f7">
+      <div class="feat-head">
+        <span class="badge hot">F7 · 必有</span>
+        <div>
+          <h3>转化看板（一眼看全链路 + 转化率）</h3>
+          <p class="one">和「跟进成交板」不同：成交板是干活推进卡片；看板是看数——各环节存量、环比转化率、GEO/全渠道对比</p>
+          <div class="meta">
+            <span class="chip">权限：主管 / 市场默认可看；一线可看「我的」</span>
+            <span class="chip warn">数据全部来自真库聚合；空库全是 0，不画假漏斗</span>
+          </div>
+        </div>
+      </div>
+      <div class="body">
+        <div class="spec">
+          <h4>要不要有？——要</h4>
+          <ul>
+            <li>没有看板，转化链只是流程图，老板/主管看不出卡在哪一环</li>
+            <li>跟进板 = 操作面；看板 = 洞察面；两个入口都要，别揉成一个</li>
+          </ul>
+          <h4>页面区块</h4>
+          <ul>
+            <li>筛选：时间范围 · 来源（全部/GEO/录入/转介绍）· 范围（我的/全组）</li>
+            <li>漏斗条：阶段人数 + 箭头上写「环转化率」</li>
+            <li>出口汇总：淘汰 / 待领取退回 / 无效 / 培育 / 丢单 / 赢单 数量</li>
+            <li>下钻：点某一环 → 打开该阶段线索列表（进跟进板过滤）</li>
+          </ul>
+          <h4>落地逻辑</h4>
+          <div class="logic">
+            <code>GET /sales-lead/funnel-stats?from=&amp;to=&amp;source=&amp;scope=mine|team</code><br/>
+            按 <code>stage</code> COUNT；转化率 = 下一环人数 ÷ 本环进入人数（或同期队列）。<br/>
+            禁止前端写死演示百分比。
+          </div>
+          <div class="fake">空库：每环 0、转化率显示「—」，出口全 0。</div>
+        </div>
+        <div class="mock-wrap">
+          <div class="phone" style="max-width:100%">
+            <div class="ph-bar"><span class="chev">&gt;&gt;</span> 转化看板</div>
+            <div class="ph-body">
+              <div class="id-bar">
+                <span>范围 · <strong>全组</strong> · 近 30 天</span>
+                <span class="hint-mini">来源：全部</span>
+              </div>
+              <div class="tabs">
+                <span class="tab">GEO获客</span>
+                <span class="tab">跟进成交</span>
+                <span class="tab on">转化看板</span>
+              </div>
+              <div class="kpi">
+                <div><strong>0</strong><span>线索入池</span></div>
+                <div><strong>0</strong><span>赢单</span></div>
+                <div><strong>—</strong><span>总转化</span></div>
+              </div>
+              <div class="hint">主路径存量（空库示意）· 箭头为环转化率</div>
+              <div class="rate-row">
+                <div class="rate-step">
+                  <div class="rate-box"><strong>0</strong><span>线索池</span></div>
+                  <div class="rate-arrow"><b>—</b>转化</div>
+                </div>
+                <div class="rate-step">
+                  <div class="rate-box"><strong>0</strong><span>待领取</span></div>
+                  <div class="rate-arrow"><b>—</b>转化</div>
+                </div>
+                <div class="rate-step">
+                  <div class="rate-box"><strong>0</strong><span>已认领</span></div>
+                  <div class="rate-arrow"><b>—</b>转化</div>
+                </div>
+                <div class="rate-step">
+                  <div class="rate-box"><strong>0</strong><span>接触</span></div>
+                  <div class="rate-arrow"><b>—</b>转化</div>
+                </div>
+                <div class="rate-step">
+                  <div class="rate-box"><strong>0</strong><span>需求</span></div>
+                  <div class="rate-arrow"><b>—</b>转化</div>
+                </div>
+                <div class="rate-step">
+                  <div class="rate-box"><strong>0</strong><span>报价</span></div>
+                  <div class="rate-arrow"><b>—</b>转化</div>
+                </div>
+                <div class="rate-step">
+                  <div class="rate-box"><strong>0</strong><span>谈判</span></div>
+                  <div class="rate-arrow"><b>—</b>转化</div>
+                </div>
+                <div class="rate-step">
+                  <div class="rate-box win"><strong>0</strong><span>赢单</span></div>
+                </div>
+              </div>
+              <div class="card">
+                <h5>分支出口（同期）</h5>
+                <p>淘汰 0 · 退回 0 · 无效 0 · 培育 0 · 丢单 0 · 赢单 0</p>
+              </div>
+              <div class="empty">暂无转化数据 · 有线索入库并推进阶段后，这里会出现人数与转化率</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <p class="foot">预览文件：docs/previews/销售获客-GEO优先-5功能页面样式.html · 含转化看板 F7</p>
+  </div>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'base',
+      flowchart: { curve: 'basis', padding: 12, htmlLabels: true },
+      themeVariables: {
+        fontFamily: 'Segoe UI, PingFang SC, Microsoft YaHei, sans-serif',
+        fontSize: '13px',
+        primaryColor: '#dce8f8',
+        primaryBorderColor: '#2c5282',
+        primaryTextColor: '#1a365d',
+        lineColor: '#2c5282',
+        secondaryColor: '#f8fbff',
+        tertiaryColor: '#eef2f7',
+      },
+    })
+  </script>
+</body>
+</html>

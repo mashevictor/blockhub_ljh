@@ -1,10 +1,11 @@
 
 :root {
-  --accent: #222222;
-  --bg: #0e0e0e;
-  --text: #f5f5f5;
-  --muted: rgba(255,255,255,.72);
-  --surface: rgba(255,255,255,.06);
+  /* 黑金 · 替代原灰色摄影模板 */
+  --accent: #d4af37;
+  --bg: #0a0908;
+  --text: #fef9e7;
+  --muted: rgba(254, 243, 199, 0.7);
+  --surface: rgba(212, 175, 55, 0.08);
   --fd: "Instrument Serif", Georgia, serif;
   --fb: "Figtree", system-ui, sans-serif;
 }
@@ -29,7 +30,7 @@ img { max-width: 100%; display: block; }
 .btn {
   display: inline-flex; align-items: center; justify-content: center;
   padding: .85rem 1.4rem; border: 0; cursor: pointer;
-  background: var(--accent); color: #fff; font-weight: 600;
+  background: var(--accent); color: #0a0908; font-weight: 600;
   transition: transform .25s ease, opacity .25s ease;
 }
 .btn:hover { transform: translateY(-2px); opacity: .92; }
