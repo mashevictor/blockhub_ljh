@@ -2510,14 +2510,14 @@ a.b2b-nav-btn-link {
 }
 
 .b2b-brand-scope .plaza-audience-picker {
-  border-color: #93c5fd;
-  background: linear-gradient(180deg, #f8fafc, #fff);
+  border-color: #bfdbfe;
+  background: #fff;
 }
 
 .b2b-brand-scope .plaza-audience-opt:hover,
 .b2b-brand-scope .plaza-audience-opt.selected {
   border-color: var(--b2b-primary);
-  background: var(--b2b-panel);
+  background: #eaf2ff;
 }
 
 .b2b-brand-scope .plaza-audience-opt input {
