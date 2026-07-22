@@ -770,6 +770,12 @@ class MedTriageRecord(Base):
     suggested_dept: Mapped[str] = mapped_column(String(120), nullable=False, default="")
     urgency: Mapped[str] = mapped_column(String(32), nullable=False, default="normal")  # low | normal | high
     note: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    status: Mapped[str] = mapped_column(String(32), nullable=False, default="open", index=True)  # open | guided
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
     reporter: Mapped[User] = relationship(foreign_keys=[reporter_id])
 
 
