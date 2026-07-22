@@ -5,18 +5,20 @@ from fastapi.responses import Response
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
-from app.core.deps import get_current_user
+from app.core.deps import get_current_user, require_admin
 from app.db.models import KbDocument, User
 from app.db.session import SessionLocal, get_db
 from app.services.kb_store import (
     KB_PIPELINE,
-    create_base,
     create_uploaded_document,
+    delete_base,
+    ensure_base,
     get_document,
     index_document,
     kb_stats,
     list_bases,
     list_documents,
+    purge_bases_by_names,
     search_chunks,
 )
 from app.services.object_storage import load_kb_bytes
@@ -79,8 +81,44 @@ def create_kb_base(
 ) -> dict:
     if not body.name.strip():
         raise HTTPException(400, "知识库名称不能为空")
-    kb = create_base(db, user, body.name, body.description)
+    # 同名幂等，避免冒烟/重复创建堆出垃圾库
+    kb = ensure_base(db, user, body.name, body.description)
     return {"success": True, "kb": kb}
+
+
+@router.delete("/bases/{kb_id}")
+def delete_kb_base(
+    kb_id: str,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> dict:
+    if not delete_base(db, user.tenant_id, kb_id):
+        raise HTTPException(404, "知识库不存在")
+    return {"success": True, "id": kb_id}
+
+
+class PurgeJunkBody(BaseModel):
+    """清理冒烟/测试垃圾库。默认只删名称含「冒烟」或 description 含 smoke test。"""
+
+    names: list[str] = Field(default_factory=lambda: ["冒烟知识库"])
+    name_contains: str = "冒烟"
+    description_contains: str = "smoke test"
+
+
+@router.post("/bases/purge-junk")
+def purge_junk_bases(
+    body: PurgeJunkBody,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_admin),
+) -> dict:
+    removed = purge_bases_by_names(
+        db,
+        user.tenant_id,
+        names=set(body.names or []),
+        name_contains=(body.name_contains or "").strip() or None,
+        description_contains=(body.description_contains or "").strip() or None,
+    )
+    return {"success": True, "removed": len(removed), "items": removed}
 
 
 @router.get("/documents")

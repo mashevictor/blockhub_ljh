@@ -183,6 +183,50 @@ def seed_kb_starter_docs(
     return created
 
 
+def delete_base(db: Session, tenant_id: str, kb_id: str) -> bool:
+    """删除知识库及其文档/分块（DB CASCADE + ORM cascade）。"""
+    kb = get_base(db, tenant_id, kb_id)
+    if not kb:
+        return False
+    db.delete(kb)
+    db.commit()
+    return True
+
+
+def purge_bases_by_names(
+    db: Session,
+    tenant_id: str,
+    *,
+    names: set[str] | None = None,
+    name_contains: str | None = None,
+    description_contains: str | None = None,
+) -> list[dict]:
+    """按名称精确匹配或描述关键词清理垃圾库（冒烟等）。"""
+    rows = (
+        db.query(KnowledgeBase)
+        .filter(KnowledgeBase.tenant_id == tenant_id)
+        .order_by(KnowledgeBase.created_at.asc())
+        .all()
+    )
+    removed: list[dict] = []
+    for kb in rows:
+        hit = False
+        if names and kb.name in names:
+            hit = True
+        if name_contains and name_contains in (kb.name or ""):
+            hit = True
+        if description_contains and description_contains in (kb.description or ""):
+            hit = True
+        if not hit:
+            continue
+        info = _base_dict(kb)
+        db.delete(kb)
+        removed.append(info)
+    if removed:
+        db.commit()
+    return removed
+
+
 def get_base(db: Session, tenant_id: str, kb_id: str) -> KnowledgeBase | None:
     return (
         db.query(KnowledgeBase)

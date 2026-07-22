@@ -248,6 +248,12 @@ if [ -n "$TOKEN" ]; then
     -H "Authorization: Bearer $TOKEN" \
     -d '{"name":"冒烟知识库","description":"smoke test"}' 2>/dev/null || echo "")
   KB_ID=$(echo "$KB_CREATE" | python3 -c "import sys,json; print(json.load(sys.stdin).get('kb',{}).get('id',''))" 2>/dev/null || echo "")
+  # 若已有同名库，改用列表里第一个「冒烟知识库」，避免每次冒烟堆垃圾库
+  if [ -z "$KB_ID" ]; then
+    KB_ID=$(curl -sf -H "Authorization: Bearer $TOKEN" "$API/kb/bases" 2>/dev/null \
+      | python3 -c "import sys,json; items=json.load(sys.stdin).get('items') or [];
+print(next((b.get('id','') for b in items if b.get('name')=='冒烟知识库'),''))" 2>/dev/null || echo "")
+  fi
   if [ -n "$KB_ID" ]; then ok "POST /kb/bases ($KB_ID)"; else bad "POST /kb/bases ($KB_CREATE)"; fi
 
   if [ -n "$KB_ID" ]; then
