@@ -1393,13 +1393,24 @@ export function CapShipComposer({
           page_snapshots: (base.root.children || [])
             .map((c) => {
               const props = (c.props || {}) as Record<string, unknown>
+              const ck = String(props.capability_key || c.id || '')
+              const pageKind = String(props.page_kind || props.ui_kind || '')
+              const widget = String(props.widget || '')
               const html = String(props.source_html || '').trim()
-              if (!html) return null
+              const isGen =
+                ck.startsWith('gen_') ||
+                pageKind === 'generated_code' ||
+                widget === 'GeneratedPageWidget' ||
+                Boolean(html)
+              if (!isGen) return null
               return {
                 key: String(c.id || ''),
-                capability_key: String(props.capability_key || c.id || ''),
+                capability_key: ck,
                 title: String(props.title || ''),
-                label: String(props.title || ''),
+                label: String(props.title || props.scene_label || ''),
+                page_kind: pageKind || (html ? 'generated_code' : ''),
+                widget: widget || 'GeneratedPageWidget',
+                // 无 html 也传空串：后端仍可走「升级为智能出页」
                 source_html: html.slice(0, 100_000),
               }
             })
@@ -1408,6 +1419,8 @@ export function CapShipComposer({
             capability_key: string
             title: string
             label: string
+            page_kind?: string
+            widget?: string
             source_html: string
           }>,
           entry_source: String((base.meta as Record<string, unknown> | undefined)?.entry_source || ''),

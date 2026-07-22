@@ -1393,21 +1393,45 @@ def _merge_llm_with_matches(
 
 
 def _looks_like_revise_generated_intent(text: str) -> bool:
-    t = text or ""
-    if not t.strip():
+    """二次改已有页：含「能不能/加上/显示到界面」等，不要求必须出现「修改」二字。"""
+    t = (text or "").strip()
+    if not t:
         return False
-    # 新建语气优先不当作修订
-    if re.search(r"(再|另外|重新)?(做|加|创建|新建|来一)个", t) and not re.search(
-        r"(在|把|将).{0,12}(上|里|中).{0,8}(改|加|调)", t
+    # 纯新建：「做一个贪吃蛇 / 新建一个审批」且未指向已有页
+    if re.search(r"^(再|另外|重新)?(做|加|创建|新建|来一)个", t) and not re.search(
+        r"(页面|这个|该页|备忘|闹钟|上面|现有|原来|界面)", t
     ):
-        if not re.search(r"(改成|改成|改一下|修改|调整|优化|加上|换成|变成)", t):
+        if not re.search(r"(改成|改一下|修改|调整|优化|换成|变成|能不能|可以.*吗)", t):
             return False
     return bool(
         re.search(
-            r"(改|修改|调整|优化|升级|加上|增加|换成|改成|变成|再.*难|更容易|颜色|速度|得分|关卡)",
+            r"("
+            r"改|修改|调整|优化|升级|加上|增加|换成|改成|变成|"
+            r"能不能|可不可以|可以吗|能否|希望|想要|需要|"
+            r"显示|放到|放在|界面|页面上|做成|加个|加一个|"
+            r"提醒|闹钟|日期|颜色|速度|得分|关卡|功能"
+            r")",
             t,
         )
     )
+
+
+def _snapshot_key(s: dict[str, Any]) -> str:
+    return str(s.get("capability_key") or s.get("key") or "").strip()
+
+
+def _is_generated_target_key(key: str, snap: dict[str, Any] | None = None) -> bool:
+    if not key:
+        return False
+    if key.startswith("gen_"):
+        return True
+    if snap:
+        pk = str(snap.get("page_kind") or snap.get("ui_kind") or "")
+        if pk in ("generated_code", "tool_pad") or snap.get("source_html"):
+            return True
+        if str(snap.get("widget") or "") == "GeneratedPageWidget":
+            return True
+    return False
 
 
 def _infer_revise_generated_ops(
@@ -1415,14 +1439,34 @@ def _infer_revise_generated_ops(
     menu: list[dict[str, Any]],
     snapshots: list[dict[str, Any]],
 ) -> list[dict[str, Any]]:
-    """已有智能出页 + 修订话术 → revise_generated（带底稿走二次出页）。"""
-    if not snapshots or not _looks_like_revise_generated_intent(instruction):
+    """已有 gen_/智能出页 + 修订话术 → revise_generated（有底稿则带底稿，无底稿则整页智能出页升级）。"""
+    if not _looks_like_revise_generated_intent(instruction):
         return []
-    snap_by_key = {
-        str(s.get("capability_key") or s.get("key") or ""): s
-        for s in snapshots
-        if isinstance(s, dict) and str(s.get("source_html") or "").strip()
-    }
+
+    # 允许无 source_html：表单壳二次升级为可运行页
+    snap_by_key: dict[str, dict[str, Any]] = {}
+    for s in snapshots:
+        if not isinstance(s, dict):
+            continue
+        k = _snapshot_key(s)
+        if k and _is_generated_target_key(k, s):
+            snap_by_key[k] = s
+
+    # 快照为空时：仍可用菜单里的 gen_* 作为修订目标
+    if not snap_by_key:
+        for m in menu:
+            if not isinstance(m, dict):
+                continue
+            key = str(m.get("capability_key") or m.get("key") or "")
+            if key.startswith("gen_"):
+                snap_by_key[key] = {
+                    "capability_key": key,
+                    "key": key,
+                    "title": str(m.get("label") or key),
+                    "label": str(m.get("label") or key),
+                    "source_html": "",
+                }
+
     if not snap_by_key:
         return []
 
@@ -1435,10 +1479,11 @@ def _infer_revise_generated_ops(
         lab = str(m.get("label") or "")
         if key not in snap_by_key:
             continue
-        if lab and lab in t:
+        if lab and (lab in t or any(len(p) >= 2 and p in t for p in re.split(r"[\s·\-_/]+", lab) if p)):
             targets.append(m)
         elif key and key in t:
             targets.append(m)
+    # 指令含「页面/界面」且仅一个可修订页 → 默认打它
     if not targets and len(snap_by_key) == 1:
         only_key = next(iter(snap_by_key))
         for m in menu:
@@ -1454,6 +1499,16 @@ def _infer_revise_generated_ops(
                     "key": only_key,
                 }
             )
+    if not targets and len(snap_by_key) >= 1 and re.search(r"(这个|该|此|当前).{0,4}(页|界面)|页面上|界面上", t):
+        only_key = next(iter(snap_by_key))
+        s = snap_by_key[only_key]
+        targets.append(
+            {
+                "label": str(s.get("title") or s.get("label") or only_key),
+                "capability_key": only_key,
+                "key": only_key,
+            }
+        )
     if not targets and len(menu) == 1:
         m0 = menu[0]
         key = str(m0.get("capability_key") or m0.get("key") or "")

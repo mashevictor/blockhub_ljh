@@ -285,6 +285,8 @@ export async function askComposeEdit(
       capability_key?: string
       title?: string
       label?: string
+      page_kind?: string
+      widget?: string
       source_html?: string
     }>
     entry_source?: string
