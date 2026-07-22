@@ -45,7 +45,7 @@ export const INDUSTRIES_SHOWCASE: IndustryItem[] = [
   { key: 'mfg', name: '传统制造', iconKey: 'mfg', count: 14, desc: '报修、双知识库、质检、MES', color: '#3b82f6', fullPack: true },
   { key: 'sales', name: '销售行业', iconKey: 'sales', count: 64, desc: '线索、报价、漏斗、CRM', color: '#6366f1', fullPack: true },
   { key: 'med', name: '医疗健康', iconKey: 'med', count: 12, desc: '指南、排班、导诊、HIS', color: '#10b981', fullPack: true },
-  { key: 'game', name: '游戏娱乐', iconKey: 'game', count: 13, desc: '玩家 FAQ、客服、活动通知', color: '#a855f7', fullPack: true },
+  { key: 'game', name: '游戏娱乐', iconKey: 'game', count: 14, desc: 'FAQ工单真库、双知识库、活动通知、2048', color: '#a855f7', fullPack: true },
   { key: 'retail', name: '零售电商', iconKey: 'retail', count: 10, desc: '库存、会员、促销、订单', color: '#f97316', fullPack: true },
   { key: 'edu', name: '教育培训', iconKey: 'edu', count: 9, desc: '课程、题库、排课、家校', color: '#2563eb', fullPack: true },
   { key: 'finance', name: '金融服务', iconKey: 'finance', count: 11, desc: '合规、风控、理财、尽调', color: '#0284c7', fullPack: true },
@@ -76,7 +76,7 @@ export const SCENARIO_BREAKDOWN = [
   { label: '制造业', count: 12, color: '#3b82f6', iconKey: 'mfg' },
   { label: '销售', count: 64, color: '#6366f1', iconKey: 'sales' },
   { label: '医疗', count: 12, color: '#10b981', iconKey: 'med' },
-  { label: '游戏', count: 13, color: '#a855f7', iconKey: 'game' },
+  { label: '游戏', count: 14, color: '#a855f7', iconKey: 'game' },
 ]
 
 export const OFFICE_CATEGORY_ICON: Record<string, string> = {

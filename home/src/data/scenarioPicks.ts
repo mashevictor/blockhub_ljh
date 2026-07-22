@@ -47,7 +47,7 @@ export const SCENARIO_PICKS: ScenarioPick[] = [
   { key: 'med_triage', category: '医疗行业', icon: '🏥', title: '智能导诊', desc: '患者预问诊，对外轻量网页或 App', capability: 'med_triage', agent: '导诊', promptLine: '对外智能导诊与预问诊' },
   { key: 'nurse_shift', category: '医疗行业', icon: '🗓️', title: '护士排班', desc: '调班申请与护士长批复', capability: 'nurse_shift', agent: '排班', promptLine: '护士调班申请与批复' },
   { key: 'member_loyalty', category: '零售电商', icon: '🎁', title: '会员营销', desc: '积分活动登记与触达确认', capability: 'member_loyalty', agent: '营销', promptLine: '会员积分促销活动与触达' },
-  { key: 'game_faq', category: '游戏行业', icon: '🎮', title: '玩家 FAQ', desc: '活动规则、攻略与客服工单', capability: 'game_support', agent: '客服', promptLine: '玩家 FAQ 与客服工单' },
+  { key: 'game_faq', category: '游戏行业', icon: '🎮', title: '玩家 FAQ', desc: '活动规则、攻略与客服工单 · 真 API', capability: 'game_support', agent: '客服', promptLine: '玩家 FAQ 与客服工单' },
   { key: 'school_notice', category: '教育培训', icon: '📢', title: '家校通知', desc: '通知/报名/家长留言', capability: 'school_notice', agent: '家校', promptLine: '家校通知与活动报名' },
   { key: 'homework_qa', category: '教育培训', icon: '📝', title: '作业答疑', desc: '作业提交与课程答疑', capability: 'homework_qa', agent: '教学', promptLine: '作业提交与课程答疑' },
   { key: 'class_schedule', category: '教育培训', icon: '📅', title: '课表查询', desc: '课程/考试/教室安排', capability: 'class_schedule', agent: '教务', promptLine: '课表与考试教室安排' },

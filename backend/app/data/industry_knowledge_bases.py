@@ -256,10 +256,11 @@ INDUSTRY_KNOWLEDGE_BASES: dict[str, list[dict[str, str]]] = {
 
 assert all(len(v) == 2 for v in INDUSTRY_KNOWLEDGE_BASES.values()), "each industry must have exactly 2 KBs"
 
-# DeepSeek 示范文档：backend/app/data/{med,mfg}_kb_starter/{slug}/*.md
+# DeepSeek 示范文档：backend/app/data/{med,mfg,game}_kb_starter/{slug}/*.md
 _STARTER_ROOTS: dict[str, Path] = {
     "med": Path(__file__).resolve().parent / "med_kb_starter",
     "mfg": Path(__file__).resolve().parent / "mfg_kb_starter",
+    "game": Path(__file__).resolve().parent / "game_kb_starter",
 }
 
 
@@ -305,6 +306,11 @@ def pick_hub_for_scene(pack_key: str, scene_name: str, problem: str = "") -> dic
         if any(t in blob for t in ("质检", "安环", "不合格", "隐患")):
             return hubs[1]
         # SOP / 工艺 / 图纸 / BOM / 培训资料 → 工艺库
+        return hubs[0]
+    if pack_key == "game":
+        if any(t in blob for t in ("版号", "合规", "敏感词", "审核", "外包验收", "内容风控")):
+            return hubs[1]
+        # 活动规则 / FAQ / 攻略 / 版本说明 → 玩家 FAQ 库
         return hubs[0]
     # 默认：名称含第二库关键词则二，否则一
     h1, h2 = hubs[0], hubs[1]

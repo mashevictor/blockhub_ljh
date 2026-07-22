@@ -1,5 +1,6 @@
 /** 行业 Runtime 场景页预览数据（与行业方案站清单一一对应） */
 
+import { GAME_SCENE_SEEDS } from './gameScenes'
 import { MED_SCENE_SEEDS } from './medScenes'
 import { OFFICE_SCENE_SEEDS } from './officeScenes66'
 import { SALES_SCENE_SEEDS } from './salesScenes66'
@@ -361,11 +362,30 @@ export const MED_RUNTIME_PREVIEW: IndustryRuntimePackPreview = {
   })),
 }
 
+export const GAME_RUNTIME_PREVIEW: IndustryRuntimePackPreview = {
+  key: 'game',
+  name: '游戏娱乐',
+  tagline: 'FAQ工单真库、双知识库、活动通知、2048可玩',
+  accent: '#a855f7',
+  scenes: GAME_SCENE_SEEDS.map((s) => ({
+    id: s.id,
+    name: s.name,
+    category: s.category,
+    summary: s.summary,
+    pages: s.pages,
+    standard: '✓' as const,
+    kind: s.kind as ScenePageKind,
+    capabilityHint: s.capabilityHint,
+    pageMock: s.pageMock as ScenePageMock | undefined,
+  })),
+}
+
 export function getIndustryRuntimePreview(packKey: string): IndustryRuntimePackPreview | null {
   if (packKey === 'mfg') return MFG_RUNTIME_PREVIEW
   if (packKey === 'office') return OFFICE_RUNTIME_PREVIEW
   if (packKey === 'sales') return SALES_RUNTIME_PREVIEW
   if (packKey === 'med') return MED_RUNTIME_PREVIEW
+  if (packKey === 'game') return GAME_RUNTIME_PREVIEW
   return null
 }
 

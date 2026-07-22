@@ -12,7 +12,16 @@ PACK_CAPSHIP_MODULES: dict[str, list[str]] = {
     "mfg": ["device_repair", "quality_inspect", "inventory_count", "chat_qa", "notify_im", "kb_document"],
     "sales": ["sales_lead", "deal_evidence", "kill_pipeline", "quote_contract", "ops_kpi", "chat_qa", "chart_funnel", "notify_im", "kb_document", "expense_claim", "site_patrol", "erp_connector", "campaign_ops", "data_nl_query", "chart_dashboard"],
     "med": ["med_triage", "nurse_shift", "kb_document", "chat_qa", "approval_flow", "notify_im"],
-    "game": ["game_support", "chat_qa", "approval_flow", "notify_im", "kb_document", "chart_dashboard"],
+    "game": [
+        "game_support",
+        "game_2048",
+        "kb_document",
+        "notify_im",
+        "approval_flow",
+        "chart_dashboard",
+        "data_nl_query",
+        "erp_connector",
+    ],
     "retail": ["inventory_count", "member_loyalty", "chat_qa", "notify_im", "approval_flow", "chart_dashboard"],
     "edu": ["school_notice", "homework_qa", "class_schedule", "chat_qa", "notify_im", "kb_document"],
     "finance": ["legal_case", "approval_flow", "kb_document", "chat_qa", "chart_dashboard", "notify_im"],
@@ -73,8 +82,16 @@ _STATIC_BASE: dict[str, dict[str, Any]] = {
         ],
     },
     "game": {
-        "overview": "游戏娱乐深度包聚焦玩家 FAQ、客服工单与活动通知，帮助运营快速搭建玩家服务台与合规审查流程。",
-        "highlights": ["玩家攻略智能问答", "客服工单流转", "活动多渠道通知", "版号合规审查"],
+        "overview": (
+            "游戏娱乐深度包：玩家 FAQ/客服工单真库、活动规则与版号合规双知识库 RAG、"
+            "活动 IM 通知、外包验收审批、运营问数、游戏后台对接与 2048 正式可玩；禁止假 seed。"
+        ),
+        "highlights": [
+            "玩家 FAQ · 客服工单真 API",
+            "活动规则 / 版号合规双知识库",
+            "活动通知 · IM Webhook",
+            "2048 正式能力可玩",
+        ],
     },
     "retail": {
         "overview": "零售电商深度包以库存盘点、会员营销为主能力，覆盖补货预警、积分兑换、门店巡检与退换货工单，适合连锁与 O2O。",

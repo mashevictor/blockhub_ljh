@@ -10,6 +10,7 @@ import re
 from typing import Any
 
 from app.data.industry_packs_all import ALL_INDUSTRY_PACKS, pack_meta
+from app.data.game_scene_capabilities import enrich_menu_plan_item as enrich_game_menu_plan_item
 from app.data.med_scene_capabilities import enrich_menu_plan_item as enrich_med_menu_plan_item
 from app.data.office_scene_capabilities import enrich_menu_plan_item as enrich_office_menu_plan_item
 from app.data.sales_scene_capabilities import enrich_menu_plan_item as enrich_sales_menu_plan_item
@@ -48,6 +49,7 @@ _AGENT_TO_CAPABILITY: dict[str, str] = {
     "med_triage": "med_triage",
     "nurse_shift": "nurse_shift",
     "game_support": "game_support",
+    "game_2048": "game_2048",
     "school_notice": "school_notice",
     "homework_qa": "homework_qa",
     "property_repair": "property_repair",
@@ -158,7 +160,7 @@ def resolve_scene_capability_keys(scene: dict[str, Any]) -> list[str]:
         if mapped and is_registry_key(mapped):
             return [mapped]
 
-    # 办公 / 销售 / 医疗深度包 SSOT（名称精确匹配）
+    # 办公 / 销售 / 医疗 / 游戏深度包 SSOT（名称精确匹配）
     try:
         from app.data.office_scene_capabilities import OFFICE_SCENES_BY_NAME
 
@@ -185,6 +187,16 @@ def resolve_scene_capability_keys(scene: dict[str, Any]) -> list[str]:
         med_row = MED_SCENES_BY_NAME.get(name)
         if med_row:
             ck = str(med_row.get("capability_key") or "")
+            if ck and is_registry_key(ck):
+                return [ck]
+    except Exception:
+        pass
+    try:
+        from app.data.game_scene_capabilities import GAME_SCENES_BY_NAME
+
+        game_row = GAME_SCENES_BY_NAME.get(name)
+        if game_row:
+            ck = str(game_row.get("capability_key") or "")
             if ck and is_registry_key(ck):
                 return [ck]
     except Exception:
@@ -308,13 +320,20 @@ def assemble_industry_pack(
                 modules[-1]["key"] = primary
             if primary not in capability_keys:
                 capability_keys.append(primary)
+        elif pack_key == "game":
+            plan_item = enrich_game_menu_plan_item(plan_item, name)
+            primary = str(plan_item.get("capability_key") or primary)
+            if modules:
+                modules[-1]["key"] = primary
+            if primary not in capability_keys:
+                capability_keys.append(primary)
         menu_plan.append(plan_item)
 
     if not capability_keys:
         capability_keys = ["chat_qa", "approval_flow", "kb_document"]
 
-    # office / sales / med：以映射表 menu_plan 为准重建 keys，避免名称关键词误伤
-    if pack_key in {"office", "sales", "med"} and menu_plan:
+    # office / sales / med / game：以映射表 menu_plan 为准重建 keys，避免名称关键词误伤
+    if pack_key in {"office", "sales", "med", "game"} and menu_plan:
         rebuilt: list[str] = []
         for item in menu_plan:
             ck = str(item.get("capability_key") or "").strip()

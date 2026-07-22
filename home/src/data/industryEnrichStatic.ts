@@ -21,7 +21,7 @@ const PACK_CAPSHIP: Record<string, string[]> = {
   mfg: ['device_repair', 'quality_inspect', 'inventory_count', 'chat_qa', 'notify_im', 'kb_document'],
   sales: ['sales_lead', 'quote_contract', 'ops_kpi', 'chat_qa', 'chart_funnel', 'notify_im', 'kb_document', 'expense_claim', 'site_patrol', 'erp_connector', 'campaign_ops', 'data_nl_query', 'chart_dashboard'],
   med: ['med_triage', 'nurse_shift', 'kb_document', 'chat_qa', 'approval_flow', 'notify_im'],
-  game: ['game_support', 'chat_qa', 'approval_flow', 'notify_im', 'kb_document', 'chart_dashboard'],
+  game: ['game_support', 'game_2048', 'kb_document', 'notify_im', 'approval_flow', 'chart_dashboard', 'data_nl_query', 'erp_connector'],
   retail: ['inventory_count', 'member_loyalty', 'chat_qa', 'notify_im', 'approval_flow', 'chart_dashboard'],
   edu: ['school_notice', 'homework_qa', 'class_schedule', 'chat_qa', 'notify_im', 'kb_document'],
   finance: ['legal_case', 'approval_flow', 'kb_document', 'chat_qa', 'chart_dashboard', 'notify_im'],
@@ -85,13 +85,13 @@ const PACK_COPY: Record<string, { overview: string; highlights: string[]; tipSce
     ],
   },
   game: {
-    overview: '游戏娱乐深度包聚焦玩家 FAQ、客服工单与活动通知，快速搭建玩家服务台。',
-    highlights: ['玩家 FAQ', '客服工单', '活动通知', '合规审查'],
+    overview: '游戏娱乐深度包：玩家 FAQ/客服工单真库、活动规则与版号合规双知识库 RAG、活动 IM 通知、2048 正式可玩；禁止假 seed。',
+    highlights: ['玩家 FAQ · 客服工单真 API', '活动规则 / 版号合规双知识库', '活动通知 · IM Webhook', '2048 正式可玩'],
     tipScenes: [
-      { name: '玩家FAQ/攻略', tip: '活动规则问答；落地 game_support。' },
-      { name: '客服工单', tip: '玩家问题流转；审批+列表。' },
+      { name: '玩家FAQ', tip: '活动规则问答；落地 game_support（default_category=faq）。' },
+      { name: '客服工单', tip: '玩家问题流转；落地 game_support（ticket）。' },
+      { name: '游戏·玩家FAQ与活动规则库', tip: '行业专属知识库 RAG；空库空列表。' },
       { name: '活动上线通知', tip: '开服活动推送；notify_im。' },
-      { name: '版号/合规审查', tip: '内容合规自检；审批留痕。' },
     ],
   },
   retail: {

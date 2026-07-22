@@ -71,7 +71,7 @@ export const CHIP_TEMPLATES: ChipTemplate[] = [
     prompt: '游戏玩家 FAQ 攻略与客服工单处理，支持活动规则查询。',
     picks: [
       { type: 'industry', key: 'game', label: '游戏娱乐' },
-      { type: 'scenario', key: 'chip-game-faq', label: '玩家FAQ/攻略' },
+      { type: 'scenario', key: 'chip-game-faq', label: '玩家FAQ' },
       { type: 'scenario', key: 'chip-game-ticket', label: '客服工单' },
     ],
     scenarioNames: ['玩家FAQ/攻略', '客服工单'],

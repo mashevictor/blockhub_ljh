@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from app.data.game_scene_capabilities import game_pack_scenes
 from app.data.med_scene_capabilities import med_pack_scenes
 from app.data.office_scene_capabilities import office_pack_scenes
 from app.data.sales_scene_capabilities import sales_pack_scenes
@@ -109,22 +110,8 @@ _GAME = {
     "name": "游戏娱乐",
     "icon": "🎮",
     "color": "#a855f7",
-    "tagline": "玩家 FAQ、客服、活动通知",
-    "scenes": [
-        _scene("玩家FAQ/攻略", "玩家服务", "活动规则问答", pages="chat", agent="chat_qa"),
-        _scene("客服工单", "客服管理", "玩家问题流转", pages="approval+list", agent="approval"),
-        _scene("版本/活动规则库", "知识管理", "策划文档检索", pages="kb", agent="kb"),
-        _scene("留存/ARPU看板", "数据分析", "运营数据监控", pages="chart", standard="部分", agent="report"),
-        _scene("版号/合规审查", "合规管理", "内容合规自检", agent="approval"),
-        _scene("活动上线通知", "消息通知", "开服活动推送", pages="notify", agent="notify"),
-        _scene("NPC/角色对话(C端)", "C端功能", "游戏内AI角色", pages="chat", agent="chat_qa"),
-        _scene("外包验收审批", "审批流程", "美术音效验收", agent="approval"),
-        _scene("渠道投放分析", "数据分析", "CAC/ROI", pages="chart", standard="部分", agent="report"),
-        _scene("对接游戏后台", "系统集成", "GM/数据中台", standard="定制", pages="integration", agent="integration"),
-        _scene("敏感词/内容风控", "安全合规", "UGC过滤", pages="security", agent="creation"),
-        _scene("内购/订阅(C端)", "C端功能", "会员道具付费", standard="部分", pages="C端", agent="—"),
-        _scene("公会/社区管理", "社区管理", "公告举报处理", pages="list+approval", agent="approval"),
-    ],
+    "tagline": "FAQ工单真库、双知识库、活动通知、2048可玩",
+    "scenes": game_pack_scenes(),
 }
 
 _RETAIL = {
