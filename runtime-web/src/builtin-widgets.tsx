@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   GtgtStepComposer,
   registerWidget,
@@ -85,6 +85,63 @@ if(d==='u')setDir(0,-1);if(d==='d')setDir(0,1);if(d==='l')setDir(-1,0);if(d==='r
 document.getElementById('go').onclick=reset;C.addEventListener('click',()=>{try{C.focus()}catch(e){}});reset();
 })();
 </script></body></html>`
+}
+
+function mobaPlayableHtml(title: string): string {
+  const t = (title || '对战模拟').replace(/[<>]/g, '').slice(0, 40) || '对战模拟'
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>${t}</title>
+<style>
+body{margin:0;font-family:system-ui,sans-serif;background:linear-gradient(160deg,#0f172a,#1e3a5f);color:#e2e8f0;min-height:100vh;padding:16px}
+h2{margin:0 0 8px;font-size:18px}.hint{font-size:12px;opacity:.8;margin:0 0 12px}
+.heroes{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.hero{flex:1;min-width:90px;border:1px solid #334155;border-radius:10px;padding:10px;background:#0b1220;cursor:pointer;text-align:center}
+.hero.on{outline:2px solid #38bdf8;background:#132337}
+.bar{height:10px;background:#334155;border-radius:6px;overflow:hidden;margin:6px 0}
+.fill{height:100%;background:#22c55e;width:100%;transition:width .25s}.fill.enemy{background:#f43f5e}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+button{border:0;border-radius:8px;padding:10px 14px;background:#0ea5e9;color:#fff;cursor:pointer;font-size:14px}
+button:disabled{opacity:.5;cursor:not-allowed}
+#log{margin-top:12px;font-size:13px;line-height:1.5;min-height:48px;white-space:pre-wrap}
+.panel{background:rgba(2,6,23,.55);border:1px solid #334155;border-radius:12px;padding:14px;max-width:480px}
+</style></head><body>
+<div class="panel">
+<h2>${t}</h2>
+<p class="hint">精简演示 · 选英雄 → 开战 → 技能（非完整客户端）</p>
+<div class="heroes" id="heroes"></div>
+<p>我方 <b id="meName">—</b></p><div class="bar"><div class="fill" id="meHp"></div></div>
+<p>敌方 <b>暗影刺客</b></p><div class="bar"><div class="fill enemy" id="enHp"></div></div>
+<div class="row">
+<button type="button" id="fight" disabled>开始对战</button>
+<button type="button" id="skill" disabled>释放技能</button>
+<button type="button" id="again">再来</button>
+</div>
+<div id="log">请选择一名英雄</div>
+</div>
+<script>
+(function(){
+const H=[{n:'烈焰法师',hp:100,atk:18,sk:'火球'},{n:'圣盾战士',hp:130,atk:12,sk:'冲锋'},{n:'疾风射手',hp:90,atk:22,sk:'连射'}];
+let me=null,meHp=0,enHp=120,busy=false;
+const heroes=document.getElementById('heroes'),log=document.getElementById('log');
+const meHpEl=document.getElementById('meHp'),enHpEl=document.getElementById('enHp');
+const fight=document.getElementById('fight'),skill=document.getElementById('skill');
+function paint(){meHpEl.style.width=Math.max(0,meHp)/(me?me.hp:100)*100+'%';enHpEl.style.width=Math.max(0,enHp)/120*100+'%';document.getElementById('meName').textContent=me?me.n:'—'}
+function say(t){log.textContent=t}
+H.forEach(h=>{const b=document.createElement('button');b.type='button';b.className='hero';b.textContent=h.n;b.onclick=()=>{if(busy)return;me=h;meHp=h.hp;enHp=120;busy=false;[...heroes.children].forEach(c=>c.classList.remove('on'));b.classList.add('on');fight.disabled=false;skill.disabled=true;say('已选择 '+h.n+'，点击开始对战');paint()};heroes.appendChild(b)});
+function enemyTurn(){if(enHp<=0||meHp<=0)return;const d=8+Math.floor(Math.random()*10);meHp=Math.max(0,meHp-d);say(log.textContent+'\\n敌方反击 -'+d);paint();if(meHp<=0){say('惜败 · 点「再来」');fight.disabled=true;skill.disabled=true;busy=false}else{skill.disabled=false;busy=false}}
+fight.onclick=()=>{if(!me||busy)return;busy=true;fight.disabled=true;skill.disabled=false;say('对战开始！');paint()};
+skill.onclick=()=>{if(!me||busy||meHp<=0)return;busy=true;skill.disabled=true;const d=me.atk+Math.floor(Math.random()*8);enHp=Math.max(0,enHp-d);say(me.n+' 释放【'+me.sk+'】 -'+d);paint();if(enHp<=0){say('胜利！');fight.disabled=true;skill.disabled=true;busy=false}else setTimeout(enemyTurn,450)};
+document.getElementById('again').onclick=()=>{me=null;meHp=0;enHp=120;busy=false;fight.disabled=true;skill.disabled=true;[...heroes.children].forEach(c=>c.classList.remove('on'));say('请选择一名英雄');paint()};
+paint();
+})();
+</script></body></html>`
+}
+
+function instantPlayableFallback(title: string, summary: string): string {
+  const blob = `${title} ${summary}`
+  if (/贪吃蛇|snake/i.test(blob)) return snakePlayableHtml(title)
+  if (/英雄联盟|lol|moba|对战|王者|英雄选择/i.test(blob)) return mobaPlayableHtml(title)
+  return mobaPlayableHtml(title || '互动演示')
 }
 
 function looksLikeSnakeGame(html: string, title: string): boolean {
@@ -341,32 +398,50 @@ const GEN_TIPS = [
   '若在改已有页面，会基于上一版源码修订…',
 ]
 
-function GeneratingProgress({ title, summary, accent }: { title: string; summary: string; accent: string }) {
+function GeneratingProgress({
+  title,
+  summary,
+  accent,
+  onTimeout,
+}: {
+  title: string
+  summary: string
+  accent: string
+  /** 超过该秒数仍无成品时回调（只触发一次） */
+  onTimeout?: () => void
+}) {
   const [elapsed, setElapsed] = useState(0)
   const [tipIdx, setTipIdx] = useState(0)
+  const timedOutRef = useRef(false)
+  const MAX_WAIT = 75
 
   useEffect(() => {
     const t0 = Date.now()
-    const tick = window.setInterval(() => setElapsed(Math.floor((Date.now() - t0) / 1000)), 1000)
+    const tick = window.setInterval(() => {
+      const sec = Math.floor((Date.now() - t0) / 1000)
+      setElapsed(sec)
+      if (sec >= MAX_WAIT && !timedOutRef.current) {
+        timedOutRef.current = true
+        onTimeout?.()
+      }
+    }, 1000)
     return () => window.clearInterval(tick)
-  }, [])
+  }, [onTimeout])
 
   useEffect(() => {
     const tip = window.setInterval(() => setTipIdx((i) => (i + 1) % GEN_TIPS.length), 4500)
     return () => window.clearInterval(tip)
   }, [])
 
-  // 按耗时推进步骤观感（真实完成仍靠 codegen 合并 source_html）
-  const stepIdx =
-    elapsed < 8 ? 0 : elapsed < 25 ? 1 : elapsed < 45 ? 2 : 3
+  const stepIdx = elapsed < 8 ? 0 : elapsed < 25 ? 1 : elapsed < 45 ? 2 : 3
   const etaHint =
     elapsed < 20
-      ? '预计还要大约 20–40 秒'
+      ? '预计约 20–40 秒'
       : elapsed < 50
         ? '即将完成，请稍候'
-        : elapsed < 90
-          ? '比平时稍慢，仍在生成中…'
-          : '仍在处理。可先去其他菜单，稍后再回来看本页。'
+        : elapsed < MAX_WAIT
+          ? '比平时稍慢；超时将自动换成可玩精简版'
+          : '已超时，正在切换可玩精简版…'
 
   return (
     <article
@@ -386,9 +461,7 @@ function GeneratingProgress({ title, summary, accent }: { title: string; summary
         {GEN_STEPS.map((s, i) => (
           <li
             key={s.key}
-            className={
-              i < stepIdx ? 'is-done' : i === stepIdx ? 'is-active' : ''
-            }
+            className={i < stepIdx ? 'is-done' : i === stepIdx ? 'is-active' : ''}
           >
             <span className="generated-progress-dot" aria-hidden />
             <span>{s.label}</span>
@@ -426,6 +499,28 @@ function GeneratedPageWidget({ node }: { node: SchemaNode }) {
   const capKey = String(node.props?.capability_key || node.id || 'gen_page')
   const pending = Boolean(node.props?.codegen_pending)
   const sourceHtml = String(node.props?.source_html || '').trim()
+  const startedAtRaw = String(node.props?.codegen_started_at || '').trim()
+  const stalePending = useMemo(() => {
+    if (!pending || sourceHtml) return false
+    if (!startedAtRaw) return false
+    const t = Date.parse(startedAtRaw)
+    if (Number.isNaN(t)) return false
+    return Date.now() - t > 75_000
+  }, [pending, sourceHtml, startedAtRaw])
+  const [forceLiteHtml, setForceLiteHtml] = useState(() =>
+    stalePending ? instantPlayableFallback(title, summary) : '',
+  )
+  const onGenTimeout = useCallback(() => {
+    setForceLiteHtml(instantPlayableFallback(title, summary))
+  }, [title, summary])
+
+  useEffect(() => {
+    if (stalePending) {
+      setForceLiteHtml(instantPlayableFallback(title, summary))
+      return
+    }
+    if (!pending) setForceLiteHtml('')
+  }, [capKey, sourceHtml, pending, stalePending, title, summary])
   const pageKind = String(
     node.props?.page_kind ||
       node.props?.ui_kind ||
@@ -490,8 +585,21 @@ function GeneratedPageWidget({ node }: { node: SchemaNode }) {
     setResetKey((k) => k + 1)
   }, [capKey])
 
+  if (forceLiteHtml) {
+    return (
+      <div>
+        <p className="muted" style={{ margin: '0 0 8px', fontSize: 12, color: '#0f766e' }}>
+          生成较慢，已先打开精简可玩版（非完整客户端）。可继续对话打磨。
+        </p>
+        <GeneratedCodeFrame title={title} html={forceLiteHtml} />
+      </div>
+    )
+  }
+
   if (pending) {
-    return <GeneratingProgress title={title} summary={summary} accent={accent} />
+    return (
+      <GeneratingProgress title={title} summary={summary} accent={accent} onTimeout={onGenTimeout} />
+    )
   }
 
   if (sourceHtml) {
@@ -499,7 +607,9 @@ function GeneratedPageWidget({ node }: { node: SchemaNode }) {
   }
 
   if (pageKind === 'generated_code') {
-    return <GeneratingProgress title={title} summary={summary} accent={accent} />
+    return (
+      <GeneratingProgress title={title} summary={summary} accent={accent} onTimeout={onGenTimeout} />
+    )
   }
 
   if (interactive) {

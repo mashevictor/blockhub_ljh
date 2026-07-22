@@ -461,6 +461,7 @@ export function applyComposeOps(schema: ComposerPageSchema, ops: ComposeEditOp[]
               props: {
                 ...props,
                 codegen_pending: true,
+                codegen_started_at: new Date().toISOString(),
                 page_kind: 'generated_code',
                 ui_kind: 'generated_code',
                 ui_phase: 'skeleton',
@@ -1515,9 +1516,9 @@ export function CapShipComposer({
         const jobAc = new AbortController()
         codegenAbortRef.current = jobAc
         void (async () => {
-          for (let i = 0; i < 40; i += 1) {
+          for (let i = 0; i < 60; i += 1) {
             if (jobAc.signal.aborted) return
-            await new Promise((r) => window.setTimeout(r, 1500))
+            await new Promise((r) => window.setTimeout(r, 2000))
             if (jobAc.signal.aborted) return
             try {
               const job = await fetchCodegenJob(jobId, { token, signal: jobAc.signal })
@@ -1608,7 +1609,10 @@ export function CapShipComposer({
             onSchemaPatch?.(timedOut)
             setMessages((prev) => [
               ...prev,
-              { role: 'assistant', text: 'AI 出页超时，已展开本地可预见草稿；可稍后刷新或再说一次需求。' },
+              {
+                role: 'assistant',
+                text: 'AI 出页超时。复杂大作会先给精简可玩演示；刷新本页或再说「换成可玩版」即可继续打磨。',
+              },
             ])
             setStatus('生成超时 · 已回退本地预览')
           }

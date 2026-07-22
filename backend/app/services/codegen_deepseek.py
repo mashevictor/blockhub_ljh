@@ -43,6 +43,7 @@ _SYSTEM = """你是积木仓 BlockHub 的页面代码生成器（产品名：智
 4. 核心逻辑尽量写成纯函数；unit_tests 用 Node 可跑的纯 JS（无 DOM），至少 1 条。
 5. 若是计算器/计数器/骰子，也可不写 source_html，改写 interactive.type=tool_pad（白名单 ops）。
 6. 贪吃蛇等小游戏：必须可键盘 **且** 提供触屏方向按钮；有得分与「再来一局」；可在 iframe 内直接玩。
+7. **复杂大作（类英雄联盟/MOBA/开放世界）禁止做完整游戏**：只做「精简可玩演示」——英雄三选一、开始对战、双方血条、回合/技能按钮、胜负与再来；HTML 控制在约 200 行内，优先 15 秒内可交互。
 """
 
 _SYSTEM_REVISE = """你是积木仓 BlockHub 的页面修订器（智能出页 · 二次修订）。
@@ -51,7 +52,7 @@ _SYSTEM_REVISE = """你是积木仓 BlockHub 的页面修订器（智能出页 �
 只输出 JSON，格式与新建相同（generated_pages[].source_html 为完整 HTML）。
 
 规则同新建：自包含、可交互、禁止危险 API、**禁止 alert/confirm/prompt**；unit_tests 至少 1 条。
-若底稿是游戏，修订后仍须可玩（键盘+触屏按钮）。
+若底稿是游戏，修订后仍须可玩（键盘+触屏按钮）。复杂大作仍只做精简演示，勿膨胀成完整客户端。
 """
 
 
@@ -204,10 +205,94 @@ let n=0;document.getElementById('b').onclick=()=>{{n++;document.getElementById('
 </script></body></html>"""
 
 
+def _moba_lite_fallback_html(title: str) -> str:
+    """类英雄联盟：精简英雄选择 + 对战演示（秒开，不替代完整客户端）。"""
+    t = (title or "对战模拟").replace("<", "")[:40]
+    return f"""<!DOCTYPE html><html><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>{t}</title>
+<style>
+body{{margin:0;font-family:system-ui,sans-serif;background:linear-gradient(160deg,#0f172a,#1e3a5f);color:#e2e8f0;min-height:100vh;padding:16px}}
+h2{{margin:0 0 8px;font-size:18px}}
+.hint{{font-size:12px;opacity:.8;margin:0 0 12px}}
+.heroes{{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}}
+.hero{{flex:1;min-width:90px;border:1px solid #334155;border-radius:10px;padding:10px;background:#0b1220;cursor:pointer;text-align:center}}
+.hero.on{{outline:2px solid #38bdf8;background:#132337}}
+.bar{{height:10px;background:#334155;border-radius:6px;overflow:hidden;margin:6px 0}}
+.fill{{height:100%;background:#22c55e;width:100%;transition:width .25s}}
+.fill.enemy{{background:#f43f5e}}
+.row{{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}}
+button{{border:0;border-radius:8px;padding:10px 14px;background:#0ea5e9;color:#fff;cursor:pointer;font-size:14px}}
+button:disabled{{opacity:.5;cursor:not-allowed}}
+#log{{margin-top:12px;font-size:13px;line-height:1.5;min-height:48px;white-space:pre-wrap}}
+.panel{{background:rgba(2,6,23,.55);border:1px solid #334155;border-radius:12px;padding:14px;max-width:480px}}
+</style></head><body>
+<div class="panel">
+<h2>{t}</h2>
+<p class="hint">精简演示 · 选英雄 → 开战 → 技能互砍（非完整客户端）</p>
+<div class="heroes" id="heroes"></div>
+<p>我方 <b id="meName">—</b></p>
+<div class="bar"><div class="fill" id="meHp"></div></div>
+<p>敌方 <b id="enName">暗影刺客</b></p>
+<div class="bar"><div class="fill enemy" id="enHp"></div></div>
+<div class="row">
+<button type="button" id="fight" disabled>开始对战</button>
+<button type="button" id="skill" disabled>释放技能</button>
+<button type="button" id="again">再来</button>
+</div>
+<div id="log">请选择一名英雄</div>
+</div>
+<script>
+(function(){{
+const H=[{{n:'烈焰法师',hp:100,atk:18,sk:'火球'}},{{n:'圣盾战士',hp:130,atk:12,sk:'冲锋'}},{{n:'疾风射手',hp:90,atk:22,sk:'连射'}}];
+let me=null,meHp=0,enHp=120,busy=false;
+const heroes=document.getElementById('heroes'),log=document.getElementById('log');
+const meHpEl=document.getElementById('meHp'),enHpEl=document.getElementById('enHp');
+const fight=document.getElementById('fight'),skill=document.getElementById('skill');
+function paint(){{
+meHpEl.style.width=Math.max(0,meHp)/(me?me.hp:100)*100+'%';
+enHpEl.style.width=Math.max(0,enHp)/120*100+'%';
+document.getElementById('meName').textContent=me?me.n:'—';
+}}
+function say(t){{log.textContent=t}}
+H.forEach((h,i)=>{{
+const b=document.createElement('button');b.type='button';b.className='hero';b.textContent=h.n+'\\n攻'+h.atk;
+b.onclick=()=>{{if(busy)return;me=h;meHp=h.hp;enHp=120;busy=false;
+[...heroes.children].forEach(c=>c.classList.remove('on'));b.classList.add('on');
+fight.disabled=false;skill.disabled=true;say('已选择 '+h.n+'，点击开始对战');paint()}};
+heroes.appendChild(b);
+}});
+function enemyTurn(){{
+if(enHp<=0||meHp<=0)return;
+const d=8+Math.floor(Math.random()*10);meHp=Math.max(0,meHp-d);
+say(log.textContent+'\\n敌方反击 -'+d);paint();
+if(meHp<=0){{say('惜败 · 点「再来」');fight.disabled=true;skill.disabled=true;busy=false}}
+else {{skill.disabled=false;busy=false}}
+}}
+fight.onclick=()=>{{if(!me||busy)return;busy=true;fight.disabled=true;skill.disabled=false;
+say('对战开始！使用技能压制敌人');paint()}};
+skill.onclick=()=>{{if(!me||busy||meHp<=0)return;busy=true;skill.disabled=true;
+const d=me.atk+Math.floor(Math.random()*8);enHp=Math.max(0,enHp-d);
+say(me.n+' 释放【'+me.sk+'】 -'+d);paint();
+if(enHp<=0){{say('胜利！点「再来」再打一局');fight.disabled=true;skill.disabled=true;busy=false}}
+else setTimeout(enemyTurn,450)}};
+document.getElementById('again').onclick=()=>{{me=null;meHp=0;enHp=120;busy=false;fight.disabled=true;skill.disabled=true;
+[...heroes.children].forEach(c=>c.classList.remove('on'));say('请选择一名英雄');paint()}};
+paint();
+}})();
+</script></body></html>"""
+
+
 def _fallback_html_for(title: str, prompt: str) -> tuple[str, list[dict[str, Any]]]:
     blob = f"{title} {prompt}"
     if any(w in blob for w in ("贪吃蛇", "snake")):
         return _snake_fallback_html(title or "贪吃蛇"), [
+            {"name": "smoke", "code": "if (typeof Math.max !== 'function') throw new Error('env');"}
+        ]
+    if any(
+        w in blob
+        for w in ("英雄联盟", "lol", "LOL", "MOBA", "moba", "对战模拟", "英雄选择", "开黑")
+    ):
+        return _moba_lite_fallback_html(title or "对战模拟"), [
             {"name": "smoke", "code": "if (typeof Math.max !== 'function') throw new Error('env');"}
         ]
     return _generic_fallback_html(title), [
@@ -233,6 +318,16 @@ def upgrade_legacy_playable_html(html: str, title: str = "") -> str:
     return _snake_fallback_html(title or "贪吃蛇")
 
 
+def _looks_heavy_game(text: str) -> bool:
+    """完整客户端级需求 → 走精简可玩演示，避免 DeepSeek 长时间生成导致前端空等。"""
+    t = (text or "").lower()
+    keys = (
+        "英雄联盟", "league of legends", "lol", "moba", "王者荣耀", "开放世界",
+        "完整游戏", "3d", "联机对战", "匹配开黑", "对战模拟", "英雄选择",
+    )
+    return any(k in t for k in keys)
+
+
 def generate_capability_pages(
     *,
     app_name: str,
@@ -243,8 +338,33 @@ def generate_capability_pages(
     base_html_by_key: dict[str, str] | None = None,
 ) -> dict[str, Any]:
     unknown = [k for k in unknown_keys if k] or ["custom_feature"]
-    bases = {str(k): str(v) for k, v in (base_html_by_key or {}).items() if str(v).strip()}
+    bases = {str(k): upgrade_legacy_playable_html(str(v), str(k)) for k, v in (base_html_by_key or {}).items() if str(v).strip()}
     revising = bool(bases)
+
+    # 新建且需求过重：直接精简可玩版（秒级），避免 5 分钟仍停在「即将可用」
+    if not revising and _looks_heavy_game(f"{app_name} {prompt} {' '.join(unknown)}"):
+        pages = []
+        for key in unknown:
+            title = key.replace("gen_", "").replace("_", " ")[:64] or "对战模拟"
+            if any(w in f"{title} {prompt}" for w in ("贪吃蛇", "snake")):
+                html = _snake_fallback_html(title)
+                tests = [
+                    {"name": "smoke", "code": "if (typeof Math.max !== 'function') throw new Error('env');"}
+                ]
+            else:
+                html, tests = _fallback_html_for(title or "对战模拟", prompt)
+            pages.append(
+                {
+                    "key": key if str(key).startswith("gen_") else f"gen_{_slug(key)}",
+                    "title": title if title not in ("generated",) else "对战模拟",
+                    "route": f"/gen/{_slug(key)}",
+                    "summary": "精简可玩演示（非完整客户端）；可再说需求继续打磨。",
+                    "source_html": html,
+                    "unit_tests": tests,
+                    "source": "heavy_game_lite",
+                }
+            )
+        return {"generated_pages": pages, "generated_flutter_screens": [], "llm": False}
 
     pages_payload = []
     for key in unknown:
@@ -341,6 +461,12 @@ def _verify_and_fix(
             else:
                 html, tests = _fallback_html_for(title, prompt)
                 page = {**page, "source_html": html, "unit_tests": tests}
+        else:
+            # 已有 HTML：先升级旧贪吃蛇，再校验（打开旧页 / 修订都受益）
+            upgraded = upgrade_legacy_playable_html(html, title)
+            if upgraded != html:
+                html = upgraded
+                page = {**page, "source_html": html, "source": "legacy_playable_upgrade"}
 
         report = verify_full(html=str(page.get("source_html") or ""), unit_tests=tests if isinstance(tests, list) else [])
         if not report.get("ok"):
