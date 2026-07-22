@@ -22,11 +22,12 @@ function authErrorMessage(err: unknown, fallback: string): string {
   if (resp.status === 429) {
     return typeof resp.data?.detail === 'string' ? resp.data.detail : '发送过于频繁，请稍后再试'
   }
-  if (resp.status === 503 || resp.status === 500) {
-    return '服务暂不可用，请稍后重试或访问演示站'
-  }
   const detail = resp.data?.detail
-  return typeof detail === 'string' ? detail : fallback
+  if (typeof detail === 'string' && detail.trim()) return detail
+  if (resp.status === 503 || resp.status === 500) {
+    return '服务暂不可用，请稍后重试'
+  }
+  return fallback
 }
 
 interface Props {

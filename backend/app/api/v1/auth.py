@@ -1,7 +1,7 @@
 from typing import Annotated
 from urllib.parse import quote
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
@@ -11,13 +11,16 @@ from app.core.deps import get_current_user
 from app.core.security import create_access_token, verify_password
 from app.db.models import User
 from app.db.session import get_db
+from app.services.captcha_service import captcha_configured, verify_captcha_ticket
 from app.services.db_seed import DEFAULT_TENANT_SLUG
+from app.services.email_service import send_email, smtp_configured
 from app.services.otp_service import (
     detect_account_type,
     issue_otp,
     normalize_account,
     verify_otp,
 )
+from app.services.sms_service import send_otp_sms, sms_configured
 from app.services import wecom_oauth
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -30,6 +33,14 @@ class LoginRequest(BaseModel):
 
 class SendCodeRequest(BaseModel):
     account: str = Field(..., min_length=3, max_length=255)
+    # 腾讯云验证码票据（Captcha 已配置时必填）
+    ticket: str | None = None
+    randstr: str | None = None
+
+
+class CaptchaConfigResponse(BaseModel):
+    enabled: bool
+    app_id: str = ""
 
 
 class LoginOtpRequest(BaseModel):
@@ -132,24 +143,86 @@ def _find_or_create_user(db: Session, account_type: str, account: str) -> User:
     return user
 
 
+def _client_ip(request: Request) -> str:
+    forwarded = (request.headers.get("x-forwarded-for") or "").split(",")[0].strip()
+    if forwarded:
+        return forwarded
+    real = (request.headers.get("x-real-ip") or "").strip()
+    if real:
+        return real
+    if request.client and request.client.host:
+        return request.client.host
+    return "127.0.0.1"
+
+
+@router.get("/captcha-config", response_model=CaptchaConfigResponse)
+def captcha_config() -> CaptchaConfigResponse:
+    enabled = captcha_configured()
+    return CaptchaConfigResponse(
+        enabled=enabled,
+        app_id=str(settings.tencent_captcha_app_id).strip() if enabled else "",
+    )
+
+
 @router.post("/send-code", response_model=SendCodeResponse)
-def send_code(body: SendCodeRequest) -> SendCodeResponse:
+def send_code(body: SendCodeRequest, request: Request) -> SendCodeResponse:
     try:
         account_type = detect_account_type(body.account)
         account = normalize_account(body.account, account_type)
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
+    if captcha_configured():
+        try:
+            verify_captcha_ticket(
+                ticket=body.ticket or "",
+                randstr=body.randstr or "",
+                user_ip=_client_ip(request),
+            )
+        except ValueError as exc:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
+    if account_type == "phone" and not sms_configured() and not settings.otp_debug_expose:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="短信服务未配置，请联系管理员（需 TENCENT_SMS_*）",
+        )
+    if account_type == "email" and not smtp_configured() and not settings.otp_debug_expose:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="邮件服务未配置，请联系管理员",
+        )
+
     try:
         code, expires_in = issue_otp(account_type, account)
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail=str(exc)) from exc
 
-    message = (
-        f"验证码已发送至邮箱 {account}"
-        if account_type == "email"
-        else f"验证码已发送至手机 {account[:3]}****{account[-4:]}"
-    )
+    if account_type == "phone":
+        if sms_configured() and not send_otp_sms(account, code):
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail="短信发送失败，请稍后重试",
+            )
+        message = f"验证码已发送至手机 {account[:3]}****{account[-4:]}"
+    else:
+        if smtp_configured():
+            ok = send_email(
+                to=account,
+                subject=f"{settings.smtp_from_name} 登录验证码",
+                text=f"您的验证码是 {code}，{expires_in // 60} 分钟内有效。如非本人操作请忽略。",
+                html=(
+                    f"<p>您的验证码是 <strong>{code}</strong>，"
+                    f"{expires_in // 60} 分钟内有效。</p><p>如非本人操作请忽略。</p>"
+                ),
+            )
+            if not ok:
+                raise HTTPException(
+                    status_code=status.HTTP_502_BAD_GATEWAY,
+                    detail="邮件发送失败，请稍后重试",
+                )
+        message = f"验证码已发送至邮箱 {account}"
+
     return SendCodeResponse(
         message=message,
         expires_in=expires_in,

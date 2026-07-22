@@ -46,6 +46,21 @@ class Settings(BaseSettings):
     public_base_url: str = "http://101.32.209.251"
     otp_debug_expose: bool = False
 
+    # 腾讯云 CAM（验证码票据校验 / 短信；空则回退 COS_SECRET_*）
+    tencent_secret_id: str = ""
+    tencent_secret_key: str = ""
+
+    # 腾讯云验证码（账号场景 · 文字点选；AppId 可公开，AppSecretKey 仅服务端）
+    tencent_captcha_app_id: str = "194728032"
+    tencent_captcha_app_secret_key: str = ""
+
+    # 腾讯云短信（手机 OTP；模板须含验证码变量，默认 TemplateParamSet=[code]）
+    sms_enabled: bool = False
+    tencent_sms_sdk_app_id: str = ""
+    tencent_sms_sign_name: str = ""
+    tencent_sms_template_id: str = ""
+    tencent_sms_region: str = "ap-guangzhou"
+
     uploads_dir: str = "uploads"
 
     # Redis（D5：限流 / OTP 缓存；未配置时回退内存）
@@ -83,6 +98,20 @@ class Settings(BaseSettings):
     @field_validator("teleai_app_id", "teleai_app_key")
     @classmethod
     def strip_teleai_credentials(cls, v: str) -> str:
+        return (v or "").strip().strip('"').strip("'")
+
+    @field_validator(
+        "tencent_secret_id",
+        "tencent_secret_key",
+        "tencent_captcha_app_id",
+        "tencent_captcha_app_secret_key",
+        "tencent_sms_sdk_app_id",
+        "tencent_sms_sign_name",
+        "tencent_sms_template_id",
+        "tencent_sms_region",
+    )
+    @classmethod
+    def strip_tencent(cls, v: str) -> str:
         return (v or "").strip().strip('"').strip("'")
 
     # 知识库向量化（OpenAI 兼容 /embeddings；未设则回退 LLM/DeepSeek Key，再无则全文检索）
