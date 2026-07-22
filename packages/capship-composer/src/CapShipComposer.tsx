@@ -678,6 +678,11 @@ export function CapShipComposer({
   const lastSavedSchemaRef = useRef<ComposerPageSchema | null>(cloneSchema(initialSchema))
   const abortRef = useRef<AbortController | null>(null)
   const codegenAbortRef = useRef<AbortController | null>(null)
+  const schemaLiveRef = useRef<ComposerPageSchema | null>(schema)
+
+  useEffect(() => {
+    schemaLiveRef.current = schema
+  }, [schema])
 
   const activeMode = controlledMode ?? mode
   const versionAppKey = String(appId || schema?.appId || 'preview-local')
@@ -1452,6 +1457,7 @@ export function CapShipComposer({
           return
         }
         setSchema(next)
+        schemaLiveRef.current = next
         setKeys(next.capability_keys)
         setSchemaDirty(true)
         onSchemaPatch?.(next)
@@ -1483,6 +1489,7 @@ export function CapShipComposer({
           },
         }
         setSchema(next)
+        schemaLiveRef.current = next
         setKeys(next.capability_keys)
         setSchemaDirty(true)
         onSchemaPatch?.(next)
@@ -1545,8 +1552,11 @@ export function CapShipComposer({
               if (job.status !== 'ready') continue
               const pages = job.result?.generated_pages || []
               if (pages.length) {
-                const merged = applyGeneratedPages(snapshot, pages)
+                // 合并到「当前最新 schema」，避免多次对话改页时用过期 snapshot 盖掉中间修改
+                const live = schemaLiveRef.current || snapshot
+                const merged = applyGeneratedPages(live, pages)
                 setSchema(merged)
+                schemaLiveRef.current = merged
                 setKeys(merged.capability_keys)
                 setSchemaDirty(true)
                 onSchemaPatch?.(merged)
@@ -1554,7 +1564,7 @@ export function CapShipComposer({
                   ...prev,
                   {
                     role: 'assistant',
-                    text: `页面已生成并通过预览合并${job.result?.llm ? '（DeepSeek）' : '（规则兜底）'}：${pages.length} 页，可在左侧菜单打开使用。`,
+                    text: `页面已更新为最新可玩版本${job.result?.llm ? '（DeepSeek）' : '（规则兜底）'}：${pages.length} 页。请点左侧对应菜单打开；若在游戏页，点一下画面再操作。`,
                   },
                 ])
                 setStatus('AI 预览页已就绪 · 未保存')

@@ -39,9 +39,10 @@ _SYSTEM = """你是积木仓 BlockHub 的页面代码生成器（产品名：智
 规则：
 1. source_html 必须是完整 HTML 文档，自包含，可交互（游戏/工具/小玩法），禁止只有「标题+说明」表单壳。
 2. 禁止：parent/top、eval、Function、fetch、XMLHttpRequest、WebSocket、document.cookie、localStorage。
-3. 核心逻辑尽量写成纯函数；unit_tests 用 Node 可跑的纯 JS（无 DOM），至少 1 条。
-4. 若是计算器/计数器/骰子，也可不写 source_html，改写 interactive.type=tool_pad（白名单 ops）。
-5. 贪吃蛇等小游戏：必须可键盘或点击操作，有得分或再来一局。
+3. **禁止 alert / confirm / prompt**（iframe 沙箱会吞掉弹窗）；结束/提示一律用页面内 DOM 文案或按钮。
+4. 核心逻辑尽量写成纯函数；unit_tests 用 Node 可跑的纯 JS（无 DOM），至少 1 条。
+5. 若是计算器/计数器/骰子，也可不写 source_html，改写 interactive.type=tool_pad（白名单 ops）。
+6. 贪吃蛇等小游戏：必须可键盘 **且** 提供触屏方向按钮；有得分与「再来一局」；可在 iframe 内直接玩。
 """
 
 _SYSTEM_REVISE = """你是积木仓 BlockHub 的页面修订器（智能出页 · 二次修订）。
@@ -49,8 +50,8 @@ _SYSTEM_REVISE = """你是积木仓 BlockHub 的页面修订器（智能出页 �
 **必须在现有页面基础上改**，保留原玩法/布局精髓，只落实用户点名的改动；禁止无视底稿从零重写成无关页面。
 只输出 JSON，格式与新建相同（generated_pages[].source_html 为完整 HTML）。
 
-规则同新建：自包含、可交互、禁止危险 API；unit_tests 至少 1 条。
-若底稿是游戏，修订后仍须可玩。
+规则同新建：自包含、可交互、禁止危险 API、**禁止 alert/confirm/prompt**；unit_tests 至少 1 条。
+若底稿是游戏，修订后仍须可玩（键盘+触屏按钮）。
 """
 
 
@@ -129,34 +130,58 @@ def _snake_fallback_html(title: str) -> str:
     return f"""<!DOCTYPE html><html><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>{t}</title>
 <style>
-body{{margin:0;font-family:sans-serif;background:#0f172a;color:#e2e8f0;display:flex;flex-direction:column;align-items:center;gap:10px;padding:16px}}
-canvas{{background:#020617;border:2px solid #334155;border-radius:10px;image-rendering:pixelated}}
-button{{border:0;border-radius:8px;padding:8px 14px;background:#0d9488;color:#fff;cursor:pointer}}
-.row{{display:flex;gap:8px;align-items:center}}
+body{{margin:0;font-family:system-ui,sans-serif;background:#0f172a;color:#e2e8f0;display:flex;flex-direction:column;align-items:center;gap:10px;padding:16px}}
+canvas{{background:#020617;border:2px solid #334155;border-radius:10px;image-rendering:pixelated;touch-action:none}}
+button{{border:0;border-radius:8px;padding:10px 14px;background:#0d9488;color:#fff;cursor:pointer;font-size:14px;min-width:44px;min-height:44px}}
+.pad{{display:grid;grid-template-columns:44px 44px 44px;gap:6px;justify-items:center}}
+.pad .u{{grid-column:2}}
+.pad .l{{grid-column:1;grid-row:2}}
+.pad .d{{grid-column:2;grid-row:2}}
+.pad .r{{grid-column:3;grid-row:2}}
+.row{{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:center}}
+#msg{{min-height:20px;font-size:13px;color:#fbbf24}}
 </style></head><body>
 <h2 style="margin:0">{t}</h2>
-<p style="margin:0;font-size:13px;opacity:.85">方向键 / WASD</p>
-<canvas id="c" width="320" height="320"></canvas>
-<div class="row"><button type="button" id="go">再来</button><span id="sc">0</span></div>
+<p style="margin:0;font-size:13px;opacity:.85">方向键 / WASD / 下方按钮</p>
+<canvas id="c" width="320" height="320" tabindex="0"></canvas>
+<p id="msg"></p>
+<div class="row"><button type="button" id="go">再来一局</button><span>得分 <b id="sc">0</b></span></div>
+<div class="pad" aria-label="方向">
+<button type="button" class="u" data-d="u">↑</button>
+<button type="button" class="l" data-d="l">←</button>
+<button type="button" class="d" data-d="d">↓</button>
+<button type="button" class="r" data-d="r">→</button>
+</div>
 <script>
 (function(){{
-const N=16,S=20,C=document.getElementById('c'),X=C.getContext('2d');
-let snake,dir,food,score,alive,timer;
+const N=16,S=20,C=document.getElementById('c'),X=C.getContext('2d'),MSG=document.getElementById('msg');
+let snake,dir,food,score,alive,timer,pending=null;
 function rnd(){{return Math.floor(Math.random()*N)}}
 function place(){{let p;do{{p={{x:rnd(),y:rnd()}}}}while(snake.some(s=>s.x===p.x&&s.y===p.y));return p}}
-function reset(){{snake=[{{x:8,y:8}}];dir={{x:1,y:0}};food=place();score=0;alive=true;
-document.getElementById('sc').textContent=score;clearInterval(timer);timer=setInterval(tick,140);draw()}}
-function tick(){{if(!alive)return;const h={{x:snake[0].x+dir.x,y:snake[0].y+dir.y}};
-if(h.x<0||h.y<0||h.x>=N||h.y>=N||snake.some(s=>s.x===h.x&&s.y===h.y)){{alive=false;draw();return}}
+function setDir(nx,ny){{if(!alive)return;if(nx===-dir.x&&ny===-dir.y)return;pending={{x:nx,y:ny}}}}
+function reset(){{snake=[{{x:8,y:8}}];dir={{x:1,y:0}};pending=null;food=place();score=0;alive=true;MSG.textContent='';
+document.getElementById('sc').textContent=score;clearInterval(timer);timer=setInterval(tick,140);draw();try{{C.focus()}}catch(e){{}}}}
+function tick(){{if(!alive)return;if(pending){{dir=pending;pending=null}}
+const h={{x:snake[0].x+dir.x,y:snake[0].y+dir.y}};
+if(h.x<0||h.y<0||h.x>=N||h.y>=N||snake.some(s=>s.x===h.x&&s.y===h.y)){{alive=false;MSG.textContent='撞到了 · 点「再来一局」';draw();return}}
 snake.unshift(h);if(h.x===food.x&&h.y===food.y){{score++;document.getElementById('sc').textContent=score;food=place()}}else snake.pop();draw()}}
 function draw(){{X.clearRect(0,0,320,320);X.fillStyle='#f59e0b';X.fillRect(food.x*S,food.y*S,S-1,S-1);
-X.fillStyle='#34d399';snake.forEach((s,i)=>{{X.fillStyle=i? '#34d399':'#6ee7b7';X.fillRect(s.x*S,s.y*S,S-1,S-1)}});
-if(!alive){{X.fillStyle='#f87171';X.font='20px sans-serif';X.fillText('Game Over',100,160)}}}}
-window.addEventListener('keydown',e=>{{const k=e.key;if(['ArrowUp','w','W'].includes(k)&&dir.y!==1)dir={{x:0,y:-1}};
-if(['ArrowDown','s','S'].includes(k)&&dir.y!==-1)dir={{x:0,y:1}};
-if(['ArrowLeft','a','A'].includes(k)&&dir.x!==1)dir={{x:-1,y:0}};
-if(['ArrowRight','d','D'].includes(k)&&dir.x!==-1)dir={{x:1,y:0}};e.preventDefault()}});
-document.getElementById('go').onclick=reset;reset();
+snake.forEach((s,i)=>{{X.fillStyle=i? '#34d399':'#6ee7b7';X.fillRect(s.x*S,s.y*S,S-1,S-1)}});
+if(!alive){{X.fillStyle='rgba(15,23,42,.55)';X.fillRect(0,0,320,320);X.fillStyle='#f87171';X.font='bold 22px sans-serif';X.fillText('Game Over',100,160)}}}}
+window.addEventListener('keydown',e=>{{
+const k=e.key;let handled=true;
+if(['ArrowUp','w','W'].includes(k))setDir(0,-1);
+else if(['ArrowDown','s','S'].includes(k))setDir(0,1);
+else if(['ArrowLeft','a','A'].includes(k))setDir(-1,0);
+else if(['ArrowRight','d','D'].includes(k))setDir(1,0);
+else handled=false;
+if(handled)e.preventDefault();
+}});
+document.querySelectorAll('.pad button').forEach(b=>b.addEventListener('click',()=>{{
+const d=b.getAttribute('data-d');
+if(d==='u')setDir(0,-1);if(d==='d')setDir(0,1);if(d==='l')setDir(-1,0);if(d==='r')setDir(1,0);
+}}));
+document.getElementById('go').onclick=reset;C.addEventListener('click',()=>{{try{{C.focus()}}catch(e){{}}}});reset();
 }})();
 </script></body></html>"""
 

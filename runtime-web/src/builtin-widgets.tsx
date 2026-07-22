@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   GtgtStepComposer,
   registerWidget,
@@ -26,6 +26,107 @@ type PageMock = {
   kpis?: Array<{ label?: string; value?: string; hint?: string }>
   ui_kind?: string
   interactive?: unknown
+}
+
+/** 沙箱 iframe 无 allow-modals 时 alert 会被静默忽略；注入页内提示替代。 */
+function wrapPlayableSrcDoc(html: string): string {
+  const raw = (html || '').trim()
+  if (!raw) return raw
+  const shim = `<script data-bh-sandbox-shim="1">(function(){
+  if(window.__bhShim)return;window.__bhShim=1;
+  function toast(msg){
+    var t=document.getElementById('__bh_toast');
+    if(!t){
+      t=document.createElement('div');t.id='__bh_toast';
+      t.setAttribute('role','status');
+      t.style.cssText='position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:2147483647;max-width:90%;padding:10px 14px;border-radius:10px;background:rgba(15,23,42,.92);color:#fff;font:13px/1.4 system-ui,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.25);pointer-events:none';
+      (document.body||document.documentElement).appendChild(t);
+    }
+    t.textContent=String(msg==null?'':msg);
+    t.style.display='block';
+    clearTimeout(t._bh);
+    t._bh=setTimeout(function(){t.style.display='none'},2400);
+  }
+  window.alert=function(m){toast(m)};
+  window.confirm=function(m){toast(m);return true};
+  window.prompt=function(m,d){toast(m);return d==null?'':String(d)};
+})();</script>`
+  if (/<\/body>/i.test(raw)) return raw.replace(/<\/body>/i, `${shim}</body>`)
+  return `${raw}${shim}`
+}
+
+function GeneratedCodeFrame({ title, html }: { title: string; html: string }) {
+  const iframeRef = useRef<HTMLIFrameElement>(null)
+  const [armed, setArmed] = useState(false)
+  const srcDoc = useMemo(() => wrapPlayableSrcDoc(html), [html])
+  const frameKey = useMemo(() => {
+    let h = 0
+    const s = srcDoc.slice(0, 8000)
+    for (let i = 0; i < s.length; i += 1) h = (h * 31 + s.charCodeAt(i)) | 0
+    return `gen-${s.length}-${h}`
+  }, [srcDoc])
+
+  useEffect(() => {
+    setArmed(false)
+  }, [frameKey])
+
+  const focusPlay = () => {
+    setArmed(true)
+    try {
+      iframeRef.current?.focus()
+      iframeRef.current?.contentWindow?.focus()
+    } catch {
+      /* ignore cross-origin */
+    }
+  }
+
+  return (
+    <article className="generated-page generated-page--code" data-source="generated">
+      <div style={{ position: 'relative', width: '100%' }}>
+        <iframe
+          key={frameKey}
+          ref={iframeRef}
+          title={title}
+          srcDoc={srcDoc}
+          tabIndex={0}
+          // allow-modals：兼容旧生成页里的 alert；shim 兜底无 modal 也能提示
+          sandbox="allow-scripts allow-modals"
+          onLoad={focusPlay}
+          onFocus={() => setArmed(true)}
+          style={{
+            width: '100%',
+            minHeight: 440,
+            border: '1px solid #e2e8f0',
+            borderRadius: 12,
+            background: '#fff',
+            display: 'block',
+          }}
+        />
+        {!armed ? (
+          <button
+            type="button"
+            onClick={focusPlay}
+            style={{
+              position: 'absolute',
+              inset: 0,
+              border: 0,
+              borderRadius: 12,
+              background: 'rgba(15,23,42,.45)',
+              color: '#fff',
+              fontSize: 15,
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}
+          >
+            点击开始游玩 · 键盘/触屏方向可用
+          </button>
+        ) : null}
+      </div>
+      <p className="muted" style={{ margin: '8px 0 0', fontSize: 12 }}>
+        若方向键无反应，先点一下游戏区域再操作。对话改页完成后本区会自动换成最新一版。
+      </p>
+    </article>
+  )
 }
 
 type LocalRecord = {
@@ -133,25 +234,6 @@ function resolveInteractiveForNode(node: SchemaNode) {
     .filter(Boolean)
     .join(' ')
   return interactiveSchemaFromIntent(blob)
-}
-
-function GeneratedCodeFrame({ title, html }: { title: string; html: string }) {
-  return (
-    <article className="generated-page generated-page--code" data-source="generated">
-      <iframe
-        title={title}
-        srcDoc={html}
-        sandbox="allow-scripts"
-        style={{
-          width: '100%',
-          minHeight: 420,
-          border: '1px solid #e2e8f0',
-          borderRadius: 12,
-          background: '#fff',
-        }}
-      />
-    </article>
-  )
 }
 
 const GEN_STEPS = [
