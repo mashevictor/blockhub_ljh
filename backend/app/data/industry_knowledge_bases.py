@@ -1,7 +1,7 @@
 """各行业专属知识库 SSOT：每行业固定 2 个真 KnowledgeBase。
 
 发布时按租户幂等创建；Runtime 场景通过 kb_name 锁定到对应库。
-默认空库空列表；医疗等行业可附带 DeepSeek 生成的示范 Markdown，
+默认空库空列表；医疗 / 传统制造等深包可附带 DeepSeek 生成的示范 Markdown，
 经 create_uploaded_document + index_document 真链路写入（按文件名幂等，非假列表）。
 """
 
@@ -256,8 +256,11 @@ INDUSTRY_KNOWLEDGE_BASES: dict[str, list[dict[str, str]]] = {
 
 assert all(len(v) == 2 for v in INDUSTRY_KNOWLEDGE_BASES.values()), "each industry must have exactly 2 KBs"
 
-# DeepSeek 示范文档目录：backend/app/data/med_kb_starter/{slug}/*.md
-_STARTER_ROOT = Path(__file__).resolve().parent / "med_kb_starter"
+# DeepSeek 示范文档：backend/app/data/{med,mfg}_kb_starter/{slug}/*.md
+_STARTER_ROOTS: dict[str, Path] = {
+    "med": Path(__file__).resolve().parent / "med_kb_starter",
+    "mfg": Path(__file__).resolve().parent / "mfg_kb_starter",
+}
 
 
 def industry_kb_defs(pack_key: str) -> list[dict[str, str]]:
@@ -266,10 +269,10 @@ def industry_kb_defs(pack_key: str) -> list[dict[str, str]]:
 
 def starter_md_files(pack_key: str, slug: str) -> list[Path]:
     """返回某行业某 hub 下的示范 Markdown（按文件名排序）。无则空列表。"""
-    # 目前仅医疗深包挂示范库；其它行业保持空库空列表
-    if pack_key != "med":
+    root = _STARTER_ROOTS.get(pack_key)
+    if not root:
         return []
-    d = _STARTER_ROOT / slug
+    d = root / slug
     if not d.is_dir():
         return []
     return sorted(p for p in d.glob("*.md") if p.is_file())
