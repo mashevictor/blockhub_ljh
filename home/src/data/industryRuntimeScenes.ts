@@ -239,7 +239,7 @@ export const MFG_RUNTIME_PREVIEW: IndustryRuntimePackPreview = {
       capabilityHint: 'kb_document',
       pageMock: {
         chat_title: '制造·工艺SOP与作业指导库',
-        chat: [{ role: 'bot', text: '行业专属知识库 · 上传 SOP 后可向量检索；AI 仅辅助，不替代工艺员签发。' }],
+        chat: [{ role: 'bot', text: '行业专属知识库 · 已含 DeepSeek 示范工艺文档，可检索换型/作业指导；亦可继续上传。' }],
         files_title: '文档',
         files: [],
         primary_action: '检索',
@@ -256,7 +256,7 @@ export const MFG_RUNTIME_PREVIEW: IndustryRuntimePackPreview = {
       capabilityHint: 'kb_document',
       pageMock: {
         chat_title: '制造·质检与安环知识库',
-        chat: [{ role: 'bot', text: '行业专属知识库 · 上传质检/安环文档后可检索；空库空列表。' }],
+        chat: [{ role: 'bot', text: '行业专属知识库 · 已含 DeepSeek 示范质检/安环文档，可检索不合格/隐患；亦可继续上传。' }],
         files_title: '文档',
         files: [],
         primary_action: '检索',
