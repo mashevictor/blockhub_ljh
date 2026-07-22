@@ -453,32 +453,6 @@ export default function IndustryRuntimePreviewPage() {
       .catch(() => undefined)
   }, [homeToken])
 
-  // 预览页无 token 时自动 demo 登录，便于真提交验收
-  useEffect(() => {
-    if (homeToken || !preview) return
-    let cancelled = false
-    void (async () => {
-      try {
-        const res = await fetch('/api/v1/auth/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: 'admin@trackchat.local', password: 'admin123' }),
-        })
-        if (!res.ok) return
-        const data = (await res.json()) as { access_token?: string; user?: { role?: string } }
-        if (cancelled || !data.access_token) return
-        setToken(data.access_token)
-        setHomeToken(data.access_token)
-        if (data.user?.role) setHomeRole(data.user.role)
-      } catch {
-        /* 后端未起时忽略 */
-      }
-    })()
-    return () => {
-      cancelled = true
-    }
-  }, [homeToken, preview])
-
   if (!preview) {
     return (
       <div className="irp-root irp-empty">

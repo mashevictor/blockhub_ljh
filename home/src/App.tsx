@@ -16,6 +16,9 @@ import TrustDocDetailPage from './pages/enrichment/TrustDocDetailPage'
 import CasesIndexPage from './pages/enrichment/CasesIndexPage'
 import CaseDetailPage from './pages/enrichment/CaseDetailPage'
 import PricingPage from './pages/enrichment/PricingPage'
+import PricingCheckoutPage from './pages/enrichment/PricingCheckoutPage'
+import PricingResultPage from './pages/enrichment/PricingResultPage'
+import AccountBillingPage from './pages/account/AccountBillingPage'
 import NewsIndexPage from './pages/enrichment/NewsIndexPage'
 import NewsDetailPage from './pages/enrichment/NewsDetailPage'
 import RolePage from './pages/enrichment/RolePage'
@@ -74,6 +77,21 @@ export default function App() {
       <Route path={ROUTES.pricing} element={
         <ErrorBoundary fallbackTitle="定价页加载失败">
           <PricingPage />
+        </ErrorBoundary>
+      } />
+      <Route path={ROUTES.pricingCheckout} element={
+        <ErrorBoundary fallbackTitle="升级套餐页加载失败">
+          <PricingCheckoutPage />
+        </ErrorBoundary>
+      } />
+      <Route path={ROUTES.pricingResult} element={
+        <ErrorBoundary fallbackTitle="支付结果页加载失败">
+          <PricingResultPage />
+        </ErrorBoundary>
+      } />
+      <Route path={ROUTES.accountBilling} element={
+        <ErrorBoundary fallbackTitle="账户套餐页加载失败">
+          <AccountBillingPage />
         </ErrorBoundary>
       } />
       <Route path={ROUTES.news} element={

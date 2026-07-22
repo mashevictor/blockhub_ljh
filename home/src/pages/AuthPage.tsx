@@ -3,7 +3,7 @@ import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { loginOtp, loginWithPassword, sendOtpCode } from '../auth/session'
 import { getToken } from '../auth/storage'
 import { ROUTES } from '../routes/paths'
-import { BRAND, DEMO_ACCOUNTS } from '../data/brand'
+import { BRAND } from '../data/brand'
 import BrandMark from '../components/BrandMark'
 
 type AuthMode = 'otp' | 'password'
@@ -37,7 +37,6 @@ interface Props {
   defaultPassword?: string
   showPasswordLogin?: boolean
   defaultMode?: AuthMode
-  showDemoAccounts?: boolean
   showLogo?: boolean
 }
 
@@ -49,7 +48,6 @@ export default function AuthPage({
   defaultPassword = '',
   showPasswordLogin = true,
   defaultMode = 'otp',
-  showDemoAccounts = false,
   showLogo = true,
 }: Props) {
   const navigate = useNavigate()
@@ -96,8 +94,7 @@ export default function AuthPage({
     try {
       const res = await sendOtpCode(account.trim())
       setCountdown(60)
-      const debug = res.debug_code ? `（演示验证码：${res.debug_code}）` : ''
-      setHint(`${res.message}${debug}`)
+      setHint(res.message)
     } catch (err: unknown) {
       setError(authErrorMessage(err, '验证码发送失败'))
     } finally {
@@ -125,27 +122,16 @@ export default function AuthPage({
 
   const onSubmitPassword = async (e: FormEvent) => {
     e.preventDefault()
-    await loginWithCredentials(email, password)
-  }
-
-  const loginWithCredentials = async (demoEmail: string, demoPassword: string) => {
     setLoading(true)
     setError('')
     try {
-      await loginWithPassword(demoEmail, demoPassword)
+      await loginWithPassword(email, password)
       navigate(from, { replace: true })
     } catch (err: unknown) {
       setError(authErrorMessage(err, '登录失败，请检查邮箱和密码'))
     } finally {
       setLoading(false)
     }
-  }
-
-  const onDemoLogin = (acc: (typeof DEMO_ACCOUNTS)[number]) => {
-    setMode('password')
-    setEmail(acc.email)
-    setPassword(acc.password)
-    void loginWithCredentials(acc.email, acc.password)
   }
 
   if (hasToken) {
@@ -238,27 +224,6 @@ export default function AuthPage({
                 autoComplete="current-password"
               />
             </label>
-            {showDemoAccounts && (
-              <div className="login-demo-accounts">
-                <p className="login-demo-title">演示账号（密码登录）</p>
-                <ul>
-                  {DEMO_ACCOUNTS.map((acc) => (
-                    <li key={acc.email}>
-                      <button
-                        type="button"
-                        className="login-demo-pick"
-                        disabled={loading}
-                        onClick={() => onDemoLogin(acc)}
-                      >
-                        <strong>{acc.role}</strong>
-                        <span>{acc.email}</span>
-                        <span>点击直接登录 · 密码 {acc.password}</span>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
           </>
         )}
 

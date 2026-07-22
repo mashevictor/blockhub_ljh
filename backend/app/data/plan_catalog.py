@@ -39,6 +39,8 @@ PLAN_CATALOG: dict[str, PlanLimits] = {
         "segment": "c",
         "name": "Plus 创作者",
         "price_label": "¥39/人·月",
+        "price_fen": 3900,
+        "price_fen_per_seat": 3900,
         "max_apps": None,
         "max_seats": 1,
         "compose_edit_per_day": None,
@@ -61,6 +63,7 @@ PLAN_CATALOG: dict[str, PlanLimits] = {
         "segment": "b",
         "name": "Team 团队",
         "price_label": "¥98/坐席·月",
+        "price_fen_per_seat": 9800,
         "max_apps": 10,
         "max_seats": None,
         "min_seats": 5,
@@ -85,6 +88,7 @@ PLAN_CATALOG: dict[str, PlanLimits] = {
         "segment": "b",
         "name": "Business 商业",
         "price_label": "¥168/坐席·月",
+        "price_fen_per_seat": 16800,
         "max_apps": 50,
         "max_seats": None,
         "min_seats": 10,
@@ -146,3 +150,22 @@ def list_plans_for_site() -> dict[str, list[PlanLimits]]:
     c = [get_plan(k) for k in ("c_free", "c_plus")]
     b = [get_plan(k) for k in ("b_team", "b_business", "b_enterprise")]
     return {"c": c, "b": b}
+
+
+PAID_CHECKOUT_PLANS = frozenset({"c_plus", "b_team", "b_business"})
+
+
+def calc_checkout_amount_fen(plan_id: str, seats: int, months: int = 1) -> tuple[int, int]:
+    plan = get_plan(plan_id)
+    if plan_id not in PAID_CHECKOUT_PLANS:
+        raise ValueError(f"套餐 {plan_id} 不支持在线支付")
+    unit = int(plan.get("price_fen_per_seat") or plan.get("price_fen") or 0)
+    if unit <= 0:
+        raise ValueError(f"套餐 {plan_id} 未配置价格")
+    min_seats = int(plan.get("min_seats") or 1)
+    max_seats = plan.get("max_seats")
+    seats_n = max(int(seats), min_seats)
+    if max_seats is not None:
+        seats_n = min(seats_n, int(max_seats))
+    months_n = max(1, int(months))
+    return unit * seats_n * months_n, seats_n

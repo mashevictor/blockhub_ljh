@@ -31,9 +31,12 @@ export default function B2BPricingSection() {
             </article>
           ))}
         </div>
-        <div className="enrich-section-foot">
+        <div className="enrich-section-foot" style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
           <Link to={ROUTES.pricing} className="enrich-link-btn agent-action-btn">
             <AgentButtonContent>查看完整定价说明</AgentButtonContent>
+          </Link>
+          <Link to={ROUTES.accountBilling} className="enrich-link-btn agent-action-btn">
+            <AgentButtonContent>我的套餐</AgentButtonContent>
           </Link>
         </div>
       </div>

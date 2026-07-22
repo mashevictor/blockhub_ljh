@@ -90,10 +90,7 @@ export function homePublicUrl(): string {
   return BRAND.homeUrl
 }
 
-/** 启动 seed 写入的演示账号（密码登录） */
-export const DEMO_ACCOUNTS = [
-  { role: '管理员', email: 'admin@trackchat.local', password: 'admin123' },
-  { role: '使用者', email: 'employee@trackchat.local', password: 'emp123' },
-] as const
+/** 仅供本地/E2E 环境变量对照；禁止在登录页 UI 展示账号或密码 */
+export const DEMO_ACCOUNTS = [] as const
 
 export const THEME_STORAGE_KEY = 'blockhub-theme'

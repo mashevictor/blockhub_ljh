@@ -44,7 +44,7 @@ class Settings(BaseSettings):
     jwt_expire_minutes: int = 60 * 24 * 7
 
     public_base_url: str = "http://101.32.209.251"
-    otp_debug_expose: bool = True
+    otp_debug_expose: bool = False
 
     uploads_dir: str = "uploads"
 
@@ -100,6 +100,17 @@ class Settings(BaseSettings):
     wecom_secret: str = ""
     wecom_oauth_redirect_uri: str = ""  # 空则用 {public_base_url}/api/v1/auth/oauth/wecom/callback
 
+    # 易宝 · 聚合收款（官网升级套餐；未配置时 checkout 返回 503）
+    yeepay_merchant_no: str = ""
+    yeepay_parent_merchant_no: str = ""
+    yeepay_app_key: str = ""
+    yeepay_api_base: str = "https://openapi.yeepay.com/yop-center"
+    # 聚合下单路径（可用环境变量覆盖以对接同形态聚合应用）
+    yeepay_create_path: str = "/rest/v1.0/aggpay/pay-link"
+    yeepay_notify_url: str = ""  # 空则 {public_base_url}/api/v1/billing/webhook/yeepay
+    yeepay_return_url: str = ""  # 空则 {public_base_url}/pricing/result
+    yeepay_private_key_pem: str = ""  # PEM 字符串或文件路径
+
     # IM 群机器人（P4-I2 解耦自动化：设环境变量即自动绑租户 connector，无需 Runtime 手填）
     # 例：IM_WECOM_WEBHOOK_URL=https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=…
     im_wecom_webhook_url: str = ""
@@ -111,6 +122,20 @@ class Settings(BaseSettings):
     @field_validator("im_wecom_webhook_url", "im_dingtalk_webhook_url", "im_feishu_webhook_url")
     @classmethod
     def strip_im_webhooks(cls, v: str) -> str:
+        return (v or "").strip().strip('"').strip("'")
+
+    @field_validator(
+        "yeepay_merchant_no",
+        "yeepay_parent_merchant_no",
+        "yeepay_app_key",
+        "yeepay_api_base",
+        "yeepay_create_path",
+        "yeepay_notify_url",
+        "yeepay_return_url",
+        "yeepay_private_key_pem",
+    )
+    @classmethod
+    def strip_yeepay(cls, v: str) -> str:
         return (v or "").strip().strip('"').strip("'")
 
     @field_validator("database_url")

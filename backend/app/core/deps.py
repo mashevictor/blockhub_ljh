@@ -53,3 +53,5 @@ def require_roles(*roles: str):
 
 
 require_admin = require_roles("admin")
+# 官网升级套餐付款人：租户所有者或平台管理员
+require_billing_payer = require_roles("admin", "tenant_owner")

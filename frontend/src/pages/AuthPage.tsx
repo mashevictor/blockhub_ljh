@@ -2,7 +2,7 @@ import { FormEvent, useEffect, useMemo, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { loginOtp, loginWithPassword, sendOtpCode } from '../auth/session'
 import { getToken } from '../auth/storage'
-import { BRAND, DEMO_ACCOUNTS, resolveAdminPostLoginUrl } from '../data/brand'
+import { BRAND, resolveAdminPostLoginUrl } from '../data/brand'
 import BrandMark from '../components/BrandMark'
 
 type AuthMode = 'otp' | 'password'
@@ -20,7 +20,6 @@ interface Props {
   defaultPassword?: string
   showPasswordLogin?: boolean
   defaultMode?: AuthMode
-  showDemoAccounts?: boolean
   showLogo?: boolean
 }
 
@@ -31,7 +30,6 @@ export default function AuthPage({
   defaultPassword = '',
   showPasswordLogin = true,
   defaultMode = 'otp',
-  showDemoAccounts = false,
   showLogo = true,
 }: Props) {
   const location = useLocation()
@@ -78,7 +76,7 @@ export default function AuthPage({
     try {
       const res = await sendOtpCode(account.trim())
       setCountdown(60)
-      setHint(res.message + (res.debug_code ? `（演示验证码：${res.debug_code}）` : ''))
+      setHint(res.message)
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail
       setError(typeof msg === 'string' ? msg : '验证码发送失败')
@@ -103,23 +101,17 @@ export default function AuthPage({
 
   const onSubmitPassword = async (e: FormEvent) => {
     e.preventDefault()
-    await loginWithCredentials(email, password)
-  }
-
-  const loginWithCredentials = async (demoEmail: string, demoPassword: string) => {
     setLoading(true)
     setError('')
     try {
-      await loginWithPassword(demoEmail, demoPassword)
+      await loginWithPassword(email, password)
       goAfterLogin()
     } catch (err: unknown) {
       const resp = (err as { response?: { status?: number; data?: { detail?: string } } })?.response
       if (!resp) {
-        setError(
-          '无法连接 API。请确认：① 已运行 npm run dev（5174）或 scripts/dev-admin.ps1；② 或直接访问演示站 http://101.32.209.251/admin/login',
-        )
+        setError('无法连接服务，请稍后重试')
       } else if (resp.status === 503 || resp.status === 500) {
-        setError('数据库未启动。本地请运行: docker compose up -d postgres，或使用 scripts/dev-admin.ps1')
+        setError('服务暂不可用，请稍后重试')
       } else {
         const detail = resp.data?.detail
         setError(typeof detail === 'string' ? detail : '登录失败，请检查邮箱和密码')
@@ -127,12 +119,6 @@ export default function AuthPage({
     } finally {
       setLoading(false)
     }
-  }
-
-  const onDemoLogin = (acc: (typeof DEMO_ACCOUNTS)[number]) => {
-    setEmail(acc.email)
-    setPassword(acc.password)
-    void loginWithCredentials(acc.email, acc.password)
   }
 
   return (
@@ -165,7 +151,7 @@ export default function AuthPage({
                 type="text"
                 value={account}
                 onChange={(e) => setAccount(e.target.value)}
-                placeholder="13800000000 或 name@company.com"
+                placeholder="手机号或邮箱"
                 required
                 autoComplete="username"
               />
@@ -179,7 +165,7 @@ export default function AuthPage({
                   maxLength={6}
                   value={code}
                   onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
-                  placeholder="6 位验证码"
+                  placeholder="验证码"
                   required
                 />
                 <button type="button" className="btn-ghost otp-send-btn" disabled={!canSendCode} onClick={handleSendCode}>
@@ -199,27 +185,6 @@ export default function AuthPage({
               密码
               <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="current-password" />
             </label>
-            {showDemoAccounts && (
-              <div className="login-demo-accounts">
-                <p className="login-demo-title">演示账号（密码登录）</p>
-                <ul>
-                  {DEMO_ACCOUNTS.map((acc) => (
-                    <li key={acc.email}>
-                      <button
-                        type="button"
-                        className="login-demo-pick"
-                        disabled={loading}
-                        onClick={() => onDemoLogin(acc)}
-                      >
-                        <strong>{acc.role}</strong>
-                        <span>{acc.email}</span>
-                        <span>点击直接登录 · 密码 {acc.password}</span>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
           </>
         )}
 

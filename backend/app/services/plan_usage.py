@@ -27,6 +27,13 @@ def _period_lifetime() -> str:
 def tenant_plan_id(tenant: Tenant | None) -> str:
     if not tenant:
         return DEFAULT_PLAN_ID
+    expires = getattr(tenant, "plan_expires_at", None)
+    if expires is not None:
+        exp = expires if expires.tzinfo else expires.replace(tzinfo=timezone.utc)
+        if exp < datetime.now(timezone.utc):
+            pid = (getattr(tenant, "plan_tier", None) or "").strip()
+            if pid and pid != DEFAULT_PLAN_ID:
+                return DEFAULT_PLAN_ID
     pid = (getattr(tenant, "plan_tier", None) or "").strip()
     return pid or DEFAULT_PLAN_ID
 
@@ -35,6 +42,16 @@ def resolve_plan_for_user(db: Session, user: User | None) -> dict[str, Any]:
     if not user:
         return get_plan(DEFAULT_PLAN_ID)
     tenant = db.get(Tenant, user.tenant_id)
+    # 过期软回落：写回 c_free（幂等）
+    if tenant and tenant_plan_id(tenant) == DEFAULT_PLAN_ID:
+        expires = getattr(tenant, "plan_expires_at", None)
+        raw = (getattr(tenant, "plan_tier", None) or "").strip()
+        if expires and raw and raw != DEFAULT_PLAN_ID:
+            exp = expires if expires.tzinfo else expires.replace(tzinfo=timezone.utc)
+            if exp < datetime.now(timezone.utc):
+                tenant.plan_tier = DEFAULT_PLAN_ID
+                db.add(tenant)
+                db.commit()
     return get_plan(tenant_plan_id(tenant))
 
 
@@ -283,32 +300,52 @@ def assert_and_count_code_download(db: Session, user: User) -> dict[str, Any]:
 
 def usage_summary(db: Session, user: User) -> dict[str, Any]:
     plan = resolve_plan_for_user(db, user)
+    tenant = db.get(Tenant, user.tenant_id)
+    usage = {
+        "compose_edit_today": get_usage(
+            db, tenant_id=user.tenant_id, user_id=user.id, metric="compose_edit", period_key=_period_day()
+        ),
+        "smart_page_today": get_usage(
+            db, tenant_id=user.tenant_id, user_id=user.id, metric="smart_page", period_key=_period_day()
+        ),
+        "smart_page_month": get_usage(
+            db, tenant_id=user.tenant_id, user_id=None, metric="smart_page", period_key=_period_month()
+        ),
+        "code_download_lifetime": get_usage(
+            db,
+            tenant_id=user.tenant_id,
+            user_id=user.id,
+            metric="code_download",
+            period_key=_period_lifetime(),
+        ),
+        "code_download_month": get_usage(
+            db,
+            tenant_id=user.tenant_id,
+            user_id=None,
+            metric="code_download",
+            period_key=_period_month(),
+        ),
+    }
+
+    def _rem(used: int, lim: Any) -> int | None:
+        if lim is None:
+            return None
+        return max(0, int(lim) - int(used))
+
+    remaining = {
+        "compose_edit_today": _rem(usage["compose_edit_today"], plan.get("compose_edit_per_day")),
+        "smart_page_today": _rem(usage["smart_page_today"], plan.get("smart_page_per_day")),
+        "smart_page_month": _rem(usage["smart_page_month"], plan.get("smart_page_per_month")),
+        "code_download_lifetime": _rem(usage["code_download_lifetime"], plan.get("code_download_lifetime")),
+        "code_download_month": _rem(usage["code_download_month"], plan.get("code_download_per_month")),
+    }
+    expires = getattr(tenant, "plan_expires_at", None) if tenant else None
     return {
         "plan": plan,
+        "plan_tier": tenant_plan_id(tenant),
+        "seat_quota": int(getattr(tenant, "seat_quota", None) or 1) if tenant else 1,
+        "plan_expires_at": expires.isoformat() if expires else None,
         "smart_page_label": SMART_PAGE_LABEL,
-        "usage": {
-            "compose_edit_today": get_usage(
-                db, tenant_id=user.tenant_id, user_id=user.id, metric="compose_edit", period_key=_period_day()
-            ),
-            "smart_page_today": get_usage(
-                db, tenant_id=user.tenant_id, user_id=user.id, metric="smart_page", period_key=_period_day()
-            ),
-            "smart_page_month": get_usage(
-                db, tenant_id=user.tenant_id, user_id=None, metric="smart_page", period_key=_period_month()
-            ),
-            "code_download_lifetime": get_usage(
-                db,
-                tenant_id=user.tenant_id,
-                user_id=user.id,
-                metric="code_download",
-                period_key=_period_lifetime(),
-            ),
-            "code_download_month": get_usage(
-                db,
-                tenant_id=user.tenant_id,
-                user_id=None,
-                metric="code_download",
-                period_key=_period_month(),
-            ),
-        },
+        "usage": usage,
+        "remaining": remaining,
     }

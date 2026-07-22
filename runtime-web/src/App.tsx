@@ -167,8 +167,8 @@ export default function App() {
   const [schemaView, setSchemaView] = useState<'formal' | 'personal_draft'>('formal')
   const [changeStatus, setChangeStatus] = useState('')
   const [error, setError] = useState('')
-  const [loginEmail, setLoginEmail] = useState('employee@trackchat.local')
-  const [loginPassword, setLoginPassword] = useState('emp123')
+  const [loginEmail, setLoginEmail] = useState('')
+  const [loginPassword, setLoginPassword] = useState('')
   const [loginBusy, setLoginBusy] = useState(false)
   /** 独立站：仅会话内换皮；初始以 schema 发布选择为准（勿被旧 localStorage 抢默认） */
   const [skinOverride, setSkinOverride] = useState<string | null>(null)
@@ -382,13 +382,25 @@ export default function App() {
         <p className="muted">应用 ID：{appId}</p>
         <label>
           邮箱
-          <input className="input" value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)} />
+          <input
+            className="input"
+            value={loginEmail}
+            onChange={(e) => setLoginEmail(e.target.value)}
+            placeholder="邮箱"
+            autoComplete="username"
+          />
         </label>
         <label>
           密码
-          <input className="input" type="password" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} />
+          <input
+            className="input"
+            type="password"
+            value={loginPassword}
+            onChange={(e) => setLoginPassword(e.target.value)}
+            placeholder="密码"
+            autoComplete="current-password"
+          />
         </label>
-        <p className="muted">演示：员工 emp123 · 管理员 admin123</p>
         <button type="button" className="btn" disabled={loginBusy} onClick={() => void handleLogin()}>
           {loginBusy ? '登录中…' : '登录'}
         </button>

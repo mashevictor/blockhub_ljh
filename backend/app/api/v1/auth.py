@@ -76,7 +76,25 @@ def _default_tenant(db: Session):
     tenant = db.query(Tenant).filter(Tenant.slug == DEFAULT_TENANT_SLUG).first()
     if tenant:
         return tenant
-    tenant = Tenant(name="TrackChat 演示租户", slug=DEFAULT_TENANT_SLUG)
+    tenant = Tenant(name="TrackChat 演示租户", slug=DEFAULT_TENANT_SLUG, plan_tier="b_enterprise", seat_quota=100)
+    db.add(tenant)
+    db.flush()
+    return tenant
+
+
+def _create_personal_tenant(db: Session, display_name: str):
+    """OTP/企微新用户：独立租户，默认 Free。"""
+    from uuid import uuid4
+
+    from app.db.models import Tenant
+
+    slug = f"u_{uuid4().hex[:12]}"
+    tenant = Tenant(
+        name=f"{display_name or '用户'}的空间",
+        slug=slug,
+        plan_tier="c_free",
+        seat_quota=1,
+    )
     db.add(tenant)
     db.flush()
     return tenant
@@ -98,14 +116,15 @@ def _find_or_create_user(db: Session, account_type: str, account: str) -> User:
     user = _find_user_by_account(db, account_type, account)
     if user:
         return user
-    tenant = _default_tenant(db)
+    display = _display_name_for(account_type, account)
+    tenant = _create_personal_tenant(db, display)
     user = User(
         tenant_id=tenant.id,
         email=account if account_type == "email" else None,
         phone=account if account_type == "phone" else None,
         password_hash=None,
-        role="employee",
-        display_name=_display_name_for(account_type, account),
+        role="tenant_owner",
+        display_name=display,
     )
     db.add(user)
     db.commit()
@@ -183,7 +202,6 @@ def demo_bootstrap(db: Annotated[Session, Depends(get_db)]) -> dict:
     return {
         "success": True,
         "message": "demo users created",
-        "accounts": ["admin@trackchat.local / admin123", "employee@trackchat.local / emp123"],
     }
 
 
@@ -228,14 +246,15 @@ def wecom_oauth_callback(
     email = f"wecom_{userid}@wecom.local"
     user = db.query(User).filter(User.email == email).first()
     if not user:
-        tenant = _default_tenant(db)
+        display = f"企微用户{userid[-4:] if len(userid) >= 4 else userid}"
+        tenant = _create_personal_tenant(db, display)
         user = User(
             tenant_id=tenant.id,
             email=email,
             phone=None,
             password_hash=None,
-            role="employee",
-            display_name=f"企微用户{userid[-4:] if len(userid) >= 4 else userid}",
+            role="tenant_owner",
+            display_name=display,
         )
         db.add(user)
         db.commit()

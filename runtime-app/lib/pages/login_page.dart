@@ -14,8 +14,8 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final _emailCtrl = TextEditingController(text: 'employee@trackchat.local');
-  final _pwdCtrl = TextEditingController(text: 'emp123');
+  final _emailCtrl = TextEditingController();
+  final _pwdCtrl = TextEditingController();
   bool _busy = false;
   String? _error;
 

@@ -17,11 +17,14 @@ import { ROLE_PAGES } from '../../data/siteRoles'
 import { ROUTES } from '../../routes/paths'
 import { usePageMeta } from '../../hooks/usePageMeta'
 
+const PAID_ONLINE = new Set(['c_plus', 'b_team', 'b_business'])
+
 function TierGrid({ tiers }: { tiers: PricingTier[] }) {
   return (
     <div className="enrich-pricing-grid enrich-pricing-grid--page">
       {tiers.map((tier) => {
         const theme = pricingTierTheme(tier.id)
+        const canPay = PAID_ONLINE.has(tier.id)
         return (
           <article
             key={tier.id}
@@ -36,6 +39,19 @@ function TierGrid({ tiers }: { tiers: PricingTier[] }) {
                   <li key={f}>{f}</li>
                 ))}
               </ul>
+              {canPay ? (
+                <Link
+                  to={`${ROUTES.pricingCheckout}?plan=${tier.id}`}
+                  className="b2b-btn-primary agent-action-btn"
+                  style={{ marginTop: 12, display: 'inline-flex' }}
+                >
+                  <AgentButtonContent>升级</AgentButtonContent>
+                </Link>
+              ) : tier.id === 'b_enterprise' || tier.segment === 'deploy' ? (
+                <a href={ROUTES.contactDemo} className="b2b-btn-ghost" style={{ marginTop: 12, display: 'inline-block' }}>
+                  预约演示
+                </a>
+              ) : null}
             </div>
           </article>
         )
@@ -52,6 +68,9 @@ export default function PricingPage() {
 
   return (
     <MarketingSiteShell skin="landed" pageTitle="定价框架" pageEyebrow="定价说明">
+      <p style={{ marginBottom: 20 }}>
+        <Link to={ROUTES.accountBilling}>我的套餐与用量</Link>
+      </p>
       <section className="enrich-panel" aria-labelledby="pricing-c-title" style={{ marginBottom: 28 }}>
         <div className="enrich-panel-head">
           <h2 id="pricing-c-title">C 端 · 创作者</h2>

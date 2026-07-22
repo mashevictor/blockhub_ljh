@@ -1,18 +1,19 @@
-"""套餐目录与当前用量（官网 / Runtime 共用）。"""
+"""套餐目录、用量、升级套餐下单与聚合收款回调。"""
 
 from __future__ import annotations
 
-from typing import Annotated
+from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends
-from pydantic import BaseModel
+from fastapi import APIRouter, Depends, HTTPException, Request
+from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
-from app.core.deps import get_current_user, require_admin
+from app.core.deps import get_current_user, require_admin, require_billing_payer
 from app.data.plan_catalog import SMART_PAGE_HINT, SMART_PAGE_LABEL, get_plan, list_plans_for_site
 from app.db.models import Tenant, User
 from app.db.session import get_db
-from app.services.plan_usage import resolve_plan_for_user, usage_summary
+from app.services import billing_store
+from app.services.plan_usage import usage_summary
 
 router = APIRouter(prefix="/billing", tags=["billing"])
 
@@ -34,7 +35,11 @@ def my_plan(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> dict:
-    return usage_summary(db, user)
+    summary = usage_summary(db, user)
+    recent = billing_store.list_orders(db, user, limit=8)
+    paid = [o for o in recent if o.get("status") == "paid"]
+    summary["recent_orders"] = paid[:5]
+    return summary
 
 
 class SetPlanBody(BaseModel):
@@ -51,8 +56,6 @@ def admin_set_plan(
 ) -> dict:
     tenant = db.get(Tenant, tenant_id)
     if not tenant:
-        from fastapi import HTTPException
-
         raise HTTPException(status_code=404, detail="租户不存在")
     plan = get_plan(body.plan_tier)
     tenant.plan_tier = plan["id"]
@@ -67,5 +70,62 @@ def admin_set_plan(
         "tenant_id": tenant.id,
         "plan_tier": tenant.plan_tier,
         "seat_quota": tenant.seat_quota,
+        "plan_expires_at": tenant.plan_expires_at.isoformat() if tenant.plan_expires_at else None,
         "plan": plan,
     }
+
+
+class CheckoutBody(BaseModel):
+    plan_tier: str = Field(..., min_length=2, max_length=32)
+    seats: int = Field(1, ge=1, le=500)
+    months: int = Field(1, ge=1, le=12)
+
+
+@router.post("/checkout")
+def checkout(
+    body: CheckoutBody,
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(require_billing_payer)],
+) -> dict:
+    order = billing_store.create_checkout_order(
+        db,
+        user,
+        plan_tier=body.plan_tier,
+        seats=body.seats,
+        months=body.months,
+    )
+    return {"success": True, "order": order}
+
+
+@router.get("/orders")
+def list_my_orders(
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+    limit: int = 50,
+) -> dict:
+    return {"items": billing_store.list_orders(db, user, limit=limit)}
+
+
+@router.get("/orders/{order_id}")
+def get_order(
+    order_id: str,
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+) -> dict:
+    row = billing_store.get_order(db, user, order_id)
+    return {"order": billing_store.order_to_dict(row)}
+
+
+@router.post("/webhook/yeepay")
+async def yeepay_webhook(request: Request, db: Annotated[Session, Depends(get_db)]) -> dict[str, Any]:
+    """聚合收款异步通知（公开；验签）。"""
+    content_type = (request.headers.get("content-type") or "").lower()
+    payload: dict[str, Any]
+    if "application/json" in content_type:
+        body = await request.json()
+        payload = body if isinstance(body, dict) else {"raw": body}
+    else:
+        form = await request.form()
+        payload = {k: form.get(k) for k in form.keys()}
+    headers = {k: v for k, v in request.headers.items()}
+    return billing_store.handle_yeepay_notify(db, payload, headers)

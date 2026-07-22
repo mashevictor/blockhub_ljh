@@ -37,6 +37,7 @@ export const SITE_FOOTER_COLUMNS: SiteFooterColumn[] = [
     links: [
       { label: '信任与合规', to: ROUTES.trust },
       { label: '定价说明', to: ROUTES.pricing },
+      { label: '我的套餐', to: ROUTES.accountBilling },
       { label: '新闻动态', to: ROUTES.news },
       { label: '资料下载', to: '/downloads/one-pager-mfg.pdf', external: true },
     ],

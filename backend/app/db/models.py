@@ -27,10 +27,12 @@ class Tenant(Base):
     # 套餐：c_free | c_plus | b_team | b_business | b_enterprise
     plan_tier: Mapped[str] = mapped_column(String(32), nullable=False, default="c_free")
     seat_quota: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    plan_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     users: Mapped[list[User]] = relationship(back_populates="tenant")
     apps: Mapped[list[AppRecord]] = relationship(back_populates="tenant")
+    billing_orders: Mapped[list["BillingOrder"]] = relationship(back_populates="tenant")
 
 
 class User(Base):
@@ -64,6 +66,29 @@ class UsageMeter(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
+
+
+class BillingOrder(Base):
+    """官网升级套餐订单（聚合收款）。"""
+
+    __tablename__ = "billing_orders"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenants.id"), nullable=False, index=True)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
+    plan_tier: Mapped[str] = mapped_column(String(32), nullable=False)
+    seats: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    amount_fen: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    currency: Mapped[str] = mapped_column(String(8), nullable=False, default="CNY")
+    status: Mapped[str] = mapped_column(String(16), nullable=False, default="pending", index=True)
+    provider: Mapped[str] = mapped_column(String(32), nullable=False, default="yeepay")
+    provider_order_no: Mapped[str] = mapped_column(String(64), nullable=False, default="", index=True)
+    pay_url: Mapped[str] = mapped_column(String(1024), nullable=False, default="")
+    raw_notify_json: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
+    paid_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    tenant: Mapped[Tenant] = relationship(back_populates="billing_orders")
 
 
 class AppRecord(Base):
