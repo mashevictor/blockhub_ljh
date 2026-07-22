@@ -26,7 +26,8 @@ fi
 [ -n "$TOKEN" ] && ok "admin login" || { no "admin login"; exit 1; }
 AUTH="Authorization: Bearer $TOKEN"
 
-PUB=$(curl -sf -X POST "$API/creation/publish" -H "$AUTH" -H "Content-Type: application/json" \
+PUB_CODE=$(curl -s -o /tmp/bh_smoke_pub.json -w "%{http_code}" -X POST "$API/creation/publish" \
+  -H "$AUTH" -H "Content-Type: application/json" \
   -d '{
     "name":"契约对齐探测",
     "industry_key":"office",
@@ -36,8 +37,13 @@ PUB=$(curl -sf -X POST "$API/creation/publish" -H "$AUTH" -H "Content-Type: appl
     "deliver":"both",
     "source":"industry"
   }')
+PUB=$(cat /tmp/bh_smoke_pub.json 2>/dev/null || true)
 
-if [ -z "$PUB" ]; then no "publish"; exit 1; fi
+if [ "$PUB_CODE" != "200" ] || [ -z "$PUB" ]; then
+  no "publish (HTTP $PUB_CODE)"
+  echo "    body: $(echo "$PUB" | head -c 400)"
+  exit 1
+fi
 ok "publish with mixed capability keys"
 
 echo "$PUB" | python3 -c '

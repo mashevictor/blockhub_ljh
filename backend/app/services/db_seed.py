@@ -23,9 +23,20 @@ DEFAULT_USERS = [
 def ensure_seed_data(db: Session) -> None:
     tenant = db.query(Tenant).filter(Tenant.slug == DEFAULT_TENANT_SLUG).first()
     if not tenant:
-        tenant = Tenant(name="TrackChat 演示租户", slug=DEFAULT_TENANT_SLUG)
+        tenant = Tenant(
+            name="TrackChat 演示租户",
+            slug=DEFAULT_TENANT_SLUG,
+            plan_tier="b_enterprise",
+            seat_quota=100,
+        )
         db.add(tenant)
         db.flush()
+    else:
+        # 演示租户用于冒烟/运维：避免卡在 Free 10 应用墙
+        if getattr(tenant, "plan_tier", None) in (None, "", "c_free"):
+            tenant.plan_tier = "b_enterprise"
+            tenant.seat_quota = max(int(getattr(tenant, "seat_quota", None) or 1), 100)
+            db.add(tenant)
 
     for item in DEFAULT_USERS:
         user = db.query(User).filter(User.email == item["email"]).first()

@@ -120,6 +120,9 @@ def assert_app_quota(db: Session, user: User | None, *, current_app_count: int) 
     if not user:
         plan = get_plan(DEFAULT_PLAN_ID)
     else:
+        # 平台管理员 / 运维冒烟不受 C 端 Free 应用数墙限制
+        if user.role == "admin":
+            return
         plan = resolve_plan_for_user(db, user)
     lim = plan.get("max_apps")
     if lim is None:
