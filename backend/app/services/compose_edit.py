@@ -12,6 +12,7 @@ import re
 from typing import Any
 
 from app.core.config import settings
+from app.data import med_scene_capabilities as med_ssot
 from app.data import office_scene_capabilities as office_ssot
 from app.data import sales_scene_capabilities as sales_ssot
 from app.data.capability_registry import ALL_CAPABILITIES
@@ -801,7 +802,7 @@ def _stable_scene_menu_key(scene_name: str, cap: str) -> str:
 
 
 def _match_scene_ssot(label: str, text: str = "") -> tuple[str, str] | None:
-    """命中办公/销售场景 SSOT → (source, scene_name)。"""
+    """命中办公/销售/医疗场景 SSOT → (source, scene_name)。"""
     lab = (label or "").strip()
     blob = f"{lab} {text or ''}".strip()
     if not blob:
@@ -825,6 +826,10 @@ def _match_scene_ssot(label: str, text: str = "") -> tuple[str, str] | None:
         s = _score(name)
         if s:
             candidates.append((s, "sales", name))
+    for name in med_ssot.MED_SCENES_BY_NAME:
+        s = _score(name)
+        if s:
+            candidates.append((s, "med", name))
     if not candidates:
         return None
     candidates.sort(key=lambda x: x[0], reverse=True)
@@ -838,6 +843,10 @@ def _apply_scene_ssot(op: dict[str, Any], source: str, scene_name: str) -> dict[
         plan = sales_ssot.enrich_menu_plan_item(plan, scene_name)
         mock = sales_ssot.page_mock_for_scene(scene_name)
         row = sales_ssot.SALES_SCENES_BY_NAME.get(scene_name)
+    elif source == "med":
+        plan = med_ssot.enrich_menu_plan_item(plan, scene_name)
+        mock = med_ssot.page_mock_for_scene(scene_name)
+        row = med_ssot.MED_SCENES_BY_NAME.get(scene_name)
     else:
         plan = office_ssot.enrich_menu_plan_item(plan, scene_name)
         mock = office_ssot.page_mock_for_scene(scene_name)

@@ -43,12 +43,12 @@ export default function IndustrySiteHome({
 
   return (
     <div className="ind-home ind-home--editorial-guided" key={micrositeId}>
-      <section className="ind-hero ind-hero--cover" style={{ borderRadius: skin?.radius || '16px' }}>
-        <p className="ind-hero-eyebrow">已选行业 · 独立站 Runtime</p>
+      <section className="ind-hero ind-hero--cover">
+        <p className="ind-hero-eyebrow">Industry Runtime · 独立站工作台</p>
         <h2 className="ind-hero-title">{title}</h2>
         <p className="ind-hero-sub">
           已装 <strong>{sceneCount}</strong> 个场景 · <strong>{categories}</strong> 个分类。
-          首页只做封面；业务入口在左侧。
+          首页只做封面；业务入口在左侧导航，点场景即可进入。
         </p>
 
         <div className="ind-step-rail" aria-label="操作步骤">

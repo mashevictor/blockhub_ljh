@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from app.data.med_scene_capabilities import med_pack_scenes
 from app.data.office_scene_capabilities import office_pack_scenes
 from app.data.sales_scene_capabilities import sales_pack_scenes
 
@@ -42,17 +43,43 @@ _MFG = {
     "name": "传统制造",
     "icon": "🏭",
     "color": "#3b82f6",
-    "tagline": "报修、SOP、质检、MES 打通",
+    "tagline": "报修、SOP知识库、质检、MES 打通",
     "scenes": [
         _scene("设备报修", "设备管理", "产线故障报修派工", pages="form+list", agent="device_repair"),
-        _scene("SOP/工艺问答", "知识管理", "作业指导书检索", pages="chat+kb", agent="chat_qa"),
+        _scene(
+            "SOP/工艺问答",
+            "知识管理",
+            "作业指导书 RAG 检索（挂制造·工艺SOP知识库）",
+            pages="chat+kb",
+            agent="kb_document",
+        ),
         _scene("生产日报/OEE", "生产管理", "车间产量稼动率", pages="chart", standard="✓", agent="mfg_oee"),
         _scene("质检审批", "质量管理", "来料成品质检", agent="quality_inspect"),
         _scene("物料领用", "物料管理", "生产领退料", agent="material_issue"),
         _scene("安环隐患上报", "安全管理", "安全隐患拍照上报", pages="form+approval", agent="site_patrol"),
         _scene("排班/考勤", "人事管理", "班次查询申诉", pages="list+approval", agent="shift_attendance"),
         _scene("保养计划提醒", "设备管理", "设备保养到期", pages="notify", agent="maintenance_plan"),
-        _scene("图纸/BOM检索", "知识管理", "工程文档问答", pages="kb", agent="kb"),
+        _scene(
+            "图纸/BOM检索",
+            "知识管理",
+            "工程图纸与BOM文档问答（挂制造·工艺SOP知识库）",
+            pages="kb",
+            agent="kb_document",
+        ),
+        _scene(
+            "制造·工艺SOP与作业指导库",
+            "行业知识库",
+            "作业指导书、工艺卡、换型检查表；真知识库 RAG，空库空列表",
+            pages="kb+chat",
+            agent="kb_document",
+        ),
+        _scene(
+            "制造·质检与安环知识库",
+            "行业知识库",
+            "质检标准、不合格处理、安环隐患案例；真知识库 RAG，空库空列表",
+            pages="kb+chat",
+            agent="kb_document",
+        ),
         _scene("对接MES/ERP", "系统集成", "制造系统打通", standard="✓", pages="integration", agent="erp_connector"),
         _scene("能耗/碳排统计", "绿色制造", "绿色制造指标", pages="chart", standard="✓", agent="energy_carbon"),
         _scene("技能培训记录", "人事管理", "上岗证培训档案", pages="list+kb", agent="training_record"),
@@ -73,21 +100,8 @@ _MED = {
     "name": "医疗健康",
     "icon": "🏥",
     "color": "#10b981",
-    "tagline": "指南、排班、导诊、HIS 协同",
-    "scenes": [
-        _scene("诊疗指南/药品库", "临床知识", "临床用药参考", pages="kb+chat", standard="部分", agent="kb"),
-        _scene("内部制度/合规问答", "合规管理", "院感质量制度", pages="chat", agent="chat_qa"),
-        _scene("排班/调班申请", "人事管理", "医护排班", pages="list+approval", agent="approval"),
-        _scene("耗材/设备申购", "物资管理", "科室采购", agent="approval"),
-        _scene("患者宣教资料", "患者服务", "出院指导科普", pages="kb", agent="kb"),
-        _scene("数据脱敏/权限", "数据安全", "敏感信息保护", pages="rbac+mask", agent="creation"),
-        _scene("不良事件上报", "医疗安全", "医疗安全事件", pages="form+approval", agent="approval"),
-        _scene("科室运营看板", "数据分析", "门诊量床位", pages="chart", standard="部分", agent="report"),
-        _scene("继续教育/考核", "培训管理", "培训题库", pages="kb+form", agent="kb"),
-        _scene("对接HIS/LIS", "系统集成", "医院信息系统", standard="定制", pages="integration", agent="integration"),
-        _scene("智能导诊(对外)", "患者服务", "患者预问诊", pages="chat", standard="部分", agent="chat_qa"),
-        _scene("会诊/转诊申请", "临床管理", "跨科室会诊", agent="approval"),
-    ],
+    "tagline": "AI预问诊、指南RAG、排班、HIS · 真库闭环",
+    "scenes": med_pack_scenes(),
 }
 
 _GAME = {

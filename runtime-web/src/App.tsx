@@ -647,17 +647,17 @@ export default function App() {
             </>
           ) : industryEntry ? (
             <>
-              <strong>独立站方案工作台</strong>
+              <strong>独立站工作台</strong>
               <span>
                 {industryLabel}
-                {skin ? ` · 模板 ${skin.styleLabel.split('·')[0].trim()}` : ''}
-                {' · 左侧父子导航 · 首页行业封面'}
+                {skin ? ` · ${skin.styleLabel.split('·')[0].trim()}` : ''}
+                {' · 左侧导航进场景'}
               </span>
             </>
           ) : (
             <>
-              <strong>CapShip 能力工作台</strong>
-              <span>弹幕 / 选模块 / 描述需求生成 · 标准 Tabs 门户壳</span>
+              <strong>CapShip 工作台</strong>
+              <span>弹幕 / 选模块 / 描述需求 · Tabs 门户</span>
             </>
           )}
         </div>
@@ -680,20 +680,26 @@ export default function App() {
         <header className="runtime-header">
           <div className="brand">
             {config.app_icon_url ? (
-              <img src={config.app_icon_url} alt="" width={40} height={40} className="logo" />
+              <img src={config.app_icon_url} alt="" width={44} height={44} className="logo" />
             ) : (
               <div className="logo placeholder">{config.app_name.slice(0, 1)}</div>
             )}
             <div>
               <h1>{config.app_name}</h1>
-              <p className="muted">
-                {user.display_name} · {user.role}
-                {industryEntry
-                  ? ` · ${industryLabel}${skin ? ` · ${skin.style}` : ''}`
-                  : entrySource === 'im'
-                    ? ' · 来自企微/钉钉/飞书'
-                    : ' · 应用门户'}
-              </p>
+              <div className="brand-meta">
+                <span className="brand-chip">{user.display_name || '使用者'}</span>
+                <span className="brand-chip">{user.role || 'member'}</span>
+                {industryEntry ? (
+                  <>
+                    <span className="brand-chip">{industryLabel}</span>
+                    {skin ? <span className="brand-chip">{skin.style}</span> : null}
+                  </>
+                ) : entrySource === 'im' ? (
+                  <span className="brand-chip">企微 / 钉钉 / 飞书</span>
+                ) : (
+                  <span className="brand-chip">应用门户</span>
+                )}
+              </div>
             </div>
           </div>
           <div className="runtime-header-actions">

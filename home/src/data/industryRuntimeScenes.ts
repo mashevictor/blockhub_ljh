@@ -1,5 +1,6 @@
 /** 行业 Runtime 场景页预览数据（与行业方案站清单一一对应） */
 
+import { MED_SCENE_SEEDS } from './medScenes'
 import { OFFICE_SCENE_SEEDS } from './officeScenes66'
 import { SALES_SCENE_SEEDS } from './salesScenes66'
 
@@ -64,7 +65,7 @@ export interface IndustryRuntimePackPreview {
 export const MFG_RUNTIME_PREVIEW: IndustryRuntimePackPreview = {
   key: 'mfg',
   name: '传统制造',
-  tagline: '报修、SOP、质检、MES 打通 · 12 场景工作台',
+  tagline: '报修、双专属知识库、质检、MES · 真库闭环',
   accent: '#2563eb',
   scenes: [
     {
@@ -92,17 +93,17 @@ export const MFG_RUNTIME_PREVIEW: IndustryRuntimePackPreview = {
       id: 's2',
       name: 'SOP/工艺问答',
       category: '知识管理',
-      summary: '作业指导书检索',
+      summary: '作业指导书 RAG 检索（挂制造·工艺SOP知识库）',
       pages: 'chat+kb',
       standard: '✓',
       kind: 'chat_kb',
-      capabilityHint: 'chat_qa + kb_document',
+      capabilityHint: 'kb_document',
       pageMock: {
-        chat_title: '工艺问答',
-        chat: [{ role: 'bot', text: '可就换模、压力参数等提问；空库无文档时仅作引导。' }],
+        chat_title: '工艺SOP知识库',
+        chat: [{ role: 'bot', text: '检索制造·工艺SOP与作业指导库；空库无文档时仅作引导。' }],
         files_title: '作业指导书',
-        files: ['SOP-冲压换模-08.pdf'],
-        primary_action: '发送',
+        files: [],
+        primary_action: '检索',
       },
     },
     {
@@ -214,11 +215,52 @@ export const MFG_RUNTIME_PREVIEW: IndustryRuntimePackPreview = {
       id: 's9',
       name: '图纸/BOM检索',
       category: '知识管理',
-      summary: '工程文档问答',
+      summary: '工程图纸与BOM文档问答（挂制造·工艺SOP知识库）',
       pages: 'kb',
       standard: '✓',
       kind: 'bom',
       capabilityHint: 'kb_document',
+      pageMock: {
+        chat_title: '图纸/BOM 检索',
+        chat: [{ role: 'bot', text: '检索制造·工艺SOP知识库中的图纸与BOM；空库空列表。' }],
+        files_title: '工程文档',
+        files: [],
+        primary_action: '检索',
+      },
+    },
+    {
+      id: 's9b',
+      name: '制造·工艺SOP与作业指导库',
+      category: '行业知识库',
+      summary: '作业指导书、工艺卡、换型检查表；真知识库 RAG，空库空列表',
+      pages: 'kb+chat',
+      standard: '✓',
+      kind: 'chat_kb',
+      capabilityHint: 'kb_document',
+      pageMock: {
+        chat_title: '制造·工艺SOP与作业指导库',
+        chat: [{ role: 'bot', text: '行业专属知识库 · 上传 SOP 后可向量检索；AI 仅辅助，不替代工艺员签发。' }],
+        files_title: '文档',
+        files: [],
+        primary_action: '检索',
+      },
+    },
+    {
+      id: 's9c',
+      name: '制造·质检与安环知识库',
+      category: '行业知识库',
+      summary: '质检标准、不合格处理、安环隐患案例；真知识库 RAG，空库空列表',
+      pages: 'kb+chat',
+      standard: '✓',
+      kind: 'chat_kb',
+      capabilityHint: 'kb_document',
+      pageMock: {
+        chat_title: '制造·质检与安环知识库',
+        chat: [{ role: 'bot', text: '行业专属知识库 · 上传质检/安环文档后可检索；空库空列表。' }],
+        files_title: '文档',
+        files: [],
+        primary_action: '检索',
+      },
     },
     {
       id: 's10',
@@ -301,10 +343,29 @@ export const SALES_RUNTIME_PREVIEW: IndustryRuntimePackPreview = {
   })),
 }
 
+export const MED_RUNTIME_PREVIEW: IndustryRuntimePackPreview = {
+  key: 'med',
+  name: '医疗健康',
+  tagline: '52 场景 · AI预问诊/指南RAG/排班 · 真库闭环',
+  accent: '#10b981',
+  scenes: MED_SCENE_SEEDS.map((s) => ({
+    id: s.id,
+    name: s.name,
+    category: s.category,
+    summary: s.summary,
+    pages: s.pages,
+    standard: '✓' as const,
+    kind: s.kind as ScenePageKind,
+    capabilityHint: s.capabilityHint,
+    pageMock: s.pageMock as ScenePageMock | undefined,
+  })),
+}
+
 export function getIndustryRuntimePreview(packKey: string): IndustryRuntimePackPreview | null {
   if (packKey === 'mfg') return MFG_RUNTIME_PREVIEW
   if (packKey === 'office') return OFFICE_RUNTIME_PREVIEW
   if (packKey === 'sales') return SALES_RUNTIME_PREVIEW
+  if (packKey === 'med') return MED_RUNTIME_PREVIEW
   return null
 }
 

@@ -108,7 +108,7 @@ function SalesFlowGuide({
   const isRepOrMkt = role === 'sales_rep' || role === 'sales_marketing'
   const parallelNote =
     role === 'sales_manager'
-      ? '主管侧是「分配 / 清洗 / 评分」管池子质量；跟进成交看全员漏斗。'
+      ? '主管侧是「分配 / 清洗 / 评分」管池子质量：有列表数据时点选线索即可，不必手抄单号；跟进成交看全员漏斗。'
       : '「录入」和「转介绍」是并列获客入口（不是一前一后），提交后都进同一待领取池；领完再到「跟进成交」推状态。'
 
   const entryKeys: MethodTab[] = isRepOrMkt ? ['capture', 'referral'] : []
@@ -248,6 +248,77 @@ function pick(values: Record<string, string>, ...keys: string[]) {
     if (v) return v
   }
   return ''
+}
+
+function leadLabel(t: RecordItem) {
+  const pool = t.pool_status === 'pool' ? '待领取' : t.pool_status === 'private' ? '已认领' : ''
+  return `${t.customer}${pool ? ` · ${pool}` : ''}`
+}
+
+/** 分配/清洗/领取/评分：优先点选列表线索，仍保留手输兜底 */
+function LeadPickField({
+  value,
+  setValue,
+  accent,
+  leads,
+  emptyHint,
+}: {
+  value: string
+  setValue: (v: string) => void
+  accent: string
+  leads: RecordItem[]
+  emptyHint: string
+}) {
+  const selected = leads.find((t) => t.id === value || t.customer === value || t.record_no === value)
+  return (
+    <div style={{ display: 'grid', gap: 8, width: '100%' }}>
+      {leads.length === 0 ? (
+        <p className="muted" style={{ margin: 0, fontSize: 12 }}>
+          {emptyHint}
+        </p>
+      ) : (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+          {leads.map((t) => {
+            const on = value === t.id || value === t.customer || value === t.record_no
+            return (
+              <button
+                key={t.id}
+                type="button"
+                className="btn btn-ghost"
+                style={{
+                  fontSize: 12,
+                  padding: '6px 10px',
+                  background: on ? accent : undefined,
+                  color: on ? '#fff' : undefined,
+                  border: on ? 'none' : '1px solid #e2e8f0',
+                  borderRadius: 8,
+                  cursor: 'pointer',
+                  maxWidth: '100%',
+                  textAlign: 'left',
+                }}
+                onClick={() => setValue(t.id)}
+                title={`${t.record_no} · ${t.source || ''}`}
+              >
+                {leadLabel(t)}
+              </button>
+            )
+          })}
+        </div>
+      )}
+      {selected ? (
+        <p className="muted" style={{ margin: 0, fontSize: 11 }}>
+          已选：{selected.customer} · {selected.record_no}（也可改选手输）
+        </p>
+      ) : null}
+      <input
+        className="bh-gtgt-input"
+        value={selected ? selected.customer : value}
+        onChange={(e) => setValue(e.target.value)}
+        placeholder="或手输客户名 / 单号 / ID"
+        style={{ fontSize: 13 }}
+      />
+    </div>
+  )
 }
 
 function defaultRoleForCategory(cat: string): SalesRole {
@@ -401,7 +472,39 @@ export function SalesLeadWidget({ node }: { node: SchemaNode }) {
     setResetKey((k) => k + 1)
   }
 
+  const pickableLeads = useMemo(() => {
+    if (method === 'pool') return items.filter((t) => t.pool_status === 'pool')
+    if (method === 'assign' || method === 'clean' || method === 'score') {
+      // 主管操作优先待领取；若无则展示当前列表全部，避免「有数据却选不了」
+      const pool = items.filter((t) => t.pool_status === 'pool')
+      return pool.length > 0 ? pool : items
+    }
+    return []
+  }, [method, items])
+
+  const selectLeadIntoForm = (t: RecordItem, nextMethod?: MethodTab) => {
+    if (nextMethod && nextMethod !== method) setMethod(nextMethod)
+    setValues((p) => ({ ...p, lead_key: t.id }))
+    setResetKey((k) => k + 1)
+    setMsg(`已选用「${t.customer}」，继续填下一步后点确认`)
+  }
+
   const steps: GtgtStep[] = useMemo(() => {
+    const leadStep = (label: string, emptyHint: string): GtgtStep => ({
+      key: 'lead_key',
+      label,
+      placeholder: '点选下方线索，或手输',
+      render: ({ value, setValue, accent: a }) => (
+        <LeadPickField
+          value={value}
+          setValue={setValue}
+          accent={a}
+          leads={pickableLeads}
+          emptyHint={emptyHint}
+        />
+      ),
+    })
+
     if (method === 'capture') {
       return [
         { key: 'customer', label: '公司/客户', placeholder: '公司全称' },
@@ -419,14 +522,14 @@ export function SalesLeadWidget({ node }: { node: SchemaNode }) {
     }
     if (method === 'assign') {
       return [
-        { key: 'lead_key', label: '线索', placeholder: '客户名 / 单号 / ID' },
+        leadStep('线索', '暂无可分配线索：请先在「线索录入」写入（进待领取池）'),
         { key: 'assignee', label: '负责人', placeholder: '销售员姓名' },
         { key: 'note', label: '备注（可空）', placeholder: '可选', inputType: 'textarea', optional: true },
       ]
     }
     if (method === 'clean') {
       return [
-        { key: 'lead_key', label: '线索', placeholder: '客户名 / 单号 / ID' },
+        leadStep('线索', '暂无可清洗线索：先录入或从待领取池选用'),
         {
           key: 'result',
           label: '清洗结果',
@@ -456,19 +559,19 @@ export function SalesLeadWidget({ node }: { node: SchemaNode }) {
     }
     if (method === 'pool') {
       return [
-        { key: 'lead_key', label: '待领取线索', placeholder: '客户名 / 单号 / ID' },
+        leadStep('待领取线索', '暂无待领取：请先录入，或让主管退回待领取'),
         { key: 'reason', label: '领取理由（可空）', placeholder: '可选', inputType: 'textarea', optional: true },
       ]
     }
     if (method === 'score') {
       return [
-        { key: 'lead_key', label: '线索', placeholder: '客户名 / 单号 / ID' },
+        leadStep('线索', '暂无可评分线索：先录入或分配后再评'),
         { key: 'score', label: '评分 1-100', placeholder: '如 80' },
         { key: 'comment', label: '说明（可空）', placeholder: '可选', inputType: 'textarea', optional: true },
       ]
     }
     return []
-  }, [method])
+  }, [method, pickableLeads])
 
   const formTitle = useMemo(() => {
     if (sceneTitle) return sceneTitle
@@ -724,7 +827,11 @@ export function SalesLeadWidget({ node }: { node: SchemaNode }) {
           meta={ROLE_LABEL[role]}
           accent={accent}
           variant="soft"
-          flowHint="获客方法 · >> 单字段推进"
+          flowHint={
+            method === 'assign' || method === 'clean' || method === 'pool' || method === 'score'
+              ? '点选线索卡片 → 填下一步 → 确认（有数据无需手抄单号）'
+              : '获客方法 · >> 单字段推进'
+          }
           steps={steps}
           values={values}
           onChange={(k, v) => setValues((p) => ({ ...p, [k]: v }))}
@@ -858,16 +965,28 @@ export function SalesLeadWidget({ node }: { node: SchemaNode }) {
                   </p>
                 ) : null}
                 <div className="row-actions" style={{ marginTop: 8, flexWrap: 'wrap', gap: 4 }}>
-                  {t.pool_status === 'pool' && role === 'sales_rep' && (
+                  {(method === 'assign' || method === 'clean' || method === 'score' || method === 'pool') && (
+                    <button
+                      type="button"
+                      className="btn"
+                      style={{ fontSize: 11, background: accent, color: '#fff', border: 'none' }}
+                      onClick={() => selectLeadIntoForm(t)}
+                    >
+                      {method === 'assign'
+                        ? '选用并分配'
+                        : method === 'clean'
+                          ? '选用并清洗'
+                          : method === 'score'
+                            ? '选用并评分'
+                            : '选用并领取'}
+                    </button>
+                  )}
+                  {t.pool_status === 'pool' && role === 'sales_rep' && method !== 'pool' && (
                     <button
                       type="button"
                       className="btn btn-ghost"
                       style={{ fontSize: 11 }}
-                      onClick={() => {
-                        setMethod('pool')
-                        setValues({ lead_key: t.customer })
-                        setResetKey((k) => k + 1)
-                      }}
+                      onClick={() => selectLeadIntoForm(t, 'pool')}
                     >
                       领取
                     </button>

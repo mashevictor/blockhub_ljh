@@ -41,7 +41,8 @@ def list_api(
 @router.post("/suggest-dept")
 def suggest_api(body: SuggestBody, user: User = Depends(get_current_user)) -> dict:
     _ = user
-    return {"suggested_dept": store.suggest_dept(body.symptoms)}
+    detail = store.suggest_dept_detail(body.symptoms, use_ai=True)
+    return detail
 
 
 @router.post("/records")

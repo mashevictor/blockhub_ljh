@@ -87,6 +87,40 @@ def create_base(db: Session, user: User, name: str, description: str = "") -> di
     return _base_dict(kb)
 
 
+def get_base_by_name(db: Session, tenant_id: str, name: str) -> KnowledgeBase | None:
+    n = (name or "").strip()
+    if not n:
+        return None
+    return (
+        db.query(KnowledgeBase)
+        .filter(KnowledgeBase.tenant_id == tenant_id, KnowledgeBase.name == n)
+        .first()
+    )
+
+
+def ensure_base(db: Session, user: User, name: str, description: str = "") -> dict:
+    """按名称幂等创建知识库（行业专属库用）。"""
+    existing = get_base_by_name(db, user.tenant_id, name)
+    if existing:
+        desc = (description or "").strip()
+        if desc and existing.description != desc:
+            existing.description = desc
+            db.commit()
+            db.refresh(existing)
+        return _base_dict(existing)
+    return create_base(db, user, name, description)
+
+
+def ensure_industry_knowledge_bases(db: Session, user: User, pack_key: str) -> list[dict]:
+    """发布行业应用时创建该行业 2 个专属 KnowledgeBase。"""
+    from app.data.industry_knowledge_bases import industry_kb_defs
+
+    out: list[dict] = []
+    for hub in industry_kb_defs(pack_key):
+        out.append(ensure_base(db, user, hub["name"], hub.get("description") or ""))
+    return out
+
+
 def get_base(db: Session, tenant_id: str, kb_id: str) -> KnowledgeBase | None:
     return (
         db.query(KnowledgeBase)
@@ -306,6 +340,7 @@ def _base_dict(kb: KnowledgeBase) -> dict:
         "name": kb.name,
         "description": kb.description,
         "doc_count": kb.doc_count,
+        "document_count": kb.doc_count,
         "chunk_count": kb.chunk_count,
         "status": kb.status,
         "updated_at": kb.updated_at.isoformat() if kb.updated_at else "",

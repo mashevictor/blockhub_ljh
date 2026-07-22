@@ -227,6 +227,23 @@ def persist_published_app(
         page_schema["capability_keys"] = keys
     except Exception:
         pass
+
+    industry_kbs: list[dict] = []
+    if user and (industry_key or "").strip():
+        try:
+            from app.services.kb_store import ensure_industry_knowledge_bases
+
+            industry_kbs = ensure_industry_knowledge_bases(db, user, industry_key)
+            if industry_kbs:
+                meta = page_schema.setdefault("meta", {})
+                if isinstance(meta, dict):
+                    meta["industry_knowledge_bases"] = [
+                        {"id": k.get("id"), "name": k.get("name"), "description": k.get("description")}
+                        for k in industry_kbs
+                    ]
+        except Exception:
+            industry_kbs = []
+
     manifest = build_manifest(
         keys,
         deliver=deliver,
@@ -269,7 +286,10 @@ def persist_published_app(
                 "scene_count": industry_assembly.get("scene_count"),
                 "groups": industry_assembly.get("groups"),
                 "pack_name": industry_assembly.get("pack_name"),
+                "knowledge_bases": industry_assembly.get("knowledge_bases"),
             }
+        if industry_kbs:
+            out["industry_knowledge_bases"] = industry_kbs
         out["web_template_id"] = web_tpl
         out["app_ui_id"] = app_ui
         out["pending_codegen_keys"] = list(assembly.dropped_keys)
@@ -319,7 +339,10 @@ def persist_published_app(
             "scene_count": industry_assembly.get("scene_count"),
             "groups": industry_assembly.get("groups"),
             "pack_name": industry_assembly.get("pack_name"),
+            "knowledge_bases": industry_assembly.get("knowledge_bases"),
         }
+    if industry_kbs:
+        out["industry_knowledge_bases"] = industry_kbs
     out["web_template_id"] = web_tpl
     out["app_ui_id"] = app_ui
     out["pending_codegen_keys"] = list(assembly.dropped_keys)

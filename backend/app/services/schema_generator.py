@@ -91,6 +91,10 @@ def generate_menu_from_plan(menu_plan: list[dict[str, Any]]) -> tuple[list[dict[
             "form_hint",
             "form_fields",
             "page_kind",
+            "kb_name",
+            "kb_description",
+            "kb_slug",
+            "lock_kb",
         ):
             if item.get(passthrough) is not None:
                 props[passthrough] = item[passthrough]

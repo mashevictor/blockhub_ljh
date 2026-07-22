@@ -10,6 +10,7 @@ import re
 from typing import Any
 
 from app.data.industry_packs_all import ALL_INDUSTRY_PACKS, pack_meta
+from app.data.med_scene_capabilities import enrich_menu_plan_item as enrich_med_menu_plan_item
 from app.data.office_scene_capabilities import enrich_menu_plan_item as enrich_office_menu_plan_item
 from app.data.sales_scene_capabilities import enrich_menu_plan_item as enrich_sales_menu_plan_item
 from app.services.effective_capability_registry import is_registry_key
@@ -157,7 +158,7 @@ def resolve_scene_capability_keys(scene: dict[str, Any]) -> list[str]:
         if mapped and is_registry_key(mapped):
             return [mapped]
 
-    # 办公 / 销售深度包 SSOT（名称精确匹配）
+    # 办公 / 销售 / 医疗深度包 SSOT（名称精确匹配）
     try:
         from app.data.office_scene_capabilities import OFFICE_SCENES_BY_NAME
 
@@ -174,6 +175,16 @@ def resolve_scene_capability_keys(scene: dict[str, Any]) -> list[str]:
         sales_row = SALES_SCENES_BY_NAME.get(name)
         if sales_row:
             ck = str(sales_row.get("capability_key") or "")
+            if ck and is_registry_key(ck):
+                return [ck]
+    except Exception:
+        pass
+    try:
+        from app.data.med_scene_capabilities import MED_SCENES_BY_NAME
+
+        med_row = MED_SCENES_BY_NAME.get(name)
+        if med_row:
+            ck = str(med_row.get("capability_key") or "")
             if ck and is_registry_key(ck):
                 return [ck]
     except Exception:
@@ -290,13 +301,20 @@ def assemble_industry_pack(
                 modules[-1]["key"] = primary
             if primary not in capability_keys:
                 capability_keys.append(primary)
+        elif pack_key == "med":
+            plan_item = enrich_med_menu_plan_item(plan_item, name)
+            primary = str(plan_item.get("capability_key") or primary)
+            if modules:
+                modules[-1]["key"] = primary
+            if primary not in capability_keys:
+                capability_keys.append(primary)
         menu_plan.append(plan_item)
 
     if not capability_keys:
         capability_keys = ["chat_qa", "approval_flow", "kb_document"]
 
-    # office / sales：以映射表 menu_plan 为准重建 keys，避免名称关键词误伤
-    if pack_key in {"office", "sales"} and menu_plan:
+    # office / sales / med：以映射表 menu_plan 为准重建 keys，避免名称关键词误伤
+    if pack_key in {"office", "sales", "med"} and menu_plan:
         rebuilt: list[str] = []
         for item in menu_plan:
             ck = str(item.get("capability_key") or "").strip()
@@ -306,6 +324,25 @@ def assemble_industry_pack(
             capability_keys = rebuilt
 
     meta = pack_meta(pack_key) or {"name": pack_key, "tagline": ""}
+    # 每行业挂 2 个专属知识库入口，并为已有 kb 场景锁定 kb_name
+    try:
+        from app.data.industry_knowledge_bases import ensure_kb_hub_scenes_in_plan
+
+        menu_plan, modules, capability_keys = ensure_kb_hub_scenes_in_plan(
+            pack_key,
+            menu_plan,
+            modules=modules,
+            capability_keys=capability_keys,
+        )
+        # 同步 scenario_names / groups
+        for item in menu_plan:
+            lab = str(item.get("label") or "")
+            if lab and lab not in scenario_names and item.get("category") == "行业知识库":
+                scenario_names.append(lab)
+                groups.setdefault("行业知识库", []).append(lab)
+    except Exception:
+        pass
+
     return {
         "pack_key": pack_key,
         "pack_name": str(meta.get("name") or pack_key),
@@ -316,4 +353,9 @@ def assemble_industry_pack(
         "menu_plan": menu_plan,
         "groups": [{"category": c, "scenes": names} for c, names in groups.items()],
         "scene_count": len(scenario_names),
+        "knowledge_bases": [
+            {"name": i.get("kb_name"), "slug": i.get("kb_slug")}
+            for i in menu_plan
+            if i.get("kb_slug") and i.get("category") == "行业知识库"
+        ],
     }

@@ -16,8 +16,81 @@ interface RecordItem {
 
 const SHIFTS = ['白班', '小夜', '大夜']
 
-export function NurseShiftWidget(_props: { node: SchemaNode }) {
+type ShiftMode = 'request' | 'approve' | 'roster'
+
+const MODE_BY_CATEGORY: Record<string, ShiftMode> = {
+  'shift-request': 'request',
+  'nurse-shift-conflict': 'request',
+  'flexible-scheduling': 'request',
+  'leave-replacement': 'request',
+  'night-shift-handover': 'request',
+  'shift-approve': 'approve',
+  'shift-roster': 'roster',
+  'shift-overview': 'roster',
+  'nurse-schedule-overview': 'roster',
+  'dingtalk-shift-sync': 'roster',
+}
+
+const MODE_LABEL: Record<ShiftMode, string> = {
+  request: '调班申请',
+  approve: '审批调班',
+  roster: '排班一览',
+}
+
+function ShiftFlowGuide({
+  mode,
+  accent,
+  onJump,
+}: {
+  mode: ShiftMode
+  accent: string
+  onJump: (m: ShiftMode) => void
+}) {
+  const steps: { key: ShiftMode; label: string }[] = [
+    { key: 'request', label: '申请' },
+    { key: 'approve', label: '审批' },
+    { key: 'roster', label: '一览' },
+  ]
+  return (
+    <div style={{ marginBottom: 14 }}>
+      <p className="muted" style={{ margin: '0 0 8px', fontSize: 12 }}>
+        排班流转 · 申请入库 → 冲突校验与审批 → 科室一览（班次合规辅助）
+      </p>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
+        {steps.map((s, i) => (
+          <span key={s.key} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            {i > 0 && <span className="muted" style={{ fontSize: 11 }}>→</span>}
+            <button
+              type="button"
+              className="btn btn-ghost"
+              style={{
+                fontSize: 12,
+                padding: '4px 10px',
+                background: mode === s.key ? accent : undefined,
+                color: mode === s.key ? '#fff' : undefined,
+                border: 'none',
+                borderRadius: 6,
+                cursor: 'pointer',
+              }}
+              onClick={() => onJump(s.key)}
+            >
+              {s.label}
+            </button>
+          </span>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+export function NurseShiftWidget({ node }: { node: SchemaNode }) {
   const { token, primaryColor, appId, user } = useRuntime()
+  const defaultCat = String(node.props?.default_category || 'shift-request')
+  const sceneTitle = String(
+    node.props?.form_headline || node.props?.scene_label || node.props?.label || '',
+  ).trim()
+  const sceneLocked = Boolean(node.props?.default_category)
+  const [mode, setMode] = useState<ShiftMode>(() => MODE_BY_CATEGORY[defaultCat] || 'request')
   const [items, setItems] = useState<RecordItem[]>([])
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
@@ -25,6 +98,13 @@ export function NurseShiftWidget(_props: { node: SchemaNode }) {
   const [values, setValues] = useState<Record<string, string>>({ from_shift: '白班', to_shift: '小夜' })
   const [msg, setMsg] = useState('')
   const accent = primaryColor || '#be185d'
+
+  useEffect(() => {
+    setMode(MODE_BY_CATEGORY[defaultCat] || 'request')
+    setValues({ from_shift: '白班', to_shift: '小夜' })
+    setResetKey((k) => k + 1)
+    setMsg('')
+  }, [defaultCat, node.id])
 
   const steps: GtgtStep[] = useMemo(() => [
     { key: 'shift_date', label: '调班日期', placeholder: '2026-07-20' },
@@ -77,37 +157,91 @@ export function NurseShiftWidget(_props: { node: SchemaNode }) {
       })
       setValues({ from_shift: '白班', to_shift: '小夜' }); setResetKey((k) => k + 1); setMsg('已提交调班')
       await load()
+      if (!sceneLocked) setMode('approve')
     } catch (e) { setMsg(String(e)) }
     finally { setBusy(false) }
   }
 
   const advance = async (id: string, action: string) => {
     if (!token) return
-    await apiFetch(`/api/v1/nurse-shift/records/${id}/${action}`, token, { method: 'POST', body: '{}' })
-    await load()
+    try {
+      await apiFetch(`/api/v1/nurse-shift/records/${id}/${action}`, token, { method: 'POST', body: '{}' })
+      await load()
+    } catch (e) {
+      setMsg(String(e))
+    }
   }
 
   const pending = items.filter((t) => t.status === 'pending')
+  const listItems = mode === 'approve' ? pending : items
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(260px,1fr) minmax(260px,1fr)', gap: 16 }}>
-      <GtgtStepComposer title="我要调班" meta={user?.display_name || '护士'} accent={accent} flowHint="日期 → 原班 → 目标班 → 审批" steps={steps} values={values} onChange={(k, v) => setValues((p) => ({ ...p, [k]: v }))} onComplete={submit} busy={busy} resetKey={resetKey} submitLabel="提交调班" />
-      <div>
-        <h4 style={{ margin: '0 0 8px', fontSize: 14 }}>待审批{pending.length ? ` · ${pending.length}` : ''}</h4>
-        {loading && <p className="muted">加载中…</p>}
-        {msg && <p className="status-msg">{msg}</p>}
-        <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 8 }}>
-          {pending.map((t) => (
-            <li key={t.id} className="list-card">
-              <strong>{t.nurse_name || t.reporter_name || '同事'} · {t.shift_date}</strong>
-              <p style={{ margin: '6px 0 0', fontSize: 13 }}>{t.from_shift} → {t.to_shift}</p>
-              <div className="row-actions" style={{ marginTop: 8 }}>
-                <button type="button" className="btn" style={{ background: accent }} onClick={() => void advance(t.id, 'approve')}>通过</button>
-                <button type="button" className="btn btn-ghost" onClick={() => void advance(t.id, 'reject')}>驳回</button>
-              </div>
-            </li>
-          ))}
-        </ul>
+    <div>
+      <ShiftFlowGuide
+        mode={mode}
+        accent={accent}
+        onJump={(m) => {
+          if (sceneLocked && MODE_BY_CATEGORY[defaultCat] && m !== MODE_BY_CATEGORY[defaultCat] && m !== 'roster') {
+            // 允许从申请看审批/一览链路
+            if (!(MODE_BY_CATEGORY[defaultCat] === 'request' && (m === 'approve' || m === 'roster'))) {
+              setMsg(`当前场景侧重「${sceneTitle || MODE_LABEL[MODE_BY_CATEGORY[defaultCat]]}」`)
+              return
+            }
+          }
+          setMode(m)
+          setMsg('')
+        }}
+      />
+
+      {sceneLocked ? (
+        <div style={{ marginBottom: 12 }}>
+          <h3 style={{ margin: '0 0 4px', fontSize: 16, color: '#0f172a' }}>
+            {sceneTitle || MODE_LABEL[mode]}
+          </h3>
+          <p className="muted" style={{ margin: 0, fontSize: 12 }}>
+            {user?.display_name || '护士'} · 本场景主方法「{MODE_LABEL[MODE_BY_CATEGORY[defaultCat] || mode]}」 · 上方为数据流转图
+          </p>
+        </div>
+      ) : null}
+
+      <div style={{ display: 'grid', gridTemplateColumns: mode === 'request' ? 'minmax(260px,1fr) minmax(260px,1fr)' : '1fr', gap: 16 }}>
+        {mode === 'request' && (
+          <GtgtStepComposer
+            title={sceneTitle || '我要调班'}
+            meta={user?.display_name || '护士'}
+            accent={accent}
+            flowHint="日期 → 原班 → 目标班 → 审批"
+            steps={steps}
+            values={values}
+            onChange={(k, v) => setValues((p) => ({ ...p, [k]: v }))}
+            onComplete={submit}
+            busy={busy}
+            resetKey={resetKey}
+            submitLabel="提交调班"
+          />
+        )}
+        <div>
+          <h4 style={{ margin: '0 0 8px', fontSize: 14 }}>
+            {mode === 'approve' ? `待审批${pending.length ? ` · ${pending.length}` : ''}` : mode === 'roster' ? '排班一览' : `待审批${pending.length ? ` · ${pending.length}` : ''}`}
+          </h4>
+          {loading && <p className="muted">加载中…</p>}
+          {msg && <p className="status-msg">{msg}</p>}
+          {!loading && listItems.length === 0 && <p className="muted">暂无记录</p>}
+          <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 8 }}>
+            {listItems.map((t) => (
+              <li key={t.id} className="list-card">
+                <strong>{t.nurse_name || t.reporter_name || '同事'} · {t.shift_date}</strong>
+                <p style={{ margin: '6px 0 0', fontSize: 13 }}>{t.from_shift} → {t.to_shift} · {t.status}</p>
+                {t.status === 'pending' && (mode === 'approve' || mode === 'request') && (
+                  <div className="row-actions" style={{ marginTop: 8 }}>
+                    <button type="button" className="btn" style={{ background: accent }} onClick={() => void advance(t.id, 'approve')}>通过</button>
+                    <button type="button" className="btn btn-ghost" onClick={() => void advance(t.id, 'reject')}>驳回</button>
+                  </div>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
     </div>
   )
