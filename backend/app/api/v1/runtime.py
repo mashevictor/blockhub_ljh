@@ -217,6 +217,9 @@ def download_app_code_zip(
         raise HTTPException(status_code=403, detail="无权下载其他租户契约包")
     if not can_download_code(user, app):
         raise HTTPException(status_code=403, detail="请先申请下载权限，由管理员批准后再下载")
+    from app.services.plan_usage import assert_and_count_code_download
+
+    assert_and_count_code_download(db, user)
     blueprint = _blueprint_for_app(app)
     data = build_code_zip(blueprint)
     return Response(

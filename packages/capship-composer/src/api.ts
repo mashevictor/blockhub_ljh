@@ -280,6 +280,13 @@ export async function askComposeEdit(
     capability_keys?: string[]
     /** data URL 截图，最多 3 张 */
     images?: string[]
+    page_snapshots?: Array<{
+      key?: string
+      capability_key?: string
+      title?: string
+      label?: string
+      source_html?: string
+    }>
     entry_source?: string
     industry_key?: string
     microsite_id?: string

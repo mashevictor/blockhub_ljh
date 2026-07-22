@@ -64,6 +64,7 @@ def enqueue_codegen_job(
     prompt: str,
     web_template_id: str,
     app_ui_id: str,
+    base_html_by_key: dict[str, str] | None = None,
 ) -> str:
     if not unknown_keys:
         return ""
@@ -76,6 +77,9 @@ def enqueue_codegen_job(
         "prompt": prompt or "",
         "web_template_id": web_template_id,
         "app_ui_id": app_ui_id,
+        "base_html_by_key": {
+            str(k): str(v)[:120_000] for k, v in (base_html_by_key or {}).items() if str(v).strip()
+        },
     }
     _queue_path(job_id).write_text(json.dumps(spec, ensure_ascii=False, indent=2), encoding="utf-8")
     _write_status(
@@ -84,6 +88,7 @@ def enqueue_codegen_job(
             "status": "pending",
             "app_id": app_id,
             "unknown_keys": unknown_keys,
+            "revise": bool(spec["base_html_by_key"]),
             "queued_at": datetime.now(timezone.utc).isoformat(),
         },
     )
@@ -111,6 +116,7 @@ def _run_job(job_id: str) -> None:
                 "status": "running",
                 "app_id": spec.get("app_id"),
                 "unknown_keys": spec.get("unknown_keys") or [],
+                "revise": bool(spec.get("base_html_by_key")),
                 "started_at": datetime.now(timezone.utc).isoformat(),
             },
         )
@@ -120,6 +126,7 @@ def _run_job(job_id: str) -> None:
             prompt=str(spec.get("prompt") or ""),
             web_template_id=str(spec.get("web_template_id") or "tabs_portal"),
             app_ui_id=str(spec.get("app_ui_id") or "bottom_tabs"),
+            base_html_by_key=dict(spec.get("base_html_by_key") or {}),
         )
         db: Session = SessionLocal()
         try:

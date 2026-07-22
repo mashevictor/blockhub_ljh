@@ -16,7 +16,7 @@ from app.services.deepseek_client import deepseek_json_chat
 
 logger = logging.getLogger(__name__)
 
-_SYSTEM = """你是积木仓 BlockHub 的页面代码生成器。
+_SYSTEM = """你是积木仓 BlockHub 的页面代码生成器（产品名：智能出页）。
 任务：按用户需求生成**可直接在 iframe 中运行**的完整单文件 HTML（含 CSS/JS）。
 只输出 JSON，不要 markdown。
 
@@ -42,6 +42,15 @@ _SYSTEM = """你是积木仓 BlockHub 的页面代码生成器。
 3. 核心逻辑尽量写成纯函数；unit_tests 用 Node 可跑的纯 JS（无 DOM），至少 1 条。
 4. 若是计算器/计数器/骰子，也可不写 source_html，改写 interactive.type=tool_pad（白名单 ops）。
 5. 贪吃蛇等小游戏：必须可键盘或点击操作，有得分或再来一局。
+"""
+
+_SYSTEM_REVISE = """你是积木仓 BlockHub 的页面修订器（智能出页 · 二次修订）。
+用户已有一版可运行 HTML（A1），现在要根据修改意见产出 A2。
+**必须在现有页面基础上改**，保留原玩法/布局精髓，只落实用户点名的改动；禁止无视底稿从零重写成无关页面。
+只输出 JSON，格式与新建相同（generated_pages[].source_html 为完整 HTML）。
+
+规则同新建：自包含、可交互、禁止危险 API；unit_tests 至少 1 条。
+若底稿是游戏，修订后仍须可玩。
 """
 
 
@@ -188,29 +197,73 @@ def generate_capability_pages(
     prompt: str,
     web_template_id: str,
     app_ui_id: str,
+    base_html_by_key: dict[str, str] | None = None,
 ) -> dict[str, Any]:
     unknown = [k for k in unknown_keys if k] or ["custom_feature"]
+    bases = {str(k): str(v) for k, v in (base_html_by_key or {}).items() if str(v).strip()}
+    revising = bool(bases)
+
+    pages_payload = []
+    for key in unknown:
+        item: dict[str, Any] = {"key": key}
+        base = bases.get(key) or ""
+        if base:
+            item["base_source_html"] = base[:120_000]
+            item["mode"] = "revise"
+        else:
+            item["mode"] = "create"
+        pages_payload.append(item)
+
     user = {
         "app_name": app_name,
         "unknown_capability_keys": unknown,
         "user_prompt": (prompt or "")[:1200],
         "web_template_id": web_template_id,
         "app_ui_id": app_ui_id,
+        "mode": "revise" if revising else "create",
+        "pages": pages_payload,
+        "instruction": "若 mode=revise，请基于 pages[].base_source_html 修订；key 必须与输入一致。",
     }
 
     raw = deepseek_json_chat(
-        system=_SYSTEM,
+        system=_SYSTEM_REVISE if revising else _SYSTEM,
         user=json.dumps(user, ensure_ascii=False),
-        temperature=0.35,
+        temperature=0.3 if revising else 0.35,
     )
     result = None
     if isinstance(raw, dict) and (raw.get("generated_pages") or raw.get("generated_flutter_screens")):
         result = _normalize(raw, unknown, prompt)
-        result = _verify_and_fix(result, unknown, prompt, retry_hint=None)
+        # 修订失败时保留底稿，避免退回无关兜底
+        if revising and result.get("generated_pages"):
+            for p in result["generated_pages"]:
+                if not isinstance(p, dict):
+                    continue
+                k = str(p.get("key") or "")
+                html = str(p.get("source_html") or "").strip()
+                if not html and k in bases:
+                    p["source_html"] = bases[k]
+        result = _verify_and_fix(result, unknown, prompt, retry_hint=None, base_html_by_key=bases)
 
     if not result or not result.get("generated_pages"):
-        result = _fallback(app_name, unknown, prompt)
-        result = _verify_and_fix(result, unknown, prompt, retry_hint=None)
+        if revising:
+            # 模型失败：仍返回底稿，避免「改不动变空白」
+            pages = []
+            for key in unknown:
+                pages.append(
+                    {
+                        "key": key if str(key).startswith("gen_") else f"gen_{_slug(key)}",
+                        "title": key.replace("gen_", "").replace("_", " ")[:64] or "页面",
+                        "route": f"/gen/{_slug(key)}",
+                        "summary": (prompt or "修订中")[:400],
+                        "source_html": bases.get(key) or _fallback_html_for("页面", prompt or "")[0],
+                        "unit_tests": [{"name": "smoke", "code": "if (1+1!==2) throw new Error('math');"}],
+                        "source": "revise_keep_base",
+                    }
+                )
+            result = {"generated_pages": pages, "generated_flutter_screens": [], "llm": False}
+        else:
+            result = _fallback(app_name, unknown, prompt)
+            result = _verify_and_fix(result, unknown, prompt, retry_hint=None)
 
     return result
 
@@ -220,13 +273,16 @@ def _verify_and_fix(
     unknown: list[str],
     prompt: str,
     retry_hint: str | None,
+    base_html_by_key: dict[str, str] | None = None,
 ) -> dict[str, Any]:
+    bases = base_html_by_key or {}
     pages = list(result.get("generated_pages") or [])
     fixed: list[dict[str, Any]] = []
     for i, page in enumerate(pages):
         if not isinstance(page, dict):
             continue
-        title = str(page.get("title") or unknown[min(i, len(unknown) - 1)])
+        key = str(page.get("key") or unknown[min(i, len(unknown) - 1)])
+        title = str(page.get("title") or key)
         html = str(page.get("source_html") or "").strip()
         tests = page.get("unit_tests") if isinstance(page.get("unit_tests"), list) else []
         interactive = page.get("interactive") if isinstance(page.get("interactive"), dict) else None
@@ -236,24 +292,33 @@ def _verify_and_fix(
             continue
 
         if not html:
-            html, tests = _fallback_html_for(title, prompt)
-            page = {**page, "source_html": html, "unit_tests": tests}
+            if key in bases:
+                html = bases[key]
+                page = {**page, "source_html": html}
+            else:
+                html, tests = _fallback_html_for(title, prompt)
+                page = {**page, "source_html": html, "unit_tests": tests}
 
         report = verify_full(html=str(page.get("source_html") or ""), unit_tests=tests if isinstance(tests, list) else [])
         if not report.get("ok"):
-            logger.info("codegen verify fail %s: %s", title, report.get("errors"))
-            # 静默换本地可运行兜底，保证用户端能用
-            html2, tests2 = _fallback_html_for(title, prompt)
-            report2 = verify_full(html=html2, unit_tests=tests2)
-            page = {
-                **page,
-                "source_html": html2,
-                "unit_tests": tests2,
-                "summary": str(page.get("summary") or title)[:400],
-            }
-            if not report2.get("ok"):
-                page["source_html"] = html2  # 仍下发兜底
-        page.pop("blocks", None)  # 有源码就不靠静态块
+            logger.info("smart_page verify fail %s: %s", title, report.get("errors"))
+            if key in bases and bases[key].strip():
+                # 修订校验失败：保留可用底稿，不整页换成无关兜底
+                page = {
+                    **page,
+                    "source_html": bases[key],
+                    "summary": str(page.get("summary") or title)[:400],
+                    "source": "revise_keep_base_verify_fail",
+                }
+            else:
+                html2, tests2 = _fallback_html_for(title, prompt)
+                page = {
+                    **page,
+                    "source_html": html2,
+                    "unit_tests": tests2,
+                    "summary": str(page.get("summary") or title)[:400],
+                }
+        page.pop("blocks", None)
         fixed.append(page)
 
     result = {**result, "generated_pages": fixed}

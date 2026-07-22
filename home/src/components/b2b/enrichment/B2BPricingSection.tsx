@@ -1,9 +1,10 @@
 import { Link } from 'react-router-dom'
 import { AgentButtonContent, AgentChevronGlyph } from '../../AgentChevron'
-import { PRICING_TIERS } from '../../../data/sitePricing'
+import { PRICING_B_TIERS, PRICING_C_TIERS } from '../../../data/sitePricing'
 import { ROUTES } from '../../../routes/paths'
 
 export default function B2BPricingSection() {
+  const highlight = [...PRICING_C_TIERS, ...PRICING_B_TIERS.filter((t) => t.id !== 'b_team')]
   return (
     <section className="enrich-pricing-bar" aria-labelledby="enrich-pricing-title">
       <div className="enrich-pricing-inner">
@@ -12,10 +13,10 @@ export default function B2BPricingSection() {
             <AgentChevronGlyph size="btn" className="enrich-eyebrow-chev" />
             价格说明
           </span>
-          <h2 id="enrich-pricing-title">定价框架</h2>
+          <h2 id="enrich-pricing-title">C 端 + B 端套餐</h2>
         </div>
         <div className="enrich-pricing-grid">
-          {PRICING_TIERS.map((tier) => (
+          {highlight.map((tier) => (
             <article
               key={tier.id}
               className={`enrich-tier${tier.featured ? ' is-featured' : ''}`}
@@ -23,7 +24,7 @@ export default function B2BPricingSection() {
               <h4>{tier.name}</h4>
               <div className="enrich-tier-range">{tier.range}</div>
               <ul>
-                {tier.features.map((f) => (
+                {tier.features.slice(0, 4).map((f) => (
                   <li key={f}>{f}</li>
                 ))}
               </ul>

@@ -49,9 +49,17 @@ export function trustDocTheme(id: string): EnrichCardTheme {
 
 /** 定价 · 按套餐一色 */
 export const PRICING_TIER_THEMES: Record<string, EnrichCardTheme> = {
+  c_free: { color: '#64748b', from: '#f8fafc', to: '#f1f5f9', icon: '○' },
+  c_plus: { color: '#0e7c66', from: '#ecfdf5', to: '#d1fae5', icon: '★' },
+  b_team: { color: '#475569', from: '#f8fafc', to: '#e2e8f0', icon: '◆' },
+  b_business: { color: '#1d4ed8', from: '#eff6ff', to: '#dbeafe', icon: '★' },
+  b_enterprise: { color: '#0f172a', from: '#f1f5f9', to: '#e2e8f0', icon: '▣' },
+  deploy_hybrid: { color: '#0d47a1', from: '#eff6ff', to: '#dbeafe', icon: '☁' },
+  deploy_private: { color: '#334155', from: '#f8fafc', to: '#e2e8f0', icon: '▣' },
+  // 兼容旧 id
   paas: { color: '#64748b', from: '#f8fafc', to: '#f1f5f9', icon: '☁' },
   hybrid: { color: '#0d47a1', from: '#eff6ff', to: '#dbeafe', icon: '⭐' },
-  private: { color: '#7c3aed', from: '#f5f3ff', to: '#ede9fe', icon: '🏢' },
+  private: { color: '#334155', from: '#f8fafc', to: '#e2e8f0', icon: '🏢' },
 }
 
 export function pricingTierTheme(id: string): EnrichCardTheme {

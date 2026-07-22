@@ -321,6 +321,7 @@ _SYSTEM = f"""你是积木仓 Runtime 编排助手。用户用中文描述业务
 5b. **可点按工具 UI**（计算器/计数器/骰子/按键面板等）：必须理解并泛化，在 page_mock 写入 interactive 对象（type=tool_pad，buttons 数组，白名单 ops），**禁止**用 list 文字罗列按键冒充 UI。改交互同样用 patch_page 更新 interactive。
 5c. **仅改标题/菜单名/文案**：用 **rename**（from→to）或 patch_page 文案，**禁止** add 新模块。用户说「改标题」「改名叫」「把请假改成事假」时不得默认挂新能力。
 5d. **小游戏等可执行页**（贪吃蛇等）：page_kind=generated_code，pending_codegen=true，**禁止**用「标题/说明」业务录入表单冒充。2048 用正式能力 game_2048。
+5e. **修订已有智能出页**：用户要在已有可运行页上改玩法/样式时，用 op=**revise_generated**（capability_key/label 对上现有项）并 pending_codegen=true；禁止同名再 add，禁止只用 patch_page 改表单冒充。
 6. 同一正式能力可对应多个不同 label 场景页（加班申请与请假申请可并存）。
 7. 已有相同 label 不要重复 add；可 rename/move。
 8. **改交互控件**（日期弹框/选择器、金额改数字、把文本框改成 date/number）：必须用 **patch_page**，针对当前菜单已有项写完整 page_mock.fields 与 form_fields（含 key/label/type）。type 可用 date / datetime-local / number / text / textarea。禁止空 ops 却说已更新。
@@ -1391,6 +1392,96 @@ def _merge_llm_with_matches(
     return ops
 
 
+def _looks_like_revise_generated_intent(text: str) -> bool:
+    t = text or ""
+    if not t.strip():
+        return False
+    # 新建语气优先不当作修订
+    if re.search(r"(再|另外|重新)?(做|加|创建|新建|来一)个", t) and not re.search(
+        r"(在|把|将).{0,12}(上|里|中).{0,8}(改|加|调)", t
+    ):
+        if not re.search(r"(改成|改成|改一下|修改|调整|优化|加上|换成|变成)", t):
+            return False
+    return bool(
+        re.search(
+            r"(改|修改|调整|优化|升级|加上|增加|换成|改成|变成|再.*难|更容易|颜色|速度|得分|关卡)",
+            t,
+        )
+    )
+
+
+def _infer_revise_generated_ops(
+    instruction: str,
+    menu: list[dict[str, Any]],
+    snapshots: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """已有智能出页 + 修订话术 → revise_generated（带底稿走二次出页）。"""
+    if not snapshots or not _looks_like_revise_generated_intent(instruction):
+        return []
+    snap_by_key = {
+        str(s.get("capability_key") or s.get("key") or ""): s
+        for s in snapshots
+        if isinstance(s, dict) and str(s.get("source_html") or "").strip()
+    }
+    if not snap_by_key:
+        return []
+
+    t = instruction or ""
+    targets: list[dict[str, Any]] = []
+    for m in menu:
+        if not isinstance(m, dict):
+            continue
+        key = str(m.get("capability_key") or m.get("key") or "")
+        lab = str(m.get("label") or "")
+        if key not in snap_by_key:
+            continue
+        if lab and lab in t:
+            targets.append(m)
+        elif key and key in t:
+            targets.append(m)
+    if not targets and len(snap_by_key) == 1:
+        only_key = next(iter(snap_by_key))
+        for m in menu:
+            if str(m.get("capability_key") or m.get("key") or "") == only_key:
+                targets.append(m)
+                break
+        if not targets:
+            s = snap_by_key[only_key]
+            targets.append(
+                {
+                    "label": str(s.get("title") or s.get("label") or only_key),
+                    "capability_key": only_key,
+                    "key": only_key,
+                }
+            )
+    if not targets and len(menu) == 1:
+        m0 = menu[0]
+        key = str(m0.get("capability_key") or m0.get("key") or "")
+        if key in snap_by_key:
+            targets.append(m0)
+
+    ops: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for m in targets:
+        key = str(m.get("capability_key") or m.get("key") or "")
+        lab = str(m.get("label") or key)
+        if not key or key in seen:
+            continue
+        seen.add(key)
+        ops.append(
+            {
+                "op": "revise_generated",
+                "label": lab,
+                "capability_key": key,
+                "pending_codegen": True,
+                "page_kind": "generated_code",
+                "widget": "GeneratedPageWidget",
+                "summary": (instruction or "")[:400],
+            }
+        )
+    return ops
+
+
 def compose_edit_from_instruction(
     *,
     instruction: str,
@@ -1402,11 +1493,13 @@ def compose_edit_from_instruction(
     industry_key: str = "",
     microsite_id: str = "",
     web_template_id: str = "",
+    page_snapshots: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     q = (instruction or "").strip()
     imgs = [u for u in (images or []) if isinstance(u, str) and u.strip()][:3]
     menu_list = [m for m in (menu or []) if isinstance(m, dict)]
     keys = [k for k in (capability_keys or []) if k]
+    snaps = [s for s in (page_snapshots or []) if isinstance(s, dict)]
     ctx: ComposeCtx = {}
     if entry_source.strip():
         ctx["entry_source"] = entry_source.strip()
@@ -1426,6 +1519,24 @@ def compose_edit_from_instruction(
         }
     if not q and imgs:
         q = "请根据截图说明当前页面是什么意思，并指出可改进点；若适合改页请给出 ops。"
+
+    # 智能出页二次修订：优先于普通 patch/add（避免改不动）
+    revise_ops = _infer_revise_generated_ops(q, menu_list, snaps)
+    if revise_ops:
+        pending = [str(o.get("capability_key")) for o in revise_ops if o.get("capability_key")]
+        labels = [str(o.get("label") or "") for o in revise_ops]
+        return {
+            "reply": (
+                f"将基于现有页面修订「{'、'.join(labels)}」："
+                f"智能出页会带上当前版本源码再生成，完成后自动替换。"
+            ),
+            "ops": revise_ops,
+            "source": "revise_generated",
+            "llm_configured": llm_ok,
+            "intent_summary": "revise_generated",
+            "pending_codegen_keys": pending,
+            "matched": [],
+        }
 
     local_matches = _resolve_matches(q)
 
@@ -1469,6 +1580,22 @@ def compose_edit_from_instruction(
         if not isinstance(op, dict):
             continue
         kind = str(op.get("op") or "").strip()
+        if kind == "revise_generated":
+            ck = str(op.get("capability_key") or "").strip()
+            lab = str(op.get("label") or "").strip()
+            if ck or lab:
+                ops.append(
+                    {
+                        "op": "revise_generated",
+                        "label": lab or ck,
+                        "capability_key": ck or lab,
+                        "pending_codegen": True,
+                        "page_kind": "generated_code",
+                        "widget": "GeneratedPageWidget",
+                        "summary": str(op.get("summary") or q)[:400],
+                    }
+                )
+            continue
         if kind not in {"add", "remove", "rename", "move", "patch_page"}:
             continue
         if kind == "patch_page":
@@ -1559,14 +1686,24 @@ def compose_edit_from_instruction(
         deduped.append(o)
     ops = deduped
 
+    # 有底稿快照时，修订意图覆盖误 patch / 误 add
+    force_revise = _infer_revise_generated_ops(q, menu_list, snaps)
+    if force_revise:
+        ops = force_revise
+
     pending = [
         str(o.get("capability_key"))
         for o in ops
-        if o.get("op") == "add" and o.get("pending_codegen")
+        if o.get("capability_key")
+        and (
+            (o.get("op") == "add" and o.get("pending_codegen"))
+            or o.get("op") == "revise_generated"
+        )
     ]
 
     patched = [str(o.get("label")) for o in ops if o.get("op") == "patch_page"]
     added = [str(o.get("label")) for o in ops if o.get("op") == "add"]
+    revised = [str(o.get("label")) for o in ops if o.get("op") == "revise_generated"]
 
     if not ops:
         # 禁止空 ops 却谎称已更新
@@ -1582,7 +1719,11 @@ def compose_edit_from_instruction(
                     or "我理解了你的说法，但这次没有改到菜单或控件。请更具体说明要加什么页面，或改哪个字段。"
                 )
     elif not reply or reply == "已更新":
-        if patched and pending:
+        if revised:
+            reply = (
+                f"将基于现有页面修订「{'、'.join(revised)}」，智能出页完成后自动替换。"
+            )
+        elif patched and pending:
             reply = (
                 f"已改控件：{'、'.join(patched)}；并挂上 {'、'.join(added)}。"
                 "可先打开左侧菜单体验；未覆盖接口将异步生成。"

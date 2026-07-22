@@ -162,9 +162,9 @@ const GEN_STEPS = [
 ] as const
 
 const GEN_TIPS = [
-  '正在把你的需求变成可交互页面…',
+  '正在智能出页，把需求变成可交互页面…',
   '生成完成后会自动出现，无需刷新…',
-  '小游戏 / 小工具通常约半分钟内就绪…',
+  '若在改已有页面，会基于上一版源码修订…',
 ]
 
 function GeneratingProgress({ title, summary, accent }: { title: string; summary: string; accent: string }) {
@@ -316,11 +316,15 @@ function GeneratedPageWidget({ node }: { node: SchemaNode }) {
     setResetKey((k) => k + 1)
   }, [capKey])
 
+  if (pending) {
+    return <GeneratingProgress title={title} summary={summary} accent={accent} />
+  }
+
   if (sourceHtml) {
     return <GeneratedCodeFrame title={title} html={sourceHtml} />
   }
 
-  if (pending || pageKind === 'generated_code') {
+  if (pageKind === 'generated_code') {
     return <GeneratingProgress title={title} summary={summary} accent={accent} />
   }
 

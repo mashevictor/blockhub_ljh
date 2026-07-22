@@ -24,6 +24,9 @@ class Tenant(Base):
     name: Mapped[str] = mapped_column(String(120), nullable=False)
     slug: Mapped[str] = mapped_column(String(64), unique=True, nullable=False, index=True)
     config_json: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
+    # 套餐：c_free | c_plus | b_team | b_business | b_enterprise
+    plan_tier: Mapped[str] = mapped_column(String(32), nullable=False, default="c_free")
+    seat_quota: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     users: Mapped[list[User]] = relationship(back_populates="tenant")
@@ -45,6 +48,22 @@ class User(Base):
 
     tenant: Mapped[Tenant] = relationship(back_populates="users")
     publish_records: Mapped[list[PublishRecord]] = relationship(back_populates="user")
+
+
+class UsageMeter(Base):
+    """套餐用量计数：compose_edit / smart_page / code_download 等。"""
+
+    __tablename__ = "usage_meters"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenants.id"), nullable=False, index=True)
+    user_id: Mapped[str | None] = mapped_column(ForeignKey("users.id"), nullable=True, index=True)
+    metric: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    period_key: Mapped[str] = mapped_column(String(32), nullable=False, index=True)
+    count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
 
 
 class AppRecord(Base):

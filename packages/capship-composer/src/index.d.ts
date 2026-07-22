@@ -105,6 +105,15 @@ export type ComposeEditOp =
       page_mock?: ComposerPageMock
       form_fields?: Array<{ key: string; label: string; type?: string; placeholder?: string }>
     }
+  | {
+      op: 'revise_generated'
+      label: string
+      capability_key: string
+      pending_codegen?: boolean
+      page_kind?: string
+      widget?: string
+      summary?: string
+    }
 
 export type FlowEditOp =
   | { op: 'add'; label: string; note?: string; after?: string }

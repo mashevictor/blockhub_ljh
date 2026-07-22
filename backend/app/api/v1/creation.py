@@ -14,7 +14,7 @@ from app.data.module_data import CREATION_WIZARD_STEPS, INDUSTRY_PACK_OPTIONS
 from app.data.delivery_templates import list_delivery_templates
 from app.data.schema_templates import feasibility_for_scenarios, list_templates
 from app.services.codegen_jobs import enqueue_codegen_job, get_codegen_job
-from app.db.models import User
+from app.db.models import AppRecord, User
 from app.db.session import get_db
 from app.services.app_store import (
     get_app_by_public_id,
@@ -97,6 +97,8 @@ class ComposeEditRequest(BaseModel):
     microsite_id: str = ""
     web_template_id: str = ""
     app_ui_id: str = ""
+    # 智能出页二次修订：现有页 source_html 底稿
+    page_snapshots: list[dict] = []
 
 
 class FlowEditRequest(BaseModel):
@@ -331,8 +333,14 @@ def flow_ask_api(body: FlowAskRequest) -> dict:
 
 
 @router.post("/compose-edit")
-def compose_edit_api(body: ComposeEditRequest) -> dict:
-    """自然语言改 Runtime 菜单/场景，优先大模型；未知能力可异步 codegen。"""
+def compose_edit_api(
+    body: ComposeEditRequest,
+    db: Annotated[Session, Depends(get_db)],
+    current_user: Annotated[User | None, Depends(get_optional_user)] = None,
+) -> dict:
+    """自然语言改 Runtime 菜单/场景；未知/修订页走智能出页（异步）。"""
+    from app.services.plan_usage import assert_and_count_compose_edit, assert_and_count_smart_page
+
     result = compose_edit_from_instruction(
         instruction=body.instruction,
         menu=body.menu,
@@ -343,17 +351,34 @@ def compose_edit_api(body: ComposeEditRequest) -> dict:
         industry_key=body.industry_key,
         microsite_id=body.microsite_id,
         web_template_id=body.web_template_id,
+        page_snapshots=body.page_snapshots,
     )
+    # 仅在真正产出 ops 时计对话改页，避免澄清问答耗尽 Free 配额
+    if result.get("ops"):
+        assert_and_count_compose_edit(db, current_user)
+
     pending = list(result.get("pending_codegen_keys") or [])
     codegen_job_id = ""
     if pending:
+        assert_and_count_smart_page(db, current_user, page_count=len(pending))
         try:
-            # 优先真实 Runtime app_id，便于 merge；否则仍入队，前端靠 job.result.generated_pages 合并草稿
             real_id = (body.app_id or "").strip()
-            job_app_id = real_id if real_id and not real_id.startswith("preview-") else f"compose-{(body.app_name or 'draft')}"[:48]
+            job_app_id = (
+                real_id
+                if real_id and not real_id.startswith("preview-")
+                else f"compose-{(body.app_name or 'draft')}"[:48]
+            )
             tpl = (body.web_template_id or "").strip() or "tabs_portal"
             if (body.entry_source or "").strip() == "industry_site" and tpl == "tabs_portal":
                 tpl = "sidebar_admin"
+            base_html_by_key: dict[str, str] = {}
+            for snap in body.page_snapshots or []:
+                if not isinstance(snap, dict):
+                    continue
+                k = str(snap.get("capability_key") or snap.get("key") or "").strip()
+                html = str(snap.get("source_html") or "").strip()
+                if k and html and k in pending:
+                    base_html_by_key[k] = html[:120_000]
             codegen_job_id = enqueue_codegen_job(
                 app_id=job_app_id,
                 app_name=body.app_name or "Runtime 编排",
@@ -361,9 +386,10 @@ def compose_edit_api(body: ComposeEditRequest) -> dict:
                 prompt=body.instruction,
                 web_template_id=tpl,
                 app_ui_id=(body.app_ui_id or "").strip() or "bottom_tabs",
+                base_html_by_key=base_html_by_key or None,
             )
         except Exception:
-            logger.exception("compose-edit enqueue codegen failed")
+            logger.exception("compose-edit enqueue smart_page failed")
             codegen_job_id = ""
     if codegen_job_id:
         result = {**result, "codegen_job_id": codegen_job_id}
@@ -394,6 +420,22 @@ def publish_app(
         has_industry_full = bool(body.assemble_full_scenes and (body.industry_key or "").strip())
         if not has_description and not has_selection and not has_industry_full:
             raise HTTPException(status_code=400, detail="请先选择功能模块或填写至少 2 个字的应用描述")
+
+        if current_user is not None:
+            from app.services.plan_usage import assert_app_quota
+
+            n_apps = (
+                db.query(AppRecord)
+                .filter(AppRecord.tenant_id == current_user.tenant_id)
+                .count()
+            )
+            # 更新已有 app_id 不占新名额
+            updating = False
+            if body.app_id.strip():
+                existing = get_app_by_public_id(db, body.app_id.strip())
+                updating = bool(existing and existing.tenant_id == current_user.tenant_id)
+            if not updating:
+                assert_app_quota(db, current_user, current_app_count=n_apps)
 
         names: list[str] = []
         all_scenarios = catalog_store.scenario_name_map(db)

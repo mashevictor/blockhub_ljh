@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CapShip · B 端组织套餐</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #0b1220;
+      --ink-soft: #1e2a3b;
+      --muted: #5a6a7d;
+      --line: #d5dbe5;
+      --paper: #f3f5f8;
+      --card: #fff;
+      --accent: #1d4ed8;
+      --accent-deep: #1e3a8a;
+      --accent-soft: #e8effc;
+      --teal: #0e7c66;
+      --teal-soft: #e6f5f1;
+      --warn: #9a3412;
+      --warn-soft: #fff1e8;
+      --locked: #94a3b8;
+      --radius: 14px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "DM Sans", system-ui, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(1000px 520px at 88% -8%, #dbe6fb 0%, transparent 55%),
+        radial-gradient(900px 480px at 0% 0%, #e8eef6 0%, transparent 50%),
+        var(--paper);
+      line-height: 1.5;
+    }
+    .wrap { width: min(1080px, calc(100% - 32px)); margin: 0 auto; padding: 48px 0 80px; }
+    .hero { display: grid; gap: 14px; padding-bottom: 28px; animation: rise .55s ease both; }
+    .brand {
+      font-family: "Instrument Serif", Georgia, serif;
+      font-size: clamp(40px, 6.5vw, 58px);
+      line-height: .95;
+      margin: 0;
+      letter-spacing: -.02em;
+    }
+    .brand em { font-style: italic; color: var(--accent-deep); }
+    .hero-lead { margin: 0; max-width: 42em; font-size: 16.5px; color: var(--ink-soft); }
+    .hero-note { margin: 0; font-size: 13px; color: var(--muted); }
+    .bridge {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 12px;
+      align-items: stretch;
+      margin-top: 8px;
+    }
+    @media (max-width: 720px) { .bridge { grid-template-columns: 1fr; } .bridge .arrow { display: none; } }
+    .bridge-card {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 14px 16px;
+      background: var(--card);
+      font-size: 13px;
+    }
+    .bridge-card strong { display: block; margin-bottom: 4px; font-size: 12px; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+    .bridge-card.c { border-color: #b7e0d4; background: var(--teal-soft); }
+    .bridge-card.b { border-color: #bfdbfe; background: var(--accent-soft); }
+    .bridge .arrow { align-self: center; color: var(--muted); font-size: 20px; text-align: center; }
+
+    .billing-toggle {
+      display: inline-flex; gap: 4px; padding: 4px; border: 1px solid var(--line);
+      border-radius: 999px; background: var(--card); width: fit-content; margin-top: 6px;
+    }
+    .billing-toggle button {
+      border: 0; background: transparent; font: inherit; font-size: 13px; font-weight: 600;
+      padding: 8px 14px; border-radius: 999px; color: var(--muted); cursor: pointer;
+    }
+    .billing-toggle button.is-on { background: var(--ink); color: #fff; }
+    .save-pill {
+      margin-left: 6px; font-size: 11px; font-weight: 700; color: var(--accent-deep);
+      background: var(--accent-soft); padding: 2px 7px; border-radius: 999px;
+    }
+
+    .tiers {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-top: 28px;
+      animation: rise .65s ease .06s both;
+    }
+    @media (max-width: 900px) { .tiers { grid-template-columns: 1fr; } }
+
+    .tier {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 24px 20px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      position: relative;
+      transition: transform .2s ease;
+    }
+    .tier:hover { transform: translateY(-2px); }
+    .tier.is-featured {
+      border-color: var(--accent);
+      background: linear-gradient(180deg, #eef3ff 0%, #fff 40%);
+    }
+    .tier.is-featured::before {
+      content: "主力档";
+      position: absolute; top: -10px; right: 14px;
+      font-size: 11px; font-weight: 700; letter-spacing: .04em;
+      color: #fff; background: var(--accent); padding: 4px 9px; border-radius: 999px;
+    }
+    .tier-name { margin: 0; font-size: 13px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
+    .tier-price { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+    .tier-price .num {
+      font-family: "Instrument Serif", Georgia, serif;
+      font-size: 44px; line-height: 1; letter-spacing: -.03em;
+    }
+    .tier-price .unit { font-size: 13px; color: var(--muted); }
+    .tier-desc { margin: 0; font-size: 13.5px; color: var(--ink-soft); min-height: 3.2em; }
+    .highlight {
+      margin: 0; padding: 10px 12px; border-radius: 10px;
+      background: var(--accent-soft); border: 1px solid #bfdbfe;
+      font-size: 13px; font-weight: 650; color: var(--accent-deep);
+    }
+    .tier.ent .highlight { background: #f1f5f9; border-color: var(--line); color: var(--ink-soft); }
+
+    .limits { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; flex: 1; }
+    .limits li {
+      display: grid; grid-template-columns: 14px 1fr; gap: 8px;
+      font-size: 13px; color: var(--ink-soft);
+    }
+    .limits .mark {
+      width: 14px; height: 14px; margin-top: 3px; border-radius: 50%;
+      background: var(--accent-soft); position: relative;
+    }
+    .limits .mark::after {
+      content: ""; position: absolute; left: 4px; top: 3px; width: 4px; height: 7px;
+      border: solid var(--accent-deep); border-width: 0 1.5px 1.5px 0; transform: rotate(45deg);
+    }
+    .limits li.is-limit .mark { background: var(--warn-soft); }
+    .limits li.is-limit .mark::after {
+      left: 3px; top: 6px; width: 8px; height: 1.5px; border: 0;
+      background: var(--warn); transform: none; border-radius: 1px;
+    }
+
+    .cta {
+      display: block; width: 100%; text-align: center; font: inherit; font-size: 14px; font-weight: 650;
+      padding: 11px 14px; border-radius: 10px; border: 1px solid var(--line);
+      background: var(--card); color: var(--ink); cursor: pointer; text-decoration: none;
+    }
+    .cta.primary { background: var(--ink); border-color: var(--ink); color: #fff; }
+    .cta.ghost { background: transparent; }
+
+    .section { margin-top: 52px; animation: rise .7s ease .1s both; }
+    .section h2 {
+      font-family: "Instrument Serif", Georgia, serif;
+      font-size: 30px; font-weight: 400; margin: 0 0 8px; letter-spacing: -.02em;
+    }
+    .section .sub { margin: 0 0 18px; color: var(--muted); font-size: 14px; max-width: 48em; }
+
+    .matrix-wrap { overflow: auto; border: 1px solid var(--line); border-radius: var(--radius); background: var(--card); }
+    table.matrix { width: 100%; border-collapse: collapse; min-width: 760px; font-size: 13px; }
+    .matrix th, .matrix td { padding: 12px 14px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+    .matrix th { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); background: #f8fafb; }
+    .matrix td:first-child { font-weight: 600; width: 22%; }
+    .matrix tr:last-child td { border-bottom: 0; }
+    .matrix .ok { color: var(--accent-deep); font-weight: 600; }
+    .matrix .lim { color: var(--warn); font-weight: 600; }
+    .matrix .no { color: var(--locked); }
+    .matrix .c { color: var(--teal); font-weight: 600; }
+
+    .callout {
+      margin-top: 16px; padding: 14px 16px; border-radius: 12px;
+      background: var(--accent-soft); border: 1px solid #bfdbfe;
+      font-size: 13.5px; color: var(--ink-soft);
+    }
+    .callout strong { color: var(--accent-deep); }
+
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 720px) { .grid2 { grid-template-columns: 1fr; } }
+    .box {
+      border: 1px solid var(--line); border-radius: 12px; padding: 16px; background: var(--card);
+    }
+    .box h3 { margin: 0 0 8px; font-size: 15px; }
+    .box ul { margin: 0; padding-left: 18px; font-size: 13px; color: var(--ink-soft); }
+    .box li { margin: 4px 0; }
+    .box .price { margin-top: 10px; font-weight: 700; font-size: 14px; }
+
+    .faq { display: grid; gap: 10px; }
+    details { border: 1px solid var(--line); border-radius: 12px; background: var(--card); padding: 12px 16px; }
+    summary { cursor: pointer; font-weight: 650; font-size: 14px; list-style: none; }
+    summary::-webkit-details-marker { display: none; }
+    details[open] summary { color: var(--accent-deep); }
+    details p { margin: 10px 0 2px; font-size: 13.5px; color: var(--ink-soft); }
+
+    .foot { margin-top: 48px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 12px; color: var(--muted); }
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="hero">
+      <h1 class="brand">CapShip <em>B 端</em></h1>
+      <p class="hero-lead">
+        在 C 端 Free / Plus 之上，B 端按「组织坐席」卖协作与治理：
+        多应用、行业包、改页审批、APK、知识库与私有化。
+      </p>
+      <p class="hero-note">草案 · 与 C 端衔接 · 价格为对标区间 · 对齐官网混合/私有化叙事</p>
+
+      <div class="bridge" aria-label="C 端与 B 端分工">
+        <div class="bridge-card c">
+          <strong>C 端已定</strong>
+          Free：改页 10 次/天 · 最多 10 应用 · 可下载 1 个项目<br />
+          Plus ¥39：应用 / 改页 / 下载均不限制
+        </div>
+        <div class="arrow" aria-hidden="true">→</div>
+        <div class="bridge-card b">
+          <strong>B 端补齐</strong>
+          坐席制 · 组织审批 · 行业包 · APK/知识库包量<br />
+          混合部署 / 私有化合同
+        </div>
+      </div>
+
+      <div class="billing-toggle" role="group" aria-label="计费周期">
+        <button type="button" class="is-on" id="btnMonth">按月</button>
+        <button type="button" id="btnYear">按年 <span class="save-pill">省 2 个月</span></button>
+      </div>
+    </header>
+
+    <section class="tiers" aria-label="B 端套餐">
+      <article class="tier" data-tier="team">
+        <p class="tier-name">Team 团队</p>
+        <div class="tier-price">
+          <span class="num price-num" data-m="98" data-y="82">¥98</span>
+          <span class="unit price-unit">/ 坐席 · 月</span>
+        </div>
+        <p class="tier-desc">10–50 人试点。从 C 端 Plus 升级组织协作的第一档。</p>
+        <p class="highlight">起购 5 席 · 对话改页不限（组织共享）</p>
+        <ul class="limits">
+          <li><span class="mark"></span>应用 10 个 · 全量标准能力</li>
+          <li><span class="mark"></span>行业包任选 1 个</li>
+          <li><span class="mark"></span>Web + APK：4 次构建 / 月</li>
+          <li><span class="mark"></span>契约下载：申请 · 10 次 / 月</li>
+          <li class="is-limit"><span class="mark"></span>改页：个人草稿；无强制审批流</li>
+          <li class="is-limit"><span class="mark"></span>知识库 1 GB · 智能出页 200 次/月（共享）</li>
+        </ul>
+        <button type="button" class="cta">开通 Team</button>
+      </article>
+
+      <article class="tier is-featured" data-tier="business">
+        <p class="tier-name">Business 商业</p>
+        <div class="tier-price">
+          <span class="num price-num" data-m="168" data-y="140">¥168</span>
+          <span class="unit price-unit">/ 坐席 · 月</span>
+        </div>
+        <p class="tier-desc">成长型中企主力档。治理 + 行业深度 + AI 包量。</p>
+        <p class="highlight">起购 10 席 · 含改页审批流 + 版本审计</p>
+        <ul class="limits">
+          <li><span class="mark"></span>应用 50 个 · 行业包任选 5 个</li>
+          <li><span class="mark"></span>正式 schema 须审批通过后生效</li>
+          <li><span class="mark"></span>APK 20 次 / 月 · 独立包名</li>
+          <li><span class="mark"></span>契约下载：30 次 / 月 · 管理员批准</li>
+          <li><span class="mark"></span>知识库 10 GB · 智能出页 1,000 次/月</li>
+          <li><span class="mark"></span>IM 通知（企微/钉钉/飞书）标准 Webhook</li>
+        </ul>
+        <button type="button" class="cta primary">开通 Business</button>
+      </article>
+
+      <article class="tier ent" data-tier="enterprise">
+        <p class="tier-name">Enterprise 企业</p>
+        <div class="tier-price">
+          <span class="num" style="font-size:36px">合同制</span>
+          <span class="unit">对齐混合 80–120 万/年</span>
+        </div>
+        <p class="tier-desc">集团 / 政企。混合部署、私有化、等保与专属 SLA。</p>
+        <p class="highlight">坐席与资源按合同锁定 · 专属客户成功</p>
+        <ul class="limits">
+          <li><span class="mark"></span>应用 / 行业包 / AI 配额：合同定制</li>
+          <li><span class="mark"></span>SSO、审计导出、专属构建队列</li>
+          <li><span class="mark"></span>ERP / OA 对接 · 实施人天单列</li>
+          <li><span class="mark"></span>数据可落客户 VPC（混合）或全私有化</li>
+          <li><span class="mark"></span>白标 vendor · 契约与源码交付条款</li>
+          <li><span class="mark"></span>SLA / 驻场 / 等保陪跑可选</li>
+        </ul>
+        <a class="cta ghost" href="#deploy">预约企业方案</a>
+      </article>
+    </section>
+
+    <section class="section" id="matrix">
+      <h2>与 C 端对照</h2>
+      <p class="sub">同一产品两套账：C 按人买产能，B 按席买组织能力。个人 Plus 不自动等于一个 B 端坐席。</p>
+      <div class="matrix-wrap">
+        <table class="matrix">
+          <thead>
+            <tr>
+              <th>能力</th>
+              <th>C · Free</th>
+              <th>C · Plus</th>
+              <th>B · Team</th>
+              <th>B · Business</th>
+              <th>B · Enterprise</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>计费单元</td>
+              <td class="c">账号</td>
+              <td class="c">人 / 月</td>
+              <td class="ok">坐席 / 月</td>
+              <td class="ok">坐席 / 月</td>
+              <td class="ok">合同</td>
+            </tr>
+            <tr>
+              <td>对话改页</td>
+              <td class="lim">10 次/天</td>
+              <td class="ok">不限</td>
+              <td class="ok">不限（组织）</td>
+              <td class="ok">不限 + 审批</td>
+              <td class="ok">不限 + 治理</td>
+            </tr>
+            <tr>
+              <td>应用数</td>
+              <td class="lim">最多 10</td>
+              <td class="ok">不限</td>
+              <td class="ok">10</td>
+              <td class="ok">50</td>
+              <td class="ok">定制</td>
+            </tr>
+            <tr>
+              <td>行业包</td>
+              <td class="no">—</td>
+              <td class="no">—</td>
+              <td class="lim">1</td>
+              <td class="ok">5</td>
+              <td class="ok">全开 / 定制</td>
+            </tr>
+            <tr>
+              <td>改页审批流</td>
+              <td class="no">—</td>
+              <td class="no">—</td>
+              <td class="no">可选加购</td>
+              <td class="ok">包含</td>
+              <td class="ok">包含 + 审计</td>
+            </tr>
+            <tr>
+              <td>契约 / 项目下载</td>
+              <td class="lim">累计 1 个项目</td>
+              <td class="ok">不限</td>
+              <td class="ok">10 次/月</td>
+              <td class="ok">30 次/月</td>
+              <td class="ok">合同条款</td>
+            </tr>
+            <tr>
+              <td>APK</td>
+              <td class="no">次卡</td>
+              <td class="no">次卡 / 升 B</td>
+              <td class="ok">4 次/月</td>
+              <td class="ok">20 次/月</td>
+              <td class="ok">Dedicated</td>
+            </tr>
+            <tr>
+              <td>知识库</td>
+              <td class="no">—</td>
+              <td class="no">次包 / 升 B</td>
+              <td class="lim">1 GB</td>
+              <td class="ok">10 GB</td>
+              <td class="ok">定制</td>
+            </tr>
+            <tr>
+              <td>IM / ERP</td>
+              <td class="no">—</td>
+              <td class="no">—</td>
+              <td class="lim">基础 IM</td>
+              <td class="ok">标准 Webhook</td>
+              <td class="ok">深度集成</td>
+            </tr>
+            <tr>
+              <td>部署</td>
+              <td class="c">公有云</td>
+              <td class="c">公有云</td>
+              <td class="ok">公有云</td>
+              <td class="ok">公有云</td>
+              <td class="ok">混合 / 私有化</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout">
+        <strong>升级路径：</strong>
+        个人 Plus 做不了组织审批与多坐席共享 → 升 Team；
+        需要「草稿→审批→正式页」与行业包深度 → Business；
+        数据出境/等保/专属集成 → Enterprise（合同，对齐官网 80–120 万/年混合档）。
+      </div>
+    </section>
+
+    <section class="section" id="deploy">
+      <h2>部署与加购</h2>
+      <p class="sub">坐席价覆盖 SaaS；部署形态与实施单独报价，避免和席位搅在一起。</p>
+      <div class="grid2">
+        <div class="box">
+          <h3>部署形态</h3>
+          <ul>
+            <li><strong>PaaS 公有云</strong>：Team / Business 默认</li>
+            <li><strong>混合部署</strong>：业务数据客户 VPC · 参考 80–120 万/年</li>
+            <li><strong>私有化</strong>：定制报价 · 等保 / 本地运维可选</li>
+          </ul>
+        </div>
+        <div class="box">
+          <h3>组织增值包</h3>
+          <ul>
+            <li>行业扩展包：¥1.2–2.8 万 / 包 · 年</li>
+            <li>改页审批流（Team 加购）：¥30 / 席 · 月</li>
+            <li>智能出页 加油：¥99 · 500 次</li>
+            <li>APK 次卡：¥59 · 1 次</li>
+            <li>实施集成：按人天</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>销售口径（对内）</h2>
+      <div class="grid2">
+        <div class="box">
+          <h3>什么时候卖 C</h3>
+          <ul>
+            <li>弹幕进来的个人 / 创作者</li>
+            <li>只要自己改页、少应用</li>
+            <li>不需要组织审批与坐席管理</li>
+          </ul>
+          <div class="price">话术：先 Free，不够再 Plus ¥39</div>
+        </div>
+        <div class="box">
+          <h3>什么时候卖 B</h3>
+          <ul>
+            <li>多人共用一个租户</li>
+            <li>要行业包、APK 批量、知识库</li>
+            <li>要正式页审批 / 审计 / IM</li>
+            <li>要混合或私有化</li>
+          </ul>
+          <div class="price">话术：试点 Team 5 席起，规模上 Business</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>常见问题</h2>
+      <div class="faq">
+        <details open>
+          <summary>B 端为什么还要「对话改页不限」？</summary>
+          <p>C 端 Plus 已不限个人改页；B 端竞争点不是再卖次数，而是审批、共享配额、行业包与双端构建。Team 起默认不限改页，用坐席与应用数收钱。</p>
+        </details>
+        <details>
+          <summary>Plus 用户如何迁到 Team？</summary>
+          <p>创建组织租户并购买 ≥5 席；个人应用可导入。原 Plus 订阅可折抵首月或改为组织内个人席位（商务规则另定）。</p>
+        </details>
+        <details>
+          <summary>坐席怎么算？</summary>
+          <p>能登录 Runtime / 编排后台的成员计 1 席。只读公示、Plaza 匿名访客不计席。管理员占席。</p>
+        </details>
+        <details>
+          <summary>和官网「按坐席 / 80–120 万」如何对齐？</summary>
+          <p>Team/Business = 官网「PaaS 按坐席」的可下单 SKU；Enterprise 混合/私有化 = 官网高客单档，不在自助页写死数字。</p>
+        </details>
+      </div>
+    </section>
+
+    <p class="foot">
+      CapShip B 端套餐草案 · docs/previews/b-end-pricing-packages.html · 与 C 端 Free/Plus 配套
+    </p>
+  </div>
+
+  <script>
+    (function () {
+      const btnMonth = document.getElementById('btnMonth')
+      const btnYear = document.getElementById('btnYear')
+      const nums = document.querySelectorAll('.price-num')
+      const units = document.querySelectorAll('.price-unit')
+
+      function setPeriod(period) {
+        const yearly = period === 'year'
+        btnMonth.classList.toggle('is-on', !yearly)
+        btnYear.classList.toggle('is-on', yearly)
+        nums.forEach((el) => {
+          el.textContent = '¥' + (yearly ? el.dataset.y : el.dataset.m)
+        })
+        units.forEach((el) => {
+          el.textContent = yearly ? '/ 坐席 · 月（年付折算）' : '/ 坐席 · 月'
+        })
+      }
+      btnMonth.addEventListener('click', () => setPeriod('month'))
+      btnYear.addEventListener('click', () => setPeriod('year'))
+    })()
+  </script>
+</body>
+</html>

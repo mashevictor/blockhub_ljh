@@ -64,6 +64,7 @@ from app.api.v1 import (
     stats,
     tenant,
     voice_agent,
+    billing,
 )
 from app.core.config import settings
 from app.core.deps import get_current_user, require_admin
@@ -123,6 +124,7 @@ _admin = [Depends(require_admin)]
 app.include_router(health.router, prefix=settings.api_prefix)
 app.include_router(smoke.router, prefix=settings.api_prefix)
 app.include_router(tenant.router, prefix=settings.api_prefix)
+app.include_router(billing.router, prefix=settings.api_prefix)
 app.include_router(runtime.router, prefix=settings.api_prefix)
 app.include_router(auth.router, prefix=settings.api_prefix)
 app.include_router(catalog.router, prefix=settings.api_prefix)

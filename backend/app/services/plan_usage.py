@@ -1,0 +1,311 @@
+"""租户套餐解析与用量计量。"""
+
+from __future__ import annotations
+
+from datetime import date, datetime, timezone
+from typing import Any
+
+from fastapi import HTTPException
+from sqlalchemy.orm import Session
+
+from app.data.plan_catalog import DEFAULT_PLAN_ID, SMART_PAGE_LABEL, get_plan
+from app.db.models import Tenant, UsageMeter, User
+
+
+def _period_day() -> str:
+    return date.today().isoformat()
+
+
+def _period_month() -> str:
+    return date.today().strftime("%Y-%m")
+
+
+def _period_lifetime() -> str:
+    return "lifetime"
+
+
+def tenant_plan_id(tenant: Tenant | None) -> str:
+    if not tenant:
+        return DEFAULT_PLAN_ID
+    pid = (getattr(tenant, "plan_tier", None) or "").strip()
+    return pid or DEFAULT_PLAN_ID
+
+
+def resolve_plan_for_user(db: Session, user: User | None) -> dict[str, Any]:
+    if not user:
+        return get_plan(DEFAULT_PLAN_ID)
+    tenant = db.get(Tenant, user.tenant_id)
+    return get_plan(tenant_plan_id(tenant))
+
+
+def _get_or_create_meter(
+    db: Session,
+    *,
+    tenant_id: str,
+    user_id: str | None,
+    metric: str,
+    period_key: str,
+) -> UsageMeter:
+    q = (
+        db.query(UsageMeter)
+        .filter(
+            UsageMeter.tenant_id == tenant_id,
+            UsageMeter.metric == metric,
+            UsageMeter.period_key == period_key,
+        )
+    )
+    if user_id:
+        q = q.filter(UsageMeter.user_id == user_id)
+    else:
+        q = q.filter(UsageMeter.user_id.is_(None))
+    row = q.first()
+    if row:
+        return row
+    row = UsageMeter(
+        tenant_id=tenant_id,
+        user_id=user_id,
+        metric=metric,
+        period_key=period_key,
+        count=0,
+    )
+    db.add(row)
+    db.flush()
+    return row
+
+
+def get_usage(
+    db: Session,
+    *,
+    tenant_id: str,
+    user_id: str | None,
+    metric: str,
+    period_key: str,
+) -> int:
+    q = (
+        db.query(UsageMeter)
+        .filter(
+            UsageMeter.tenant_id == tenant_id,
+            UsageMeter.metric == metric,
+            UsageMeter.period_key == period_key,
+        )
+    )
+    if user_id:
+        q = q.filter(UsageMeter.user_id == user_id)
+    else:
+        q = q.filter(UsageMeter.user_id.is_(None))
+    row = q.first()
+    return int(row.count) if row else 0
+
+
+def increment_usage(
+    db: Session,
+    *,
+    tenant_id: str,
+    user_id: str | None,
+    metric: str,
+    period_key: str,
+    delta: int = 1,
+) -> int:
+    row = _get_or_create_meter(
+        db, tenant_id=tenant_id, user_id=user_id, metric=metric, period_key=period_key
+    )
+    row.count = int(row.count or 0) + delta
+    row.updated_at = datetime.now(timezone.utc)
+    db.add(row)
+    db.commit()
+    return int(row.count)
+
+
+def assert_app_quota(db: Session, user: User | None, *, current_app_count: int) -> None:
+    if not user:
+        plan = get_plan(DEFAULT_PLAN_ID)
+    else:
+        plan = resolve_plan_for_user(db, user)
+    lim = plan.get("max_apps")
+    if lim is None:
+        return
+    if current_app_count >= int(lim):
+        raise HTTPException(
+            status_code=402,
+            detail=f"当前套餐「{plan['name']}」最多 {lim} 个应用，请升级 Plus 或 B 端套餐",
+        )
+
+
+def assert_and_count_compose_edit(db: Session, user: User | None) -> dict[str, Any]:
+    """对话改页计次（按天）。无用户时按放行（预览草稿）。"""
+    if not user:
+        return {"ok": True, "skipped": True}
+    plan = resolve_plan_for_user(db, user)
+    lim = plan.get("compose_edit_per_day")
+    if lim is None:
+        return {"ok": True, "plan": plan["id"], "unlimited": True}
+    used = get_usage(
+        db,
+        tenant_id=user.tenant_id,
+        user_id=user.id,
+        metric="compose_edit",
+        period_key=_period_day(),
+    )
+    if used >= int(lim):
+        raise HTTPException(
+            status_code=402,
+            detail=f"今日对话改页已达上限（{lim} 次）。Free 为 10 次/天，升级 Plus 可不限制。",
+        )
+    increment_usage(
+        db,
+        tenant_id=user.tenant_id,
+        user_id=user.id,
+        metric="compose_edit",
+        period_key=_period_day(),
+    )
+    return {"ok": True, "used": used + 1, "limit": lim, "plan": plan["id"]}
+
+
+def assert_and_count_smart_page(
+    db: Session,
+    user: User | None,
+    *,
+    page_count: int = 1,
+) -> dict[str, Any]:
+    """智能出页计次：C 端按天；B 端可按月共享（user_id=None）。"""
+    if not user or page_count <= 0:
+        return {"ok": True, "skipped": True}
+    plan = resolve_plan_for_user(db, user)
+    day_lim = plan.get("smart_page_per_day")
+    month_lim = plan.get("smart_page_per_month")
+
+    if day_lim is not None:
+        used = get_usage(
+            db,
+            tenant_id=user.tenant_id,
+            user_id=user.id,
+            metric="smart_page",
+            period_key=_period_day(),
+        )
+        if used + page_count > int(day_lim):
+            raise HTTPException(
+                status_code=402,
+                detail=(
+                    f"今日{SMART_PAGE_LABEL}已达上限（{day_lim} 次）。"
+                    f"升级 Plus 后{SMART_PAGE_LABEL}不限制。"
+                ),
+            )
+        increment_usage(
+            db,
+            tenant_id=user.tenant_id,
+            user_id=user.id,
+            metric="smart_page",
+            period_key=_period_day(),
+            delta=page_count,
+        )
+        return {"ok": True, "used": used + page_count, "limit": day_lim, "plan": plan["id"]}
+
+    if month_lim is not None:
+        used = get_usage(
+            db,
+            tenant_id=user.tenant_id,
+            user_id=None,
+            metric="smart_page",
+            period_key=_period_month(),
+        )
+        if used + page_count > int(month_lim):
+            raise HTTPException(
+                status_code=402,
+                detail=f"本月组织{SMART_PAGE_LABEL}配额已用尽（{month_lim} 次），请升级套餐或下月再试。",
+            )
+        increment_usage(
+            db,
+            tenant_id=user.tenant_id,
+            user_id=None,
+            metric="smart_page",
+            period_key=_period_month(),
+            delta=page_count,
+        )
+        return {"ok": True, "used": used + page_count, "limit": month_lim, "plan": plan["id"]}
+
+    return {"ok": True, "unlimited": True, "plan": plan["id"]}
+
+
+def assert_and_count_code_download(db: Session, user: User) -> dict[str, Any]:
+    plan = resolve_plan_for_user(db, user)
+    life = plan.get("code_download_lifetime")
+    month = plan.get("code_download_per_month")
+
+    if life is not None:
+        used = get_usage(
+            db,
+            tenant_id=user.tenant_id,
+            user_id=user.id,
+            metric="code_download",
+            period_key=_period_lifetime(),
+        )
+        if used >= int(life):
+            raise HTTPException(
+                status_code=402,
+                detail=f"Free 套餐仅可下载 {life} 个项目代码，请升级 Plus 后不限下载。",
+            )
+        increment_usage(
+            db,
+            tenant_id=user.tenant_id,
+            user_id=user.id,
+            metric="code_download",
+            period_key=_period_lifetime(),
+        )
+        return {"ok": True, "used": used + 1, "limit": life}
+
+    if month is not None:
+        used = get_usage(
+            db,
+            tenant_id=user.tenant_id,
+            user_id=None,
+            metric="code_download",
+            period_key=_period_month(),
+        )
+        if used >= int(month):
+            raise HTTPException(
+                status_code=402,
+                detail=f"本月契约下载已达上限（{month} 次）。",
+            )
+        increment_usage(
+            db,
+            tenant_id=user.tenant_id,
+            user_id=None,
+            metric="code_download",
+            period_key=_period_month(),
+        )
+        return {"ok": True, "used": used + 1, "limit": month}
+
+    return {"ok": True, "unlimited": True}
+
+
+def usage_summary(db: Session, user: User) -> dict[str, Any]:
+    plan = resolve_plan_for_user(db, user)
+    return {
+        "plan": plan,
+        "smart_page_label": SMART_PAGE_LABEL,
+        "usage": {
+            "compose_edit_today": get_usage(
+                db, tenant_id=user.tenant_id, user_id=user.id, metric="compose_edit", period_key=_period_day()
+            ),
+            "smart_page_today": get_usage(
+                db, tenant_id=user.tenant_id, user_id=user.id, metric="smart_page", period_key=_period_day()
+            ),
+            "smart_page_month": get_usage(
+                db, tenant_id=user.tenant_id, user_id=None, metric="smart_page", period_key=_period_month()
+            ),
+            "code_download_lifetime": get_usage(
+                db,
+                tenant_id=user.tenant_id,
+                user_id=user.id,
+                metric="code_download",
+                period_key=_period_lifetime(),
+            ),
+            "code_download_month": get_usage(
+                db,
+                tenant_id=user.tenant_id,
+                user_id=None,
+                metric="code_download",
+                period_key=_period_month(),
+            ),
+        },
+    }

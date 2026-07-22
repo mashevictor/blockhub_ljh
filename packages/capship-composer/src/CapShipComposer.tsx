@@ -442,6 +442,37 @@ export function applyComposeOps(schema: ComposerPageSchema, ops: ComposeEditOp[]
       }
       continue
     }
+    if (op.op === 'revise_generated') {
+      const hit =
+        matchMenuLabel(next.menu, op.label) ||
+        next.menu.find((m) => m.capability_key === op.capability_key || m.key === op.capability_key)
+      if (!hit) continue
+      const key = hit.capability_key || hit.key
+      next = {
+        ...next,
+        root: {
+          ...next.root,
+          children: (next.root.children || []).map((c) => {
+            const props = { ...(c.props || {}) } as Record<string, unknown>
+            const ck = String(props.capability_key || c.id || '')
+            if (ck !== key && c.id !== hit.key) return c
+            return {
+              ...c,
+              props: {
+                ...props,
+                codegen_pending: true,
+                page_kind: 'generated_code',
+                ui_kind: 'generated_code',
+                ui_phase: 'skeleton',
+                summary: op.summary || props.summary || '',
+                widget: 'GeneratedPageWidget',
+              },
+            }
+          }),
+        },
+      }
+      continue
+    }
     if (op.op === 'patch_page') {
       const hit =
         matchMenuLabel(next.menu, op.label) ||
@@ -1359,6 +1390,26 @@ export function CapShipComposer({
           })),
           capability_keys: keys,
           images,
+          page_snapshots: (base.root.children || [])
+            .map((c) => {
+              const props = (c.props || {}) as Record<string, unknown>
+              const html = String(props.source_html || '').trim()
+              if (!html) return null
+              return {
+                key: String(c.id || ''),
+                capability_key: String(props.capability_key || c.id || ''),
+                title: String(props.title || ''),
+                label: String(props.title || ''),
+                source_html: html.slice(0, 100_000),
+              }
+            })
+            .filter(Boolean) as Array<{
+            key: string
+            capability_key: string
+            title: string
+            label: string
+            source_html: string
+          }>,
           entry_source: String((base.meta as Record<string, unknown> | undefined)?.entry_source || ''),
           industry_key: String((base.meta as Record<string, unknown> | undefined)?.industry_key || ''),
           microsite_id: String(
@@ -1399,7 +1450,7 @@ export function CapShipComposer({
       const asyncHint =
         pending?.length
           ? jobId
-            ? ` 未覆盖能力交 DeepSeek 异步出页（${pending.length} 项）：左侧先显示骨架，生成完成并自检后自动展开可交互预览。`
+            ? ` 未覆盖能力交智能出页异步生成（${pending.length} 项）：左侧先显示进度，完成后自动展开可交互预览。`
             : ` 未覆盖能力暂无异步任务，将先用本地可预见模板展示（${pending.length} 项）。`
           : ''
       // 无 job：不要一直卡在骨架，放开本地 foresight 表单
