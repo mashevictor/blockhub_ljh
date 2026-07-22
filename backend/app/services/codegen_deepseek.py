@@ -215,6 +215,24 @@ def _fallback_html_for(title: str, prompt: str) -> tuple[str, list[dict[str, Any
     ]
 
 
+def upgrade_legacy_playable_html(html: str, title: str = "") -> str:
+    """旧贪吃蛇（alert / 无触屏方向）→ 可玩版。修订底稿与兜底共用。"""
+    raw = (html or "").strip()
+    if not raw:
+        return raw
+    blob = f"{title}\n{raw}".lower()
+    is_snake = any(w in blob for w in ("贪吃蛇", "snake")) or (
+        "<canvas" in raw.lower() and ("snake.unshift" in raw or "snake.some" in raw)
+    )
+    if not is_snake:
+        return raw
+    has_pad = ("data-d" in raw) and ("class=\"pad\"" in raw or "class='pad'" in raw or "class=pad" in raw)
+    uses_alert = "alert(" in raw
+    if has_pad and not uses_alert:
+        return raw
+    return _snake_fallback_html(title or "贪吃蛇")
+
+
 def generate_capability_pages(
     *,
     app_name: str,

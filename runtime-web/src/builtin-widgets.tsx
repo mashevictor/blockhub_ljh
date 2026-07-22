@@ -28,6 +28,92 @@ type PageMock = {
   interactive?: unknown
 }
 
+/** 旧版贪吃蛇（仅键盘 + alert）→ 触屏方向键、无弹窗的可玩版。打开即升级，无需再对话改页。 */
+function snakePlayableHtml(title: string): string {
+  const t = (title || '贪吃蛇').replace(/[<>]/g, '').slice(0, 40) || '贪吃蛇'
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>${t}</title>
+<style>
+body{margin:0;font-family:system-ui,sans-serif;background:#0f172a;color:#e2e8f0;display:flex;flex-direction:column;align-items:center;gap:10px;padding:16px}
+canvas{background:#020617;border:2px solid #334155;border-radius:10px;image-rendering:pixelated;touch-action:none}
+button{border:0;border-radius:8px;padding:10px 14px;background:#0d9488;color:#fff;cursor:pointer;font-size:14px;min-width:44px;min-height:44px}
+.pad{display:grid;grid-template-columns:44px 44px 44px;gap:6px;justify-items:center}
+.pad .u{grid-column:2}.pad .l{grid-column:1;grid-row:2}.pad .d{grid-column:2;grid-row:2}.pad .r{grid-column:3;grid-row:2}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:center}
+#msg{min-height:20px;font-size:13px;color:#fbbf24}
+</style></head><body>
+<h2 style="margin:0">${t}</h2>
+<p style="margin:0;font-size:13px;opacity:.85">方向键 / WASD / 下方按钮</p>
+<canvas id="c" width="320" height="320" tabindex="0"></canvas>
+<p id="msg"></p>
+<div class="row"><button type="button" id="go">再来一局</button><span>得分 <b id="sc">0</b></span></div>
+<div class="pad" aria-label="方向">
+<button type="button" class="u" data-d="u">↑</button>
+<button type="button" class="l" data-d="l">←</button>
+<button type="button" class="d" data-d="d">↓</button>
+<button type="button" class="r" data-d="r">→</button>
+</div>
+<script>
+(function(){
+const N=16,S=20,C=document.getElementById('c'),X=C.getContext('2d'),MSG=document.getElementById('msg');
+let snake,dir,food,score,alive,timer,pending=null;
+function rnd(){return Math.floor(Math.random()*N)}
+function place(){let p;do{p={x:rnd(),y:rnd()}}while(snake.some(s=>s.x===p.x&&s.y===p.y));return p}
+function setDir(nx,ny){if(!alive)return;if(nx===-dir.x&&ny===-dir.y)return;pending={x:nx,y:ny}}
+function reset(){snake=[{x:8,y:8}];dir={x:1,y:0};pending=null;food=place();score=0;alive=true;MSG.textContent='';
+document.getElementById('sc').textContent=score;clearInterval(timer);timer=setInterval(tick,140);draw();try{C.focus()}catch(e){}}
+function tick(){if(!alive)return;if(pending){dir=pending;pending=null}
+const h={x:snake[0].x+dir.x,y:snake[0].y+dir.y};
+if(h.x<0||h.y<0||h.x>=N||h.y>=N||snake.some(s=>s.x===h.x&&s.y===h.y)){alive=false;MSG.textContent='撞到了 · 点「再来一局」';draw();return}
+snake.unshift(h);if(h.x===food.x&&h.y===food.y){score++;document.getElementById('sc').textContent=score;food=place()}else snake.pop();draw()}
+function draw(){X.clearRect(0,0,320,320);X.fillStyle='#f59e0b';X.fillRect(food.x*S,food.y*S,S-1,S-1);
+snake.forEach((s,i)=>{X.fillStyle=i?'#34d399':'#6ee7b7';X.fillRect(s.x*S,s.y*S,S-1,S-1)});
+if(!alive){X.fillStyle='rgba(15,23,42,.55)';X.fillRect(0,0,320,320);X.fillStyle='#f87171';X.font='bold 22px sans-serif';X.fillText('Game Over',100,160)}}
+window.addEventListener('keydown',e=>{
+const k=e.key;let handled=true;
+if(['ArrowUp','w','W'].includes(k))setDir(0,-1);
+else if(['ArrowDown','s','S'].includes(k))setDir(0,1);
+else if(['ArrowLeft','a','A'].includes(k))setDir(-1,0);
+else if(['ArrowRight','d','D'].includes(k))setDir(1,0);
+else handled=false;
+if(handled)e.preventDefault();
+});
+document.querySelectorAll('.pad button').forEach(b=>b.addEventListener('click',()=>{
+const d=b.getAttribute('data-d');
+if(d==='u')setDir(0,-1);if(d==='d')setDir(0,1);if(d==='l')setDir(-1,0);if(d==='r')setDir(1,0);
+}));
+document.getElementById('go').onclick=reset;C.addEventListener('click',()=>{try{C.focus()}catch(e){}});reset();
+})();
+</script></body></html>`
+}
+
+function looksLikeSnakeGame(html: string, title: string): boolean {
+  const blob = `${title}\n${html}`.toLowerCase()
+  if (/贪吃蛇|snake/.test(blob)) return true
+  // 无标题时：canvas + 蛇常见逻辑
+  return /<canvas/i.test(html) && /snake\.unshift|snake\.some/i.test(html)
+}
+
+function isLegacyUnplayableSnake(html: string): boolean {
+  const raw = html || ''
+  if (!raw.trim()) return true
+  const hasPad = /data-d\s*=\s*["']?[udlr]/i.test(raw) && /class\s*=\s*["'][^"']*\bpad\b/i.test(raw)
+  const usesAlert = /\balert\s*\(/.test(raw)
+  // 已有触屏方向且无 alert → 视为新版，保留用户定制
+  if (hasPad && !usesAlert) return false
+  return true
+}
+
+/** 渲染前升级旧智能出页，避免用户再口头触发修订 */
+function upgradeLegacyPlayableHtml(html: string, title: string): string {
+  const raw = (html || '').trim()
+  if (!raw) return raw
+  if (looksLikeSnakeGame(raw, title) && isLegacyUnplayableSnake(raw)) {
+    return snakePlayableHtml(title || '贪吃蛇')
+  }
+  return raw
+}
+
 /** 沙箱 iframe 无 allow-modals 时 alert 会被静默忽略；注入页内提示替代。 */
 function wrapPlayableSrcDoc(html: string): string {
   const raw = (html || '').trim()
@@ -58,7 +144,9 @@ function wrapPlayableSrcDoc(html: string): string {
 function GeneratedCodeFrame({ title, html }: { title: string; html: string }) {
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const [armed, setArmed] = useState(false)
-  const srcDoc = useMemo(() => wrapPlayableSrcDoc(html), [html])
+  const playable = useMemo(() => upgradeLegacyPlayableHtml(html, title), [html, title])
+  const upgraded = playable !== (html || '').trim()
+  const srcDoc = useMemo(() => wrapPlayableSrcDoc(playable), [playable])
   const frameKey = useMemo(() => {
     let h = 0
     const s = srcDoc.slice(0, 8000)
@@ -82,6 +170,11 @@ function GeneratedCodeFrame({ title, html }: { title: string; html: string }) {
 
   return (
     <article className="generated-page generated-page--code" data-source="generated">
+      {upgraded ? (
+        <p className="muted" style={{ margin: '0 0 8px', fontSize: 12, color: '#0f766e' }}>
+          已自动升级为可玩版（触屏方向键 · 无弹窗），无需再对话改页。
+        </p>
+      ) : null}
       <div style={{ position: 'relative', width: '100%' }}>
         <iframe
           key={frameKey}
@@ -89,7 +182,6 @@ function GeneratedCodeFrame({ title, html }: { title: string; html: string }) {
           title={title}
           srcDoc={srcDoc}
           tabIndex={0}
-          // allow-modals：兼容旧生成页里的 alert；shim 兜底无 modal 也能提示
           sandbox="allow-scripts allow-modals"
           onLoad={focusPlay}
           onFocus={() => setArmed(true)}
@@ -123,7 +215,7 @@ function GeneratedCodeFrame({ title, html }: { title: string; html: string }) {
         ) : null}
       </div>
       <p className="muted" style={{ margin: '8px 0 0', fontSize: 12 }}>
-        若方向键无反应，先点一下游戏区域再操作。对话改页完成后本区会自动换成最新一版。
+        点游戏区域后可用方向键或下方按钮；结束后点「再来一局」。
       </p>
     </article>
   )
