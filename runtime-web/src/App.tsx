@@ -110,7 +110,8 @@ function scopeManifestToApp(manifest: BuildManifest, schema: PageSchema): BuildM
   for (const k of keys) {
     // Path B 生成页走内置 GeneratedPageWidget，无需能力包
     if (k.startsWith('gen_')) continue
-    const conv = `@blockhub/web-capability-${k.replace(/_/g, '-')}`
+    const conv = conventionPkg(k)
+    if (!conv) continue
     const has = pkgs.some((p) => folderMatch(p, k) || p === conv)
     if (!has) pkgs.push(conv)
   }
@@ -121,15 +122,31 @@ function scopeManifestToApp(manifest: BuildManifest, schema: PageSchema): BuildM
   }
 }
 
+/** capability_key → 约定包名（与 capability-manifest web_pkg 对齐） */
+function conventionPkg(capabilityKey: string): string {
+  if (capabilityKey.startsWith('gen_')) return ''
+  if (capabilityKey === 'kb_document' || capabilityKey === 'kb_search') {
+    return '@blockhub/web-capability-kb'
+  }
+  if (capabilityKey.startsWith('approval')) return '@blockhub/web-capability-approval'
+  if (capabilityKey.startsWith('notify')) return '@blockhub/web-capability-integration'
+  if (capabilityKey.startsWith('chat')) return '@blockhub/web-capability-chat'
+  return `@blockhub/web-capability-${capabilityKey.replace(/_/g, '-')}`
+}
+
 function folderMatch(pkg: string, capabilityKey: string): boolean {
   const folder = pkg.split('/').pop() || pkg
   const slug = capabilityKey.replace(/_/g, '-')
+  const conv = conventionPkg(capabilityKey)
+  if (conv && folder === (conv.split('/').pop() || conv)) return true
   // 共享包：approval_flow → web-capability-approval
   if (folder === `web-capability-${slug}`) return true
   if (folder === `web-capability-${slug.split('-')[0]}`) return true
   if (capabilityKey.startsWith('approval') && folder === 'web-capability-approval') return true
   if (capabilityKey.startsWith('notify') && folder === 'web-capability-integration') return true
-  if ((capabilityKey.startsWith('chat') || capabilityKey === 'kb_document') && folder === 'web-capability-chat') {
+  if (capabilityKey.startsWith('chat') && folder === 'web-capability-chat') return true
+  // kb_document / kb_search → web-capability-kb（勿误绑 chat）
+  if ((capabilityKey === 'kb_document' || capabilityKey === 'kb_search') && folder === 'web-capability-kb') {
     return true
   }
   return folder.includes(slug)
@@ -301,8 +318,8 @@ export default function App() {
       ? manifest.web_pkgs.filter((p) => folderMatch(p, cap) || p.includes(slug))
       : []
     // compose 新加能力时 manifest 可能尚未含包名：按约定补上，避免误报「尚未接入」
-    const convention =
-      cap && !cap.startsWith('gen_') ? [`@blockhub/web-capability-${slug}`] : []
+    const conv = cap ? conventionPkg(cap) : ''
+    const convention = conv ? [conv] : []
     const pkgs = [...new Set([...fromManifest, ...convention])]
     void ensurePkgsLoaded(pkgs.length ? pkgs : manifest.web_pkgs.slice(0, 1)).finally(() => {
       if (!cancelled) setRoutePkgsReady(true)

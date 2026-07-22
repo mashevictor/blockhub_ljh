@@ -112,13 +112,75 @@ def ensure_base(db: Session, user: User, name: str, description: str = "") -> di
 
 
 def ensure_industry_knowledge_bases(db: Session, user: User, pack_key: str) -> list[dict]:
-    """发布行业应用时创建该行业 2 个专属 KnowledgeBase。"""
+    """发布行业应用时创建该行业 2 个专属 KnowledgeBase，并幂等灌入示范文档（若有）。"""
     from app.data.industry_knowledge_bases import industry_kb_defs
 
     out: list[dict] = []
     for hub in industry_kb_defs(pack_key):
-        out.append(ensure_base(db, user, hub["name"], hub.get("description") or ""))
+        kb = ensure_base(db, user, hub["name"], hub.get("description") or "")
+        seeded = seed_kb_starter_docs(
+            db,
+            user,
+            pack_key=pack_key,
+            kb_id=kb["id"],
+            slug=hub["slug"],
+        )
+        if seeded:
+            refreshed = get_base(db, user.tenant_id, kb["id"])
+            kb = _base_dict(refreshed) if refreshed else kb
+        out.append(kb)
     return out
+
+
+def seed_kb_starter_docs(
+    db: Session,
+    user: User,
+    *,
+    pack_key: str,
+    kb_id: str,
+    slug: str,
+    index: bool = True,
+) -> list[dict]:
+    """将行业示范 Markdown 经真上传链路写入知识库（同名文件跳过）。"""
+    from app.data.industry_knowledge_bases import starter_md_files
+
+    paths = starter_md_files(pack_key, slug)
+    if not paths:
+        return []
+    kb = get_base(db, user.tenant_id, kb_id)
+    if not kb:
+        return []
+
+    existing = {
+        d.name
+        for d in db.query(KbDocument)
+        .filter(KbDocument.tenant_id == user.tenant_id, KbDocument.kb_id == kb_id)
+        .all()
+    }
+    created: list[dict] = []
+    for path in paths:
+        name = path.name
+        if name in existing:
+            continue
+        try:
+            data = path.read_bytes()
+            doc = create_uploaded_document(
+                db,
+                user,
+                kb_id=kb_id,
+                filename=name,
+                data=data,
+                mime_type="text/markdown",
+            )
+            if index:
+                index_document(db, doc["id"])
+                fresh = get_document(db, user.tenant_id, doc["id"])
+                doc = _doc_dict(fresh) if fresh else doc
+            created.append(doc)
+            existing.add(name)
+        except Exception:
+            logger.exception("seed starter doc failed: %s/%s", slug, name)
+    return created
 
 
 def get_base(db: Session, tenant_id: str, kb_id: str) -> KnowledgeBase | None:
