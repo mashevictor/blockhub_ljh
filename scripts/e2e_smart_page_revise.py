@@ -56,6 +56,15 @@ def http_json(method: str, path: str, body: dict | None = None, token: str | Non
             return e.code, json.loads(raw)
         except json.JSONDecodeError:
             return e.code, raw
+    except urllib.error.URLError as e:
+        raise SystemExit(
+            f"无法连接 {API}{path}\n"
+            f"原因: {e.reason}\n"
+            f"API 可能未启动。请执行:\n"
+            f"  sudo systemctl restart blockhub-api\n"
+            f"  sleep 2 && curl -s http://127.0.0.1:8001/api/v1/health\n"
+            f"  journalctl -u blockhub-api -n 40 --no-pager"
+        ) from e
 
 
 def main() -> int:
@@ -63,7 +72,13 @@ def main() -> int:
     print(f" Smart-page revise E2E · {BASE}")
     print("=" * 50)
 
-    code, health = http_json("GET", "/health")
+    try:
+        code, health = http_json("GET", "/health")
+    except SystemExit:
+        raise
+    except Exception as e:
+        no("health", str(e))
+        return 1
     if code != 200:
         no("health", str(health))
         return 1
