@@ -1671,7 +1671,7 @@ function VerticalOpsPanel({ kind, node }: { kind: OpsKind; node: SchemaNode }) {
   return (
     <div className="bh-flow-body" style={{ ['--bh-accent' as string]: cfg.accent }}>
       <h2 style={{ margin: '0 0 8px', color: cfg.accent }}>{cfg.heading}</h2>
-      <p style={{ opacity: 0.7, marginTop: 0 }}>空库空列表 · >> 单字段步进 · 真 API</p>
+      <p style={{ opacity: 0.7, marginTop: 0 }}>空库空列表 · {'>>'} 单字段步进 · 真 API</p>
       {err ? <p style={{ color: '#b91c1c' }}>{err}</p> : null}
       <GtgtStepComposer key={resetKey} steps={steps} onComplete={onSubmit} disabled={busy || !token} />
       <ul style={{ listStyle: 'none', padding: 0, marginTop: 16 }}>
