@@ -11,7 +11,7 @@ import {
 } from '../api/client'
 import { fetchBillingMe, type BillingMe } from '../api/billing'
 import { useAuth } from '../auth/AuthContext'
-import { BRAND, homePublicUrl } from '../data/brand'
+import { BRAND, homeAbsoluteUrl, homePublicUrl } from '../data/brand'
 import { PLATFORM_STATS } from '@shared/platformStats'
 import { canAccessRole, isTenantAdmin, type AppRole } from '../lib/roles'
 import {
@@ -49,14 +49,14 @@ const QUICK_LINKS: Array<{ to: string; icon: typeof IconList; title: string; sub
   { to: '/notifications', icon: IconBell, title: '消息通知', sub: '查看未读', roles: ['admin', 'tenant_owner', 'employee'] },
 ]
 
-const PUBLIC_BASE = import.meta.env.VITE_PUBLIC_BASE_URL || 'http://101.32.209.251'
+const PUBLIC_HOME = homePublicUrl().replace(/\/$/, '') || 'https://blockhub.club'
 
 function appWebUrl(app: CreatedApp) {
-  return app.web_url || `${PUBLIC_BASE}/r/${app.id}`
+  return app.web_url || homeAbsoluteUrl(`/r/${app.id}`)
 }
 
 function appDownloadUrl(app: CreatedApp) {
-  return app.download_url || `${PUBLIC_BASE}/r/${app.id}/download`
+  return app.download_url || homeAbsoluteUrl(`/r/${app.id}/download`)
 }
 
 function qrImageUrl(data: string) {
@@ -204,7 +204,7 @@ export default function OverviewPage() {
             查看已搭建的应用，复制链接或下载地址，分享给团队使用
           </p>
           <div className="hero-actions">
-            <a href={PUBLIC_BASE} className="btn btn-primary" target="_blank" rel="noreferrer">
+            <a href={PUBLIC_HOME || homePublicUrl()} className="btn btn-primary" target="_blank" rel="noreferrer">
               <IconSparkles size={16} />
               前往创建页
             </a>
@@ -272,14 +272,14 @@ export default function OverviewPage() {
           <div>
             <h2>已创建应用</h2>
             <div style={{ fontSize: 12, color: 'var(--muted)' }}>
-              来自 Home 创建入口 · 链接均使用公网地址 {PUBLIC_BASE}
+              来自 Home 创建入口 · 链接均使用公网地址 {PUBLIC_HOME}
             </div>
           </div>
         </div>
         {createdApps.length === 0 ? (
           <div className="created-apps-empty">
             <p>还没有已发布的应用。请先在首页创建并发布。</p>
-            <a href={PUBLIC_BASE} className="btn btn-primary" target="_blank" rel="noreferrer">去创建应用</a>
+            <a href={PUBLIC_HOME || homePublicUrl()} className="btn btn-primary" target="_blank" rel="noreferrer">去创建应用</a>
           </div>
         ) : (
           <div className="created-apps-grid">

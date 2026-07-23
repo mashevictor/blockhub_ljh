@@ -128,6 +128,35 @@ export function finishPublishNavigate(navigate: NavigateFunction, result: Publis
 }
 
 /**
+ * 行业包正式发布：写入「我的应用」后直达 Runtime /r/{id}。
+ * 禁止先跳 /plaza/my 再抢跳 /r/（50ms 硬跳会冲掉 80ms Runtime 跳转）。
+ */
+export function finishPublishNavigateToRuntime(result: PublishResult): boolean {
+  const saved = addMyApp(result)
+  const appKey = appStorageKey(result)
+  if (appKey) {
+    stashJustPublished({ appKey, saveFailed: !saved, at: Date.now() })
+  } else {
+    console.warn('[publishFlow] missing appId/webUrl for runtime nav', result)
+  }
+
+  let href = ''
+  const appId = String(result.appId || '').trim()
+  if (appId && !appId.startsWith('cache-')) {
+    href = `/r/${encodeURIComponent(appId)}`
+  } else if (result.webUrl) {
+    href = result.webUrl
+  }
+  if (!href) {
+    console.warn('[publishFlow] no runtime href, fallback plaza')
+    window.location.assign(ROUTES.plazaMyApps)
+    return saved
+  }
+  window.location.assign(href)
+  return saved
+}
+
+/**
  * 联系方式弹框「确认并生成」后的统一流水线（参考 ContractPage.handleApplyTemplate / handleSign）：
  * 1. 关弹框、清错误
  * 2. busy / phase
@@ -154,6 +183,8 @@ export async function runContactPublishPipeline(opts: {
     const [result] = await Promise.all([resultPromise, progressGate])
     clearOverlayTimers()
     opts.setPhase('redirect')
+    // 给浏览器一帧画到 100%，再执行跳转（避免进度条未满就卸载）
+    await waitMs(280)
     opts.onSuccess(result)
   } catch (error) {
     clearOverlayTimers()
@@ -162,7 +193,7 @@ export async function runContactPublishPipeline(opts: {
   }
 }
 
-/** 模块/行业视图：单阶段 loading（无 analyze 步） */
+/** 模块/行业视图：单阶段 loading（无 analyze 步）——新代码请优先用 runContactPublishPipeline */
 export async function runLoadingPublishPipeline(opts: {
   closeContact: () => void
   setLoading: (loading: boolean) => void

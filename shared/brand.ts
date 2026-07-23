@@ -11,7 +11,22 @@ export const BRAND = {
   footer: '积木仓 BlockHub · 五分钟搭好，打开就能用',
   homeUrl: 'http://127.0.0.1:5173',
   adminUrl: 'http://127.0.0.1:5174',
+  /** 生产正式域名（Admin 用 IP 打开时，「创建入口」仍回官网） */
+  publicOrigin: 'https://blockhub.club',
 } as const
+
+function isIpv4Host(hostname: string): boolean {
+  return /^\d{1,3}(\.\d{1,3}){3}$/.test(hostname)
+}
+
+function canonicalPublicOrigin(): string {
+  const fromEnv =
+    typeof import.meta !== 'undefined' && import.meta.env?.VITE_PUBLIC_BASE_URL
+      ? String(import.meta.env.VITE_PUBLIC_BASE_URL).trim()
+      : ''
+  const raw = (fromEnv || BRAND.publicOrigin).replace(/\/$/, '')
+  return raw || BRAND.publicOrigin
+}
 
 /** Home 用 / ，Admin 用 /admin/ — 静态资源必须带 BASE_URL */
 function readBuildVersion(): string {
@@ -95,13 +110,17 @@ export function isHomeReturnPath(path: string): boolean {
   return homeRoots.some((root) => p === root || p.startsWith(`${root}/`))
 }
 
-/** Home 创建入口 URL（生产同域 /，本地 5173） */
+/** Home 创建入口 URL（生产同域 /，本地 5173；用 IP 打开后台时回正式域名） */
 export function homePublicUrl(): string {
   if (typeof window !== 'undefined') {
     const { origin, hostname, port } = window.location
     const isLocal = hostname === 'localhost' || hostname === '127.0.0.1'
     if (isLocal && (port === '5174' || port === '5175')) {
       return `${origin.replace(/:517[45]$/, ':5173')}/`
+    }
+    // 生产误用 IP 进 /admin 时，创建入口仍指向 blockhub.club（或 VITE_PUBLIC_BASE_URL）
+    if (!isLocal && isIpv4Host(hostname)) {
+      return `${canonicalPublicOrigin()}/`
     }
     return `${origin}/`
   }

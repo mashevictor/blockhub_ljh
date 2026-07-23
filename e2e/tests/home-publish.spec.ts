@@ -2,11 +2,11 @@ import { test, expect } from '@playwright/test'
 import { HOME_URL } from './helpers'
 
 /**
- * D13 最后一格：Home 浏览器发布 UI（行业创建 → 联系方式 → 我的应用）
- * 需可访问 Home SPA：E2E_HOME_URL=http://101.32.209.251 或本地 5173
+ * D13 最后一格：Home 浏览器发布 UI（行业创建 → 联系方式 → Runtime）
+ * 需可访问 Home SPA：E2E_HOME_URL=https://blockhub.club 或本地 5173
  */
 test.describe('Home browser publish', () => {
-  test('industry flow publishes app to plaza/my', async ({ page }) => {
+  test('industry flow publishes app to runtime /r/{id}', async ({ page }) => {
     test.skip(!process.env.E2E_HOME_URL && !process.env.CI, 'set E2E_HOME_URL to run browser home publish test')
     test.skip(process.env.SKIP_HOME_E2E === '1', 'SKIP_HOME_E2E=1')
 
@@ -31,10 +31,6 @@ test.describe('Home browser publish', () => {
     await contactDialog.getByLabel('电子邮箱').fill(email)
     await contactDialog.getByRole('button', { name: '生成应用' }).click()
 
-    await expect(page).toHaveURL(/\/plaza\/my/, { timeout: 120_000 })
-    await expect(page.getByRole('heading', { name: /我的应用/ })).toBeVisible()
-    await expect(page.getByText('发布成功，已保存到「我的应用」')).toBeVisible({ timeout: 15_000 })
-    await expect(page.getByText(appName)).toBeVisible()
-    await expect(page.getByText('刚发布')).toBeVisible()
+    await expect(page).toHaveURL(/\/r\/[^/?#]+/, { timeout: 120_000 })
   })
 })

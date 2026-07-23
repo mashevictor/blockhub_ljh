@@ -18,9 +18,11 @@ function easeOutCubic(t: number): number {
 interface Props {
   phase: GeneratePhase
   appName?: string
+  /** redirect 阶段文案；默认「正在打开我的应用」 */
+  redirectHint?: string
 }
 
-export default function GenerateLoadingOverlay({ phase, appName }: Props) {
+export default function GenerateLoadingOverlay({ phase, appName, redirectHint }: Props) {
   useBodyScrollLock(true)
   const [progress, setProgress] = useState(8)
   const startAt = useRef(performance.now())
@@ -54,7 +56,9 @@ export default function GenerateLoadingOverlay({ phase, appName }: Props) {
           <div className="loading-progress-track" aria-hidden>
             <div className="loading-progress-fill" style={{ width: `${progress}%` }} />
           </div>
-          <p className="loading-headline">{GENERATE_APP_LABEL}完成，正在打开「我的应用」…</p>
+          <p className="loading-headline">
+            {redirectHint || `${GENERATE_APP_LABEL}完成，正在打开「我的应用」…`}
+          </p>
           <ol className="loading-steps">
             {STEPS.map((step) => (
               <li key={step.key} className="loading-step done">

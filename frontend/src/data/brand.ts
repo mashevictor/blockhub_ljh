@@ -8,5 +8,6 @@ export {
   adminHomeUrl,
   resolveAdminPostLoginUrl,
   homePublicUrl,
+  homeAbsoluteUrl,
   isHomeReturnPath,
 } from '@shared/brand'

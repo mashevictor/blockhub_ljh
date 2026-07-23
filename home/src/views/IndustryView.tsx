@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
 import { publishApp } from '../api/client'
 import { publishApiToResult } from '../api/publishHelpers'
-import { runLoadingPublishPipeline } from '../lib/publishFlow'
+import { runContactPublishPipeline, type PublishWorkPhase } from '../lib/publishFlow'
 import { GENERATE_APP_LABEL, GENERATE_APP_LOADING } from '../data/publishUi'
 import { AgentButtonContent } from '../components/AgentChevron'
 import { INDUSTRIES, type Audience, type PublishResult, type PublishedModuleItem } from '../data/constants'
@@ -63,7 +63,7 @@ export default function IndustryView({
     const items = getCachedIndustryScenes(resolveIndustryApiKey(initialIndustry ?? 'office'))
     return new Set(items.map((s) => s.id))
   })
-  const [loading, setLoading] = useState(false)
+  const [workPhase, setWorkPhase] = useState<PublishWorkPhase | null>(null)
   const [boxOpenSignal, setBoxOpenSignal] = useState(0)
   const [lastAddedId, setLastAddedId] = useState<string | null>(null)
   const [publishError, setPublishError] = useState<string | null>(null)
@@ -245,13 +245,14 @@ export default function IndustryView({
       nameOverride || branding.appName,
       appName || defaultAppNameForIndustry(industry),
     )
-    await runLoadingPublishPipeline({
+    await runContactPublishPipeline({
       closeContact: () => setContactOpen(false),
-      setLoading,
+      setPhase: setWorkPhase,
       setError: setPublishError,
       onSuccess: onPublish,
       errorMessage: '生成失败，请重试',
-      execute: async () => {
+      execute: async (markPhase) => {
+        markPhase('publish')
         const packKey = resolveIndustryApiKey(industry)
         const selectedScenes = scenes.filter((s) => selected.has(s.id))
         const capabilityKeys = [
@@ -603,8 +604,8 @@ export default function IndustryView({
           />
           <div className="step-actions">
             <button type="button" className="btn-ghost" onClick={() => setStep(2)}>上一步</button>
-            <button type="button" className="btn-primary agent-action-btn" disabled={loading} onClick={handlePublish}>
-              {loading ? GENERATE_APP_LOADING : (
+            <button type="button" className="btn-primary agent-action-btn" disabled={Boolean(workPhase)} onClick={handlePublish}>
+              {workPhase ? GENERATE_APP_LOADING : (
                 <AgentButtonContent>{GENERATE_APP_LABEL}</AgentButtonContent>
               )}
             </button>
@@ -614,7 +615,13 @@ export default function IndustryView({
 
       {publishError && <p className="publish-error">{publishError}</p>}
 
-      {loading && <GenerateLoadingOverlay phase="publish" />}
+      {workPhase && (
+        <GenerateLoadingOverlay
+          phase={workPhase}
+          appName={appName || defaultAppNameForIndustry(industry)}
+          redirectHint="正在打开行业应用工作台…"
+        />
+      )}
 
       {active && selectionItems.length > 1 && (
         <SelectionBox
@@ -622,7 +629,7 @@ export default function IndustryView({
           onRemove={removeSelectionItem}
           onClear={clearSelection}
           onGenerate={handlePublish}
-          generating={loading}
+          generating={Boolean(workPhase)}
           lastAddedId={lastAddedId}
           openSignal={boxOpenSignal}
         />

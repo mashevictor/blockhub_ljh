@@ -12,7 +12,7 @@ import PromptView from '../../views/PromptView'
 import IndustryView from '../../views/IndustryView'
 import ModuleView from '../../views/ModuleView'
 import { COMPOSER_MODES } from '@capship/composer'
-import { finishPublishNavigate } from '../../lib/publishFlow'
+import { finishPublishNavigate, finishPublishNavigateToRuntime } from '../../lib/publishFlow'
 import { parseCreateDeepLink, buildCreateDeepLinkHash } from '../../lib/createDeepLink'
 import { scrollToHomeSection } from '../../hooks/useHomeActiveSection'
 import DemoBookingComposer from './DemoBookingComposer'
@@ -119,32 +119,9 @@ export default function CreateStudio() {
   }
 
   const handlePublish = (result: PublishResult) => {
-    // 行业包本地缓存：打开 /preview/industry-runtime/{pack}，禁止误跳 /r/cache-*（服务端无此应用）
-    const isLocalCache =
-      result.source === 'industry-cache' ||
-      (typeof result.appId === 'string' && result.appId.startsWith('cache-'))
-    if (view === 'industry' && isLocalCache && result.webUrl) {
-      try {
-        finishPublishNavigate(navigate, result)
-      } catch {
-        /* ignore */
-      }
-      window.setTimeout(() => {
-        window.location.assign(result.webUrl)
-      }, 80)
-      return
-    }
-    // 真服务端发布：进入 /r/{id}
-    if (view === 'industry' && result.appId && !String(result.appId).startsWith('cache-')) {
-      const runtimePath = `/r/${result.appId}`
-      try {
-        finishPublishNavigate(navigate, result)
-      } catch {
-        /* ignore */
-      }
-      window.setTimeout(() => {
-        window.location.assign(runtimePath)
-      }, 80)
+    // 行业包：只进 Runtime / 预览，禁止先抢跳 /plaza/my（会冲掉进度与 /r/ 跳转）
+    if (view === 'industry') {
+      finishPublishNavigateToRuntime(result)
       return
     }
     finishPublishNavigate(navigate, result)
