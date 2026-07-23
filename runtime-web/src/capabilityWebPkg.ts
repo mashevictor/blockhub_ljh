@@ -143,11 +143,12 @@ export const CAPABILITY_WEB_PKG_OVERRIDES: Record<string, string> = {
 
 export function webPkgForCapability(key: string): string {
   const k = (key || '').trim()
-  if (!k || k.startsWith("gen_")) return ""
+  if (!k || k.startsWith('gen_')) return ''
   if (CAPABILITY_WEB_PKG_OVERRIDES[k]) return CAPABILITY_WEB_PKG_OVERRIDES[k]
-  if (k === "kb_document" || k === "kb_search") return "@blockhub/web-capability-kb"
-  if (k.startsWith("approval")) return "@blockhub/web-capability-approval"
-  if (k.startsWith("notify")) return "@blockhub/web-capability-integration"
-  if (k.startsWith("chat")) return "@blockhub/web-capability-chat"
-  return @blockhub/web-capability-
+  if (k === 'kb_document' || k === 'kb_search') return '@blockhub/web-capability-kb'
+  if (k.startsWith('approval')) return '@blockhub/web-capability-approval'
+  if (k.startsWith('notify')) return '@blockhub/web-capability-integration'
+  if (k.startsWith('chat')) return '@blockhub/web-capability-chat'
+  // 约定：capability_key → @blockhub/web-capability-{slug}
+  return `@blockhub/web-capability-${k.replace(/_/g, '-')}`
 }
