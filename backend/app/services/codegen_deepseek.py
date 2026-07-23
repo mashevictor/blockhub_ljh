@@ -12,7 +12,7 @@ import re
 from typing import Any
 
 from app.services.codegen_verify import verify_full
-from app.services.deepseek_client import deepseek_json_chat
+from app.services.llm_gateway import codegen_json_chat, codegen_provider_label
 
 logger = logging.getLogger(__name__)
 
@@ -543,7 +543,7 @@ def generate_capability_pages(
         "instruction": "若 mode=revise，请基于 pages[].base_source_html 修订；key 必须与输入一致。",
     }
 
-    raw = deepseek_json_chat(
+    raw = codegen_json_chat(
         system=_SYSTEM_REVISE if revising else _SYSTEM,
         user=json.dumps(user, ensure_ascii=False),
         temperature=0.3 if revising else 0.35,
@@ -702,7 +702,7 @@ def _normalize(raw: dict[str, Any], unknown: list[str], prompt: str = "") -> dic
             "title": title,
             "route": route if "/gen/" in route or route.startswith("/s/") else f"/gen/{_slug(key)}",
             "summary": str(p.get("summary") or "")[:400],
-            "source": "deepseek",
+            "source": codegen_provider_label(),
         }
         if source_html:
             page["source_html"] = source_html[:_MAX_KEEP]
@@ -732,7 +732,7 @@ def _normalize(raw: dict[str, Any], unknown: list[str], prompt: str = "") -> dic
                 "route": str(s.get("route") or f"/gen/{key}"),
                 "body": str(s.get("body") or "")[:2000],
                 "actions": [str(a)[:80] for a in (s.get("actions") or [])][:8],
-                "source": "deepseek",
+                "source": codegen_provider_label(),
             }
         )
 
@@ -746,7 +746,7 @@ def _normalize(raw: dict[str, Any], unknown: list[str], prompt: str = "") -> dic
                 "route": p["route"],
                 "body": p.get("summary") or p["title"],
                 "actions": ["返回"],
-                "source": "deepseek",
+                "source": codegen_provider_label(),
             }
             for p in pages
         ]
@@ -754,6 +754,7 @@ def _normalize(raw: dict[str, Any], unknown: list[str], prompt: str = "") -> dic
         "generated_pages": pages,
         "generated_flutter_screens": screens,
         "llm": True,
+        "provider": codegen_provider_label(),
     }
 
 

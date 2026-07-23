@@ -15,11 +15,17 @@ class Settings(BaseSettings):
     deepseek_model: str = "deepseek-chat"
     deepseek_timeout: int = 25
 
-    # Chat LLM（OpenAI 兼容：DeepSeek / 通义 / 豆包等，未设则回退 deepseek_*）
+    # Chat / 意图 LLM（OpenAI 兼容：Claude / GPT / Gemini / 通义等；未设则回退 deepseek_*）
     llm_api_key: str = ""
     llm_base_url: str = ""
     llm_model: str = ""
     llm_timeout: int = 60
+
+    # 智能出页代码生成（优先强代码模型；未设则回退 LLM_* → DEEPSEEK_*）
+    codegen_api_key: str = ""
+    codegen_base_url: str = ""
+    codegen_model: str = ""
+    codegen_timeout: int = 120
 
     # 视觉 / 截图理解（OpenAI 兼容多模态；未设则回退 llm_*）
     vision_api_key: str = ""
@@ -28,6 +34,7 @@ class Settings(BaseSettings):
     vision_timeout: int = 90
 
     # WaveSpeed.ai 截图识别（优先于 VISION_*；any-llm/vision）
+    # 只负责「看图描述」，意图/ops 由 LLM_* 结合对话上下文再解
     wavespeed_api_key: str = ""
     # 交互改页默认 flash（低延迟）；要更准可改 google/gemini-2.5-pro
     wavespeed_vision_model: str = "google/gemini-2.5-flash"

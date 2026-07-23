@@ -135,8 +135,6 @@ export default function AdminLayout() {
             <a
               className="topbar-home-link"
               href={`${homePublicUrl().replace(/\/$/, '')}/account/billing`}
-              target="_blank"
-              rel="noreferrer"
             >
               我的套餐
             </a>

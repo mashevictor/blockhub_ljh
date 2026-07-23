@@ -99,6 +99,8 @@ class ComposeEditRequest(BaseModel):
     app_ui_id: str = ""
     # 智能出页二次修订：现有页 source_html 底稿
     page_snapshots: list[dict] = []
+    # 最近对话（不含本轮），供识图后结合上下文解意图
+    chat_history: list[dict] = []
 
 
 class FlowEditRequest(BaseModel):
@@ -352,6 +354,7 @@ def compose_edit_api(
         microsite_id=body.microsite_id,
         web_template_id=body.web_template_id,
         page_snapshots=body.page_snapshots,
+        chat_history=body.chat_history,
     )
     # 仅在真正产出 ops 时计对话改页，避免澄清问答耗尽 Free 配额
     if result.get("ops"):

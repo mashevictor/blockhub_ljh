@@ -235,8 +235,6 @@ export default function OverviewPage() {
             <a
               href={`${homePublicUrl().replace(/\/$/, '')}/account/billing`}
               className="btn btn-ghost"
-              target="_blank"
-              rel="noreferrer"
             >
               管理套餐
             </a>

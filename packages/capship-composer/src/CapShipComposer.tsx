@@ -1395,6 +1395,14 @@ export function CapShipComposer({
           root: { id: 'root', type: 'page', props: { layout: 'sidebar' }, children: [] },
         } satisfies ComposerPageSchema)
 
+      const chatHistory = messages
+        .slice(-12)
+        .map((m) => ({
+          role: m.role,
+          content: (m.text || (m.images?.length ? `（附 ${m.images.length} 张截图）` : '')).slice(0, 500),
+        }))
+        .filter((m) => m.content)
+
       const result = await askComposeEdit(
         {
           instruction: text || '请根据截图说明当前页面是什么意思，并指出可改进点',
@@ -1408,6 +1416,7 @@ export function CapShipComposer({
           })),
           capability_keys: keys,
           images,
+          chat_history: chatHistory,
           page_snapshots: (base.root.children || [])
             .map((c) => {
               const props = (c.props || {}) as Record<string, unknown>
@@ -1476,7 +1485,7 @@ export function CapShipComposer({
         onSchemaPatch?.(next)
       }
 
-      const src = result.source === 'deepseek' ? '' : '（本地规则）'
+      const src = result.source === 'fallback' ? '（本地规则）' : ''
       const pending = result.pending_codegen_keys
       const jobId = result.codegen_job_id
       const asyncHint =
@@ -1517,7 +1526,7 @@ export function CapShipComposer({
           ? result.ops.some((o) => o.op === 'patch_page')
             ? '草稿已更新控件 · 未保存'
             : pending?.length && jobId
-              ? '骨架占位 · DeepSeek 生成中'
+              ? '骨架占位 · 智能出页生成中'
               : '草稿已更新页面 · 未保存'
           : '',
       )
@@ -1577,7 +1586,7 @@ export function CapShipComposer({
                   ...prev,
                   {
                     role: 'assistant',
-                    text: `页面已更新为最新可玩版本${job.result?.llm ? '（DeepSeek）' : '（规则兜底）'}：${pages.length} 页。请点左侧对应菜单打开；若在游戏页，点一下画面再操作。`,
+                    text: `页面已更新为最新可玩版本${job.result?.llm ? '（智能出页）' : '（规则兜底）'}：${pages.length} 页。请点左侧对应菜单打开；若在游戏页，点一下画面再操作。`,
                   },
                 ])
                 setStatus('AI 预览页已就绪 · 未保存')

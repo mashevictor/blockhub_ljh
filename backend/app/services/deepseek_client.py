@@ -152,14 +152,15 @@ def _parse_json_object(raw: str) -> dict | None:
             return None
 
 
-def deepseek_json_chat_with_images(
-    system: str,
-    user: str,
-    images: list[str] | None = None,
+def describe_screenshot_only(
+    images: list[str],
     *,
-    temperature: float = 0.25,
-) -> dict | None:
-    """带截图的 JSON 对话。优先 WaveSpeed Vision，其次 OpenAI 兼容 VL，再文本回退。"""
+    user_instruction: str = "",
+) -> tuple[str | None, str | None]:
+    """仅看图描述（WaveSpeed Gemini / VL），不解析 ops。
+
+    Returns: (description_text, error_detail)
+    """
     urls: list[str] = []
     for raw in images or []:
         u = _normalize_data_url(raw)
@@ -168,42 +169,42 @@ def deepseek_json_chat_with_images(
         if len(urls) >= 3:
             break
     if not urls:
-        return deepseek_json_chat(system, user, temperature=temperature)
+        return None, None
 
-    # 1) WaveSpeed.ai any-llm/vision（推荐）
+    desc_system = (
+        "你是界面截图分析器。只描述图中可见事实，不要编造改页操作，不要输出 JSON ops。"
+        "用简洁中文，按条目列出。"
+    )
+    desc_prompt = (
+        "请描述这些界面截图的内容，供后续改页助手结合对话上下文使用。\n"
+        "请覆盖：\n"
+        "1) 页面类型与主标题\n"
+        "2) 可见导航/菜单项\n"
+        "3) 主要按钮、表单字段、列表/卡片文案\n"
+        "4) 与用户本轮指令可能相关的区域\n"
+        "5) 明显的交互问题或可改进点（仅观察，不下指令）\n"
+    )
+    if (user_instruction or "").strip():
+        desc_prompt += f"\n用户本轮文字指令（仅作关注点参考）：{(user_instruction or '').strip()[:400]}\n"
+
     from app.services.wavespeed_vision import WaveSpeedVisionError, describe_images, wavespeed_configured
 
     if wavespeed_configured():
-        vision_prompt = (
-            "你正在协助 CapShip 对话改页。请仔细看截图中的界面（标题、菜单、按钮、表单），"
-            "结合用户指令，只返回一个 JSON 对象（不要 Markdown 代码围栏），字段与系统要求一致。\n\n"
-            f"{user}"
-        )
         try:
             raw_text = describe_images(
-                prompt=vision_prompt,
+                prompt=desc_prompt,
                 images=urls,
-                system_prompt=system,
-                temperature=temperature,
-                max_tokens=768,
+                system_prompt=desc_system,
+                temperature=0.15,
+                max_tokens=900,
             )
         except WaveSpeedVisionError as e:
-            return {
-                "reply": f"{e.detail}。也可先用文字描述页面，我继续帮你改页。",
-                "intent_summary": "视觉识别不可用",
-                "ops": [],
-            }
-        parsed = _parse_json_object(raw_text or "")
-        if parsed:
-            return parsed
-        if raw_text:
-            return {
-                "reply": raw_text.strip(),
-                "intent_summary": "已根据截图理解界面",
-                "ops": [],
-            }
+            return None, e.detail
+        text = (raw_text or "").strip()
+        if text:
+            return sanitize_llm_plain_text(text) or text, None
 
-    # 2) OpenAI 兼容多模态（需独立 VISION_*/LLM_*，不能仅因 WaveSpeed key 误判）
+    # OpenAI 兼容 VL 回退
     openai_ok = bool(_vision_api_key() and _vision_base_url())
     base_l = _vision_base_url().lower()
     model_l = _vision_model().lower()
@@ -217,27 +218,22 @@ def deepseek_json_chat_with_images(
         openai_ok = False
 
     if not openai_ok:
-        hint = (
-            f"（用户附带了 {len(urls)} 张界面截图，视觉通道不可用；"
-            "请仅根据文字理解，并在 reply 中提示配置 WAVESPEED_API_KEY。）\n"
-        )
-        return deepseek_json_chat(system, hint + user, temperature=temperature)
+        return None, "视觉通道不可用（请配置 WAVESPEED_API_KEY）"
 
     key = _vision_api_key()
     base = _vision_base_url()
     model = _vision_model() or "gpt-4o-mini"
-    content: list[dict] = [{"type": "text", "text": user}]
+    content: list[dict] = [{"type": "text", "text": desc_prompt}]
     for u in urls:
         content.append({"type": "image_url", "image_url": {"url": u}})
     url = f"{base}/chat/completions"
     payload = {
         "model": model,
         "messages": [
-            {"role": "system", "content": system},
+            {"role": "system", "content": desc_system},
             {"role": "user", "content": content},
         ],
-        "temperature": temperature,
-        "response_format": {"type": "json_object"},
+        "temperature": 0.15,
     }
     body = json.dumps(payload).encode("utf-8")
     req = urllib.request.Request(
@@ -253,11 +249,99 @@ def deepseek_json_chat_with_images(
     try:
         with urllib.request.urlopen(req, timeout=timeout) as resp:
             data = json.loads(resp.read().decode("utf-8"))
-            raw = data["choices"][0]["message"]["content"]
-    except (urllib.error.URLError, KeyError, json.JSONDecodeError, TimeoutError, OSError):
-        hint = f"（用户附带了 {len(urls)} 张截图，视觉调用失败；请根据文字理解。）\n"
-        return deepseek_json_chat(system, hint + user, temperature=temperature)
-    return _parse_json_object(raw or "")
+            raw = str(data["choices"][0]["message"]["content"] or "").strip()
+    except (urllib.error.URLError, KeyError, json.JSONDecodeError, TimeoutError, OSError) as e:
+        return None, f"视觉调用失败：{e}"
+    if not raw:
+        return None, "视觉模型未返回描述"
+    return sanitize_llm_plain_text(raw) or raw, None
+
+
+def deepseek_json_chat_with_images(
+    system: str,
+    user: str,
+    images: list[str] | None = None,
+    *,
+    temperature: float = 0.25,
+    chat_history: list[dict[str, str]] | None = None,
+    vision_focus: str = "",
+) -> dict | None:
+    """两阶段：截图只描述 → 强文本模型结合对话上下文解析意图/ops。
+
+    避免 WaveSpeed 直接出 ops 导致与用户上下文割裂。
+    """
+    urls: list[str] = []
+    for raw in images or []:
+        u = _normalize_data_url(raw)
+        if u:
+            urls.append(u)
+        if len(urls) >= 3:
+            break
+
+    vision_block = ""
+    vision_err = ""
+    if urls:
+        focus = (vision_focus or "").strip() or (user or "").strip()[:400]
+        desc, err = describe_screenshot_only(urls, user_instruction=focus)
+        if desc:
+            vision_block = (
+                "【截图识别结果 · WaveSpeed/视觉模型 · 仅事实描述】\n"
+                f"{desc}\n"
+                "（请把上述识别结果与下方对话上下文、当前菜单、用户本轮指令一并理解后再出 ops；"
+                "不要忽略用户前文，也不要只复述截图。）\n"
+            )
+        elif err:
+            vision_err = err
+            vision_block = (
+                f"【截图识别失败】{err}。"
+                "请结合对话上下文与文字指令理解；若无法改页请在 reply 说明。\n"
+            )
+        else:
+            vision_block = (
+                f"（用户附带了 {len(urls)} 张界面截图，但未能得到描述；请据文字与上下文推断。）\n"
+            )
+
+    history_lines: list[str] = []
+    for item in (chat_history or [])[-12:]:
+        if not isinstance(item, dict):
+            continue
+        role = str(item.get("role") or "").strip()
+        content = str(item.get("content") or item.get("text") or "").strip()
+        if role not in ("user", "assistant") or not content:
+            continue
+        # 截图消息可能很大，只保留文字摘要
+        if len(content) > 500:
+            content = content[:500] + "…"
+        label = "用户" if role == "user" else "助手"
+        history_lines.append(f"{label}：{content}")
+    history_block = ""
+    if history_lines:
+        history_block = "【最近对话上下文】\n" + "\n".join(history_lines) + "\n"
+
+    fused_user = f"{history_block}{vision_block}{user}"
+
+    # 意图解析优先走 LLM_*（Claude/GPT/Gemini Pro 等），再回退 DeepSeek
+    from app.services.llm_gateway import intent_json_chat, llm_configured as gateway_llm_ok
+
+    if gateway_llm_ok():
+        data = intent_json_chat(system, fused_user, temperature=temperature)
+        if isinstance(data, dict):
+            if vision_err and not data.get("ops"):
+                reply = str(data.get("reply") or "").strip()
+                if vision_err not in reply:
+                    data["reply"] = f"{reply}（{vision_err}）" if reply else f"{vision_err}。也可先用文字描述页面，我继续帮你改页。"
+            return data
+
+    data = deepseek_json_chat(system, fused_user, temperature=temperature)
+    if isinstance(data, dict):
+        return data
+    if vision_err:
+        return {
+            "reply": f"{vision_err}。也可先用文字描述页面，我继续帮你改页。",
+            "intent_summary": "视觉识别不可用",
+            "ops": [],
+        }
+    return None
 
 
 def suggest_with_deepseek(user_text: str) -> dict | None:

@@ -280,6 +280,8 @@ export async function askComposeEdit(
     capability_keys?: string[]
     /** data URL 截图，最多 3 张 */
     images?: string[]
+    /** 最近对话（不含本轮），供识图后结合上下文解意图 */
+    chat_history?: Array<{ role: 'user' | 'assistant'; content: string }>
     page_snapshots?: Array<{
       key?: string
       capability_key?: string
@@ -299,7 +301,7 @@ export async function askComposeEdit(
 ): Promise<{
   reply: string
   ops: ComposeEditOp[]
-  source: 'deepseek' | 'fallback'
+  source: string
   llm_configured: boolean
   intent_summary?: string
   matched?: Array<{ key: string; label?: string; score?: number }>

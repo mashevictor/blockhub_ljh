@@ -275,6 +275,16 @@ export declare function askComposeEdit(
     menu?: Array<{ key?: string; label?: string; capability_key?: string; category?: string }>
     capability_keys?: string[]
     images?: string[]
+    chat_history?: Array<{ role: 'user' | 'assistant'; content: string }>
+    page_snapshots?: Array<{
+      key?: string
+      capability_key?: string
+      title?: string
+      label?: string
+      page_kind?: string
+      widget?: string
+      source_html?: string
+    }>
     entry_source?: string
     industry_key?: string
     microsite_id?: string
@@ -285,7 +295,7 @@ export declare function askComposeEdit(
 ): Promise<{
   reply: string
   ops: ComposeEditOp[]
-  source: 'deepseek' | 'fallback'
+  source: string
   llm_configured: boolean
   intent_summary?: string
   matched?: Array<{ key: string; label?: string; score?: number }>
