@@ -244,7 +244,10 @@ export function resolvePillar(p: (typeof CAPSHIP_PILLARS)[number], lang: Capship
   }
 }
 
-export function resolveStatLabel(s: (typeof CAPSHIP_STATS)[number], lang: CapshipLang) {
+export function resolveStatLabel(
+  s: { readonly label: string; readonly labelZh: string },
+  lang: CapshipLang,
+) {
   return lang === 'zh' ? s.labelZh : s.label
 }
 
