@@ -80,23 +80,27 @@ def _intent_endpoint() -> tuple[str, str, str, int]:
 
 
 def _codegen_endpoint() -> tuple[str, str, str, int]:
-    """智能出页代码生成：CODEGEN_* → LLM_* → DEEPSEEK_*。"""
-    if (settings.codegen_api_key or "").strip() and (settings.codegen_base_url or "").strip():
-        return (
-            settings.codegen_api_key.strip(),
-            settings.codegen_base_url.rstrip("/"),
-            (settings.codegen_model or settings.llm_model or "gpt-4.1").strip(),
-            max(int(settings.codegen_timeout or 120), 60),
+    """智能出页：默认跟 LLM_*（推荐 claude-sonnet-4）；仅当 CODEGEN_MODEL 显式设置才分流。"""
+    codegen_model = (settings.codegen_model or "").strip()
+    # 显式指定出页模型时才走 CODEGEN_* 覆盖
+    if codegen_model:
+        key = (
+            (settings.codegen_api_key or "").strip()
+            or (settings.llm_api_key or "").strip()
+            or settings.deepseek_api_key
         )
-    if (settings.codegen_api_key or "").strip():
-        base = (settings.codegen_base_url or settings.llm_base_url or settings.deepseek_base_url).rstrip("/")
-        model = (settings.codegen_model or settings.llm_model or settings.deepseek_model).strip()
+        base = (
+            (settings.codegen_base_url or "").strip()
+            or (settings.llm_base_url or "").strip()
+            or settings.deepseek_base_url
+        ).rstrip("/")
         return (
-            settings.codegen_api_key.strip(),
+            key,
             base,
-            model,
+            codegen_model,
             max(int(settings.codegen_timeout or 120), 60),
         )
+    # 默认：与意图共用 LLM_*（不出页单独买模型也可）
     if (settings.llm_api_key or "").strip():
         base = (settings.llm_base_url or settings.deepseek_base_url).rstrip("/")
         model = (settings.llm_model or settings.deepseek_model).strip()
@@ -112,6 +116,16 @@ def _codegen_endpoint() -> tuple[str, str, str, int]:
         settings.deepseek_model,
         max(int(settings.codegen_timeout or 120), 60),
     )
+
+
+def codegen_provider_label() -> str:
+    if (settings.codegen_model or "").strip():
+        return f"codegen:{settings.codegen_model}"
+    if (settings.llm_api_key or "").strip() and (settings.llm_model or "").strip():
+        return f"llm:{settings.llm_model}"
+    if settings.deepseek_api_key:
+        return f"deepseek:{settings.deepseek_model}"
+    return "none"
 
 
 def _parse_json_object(raw: str) -> dict | None:
@@ -229,18 +243,6 @@ def codegen_json_chat(system: str, user: str, *, temperature: float = 0.35) -> d
 
 
 def intent_provider_label() -> str:
-    if (settings.llm_api_key or "").strip() and (settings.llm_model or "").strip():
-        return f"llm:{settings.llm_model}"
-    if settings.deepseek_api_key:
-        return f"deepseek:{settings.deepseek_model}"
-    return "none"
-
-
-def codegen_provider_label() -> str:
-    if (settings.codegen_model or "").strip() and (
-        settings.codegen_api_key or settings.llm_api_key or settings.deepseek_api_key
-    ):
-        return f"codegen:{settings.codegen_model}"
     if (settings.llm_api_key or "").strip() and (settings.llm_model or "").strip():
         return f"llm:{settings.llm_model}"
     if settings.deepseek_api_key:
