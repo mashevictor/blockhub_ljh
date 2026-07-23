@@ -180,7 +180,7 @@ export default function AccountBillingPage() {
     }
     window.addEventListener('focus', onFocus)
     document.addEventListener('visibilitychange', onFocus)
-    let unsub = () => undefined
+    let unsub: () => void = () => undefined
     void import('@capship/composer')
       .then((m) => {
         unsub = m.subscribeQuotaUpdated(() => {
