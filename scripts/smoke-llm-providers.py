@@ -20,6 +20,11 @@ ROOT = Path(__file__).resolve().parents[1]
 BACKEND = ROOT / "backend"
 sys.path.insert(0, str(BACKEND))
 
+# pydantic Settings 的 env_file=".env" 相对 cwd；强制在 backend 下读
+import os
+
+os.chdir(BACKEND)
+
 from app.core.config import settings  # noqa: E402
 from app.services.llm_gateway import (  # noqa: E402
     codegen_provider_label,
@@ -33,7 +38,7 @@ def _mask(key: str) -> str:
     k = (key or "").strip()
     if len(k) <= 8:
         return "***"
-    return f"{k[:4]}…{k[-4:]} (len={len(k)})"
+    return f"{k[:4]}...{k[-4:]} (len={len(k)})"
 
 
 def _post(label: str, key: str, base: str, model: str, timeout: int) -> int:
@@ -56,7 +61,7 @@ def _post(label: str, key: str, base: str, model: str, timeout: int) -> int:
         },
         method="POST",
     )
-    print(f"→ {label}")
+    print(f"-> {label}")
     print(f"  model={model}")
     print(f"  base={base}")
     print(f"  key={_mask(key)}")
@@ -64,18 +69,18 @@ def _post(label: str, key: str, base: str, model: str, timeout: int) -> int:
         with urllib.request.urlopen(req, timeout=timeout) as resp:
             data = json.loads(resp.read().decode("utf-8"))
             text = str(data["choices"][0]["message"]["content"]).strip()
-            print(f"  ✓ HTTP {resp.status} reply={text[:80]!r}")
+            print(f"  OK HTTP {resp.status} reply={text[:80]!r}")
             return 0
     except urllib.error.HTTPError as e:
         raw = e.read().decode("utf-8", errors="ignore")[:400]
-        print(f"  ✗ HTTP {e.code}: {raw}")
+        print(f"  FAIL HTTP {e.code}: {raw}")
         if e.code == 429:
-            print("  hint: 额度/QPS 不足，到智谱控制台查套餐与限流")
+            print("  hint: quota/QPS — check Zhipu console")
         if e.code in (401, 403):
-            print("  hint: Key 无效或无权限，核对 CODEGEN_API_KEY / LLM_API_KEY")
+            print("  hint: bad key — check LLM_API_KEY / CODEGEN_API_KEY")
         return 1
     except Exception as e:  # noqa: BLE001
-        print(f"  ✗ {type(e).__name__}: {e}")
+        print(f"  FAIL {type(e).__name__}: {e}")
         return 1
 
 
@@ -86,25 +91,25 @@ def main() -> int:
     print(f"codegen_provider={codegen_provider_label()}")
 
     if not (settings.llm_api_key or "").strip() and not (settings.codegen_api_key or "").strip():
-        print("✗ 未配置 LLM_API_KEY / CODEGEN_API_KEY（看 backend/.env）")
+        print("FAIL: missing LLM_API_KEY / CODEGEN_API_KEY in backend/.env")
         return 1
 
     if (settings.llm_api_key or "").strip() or (settings.llm_model or "").strip():
         key, base, model, timeout = _intent_endpoint()
         if not key or not base or not model:
-            print("✗ 意图端点不完整（LLM_API_KEY / LLM_BASE_URL / LLM_MODEL）")
+            print("FAIL: incomplete LLM_* (API_KEY / BASE_URL / MODEL)")
             fail += 1
         else:
             fail += _post("intent (LLM_*)", key, base, model, timeout)
     else:
-        print("· 跳过意图：未配 LLM_*")
+        print("- skip intent: LLM_* not set")
 
     key, base, model, timeout = _codegen_endpoint()
     if not key or not base or not model:
-        print("✗ 出页端点不完整")
+        print("FAIL: incomplete codegen endpoint")
         fail += 1
     else:
-        fail += _post("codegen (CODEGEN_* 或回退 LLM_*)", key, base, model, timeout)
+        fail += _post("codegen (CODEGEN_* or LLM_*)", key, base, model, timeout)
 
     print("")
     if fail:
