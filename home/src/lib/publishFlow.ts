@@ -141,11 +141,22 @@ export function finishPublishNavigateToRuntime(result: PublishResult): boolean {
   }
 
   let href = ''
-  const appId = String(result.appId || '').trim()
+  let appId = String(result.appId || '').trim()
+  // webUrl 里抽出 /r/{id}，避免落到错误域名/IP
+  if (!appId && result.webUrl) {
+    const m = String(result.webUrl).match(/\/r\/([^/?#]+)/)
+    if (m?.[1]) appId = decodeURIComponent(m[1])
+  }
   if (appId && !appId.startsWith('cache-')) {
     href = `/r/${encodeURIComponent(appId)}`
-  } else if (result.webUrl) {
-    href = result.webUrl
+  } else if (result.webUrl && String(result.webUrl).includes('/r/')) {
+    // 仅作最后兜底；优先同源相对路径
+    try {
+      const u = new URL(result.webUrl, window.location.origin)
+      href = `${u.pathname}${u.search}${u.hash}`
+    } catch {
+      href = result.webUrl
+    }
   }
   if (!href) {
     console.warn('[publishFlow] no runtime href, fallback plaza')

@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import type { PublishResult, ViewMode } from '../../data/constants'
 import type { RoleApplyRequest } from '../../data/rolePresets'
 import { viewModeToContext } from '../../data/agentContext'
@@ -12,7 +11,7 @@ import PromptView from '../../views/PromptView'
 import IndustryView from '../../views/IndustryView'
 import ModuleView from '../../views/ModuleView'
 import { COMPOSER_MODES } from '@capship/composer'
-import { finishPublishNavigate, finishPublishNavigateToRuntime } from '../../lib/publishFlow'
+import { finishPublishNavigateToRuntime } from '../../lib/publishFlow'
 import { parseCreateDeepLink, buildCreateDeepLinkHash } from '../../lib/createDeepLink'
 import { scrollToHomeSection } from '../../hooks/useHomeActiveSection'
 import DemoBookingComposer from './DemoBookingComposer'
@@ -32,7 +31,6 @@ export default function CreateStudio() {
   const [initialMicrosite, setInitialMicrosite] = useState<string | undefined>()
   const [roleApply, setRoleApply] = useState<RoleApplyRequest | null>(null)
   const mainRef = useRef<HTMLDivElement>(null)
-  const navigate = useNavigate()
   const { setContextKey } = useAgentPageContext()
   const bookingZoneActive = useDemoBookingActive()
 
@@ -119,12 +117,9 @@ export default function CreateStudio() {
   }
 
   const handlePublish = (result: PublishResult) => {
-    // 行业包：只进 Runtime / 预览，禁止先抢跳 /plaza/my（会冲掉进度与 /r/ 跳转）
-    if (view === 'industry') {
-      finishPublishNavigateToRuntime(result)
-      return
-    }
-    finishPublishNavigate(navigate, result)
+    // 弹幕 / 选模块 / 行业包：生成成功后一律直达 Runtime /r/{id}
+    // （禁止先跳 /plaza/my，硬跳会冲掉 Runtime 跳转）
+    finishPublishNavigateToRuntime(result)
   }
 
   const showPromptStage = view === 'prompt'
