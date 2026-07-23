@@ -26,6 +26,11 @@ NEED_REPAIR=0
 "$PY" <<'PY' || NEED_REPAIR=1
 from sqlalchemy import inspect
 from app.db.session import engine
+from app.core.config import settings
+
+# 打印实际连接目标，便于对照 systemd EnvironmentFile
+url = (settings.database_url or "").split("@")[-1] if getattr(settings, "database_url", None) else "?"
+print(f"  DATABASE host/db: {url}")
 
 tables = [
     "catalog_agents", "catalog_capabilities", "catalog_office_scenarios",
@@ -51,20 +56,27 @@ if missing:
 print("  all catalog tables + enrichment OK")
 PY
 
+# NEED_REPAIR 仅作日志；补表步骤始终执行（幂等）
+if [ "$NEED_REPAIR" -eq 1 ]; then
+  echo "  (首次检查有缺失，将强制 017/033 补表)"
+else
+  echo "  (首次检查通过，仍强制跑一遍幂等 017/033)"
+fi
+
 echo "==> [2/6] alembic upgrade head"
 alembic upgrade head || true
 alembic current
 
-# 不依赖 stamp：用 Alembic Operations 上下文直接跑 017 / 033 的幂等 DDL
-if [ "$NEED_REPAIR" -eq 1 ]; then
-  echo "==> [3/6] 幂等补表/补列（017 + 033，不改 alembic_version）"
-  "$PY" <<'PY'
+# 不依赖 stamp：每次幂等跑 017 / 033（create_table_if_missing），避免「inspect 偶发 OK / API 仍缺表」
+echo "==> [3/6] 幂等补表/补列（017 + 033，不改 alembic_version）"
+"$PY" <<'PY'
 from pathlib import Path
 import importlib.util
 import sys
 
 from alembic.operations import Operations
 from alembic.runtime.migration import MigrationContext
+from sqlalchemy import inspect, text
 
 from app.db.session import engine
 
@@ -87,11 +99,18 @@ with engine.begin() as conn:
     with Operations.context(ctx):
         rev017.upgrade()
         rev033.upgrade()
+
+insp = inspect(engine)
+for t in ("catalog_hero_presets", "catalog_chip_templates"):
+    ok = insp.has_table(t)
+    print(f"  after repair {t}: {'OK' if ok else 'MISSING'}")
+    if not ok:
+        raise SystemExit(f"repair failed: {t} still missing")
+with engine.connect() as conn:
+    n = conn.execute(text("SELECT count(*) FROM catalog_hero_presets")).scalar()
+    print(f"  catalog_hero_presets rows: {n}")
 print("  repair DDL applied")
 PY
-else
-  echo "==> [3/6] 无需补表，跳过"
-fi
 
 echo "==> [4/6] 复查 catalog 表"
 "$PY" <<'PY'
@@ -131,19 +150,32 @@ PY
 
 echo "==> [6/6] 重启 API"
 sudo systemctl restart blockhub-api
-sleep 3
-curl -sf --max-time 10 http://127.0.0.1:8001/api/v1/health && echo " API OK"
+sleep 5
 
-SUMMARY=$(curl -sf --max-time 10 http://127.0.0.1:8001/api/v1/catalog/summary || echo "")
+HEALTH=$(curl -sf --max-time 10 http://127.0.0.1:8001/api/v1/health || echo "")
+if echo "$HEALTH" | grep -q '"status"'; then
+  echo " API OK: $HEALTH"
+else
+  echo "ERROR: API health 失败（进程可能未起来）"
+  echo "---- journalctl -u blockhub-api -n 50 ----"
+  journalctl -u blockhub-api -n 50 --no-pager || true
+  echo "---- systemctl status ----"
+  systemctl status blockhub-api --no-pager -l | head -n 40 || true
+  exit 1
+fi
+
+SUMMARY=$(curl -sf --max-time 15 http://127.0.0.1:8001/api/v1/catalog/summary || echo "")
 if echo "$SUMMARY" | grep -q '"source":"database"'; then
   echo " catalog/summary OK (database)"
-  echo "$SUMMARY" | "$PY" -c "import sys,json; d=json.load(sys.stdin); print(f\"  source={d.get('source')} hero={d.get('hero_preset_count')} chips={d.get('chip_template_count')}\")" 2>/dev/null || true
+  echo "$SUMMARY" | "$PY" -c "import sys,json; d=json.load(sys.stdin); print(f\"  source={d.get('source')} hero={d.get('hero_preset_count')} chips={d.get('chip_template_count')} total={d.get('total')}\")" 2>/dev/null || true
 elif echo "$SUMMARY" | grep -q '"source"'; then
   echo "ERROR: catalog still not database: $SUMMARY"
   exit 1
 else
   echo "ERROR: catalog/summary still failing: $SUMMARY"
   echo "  请查看: journalctl -u blockhub-api -n 40 --no-pager"
+  echo "---- journalctl -u blockhub-api -n 40 ----"
+  journalctl -u blockhub-api -n 40 --no-pager || true
   exit 1
 fi
 
