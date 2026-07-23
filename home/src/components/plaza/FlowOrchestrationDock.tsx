@@ -84,14 +84,14 @@ export default function FlowOrchestrationDock({
   const cap = activeStep ? getModuleCapability(activeStep.label) : null
 
   let title = '点击数据流中的模块'
-  let desc = '在上方双轨选择节点查看说明；增删改请打开 Runtime'
+  let desc = '在上方双轨选择节点查看说明与接口；增删模块请打开 Runtime'
 
   if (isIngress) {
     title = '业务输入'
-    desc = '外部请求进入数据流 · 只读查看 IN/OUT 契约 · 用 >> 问答或打开 Runtime'
+    desc = '外部请求进入数据流 · 可问答 / 测 IN·OUT · 改结构请打开 Runtime'
   } else if (isEgress) {
     title = '触达输出'
-    desc = '结果推送到网页/App · 只读查看接口契约'
+    desc = '结果推送到网页/App · 可测接口契约'
   } else if (activeStep) {
     title = activeStep.label
     desc = cap?.desc ?? activeStep.note
@@ -166,7 +166,7 @@ export default function FlowOrchestrationDock({
         )}
       </div>
 
-      {/* 业务输入：只读概览下仍可问答 / 预览 / 打开 Runtime */}
+      {/* 业务输入：可问答 / 测接口 / 预览；不可改模块结构 */}
       <FlowBizCommandInput
         ref={cmdRef}
         disabled={!isCreator}

@@ -37,11 +37,14 @@ interface Props {
   showBadge?: boolean
 }
 
-/** 流程预览控制 · 不写库、不锁改页 */
+/** 流程预览控制 · 自动步进 + 手动上/下一步；不写库、不改模块结构 */
 export default function PlazaRunControls({ compact = false, showBadge = true }: Props) {
   const run = usePlazaFlowRun()
   const ui = runPhaseUi(run.phase, run.stepIndex, run.steps.length)
   const disabled = !run.steps.length
+  const inPreview =
+    run.phase === 'running' || run.phase === 'paused' || run.phase === 'completed'
+  const canStep = run.phase === 'running' || run.phase === 'paused'
 
   return (
     <div
@@ -52,6 +55,9 @@ export default function PlazaRunControls({ compact = false, showBadge = true }: 
       {showBadge && (
         <span className={`plaza-run-phase-badge ${ui.badgeClass}`} title={run.progressLabel}>
           {ui.badge}
+          {run.currentStep && run.phase !== 'idle' ? (
+            <em className="plaza-run-phase-step"> · {run.currentStep.label}</em>
+          ) : null}
         </span>
       )}
 
@@ -61,15 +67,37 @@ export default function PlazaRunControls({ compact = false, showBadge = true }: 
           className="plaza-run-btn start"
           disabled={disabled}
           onClick={() => run.start()}
-          title="走一遍意图→模块→输出（本地预览，不改 Runtime）"
+          title="自动走一遍意图→模块→输出；也可点「下一步」或点选节点推进"
         >
           ▶ 流程预览
         </button>
       )}
 
+      {canStep && (
+        <>
+          <button
+            type="button"
+            className="plaza-run-btn prev"
+            disabled={run.stepIndex <= 0}
+            onClick={() => run.prevStep()}
+            title="上一步"
+          >
+            ← 上一步
+          </button>
+          <button
+            type="button"
+            className="plaza-run-btn next"
+            onClick={() => run.nextStep()}
+            title="下一步（会暂停自动播放）"
+          >
+            下一步 →
+          </button>
+        </>
+      )}
+
       {run.phase === 'running' && (
         <>
-          <button type="button" className="plaza-run-btn pause" onClick={() => run.pause()} title="暂停">
+          <button type="button" className="plaza-run-btn pause" onClick={() => run.pause()} title="暂停自动">
             ⏸ 暂停
           </button>
           <button type="button" className="plaza-run-btn stop" onClick={() => run.stop()} title="停止预览">
@@ -80,8 +108,8 @@ export default function PlazaRunControls({ compact = false, showBadge = true }: 
 
       {run.phase === 'paused' && (
         <>
-          <button type="button" className="plaza-run-btn resume" onClick={() => run.resume()} title="继续">
-            ▶ 继续
+          <button type="button" className="plaza-run-btn resume" onClick={() => run.resume()} title="继续自动步进">
+            ▶ 继续自动
           </button>
           <button type="button" className="plaza-run-btn stop" onClick={() => run.stop()} title="停止预览">
             ⏹ 停止
@@ -109,6 +137,12 @@ export default function PlazaRunControls({ compact = false, showBadge = true }: 
             ✕ 概览
           </button>
         </>
+      )}
+
+      {inPreview && !compact && (
+        <span className="plaza-run-hint">
+          自动约 1.4s/步 · 或点「下一步」/ 点选上方节点
+        </span>
       )}
     </div>
   )

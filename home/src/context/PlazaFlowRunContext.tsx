@@ -10,7 +10,7 @@ import {
 } from 'react'
 import { FLOW_EGRESS_ID, FLOW_INGRESS_ID, loadModuleFlow } from '../lib/plazaModuleFlow'
 
-/** 流程预览动画相位（不写库、不锁改页——广场恒只读） */
+/** 流程预览动画相位（不写库；广场禁止改模块结构，允许问答与接口测试） */
 export type PlazaRunPhase =
   | 'idle'
   | 'running'
@@ -19,7 +19,7 @@ export type PlazaRunPhase =
   | 'error'
   | 'stopped'
 
-/** 概览（只读）| 流程预览（轻动画） */
+/** 概览 | 流程预览（轻动画 / 手动步进） */
 export type PlazaWorkMode = 'overview' | 'preview'
 
 export interface PlazaRunStep {
@@ -37,6 +37,7 @@ export interface PlazaFlowRunSnapshot {
   errorMessage?: string
   /** 广场恒 false：改模块请进 Runtime 对话改页 */
   canEdit: boolean
+  /** 创建者可在广场测 IN/OUT 契约 */
   canTestApi: boolean
 }
 
@@ -47,6 +48,12 @@ interface Value extends PlazaFlowRunSnapshot {
   stop: () => void
   retry: () => void
   reset: () => void
+  /** 手动下一步（暂停自动后也可点） */
+  nextStep: () => void
+  /** 手动上一步 */
+  prevStep: () => void
+  /** 跳到指定步进（点选节点时同步进度） */
+  goToStep: (index: number) => void
   enterOverviewMode: () => void
   enterPreviewMode: () => void
   /** @deprecated 用 enterOverviewMode */
@@ -121,6 +128,7 @@ export function PlazaFlowRunProvider({
 
   const reset = useCallback(() => {
     clearTimer()
+    phaseRef.current = 'idle'
     setPhase('idle')
     setStepIndex(0)
     setErrorMessage(undefined)
@@ -139,6 +147,7 @@ export function PlazaFlowRunProvider({
       if (phaseRef.current !== 'running') return
       const next = fromIndex + 1
       if (next >= steps.length) {
+        phaseRef.current = 'completed'
         setPhase('completed')
         setStepIndex(Math.max(0, steps.length - 1))
         return
@@ -158,24 +167,29 @@ export function PlazaFlowRunProvider({
     setErrorMessage(undefined)
     setStepIndex(0)
     setMode('preview')
+    // 必须先同步 phaseRef，否则 scheduleNext 会因仍读到 idle 而直接 return（进度卡在 1/N）
+    phaseRef.current = 'running'
     setPhase('running')
     scheduleNext(0)
   }, [clearTimer, scheduleNext, steps.length])
 
   const pause = useCallback(() => {
-    if (phase !== 'running') return
+    if (phaseRef.current !== 'running') return
     clearTimer()
+    phaseRef.current = 'paused'
     setPhase('paused')
-  }, [clearTimer, phase])
+  }, [clearTimer])
 
   const resume = useCallback(() => {
-    if (phase !== 'paused') return
+    if (phaseRef.current !== 'paused') return
+    phaseRef.current = 'running'
     setPhase('running')
     scheduleNext(stepIndex)
-  }, [phase, scheduleNext, stepIndex])
+  }, [scheduleNext, stepIndex])
 
   const stop = useCallback(() => {
     clearTimer()
+    phaseRef.current = 'stopped'
     setPhase('stopped')
     setMode('overview')
   }, [clearTimer])
@@ -184,8 +198,45 @@ export function PlazaFlowRunProvider({
     start()
   }, [start])
 
+  const goToStep = useCallback(
+    (index: number) => {
+      if (!steps.length) return
+      const i = Math.max(0, Math.min(index, steps.length - 1))
+      clearTimer()
+      setMode('preview')
+      setStepIndex(i)
+      // 点选/手动跳转后进入暂停，便于用户细看；可点「继续」恢复自动
+      phaseRef.current = 'paused'
+      setPhase('paused')
+      if (i >= steps.length - 1) {
+        phaseRef.current = 'completed'
+        setPhase('completed')
+      }
+    },
+    [clearTimer, steps.length],
+  )
+
+  const nextStep = useCallback(() => {
+    if (!steps.length) return
+    const next = stepIndex + 1
+    if (next >= steps.length) {
+      clearTimer()
+      setStepIndex(steps.length - 1)
+      phaseRef.current = 'completed'
+      setPhase('completed')
+      return
+    }
+    goToStep(next)
+  }, [clearTimer, goToStep, stepIndex, steps.length])
+
+  const prevStep = useCallback(() => {
+    if (!steps.length || stepIndex <= 0) return
+    goToStep(stepIndex - 1)
+  }, [goToStep, stepIndex, steps.length])
+
   const enterOverviewMode = useCallback(() => {
     clearTimer()
+    phaseRef.current = 'idle'
     setPhase('idle')
     setStepIndex(0)
     setErrorMessage(undefined)
@@ -197,7 +248,7 @@ export function PlazaFlowRunProvider({
   }, [])
 
   const canEdit = false
-  const canTestApi = false
+  const canTestApi = true
 
   const currentStep = steps[stepIndex] ?? null
   const progressLabel =
@@ -222,6 +273,9 @@ export function PlazaFlowRunProvider({
       stop,
       retry,
       reset,
+      nextStep,
+      prevStep,
+      goToStep,
       enterOverviewMode,
       enterPreviewMode,
       enterEditMode: enterOverviewMode,
@@ -241,6 +295,9 @@ export function PlazaFlowRunProvider({
       stop,
       retry,
       reset,
+      nextStep,
+      prevStep,
+      goToStep,
       enterOverviewMode,
       enterPreviewMode,
     ],
@@ -257,13 +314,16 @@ const EMPTY: Value = {
   currentStep: null,
   progressLabel: '概览',
   canEdit: false,
-  canTestApi: false,
+  canTestApi: true,
   start: () => {},
   pause: () => {},
   resume: () => {},
   stop: () => {},
   retry: () => {},
   reset: () => {},
+  nextStep: () => {},
+  prevStep: () => {},
+  goToStep: () => {},
   enterOverviewMode: () => {},
   enterPreviewMode: () => {},
   enterEditMode: () => {},

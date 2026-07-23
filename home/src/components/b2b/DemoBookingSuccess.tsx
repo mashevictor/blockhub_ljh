@@ -1,8 +1,9 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { AgentChevronGlyph, AgentButtonContent } from '../AgentChevron'
 import type { DemoBookingDelivery } from '../../api/client'
 import { ROUTES } from '../../routes/paths'
+import { scrollToHomeSection } from '../../hooks/useHomeActiveSection'
 
 interface Props {
   delivery: DemoBookingDelivery
@@ -11,6 +12,23 @@ interface Props {
 
 function summaryLines(text: string): string[] {
   return text.split(/\n+/).map((l) => l.trim()).filter(Boolean)
+}
+
+function TryOnlineButton({ className }: { className?: string }) {
+  const location = useLocation()
+  const navigate = useNavigate()
+  const goTry = () => {
+    if (location.pathname === '/' || location.pathname === '') {
+      scrollToHomeSection('contact-create')
+      return
+    }
+    navigate(ROUTES.contactCreate)
+  }
+  return (
+    <button type="button" className={className} onClick={goTry}>
+      <AgentButtonContent trailing={false}>在线体验</AgentButtonContent>
+    </button>
+  )
 }
 
 export default function DemoBookingSuccess({ delivery, compact = false }: Props) {
@@ -90,6 +108,7 @@ export default function DemoBookingSuccess({ delivery, compact = false }: Props)
               {linkCopied ? '链接已复制' : '复制链接 · 转发给同事'}
             </AgentButtonContent>
           </button>
+          <TryOnlineButton className="b2b-btn-outline agent-action-btn demo-booking-success-btn" />
           {!compact && (
             <p className="demo-booking-success-url" title={shareUrl}>
               专属链接：<span>{shareUrl}</span>
@@ -97,7 +116,10 @@ export default function DemoBookingSuccess({ delivery, compact = false }: Props)
           )}
         </>
       ) : (
-        <p className="demo-booking-success-offline">资料链接将在网络恢复后生成，顾问也会主动联系您。</p>
+        <>
+          <p className="demo-booking-success-offline">资料链接将在网络恢复后生成，顾问也会主动联系您。</p>
+          <TryOnlineButton className="b2b-btn-primary agent-action-btn demo-booking-success-btn" />
+        </>
       )}
     </div>
   )

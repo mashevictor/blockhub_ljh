@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>课本学习 · 视觉规范预览</title>
+  <style>
+    :root {
+      --sc-brand: #0f766e;
+      --sc-brand-mid: color-mix(in srgb, #0f766e 55%, #0ea5e9);
+      --sc-ink: #0f172a;
+      --sc-ink-2: #1e293b;
+      --sc-body: #334155;
+      --sc-muted: #64748b;
+      --sc-faint: #94a3b8;
+      --sc-line: #e2e8f0;
+      --sc-surface: #ffffff;
+      --sc-canvas: #f1f5f9;
+      --sc-soft: #f0fdfa;
+      --sc-ok: #15803d;
+      --sc-bad: #be123c;
+      --sc-warn: #b45309;
+      --sc-font: "Segoe UI", "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+      --tone-dictation: #0f766e;
+      --tone-word_cards: #0369a1;
+      --tone-math_drill: #a16207;
+      --tone-wrongbook: #be123c;
+      --tone-read_aloud: #047857;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: var(--sc-font);
+      color: var(--sc-ink);
+      background:
+        radial-gradient(ellipse 70% 50% at 10% 0%, color-mix(in srgb, var(--sc-brand) 14%, transparent), transparent 50%),
+        radial-gradient(ellipse 50% 40% at 100% 10%, rgba(14,165,233,.1), transparent 45%),
+        var(--sc-canvas);
+      min-height: 100vh;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+    .spec {
+      max-width: 920px; margin: 16px auto 8px; padding: 0 14px;
+      display: grid; gap: 10px; grid-template-columns: repeat(auto-fit,minmax(200px,1fr));
+    }
+    .spec-card {
+      background: var(--sc-surface); border: 1px solid var(--sc-line); border-radius: 14px; padding: 12px 14px;
+    }
+    .spec-card h3 { margin: 0 0 8px; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--sc-muted); }
+    .swatch { display: flex; gap: 6px; flex-wrap: wrap; }
+    .swatch i { width: 28px; height: 28px; border-radius: 8px; border: 1px solid var(--sc-line); display: block; }
+    .type-row { margin: 4px 0; }
+    .type-display { font-size: 18px; font-weight: 800; letter-spacing: -.02em; }
+    .type-title { font-size: 15px; font-weight: 800; }
+    .type-sub { font-size: 13px; font-weight: 600; color: var(--sc-body); }
+    .type-cap { font-size: 12px; color: var(--sc-muted); }
+    .icon-row { display: flex; gap: 10px; flex-wrap: wrap; }
+    .icon-cell {
+      width: 64px; text-align: center; font-size: 10px; color: var(--sc-muted); font-weight: 700;
+    }
+    .icon-cell .box {
+      width: 52px; height: 52px; border-radius: 14px; margin: 0 auto 6px;
+      display: grid; place-items: center; color: #fff;
+    }
+
+    .hint { text-align: center; font-size: 12px; color: var(--sc-muted); margin: 8px 12px; }
+    .tabs { display: flex; gap: 6px; margin: 8px auto 12px; justify-content: center; flex-wrap: wrap; max-width: 420px; }
+    .tab {
+      font-size: 12px; font-weight: 700; padding: 6px 12px; border-radius: 999px;
+      border: 1px solid var(--sc-line); background: var(--sc-surface); cursor: pointer; color: var(--sc-ink);
+    }
+    .tab.on { border-color: var(--sc-brand); background: color-mix(in srgb, var(--sc-brand) 12%, #fff); }
+
+    .frame {
+      max-width: 420px; margin: 0 auto 40px;
+      background: var(--sc-surface); border-radius: 20px; border: 1px solid var(--sc-line);
+      box-shadow: 0 20px 50px rgba(15,23,42,.08); overflow: hidden;
+    }
+    .phone-bar {
+      padding: 10px 16px; font-size: 12px; font-weight: 700; color: var(--sc-muted);
+      border-bottom: 1px solid var(--sc-line); display: flex; justify-content: space-between; background: #fafafa;
+    }
+    .pad { padding: 14px; }
+    .hero {
+      border-radius: 18px; padding: 16px; border: 1px solid var(--sc-line); margin-bottom: 14px;
+      background:
+        radial-gradient(ellipse 80% 70% at 12% 20%, color-mix(in srgb, var(--sc-brand) 22%, transparent), transparent 55%),
+        radial-gradient(ellipse 60% 50% at 90% 10%, rgba(14,165,233,.14), transparent 50%),
+        linear-gradient(135deg, var(--sc-soft) 0%, #f8fafc 48%, #eff6ff 100%);
+    }
+    .hero-row { display: flex; gap: 14px; align-items: center; }
+    .logo {
+      width: 64px; height: 64px; border-radius: 16px;
+      background: linear-gradient(145deg, var(--sc-brand), var(--sc-brand-mid));
+      display: grid; place-items: center; color: #fff;
+      box-shadow: 0 10px 24px color-mix(in srgb, var(--sc-brand) 35%, transparent);
+    }
+    .overline { font-size: 11px; letter-spacing: .08em; color: var(--sc-muted); font-weight: 800; text-transform: uppercase; }
+    .title { font-size: 18px; font-weight: 800; margin-top: 2px; letter-spacing: -.02em; }
+    .sub { font-size: 12px; color: var(--sc-body); margin-top: 4px; }
+    .flow { display: flex; align-items: flex-start; margin-top: 16px; overflow-x: auto; }
+    .flow-item { display: flex; align-items: center; flex: 0 0 auto; }
+    .flow-btn {
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+      border: none; background: transparent; cursor: pointer; min-width: 72px; padding: 0 4px; font-family: inherit;
+    }
+    .dot {
+      width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center;
+      border: 1.5px solid var(--sc-line); background: var(--sc-canvas); color: var(--sc-faint);
+    }
+    .dot.on { background: var(--sc-brand); color: #fff; border-color: var(--sc-brand); box-shadow: 0 8px 18px color-mix(in srgb, var(--sc-brand) 35%, transparent); }
+    .dot.reached { background: var(--sc-surface); color: var(--sc-brand); }
+    .flow-lab { font-size: 11px; font-weight: 700; color: var(--sc-muted); }
+    .flow-lab.on { color: var(--sc-ink); font-weight: 800; }
+    .rail { width: 28px; height: 3px; border-radius: 99px; background: var(--sc-line); margin-bottom: 22px; }
+    .rail.on { background: var(--sc-brand); }
+
+    .course {
+      display: flex; gap: 14px; align-items: center; padding: 14px; border-radius: 16px;
+      border: 1px solid var(--sc-line); margin-bottom: 14px; background: var(--sc-surface);
+    }
+    .tpl-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .tpl {
+      border: 1px solid var(--sc-line); border-radius: 16px; overflow: hidden; cursor: pointer;
+      background: var(--sc-surface); padding: 0; text-align: left; font: inherit; color: inherit; transition: .18s ease;
+    }
+    .tpl:hover { transform: translateY(-3px); box-shadow: 0 12px 24px rgba(15,23,42,.08); }
+    .tpl.on { border-width: 2px; }
+    .tpl-top {
+      height: 84px; display: grid; place-items: center; position: relative;
+      background:
+        radial-gradient(circle at 80% 20%, rgba(255,255,255,.4), transparent 42%),
+        linear-gradient(145deg, var(--tone), color-mix(in srgb, var(--tone) 52%, #0f172a));
+    }
+    .tpl-ico {
+      width: 52px; height: 52px; border-radius: 16px; background: rgba(255,255,255,.2);
+      display: grid; place-items: center; color: #fff;
+    }
+    .tpl-body { padding: 10px 12px 12px; }
+    .tpl-body strong { font-size: 13px; font-weight: 800; display: block; }
+    .tpl-body .tip { font-size: 12px; color: var(--sc-muted); margin-top: 3px; }
+    .tpl-body .meaning { font-size: 10px; font-weight: 700; margin-top: 4px; color: var(--tone); }
+
+    .sheet {
+      position: relative; border-radius: 16px; border: 1px solid var(--sc-line);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.94), rgba(248,250,252,.98)),
+        repeating-linear-gradient(0deg, transparent, transparent 27px, rgba(15,23,42,.045) 28px);
+      background-size: auto, 100% 28px; background-position: 0 40px;
+      box-shadow: 0 10px 28px rgba(15,23,42,.06); overflow: hidden;
+    }
+    .sheet::before {
+      content: ""; position: absolute; left: 28px; top: 0; bottom: 0; width: 2px;
+      background: linear-gradient(180deg, #fda4af, #fb7185); opacity: .6;
+    }
+    .sheet-inner { padding: 18px 18px 18px 40px; }
+    .blank {
+      margin-top: 6px; height: 22px; border-bottom: 1.5px solid var(--sc-faint);
+      background: repeating-linear-gradient(90deg, transparent, transparent 6px, rgba(148,163,184,.25) 7px);
+    }
+    .dict-row { display: grid; grid-template-columns: 28px 1fr; gap: 8px; align-items: end; padding: 6px 0; border-bottom: 1px dashed var(--sc-line-strong, #cbd5e1); }
+    .tag {
+      font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 999px;
+      background: #fef3c7; color: var(--sc-warn); border: 1px solid #fde68a;
+    }
+    .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+    .btn-primary {
+      flex: 1 1 160px; padding: 12px 16px; border-radius: 12px; border: none; cursor: pointer; font-family: inherit;
+      background: linear-gradient(135deg, var(--sc-brand), #0ea5e9); color: #fff; font-weight: 800;
+      box-shadow: 0 10px 22px color-mix(in srgb, var(--sc-brand) 30%, transparent);
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .btn-ghost {
+      padding: 10px 14px; border-radius: 12px; border: 1px solid var(--sc-line); background: var(--sc-surface);
+      cursor: pointer; font-weight: 700; font-size: 13px; font-family: inherit; color: var(--sc-ink);
+    }
+    .practice-head {
+      display: flex; gap: 12px; align-items: center; padding: 12px; border-radius: 14px;
+      border: 1px solid var(--sc-line); margin-bottom: 12px; background: var(--sc-surface);
+    }
+    .bar { height: 6px; border-radius: 99px; background: var(--sc-line); overflow: hidden; margin-top: 8px; }
+    .bar > i { display: block; height: 100%; background: linear-gradient(90deg, var(--sc-brand), #38bdf8); border-radius: 99px; }
+    .item {
+      padding: 14px; border-radius: 14px; border: 1px solid var(--sc-line); background: var(--sc-surface); margin-bottom: 10px;
+      display: flex; gap: 10px; align-items: flex-start;
+    }
+    .item.done { border-color: var(--sc-ok); background: #dcfce7; }
+    .check {
+      width: 36px; height: 36px; border-radius: 50%; border: 2px solid #cbd5e1; background: #fff;
+      display: grid; place-items: center; cursor: pointer; flex-shrink: 0; font-size: 12px; color: var(--sc-faint);
+    }
+    .check.on { background: var(--sc-ok); border: none; color: #fff; }
+    .pill {
+      display: inline-flex; align-items: center; gap: 4px; padding: 6px 10px; border-radius: 999px;
+      border: none; background: #f1f5f9; font-size: 12px; font-weight: 700; cursor: pointer; margin-right: 6px; font-family: inherit;
+    }
+    .pill.ok { background: var(--sc-ok); color: #fff; }
+    .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .card {
+      min-height: 120px; border-radius: 16px; border: 1px solid var(--sc-line); cursor: pointer; font-family: inherit;
+      background: linear-gradient(160deg,#fff,#f0f9ff); padding: 14px; text-align: center; color: var(--sc-ink);
+      box-shadow: 0 6px 16px rgba(15,23,42,.05);
+    }
+    .card.back { background: linear-gradient(160deg, var(--sc-brand), #0ea5e9); color: #fff; transform: scale(1.02); }
+    svg { display: block; }
+  </style>
+</head>
+<body>
+  <div class="spec">
+    <div class="spec-card">
+      <h3>色板 Color</h3>
+      <div class="swatch">
+        <i style="background:var(--sc-brand)" title="brand"></i>
+        <i style="background:var(--sc-ink)" title="ink"></i>
+        <i style="background:var(--sc-body)" title="body"></i>
+        <i style="background:var(--sc-muted)" title="muted"></i>
+        <i style="background:var(--sc-ok)" title="ok"></i>
+        <i style="background:var(--sc-bad)" title="bad"></i>
+        <i style="background:var(--sc-warn)" title="warn"></i>
+        <i style="background:var(--tone-word_cards)" title="cards"></i>
+        <i style="background:var(--tone-math_drill)" title="math"></i>
+      </div>
+    </div>
+    <div class="spec-card">
+      <h3>字阶 Type</h3>
+      <div class="type-row type-display">今晚这一练</div>
+      <div class="type-row type-title">选一个家长模板</div>
+      <div class="type-row type-sub">第 3 课 · 秋天的雨</div>
+      <div class="type-row type-cap">辅助说明 / caption 12px</div>
+    </div>
+    <div class="spec-card">
+      <h3>语义 Icon</h3>
+      <div class="icon-row" id="specIcons"></div>
+    </div>
+  </div>
+
+  <p class="hint">与 Runtime 同源视觉规范 · 点下方切换阶段预览（非真 API）</p>
+  <div class="tabs">
+    <button class="tab on" data-jump="tonight">模板墙</button>
+    <button class="tab" data-jump="preview">过一眼</button>
+    <button class="tab" data-jump="practice">开练</button>
+    <button class="tab" data-jump="practice-cards">单词翻卡</button>
+  </div>
+
+  <div class="frame">
+    <div class="phone-bar"><span>课本学习</span><span>视觉规范 0.2.48</span></div>
+    <div class="pad">
+      <div class="hero">
+        <div class="hero-row">
+          <div class="logo" id="brandLogo"></div>
+          <div>
+            <div class="overline">Tonight Practice</div>
+            <div class="title">今晚这一练</div>
+            <div class="sub">选模板 → 过一眼 → 孩子开练</div>
+          </div>
+        </div>
+        <div class="flow" id="flow"></div>
+      </div>
+      <div class="course" id="courseCard"></div>
+      <div id="stage"></div>
+    </div>
+  </div>
+
+  <script>
+    const SC = {
+      brand: '#0f766e',
+      tone: {
+        dictation: '#0f766e',
+        word_cards: '#0369a1',
+        math_drill: '#a16207',
+        wrongbook: '#be123c',
+        read_aloud: '#047857',
+      },
+    };
+    const TEMPLATES = [
+      { key: 'dictation', label: '本课听写单', tip: '生字词默写', meaning: '听读 + 纸面默写' },
+      { key: 'word_cards', label: '本课单词卡', tip: '正反面翻卡', meaning: '英文正面 / 释义背面' },
+      { key: 'math_drill', label: '本课口算/巩固', tip: '10 道短练', meaning: '限时口算题单' },
+      { key: 'wrongbook', label: '错题巩固', tip: '错词同型再练', meaning: '从错题本抽题' },
+      { key: 'read_aloud', label: '本课朗读清单', tip: '按步骤朗读', meaning: '出声读 + 勾选' },
+    ];
+    const FLOW = [
+      { id: 'book', label: '课本', icon: 'flowBook' },
+      { id: 'tonight', label: '今晚练什么', icon: 'flowTonight' },
+      { id: 'preview', label: '过一眼', icon: 'flowPreview' },
+      { id: 'practice', label: '开练', icon: 'flowPractice' },
+    ];
+
+    function icon(name, size=28, c='#fff', s='rgba(255,255,255,.32)') {
+      const bad = '#be123c';
+      const map = {
+        dictation: `<svg width="${size}" height="${size}" viewBox="0 0 32 32"><rect x="6" y="4" width="16" height="22" rx="2.5" fill="${s}" stroke="${c}" stroke-width="1.6"/><path d="M10 9h8M10 13h8M10 17h5" stroke="${c}" stroke-width="1.5" stroke-linecap="round"/><path d="M22 11c1.4.6 2.4 1.8 2.4 3.4S23.4 17.2 22 17.8" fill="none" stroke="${c}" stroke-width="1.6" stroke-linecap="round"/><circle cx="21.2" cy="14.4" r="2.2" fill="${c}"/></svg>`,
+        word_cards: `<svg width="${size}" height="${size}" viewBox="0 0 32 32"><rect x="9" y="6" width="15" height="18" rx="2.5" fill="${s}" stroke="${c}" stroke-width="1.5" transform="rotate(8 16.5 15)"/><rect x="5" y="7" width="15" height="18" rx="2.5" fill="${c}" opacity=".92"/><text x="12.5" y="19" text-anchor="middle" fill="#fff" font-size="9" font-weight="800">A</text><rect x="18" y="10" width="9" height="11" rx="1.5" fill="#fff" opacity=".95" stroke="${c}" stroke-width="1"/><text x="22.5" y="18" text-anchor="middle" fill="${c}" font-size="7" font-weight="800">中</text></svg>`,
+        math_drill: `<svg width="${size}" height="${size}" viewBox="0 0 32 32"><rect x="5" y="5" width="22" height="22" rx="5" fill="${s}" stroke="${c}" stroke-width="1.6"/><text x="11" y="15" fill="${c}" font-size="8" font-weight="800">3</text><text x="16" y="15" fill="${c}" font-size="9" font-weight="800">×</text><text x="21.5" y="15" fill="${c}" font-size="8" font-weight="800">7</text><path d="M9 19h14" stroke="${c}" stroke-width="1.4" stroke-linecap="round"/><circle cx="12" cy="23" r="1.3" fill="${c}"/><circle cx="16" cy="23" r="1.3" fill="${c}"/><circle cx="20" cy="23" r="1.3" fill="${c}"/></svg>`,
+        wrongbook: `<svg width="${size}" height="${size}" viewBox="0 0 32 32"><path d="M7 5.5h13.5a2 2 0 0 1 2 2V26H9a2 2 0 0 0-2 2V5.5z" fill="${s}" stroke="${c}" stroke-width="1.6"/><path d="M11 11h7.5M11 15h7.5M11 19h5" stroke="${c}" stroke-width="1.35" stroke-linecap="round"/><circle cx="23.5" cy="10.5" r="5" fill="${bad}"/><path d="M21.5 8.5l4 4M25.5 8.5l-4 4" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg>`,
+        read_aloud: `<svg width="${size}" height="${size}" viewBox="0 0 32 32"><path d="M5 8.5c0-1.2.9-2 2.1-2H15v17H7.1c-1.2 0-2.1-.8-2.1-2V8.5z" fill="${s}" stroke="${c}" stroke-width="1.5"/><path d="M27 8.5c0-1.2-.9-2-2.1-2H17v17h7.9c1.2 0 2.1-.8 2.1-2V8.5z" fill="${c}" opacity=".9"/><path d="M22.5 12.2c1.1.5 1.9 1.4 1.9 2.8s-.8 2.3-1.9 2.8" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/><path d="M24.8 10.2c1.8.9 3 2.4 3 4.8s-1.2 3.9-3 4.8" fill="none" stroke="#fff" stroke-width="1.3" stroke-linecap="round" opacity=".75"/></svg>`,
+        flowBook: `<svg width="${size}" height="${size}" viewBox="0 0 32 32"><path d="M6 7.5a2.5 2.5 0 0 1 2.5-2.5H24v19H8.5A2.5 2.5 0 0 0 6 26.5V7.5z" fill="${s}" stroke="${c}" stroke-width="1.5"/><path d="M8.5 5v19.5" stroke="${c}" stroke-width="1.4"/><path d="M12 11h8M12 15h6" stroke="${c}" stroke-width="1.35" stroke-linecap="round"/><path d="M20 5v6l2-1.4L24 11V5" fill="${c}" opacity=".85"/></svg>`,
+        flowTonight: `<svg width="${size}" height="${size}" viewBox="0 0 32 32"><rect x="7" y="5" width="18" height="22" rx="3" fill="${s}" stroke="${c}" stroke-width="1.5"/><path d="M11 3.5h10v3H11z" fill="${c}"/><path d="M12 13l2.2 2.2L19 10.5" fill="none" stroke="${c}" stroke-width="2" stroke-linecap="round"/><path d="M12 19h8M12 23h5" stroke="${c}" stroke-width="1.4" stroke-linecap="round" opacity=".7"/></svg>`,
+        flowPreview: `<svg width="${size}" height="${size}" viewBox="0 0 32 32"><rect x="5" y="6" width="15" height="19" rx="2" fill="${s}" stroke="${c}" stroke-width="1.5"/><path d="M8.5 11h8M8.5 15h8M8.5 19h5" stroke="${c}" stroke-width="1.3" stroke-linecap="round"/><circle cx="21" cy="20" r="6" fill="${c}"/><circle cx="21" cy="20" r="2.6" fill="#fff"/><path d="M25.2 24.2l3 3" stroke="${c}" stroke-width="2.2" stroke-linecap="round"/></svg>`,
+        flowPractice: `<svg width="${size}" height="${size}" viewBox="0 0 32 32"><circle cx="16" cy="16" r="11" fill="${s}" stroke="${c}" stroke-width="1.6"/><path d="M13.2 11.5v9l8-4.5-8-4.5z" fill="${c}"/><path d="M22 7.5l1.2 2.4 2.6.3-2 1.9.5 2.6L22 13.5l-2.3 1.2.5-2.6-2-1.9 2.6-.3L22 7.5z" fill="${c}" opacity=".9"/></svg>`,
+        brandMark: `<svg width="${size}" height="${size}" viewBox="0 0 32 32"><path d="M5 22h17a2.5 2.5 0 0 0 2.5-2.5V7H10a2.5 2.5 0 0 0-2.5 2.5V22A2.5 2.5 0 0 1 5 24.5" fill="${s}" stroke="${c}" stroke-width="1.5"/><path d="M7.5 10h15M7.5 14.5h15M7.5 19h10" stroke="${c}" stroke-width="1.35" stroke-linecap="round" opacity=".75"/><path d="M4 25.5h20" stroke="${c}" stroke-width="1.6" stroke-linecap="round"/><circle cx="23" cy="9" r="3.2" fill="${c}"/><path d="M21.8 9h2.4M23 7.8v2.4" stroke="#fff" stroke-width="1.3" stroke-linecap="round"/></svg>`,
+        check: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none"><path d="M5 13.2l4.2 4.2L19.5 7" stroke="${c}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+        play: null,
+      };
+      if (name === 'flowPractice') return map.flowPractice;
+      return map[name] || map.flowBook;
+    }
+
+    document.getElementById('brandLogo').innerHTML = icon('brandMark', 32);
+    document.getElementById('specIcons').innerHTML = TEMPLATES.map(t => `
+      <div class="icon-cell">
+        <div class="box" style="background:linear-gradient(145deg,${SC.tone[t.key]},color-mix(in srgb,${SC.tone[t.key]} 52%,#0f172a))">${icon(t.key,30)}</div>
+        ${t.label.replace('本课','')}
+      </div>`).join('');
+
+    document.getElementById('courseCard').innerHTML = `
+      <svg width="56" height="56" viewBox="0 0 44 44">
+        <circle cx="22" cy="22" r="18" fill="none" stroke="#e2e8f0" stroke-width="4"/>
+        <circle cx="22" cy="22" r="18" fill="none" stroke="${SC.brand}" stroke-width="4" stroke-linecap="round"
+          stroke-dasharray="113" stroke-dashoffset="45" transform="rotate(-90 22 22)"/>
+        <text x="22" y="25" text-anchor="middle" font-size="9" font-weight="800" fill="#0f172a">60%</text>
+      </svg>
+      <div>
+        <div style="font-weight:800;font-size:14px">部编版语文三年级上册</div>
+        <div style="margin-top:4px;font-size:13px;color:var(--sc-body)">
+          <span style="display:inline-block;padding:2px 8px;border-radius:999px;background:color-mix(in srgb,var(--sc-brand) 12%,#fff);color:var(--sc-brand);font-weight:700;font-size:11px;margin-right:6px">学习中</span>
+          第 3 课 · 秋天的雨
+        </div>
+        <div style="margin-top:4px;font-size:12px;color:var(--sc-muted)">重点：描写秋雨的比喻句</div>
+      </div>`;
+
+    let flow = 'tonight', picked = 'dictation', mode = 'list';
+
+    function renderFlow() {
+      const idx = FLOW.findIndex(f => f.id === flow);
+      document.getElementById('flow').innerHTML = FLOW.map((f, i) => {
+        const on = f.id === flow;
+        const reached = i <= idx;
+        const col = on ? '#fff' : reached ? SC.brand : '#94a3b8';
+        const sec = on ? 'rgba(255,255,255,.28)' : reached ? 'color-mix(in srgb, #0f766e 18%, #fff)' : '#e2e8f0';
+        return `<div class="flow-item">
+          <button class="flow-btn" data-flow="${f.id}">
+            <span class="dot ${on?'on':reached?'reached':''}">${icon(f.icon,22,col,sec)}</span>
+            <span class="flow-lab ${on?'on':''}">${f.label}</span>
+          </button>
+          ${i < FLOW.length-1 ? `<div class="rail ${i < idx ? 'on':''}"></div>` : ''}
+        </div>`;
+      }).join('');
+      document.querySelectorAll('[data-flow]').forEach(el => {
+        el.onclick = () => { flow = el.dataset.flow; mode = 'list'; render(); };
+      });
+    }
+
+    function stageTonight() {
+      return `
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px">
+          <strong style="font-size:15px;font-weight:800">今晚练什么？</strong>
+          <span style="font-size:12px;color:var(--sc-muted)">点一张卡片 · 图标即含义</span>
+        </div>
+        <div class="tpl-grid">
+          ${TEMPLATES.map(t => `
+            <button class="tpl ${picked===t.key?'on':''}" style="--tone:${SC.tone[t.key]};border-color:${picked===t.key?SC.tone[t.key]:'var(--sc-line)'}" data-tpl="${t.key}">
+              <div class="tpl-top"><div class="tpl-ico">${icon(t.key,30)}</div></div>
+              <div class="tpl-body">
+                <strong>${t.label}</strong>
+                <div class="tip">${t.tip}</div>
+                <div class="meaning">${t.meaning}</div>
+              </div>
+            </button>`).join('')}
+        </div>
+        <div class="actions">
+          <button class="btn-primary" id="genBtn">${icon('flowTonight',18)} 生成今晚练习纸</button>
+        </div>`;
+    }
+
+    function stagePreview() {
+      const list = ['秋雨','清凉','气味','快乐','丰收','街灯'];
+      return `
+        <div class="sheet"><div class="sheet-inner">
+          <div style="display:flex;justify-content:space-between;gap:10px">
+            <div>
+              <div class="overline" style="letter-spacing:.06em">家长过一眼</div>
+              <div style="font-size:17px;font-weight:800;margin-top:2px">本课听写单 · 秋天的雨</div>
+            </div>
+            <span class="tag">规则兜底</span>
+          </div>
+          <p style="margin:10px 0 0;font-size:13px;line-height:1.6;color:var(--sc-body)">合上课本，家长读词，孩子默写后勾选。</p>
+          <p style="margin:8px 0 0;font-size:12px;color:var(--sc-warn);font-weight:600">AI/规则生成可能有误，请家长过一眼。</p>
+          <div style="margin-top:14px">
+            ${list.map((w,i)=>`
+              <div class="dict-row">
+                <span style="font-size:12px;color:var(--sc-faint);font-weight:700">${i+1}</span>
+                <div><div style="font-size:13px;font-weight:600">听写：${w}</div><div class="blank"></div></div>
+              </div>`).join('')}
+          </div>
+        </div></div>
+        <div class="actions">
+          <button class="btn-primary" id="startBtn">${icon('flowPractice',18)} 交给孩子开练</button>
+          <button class="btn-ghost">重做一份</button>
+          <button class="btn-ghost">先记下不练</button>
+        </div>`;
+    }
+
+    function stagePractice(listMode) {
+      if (!listMode) {
+        const cards = [{ q:'hello', a:'你好' },{ q:'school', a:'学校' },{ q:'friend', a:'朋友' },{ q:'happy', a:'开心' }];
+        return `
+          <div class="practice-head">
+            <svg width="52" height="52" viewBox="0 0 44 44">
+              <circle cx="22" cy="22" r="18" fill="none" stroke="#e2e8f0" stroke-width="4"/>
+              <circle cx="22" cy="22" r="18" fill="none" stroke="${SC.brand}" stroke-width="4" stroke-linecap="round"
+                stroke-dasharray="113" stroke-dashoffset="68" transform="rotate(-90 22 22)"/>
+              <text x="22" y="25" text-anchor="middle" font-size="9" font-weight="800">40%</text>
+            </svg>
+            <div style="flex:1">
+              <div style="font-weight:800">开练中 · 本课单词卡</div>
+              <div style="font-size:12px;color:var(--sc-muted);margin-top:2px">点卡片翻面 · 再标对错</div>
+              <div class="bar"><i style="width:40%"></i></div>
+            </div>
+          </div>
+          <div class="cards">
+            ${cards.map((c,i)=>`
+              <button class="card" data-a="${c.a}" data-q="${c.q}">
+                <div style="font-size:10px;opacity:.7">卡 ${i+1} · 点按翻面</div>
+                <div class="face" style="font-weight:800;font-size:18px;margin-top:10px">${c.q}</div>
+              </button>`).join('')}
+          </div>
+          <button class="btn-primary" style="width:100%;margin-top:14px">结束并记入真库</button>`;
+      }
+      const items = ['听写：秋雨','听写：清凉','听写：气味','听写：快乐'];
+      return `
+        <div class="practice-head">
+          <svg width="52" height="52" viewBox="0 0 44 44">
+            <circle cx="22" cy="22" r="18" fill="none" stroke="#e2e8f0" stroke-width="4"/>
+            <circle cx="22" cy="22" r="18" fill="none" stroke="${SC.brand}" stroke-width="4" stroke-linecap="round"
+              stroke-dasharray="113" stroke-dashoffset="56" transform="rotate(-90 22 22)"/>
+            <text x="22" y="25" text-anchor="middle" font-size="9" font-weight="800">50%</text>
+          </svg>
+          <div style="flex:1">
+            <div style="font-weight:800">开练中 · 本课听写单</div>
+            <div style="font-size:12px;color:var(--sc-muted);margin-top:2px">已完成 2/4</div>
+            <div class="bar"><i style="width:50%"></i></div>
+          </div>
+        </div>
+        ${items.map((t,i)=>`
+          <div class="item ${i<2?'done':''}">
+            <button class="check ${i<2?'on':''}">${i<2?icon('check',18,'#fff'):(i+1)}</button>
+            <div style="flex:1">
+              <div style="font-weight:700;font-size:14px">${t}</div>
+              <div style="margin-top:10px">
+                <button class="pill ${i===0?'ok':''}">对了</button>
+                <button class="pill">错了</button>
+              </div>
+            </div>
+          </div>`).join('')}
+        <button class="btn-primary" style="width:100%;margin-top:6px">结束并记入真库</button>`;
+    }
+
+    function render() {
+      renderFlow();
+      const stage = document.getElementById('stage');
+      if (flow === 'preview') stage.innerHTML = stagePreview();
+      else if (flow === 'practice') stage.innerHTML = stagePractice(mode === 'list');
+      else stage.innerHTML = stageTonight();
+
+      document.querySelectorAll('[data-tpl]').forEach(el => {
+        el.onclick = () => { picked = el.dataset.tpl; render(); };
+      });
+      const gen = document.getElementById('genBtn');
+      if (gen) gen.onclick = () => { flow = 'preview'; render(); };
+      const start = document.getElementById('startBtn');
+      if (start) start.onclick = () => { flow = 'practice'; mode = 'list'; render(); };
+      document.querySelectorAll('.card').forEach(el => {
+        el.onclick = () => {
+          const back = el.classList.toggle('back');
+          el.querySelector('.face').textContent = back ? el.dataset.a : el.dataset.q;
+          el.querySelector('div').textContent = back ? '参考答案' : '点按翻面';
+        };
+      });
+      document.querySelectorAll('.item .check').forEach(el => {
+        el.onclick = () => {
+          el.classList.toggle('on');
+          el.closest('.item').classList.toggle('done');
+          el.innerHTML = el.classList.contains('on') ? icon('check',18,'#fff') : '·';
+        };
+      });
+      document.querySelectorAll('.tab').forEach(t => {
+        t.classList.toggle('on',
+          (t.dataset.jump === flow) ||
+          (t.dataset.jump === 'practice-cards' && flow === 'practice' && mode === 'cards') ||
+          (t.dataset.jump === 'practice' && flow === 'practice' && mode === 'list')
+        );
+      });
+    }
+
+    document.querySelectorAll('.tab').forEach(t => {
+      t.onclick = () => {
+        const j = t.dataset.jump;
+        if (j === 'practice-cards') { flow = 'practice'; mode = 'cards'; }
+        else { flow = j; mode = 'list'; }
+        render();
+      };
+    });
+    render();
+  </script>
+</body>
+</html>

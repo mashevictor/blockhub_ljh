@@ -328,6 +328,11 @@ export default function PlazaDualRailFlowPanel({
       setFuncVisible((n) => Math.max(n, need))
       setDataVisible((n) => Math.max(n, need))
     }
+    // 预览中点选节点 → 同步进度（并暂停自动，便于细看）
+    if (run.phase === 'running' || run.phase === 'paused') {
+      const previewIdx = run.steps.findIndex((s) => s.id === nodeId)
+      if (previewIdx >= 0) run.goToStep(previewIdx)
+    }
     requestAnimationFrame(() => {
       dockRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
     })
@@ -406,7 +411,7 @@ export default function PlazaDualRailFlowPanel({
         canMutate ? '' : 'is-run-locked',
         railMode !== 'both' ? `rail-${railMode}` : '',
       ].filter(Boolean).join(' ')}
-      aria-label={`${appName} 只读双轨概览`}
+      aria-label={`${appName} 应用双轨概览`}
       onPointerDown={(e) => e.stopPropagation()}
     >
       {embedded && (
@@ -421,19 +426,13 @@ export default function PlazaDualRailFlowPanel({
         </div>
       )}
 
-      <p className="plaza-dual-rail-lock-banner plaza-dual-rail-readonly-banner" role="status">
-        {run.phase === 'running' || run.phase === 'paused'
-          ? '流程预览中 · 仅演示步进，不改 Runtime 数据'
-          : '应用概览（只读）· 看模块与接口信息；增删改请打开 Runtime 对话改页'}
-        {webUrl && !embedded ? (
-          <>
-            {' · '}
-            <button type="button" className="plaza-dual-rail-runtime-link" onClick={openRuntime}>
-              打开 Runtime
-            </button>
-          </>
-        ) : null}
-      </p>
+      {run.phase === 'running' || run.phase === 'paused' ? (
+        <p className="plaza-dual-rail-lock-banner plaza-dual-rail-readonly-banner" role="status">
+          流程预览 · {run.progressLabel}
+          {' · '}
+          自动步进中可暂停；点「下一步」或点选节点推进
+        </p>
+      ) : null}
 
       <div className={`plaza-dual-rail-grid${railMode !== 'both' ? ' is-single' : ''}`}>
         {showFunc && (
@@ -442,10 +441,10 @@ export default function PlazaDualRailFlowPanel({
               <span className="plaza-mflow-chev">&gt;&gt;</span> 功能概览
               <span className="plaza-dual-rail-col-hint">
                 {run.phase === 'running'
-                  ? '流程预览中'
+                  ? '自动预览中'
                   : run.phase === 'paused'
-                    ? '预览已暂停'
-                    : '点选查看 · 只读'}
+                    ? '已暂停 · 可点下一步'
+                    : '点选查看'}
               </span>
             </div>
             <div className="plaza-dual-rail-stack">
@@ -501,7 +500,7 @@ export default function PlazaDualRailFlowPanel({
           <div className="plaza-dual-rail-col data-col">
             <div className="plaza-dual-rail-col-head">
               <span className="plaza-mflow-chev">&gt;&gt;</span> 数据接口
-              <span className="plaza-dual-rail-col-hint">只读契约 · 先看前 {DATA_PAGE} 项</span>
+              <span className="plaza-dual-rail-col-hint">可测试 · 先看前 {DATA_PAGE} 项</span>
             </div>
             <div className="plaza-dual-rail-stack">
               {visibleDataRows.map((row, i) => (
@@ -534,10 +533,10 @@ export default function PlazaDualRailFlowPanel({
 
       <p className="plaza-dual-rail-cross-hint">
         {railMode === 'func'
-          ? '点选能力查看说明；改模块请打开 Runtime 对话改页'
+          ? '点选能力查看说明；增删模块请打开 Runtime 对话改页'
           : railMode === 'data'
-            ? '点选查看 IN/OUT 契约说明（只读）；联调测试请在 Runtime'
-            : '点选查看模块与接口信息 · 增删改请打开 Runtime'}
+            ? '点选查看 IN/OUT · 可复制 curl / 测试接口；改结构请打开 Runtime'
+            : '点选查看模块与接口 · 可测试；增删改结构请打开 Runtime'}
       </p>
 
       {editingId && activeStep && canMutate && (

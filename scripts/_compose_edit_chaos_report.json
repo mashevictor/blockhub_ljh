@@ -1,0 +1,738 @@
+{
+  "summary": {
+    "PATH_A": 22,
+    "PATH_B_TOOL": 1,
+    "PATH_B_FORM": 9,
+    "MUTATE_OK": 3
+  },
+  "total": 35,
+  "quality_ok": 35,
+  "quality_rate_pct": 100.0,
+  "pass_threshold_70": true,
+  "cases": [
+    {
+      "q": "帮我搞个请假的",
+      "grade": "PATH_A",
+      "quality_ok": true,
+      "reply": "已挂上：请假的；打开菜单即可办理（正式能力走真 API，空库为空列表）。",
+      "ops": [
+        {
+          "op": "add",
+          "label": "请假的",
+          "cap": "leave_request",
+          "widget": "LeaveRequestWidget",
+          "category": "人事行政",
+          "page_kind": "form_list",
+          "pending": false,
+          "fields_n": 4,
+          "has_interactive": false,
+          "scene_key": null
+        }
+      ]
+    },
+    {
+      "q": "加班要申请咋弄",
+      "grade": "PATH_A",
+      "quality_ok": true,
+      "reply": "已挂上：加班申请；打开菜单即可办理（正式能力走真 API，空库为空列表）。",
+      "ops": [
+        {
+          "op": "add",
+          "label": "加班申请",
+          "cap": "leave_request",
+          "widget": "LeaveRequestWidget",
+          "category": "人事行政",
+          "page_kind": "form_list",
+          "pending": false,
+          "fields_n": 3,
+          "has_interactive": false,
+          "scene_key": "scene_b345a4a0da"
+        }
+      ]
+    },
+    {
+      "q": "团建报销走一下",
+      "grade": "PATH_A",
+      "quality_ok": true,
+      "reply": "已挂上：报销记账；打开菜单即可办理（正式能力走真 API，空库为空列表）。",
+      "ops": [
+        {
+          "op": "add",
+          "label": "报销记账",
+          "cap": "expense_claim",
+          "widget": "ExpenseClaimWidget",
+          "category": "财务法务",
+          "page_kind": "form_list",
+          "pending": false,
+          "fields_n": 3,
+          "has_interactive": false,
+          "scene_key": null
+        }
+      ]
+    },
+    {
+      "q": "出差申请+借款一起",
+      "grade": "PATH_A",
+      "quality_ok": true,
+      "reply": "已挂上：出差申请、报销记账；打开菜单即可办理（正式能力走真 API，空库为空列表）。",
+      "ops": [
+        {
+          "op": "add",
+          "label": "出差申请",
+          "cap": "leave_request",
+          "widget": "LeaveRequestWidget",
+          "category": "人事行政",
+          "page_kind": "form_list",
+          "pending": false,
+          "fields_n": 3,
+          "has_interactive": false,
+          "scene_key": "scene_907e39bb17"
+        },
+        {
+          "op": "add",
+          "label": "报销记账",
+          "cap": "expense_claim",
+          "widget": "ExpenseClaimWidget",
+          "category": "财务法务",
+          "page_kind": "form_list",
+          "pending": false,
+          "fields_n": 3,
+          "has_interactive": false,
+          "scene_key": null
+        }
+      ]
+    },
+    {
+      "q": "用印盖章申请",
+      "grade": "PATH_A",
+      "quality_ok": true,
+      "reply": "已挂上：用印申请；打开菜单即可办理（正式能力走真 API，空库为空列表）。",
+      "ops": [
+        {
+          "op": "add",
+          "label": "用印申请",
+          "cap": "seal_request",
+          "widget": "FormWidget",
+          "category": "人事行政",
+          "page_kind": "form_list",
+          "pending": false,
+          "fields_n": 3,
+          "has_interactive": false,
+          "scene_key": "scene_c57964533b"
+        }
+      ]
+    },
+    {
+      "q": "会议室约一下明天下午",
+      "grade": "PATH_A",
+      "quality_ok": true,
+      "reply": "已挂上：会议室预约；打开菜单即可办理（正式能力走真 API，空库为空列表）。",
+      "ops": [
+        {
+          "op": "add",
+          "label": "会议室预约",
+          "cap": "meeting_booking",
+          "widget": "MeetingBookingWidget",
+          "category": "人事行政",
+          "page_kind": "form_list",
+          "pending": false,
+          "fields_n": 3,
+          "has_interactive": false,
+          "scene_key": "scene_6de7a78537"
+        }
+      ]
+    },
+    {
+      "q": "客户线索录进去",
+      "grade": "PATH_A",
+      "quality_ok": true,
+      "reply": "已挂上：销售获客；打开菜单即可办理（正式能力走真 API，空库为空列表）。",
+      "ops": [
+        {
+          "op": "add",
+          "label": "销售获客",
+          "cap": "sales_lead",
+          "widget": "SalesLeadWidget",
+          "category": "销售行业",
+          "page_kind": "form_list",
+          "pending": false,
+          "fields_n": 3,
+          "has_interactive": false,
+          "scene_key": null
+        }
+      ]
+    },
+    {
+      "q": "公海池领一个",
+      "grade": "PATH_A",
+      "quality_ok": true,
+      "reply": "已挂上：销售获客；打开菜单即可办理（正式能力走真 API，空库为空列表）。",
+      "ops": [
+        {
+          "op": "add",
+          "label": "销售获客",
+          "cap": "sales_lead",
+          "widget": "SalesLeadWidget",
+          "category": "销售行业",
+          "page_kind": "form_list",
+          "pending": false,
+          "fields_n": 3,
+          "has_interactive": false,
+          "scene_key": null
+        }
+      ]
+    },
+    {
+      "q": "丢单原因记一下",
+      "grade": "PATH_A",
+      "quality_ok": true,
+      "reply": "已挂上：杀单工作台；打开菜单即可办理（正式能力走真 API，空库为空列表）。",
+      "ops": [
+        {
+          "op": "add",
+          "label": "杀单工作台",
+          "cap": "kill_pipeline",
+          "widget": "KillPipelineWidget",
+          "category": "销售行业",
+          "page_kind": "chat_kb",
+          "pending": false,
+          "fields_n": 0,
+          "has_interactive": false,
+          "scene_key": null
+        }
+      ]
+    },
+    {
+      "q": "赢单复盘要证据",
+      "grade": "PATH_A",
+      "quality_ok": true,
+      "reply": "已挂上：成交证据；打开菜单即可办理（正式能力走真 API，空库为空列表）。",
+      "ops": [
+        {
+          "op": "add",
+          "label": "成交证据",
+          "cap": "deal_evidence",
+          "widget": "DealEvidenceWidget",
+          "category": "销售行业",
+          "page_kind": "chat_kb",
+          "pending": false,
+          "fields_n": 0,
+          "has_interactive": false,
+          "scene_key": null
+        }
+      ]
+    },
+    {
+      "q": "报价单出一份",
+      "grade": "PATH_A",
+      "quality_ok": true,
+      "reply": "已挂上：报价合同；打开菜单即可办理（正式能力走真 API，空库为空列表）。",
+      "ops": [
+        {
+          "op": "add",
+          "label": "报价合同",
+          "cap": "quote_contract",
+          "widget": "QuoteContractWidget",
+          "category": "销售行业",
+          "page_kind": "form_list",
+          "pending": false,
+          "fields_n": 3,
+          "has_interactive": false,
+          "scene_key": null
+        }
+      ]
+    },
+    {
+      "q": "产线机器坏了报修",
+      "grade": "PATH_A",
+      "quality_ok": true,
+      "reply": "已挂上：设备报修；打开菜单即可办理（正式能力走真 API，空库为空列表）。",
+      "ops": [
+        {
+          "op": "add",
+          "label": "设备报修",
+          "cap": "device_repair",
+          "widget": "DeviceRepairWidget",
+          "category": "现场运维",
+          "page_kind": "form_list",
+          "pending": false,
+          "fields_n": 3,
+          "has_interactive": false,
+          "scene_key": null
+        }
+      ]
+    },
+    {
+      "q": "质检不合格怎么录",
+      "grade": "PATH_A",
+      "quality_ok": true,
+      "reply": "已挂上：质检SOP；打开菜单即可办理（正式能力走真 API，空库为空列表）。",
+      "ops": [
+        {
+          "op": "add",
+          "label": "质检SOP",
+          "cap": "quality_inspect",
+          "widget": "QualityInspectWidget",
+          "category": "现场运维",
+          "page_kind": "form_list",
+          "pending": false,
+          "fields_n": 3,
+          "has_interactive": false,
+          "scene_key": null
+        }
+      ]
+    },
+    {
+      "q": "今晚盘点库存",
+      "grade": "PATH_A",
+      "quality_ok": true,
+      "reply": "已挂上：库存盘点；打开菜单即可办理（正式能力走真 API，空库为空列表）。",
+      "ops": [
+        {
+          "op": "add",
+          "label": "库存盘点",
+          "cap": "inventory_count",
+          "widget": "InventoryCountWidget",
+          "category": "仓储物流",
+          "page_kind": "form_list",
+          "pending": false,
+          "fields_n": 3,
+          "has_interactive": false,
+          "scene_key": null
+        }
+      ]
+    },
+    {
+      "q": "制度问问看",
+      "grade": "PATH_A",
+      "quality_ok": true,
+      "reply": "已挂上：制度问答；打开菜单即可办理（正式能力走真 API，空库为空列表）。",
+      "ops": [
+        {
+          "op": "add",
+          "label": "制度问答",
+          "cap": "policy_qa",
+          "widget": "PolicyQaWidget",
+          "category": "知识协同",
+          "page_kind": "chat_kb",
+          "pending": false,
+          "fields_n": 0,
+          "has_interactive": false,
+          "scene_key": null
+        }
+      ]
+    },
+    {
+      "q": "上传个员工手册",
+      "grade": "PATH_A",
+      "quality_ok": true,
+      "reply": "已挂上：知识库；打开菜单即可办理（正式能力走真 API，空库为空列表）。",
+      "ops": [
+        {
+          "op": "add",
+          "label": "知识库",
+          "cap": "kb_document",
+          "widget": "KBUploadWidget",
+          "category": "IT与资产",
+          "page_kind": "files",
+          "pending": false,
+          "fields_n": 0,
+          "has_interactive": false,
+          "scene_key": "scene_4023d43989"
+        }
+      ]
+    },
+    {
+      "q": "自然语言查上周审批量",
+      "grade": "PATH_A",
+      "quality_ok": true,
+      "reply": "已挂上：智能问数；打开菜单即可办理（正式能力走真 API，空库为空列表）。",
+      "ops": [
+        {
+          "op": "add",
+          "label": "智能问数",
+          "cap": "data_nl_query",
+          "widget": "NLQueryWidget",
+          "category": "知识数据",
+          "page_kind": "chart",
+          "pending": false,
+          "fields_n": 0,
+          "has_interactive": false,
+          "scene_key": null
+        }
+      ]
+    },
+    {
+      "q": "护士排班表",
+      "grade": "PATH_A",
+      "quality_ok": true,
+      "reply": "已挂上：护士排班；打开菜单即可办理（正式能力走真 API，空库为空列表）。",
+      "ops": [
+        {
+          "op": "add",
+          "label": "护士排班",
+          "cap": "nurse_shift",
+          "widget": "NurseShiftWidget",
+          "category": "患者服务",
+          "page_kind": "form_list",
+          "pending": false,
+          "fields_n": 3,
+          "has_interactive": false,
+          "scene_key": null
+        }
+      ]
+    },
+    {
+      "q": "经营看板看一眼",
+      "grade": "PATH_A",
+      "quality_ok": true,
+      "reply": "已挂上：经营看板；打开菜单即可办理（正式能力走真 API，空库为空列表）。",
+      "ops": [
+        {
+          "op": "add",
+          "label": "经营看板",
+          "cap": "ops_kpi",
+          "widget": "OpsKpiWidget",
+          "category": "数据报表",
+          "page_kind": "chart",
+          "pending": false,
+          "fields_n": 0,
+          "has_interactive": false,
+          "scene_key": null
+        }
+      ]
+    },
+    {
+      "q": "漏斗转化图",
+      "grade": "PATH_A",
+      "quality_ok": true,
+      "reply": "已挂上：销售漏斗；打开菜单即可办理（正式能力走真 API，空库为空列表）。",
+      "ops": [
+        {
+          "op": "add",
+          "label": "销售漏斗",
+          "cap": "chart_funnel",
+          "widget": "FunnelWidget",
+          "category": "业绩分析",
+          "page_kind": "chart",
+          "pending": false,
+          "fields_n": 0,
+          "has_interactive": false,
+          "scene_key": "scene_3c41006f80"
+        }
+      ]
+    },
+    {
+      "q": "来个科学计算器",
+      "grade": "PATH_B_TOOL",
+      "quality_ok": true,
+      "reply": "已按意图挂上可填预览：科学计算器；可打开左侧菜单试用，也可继续对话细化字段。",
+      "ops": [
+        {
+          "op": "add",
+          "label": "科学计算器",
+          "cap": "gen_84315",
+          "widget": "GeneratedPageWidget",
+          "category": "通用办公",
+          "page_kind": "chat_kb",
+          "pending": false,
+          "fields_n": 0,
+          "has_interactive": true,
+          "scene_key": null
+        }
+      ]
+    },
+    {
+      "q": "做个抽奖转盘",
+      "grade": "PATH_B_FORM",
+      "quality_ok": true,
+      "reply": "已按意图挂上可填预览：抽奖转盘；可打开左侧菜单试用，也可继续对话细化字段。",
+      "ops": [
+        {
+          "op": "add",
+          "label": "抽奖转盘",
+          "cap": "gen_94037",
+          "widget": "GeneratedPageWidget",
+          "category": "活动运营",
+          "page_kind": "form_list",
+          "pending": false,
+          "fields_n": 3,
+          "has_interactive": false,
+          "scene_key": "scene_fffa7e1eec"
+        }
+      ]
+    },
+    {
+      "q": "给客户做一个满意度问卷",
+      "grade": "PATH_B_FORM",
+      "quality_ok": true,
+      "reply": "已按意图挂上可填预览：满意度问卷；可打开左侧菜单试用，也可继续对话细化字段。",
+      "ops": [
+        {
+          "op": "add",
+          "label": "满意度问卷",
+          "cap": "gen_47718",
+          "widget": "GeneratedPageWidget",
+          "category": "运营调研",
+          "page_kind": "form_list",
+          "pending": false,
+          "fields_n": 3,
+          "has_interactive": false,
+          "scene_key": "scene_f08ecf095c"
+        }
+      ]
+    },
+    {
+      "q": "OKR 季度目标填报",
+      "grade": "PATH_B_FORM",
+      "quality_ok": true,
+      "reply": "已按意图挂上可填预览：OKR 目标填报；可打开左侧菜单试用，也可继续对话细化字段。",
+      "ops": [
+        {
+          "op": "add",
+          "label": "OKR 目标填报",
+          "cap": "gen_8584",
+          "widget": "GeneratedPageWidget",
+          "category": "目标管理",
+          "page_kind": "form_list",
+          "pending": false,
+          "fields_n": 4,
+          "has_interactive": false,
+          "scene_key": "scene_000440a1d5"
+        }
+      ]
+    },
+    {
+      "q": "访客预约登记",
+      "grade": "PATH_B_FORM",
+      "quality_ok": true,
+      "reply": "已按意图挂上可填预览：访客预约登记；可打开左侧菜单试用，也可继续对话细化字段。",
+      "ops": [
+        {
+          "op": "add",
+          "label": "访客预约登记",
+          "cap": "gen_90785",
+          "widget": "GeneratedPageWidget",
+          "category": "行政前台",
+          "page_kind": "form_list",
+          "pending": false,
+          "fields_n": 5,
+          "has_interactive": false,
+          "scene_key": "scene_651fc08ed9"
+        }
+      ]
+    },
+    {
+      "q": "停车位申请",
+      "grade": "PATH_B_FORM",
+      "quality_ok": true,
+      "reply": "已按意图挂上可填预览：停车位申请；可打开左侧菜单试用，也可继续对话细化字段。",
+      "ops": [
+        {
+          "op": "add",
+          "label": "停车位申请",
+          "cap": "gen_40029",
+          "widget": "GeneratedPageWidget",
+          "category": "行政后勤",
+          "page_kind": "form_list",
+          "pending": false,
+          "fields_n": 4,
+          "has_interactive": false,
+          "scene_key": "scene_4b26b5b5a5"
+        }
+      ]
+    },
+    {
+      "q": "快递收发登记本",
+      "grade": "PATH_B_FORM",
+      "quality_ok": true,
+      "reply": "已按意图挂上可填预览：快递收发登记；可打开左侧菜单试用，也可继续对话细化字段。",
+      "ops": [
+        {
+          "op": "add",
+          "label": "快递收发登记",
+          "cap": "gen_94912",
+          "widget": "GeneratedPageWidget",
+          "category": "行政后勤",
+          "page_kind": "form_list",
+          "pending": false,
+          "fields_n": 5,
+          "has_interactive": false,
+          "scene_key": "scene_97573c27dc"
+        }
+      ]
+    },
+    {
+      "q": "会议室门禁二维码",
+      "grade": "PATH_B_FORM",
+      "quality_ok": true,
+      "reply": "已按意图挂上可填预览：会议室门禁通行码；可打开左侧菜单试用，也可继续对话细化字段。",
+      "ops": [
+        {
+          "op": "add",
+          "label": "会议室门禁通行码",
+          "cap": "gen_58063",
+          "widget": "GeneratedPageWidget",
+          "category": "行政后勤",
+          "page_kind": "form_list",
+          "pending": false,
+          "fields_n": 4,
+          "has_interactive": false,
+          "scene_key": "scene_14c06eb7ee"
+        }
+      ]
+    },
+    {
+      "q": "年会节目报名",
+      "grade": "PATH_B_FORM",
+      "quality_ok": true,
+      "reply": "已按意图挂上可填预览：节目报名；可打开左侧菜单试用，也可继续对话细化字段。",
+      "ops": [
+        {
+          "op": "add",
+          "label": "节目报名",
+          "cap": "gen_28684",
+          "widget": "GeneratedPageWidget",
+          "category": "活动运营",
+          "page_kind": "form_list",
+          "pending": false,
+          "fields_n": 4,
+          "has_interactive": false,
+          "scene_key": "scene_32999dc8aa"
+        }
+      ]
+    },
+    {
+      "q": "供应商准入评估表",
+      "grade": "PATH_B_FORM",
+      "quality_ok": true,
+      "reply": "已按意图挂上可填预览：供应商准入评估；可打开左侧菜单试用，也可继续对话细化字段。",
+      "ops": [
+        {
+          "op": "add",
+          "label": "供应商准入评估",
+          "cap": "gen_29487",
+          "widget": "GeneratedPageWidget",
+          "category": "采购供应链",
+          "page_kind": "form_list",
+          "pending": false,
+          "fields_n": 5,
+          "has_interactive": false,
+          "scene_key": "scene_45735df339"
+        }
+      ]
+    },
+    {
+      "q": "把请假改成事假申请",
+      "grade": "MUTATE_OK",
+      "quality_ok": true,
+      "reply": "已改名：请假申请→事假申请。",
+      "ops": [
+        {
+          "op": "rename",
+          "label": null,
+          "cap": null,
+          "widget": null,
+          "category": null,
+          "page_kind": null,
+          "pending": false,
+          "fields_n": 0,
+          "has_interactive": false,
+          "scene_key": null
+        }
+      ]
+    },
+    {
+      "q": "不要报销了",
+      "grade": "MUTATE_OK",
+      "quality_ok": true,
+      "reply": "已移除：费用报销。",
+      "ops": [
+        {
+          "op": "remove",
+          "label": "费用报销",
+          "cap": null,
+          "widget": null,
+          "category": null,
+          "page_kind": null,
+          "pending": false,
+          "fields_n": 0,
+          "has_interactive": false,
+          "scene_key": null
+        }
+      ]
+    },
+    {
+      "q": "日期改成点选的",
+      "grade": "MUTATE_OK",
+      "quality_ok": true,
+      "reply": "已改控件：请假申请（日期/时间改为原生选择器，打开左侧菜单即可体验）。",
+      "ops": [
+        {
+          "op": "patch_page",
+          "label": "请假申请",
+          "cap": "leave_request",
+          "widget": null,
+          "category": null,
+          "page_kind": null,
+          "pending": false,
+          "fields_n": 3,
+          "has_interactive": false,
+          "scene_key": null
+        }
+      ]
+    },
+    {
+      "q": "随便加点啥审批",
+      "grade": "PATH_A",
+      "quality_ok": true,
+      "reply": "已挂上：通用审批；打开菜单即可办理（正式能力走真 API，空库为空列表）。",
+      "ops": [
+        {
+          "op": "add",
+          "label": "通用审批",
+          "cap": "approval_flow",
+          "widget": "FormWidget",
+          "category": "流程审批",
+          "page_kind": "form_list",
+          "pending": false,
+          "fields_n": 3,
+          "has_interactive": false,
+          "scene_key": "scene_f7c1d43449"
+        }
+      ]
+    },
+    {
+      "q": "我想要一个类似钉钉的审批流但是偏销售",
+      "grade": "PATH_A",
+      "quality_ok": true,
+      "reply": "已挂上：审批流、企微钉钉飞书；打开菜单即可办理（正式能力走真 API，空库为空列表）。",
+      "ops": [
+        {
+          "op": "add",
+          "label": "审批流",
+          "cap": "approval_flow",
+          "widget": "FormWidget",
+          "category": "流程审批",
+          "page_kind": "form_list",
+          "pending": false,
+          "fields_n": 3,
+          "has_interactive": false,
+          "scene_key": null
+        },
+        {
+          "op": "add",
+          "label": "企微钉钉飞书",
+          "cap": "notify_im",
+          "widget": "IMWidget",
+          "category": "通知集成",
+          "page_kind": "notify",
+          "pending": false,
+          "fields_n": 3,
+          "has_interactive": false,
+          "scene_key": null
+        }
+      ]
+    }
+  ]
+}

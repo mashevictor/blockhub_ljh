@@ -1,0 +1,853 @@
+{
+  "industry_key": "auto",
+  "industry_name": "汽车交通",
+  "scenes": [
+    {
+      "name": "维保工单派发",
+      "category": "售后维保",
+      "capability_key": "auto_service",
+      "page_kind": "form_list",
+      "problem": "售后维保工单人工派发效率低，技师忙闲不均，通过系统自动派单并跟踪工单状态，提升派单效率与客户满意度。",
+      "default_category": "after-sales",
+      "form_headline": "新建维保工单",
+      "fields": [
+        {
+          "key": "title",
+          "label": "工单标题",
+          "type": "text",
+          "placeholder": "如：A001车辆保养",
+          "optional": false
+        },
+        {
+          "key": "field_a",
+          "label": "车牌号",
+          "type": "text",
+          "placeholder": "如：京A12345",
+          "optional": false
+        },
+        {
+          "key": "field_b",
+          "label": "服务类型",
+          "type": "text",
+          "placeholder": "如：保养/维修",
+          "optional": false
+        },
+        {
+          "key": "note",
+          "label": "故障描述",
+          "type": "textarea",
+          "placeholder": "详细描述车辆问题",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "name": "预约进厂管理",
+      "category": "售后维保",
+      "capability_key": "auto_service",
+      "page_kind": "form_list",
+      "problem": "客户预约进厂信息分散，人工登记易错漏，通过统一预约表单与列表管理，提高预约准确率与进厂效率。",
+      "default_category": "after-sales",
+      "form_headline": "预约进厂登记",
+      "fields": [
+        {
+          "key": "title",
+          "label": "客户姓名",
+          "type": "text",
+          "placeholder": "如：张三",
+          "optional": false
+        },
+        {
+          "key": "field_a",
+          "label": "联系电话",
+          "type": "text",
+          "placeholder": "如：13800138000",
+          "optional": false
+        },
+        {
+          "key": "field_b",
+          "label": "预约时间",
+          "type": "date",
+          "placeholder": "选择日期",
+          "optional": false
+        },
+        {
+          "key": "note",
+          "label": "服务需求",
+          "type": "textarea",
+          "placeholder": "如：更换机油、检查刹车",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "name": "质检交车确认",
+      "category": "售后维保",
+      "capability_key": "auto_service",
+      "page_kind": "form_list",
+      "problem": "质检交车环节缺乏标准化记录，易引发客户纠纷，通过质检表单与交车确认列表，确保服务质量可追溯。",
+      "default_category": "after-sales",
+      "form_headline": "质检交车确认单",
+      "fields": [
+        {
+          "key": "title",
+          "label": "工单编号",
+          "type": "text",
+          "placeholder": "如：WO20231001",
+          "optional": false
+        },
+        {
+          "key": "field_a",
+          "label": "质检结果",
+          "type": "text",
+          "placeholder": "合格/不合格",
+          "optional": false
+        },
+        {
+          "key": "field_b",
+          "label": "交车时间",
+          "type": "date",
+          "placeholder": "选择日期",
+          "optional": false
+        },
+        {
+          "key": "note",
+          "label": "备注",
+          "type": "textarea",
+          "placeholder": "其他说明",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "name": "保修判定记录",
+      "category": "售后维保",
+      "capability_key": "kb_document",
+      "page_kind": "chat_kb",
+      "problem": "保修判定依赖经验，标准不统一，通过知识库沉淀保修政策与案例，辅助技师快速准确判定。",
+      "default_category": "after-sales",
+      "form_headline": "",
+      "fields": []
+    },
+    {
+      "name": "召回执行跟踪",
+      "category": "售后维保",
+      "capability_key": "campaign_ops",
+      "page_kind": "notify",
+      "problem": "召回活动通知不到位，执行进度难监控，通过消息推送与进度看板，提升召回完成率。",
+      "default_category": "after-sales",
+      "form_headline": "",
+      "fields": []
+    },
+    {
+      "name": "配件入库登记",
+      "category": "配件库存",
+      "capability_key": "auto_parts",
+      "page_kind": "form_list",
+      "problem": "入库信息手工记录易错，无法实时同步库存，导致缺件或积压。通过表单录入入库单，自动更新库存台账。",
+      "default_category": "parts-inventory",
+      "form_headline": "配件入库单",
+      "fields": [
+        {
+          "key": "title",
+          "label": "配件名称",
+          "type": "text",
+          "placeholder": "输入配件名称",
+          "optional": false
+        },
+        {
+          "key": "field_a",
+          "label": "入库数量",
+          "type": "number",
+          "placeholder": "输入数量",
+          "optional": false
+        },
+        {
+          "key": "field_b",
+          "label": "供应商",
+          "type": "text",
+          "placeholder": "输入供应商",
+          "optional": true
+        },
+        {
+          "key": "note",
+          "label": "备注",
+          "type": "textarea",
+          "placeholder": "其他说明",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "name": "缺件订货申请",
+      "category": "配件库存",
+      "capability_key": "auto_parts",
+      "page_kind": "form_list",
+      "problem": "缺件时依赖电话或微信沟通，易遗漏，订货周期长。通过表单提交缺件需求，自动汇总生成采购计划。",
+      "default_category": "parts-inventory",
+      "form_headline": "缺件订货申请",
+      "fields": [
+        {
+          "key": "title",
+          "label": "配件名称",
+          "type": "text",
+          "placeholder": "输入配件名称",
+          "optional": false
+        },
+        {
+          "key": "field_a",
+          "label": "需求数量",
+          "type": "number",
+          "placeholder": "输入数量",
+          "optional": false
+        },
+        {
+          "key": "field_b",
+          "label": "紧急程度",
+          "type": "text",
+          "placeholder": "高/中/低",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "name": "旧件回收记录",
+      "category": "配件库存",
+      "capability_key": "auto_parts",
+      "page_kind": "form_list",
+      "problem": "旧件回收缺乏标准化流程，数据不透明，影响索赔和环保合规。通过表单记录回收信息，关联库存和索赔。",
+      "default_category": "parts-inventory",
+      "form_headline": "旧件回收单",
+      "fields": [
+        {
+          "key": "title",
+          "label": "旧件名称",
+          "type": "text",
+          "placeholder": "输入旧件名称",
+          "optional": false
+        },
+        {
+          "key": "field_a",
+          "label": "回收数量",
+          "type": "number",
+          "placeholder": "输入数量",
+          "optional": false
+        },
+        {
+          "key": "field_b",
+          "label": "回收来源",
+          "type": "text",
+          "placeholder": "维修工单/客户退回",
+          "optional": true
+        },
+        {
+          "key": "note",
+          "label": "备注",
+          "type": "textarea",
+          "placeholder": "其他说明",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "name": "索赔件管理",
+      "category": "配件库存",
+      "capability_key": "auto_parts",
+      "page_kind": "form_list",
+      "problem": "索赔件信息分散，难以追踪索赔进度和库存状态。通过表单登记索赔件，自动更新索赔台账和库存。",
+      "default_category": "parts-inventory",
+      "form_headline": "索赔件登记",
+      "fields": [
+        {
+          "key": "title",
+          "label": "索赔配件名称",
+          "type": "text",
+          "placeholder": "输入配件名称",
+          "optional": false
+        },
+        {
+          "key": "field_a",
+          "label": "数量",
+          "type": "number",
+          "placeholder": "输入数量",
+          "optional": false
+        },
+        {
+          "key": "field_b",
+          "label": "索赔单号",
+          "type": "text",
+          "placeholder": "输入索赔单号",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "name": "盘点差异调整",
+      "category": "配件库存",
+      "capability_key": "auto_parts",
+      "page_kind": "form_list",
+      "problem": "盘点后差异处理无记录，库存数据失真。通过表单提交差异调整申请，审核后自动修正库存。",
+      "default_category": "parts-inventory",
+      "form_headline": "盘点差异调整单",
+      "fields": [
+        {
+          "key": "title",
+          "label": "配件名称",
+          "type": "text",
+          "placeholder": "输入配件名称",
+          "optional": false
+        },
+        {
+          "key": "field_a",
+          "label": "差异数量",
+          "type": "number",
+          "placeholder": "正数为盘盈，负数为盘亏",
+          "optional": false
+        },
+        {
+          "key": "field_b",
+          "label": "调整原因",
+          "type": "text",
+          "placeholder": "输入原因",
+          "optional": false
+        },
+        {
+          "key": "note",
+          "label": "备注",
+          "type": "textarea",
+          "placeholder": "其他说明",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "name": "出车任务派发",
+      "category": "车队运营",
+      "capability_key": "auto_fleet",
+      "page_kind": "form_list",
+      "problem": "调度员手动派车效率低、易遗漏，司机接单无闭环；通过任务表单自动派发并跟踪状态，司机端实时接收，完成自动归档。",
+      "default_category": "fleet-dispatch",
+      "form_headline": "新建出车任务",
+      "fields": [
+        {
+          "key": "title",
+          "label": "任务名称",
+          "type": "text",
+          "placeholder": "如：机场接机-张总",
+          "optional": false
+        },
+        {
+          "key": "field_a",
+          "label": "司机姓名",
+          "type": "text",
+          "placeholder": "选择或输入司机",
+          "optional": false
+        },
+        {
+          "key": "field_b",
+          "label": "预计出车时间",
+          "type": "date",
+          "placeholder": "选择日期时间",
+          "optional": false
+        },
+        {
+          "key": "field_c",
+          "label": "目的地",
+          "type": "text",
+          "placeholder": "输入目的地",
+          "optional": false
+        }
+      ]
+    },
+    {
+      "name": "里程油耗登记",
+      "category": "车队运营",
+      "capability_key": "auto_fleet",
+      "page_kind": "form_list",
+      "problem": "司机手工记录里程油耗易造假、统计困难；通过表单实时录入，自动汇总生成报表，异常数据预警。",
+      "default_category": "fleet-fuel",
+      "form_headline": "登记里程油耗",
+      "fields": [
+        {
+          "key": "title",
+          "label": "车牌号",
+          "type": "text",
+          "placeholder": "如：京A12345",
+          "optional": false
+        },
+        {
+          "key": "field_a",
+          "label": "当前里程(km)",
+          "type": "number",
+          "placeholder": "整数",
+          "optional": false
+        },
+        {
+          "key": "field_b",
+          "label": "加油量(L)",
+          "type": "number",
+          "placeholder": "保留一位小数",
+          "optional": false
+        },
+        {
+          "key": "field_c",
+          "label": "加油日期",
+          "type": "date",
+          "placeholder": "选择日期",
+          "optional": false
+        }
+      ]
+    },
+    {
+      "name": "违章记录管理",
+      "category": "车队运营",
+      "capability_key": "auto_fleet",
+      "page_kind": "form_list",
+      "problem": "违章信息分散、处理进度不透明，罚款逾期风险高；统一登记违章详情，关联责任司机，跟踪处理状态。",
+      "default_category": "fleet-violation",
+      "form_headline": "登记违章",
+      "fields": [
+        {
+          "key": "title",
+          "label": "违章编号",
+          "type": "text",
+          "placeholder": "如：11010820231201",
+          "optional": false
+        },
+        {
+          "key": "field_a",
+          "label": "违章时间",
+          "type": "date",
+          "placeholder": "选择日期",
+          "optional": false
+        },
+        {
+          "key": "field_b",
+          "label": "违章地点",
+          "type": "text",
+          "placeholder": "如：京港澳高速K12",
+          "optional": false
+        },
+        {
+          "key": "field_c",
+          "label": "扣分/罚款",
+          "type": "text",
+          "placeholder": "如：3分200元",
+          "optional": false
+        }
+      ]
+    },
+    {
+      "name": "司机排班表",
+      "category": "车队运营",
+      "capability_key": "auto_fleet",
+      "page_kind": "form_list",
+      "problem": "排班靠Excel易冲突、司机无法提前知晓；通过排班表单生成可视化周排班，自动校验冲突并推送通知。",
+      "default_category": "fleet-schedule",
+      "form_headline": "添加排班",
+      "fields": [
+        {
+          "key": "title",
+          "label": "司机姓名",
+          "type": "text",
+          "placeholder": "输入司机姓名",
+          "optional": false
+        },
+        {
+          "key": "field_a",
+          "label": "日期",
+          "type": "date",
+          "placeholder": "选择日期",
+          "optional": false
+        },
+        {
+          "key": "field_b",
+          "label": "班次",
+          "type": "text",
+          "placeholder": "早班/晚班/全天",
+          "optional": false
+        },
+        {
+          "key": "field_c",
+          "label": "备注",
+          "type": "textarea",
+          "placeholder": "可选备注",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "name": "事故快速上报",
+      "category": "车队运营",
+      "capability_key": "device_repair",
+      "page_kind": "form_list",
+      "problem": "事故发生后信息传递慢、理赔材料缺失；通过标准化表单快速采集现场信息、照片，自动通知安全员跟进。",
+      "default_category": "fleet-accident",
+      "form_headline": "事故上报",
+      "fields": [
+        {
+          "key": "title",
+          "label": "事故简述",
+          "type": "text",
+          "placeholder": "如：追尾，无人伤",
+          "optional": false
+        },
+        {
+          "key": "field_a",
+          "label": "发生时间",
+          "type": "date",
+          "placeholder": "选择日期时间",
+          "optional": false
+        },
+        {
+          "key": "field_b",
+          "label": "涉事车辆",
+          "type": "text",
+          "placeholder": "车牌号",
+          "optional": false
+        },
+        {
+          "key": "field_c",
+          "label": "责任认定",
+          "type": "text",
+          "placeholder": "我方全责/同等/无责",
+          "optional": false
+        }
+      ]
+    },
+    {
+      "name": "试驾预约管理",
+      "category": "销售试驾",
+      "capability_key": "sales_lead",
+      "pages": "form+list",
+      "problem": "试驾预约依赖电话沟通，信息易遗漏，无法统一管理预约状态和客户偏好，导致试驾体验差。通过表单收集预约信息并自动同步至线索池，实现闭环跟进。",
+      "page_kind": "form_list",
+      "default_category": "test-drive",
+      "form_headline": "试驾预约登记",
+      "fields": [
+        {
+          "key": "title",
+          "label": "客户姓名",
+          "type": "text",
+          "placeholder": "请输入客户姓名",
+          "optional": false
+        },
+        {
+          "key": "field_a",
+          "label": "联系电话",
+          "type": "text",
+          "placeholder": "请输入手机号",
+          "optional": false
+        },
+        {
+          "key": "field_b",
+          "label": "预约试驾时间",
+          "type": "date",
+          "placeholder": "选择日期",
+          "optional": false
+        },
+        {
+          "key": "field_c",
+          "label": "意向车型",
+          "type": "text",
+          "placeholder": "如Model Y",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "name": "线索跟进记录",
+      "category": "销售试驾",
+      "capability_key": "sales_lead",
+      "pages": "form+list",
+      "problem": "销售顾问跟进线索无统一记录，沟通历史散落，容易重复跟进或遗漏。通过表单记录每次跟进内容，列表展示历史，提升线索转化率。",
+      "page_kind": "form_list",
+      "default_category": "lead-followup",
+      "form_headline": "线索跟进记录",
+      "fields": [
+        {
+          "key": "title",
+          "label": "客户姓名",
+          "type": "text",
+          "placeholder": "请输入客户姓名",
+          "optional": false
+        },
+        {
+          "key": "field_a",
+          "label": "跟进方式",
+          "type": "text",
+          "placeholder": "电话/微信/到店",
+          "optional": false
+        },
+        {
+          "key": "field_b",
+          "label": "跟进内容",
+          "type": "textarea",
+          "placeholder": "沟通要点",
+          "optional": false
+        },
+        {
+          "key": "field_c",
+          "label": "下次跟进时间",
+          "type": "date",
+          "placeholder": "选择日期",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "name": "订单排产状态",
+      "category": "销售试驾",
+      "capability_key": "chart_dashboard",
+      "pages": "chart",
+      "problem": "订单排产进度不透明，销售和客户无法实时了解生产状态，容易产生焦虑。通过图表展示各订单排产阶段（待排产、生产中、已下线），实现可视化跟踪。",
+      "page_kind": "chart",
+      "default_category": "order-production",
+      "form_headline": "",
+      "fields": []
+    },
+    {
+      "name": "交车仪式提醒",
+      "category": "销售试驾",
+      "capability_key": "notify_im",
+      "pages": "notify",
+      "problem": "交车仪式准备事项多，容易遗漏物料或人员安排，影响客户体验。通过IM通知自动提醒销售准备交车资料、布置场地等，确保仪式顺利进行。",
+      "page_kind": "notify",
+      "default_category": "delivery-reminder",
+      "form_headline": "",
+      "fields": []
+    },
+    {
+      "name": "二手车评估登记",
+      "category": "销售试驾",
+      "capability_key": "auto_service",
+      "pages": "form+list",
+      "problem": "二手车评估信息靠纸质记录，评估结果无法快速查询和共享，置换流程低效。通过表单录入车辆信息、评估价格，列表展示历史评估记录，支持置换决策。",
+      "page_kind": "form_list",
+      "default_category": "used-car-evaluation",
+      "form_headline": "二手车评估登记",
+      "fields": [
+        {
+          "key": "title",
+          "label": "车主姓名",
+          "type": "text",
+          "placeholder": "请输入车主姓名",
+          "optional": false
+        },
+        {
+          "key": "field_a",
+          "label": "车辆型号",
+          "type": "text",
+          "placeholder": "如宝马3系",
+          "optional": false
+        },
+        {
+          "key": "field_b",
+          "label": "评估价格",
+          "type": "number",
+          "placeholder": "单位万元",
+          "optional": false
+        },
+        {
+          "key": "field_c",
+          "label": "评估备注",
+          "type": "textarea",
+          "placeholder": "车况描述",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "name": "充电桩故障报修",
+      "category": "充电年检",
+      "capability_key": "auto_charge",
+      "pages": "form+list",
+      "problem": "充电桩故障报修流程繁琐，维修进度不透明，通过表单提交故障信息并跟踪维修状态，闭环于维修工单库。",
+      "page_kind": "form_list",
+      "default_category": "charging_repair",
+      "form_headline": "充电桩故障报修",
+      "fields": [
+        {
+          "key": "title",
+          "label": "故障标题",
+          "type": "text",
+          "placeholder": "如：充电桩无法启动",
+          "optional": false
+        },
+        {
+          "key": "field_a",
+          "label": "充电桩编号",
+          "type": "text",
+          "placeholder": "输入桩编号",
+          "optional": false
+        },
+        {
+          "key": "field_b",
+          "label": "故障描述",
+          "type": "textarea",
+          "placeholder": "详细描述故障现象",
+          "optional": false
+        },
+        {
+          "key": "field_c",
+          "label": "报修人",
+          "type": "text",
+          "placeholder": "姓名",
+          "optional": false
+        }
+      ]
+    },
+    {
+      "name": "年检到期提醒",
+      "category": "充电年检",
+      "capability_key": "auto_charge",
+      "pages": "notify",
+      "problem": "车辆年检到期易遗忘，导致逾期处罚，通过自动提醒通知车主及时年检，闭环于车辆年检到期库。",
+      "page_kind": "notify",
+      "default_category": "annual_inspection",
+      "form_headline": "",
+      "fields": []
+    },
+    {
+      "name": "保险到期续保",
+      "category": "充电年检",
+      "capability_key": "sales_lead",
+      "pages": "form+list",
+      "problem": "保险到期前未及时续保，风险高，通过表单收集续保意向并跟进，闭环于保险续保线索库。",
+      "page_kind": "form_list",
+      "default_category": "insurance_renewal",
+      "form_headline": "保险续保登记",
+      "fields": [
+        {
+          "key": "title",
+          "label": "车牌号",
+          "type": "text",
+          "placeholder": "如：京A12345",
+          "optional": false
+        },
+        {
+          "key": "field_a",
+          "label": "保险到期日",
+          "type": "date",
+          "placeholder": "选择日期",
+          "optional": false
+        },
+        {
+          "key": "field_b",
+          "label": "联系电话",
+          "type": "text",
+          "placeholder": "手机号",
+          "optional": false
+        }
+      ]
+    },
+    {
+      "name": "ETC异常处理",
+      "category": "充电年检",
+      "capability_key": "chat_qa",
+      "pages": "chat+kb",
+      "problem": "ETC扣费异常、设备故障等问题咨询量大，通过知识库问答快速解答，闭环于ETC常见问题知识库。",
+      "page_kind": "chat_kb",
+      "default_category": "etc_issues",
+      "form_headline": "",
+      "fields": []
+    },
+    {
+      "name": "事故定损单",
+      "category": "理赔协同",
+      "capability_key": "auto_claim",
+      "pages": "form+list",
+      "problem": "事故现场定损信息分散，手工录入易错，无法统一跟踪定损进度。通过定损单表单录入车辆信息、损失部位和预估金额，系统自动汇总并关联理赔案件，实现定损全流程闭环。",
+      "page_kind": "form_list",
+      "default_category": "claim",
+      "form_headline": "事故定损单",
+      "fields": [
+        {
+          "key": "title",
+          "label": "案件编号",
+          "type": "text",
+          "placeholder": "如 CL-2025-001",
+          "optional": false
+        },
+        {
+          "key": "field_a",
+          "label": "车牌号",
+          "type": "text",
+          "placeholder": "如 沪A12345",
+          "optional": false
+        },
+        {
+          "key": "field_b",
+          "label": "损失部位",
+          "type": "text",
+          "placeholder": "如 前保险杠、左前大灯",
+          "optional": false
+        },
+        {
+          "key": "field_c",
+          "label": "预估金额",
+          "type": "number",
+          "placeholder": "单位：元",
+          "optional": false
+        }
+      ]
+    },
+    {
+      "name": "代步车安排",
+      "category": "理赔协同",
+      "capability_key": "auto_claim",
+      "pages": "form+list",
+      "problem": "理赔期间客户代步车需求无法及时响应，车辆调度混乱。通过代步车安排表单记录客户信息和用车时段，系统自动匹配可用车辆并生成调度任务，提升客户满意度。",
+      "page_kind": "form_list",
+      "default_category": "claim",
+      "form_headline": "代步车安排",
+      "fields": [
+        {
+          "key": "title",
+          "label": "客户姓名",
+          "type": "text",
+          "placeholder": "如 张三",
+          "optional": false
+        },
+        {
+          "key": "field_a",
+          "label": "联系电话",
+          "type": "text",
+          "placeholder": "如 13800138000",
+          "optional": false
+        },
+        {
+          "key": "field_b",
+          "label": "用车起止时间",
+          "type": "text",
+          "placeholder": "如 2025-03-01 至 2025-03-07",
+          "optional": false
+        }
+      ]
+    },
+    {
+      "name": "理赔进度看板",
+      "category": "理赔协同",
+      "capability_key": "auto_claim",
+      "pages": "chart",
+      "problem": "理赔案件进度不透明，管理层无法实时掌握整体理赔效率。通过理赔进度看板展示各环节案件数量、平均处理时长和超期案件，辅助决策优化流程。",
+      "page_kind": "chart",
+      "default_category": "claim",
+      "form_headline": "",
+      "fields": []
+    },
+    {
+      "name": "保险公司对接",
+      "category": "理赔协同",
+      "capability_key": "notify_im",
+      "pages": "notify",
+      "problem": "理赔资料需人工发送给保险公司，效率低且易遗漏。通过系统自动将定损单、照片等资料推送至保险公司对接人，并实时通知确认状态，减少沟通成本。",
+      "page_kind": "notify",
+      "default_category": "claim",
+      "form_headline": "",
+      "fields": []
+    }
+  ],
+  "scene_count": 28,
+  "source": "deepseek_vertical_batch+kind_split"
+}

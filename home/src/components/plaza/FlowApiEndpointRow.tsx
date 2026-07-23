@@ -123,7 +123,7 @@ export default function FlowApiEndpointRow({
             type="button"
             className="btn-ghost-sm"
             disabled={testing || testDisabled}
-            title={testDisabled ? '联调测试请在 Runtime 进行' : undefined}
+            title={testDisabled ? '当前不可测试' : '向该接口发起一次探测请求'}
             onClick={() => void runTest()}
           >
             {testing ? '测试中…' : '测试'}
@@ -155,9 +155,6 @@ export default function FlowApiEndpointRow({
         </div>
       )}
 
-      {testDisabled && (
-        <p className="plaza-flow-api-lock">只读契约 · 联调请打开 Runtime</p>
-      )}
       {testResult && (
         <pre className={`plaza-flow-api-test${testResult.ok ? ' ok' : ' err'}`} aria-live="polite">
           {testResult.status > 0 ? `HTTP ${testResult.status} · ${testResult.ms}ms\n` : ''}

@@ -31,4 +31,6 @@ export const ROUTES = {
   /** 行业静态落地页 HTML（非 SPA 目录） */
   industrySiteHtml: (packKey: string) => `/industry-sites/${packKey}/index.html`,
   contactDemo: '/#contact-demo',
+  /** 首页「在线体验」创建工作室 */
+  contactCreate: '/#contact-create',
 } as const

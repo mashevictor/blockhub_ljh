@@ -1,0 +1,124 @@
+{
+  "yesterday_diff_summary": [
+    "目的/方法优先，非漏斗硬塞获客（录入/分配/清洗/公海/评分/转介绍）",
+    "角色视图：一线销售/销售主管/市场看到不同首页与动作",
+    "真库 sales_lead + 渠道 source 聚合；跟进成交降为二级漏斗",
+    "Runtime 用 GtgtStepComposer 单字段推进；空库空列表"
+  ],
+  "geo_core_logic": "通过API调用豆包/DeepSeek/Kimi/ChatGPT等AI的生成式引擎，在用户提问时动态注入品牌信息，并捕获引用来源生成线索，存入sales_lead表，source标记为'geo'",
+  "features": [
+    {
+      "id": "F1",
+      "name": "GEO智能获客主路径",
+      "one_liner": "一键配置AI品牌提示词，自动捕获AI回答中的品牌引用并生成线索",
+      "why_diff": "传统CRM被动等待录入，GEO主动在AI对话中植入品牌并捕获咨询",
+      "who": "市场人员、销售主管",
+      "page_layout": [
+        "顶部：GEO配置面板（品牌关键词、提示词模板、目标AI列表）",
+        "中部：实时捕获流（显示AI回答片段、引用来源、时间戳）",
+        "底部：线索预览列表（从捕获流中筛选确认的线索）"
+      ],
+      "gtgt_steps": [
+        {
+          "key": "brand_keywords",
+          "label": "品牌关键词（逗号分隔）"
+        },
+        {
+          "key": "prompt_template",
+          "label": "提示词模板（如：推荐XX品牌）"
+        },
+        {
+          "key": "target_ais",
+          "label": "目标AI（豆包/DeepSeek/Kimi/ChatGPT）"
+        },
+        {
+          "key": "capture_interval",
+          "label": "捕获间隔（秒）"
+        },
+        {
+          "key": "auto_convert",
+          "label": "自动转为线索（是/否）"
+        }
+      ],
+      "landable_logic": "后端服务定时调用各AI的公开API（如OpenAI Chat Completion），在请求中嵌入提示词模板，解析返回文本中的品牌提及，通过正则匹配品牌关键词，匹配成功则调用内部API插入sales_lead表，source='geo'，同时记录引用原文到capture_log表",
+      "anti_fake": "空库时捕获流显示'暂无捕获，请检查API配置或品牌关键词'，线索列表为空列表，不展示任何假数据"
+    },
+    {
+      "id": "F2",
+      "name": "GEO线索质量评分",
+      "one_liner": "根据AI引用上下文和用户意图自动评分，优先高意向线索",
+      "why_diff": "传统评分依赖手动标签，GEO评分基于AI语义分析实时计算",
+      "who": "一线销售、销售主管",
+      "page_layout": [
+        "顶部：评分筛选器（按分数区间、AI来源、时间）",
+        "中部：线索卡片列表（显示评分、引用摘要、AI来源图标）",
+        "底部：评分详情弹窗（显示上下文片段、意图标签）"
+      ],
+      "gtgt_steps": [],
+      "landable_logic": "在sales_lead表新增score字段，后端通过调用AI API对引用上下文进行情感分析（如使用DeepSeek的文本分类），返回0-100分数，更新score字段；前端按分数排序显示",
+      "anti_fake": "空库时显示'暂无评分线索'，列表为空，不展示任何默认分数"
+    },
+    {
+      "id": "F3",
+      "name": "GEO渠道归因分析",
+      "one_liner": "追踪每条线索来自哪个AI及具体对话，分析渠道ROI",
+      "why_diff": "传统CRM渠道归因模糊，GEO精确到AI对话级来源",
+      "who": "市场人员、销售主管",
+      "page_layout": [
+        "顶部：渠道概览仪表盘（各AI来源线索数、转化率柱状图）",
+        "中部：来源明细表（AI名称、对话ID、引用次数、线索数）",
+        "底部：单渠道下钻（点击后显示该AI所有引用记录）"
+      ],
+      "gtgt_steps": [],
+      "landable_logic": "sales_lead表已有source字段，新增ai_source和conversation_id字段；后端聚合查询按ai_source分组统计，前端用ECharts渲染图表",
+      "anti_fake": "空库时仪表盘显示'暂无数据'，图表为空，不展示任何模拟数据"
+    },
+    {
+      "id": "F4",
+      "name": "GEO线索一键跟进",
+      "one_liner": "从捕获流中直接点击线索，自动创建跟进任务并通知销售",
+      "why_diff": "传统线索跟进需手动录入，GEO线索一键触发工作流",
+      "who": "一线销售",
+      "page_layout": [
+        "顶部：待跟进线索列表（按时间倒序，显示引用摘要）",
+        "中部：线索详情（引用原文、AI来源、建议话术）",
+        "底部：操作按钮（创建任务、分配销售、发送通知）"
+      ],
+      "gtgt_steps": [
+        {
+          "key": "assign_to",
+          "label": "分配给（销售姓名）"
+        },
+        {
+          "key": "priority",
+          "label": "优先级（高/中/低）"
+        },
+        {
+          "key": "due_date",
+          "label": "截止日期"
+        },
+        {
+          "key": "note",
+          "label": "跟进备注"
+        }
+      ],
+      "landable_logic": "点击后调用内部API创建task表记录，关联sales_lead_id，并通过WebSocket或邮件通知对应销售；task表字段包括lead_id, assignee, priority, due_date, status",
+      "anti_fake": "空库时列表显示'暂无待跟进线索'，按钮不可用，不展示任何假任务"
+    },
+    {
+      "id": "F5",
+      "name": "GEO效果报告",
+      "one_liner": "自动生成GEO获客周报，展示引用量、线索转化、成本估算",
+      "why_diff": "传统报告手动汇总，GEO报告自动从数据库聚合实时生成",
+      "who": "市场人员、销售主管",
+      "page_layout": [
+        "顶部：报告时间范围选择器（周/月/自定义）",
+        "中部：关键指标卡片（引用次数、线索数、转化率、预估成本）",
+        "底部：趋势折线图（按天显示引用和线索变化）"
+      ],
+      "gtgt_steps": [],
+      "landable_logic": "后端定时任务（如cron）从capture_log表和sales_lead表聚合数据，按天统计引用次数和线索数，存入report_summary表；前端请求API获取数据，用Chart.js渲染趋势图；成本估算基于各AI API定价（如OpenAI每千token成本）",
+      "anti_fake": "空库时报告显示'无数据，请先配置GEO获客'，所有指标为0，图表为空"
+    }
+  ]
+}

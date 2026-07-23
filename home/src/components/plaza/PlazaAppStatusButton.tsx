@@ -215,7 +215,7 @@ export default function PlazaAppStatusButton({
       {open && (
         <div className="plaza-app-status-popover" role="dialog" aria-label={`${app.appName} 状态`}>
           <DeliveryProgress app={app} compact />
-          <p className="plaza-app-status-hint">底部为只读概览；改模块请打开 Runtime。可在此启动流程预览。</p>
+          <p className="plaza-app-status-hint">可问答与测接口；改模块请打开 Runtime。可在此启动流程预览。</p>
           {onOpenDetail && (
             <button
               type="button"

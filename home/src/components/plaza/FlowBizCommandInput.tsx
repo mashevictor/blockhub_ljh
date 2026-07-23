@@ -62,6 +62,7 @@ const QUICK: BizQuickChip[] = [
   { cat: 'dev', label: '打开知识库问答', text: '打开知识库问答' },
   { cat: 'ops', label: '打开 Runtime 改页', text: '打开 Runtime' },
   { cat: 'test', label: '流程预览走一遍', text: '流程预览' },
+  { cat: 'test', label: '测一下当前接口', text: '测试' },
   { cat: 'ops', label: '停止预览', text: '停止预览' },
   { cat: 'ops', label: '生成联调检查清单', text: '生成联调检查清单' },
 ]
@@ -109,7 +110,7 @@ const FlowBizCommandInput = forwardRef<FlowBizCommandHandle, Props>(function Flo
   inputApi = null,
   outputApi = null,
   onInsert: _onInsert,
-  onInvoke: _onInvoke,
+  onInvoke,
   onAnalyze,
   onNote: _onNote,
   onOpenNode,
@@ -255,13 +256,15 @@ const FlowBizCommandInput = forwardRef<FlowBizCommandHandle, Props>(function Flo
       }
     }
 
-    // —— 接口 / 插入：广场只读，引导 Runtime ——
+    // —— 接口测试 / curl：广场允许 ——
     if (/测试\s*out|回归测.*out|测一下\s*out|测试\s*输出/i.test(text)) {
-      finish('接口联调请打开 Runtime；此处仅展示契约', false)
+      onInvoke('output')
+      finish('已触发 OUT 接口测试')
       return
     }
     if (/^(调用|测试|测)(\s|$)/.test(text) || /测试|测接口|测一下\s*in|调用模块|联调/.test(text)) {
-      finish('接口联调请打开 Runtime；此处为只读概览', false)
+      onInvoke(/out|输出/i.test(text) ? 'output' : 'input')
+      finish('已触发接口测试')
       return
     }
     if (/复制\s*curl|拷贝\s*curl|给我 curl/i.test(text)) {
@@ -270,13 +273,13 @@ const FlowBizCommandInput = forwardRef<FlowBizCommandHandle, Props>(function Flo
         finish('请先选中一个节点', false)
         return
       }
-      void copyText(buildApiCurl(api)).then(() => finish('已复制当前侧重侧 curl（只读契约）'))
+      void copyText(buildApiCurl(api)).then(() => finish('已复制当前侧重侧 curl'))
       return
     }
 
-    // —— 插入 ——
+    // —— 插入：禁止改结构 ——
     if (/^(插入|加|添加)/.test(text) || /插入|添加模块|加一个/.test(text)) {
-      finish('增删模块请打开 Runtime 对话改页（本页只读）', false)
+      finish('增删模块请打开 Runtime 对话改页（本页不可改结构）', false)
       return
     }
 
@@ -322,6 +325,7 @@ const FlowBizCommandInput = forwardRef<FlowBizCommandHandle, Props>(function Flo
     commandProfile,
     inputApi,
     outputApi,
+    onInvoke,
     onAnalyze,
     onOpenNode,
     onStartTrial,
@@ -379,11 +383,6 @@ const FlowBizCommandInput = forwardRef<FlowBizCommandHandle, Props>(function Flo
         </button>
       </div>
 
-      {mutateLocked && (
-        <p className="plaza-biz-cmd-lock">
-          只读概览 · 可问答 / 流程预览；增删改与联调请打开 Runtime 对话改页
-        </p>
-      )}
       {!disabled && hint && <p className="plaza-biz-cmd-hint">{hint}</p>}
 
       {!disabled && menuOpen && (

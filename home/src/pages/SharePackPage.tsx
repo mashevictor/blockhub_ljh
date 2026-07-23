@@ -102,9 +102,9 @@ export default function SharePackPage() {
                 </Link>
               </li>
               <li>
-                <a href={ROUTES.contactDemo} className="b2b-nav-pill marketing-site-nav-cta">
+                <a href={ROUTES.contactCreate} className="b2b-nav-pill marketing-site-nav-cta">
                   <AgentChevronGlyph size="nav" className="b2b-nav-chev" />
-                  <span className="b2b-nav-label">预约演示</span>
+                  <span className="b2b-nav-label">在线体验</span>
                 </a>
               </li>
             </ul>
@@ -176,8 +176,8 @@ export default function SharePackPage() {
               {pack.artifacts.map((item) => (
                 <ArtifactRow key={item.id} item={item} />
               ))}
-              <Link to={`${ROUTES.home}#contact-demo`} className="b2b-btn-primary agent-action-btn share-pack-cta">
-                <AgentButtonContent trailing={false}>预约专场演示</AgentButtonContent>
+              <Link to={`${ROUTES.home}#contact-create`} className="b2b-btn-primary agent-action-btn share-pack-cta">
+                <AgentButtonContent trailing={false}>在线体验</AgentButtonContent>
               </Link>
             </aside>
           </div>

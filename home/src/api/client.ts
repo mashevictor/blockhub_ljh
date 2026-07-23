@@ -386,7 +386,7 @@ export async function publishApp(
     return res.data
   } catch (err) {
     const { handleQuotaOrThrow } = await import('../lib/quotaUpgrade')
-    handleQuotaOrThrow(err)
+    return handleQuotaOrThrow(err)
   }
 }
 

@@ -217,11 +217,11 @@ export default function PlazaOrchestrationOverlay({
           <p className="plaza-orch-tab-hint">
             {bodyTab === 'flow'
               ? shanghai
-                ? '只读查看上海话等用户可感知能力；可流程预览。改模块请打开 Runtime。'
-                : '只读查看功能能力与流程预览；增删改请打开 Runtime 对话改页。'
+                ? '查看上海话等用户可感知能力；可流程预览。改模块请打开 Runtime。'
+                : '查看功能能力与流程预览；增删模块请打开 Runtime 对话改页。'
               : shanghai
-                ? '真链路契约只读展示；联调请在 Runtime 进行。'
-                : '查看各节点 REST 契约（只读）；联调测试请在 Runtime。'}
+                ? '真链路契约可测；改结构请在 Runtime 进行。'
+                : '查看各节点 REST 契约 · 可复制 curl / 测试；改结构请打开 Runtime。'}
           </p>
 
           {bodyTab === 'api' && shanghai && (

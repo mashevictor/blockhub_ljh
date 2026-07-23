@@ -275,7 +275,7 @@ export default function PlazaFeedPage() {
           </a>
         </div>
         <p className="plaza-main-hint plaza-main-hint--full">
-          功能与数据轨为只读概览；改模块请打开 Runtime。底部可流程预览（本地动画）。
+          功能与数据轨可查看与测接口；改模块请打开 Runtime。底部可流程预览（本地动画）。
         </p>
         <p className="plaza-main-hint plaza-main-hint--short">本应用概览 · 只读 · 改页进 Runtime</p>
         <PlazaDualRailFlowPanel

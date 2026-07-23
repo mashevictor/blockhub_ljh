@@ -1,0 +1,1033 @@
+{
+  "industry_key": "hr",
+  "industry_name": "人力资源",
+  "scenes": [
+    {
+      "name": "岗位发布",
+      "category": "招聘入职",
+      "capability_key": "hire_onboard",
+      "pages": "form+list",
+      "problem": "招聘需求分散，岗位发布流程长，需统一管理岗位信息并同步至招聘渠道",
+      "page_kind": "form_list",
+      "default_category": "recruitment",
+      "form_headline": "发布新岗位",
+      "fields": [
+        {
+          "key": "title",
+          "label": "岗位名称",
+          "type": "text",
+          "placeholder": "如：高级Java工程师",
+          "optional": false
+        },
+        {
+          "key": "field_a",
+          "label": "招聘人数",
+          "type": "number",
+          "placeholder": "如：2",
+          "optional": false
+        },
+        {
+          "key": "field_b",
+          "label": "岗位描述",
+          "type": "textarea",
+          "placeholder": "岗位职责与要求",
+          "optional": false
+        }
+      ]
+    },
+    {
+      "name": "简历筛选",
+      "category": "招聘入职",
+      "capability_key": "hr_offer",
+      "pages": "chat+kb",
+      "problem": "简历量大，人工筛选效率低，需智能匹配岗位要求并记录筛选结果",
+      "page_kind": "chat_kb",
+      "default_category": "recruitment",
+      "form_headline": "",
+      "fields": []
+    },
+    {
+      "name": "面试评价",
+      "category": "招聘入职",
+      "capability_key": "hr_offer",
+      "pages": "form+list",
+      "problem": "面试评价标准不一，反馈分散，需结构化记录面试结果并关联候选人",
+      "page_kind": "form_list",
+      "default_category": "recruitment",
+      "form_headline": "面试评价",
+      "fields": [
+        {
+          "key": "title",
+          "label": "候选人姓名",
+          "type": "text",
+          "placeholder": "如：张三",
+          "optional": false
+        },
+        {
+          "key": "field_a",
+          "label": "面试评分",
+          "type": "number",
+          "placeholder": "1-10分",
+          "optional": false
+        },
+        {
+          "key": "field_b",
+          "label": "综合评价",
+          "type": "textarea",
+          "placeholder": "优点与不足",
+          "optional": false
+        }
+      ]
+    },
+    {
+      "name": "Offer审批",
+      "category": "招聘入职",
+      "capability_key": "hr_offer",
+      "pages": "form+list",
+      "problem": "Offer审批流程繁琐，薪资信息需保密，需在线提交并跟踪审批状态",
+      "page_kind": "form_list",
+      "default_category": "recruitment",
+      "form_headline": "Offer审批",
+      "fields": [
+        {
+          "key": "title",
+          "label": "候选人姓名",
+          "type": "text",
+          "placeholder": "如：李四",
+          "optional": false
+        },
+        {
+          "key": "field_a",
+          "label": "拟录用岗位",
+          "type": "text",
+          "placeholder": "如：产品经理",
+          "optional": false
+        },
+        {
+          "key": "field_b",
+          "label": "薪资方案",
+          "type": "textarea",
+          "placeholder": "基本工资、奖金等",
+          "optional": false
+        }
+      ]
+    },
+    {
+      "name": "入职指引",
+      "category": "招聘入职",
+      "capability_key": "hire_onboard",
+      "pages": "chat+kb",
+      "problem": "新员工入职信息零散，需集中提供入职流程、材料清单及常见问题解答",
+      "page_kind": "chat_kb",
+      "default_category": "recruitment",
+      "form_headline": "",
+      "fields": []
+    },
+    {
+      "name": "试用期转正",
+      "category": "招聘入职",
+      "capability_key": "hr_offer",
+      "pages": "form+list",
+      "problem": "试用期评估缺乏标准，转正审批需收集多方意见并记录结果",
+      "page_kind": "form_list",
+      "default_category": "recruitment",
+      "form_headline": "试用期转正申请",
+      "fields": [
+        {
+          "key": "title",
+          "label": "员工姓名",
+          "type": "text",
+          "placeholder": "如：王五",
+          "optional": false
+        },
+        {
+          "key": "field_a",
+          "label": "试用期表现",
+          "type": "textarea",
+          "placeholder": "工作业绩、态度等",
+          "optional": false
+        },
+        {
+          "key": "field_b",
+          "label": "转正建议",
+          "type": "text",
+          "placeholder": "同意/延长/终止",
+          "optional": false
+        }
+      ]
+    },
+    {
+      "name": "目标制定",
+      "category": "绩效校准",
+      "capability_key": "hr_perf",
+      "pages": "form+list",
+      "problem": "员工目标与公司战略脱节，手动收集效率低，系统自动对齐并生成目标列表",
+      "page_kind": "form_list",
+      "default_category": "performance",
+      "form_headline": "制定绩效目标",
+      "fields": [
+        {
+          "key": "title",
+          "label": "目标名称",
+          "type": "text",
+          "placeholder": "如：提升客户满意度",
+          "optional": false
+        },
+        {
+          "key": "field_a",
+          "label": "目标类型",
+          "type": "text",
+          "placeholder": "业务/管理/个人发展",
+          "optional": false
+        },
+        {
+          "key": "field_b",
+          "label": "权重(%)",
+          "type": "number",
+          "placeholder": "0-100",
+          "optional": false
+        }
+      ]
+    },
+    {
+      "name": "绩效自评",
+      "category": "绩效校准",
+      "capability_key": "hr_perf",
+      "pages": "form+list",
+      "problem": "员工自评缺乏模板指引，结果参差不齐，系统提供结构化表单并汇总",
+      "page_kind": "form_list",
+      "default_category": "performance",
+      "form_headline": "绩效自评",
+      "fields": [
+        {
+          "key": "title",
+          "label": "目标",
+          "type": "text",
+          "placeholder": "引用已制定目标",
+          "optional": false
+        },
+        {
+          "key": "field_a",
+          "label": "完成情况",
+          "type": "textarea",
+          "placeholder": "描述实际成果",
+          "optional": false
+        },
+        {
+          "key": "field_b",
+          "label": "自评分数",
+          "type": "number",
+          "placeholder": "1-5",
+          "optional": false
+        }
+      ]
+    },
+    {
+      "name": "上级评分",
+      "category": "绩效校准",
+      "capability_key": "hr_perf",
+      "pages": "form+list",
+      "problem": "上级评分标准不一，缺乏历史参考，系统提供评分表单并记录校准依据",
+      "page_kind": "form_list",
+      "default_category": "performance",
+      "form_headline": "上级评分",
+      "fields": [
+        {
+          "key": "title",
+          "label": "员工姓名",
+          "type": "text",
+          "placeholder": "选择员工",
+          "optional": false
+        },
+        {
+          "key": "field_a",
+          "label": "评分",
+          "type": "number",
+          "placeholder": "1-5",
+          "optional": false
+        },
+        {
+          "key": "field_b",
+          "label": "评语",
+          "type": "textarea",
+          "placeholder": "评分依据",
+          "optional": false
+        }
+      ]
+    },
+    {
+      "name": "校准会议",
+      "category": "绩效校准",
+      "capability_key": "hr_perf",
+      "pages": "form+list",
+      "problem": "校准会议缺乏数据支撑，讨论低效，系统提供校准记录表单与结果汇总",
+      "page_kind": "form_list",
+      "default_category": "performance",
+      "form_headline": "校准会议记录",
+      "fields": [
+        {
+          "key": "title",
+          "label": "会议主题",
+          "type": "text",
+          "placeholder": "如：Q1校准",
+          "optional": false
+        },
+        {
+          "key": "field_a",
+          "label": "调整建议",
+          "type": "textarea",
+          "placeholder": "分数/等级调整",
+          "optional": false
+        },
+        {
+          "key": "field_b",
+          "label": "最终结果",
+          "type": "text",
+          "placeholder": "A/B/C/D",
+          "optional": false
+        }
+      ]
+    },
+    {
+      "name": "绩效面谈",
+      "category": "绩效校准",
+      "capability_key": "hr_perf",
+      "pages": "form+list",
+      "problem": "面谈记录零散，改进计划无法跟踪，系统提供面谈表单与改进计划列表",
+      "page_kind": "form_list",
+      "default_category": "performance",
+      "form_headline": "绩效面谈记录",
+      "fields": [
+        {
+          "key": "title",
+          "label": "员工姓名",
+          "type": "text",
+          "placeholder": "选择员工",
+          "optional": false
+        },
+        {
+          "key": "field_a",
+          "label": "面谈要点",
+          "type": "textarea",
+          "placeholder": "沟通内容",
+          "optional": false
+        },
+        {
+          "key": "field_b",
+          "label": "改进计划",
+          "type": "textarea",
+          "placeholder": "具体行动",
+          "optional": false
+        }
+      ]
+    },
+    {
+      "name": "培训报名",
+      "category": "培训发展",
+      "capability_key": "hr_training",
+      "page_kind": "form_list",
+      "problem": "员工线下填表报名效率低，管理员手动汇总易出错；通过表单收集报名信息并自动汇总到培训名单库。",
+      "default_category": "training",
+      "form_headline": "培训报名",
+      "fields": [
+        {
+          "key": "title",
+          "label": "培训名称",
+          "type": "text",
+          "placeholder": "请输入培训名称",
+          "optional": false
+        },
+        {
+          "key": "field_a",
+          "label": "员工姓名",
+          "type": "text",
+          "placeholder": "请输入姓名",
+          "optional": false
+        },
+        {
+          "key": "field_b",
+          "label": "部门",
+          "type": "text",
+          "placeholder": "请输入部门",
+          "optional": false
+        }
+      ]
+    },
+    {
+      "name": "培训签到",
+      "category": "培训发展",
+      "capability_key": "hr_training",
+      "page_kind": "form_list",
+      "problem": "纸质签到效率低、易代签；通过扫码或链接签到，数据自动记录到培训出勤库。",
+      "default_category": "training",
+      "form_headline": "培训签到",
+      "fields": [
+        {
+          "key": "title",
+          "label": "培训名称",
+          "type": "text",
+          "placeholder": "请输入培训名称",
+          "optional": false
+        },
+        {
+          "key": "field_a",
+          "label": "员工编号",
+          "type": "text",
+          "placeholder": "请输入工号",
+          "optional": false
+        },
+        {
+          "key": "field_b",
+          "label": "签到时间",
+          "type": "text",
+          "placeholder": "自动获取",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "name": "考试成绩录入",
+      "category": "培训发展",
+      "capability_key": "hr_training",
+      "page_kind": "form_list",
+      "problem": "考试成绩分散在纸质或Excel中，无法统一查询；通过表单录入成绩并关联培训记录，形成员工培训档案。",
+      "default_category": "training",
+      "form_headline": "考试成绩录入",
+      "fields": [
+        {
+          "key": "title",
+          "label": "培训名称",
+          "type": "text",
+          "placeholder": "请输入培训名称",
+          "optional": false
+        },
+        {
+          "key": "field_a",
+          "label": "员工姓名",
+          "type": "text",
+          "placeholder": "请输入姓名",
+          "optional": false
+        },
+        {
+          "key": "field_b",
+          "label": "成绩",
+          "type": "number",
+          "placeholder": "请输入分数",
+          "optional": false
+        }
+      ]
+    },
+    {
+      "name": "内训讲师库",
+      "category": "培训发展",
+      "capability_key": "hr_idp",
+      "page_kind": "form_list",
+      "problem": "内训讲师信息分散，排课需反复沟通；通过表单登记讲师信息并形成讲师库，支持按课程领域检索。",
+      "default_category": "training",
+      "form_headline": "内训讲师登记",
+      "fields": [
+        {
+          "key": "title",
+          "label": "讲师姓名",
+          "type": "text",
+          "placeholder": "请输入姓名",
+          "optional": false
+        },
+        {
+          "key": "field_a",
+          "label": "擅长课程",
+          "type": "text",
+          "placeholder": "如：领导力、沟通技巧",
+          "optional": false
+        },
+        {
+          "key": "field_b",
+          "label": "部门",
+          "type": "text",
+          "placeholder": "请输入部门",
+          "optional": false
+        }
+      ]
+    },
+    {
+      "name": "IDP个人发展",
+      "category": "培训发展",
+      "capability_key": "hr_idp",
+      "page_kind": "form_list",
+      "problem": "员工个人发展计划缺乏系统记录，管理者无法跟踪进展；通过表单提交IDP并关联培训资源，形成发展档案。",
+      "default_category": "training",
+      "form_headline": "个人发展计划",
+      "fields": [
+        {
+          "key": "title",
+          "label": "发展目标",
+          "type": "text",
+          "placeholder": "请输入发展目标",
+          "optional": false
+        },
+        {
+          "key": "field_a",
+          "label": "行动计划",
+          "type": "textarea",
+          "placeholder": "请描述具体行动",
+          "optional": false
+        },
+        {
+          "key": "field_b",
+          "label": "期望完成日期",
+          "type": "date",
+          "placeholder": "请选择日期",
+          "optional": false
+        }
+      ]
+    },
+    {
+      "name": "编制申请",
+      "category": "组织编制",
+      "capability_key": "hr_headcount",
+      "pages": "form+list",
+      "problem": "业务部门新增岗位需逐级审批，纸质流程慢且易丢失，系统自动流转至HRBP与财务，实时更新编制池。",
+      "page_kind": "form_list",
+      "default_category": "headcount",
+      "form_headline": "编制申请",
+      "fields": [
+        {
+          "key": "title",
+          "label": "申请标题",
+          "type": "text",
+          "placeholder": "如：2025年Q1研发新增",
+          "optional": false
+        },
+        {
+          "key": "field_a",
+          "label": "需求人数",
+          "type": "number",
+          "placeholder": "请输入人数",
+          "optional": false
+        },
+        {
+          "key": "field_b",
+          "label": "岗位名称",
+          "type": "text",
+          "placeholder": "如：高级Java工程师",
+          "optional": false
+        },
+        {
+          "key": "note",
+          "label": "申请理由",
+          "type": "textarea",
+          "placeholder": "说明业务增长原因",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "name": "异动调岗",
+      "category": "组织编制",
+      "capability_key": "hr_headcount",
+      "pages": "form+list",
+      "problem": "员工跨部门调动需多部门确认，线下沟通易遗漏，系统自动触发调出/调入部门审批并更新组织树。",
+      "page_kind": "form_list",
+      "default_category": "headcount",
+      "form_headline": "异动调岗申请",
+      "fields": [
+        {
+          "key": "title",
+          "label": "员工姓名",
+          "type": "text",
+          "placeholder": "请输入员工姓名",
+          "optional": false
+        },
+        {
+          "key": "field_a",
+          "label": "目标部门",
+          "type": "text",
+          "placeholder": "如：技术部-后端组",
+          "optional": false
+        },
+        {
+          "key": "field_b",
+          "label": "生效日期",
+          "type": "date",
+          "placeholder": "选择日期",
+          "optional": false
+        },
+        {
+          "key": "note",
+          "label": "调岗原因",
+          "type": "textarea",
+          "placeholder": "如：业务重组",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "name": "兼岗登记",
+      "category": "组织编制",
+      "capability_key": "hr_headcount",
+      "pages": "form+list",
+      "problem": "员工兼任多岗缺乏记录，薪酬核算易出错，系统登记兼岗信息并关联薪酬规则。",
+      "page_kind": "form_list",
+      "default_category": "headcount",
+      "form_headline": "兼岗登记",
+      "fields": [
+        {
+          "key": "title",
+          "label": "员工姓名",
+          "type": "text",
+          "placeholder": "请输入员工姓名",
+          "optional": false
+        },
+        {
+          "key": "field_a",
+          "label": "兼岗岗位",
+          "type": "text",
+          "placeholder": "如：项目助理",
+          "optional": false
+        },
+        {
+          "key": "field_b",
+          "label": "兼岗补贴",
+          "type": "number",
+          "placeholder": "每月补贴金额",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "name": "组织架构变更",
+      "category": "组织编制",
+      "capability_key": "hr_headcount",
+      "pages": "form+list",
+      "problem": "部门合并/拆分需更新系统组织树，手工维护易混乱，系统提交变更申请后自动同步至所有HR模块。",
+      "page_kind": "form_list",
+      "default_category": "headcount",
+      "form_headline": "组织架构变更申请",
+      "fields": [
+        {
+          "key": "title",
+          "label": "变更类型",
+          "type": "text",
+          "placeholder": "如：合并、拆分、新增",
+          "optional": false
+        },
+        {
+          "key": "field_a",
+          "label": "涉及部门",
+          "type": "text",
+          "placeholder": "如：销售一部、销售二部",
+          "optional": false
+        },
+        {
+          "key": "field_b",
+          "label": "生效日期",
+          "type": "date",
+          "placeholder": "选择日期",
+          "optional": false
+        },
+        {
+          "key": "note",
+          "label": "变更说明",
+          "type": "textarea",
+          "placeholder": "详细描述调整方案",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "name": "职级晋升",
+      "category": "组织编制",
+      "capability_key": "hr_perf",
+      "pages": "form+list",
+      "problem": "晋升流程依赖纸质材料，评审进度不透明，系统集成绩效数据自动触发晋升审批并更新职级。",
+      "page_kind": "form_list",
+      "default_category": "performance",
+      "form_headline": "职级晋升申请",
+      "fields": [
+        {
+          "key": "title",
+          "label": "员工姓名",
+          "type": "text",
+          "placeholder": "请输入员工姓名",
+          "optional": false
+        },
+        {
+          "key": "field_a",
+          "label": "当前职级",
+          "type": "text",
+          "placeholder": "如：P6",
+          "optional": false
+        },
+        {
+          "key": "field_b",
+          "label": "目标职级",
+          "type": "text",
+          "placeholder": "如：P7",
+          "optional": false
+        },
+        {
+          "key": "note",
+          "label": "晋升理由",
+          "type": "textarea",
+          "placeholder": "业绩突出、能力达标等",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "name": "薪资异议申诉",
+      "category": "薪酬考勤",
+      "capability_key": "hr_payroll",
+      "pages": "form+list",
+      "problem": "员工对薪资明细有疑问时，缺乏结构化申诉渠道，HR需反复沟通确认，效率低。通过表单提交异议，HR后台处理并反馈，闭环管理。",
+      "page_kind": "form_list",
+      "default_category": "payroll",
+      "form_headline": "薪资异议申诉",
+      "fields": [
+        {
+          "key": "title",
+          "label": "申诉标题",
+          "type": "text",
+          "placeholder": "如：10月绩效奖金差异",
+          "optional": false
+        },
+        {
+          "key": "field_a",
+          "label": "薪资月份",
+          "type": "text",
+          "placeholder": "如：2025-10",
+          "optional": false
+        },
+        {
+          "key": "field_b",
+          "label": "异议项目",
+          "type": "text",
+          "placeholder": "如：基本工资、加班费",
+          "optional": false
+        },
+        {
+          "key": "note",
+          "label": "详细说明",
+          "type": "textarea",
+          "placeholder": "描述具体差异及期望结果",
+          "optional": false
+        }
+      ]
+    },
+    {
+      "name": "加班核算确认",
+      "category": "薪酬考勤",
+      "capability_key": "hr_payroll",
+      "pages": "form+list",
+      "problem": "加班时长与核算结果不一致时，员工无法在线确认或申诉，导致薪资发放延迟。通过表单提交确认或异议，HR统一处理。",
+      "page_kind": "form_list",
+      "default_category": "payroll",
+      "form_headline": "加班核算确认",
+      "fields": [
+        {
+          "key": "title",
+          "label": "加班日期",
+          "type": "text",
+          "placeholder": "如：2025-10-15",
+          "optional": false
+        },
+        {
+          "key": "field_a",
+          "label": "核算时长（小时）",
+          "type": "number",
+          "placeholder": "如：3.5",
+          "optional": false
+        },
+        {
+          "key": "field_b",
+          "label": "确认结果",
+          "type": "text",
+          "placeholder": "同意/异议",
+          "optional": false
+        },
+        {
+          "key": "note",
+          "label": "异议说明",
+          "type": "textarea",
+          "placeholder": "如与实际不符，请说明",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "name": "请假审批",
+      "category": "薪酬考勤",
+      "capability_key": "leave_request",
+      "pages": "form+list",
+      "problem": "请假流程依赖纸质或邮件，审批进度不透明，影响考勤统计。通过表单提交申请，自动流转审批，结果同步考勤系统。",
+      "page_kind": "form_list",
+      "default_category": "attendance",
+      "form_headline": "请假申请",
+      "fields": [
+        {
+          "key": "title",
+          "label": "请假类型",
+          "type": "text",
+          "placeholder": "年假/病假/事假",
+          "optional": false
+        },
+        {
+          "key": "field_a",
+          "label": "开始日期",
+          "type": "date",
+          "placeholder": "",
+          "optional": false
+        },
+        {
+          "key": "field_b",
+          "label": "结束日期",
+          "type": "date",
+          "placeholder": "",
+          "optional": false
+        },
+        {
+          "key": "note",
+          "label": "请假原因",
+          "type": "textarea",
+          "placeholder": "请说明",
+          "optional": false
+        }
+      ]
+    },
+    {
+      "name": "排班调班申请",
+      "category": "薪酬考勤",
+      "capability_key": "leave_request",
+      "pages": "form+list",
+      "problem": "排班变动需线下沟通，易出错且无记录。通过表单提交调班申请，主管审批后更新排班表，确保考勤准确。",
+      "page_kind": "form_list",
+      "default_category": "attendance",
+      "form_headline": "排班调班申请",
+      "fields": [
+        {
+          "key": "title",
+          "label": "调班类型",
+          "type": "text",
+          "placeholder": "换班/调休",
+          "optional": false
+        },
+        {
+          "key": "field_a",
+          "label": "原班次日期",
+          "type": "date",
+          "placeholder": "",
+          "optional": false
+        },
+        {
+          "key": "field_b",
+          "label": "目标班次日期",
+          "type": "date",
+          "placeholder": "",
+          "optional": false
+        },
+        {
+          "key": "note",
+          "label": "调班原因",
+          "type": "textarea",
+          "placeholder": "请说明",
+          "optional": false
+        }
+      ]
+    },
+    {
+      "name": "社保公积金变更",
+      "category": "薪酬考勤",
+      "capability_key": "hr_payroll",
+      "pages": "form+list",
+      "problem": "员工社保公积金基数或信息变更需线下填表，流程繁琐易错。通过表单提交变更申请，HR审核后更新系统，确保合规。",
+      "page_kind": "form_list",
+      "default_category": "payroll",
+      "form_headline": "社保公积金变更",
+      "fields": [
+        {
+          "key": "title",
+          "label": "变更类型",
+          "type": "text",
+          "placeholder": "基数调整/信息更正",
+          "optional": false
+        },
+        {
+          "key": "field_a",
+          "label": "变更项目",
+          "type": "text",
+          "placeholder": "如：养老保险基数",
+          "optional": false
+        },
+        {
+          "key": "field_b",
+          "label": "原值",
+          "type": "text",
+          "placeholder": "如：5000",
+          "optional": false
+        },
+        {
+          "key": "field_c",
+          "label": "新值",
+          "type": "text",
+          "placeholder": "如：6000",
+          "optional": false
+        },
+        {
+          "key": "note",
+          "label": "变更原因",
+          "type": "textarea",
+          "placeholder": "请说明",
+          "optional": false
+        }
+      ]
+    },
+    {
+      "name": "九宫格盘点",
+      "category": "人才盘点",
+      "capability_key": "hr_perf",
+      "pages": "form+list",
+      "problem": "HR手动收集九宫格数据易错，需系统录入并自动生成人才分布图",
+      "page_kind": "form_list",
+      "default_category": "talent-review",
+      "form_headline": "九宫格人才盘点",
+      "fields": [
+        {
+          "key": "title",
+          "label": "员工姓名",
+          "type": "text",
+          "placeholder": "请输入员工姓名",
+          "optional": false
+        },
+        {
+          "key": "field_a",
+          "label": "绩效等级",
+          "type": "text",
+          "placeholder": "如A/B/C",
+          "optional": false
+        },
+        {
+          "key": "field_b",
+          "label": "潜力等级",
+          "type": "text",
+          "placeholder": "如高/中/低",
+          "optional": false
+        },
+        {
+          "key": "note",
+          "label": "备注",
+          "type": "textarea",
+          "placeholder": "可选",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "name": "关键岗位继任",
+      "category": "人才盘点",
+      "capability_key": "hr_headcount",
+      "pages": "form+list",
+      "problem": "关键岗位空缺时无后备人选，需建立继任计划并跟踪",
+      "page_kind": "form_list",
+      "default_category": "succession-planning",
+      "form_headline": "关键岗位继任计划",
+      "fields": [
+        {
+          "key": "title",
+          "label": "岗位名称",
+          "type": "text",
+          "placeholder": "如销售总监",
+          "optional": false
+        },
+        {
+          "key": "field_a",
+          "label": "现任者",
+          "type": "text",
+          "placeholder": "员工姓名",
+          "optional": false
+        },
+        {
+          "key": "field_b",
+          "label": "继任者",
+          "type": "text",
+          "placeholder": "员工姓名",
+          "optional": false
+        },
+        {
+          "key": "field_c",
+          "label": "准备度",
+          "type": "text",
+          "placeholder": "已就绪/1年内/2-3年",
+          "optional": false
+        }
+      ]
+    },
+    {
+      "name": "劳动合同续签",
+      "category": "人才盘点",
+      "capability_key": "hire_onboard",
+      "pages": "form+list",
+      "problem": "合同到期忘记续签引发法律风险，需提前提醒并记录续签结果",
+      "page_kind": "form_list",
+      "default_category": "contract-renewal",
+      "form_headline": "劳动合同续签",
+      "fields": [
+        {
+          "key": "title",
+          "label": "员工姓名",
+          "type": "text",
+          "placeholder": "请输入员工姓名",
+          "optional": false
+        },
+        {
+          "key": "field_a",
+          "label": "合同到期日",
+          "type": "date",
+          "placeholder": "选择日期",
+          "optional": false
+        },
+        {
+          "key": "field_b",
+          "label": "续签结果",
+          "type": "text",
+          "placeholder": "续签/不续签/待定",
+          "optional": false
+        }
+      ]
+    },
+    {
+      "name": "竞业限制提醒",
+      "category": "人才盘点",
+      "capability_key": "notify_im",
+      "pages": "notify",
+      "problem": "离职员工竞业限制到期未及时解除，需自动提醒HR跟进",
+      "page_kind": "notify",
+      "default_category": "non-compete",
+      "form_headline": "竞业限制提醒",
+      "fields": [
+        {
+          "key": "title",
+          "label": "员工姓名",
+          "type": "text",
+          "placeholder": "请输入员工姓名",
+          "optional": false
+        },
+        {
+          "key": "field_a",
+          "label": "竞业到期日",
+          "type": "date",
+          "placeholder": "选择日期",
+          "optional": false
+        },
+        {
+          "key": "note",
+          "label": "备注",
+          "type": "textarea",
+          "placeholder": "可选",
+          "optional": true
+        }
+      ]
+    }
+  ],
+  "scene_count": 30,
+  "source": "deepseek_vertical_batch+kind_split"
+}

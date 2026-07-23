@@ -150,10 +150,10 @@ export default function PlazaMyAppsPage() {
         <div>
           <h1><span className="plaza-mflow-chev chev-hero" aria-hidden>&gt;&gt;</span> 我的应用</h1>
           <p className="plaza-my-head-sub plaza-my-head-sub--full">
-            点选应用，在底部查看只读概览（模块与接口）；改页请进 Runtime 对话改页。完整视图点「概览」
+            点选应用，在底部查看模块与接口；可问答、测接口；改页请进 Runtime 对话改页。完整视图点「概览」
           </p>
           <p className="plaza-my-head-sub plaza-my-head-sub--short">
-            点选应用，底部为只读概览 · 改页进 Runtime
+            点选应用 · 可问答/测接口 · 改页进 Runtime
           </p>
         </div>
         <Link to={ROUTES.home} className="plaza-my-create-btn">+ 继续创建</Link>
