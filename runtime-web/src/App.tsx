@@ -605,6 +605,28 @@ export default function App() {
     window.location.replace(adminLoginUrlWithReturn(returnTo))
   }
 
+  // 工作台打开 /r/{id} 落在 / 时，跳到第一项主能力 Tab（须在任何 early return 之前注册 hooks）
+  useEffect(() => {
+    if (!appId || !widgetsReady || !schema || !config) return
+    const meta = (schema.meta || {}) as Record<string, unknown>
+    if (isIndustrySiteEntry(meta)) return
+    const atHomeNow = !route || route === '/'
+    if (!atHomeNow) return
+    const menuNow = schema.menu?.length
+      ? schema.menu
+      : config.menu.map((m) => ({ ...m, route: m.route || `/${m.key}` }))
+    const first = (menuNow || []).find((m) => {
+      const r = String(m.route || '')
+      return r && r !== '/'
+    })
+    const target = String(
+      (meta as { default_route?: string }).default_route || first?.route || '',
+    ).trim()
+    if (!target || target === '/') return
+    const normalized = navigateRoute(appId, target)
+    setRoute(normalized)
+  }, [appId, widgetsReady, schema, config, route, schemaRev])
+
   if (sso.handled) {
     return (
       <div className="login-shell" style={{ padding: 48, textAlign: 'center' }}>
@@ -772,22 +794,6 @@ export default function App() {
     const normalized = navigateRoute(appId, nextRoute)
     setRoute(normalized)
   }
-
-  // 工作台打开 /r/{id} 落在 / 时，跳到第一项主能力 Tab（URL 与高亮一致）
-  useEffect(() => {
-    if (!appId || !widgetsReady || industryEntry) return
-    if (!atHome) return
-    const first = (menu || []).find((m) => {
-      const r = String(m.route || '')
-      return r && r !== '/'
-    })
-    const target = String(
-      (meta as { default_route?: string }).default_route || first?.route || '',
-    ).trim()
-    if (!target || target === '/') return
-    goRoute(target)
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- 仅在首页空白态纠偏一次
-  }, [appId, widgetsReady, industryEntry, atHome, schemaRev])
 
   const renderNavButtons = (className: string) => (
     <>
