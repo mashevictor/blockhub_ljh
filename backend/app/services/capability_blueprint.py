@@ -350,6 +350,12 @@ for _kind, _label in _RE_KIND_LABEL.items():
             "backend/app/api/v1/realestate_ops.py",
             "backend/app/services/realestate_ops_store.py",
             "packages/web-capability-realestate-ops/",
+            "backend/app/api/v1/retail_ops.py",
+            "backend/app/services/retail_ops_store.py",
+            "packages/web-capability-retail-ops/",
+            "backend/app/api/v1/hotel_ops.py",
+            "backend/app/services/hotel_ops_store.py",
+            "packages/web-capability-hotel-ops/",
         ],
     }
 

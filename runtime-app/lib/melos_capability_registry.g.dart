@@ -13,6 +13,8 @@ import 'package:capability_game_support/capability_game_support.dart';
 import 'package:capability_finance/capability_finance.dart';
 import 'package:capability_logistics/capability_logistics.dart';
 import 'package:capability_realestate/capability_realestate.dart';
+import 'package:capability_retail/capability_retail.dart';
+import 'package:capability_hotel/capability_hotel.dart';
 import 'package:capability_school_notice/capability_school_notice.dart';
 import 'package:capability_property_repair/capability_property_repair.dart';
 import 'package:capability_site_patrol/capability_site_patrol.dart';
@@ -170,6 +172,42 @@ final Map<String, CapabilityModule> generatedMelosModuleByKey = {
     'viewing_feedback': RealestateModule(capabilityKey: 'viewing_feedback'),
     'property_fee': RealestateModule(capabilityKey: 'property_fee'),
     'broker_commission': RealestateModule(capabilityKey: 'broker_commission'),
+    'stock_alert': RetailModule(capabilityKey: 'stock_alert'),
+    'retail_order': RetailModule(capabilityKey: 'retail_order'),
+    'return_exchange': RetailModule(capabilityKey: 'return_exchange'),
+    'supplier_recon': RetailModule(capabilityKey: 'supplier_recon'),
+    'price_change': RetailModule(capabilityKey: 'price_change'),
+    'display_check': RetailModule(capabilityKey: 'display_check'),
+    'shelf_replenish': RetailModule(capabilityKey: 'shelf_replenish'),
+    'pos_exception': RetailModule(capabilityKey: 'pos_exception'),
+    'store_transfer': RetailModule(capabilityKey: 'store_transfer'),
+    'loss_shrinkage': RetailModule(capabilityKey: 'loss_shrinkage'),
+    'omni_pickup': RetailModule(capabilityKey: 'omni_pickup'),
+    'promo_coupon': RetailModule(capabilityKey: 'promo_coupon'),
+    'gift_card': RetailModule(capabilityKey: 'gift_card'),
+    'competitor_price': RetailModule(capabilityKey: 'competitor_price'),
+    'new_sku_launch': RetailModule(capabilityKey: 'new_sku_launch'),
+    'vip_hold': RetailModule(capabilityKey: 'vip_hold'),
+    'receipt_audit': RetailModule(capabilityKey: 'receipt_audit'),
+    'online_refund': RetailModule(capabilityKey: 'online_refund'),
+    'guest_complaint': HotelModule(capabilityKey: 'guest_complaint'),
+    'food_purchase': HotelModule(capabilityKey: 'food_purchase'),
+    'hygiene_check': HotelModule(capabilityKey: 'hygiene_check'),
+    'room_service': HotelModule(capabilityKey: 'room_service'),
+    'banquet_order': HotelModule(capabilityKey: 'banquet_order'),
+    'hotel_revenue': HotelModule(capabilityKey: 'hotel_revenue'),
+    'fnb_order': HotelModule(capabilityKey: 'fnb_order'),
+    'lost_found': HotelModule(capabilityKey: 'lost_found'),
+    'room_status': HotelModule(capabilityKey: 'room_status'),
+    'hk_task': HotelModule(capabilityKey: 'hk_task'),
+    'minibar_charge': HotelModule(capabilityKey: 'minibar_charge'),
+    'concierge_req': HotelModule(capabilityKey: 'concierge_req'),
+    'group_checkin': HotelModule(capabilityKey: 'group_checkin'),
+    'night_audit': HotelModule(capabilityKey: 'night_audit'),
+    'table_reserve': HotelModule(capabilityKey: 'table_reserve'),
+    'menu_86': HotelModule(capabilityKey: 'menu_86'),
+    'kitchen_waste': HotelModule(capabilityKey: 'kitchen_waste'),
+    'allergen_note': HotelModule(capabilityKey: 'allergen_note'),
     'erp_connector': IntegrationModule(capabilityKey: 'erp_connector'),
     'meeting_booking': IntegrationModule(capabilityKey: 'meeting_booking'),
     'notify_im': IntegrationModule(capabilityKey: 'notify_im'),

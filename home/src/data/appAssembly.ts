@@ -1,6 +1,6 @@
 import type { AgentPick } from '../components/agentInputLogic'
 import { moduleId, pickToModule, type PromptModule } from '../components/agentInputLogic'
-import { MODULES } from './constants'
+import { MODULES, SCENES } from './constants'
 import { CAPABILITIES_SHOWCASE, INDUSTRIES_SHOWCASE, resolveIndustryApiKey } from './showcase'
 
 /**
@@ -166,6 +166,33 @@ export function resolveAppBundle(opts: ResolveOptions): ResolvedAppBundle {
   }
 
   const industryKey = (() => {
+    const scenarioLabels = [...userOrdered, ...suggestedOrdered]
+      .filter((m) => m.type === 'scenario')
+      .map((m) => m.label.trim())
+      .filter(Boolean)
+    // 场景名与所选行业无交集时，按 SSOT 纠偏（避免「合规制度库」挂上 game）
+    if (scenarioLabels.length > 0) {
+      let bestKey = ''
+      let bestHit = 0
+      for (const [packKey, names] of Object.entries(SCENES)) {
+        const set = new Set(names)
+        const hit = scenarioLabels.filter((n) => set.has(n)).length
+        if (hit > bestHit) {
+          bestHit = hit
+          bestKey = packKey
+        }
+      }
+      const ind = [...userOrdered, ...suggestedOrdered].find((m) => m.type === 'industry')
+      const picked = ind ? resolveIndustryApiKey(ind.key) : ''
+      if (bestHit > 0) {
+        const pickedHit = picked
+          ? scenarioLabels.filter((n) => (SCENES[picked] || []).includes(n)).length
+          : 0
+        if (!picked || pickedHit === 0) {
+          return resolveIndustryApiKey(bestKey)
+        }
+      }
+    }
     const ind = [...userOrdered, ...suggestedOrdered].find((m) => m.type === 'industry')
     if (ind) return resolveIndustryApiKey(ind.key)
     return 'office'

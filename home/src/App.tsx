@@ -4,6 +4,7 @@ import ScrollToTop from './components/ScrollToTop'
 import IndustryHubRedirect from './components/IndustryHubRedirect'
 import HomeApp from './HomeApp'
 import RedirectToAdminLogin from './components/RedirectToAdminLogin'
+import RequireAuth from './components/RequireAuth'
 import PlazaLayout from './pages/plaza/PlazaLayout'
 import PlazaFeedPage from './pages/plaza/PlazaFeedPage'
 import PlazaMyAppsPage from './pages/plaza/PlazaMyAppsPage'
@@ -26,6 +27,14 @@ import CapShipPage from './pages/CapShipPage'
 import IndustryRuntimePreviewPage from './pages/IndustryRuntimePreviewPage'
 import { ROUTES } from './routes/paths'
 
+function AuthPage({ children, title }: { children: React.ReactNode; title: string }) {
+  return (
+    <RequireAuth>
+      <ErrorBoundary fallbackTitle={title}>{children}</ErrorBoundary>
+    </RequireAuth>
+  )
+}
+
 export default function App() {
   return (
     <>
@@ -35,7 +44,7 @@ export default function App() {
       <Route path="/register" element={<RedirectToAdminLogin />} />
       <Route path="/plaza" element={<PlazaLayout />}>
         <Route index element={<PlazaFeedPage />} />
-        <Route path="my" element={<PlazaMyAppsPage />} />
+        <Route path="my" element={<AuthPage title="我的应用加载失败"><PlazaMyAppsPage /></AuthPage>} />
       </Route>
       <Route path="/industry/:key" element={
         <ErrorBoundary fallbackTitle="行业详情页加载失败">
@@ -80,19 +89,13 @@ export default function App() {
         </ErrorBoundary>
       } />
       <Route path={ROUTES.pricingCheckout} element={
-        <ErrorBoundary fallbackTitle="升级套餐页加载失败">
-          <PricingCheckoutPage />
-        </ErrorBoundary>
+        <AuthPage title="升级套餐页加载失败"><PricingCheckoutPage /></AuthPage>
       } />
       <Route path={ROUTES.pricingResult} element={
-        <ErrorBoundary fallbackTitle="支付结果页加载失败">
-          <PricingResultPage />
-        </ErrorBoundary>
+        <AuthPage title="支付结果页加载失败"><PricingResultPage /></AuthPage>
       } />
       <Route path={ROUTES.accountBilling} element={
-        <ErrorBoundary fallbackTitle="账户套餐页加载失败">
-          <AccountBillingPage />
-        </ErrorBoundary>
+        <AuthPage title="账户套餐页加载失败"><AccountBillingPage /></AuthPage>
       } />
       <Route path={ROUTES.news} element={
         <ErrorBoundary fallbackTitle="新闻页加载失败">

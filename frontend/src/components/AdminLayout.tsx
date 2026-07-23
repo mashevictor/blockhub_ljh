@@ -1,6 +1,7 @@
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useEffect, useMemo, useState } from 'react'
 import { fetchCatalogSummary, fetchDashboard, type CatalogSummary, type DashboardStats } from '../api/client'
+import { fetchBillingMe, type BillingMe } from '../api/billing'
 import { logout } from '../auth/session'
 import { useAuth } from '../auth/AuthContext'
 import ThemePicker from './ThemePicker'
@@ -50,12 +51,14 @@ const NAV: Array<{ to: string; label: string; icon: typeof IconHome; end?: boole
 export default function AdminLayout() {
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [catalog, setCatalog] = useState<CatalogSummary | null>(null)
+  const [billing, setBilling] = useState<BillingMe | null>(null)
   const { user, role } = useAuth()
   const location = useLocation()
 
   useEffect(() => {
     fetchDashboard().then(setStats).catch(() => {})
     fetchCatalogSummary().then(setCatalog).catch(() => {})
+    fetchBillingMe().then(setBilling).catch(() => {})
   }, [])
 
   const visibleNav = useMemo(
@@ -64,6 +67,10 @@ export default function AdminLayout() {
   )
 
   const roleLabel = roleDisplayLabel(user?.role)
+  const planName = billing?.plan?.name || billing?.plan_tier || ''
+  const planFeatures = (billing?.plan?.features || []).slice(0, 3)
+  const hasApproval = Boolean(billing?.plan?.schema_approval)
+  const industryPacks = billing?.plan?.industry_packs
 
   return (
     <div className="layout">
@@ -75,6 +82,25 @@ export default function AdminLayout() {
             <p>{BRAND.nameEn} · {user?.role === 'employee' ? '工作台' : '管理后台'}</p>
           </div>
         </div>
+        {planName ? (
+          <div className="sidebar-meta" style={{ marginBottom: 8 }}>
+            <strong>{planName}</strong>
+            <br />
+            {industryPacks === null || industryPacks === undefined
+              ? '行业包不限'
+              : industryPacks === 0
+                ? '无行业包（办公/模块）'
+                : `行业包 ${industryPacks} 个`}
+            {' · '}
+            {hasApproval ? '改页需审批' : '改页即生效'}
+            {planFeatures.length > 0 ? (
+              <>
+                <br />
+                <span style={{ opacity: 0.85 }}>{planFeatures.join(' · ')}</span>
+              </>
+            ) : null}
+          </div>
+        ) : null}
         <div className="sidebar-meta">
           {catalog ? `${catalog.total} 个业务场景` : `${PLATFORM_STATS.scenarios} 个业务场景`}
           <>
@@ -106,6 +132,14 @@ export default function AdminLayout() {
         <header className="topbar">
           <span className="topbar-title">{BRAND.adminTitle}</span>
           <div className="topbar-actions">
+            <a
+              className="topbar-home-link"
+              href={`${homePublicUrl().replace(/\/$/, '')}/account/billing`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              我的套餐
+            </a>
             <a className="topbar-home-link" href={homePublicUrl()} target="_blank" rel="noreferrer">
               创建入口
             </a>
@@ -114,6 +148,7 @@ export default function AdminLayout() {
               <span className="topbar-user">
                 {user.display_name || user.email}
                 {roleLabel ? ` · ${roleLabel}` : ''}
+                {planName ? ` · ${planName}` : ''}
               </span>
             )}
             <button type="button" className="topbar-logout" onClick={() => logout()}>退出</button>
@@ -124,7 +159,7 @@ export default function AdminLayout() {
           </div>
         </header>
         <main key={location.pathname} className="page-content page-enter">
-          <Outlet />
+          <Outlet context={{ billing }} />
         </main>
       </div>
     </div>

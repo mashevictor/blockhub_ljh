@@ -1,0 +1,1014 @@
+"""农业 场景 → 真能力 SSOT（DeepSeek 丰富）。"""
+
+from __future__ import annotations
+
+SCENES: list[dict] = [
+    {
+        "name": "田间巡查记录",
+        "category": "田间种植",
+        "capability_key": "agro_patrol",
+        "pages": "form+list",
+        "problem": "巡查纸质记录易丢失，无法追溯历史问题；通过表单录入巡查结果，自动归档形成历史库，支持按地块、时间检索。",
+        "page_kind": "form_list",
+        "default_category": "field-patrol",
+        "form_headline": "新增巡查记录",
+        "fields": [
+            {
+                "key": "title",
+                "label": "地块名称",
+                "type": "text",
+                "placeholder": "例如：东区3号田",
+                "optional": False
+            },
+            {
+                "key": "field_a",
+                "label": "巡查人员",
+                "type": "text",
+                "placeholder": "姓名",
+                "optional": False
+            },
+            {
+                "key": "field_b",
+                "label": "巡查日期",
+                "type": "date",
+                "placeholder": "选择日期",
+                "optional": False
+            },
+            {
+                "key": "note",
+                "label": "问题描述",
+                "type": "textarea",
+                "placeholder": "描述发现的病虫害、缺水等问题",
+                "optional": True
+            }
+        ]
+    },
+    {
+        "name": "农事日历",
+        "category": "田间种植",
+        "capability_key": "agro_patrol",
+        "pages": "form+list",
+        "problem": "农事操作依赖经验，缺乏标准化日程；通过日历视图展示播种、施肥、打药等计划，并支持记录实际执行。",
+        "page_kind": "form_list",
+        "default_category": "farming-calendar",
+        "form_headline": "新增农事事件",
+        "fields": [
+            {
+                "key": "title",
+                "label": "事件名称",
+                "type": "text",
+                "placeholder": "例如：追施复合肥",
+                "optional": False
+            },
+            {
+                "key": "field_a",
+                "label": "计划日期",
+                "type": "date",
+                "placeholder": "选择日期",
+                "optional": False
+            },
+            {
+                "key": "field_b",
+                "label": "负责人员",
+                "type": "text",
+                "placeholder": "姓名",
+                "optional": False
+            },
+            {
+                "key": "note",
+                "label": "备注",
+                "type": "textarea",
+                "placeholder": "用量、注意事项等",
+                "optional": True
+            }
+        ]
+    },
+    {
+        "name": "播种记录",
+        "category": "田间种植",
+        "capability_key": "agro_inventory",
+        "pages": "form+list",
+        "problem": "播种信息零散，无法统计品种用量和面积；通过表单记录播种品种、面积、种子批次，形成可追溯的播种档案。",
+        "page_kind": "form_list",
+        "default_category": "sowing-record",
+        "form_headline": "新增播种记录",
+        "fields": [
+            {
+                "key": "title",
+                "label": "地块名称",
+                "type": "text",
+                "placeholder": "例如：西区2号田",
+                "optional": False
+            },
+            {
+                "key": "field_a",
+                "label": "品种",
+                "type": "text",
+                "placeholder": "例如：京科968",
+                "optional": False
+            },
+            {
+                "key": "field_b",
+                "label": "播种面积（亩）",
+                "type": "number",
+                "placeholder": "数字",
+                "optional": False
+            },
+            {
+                "key": "field_c",
+                "label": "种子批次号",
+                "type": "text",
+                "placeholder": "批次编号",
+                "optional": True
+            }
+        ]
+    },
+    {
+        "name": "灌溉记录",
+        "category": "田间种植",
+        "capability_key": "agro_patrol",
+        "pages": "form+list",
+        "problem": "灌溉凭感觉，缺乏量化数据；记录每次灌溉时间、水量、方式，辅助优化用水计划。",
+        "page_kind": "form_list",
+        "default_category": "irrigation-record",
+        "form_headline": "新增灌溉记录",
+        "fields": [
+            {
+                "key": "title",
+                "label": "地块名称",
+                "type": "text",
+                "placeholder": "例如：南1号田",
+                "optional": False
+            },
+            {
+                "key": "field_a",
+                "label": "灌溉日期",
+                "type": "date",
+                "placeholder": "选择日期",
+                "optional": False
+            },
+            {
+                "key": "field_b",
+                "label": "用水量（吨）",
+                "type": "number",
+                "placeholder": "数字",
+                "optional": False
+            },
+            {
+                "key": "note",
+                "label": "灌溉方式",
+                "type": "textarea",
+                "placeholder": "滴灌/喷灌/漫灌",
+                "optional": True
+            }
+        ]
+    },
+    {
+        "name": "施肥打药记录",
+        "category": "田间种植",
+        "capability_key": "agro_inventory",
+        "pages": "form+list",
+        "problem": "农资使用无记录，难以评估投入产出；记录每次施肥打药的种类、用量、时间，形成投入品使用台账。",
+        "page_kind": "form_list",
+        "default_category": "fertilizer-pesticide",
+        "form_headline": "新增施肥打药记录",
+        "fields": [
+            {
+                "key": "title",
+                "label": "地块名称",
+                "type": "text",
+                "placeholder": "例如：东区5号田",
+                "optional": False
+            },
+            {
+                "key": "field_a",
+                "label": "农资名称",
+                "type": "text",
+                "placeholder": "例如：复合肥/吡虫啉",
+                "optional": False
+            },
+            {
+                "key": "field_b",
+                "label": "用量（kg/亩）",
+                "type": "number",
+                "placeholder": "数字",
+                "optional": False
+            },
+            {
+                "key": "field_c",
+                "label": "施用日期",
+                "type": "date",
+                "placeholder": "选择日期",
+                "optional": False
+            }
+        ]
+    },
+    {
+        "name": "采收登记",
+        "category": "田间种植",
+        "capability_key": "agro_inventory",
+        "pages": "form+list",
+        "problem": "采收数据靠手工统计，产量分析滞后；登记每次采收的品种、数量、地块，实时汇总产量数据。",
+        "page_kind": "form_list",
+        "default_category": "harvest-record",
+        "form_headline": "新增采收登记",
+        "fields": [
+            {
+                "key": "title",
+                "label": "地块名称",
+                "type": "text",
+                "placeholder": "例如：北区1号田",
+                "optional": False
+            },
+            {
+                "key": "field_a",
+                "label": "品种",
+                "type": "text",
+                "placeholder": "例如：红富士",
+                "optional": False
+            },
+            {
+                "key": "field_b",
+                "label": "采收数量（kg）",
+                "type": "number",
+                "placeholder": "数字",
+                "optional": False
+            },
+            {
+                "key": "field_c",
+                "label": "采收日期",
+                "type": "date",
+                "placeholder": "选择日期",
+                "optional": False
+            }
+        ]
+    },
+    {
+        "name": "病虫害上报",
+        "category": "病虫害",
+        "capability_key": "agro_pest",
+        "pages": "form+list",
+        "problem": "农户发现病虫害后无法快速上报，导致防治延误；通过表单采集位置、作物、症状照片，自动入库并生成工单。",
+        "page_kind": "form_list",
+        "default_category": "pest-report",
+        "form_headline": "病虫害上报",
+        "fields": [
+            {
+                "key": "title",
+                "label": "作物名称",
+                "type": "text",
+                "placeholder": "如水稻、玉米",
+                "optional": False
+            },
+            {
+                "key": "field_a",
+                "label": "发生位置",
+                "type": "text",
+                "placeholder": "具体地块或GPS坐标",
+                "optional": False
+            },
+            {
+                "key": "field_b",
+                "label": "症状描述",
+                "type": "textarea",
+                "placeholder": "描述病斑、虫态等",
+                "optional": False
+            },
+            {
+                "key": "note",
+                "label": "照片",
+                "type": "text",
+                "placeholder": "上传图片URL",
+                "optional": True
+            }
+        ]
+    },
+    {
+        "name": "测报数据采集",
+        "category": "病虫害",
+        "capability_key": "agro_pest",
+        "pages": "form+list",
+        "problem": "测报点数据手工记录易出错，无法实时汇总；通过表单录入灯诱、性诱、气象数据，自动生成趋势图。",
+        "page_kind": "form_list",
+        "default_category": "monitoring-data",
+        "form_headline": "测报数据采集",
+        "fields": [
+            {
+                "key": "title",
+                "label": "测报点编号",
+                "type": "text",
+                "placeholder": "如CB-001",
+                "optional": False
+            },
+            {
+                "key": "field_a",
+                "label": "虫量（头）",
+                "type": "number",
+                "placeholder": "0",
+                "optional": False
+            },
+            {
+                "key": "field_b",
+                "label": "病害等级",
+                "type": "text",
+                "placeholder": "轻/中/重",
+                "optional": False
+            },
+            {
+                "key": "note",
+                "label": "备注",
+                "type": "textarea",
+                "placeholder": "天气、生育期等",
+                "optional": True
+            }
+        ]
+    },
+    {
+        "name": "统防统治调度",
+        "category": "病虫害",
+        "capability_key": "agro_patrol",
+        "pages": "form+list",
+        "problem": "统防统治任务分配靠电话沟通，效率低；通过表单发布作业任务，记录药剂、面积、作业人员，实现全程追溯。",
+        "page_kind": "form_list",
+        "default_category": "unified-control",
+        "form_headline": "统防统治任务",
+        "fields": [
+            {
+                "key": "title",
+                "label": "任务名称",
+                "type": "text",
+                "placeholder": "如稻飞虱防治",
+                "optional": False
+            },
+            {
+                "key": "field_a",
+                "label": "防治面积（亩）",
+                "type": "number",
+                "placeholder": "0",
+                "optional": False
+            },
+            {
+                "key": "field_b",
+                "label": "药剂配方",
+                "type": "text",
+                "placeholder": "如吡虫啉+烯啶虫胺",
+                "optional": False
+            },
+            {
+                "key": "note",
+                "label": "作业人员",
+                "type": "text",
+                "placeholder": "姓名或飞防队",
+                "optional": True
+            }
+        ]
+    },
+    {
+        "name": "飞防作业记录",
+        "category": "病虫害",
+        "capability_key": "agro_pest",
+        "pages": "form+list",
+        "problem": "无人机飞防作业缺乏数字化记录，无法评估效果；通过表单记录飞行参数、喷洒量、作业时间，关联地块。",
+        "page_kind": "form_list",
+        "default_category": "drone-spray",
+        "form_headline": "飞防作业记录",
+        "fields": [
+            {
+                "key": "title",
+                "label": "地块编号",
+                "type": "text",
+                "placeholder": "如DK-2024-001",
+                "optional": False
+            },
+            {
+                "key": "field_a",
+                "label": "飞行高度（m）",
+                "type": "number",
+                "placeholder": "2.5",
+                "optional": False
+            },
+            {
+                "key": "field_b",
+                "label": "喷洒量（L/亩）",
+                "type": "number",
+                "placeholder": "1.5",
+                "optional": False
+            },
+            {
+                "key": "note",
+                "label": "作业时间",
+                "type": "text",
+                "placeholder": "2024-06-15 08:00",
+                "optional": True
+            }
+        ]
+    },
+    {
+        "name": "检疫申报",
+        "category": "病虫害",
+        "capability_key": "agro_pest",
+        "pages": "form+list",
+        "problem": "植物检疫申报流程繁琐，纸质材料易丢失；通过表单在线提交产地、调运信息，自动对接检疫系统。",
+        "page_kind": "form_list",
+        "default_category": "quarantine-apply",
+        "form_headline": "检疫申报",
+        "fields": [
+            {
+                "key": "title",
+                "label": "申报类型",
+                "type": "text",
+                "placeholder": "产地检疫/调运检疫",
+                "optional": False
+            },
+            {
+                "key": "field_a",
+                "label": "作物种类",
+                "type": "text",
+                "placeholder": "如柑橘苗木",
+                "optional": False
+            },
+            {
+                "key": "field_b",
+                "label": "数量（株/吨）",
+                "type": "number",
+                "placeholder": "1000",
+                "optional": False
+            },
+            {
+                "key": "note",
+                "label": "调运目的地",
+                "type": "text",
+                "placeholder": "省-市-县",
+                "optional": True
+            }
+        ]
+    },
+    {
+        "name": "农资出入库",
+        "category": "农资农机",
+        "capability_key": "agro_inventory",
+        "pages": "form+list",
+        "problem": "农资出入库手工记账易错，库存数据滞后，无法实时掌握库存余量，导致采购或调配不及时。通过表单记录出入库，自动更新库存台账。",
+        "page_kind": "form_list",
+        "default_category": "agro_inventory",
+        "form_headline": "农资出入库登记",
+        "fields": [
+            {
+                "key": "title",
+                "label": "农资名称",
+                "type": "text",
+                "placeholder": "如复合肥",
+                "optional": False
+            },
+            {
+                "key": "field_a",
+                "label": "操作类型",
+                "type": "text",
+                "placeholder": "入库/出库",
+                "optional": False
+            },
+            {
+                "key": "field_b",
+                "label": "数量",
+                "type": "number",
+                "placeholder": "单位：公斤/袋",
+                "optional": False
+            }
+        ]
+    },
+    {
+        "name": "种子批次追溯",
+        "category": "农资农机",
+        "capability_key": "agro_inventory",
+        "pages": "form+list",
+        "problem": "种子批次信息分散，无法快速追溯来源和去向，影响质量管控。通过批次登记实现从入库到使用的全链路追溯。",
+        "page_kind": "form_list",
+        "default_category": "agro_inventory",
+        "form_headline": "种子批次登记",
+        "fields": [
+            {
+                "key": "title",
+                "label": "品种名称",
+                "type": "text",
+                "placeholder": "如郑单958",
+                "optional": False
+            },
+            {
+                "key": "field_a",
+                "label": "批次号",
+                "type": "text",
+                "placeholder": "如2025-001",
+                "optional": False
+            },
+            {
+                "key": "field_b",
+                "label": "数量",
+                "type": "number",
+                "placeholder": "单位：袋",
+                "optional": False
+            }
+        ]
+    },
+    {
+        "name": "农机调度",
+        "category": "农资农机",
+        "capability_key": "site_patrol",
+        "pages": "form+list",
+        "problem": "农机调度靠电话沟通，作业进度不透明，农机利用率低。通过调度单记录任务，实时跟踪农机位置和状态。",
+        "page_kind": "form_list",
+        "default_category": "site_patrol",
+        "form_headline": "农机调度单",
+        "fields": [
+            {
+                "key": "title",
+                "label": "农机编号",
+                "type": "text",
+                "placeholder": "如NJ-001",
+                "optional": False
+            },
+            {
+                "key": "field_a",
+                "label": "作业地块",
+                "type": "text",
+                "placeholder": "如东区3号田",
+                "optional": False
+            },
+            {
+                "key": "field_b",
+                "label": "作业类型",
+                "type": "text",
+                "placeholder": "如旋耕/播种",
+                "optional": False
+            }
+        ]
+    },
+    {
+        "name": "维修保养记录",
+        "category": "农资农机",
+        "capability_key": "site_patrol",
+        "pages": "form+list",
+        "problem": "农机维修保养无记录，故障频发影响农时。通过保养登记建立维保档案，到期自动提醒。",
+        "page_kind": "form_list",
+        "default_category": "site_patrol",
+        "form_headline": "维修保养登记",
+        "fields": [
+            {
+                "key": "title",
+                "label": "农机编号",
+                "type": "text",
+                "placeholder": "如NJ-002",
+                "optional": False
+            },
+            {
+                "key": "field_a",
+                "label": "保养项目",
+                "type": "text",
+                "placeholder": "如更换机油",
+                "optional": False
+            },
+            {
+                "key": "field_b",
+                "label": "保养日期",
+                "type": "date",
+                "placeholder": "选择日期",
+                "optional": False
+            }
+        ]
+    },
+    {
+        "name": "油耗登记",
+        "category": "农资农机",
+        "capability_key": "agro_inventory",
+        "pages": "form+list",
+        "problem": "农机油耗数据缺失，无法核算作业成本。通过油耗登记记录每台农机的加油量，便于成本分析。",
+        "page_kind": "form_list",
+        "default_category": "agro_inventory",
+        "form_headline": "油耗登记",
+        "fields": [
+            {
+                "key": "title",
+                "label": "农机编号",
+                "type": "text",
+                "placeholder": "如NJ-003",
+                "optional": False
+            },
+            {
+                "key": "field_a",
+                "label": "加油量",
+                "type": "number",
+                "placeholder": "单位：升",
+                "optional": False
+            },
+            {
+                "key": "field_b",
+                "label": "加油日期",
+                "type": "date",
+                "placeholder": "选择日期",
+                "optional": False
+            }
+        ]
+    },
+    {
+        "name": "补贴申请填报",
+        "category": "政策补贴",
+        "capability_key": "agro_subsidy",
+        "pages": "form+list",
+        "problem": "农户线下填表易错漏，需线上化提交并自动核验面积与材料完整性",
+        "page_kind": "form_list",
+        "default_category": "subsidy-apply",
+        "form_headline": "耕地地力保护补贴申请",
+        "fields": [
+            {
+                "key": "title",
+                "label": "申请人姓名",
+                "type": "text",
+                "placeholder": "请输入姓名",
+                "optional": False
+            },
+            {
+                "key": "field_a",
+                "label": "身份证号",
+                "type": "text",
+                "placeholder": "18位身份证号",
+                "optional": False
+            },
+            {
+                "key": "field_b",
+                "label": "种植面积（亩）",
+                "type": "number",
+                "placeholder": "请输入面积",
+                "optional": False
+            },
+            {
+                "key": "field_c",
+                "label": "土地承包合同编号",
+                "type": "text",
+                "placeholder": "可选填",
+                "optional": True
+            }
+        ]
+    },
+    {
+        "name": "面积核验与补正",
+        "category": "政策补贴",
+        "capability_key": "agro_patrol",
+        "pages": "form+list",
+        "problem": "遥感数据与自报面积不一致时需人工核验并通知补正，避免虚报冒领",
+        "page_kind": "form_list",
+        "default_category": "area-verify",
+        "form_headline": "面积核验结果反馈",
+        "fields": [
+            {
+                "key": "title",
+                "label": "地块编号",
+                "type": "text",
+                "placeholder": "如A-2024-001",
+                "optional": False
+            },
+            {
+                "key": "field_a",
+                "label": "遥感面积（亩）",
+                "type": "number",
+                "placeholder": "系统自动填入",
+                "optional": False
+            },
+            {
+                "key": "field_b",
+                "label": "自报面积（亩）",
+                "type": "number",
+                "placeholder": "农户填报值",
+                "optional": False
+            },
+            {
+                "key": "note",
+                "label": "核验意见",
+                "type": "textarea",
+                "placeholder": "通过/需补正说明",
+                "optional": False
+            }
+        ]
+    },
+    {
+        "name": "公示异议处理",
+        "category": "政策补贴",
+        "capability_key": "chat_qa",
+        "pages": "chat+kb",
+        "problem": "公示期间农户对补贴名单有异议，需快速查询政策依据并记录反馈",
+        "page_kind": "chat_kb",
+        "default_category": "public-objection",
+        "form_headline": "",
+        "fields": []
+    },
+    {
+        "name": "补贴发放确认",
+        "category": "政策补贴",
+        "capability_key": "notify_im",
+        "pages": "notify",
+        "problem": "补贴发放后需逐户确认到账情况，避免资金滞留或冒领",
+        "page_kind": "notify",
+        "default_category": "payment-confirm",
+        "form_headline": "",
+        "fields": []
+    },
+    {
+        "name": "政策问答RAG",
+        "category": "政策补贴",
+        "capability_key": "kb_document",
+        "pages": "kb",
+        "problem": "农户和基层干部对补贴政策条款理解不一，需基于知识库精准问答",
+        "page_kind": "files",
+        "default_category": "policy-qa",
+        "form_headline": "",
+        "fields": []
+    },
+    {
+        "name": "订单收购对接",
+        "category": "产销溯源",
+        "capability_key": "agro_inventory",
+        "pages": "form+list",
+        "problem": "农户与收购商订单信息不透明，手工登记易错漏，无法实时追踪收购进度。通过订单表单录入与列表管理，实现收购订单全流程数字化。",
+        "page_kind": "form_list",
+        "default_category": "order",
+        "form_headline": "新建收购订单",
+        "fields": [
+            {
+                "key": "title",
+                "label": "订单编号",
+                "type": "text",
+                "placeholder": "自动生成或手动输入",
+                "optional": False
+            },
+            {
+                "key": "field_a",
+                "label": "农户名称",
+                "type": "text",
+                "placeholder": "输入农户姓名或合作社",
+                "optional": False
+            },
+            {
+                "key": "field_b",
+                "label": "收购品种",
+                "type": "text",
+                "placeholder": "如：红富士苹果",
+                "optional": False
+            },
+            {
+                "key": "field_c",
+                "label": "预计数量(kg)",
+                "type": "number",
+                "placeholder": "输入数字",
+                "optional": False
+            }
+        ]
+    },
+    {
+        "name": "冷链交接记录",
+        "category": "产销溯源",
+        "capability_key": "agro_trace",
+        "pages": "form+list",
+        "problem": "冷链运输交接环节温度记录缺失，易导致品质纠纷。通过表单记录交接时间、温度、双方签字，形成可追溯的冷链交接单。",
+        "page_kind": "form_list",
+        "default_category": "cold_chain",
+        "form_headline": "冷链交接登记",
+        "fields": [
+            {
+                "key": "title",
+                "label": "交接单号",
+                "type": "text",
+                "placeholder": "自动生成",
+                "optional": False
+            },
+            {
+                "key": "field_a",
+                "label": "产品批次",
+                "type": "text",
+                "placeholder": "输入溯源码批次",
+                "optional": False
+            },
+            {
+                "key": "field_b",
+                "label": "交接温度(℃)",
+                "type": "number",
+                "placeholder": "如：2.5",
+                "optional": False
+            },
+            {
+                "key": "field_c",
+                "label": "交接时间",
+                "type": "date",
+                "placeholder": "选择日期时间",
+                "optional": False
+            }
+        ]
+    },
+    {
+        "name": "溯源码批次管理",
+        "category": "产销溯源",
+        "capability_key": "agro_trace",
+        "pages": "form+list",
+        "problem": "农产品溯源码批次信息分散，无法快速查询产品来源与流向。通过批次表单录入与列表查询，实现一码追溯全链路。",
+        "page_kind": "form_list",
+        "default_category": "batch",
+        "form_headline": "新增溯源码批次",
+        "fields": [
+            {
+                "key": "title",
+                "label": "溯源码",
+                "type": "text",
+                "placeholder": "扫码或手动输入",
+                "optional": False
+            },
+            {
+                "key": "field_a",
+                "label": "产品名称",
+                "type": "text",
+                "placeholder": "如：有机大米",
+                "optional": False
+            },
+            {
+                "key": "field_b",
+                "label": "产地",
+                "type": "text",
+                "placeholder": "如：黑龙江五常",
+                "optional": False
+            },
+            {
+                "key": "field_c",
+                "label": "生产日期",
+                "type": "date",
+                "placeholder": "选择日期",
+                "optional": False
+            }
+        ]
+    },
+    {
+        "name": "品质抽检登记",
+        "category": "产销溯源",
+        "capability_key": "agro_trace",
+        "pages": "form+list",
+        "problem": "农产品品质抽检结果纸质记录难保存，无法关联批次溯源。通过抽检表单记录检测项目、结果与图片，形成电子化品质档案。",
+        "page_kind": "form_list",
+        "default_category": "inspection",
+        "form_headline": "品质抽检记录",
+        "fields": [
+            {
+                "key": "title",
+                "label": "抽检编号",
+                "type": "text",
+                "placeholder": "自动生成",
+                "optional": False
+            },
+            {
+                "key": "field_a",
+                "label": "关联批次",
+                "type": "text",
+                "placeholder": "输入溯源码",
+                "optional": False
+            },
+            {
+                "key": "field_b",
+                "label": "检测项目",
+                "type": "text",
+                "placeholder": "如：农药残留",
+                "optional": False
+            },
+            {
+                "key": "field_c",
+                "label": "检测结果",
+                "type": "text",
+                "placeholder": "合格/不合格",
+                "optional": False
+            }
+        ]
+    },
+    {
+        "name": "价格行情登记",
+        "category": "产销溯源",
+        "capability_key": "data_nl_query",
+        "pages": "form+list",
+        "problem": "农产品价格波动大，缺乏历史行情数据支撑决策。通过价格表单录入品种、市场、价格，形成行情数据库，支持查询分析。",
+        "page_kind": "form_list",
+        "default_category": "price",
+        "form_headline": "价格行情录入",
+        "fields": [
+            {
+                "key": "title",
+                "label": "品种",
+                "type": "text",
+                "placeholder": "如：富士苹果",
+                "optional": False
+            },
+            {
+                "key": "field_a",
+                "label": "市场名称",
+                "type": "text",
+                "placeholder": "如：北京新发地",
+                "optional": False
+            },
+            {
+                "key": "field_b",
+                "label": "价格(元/kg)",
+                "type": "number",
+                "placeholder": "输入数字",
+                "optional": False
+            },
+            {
+                "key": "field_c",
+                "label": "日期",
+                "type": "date",
+                "placeholder": "选择日期",
+                "optional": False
+            }
+        ]
+    },
+    {
+        "name": "气象预警配置",
+        "category": "智慧农情",
+        "capability_key": "notify_im",
+        "pages": "form+list",
+        "problem": "农户无法及时获取极端天气预警，导致作物受损；通过企微自动推送气象预警通知，并记录预警历史。",
+        "page_kind": "form_list",
+        "default_category": "weather-alert",
+        "form_headline": "新增气象预警规则",
+        "fields": [
+            {
+                "key": "title",
+                "label": "预警名称",
+                "type": "text",
+                "placeholder": "如：暴雨红色预警",
+                "optional": False
+            },
+            {
+                "key": "field_a",
+                "label": "预警类型",
+                "type": "text",
+                "placeholder": "暴雨/大风/冰雹",
+                "optional": False
+            },
+            {
+                "key": "field_b",
+                "label": "触发阈值",
+                "type": "text",
+                "placeholder": "如：24h降雨量>100mm",
+                "optional": False
+            }
+        ]
+    },
+    {
+        "name": "墒情监测看板",
+        "category": "智慧农情",
+        "capability_key": "chart_dashboard",
+        "pages": "chart",
+        "problem": "土壤墒情数据分散，无法直观掌握整体干旱情况；通过图表展示各区域墒情趋势与实时数据。",
+        "page_kind": "chart",
+        "default_category": "soil-moisture",
+        "form_headline": "",
+        "fields": []
+    },
+    {
+        "name": "产量预估问答",
+        "category": "智慧农情",
+        "capability_key": "data_nl_query",
+        "pages": "chat+kb",
+        "problem": "管理者想了解产量预估但不会写SQL；通过自然语言提问，系统自动查询数据库并返回结果。",
+        "page_kind": "chat_kb",
+        "default_category": "yield-estimate",
+        "form_headline": "",
+        "fields": []
+    },
+    {
+        "name": "农技知识库",
+        "category": "智慧农情",
+        "capability_key": "kb_document",
+        "pages": "kb",
+        "problem": "农技资料分散，农户查找困难；建立结构化知识库，支持全文检索与分类浏览。",
+        "page_kind": "files",
+        "default_category": "agri-knowledge",
+        "form_headline": "",
+        "fields": []
+    }
+]
+
+SCENES_BY_NAME = {s['name']: s for s in SCENES}
+
+def agriculture_pack_scenes() -> list[dict[str, str]]:
+    out: list[dict[str, str]] = []
+    for s in SCENES:
+        out.append({
+            'name': s['name'],
+            'category': s.get('category') or '',
+            'problem': s.get('problem') or '',
+            'pages': s.get('pages') or 'form+list',
+            'agent': s.get('capability_key') or 'chat_qa',
+            'standard': '✓',
+        })
+    return out
+
+def enrich_agriculture_menu_plan_item(item: dict, name: str) -> dict:
+    row = SCENES_BY_NAME.get(name)
+    if not row:
+        return item
+    ck = str(row.get('capability_key') or '').strip()
+    if ck:
+        item['capability_key'] = ck
+    return item

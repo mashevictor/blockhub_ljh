@@ -46,6 +46,20 @@ export default function DashboardWidget(props: { node: SchemaNode }) {
         .catch(() => setFinance({ open: 0, total: 0, cards: [] }))
       return
     }
+    if (metricsSource === 'retail_ops') {
+      const q = appId ? `?app_id=${encodeURIComponent(appId)}` : ''
+      apiFetch<FinanceStats>(`/api/v1/retail-ops/stats${q}`, token)
+        .then(setFinance)
+        .catch(() => setFinance({ open: 0, total: 0, cards: [] }))
+      return
+    }
+    if (metricsSource === 'hotel_ops') {
+      const q = appId ? `?app_id=${encodeURIComponent(appId)}` : ''
+      apiFetch<FinanceStats>(`/api/v1/hotel-ops/stats${q}`, token)
+        .then(setFinance)
+        .catch(() => setFinance({ open: 0, total: 0, cards: [] }))
+      return
+    }
     if (metricsSource === 'realestate_ops') {
       const q = appId ? `?app_id=${encodeURIComponent(appId)}` : ''
       apiFetch<FinanceStats>(`/api/v1/realestate-ops/stats${q}`, token)
@@ -59,13 +73,17 @@ export default function DashboardWidget(props: { node: SchemaNode }) {
     ]).then(([overview, kb]) => setStats({ ...overview, ...kb }))
   }, [token, metricsSource, appId])
 
-  if (metricsSource === 'finance_ops' || metricsSource === 'logistics_ops' || metricsSource === 'realestate_ops') {
+  if (metricsSource === 'finance_ops' || metricsSource === 'logistics_ops' || metricsSource === 'realestate_ops' || metricsSource === 'retail_ops' || metricsSource === 'hotel_ops') {
     const title =
       metricsSource === 'logistics_ops'
         ? '在途可视看板'
         : metricsSource === 'realestate_ops'
           ? '楼盘经营看板'
-          : '风险经营看板'
+          : metricsSource === 'retail_ops'
+            ? '零售经营看板'
+            : metricsSource === 'hotel_ops'
+              ? '酒店经营看板'
+              : '风险经营看板'
     const cards =
       finance?.cards?.length
         ? finance.cards.map((c) => ({ label: `${c.label}待办`, value: c.open }))
@@ -83,12 +101,26 @@ export default function DashboardWidget(props: { node: SchemaNode }) {
                 { label: '投诉待办', value: (finance as { complaint_open?: number } | null)?.complaint_open ?? 0 },
                 { label: '全部待办', value: finance?.open ?? 0 },
               ]
-          : [
-              { label: 'KYC待办', value: finance?.kyc_open ?? 0 },
-              { label: 'AML待办', value: finance?.aml_open ?? 0 },
-              { label: '授信待办', value: finance?.credit_open ?? 0 },
-              { label: '全部待办', value: finance?.open ?? 0 },
-            ]
+            : metricsSource === 'retail_ops'
+              ? [
+                  { label: '库存待办', value: (finance as { stock_open?: number } | null)?.stock_open ?? 0 },
+                  { label: '订单待办', value: (finance as { order_open?: number } | null)?.order_open ?? 0 },
+                  { label: '调拨待办', value: (finance as { transfer_open?: number } | null)?.transfer_open ?? 0 },
+                  { label: '自提待办', value: (finance as { pickup_open?: number } | null)?.pickup_open ?? 0 },
+                ]
+              : metricsSource === 'hotel_ops'
+                ? [
+                    { label: '客诉待办', value: (finance as { complaint_open?: number } | null)?.complaint_open ?? 0 },
+                    { label: '打扫待办', value: (finance as { hk_open?: number } | null)?.hk_open ?? 0 },
+                    { label: '订位待办', value: (finance as { table_open?: number } | null)?.table_open ?? 0 },
+                    { label: '全部待办', value: finance?.open ?? 0 },
+                  ]
+                : [
+                    { label: 'KYC待办', value: finance?.kyc_open ?? 0 },
+                    { label: 'AML待办', value: finance?.aml_open ?? 0 },
+                    { label: '授信待办', value: finance?.credit_open ?? 0 },
+                    { label: '全部待办', value: finance?.open ?? 0 },
+                  ]
     return (
       <div className="widget dashboard-widget">
         <h3>{title}</h3>

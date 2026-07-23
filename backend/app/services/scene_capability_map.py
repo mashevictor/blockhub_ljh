@@ -13,6 +13,8 @@ from app.data.finance_vertical_capabilities import FINANCE_VERTICAL_KEYS
 from app.data.finance_vertical_capabilities import enrich_menu_plan_item as enrich_finance_menu_plan_item
 from app.data.logistics_scene_capabilities import enrich_menu_plan_item as enrich_logistics_menu_plan_item
 from app.data.realestate_scene_capabilities import enrich_menu_plan_item as enrich_realestate_menu_plan_item
+from app.data.retail_scene_capabilities import enrich_menu_plan_item as enrich_retail_menu_plan_item
+from app.data.hotel_scene_capabilities import enrich_menu_plan_item as enrich_hotel_menu_plan_item
 from app.data.finance_vertical_capabilities import scenes_by_name as finance_scenes_by_name
 from app.data.game_scene_capabilities import enrich_menu_plan_item as enrich_game_menu_plan_item
 from app.data.med_scene_capabilities import enrich_menu_plan_item as enrich_med_menu_plan_item
@@ -72,6 +74,42 @@ _AGENT_TO_CAPABILITY: dict[str, str] = {
     "gov_service": "gov_service",
     "legal_case": "legal_case",
     "member_loyalty": "member_loyalty",
+    "allergen_note": "allergen_note",
+    "kitchen_waste": "kitchen_waste",
+    "menu_86": "menu_86",
+    "table_reserve": "table_reserve",
+    "night_audit": "night_audit",
+    "group_checkin": "group_checkin",
+    "concierge_req": "concierge_req",
+    "minibar_charge": "minibar_charge",
+    "hk_task": "hk_task",
+    "room_status": "room_status",
+    "online_refund": "online_refund",
+    "receipt_audit": "receipt_audit",
+    "vip_hold": "vip_hold",
+    "new_sku_launch": "new_sku_launch",
+    "competitor_price": "competitor_price",
+    "gift_card": "gift_card",
+    "promo_coupon": "promo_coupon",
+    "omni_pickup": "omni_pickup",
+    "loss_shrinkage": "loss_shrinkage",
+    "store_transfer": "store_transfer",
+    "lost_found": "lost_found",
+    "fnb_order": "fnb_order",
+    "hotel_revenue": "hotel_revenue",
+    "banquet_order": "banquet_order",
+    "room_service": "room_service",
+    "hygiene_check": "hygiene_check",
+    "food_purchase": "food_purchase",
+    "guest_complaint": "guest_complaint",
+    "pos_exception": "pos_exception",
+    "shelf_replenish": "shelf_replenish",
+    "display_check": "display_check",
+    "price_change": "price_change",
+    "supplier_recon": "supplier_recon",
+    "return_exchange": "return_exchange",
+    "retail_order": "retail_order",
+    "stock_alert": "stock_alert",
     "shanghai_voice": "shanghai_voice",
     "integration": "erp_connector",
     "mfg_oee": "mfg_oee",
@@ -247,6 +285,40 @@ def get_pack_scenes(pack_key: str) -> list[dict[str, Any]]:
     return list(meta.get("scenes") or [])
 
 
+def count_pack_scene_overlap(pack_key: str, scene_names: list[str] | None) -> int:
+    """当前行业包 scenes 与给定场景名的交集数量。"""
+    wanted = {
+        str(n).strip()
+        for n in (scene_names or [])
+        if n and str(n).strip() and str(n).strip() != "自定义应用"
+    }
+    if not wanted:
+        return 0
+    return sum(1 for s in get_pack_scenes(pack_key) if str(s.get("name") or "") in wanted)
+
+
+def infer_pack_key_from_scene_names(scene_names: list[str] | None) -> str | None:
+    """按场景名在各行业包 SSOT 中的命中数推断行业；无命中返回 None。"""
+    wanted = {
+        str(n).strip()
+        for n in (scene_names or [])
+        if n and str(n).strip() and str(n).strip() != "自定义应用"
+    }
+    if not wanted:
+        return None
+    best_key: str | None = None
+    best_count = 0
+    for pack in ALL_INDUSTRY_PACKS:
+        key = str(pack.get("key") or "").strip()
+        if not key:
+            continue
+        hit = sum(1 for s in (pack.get("scenes") or []) if str(s.get("name") or "") in wanted)
+        if hit > best_count:
+            best_count = hit
+            best_key = key
+    return best_key if best_count > 0 else None
+
+
 def assemble_industry_pack(
     pack_key: str,
     *,
@@ -255,14 +327,30 @@ def assemble_industry_pack(
     """行业包全量（或按名称筛选）场景 → 发布装配结果。
 
     默认全量；若 scene_names 非空则只装配这些场景。
+    场景名对不上当前包时返回空装配（禁止静默灌整包，避免跨行业污染）。
     """
     scenes = get_pack_scenes(pack_key)
     if scene_names:
         wanted = {n.strip() for n in scene_names if n and str(n).strip() and str(n).strip() != "自定义应用"}
         if wanted:
             filtered = [s for s in scenes if str(s.get("name") or "") in wanted]
-            if filtered:
-                scenes = filtered
+            # 有显式场景名但对不上 → 空装配，禁止回退全量行业包 / 知识库灌入
+            scenes = filtered
+            if not scenes:
+                meta = pack_meta(pack_key) or {"name": pack_key, "tagline": ""}
+                return {
+                    "pack_key": pack_key,
+                    "pack_name": str(meta.get("name") or pack_key),
+                    "tagline": str(meta.get("tagline") or ""),
+                    "capability_keys": [],
+                    "modules": [],
+                    "scenario_names": [],
+                    "menu_plan": [],
+                    "groups": [],
+                    "scene_count": 0,
+                    "knowledge_bases": [],
+                    "unmatched_scene_names": sorted(wanted),
+                }
 
     capability_keys: list[str] = []
     modules: list[dict[str, Any]] = []
@@ -363,6 +451,28 @@ def assemble_industry_pack(
                 capability_keys.append(primary)
         elif pack_key == "realestate":
             plan_item = enrich_realestate_menu_plan_item(plan_item, name, pack_key)
+        elif pack_key == "retail":
+            plan_item = enrich_retail_menu_plan_item(plan_item, name, pack_key)
+        elif pack_key == "hotel":
+            plan_item = enrich_hotel_menu_plan_item(plan_item, name, pack_key)
+            primary = str(plan_item.get("capability_key") or primary)
+            if modules:
+                modules[-1]["key"] = primary
+            if primary not in capability_keys:
+                capability_keys.append(primary)
+        elif pack_key in {
+            "edu", "energy", "gov", "legal", "hr",
+            "construction", "agriculture", "media", "auto", "marketing",
+        }:
+            try:
+                mod = __import__(
+                    f"app.data.{pack_key}_scene_capabilities",
+                    fromlist=[f"enrich_{pack_key}_menu_plan_item"],
+                )
+                enrich_fn = getattr(mod, f"enrich_{pack_key}_menu_plan_item")
+                plan_item = enrich_fn(plan_item, name)
+            except Exception:
+                pass
             primary = str(plan_item.get("capability_key") or primary)
             if modules:
                 modules[-1]["key"] = primary
@@ -375,7 +485,11 @@ def assemble_industry_pack(
 
     # office / sales / med / game / finance / logistics / realestate：以映射表 menu_plan 为准重建 keys
     if (
-        pack_key in {"office", "sales", "med", "game", "logistics", "realestate"}
+        pack_key in {
+            "office", "sales", "med", "game", "logistics", "realestate", "retail", "hotel",
+            "edu", "energy", "gov", "legal", "hr",
+            "construction", "agriculture", "media", "auto", "marketing",
+        }
         or pack_key in FINANCE_VERTICAL_KEYS
     ) and menu_plan:
         rebuilt: list[str] = []

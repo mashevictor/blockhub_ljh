@@ -37,6 +37,10 @@ dependencies:
     path: ../packages/capability_logistics
   capability_realestate:
     path: ../packages/capability_realestate
+  capability_retail:
+    path: ../packages/capability_retail
+  capability_hotel:
+    path: ../packages/capability_hotel
   capability_school_notice:
     path: ../packages/capability_school_notice
   capability_property_repair:

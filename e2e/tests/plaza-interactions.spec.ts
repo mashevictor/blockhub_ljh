@@ -19,7 +19,7 @@ test.describe('plaza like + comment (PG)', () => {
     )
     const appId = publish.app.id
 
-    await apiPost('/creation/plaza/publish', { app_id: appId, visibility: 'public' })
+    await apiPost('/creation/plaza/publish', { app_id: appId, visibility: 'public' }, token)
 
     const like1 = await apiPost<{ liked: boolean; likes: number }>(
       `/creation/plaza/feed/${appId}/like`,

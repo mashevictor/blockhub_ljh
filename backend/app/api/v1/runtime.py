@@ -332,12 +332,19 @@ def runtime_schema(
 ) -> dict:
     """Page schema for runtime-web / Flutter。
 
-    - 匿名 / view=formal → 正式 apps.page_schema（全员真相）
-    - 登录作者且存在 draft/pending → **个人草稿单侧生效**（仅该用户；他人仍见正式）
-    - 管理员审批通过前，正式库不变
+    公开读策略（产品定案）：
+    - **正式版** formal：可匿名读取（广场预览 / 分享链 / 冒烟）
+    - **个人草稿** personal：必须登录；未登录请求 personal → 401
+    - 写操作一律需登录（PATCH / schema/changes 等）
     """
     from app.services.web_capability_gate import sanitize_page_schema
     from app.data.industry_packs_all import pack_meta
+
+    want_personal = (view or "auto").lower() in ("auto", "personal", "draft", "mine")
+    if want_personal and (view or "").lower() != "formal" and user is None:
+        # 明确要个人视图但未登录：勿静默回落正式版造成「以为改了其实没改」
+        if (view or "").lower() in ("personal", "draft", "mine"):
+            raise HTTPException(status_code=401, detail="查看个人草稿请先登录")
 
     app = db.query(AppRecord).filter(AppRecord.public_id == public_id).first()
     if not app:

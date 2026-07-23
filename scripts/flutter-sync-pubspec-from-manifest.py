@@ -214,6 +214,20 @@ def write_registry_g(packages: list[str], *, dry_run: bool = False) -> str:
             for key in meta.get("capability_realestate", {}).get("keys", []):
                 map_lines.append(f"    '{key}': RealestateModule(capabilityKey: '{key}'),")
             continue
+        if pkg == "capability_retail":
+            if "package:capability_retail/capability_retail.dart" not in seen_import:
+                imports.append("import 'package:capability_retail/capability_retail.dart';")
+                seen_import.add("package:capability_retail/capability_retail.dart")
+            for key in meta.get("capability_retail", {}).get("keys", []):
+                map_lines.append(f"    '{key}': RetailModule(capabilityKey: '{key}'),")
+            continue
+        if pkg == "capability_hotel":
+            if "package:capability_hotel/capability_hotel.dart" not in seen_import:
+                imports.append("import 'package:capability_hotel/capability_hotel.dart';")
+                seen_import.add("package:capability_hotel/capability_hotel.dart")
+            for key in meta.get("capability_hotel", {}).get("keys", []):
+                map_lines.append(f"    '{key}': HotelModule(capabilityKey: '{key}'),")
+            continue
         if pkg == "capability_flutter_tools":
             if "package:capability_flutter_tools/capability_flutter_tools.dart" not in seen_import:
                 imports.append("import 'package:capability_flutter_tools/capability_flutter_tools.dart';")
@@ -258,6 +272,8 @@ def write_registry_g(packages: list[str], *, dry_run: bool = False) -> str:
             "capability_finance",
             "capability_logistics",
             "capability_realestate",
+            "capability_retail",
+            "capability_hotel",
         ):
             continue
         var = f"_mod_{fp.replace('capability_', '')}"

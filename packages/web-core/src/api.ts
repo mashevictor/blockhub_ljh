@@ -1,5 +1,7 @@
 const TOKEN_KEY = 'blockhub_runtime_token'
 const USER_KEY = 'blockhub_runtime_user'
+/** 同域时与 Admin/Home 共享，避免已登录仍被 Runtime 登录壳拦住 */
+const ADMIN_TOKEN_KEY = 'blockhub_token'
 
 export interface AuthUser {
   email: string
@@ -8,7 +10,7 @@ export interface AuthUser {
 }
 
 export function getStoredToken(): string {
-  return localStorage.getItem(TOKEN_KEY) || ''
+  return localStorage.getItem(TOKEN_KEY) || localStorage.getItem(ADMIN_TOKEN_KEY) || ''
 }
 
 export function getStoredUser(): AuthUser | null {
@@ -23,11 +25,13 @@ export function getStoredUser(): AuthUser | null {
 
 export function storeAuth(token: string, user: AuthUser): void {
   localStorage.setItem(TOKEN_KEY, token)
+  localStorage.setItem(ADMIN_TOKEN_KEY, token)
   localStorage.setItem(USER_KEY, JSON.stringify(user))
 }
 
 export function clearAuth(): void {
   localStorage.removeItem(TOKEN_KEY)
+  localStorage.removeItem(ADMIN_TOKEN_KEY)
   localStorage.removeItem(USER_KEY)
 }
 

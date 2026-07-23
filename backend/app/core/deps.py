@@ -16,13 +16,13 @@ def get_current_user(
     credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer_scheme)],
 ) -> User:
     if credentials is None or credentials.scheme.lower() != "bearer":
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="未登录或缺少访问令牌")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="未登录或缺少访问令牌")
     payload = decode_access_token(credentials.credentials)
     if not payload or not payload.get("sub"):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="令牌已过期或无效")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="令牌已过期或无效")
     user = db.get(User, payload["sub"])
     if not user or not user.is_active:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="用户不存在或已禁用")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="用户不存在或已禁用")
     return user
 
 

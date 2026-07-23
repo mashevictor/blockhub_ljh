@@ -6,6 +6,8 @@ import {
   submitApproval,
   type ApprovalItem,
 } from '../api/client'
+import { useAuth } from '../auth/AuthContext'
+import { isTenantAdmin } from '../lib/roles'
 
 const STATUS_MAP: Record<string, { label: string; class: string }> = {
   all: { label: '全部', class: '' },
@@ -15,11 +17,14 @@ const STATUS_MAP: Record<string, { label: string; class: string }> = {
 }
 
 export default function ApprovalPage() {
+  const { user, role } = useAuth()
+  const canApprove = isTenantAdmin(user?.role ?? role)
   const [stats, setStats] = useState<{ pending: number; approved: number; rejected: number } | null>(null)
   const [filter, setFilter] = useState('all')
   const [items, setItems] = useState<ApprovalItem[]>([])
   const [showSubmit, setShowSubmit] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [actionError, setActionError] = useState('')
   const [form, setForm] = useState({ title: '', type: 'leave', department: '', summary: '' })
 
   const load = () => {
@@ -30,13 +35,24 @@ export default function ApprovalPage() {
   useEffect(() => { load() }, [filter])
 
   const handleAction = async (id: string, action: 'approve' | 'reject') => {
-    await approvalAction(id, action)
-    load()
+    if (!canApprove) {
+      setActionError('仅管理员 / 空间所有者可审批')
+      return
+    }
+    setActionError('')
+    try {
+      await approvalAction(id, action)
+      load()
+    } catch (e) {
+      const detail = (e as { response?: { data?: { detail?: string } } })?.response?.data?.detail
+      setActionError(typeof detail === 'string' ? detail : '审批失败')
+    }
   }
 
   const handleSubmit = async () => {
     if (!form.title.trim()) return
     setSubmitting(true)
+    setActionError('')
     try {
       await submitApproval({
         title: form.title.trim(),
@@ -57,12 +73,18 @@ export default function ApprovalPage() {
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16 }}>
         <div>
           <h1>审批中心</h1>
-          <p>处理请假、报销等各类申请的提交、审批与归档</p>
+          <p>
+            {canApprove
+              ? '处理请假、报销等各类申请的提交、审批与归档'
+              : '可发起申请并查看进度；通过/拒绝由管理员或空间所有者操作'}
+          </p>
         </div>
         <button type="button" className="btn btn-primary-dark" onClick={() => setShowSubmit((v) => !v)}>
           {showSubmit ? '取消' : '发起申请'}
         </button>
       </div>
+
+      {actionError ? <p style={{ color: 'var(--danger, #b91c1c)', marginBottom: 12 }}>{actionError}</p> : null}
 
       {showSubmit && (
         <div className="card" style={{ marginBottom: 20, padding: 20 }}>
@@ -139,11 +161,14 @@ export default function ApprovalPage() {
               <span>{a.summary}</span>
               <span style={{ color: 'var(--muted)' }}>{a.submitted_at}</span>
             </div>
-            {a.status === 'pending' && (
+            {a.status === 'pending' && canApprove && (
               <div className="approval-actions">
-                <button type="button" className="btn btn-primary-dark" onClick={() => handleAction(a.id, 'approve')}>通过</button>
-                <button type="button" className="btn btn-ghost-dark" onClick={() => handleAction(a.id, 'reject')}>拒绝</button>
+                <button type="button" className="btn btn-primary-dark" onClick={() => void handleAction(a.id, 'approve')}>通过</button>
+                <button type="button" className="btn btn-ghost-dark" onClick={() => void handleAction(a.id, 'reject')}>拒绝</button>
               </div>
+            )}
+            {a.status === 'pending' && !canApprove && (
+              <p style={{ fontSize: 12, color: 'var(--muted)', margin: '8px 0 0' }}>等待管理员审批</p>
             )}
           </div>
         ))}

@@ -9,8 +9,9 @@ import {
   type Agent,
   type CreatedApp,
 } from '../api/client'
+import { fetchBillingMe, type BillingMe } from '../api/billing'
 import { useAuth } from '../auth/AuthContext'
-import { BRAND } from '../data/brand'
+import { BRAND, homePublicUrl } from '../data/brand'
 import { PLATFORM_STATS } from '@shared/platformStats'
 import { canAccessRole, isTenantAdmin, type AppRole } from '../lib/roles'
 import {
@@ -165,6 +166,7 @@ export default function OverviewPage() {
   const [activities, setActivities] = useState<Array<{ id: number; icon: string; title: string; desc: string; time: string }>>([])
   const [trends, setTrends] = useState<{ growth: string; label: string; days: string[]; chat_qa: number[]; approval: number[] } | null>(null)
   const [createdApps, setCreatedApps] = useState<CreatedApp[]>([])
+  const [billing, setBilling] = useState<BillingMe | null>(null)
   const { user, role } = useAuth()
 
   useEffect(() => {
@@ -173,13 +175,18 @@ export default function OverviewPage() {
     fetchActivities().then(setActivities)
     fetchTrends().then(setTrends)
     fetchCreatedApps().then(setCreatedApps).catch(() => {})
+    fetchBillingMe().then(setBilling).catch(() => {})
   }, [])
 
   const adminLike = isTenantAdmin(user?.role ?? role)
   const visibleQuickLinks = useMemo(
-    () => QUICK_LINKS.filter((q) => canAccessRole(user?.role ?? role, q.roles)),
+    () => QUICK_LINKS.filter((l) => canAccessRole(user?.role ?? role, l.roles)),
     [user, role],
   )
+  const planName = billing?.plan?.name || billing?.plan_tier
+  const planFeatures = billing?.plan?.features || []
+  const packs = billing?.plan?.industry_packs
+  const schemaApproval = Boolean(billing?.plan?.schema_approval)
 
   const maxVal = trends ? Math.max(...trends.chat_qa, ...trends.approval, 1) : 1
 
@@ -208,6 +215,41 @@ export default function OverviewPage() {
           </div>
         </div>
       </div>
+
+      {planName ? (
+        <div className="card card-hover" style={{ marginBottom: 16 }}>
+          <div className="section-header" style={{ marginBottom: 8 }}>
+            <div>
+              <h2>当前套餐 · {planName}</h2>
+              <div style={{ fontSize: 13, color: 'var(--muted)', marginTop: 4 }}>
+                {packs === null || packs === undefined
+                  ? '行业包不限'
+                  : packs === 0
+                    ? '无行业包配额（办公/模块创建）'
+                    : `行业包最多 ${packs} 个`}
+                {' · '}
+                {schemaApproval ? '对话改页需管理员审批' : '对话改页提交即生效'}
+                {' · '}坐席 {billing?.seat_quota ?? '—'}
+              </div>
+            </div>
+            <a
+              href={`${homePublicUrl().replace(/\/$/, '')}/account/billing`}
+              className="btn btn-ghost"
+              target="_blank"
+              rel="noreferrer"
+            >
+              管理套餐
+            </a>
+          </div>
+          {planFeatures.length > 0 ? (
+            <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13, color: 'var(--muted)' }}>
+              {planFeatures.map((f) => (
+                <li key={f}>{f}</li>
+              ))}
+            </ul>
+          ) : null}
+        </div>
+      ) : null}
 
       <div className="stat-grid stagger-in">
         {STAT_META.map((s) => {

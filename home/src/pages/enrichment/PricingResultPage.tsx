@@ -3,7 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 import MarketingSiteShell from '../../components/b2b/enrichment/MarketingSiteShell'
 import { fetchBillingMe, fetchBillingOrder, formatFen, type BillingMe, type BillingOrder } from '../../api/billing'
 import { getToken } from '../../auth/storage'
-import { getAdminUrl } from '../../data/constants'
+import { adminLoginUrlWithReturn } from '../../data/brand'
 import { ROUTES } from '../../routes/paths'
 import { usePageMeta } from '../../hooks/usePageMeta'
 
@@ -18,7 +18,7 @@ export default function PricingResultPage() {
 
   useEffect(() => {
     if (!getToken()) {
-      window.location.href = `${getAdminUrl()}?from=${encodeURIComponent(`${ROUTES.pricingResult}?order_id=${orderId}`)}`
+      window.location.href = adminLoginUrlWithReturn(`${ROUTES.pricingResult}?order_id=${orderId}`)
       return
     }
     if (!orderId) {

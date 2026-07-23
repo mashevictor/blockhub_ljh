@@ -15,7 +15,8 @@ api.interceptors.response.use(
   (res) => res,
   (error) => {
     const url = String(error.config?.url || '')
-    if ((error.response?.status === 401 || error.response?.status === 403) && !url.includes('/auth/login') && !url.includes('/auth/login-otp') && !url.includes('/auth/send-code')) {
+    // 仅 401 清会话；403 是权限不足，不应当成掉线
+    if (error.response?.status === 401 && !url.includes('/auth/login') && !url.includes('/auth/login-otp') && !url.includes('/auth/send-code')) {
       clearToken()
       redirectToLogin()
     }
@@ -158,7 +159,7 @@ export async function sendChatMessageStream(
     }),
   })
   if (!res.ok) {
-    if (res.status === 401 || res.status === 403) {
+    if (res.status === 401) {
       clearToken()
       redirectToLogin()
     }
@@ -221,7 +222,7 @@ export async function uploadKbDocument(kbId: string, file: File) {
     body: form,
   })
   if (!res.ok) {
-    if (res.status === 401 || res.status === 403) {
+    if (res.status === 401) {
       clearToken()
       redirectToLogin()
     }

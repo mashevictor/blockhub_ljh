@@ -1,1 +1,12 @@
-export { BRAND, DEMO_ACCOUNTS, LOGO, THEME_STORAGE_KEY, adminLoginUrl, adminHomeUrl, resolveAdminPostLoginUrl, homePublicUrl } from '@shared/brand'
+export {
+  BRAND,
+  DEMO_ACCOUNTS,
+  LOGO,
+  THEME_STORAGE_KEY,
+  adminLoginUrl,
+  adminLoginUrlWithReturn,
+  adminHomeUrl,
+  resolveAdminPostLoginUrl,
+  homePublicUrl,
+  isHomeReturnPath,
+} from '@shared/brand'

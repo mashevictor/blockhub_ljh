@@ -16,6 +16,7 @@ import {
   getStoredToken,
   getStoredUser,
   login,
+  storeAuth,
   type BuildManifest,
   type PageSchema,
   type SchemaNode,
@@ -41,8 +42,50 @@ const CapShipComposerDock = lazy(() =>
 )
 
 function parseAppId(): string | null {
-  const m = window.location.pathname.match(/^\/r\/([a-z0-9]+)/i)
+  const path = window.location.pathname
+  if (/^\/r\/sso-callback\/?$/i.test(path)) return null
+  const m = path.match(/^\/r\/([a-z0-9]+)(?:\/|$)/i)
   return m?.[1] ?? null
+}
+
+/** 企微 SSO：后端 302 → /r/sso-callback#access_token=…&state=… */
+function consumeSsoCallback(): { handled: boolean; redirectTo?: string } {
+  if (!/^\/r\/sso-callback\/?$/i.test(window.location.pathname)) {
+    return { handled: false }
+  }
+  const hash = (window.location.hash || '').replace(/^#/, '')
+  const params = new URLSearchParams(hash)
+  const token = params.get('access_token') || ''
+  const state = (params.get('state') || '').trim()
+  if (!token) {
+    return { handled: true, redirectTo: '/' }
+  }
+  storeAuth(token, {
+    email: 'sso@wecom.local',
+    role: 'tenant_owner',
+    display_name: '企微用户',
+  })
+  // state 可为 app public_id，或 app:<id> / /r/<id>
+  let appId = ''
+  if (/^[a-z0-9]+$/i.test(state) && state.toLowerCase() !== 'blockhub') {
+    appId = state
+  } else {
+    const m = state.match(/(?:^app:|\/r\/)([a-z0-9]+)/i)
+    if (m) appId = m[1]
+  }
+  // 用 /auth/me 补全用户信息（异步，不阻塞跳转）
+  void fetch('/api/v1/auth/me', { headers: { Authorization: `Bearer ${token}` } })
+    .then((r) => (r.ok ? r.json() : null))
+    .then((u) => {
+      if (!u) return
+      storeAuth(token, {
+        email: u.email || 'sso@wecom.local',
+        role: u.role || 'tenant_owner',
+        display_name: u.display_name || '企微用户',
+      })
+    })
+    .catch(() => {})
+  return { handled: true, redirectTo: appId ? `/r/${appId}` : '/' }
 }
 
 function parseEntrySource(): 'portal' | 'im' {
@@ -153,11 +196,26 @@ function folderMatch(pkg: string, capabilityKey: string): boolean {
 }
 
 export default function App() {
+  const sso = useMemo(consumeSsoCallback, [])
+  useEffect(() => {
+    if (sso.handled && sso.redirectTo) {
+      window.location.replace(sso.redirectTo)
+    }
+  }, [sso])
+
   const appId = useMemo(parseAppId, [])
   const entrySource = useMemo(parseEntrySource, [])
   const [route, setRoute] = useState(() => (appId ? routeFromPath(appId) : '/'))
   const [token, setToken] = useState(getStoredToken)
   const [user, setUser] = useState(getStoredUser)
+
+  if (sso.handled) {
+    return (
+      <div className="login-shell" style={{ padding: 48, textAlign: 'center' }}>
+        <p>正在完成企微登录…</p>
+      </div>
+    )
+  }
   const [config, setConfig] = useState<TenantRuntimeConfig | null>(null)
   const [schema, setSchema] = useState<PageSchema | null>(null)
   const [manifest, setManifest] = useState<BuildManifest | null>(null)

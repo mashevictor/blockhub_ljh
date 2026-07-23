@@ -48,6 +48,7 @@ test.describe('publish → runtime → plaza', () => {
     const plaza = await apiPost<{ success: boolean }>(
       '/creation/plaza/publish',
       { app_id: appId, visibility: 'public' },
+      token,
     )
     expect(plaza.success).toBe(true)
 

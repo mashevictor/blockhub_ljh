@@ -12,6 +12,84 @@ export interface CapabilityManifestEntry {
 }
 export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
   {
+    "key": "agro_inventory",
+    "name": "农资出入库",
+    "category": "农业",
+    "widget": "AgroInventoryWidget",
+    "agent_id": "agro_inventory",
+    "web_pkg": "@blockhub/web-capability-vertical-ops",
+    "flutter_pkg": "capability_vertical",
+    "route": "/agro-inventory",
+    "keywords": [
+      "农资出入库"
+    ]
+  },
+  {
+    "key": "agro_patrol",
+    "name": "田间巡查",
+    "category": "农业",
+    "widget": "AgroPatrolWidget",
+    "agent_id": "agro_patrol",
+    "web_pkg": "@blockhub/web-capability-vertical-ops",
+    "flutter_pkg": "capability_vertical",
+    "route": "/agro-patrol",
+    "keywords": [
+      "田间巡查"
+    ]
+  },
+  {
+    "key": "agro_pest",
+    "name": "病虫害上报",
+    "category": "农业",
+    "widget": "AgroPestWidget",
+    "agent_id": "agro_pest",
+    "web_pkg": "@blockhub/web-capability-vertical-ops",
+    "flutter_pkg": "capability_vertical",
+    "route": "/agro-pest",
+    "keywords": [
+      "病虫害上报"
+    ]
+  },
+  {
+    "key": "agro_subsidy",
+    "name": "补贴申请",
+    "category": "农业",
+    "widget": "AgroSubsidyWidget",
+    "agent_id": "agro_subsidy",
+    "web_pkg": "@blockhub/web-capability-vertical-ops",
+    "flutter_pkg": "capability_vertical",
+    "route": "/agro-subsidy",
+    "keywords": [
+      "补贴申请"
+    ]
+  },
+  {
+    "key": "agro_trace",
+    "name": "溯源批次",
+    "category": "农业",
+    "widget": "AgroTraceWidget",
+    "agent_id": "agro_trace",
+    "web_pkg": "@blockhub/web-capability-vertical-ops",
+    "flutter_pkg": "capability_vertical",
+    "route": "/agro-trace",
+    "keywords": [
+      "溯源批次"
+    ]
+  },
+  {
+    "key": "allergen_note",
+    "name": "过敏原工单",
+    "category": "酒店餐饮",
+    "widget": "AllergenNoteWidget",
+    "agent_id": "allergen_note",
+    "web_pkg": "@blockhub/web-capability-hotel-ops",
+    "flutter_pkg": "capability_hotel",
+    "route": "/allergen-note",
+    "keywords": [
+      "过敏原工单"
+    ]
+  },
+  {
     "key": "announce_board",
     "name": "公告栏",
     "category": "通知集成",
@@ -144,6 +222,84 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     "flutter_pkg": "capability_auth_sso",
     "route": "/auth-sso",
     "keywords": []
+  },
+  {
+    "key": "auto_charge",
+    "name": "充电桩运维",
+    "category": "汽车交通",
+    "widget": "AutoChargeWidget",
+    "agent_id": "auto_charge",
+    "web_pkg": "@blockhub/web-capability-vertical-ops",
+    "flutter_pkg": "capability_vertical",
+    "route": "/auto-charge",
+    "keywords": [
+      "充电桩运维"
+    ]
+  },
+  {
+    "key": "auto_claim",
+    "name": "事故理赔",
+    "category": "汽车交通",
+    "widget": "AutoClaimWidget",
+    "agent_id": "auto_claim",
+    "web_pkg": "@blockhub/web-capability-vertical-ops",
+    "flutter_pkg": "capability_vertical",
+    "route": "/auto-claim",
+    "keywords": [
+      "事故理赔"
+    ]
+  },
+  {
+    "key": "auto_fleet",
+    "name": "车队调度",
+    "category": "汽车交通",
+    "widget": "AutoFleetWidget",
+    "agent_id": "auto_fleet",
+    "web_pkg": "@blockhub/web-capability-vertical-ops",
+    "flutter_pkg": "capability_vertical",
+    "route": "/auto-fleet",
+    "keywords": [
+      "车队调度"
+    ]
+  },
+  {
+    "key": "auto_parts",
+    "name": "配件库存",
+    "category": "汽车交通",
+    "widget": "AutoPartsWidget",
+    "agent_id": "auto_parts",
+    "web_pkg": "@blockhub/web-capability-vertical-ops",
+    "flutter_pkg": "capability_vertical",
+    "route": "/auto-parts",
+    "keywords": [
+      "配件库存"
+    ]
+  },
+  {
+    "key": "auto_service",
+    "name": "维保工单",
+    "category": "汽车交通",
+    "widget": "AutoServiceWidget",
+    "agent_id": "auto_service",
+    "web_pkg": "@blockhub/web-capability-vertical-ops",
+    "flutter_pkg": "capability_vertical",
+    "route": "/auto-service",
+    "keywords": [
+      "维保工单"
+    ]
+  },
+  {
+    "key": "banquet_order",
+    "name": "宴会预订",
+    "category": "酒店餐饮",
+    "widget": "BanquetOrderWidget",
+    "agent_id": "banquet_order",
+    "web_pkg": "@blockhub/web-capability-hotel-ops",
+    "flutter_pkg": "capability_hotel",
+    "route": "/banquet-order",
+    "keywords": [
+      "宴会预订"
+    ]
   },
   {
     "key": "broker_commission",
@@ -308,6 +464,97 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
       "温控",
       "温湿度",
       "冷藏"
+    ]
+  },
+  {
+    "key": "competitor_price",
+    "name": "竞品采价",
+    "category": "零售电商",
+    "widget": "CompetitorPriceWidget",
+    "agent_id": "competitor_price",
+    "web_pkg": "@blockhub/web-capability-retail-ops",
+    "flutter_pkg": "capability_retail",
+    "route": "/competitor-price",
+    "keywords": [
+      "竞品采价"
+    ]
+  },
+  {
+    "key": "concierge_req",
+    "name": "礼宾需求",
+    "category": "酒店餐饮",
+    "widget": "ConciergeReqWidget",
+    "agent_id": "concierge_req",
+    "web_pkg": "@blockhub/web-capability-hotel-ops",
+    "flutter_pkg": "capability_hotel",
+    "route": "/concierge-req",
+    "keywords": [
+      "礼宾需求"
+    ]
+  },
+  {
+    "key": "const_accept",
+    "name": "材料验收",
+    "category": "建筑工程",
+    "widget": "ConstAcceptWidget",
+    "agent_id": "const_accept",
+    "web_pkg": "@blockhub/web-capability-vertical-ops",
+    "flutter_pkg": "capability_vertical",
+    "route": "/const-accept",
+    "keywords": [
+      "材料验收"
+    ]
+  },
+  {
+    "key": "const_labor",
+    "name": "劳务实名",
+    "category": "建筑工程",
+    "widget": "ConstLaborWidget",
+    "agent_id": "const_labor",
+    "web_pkg": "@blockhub/web-capability-vertical-ops",
+    "flutter_pkg": "capability_vertical",
+    "route": "/const-labor",
+    "keywords": [
+      "劳务实名"
+    ]
+  },
+  {
+    "key": "const_progress",
+    "name": "进度填报",
+    "category": "建筑工程",
+    "widget": "ConstProgressWidget",
+    "agent_id": "const_progress",
+    "web_pkg": "@blockhub/web-capability-vertical-ops",
+    "flutter_pkg": "capability_vertical",
+    "route": "/const-progress",
+    "keywords": [
+      "进度填报"
+    ]
+  },
+  {
+    "key": "const_safety",
+    "name": "现场安全",
+    "category": "建筑工程",
+    "widget": "ConstSafetyWidget",
+    "agent_id": "const_safety",
+    "web_pkg": "@blockhub/web-capability-vertical-ops",
+    "flutter_pkg": "capability_vertical",
+    "route": "/const-safety",
+    "keywords": [
+      "现场安全"
+    ]
+  },
+  {
+    "key": "const_visa",
+    "name": "工程签证",
+    "category": "建筑工程",
+    "widget": "ConstVisaWidget",
+    "agent_id": "const_visa",
+    "web_pkg": "@blockhub/web-capability-vertical-ops",
+    "flutter_pkg": "capability_vertical",
+    "route": "/const-visa",
+    "keywords": [
+      "工程签证"
     ]
   },
   {
@@ -497,6 +744,19 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     ]
   },
   {
+    "key": "display_check",
+    "name": "陈列检查",
+    "category": "零售电商",
+    "widget": "DisplayCheckWidget",
+    "agent_id": "display_check",
+    "web_pkg": "@blockhub/web-capability-retail-ops",
+    "flutter_pkg": "capability_retail",
+    "route": "/display-check",
+    "keywords": [
+      "陈列检查"
+    ]
+  },
+  {
     "key": "dock_queue",
     "name": "装卸排队",
     "category": "物流仓储",
@@ -529,19 +789,201 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     ]
   },
   {
+    "key": "edu_attendance",
+    "name": "到课考勤",
+    "category": "教育培训",
+    "widget": "EduAttendanceWidget",
+    "agent_id": "edu_attendance",
+    "web_pkg": "@blockhub/web-capability-vertical-ops",
+    "flutter_pkg": "capability_vertical",
+    "route": "/edu-attendance",
+    "keywords": [
+      "到课考勤"
+    ]
+  },
+  {
+    "key": "edu_grade_alert",
+    "name": "成绩预警",
+    "category": "教育培训",
+    "widget": "EduGradeAlertWidget",
+    "agent_id": "edu_grade_alert",
+    "web_pkg": "@blockhub/web-capability-vertical-ops",
+    "flutter_pkg": "capability_vertical",
+    "route": "/edu-grade-alert",
+    "keywords": [
+      "成绩预警"
+    ]
+  },
+  {
+    "key": "edu_makeup",
+    "name": "补考登记",
+    "category": "教育培训",
+    "widget": "EduMakeupWidget",
+    "agent_id": "edu_makeup",
+    "web_pkg": "@blockhub/web-capability-vertical-ops",
+    "flutter_pkg": "capability_vertical",
+    "route": "/edu-makeup",
+    "keywords": [
+      "补考登记"
+    ]
+  },
+  {
+    "key": "edu_quiz",
+    "name": "题库练习",
+    "category": "教育培训",
+    "widget": "EduQuizWidget",
+    "agent_id": "edu_quiz",
+    "web_pkg": "@blockhub/web-capability-vertical-ops",
+    "flutter_pkg": "capability_vertical",
+    "route": "/edu-quiz",
+    "keywords": [
+      "题库练习"
+    ]
+  },
+  {
+    "key": "edu_textbook",
+    "name": "教材发放",
+    "category": "教育培训",
+    "widget": "EduTextbookWidget",
+    "agent_id": "edu_textbook",
+    "web_pkg": "@blockhub/web-capability-vertical-ops",
+    "flutter_pkg": "capability_vertical",
+    "route": "/edu-textbook",
+    "keywords": [
+      "教材发放"
+    ]
+  },
+  {
+    "key": "edu_transfer",
+    "name": "学籍异动",
+    "category": "教育培训",
+    "widget": "EduTransferWidget",
+    "agent_id": "edu_transfer",
+    "web_pkg": "@blockhub/web-capability-vertical-ops",
+    "flutter_pkg": "capability_vertical",
+    "route": "/edu-transfer",
+    "keywords": [
+      "学籍异动"
+    ]
+  },
+  {
+    "key": "edu_tuition",
+    "name": "学费收缴",
+    "category": "教育培训",
+    "widget": "EduTuitionWidget",
+    "agent_id": "edu_tuition",
+    "web_pkg": "@blockhub/web-capability-vertical-ops",
+    "flutter_pkg": "capability_vertical",
+    "route": "/edu-tuition",
+    "keywords": [
+      "学费收缴"
+    ]
+  },
+  {
     "key": "energy_carbon",
     "name": "能耗碳排",
     "category": "绿色制造",
     "widget": "EnergyCarbonWidget",
     "agent_id": "energy_carbon",
     "web_pkg": "@blockhub/web-capability-mfg-ops",
-    "flutter_pkg": "capability_energy_carbon",
+    "flutter_pkg": "capability_mfg",
     "route": "/energy-carbon",
     "keywords": [
       "能耗",
       "碳排",
       "用电",
       "绿色制造"
+    ]
+  },
+  {
+    "key": "energy_defect",
+    "name": "缺陷隐患",
+    "category": "能源电力",
+    "widget": "EnergyDefectWidget",
+    "agent_id": "energy_defect",
+    "web_pkg": "@blockhub/web-capability-vertical-ops",
+    "flutter_pkg": "capability_vertical",
+    "route": "/energy-defect",
+    "keywords": [
+      "缺陷隐患"
+    ]
+  },
+  {
+    "key": "energy_emissions",
+    "name": "碳排填报",
+    "category": "能源电力",
+    "widget": "EnergyEmissionsWidget",
+    "agent_id": "energy_emissions",
+    "web_pkg": "@blockhub/web-capability-vertical-ops",
+    "flutter_pkg": "capability_vertical",
+    "route": "/energy-emissions",
+    "keywords": [
+      "碳排填报"
+    ]
+  },
+  {
+    "key": "energy_hotwork",
+    "name": "动火票",
+    "category": "能源电力",
+    "widget": "EnergyHotworkWidget",
+    "agent_id": "energy_hotwork",
+    "web_pkg": "@blockhub/web-capability-vertical-ops",
+    "flutter_pkg": "capability_vertical",
+    "route": "/energy-hotwork",
+    "keywords": [
+      "动火票"
+    ]
+  },
+  {
+    "key": "energy_outage",
+    "name": "停电计划",
+    "category": "能源电力",
+    "widget": "EnergyOutageWidget",
+    "agent_id": "energy_outage",
+    "web_pkg": "@blockhub/web-capability-vertical-ops",
+    "flutter_pkg": "capability_vertical",
+    "route": "/energy-outage",
+    "keywords": [
+      "停电计划"
+    ]
+  },
+  {
+    "key": "energy_restore",
+    "name": "复电确认",
+    "category": "能源电力",
+    "widget": "EnergyRestoreWidget",
+    "agent_id": "energy_restore",
+    "web_pkg": "@blockhub/web-capability-vertical-ops",
+    "flutter_pkg": "capability_vertical",
+    "route": "/energy-restore",
+    "keywords": [
+      "复电确认"
+    ]
+  },
+  {
+    "key": "energy_spare",
+    "name": "备件领用",
+    "category": "能源电力",
+    "widget": "EnergySpareWidget",
+    "agent_id": "energy_spare",
+    "web_pkg": "@blockhub/web-capability-vertical-ops",
+    "flutter_pkg": "capability_vertical",
+    "route": "/energy-spare",
+    "keywords": [
+      "备件领用"
+    ]
+  },
+  {
+    "key": "energy_ticket",
+    "name": "两票管理",
+    "category": "能源电力",
+    "widget": "EnergyTicketWidget",
+    "agent_id": "energy_ticket",
+    "web_pkg": "@blockhub/web-capability-vertical-ops",
+    "flutter_pkg": "capability_vertical",
+    "route": "/energy-ticket",
+    "keywords": [
+      "两票管理"
     ]
   },
   {
@@ -884,6 +1326,32 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     ]
   },
   {
+    "key": "fnb_order",
+    "name": "餐饮点单",
+    "category": "酒店餐饮",
+    "widget": "FnbOrderWidget",
+    "agent_id": "fnb_order",
+    "web_pkg": "@blockhub/web-capability-hotel-ops",
+    "flutter_pkg": "capability_hotel",
+    "route": "/fnb-order",
+    "keywords": [
+      "餐饮点单"
+    ]
+  },
+  {
+    "key": "food_purchase",
+    "name": "食材申购",
+    "category": "酒店餐饮",
+    "widget": "FoodPurchaseWidget",
+    "agent_id": "food_purchase",
+    "web_pkg": "@blockhub/web-capability-hotel-ops",
+    "flutter_pkg": "capability_hotel",
+    "route": "/food-purchase",
+    "keywords": [
+      "食材申购"
+    ]
+  },
+  {
     "key": "form_widget",
     "name": "表单组件",
     "category": "平台能力",
@@ -953,6 +1421,84 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     ]
   },
   {
+    "key": "gift_card",
+    "name": "储值卡充值",
+    "category": "零售电商",
+    "widget": "GiftCardWidget",
+    "agent_id": "gift_card",
+    "web_pkg": "@blockhub/web-capability-retail-ops",
+    "flutter_pkg": "capability_retail",
+    "route": "/gift-card",
+    "keywords": [
+      "储值卡充值"
+    ]
+  },
+  {
+    "key": "gov_appeal",
+    "name": "诉求受理",
+    "category": "政务公用",
+    "widget": "GovAppealWidget",
+    "agent_id": "gov_appeal",
+    "web_pkg": "@blockhub/web-capability-vertical-ops",
+    "flutter_pkg": "capability_vertical",
+    "route": "/gov-appeal",
+    "keywords": [
+      "诉求受理"
+    ]
+  },
+  {
+    "key": "gov_grid",
+    "name": "网格事件",
+    "category": "政务公用",
+    "widget": "GovGridWidget",
+    "agent_id": "gov_grid",
+    "web_pkg": "@blockhub/web-capability-vertical-ops",
+    "flutter_pkg": "capability_vertical",
+    "route": "/gov-grid",
+    "keywords": [
+      "网格事件"
+    ]
+  },
+  {
+    "key": "gov_hotline",
+    "name": "热线转办",
+    "category": "政务公用",
+    "widget": "GovHotlineWidget",
+    "agent_id": "gov_hotline",
+    "web_pkg": "@blockhub/web-capability-vertical-ops",
+    "flutter_pkg": "capability_vertical",
+    "route": "/gov-hotline",
+    "keywords": [
+      "热线转办"
+    ]
+  },
+  {
+    "key": "gov_license",
+    "name": "证照申领",
+    "category": "政务公用",
+    "widget": "GovLicenseWidget",
+    "agent_id": "gov_license",
+    "web_pkg": "@blockhub/web-capability-vertical-ops",
+    "flutter_pkg": "capability_vertical",
+    "route": "/gov-license",
+    "keywords": [
+      "证照申领"
+    ]
+  },
+  {
+    "key": "gov_public",
+    "name": "信息公开",
+    "category": "政务公用",
+    "widget": "GovPublicWidget",
+    "agent_id": "gov_public",
+    "web_pkg": "@blockhub/web-capability-vertical-ops",
+    "flutter_pkg": "capability_vertical",
+    "route": "/gov-public",
+    "keywords": [
+      "信息公开"
+    ]
+  },
+  {
     "key": "gov_service",
     "name": "政务办事",
     "category": "政务公用",
@@ -970,6 +1516,45 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     ]
   },
   {
+    "key": "gov_supervise",
+    "name": "催办督办",
+    "category": "政务公用",
+    "widget": "GovSuperviseWidget",
+    "agent_id": "gov_supervise",
+    "web_pkg": "@blockhub/web-capability-vertical-ops",
+    "flutter_pkg": "capability_vertical",
+    "route": "/gov-supervise",
+    "keywords": [
+      "催办督办"
+    ]
+  },
+  {
+    "key": "group_checkin",
+    "name": "团队入住",
+    "category": "酒店餐饮",
+    "widget": "GroupCheckinWidget",
+    "agent_id": "group_checkin",
+    "web_pkg": "@blockhub/web-capability-hotel-ops",
+    "flutter_pkg": "capability_hotel",
+    "route": "/group-checkin",
+    "keywords": [
+      "团队入住"
+    ]
+  },
+  {
+    "key": "guest_complaint",
+    "name": "客诉处理",
+    "category": "酒店餐饮",
+    "widget": "GuestComplaintWidget",
+    "agent_id": "guest_complaint",
+    "web_pkg": "@blockhub/web-capability-hotel-ops",
+    "flutter_pkg": "capability_hotel",
+    "route": "/guest-complaint",
+    "keywords": [
+      "客诉处理"
+    ]
+  },
+  {
     "key": "hire_onboard",
     "name": "招聘入职",
     "category": "人事行政",
@@ -983,6 +1568,19 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
       "招聘管理",
       "简历筛选",
       "入职指引"
+    ]
+  },
+  {
+    "key": "hk_task",
+    "name": "客房打扫",
+    "category": "酒店餐饮",
+    "widget": "HkTaskWidget",
+    "agent_id": "hk_task",
+    "web_pkg": "@blockhub/web-capability-hotel-ops",
+    "flutter_pkg": "capability_hotel",
+    "route": "/hk-task",
+    "keywords": [
+      "客房打扫"
     ]
   },
   {
@@ -1020,6 +1618,19 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     ]
   },
   {
+    "key": "hotel_revenue",
+    "name": "营收日报",
+    "category": "酒店餐饮",
+    "widget": "HotelRevenueWidget",
+    "agent_id": "hotel_revenue",
+    "web_pkg": "@blockhub/web-capability-hotel-ops",
+    "flutter_pkg": "capability_hotel",
+    "route": "/hotel-revenue",
+    "keywords": [
+      "营收日报"
+    ]
+  },
+  {
     "key": "house_viewing",
     "name": "看房签约",
     "category": "房地产",
@@ -1034,6 +1645,97 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
       "意向登记",
       "签约跟进",
       "带看"
+    ]
+  },
+  {
+    "key": "hr_headcount",
+    "name": "编制申请",
+    "category": "人力资源",
+    "widget": "HrHeadcountWidget",
+    "agent_id": "hr_headcount",
+    "web_pkg": "@blockhub/web-capability-vertical-ops",
+    "flutter_pkg": "capability_vertical",
+    "route": "/hr-headcount",
+    "keywords": [
+      "编制申请"
+    ]
+  },
+  {
+    "key": "hr_idp",
+    "name": "个人发展",
+    "category": "人力资源",
+    "widget": "HrIdpWidget",
+    "agent_id": "hr_idp",
+    "web_pkg": "@blockhub/web-capability-vertical-ops",
+    "flutter_pkg": "capability_vertical",
+    "route": "/hr-idp",
+    "keywords": [
+      "个人发展"
+    ]
+  },
+  {
+    "key": "hr_offer",
+    "name": "Offer审批",
+    "category": "人力资源",
+    "widget": "HrOfferWidget",
+    "agent_id": "hr_offer",
+    "web_pkg": "@blockhub/web-capability-vertical-ops",
+    "flutter_pkg": "capability_vertical",
+    "route": "/hr-offer",
+    "keywords": [
+      "Offer审批"
+    ]
+  },
+  {
+    "key": "hr_payroll",
+    "name": "薪资异议",
+    "category": "人力资源",
+    "widget": "HrPayrollWidget",
+    "agent_id": "hr_payroll",
+    "web_pkg": "@blockhub/web-capability-vertical-ops",
+    "flutter_pkg": "capability_vertical",
+    "route": "/hr-payroll",
+    "keywords": [
+      "薪资异议"
+    ]
+  },
+  {
+    "key": "hr_perf",
+    "name": "绩效考核",
+    "category": "人力资源",
+    "widget": "HrPerfWidget",
+    "agent_id": "hr_perf",
+    "web_pkg": "@blockhub/web-capability-vertical-ops",
+    "flutter_pkg": "capability_vertical",
+    "route": "/hr-perf",
+    "keywords": [
+      "绩效考核"
+    ]
+  },
+  {
+    "key": "hr_training",
+    "name": "培训报名",
+    "category": "人力资源",
+    "widget": "HrTrainingWidget",
+    "agent_id": "hr_training",
+    "web_pkg": "@blockhub/web-capability-vertical-ops",
+    "flutter_pkg": "capability_vertical",
+    "route": "/hr-training",
+    "keywords": [
+      "培训报名"
+    ]
+  },
+  {
+    "key": "hygiene_check",
+    "name": "卫生检查",
+    "category": "酒店餐饮",
+    "widget": "HygieneCheckWidget",
+    "agent_id": "hygiene_check",
+    "web_pkg": "@blockhub/web-capability-hotel-ops",
+    "flutter_pkg": "capability_hotel",
+    "route": "/hygiene-check",
+    "keywords": [
+      "卫生检查"
     ]
   },
   {
@@ -1163,6 +1865,19 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     ]
   },
   {
+    "key": "kitchen_waste",
+    "name": "厨余报损",
+    "category": "酒店餐饮",
+    "widget": "KitchenWasteWidget",
+    "agent_id": "kitchen_waste",
+    "web_pkg": "@blockhub/web-capability-hotel-ops",
+    "flutter_pkg": "capability_hotel",
+    "route": "/kitchen-waste",
+    "keywords": [
+      "厨余报损"
+    ]
+  },
+  {
     "key": "lease_renewal",
     "name": "租约续签",
     "category": "房地产",
@@ -1208,6 +1923,84 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
       "法规检索",
       "案件跟踪",
       "法务"
+    ]
+  },
+  {
+    "key": "legal_contract_ops",
+    "name": "合同审查单",
+    "category": "法律服务",
+    "widget": "LegalContractOpsWidget",
+    "agent_id": "legal_contract_ops",
+    "web_pkg": "@blockhub/web-capability-vertical-ops",
+    "flutter_pkg": "capability_vertical",
+    "route": "/legal-contract-ops",
+    "keywords": [
+      "合同审查单"
+    ]
+  },
+  {
+    "key": "legal_enforce",
+    "name": "执行回款",
+    "category": "法律服务",
+    "widget": "LegalEnforceWidget",
+    "agent_id": "legal_enforce",
+    "web_pkg": "@blockhub/web-capability-vertical-ops",
+    "flutter_pkg": "capability_vertical",
+    "route": "/legal-enforce",
+    "keywords": [
+      "执行回款"
+    ]
+  },
+  {
+    "key": "legal_evidence",
+    "name": "证据台账",
+    "category": "法律服务",
+    "widget": "LegalEvidenceWidget",
+    "agent_id": "legal_evidence",
+    "web_pkg": "@blockhub/web-capability-vertical-ops",
+    "flutter_pkg": "capability_vertical",
+    "route": "/legal-evidence",
+    "keywords": [
+      "证据台账"
+    ]
+  },
+  {
+    "key": "legal_filing",
+    "name": "立案登记",
+    "category": "法律服务",
+    "widget": "LegalFilingWidget",
+    "agent_id": "legal_filing",
+    "web_pkg": "@blockhub/web-capability-vertical-ops",
+    "flutter_pkg": "capability_vertical",
+    "route": "/legal-filing",
+    "keywords": [
+      "立案登记"
+    ]
+  },
+  {
+    "key": "legal_hearing",
+    "name": "开庭排期",
+    "category": "法律服务",
+    "widget": "LegalHearingWidget",
+    "agent_id": "legal_hearing",
+    "web_pkg": "@blockhub/web-capability-vertical-ops",
+    "flutter_pkg": "capability_vertical",
+    "route": "/legal-hearing",
+    "keywords": [
+      "开庭排期"
+    ]
+  },
+  {
+    "key": "legal_preserve",
+    "name": "诉讼保全",
+    "category": "法律服务",
+    "widget": "LegalPreserveWidget",
+    "agent_id": "legal_preserve",
+    "web_pkg": "@blockhub/web-capability-vertical-ops",
+    "flutter_pkg": "capability_vertical",
+    "route": "/legal-preserve",
+    "keywords": [
+      "诉讼保全"
     ]
   },
   {
@@ -1259,13 +2052,39 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     ]
   },
   {
+    "key": "loss_shrinkage",
+    "name": "损耗报损",
+    "category": "零售电商",
+    "widget": "LossShrinkageWidget",
+    "agent_id": "loss_shrinkage",
+    "web_pkg": "@blockhub/web-capability-retail-ops",
+    "flutter_pkg": "capability_retail",
+    "route": "/loss-shrinkage",
+    "keywords": [
+      "损耗报损"
+    ]
+  },
+  {
+    "key": "lost_found",
+    "name": "失物招领",
+    "category": "酒店餐饮",
+    "widget": "LostFoundWidget",
+    "agent_id": "lost_found",
+    "web_pkg": "@blockhub/web-capability-hotel-ops",
+    "flutter_pkg": "capability_hotel",
+    "route": "/lost-found",
+    "keywords": [
+      "失物招领"
+    ]
+  },
+  {
     "key": "maintenance_plan",
     "name": "保养计划",
     "category": "设备管理",
     "widget": "MaintenancePlanWidget",
     "agent_id": "maintenance_plan",
     "web_pkg": "@blockhub/web-capability-mfg-ops",
-    "flutter_pkg": "capability_maintenance_plan",
+    "flutter_pkg": "capability_mfg",
     "route": "/maintenance-plan",
     "keywords": [
       "保养",
@@ -1281,7 +2100,7 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     "widget": "MaterialIssueWidget",
     "agent_id": "material_issue",
     "web_pkg": "@blockhub/web-capability-mfg-ops",
-    "flutter_pkg": "capability_material_issue",
+    "flutter_pkg": "capability_mfg",
     "route": "/material-issue",
     "keywords": [
       "领料",
@@ -1307,6 +2126,71 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
       "科室",
       "预问诊",
       "症状"
+    ]
+  },
+  {
+    "key": "media_asset",
+    "name": "素材版权",
+    "category": "传媒内容",
+    "widget": "MediaAssetWidget",
+    "agent_id": "media_asset",
+    "web_pkg": "@blockhub/web-capability-vertical-ops",
+    "flutter_pkg": "capability_vertical",
+    "route": "/media-asset",
+    "keywords": [
+      "素材版权"
+    ]
+  },
+  {
+    "key": "media_calendar",
+    "name": "发布排期",
+    "category": "传媒内容",
+    "widget": "MediaCalendarWidget",
+    "agent_id": "media_calendar",
+    "web_pkg": "@blockhub/web-capability-vertical-ops",
+    "flutter_pkg": "capability_vertical",
+    "route": "/media-calendar",
+    "keywords": [
+      "发布排期"
+    ]
+  },
+  {
+    "key": "media_live",
+    "name": "直播场控",
+    "category": "传媒内容",
+    "widget": "MediaLiveWidget",
+    "agent_id": "media_live",
+    "web_pkg": "@blockhub/web-capability-vertical-ops",
+    "flutter_pkg": "capability_vertical",
+    "route": "/media-live",
+    "keywords": [
+      "直播场控"
+    ]
+  },
+  {
+    "key": "media_review",
+    "name": "内容审核",
+    "category": "传媒内容",
+    "widget": "MediaReviewWidget",
+    "agent_id": "media_review",
+    "web_pkg": "@blockhub/web-capability-vertical-ops",
+    "flutter_pkg": "capability_vertical",
+    "route": "/media-review",
+    "keywords": [
+      "内容审核"
+    ]
+  },
+  {
+    "key": "media_topic",
+    "name": "选题申报",
+    "category": "传媒内容",
+    "widget": "MediaTopicWidget",
+    "agent_id": "media_topic",
+    "web_pkg": "@blockhub/web-capability-vertical-ops",
+    "flutter_pkg": "capability_vertical",
+    "route": "/media-topic",
+    "keywords": [
+      "选题申报"
     ]
   },
   {
@@ -1346,13 +2230,26 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     ]
   },
   {
+    "key": "menu_86",
+    "name": "菜品沽清",
+    "category": "酒店餐饮",
+    "widget": "Menu86Widget",
+    "agent_id": "menu_86",
+    "web_pkg": "@blockhub/web-capability-hotel-ops",
+    "flutter_pkg": "capability_hotel",
+    "route": "/menu-86",
+    "keywords": [
+      "菜品沽清"
+    ]
+  },
+  {
     "key": "mfg_oee",
     "name": "生产日报OEE",
     "category": "生产管理",
     "widget": "MfgOeeWidget",
     "agent_id": "mfg_oee",
     "web_pkg": "@blockhub/web-capability-mfg-ops",
-    "flutter_pkg": "capability_mfg_oee",
+    "flutter_pkg": "capability_mfg",
     "route": "/mfg-oee",
     "keywords": [
       "OEE",
@@ -1360,6 +2257,97 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
       "生产日报",
       "产量",
       "停机"
+    ]
+  },
+  {
+    "key": "minibar_charge",
+    "name": "迷你吧计费",
+    "category": "酒店餐饮",
+    "widget": "MinibarChargeWidget",
+    "agent_id": "minibar_charge",
+    "web_pkg": "@blockhub/web-capability-hotel-ops",
+    "flutter_pkg": "capability_hotel",
+    "route": "/minibar-charge",
+    "keywords": [
+      "迷你吧计费"
+    ]
+  },
+  {
+    "key": "mkt_ab_test",
+    "name": "AB文案测试",
+    "category": "市场营销",
+    "widget": "MktAbTestWidget",
+    "agent_id": "mkt_ab_test",
+    "web_pkg": "@blockhub/web-capability-vertical-ops",
+    "flutter_pkg": "capability_vertical",
+    "route": "/mkt-ab-test",
+    "keywords": [
+      "AB文案测试"
+    ]
+  },
+  {
+    "key": "mkt_content",
+    "name": "内容排期",
+    "category": "市场营销",
+    "widget": "MktContentWidget",
+    "agent_id": "mkt_content",
+    "web_pkg": "@blockhub/web-capability-vertical-ops",
+    "flutter_pkg": "capability_vertical",
+    "route": "/mkt-content",
+    "keywords": [
+      "内容排期"
+    ]
+  },
+  {
+    "key": "mkt_coupon",
+    "name": "券包触达",
+    "category": "市场营销",
+    "widget": "MktCouponWidget",
+    "agent_id": "mkt_coupon",
+    "web_pkg": "@blockhub/web-capability-vertical-ops",
+    "flutter_pkg": "capability_vertical",
+    "route": "/mkt-coupon",
+    "keywords": [
+      "券包触达"
+    ]
+  },
+  {
+    "key": "mkt_lead",
+    "name": "线索分配",
+    "category": "市场营销",
+    "widget": "MktLeadWidget",
+    "agent_id": "mkt_lead",
+    "web_pkg": "@blockhub/web-capability-vertical-ops",
+    "flutter_pkg": "capability_vertical",
+    "route": "/mkt-lead",
+    "keywords": [
+      "线索分配"
+    ]
+  },
+  {
+    "key": "mkt_roi",
+    "name": "投放复盘",
+    "category": "市场营销",
+    "widget": "MktRoiWidget",
+    "agent_id": "mkt_roi",
+    "web_pkg": "@blockhub/web-capability-vertical-ops",
+    "flutter_pkg": "capability_vertical",
+    "route": "/mkt-roi",
+    "keywords": [
+      "投放复盘"
+    ]
+  },
+  {
+    "key": "mkt_sign",
+    "name": "活动签到",
+    "category": "市场营销",
+    "widget": "MktSignWidget",
+    "agent_id": "mkt_sign",
+    "web_pkg": "@blockhub/web-capability-vertical-ops",
+    "flutter_pkg": "capability_vertical",
+    "route": "/mkt-sign",
+    "keywords": [
+      "活动签到"
     ]
   },
   {
@@ -1374,6 +2362,32 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     "keywords": [
       "多助手",
       "multi agent"
+    ]
+  },
+  {
+    "key": "new_sku_launch",
+    "name": "新品上架",
+    "category": "零售电商",
+    "widget": "NewSkuLaunchWidget",
+    "agent_id": "new_sku_launch",
+    "web_pkg": "@blockhub/web-capability-retail-ops",
+    "flutter_pkg": "capability_retail",
+    "route": "/new-sku-launch",
+    "keywords": [
+      "新品上架"
+    ]
+  },
+  {
+    "key": "night_audit",
+    "name": "夜审确认",
+    "category": "酒店餐饮",
+    "widget": "NightAuditWidget",
+    "agent_id": "night_audit",
+    "web_pkg": "@blockhub/web-capability-hotel-ops",
+    "flutter_pkg": "capability_hotel",
+    "route": "/night-audit",
+    "keywords": [
+      "夜审确认"
     ]
   },
   {
@@ -1454,6 +2468,32 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     "keywords": []
   },
   {
+    "key": "omni_pickup",
+    "name": "全渠道自提",
+    "category": "零售电商",
+    "widget": "OmniPickupWidget",
+    "agent_id": "omni_pickup",
+    "web_pkg": "@blockhub/web-capability-retail-ops",
+    "flutter_pkg": "capability_retail",
+    "route": "/omni-pickup",
+    "keywords": [
+      "全渠道自提"
+    ]
+  },
+  {
+    "key": "online_refund",
+    "name": "电商仅退款",
+    "category": "零售电商",
+    "widget": "OnlineRefundWidget",
+    "agent_id": "online_refund",
+    "web_pkg": "@blockhub/web-capability-retail-ops",
+    "flutter_pkg": "capability_retail",
+    "route": "/online-refund",
+    "keywords": [
+      "电商仅退款"
+    ]
+  },
+  {
     "key": "ops_kpi",
     "name": "经营看板",
     "category": "数据报表",
@@ -1531,6 +2571,45 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
       "制度政策",
       "福利政策",
       "制度查询"
+    ]
+  },
+  {
+    "key": "pos_exception",
+    "name": "收银异常",
+    "category": "零售电商",
+    "widget": "PosExceptionWidget",
+    "agent_id": "pos_exception",
+    "web_pkg": "@blockhub/web-capability-retail-ops",
+    "flutter_pkg": "capability_retail",
+    "route": "/pos-exception",
+    "keywords": [
+      "收银异常"
+    ]
+  },
+  {
+    "key": "price_change",
+    "name": "价格变更",
+    "category": "零售电商",
+    "widget": "PriceChangeWidget",
+    "agent_id": "price_change",
+    "web_pkg": "@blockhub/web-capability-retail-ops",
+    "flutter_pkg": "capability_retail",
+    "route": "/price-change",
+    "keywords": [
+      "价格变更"
+    ]
+  },
+  {
+    "key": "promo_coupon",
+    "name": "优惠券核销",
+    "category": "零售电商",
+    "widget": "PromoCouponWidget",
+    "agent_id": "promo_coupon",
+    "web_pkg": "@blockhub/web-capability-retail-ops",
+    "flutter_pkg": "capability_retail",
+    "route": "/promo-coupon",
+    "keywords": [
+      "优惠券核销"
     ]
   },
   {
@@ -1633,6 +2712,19 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     ]
   },
   {
+    "key": "receipt_audit",
+    "name": "小票稽核",
+    "category": "零售电商",
+    "widget": "ReceiptAuditWidget",
+    "agent_id": "receipt_audit",
+    "web_pkg": "@blockhub/web-capability-retail-ops",
+    "flutter_pkg": "capability_retail",
+    "route": "/receipt-audit",
+    "keywords": [
+      "小票稽核"
+    ]
+  },
+  {
     "key": "regulatory_report",
     "name": "监管报送",
     "category": "金融服务",
@@ -1674,6 +2766,58 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     "flutter_pkg": "capability_report_scheduled",
     "route": "/dashboard",
     "keywords": []
+  },
+  {
+    "key": "retail_order",
+    "name": "订单跟踪",
+    "category": "零售电商",
+    "widget": "RetailOrderWidget",
+    "agent_id": "retail_order",
+    "web_pkg": "@blockhub/web-capability-retail-ops",
+    "flutter_pkg": "capability_retail",
+    "route": "/retail-order",
+    "keywords": [
+      "订单跟踪"
+    ]
+  },
+  {
+    "key": "return_exchange",
+    "name": "退换货",
+    "category": "零售电商",
+    "widget": "ReturnExchangeWidget",
+    "agent_id": "return_exchange",
+    "web_pkg": "@blockhub/web-capability-retail-ops",
+    "flutter_pkg": "capability_retail",
+    "route": "/return-exchange",
+    "keywords": [
+      "退换货"
+    ]
+  },
+  {
+    "key": "room_service",
+    "name": "客房服务",
+    "category": "酒店餐饮",
+    "widget": "RoomServiceWidget",
+    "agent_id": "room_service",
+    "web_pkg": "@blockhub/web-capability-hotel-ops",
+    "flutter_pkg": "capability_hotel",
+    "route": "/room-service",
+    "keywords": [
+      "客房服务"
+    ]
+  },
+  {
+    "key": "room_status",
+    "name": "房态变更",
+    "category": "酒店餐饮",
+    "widget": "RoomStatusWidget",
+    "agent_id": "room_status",
+    "web_pkg": "@blockhub/web-capability-hotel-ops",
+    "flutter_pkg": "capability_hotel",
+    "route": "/room-status",
+    "keywords": [
+      "房态变更"
+    ]
   },
   {
     "key": "route_task",
@@ -1826,13 +2970,26 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     ]
   },
   {
+    "key": "shelf_replenish",
+    "name": "补货上架",
+    "category": "零售电商",
+    "widget": "ShelfReplenishWidget",
+    "agent_id": "shelf_replenish",
+    "web_pkg": "@blockhub/web-capability-retail-ops",
+    "flutter_pkg": "capability_retail",
+    "route": "/shelf-replenish",
+    "keywords": [
+      "补货上架"
+    ]
+  },
+  {
     "key": "shift_attendance",
     "name": "排班考勤",
     "category": "人事管理",
     "widget": "ShiftAttendanceWidget",
     "agent_id": "shift_attendance",
     "web_pkg": "@blockhub/web-capability-mfg-ops",
-    "flutter_pkg": "capability_shift_attendance",
+    "flutter_pkg": "capability_mfg",
     "route": "/shift-attendance",
     "keywords": [
       "排班",
@@ -1860,6 +3017,32 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     ]
   },
   {
+    "key": "stock_alert",
+    "name": "库存预警",
+    "category": "零售电商",
+    "widget": "StockAlertWidget",
+    "agent_id": "stock_alert",
+    "web_pkg": "@blockhub/web-capability-retail-ops",
+    "flutter_pkg": "capability_retail",
+    "route": "/stock-alert",
+    "keywords": [
+      "库存预警"
+    ]
+  },
+  {
+    "key": "store_transfer",
+    "name": "门店调拨",
+    "category": "零售电商",
+    "widget": "StoreTransferWidget",
+    "agent_id": "store_transfer",
+    "web_pkg": "@blockhub/web-capability-retail-ops",
+    "flutter_pkg": "capability_retail",
+    "route": "/store-transfer",
+    "keywords": [
+      "门店调拨"
+    ]
+  },
+  {
     "key": "study_coach",
     "name": "课本学习",
     "category": "教育培训",
@@ -1881,13 +3064,39 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     ]
   },
   {
+    "key": "supplier_recon",
+    "name": "供应商对账",
+    "category": "零售电商",
+    "widget": "SupplierReconWidget",
+    "agent_id": "supplier_recon",
+    "web_pkg": "@blockhub/web-capability-retail-ops",
+    "flutter_pkg": "capability_retail",
+    "route": "/supplier-recon",
+    "keywords": [
+      "供应商对账"
+    ]
+  },
+  {
+    "key": "table_reserve",
+    "name": "餐厅订位",
+    "category": "酒店餐饮",
+    "widget": "TableReserveWidget",
+    "agent_id": "table_reserve",
+    "web_pkg": "@blockhub/web-capability-hotel-ops",
+    "flutter_pkg": "capability_hotel",
+    "route": "/table-reserve",
+    "keywords": [
+      "餐厅订位"
+    ]
+  },
+  {
     "key": "training_record",
     "name": "技能培训",
     "category": "人事管理",
     "widget": "TrainingRecordWidget",
     "agent_id": "training_record",
     "web_pkg": "@blockhub/web-capability-mfg-ops",
-    "flutter_pkg": "capability_training_record",
+    "flutter_pkg": "capability_mfg",
     "route": "/training-record",
     "keywords": [
       "培训",
@@ -1926,6 +3135,19 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
       "看房回访",
       "看房反馈",
       "意向评级"
+    ]
+  },
+  {
+    "key": "vip_hold",
+    "name": "会员预留",
+    "category": "零售电商",
+    "widget": "VipHoldWidget",
+    "agent_id": "vip_hold",
+    "web_pkg": "@blockhub/web-capability-retail-ops",
+    "flutter_pkg": "capability_retail",
+    "route": "/vip-hold",
+    "keywords": [
+      "会员预留"
     ]
   },
   {

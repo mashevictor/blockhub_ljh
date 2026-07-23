@@ -411,7 +411,7 @@ def flow_edit_api(body: FlowEditRequest) -> dict:
 def publish_app(
     body: PublishRequest,
     db: Annotated[Session, Depends(get_db)],
-    current_user: Annotated[User | None, Depends(get_optional_user)] = None,
+    current_user: Annotated[User, Depends(require_admin)],
 ) -> dict:
     try:
         has_description = len(body.prompt.strip()) >= 2
@@ -421,21 +421,24 @@ def publish_app(
         if not has_description and not has_selection and not has_industry_full:
             raise HTTPException(status_code=400, detail="请先选择功能模块或填写至少 2 个字的应用描述")
 
-        if current_user is not None:
-            from app.services.plan_usage import assert_app_quota
+        from app.services.plan_usage import assert_app_quota, assert_industry_pack_quota
 
-            n_apps = (
-                db.query(AppRecord)
-                .filter(AppRecord.tenant_id == current_user.tenant_id)
-                .count()
-            )
-            # 更新已有 app_id 不占新名额
-            updating = False
-            if body.app_id.strip():
-                existing = get_app_by_public_id(db, body.app_id.strip())
-                updating = bool(existing and existing.tenant_id == current_user.tenant_id)
-            if not updating:
-                assert_app_quota(db, current_user, current_app_count=n_apps)
+        n_apps = (
+            db.query(AppRecord)
+            .filter(AppRecord.tenant_id == current_user.tenant_id)
+            .count()
+        )
+        # 更新已有 app_id 不占新名额
+        updating = False
+        if body.app_id.strip():
+            existing = get_app_by_public_id(db, body.app_id.strip())
+            updating = bool(existing and existing.tenant_id == current_user.tenant_id)
+            if existing and existing.tenant_id != current_user.tenant_id:
+                raise HTTPException(status_code=403, detail="无权更新该应用")
+        if not updating:
+            assert_app_quota(db, current_user, current_app_count=n_apps)
+        if (body.industry_key or "").strip() and body.industry_key.strip() not in ("office", ""):
+            assert_industry_pack_quota(db, current_user, industry_key=body.industry_key.strip())
 
         names: list[str] = []
         all_scenarios = catalog_store.scenario_name_map(db)
@@ -552,18 +555,26 @@ def publish_app(
 
 
 @router.post("/plaza/publish")
-def plaza_publish(body: PlazaPublishRequest, db: Session = Depends(get_db)) -> dict:
+def plaza_publish(
+    body: PlazaPublishRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin),
+) -> dict:
     app_id = body.app_id.strip()
     if not app_id:
         raise HTTPException(status_code=400, detail="app_id 不能为空")
-    if not get_app_by_public_id(db, app_id):
+    record = get_app_by_public_id(db, app_id)
+    if not record:
         raise HTTPException(status_code=404, detail="应用不存在，请先完成发布")
+    if record.tenant_id and record.tenant_id != current_user.tenant_id and current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="无权将该应用发布到广场")
     try:
         app = publish_app_to_plaza(
             db,
             public_id=app_id,
             visibility=body.visibility,
             dept_name=body.dept_name.strip(),
+            user=current_user,
         )
     except Exception as exc:
         logger.exception("POST /creation/plaza/publish failed")

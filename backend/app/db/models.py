@@ -1518,6 +1518,54 @@ class MfgOpsRecord(Base):
     reporter: Mapped[User] = relationship(foreign_keys=[reporter_id])
 
 
+
+class RetailOpsRecord(Base):
+    """CapShip · 零售电商共享记录（库存预警/订单/退换货/对账/调价/陈列等）。"""
+
+    __tablename__ = "retail_ops_records"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenants.id"), nullable=False, index=True)
+    app_public_id: Mapped[str] = mapped_column(String(64), nullable=False, default="", index=True)
+    reporter_id: Mapped[str] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
+    record_no: Mapped[str] = mapped_column(String(32), nullable=False, index=True)
+    kind: Mapped[str] = mapped_column(String(40), nullable=False, default="", index=True)
+    title: Mapped[str] = mapped_column(String(200), nullable=False, default="")
+    field_a: Mapped[str] = mapped_column(String(200), nullable=False, default="")
+    field_b: Mapped[str] = mapped_column(String(200), nullable=False, default="")
+    field_c: Mapped[str] = mapped_column(String(200), nullable=False, default="")
+    field_d: Mapped[str] = mapped_column(String(200), nullable=False, default="")
+    note: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    status: Mapped[str] = mapped_column(String(32), nullable=False, default="open", index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    reporter: Mapped[User] = relationship(foreign_keys=[reporter_id])
+
+
+class HotelOpsRecord(Base):
+    """CapShip · 酒店餐饮共享记录（客诉/食材/卫生/客房服务/宴会/营收等）。"""
+
+    __tablename__ = "hotel_ops_records"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenants.id"), nullable=False, index=True)
+    app_public_id: Mapped[str] = mapped_column(String(64), nullable=False, default="", index=True)
+    reporter_id: Mapped[str] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
+    record_no: Mapped[str] = mapped_column(String(32), nullable=False, index=True)
+    kind: Mapped[str] = mapped_column(String(40), nullable=False, default="", index=True)
+    title: Mapped[str] = mapped_column(String(200), nullable=False, default="")
+    field_a: Mapped[str] = mapped_column(String(200), nullable=False, default="")
+    field_b: Mapped[str] = mapped_column(String(200), nullable=False, default="")
+    field_c: Mapped[str] = mapped_column(String(200), nullable=False, default="")
+    field_d: Mapped[str] = mapped_column(String(200), nullable=False, default="")
+    note: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    status: Mapped[str] = mapped_column(String(32), nullable=False, default="open", index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    reporter: Mapped[User] = relationship(foreign_keys=[reporter_id])
+
 class RealestateOpsRecord(Base):
     """CapShip · 房地产共享记录（房源/租金/投诉/验收/跟进/签约等）。"""
 
@@ -1702,3 +1750,28 @@ class AssetManageRecord(Base):
     )
 
     reporter: Mapped[User] = relationship(foreign_keys=[reporter_id])
+
+class VerticalOpsRecord(Base):
+    """CapShip · 多行业 vertical_ops 共享记录（edu/energy/gov/legal/hr 等）。"""
+
+    __tablename__ = "vertical_ops_records"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenants.id"), nullable=False, index=True)
+    app_public_id: Mapped[str] = mapped_column(String(64), nullable=False, default="", index=True)
+    reporter_id: Mapped[str] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
+    record_no: Mapped[str] = mapped_column(String(32), nullable=False, index=True)
+    industry_key: Mapped[str] = mapped_column(String(40), nullable=False, default="", index=True)
+    kind: Mapped[str] = mapped_column(String(40), nullable=False, default="", index=True)
+    title: Mapped[str] = mapped_column(String(200), nullable=False, default="")
+    field_a: Mapped[str] = mapped_column(String(200), nullable=False, default="")
+    field_b: Mapped[str] = mapped_column(String(200), nullable=False, default="")
+    field_c: Mapped[str] = mapped_column(String(200), nullable=False, default="")
+    field_d: Mapped[str] = mapped_column(String(200), nullable=False, default="")
+    note: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    status: Mapped[str] = mapped_column(String(32), nullable=False, default="open", index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    reporter: Mapped[User] = relationship(foreign_keys=[reporter_id])
+

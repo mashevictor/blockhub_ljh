@@ -17,7 +17,15 @@ export interface BillingOrder {
 }
 
 export interface BillingMe {
-  plan: { id: string; name: string; price_label?: string; features?: string[] }
+  plan: {
+    id: string
+    name: string
+    price_label?: string
+    features?: string[]
+    industry_packs?: number | null
+    schema_approval?: boolean
+    max_apps?: number | null
+  }
   plan_tier: string
   seat_quota: number
   plan_expires_at?: string | null

@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
-from app.core.deps import get_current_user, require_admin
+from app.core.deps import get_current_user, is_tenant_admin
 from app.db.models import User
 from app.db.session import get_db
 from app.services.approval_store import (
@@ -86,7 +86,7 @@ def approval_action_api(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> dict:
-    if user.role not in ("admin",):
+    if not is_tenant_admin(user):
         raise HTTPException(status_code=403, detail="仅管理员可审批")
     result = action_approval(
         db,

@@ -151,6 +151,47 @@ def assert_app_quota(db: Session, user: User | None, *, current_app_count: int) 
         )
 
 
+def assert_industry_pack_quota(db: Session, user: User, *, industry_key: str) -> None:
+    """行业包配额：Free/Plus=0（仅 office/模块）；Team=1；Business=5；Enterprise 不限。"""
+    if user.role == "admin":
+        return
+    key = (industry_key or "").strip().lower()
+    if not key or key == "office":
+        return
+    plan = resolve_plan_for_user(db, user)
+    lim = plan.get("industry_packs")
+    if lim is None:
+        return
+    lim_n = int(lim)
+    if lim_n <= 0:
+        raise HTTPException(
+            status_code=402,
+            detail=(
+                f"当前套餐「{plan['name']}」不含行业包，请升级 Team 及以上，"
+                f"或改用办公模块 / 自由搭配创建。"
+            ),
+        )
+    from app.db.models import AppRecord
+
+    used_keys = {
+        (r.industry_key or "").strip().lower()
+        for r in db.query(AppRecord)
+        .filter(AppRecord.tenant_id == user.tenant_id)
+        .all()
+        if (r.industry_key or "").strip().lower() not in ("", "office")
+    }
+    if key in used_keys:
+        return
+    if len(used_keys) >= lim_n:
+        raise HTTPException(
+            status_code=402,
+            detail=(
+                f"当前套餐「{plan['name']}」最多 {lim_n} 个行业包"
+                f"（已用 {', '.join(sorted(used_keys)) or '无'}），请升级套餐。"
+            ),
+        )
+
+
 def assert_and_count_compose_edit(db: Session, user: User | None) -> dict[str, Any]:
     """对话改页计次（按天）。无用户时按放行（预览草稿）。"""
     if not user:

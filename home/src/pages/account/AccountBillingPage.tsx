@@ -10,7 +10,7 @@ import {
   type BillingOrder,
 } from '../../api/billing'
 import { getToken } from '../../auth/storage'
-import { getAdminUrl } from '../../data/constants'
+import { adminLoginUrlWithReturn } from '../../data/brand'
 import { ROUTES } from '../../routes/paths'
 import { usePageMeta } from '../../hooks/usePageMeta'
 
@@ -39,6 +39,14 @@ function QuotaRow({ label, used, remaining }: { label: string; used: number; rem
   )
 }
 
+function planUpgradeHint(tier: string): { label: string; href: string } | null {
+  if (tier === 'c_free') return { label: '升级 Plus', href: `${ROUTES.pricingCheckout}?plan=c_plus` }
+  if (tier === 'c_plus') return { label: '升级 Team（团队）', href: `${ROUTES.pricingCheckout}?plan=b_team` }
+  if (tier === 'b_team') return { label: '升级 Business', href: `${ROUTES.pricingCheckout}?plan=b_business` }
+  if (tier === 'b_business') return { label: '咨询 Enterprise', href: ROUTES.pricing }
+  return null
+}
+
 export default function AccountBillingPage() {
   const [me, setMe] = useState<BillingMe | null>(null)
   const [orders, setOrders] = useState<BillingOrder[]>([])
@@ -48,7 +56,7 @@ export default function AccountBillingPage() {
 
   useEffect(() => {
     if (!getToken()) {
-      window.location.href = `${getAdminUrl()}?from=${encodeURIComponent(ROUTES.accountBilling)}`
+      window.location.href = adminLoginUrlWithReturn(ROUTES.accountBilling)
       return
     }
     Promise.all([fetchBillingMe(), fetchBillingOrders(30)])
@@ -62,6 +70,11 @@ export default function AccountBillingPage() {
       })
   }, [])
 
+  const upgrade = me ? planUpgradeHint(me.plan_tier) : null
+  const features = (me?.plan?.features as string[] | undefined) || []
+  const packs = me?.plan?.industry_packs
+  const schemaApproval = Boolean(me?.plan?.schema_approval)
+
   return (
     <MarketingSiteShell skin="landed" pageTitle="我的套餐" pageEyebrow="账户中心" pageLead="当前套餐、配额剩余与消费流水">
       {error ? <p style={{ color: '#b91c1c' }}>{error}</p> : null}
@@ -73,9 +86,37 @@ export default function AccountBillingPage() {
             坐席 {me.seat_quota}
             {me.plan_expires_at ? ` · 有效至 ${me.plan_expires_at.slice(0, 10)}` : ' · Free 无到期'}
           </p>
-          <p style={{ color: '#64748b', fontSize: 14, marginBottom: 16 }}>
+          <p style={{ color: '#64748b', fontSize: 14, marginBottom: 12 }}>
             {me.plan?.price_label || ''} · 配额剩余非钱包余额
           </p>
+          <div
+            style={{
+              display: 'grid',
+              gap: 8,
+              marginBottom: 16,
+              padding: 12,
+              background: '#f8fafc',
+              borderRadius: 8,
+              fontSize: 14,
+            }}
+          >
+            <div>
+              行业包：
+              {packs === null || packs === undefined
+                ? '不限'
+                : packs === 0
+                  ? '不含（请用办公模块 / 自由搭配）'
+                  : `最多 ${packs} 个`}
+            </div>
+            <div>改页审批：{schemaApproval ? '开启（Business+）' : '关闭（提交即生效）'}</div>
+            {features.length > 0 ? (
+              <ul style={{ margin: 0, paddingLeft: 18 }}>
+                {features.map((f) => (
+                  <li key={f}>{f}</li>
+                ))}
+              </ul>
+            ) : null}
+          </div>
           <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 16px' }}>
             <QuotaRow
               label="对话改页（今日）"
@@ -103,9 +144,15 @@ export default function AccountBillingPage() {
               remaining={me.remaining.code_download_month ?? null}
             />
           </ul>
-          <Link to={`${ROUTES.pricingCheckout}?plan=c_plus`} className="b2b-btn-primary agent-action-btn">
-            <AgentButtonContent>升级 / 续费</AgentButtonContent>
-          </Link>
+          {upgrade ? (
+            <Link to={upgrade.href} className="b2b-btn-primary agent-action-btn">
+              <AgentButtonContent>{upgrade.label}</AgentButtonContent>
+            </Link>
+          ) : (
+            <Link to={ROUTES.pricing} className="b2b-btn-primary agent-action-btn">
+              <AgentButtonContent>查看定价</AgentButtonContent>
+            </Link>
+          )}
         </section>
       ) : null}
 

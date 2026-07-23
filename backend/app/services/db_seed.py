@@ -19,6 +19,93 @@ DEFAULT_USERS = [
     },
 ]
 
+# 各套餐独立租户 + 所有者，便于对比「不同付费身份看到的内容」
+PLAN_DEMO_TENANTS: list[dict] = [
+    {
+        "slug": "plan-c-free",
+        "name": "套餐演示·Free",
+        "plan_tier": "c_free",
+        "seat_quota": 1,
+        "email": "free@plan.local",
+        "password": "plan123",
+        "display_name": "Free 体验用户",
+    },
+    {
+        "slug": "plan-c-plus",
+        "name": "套餐演示·Plus",
+        "plan_tier": "c_plus",
+        "seat_quota": 1,
+        "email": "plus@plan.local",
+        "password": "plan123",
+        "display_name": "Plus 创作者",
+    },
+    {
+        "slug": "plan-b-team",
+        "name": "套餐演示·Team",
+        "plan_tier": "b_team",
+        "seat_quota": 5,
+        "email": "team@plan.local",
+        "password": "plan123",
+        "display_name": "Team 管理员",
+    },
+    {
+        "slug": "plan-b-business",
+        "name": "套餐演示·Business",
+        "plan_tier": "b_business",
+        "seat_quota": 10,
+        "email": "business@plan.local",
+        "password": "plan123",
+        "display_name": "Business 管理员",
+    },
+    {
+        "slug": "plan-b-enterprise",
+        "name": "套餐演示·Enterprise",
+        "plan_tier": "b_enterprise",
+        "seat_quota": 50,
+        "email": "enterprise@plan.local",
+        "password": "plan123",
+        "display_name": "Enterprise 管理员",
+    },
+]
+
+
+def _ensure_plan_demo_tenants(db: Session) -> None:
+    for item in PLAN_DEMO_TENANTS:
+        tenant = db.query(Tenant).filter(Tenant.slug == item["slug"]).first()
+        if not tenant:
+            tenant = Tenant(
+                name=item["name"],
+                slug=item["slug"],
+                plan_tier=item["plan_tier"],
+                seat_quota=item["seat_quota"],
+            )
+            db.add(tenant)
+            db.flush()
+        else:
+            tenant.name = item["name"]
+            tenant.plan_tier = item["plan_tier"]
+            tenant.seat_quota = item["seat_quota"]
+            db.add(tenant)
+
+        user = db.query(User).filter(User.email == item["email"]).first()
+        if user:
+            user.tenant_id = tenant.id
+            user.password_hash = hash_password(item["password"])
+            user.role = "tenant_owner"
+            user.display_name = item["display_name"]
+            user.is_active = True
+            db.add(user)
+        else:
+            db.add(
+                User(
+                    tenant_id=tenant.id,
+                    email=item["email"],
+                    password_hash=hash_password(item["password"]),
+                    role="tenant_owner",
+                    display_name=item["display_name"],
+                )
+            )
+
 
 def ensure_seed_data(db: Session) -> None:
     tenant = db.query(Tenant).filter(Tenant.slug == DEFAULT_TENANT_SLUG).first()
@@ -57,6 +144,8 @@ def ensure_seed_data(db: Session) -> None:
                 display_name=item["display_name"],
             )
         )
+
+    _ensure_plan_demo_tenants(db)
     db.commit()
 
     # IM：环境变量 webhook → 自动写入 demo（及其他 IM_AUTO_TENANT_SLUGS）connector

@@ -150,7 +150,11 @@ def persist_published_app(
 ) -> dict[str, Any]:
     from app.data.delivery_templates import normalize_app_ui_id, normalize_web_template_id
     from app.data.industry_packs_all import pack_meta
-    from app.services.scene_capability_map import assemble_industry_pack
+    from app.services.scene_capability_map import (
+        assemble_industry_pack,
+        count_pack_scene_overlap,
+        infer_pack_key_from_scene_names,
+    )
 
     existing = get_app_by_public_id(db, app_id) if app_id else None
     tenant_id = user.tenant_id if user else None
@@ -160,19 +164,53 @@ def persist_published_app(
     menu_plan: list[dict[str, Any]] | None = None
     scene_groups: list[dict[str, Any]] | None = None
     industry_assembly: dict[str, Any] | None = None
-    # 行业包：仅显式 assemble_full_scenes 或 industry 源且「有勾选场景」时装配
-    # 禁止：空场景 / 仅「自定义应用」时静默灌整包
-    use_scene_pack = assemble_full_scenes or source in ("industry", "industry_pack", "industry_site")
+    meaningful = [s for s in scenarios if s and s != "自定义应用"]
+    # 场景名明确属于另一行业包、且与当前 industry_key 无交集 → 纠偏，避免合规库挂上 game 整包
+    industry_realigned = False
+    prev_industry_key = industry_key
+    if meaningful and pack_meta(industry_key):
+        overlap = count_pack_scene_overlap(industry_key, meaningful)
+        inferred = infer_pack_key_from_scene_names(meaningful)
+        if overlap == 0 and inferred and inferred != industry_key:
+            industry_key = inferred
+            industry_realigned = True
+
+    # 行业包：仅显式 assemble_full_scenes / industry 源；纠偏后强制按正确行业装配
+    # 禁止：空场景 / 仅「自定义应用」时静默灌整包；场景名对不上时也不回退全包
+    use_scene_pack = (
+        assemble_full_scenes
+        or source in ("industry", "industry_pack", "industry_site")
+        or industry_realigned
+    )
     if use_scene_pack and pack_meta(industry_key):
-        meaningful = [s for s in scenarios if s and s != "自定义应用"]
         if meaningful or assemble_full_scenes:
             industry_assembly = assemble_industry_pack(
                 industry_key,
                 scene_names=meaningful if meaningful else None,
             )
             if industry_assembly.get("scene_count", 0) > 0:
+                assembled_keys = list(industry_assembly["capability_keys"] or [])
+                if industry_realigned and prev_industry_key:
+                    # 去掉旧行业独占能力（如 game_support / game_2048 / gen_game-*）
+                    old_caps = set(
+                        assemble_industry_pack(prev_industry_key).get("capability_keys") or []
+                    )
+                    new_caps = set(assembled_keys)
+                    exclusive_old = old_caps - new_caps
+                    prefix = f"gen_{prev_industry_key}"
+                    capability_keys = [
+                        k
+                        for k in (capability_keys or [])
+                        if k not in exclusive_old and not str(k).startswith(prefix)
+                    ]
+                    modules = [
+                        m
+                        for m in (modules or [])
+                        if str(m.get("key") or "") not in exclusive_old
+                        and not str(m.get("key") or "").startswith(prefix)
+                    ]
                 capability_keys = list(
-                    dict.fromkeys([*(capability_keys or []), *industry_assembly["capability_keys"]])
+                    dict.fromkeys([*(capability_keys or []), *assembled_keys])
                 )
                 # 场景模块优先；保留调用方额外 modules
                 scene_mods = list(industry_assembly.get("modules") or [])
@@ -181,7 +219,23 @@ def persist_published_app(
                 scenarios = list(industry_assembly.get("scenario_names") or scenarios)
                 menu_plan = list(industry_assembly.get("menu_plan") or [])
                 scene_groups = list(industry_assembly.get("groups") or [])
-
+            elif industry_realigned and prev_industry_key:
+                # 纠偏成功但目标包无命中场景时，仍剥离旧行业独占 key
+                old_caps = set(
+                    assemble_industry_pack(prev_industry_key).get("capability_keys") or []
+                )
+                prefix = f"gen_{prev_industry_key}"
+                capability_keys = [
+                    k
+                    for k in (capability_keys or [])
+                    if k not in old_caps and not str(k).startswith(prefix)
+                ]
+                modules = [
+                    m
+                    for m in (modules or [])
+                    if str(m.get("key") or "") not in old_caps
+                    and not str(m.get("key") or "").startswith(prefix)
+                ]
     assembly = resolve_publish_capability_keys_detailed(
         scenario_names=scenarios,
         capability_keys=capability_keys,
@@ -355,6 +409,7 @@ def publish_app_to_plaza(
     public_id: str,
     visibility: str,
     dept_name: str = "",
+    user: User | None = None,
 ) -> dict[str, Any] | None:
     if visibility not in PLAZA_VISIBILITY_VALUES:
         visibility = "none"
@@ -367,7 +422,7 @@ def publish_app_to_plaza(
     db.add(
         PublishRecord(
             app_id=record.id,
-            user_id=None,
+            user_id=user.id if user else None,
             action="plaza_publish",
             payload={"visibility": visibility, "dept_name": dept_name},
         )

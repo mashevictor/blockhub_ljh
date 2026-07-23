@@ -1,4 +1,4 @@
-"""英雄区 30 场景 + 快捷示例 chip — 与 home/src/data/rolePresets.ts 同步。"""
+"""英雄区 41 场景 + 快捷示例 chip — 与 home/src/data/rolePresets.ts 同步。"""
 
 from __future__ import annotations
 
@@ -85,11 +85,12 @@ HERO_PRESETS: list[dict[str, Any]] = [
              {"type": "module", "key": "notify_im", "label": "企微钉钉飞书"}],
             [">> 质检SOP · 批次工序录入", ">> 合格/不合格 · 当场判定", ">> 企微钉钉飞书 · 异常推送", ">> CapShip · 双端真接口"],
             role="质检"),
-    _preset("s10", "库存盘点", "零售 · 仓储", "#f97316", "库存查询、盘点任务与补货提醒。",
-            [{"type": "industry", "key": "retail", "label": "零售电商"}, {"type": "scenario", "key": "s10-stock", "label": "库存盘点"},
-             {"type": "module", "key": "inventory_count", "label": "库存盘点"},
+    _preset("s10", "全渠道自提", "零售 · 履约", "#f97316", "线上下单到店自提、调拨与券核销。",
+            [{"type": "industry", "key": "retail", "label": "零售电商"}, {"type": "scenario", "key": "s10-stock", "label": "全渠道自提"},
+             {"type": "module", "key": "omni_pickup", "label": "全渠道自提"},
+             {"type": "module", "key": "store_transfer", "label": "门店调拨"},
              {"type": "module", "key": "notify_im", "label": "企微钉钉飞书"}],
-            [">> 库存盘点 · 货位SKU扫录", ">> 实盘数量 · 待主管确认", ">> 企微钉钉飞书 · 差异通知", ">> CapShip · 双端真接口"],
+            [">> 全渠道自提 · 提货码核销", ">> 门店调拨 · 店仓真表", ">> 企微钉钉飞书 · 到店通知", ">> CapShip · 双端真接口"],
             role="零售"),
     _preset("s11", "会员营销", "零售 · 运营", "#fb923c", "会员积分、促销活动与消息推送。",
             [{"type": "industry", "key": "retail", "label": "零售电商"}, {"type": "office", "key": "消息通知", "label": "消息通知"},
@@ -152,11 +153,13 @@ HERO_PRESETS: list[dict[str, Any]] = [
             [">> 看房签约 · 客户房源登记", ">> 意向/签约 · 跟进闭环", ">> 企微钉钉飞书 · 进度推送", ">> CapShip · 双端真接口"],
             role="销售"),
 
-    _preset("s21", "酒店预订", "餐饮 · 预订", "#ec4899", "客房预订、排班管理与客诉处理。",
-            [{"type": "industry", "key": "hotel", "label": "酒店餐饮"}, {"type": "scenario", "key": "s21-book", "label": "客房预订"},
-             {"type": "module", "key": "hotel_booking", "label": "酒店预订"},
+    _preset("s21", "房态打扫", "餐饮 · 客房", "#ec4899", "房态变更、客房打扫与餐厅订位沽清。",
+            [{"type": "industry", "key": "hotel", "label": "酒店餐饮"}, {"type": "scenario", "key": "s21-book", "label": "房态打扫"},
+             {"type": "module", "key": "room_status", "label": "房态变更"},
+             {"type": "module", "key": "hk_task", "label": "客房打扫"},
+             {"type": "module", "key": "table_reserve", "label": "餐厅订位"},
              {"type": "module", "key": "notify_im", "label": "企微钉钉飞书"}],
-            [">> 酒店预订 · 房型入住登记", ">> 入住/取消 · 房态闭环", ">> 企微钉钉飞书 · 确认推送", ">> CapShip · 双端真接口"],
+            [">> 房态变更 · 净房脏房", ">> 客房打扫 · 急扫闭环", ">> 餐厅订位 · 真库", ">> CapShip · 双端真接口"],
             role="酒店"),
     _preset("s22", "外卖配送", "生活 · 配送", "#f43f5e", "订单跟踪、骑手调度与异常处理。",
             [{"type": "industry", "key": "logistics", "label": "物流仓储"}, {"type": "scenario", "key": "s22-main", "label": "外卖配送"}, {"type": "module", "key": "delivery_order", "label": "外卖配送"}, {"type": "module", "key": "notify_im", "label": "企微钉钉飞书"}],

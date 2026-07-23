@@ -148,6 +148,18 @@ def submit_change(
     db.commit()
     db.refresh(row)
 
+    # Free/Plus/Team：无改页审批流 → 提交即自动通过写入正式版
+    try:
+        from app.services.plan_usage import resolve_plan_for_user
+
+        plan = resolve_plan_for_user(db, user)
+        if not plan.get("schema_approval"):
+            return approve_change(db, app, user=user, change_id=change_id, comment="套餐无审批流，自动生效")
+    except HTTPException:
+        raise
+    except Exception:
+        logger.exception("schema auto-approve by plan failed; keep pending")
+
     try:
         from app.services.notification_service import notify_tenant_admins
 
@@ -162,7 +174,7 @@ def submit_change(
     except Exception:
         pass
 
-    return {"success": True, "change": _row_to_dict(row), **schema_meta(app)}
+    return {"success": True, "change": _row_to_dict(row), **schema_meta(app), "requires_approval": True}
 
 
 def list_changes(

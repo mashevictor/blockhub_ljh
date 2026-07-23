@@ -15,7 +15,8 @@ api.interceptors.response.use(
   (res) => res,
   (error) => {
     const url = String(error.config?.url || '')
-    if ((error.response?.status === 401 || error.response?.status === 403) && !url.includes('/auth/login') && !url.includes('/auth/login-otp') && !url.includes('/auth/send-code')) {
+    // 仅 401 清会话；403 是权限不足，不应当成掉线
+    if (error.response?.status === 401 && !url.includes('/auth/login') && !url.includes('/auth/login-otp') && !url.includes('/auth/send-code')) {
       clearToken()
       redirectToLogin()
     }
@@ -325,57 +326,68 @@ export async function publishApp(
   industryKey: string,
   opts: PublishOptions = {},
 ) {
-  const res = await api.post<{
-    success: boolean
-    app: CreatedApp
-    codegen_job_id?: string | null
-    capability_assembly?: {
-      resolved_keys?: string[]
-      dropped_keys?: string[]
-      requested_keys?: string[]
-    }
-    runtime?: {
-      apk_ready?: boolean
-      web_url?: string
-      download_url?: string
-      deliver?: string
-      web_template_id?: string
-      app_ui_id?: string
-    }
-    notification?: { email?: string; email_sent?: boolean; email_configured?: boolean }
-  }>(
-    '/creation/publish',
-    {
-      name,
-      industry_key: industryKey,
-      app_id: opts.appId ?? '',
-      scenario_ids: opts.scenarioIds ?? [],
-      scenario_names: opts.scenarioNames ?? [],
-      capability_keys: opts.capabilityKeys ?? [],
-      modules: (opts.modules ?? []).map((m) => ({
-        key: m.key,
-        label: m.label,
-        kind: m.kind,
-        icon_key: m.iconKey,
-        source: m.source,
-      })),
-      audience: opts.audience ?? 'both',
-      deliver: opts.deliver ?? 'both',
-      source: opts.source ?? 'prompt',
-      prompt: opts.prompt ?? '',
-      contact_email: opts.contactEmail ?? '',
-      contact_phone: opts.contactPhone ?? '',
-      icon_url: opts.iconUrl ?? '',
-      primary_color: opts.primaryColor ?? '#4338ca',
-      web_template_id: opts.webTemplateId ?? 'tabs_portal',
-      app_ui_id: opts.appUiId ?? 'bottom_tabs',
-      assemble_full_scenes: opts.assembleFullScenes ?? false,
-      microsite_id: opts.micrositeId ?? '',
-      entry_source: opts.entrySource ?? '',
-    },
-    { timeout: 90000 },
-  )
-  return res.data
+  if (!getToken()) {
+    const { adminLoginUrlWithReturn } = await import('../data/brand')
+    const ret = `${window.location.pathname}${window.location.search}${window.location.hash}`
+    window.location.href = adminLoginUrlWithReturn(ret || '/')
+    throw new Error('请先登录后再发布应用')
+  }
+  try {
+    const res = await api.post<{
+      success: boolean
+      app: CreatedApp
+      codegen_job_id?: string | null
+      capability_assembly?: {
+        resolved_keys?: string[]
+        dropped_keys?: string[]
+        requested_keys?: string[]
+      }
+      runtime?: {
+        apk_ready?: boolean
+        web_url?: string
+        download_url?: string
+        deliver?: string
+        web_template_id?: string
+        app_ui_id?: string
+      }
+      notification?: { email?: string; email_sent?: boolean; email_configured?: boolean }
+    }>(
+      '/creation/publish',
+      {
+        name,
+        industry_key: industryKey,
+        app_id: opts.appId ?? '',
+        scenario_ids: opts.scenarioIds ?? [],
+        scenario_names: opts.scenarioNames ?? [],
+        capability_keys: opts.capabilityKeys ?? [],
+        modules: (opts.modules ?? []).map((m) => ({
+          key: m.key,
+          label: m.label,
+          kind: m.kind,
+          icon_key: m.iconKey,
+          source: m.source,
+        })),
+        audience: opts.audience ?? 'both',
+        deliver: opts.deliver ?? 'both',
+        source: opts.source ?? 'prompt',
+        prompt: opts.prompt ?? '',
+        contact_email: opts.contactEmail ?? '',
+        contact_phone: opts.contactPhone ?? '',
+        icon_url: opts.iconUrl ?? '',
+        primary_color: opts.primaryColor ?? '#4338ca',
+        web_template_id: opts.webTemplateId ?? 'tabs_portal',
+        app_ui_id: opts.appUiId ?? 'bottom_tabs',
+        assemble_full_scenes: opts.assembleFullScenes ?? false,
+        microsite_id: opts.micrositeId ?? '',
+        entry_source: opts.entrySource ?? '',
+      },
+      { timeout: 90000 },
+    )
+    return res.data
+  } catch (err) {
+    const { handleQuotaOrThrow } = await import('../lib/quotaUpgrade')
+    handleQuotaOrThrow(err)
+  }
 }
 
 export async function uploadAppIcon(dataUrl: string) {
@@ -416,6 +428,11 @@ export async function fetchPlazaFeed() {
 }
 
 export async function publishAppToPlaza(appId: string, visibility: string, deptName = '') {
+  if (!getToken()) {
+    const { adminLoginUrlWithReturn } = await import('../data/brand')
+    window.location.href = adminLoginUrlWithReturn('/plaza/my')
+    throw new Error('请先登录后再发布到广场')
+  }
   const res = await api.post<{
     success: boolean
     app: CreatedApp & { plaza_visibility?: string; plaza_dept_name?: string; plaza_published_at?: string }

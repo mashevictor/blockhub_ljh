@@ -4,7 +4,7 @@ import MarketingSiteShell from '../../components/b2b/enrichment/MarketingSiteShe
 import { AgentButtonContent } from '../../components/AgentChevron'
 import { createBillingCheckout, formatFen } from '../../api/billing'
 import { getToken } from '../../auth/storage'
-import { getAdminUrl } from '../../data/constants'
+import { adminLoginUrlWithReturn } from '../../data/brand'
 import { PRICING_TIERS } from '../../data/sitePricing'
 import { ROUTES } from '../../routes/paths'
 import { usePageMeta } from '../../hooks/usePageMeta'
@@ -34,8 +34,7 @@ export default function PricingCheckoutPage() {
 
   const ensureLogin = () => {
     if (getToken()) return true
-    const ret = encodeURIComponent(`${ROUTES.pricingCheckout}?plan=${planId}`)
-    window.location.href = `${getAdminUrl()}?from=${ret}`
+    window.location.href = adminLoginUrlWithReturn(`${ROUTES.pricingCheckout}?plan=${planId}`)
     return false
   }
 

@@ -1,0 +1,11 @@
+name: capability_vertical
+description: CapShip vertical ops (edu/energy/gov/...)
+version: 0.1.0
+publish_to: none
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+dependencies:
+  flutter:
+    sdk: flutter
+  blockhub_flutter_core:
+    path: ../blockhub_flutter_core

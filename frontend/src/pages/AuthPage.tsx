@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useSearchParams } from 'react-router-dom'
 import { loginOtp, loginWithPassword, sendOtpCode } from '../auth/session'
 import { getToken } from '../auth/storage'
 import { BRAND, resolveAdminPostLoginUrl } from '../data/brand'
@@ -33,7 +33,12 @@ export default function AuthPage({
   showLogo = true,
 }: Props) {
   const location = useLocation()
-  const rawFrom = (location.state as { from?: string } | null)?.from
+  const [searchParams] = useSearchParams()
+  /** Home 传 ?from=；ProtectedRoute 传 location.state.from — 两者都要认 */
+  const rawFrom =
+    (location.state as { from?: string } | null)?.from ||
+    searchParams.get('from') ||
+    undefined
 
   const [mode, setMode] = useState<AuthMode>(defaultMode)
   const [account, setAccount] = useState('')
