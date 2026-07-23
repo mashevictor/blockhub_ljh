@@ -13,6 +13,7 @@ from app.data.finance_vertical_capabilities import (
 )
 from app.data.game_scene_capabilities import game_pack_scenes
 from app.data.logistics_scene_capabilities import logistics_pack_scenes
+from app.data.realestate_scene_capabilities import realestate_pack_scenes
 from app.data.med_scene_capabilities import med_pack_scenes
 from app.data.office_scene_capabilities import office_pack_scenes
 from app.data.sales_scene_capabilities import sales_pack_scenes
@@ -220,18 +221,8 @@ _REALESTATE = {
     "name": "房地产",
     "icon": "🏠",
     "color": "#78716c",
-    "tagline": "看房、签约、物业、报修一体",
-    "scenes": [
-        _scene("看房预约", "销售管理", "客户看房档期预约", pages="form+notify", agent="approval"),
-        _scene("签约审批", "销售管理", "认购签约流程审批", agent="approval"),
-        _scene("物业报修", "物业服务", "业主报修工单处理", agent="approval"),
-        _scene("租金收缴", "租赁管理", "租金账单与催收", pages="notify+chart", agent="notify"),
-        _scene("客户跟进", "销售管理", "意向客户跟进记录", pages="list+chat", agent="chat_qa"),
-        _scene("房源上架", "房源管理", "房源信息审核上架", agent="approval"),
-        _scene("装修验收", "工程管理", "装修节点验收签字", pages="form+approval", agent="approval"),
-        _scene("业主投诉", "客户服务", "投诉受理与闭环", agent="approval"),
-        _scene("租约续签", "租赁管理", "租约到期续签提醒", pages="notify+approval", agent="notify"),
-    ],
+    "tagline": "看房签约 · 租赁物业 · 装修验收 · 真表闭环",
+    "scenes": realestate_pack_scenes(),
 }
 
 _HOTEL = {

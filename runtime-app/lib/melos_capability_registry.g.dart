@@ -12,6 +12,7 @@ import 'package:capability_nurse_shift/capability_nurse_shift.dart';
 import 'package:capability_game_support/capability_game_support.dart';
 import 'package:capability_finance/capability_finance.dart';
 import 'package:capability_logistics/capability_logistics.dart';
+import 'package:capability_realestate/capability_realestate.dart';
 import 'package:capability_school_notice/capability_school_notice.dart';
 import 'package:capability_property_repair/capability_property_repair.dart';
 import 'package:capability_site_patrol/capability_site_patrol.dart';
@@ -159,6 +160,16 @@ final Map<String, CapabilityModule> generatedMelosModuleByKey = {
     'cold_chain_alert': LogisticsModule(capabilityKey: 'cold_chain_alert'),
     'dock_queue': LogisticsModule(capabilityKey: 'dock_queue'),
     'route_task': LogisticsModule(capabilityKey: 'route_task'),
+    'listing_publish': RealestateModule(capabilityKey: 'listing_publish'),
+    'rent_collection': RealestateModule(capabilityKey: 'rent_collection'),
+    'lease_renewal': RealestateModule(capabilityKey: 'lease_renewal'),
+    'owner_complaint': RealestateModule(capabilityKey: 'owner_complaint'),
+    'deco_acceptance': RealestateModule(capabilityKey: 'deco_acceptance'),
+    'sales_followup': RealestateModule(capabilityKey: 'sales_followup'),
+    're_contract': RealestateModule(capabilityKey: 're_contract'),
+    'viewing_feedback': RealestateModule(capabilityKey: 'viewing_feedback'),
+    'property_fee': RealestateModule(capabilityKey: 'property_fee'),
+    'broker_commission': RealestateModule(capabilityKey: 'broker_commission'),
     'erp_connector': IntegrationModule(capabilityKey: 'erp_connector'),
     'meeting_booking': IntegrationModule(capabilityKey: 'meeting_booking'),
     'notify_im': IntegrationModule(capabilityKey: 'notify_im'),

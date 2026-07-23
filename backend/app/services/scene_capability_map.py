@@ -12,6 +12,7 @@ from typing import Any
 from app.data.finance_vertical_capabilities import FINANCE_VERTICAL_KEYS
 from app.data.finance_vertical_capabilities import enrich_menu_plan_item as enrich_finance_menu_plan_item
 from app.data.logistics_scene_capabilities import enrich_menu_plan_item as enrich_logistics_menu_plan_item
+from app.data.realestate_scene_capabilities import enrich_menu_plan_item as enrich_realestate_menu_plan_item
 from app.data.finance_vertical_capabilities import scenes_by_name as finance_scenes_by_name
 from app.data.game_scene_capabilities import enrich_menu_plan_item as enrich_game_menu_plan_item
 from app.data.med_scene_capabilities import enrich_menu_plan_item as enrich_med_menu_plan_item
@@ -360,14 +361,21 @@ def assemble_industry_pack(
                 modules[-1]["key"] = primary
             if primary not in capability_keys:
                 capability_keys.append(primary)
+        elif pack_key == "realestate":
+            plan_item = enrich_realestate_menu_plan_item(plan_item, name, pack_key)
+            primary = str(plan_item.get("capability_key") or primary)
+            if modules:
+                modules[-1]["key"] = primary
+            if primary not in capability_keys:
+                capability_keys.append(primary)
         menu_plan.append(plan_item)
 
     if not capability_keys:
         capability_keys = ["chat_qa", "approval_flow", "kb_document"]
 
-    # office / sales / med / game / finance / logistics：以映射表 menu_plan 为准重建 keys
+    # office / sales / med / game / finance / logistics / realestate：以映射表 menu_plan 为准重建 keys
     if (
-        pack_key in {"office", "sales", "med", "game", "logistics"}
+        pack_key in {"office", "sales", "med", "game", "logistics", "realestate"}
         or pack_key in FINANCE_VERTICAL_KEYS
     ) and menu_plan:
         rebuilt: list[str] = []

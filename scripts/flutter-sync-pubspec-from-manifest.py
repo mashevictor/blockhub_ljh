@@ -207,6 +207,13 @@ def write_registry_g(packages: list[str], *, dry_run: bool = False) -> str:
             for key in meta.get("capability_logistics", {}).get("keys", []):
                 map_lines.append(f"    '{key}': LogisticsModule(capabilityKey: '{key}'),")
             continue
+        if pkg == "capability_realestate":
+            if "package:capability_realestate/capability_realestate.dart" not in seen_import:
+                imports.append("import 'package:capability_realestate/capability_realestate.dart';")
+                seen_import.add("package:capability_realestate/capability_realestate.dart")
+            for key in meta.get("capability_realestate", {}).get("keys", []):
+                map_lines.append(f"    '{key}': RealestateModule(capabilityKey: '{key}'),")
+            continue
         if pkg == "capability_flutter_tools":
             if "package:capability_flutter_tools/capability_flutter_tools.dart" not in seen_import:
                 imports.append("import 'package:capability_flutter_tools/capability_flutter_tools.dart';")
@@ -250,6 +257,7 @@ def write_registry_g(packages: list[str], *, dry_run: bool = False) -> str:
             "capability_flutter_tools",
             "capability_finance",
             "capability_logistics",
+            "capability_realestate",
         ):
             continue
         var = f"_mod_{fp.replace('capability_', '')}"

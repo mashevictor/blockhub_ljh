@@ -54,6 +54,16 @@ _STORE_PROBES: dict[str, tuple[str, str, str]] = {
     "cold_chain_alert": ("app.services.logistics_ops_store", "list_records", "/logistics-ops/cold_chain_alert/records"),
     "dock_queue": ("app.services.logistics_ops_store", "list_records", "/logistics-ops/dock_queue/records"),
     "route_task": ("app.services.logistics_ops_store", "list_records", "/logistics-ops/route_task/records"),
+    "listing_publish": ("app.services.realestate_ops_store", "list_records", "/realestate-ops/listing_publish/records"),
+    "rent_collection": ("app.services.realestate_ops_store", "list_records", "/realestate-ops/rent_collection/records"),
+    "lease_renewal": ("app.services.realestate_ops_store", "list_records", "/realestate-ops/lease_renewal/records"),
+    "owner_complaint": ("app.services.realestate_ops_store", "list_records", "/realestate-ops/owner_complaint/records"),
+    "deco_acceptance": ("app.services.realestate_ops_store", "list_records", "/realestate-ops/deco_acceptance/records"),
+    "sales_followup": ("app.services.realestate_ops_store", "list_records", "/realestate-ops/sales_followup/records"),
+    "re_contract": ("app.services.realestate_ops_store", "list_records", "/realestate-ops/re_contract/records"),
+    "viewing_feedback": ("app.services.realestate_ops_store", "list_records", "/realestate-ops/viewing_feedback/records"),
+    "property_fee": ("app.services.realestate_ops_store", "list_records", "/realestate-ops/property_fee/records"),
+    "broker_commission": ("app.services.realestate_ops_store", "list_records", "/realestate-ops/broker_commission/records"),
     "school_notice": ("app.services.school_notice_store", "list_records", "/school-notice/records"),
     "homework_qa": ("app.services.homework_qa_store", "list_records", "/homework-qa/records"),
     "class_schedule": ("app.services.class_schedule_store", "list_records", "/class-schedule/records"),
@@ -172,7 +182,7 @@ def _probe_store(key: str, db: Session, tenant_id: str) -> dict[str, Any]:
     try:
         mod = importlib.import_module(mod_name)
         fn = getattr(mod, fn_name)
-        if mod_name.endswith("finance_ops_store") or mod_name.endswith("logistics_ops_store"):
+        if mod_name.endswith("finance_ops_store") or mod_name.endswith("logistics_ops_store") or mod_name.endswith("realestate_ops_store"):
             items = fn(db, tenant_id, kind=key)
         else:
             items = fn(db, tenant_id)

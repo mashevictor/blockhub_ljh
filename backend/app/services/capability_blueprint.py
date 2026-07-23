@@ -308,6 +308,51 @@ for _kind, _label in _LOGISTICS_KIND_LABEL.items():
         ],
     }
 
+_RE_KIND_LABEL = {
+    "listing_publish": "房源上架",
+    "rent_collection": "租金收缴",
+    "lease_renewal": "租约续签",
+    "owner_complaint": "业主投诉",
+    "deco_acceptance": "装修验收",
+    "sales_followup": "客户跟进",
+    "re_contract": "签约认购",
+    "viewing_feedback": "看房回访",
+    "property_fee": "物业费催缴",
+    "broker_commission": "中介佣金",
+}
+
+for _kind, _label in _RE_KIND_LABEL.items():
+    _BINDING[_kind] = {
+        "model": db_models.RealestateOpsRecord,
+        "table_label": _label,
+        "kind_filter": _kind,
+        "apis": [
+            {
+                "method": "GET",
+                "path": f"/api/v1/realestate-ops/{_kind}/records",
+                "desc": f"{_label}列表",
+                "auth": "JWT",
+            },
+            {
+                "method": "POST",
+                "path": f"/api/v1/realestate-ops/{_kind}/records",
+                "desc": f"新建{_label}",
+                "auth": "JWT",
+            },
+            {
+                "method": "POST",
+                "path": f"/api/v1/realestate-ops/{_kind}/records/{{id}}/{{action}}",
+                "desc": "状态流转（done/approve/close）",
+                "auth": "JWT",
+            },
+        ],
+        "code": [
+            "backend/app/api/v1/realestate_ops.py",
+            "backend/app/services/realestate_ops_store.py",
+            "packages/web-capability-realestate-ops/",
+        ],
+    }
+
 PREVIEW_PACK_KEYS: dict[str, list[str]] = {
     "mfg": [
         "device_repair",
@@ -380,6 +425,18 @@ PREVIEW_PACK_KEYS: dict[str, list[str]] = {
         "logistics_exception",
         "cold_chain_alert",
         "delivery_order",
+        "chart_dashboard",
+        "notify_im",
+        "kb_document",
+    ],
+    "realestate": [
+        "house_viewing",
+        "property_repair",
+        "listing_publish",
+        "rent_collection",
+        "re_contract",
+        "owner_complaint",
+        "deco_acceptance",
         "chart_dashboard",
         "notify_im",
         "kb_document",

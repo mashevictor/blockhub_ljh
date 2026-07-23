@@ -136,6 +136,21 @@
       "keywords": []
     },
     {
+      "key": "broker_commission",
+      "name": "中介佣金",
+      "category": "房地产",
+      "widget": "BrokerCommissionWidget",
+      "agent_id": "broker_commission",
+      "web_pkg": "@blockhub/web-capability-realestate-ops",
+      "flutter_pkg": "capability_realestate",
+      "route": "/broker-commission",
+      "keywords": [
+        "中介佣金",
+        "佣金结算",
+        "成交佣金"
+      ]
+    },
+    {
       "key": "campaign_ops",
       "name": "活动运营",
       "category": "营销运营",
@@ -401,6 +416,21 @@
         "买方回执",
         "POC结果",
         "阶段晋级"
+      ]
+    },
+    {
+      "key": "deco_acceptance",
+      "name": "装修验收",
+      "category": "房地产",
+      "widget": "DecoAcceptanceWidget",
+      "agent_id": "deco_acceptance",
+      "web_pkg": "@blockhub/web-capability-realestate-ops",
+      "flutter_pkg": "capability_realestate",
+      "route": "/deco-acceptance",
+      "keywords": [
+        "装修验收",
+        "交房验收",
+        "验收签字"
       ]
     },
     {
@@ -1123,6 +1153,21 @@
       ]
     },
     {
+      "key": "lease_renewal",
+      "name": "租约续签",
+      "category": "房地产",
+      "widget": "LeaseRenewalWidget",
+      "agent_id": "lease_renewal",
+      "web_pkg": "@blockhub/web-capability-realestate-ops",
+      "flutter_pkg": "capability_realestate",
+      "route": "/lease-renewal",
+      "keywords": [
+        "续签",
+        "租约",
+        "到期续租"
+      ]
+    },
+    {
       "key": "leave_request",
       "name": "请假审批",
       "category": "人事行政",
@@ -1169,6 +1214,21 @@
         "清单",
         "目录",
         "席位安排"
+      ]
+    },
+    {
+      "key": "listing_publish",
+      "name": "房源上架",
+      "category": "房地产",
+      "widget": "ListingPublishWidget",
+      "agent_id": "listing_publish",
+      "web_pkg": "@blockhub/web-capability-realestate-ops",
+      "flutter_pkg": "capability_realestate",
+      "route": "/listing-publish",
+      "keywords": [
+        "房源上架",
+        "房源审核",
+        "挂牌"
       ]
     },
     {
@@ -1400,6 +1460,21 @@
       ]
     },
     {
+      "key": "owner_complaint",
+      "name": "业主投诉",
+      "category": "房地产",
+      "widget": "OwnerComplaintWidget",
+      "agent_id": "owner_complaint",
+      "web_pkg": "@blockhub/web-capability-realestate-ops",
+      "flutter_pkg": "capability_realestate",
+      "route": "/owner-complaint",
+      "keywords": [
+        "业主投诉",
+        "物业投诉",
+        "客诉"
+      ]
+    },
+    {
       "key": "pet_clinic",
       "name": "宠物问诊",
       "category": "医疗健康",
@@ -1446,6 +1521,21 @@
         "制度政策",
         "福利政策",
         "制度查询"
+      ]
+    },
+    {
+      "key": "property_fee",
+      "name": "物业费催缴",
+      "category": "房地产",
+      "widget": "PropertyFeeWidget",
+      "agent_id": "property_fee",
+      "web_pkg": "@blockhub/web-capability-realestate-ops",
+      "flutter_pkg": "capability_realestate",
+      "route": "/property-fee",
+      "keywords": [
+        "物业费",
+        "物业催缴",
+        "管理费"
       ]
     },
     {
@@ -1517,6 +1607,22 @@
       ]
     },
     {
+      "key": "re_contract",
+      "name": "签约认购",
+      "category": "房地产",
+      "widget": "ReContractWidget",
+      "agent_id": "re_contract",
+      "web_pkg": "@blockhub/web-capability-realestate-ops",
+      "flutter_pkg": "capability_realestate",
+      "route": "/re-contract",
+      "keywords": [
+        "认购",
+        "签约",
+        "网签",
+        "购房合同"
+      ]
+    },
+    {
       "key": "regulatory_report",
       "name": "监管报送",
       "category": "金融服务",
@@ -1530,6 +1636,22 @@
         "报送",
         "监管报表",
         "合规报送"
+      ]
+    },
+    {
+      "key": "rent_collection",
+      "name": "租金收缴",
+      "category": "房地产",
+      "widget": "RentCollectionWidget",
+      "agent_id": "rent_collection",
+      "web_pkg": "@blockhub/web-capability-realestate-ops",
+      "flutter_pkg": "capability_realestate",
+      "route": "/rent-collection",
+      "keywords": [
+        "租金",
+        "收租",
+        "催租",
+        "租赁账单"
       ]
     },
     {
@@ -1557,6 +1679,21 @@
         "配送路线",
         "站点顺序",
         "路线优化"
+      ]
+    },
+    {
+      "key": "sales_followup",
+      "name": "客户跟进",
+      "category": "房地产",
+      "widget": "SalesFollowupWidget",
+      "agent_id": "sales_followup",
+      "web_pkg": "@blockhub/web-capability-realestate-ops",
+      "flutter_pkg": "capability_realestate",
+      "route": "/sales-followup",
+      "keywords": [
+        "客户跟进",
+        "意向客户",
+        "置业顾问跟进"
       ]
     },
     {
@@ -1764,6 +1901,21 @@
         "景点问答",
         "预订提醒",
         "旅行"
+      ]
+    },
+    {
+      "key": "viewing_feedback",
+      "name": "看房回访",
+      "category": "房地产",
+      "widget": "ViewingFeedbackWidget",
+      "agent_id": "viewing_feedback",
+      "web_pkg": "@blockhub/web-capability-realestate-ops",
+      "flutter_pkg": "capability_realestate",
+      "route": "/viewing-feedback",
+      "keywords": [
+        "看房回访",
+        "看房反馈",
+        "意向评级"
       ]
     },
     {

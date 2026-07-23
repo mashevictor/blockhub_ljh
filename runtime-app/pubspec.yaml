@@ -35,6 +35,8 @@ dependencies:
     path: ../packages/capability_finance
   capability_logistics:
     path: ../packages/capability_logistics
+  capability_realestate:
+    path: ../packages/capability_realestate
   capability_school_notice:
     path: ../packages/capability_school_notice
   capability_property_repair:

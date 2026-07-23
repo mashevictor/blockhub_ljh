@@ -46,14 +46,26 @@ export default function DashboardWidget(props: { node: SchemaNode }) {
         .catch(() => setFinance({ open: 0, total: 0, cards: [] }))
       return
     }
+    if (metricsSource === 'realestate_ops') {
+      const q = appId ? `?app_id=${encodeURIComponent(appId)}` : ''
+      apiFetch<FinanceStats>(`/api/v1/realestate-ops/stats${q}`, token)
+        .then(setFinance)
+        .catch(() => setFinance({ open: 0, total: 0, cards: [] }))
+      return
+    }
     Promise.all([
       apiFetch<{ pending_approvals?: number; chat_sessions?: number }>('/api/v1/stats/dashboard', token).catch(() => ({})),
       apiFetch<{ knowledge_bases: number; documents: number }>('/api/v1/kb/stats', token).catch(() => ({})),
     ]).then(([overview, kb]) => setStats({ ...overview, ...kb }))
   }, [token, metricsSource, appId])
 
-  if (metricsSource === 'finance_ops' || metricsSource === 'logistics_ops') {
-    const title = metricsSource === 'logistics_ops' ? '在途可视看板' : '风险经营看板'
+  if (metricsSource === 'finance_ops' || metricsSource === 'logistics_ops' || metricsSource === 'realestate_ops') {
+    const title =
+      metricsSource === 'logistics_ops'
+        ? '在途可视看板'
+        : metricsSource === 'realestate_ops'
+          ? '楼盘经营看板'
+          : '风险经营看板'
     const cards =
       finance?.cards?.length
         ? finance.cards.map((c) => ({ label: `${c.label}待办`, value: c.open }))
@@ -64,6 +76,13 @@ export default function DashboardWidget(props: { node: SchemaNode }) {
               { label: '冷链待办', value: (finance as { cold_open?: number } | null)?.cold_open ?? 0 },
               { label: '全部待办', value: finance?.open ?? 0 },
             ]
+          : metricsSource === 'realestate_ops'
+            ? [
+                { label: '房源待办', value: (finance as { listing_open?: number } | null)?.listing_open ?? 0 },
+                { label: '租金待办', value: (finance as { rent_open?: number } | null)?.rent_open ?? 0 },
+                { label: '投诉待办', value: (finance as { complaint_open?: number } | null)?.complaint_open ?? 0 },
+                { label: '全部待办', value: finance?.open ?? 0 },
+              ]
           : [
               { label: 'KYC待办', value: finance?.kyc_open ?? 0 },
               { label: 'AML待办', value: finance?.aml_open ?? 0 },

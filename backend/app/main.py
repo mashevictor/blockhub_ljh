@@ -60,6 +60,7 @@ from app.api.v1 import (
     finance_ops,
     finance_news,
     logistics_ops,
+    realestate_ops,
     reports,
     runtime,
     seed,
@@ -148,6 +149,7 @@ app.include_router(mfg_ops.router, prefix=settings.api_prefix, dependencies=_aut
 app.include_router(finance_ops.router, prefix=settings.api_prefix, dependencies=_auth)
 app.include_router(finance_news.router, prefix=settings.api_prefix, dependencies=_auth)
 app.include_router(logistics_ops.router, prefix=settings.api_prefix, dependencies=_auth)
+app.include_router(realestate_ops.router, prefix=settings.api_prefix, dependencies=_auth)
 app.include_router(inventory_count.router, prefix=settings.api_prefix, dependencies=_auth)
 app.include_router(member_loyalty.router, prefix=settings.api_prefix, dependencies=_auth)
 app.include_router(med_triage.router, prefix=settings.api_prefix, dependencies=_auth)

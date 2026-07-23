@@ -168,6 +168,27 @@
       "dart_import": "package:capability_logistics/capability_logistics.dart"
     },
     {
+      "web_pkg": "@blockhub/web-capability-realestate-ops",
+      "web_folder": "web-capability-realestate-ops",
+      "flutter_pkg": "capability_realestate",
+      "p1_scope": "app",
+      "status_target": "ok",
+      "capability_keys": [
+        "listing_publish",
+        "rent_collection",
+        "lease_renewal",
+        "owner_complaint",
+        "deco_acceptance",
+        "sales_followup",
+        "re_contract",
+        "viewing_feedback",
+        "property_fee",
+        "broker_commission"
+      ],
+      "module_class": "RealestateModule",
+      "dart_import": "package:capability_realestate/capability_realestate.dart"
+    },
+    {
       "web_pkg": "@blockhub/web-capability-school-notice",
       "web_folder": "web-capability-school-notice",
       "flutter_pkg": "capability_school_notice",
