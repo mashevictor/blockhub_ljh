@@ -193,6 +193,13 @@ def write_registry_g(packages: list[str], *, dry_run: bool = False) -> str:
             for key in meta.get("capability_integration", {}).get("keys", []):
                 map_lines.append(f"    '{key}': IntegrationModule(capabilityKey: '{key}'),")
             continue
+        if pkg == "capability_finance":
+            if "package:capability_finance/capability_finance.dart" not in seen_import:
+                imports.append("import 'package:capability_finance/capability_finance.dart';")
+                seen_import.add("package:capability_finance/capability_finance.dart")
+            for key in meta.get("capability_finance", {}).get("keys", []):
+                map_lines.append(f"    '{key}': FinanceModule(capabilityKey: '{key}'),")
+            continue
         if pkg == "capability_flutter_tools":
             if "package:capability_flutter_tools/capability_flutter_tools.dart" not in seen_import:
                 imports.append("import 'package:capability_flutter_tools/capability_flutter_tools.dart';")
@@ -231,7 +238,7 @@ def write_registry_g(packages: list[str], *, dry_run: bool = False) -> str:
             module_instances.append(f"final {var} = const {module_class}();")
 
     for key, fp in sorted(key_map.items()):
-        if fp not in packages or fp in ("capability_integration", "capability_flutter_tools"):
+        if fp not in packages or fp in ("capability_integration", "capability_flutter_tools", "capability_finance"):
             continue
         var = f"_mod_{fp.replace('capability_', '')}"
         if var in module_vars:

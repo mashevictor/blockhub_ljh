@@ -188,20 +188,162 @@ document.getElementById('go').onclick=reset;C.addEventListener('click',()=>{{try
 
 
 def _generic_fallback_html(title: str) -> str:
-    t = (title or "互动页").replace("<", "")[:40]
+    """已废弃语义：禁止无意义 +1 计数器。保留函数名供兼容，转工作台预览。"""
+    return _workspace_preview_html(title)
+
+
+def _workspace_preview_html(title: str) -> str:
+    """通用 Path-B 预览：贴合标题的结构化面板，禁止无意义点击计数。"""
+    t = (title or "自定义页面").replace("<", "")[:40]
     return f"""<!DOCTYPE html><html><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>{t}</title>
 <style>
-body{{margin:0;font-family:sans-serif;background:#f8fafc;color:#0f172a;display:flex;flex-direction:column;align-items:center;gap:12px;padding:24px}}
-button{{border:0;border-radius:10px;padding:12px 20px;background:#0d47a1;color:#fff;font-size:16px;cursor:pointer}}
-#n{{font-size:40px;font-weight:700}}
+body{{margin:0;font-family:system-ui,sans-serif;background:linear-gradient(165deg,#f8fafc,#eef2ff);color:#0f172a;min-height:100vh;padding:20px}}
+.card{{max-width:480px;margin:0 auto;background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:18px;box-shadow:0 8px 24px rgba(15,23,42,.06)}}
+h2{{margin:0 0 6px;font-size:20px}}
+.hint{{margin:0 0 14px;color:#64748b;font-size:13px;line-height:1.5}}
+label{{display:block;font-size:12px;color:#475569;margin:10px 0 4px}}
+input,textarea,select{{width:100%;box-sizing:border-box;border:1px solid #cbd5e1;border-radius:8px;padding:10px 12px;font:14px system-ui}}
+textarea{{min-height:72px;resize:vertical}}
+.row{{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}}
+button{{border:0;border-radius:8px;padding:10px 14px;background:#0f766e;color:#fff;cursor:pointer;font-size:14px}}
+button.ghost{{background:#e2e8f0;color:#0f172a}}
+#out{{margin-top:12px;font-size:13px;color:#0f766e;min-height:1.4em;white-space:pre-wrap}}
+.badge{{display:inline-block;font-size:11px;padding:2px 8px;border-radius:999px;background:#ccfbf1;color:#0f766e;margin-bottom:8px}}
 </style></head><body>
-<h2 style="margin:0">{t}</h2>
-<p style="margin:0;color:#64748b">点击互动</p>
-<div id="n">0</div>
-<button type="button" id="b">+1</button>
+<div class="card">
+<span class="badge">预览工作台 · 可继续对话打磨</span>
+<h2>{t}</h2>
+<p class="hint">这不是无意义的点击计数器。按场景填写下方字段；正式接口就绪后可继续对话接真 API。</p>
+<label>场景名称</label>
+<input id="name" value="{t}" />
+<label>说明 / 测试目标</label>
+<textarea id="note" placeholder="例如：联调字段、期望返回、验收标准"></textarea>
+<label>状态</label>
+<select id="st"><option>草稿</option><option selected>联调中</option><option>已验收</option></select>
+<div class="row">
+<button type="button" id="save">保存预览记录</button>
+<button type="button" class="ghost" id="clear">清空</button>
+</div>
+<div id="out"></div>
+</div>
 <script>
-let n=0;document.getElementById('b').onclick=()=>{{n++;document.getElementById('n').textContent=n}};
+(function(){{
+const out=document.getElementById('out');
+const key='bh_ws_'+location.pathname;
+function paint(msg){{out.textContent=msg||''}}
+document.getElementById('save').onclick=()=>{{
+const row={{name:document.getElementById('name').value.trim(),note:document.getElementById('note').value.trim(),st:document.getElementById('st').value,at:new Date().toLocaleString()}};
+try{{localStorage.setItem(key,JSON.stringify(row))}}catch(e){{}}
+paint('已保存预览：'+row.name+' · '+row.st+' · '+row.at);
+}};
+document.getElementById('clear').onclick=()=>{{
+document.getElementById('note').value='';paint('已清空说明');
+}};
+try{{const raw=localStorage.getItem(key);if(raw){{const r=JSON.parse(raw);if(r.name)document.getElementById('name').value=r.name;if(r.note)document.getElementById('note').value=r.note;if(r.st)document.getElementById('st').value=r.st;paint('已恢复上次预览记录')}}}}catch(e){{}}
+}})();
+</script></body></html>"""
+
+
+def _stock_api_demo_html(title: str) -> str:
+    """股票 / 行情 API 测试演示：查价面板，非 +1 计数器。"""
+    t = (title or "股票 API 测试").replace("<", "")[:40]
+    return f"""<!DOCTYPE html><html><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>{t}</title>
+<style>
+body{{margin:0;font-family:system-ui,sans-serif;background:linear-gradient(160deg,#0b1220,#0f172a);color:#e2e8f0;min-height:100vh;padding:18px}}
+.card{{max-width:520px;margin:0 auto;background:rgba(15,23,42,.92);border:1px solid #334155;border-radius:14px;padding:16px}}
+h2{{margin:0 0 6px;font-size:18px}}
+.hint{{margin:0 0 12px;font-size:12px;color:#94a3b8;line-height:1.45}}
+.row{{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}}
+input,select{{flex:1;min-width:120px;border:1px solid #475569;border-radius:8px;padding:10px;background:#0b1220;color:#e2e8f0}}
+button{{border:0;border-radius:8px;padding:10px 14px;background:#0ea5e9;color:#fff;cursor:pointer}}
+button:disabled{{opacity:.5}}
+.grid{{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}}
+.kpi{{background:#111827;border:1px solid #334155;border-radius:10px;padding:10px}}
+.kpi b{{display:block;font-size:20px;margin-top:4px}}
+.up{{color:#4ade80}}.down{{color:#f87171}}
+#log{{margin-top:12px;font-size:12px;color:#94a3b8;white-space:pre-wrap;min-height:40px}}
+.badge{{font-size:11px;color:#67e8f9}}
+</style></head><body>
+<div class="card">
+<p class="badge">演示面板 · 本地模拟行情（非正式交易所行情源）</p>
+<h2>{t}</h2>
+<p class="hint">输入代码查询模拟报价。可继续对话接入真 API / 正式问数能力。</p>
+<div class="row">
+<input id="sym" value="600519" placeholder="股票代码，如 600519 / AAPL" />
+<select id="mkt"><option value="SH">沪市</option><option value="SZ">深市</option><option value="US">美股</option></select>
+<button type="button" id="go">查询</button>
+</div>
+<div class="grid">
+<div class="kpi">最新价<b id="px">—</b></div>
+<div class="kpi">涨跌幅<b id="chg">—</b></div>
+<div class="kpi">成交额<b id="amt">—</b></div>
+<div class="kpi">更新时间<b id="ts" style="font-size:14px">—</b></div>
+</div>
+<div id="log">等待查询…</div>
+</div>
+<script>
+(function(){{
+const seed={{'600519':{{n:'贵州茅台',p:1688.5}},'000001':{{n:'平安银行',p:11.2}},'AAPL':{{n:'Apple',p:198.4}},'00700':{{n:'腾讯控股',p:360.2}}}};
+function rnd(base){{const d=(Math.random()-0.45)*base*0.02;return Math.max(0.01,base+d)}}
+document.getElementById('go').onclick=()=>{{
+const sym=(document.getElementById('sym').value||'').trim().toUpperCase()||'600519';
+const mkt=document.getElementById('mkt').value;
+const meta=seed[sym]||{{n:sym,p:20+Math.random()*80}};
+const px=rnd(meta.p);const chg=((px-meta.p)/meta.p*100);
+document.getElementById('px').textContent=px.toFixed(2);
+const el=document.getElementById('chg');el.textContent=(chg>=0?'+':'')+chg.toFixed(2)+'%';
+el.className=chg>=0?'up':'down';
+document.getElementById('amt').textContent=(Math.random()*8+0.5).toFixed(2)+' 亿';
+document.getElementById('ts').textContent=new Date().toLocaleTimeString();
+document.getElementById('log').textContent='模拟响应 OK · '+mkt+':'+sym+' '+meta.n+'\\n{{"code":"'+sym+'","price":'+px.toFixed(2)+',"source":"demo"}}';
+}};
+}})();
+</script></body></html>"""
+
+
+def _api_tester_demo_html(title: str) -> str:
+    """通用 API 联调演示面板。"""
+    t = (title or "API 测试").replace("<", "")[:40]
+    return f"""<!DOCTYPE html><html><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>{t}</title>
+<style>
+body{{margin:0;font-family:system-ui,sans-serif;background:#f1f5f9;color:#0f172a;min-height:100vh;padding:18px}}
+.card{{max-width:560px;margin:0 auto;background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:16px}}
+h2{{margin:0 0 6px;font-size:18px}}
+.hint{{margin:0 0 12px;color:#64748b;font-size:12px;line-height:1.45}}
+label{{display:block;font-size:12px;color:#475569;margin:8px 0 4px}}
+input,select,textarea{{width:100%;box-sizing:border-box;border:1px solid #cbd5e1;border-radius:8px;padding:10px;font:13px ui-monospace,Consolas,monospace}}
+textarea{{min-height:88px}}
+.row{{display:flex;gap:8px;margin-top:12px}}
+button{{border:0;border-radius:8px;padding:10px 14px;background:#2563eb;color:#fff;cursor:pointer}}
+pre{{background:#0f172a;color:#e2e8f0;border-radius:10px;padding:12px;overflow:auto;font-size:12px;min-height:80px}}
+.badge{{font-size:11px;color:#2563eb}}
+</style></head><body>
+<div class="card">
+<p class="badge">演示 · 本地模拟请求（不发起外网调用）</p>
+<h2>{t}</h2>
+<p class="hint">填写 Method / Path，点发送查看模拟 JSON。可继续对话接入真后端。</p>
+<label>Method</label>
+<select id="method"><option>GET</option><option>POST</option><option>PUT</option><option>DELETE</option></select>
+<label>Path</label>
+<input id="path" value="/api/v1/demo/quote" />
+<label>Body (JSON，可选)</label>
+<textarea id="body">{{"symbol":"600519"}}</textarea>
+<div class="row"><button type="button" id="send">发送</button></div>
+<label>Response</label>
+<pre id="resp">等待发送…</pre>
+</div>
+<script>
+document.getElementById('send').onclick=()=>{{
+const method=document.getElementById('method').value;
+const path=document.getElementById('path').value.trim()||'/api/v1/demo';
+let body=document.getElementById('body').value.trim();
+try{{if(body) body=JSON.parse(body)}}catch(e){{body={{raw:body}}}}
+const payload={{ok:true,method,path,echo:body||null,ts:new Date().toISOString(),note:'demo response · not a live upstream'}};
+document.getElementById('resp').textContent=JSON.stringify(payload,null,2);
+}};
 </script></body></html>"""
 
 
@@ -284,27 +426,40 @@ paint();
 
 def _fallback_html_for(title: str, prompt: str) -> tuple[str, list[dict[str, Any]]]:
     blob = f"{title} {prompt}"
+    smoke = [{"name": "smoke", "code": "if (typeof Math.max !== 'function') throw new Error('env');"}]
     if any(w in blob for w in ("贪吃蛇", "snake")):
-        return _snake_fallback_html(title or "贪吃蛇"), [
-            {"name": "smoke", "code": "if (typeof Math.max !== 'function') throw new Error('env');"}
-        ]
+        return _snake_fallback_html(title or "贪吃蛇"), smoke
     if any(
         w in blob
         for w in ("英雄联盟", "lol", "LOL", "MOBA", "moba", "对战模拟", "英雄选择", "开黑")
     ):
-        return _moba_lite_fallback_html(title or "对战模拟"), [
-            {"name": "smoke", "code": "if (typeof Math.max !== 'function') throw new Error('env');"}
-        ]
-    return _generic_fallback_html(title), [
+        return _moba_lite_fallback_html(title or "对战模拟"), smoke
+    if any(w in blob for w in ("股票", "行情", "证券代码", "stock", "quote api", "股价")):
+        return _stock_api_demo_html(title or "股票 API 测试"), smoke
+    if any(w in blob.lower() for w in ("api测试", "api 测试", "接口测试", "联调", "api test", "webhook测试")):
+        return _api_tester_demo_html(title or "API 测试"), smoke
+    return _workspace_preview_html(title), [
         {"name": "smoke", "code": "if (1+1!==2) throw new Error('math');"}
     ]
 
 
+def is_legacy_meaningless_counter_html(html: str) -> bool:
+    """识别无意义 +1 计数器壳（历史兜底）。"""
+    raw = html or ""
+    if "点击互动" not in raw:
+        return False
+    if 'id="n"' not in raw and "id='n'" not in raw:
+        return False
+    return "+1" in raw and ("let n=0" in raw or "n++" in raw)
+
+
 def upgrade_legacy_playable_html(html: str, title: str = "") -> str:
-    """旧贪吃蛇（alert / 无触屏方向）→ 可玩版。修订底稿与兜底共用。"""
+    """旧贪吃蛇 / 无意义 +1 计数器 → 可玩或有意义预览。"""
     raw = (html or "").strip()
     if not raw:
         return raw
+    if is_legacy_meaningless_counter_html(raw):
+        return _fallback_html_for(title or "自定义页面", title or "")[0]
     blob = f"{title}\n{raw}".lower()
     is_snake = any(w in blob for w in ("贪吃蛇", "snake")) or (
         "<canvas" in raw.lower() and ("snake.unshift" in raw or "snake.some" in raw)

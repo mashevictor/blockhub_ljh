@@ -125,7 +125,7 @@ SCENARIO_TEMPLATES: list[dict[str, Any]] = [
         "name": "玩家FAQ",
         "industry": "game",
         "match": ["玩家FAQ", "玩家攻略", "客服工单", "活动规则", "游戏FAQ"],
-        "capability_keys": ["game_support", "notify_im", "chat_qa"],
+        "capability_keys": ["game_support", "notify_im", "kb_document"],
     },
     {
         "id": "tpl-edu-notice",

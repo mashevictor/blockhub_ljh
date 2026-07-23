@@ -129,6 +129,23 @@
       "dart_import": "package:capability_game_support/capability_game_support.dart"
     },
     {
+      "web_pkg": "@blockhub/web-capability-finance",
+      "web_folder": "web-capability-finance",
+      "flutter_pkg": "capability_finance",
+      "p1_scope": "app",
+      "status_target": "ok",
+      "capability_keys": [
+        "finance_kyc",
+        "finance_aml",
+        "credit_approval",
+        "due_diligence",
+        "regulatory_report",
+        "insurance_case"
+      ],
+      "module_class": "FinanceModule",
+      "dart_import": "package:capability_finance/capability_finance.dart"
+    },
+    {
       "web_pkg": "@blockhub/web-capability-school-notice",
       "web_folder": "web-capability-school-notice",
       "flutter_pkg": "capability_school_notice",

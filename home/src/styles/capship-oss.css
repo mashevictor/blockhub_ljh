@@ -66,6 +66,33 @@
   margin: 0 auto;
 }
 
+.cs-lang-switch {
+  display: inline-flex;
+  gap: 4px;
+  margin-bottom: 16px;
+  padding: 3px;
+  border-radius: 999px;
+  border: 1px solid var(--cs-line);
+  background: rgba(13, 26, 23, 0.65);
+}
+
+.cs-lang-btn {
+  border: 0;
+  background: transparent;
+  color: var(--cs-muted);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 6px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.cs-lang-btn.is-active {
+  background: color-mix(in srgb, var(--cs-accent) 22%, transparent);
+  color: var(--cs-ink);
+}
+
 .cs-kicker {
   display: inline-flex;
   align-items: center;

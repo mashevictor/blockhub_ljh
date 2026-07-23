@@ -1,9 +1,16 @@
-"""20 个行业深度包 — Catalog seed SSOT（阶段 B）。"""
+"""24 个行业深度包 — Catalog seed SSOT（金融拆为银行/券商/保险/基金/消金）。"""
 
 from __future__ import annotations
 
 from typing import Any
 
+from app.data.finance_vertical_capabilities import (
+    bank_pack_scenes,
+    fintech_pack_scenes,
+    fund_pack_scenes,
+    insurance_pack_scenes,
+    securities_pack_scenes,
+)
 from app.data.game_scene_capabilities import game_pack_scenes
 from app.data.med_scene_capabilities import med_pack_scenes
 from app.data.office_scene_capabilities import office_pack_scenes
@@ -153,25 +160,49 @@ _EDU = {
     ],
 }
 
-_FINANCE = {
-    "key": "finance",
-    "name": "金融服务",
-    "icon": "💰",
+_BANK = {
+    "key": "bank",
+    "name": "商业银行",
+    "icon": "🏦",
+    "color": "#0369a1",
+    "tagline": "对公零售 · KYC · 授信 · 反洗钱",
+    "scenes": bank_pack_scenes(),
+}
+
+_SECURITIES = {
+    "key": "securities",
+    "name": "证券券商",
+    "icon": "📈",
+    "color": "#0e7490",
+    "tagline": "适当性 · 投研尽调 · 合规 · 产品销售",
+    "scenes": securities_pack_scenes(),
+}
+
+_INSURANCE = {
+    "key": "insurance",
+    "name": "保险",
+    "icon": "🛡️",
     "color": "#0284c7",
-    "tagline": "合规、风控、理财、尽调闭环",
-    "scenes": [
-        _scene("合规审查", "合规管理", "业务合规自检清单", pages="approval+kb", agent="approval"),
-        _scene("风控预警", "风险管理", "异常交易实时预警", pages="notify+chart", agent="notify"),
-        _scene("理财问答", "客户服务", "产品说明智能问答", pages="chat+kb", agent="chat_qa"),
-        _scene("尽调报告", "投行业务", "尽调材料协同撰写", pages="kb+approval", agent="kb"),
-        _scene("合同审批", "法务流程", "金融合同多级会签", agent="approval"),
-        _scene("反洗钱监测", "合规管理", "可疑交易识别上报", pages="chart+approval", standard="部分", agent="report"),
-        _scene("客户 KYC", "客户管理", "开户身份核验流程", pages="form+approval", agent="approval"),
-        _scene("产品说明", "产品管理", "产品条款智能解读", pages="chat+kb", agent="chat_qa"),
-        _scene("投后管理", "资产管理", "投后巡检与报告", pages="list+chart", agent="report"),
-        _scene("监管报送", "合规管理", "监管报表自动生成", standard="部分", pages="chart", agent="report"),
-        _scene("授信审批", "信贷业务", "授信额度审批流", agent="approval"),
-    ],
+    "tagline": "核保 · 理赔 · 代理人 · 产品说明",
+    "scenes": insurance_pack_scenes(),
+}
+
+_FUND = {
+    "key": "fund",
+    "name": "基金资管",
+    "icon": "📉",
+    "color": "#1d4ed8",
+    "tagline": "产品披露 · 投后 · 监管报送",
+    "scenes": fund_pack_scenes(),
+}
+
+_FINTECH = {
+    "key": "fintech",
+    "name": "消金金科",
+    "icon": "💳",
+    "color": "#4338ca",
+    "tagline": "风控预警 · 贷后 · 监管报送",
+    "scenes": fintech_pack_scenes(),
 }
 
 _LOGISTICS = {
@@ -415,7 +446,11 @@ ALL_INDUSTRY_PACKS: list[dict[str, Any]] = [
     _GAME,
     _RETAIL,
     _EDU,
-    _FINANCE,
+    _BANK,
+    _SECURITIES,
+    _INSURANCE,
+    _FUND,
+    _FINTECH,
     _LOGISTICS,
     _REALESTATE,
     _HOTEL,

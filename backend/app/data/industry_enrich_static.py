@@ -24,7 +24,11 @@ PACK_CAPSHIP_MODULES: dict[str, list[str]] = {
     ],
     "retail": ["inventory_count", "member_loyalty", "chat_qa", "notify_im", "approval_flow", "chart_dashboard"],
     "edu": ["school_notice", "homework_qa", "class_schedule", "chat_qa", "notify_im", "kb_document"],
-    "finance": ["legal_case", "approval_flow", "kb_document", "chat_qa", "chart_dashboard", "notify_im"],
+    "bank": ["finance_kyc", "finance_aml", "credit_approval", "approval_flow", "kb_document", "chat_qa", "chart_dashboard", "notify_im"],
+    "securities": ["finance_kyc", "due_diligence", "approval_flow", "kb_document", "chat_qa", "chart_dashboard", "notify_im", "finance_aml"],
+    "insurance": ["insurance_case", "approval_flow", "kb_document", "chat_qa", "notify_im", "chart_dashboard"],
+    "fund": ["regulatory_report", "due_diligence", "kb_document", "approval_flow", "chat_qa", "chart_dashboard", "notify_im"],
+    "fintech": ["finance_aml", "credit_approval", "regulatory_report", "finance_kyc", "kb_document", "chart_dashboard", "notify_im", "chat_qa"],
     "logistics": ["delivery_order", "inventory_count", "notify_im", "approval_flow", "chart_dashboard", "chat_qa"],
     "realestate": ["house_viewing", "property_repair", "chat_qa", "approval_flow", "notify_im", "chart_dashboard"],
     "hotel": ["hotel_booking", "site_patrol", "member_loyalty", "approval_flow", "notify_im", "chart_dashboard"],
@@ -101,9 +105,25 @@ _STATIC_BASE: dict[str, dict[str, Any]] = {
         "overview": "教育培训深度包覆盖家校通知、作业答疑与课表查询，减轻教务与班主任重复劳动，提升家校沟通效率。",
         "highlights": ["家校通知精准触达", "作业答疑助手", "课表与考试安排", "成绩趋势看板"],
     },
-    "finance": {
-        "overview": "金融服务深度包强调合规审查、风控预警与合同管理，满足金融场景对审计留痕与多级审批的严格要求。",
-        "highlights": ["合规审查清单", "异常交易预警", "合同多级会签", "产品说明智能解读"],
+    "bank": {
+        "overview": "商业银行垂直包覆盖对公/零售 KYC、授信审批与反洗钱监测；正式能力接真 API，空库空列表。",
+        "highlights": ["对公/零售 KYC 真工单", "授信审批闭环", "AML 可疑交易监测", "双专属知识库"],
+    },
+    "securities": {
+        "overview": "证券券商垂直包覆盖开户适当性、投研尽调、合规会签与产品销售；选型即交付正式 capability。",
+        "highlights": ["适当性评估", "投研尽调真库", "合规会签", "产品说明 RAG"],
+    },
+    "insurance": {
+        "overview": "保险垂直包覆盖核保、理赔、代理人合规与产品条款说明；核保理赔工单落真库。",
+        "highlights": ["核保/理赔真工单", "代理人合规", "产品条款 RAG", "审批留痕"],
+    },
+    "fund": {
+        "overview": "基金资管垂直包覆盖产品披露、投后管理与监管报送；报送任务与尽调记录真库闭环。",
+        "highlights": ["监管报送任务", "投后管理", "产品披露 RAG", "合规审查"],
+    },
+    "fintech": {
+        "overview": "消金金科垂直包覆盖风控预警、贷后管理与监管报送；KYC/授信/AML 共享正式能力。",
+        "highlights": ["风控预警真库", "贷后检查", "监管报送", "KYC 联防"],
     },
     "logistics": {
         "overview": "物流仓储深度包打通运单跟踪、仓储盘点与配送调度，实现在途可视、异常上报与签收确认闭环。",

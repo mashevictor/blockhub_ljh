@@ -9,7 +9,7 @@
   {
     "key": "mfg",
     "name": "传统制造",
-    "tagline": "报修、SOP、质检、MES 打通",
+    "tagline": "报修、SOP知识库、质检、MES 打通",
     "template": "Solid State · 深色企业",
     "href": "./mfg/index.html"
   },
@@ -23,15 +23,15 @@
   {
     "key": "med",
     "name": "医疗健康",
-    "tagline": "指南、排班、导诊、HIS 协同",
+    "tagline": "AI预问诊、指南RAG、排班、HIS · 真库闭环",
     "template": "Tessellate · 块面拼贴",
     "href": "./med/index.html"
   },
   {
     "key": "game",
     "name": "游戏娱乐",
-    "tagline": "玩家 FAQ、客服、活动通知",
-    "template": "Dimension · 遮罩面板",
+    "tagline": "FAQ工单真库、双知识库、活动通知、2048可玩",
+    "template": "game",
     "href": "./game/index.html"
   },
   {
@@ -49,11 +49,39 @@
     "href": "./edu/index.html"
   },
   {
-    "key": "finance",
-    "name": "金融服务",
-    "tagline": "合规、风控、理财、尽调闭环",
+    "key": "bank",
+    "name": "商业银行",
+    "tagline": "对公零售 · KYC · 授信 · 反洗钱",
     "template": "Landed · 稳重商务",
-    "href": "./finance/index.html"
+    "href": "./bank/index.html"
+  },
+  {
+    "key": "securities",
+    "name": "证券券商",
+    "tagline": "适当性 · 投研尽调 · 合规 · 产品销售",
+    "template": "Landed · 稳重商务",
+    "href": "./securities/index.html"
+  },
+  {
+    "key": "insurance",
+    "name": "保险",
+    "tagline": "核保 · 理赔 · 代理人 · 产品说明",
+    "template": "Landed · 稳重商务",
+    "href": "./insurance/index.html"
+  },
+  {
+    "key": "fund",
+    "name": "基金资管",
+    "tagline": "产品披露 · 投后 · 监管报送",
+    "template": "Landed · 稳重商务",
+    "href": "./fund/index.html"
+  },
+  {
+    "key": "fintech",
+    "name": "消金金科",
+    "tagline": "风控预警 · 贷后 · 监管报送",
+    "template": "Hyperspace · 侧栏导航",
+    "href": "./fintech/index.html"
   },
   {
     "key": "logistics",

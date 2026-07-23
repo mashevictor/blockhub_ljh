@@ -42,7 +42,7 @@ def get_optional_user(
 
 
 def require_roles(*roles: str):
-    """RBAC：仅允许指定角色（如 admin / employee）。"""
+    """RBAC：仅允许指定角色（如 admin / employee / tenant_owner）。"""
 
     def _dep(user: Annotated[User, Depends(get_current_user)]) -> User:
         if user.role not in roles:
@@ -52,6 +52,19 @@ def require_roles(*roles: str):
     return _dep
 
 
-require_admin = require_roles("admin")
+def is_tenant_admin(user: User) -> bool:
+    """本租户管理：平台 admin 或个人空间 tenant_owner。"""
+    return (user.role or "") in {"admin", "tenant_owner"}
+
+
+def is_platform_admin(user: User) -> bool:
+    """跨租户平台特权（演示租户运维账号）。"""
+    return (user.role or "") == "admin"
+
+
+# 本租户管理写操作（创建应用 / 知识库写 / 租户配置等）
+require_admin = require_roles("admin", "tenant_owner")
+# 仅平台运维（seed 等）
+require_platform_admin = require_roles("admin")
 # 官网升级套餐付款人：租户所有者或平台管理员
 require_billing_payer = require_roles("admin", "tenant_owner")

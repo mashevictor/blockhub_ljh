@@ -40,7 +40,7 @@ def _row_to_dict(row: AppSchemaChangeRequest) -> dict[str, Any]:
 
 
 def _is_admin(user: User) -> bool:
-    return (user.role or "").lower() == "admin"
+    return (user.role or "").lower() in {"admin", "tenant_owner"}
 
 
 def upsert_draft(

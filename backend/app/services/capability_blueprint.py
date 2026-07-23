@@ -222,6 +222,47 @@ for _kind, _label in _MFG_KIND_LABEL.items():
         ],
     }
 
+_FINANCE_KIND_LABEL = {
+    "finance_kyc": "金融KYC",
+    "finance_aml": "反洗钱监测",
+    "credit_approval": "授信审批",
+    "due_diligence": "尽调报告",
+    "regulatory_report": "监管报送",
+    "insurance_case": "保险核保理赔",
+}
+
+for _kind, _label in _FINANCE_KIND_LABEL.items():
+    _BINDING[_kind] = {
+        "model": db_models.FinanceOpsRecord,
+        "table_label": _label,
+        "kind_filter": _kind,
+        "apis": [
+            {
+                "method": "GET",
+                "path": f"/api/v1/finance-ops/{_kind}/records",
+                "desc": f"{_label}列表",
+                "auth": "JWT",
+            },
+            {
+                "method": "POST",
+                "path": f"/api/v1/finance-ops/{_kind}/records",
+                "desc": f"新建{_label}",
+                "auth": "JWT",
+            },
+            {
+                "method": "POST",
+                "path": f"/api/v1/finance-ops/{_kind}/records/{{id}}/{{action}}",
+                "desc": "状态流转（done/approve/close）",
+                "auth": "JWT",
+            },
+        ],
+        "code": [
+            "backend/app/api/v1/finance_ops.py",
+            "backend/app/services/finance_ops_store.py",
+            "packages/web-capability-finance/",
+        ],
+    }
+
 PREVIEW_PACK_KEYS: dict[str, list[str]] = {
     "mfg": [
         "device_repair",
@@ -236,6 +277,53 @@ PREVIEW_PACK_KEYS: dict[str, list[str]] = {
         "erp_connector",
         "energy_carbon",
         "training_record",
+    ],
+    "bank": [
+        "finance_kyc",
+        "finance_aml",
+        "credit_approval",
+        "approval_flow",
+        "kb_document",
+        "chat_qa",
+        "chart_dashboard",
+        "notify_im",
+    ],
+    "securities": [
+        "finance_kyc",
+        "due_diligence",
+        "finance_aml",
+        "approval_flow",
+        "kb_document",
+        "chat_qa",
+        "chart_dashboard",
+        "notify_im",
+    ],
+    "insurance": [
+        "insurance_case",
+        "approval_flow",
+        "kb_document",
+        "chat_qa",
+        "chart_dashboard",
+        "notify_im",
+    ],
+    "fund": [
+        "regulatory_report",
+        "due_diligence",
+        "approval_flow",
+        "kb_document",
+        "chat_qa",
+        "chart_dashboard",
+        "notify_im",
+    ],
+    "fintech": [
+        "finance_aml",
+        "credit_approval",
+        "regulatory_report",
+        "finance_kyc",
+        "kb_document",
+        "chat_qa",
+        "chart_dashboard",
+        "notify_im",
     ],
     "office": [
         "policy_qa",

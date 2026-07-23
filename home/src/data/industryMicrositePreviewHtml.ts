@@ -106,7 +106,7 @@ export function buildIndustryMicrositeSrcDoc(
     <p class="section-lead">确认风格后，可在积木仓用此模板编排正式能力并发布。</p>
     <div class="cta-row">
       <a class="btn" href="/industry/${esc(copy.packKey)}">返回方案站</a>
-      <a class="btn ghost" href="/#contact-create">去编排应用</a>
+      <a class="btn ghost" href="/#contact-create?mode=industry&amp;pack=${esc(copy.packKey)}">去编排应用</a>
     </div>
   </section>
 

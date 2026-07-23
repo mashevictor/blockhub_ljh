@@ -350,6 +350,12 @@ export function applyComposeOps(schema: ComposerPageSchema, ops: ComposeEditOp[]
         summary: op.summary,
         page_kind: op.page_kind,
       }
+      const foresightHtml = String((op as { source_html?: string }).source_html || '').trim()
+      if (foresightHtml) {
+        childProps.source_html = foresightHtml.slice(0, 100_000)
+        childProps.ui_kind = 'generated_code'
+        childProps.page_kind = childProps.page_kind || 'generated_code'
+      }
       if (op.form_headline) childProps.form_headline = op.form_headline
       if (op.form_hint) childProps.form_hint = op.form_hint
       if (op.default_category) childProps.default_category = op.default_category
@@ -380,11 +386,17 @@ export function applyComposeOps(schema: ComposerPageSchema, ops: ComposeEditOp[]
       // 仅真正 gen_* 页才挂 GeneratedPage；异步出页中只挂骨架所需 props
       if (!forceFormal) {
         childProps.title = label
-        childProps.codegen_pending = Boolean(op.pending_codegen)
+        // 已有可玩 HTML 时禁止再挂骨架 pending
+        childProps.codegen_pending = Boolean(op.pending_codegen) && !foresightHtml
         childProps.source = 'generated'
-        childProps.ui_phase = op.pending_codegen ? 'skeleton' : 'ready'
+        childProps.ui_phase = childProps.codegen_pending ? 'skeleton' : 'ready'
+        if (childProps.codegen_pending) {
+          childProps.codegen_started_at = new Date().toISOString()
+          childProps.page_kind = childProps.page_kind || 'generated_code'
+          childProps.ui_kind = childProps.ui_kind || 'generated_code'
+        }
         // pending 时不塞弱表单/blocks，避免骨架阶段露出半成品
-        if (!op.pending_codegen && !formFields.length) {
+        if (!childProps.codegen_pending && !formFields.length && !foresightHtml) {
           const fromMock = pageMockToBlocks(op.page_mock)
           if (fromMock.length) childProps.blocks = fromMock
           else if (op.summary) {
@@ -394,7 +406,7 @@ export function applyComposeOps(schema: ComposerPageSchema, ops: ComposeEditOp[]
             ]
           }
         }
-        if (op.pending_codegen) {
+        if (childProps.codegen_pending) {
           // 保留 page_mock 供生成完成后合并参考，但不渲染表单
           delete childProps.form_fields
         }

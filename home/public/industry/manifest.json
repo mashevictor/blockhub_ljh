@@ -42,7 +42,31 @@
     "thumb": "/industry/edu/thumb.jpg"
   },
   {
-    "key": "finance",
+    "key": "bank",
+    "hero": "/industry/finance/hero.jpg",
+    "og": "/industry/finance/og.png",
+    "thumb": "/industry/finance/thumb.jpg"
+  },
+  {
+    "key": "securities",
+    "hero": "/industry/finance/hero.jpg",
+    "og": "/industry/finance/og.png",
+    "thumb": "/industry/finance/thumb.jpg"
+  },
+  {
+    "key": "insurance",
+    "hero": "/industry/finance/hero.jpg",
+    "og": "/industry/finance/og.png",
+    "thumb": "/industry/finance/thumb.jpg"
+  },
+  {
+    "key": "fund",
+    "hero": "/industry/finance/hero.jpg",
+    "og": "/industry/finance/og.png",
+    "thumb": "/industry/finance/thumb.jpg"
+  },
+  {
+    "key": "fintech",
     "hero": "/industry/finance/hero.jpg",
     "og": "/industry/finance/og.png",
     "thumb": "/industry/finance/thumb.jpg"

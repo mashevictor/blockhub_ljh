@@ -35,7 +35,11 @@ from app.data.industry_packs_all import ALL_INDUSTRY_PACKS, pack_meta  # noqa: E
 # pack → 视觉模板 id（与 home industryMicrositeTemplates 一致）
 PACK_DEFAULT_MICROSITE: dict[str, str] = {
     "legal": "law-firm",
-    "finance": "accounting",
+    "bank": "accounting",
+    "securities": "accounting",
+    "insurance": "accounting",
+    "fund": "accounting",
+    "fintech": "saas",
     "office": "consulting",
     "med": "clinic",
     "sales": "dental",
@@ -50,7 +54,7 @@ PACK_DEFAULT_MICROSITE: dict[str, str] = {
     "auto": "hardware",
     "mfg": "manufacturing",
     "media": "beauty",
-    "game": "fitness",
+    "game": "game",
     "logistics": "pet",
     "agriculture": "photography",
     "energy": "wellness",

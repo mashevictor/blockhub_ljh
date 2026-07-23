@@ -130,6 +130,8 @@ export type ComposeEditOp =
       page_kind?: string
       page_mock?: ComposerPageMock
       pending_codegen?: boolean
+      /** 意图 foresight：立即可玩 HTML，跳过空骨架 */
+      source_html?: string
       /** SSOT 稳定菜单 key，优先于随机 scene_* */
       scene_key?: string
       scene_name?: string

@@ -21,7 +21,7 @@ from app.services.build_manifest import build_manifest  # noqa: E402
 # 12 精选行业（与 Home 行业站点对齐）
 INDUSTRIES = [
     "office", "mfg", "sales", "med", "game", "retail",
-    "edu", "finance", "logistics", "realestate", "hotel", "energy",
+    "edu", "bank", "securities", "insurance", "fund", "fintech", "logistics", "realestate", "hotel", "energy",
 ]
 
 HOME_KINDS = [

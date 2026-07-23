@@ -51,7 +51,11 @@ def notify_tenant_admins(
         Notification.type == type,
     ).first():
         return
-    admins = db.query(User).filter(User.tenant_id == tenant_id, User.role == "admin").all()
+    admins = (
+        db.query(User)
+        .filter(User.tenant_id == tenant_id, User.role.in_(("admin", "tenant_owner")))
+        .all()
+    )
     for admin in admins:
         create_notification(
             db,

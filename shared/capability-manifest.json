@@ -325,6 +325,23 @@
       "keywords": []
     },
     {
+      "key": "credit_approval",
+      "name": "授信审批",
+      "category": "金融服务",
+      "widget": "CreditApprovalWidget",
+      "agent_id": "credit_approval",
+      "web_pkg": "@blockhub/web-capability-finance",
+      "flutter_pkg": "capability_finance",
+      "route": "/credit-approval",
+      "keywords": [
+        "授信",
+        "额度审批",
+        "贷后",
+        "信贷审批",
+        "担保"
+      ]
+    },
+    {
       "key": "data_export",
       "name": "数据导出",
       "category": "知识数据",
@@ -424,6 +441,22 @@
       ]
     },
     {
+      "key": "due_diligence",
+      "name": "尽调报告",
+      "category": "金融服务",
+      "widget": "DueDiligenceWidget",
+      "agent_id": "due_diligence",
+      "web_pkg": "@blockhub/web-capability-finance",
+      "flutter_pkg": "capability_finance",
+      "route": "/due-diligence",
+      "keywords": [
+        "尽调",
+        "投研尽调",
+        "投后管理",
+        "尽职调查"
+      ]
+    },
+    {
       "key": "energy_carbon",
       "name": "能耗碳排",
       "category": "绿色制造",
@@ -469,6 +502,40 @@
         "费用报销",
         "发票上传",
         "报销申请"
+      ]
+    },
+    {
+      "key": "finance_aml",
+      "name": "反洗钱监测",
+      "category": "金融服务",
+      "widget": "FinanceAmlWidget",
+      "agent_id": "finance_aml",
+      "web_pkg": "@blockhub/web-capability-finance",
+      "flutter_pkg": "capability_finance",
+      "route": "/finance-aml",
+      "keywords": [
+        "反洗钱",
+        "AML",
+        "可疑交易",
+        "风控预警",
+        "欺诈预警"
+      ]
+    },
+    {
+      "key": "finance_kyc",
+      "name": "金融KYC",
+      "category": "金融服务",
+      "widget": "FinanceKycWidget",
+      "agent_id": "finance_kyc",
+      "web_pkg": "@blockhub/web-capability-finance",
+      "flutter_pkg": "capability_finance",
+      "route": "/finance-kyc",
+      "keywords": [
+        "KYC",
+        "开户核验",
+        "适当性",
+        "身份核验",
+        "客户尽调开户"
       ]
     },
     {
@@ -846,6 +913,22 @@
         "意向登记",
         "签约跟进",
         "带看"
+      ]
+    },
+    {
+      "key": "insurance_case",
+      "name": "保险核保理赔",
+      "category": "金融服务",
+      "widget": "InsuranceCaseWidget",
+      "agent_id": "insurance_case",
+      "web_pkg": "@blockhub/web-capability-finance",
+      "flutter_pkg": "capability_finance",
+      "route": "/insurance-case",
+      "keywords": [
+        "核保",
+        "理赔",
+        "保险报案",
+        "承保"
       ]
     },
     {
@@ -1320,6 +1403,22 @@
       ]
     },
     {
+      "key": "regulatory_report",
+      "name": "监管报送",
+      "category": "金融服务",
+      "widget": "RegulatoryReportWidget",
+      "agent_id": "regulatory_report",
+      "web_pkg": "@blockhub/web-capability-finance",
+      "flutter_pkg": "capability_finance",
+      "route": "/regulatory-report",
+      "keywords": [
+        "监管报送",
+        "报送",
+        "监管报表",
+        "合规报送"
+      ]
+    },
+    {
       "key": "report_scheduled",
       "name": "定时报表",
       "category": "知识数据",
@@ -1332,7 +1431,7 @@
     },
     {
       "key": "sales_lead",
-      "name": "销售线索",
+      "name": "销售获客",
       "category": "销售行业",
       "widget": "SalesLeadWidget",
       "agent_id": "sales_lead",
@@ -1340,9 +1439,12 @@
       "flutter_pkg": "capability_sales_lead",
       "route": "/sales-lead",
       "keywords": [
+        "销售获客",
         "销售线索",
         "客户跟进",
         "线索录入",
+        "公海",
+        "渠道来源",
         "销售漏斗"
       ]
     },
@@ -1491,10 +1593,11 @@
       "route": "/study-coach",
       "keywords": [
         "课本学习",
-        "学习规划",
-        "学习进度",
-        "家默",
+        "今晚练什么",
         "听写",
+        "单词卡",
+        "学习规划",
+        "家默",
         "复习跟进",
         "考试",
         "课本"

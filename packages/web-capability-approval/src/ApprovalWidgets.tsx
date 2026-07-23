@@ -200,7 +200,7 @@ export function ApprovalInboxWidget(_props: { node: SchemaNode }) {
   const [items, setItems] = useState<ApprovalItem[]>([])
   const [loading, setLoading] = useState(true)
   const [msg, setMsg] = useState('')
-  const isAdmin = user.role === 'admin'
+  const isAdmin = user.role === 'admin' || user.role === 'tenant_owner'
 
   const load = () => {
     setLoading(true)

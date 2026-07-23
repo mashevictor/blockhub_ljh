@@ -4,6 +4,13 @@ import { GAME_SCENE_SEEDS } from './gameScenes'
 import { MED_SCENE_SEEDS } from './medScenes'
 import { OFFICE_SCENE_SEEDS } from './officeScenes66'
 import { SALES_SCENE_SEEDS } from './salesScenes66'
+import {
+  BANK_SCENE_SEEDS,
+  FINTECH_SCENE_SEEDS,
+  FUND_SCENE_SEEDS,
+  INSURANCE_SCENE_SEEDS,
+  SECURITIES_SCENE_SEEDS,
+} from './financeScenes'
 
 export type ScenePageKind =
   | 'repair'
@@ -380,12 +387,78 @@ export const GAME_RUNTIME_PREVIEW: IndustryRuntimePackPreview = {
   })),
 }
 
+function financePreview(
+  key: string,
+  name: string,
+  tagline: string,
+  accent: string,
+  seeds: typeof BANK_SCENE_SEEDS,
+): IndustryRuntimePackPreview {
+  return {
+    key,
+    name,
+    tagline,
+    accent,
+    scenes: seeds.map((s) => ({
+      id: s.id,
+      name: s.name,
+      category: s.category,
+      summary: s.summary,
+      pages: s.pages,
+      standard: '✓' as const,
+      kind: s.kind as ScenePageKind,
+      capabilityHint: s.capabilityHint,
+    })),
+  }
+}
+
+export const BANK_RUNTIME_PREVIEW = financePreview(
+  'bank',
+  '商业银行',
+  '对公零售 · KYC · 授信 · 反洗钱',
+  '#0369a1',
+  BANK_SCENE_SEEDS,
+)
+export const SECURITIES_RUNTIME_PREVIEW = financePreview(
+  'securities',
+  '证券券商',
+  '适当性 · 投研尽调 · 合规 · 产品销售',
+  '#0e7490',
+  SECURITIES_SCENE_SEEDS,
+)
+export const INSURANCE_RUNTIME_PREVIEW = financePreview(
+  'insurance',
+  '保险',
+  '核保 · 理赔 · 代理人 · 产品说明',
+  '#0284c7',
+  INSURANCE_SCENE_SEEDS,
+)
+export const FUND_RUNTIME_PREVIEW = financePreview(
+  'fund',
+  '基金资管',
+  '产品披露 · 投后 · 监管报送',
+  '#1d4ed8',
+  FUND_SCENE_SEEDS,
+)
+export const FINTECH_RUNTIME_PREVIEW = financePreview(
+  'fintech',
+  '消金金科',
+  '风控预警 · 贷后 · 监管报送',
+  '#4338ca',
+  FINTECH_SCENE_SEEDS,
+)
+
 export function getIndustryRuntimePreview(packKey: string): IndustryRuntimePackPreview | null {
   if (packKey === 'mfg') return MFG_RUNTIME_PREVIEW
   if (packKey === 'office') return OFFICE_RUNTIME_PREVIEW
   if (packKey === 'sales') return SALES_RUNTIME_PREVIEW
   if (packKey === 'med') return MED_RUNTIME_PREVIEW
   if (packKey === 'game') return GAME_RUNTIME_PREVIEW
+  if (packKey === 'bank') return BANK_RUNTIME_PREVIEW
+  if (packKey === 'securities') return SECURITIES_RUNTIME_PREVIEW
+  if (packKey === 'insurance') return INSURANCE_RUNTIME_PREVIEW
+  if (packKey === 'fund') return FUND_RUNTIME_PREVIEW
+  if (packKey === 'fintech') return FINTECH_RUNTIME_PREVIEW
   return null
 }
 

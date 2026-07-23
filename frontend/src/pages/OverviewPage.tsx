@@ -12,7 +12,7 @@ import {
 import { useAuth } from '../auth/AuthContext'
 import { BRAND } from '../data/brand'
 import { PLATFORM_STATS } from '@shared/platformStats'
-import { canAccessRole, type AppRole } from '../lib/roles'
+import { canAccessRole, isTenantAdmin, type AppRole } from '../lib/roles'
 import {
   IconBot,
   IconGrid,
@@ -40,11 +40,12 @@ const STAT_META = [
 
 const QUICK_LINKS: Array<{ to: string; icon: typeof IconList; title: string; sub: string; roles: AppRole[] }> = [
   { to: '/scenarios', icon: IconList, title: '业务场景', sub: `${PLATFORM_STATS.scenarios} 个可选`, roles: ['admin'] },
-  { to: '/knowledge', icon: IconBook, title: '知识库', sub: '上传制度文档', roles: ['admin', 'employee'] },
-  { to: '/approvals', icon: IconCheckCircle, title: '审批中心', sub: '处理待办', roles: ['admin', 'employee'] },
+  { to: '/create', icon: IconSparkles, title: '创建应用', sub: '选型发布 Web/App', roles: ['admin'] },
+  { to: '/knowledge', icon: IconBook, title: '知识库', sub: '上传制度文档', roles: ['admin', 'tenant_owner', 'employee'] },
+  { to: '/approvals', icon: IconCheckCircle, title: '审批中心', sub: '处理待办', roles: ['admin', 'tenant_owner', 'employee'] },
   { to: '/reports', icon: IconBarChart, title: '数据报表', sub: '查看统计', roles: ['admin'] },
-  { to: '/chat', icon: IconMessage, title: '智能问答', sub: '开始对话', roles: ['admin', 'employee'] },
-  { to: '/notifications', icon: IconBell, title: '消息通知', sub: '查看未读', roles: ['admin', 'employee'] },
+  { to: '/chat', icon: IconMessage, title: '智能问答', sub: '开始对话', roles: ['admin', 'tenant_owner', 'employee'] },
+  { to: '/notifications', icon: IconBell, title: '消息通知', sub: '查看未读', roles: ['admin', 'tenant_owner', 'employee'] },
 ]
 
 const PUBLIC_BASE = import.meta.env.VITE_PUBLIC_BASE_URL || 'http://101.32.209.251'
@@ -174,7 +175,7 @@ export default function OverviewPage() {
     fetchCreatedApps().then(setCreatedApps).catch(() => {})
   }, [])
 
-  const isAdmin = (user?.role ?? role) === 'admin'
+  const adminLike = isTenantAdmin(user?.role ?? role)
   const visibleQuickLinks = useMemo(
     () => QUICK_LINKS.filter((q) => canAccessRole(user?.role ?? role, q.roles)),
     [user, role],
@@ -251,10 +252,10 @@ export default function OverviewPage() {
 
       <div className="section-header animate-fade-up">
         <h2>{PLATFORM_STATS.agents} 个助手</h2>
-        {isAdmin && <Link to="/agents" className="section-link">查看全部 →</Link>}
+        {adminLike && <Link to="/agents" className="section-link">查看全部 →</Link>}
       </div>
       <div className="agent-grid stagger-in">
-        {(isAdmin ? agents : agents.slice(0, 4)).map((a, i) => {
+        {(adminLike ? agents : agents.slice(0, 4)).map((a, i) => {
           const card = (
             <>
               <div className="agent-card-header">
@@ -267,7 +268,7 @@ export default function OverviewPage() {
               <div className="agent-card-desc">{a.description}</div>
             </>
           )
-          return isAdmin ? (
+          return adminLike ? (
             <Link key={a.id} to={`/agents/${a.id}`} className="agent-card" style={{ animationDelay: `${i * 0.05}s` }}>
               {card}
             </Link>

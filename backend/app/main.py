@@ -57,6 +57,7 @@ from app.api.v1 import (
     notifications,
     quality_inspect,
     mfg_ops,
+    finance_ops,
     reports,
     runtime,
     seed,
@@ -67,7 +68,7 @@ from app.api.v1 import (
     billing,
 )
 from app.core.config import settings
-from app.core.deps import get_current_user, require_admin
+from app.core.deps import get_current_user, require_admin, require_platform_admin
 from app.core.rate_limit import RateLimitMiddleware
 from app.db.session import SessionLocal
 from app.services.catalog_seed import ensure_catalog_seeded
@@ -120,6 +121,7 @@ app.add_middleware(
 
 _auth = [Depends(get_current_user)]
 _admin = [Depends(require_admin)]
+_platform_admin = [Depends(require_platform_admin)]
 
 app.include_router(health.router, prefix=settings.api_prefix)
 app.include_router(smoke.router, prefix=settings.api_prefix)
@@ -128,7 +130,7 @@ app.include_router(billing.router, prefix=settings.api_prefix)
 app.include_router(runtime.router, prefix=settings.api_prefix)
 app.include_router(auth.router, prefix=settings.api_prefix)
 app.include_router(catalog.router, prefix=settings.api_prefix)
-app.include_router(seed.router, prefix=settings.api_prefix, dependencies=_admin)
+app.include_router(seed.router, prefix=settings.api_prefix, dependencies=_platform_admin)
 app.include_router(creation.router, prefix=settings.api_prefix)
 app.include_router(demo_booking.router, prefix=settings.api_prefix)
 app.include_router(share.router, prefix=settings.api_prefix)
@@ -141,6 +143,7 @@ app.include_router(approvals.router, prefix=settings.api_prefix, dependencies=_a
 app.include_router(device_repair.router, prefix=settings.api_prefix, dependencies=_auth)
 app.include_router(quality_inspect.router, prefix=settings.api_prefix, dependencies=_auth)
 app.include_router(mfg_ops.router, prefix=settings.api_prefix, dependencies=_auth)
+app.include_router(finance_ops.router, prefix=settings.api_prefix, dependencies=_auth)
 app.include_router(inventory_count.router, prefix=settings.api_prefix, dependencies=_auth)
 app.include_router(member_loyalty.router, prefix=settings.api_prefix, dependencies=_auth)
 app.include_router(med_triage.router, prefix=settings.api_prefix, dependencies=_auth)

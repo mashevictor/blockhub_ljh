@@ -137,11 +137,79 @@ paint();
 </script></body></html>`
 }
 
+function workspacePreviewHtml(title: string): string {
+  const t = (title || '自定义页面').replace(/</g, '').slice(0, 40)
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>${t}</title>
+<style>
+body{margin:0;font-family:system-ui,sans-serif;background:linear-gradient(165deg,#f8fafc,#eef2ff);color:#0f172a;min-height:100vh;padding:20px}
+.card{max-width:480px;margin:0 auto;background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:18px}
+h2{margin:0 0 6px;font-size:20px}.hint{margin:0 0 14px;color:#64748b;font-size:13px;line-height:1.5}
+label{display:block;font-size:12px;color:#475569;margin:10px 0 4px}
+input,textarea,select{width:100%;box-sizing:border-box;border:1px solid #cbd5e1;border-radius:8px;padding:10px 12px;font:14px system-ui}
+textarea{min-height:72px}.row{display:flex;gap:8px;margin-top:14px}
+button{border:0;border-radius:8px;padding:10px 14px;background:#0f766e;color:#fff;cursor:pointer}
+button.ghost{background:#e2e8f0;color:#0f172a}#out{margin-top:12px;font-size:13px;color:#0f766e;white-space:pre-wrap}
+.badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:999px;background:#ccfbf1;color:#0f766e;margin-bottom:8px}
+</style></head><body>
+<div class="card"><span class="badge">预览工作台</span><h2>${t}</h2>
+<p class="hint">这不是无意义的点击计数器。可填写场景说明，继续对话打磨或接真 API。</p>
+<label>场景名称</label><input id="name" value="${t}" />
+<label>说明</label><textarea id="note" placeholder="联调目标 / 验收标准"></textarea>
+<div class="row"><button type="button" id="save">保存预览</button><button type="button" class="ghost" id="clear">清空</button></div>
+<div id="out"></div></div>
+<script>(function(){const out=document.getElementById('out');document.getElementById('save').onclick=()=>{out.textContent='已保存预览 · '+new Date().toLocaleString()};document.getElementById('clear').onclick=()=>{document.getElementById('note').value='';out.textContent=''}})();</script></body></html>`
+}
+
+function stockApiDemoHtml(title: string): string {
+  const t = (title || '股票 API 测试').replace(/</g, '').slice(0, 40)
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>${t}</title>
+<style>
+body{margin:0;font-family:system-ui,sans-serif;background:linear-gradient(160deg,#0b1220,#0f172a);color:#e2e8f0;min-height:100vh;padding:18px}
+.card{max-width:520px;margin:0 auto;background:rgba(15,23,42,.92);border:1px solid #334155;border-radius:14px;padding:16px}
+h2{margin:0 0 6px;font-size:18px}.hint{margin:0 0 12px;font-size:12px;color:#94a3b8}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+input,select{flex:1;min-width:120px;border:1px solid #475569;border-radius:8px;padding:10px;background:#0b1220;color:#e2e8f0}
+button{border:0;border-radius:8px;padding:10px 14px;background:#0ea5e9;color:#fff;cursor:pointer}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.kpi{background:#111827;border:1px solid #334155;border-radius:10px;padding:10px}.kpi b{display:block;font-size:20px;margin-top:4px}
+.up{color:#4ade80}.down{color:#f87171}#log{margin-top:12px;font-size:12px;color:#94a3b8;white-space:pre-wrap}
+.badge{font-size:11px;color:#67e8f9}
+</style></head><body>
+<div class="card"><p class="badge">演示面板 · 本地模拟行情</p><h2>${t}</h2>
+<p class="hint">输入代码查询模拟报价。可继续对话接入真 API。</p>
+<div class="row"><input id="sym" value="600519" /><select id="mkt"><option>SH</option><option>SZ</option><option>US</option></select><button type="button" id="go">查询</button></div>
+<div class="grid"><div class="kpi">最新价<b id="px">—</b></div><div class="kpi">涨跌幅<b id="chg">—</b></div><div class="kpi">成交额<b id="amt">—</b></div><div class="kpi">更新<b id="ts" style="font-size:14px">—</b></div></div>
+<div id="log">等待查询…</div></div>
+<script>(function(){const seed={'600519':{n:'贵州茅台',p:1688.5},'000001':{n:'平安银行',p:11.2},'AAPL':{n:'Apple',p:198.4}};
+document.getElementById('go').onclick=()=>{const sym=(document.getElementById('sym').value||'600519').trim().toUpperCase();
+const meta=seed[sym]||{n:sym,p:20+Math.random()*80};const px=meta.p*(1+(Math.random()-0.45)*0.02);const chg=(px-meta.p)/meta.p*100;
+document.getElementById('px').textContent=px.toFixed(2);const el=document.getElementById('chg');el.textContent=(chg>=0?'+':'')+chg.toFixed(2)+'%';el.className=chg>=0?'up':'down';
+document.getElementById('amt').textContent=(Math.random()*8+0.5).toFixed(2)+' 亿';document.getElementById('ts').textContent=new Date().toLocaleTimeString();
+document.getElementById('log').textContent='模拟响应 OK · '+sym+' '+meta.n};})();</script></body></html>`
+}
+
+function isLegacyMeaninglessCounter(html: string): boolean {
+  const raw = html || ''
+  return /点击互动/.test(raw) && /id=["']n["']/.test(raw) && /\+1/.test(raw) && /(let n=0|n\+\+)/.test(raw)
+}
+
 function instantPlayableFallback(title: string, summary: string): string {
   const blob = `${title} ${summary}`
   if (/贪吃蛇|snake/i.test(blob)) return snakePlayableHtml(title)
   if (/英雄联盟|lol|moba|对战|王者|英雄选择/i.test(blob)) return mobaPlayableHtml(title)
-  return mobaPlayableHtml(title || '互动演示')
+  if (/股票|行情|股价|stock/i.test(blob)) return stockApiDemoHtml(title)
+  if (/api\s*测试|接口测试|联调|api test/i.test(blob)) return workspacePreviewHtml(title || 'API 测试')
+  return workspacePreviewHtml(title || '互动演示')
+}
+
+/** 游戏/可玩/股票API：不等 codegen，立刻给有意义演示 */
+function shouldInstantPlayable(title: string, summary: string, pageKind: string): boolean {
+  const blob = `${title} ${summary} ${pageKind}`
+  return /贪吃蛇|snake|英雄联盟|lol|moba|对战|王者|英雄选择|小游戏|可玩|游戏模拟|股票|行情|股价|api\s*测试|接口测试|联调/i.test(
+    blob,
+  )
 }
 
 function looksLikeSnakeGame(html: string, title: string): boolean {
@@ -165,6 +233,9 @@ function isLegacyUnplayableSnake(html: string): boolean {
 function upgradeLegacyPlayableHtml(html: string, title: string): string {
   const raw = (html || '').trim()
   if (!raw) return raw
+  if (isLegacyMeaninglessCounter(raw)) {
+    return instantPlayableFallback(title || '自定义页面', title || '')
+  }
   if (looksLikeSnakeGame(raw, title) && isLegacyUnplayableSnake(raw)) {
     return snakePlayableHtml(title || '贪吃蛇')
   }
@@ -413,7 +484,8 @@ function GeneratingProgress({
   const [elapsed, setElapsed] = useState(0)
   const [tipIdx, setTipIdx] = useState(0)
   const timedOutRef = useRef(false)
-  const MAX_WAIT = 75
+  /** 用户侧硬上限：绝不能出现「生成中 · 321s」空骨架 */
+  const MAX_WAIT = 20
 
   useEffect(() => {
     const t0 = Date.now()
@@ -433,15 +505,13 @@ function GeneratingProgress({
     return () => window.clearInterval(tip)
   }, [])
 
-  const stepIdx = elapsed < 8 ? 0 : elapsed < 25 ? 1 : elapsed < 45 ? 2 : 3
+  const stepIdx = elapsed < 4 ? 0 : elapsed < 10 ? 1 : elapsed < 16 ? 2 : 3
   const etaHint =
-    elapsed < 20
-      ? '预计约 20–40 秒'
-      : elapsed < 50
-        ? '即将完成，请稍候'
-        : elapsed < MAX_WAIT
-          ? '比平时稍慢；超时将自动换成可玩精简版'
-          : '已超时，正在切换可玩精简版…'
+    elapsed < 8
+      ? '预计约 10–20 秒'
+      : elapsed < MAX_WAIT
+        ? '比平时稍慢；即将换成可玩精简版'
+        : '正在切换可玩精简版…'
 
   return (
     <article
@@ -471,12 +541,9 @@ function GeneratingProgress({
 
       <p className="generated-progress-eta">{etaHint}</p>
       <p className="generated-progress-tip muted">{GEN_TIPS[tipIdx]}</p>
-
-      <div className="generated-skeleton-body" aria-hidden>
-        <div className="generated-skel-line generated-skel-line--lg" />
-        <div className="generated-skel-card" />
-        <div className="generated-skel-card" />
-      </div>
+      <p className="muted" style={{ margin: '8px 0 0', fontSize: 13 }}>
+        仍在处理时可先去其他菜单；超时将自动打开精简可玩版，无需干等灰色占位块。
+      </p>
     </article>
   )
 }
@@ -499,53 +566,62 @@ function GeneratedPageWidget({ node }: { node: SchemaNode }) {
   const capKey = String(node.props?.capability_key || node.id || 'gen_page')
   const pending = Boolean(node.props?.codegen_pending)
   const sourceHtml = String(node.props?.source_html || '').trim()
-  const startedAtRaw = String(node.props?.codegen_started_at || '').trim()
-  const stalePending = useMemo(() => {
-    if (!pending || sourceHtml) return false
-    if (!startedAtRaw) return false
-    const t = Date.parse(startedAtRaw)
-    if (Number.isNaN(t)) return false
-    return Date.now() - t > 75_000
-  }, [pending, sourceHtml, startedAtRaw])
-  const [forceLiteHtml, setForceLiteHtml] = useState(() =>
-    stalePending ? instantPlayableFallback(title, summary) : '',
-  )
-  const onGenTimeout = useCallback(() => {
-    setForceLiteHtml(instantPlayableFallback(title, summary))
-  }, [title, summary])
-
-  useEffect(() => {
-    if (stalePending) {
-      setForceLiteHtml(instantPlayableFallback(title, summary))
-      return
-    }
-    if (!pending) setForceLiteHtml('')
-  }, [capKey, sourceHtml, pending, stalePending, title, summary])
   const pageKind = String(
     node.props?.page_kind ||
       node.props?.ui_kind ||
       (node.props?.page_mock as PageMock | undefined)?.ui_kind ||
       '',
   )
+  const startedAtRaw = String(node.props?.codegen_started_at || '').trim()
+  const stalePending = useMemo(() => {
+    if (!pending || sourceHtml) return false
+    if (!startedAtRaw) return true // 无开始时间也视为可立即回退，避免永久骨架
+    const t = Date.parse(startedAtRaw)
+    if (Number.isNaN(t)) return true
+    return Date.now() - t > 20_000
+  }, [pending, sourceHtml, startedAtRaw])
+
+  const instantGameHtml = useMemo(() => {
+    if (sourceHtml) return ''
+    if (!shouldInstantPlayable(title, summary, pageKind)) return ''
+    return instantPlayableFallback(title, summary)
+  }, [sourceHtml, title, summary, pageKind])
+
+  const [forceLiteHtml, setForceLiteHtml] = useState(() =>
+    instantGameHtml || (stalePending ? instantPlayableFallback(title, summary) : ''),
+  )
+  const onGenTimeout = useCallback(() => {
+    setForceLiteHtml(instantPlayableFallback(title, summary))
+  }, [title, summary])
+
+  useEffect(() => {
+    if (instantGameHtml) {
+      setForceLiteHtml(instantGameHtml)
+      return
+    }
+    if (stalePending) {
+      setForceLiteHtml(instantPlayableFallback(title, summary))
+      return
+    }
+    if (!pending) setForceLiteHtml('')
+  }, [capKey, sourceHtml, pending, stalePending, title, summary, instantGameHtml])
+
   const mock = node.props?.page_mock as PageMock | undefined
   const rawBlocks = (Array.isArray(node.props?.blocks) ? node.props?.blocks : []) as Block[]
   const interactive = resolveInteractiveForNode(node)
 
   const fieldDefs = useMemo(() => {
+    // 禁止「任意新页 → 标题+说明」硬兜底；仅有明确 form_fields / page_mock.fields 才出表单
     const hasCustom =
       (Array.isArray(node.props?.form_fields) && (node.props?.form_fields as unknown[]).length > 0) ||
       (Array.isArray(mock?.fields) && mock!.fields!.length > 0)
+    if (!hasCustom) return []
     return resolveFormFieldDefs({
-      defaults: hasCustom
-        ? undefined
-        : [
-            { key: 'title', label: '标题', placeholder: `请输入${title}相关内容` },
-            { key: 'note', label: '说明', placeholder: '补充细节（可选）', optional: true, type: 'textarea' },
-          ],
+      defaults: undefined,
       formFields: node.props?.form_fields,
       pageMockFields: mock?.fields,
     })
-  }, [node.props?.form_fields, mock?.fields, title])
+  }, [node.props?.form_fields, mock?.fields, mock])
 
   const steps: GtgtStep[] = useMemo(
     () =>
@@ -589,7 +665,9 @@ function GeneratedPageWidget({ node }: { node: SchemaNode }) {
     return (
       <div>
         <p className="muted" style={{ margin: '0 0 8px', fontSize: 12, color: '#0f766e' }}>
-          生成较慢，已先打开精简可玩版（非完整客户端）。可继续对话打磨。
+          {pending
+            ? '已打开精简可玩版（勿干等空骨架）。后台若生成更完整页，将自动升级。'
+            : '精简可玩版（非完整客户端）。可继续对话打磨。'}
         </p>
         <GeneratedCodeFrame title={title} html={forceLiteHtml} />
       </div>
@@ -704,10 +782,17 @@ function GeneratedPageWidget({ node }: { node: SchemaNode }) {
         ) : null}
         <h2>{title}</h2>
         {summary ? <p className="generated-summary">{summary}</p> : null}
-        <p className="muted" style={{ margin: '0 0 8px', fontSize: 13 }}>
-          下方表单逐项填写（Enter 推进），点「{submitLabel}」写入本机记录；列表状态可点击切换。
-          {user?.display_name ? ` · ${user.display_name}` : ''}
-        </p>
+        {hasFormFields ? (
+          <p className="muted" style={{ margin: '0 0 8px', fontSize: 13 }}>
+            下方表单逐项填写（Enter 推进），点「{submitLabel}」写入本机记录；列表状态可点击切换。
+            {user?.display_name ? ` · ${user.display_name}` : ''}
+          </p>
+        ) : (
+          <p className="muted" style={{ margin: '0 0 8px', fontSize: 13 }}>
+            可继续对话细化字段或玩法；未指定表单时不套用「标题/说明」通用壳。
+            {user?.display_name ? ` · ${user.display_name}` : ''}
+          </p>
+        )}
       </header>
 
       {infoBlocks.length ? (
@@ -732,80 +817,84 @@ function GeneratedPageWidget({ node }: { node: SchemaNode }) {
         </div>
       ) : null}
 
-      <div className="generated-page-form">
-        <GtgtStepComposer
-          title={formTitle}
-          meta={industrySite ? '业务录入' : '预览录入'}
-          accent={accent}
-          flowHint=">> 单字段 Enter 推进 · 提交后写入本机列表（非正式业务库）"
-          steps={steps}
-          values={values}
-          onChange={(k, v) => setValues((p) => ({ ...p, [k]: v }))}
-          onComplete={handleSubmit}
-          busy={busy}
-          resetKey={resetKey}
-          submitLabel={busy ? '提交中…' : submitLabel}
-        >
-          {msg ? <p className="status-msg">{msg}</p> : null}
-        </GtgtStepComposer>
-      </div>
+      {hasFormFields ? (
+        <>
+          <div className="generated-page-form">
+            <GtgtStepComposer
+              title={formTitle}
+              meta={industrySite ? '业务录入' : '预览录入'}
+              accent={accent}
+              flowHint=">> 单字段 Enter 推进 · 提交后写入本机列表（非正式业务库）"
+              steps={steps}
+              values={values}
+              onChange={(k, v) => setValues((p) => ({ ...p, [k]: v }))}
+              onComplete={handleSubmit}
+              busy={busy}
+              resetKey={resetKey}
+              submitLabel={busy ? '提交中…' : submitLabel}
+            >
+              {msg ? <p className="status-msg">{msg}</p> : null}
+            </GtgtStepComposer>
+          </div>
 
-      <section className="generated-page-list" aria-label={listTitle}>
-        <div className="generated-page-list-head">
-          <h3 style={{ margin: 0 }}>{listTitle}</h3>
-          <span className="muted" style={{ fontSize: 12 }}>
-            {records.length} 条本机 · 点击状态可切换
-          </span>
-        </div>
-        {displayList.length === 0 ? (
-          <p className="muted">暂无记录，提交表单后出现在这里</p>
-        ) : (
-          <ul className="generated-page-list-ul">
-            {displayList.map((row) => {
-              const isSeed = 'seed' in row && row.seed
-              return (
-                <li key={row.id} className="generated-page-list-item">
-                  <div>
-                    <strong>{row.title}</strong>
-                    {row.detail ? (
-                      <p className="muted" style={{ margin: '4px 0 0', fontSize: 12 }}>
-                        {row.detail}
-                      </p>
-                    ) : null}
-                    {row.at ? (
-                      <p className="muted" style={{ margin: '2px 0 0', fontSize: 11 }}>
-                        {row.at}
-                      </p>
-                    ) : null}
-                  </div>
-                  <div className="generated-page-list-actions">
-                    <button
-                      type="button"
-                      className="btn btn-ghost"
-                      disabled={Boolean(isSeed)}
-                      title={isSeed ? '示例数据' : '切换状态'}
-                      onClick={() => {
-                        if (!isSeed) cycleStatus(row.id)
-                      }}
-                    >
-                      {row.status}
-                    </button>
-                    {!isSeed ? (
-                      <button type="button" className="btn btn-ghost" onClick={() => removeRecord(row.id)}>
-                        删除
-                      </button>
-                    ) : (
-                      <span className="muted" style={{ fontSize: 11 }}>
-                        示例
-                      </span>
-                    )}
-                  </div>
-                </li>
-              )
-            })}
-          </ul>
-        )}
-      </section>
+          <section className="generated-page-list" aria-label={listTitle}>
+            <div className="generated-page-list-head">
+              <h3 style={{ margin: 0 }}>{listTitle}</h3>
+              <span className="muted" style={{ fontSize: 12 }}>
+                {records.length} 条本机 · 点击状态可切换
+              </span>
+            </div>
+            {displayList.length === 0 ? (
+              <p className="muted">暂无记录，提交表单后出现在这里</p>
+            ) : (
+              <ul className="generated-page-list-ul">
+                {displayList.map((row) => {
+                  const isSeed = 'seed' in row && row.seed
+                  return (
+                    <li key={row.id} className="generated-page-list-item">
+                      <div>
+                        <strong>{row.title}</strong>
+                        {row.detail ? (
+                          <p className="muted" style={{ margin: '4px 0 0', fontSize: 12 }}>
+                            {row.detail}
+                          </p>
+                        ) : null}
+                        {row.at ? (
+                          <p className="muted" style={{ margin: '2px 0 0', fontSize: 11 }}>
+                            {row.at}
+                          </p>
+                        ) : null}
+                      </div>
+                      <div className="generated-page-list-actions">
+                        <button
+                          type="button"
+                          className="btn btn-ghost"
+                          disabled={Boolean(isSeed)}
+                          title={isSeed ? '示例数据' : '切换状态'}
+                          onClick={() => {
+                            if (!isSeed) cycleStatus(row.id)
+                          }}
+                        >
+                          {row.status}
+                        </button>
+                        {!isSeed ? (
+                          <button type="button" className="btn btn-ghost" onClick={() => removeRecord(row.id)}>
+                            删除
+                          </button>
+                        ) : (
+                          <span className="muted" style={{ fontSize: 11 }}>
+                            示例
+                          </span>
+                        )}
+                      </div>
+                    </li>
+                  )
+                })}
+              </ul>
+            )}
+          </section>
+        </>
+      ) : null}
     </article>
   )
 }

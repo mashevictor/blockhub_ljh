@@ -1,0 +1,11 @@
+name: capability_finance
+description: CapShip finance verticals — KYC/AML/授信/尽调/报送/核保理赔
+version: 0.1.0
+publish_to: none
+environment:
+  sdk: ">=3.3.0 <4.0.0"
+dependencies:
+  flutter:
+    sdk: flutter
+  blockhub_flutter_core:
+    path: ../blockhub_flutter_core

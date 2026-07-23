@@ -51,7 +51,7 @@ _SYNONYM_TO_CAP: list[tuple[tuple[str, ...], str]] = [
     (("赢单", "成交证据", "赢单复盘"), "deal_evidence"),
     (("报价", "报价单", "出报价", "合同报价", "报价合同", "销售合同", "特价申请"), "quote_contract"),
     (("问数", "查数", "自然语言查", "查审批量", "自然语言查数", "智能问数"), "data_nl_query"),
-    (("经营看板", "看板看一眼", "KPI看板", "老板看板", "kpi看板"), "ops_kpi"),
+    (("经营看板", "看板看一眼", "KPI看板", "老板看板", "kpi看板", "OKR", "okr", "季度OKR", "目标看板", "OKR看板"), "ops_kpi"),
     (("漏斗", "转化图", "销售漏斗"), "chart_funnel"),
     (("课表", "教室查询", "考试安排"), "class_schedule"),
     (("作业答疑", "错题", "课程答疑"), "homework_qa"),
@@ -71,6 +71,12 @@ _SYNONYM_TO_CAP: list[tuple[tuple[str, ...], str]] = [
     (("待办", "审批中心", "待我审批"), "approval_inbox"),
     (("智能问答", "客服faq", "对话助手"), "chat_qa"),
     (("2048", "合成2048", "数字合成", "益智2048", "玩2048", "2048小游戏", "数字方块游戏"), "game_2048"),
+    (("kyc", "KYC", "开户核验", "适当性评估", "对公开户", "银行KYC"), "finance_kyc"),
+    (("反洗钱", "aml", "AML", "可疑交易", "反洗钱监测"), "finance_aml"),
+    (("授信审批", "授信", "贷后检查", "信贷审批"), "credit_approval"),
+    (("尽调", "尽职调查", "投研尽调", "投后管理"), "due_diligence"),
+    (("监管报送", "报送清单", "监管报告"), "regulatory_report"),
+    (("核保", "理赔", "保险理赔", "核保理赔"), "insurance_case"),
 ]
 
 _FORM_CAPS = frozenset({
@@ -81,6 +87,7 @@ _FORM_CAPS = frozenset({
     "gov_service", "sales_lead", "quote_contract", "nurse_shift", "homework_qa",
     "school_notice", "class_schedule", "fitness_checkin", "pet_clinic", "wedding_plan",
     "deco_material", "campaign_ops", "travel_plan", "game_support", "study_coach",
+    "finance_kyc", "finance_aml", "credit_approval", "due_diligence", "regulatory_report", "insurance_case",
 })
 
 # 未在用户话里点名时，不作为「改页新增」主能力（易被行业包/弹幕附带带出）
@@ -94,6 +101,10 @@ _MINIGAME_HINTS = (
     "五子棋", "象棋", "扑克", "麻将", "节奏游戏", "跑酷", "消除",
 )
 
+_HEAVY_GAME_HINTS = (
+    "英雄联盟", "lol", "LOL", "MOBA", "moba", "王者荣耀", "对战模拟", "英雄选择", "开黑", "游戏模拟",
+)
+
 
 def _looks_like_minigame(text: str) -> bool:
     t = (text or "").strip()
@@ -104,16 +115,40 @@ def _looks_like_minigame(text: str) -> bool:
     return ("小游戏" in t or "单机游戏" in t) and any(w in t for w in ("生成", "做", "加", "来个", "玩", "页面"))
 
 
+def _looks_like_heavy_game(text: str) -> bool:
+    t = (text or "").strip()
+    if not t:
+        return False
+    return any(w in t for w in _HEAVY_GAME_HINTS)
+
+
 def _needs_runnable_codegen(text: str) -> bool:
     """需要后台生成可执行页（非 tool_pad、非正式业务表单）。"""
     t = (text or "").strip()
     if not t:
         return False
-    if _looks_like_minigame(t):
+    if _looks_like_heavy_game(t) or _looks_like_minigame(t):
         return True
     if any(w in t for w in ("小工具页", "自定义页面", "可视化小玩法", "可交互页面")):
         return True
     return False
+
+
+def _instant_playable_html(label: str, blob: str) -> str | None:
+    """游戏 / 股票API / 接口联调等：立刻附带有意义 HTML，禁止空等或 +1 计数器。"""
+    t = f"{label} {blob}"
+    hit = (
+        _looks_like_heavy_game(t)
+        or _looks_like_minigame(t)
+        or any(w in t for w in ("股票", "行情", "股价", "证券代码"))
+        or any(w in t.lower() for w in ("stock", "quote api", "api测试", "api 测试", "接口测试", "联调", "api test"))
+    )
+    if not hit:
+        return None
+    from app.services.codegen_deepseek import _fallback_html_for
+
+    html, _ = _fallback_html_for(label or "互动演示", t)
+    return html.strip() or None
 
 
 def _looks_like_calculator(text: str) -> bool:
@@ -237,7 +272,9 @@ def _form_fields_count(op: dict[str, Any]) -> int:
 
 
 def _has_ready_foresight(op: dict[str, Any]) -> bool:
-    """意图模板已带可填字段 / 可点工具 → 可立即展示，不必卡骨架。"""
+    """意图模板已带可填字段 / 可点工具 / 可玩 HTML → 可立即展示，不必卡骨架。"""
+    if str(op.get("source_html") or "").strip():
+        return True
     if op.get("interactive") or (
         isinstance(op.get("page_mock"), dict) and op["page_mock"].get("interactive")
     ):
@@ -665,8 +702,14 @@ def _resolve_matches(text: str) -> list[dict[str, Any]]:
         hit = any(a.lower() in t or a in text for a in aliases)
         if not hit:
             continue
-        # 精准口语（如 2048）抬高分，避免行业包附带的看板/ERP 一并灌入
+        # 精准口语（如 2048 / 销售漏斗）抬高分，避免弹幕「销售」抢走漏斗看板
+        matched = [a for a in aliases if a.lower() in t or a in text]
+        best_len = max((len(a) for a in matched), default=0)
         score = 9.5 if cap_key == "game_2048" else 8.0
+        if best_len >= 4:
+            score = max(score, 10.6)
+        elif best_len >= 2:
+            score = max(score, 8.0 + best_len * 0.4)
         prev = by_key.get(cap_key)
         if prev is None or score > float(prev.get("score") or 0):
             by_key[cap_key] = {
@@ -674,8 +717,17 @@ def _resolve_matches(text: str) -> list[dict[str, Any]]:
                 "label": ALL_CAPABILITIES[cap_key].name,
                 "score": score,
                 "source": "synonym",
-                "reason": f"口语命中「{aliases[0]}」",
+                "reason": f"口语命中「{matched[0] if matched else aliases[0]}」",
             }
+
+    # 「漏斗」明确时：压低销售线索，避免「销售漏斗看板」被弹幕销售抢走
+    if any(w in text for w in ("漏斗", "转化图")) and "线索" not in text:
+        funnel = by_key.get("chart_funnel")
+        if funnel:
+            funnel["score"] = max(float(funnel.get("score") or 0), 11.0)
+        lead = by_key.get("sales_lead")
+        if lead and float(lead.get("score") or 0) > 7.0:
+            lead["score"] = 7.0
 
     ranked = sorted(by_key.values(), key=lambda x: float(x["score"]), reverse=True)
     # Runtime 改页：取高相关，避免整包灌入
@@ -777,6 +829,13 @@ def _formal_cap_from_text(text: str) -> str | None:
     blob = (text or "").strip()
     if not blob:
         return None
+    # 复合短语优先：销售漏斗 ≠ 销售线索
+    if (
+        any(w in blob for w in ("销售漏斗", "漏斗看板", "转化漏斗", "漏斗"))
+        and "线索" not in blob
+        and is_web_ready_capability("chart_funnel")
+    ):
+        return "chart_funnel"
     hits = _resolve_matches(blob)
     if hits:
         key = str(hits[0].get("key") or "")
@@ -961,9 +1020,9 @@ def _enrich_add_op(op: dict[str, Any], ctx: ComposeCtx | None = None) -> dict[st
             op["summary"] = f"{label}：已按意图泛化为可交互 tool_pad"
         cap_def = None
     elif _needs_runnable_codegen(blob) and cap != "game_2048" and not ssot_hit:
-        # 后台静默：生成可执行 HTML → 验证 → 合并；用户端只见骨架→成品
+        # 游戏/可玩：优先立刻附精简 HTML（秒开）；复杂版仍可后台升级
         cap = _slug_gen_key(label or "page")
-        pending_codegen = True
+        instant_html = str(op.get("source_html") or "").strip() or _instant_playable_html(label, blob)
         op["capability_key"] = cap
         op["widget"] = "GeneratedPageWidget"
         op["page_kind"] = "generated_code"
@@ -973,9 +1032,35 @@ def _enrich_add_op(op: dict[str, Any], ctx: ComposeCtx | None = None) -> dict[st
             "form_title": label,
             "primary_action": "开始",
         }
-        if not op.get("summary"):
-            op["summary"] = f"{label}：正在生成可交互页面"
+        if instant_html:
+            op["source_html"] = instant_html
+            pending_codegen = False
+            if not op.get("summary"):
+                op["summary"] = f"{label}：已打开精简可玩版（可继续对话打磨）"
+        else:
+            pending_codegen = True
+            if not op.get("summary"):
+                op["summary"] = f"{label}：正在生成可交互页面"
         cap_def = None
+    else:
+        # 股票 API / 接口联调等：即使不走「小游戏 codegen」也立刻挂有意义演示，禁止落到 +1 壳
+        demo_html = str(op.get("source_html") or "").strip() or _instant_playable_html(label, blob)
+        if demo_html and not ssot_hit and (cap.startswith("gen_") or not cap or cap not in ALL_CAPABILITIES):
+            cap = cap if str(cap).startswith("gen_") else _slug_gen_key(label or "page")
+            op["capability_key"] = cap
+            op["widget"] = "GeneratedPageWidget"
+            op["page_kind"] = "generated_code"
+            op["source_html"] = demo_html
+            op.pop("form_fields", None)
+            op["page_mock"] = {
+                "ui_kind": "generated_code",
+                "form_title": label,
+                "primary_action": "开始",
+            }
+            pending_codegen = False
+            if not op.get("summary"):
+                op["summary"] = f"{label}：已打开场景演示面板（可继续对话接真 API）"
+            cap_def = None
 
     if interactive and not ssot_hit:
         pass  # 已处理

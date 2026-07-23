@@ -15,6 +15,11 @@ import {
   buildCapshipCatalog,
   catalogToMarkdown,
   downloadTextFile,
+  resolveCapshipCopy,
+  resolvePillar,
+  resolvePlatformFeature,
+  resolveStatLabel,
+  type CapshipLang,
 } from '../data/capshipOss'
 import { ROUTES } from '../routes/paths'
 import '../styles/b2b-landing.css'
@@ -103,18 +108,33 @@ export default function CapShipPage() {
   const [statsInView, setStatsInView] = useState(false)
   const [liveStars, setLiveStars] = useState<number | null>(null)
   const [liveForks, setLiveForks] = useState<number | null>(null)
+  const [lang, setLang] = useState<CapshipLang>(() => {
+    try {
+      const v = localStorage.getItem('capship_lang')
+      return v === 'zh' ? 'zh' : 'en'
+    } catch {
+      return 'en'
+    }
+  })
   const statsRef = useRef<HTMLElement | null>(null)
 
   usePageMeta({
-    title: 'CapShip · >> Ship in 5 minutes',
-    description:
-      'CapShip: type >> to mount real capabilities. Compose Edit drafts page_schema; approve to ship Web + App — leave, repair, expense with real APIs.',
+    title: resolveCapshipCopy(lang).metaTitle,
+    description: resolveCapshipCopy(lang).metaDescription,
   })
 
   useEffect(() => {
     document.body.classList.add('b2b-landing', 'capship-oss-page')
-    return () => document.body.classList.remove('b2b-landing', 'capship-oss-page')
-  }, [])
+    document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en'
+    try {
+      localStorage.setItem('capship_lang', lang)
+    } catch {
+      /* ignore */
+    }
+    return () => {
+      document.body.classList.remove('b2b-landing', 'capship-oss-page')
+    }
+  }, [lang])
 
   useEffect(() => {
     if (!getToken()) {
@@ -162,22 +182,25 @@ export default function CapShipPage() {
   })
 
   const onDownloadCatalogJson = () => {
-    const catalog = buildCapshipCatalog()
+    const catalog = buildCapshipCatalog(lang)
     downloadTextFile('capship-catalog.json', JSON.stringify(catalog, null, 2), 'application/json')
   }
 
   const onDownloadCatalogMd = () => {
-    const catalog = buildCapshipCatalog()
+    const catalog = buildCapshipCatalog(lang)
     downloadTextFile('capship-catalog.md', catalogToMarkdown(catalog), 'text/markdown;charset=utf-8')
   }
 
   const onDownloadLinks = () => {
-    const catalog = buildCapshipCatalog()
+    const catalog = buildCapshipCatalog(lang)
     const body = ['# CapShip Links', '', ...catalog.links.map((l) => `- ${l.name}: ${l.url}`), ''].join('\n')
     downloadTextFile('capship-links.md', body, 'text/markdown;charset=utf-8')
   }
 
-  const sceneNames = buildCapshipCatalog().scenarios.map((s) => `${s.id} · ${s.title}`)
+  const sceneNames = buildCapshipCatalog(lang).scenarios.map((s) => `${s.id} · ${s.title}`)
+  const platformFeatures = CAPSHIP_PLATFORM_FEATURES.map((f) => resolvePlatformFeature(f, lang))
+  const pillars = CAPSHIP_PILLARS.map((p) => resolvePillar(p, lang))
+  const copy = resolveCapshipCopy(lang)
 
   return (
     <div className="b2b-app b2b-landing marketing-site b2b-brand-scope cs-root">
@@ -187,11 +210,27 @@ export default function CapShipPage() {
         <section className="cs-hero">
           <div className="cs-hero-atmosphere" aria-hidden />
           <div className="cs-hero-inner">
+            <div className="cs-lang-switch" role="group" aria-label="Language">
+              <button
+                type="button"
+                className={lang === 'en' ? 'cs-lang-btn is-active' : 'cs-lang-btn'}
+                onClick={() => setLang('en')}
+              >
+                EN
+              </button>
+              <button
+                type="button"
+                className={lang === 'zh' ? 'cs-lang-btn is-active' : 'cs-lang-btn'}
+                onClick={() => setLang('zh')}
+              >
+                中文
+              </button>
+            </div>
             <p className="cs-kicker">
               <span className="cs-gtgt" aria-hidden>
                 &gt;&gt;
               </span>
-              Selection → Delivery · Open Source
+              {copy.kicker}
             </p>
             <h1 className="cs-brand">
               <span className="cs-brand-gtgt" aria-hidden>
@@ -199,19 +238,19 @@ export default function CapShipPage() {
               </span>
               CapShip
             </h1>
-            <p className="cs-tagline">Ship it in 5 minutes</p>
+            <p className="cs-tagline">{copy.tagline}</p>
             <p className="cs-lead">
               <span className="cs-lead-line">
-                Type <em className="cs-inline-gtgt">&gt;&gt;</em> to mount real capabilities — publish Web + App.
+                {copy.lead1Prefix} <em className="cs-inline-gtgt">&gt;&gt;</em> {copy.lead1Suffix}
               </span>
               <span className="cs-lead-line">
-                Compose Edit: chat to reshape pages, draft → approve → formal <code>page_schema</code>.
+                {copy.lead2Prefix} <code>page_schema</code>.
               </span>
             </p>
 
             <div className="cs-hero-cta">
               <Link className="cs-btn cs-btn-primary" to={ROUTES.home}>
-                Try &gt;&gt; on home <ArrowUpRight size={16} aria-hidden />
+                {copy.ctaHome} <ArrowUpRight size={16} aria-hidden />
               </Link>
               <a className="cs-btn cs-btn-ghost" href={CAPSHIP_GITHUB.stable.url} target="_blank" rel="noreferrer">
                 <IconGithub size={18} aria-hidden /> CapShip Stable
@@ -227,20 +266,26 @@ export default function CapShipPage() {
 
         <section className="cs-section cs-stats-section" ref={statsRef}>
           <div className="cs-section-head">
-            <h2>Numbers in motion</h2>
-            <p>Stars, forks, and CapShip scenario coverage — live when GitHub responds.</p>
+            <h2>{copy.statsTitle}</h2>
+            <p>{copy.statsSub}</p>
           </div>
           <div className="cs-stats-grid">
             {stats.map((s) => (
-              <StatCard key={s.key} label={s.label} value={s.value} suffix={s.suffix} active={statsInView} />
+              <StatCard
+                key={s.key}
+                label={resolveStatLabel(s, lang)}
+                value={s.value}
+                suffix={s.suffix}
+                active={statsInView}
+              />
             ))}
           </div>
         </section>
 
         <section className="cs-section">
           <div className="cs-section-head">
-            <h2>Two GitHub lanes</h2>
-            <p>Pin Stable for production. Follow Edge (capship-dev) for the test lane.</p>
+            <h2>{copy.lanesTitle}</h2>
+            <p>{copy.lanesSub}</p>
           </div>
           <div className="cs-repo-grid">
             <article className="cs-repo-panel cs-repo-stable">
@@ -279,11 +324,11 @@ export default function CapShipPage() {
 
         <section className="cs-section cs-pillars">
           <div className="cs-section-head">
-            <h2>Why &gt;&gt;</h2>
-            <p>One command mounts a capability — intent to a runnable Runtime in five minutes.</p>
+            <h2>{copy.whyTitle}</h2>
+            <p>{copy.whySub}</p>
           </div>
           <div className="cs-pillar-list">
-            {CAPSHIP_PILLARS.map((p) => (
+            {pillars.map((p) => (
               <div key={p.title} className="cs-pillar">
                 <h3>{p.title}</h3>
                 <p>{p.body}</p>
@@ -294,14 +339,11 @@ export default function CapShipPage() {
 
         <section className="cs-section">
           <div className="cs-section-head">
-            <h2>Platform orchestration</h2>
-            <p>
-              Core CapShip open-source capabilities beyond business modules — Composer modes and schema
-              write-back gates. Not registered as <code>capability_keys</code>.
-            </p>
+            <h2>{copy.orchTitle}</h2>
+            <p>{copy.orchSub}</p>
           </div>
           <div className="cs-pillar-list">
-            {CAPSHIP_PLATFORM_FEATURES.map((f) => (
+            {platformFeatures.map((f) => (
               <div key={f.id} className="cs-pillar">
                 <h3>{f.title}</h3>
                 <p>
@@ -315,8 +357,8 @@ export default function CapShipPage() {
 
         <section className="cs-section">
           <div className="cs-section-head">
-            <h2>Download catalog &amp; links</h2>
-            <p>Export the scenario directory and repository links for offline handoff.</p>
+            <h2>{copy.dlTitle}</h2>
+            <p>{copy.dlSub}</p>
           </div>
           <div className="cs-download-row">
             <button type="button" className="cs-btn cs-btn-primary" onClick={onDownloadCatalogJson}>

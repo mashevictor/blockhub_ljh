@@ -206,6 +206,7 @@ def suggest_modules(
         "med_triage", "nurse_shift", "game_support", "school_notice", "homework_qa",
         "property_repair", "site_patrol", "class_schedule", "hotel_booking",
         "study_coach", "travel_plan", "legal_case", "ops_kpi", "quote_contract", "sales_lead", "hire_onboard", "policy_qa", "expense_claim", "leave_request", "gov_service", "pet_clinic", "deco_material", "wedding_plan", "fitness_checkin", "campaign_ops", "house_viewing", "delivery_order", "shanghai_voice",
+        "finance_kyc", "finance_aml", "credit_approval", "due_diligence", "regulatory_report", "insurance_case",
     }
     hero_caps = {
         x["key"] for x in (hero_boost or [])

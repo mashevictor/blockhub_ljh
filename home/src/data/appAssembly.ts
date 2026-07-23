@@ -21,7 +21,10 @@ export const INDUSTRY_EXTRA: Record<string, AgentPick[]> = {
   mfg: [{ type: 'module', key: 'chart_dashboard', label: '数据看板' }],
   sales: [{ type: 'module', key: 'chart_funnel', label: '销售漏斗' }],
   med: [{ type: 'module', key: 'chat_qa', label: '智能问答' }],
-  game: [{ type: 'module', key: 'notify_inapp', label: '站内信' }],
+  game: [
+    { type: 'module', key: 'game_support', label: '玩家FAQ' },
+    { type: 'module', key: 'notify_im', label: '活动通知' },
+  ],
   office: [{ type: 'module', key: 'approval_inbox', label: '待办中心' }],
 }
 

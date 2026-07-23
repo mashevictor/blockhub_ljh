@@ -36,12 +36,17 @@ export const INDUSTRY_MICROSITE_TEMPLATES: IndustryMicrositeTemplate[] = [
   { id: 'fitness', name: '健身工作室', category: '生活消费', style: 'dimension', styleLabel: 'Dimension · 遮罩面板', brand: '脉冲训练馆', previewPath: '/industry-microsites/fitness/index.html' },
   { id: 'pet', name: '宠物服务', category: '生活消费', style: 'multiverse', styleLabel: 'Multiverse · 图库矩阵', brand: '爪迹生活', previewPath: '/industry-microsites/pet/index.html' },
   { id: 'photography', name: '摄影工作室', category: '生活消费', style: 'sonar', styleLabel: 'Sonar · 黑金瀑布流', brand: '光迹影像', previewPath: '/industry-microsites/photography/index.html' },
+  { id: 'game', name: '游戏娱乐', category: '科技娱乐', style: 'starrail', styleLabel: 'Starrail · 暗色运营台', brand: '星轨互动', previewPath: '/industry-microsites/game/index.html' },
 ]
 
 /** BlockHub 20 行业包 → 默认网页模板（一对一） */
 export const PACK_DEFAULT_MICROSITE: Record<string, string> = {
   legal: 'law-firm',
-  finance: 'accounting',
+  bank: 'accounting',
+  securities: 'accounting',
+  insurance: 'accounting',
+  fund: 'accounting',
+  fintech: 'saas',
   office: 'consulting',
   med: 'clinic',
   sales: 'consulting',
@@ -56,7 +61,7 @@ export const PACK_DEFAULT_MICROSITE: Record<string, string> = {
   auto: 'hardware',
   mfg: 'manufacturing',
   media: 'beauty',
-  game: 'fitness',
+  game: 'game',
   logistics: 'pet',
   agriculture: 'photography',
   energy: 'wellness',

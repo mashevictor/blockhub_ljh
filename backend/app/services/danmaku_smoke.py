@@ -37,6 +37,12 @@ _STORE_PROBES: dict[str, tuple[str, str, str]] = {
     "med_triage": ("app.services.med_triage_store", "list_records", "/med-triage/records"),
     "nurse_shift": ("app.services.nurse_shift_store", "list_records", "/nurse-shift/records"),
     "game_support": ("app.services.game_support_store", "list_records", "/game-support/records"),
+    "finance_kyc": ("app.services.finance_ops_store", "list_records", "/finance-ops/finance_kyc/records"),
+    "finance_aml": ("app.services.finance_ops_store", "list_records", "/finance-ops/finance_aml/records"),
+    "credit_approval": ("app.services.finance_ops_store", "list_records", "/finance-ops/credit_approval/records"),
+    "due_diligence": ("app.services.finance_ops_store", "list_records", "/finance-ops/due_diligence/records"),
+    "regulatory_report": ("app.services.finance_ops_store", "list_records", "/finance-ops/regulatory_report/records"),
+    "insurance_case": ("app.services.finance_ops_store", "list_records", "/finance-ops/insurance_case/records"),
     "school_notice": ("app.services.school_notice_store", "list_records", "/school-notice/records"),
     "homework_qa": ("app.services.homework_qa_store", "list_records", "/homework-qa/records"),
     "class_schedule": ("app.services.class_schedule_store", "list_records", "/class-schedule/records"),
@@ -153,7 +159,10 @@ def _probe_store(key: str, db: Session, tenant_id: str) -> dict[str, Any]:
     try:
         mod = importlib.import_module(mod_name)
         fn = getattr(mod, fn_name)
-        items = fn(db, tenant_id)
+        if mod_name.endswith("finance_ops_store"):
+            items = fn(db, tenant_id, kind=key)
+        else:
+            items = fn(db, tenant_id)
         n = len(items) if isinstance(items, list) else 0
         return {"status": "ok", "detail": f"{fn_name} returned {n}", "count": n}
     except Exception as exc:  # noqa: BLE001

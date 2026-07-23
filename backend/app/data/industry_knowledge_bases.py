@@ -96,16 +96,64 @@ INDUSTRY_KNOWLEDGE_BASES: dict[str, list[dict[str, str]]] = {
             "description": "家校通知模板、学生守则、作业答疑口径。",
         },
     ],
-    "finance": [
+    "bank": [
         {
-            "slug": "finance-compliance",
-            "name": "金融·合规审查与风控知识库",
-            "description": "合规清单、风控要点、客户告知义务摘要；不替代持牌意见。",
+            "slug": "bank-compliance",
+            "name": "银行·合规与反洗钱库",
+            "description": "KYC/AML/授信制度要点；不替代持牌意见。",
         },
         {
-            "slug": "finance-product",
-            "name": "金融·产品说明与合同条款库",
-            "description": "产品说明书、合同模板要点、披露口径。",
+            "slug": "bank-product",
+            "name": "银行·产品与信贷说明库",
+            "description": "对公/零售产品与信贷口径。",
+        },
+    ],
+    "securities": [
+        {
+            "slug": "securities-compliance",
+            "name": "券商·合规适当性库",
+            "description": "适当性评估与展业合规口径。",
+        },
+        {
+            "slug": "securities-product",
+            "name": "券商·产品与投研库",
+            "description": "产品条款与投研披露口径。",
+        },
+    ],
+    "insurance": [
+        {
+            "slug": "insurance-compliance",
+            "name": "保险·合规与告知库",
+            "description": "销售合规与客户告知义务。",
+        },
+        {
+            "slug": "insurance-product",
+            "name": "保险·产品条款库",
+            "description": "保险产品条款与理赔口径。",
+        },
+    ],
+    "fund": [
+        {
+            "slug": "fund-compliance",
+            "name": "基金·合规与报送库",
+            "description": "资管合规与监管报送口径。",
+        },
+        {
+            "slug": "fund-product",
+            "name": "基金·产品披露库",
+            "description": "基金/资管产品说明书与披露。",
+        },
+    ],
+    "fintech": [
+        {
+            "slug": "fintech-compliance",
+            "name": "消金·风控合规库",
+            "description": "风控规则与消金合规口径。",
+        },
+        {
+            "slug": "fintech-product",
+            "name": "消金·产品与贷后库",
+            "description": "消金产品与贷后 SOP。",
         },
     ],
     "logistics": [
@@ -256,11 +304,16 @@ INDUSTRY_KNOWLEDGE_BASES: dict[str, list[dict[str, str]]] = {
 
 assert all(len(v) == 2 for v in INDUSTRY_KNOWLEDGE_BASES.values()), "each industry must have exactly 2 KBs"
 
-# DeepSeek 示范文档：backend/app/data/{med,mfg,game}_kb_starter/{slug}/*.md
+# DeepSeek 示范文档：backend/app/data/{med,mfg,game,finance}_kb_starter/{slug}/*.md
 _STARTER_ROOTS: dict[str, Path] = {
     "med": Path(__file__).resolve().parent / "med_kb_starter",
     "mfg": Path(__file__).resolve().parent / "mfg_kb_starter",
     "game": Path(__file__).resolve().parent / "game_kb_starter",
+    "bank": Path(__file__).resolve().parent / "finance_kb_starter" / "bank",
+    "securities": Path(__file__).resolve().parent / "finance_kb_starter" / "securities",
+    "insurance": Path(__file__).resolve().parent / "finance_kb_starter" / "insurance",
+    "fund": Path(__file__).resolve().parent / "finance_kb_starter" / "fund",
+    "fintech": Path(__file__).resolve().parent / "finance_kb_starter" / "fintech",
 }
 
 
@@ -311,6 +364,26 @@ def pick_hub_for_scene(pack_key: str, scene_name: str, problem: str = "") -> dic
         if any(t in blob for t in ("版号", "合规", "敏感词", "审核", "外包验收", "内容风控")):
             return hubs[1]
         # 活动规则 / FAQ / 攻略 / 版本说明 → 玩家 FAQ 库
+        return hubs[0]
+    if pack_key == "bank":
+        if any(t in blob for t in ("产品", "信贷", "零售", "对公产品")):
+            return hubs[1]
+        return hubs[0]
+    if pack_key == "securities":
+        if any(t in blob for t in ("产品", "投研", "销售", "理财")):
+            return hubs[1]
+        return hubs[0]
+    if pack_key == "insurance":
+        if any(t in blob for t in ("产品", "条款", "理赔口径")):
+            return hubs[1]
+        return hubs[0]
+    if pack_key == "fund":
+        if any(t in blob for t in ("产品", "披露", "说明书")):
+            return hubs[1]
+        return hubs[0]
+    if pack_key == "fintech":
+        if any(t in blob for t in ("产品", "贷后", "SOP")):
+            return hubs[1]
         return hubs[0]
     # 默认：名称含第二库关键词则二，否则一
     h1, h2 = hubs[0], hubs[1]

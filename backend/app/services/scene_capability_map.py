@@ -9,11 +9,14 @@ from __future__ import annotations
 import re
 from typing import Any
 
-from app.data.industry_packs_all import ALL_INDUSTRY_PACKS, pack_meta
+from app.data.finance_vertical_capabilities import FINANCE_VERTICAL_KEYS
+from app.data.finance_vertical_capabilities import enrich_menu_plan_item as enrich_finance_menu_plan_item
+from app.data.finance_vertical_capabilities import scenes_by_name as finance_scenes_by_name
 from app.data.game_scene_capabilities import enrich_menu_plan_item as enrich_game_menu_plan_item
 from app.data.med_scene_capabilities import enrich_menu_plan_item as enrich_med_menu_plan_item
 from app.data.office_scene_capabilities import enrich_menu_plan_item as enrich_office_menu_plan_item
 from app.data.sales_scene_capabilities import enrich_menu_plan_item as enrich_sales_menu_plan_item
+from app.data.industry_packs_all import ALL_INDUSTRY_PACKS, pack_meta
 from app.services.effective_capability_registry import is_registry_key
 
 # 场景 agent 字段 → 正式 capability key
@@ -50,6 +53,12 @@ _AGENT_TO_CAPABILITY: dict[str, str] = {
     "nurse_shift": "nurse_shift",
     "game_support": "game_support",
     "game_2048": "game_2048",
+    "finance_kyc": "finance_kyc",
+    "finance_aml": "finance_aml",
+    "credit_approval": "credit_approval",
+    "due_diligence": "due_diligence",
+    "regulatory_report": "regulatory_report",
+    "insurance_case": "insurance_case",
     "school_notice": "school_notice",
     "homework_qa": "homework_qa",
     "property_repair": "property_repair",
@@ -201,6 +210,15 @@ def resolve_scene_capability_keys(scene: dict[str, Any]) -> list[str]:
                 return [ck]
     except Exception:
         pass
+    try:
+        for pk in FINANCE_VERTICAL_KEYS:
+            fin_row = finance_scenes_by_name(pk).get(name)
+            if fin_row:
+                ck = str(fin_row.get("capability_key") or "")
+                if ck and is_registry_key(ck):
+                    return [ck]
+    except Exception:
+        pass
 
     for k in _keys_from_name(name):
         if k not in keys:
@@ -327,13 +345,20 @@ def assemble_industry_pack(
                 modules[-1]["key"] = primary
             if primary not in capability_keys:
                 capability_keys.append(primary)
+        elif pack_key in FINANCE_VERTICAL_KEYS:
+            plan_item = enrich_finance_menu_plan_item(plan_item, name, pack_key)
+            primary = str(plan_item.get("capability_key") or primary)
+            if modules:
+                modules[-1]["key"] = primary
+            if primary not in capability_keys:
+                capability_keys.append(primary)
         menu_plan.append(plan_item)
 
     if not capability_keys:
         capability_keys = ["chat_qa", "approval_flow", "kb_document"]
 
-    # office / sales / med / game：以映射表 menu_plan 为准重建 keys，避免名称关键词误伤
-    if pack_key in {"office", "sales", "med", "game"} and menu_plan:
+    # office / sales / med / game / finance verticals：以映射表 menu_plan 为准重建 keys
+    if (pack_key in {"office", "sales", "med", "game"} or pack_key in FINANCE_VERTICAL_KEYS) and menu_plan:
         rebuilt: list[str] = []
         for item in menu_plan:
             ck = str(item.get("capability_key") or "").strip()

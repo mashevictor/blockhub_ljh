@@ -61,7 +61,7 @@ export const MODULE_ICON_KEYS: Record<string, string> = {
   member_loyalty: 'chart',
   med_triage: 'chat_qa',
   nurse_shift: 'approval',
-  game_support: 'chat_qa',
+  game_support: 'game',
   school_notice: 'notify',
   homework_qa: 'chat_qa',
   class_schedule: 'chart',

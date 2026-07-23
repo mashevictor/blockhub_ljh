@@ -228,6 +228,32 @@ HERO_PRESETS: list[dict[str, Any]] = [
              {"type": "module", "key": "notify_im", "label": "企微钉钉飞书"}],
             [">> 教学规划 · 课本大纲", ">> 测验家默 · 掌握度跟进", ">> 作业答疑 · Soft 批改", ">> CapShip · 双端真接口"],
             weight=4, role="老师"),
+
+    _preset("s35", "银行KYC", "银行 · 开户", "#0369a1", "对公/零售开户身份核验，真 KYC 工单入库。",
+            [{"type": "industry", "key": "bank", "label": "商业银行"}, {"type": "scenario", "key": "s35-kyc", "label": "对公开户 KYC"},
+             {"type": "module", "key": "finance_kyc", "label": "金融KYC"}, {"type": "module", "key": "notify_im", "label": "企微钉钉飞书"}],
+            [">> 金融KYC · 客户核验", ">> Soft 步进 · 提交真库", ">> 企微钉钉飞书 · 开户提醒", ">> CapShip · 双端真接口"],
+            role="银行"),
+    _preset("s36", "反洗钱监测", "银行 · 合规", "#b91c1c", "可疑交易识别与风控预警，真 AML 工单。",
+            [{"type": "industry", "key": "bank", "label": "商业银行"}, {"type": "scenario", "key": "s36-aml", "label": "反洗钱监测"},
+             {"type": "module", "key": "finance_aml", "label": "反洗钱监测"}, {"type": "module", "key": "notify_im", "label": "企微钉钉飞书"}],
+            [">> 反洗钱 · 预警登记", ">> Soft 步进 · 研判归档", ">> 企微钉钉飞书 · 合规推送", ">> CapShip · 双端真接口"],
+            role="合规"),
+    _preset("s37", "授信审批", "银行 · 信贷", "#1d4ed8", "授信额度/担保审批与贷后检查。",
+            [{"type": "industry", "key": "bank", "label": "商业银行"}, {"type": "scenario", "key": "s37-credit", "label": "授信审批"},
+             {"type": "module", "key": "credit_approval", "label": "授信审批"}, {"type": "module", "key": "notify_im", "label": "企微钉钉飞书"}],
+            [">> 授信审批 · 额度担保", ">> Soft 步进 · 真库闭环", ">> 企微钉钉飞书 · 审批通知", ">> CapShip · 双端真接口"],
+            role="信贷"),
+    _preset("s38", "核保理赔", "保险 · 承保", "#0284c7", "核保评估与理赔报案，真保险工单。",
+            [{"type": "industry", "key": "insurance", "label": "保险"}, {"type": "scenario", "key": "s38-case", "label": "核保理赔"},
+             {"type": "module", "key": "insurance_case", "label": "保险核保理赔"}, {"type": "module", "key": "notify_im", "label": "企微钉钉飞书"}],
+            [">> 核保理赔 · 保单客户", ">> Soft 步进 · 办结真库", ">> 企微钉钉飞书 · 案件通知", ">> CapShip · 双端真接口"],
+            role="保险"),
+    _preset("s39", "监管报送", "资管 · 合规", "#4338ca", "监管报表报送任务登记与办结。",
+            [{"type": "industry", "key": "fund", "label": "基金资管"}, {"type": "scenario", "key": "s39-report", "label": "监管报送"},
+             {"type": "module", "key": "regulatory_report", "label": "监管报送"}, {"type": "module", "key": "notify_im", "label": "企微钉钉飞书"}],
+            [">> 监管报送 · 报表周期", ">> Soft 步进 · 标记已报", ">> 企微钉钉飞书 · 截止提醒", ">> CapShip · 双端真接口"],
+            role="资管"),
 ]
 
 CHIP_TEMPLATES: list[dict[str, Any]] = [
@@ -245,7 +271,9 @@ CHIP_TEMPLATES: list[dict[str, Any]] = [
      "picks": [{"type": "industry", "key": "med", "label": "医疗健康"}, {"type": "scenario", "key": "chip-med-kb", "label": "内部制度/合规问答"},
                {"type": "scenario", "key": "chip-med-shift", "label": "排班/调班申请"}], "scenario_names": ["内部制度/合规问答", "排班/调班申请"]},
     {"text": "游戏玩家 FAQ + 客服工单", "prompt": "游戏玩家 FAQ 攻略与客服工单处理，支持活动规则查询。",
-     "picks": [{"type": "industry", "key": "game", "label": "游戏娱乐"}, {"type": "scenario", "key": "chip-game-faq", "label": "玩家FAQ"},
+     "picks": [{"type": "industry", "key": "game", "label": "游戏娱乐"},
+               {"type": "module", "key": "game_support", "label": "玩家FAQ"},
+               {"type": "scenario", "key": "chip-game-faq", "label": "玩家FAQ"},
                {"type": "scenario", "key": "chip-game-ticket", "label": "客服工单"}], "scenario_names": ["玩家FAQ", "客服工单"]},
     {"text": "全员请假报销 + 知识库 + 企微通知", "prompt": "全员请假报销审批、制度知识库与企微消息通知。",
      "picks": [{"type": "industry", "key": "office", "label": "通用办公"}, {"type": "office", "key": "人事行政", "label": "人事行政"},
@@ -258,6 +286,19 @@ CHIP_TEMPLATES: list[dict[str, Any]] = [
     {"text": "上海话语音助手 · 开口即说", "prompt": "用上海话实时语音对话，说方言也能问答、办事，网页与 APK 一键生成。",
      "picks": [{"type": "industry", "key": "office", "label": "通用办公"},
                {"type": "module", "key": "shanghai_voice", "label": "上海话语音"}], "scenario_names": ["上海话语音"]},
+    {"text": "银行 KYC + 授信 + 反洗钱", "prompt": "商业银行对公开户 KYC、授信审批与反洗钱监测，真库空列表，手机端 >> 步进提交。",
+     "picks": [{"type": "industry", "key": "bank", "label": "商业银行"},
+               {"type": "module", "key": "finance_kyc", "label": "金融KYC"},
+               {"type": "module", "key": "credit_approval", "label": "授信审批"},
+               {"type": "module", "key": "finance_aml", "label": "反洗钱监测"},
+               {"type": "module", "key": "notify_im", "label": "企微钉钉飞书"}],
+     "scenario_names": ["对公开户 KYC", "授信审批", "反洗钱监测"]},
+    {"text": "保险核保理赔 + 产品说明", "prompt": "保险核保与理赔工单、产品条款知识库问答。",
+     "picks": [{"type": "industry", "key": "insurance", "label": "保险"},
+               {"type": "module", "key": "insurance_case", "label": "保险核保理赔"},
+               {"type": "module", "key": "kb_document", "label": "知识库"},
+               {"type": "module", "key": "notify_im", "label": "企微钉钉飞书"}],
+     "scenario_names": ["核保", "理赔"]},
 ]
 
 PRESET_ROLES: dict[str, str] = {
@@ -266,6 +307,7 @@ PRESET_ROLES: dict[str, str] = {
     "s15": "家长", "s16": "学生", "s17": "学生", "s18": "运营", "s19": "业主", "s20": "销售", "s21": "酒店",
     "s22": "骑手", "s23": "会员", "s24": "旅行", "s25": "新人", "s26": "业主", "s27": "宠主", "s28": "巡检",
     "s29": "市民", "s30": "法务", "s31": "全员", "s32": "学生", "s33": "家长", "s34": "老师",
+    "s35": "银行", "s36": "合规", "s37": "信贷", "s38": "保险", "s39": "资管",
 }
 
 

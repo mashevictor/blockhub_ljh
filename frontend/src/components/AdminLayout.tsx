@@ -7,7 +7,7 @@ import ThemePicker from './ThemePicker'
 import BrandMark from './BrandMark'
 import { BRAND, homePublicUrl } from '../data/brand'
 import { PLATFORM_STATS } from '@shared/platformStats'
-import { canAccessRole, type AppRole } from '../lib/roles'
+import { canAccessRole, roleDisplayLabel, type AppRole } from '../lib/roles'
 import {
   IconHome,
   IconBot,
@@ -26,20 +26,25 @@ import {
 } from './icons'
 
 const NAV: Array<{ to: string; label: string; icon: typeof IconHome; end?: boolean; roles: AppRole[] }> = [
-  { to: '/', label: '工作台', icon: IconHome, end: true, roles: ['admin', 'employee'] },
+  // 全员
+  { to: '/', label: '工作台', icon: IconHome, end: true, roles: ['admin', 'tenant_owner', 'employee'] },
+  // 本租户管理（admin + tenant_owner；canAccessRole 对 admin 项也会放行 owner）
   { to: '/agents', label: '能力中心', icon: IconBot, roles: ['admin'] },
   { to: '/capabilities/review', label: '能力审核', icon: IconGrid, roles: ['admin'] },
   { to: '/scenarios', label: '业务场景', icon: IconList, roles: ['admin'] },
   { to: '/create', label: '创建应用', icon: IconSparkles, roles: ['admin'] },
-  { to: '/chat', label: '智能问答', icon: IconMessage, roles: ['admin', 'employee'] },
-  { to: '/voice/shanghai', label: '上海话语音', icon: IconMic, roles: ['admin', 'employee'] },
-  { to: '/knowledge', label: '知识库', icon: IconBook, roles: ['admin', 'employee'] },
-  { to: '/approvals', label: '审批中心', icon: IconCheckCircle, roles: ['admin', 'employee'] },
+  // 全员协作
+  { to: '/chat', label: '智能问答', icon: IconMessage, roles: ['admin', 'tenant_owner', 'employee'] },
+  { to: '/voice/shanghai', label: '上海话语音', icon: IconMic, roles: ['admin', 'tenant_owner', 'employee'] },
+  { to: '/knowledge', label: '知识库', icon: IconBook, roles: ['admin', 'tenant_owner', 'employee'] },
+  { to: '/approvals', label: '审批中心', icon: IconCheckCircle, roles: ['admin', 'tenant_owner', 'employee'] },
+  // 本租户管理
   { to: '/contracts', label: '合同盖章', icon: IconStamp, roles: ['admin'] },
   { to: '/reports', label: '数据报表', icon: IconBarChart, roles: ['admin'] },
   { to: '/integrations', label: '系统集成', icon: IconLayers, roles: ['admin'] },
   { to: '/settings/tenant', label: '租户配置', icon: IconSettings, roles: ['admin'] },
-  { to: '/notifications', label: '消息通知', icon: IconBell, roles: ['admin', 'employee'] },
+  // 全员
+  { to: '/notifications', label: '消息通知', icon: IconBell, roles: ['admin', 'tenant_owner', 'employee'] },
 ]
 
 export default function AdminLayout() {
@@ -58,7 +63,7 @@ export default function AdminLayout() {
     [user, role],
   )
 
-  const roleLabel = user?.role === 'admin' ? '管理员' : user?.role === 'employee' ? '使用者' : user?.role
+  const roleLabel = roleDisplayLabel(user?.role)
 
   return (
     <div className="layout">

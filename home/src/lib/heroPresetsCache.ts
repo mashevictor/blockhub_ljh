@@ -1,7 +1,7 @@
 import { fetchHeroPresets } from '../api/client'
 import { mapHeroPresetFromApi, ROLE_PRESETS, type RolePreset } from '../data/rolePresets'
 
-const CACHE_KEY = 'blockhub_hero_presets_v18'
+const CACHE_KEY = 'blockhub_hero_presets_v19'
 
 type CachePayload = {
   savedAt: number
