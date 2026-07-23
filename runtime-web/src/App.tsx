@@ -1,6 +1,7 @@
 import {
   lazy,
   Suspense,
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -15,15 +16,16 @@ import {
   clearAuth,
   getStoredToken,
   getStoredUser,
-  login,
   storeAuth,
   type BuildManifest,
   type PageSchema,
   type SchemaNode,
   type TenantRuntimeConfig,
 } from '@blockhub/web-core'
+import { adminLoginUrlWithReturn } from '@shared/brand'
 import type { CapShipComposerDockProps } from '@capship/composer'
 import { bootWidgetsFromManifest, ensurePkgsLoaded } from './register-widgets'
+import { webPkgForCapability } from './capabilityWebPkg'
 import {
   getMicrositeRuntimeSkin,
   isIndustrySiteEntry,
@@ -40,6 +42,40 @@ const CapShipComposerDock = lazy(() =>
     }
   }),
 )
+
+type SchemaApiPayload = {
+  page_schema: PageSchema
+  schema_rev?: number
+  formal_schema_rev?: number
+  schema_view?: string
+  change_status?: string
+  change_id?: string
+  schema_updated_at?: string | null
+}
+
+function schemaFingerprint(sch: SchemaApiPayload): string {
+  const ps = sch.page_schema
+  const menu = (ps?.menu || []).map((m) => `${m.key}:${m.route}`).join(',')
+  const caps = (ps?.capability_keys || []).join(',')
+  const kids = (ps?.root?.children || [])
+    .map((c) => {
+      const p = (c.props || {}) as Record<string, unknown>
+      const html = String(p.source_html || '')
+      return `${c.id}:${p.codegen_pending ? 1 : 0}:${html.length}`
+    })
+    .join('|')
+  return [
+    sch.schema_rev ?? '',
+    sch.formal_schema_rev ?? '',
+    sch.schema_view || '',
+    sch.change_status || '',
+    sch.change_id || '',
+    sch.schema_updated_at || '',
+    caps,
+    menu,
+    kids,
+  ].join('::')
+}
 
 function parseAppId(): string | null {
   const path = window.location.pathname
@@ -165,16 +201,9 @@ function scopeManifestToApp(manifest: BuildManifest, schema: PageSchema): BuildM
   }
 }
 
-/** capability_key → 约定包名（与 capability-manifest web_pkg 对齐） */
+/** capability_key → 真实 web_pkg（含 vertical-ops / retail-ops 等共享包） */
 function conventionPkg(capabilityKey: string): string {
-  if (capabilityKey.startsWith('gen_')) return ''
-  if (capabilityKey === 'kb_document' || capabilityKey === 'kb_search') {
-    return '@blockhub/web-capability-kb'
-  }
-  if (capabilityKey.startsWith('approval')) return '@blockhub/web-capability-approval'
-  if (capabilityKey.startsWith('notify')) return '@blockhub/web-capability-integration'
-  if (capabilityKey.startsWith('chat')) return '@blockhub/web-capability-chat'
-  return `@blockhub/web-capability-${capabilityKey.replace(/_/g, '-')}`
+  return webPkgForCapability(capabilityKey)
 }
 
 function folderMatch(pkg: string, capabilityKey: string): boolean {
@@ -208,6 +237,52 @@ export default function App() {
   const [route, setRoute] = useState(() => (appId ? routeFromPath(appId) : '/'))
   const [token, setToken] = useState(getStoredToken)
   const [user, setUser] = useState(getStoredUser)
+  const [authBootstrapping, setAuthBootstrapping] = useState(
+    () => Boolean(getStoredToken() && !getStoredUser()),
+  )
+
+  // 管理后台 / 官网已登录：同域有 token 但缺 runtime user 时，用 /auth/me 补齐，避免再登一次
+  useEffect(() => {
+    const t = getStoredToken()
+    if (!t) {
+      setAuthBootstrapping(false)
+      return
+    }
+    if (getStoredUser()) {
+      setAuthBootstrapping(false)
+      return
+    }
+    let cancelled = false
+    setAuthBootstrapping(true)
+    void fetch('/api/v1/auth/me', { headers: { Authorization: `Bearer ${t}` } })
+      .then(async (res) => {
+        if (!res.ok) throw new Error(`me ${res.status}`)
+        return res.json() as Promise<{ email?: string; role?: string; display_name?: string }>
+      })
+      .then((u) => {
+        if (cancelled) return
+        const next = {
+          email: u.email || '',
+          role: u.role || 'employee',
+          display_name: u.display_name || u.email || '用户',
+        }
+        storeAuth(t, next)
+        setToken(t)
+        setUser(next)
+      })
+      .catch(() => {
+        if (cancelled) return
+        clearAuth()
+        setToken('')
+        setUser(null)
+      })
+      .finally(() => {
+        if (!cancelled) setAuthBootstrapping(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   if (sso.handled) {
     return (
@@ -224,13 +299,25 @@ export default function App() {
   const [apkReady, setApkReady] = useState(false)
   const [schemaView, setSchemaView] = useState<'formal' | 'personal_draft'>('formal')
   const [changeStatus, setChangeStatus] = useState('')
+  const [schemaRev, setSchemaRev] = useState(1)
+  const [previewEpoch, setPreviewEpoch] = useState(0)
+  const [localPreviewDirty, setLocalPreviewDirty] = useState(false)
+  const [refreshBusy, setRefreshBusy] = useState(false)
+  const [refreshHint, setRefreshHint] = useState('')
+  const schemaFpRef = useRef('')
+  const localPreviewDirtyRef = useRef(false)
   const [error, setError] = useState('')
-  const [loginEmail, setLoginEmail] = useState('')
-  const [loginPassword, setLoginPassword] = useState('')
-  const [loginBusy, setLoginBusy] = useState(false)
   /** 独立站：仅会话内换皮；初始以 schema 发布选择为准（勿被旧 localStorage 抢默认） */
   const [skinOverride, setSkinOverride] = useState<string | null>(null)
   const [sidebarOpen, setSidebarOpen] = useState<Record<string, boolean>>({})
+
+  // 未登录：跳转管理后台统一登录页（验证码 / 密码完全同一套）
+  useEffect(() => {
+    if (sso.handled || authBootstrapping) return
+    if (token && user) return
+    const returnTo = `${window.location.pathname}${window.location.search}${window.location.hash}`
+    window.location.replace(adminLoginUrlWithReturn(returnTo))
+  }, [sso.handled, authBootstrapping, token, user])
 
   useEffect(() => {
     if (!appId) return
@@ -293,7 +380,15 @@ export default function App() {
           ? 'personal_draft'
           : 'formal'
         setSchemaView(view)
-        setChangeStatus(String((sch as { change_status?: string }).change_status || ''))
+        setChangeStatus(String((sch as SchemaApiPayload).change_status || ''))
+        setSchemaRev(
+          Number(
+            (sch as SchemaApiPayload).schema_rev ||
+              (sch as SchemaApiPayload).formal_schema_rev ||
+              1,
+          ),
+        )
+        schemaFpRef.current = schemaFingerprint(sch as SchemaApiPayload)
         const rawBm = (man as { build_manifest: BuildManifest }).build_manifest
         const bm = scopeManifestToApp(rawBm, pageSchema)
         const cfgObj = cfg as TenantRuntimeConfig & {
@@ -351,6 +446,106 @@ export default function App() {
     }
   }, [appId, token])
 
+  const applySchemaPayload = useCallback(
+    async (sch: SchemaApiPayload, man?: BuildManifest | null, opts?: { quiet?: boolean }) => {
+      const pageSchema = sch.page_schema
+      const view = sch.schema_view === 'personal_draft' ? 'personal_draft' : 'formal'
+      setSchemaView(view)
+      setChangeStatus(String(sch.change_status || ''))
+      setSchemaRev(Number(sch.schema_rev || sch.formal_schema_rev || 1))
+      setSchema(pageSchema)
+      setPreviewEpoch((n) => n + 1)
+      schemaFpRef.current = schemaFingerprint(sch)
+      if (man) {
+        const scoped = scopeManifestToApp(man, pageSchema)
+        setManifest(scoped)
+        await bootWidgetsFromManifest(scoped, { background: true, concurrency: 2 })
+      } else {
+        setManifest((prev) => (prev ? scopeManifestToApp(prev, pageSchema) : prev))
+      }
+      if (!opts?.quiet) {
+        setRefreshHint(`已刷新 · v${Number(sch.schema_rev || sch.formal_schema_rev || 1)}`)
+        window.setTimeout(() => setRefreshHint(''), 2400)
+      }
+    },
+    [],
+  )
+
+  const refreshRuntime = useCallback(
+    async (opts?: { quiet?: boolean; force?: boolean }) => {
+      if (!appId || !token) return
+      // 本地未保存预览：禁止被轮询/广播刷掉（智能出页刚出来又消失）
+      if (localPreviewDirtyRef.current && !opts?.force) {
+        if (!opts?.quiet) {
+          setRefreshHint('有未保存改动，已跳过自动刷新（可点强制刷新）')
+          window.setTimeout(() => setRefreshHint(''), 2800)
+        }
+        return
+      }
+      setRefreshBusy(true)
+      try {
+        const headers: HeadersInit = { Authorization: `Bearer ${token}` }
+        const [schRes, manRes] = await Promise.all([
+          fetch(`/api/v1/runtime/${appId}/schema`, { headers }),
+          fetch(`/api/v1/runtime/${appId}/manifest`, { headers }),
+        ])
+        if (!schRes.ok) throw new Error(`schema ${schRes.status}`)
+        const sch = (await schRes.json()) as SchemaApiPayload
+        const manJson = manRes.ok ? await manRes.json() : null
+        const bm = (manJson?.build_manifest as BuildManifest | undefined) || null
+        const fp = schemaFingerprint(sch)
+        if (fp === schemaFpRef.current && opts?.quiet) return
+        await applySchemaPayload(sch, bm, opts)
+        setLocalPreviewDirty(false)
+        localPreviewDirtyRef.current = false
+      } catch (e) {
+        if (!opts?.quiet) {
+          setRefreshHint(e instanceof Error ? e.message : '刷新失败')
+          window.setTimeout(() => setRefreshHint(''), 3200)
+        }
+      } finally {
+        setRefreshBusy(false)
+      }
+    },
+    [appId, token, applySchemaPayload],
+  )
+
+  // 对话改页 / 智能出页：仅在已落库后广播才拉服务端；本地 dirty 忽略
+  useEffect(() => {
+    if (!appId || !token) return
+    let unsub: () => void = () => undefined
+    void import('@capship/composer').then((m) => {
+      unsub = m.subscribeSchemaUpdated(appId, (msg) => {
+        const reason = String(msg?.reason || '')
+        // codegen / 本地预览广播：不要覆盖未保存左侧
+        if (reason === 'codegen' || reason === 'local_save') return
+        if (localPreviewDirtyRef.current) return
+        void refreshRuntime({ quiet: reason !== 'approve' && reason !== 'direct_publish' })
+      })
+    })
+    return () => {
+      unsub()
+    }
+  }, [appId, token, refreshRuntime])
+
+  // 可见时轮询：他人发布 / 审批通过后自动跟上
+  useEffect(() => {
+    if (!appId || !token || !widgetsReady) return
+    const tick = () => {
+      if (document.visibilityState !== 'visible') return
+      void refreshRuntime({ quiet: true })
+    }
+    const timer = window.setInterval(tick, 12000)
+    const onFocus = () => tick()
+    window.addEventListener('focus', onFocus)
+    document.addEventListener('visibilitychange', onFocus)
+    return () => {
+      window.clearInterval(timer)
+      window.removeEventListener('focus', onFocus)
+      document.removeEventListener('visibilitychange', onFocus)
+    }
+  }, [appId, token, widgetsReady, refreshRuntime])
+
   // 切场景时按需补齐能力包（不挡整壳，只挡该页 Widget）
   const [routePkgsReady, setRoutePkgsReady] = useState(true)
   useEffect(() => {
@@ -372,13 +567,19 @@ export default function App() {
       item?.capability_key || node?.props?.capability_key || item?.key || '',
     ).trim()
     const slug = cap.replace(/_/g, '-')
+    // schema 节点上的 web_pkg（registry SSOT）优先，避免 media_* 等误解析成不存在的独立包
+    const nodePkg = String(node?.props?.web_pkg || '').trim()
     const fromManifest = cap
       ? manifest.web_pkgs.filter((p) => folderMatch(p, cap) || p.includes(slug))
       : []
     // compose 新加能力时 manifest 可能尚未含包名：按约定补上，避免误报「尚未接入」
     const conv = cap ? conventionPkg(cap) : ''
     const convention = conv ? [conv] : []
-    const pkgs = [...new Set([...fromManifest, ...convention])]
+    const pkgs = [
+      ...new Set(
+        [nodePkg, ...fromManifest, ...convention].filter(Boolean),
+      ),
+    ]
     void ensurePkgsLoaded(pkgs.length ? pkgs : manifest.web_pkgs.slice(0, 1)).finally(() => {
       if (!cancelled) setRoutePkgsReady(true)
     })
@@ -399,20 +600,6 @@ export default function App() {
     if (added.length) void ensurePkgsLoaded(added)
   }, [manifest?.web_pkgs?.join('|'), widgetsReady])
 
-  const handleLogin = async () => {
-    setLoginBusy(true)
-    setError('')
-    try {
-      const res = await login(loginEmail, loginPassword)
-      setToken(res.token)
-      setUser(res.user)
-    } catch (e) {
-      setError(String(e))
-    } finally {
-      setLoginBusy(false)
-    }
-  }
-
   const handleLogout = () => {
     clearAuth()
     setToken('')
@@ -421,48 +608,29 @@ export default function App() {
     setSchema(null)
     setManifest(null)
     setWidgetsReady(false)
+    const returnTo = `${window.location.pathname}${window.location.search}${window.location.hash}`
+    window.location.replace(adminLoginUrlWithReturn(returnTo))
   }
 
   if (!appId) {
     return <p className="error-msg">无效的应用链接，请使用 /r/&#123;appId&#125; 访问</p>
   }
 
+  if (authBootstrapping) {
+    return (
+      <div className="login-shell" style={{ padding: 48, textAlign: 'center' }}>
+        <p>正在同步登录态…</p>
+      </div>
+    )
+  }
+
   if (!token || !user) {
     return (
       <div className={`login-shell${entrySource === 'im' ? ' is-im-entry' : ''}`}>
-        <p className="entry-chip">{entrySource === 'im' ? '企微 / 钉钉 / 飞书 · 消息入口' : '应用门户 · 生成链接'}</p>
-        <h1>{entrySource === 'im' ? '登录后处理工单' : '员工端登录'}</h1>
-        <p className="muted">
-          {entrySource === 'im'
-            ? '你从群消息打开了报修协作页，登录后可派工选人 / 完工确认。'
-            : '从官网「生成应用」打开的工作台，可提单、配置通道与问答。'}
-        </p>
+        <p className="entry-chip">统一登录</p>
+        <h1>正在前往登录…</h1>
+        <p className="muted">与管理后台同一入口：验证码注册 / 密码登录</p>
         <p className="muted">应用 ID：{appId}</p>
-        <label>
-          邮箱
-          <input
-            className="input"
-            value={loginEmail}
-            onChange={(e) => setLoginEmail(e.target.value)}
-            placeholder="邮箱"
-            autoComplete="username"
-          />
-        </label>
-        <label>
-          密码
-          <input
-            className="input"
-            type="password"
-            value={loginPassword}
-            onChange={(e) => setLoginPassword(e.target.value)}
-            placeholder="密码"
-            autoComplete="current-password"
-          />
-        </label>
-        <button type="button" className="btn" disabled={loginBusy} onClick={() => void handleLogin()}>
-          {loginBusy ? '登录中…' : '登录'}
-        </button>
-        {error && <p className="error-msg">{error}</p>}
       </div>
     )
   }
@@ -524,7 +692,8 @@ export default function App() {
     } as Record<string, string>)[String(meta.industry_key || '')] ||
     config.app_name
   const atHome = !route || route === '/'
-  // 高亮只跟当前 route：首页时不要 fallback 到 menu[0]，否则会与「行业首页」双高亮
+  // 独立站首页：不 fallback 到 menu[0]，避免与「行业首页」双高亮
+  // 工作台（弹幕/选模块）：/ 无页面时 fallback 第一项主能力，禁止空白「暂无页面」
   const activeKey = menu.find((m) => m.route === route)?.key
   const children = schema.root.children || []
   const contentNodes = children.filter((c) => c.type !== 'landing_hero')
@@ -532,7 +701,7 @@ export default function App() {
   let activeNode: SchemaNode | undefined =
     contentNodes.find((c) => String(c.props?.route) === route) ||
     (activeKey ? contentNodes.find((c) => c.id === activeKey) : undefined) ||
-    (!atHome ? contentNodes[0] : undefined)
+    (!atHome || !industryEntry ? contentNodes[0] : undefined)
 
   // 非独立站落地页：首屏可堆叠；独立站首页用行业封面
   const landingAll = !industryEntry && layoutRaw === 'landing' && atHome
@@ -602,6 +771,22 @@ export default function App() {
     const normalized = navigateRoute(appId, nextRoute)
     setRoute(normalized)
   }
+
+  // 工作台打开 /r/{id} 落在 / 时，跳到第一项主能力 Tab（URL 与高亮一致）
+  useEffect(() => {
+    if (!appId || !widgetsReady || industryEntry) return
+    if (!atHome) return
+    const first = (menu || []).find((m) => {
+      const r = String(m.route || '')
+      return r && r !== '/'
+    })
+    const target = String(
+      (meta as { default_route?: string }).default_route || first?.route || '',
+    ).trim()
+    if (!target || target === '/') return
+    goRoute(target)
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 仅在首页空白态纠偏一次
+  }, [appId, widgetsReady, industryEntry, atHome, schemaRev])
 
   const renderNavButtons = (className: string) => (
     <>
@@ -774,6 +959,19 @@ export default function App() {
             <div>
               <h1>{config.app_name}</h1>
               <div className="brand-meta">
+                <span className="brand-chip brand-chip--rev" title="页面配置版本">
+                  v{schemaRev}
+                </span>
+                {schemaView === 'personal_draft' ? (
+                  <span className="brand-chip brand-chip--draft">
+                    {changeStatus === 'pending' ? '待审稿' : '个人草稿'}
+                  </span>
+                ) : null}
+            {localPreviewDirty ? (
+              <span className="brand-chip brand-chip--draft" title="对话改页/智能出页预览尚未保存">
+                未保存预览
+              </span>
+            ) : null}
                 <span className="brand-chip">{user.display_name || '使用者'}</span>
                 <span className="brand-chip">{user.role || 'member'}</span>
                 {industryEntry ? (
@@ -791,6 +989,26 @@ export default function App() {
           </div>
           <div className="runtime-header-actions">
             <RuntimeNotifyBell />
+            {refreshHint ? <span className="runtime-refresh-hint">{refreshHint}</span> : null}
+            <button
+              type="button"
+              className="btn btn-ghost"
+              disabled={refreshBusy}
+              title={
+                localPreviewDirty
+                  ? '有未保存预览时自动刷新已关闭；点此强制从服务端拉取（会丢未保存预览）'
+                  : '重新拉取已保存的页面配置'
+              }
+              onClick={() => {
+                if (localPreviewDirty) {
+                  const ok = window.confirm('当前有未保存的对话改页预览，强制刷新会丢弃预览。继续？')
+                  if (!ok) return
+                }
+                void refreshRuntime({ quiet: false, force: true })
+              }}
+            >
+              {refreshBusy ? '刷新中…' : localPreviewDirty ? '强制刷新' : '刷新页面'}
+            </button>
             {industryEntry && !atHome ? (
               <button
                 type="button"
@@ -856,7 +1074,11 @@ export default function App() {
                 </div>
               ) : activeNode ? (
                 routePkgsReady ? (
-                  <WidgetHost key={activeNode.id} node={activeNode} ctx={ctx} />
+                  <WidgetHost
+                    key={`${activeNode.id}-v${schemaRev}-e${previewEpoch}`}
+                    node={activeNode}
+                    ctx={ctx}
+                  />
                 ) : (
                   <div className="widget-loading" role="status">
                     <div className="widget-loading-spinner" aria-hidden />
@@ -910,22 +1132,47 @@ export default function App() {
             }
             onSchemaPatch={(next: unknown) => {
               const s = next as PageSchema
+              const prevRoutes = new Set((schema?.menu || []).map((m) => String(m.route || '')))
               setSchema(s)
-              // 对话改页新增能力后，立刻把约定 web_pkg 并入 manifest，触发按需加载
+              setPreviewEpoch((n) => n + 1)
+              setLocalPreviewDirty(true)
+              localPreviewDirtyRef.current = true
               setManifest((prev) => (prev ? scopeManifestToApp(prev, s) : prev))
+              // 新增菜单：自动跳到新页，避免「加了但看不见」
+              const added = (s.menu || []).find((m) => {
+                const r = String(m.route || '')
+                return r && !prevRoutes.has(r)
+              })
+              if (added?.route && appId) {
+                goRoute(String(added.route))
+              }
             }}
             onSaved={(result: {
               page_schema?: unknown
               capability_keys?: string[]
               change_status?: string
+              schema_rev?: number
             }) => {
               const nextSchema = (result.page_schema as PageSchema | undefined) || schema
               if (result.page_schema) {
                 setSchema(result.page_schema as PageSchema)
-                setSchemaView('personal_draft')
+                setPreviewEpoch((n) => n + 1)
               }
-              if (result.change_status) setChangeStatus(result.change_status)
-              else if (result.page_schema) setChangeStatus((s) => s || 'draft')
+              if (typeof result.schema_rev === 'number') setSchemaRev(result.schema_rev)
+              setLocalPreviewDirty(false)
+              localPreviewDirtyRef.current = false
+              if (result.change_status === 'draft' || result.change_status === 'pending') {
+                setSchemaView('personal_draft')
+                setChangeStatus(result.change_status)
+              } else if (result.change_status) {
+                setChangeStatus(result.change_status)
+              } else if (result.page_schema && !result.schema_rev) {
+                setSchemaView('personal_draft')
+                setChangeStatus((s) => s || 'draft')
+              } else if (typeof result.schema_rev === 'number' && !result.change_status) {
+                setSchemaView('formal')
+                setChangeStatus('')
+              }
               void fetch(`/api/v1/runtime/${appId}/manifest`, {
                 headers: { Authorization: `Bearer ${token}` },
               })

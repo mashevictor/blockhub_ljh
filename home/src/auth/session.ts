@@ -1,5 +1,5 @@
 import { api } from '../api/client'
-import { clearToken, redirectToLogin, setToken } from './storage'
+import { clearToken, redirectToLogin, setSharedAuth } from './storage'
 import { runTencentCaptcha } from './tencentCaptcha'
 
 export interface AuthUser {
@@ -60,13 +60,13 @@ export async function sendOtpCode(account: string): Promise<SendCodeResult> {
 
 export async function loginOtp(account: string, code: string): Promise<LoginResult> {
   const { data } = await api.post<LoginResult>('/auth/login-otp', { account, code })
-  setToken(data.access_token)
+  setSharedAuth(data.access_token, data.user)
   return data
 }
 
 export async function loginWithPassword(email: string, password: string): Promise<LoginResult> {
   const { data } = await api.post<LoginResult>('/auth/login', { email, password })
-  setToken(data.access_token)
+  setSharedAuth(data.access_token, data.user)
   return data
 }
 

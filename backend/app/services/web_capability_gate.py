@@ -184,8 +184,27 @@ def _rewrite_node_widgets(node: Any, *, hint: str = "") -> None:
         return
     if not isinstance(node, dict):
         return
-    local_hint = hint or str(node.get("title") or node.get("label") or node.get("name") or "")
+    # Path-B / 内置生成页：勿改挂到 chat_qa
+    ntype = str(node.get("type") or "")
     props = node.get("props") if isinstance(node.get("props"), dict) else None
+    if ntype in ("generated_page", "landing_hero"):
+        for k, v in list(node.items()):
+            if k == "props":
+                continue
+            if isinstance(v, (dict, list)):
+                _rewrite_node_widgets(v, hint=hint)
+        return
+    if props is not None:
+        w0 = str(props.get("widget") or "")
+        ck0 = str(props.get("capability_key") or "")
+        if w0 == "GeneratedPageWidget" or ck0.startswith("gen_") or props.get("source_html"):
+            for k, v in list(node.items()):
+                if k == "props":
+                    continue
+                if isinstance(v, (dict, list)):
+                    _rewrite_node_widgets(v, hint=hint)
+            return
+    local_hint = hint or str(node.get("title") or node.get("label") or node.get("name") or "")
     if props is not None:
         ck = str(props.get("capability_key") or node.get("capability_key") or "")
         w = str(props.get("widget") or "")
@@ -203,7 +222,8 @@ def _rewrite_node_widgets(node: Any, *, hint: str = "") -> None:
                     props["capability_key"] = _WIDGET_TO_CAP[nw]
     ck = node.get("capability_key")
     if isinstance(ck, str) and (ck in FAKE_WEB_KEY_REMAP or not is_web_ready_capability(ck)):
-        node["capability_key"] = ensure_web_ready_key(ck, hint=local_hint)
+        if not ck.startswith("gen_"):
+            node["capability_key"] = ensure_web_ready_key(ck, hint=local_hint)
     for k, v in list(node.items()):
         if k == "props":
             continue
@@ -230,13 +250,18 @@ def sanitize_page_schema(schema: dict[str, Any] | None) -> dict[str, Any]:
             label = str(row.get("label") or "")
             ck = str(row.get("capability_key") or row.get("key") or "")
             if ck:
-                ready = ensure_web_ready_key(ck, hint=label)
-                row["capability_key"] = ready
-                menu_hint_by_cap[ck] = label
-                menu_hint_by_cap[ready] = label
-                cap = ALL_CAPABILITIES.get(ready)
-                if cap:
-                    row["widget"] = cap.widget
+                if ck.startswith("gen_"):
+                    # Path-B 生成页菜单：保留 key/route，勿改写成 chat_qa
+                    row["key"] = ck
+                    menu_hint_by_cap[ck] = label
+                else:
+                    ready = ensure_web_ready_key(ck, hint=label)
+                    row["capability_key"] = ready
+                    menu_hint_by_cap[ck] = label
+                    menu_hint_by_cap[ready] = label
+                    cap = ALL_CAPABILITIES.get(ready)
+                    if cap:
+                        row["widget"] = cap.widget
             new_menu.append(row)
         out["menu"] = new_menu
 
@@ -251,18 +276,27 @@ def sanitize_page_schema(schema: dict[str, Any] | None) -> dict[str, Any]:
         for pid, node in list(pages.items()):
             _rewrite_node_widgets(node, hint=blob_hint + " " + str(pid))
 
-    # keys：优先菜单落地的正式能力，再合并原 keys（带菜单文案 hint）
+    # keys：优先菜单落地的正式能力，再合并原 keys（带菜单文案 hint）；保留 gen_*
     keys_out: list[str] = []
     seen: set[str] = set()
+    for k in keys_in:
+        if str(k).startswith("gen_") and k not in seen:
+            seen.add(k)
+            keys_out.append(k)
     if isinstance(out.get("menu"), list):
         for item in out["menu"]:
             if not isinstance(item, dict):
                 continue
-            ck = str(item.get("capability_key") or "")
-            if ck and ck not in seen and is_web_ready_capability(ck):
+            ck = str(item.get("capability_key") or item.get("key") or "")
+            if ck.startswith("gen_") and ck not in seen:
+                seen.add(ck)
+                keys_out.append(ck)
+            elif ck and ck not in seen and is_web_ready_capability(ck):
                 seen.add(ck)
                 keys_out.append(ck)
     for k in keys_in:
+        if str(k).startswith("gen_"):
+            continue
         hint = menu_hint_by_cap.get(k, blob_hint)
         ready = ensure_web_ready_key(k, hint=hint)
         if ready not in seen and is_web_ready_capability(ready):
@@ -277,7 +311,13 @@ def filter_web_ready_keys(keys: list[str] | None, *, hint: str = "") -> list[str
     out: list[str] = []
     seen: set[str] = set()
     for k in keys or []:
-        ready = ensure_web_ready_key(str(k), hint=hint)
+        raw = str(k)
+        if raw.startswith("gen_"):
+            if raw not in seen:
+                seen.add(raw)
+                out.append(raw)
+            continue
+        ready = ensure_web_ready_key(raw, hint=hint)
         if ready not in seen:
             seen.add(ready)
             out.append(ready)

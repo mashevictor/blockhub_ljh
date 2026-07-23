@@ -578,6 +578,18 @@ export default function IndustryRuntimePreviewPage() {
               accent={preview.accent}
               onAuth={(auth) => {
                 setToken(auth.token)
+                try {
+                  localStorage.setItem(
+                    'blockhub_runtime_user',
+                    JSON.stringify({
+                      email: '',
+                      role: auth.role,
+                      display_name: auth.display_name || '',
+                    }),
+                  )
+                } catch {
+                  /* ignore */
+                }
                 setHomeToken(auth.token)
                 setHomeRole(auth.role)
               }}

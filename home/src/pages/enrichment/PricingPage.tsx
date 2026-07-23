@@ -4,10 +4,9 @@ import MarketingSiteShell from '../../components/b2b/enrichment/MarketingSiteShe
 import EnrichCardVisual from '../../components/b2b/enrichment/EnrichCardVisual'
 import { AgentButtonContent, AgentChevronGlyph } from '../../components/AgentChevron'
 import {
-  PRICING_B_TIERS,
-  PRICING_C_TIERS,
-  PRICING_DEPLOY_TIERS,
+  PRICING_TIERS,
   PRICING_FAQ,
+  PRICING_TIP,
   COMPOSE_EDIT_HINT,
   SMART_PAGE_HINT,
   SMART_PAGE_LABEL,
@@ -18,41 +17,69 @@ import { ROLE_PAGES } from '../../data/siteRoles'
 import { ROUTES } from '../../routes/paths'
 import { usePageMeta } from '../../hooks/usePageMeta'
 
-const PAID_ONLINE = new Set(['c_plus', 'b_team', 'b_business'])
+const PAID_ONLINE = new Set(['c_plus', 'b_business'])
+
+function TierCta({ tier }: { tier: PricingTier }) {
+  if (tier.cta === 'buy' && PAID_ONLINE.has(tier.id)) {
+    return (
+      <Link
+        to={`${ROUTES.pricingCheckout}?plan=${tier.id}`}
+        className="b2b-btn-primary agent-action-btn"
+        style={{ marginTop: 12, display: 'inline-flex' }}
+      >
+        <AgentButtonContent>{tier.ctaLabel}</AgentButtonContent>
+      </Link>
+    )
+  }
+  if (tier.cta === 'start') {
+    return (
+      <Link
+        to={ROUTES.home}
+        className="b2b-btn-ghost"
+        style={{ marginTop: 12, display: 'inline-block' }}
+      >
+        {tier.ctaLabel}
+      </Link>
+    )
+  }
+  return (
+    <a href={ROUTES.contactDemo} className="b2b-btn-ghost" style={{ marginTop: 12, display: 'inline-block' }}>
+      {tier.ctaLabel}
+    </a>
+  )
+}
 
 function TierGrid({ tiers }: { tiers: PricingTier[] }) {
   return (
     <div className="enrich-pricing-grid enrich-pricing-grid--page">
       {tiers.map((tier) => {
         const theme = pricingTierTheme(tier.id)
-        const canPay = PAID_ONLINE.has(tier.id)
         return (
           <article
             key={tier.id}
             className={`enrich-card enrich-tier${tier.featured ? ' is-featured' : ''}`}
             style={enrichCardStyle(theme) as CSSProperties}
           >
+            {tier.tag ? (
+              <span className="enrich-tier-tag" style={{ fontSize: 12, fontWeight: 600, color: theme.color }}>
+                {tier.tag}
+              </span>
+            ) : null}
             <EnrichCardVisual icon={theme.icon} label={tier.name} sublabel={tier.range} />
             <div className="enrich-card-body enrich-card-body--compact">
+              <p style={{ margin: '0 0 8px', fontSize: 14, color: 'var(--muted, #6b7280)' }}>{tier.desc}</p>
               <div className="enrich-tier-range">{tier.range}</div>
               <ul className="enrich-tier-features">
                 {tier.features.map((f) => (
                   <li key={f}>{f}</li>
                 ))}
+                {(tier.limits || []).map((f) => (
+                  <li key={f} style={{ opacity: 0.72 }}>
+                    {f}
+                  </li>
+                ))}
               </ul>
-              {canPay ? (
-                <Link
-                  to={`${ROUTES.pricingCheckout}?plan=${tier.id}`}
-                  className="b2b-btn-primary agent-action-btn"
-                  style={{ marginTop: 12, display: 'inline-flex' }}
-                >
-                  <AgentButtonContent>升级</AgentButtonContent>
-                </Link>
-              ) : tier.id === 'b_enterprise' || tier.segment === 'deploy' ? (
-                <a href={ROUTES.contactDemo} className="b2b-btn-ghost" style={{ marginTop: 12, display: 'inline-block' }}>
-                  预约演示
-                </a>
-              ) : null}
+              <TierCta tier={tier} />
             </div>
           </article>
         )
@@ -63,49 +90,33 @@ function TierGrid({ tiers }: { tiers: PricingTier[] }) {
 
 export default function PricingPage() {
   usePageMeta({
-    title: '定价说明 · 积木仓',
-    description: `C 端 Free/Plus 与 B 端 Team/Business/Enterprise；含对话改页与${SMART_PAGE_LABEL}配额说明`,
+    title: '套餐定价 · 积木仓 AI',
+    description: `Free / Plus / Business / Enterprise；含对话改页与${SMART_PAGE_LABEL}配额说明`,
   })
 
   return (
-    <MarketingSiteShell skin="landed" pageTitle="定价框架" pageEyebrow="定价说明">
+    <MarketingSiteShell skin="landed" pageTitle="套餐定价" pageEyebrow="定价说明">
       <p style={{ marginBottom: 20 }}>
         <Link to={ROUTES.accountBilling}>我的套餐与用量</Link>
       </p>
-      <section className="enrich-panel" aria-labelledby="pricing-c-title" style={{ marginBottom: 28 }}>
+
+      <section className="enrich-panel" aria-labelledby="pricing-tiers-title" style={{ marginBottom: 28 }}>
         <div className="enrich-panel-head">
-          <h2 id="pricing-c-title">C 端 · 创作者</h2>
+          <h2 id="pricing-tiers-title">四档套餐</h2>
           <p>
-            个人试用与接单。
-            <br />
             <strong>对话改页</strong>：{COMPOSE_EDIT_HINT}
             <br />
             <strong>{SMART_PAGE_LABEL}</strong>：{SMART_PAGE_HINT}
           </p>
         </div>
-        <TierGrid tiers={PRICING_C_TIERS} />
-      </section>
-
-      <section className="enrich-panel" aria-labelledby="pricing-b-title" style={{ marginBottom: 28 }}>
-        <div className="enrich-panel-head">
-          <h2 id="pricing-b-title">B 端 · 组织坐席</h2>
-          <p>多人协作、行业包、改页审批与双端构建。个人 Plus 不自动等于一个坐席。</p>
-        </div>
-        <TierGrid tiers={PRICING_B_TIERS} />
-      </section>
-
-      <section className="enrich-panel" aria-labelledby="pricing-deploy-title" style={{ marginBottom: 28 }}>
-        <div className="enrich-panel-head">
-          <h2 id="pricing-deploy-title">部署形态</h2>
-          <p>公有云含在 Team/Business 订阅内；混合与私有化按合同。</p>
-        </div>
-        <TierGrid tiers={PRICING_DEPLOY_TIERS} />
+        <TierGrid tiers={PRICING_TIERS} />
+        <p style={{ textAlign: 'center', marginTop: 20, fontSize: 12, color: '#9ca3af' }}>{PRICING_TIP}</p>
       </section>
 
       <section className="enrich-panel enrich-pricing-faq" aria-labelledby="pricing-faq-title">
         <div className="enrich-panel-head">
           <h2 id="pricing-faq-title">常见问题</h2>
-          <p>套餐边界、{SMART_PAGE_LABEL}、付款与试点</p>
+          <p>套餐边界、{SMART_PAGE_LABEL}、商用与试点</p>
         </div>
         <div className="enrich-panel-body">
           <dl className="enrich-faq-dl enrich-faq-dl--grid">

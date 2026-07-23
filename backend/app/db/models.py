@@ -24,7 +24,7 @@ class Tenant(Base):
     name: Mapped[str] = mapped_column(String(120), nullable=False)
     slug: Mapped[str] = mapped_column(String(64), unique=True, nullable=False, index=True)
     config_json: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
-    # 套餐：c_free | c_plus | b_team | b_business | b_enterprise
+    # 套餐：c_free | c_plus | b_business | b_enterprise（b_team 遗留）
     plan_tier: Mapped[str] = mapped_column(String(32), nullable=False, default="c_free")
     seat_quota: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
     plan_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

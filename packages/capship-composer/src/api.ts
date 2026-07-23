@@ -177,7 +177,15 @@ export async function submitSchemaChange(
   appId: string,
   body: { change_id?: string; page_schema?: ComposerPageSchema; summary?: string },
   opts?: { token?: string | null },
-): Promise<{ success: boolean; change: SchemaChangeItem; schema_rev: number }> {
+): Promise<{
+  success: boolean
+  change: SchemaChangeItem
+  schema_rev: number
+  requires_approval?: boolean
+  auto_published?: boolean
+  page_schema?: ComposerPageSchema
+  capability_keys?: string[]
+}> {
   const res = await fetch(`/api/v1/runtime/${appId}/schema/changes/submit`, {
     method: 'POST',
     headers: authHeaders(opts?.token),
@@ -193,6 +201,8 @@ export async function listSchemaChanges(
 ): Promise<{
   public_id: string
   is_admin: boolean
+  schema_approval?: boolean
+  can_direct_publish?: boolean
   items: SchemaChangeItem[]
   schema_rev: number
 }> {
@@ -307,6 +317,10 @@ export async function askComposeEdit(
   matched?: Array<{ key: string; label?: string; score?: number }>
   pending_codegen_keys?: string[]
   codegen_job_id?: string
+  quota?: {
+    usage?: Record<string, number>
+    remaining?: Record<string, number | null>
+  }
 }> {
   const res = await fetch('/api/v1/creation/compose-edit', {
     method: 'POST',
@@ -315,10 +329,111 @@ export async function askComposeEdit(
     signal: opts?.signal,
   })
   if (!res.ok) {
-    const detail = await res.text()
-    throw new Error(detail || `compose-edit failed (${res.status})`)
+    const raw = await res.text()
+    let msg = raw || `compose-edit failed (${res.status})`
+    try {
+      const body = JSON.parse(raw) as { detail?: string | { message?: string } }
+      if (typeof body.detail === 'string') msg = body.detail
+      else if (body.detail && typeof body.detail === 'object' && body.detail.message) {
+        msg = String(body.detail.message)
+      }
+    } catch {
+      /* keep raw */
+    }
+    throw new Error(msg)
   }
   return res.json()
+}
+
+export type ComposeThinkingStep = {
+  id: string
+  label: string
+  state: 'pending' | 'active' | 'done' | 'error'
+}
+
+export type ComposeEditResult = Awaited<ReturnType<typeof askComposeEdit>>
+
+/** SSE 流式思考 → 最终 result；404 时回落同步 askComposeEdit */
+export async function askComposeEditStream(
+  body: Parameters<typeof askComposeEdit>[0],
+  opts?: {
+    token?: string | null
+    signal?: AbortSignal
+    onThinking?: (payload: {
+      steps?: ComposeThinkingStep[]
+      intent?: string
+      label?: string
+    }) => void
+  },
+): Promise<ComposeEditResult> {
+  const res = await fetch('/api/v1/creation/compose-edit/stream', {
+    method: 'POST',
+    headers: {
+      ...authHeaders(opts?.token),
+      Accept: 'text/event-stream',
+    },
+    body: JSON.stringify(body),
+    signal: opts?.signal,
+  })
+  if (!res.ok || !res.body) {
+    if (res.status === 404 || res.status === 405) {
+      return askComposeEdit(body, opts)
+    }
+    const raw = await res.text()
+    throw new Error(raw || `compose-edit stream failed (${res.status})`)
+  }
+
+  const reader = res.body.getReader()
+  const decoder = new TextDecoder()
+  let buffer = ''
+  let result: ComposeEditResult | null = null
+
+  const flushEvent = (rawEvent: string) => {
+    const lines = rawEvent.split(/\r?\n/)
+    let event = 'message'
+    const dataLines: string[] = []
+    for (const line of lines) {
+      if (line.startsWith('event:')) event = line.slice(6).trim()
+      else if (line.startsWith('data:')) dataLines.push(line.slice(5).trim())
+    }
+    if (!dataLines.length) return
+    let data: Record<string, unknown>
+    try {
+      data = JSON.parse(dataLines.join('\n')) as Record<string, unknown>
+    } catch {
+      return
+    }
+    if (event === 'thinking') {
+      opts?.onThinking?.({
+        steps: Array.isArray(data.steps) ? (data.steps as ComposeThinkingStep[]) : undefined,
+        intent: typeof data.intent === 'string' ? data.intent : undefined,
+        label: typeof data.label === 'string' ? data.label : undefined,
+      })
+    } else if (event === 'result') {
+      result = data as unknown as ComposeEditResult
+    } else if (event === 'error') {
+      const msg = String(data.message || 'stream error')
+      const err = new Error(msg) as Error & { status?: number }
+      if (typeof data.status === 'number') err.status = data.status
+      throw err
+    }
+  }
+
+  while (true) {
+    const { done, value } = await reader.read()
+    if (done) break
+    buffer += decoder.decode(value, { stream: true })
+    let sep = buffer.indexOf('\n\n')
+    while (sep >= 0) {
+      const chunk = buffer.slice(0, sep)
+      buffer = buffer.slice(sep + 2)
+      if (chunk.trim()) flushEvent(chunk)
+      sep = buffer.indexOf('\n\n')
+    }
+  }
+  if (buffer.trim()) flushEvent(buffer)
+  if (result) return result
+  return askComposeEdit(body, opts)
 }
 
 export async function fetchCodegenJob(
@@ -329,6 +444,10 @@ export async function fetchCodegenJob(
   status: string
   error?: string
   merged?: boolean
+  unknown_keys?: string[]
+  queued_at?: string
+  started_at?: string
+  finished_at?: string
   result?: {
     page_count?: number
     llm?: boolean
@@ -338,6 +457,7 @@ export async function fetchCodegenJob(
       title?: string
       route?: string
       summary?: string
+      source_html?: string
       blocks?: Array<{ type?: string; text?: string; items?: string[] }>
       interactive?: Record<string, unknown>
     }>
@@ -352,6 +472,47 @@ export async function fetchCodegenJob(
     throw new Error(detail || `codegen job failed (${res.status})`)
   }
   return res.json()
+}
+
+export async function cancelCodegenJob(
+  jobId: string,
+  opts?: { token?: string | null; signal?: AbortSignal },
+): Promise<{ id?: string; status: string; error?: string }> {
+  const res = await fetch(`/api/v1/creation/codegen-jobs/${encodeURIComponent(jobId)}/cancel`, {
+    method: 'POST',
+    headers: authHeaders(opts?.token),
+    signal: opts?.signal,
+  })
+  if (!res.ok) {
+    const detail = await res.text()
+    throw new Error(detail || `cancel codegen failed (${res.status})`)
+  }
+  return res.json()
+}
+
+export async function findActiveCodegenJob(
+  appId: string,
+  opts?: { token?: string | null; signal?: AbortSignal },
+): Promise<{
+  id?: string
+  status?: string
+  unknown_keys?: string[]
+  app_id?: string
+} | null> {
+  const res = await fetch(
+    `/api/v1/creation/codegen-jobs?app_id=${encodeURIComponent(appId)}`,
+    { headers: authHeaders(opts?.token), signal: opts?.signal },
+  )
+  if (!res.ok) return null
+  const data = (await res.json()) as { job?: Record<string, unknown> | null }
+  const job = data.job
+  if (!job || typeof job !== 'object') return null
+  return {
+    id: typeof job.id === 'string' ? job.id : undefined,
+    status: typeof job.status === 'string' ? job.status : undefined,
+    unknown_keys: Array.isArray(job.unknown_keys) ? (job.unknown_keys as string[]) : undefined,
+    app_id: typeof job.app_id === 'string' ? job.app_id : undefined,
+  }
 }
 
 export async function askFlowEdit(

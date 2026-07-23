@@ -20,13 +20,15 @@ router = APIRouter(prefix="/billing", tags=["billing"])
 
 @router.get("/plans")
 def list_plans() -> dict:
-    """公开：C/B 套餐说明（产品文案用「智能出页」）。"""
+    """公开：套餐说明（Free / Plus / Business / Enterprise）。"""
     groups = list_plans_for_site()
     return {
         "smart_page_label": SMART_PAGE_LABEL,
         "smart_page_hint": SMART_PAGE_HINT,
+        "tip": "Plus 版仅限 ≤3 人微型团队使用，企业规模化商用请选购 Business 及以上版本",
         "c": groups["c"],
         "b": groups["b"],
+        "all": groups.get("all") or [*groups["c"], *groups["b"]],
     }
 
 

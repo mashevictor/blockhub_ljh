@@ -172,7 +172,10 @@ SCENARIO_TEMPLATES: list[dict[str, Any]] = [
     },
 ]
 
-OFFICE_DEFAULT_KEYS = ["chat_qa", "approval_flow", "kb_document", "chart_dashboard"]
+from app.data.blockhub_demo import BLOCKHUB_DEMO_KEYS
+
+# 空能力回退 = 积木仓演示页（办公核心 + 人事财务 + 2048/玩家FAQ）
+OFFICE_DEFAULT_KEYS = list(BLOCKHUB_DEMO_KEYS)
 MFG_DEFAULT_KEYS = ["chat_qa", "approval_flow", "kb_document", "chart_dashboard"]
 SALES_DEFAULT_KEYS = ["sales_lead", "quote_contract", "chart_funnel", "notify_im"]
 

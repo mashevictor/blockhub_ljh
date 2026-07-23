@@ -13,6 +13,22 @@ export function setToken(token: string): void {
   localStorage.setItem(RUNTIME_TOKEN_KEY, token)
 }
 
+/** 与 Runtime 共享登录态：token + user 一并写入 */
+export function setSharedAuth(
+  token: string,
+  user: { email?: string | null; role: string; display_name: string },
+): void {
+  setToken(token)
+  localStorage.setItem(
+    RUNTIME_USER_KEY,
+    JSON.stringify({
+      email: user.email || '',
+      role: user.role,
+      display_name: user.display_name,
+    }),
+  )
+}
+
 export function clearToken(): void {
   localStorage.removeItem(TOKEN_KEY)
   localStorage.removeItem(RUNTIME_TOKEN_KEY)

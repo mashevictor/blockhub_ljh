@@ -12,12 +12,14 @@ import type {
 import { COMPOSER_MODES } from './types'
 import {
   SchemaRevConflictError,
-  askComposeEdit,
+  askComposeEditStream,
   askFlowEdit,
   approveSchemaChange,
+  cancelCodegenJob,
   fetchCodegenJob,
   fetchRuntimeSchema,
   fetchSchemaRevisions,
+  findActiveCodegenJob,
   listSchemaChanges,
   patchRuntimeModules,
   patchRuntimeSchema,
@@ -27,6 +29,11 @@ import {
   upsertSchemaChangeDraft,
   type SchemaChangeItem,
 } from './api'
+import {
+  clearCodegenResume,
+  loadCodegenResume,
+  saveCodegenResume,
+} from './codegenResume'
 import {
   applyFlowEditOps,
   moveFlowStepLocal,
@@ -38,6 +45,14 @@ import {
   getLocalSchemaRevision,
   listLocalSchemaRevisions,
 } from './localSchemaRevisions'
+import {
+  AgentTurnBody,
+  buildThinkingSteps,
+  opsToCards,
+  type AgentTurnState,
+} from './AgentTurn'
+import { notifySchemaUpdated } from './schemaSyncChannel'
+import { notifyQuotaUpdated } from './quotaSyncChannel'
 import { CAPABILITY_MANIFEST } from '../../../shared/capability-manifest'
 
 const DEMO_CATALOG: ComposerModuleItem[] = [
@@ -580,7 +595,12 @@ function withModuleFlow(schema: ComposerPageSchema, flow: ModuleFlowPersist): Co
   }
 }
 
-type ChatMsg = { role: 'user' | 'assistant'; text: string; images?: string[] }
+type ChatMsg = {
+  role: 'user' | 'assistant'
+  text: string
+  images?: string[]
+  agent?: AgentTurnState
+}
 
 function chatStorageKey(appKey: string, kind: 'live' | 'flow') {
   return `capship-composer-chat:${kind}:${appKey}`
@@ -677,6 +697,7 @@ export function CapShipComposer({
   const [schemaDirty, setSchemaDirty] = useState(false)
   const [changeId, setChangeId] = useState<string | null>(null)
   const [isAdmin, setIsAdmin] = useState(false)
+  const [schemaApprovalRequired, setSchemaApprovalRequired] = useState(false)
   const [changeItems, setChangeItems] = useState<SchemaChangeItem[]>([])
   const chatAppKey = String(appId || initialSchema?.appId || 'preview-local')
   const [messages, setMessages] = useState<ChatMsg[]>(() =>
@@ -691,11 +712,141 @@ export function CapShipComposer({
   const lastSavedSchemaRef = useRef<ComposerPageSchema | null>(cloneSchema(initialSchema))
   const abortRef = useRef<AbortController | null>(null)
   const codegenAbortRef = useRef<AbortController | null>(null)
+  const codegenJobIdRef = useRef<string | null>(null)
   const schemaLiveRef = useRef<ComposerPageSchema | null>(schema)
+  const resumeStartedRef = useRef(false)
 
   useEffect(() => {
     schemaLiveRef.current = schema
   }, [schema])
+
+  // 刷新后恢复进行中的智能出页轮询
+  useEffect(() => {
+    if (resumeStartedRef.current) return
+    resumeStartedRef.current = true
+    const local = loadCodegenResume(chatAppKey)
+    void (async () => {
+      let jobId = local?.jobId || ''
+      let keys = local?.keys || []
+      if (!jobId && appId && !String(appId).startsWith('preview-')) {
+        const active = await findActiveCodegenJob(appId, { token })
+        if (active?.id && (active.status === 'pending' || active.status === 'running')) {
+          jobId = active.id
+          keys = active.unknown_keys || []
+          saveCodegenResume({ jobId, keys, appId: chatAppKey, savedAt: Date.now() })
+        }
+      }
+      if (!jobId) return
+      const cur = await fetchCodegenJob(jobId, { token }).catch(() => null)
+      if (!cur || cur.status === 'ready' || cur.status === 'failed' || cur.status === 'cancelled') {
+        clearCodegenResume(chatAppKey)
+        return
+      }
+      codegenJobIdRef.current = jobId
+      setBusy(true)
+      setStatus('恢复智能出页…')
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: 'assistant',
+          text: '检测到未完成的智能出页，已自动续跑。',
+          agent: {
+            phase: 'codegen',
+            steps: [
+              { id: 'ctx', label: '恢复任务', state: 'done' },
+              { id: 'codegen', label: '智能出页生成中', state: 'active' },
+            ],
+            codegen: { jobId, status: cur.status, keys, progress: 20 },
+          },
+        },
+      ])
+      codegenAbortRef.current?.abort()
+      const jobAc = new AbortController()
+      codegenAbortRef.current = jobAc
+      try {
+        for (let i = 0; i < 60; i += 1) {
+          if (jobAc.signal.aborted) return
+          await new Promise((r) => window.setTimeout(r, 2000))
+          if (jobAc.signal.aborted) return
+          const job = await fetchCodegenJob(jobId, { token, signal: jobAc.signal })
+          const pct = Math.min(92, 20 + (i + 1) * 3)
+          setMessages((prev) => {
+            const next = [...prev]
+            const last = next[next.length - 1]
+            if (!last?.agent?.codegen) return prev
+            next[next.length - 1] = {
+              ...last,
+              agent: {
+                ...last.agent,
+                phase: job.status === 'ready' ? 'done' : job.status === 'cancelled' ? 'error' : 'codegen',
+                codegen: {
+                  jobId,
+                  status: job.status,
+                  keys: job.unknown_keys || keys,
+                  progress: job.status === 'ready' || job.status === 'cancelled' ? 100 : pct,
+                  pageCount: job.result?.page_count,
+                },
+                steps: [
+                  { id: 'ctx', label: '恢复任务', state: 'done' },
+                  {
+                    id: 'codegen',
+                    label:
+                      job.status === 'ready'
+                        ? '出页完成'
+                        : job.status === 'cancelled'
+                          ? '已取消'
+                          : job.status === 'running'
+                            ? '正在生成页面代码'
+                            : '排队生成中',
+                    state:
+                      job.status === 'ready'
+                        ? 'done'
+                        : job.status === 'failed' || job.status === 'cancelled'
+                          ? 'error'
+                          : 'active',
+                  },
+                ],
+              },
+            }
+            return next
+          })
+          if (job.status === 'cancelled' || job.status === 'failed') {
+            clearCodegenResume(chatAppKey)
+            codegenJobIdRef.current = null
+            setStatus(job.status === 'cancelled' ? '出页已取消' : '出页失败')
+            return
+          }
+          if (job.status !== 'ready') continue
+          clearCodegenResume(chatAppKey)
+          codegenJobIdRef.current = null
+          const pages = job.result?.generated_pages || []
+          if (pages.length && schemaLiveRef.current) {
+            const merged = applyGeneratedPages(schemaLiveRef.current, pages)
+            setSchema(merged)
+            schemaLiveRef.current = merged
+            setKeys(merged.capability_keys)
+            setSchemaDirty(true)
+            onSchemaPatch?.(merged)
+            setStatus('AI 预览页已就绪 · 未保存')
+          } else if (job.merged && appId && !String(appId).startsWith('preview-')) {
+            const data = await fetchRuntimeSchema(appId, { token })
+            if (data?.page_schema) {
+              const remote = data.page_schema as ComposerPageSchema
+              setSchema(remote)
+              setKeys(remote.capability_keys || [])
+              setSchemaRev(data.schema_rev)
+              setSchemaDirty(false)
+              onSchemaPatch?.(remote)
+            }
+            setStatus('AI 预览页已写入')
+          }
+          return
+        }
+      } finally {
+        setBusy(false)
+      }
+    })()
+  }, [appId, chatAppKey, token, onSchemaPatch])
 
   const activeMode = controlledMode ?? mode
   const versionAppKey = String(appId || schema?.appId || 'preview-local')
@@ -776,12 +927,54 @@ export function CapShipComposer({
   }
 
   const stopChat = () => {
+    const jid = codegenJobIdRef.current
     abortInFlight()
-    setStatus('已停止')
-    setMessages((prev) => [
-      ...prev,
-      { role: 'assistant', text: '已停止当前指令。可点「编辑」改写后重发，或继续输入新需求。' },
-    ])
+    if (jid) {
+      codegenJobIdRef.current = null
+      clearCodegenResume(chatAppKey)
+      if (!token) {
+        setStatus('已停止本地轮询 · 取消服务端任务需登录')
+      } else {
+        void cancelCodegenJob(jid, { token })
+          .then((r) => {
+            if (r.status === 'cancelled' || r.status === 'ready' || r.status === 'failed') {
+              setStatus(r.status === 'cancelled' ? '已取消出页' : '已停止')
+            }
+          })
+          .catch((err) => {
+            const msg = err instanceof Error ? err.message : '取消失败'
+            setStatus(msg.includes('登录') || msg.includes('401') ? '已停止本地 · 服务端取消需登录' : `已停止 · ${msg}`)
+          })
+      }
+    }
+    setStatus((s) => s || '已停止')
+    setMessages((prev) => {
+      const next = [...prev]
+      const last = next[next.length - 1]
+      if (last?.role === 'assistant' && last.agent && last.agent.phase !== 'done') {
+        next[next.length - 1] = {
+          ...last,
+          text: last.text || '已取消本轮工具步骤。',
+          agent: {
+            ...last.agent,
+            phase: 'error',
+            steps: (last.agent.steps || []).map((s) =>
+              s.state === 'active' || s.state === 'pending'
+                ? { ...s, state: 'error' as const, label: s.label.includes('取消') ? s.label : `${s.label}（已取消）` }
+                : s,
+            ),
+            codegen: last.agent.codegen
+              ? { ...last.agent.codegen, status: 'cancelled', progress: 100 }
+              : undefined,
+          },
+        }
+        return next
+      }
+      return [
+        ...prev,
+        { role: 'assistant', text: '已停止当前指令。可点「编辑」改写后重发，或继续输入新需求。' },
+      ]
+    })
   }
 
   const deleteMessage = (index: number, kind: 'live' | 'flow' = 'live') => {
@@ -861,9 +1054,10 @@ export function CapShipComposer({
       onSchemaPatch?.(data.page_schema)
       setConflict(null)
       setStatus(`已同步到 v${data.schema_rev}`)
+      notifySchemaUpdated(appId, { schema_rev: data.schema_rev, reason: 'pull' })
       setMessages((prev) => [
         ...prev,
-        { role: 'assistant', text: `已拉取最新页面 v${data.schema_rev}，可继续对话改页。` },
+        { role: 'assistant', text: `已拉取最新页面 v${data.schema_rev}，左侧 Runtime 已刷新。可继续对话改页。` },
       ])
     } catch (e) {
       const msg = e instanceof Error ? e.message : '拉取失败'
@@ -935,6 +1129,7 @@ export function CapShipComposer({
         capability_keys: res.page_schema.capability_keys,
         schema_rev: res.schema_rev,
       })
+      notifySchemaUpdated(appId, { schema_rev: res.schema_rev, reason: 'restore' })
       setStatus(`已回滚并生成 v${res.schema_rev}（基于历史 v${rev}）`)
       setConflict(null)
       try {
@@ -1009,6 +1204,7 @@ export function CapShipComposer({
     try {
       const data = await listSchemaChanges(appId, { token })
       setIsAdmin(Boolean(data.is_admin))
+      setSchemaApprovalRequired(Boolean(data.schema_approval))
       const items = data.items || []
       setChangeItems(items)
       const mine = items.find(
@@ -1095,6 +1291,7 @@ export function CapShipComposer({
         capability_keys: next.capability_keys,
         schema_rev: item.rev,
       })
+      notifySchemaUpdated(appId || versionAppKey, { schema_rev: item.rev, reason: 'local_save' })
       return
     }
 
@@ -1137,6 +1334,7 @@ export function CapShipComposer({
         capability_keys: res.page_schema.capability_keys,
         schema_rev: res.schema_rev,
       })
+      notifySchemaUpdated(appId, { schema_rev: res.schema_rev, reason: 'direct_publish' })
       const closed = res.supersede_detail?.closed_count ?? res.superseded_changes ?? 0
       setStatus(
         closed
@@ -1183,6 +1381,7 @@ export function CapShipComposer({
       schema_rev: res.schema_rev,
       change_status: 'draft',
     })
+    notifySchemaUpdated(appId, { schema_rev: res.schema_rev, reason: 'draft_save' })
     setStatus(
       `个人工作台已按草稿更新（仅你可见）· 正式仍为 v${res.schema_rev} · 管理员通过后全员生效`,
     )
@@ -1211,7 +1410,7 @@ export function CapShipComposer({
           role: 'assistant',
           text: isPreviewLocal
             ? '草稿已保存到本地版本历史。'
-            : '草稿已保存：你的 Runtime 菜单/页面已按草稿生效（仅你账号）；同事仍看正式版。提交审批并由管理员通过后，全员才会看到。',
+            : '草稿已保存：你的 Runtime 已按草稿生效（仅你可见）。下一步：点「发布生效」写入正式版（Free/Plus 无需审批会立刻升版本）；Business 套餐则点「提交审批」。',
         },
       ])
     } catch (e) {
@@ -1226,7 +1425,7 @@ export function CapShipComposer({
     }
   }
 
-  /** 提交审批 → 通知管理员 */
+  /** 提交：有审批套餐 → pending；无审批套餐 → 自动写入正式版 */
   const submitForApproval = async () => {
     if (!schema || busy || !appId || isPreviewLocal) return
     setBusy(true)
@@ -1237,30 +1436,48 @@ export function CapShipComposer({
         {
           change_id: changeId || undefined,
           page_schema: schema,
-          summary: '对话改页提交审批',
+          summary: schemaApprovalRequired ? '对话改页提交审批' : '对话改页发布生效',
         },
         { token },
       )
-      setChangeId(res.change.id)
+      const auto = Boolean(res.auto_published) || res.requires_approval === false
+      const publishedSchema = (res.page_schema as ComposerPageSchema | undefined) || schema
+      setChangeId(auto ? null : res.change.id)
       setSchemaDirty(false)
-      lastSavedSchemaRef.current = cloneSchema(schema)
-      // 提交后仍是作者单侧生效（pending）；正式全员仍待管理员通过
-      onSchemaPatch?.(schema)
+      lastSavedSchemaRef.current = cloneSchema(publishedSchema)
+      if (typeof res.schema_rev === 'number') setSchemaRev(res.schema_rev)
+      if (res.page_schema) setSchema(cloneSchema(res.page_schema))
+      onSchemaPatch?.(publishedSchema)
       onSaved?.({
-        page_schema: schema,
-        capability_keys: schema.capability_keys,
+        page_schema: publishedSchema,
+        capability_keys: publishedSchema.capability_keys,
         schema_rev: res.schema_rev,
-        change_status: 'pending',
+        change_status: auto ? undefined : 'pending',
       })
-      setStatus('已提交审批 · 你的 Runtime 仍按此稿生效（仅你）；管理员通过后全员同步')
+      notifySchemaUpdated(appId, {
+        schema_rev: res.schema_rev,
+        reason: auto ? 'auto_publish' : 'submit',
+      })
+      if (auto) {
+        setStatus(`已发布正式 v${res.schema_rev}（当前套餐无需审批）`)
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: 'assistant',
+            text: `已写入正式页面配置 v${res.schema_rev}。同事刷新后即可看到；左侧已同步。`,
+          },
+        ])
+      } else {
+        setStatus('已提交审批 · 你的 Runtime 仍按此稿生效（仅你）；管理员通过后全员同步')
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: 'assistant',
+            text: '已提交审批。你的账号下 Runtime 已按此稿生效；同事仍看正式版。管理员通过后才会全员更新。',
+          },
+        ])
+      }
       setHistoryOpen(true)
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: 'assistant',
-          text: '已提交审批。你的账号下 Runtime 已按此稿生效；同事仍看正式版。管理员通过后才会全员更新。',
-        },
-      ])
       await loadChangeQueue()
     } catch (e) {
       const msg = e instanceof Error ? e.message : '提交失败'
@@ -1292,6 +1509,7 @@ export function CapShipComposer({
         setSchemaDirty(false)
         setChangeId(null)
         setStatus(`已通过并发布正式 v${res.schema_rev}`)
+        notifySchemaUpdated(appId, { schema_rev: res.schema_rev, reason: 'approve' })
         try {
           const hist = await fetchSchemaRevisions(appId, { token })
           setRevisions(hist.items || [])
@@ -1379,10 +1597,38 @@ export function CapShipComposer({
       },
     ])
     setBusy(true)
-    setStatus('')
+    setStatus('正在理解…')
     abortRef.current?.abort()
     const ac = new AbortController()
     abortRef.current = ac
+
+    const thinkingSteps = buildThinkingSteps()
+    setMessages((prev) => [
+      ...prev,
+      {
+        role: 'assistant',
+        text: '',
+        agent: { phase: 'thinking', steps: thinkingSteps },
+      },
+    ])
+
+    const patchLastAgent = (patch: { text?: string; agent?: AgentTurnState }) => {
+      setMessages((prev) => {
+        const next = [...prev]
+        const last = next[next.length - 1]
+        if (!last || last.role !== 'assistant') return prev
+        next[next.length - 1] = {
+          ...last,
+          text: patch.text !== undefined ? patch.text : last.text,
+          agent: patch.agent
+            ? { ...(last.agent || { phase: 'thinking', steps: [] }), ...patch.agent }
+            : last.agent,
+        }
+        return next
+      })
+    }
+
+    let hasCodegenJob = false
     try {
       const base =
         schema ??
@@ -1398,12 +1644,12 @@ export function CapShipComposer({
       const chatHistory = messages
         .slice(-12)
         .map((m) => ({
-          role: m.role,
+          role: m.role as 'user' | 'assistant',
           content: (m.text || (m.images?.length ? `（附 ${m.images.length} 张截图）` : '')).slice(0, 500),
         }))
         .filter((m) => m.content)
 
-      const result = await askComposeEdit(
+      const result = await askComposeEditStream(
         {
           instruction: text || '请根据截图说明当前页面是什么意思，并指出可改进点',
           app_name: base.title || '',
@@ -1437,7 +1683,6 @@ export function CapShipComposer({
                 label: String(props.title || props.scene_label || ''),
                 page_kind: pageKind || (html ? 'generated_code' : ''),
                 widget: widget || 'GeneratedPageWidget',
-                // 无 html 也传空串：后端仍可走「升级为智能出页」
                 source_html: html.slice(0, 100_000),
               }
             })
@@ -1463,19 +1708,49 @@ export function CapShipComposer({
               '',
           ),
         },
-        { token, signal: ac.signal },
+        {
+          token,
+          signal: ac.signal,
+          onThinking: (payload) => {
+            if (ac.signal.aborted) return
+            if (payload.steps?.length) {
+              patchLastAgent({
+                agent: {
+                  phase: 'thinking',
+                  steps: payload.steps,
+                  intent: payload.intent,
+                },
+              })
+              setStatus(payload.label || '思考中…')
+            } else if (payload.label) {
+              setStatus(payload.label)
+            }
+          },
+        },
       )
 
       if (ac.signal.aborted) return
+
+      if (result.quota?.usage || result.ops?.length || result.pending_codegen_keys?.length) {
+        notifyQuotaUpdated({
+          reason: result.pending_codegen_keys?.length ? 'compose+smart_page' : 'compose_edit',
+          usage: result.quota?.usage,
+          remaining: result.quota?.remaining,
+        })
+      }
 
       let next = base
       if (result.ops?.length) {
         next = applyComposeOps(base, result.ops)
         if (!next.menu.length) {
-          setMessages((prev) => [
-            ...prev,
-            { role: 'assistant', text: '至少保留一个菜单项，本次未应用删除。' },
-          ])
+          patchLastAgent({
+            text: '至少保留一个菜单项，本次未应用删除。',
+            agent: {
+              phase: 'error',
+              steps: thinkingSteps.map((s) => ({ ...s, state: 'done' as const })),
+              source: result.source,
+            },
+          })
           return
         }
         setSchema(next)
@@ -1491,10 +1766,9 @@ export function CapShipComposer({
       const asyncHint =
         pending?.length
           ? jobId
-            ? ` 未覆盖能力交智能出页异步生成（${pending.length} 项）：左侧先显示进度，完成后自动展开可交互预览。`
+            ? ` 未覆盖能力交智能出页异步生成（${pending.length} 项）。`
             : ` 未覆盖能力暂无异步任务，将先用本地可预见模板展示（${pending.length} 项）。`
           : ''
-      // 无 job：不要一直卡在骨架，放开本地 foresight 表单
       if (pending?.length && !jobId && result.ops?.length) {
         next = {
           ...next,
@@ -1517,10 +1791,47 @@ export function CapShipComposer({
         onSchemaPatch?.(next)
       }
       const draftHint = result.ops?.length ? ' 已写入草稿，点「保存」记入版本历史。' : ''
-      setMessages((prev) => [
-        ...prev,
-        { role: 'assistant', text: `${result.reply}${src}${asyncHint}${draftHint}` },
-      ])
+      const remCompose = result.quota?.remaining?.compose_edit_today
+      const remSmart =
+        result.quota?.remaining?.smart_page_today ?? result.quota?.remaining?.smart_page_month
+      const quotaHint =
+        remCompose != null || remSmart != null
+          ? ` 用量：对话改页剩余 ${remCompose ?? '不限'} · 智能出页剩余 ${remSmart ?? '不限'}。`
+          : result.quota?.usage
+            ? ' 套餐用量已更新，可到「我的套餐」查看。'
+            : ''
+
+      const doneSteps = [
+        { id: 'ctx', label: '读取当前菜单与上下文', state: 'done' as const },
+        { id: 'intent', label: '理解改页意图', state: 'done' as const },
+        {
+          id: 'ops',
+          label: result.ops?.length ? `规划 ${result.ops.length} 项操作` : '无需改菜单',
+          state: 'done' as const,
+        },
+        {
+          id: 'apply',
+          label: result.ops?.length ? '已写入左侧预览' : '仅回复说明',
+          state: 'done' as const,
+        },
+      ]
+
+      patchLastAgent({
+        text: `${result.reply}${src}${asyncHint}${draftHint}${quotaHint}`,
+        agent: {
+          phase: jobId ? 'codegen' : 'done',
+          steps: jobId
+            ? [...doneSteps, { id: 'codegen', label: '智能出页生成中', state: 'active' as const }]
+            : doneSteps,
+          intent: result.intent_summary,
+          matched: result.matched,
+          ops: opsToCards(result.ops || []),
+          source: result.source,
+          codegen: jobId
+            ? { jobId, status: 'pending', keys: pending || [], progress: 12 }
+            : undefined,
+        },
+      })
       setStatus(
         result.ops?.length
           ? result.ops.some((o) => o.op === 'patch_page')
@@ -1532,110 +1843,198 @@ export function CapShipComposer({
       )
 
       if (jobId) {
+        hasCodegenJob = true
+        codegenJobIdRef.current = jobId
+        saveCodegenResume({
+          jobId,
+          keys: pending || [],
+          appId: chatAppKey,
+          savedAt: Date.now(),
+        })
         const snapshot = next
         codegenAbortRef.current?.abort()
         const jobAc = new AbortController()
         codegenAbortRef.current = jobAc
         void (async () => {
-          for (let i = 0; i < 60; i += 1) {
-            if (jobAc.signal.aborted) return
-            await new Promise((r) => window.setTimeout(r, 2000))
-            if (jobAc.signal.aborted) return
-            try {
-              const job = await fetchCodegenJob(jobId, { token, signal: jobAc.signal })
-              if (job.status === 'failed') {
-                // 失败：放开骨架，回退本地 foresight/草稿
-                const fallback = {
-                  ...snapshot,
-                  root: {
-                    ...snapshot.root,
-                    children: (snapshot.root.children || []).map((c) => {
-                      const props = { ...(c.props || {}) } as Record<string, unknown>
-                      if (props.codegen_pending) {
-                        props.codegen_pending = false
-                        props.ui_phase = 'ready'
-                      }
-                      return { ...c, props }
-                    }),
-                  },
+          try {
+            for (let i = 0; i < 60; i += 1) {
+              if (jobAc.signal.aborted) return
+              await new Promise((r) => window.setTimeout(r, 2000))
+              if (jobAc.signal.aborted) return
+              try {
+                const job = await fetchCodegenJob(jobId, { token, signal: jobAc.signal })
+                const pct = Math.min(92, 12 + (i + 1) * 3)
+                if (job.status === 'cancelled') {
+                  clearCodegenResume(chatAppKey)
+                  codegenJobIdRef.current = null
+                  patchLastAgent({
+                    text: '智能出页已取消。',
+                    agent: {
+                      phase: 'error',
+                      steps: [...doneSteps, { id: 'codegen', label: '出页已取消', state: 'error' }],
+                      source: result.source,
+                      codegen: { jobId, status: 'cancelled', keys: pending || [], progress: 100 },
+                    },
+                  })
+                  setStatus('已取消出页')
+                  return
                 }
-                setSchema(fallback)
-                onSchemaPatch?.(fallback)
-                setMessages((prev) => [
-                  ...prev,
-                  {
-                    role: 'assistant',
-                    text: `AI 出页失败：${job.error || '未知错误'}。已展开本地可预见草稿，可继续改或重试。`,
+                patchLastAgent({
+                  agent: {
+                    phase: 'codegen',
+                    steps: [
+                      ...doneSteps,
+                      {
+                        id: 'codegen',
+                        label:
+                          job.status === 'running'
+                            ? '正在生成页面代码'
+                            : job.status === 'ready'
+                              ? '出页完成'
+                              : '排队生成中',
+                        state: job.status === 'ready' ? 'done' : 'active',
+                      },
+                    ],
+                    intent: result.intent_summary,
+                    matched: result.matched,
+                    ops: opsToCards(result.ops || []),
+                    source: result.source,
+                    codegen: {
+                      jobId,
+                      status: job.status,
+                      keys: job.unknown_keys || pending || [],
+                      progress: job.status === 'ready' ? 100 : pct,
+                      pageCount: job.result?.page_count,
+                    },
                   },
-                ])
-                setStatus('生成失败 · 已回退本地预览')
-                return
-              }
-              if (job.status !== 'ready') continue
-              const pages = job.result?.generated_pages || []
-              if (pages.length) {
-                // 合并到「当前最新 schema」，避免多次对话改页时用过期 snapshot 盖掉中间修改
-                const live = schemaLiveRef.current || snapshot
-                const merged = applyGeneratedPages(live, pages)
-                setSchema(merged)
-                schemaLiveRef.current = merged
-                setKeys(merged.capability_keys)
-                setSchemaDirty(true)
-                onSchemaPatch?.(merged)
-                setMessages((prev) => [
-                  ...prev,
-                  {
-                    role: 'assistant',
-                    text: `页面已更新为最新可玩版本${job.result?.llm ? '（智能出页）' : '（规则兜底）'}：${pages.length} 页。请点左侧对应菜单打开；若在游戏页，点一下画面再操作。`,
-                  },
-                ])
-                setStatus('AI 预览页已就绪 · 未保存')
-                return
-              }
-              if (job.merged && appId && !String(appId).startsWith('preview-')) {
-                const data = await fetchRuntimeSchema(appId, { token })
-                if (data?.page_schema) {
-                  const remote = data.page_schema as ComposerPageSchema
-                  setSchema(remote)
-                  setKeys(remote.capability_keys || [])
-                  onSchemaPatch?.(remote)
-                  setMessages((prev) => [
-                    ...prev,
-                    { role: 'assistant', text: 'AI 预览页已写入应用 schema，已自动刷新。' },
-                  ])
-                }
-              }
-              return
-            } catch (err) {
-              if (jobAc.signal.aborted || (err instanceof DOMException && err.name === 'AbortError')) return
-              /* 继续轮询 */
-            }
-          }
-          if (!jobAc.signal.aborted) {
-            const timedOut = {
-              ...snapshot,
-              root: {
-                ...snapshot.root,
-                children: (snapshot.root.children || []).map((c) => {
-                  const props = { ...(c.props || {}) } as Record<string, unknown>
-                  if (props.codegen_pending) {
-                    props.codegen_pending = false
-                    props.ui_phase = 'ready'
+                })
+                if (job.status === 'failed') {
+                  clearCodegenResume(chatAppKey)
+                  codegenJobIdRef.current = null
+                  const fallback = {
+                    ...snapshot,
+                    root: {
+                      ...snapshot.root,
+                      children: (snapshot.root.children || []).map((c) => {
+                        const props = { ...(c.props || {}) } as Record<string, unknown>
+                        if (props.codegen_pending) {
+                          props.codegen_pending = false
+                          props.ui_phase = 'ready'
+                        }
+                        return { ...c, props }
+                      }),
+                    },
                   }
-                  return { ...c, props }
-                }),
-              },
+                  setSchema(fallback)
+                  onSchemaPatch?.(fallback)
+                  patchLastAgent({
+                    text: `AI 出页失败：${job.error || '未知错误'}。已展开本地可预见草稿，可继续改或重试。`,
+                    agent: {
+                      phase: 'error',
+                      steps: [...doneSteps, { id: 'codegen', label: '出页失败', state: 'error' }],
+                      source: result.source,
+                      codegen: { jobId, status: 'failed', keys: pending || [], progress: 100 },
+                    },
+                  })
+                  setStatus('生成失败 · 已回退本地预览')
+                  return
+                }
+                if (job.status !== 'ready') continue
+                clearCodegenResume(chatAppKey)
+                codegenJobIdRef.current = null
+                const pages = job.result?.generated_pages || []
+                if (pages.length) {
+                  const live = schemaLiveRef.current || snapshot
+                  const merged = applyGeneratedPages(live, pages)
+                  setSchema(merged)
+                  schemaLiveRef.current = merged
+                  setKeys(merged.capability_keys)
+                  setSchemaDirty(true)
+                  onSchemaPatch?.(merged)
+                  patchLastAgent({
+                    text: `页面已更新为最新可玩版本${job.result?.llm ? '（智能出页）' : '（规则兜底）'}：${pages.length} 页（未保存）。左侧已自动刷新；请点「保存草稿」${schemaApprovalRequired ? '再「提交审批」' : '再「发布生效」'}记入版本。`,
+                    agent: {
+                      phase: 'done',
+                      steps: [
+                        ...doneSteps,
+                        { id: 'codegen', label: `已生成 ${pages.length} 页`, state: 'done' },
+                      ],
+                      intent: result.intent_summary,
+                      matched: result.matched,
+                      ops: opsToCards(result.ops || []),
+                      source: result.source,
+                      codegen: {
+                        jobId,
+                        status: 'ready',
+                        keys: pending || [],
+                        progress: 100,
+                        pageCount: pages.length,
+                      },
+                    },
+                  })
+                  setStatus('AI 预览页已就绪 · 未保存')
+                  return
+                }
+                if (job.merged && appId && !String(appId).startsWith('preview-')) {
+                  const data = await fetchRuntimeSchema(appId, { token })
+                  if (data?.page_schema) {
+                    const remote = data.page_schema as ComposerPageSchema
+                    setSchema(remote)
+                    setKeys(remote.capability_keys || [])
+                    setSchemaRev(data.schema_rev)
+                    setSchemaDirty(false)
+                    onSchemaPatch?.(remote)
+                    notifySchemaUpdated(appId, { schema_rev: data.schema_rev, reason: 'codegen_merged' })
+                    patchLastAgent({
+                      text: `AI 预览页已写入应用（v${data.schema_rev}），左侧已自动刷新。`,
+                      agent: {
+                        phase: 'done',
+                        steps: [
+                          ...doneSteps,
+                          { id: 'codegen', label: '已写入正式应用', state: 'done' },
+                        ],
+                        source: result.source,
+                        codegen: { jobId, status: 'ready', keys: [], progress: 100 },
+                      },
+                    })
+                  }
+                }
+                return
+              } catch (err) {
+                if (jobAc.signal.aborted || (err instanceof DOMException && err.name === 'AbortError')) return
+              }
             }
-            setSchema(timedOut)
-            onSchemaPatch?.(timedOut)
-            setMessages((prev) => [
-              ...prev,
-              {
-                role: 'assistant',
+            if (!jobAc.signal.aborted) {
+              clearCodegenResume(chatAppKey)
+              codegenJobIdRef.current = null
+              const timedOut = {
+                ...snapshot,
+                root: {
+                  ...snapshot.root,
+                  children: (snapshot.root.children || []).map((c) => {
+                    const props = { ...(c.props || {}) } as Record<string, unknown>
+                    if (props.codegen_pending) {
+                      props.codegen_pending = false
+                      props.ui_phase = 'ready'
+                    }
+                    return { ...c, props }
+                  }),
+                },
+              }
+              setSchema(timedOut)
+              onSchemaPatch?.(timedOut)
+              patchLastAgent({
                 text: 'AI 出页超时。复杂大作会先给精简可玩演示；刷新本页或再说「换成可玩版」即可继续打磨。',
-              },
-            ])
-            setStatus('生成超时 · 已回退本地预览')
+                agent: {
+                  phase: 'error',
+                  steps: [...doneSteps, { id: 'codegen', label: '出页超时', state: 'error' }],
+                  codegen: { jobId, status: 'timeout', keys: pending || [], progress: 100 },
+                },
+              })
+              setStatus('生成超时 · 已回退本地预览')
+            }
+          } finally {
+            setBusy(false)
           }
         })()
       }
@@ -1646,11 +2045,40 @@ export function CapShipComposer({
         return
       }
       const msg = e instanceof Error ? e.message : '理解失败'
+      const status = (e as Error & { status?: number }).status
+      const isQuota = status === 402 || /配额|上限|升级 Plus|升级套餐|402/.test(msg)
+      const isAuth = status === 401 || /未登录|令牌|401/.test(msg)
+      const isForbidden = status === 403 || /无权|权限不足|403/.test(msg)
       onError?.(msg)
-      setMessages((prev) => [...prev, { role: 'assistant', text: msg }])
+      patchLastAgent({
+        text: msg,
+        agent: {
+          phase: 'error',
+          steps: thinkingSteps.map((s) => ({
+            ...s,
+            state: s.state === 'active' ? 'error' : s.state,
+          })),
+          quotaBlocked: isQuota,
+          upgradeHref: isQuota
+            ? '/pricing'
+            : isAuth
+              ? '/admin/login'
+              : undefined,
+          upgradeLabel: isQuota
+            ? '升级套餐'
+            : isAuth
+              ? '去登录'
+              : isForbidden
+                ? undefined
+                : undefined,
+        },
+      })
+      if (isQuota) setStatus('配额不足')
+      else if (isAuth) setStatus('需要登录')
+      else if (isForbidden) setStatus('无权操作')
     } finally {
       if (abortRef.current === ac) abortRef.current = null
-      if (!ac.signal.aborted) setBusy(false)
+      if (!ac.signal.aborted && !hasCodegenJob) setBusy(false)
     }
   }
 
@@ -1739,16 +2167,22 @@ export function CapShipComposer({
         )}
         <span className="capship-composer-version-meta">
           {schemaDirty
-            ? `本地未保存改动 · 正式线上仍为 v${schemaRev}`
+            ? `本地未保存预览 · 正式仍为 v${schemaRev} · 请先保存${schemaApprovalRequired ? '再提交' : '再发布'}`
             : isPreviewLocal
               ? '预览本地版本（无审批流）'
               : changeItems.some((c) => c.id === changeId && c.status === 'pending')
-                ? '已提交审批 · 管理员通过后才会全员生效'
+                ? schemaApprovalRequired
+                  ? '已提交审批 · 管理员通过后才会全员生效'
+                  : '等待生效中…'
                 : changeItems.some((c) => c.id === changeId && c.status === 'draft')
                   ? `个人草稿已保存 · 仅你可见 · 正式仍为 v${schemaRev}`
                   : isAdmin
-                    ? `正式线上 v${schemaRev} · 审批列表「通过」逐单处理 · 「直接发布」会作废全部未生效单`
-                    : `正式线上 v${schemaRev} · 改页需提交审批后由管理员通过`}
+                    ? schemaApprovalRequired
+                      ? `正式线上 v${schemaRev} · 可审他人申请，或「直接发布」`
+                      : `正式线上 v${schemaRev} · 可用「直接发布」一键覆盖`
+                    : schemaApprovalRequired
+                      ? `正式线上 v${schemaRev} · 改页需提交审批`
+                      : `正式线上 v${schemaRev} · 点「发布生效」即可全员更新`}
         </span>
         <div className="capship-composer-version-actions">
           <button
@@ -1760,15 +2194,19 @@ export function CapShipComposer({
           >
             {busy ? '…' : '保存草稿'}
           </button>
-          {!isPreviewLocal && appId && !isAdmin ? (
+          {!isPreviewLocal && appId && !(isAdmin && schemaApprovalRequired) ? (
             <button
               type="button"
               className="capship-composer-btn is-sm is-accent"
               disabled={busy || !schema}
               onClick={() => void submitForApproval()}
-              title="提交后管理员审核通过才会更新全员正式 Runtime"
+              title={
+                schemaApprovalRequired
+                  ? '提交后管理员审核通过才会更新全员正式 Runtime'
+                  : '当前套餐无需审批，提交后立刻写入正式版并升版本号'
+              }
             >
-              提交审批
+              {schemaApprovalRequired ? '提交审批' : '发布生效'}
             </button>
           ) : null}
           {!isPreviewLocal && isAdmin && appId && schema ? (
@@ -1799,7 +2237,7 @@ export function CapShipComposer({
               disabled={busy}
               onClick={() => void pullLatest()}
             >
-              同步正式
+              刷新页面
             </button>
           ) : null}
           <button
@@ -1829,7 +2267,7 @@ export function CapShipComposer({
               disabled={busy}
               onClick={() => void pullLatest()}
             >
-              同步正式
+              刷新页面
             </button>
             {isAdmin ? (
               <button
@@ -1999,7 +2437,17 @@ export function CapShipComposer({
                     ))}
                   </div>
                 ) : null}
-                <div className="capship-composer-msg-text">{m.text}</div>
+                {m.role === 'assistant' ? (
+                  <AgentTurnBody
+                    text={m.text}
+                    agent={m.agent}
+                    onCancel={
+                      busy && i === messages.length - 1 && m.role === 'assistant' ? stopChat : undefined
+                    }
+                  />
+                ) : (
+                  <div className="capship-composer-msg-text">{m.text}</div>
+                )}
                 <div className="capship-composer-msg-actions">
                   {m.role === 'user' ? (
                     <button
@@ -2023,7 +2471,7 @@ export function CapShipComposer({
                 </div>
               </div>
             ))}
-            {busy ? <div className="capship-composer-msg is-assistant is-pending">正在理解…</div> : null}
+            {busy && !(messages.length && messages[messages.length - 1]?.agent) ? <div className="capship-composer-msg is-assistant is-pending">正在理解…</div> : null}
           </div>
           {pendingImages.length > 0 ? (
             <div className="capship-composer-pending-imgs">
@@ -2092,7 +2540,12 @@ export function CapShipComposer({
               }}
             />
             {busy ? (
-              <button type="button" className="capship-composer-btn is-danger" onClick={stopChat}>
+              <button
+                type="button"
+                className="capship-composer-btn is-danger is-stop"
+                onClick={stopChat}
+                title={token ? '停止并取消服务端出页' : '停止本地请求（取消服务端任务需登录）'}
+              >
                 停止
               </button>
             ) : (
@@ -2198,7 +2651,12 @@ export function CapShipComposer({
               }}
             />
             {busy ? (
-              <button type="button" className="capship-composer-btn is-danger" onClick={stopChat}>
+              <button
+                type="button"
+                className="capship-composer-btn is-danger is-stop"
+                onClick={stopChat}
+                title={token ? '停止并取消服务端出页' : '停止本地请求（取消服务端任务需登录）'}
+              >
                 停止
               </button>
             ) : (

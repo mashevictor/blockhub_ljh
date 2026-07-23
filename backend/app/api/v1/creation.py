@@ -1,9 +1,11 @@
-from typing import Annotated
+from typing import Annotated, Any, Iterator
 
+import json
 import logging
+import time
 
-from fastapi import APIRouter, Depends, HTTPException
-from fastapi.responses import Response
+from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.responses import Response, StreamingResponse
 from pydantic import BaseModel
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import Session
@@ -13,9 +15,14 @@ from app.core.deps import get_current_user, get_optional_user, require_admin
 from app.data.module_data import CREATION_WIZARD_STEPS, INDUSTRY_PACK_OPTIONS
 from app.data.delivery_templates import list_delivery_templates
 from app.data.schema_templates import feasibility_for_scenarios, list_templates
-from app.services.codegen_jobs import enqueue_codegen_job, get_codegen_job
+from app.services.codegen_jobs import (
+    cancel_codegen_job,
+    enqueue_codegen_job,
+    find_active_codegen_job,
+    get_codegen_job,
+)
 from app.db.models import AppRecord, User
-from app.db.session import get_db
+from app.db.session import SessionLocal, get_db
 from app.services.app_store import (
     get_app_by_public_id,
     list_plaza_feed_apps,
@@ -28,6 +35,7 @@ from app.services import catalog_store
 from app.services.apk_builder import enqueue_apk_build, get_apk_build_status, per_app_apk_ready
 from app.services.file_storage import read_bytes, save_app_icon_data_url, uploads_root
 from app.services.compose_edit import compose_edit_from_instruction
+from app.services.compose_edit_stream import compose_thinking_steps
 from app.services.flow_ask import answer_flow_question
 from app.services.flow_edit import flow_edit_from_instruction
 from app.services.flow_module_api import generate_flow_module_apis
@@ -195,8 +203,294 @@ def delivery_templates_api() -> dict:
 
 
 @router.get("/codegen-jobs/{job_id}")
-def codegen_job_status(job_id: str) -> dict:
-    return get_codegen_job(job_id)
+def codegen_job_status(
+    job_id: str,
+    db: Annotated[Session, Depends(get_db)],
+    current_user: Annotated[User | None, Depends(get_optional_user)] = None,
+) -> dict:
+    job = get_codegen_job(job_id)
+    _assert_codegen_job_access(db, current_user, job, action="read")
+    return job
+
+
+@router.post("/codegen-jobs/{job_id}/cancel")
+def codegen_job_cancel(
+    job_id: str,
+    db: Annotated[Session, Depends(get_db)],
+    current_user: Annotated[User | None, Depends(get_optional_user)] = None,
+) -> dict:
+    """取消智能出页任务（排队立即停；生成中丢弃合并）。需登录且有权访问该应用。"""
+    job = get_codegen_job(job_id)
+    _assert_codegen_job_access(db, current_user, job, action="cancel")
+    return cancel_codegen_job(job_id)
+
+
+@router.get("/codegen-jobs")
+def codegen_jobs_lookup(
+    db: Annotated[Session, Depends(get_db)],
+    current_user: Annotated[User | None, Depends(get_optional_user)] = None,
+    app_id: str = Query("", description="应用 public_id"),
+) -> dict:
+    """按 app 查找进行中的出页任务（刷新后续跑）。正式应用需登录且同租户。"""
+    aid = app_id.strip()
+    if not aid:
+        return {"job": None}
+    _assert_app_id_access(db, current_user, aid, action="read")
+    active = find_active_codegen_job(aid)
+    if active:
+        try:
+            _assert_codegen_job_access(db, current_user, active, action="read")
+        except HTTPException:
+            return {"job": None}
+    return {"job": active}
+
+
+def _is_draft_codegen_app(app_id: str) -> bool:
+    aid = (app_id or "").strip()
+    return (not aid) or aid.startswith("compose-") or aid.startswith("preview-")
+
+
+def _assert_app_id_access(
+    db: Session,
+    user: User | None,
+    app_id: str,
+    *,
+    action: str,
+) -> None:
+    if _is_draft_codegen_app(app_id):
+        if action == "cancel" and user is None:
+            raise HTTPException(status_code=401, detail="取消出页请先登录")
+        return
+    if user is None:
+        raise HTTPException(status_code=401, detail="未登录，无法访问出页任务")
+    if (user.role or "") == "admin":
+        return
+    app = get_app_by_public_id(db, app_id)
+    if not app:
+        # 任务可能早于落库；有 token 的同会话可读自己发起的 job（靠 job.tenant 再校验）
+        return
+    if app.tenant_id and app.tenant_id != user.tenant_id:
+        raise HTTPException(status_code=403, detail="无权访问该应用的出页任务")
+
+
+def _assert_codegen_job_access(
+    db: Session,
+    user: User | None,
+    job: dict[str, Any],
+    *,
+    action: str,
+) -> None:
+    if job.get("status") == "failed" and job.get("error") == "job not found":
+        if action == "cancel":
+            raise HTTPException(status_code=404, detail="出页任务不存在")
+        return
+    app_id = str(job.get("app_id") or "")
+    tenant_id = str(job.get("tenant_id") or "").strip()
+    owner_id = str(job.get("owner_user_id") or "").strip()
+
+    if _is_draft_codegen_app(app_id):
+        if action == "cancel" and user is None:
+            raise HTTPException(status_code=401, detail="取消出页请先登录")
+        # 草稿：登录用户可取消自己的；无 owner 记录时仅要求登录取消
+        if action == "cancel" and owner_id and user and user.id != owner_id and (user.role or "") != "admin":
+            raise HTTPException(status_code=403, detail="只能取消自己发起的出页任务")
+        return
+
+    if user is None:
+        raise HTTPException(status_code=401, detail="未登录，无法访问出页任务")
+    if (user.role or "") == "admin":
+        return
+    if tenant_id and tenant_id != user.tenant_id:
+        raise HTTPException(status_code=403, detail="无权访问该出页任务")
+    if owner_id and user.id != owner_id and not tenant_id:
+        raise HTTPException(status_code=403, detail="无权访问该出页任务")
+    _assert_app_id_access(db, user, app_id, action=action)
+
+
+def _execute_compose_edit(
+    body: ComposeEditRequest,
+    db: Session,
+    current_user: User | None,
+) -> dict[str, Any]:
+    """对话改页 + 配额 + 智能出页入队（同步/SSE 共用）。"""
+    from app.services.plan_usage import (
+        assert_and_count_compose_edit,
+        assert_and_count_smart_page,
+        assert_compose_edit_quota,
+        assert_smart_page_quota,
+        usage_summary,
+    )
+
+    result = compose_edit_from_instruction(
+        instruction=body.instruction,
+        menu=body.menu,
+        capability_keys=body.capability_keys,
+        app_name=body.app_name,
+        images=body.images,
+        entry_source=body.entry_source,
+        industry_key=body.industry_key,
+        microsite_id=body.microsite_id,
+        web_template_id=body.web_template_id,
+        page_snapshots=body.page_snapshots,
+        chat_history=body.chat_history,
+    )
+
+    pending = list(result.get("pending_codegen_keys") or [])
+    if result.get("ops"):
+        assert_compose_edit_quota(db, current_user)
+    if pending:
+        assert_smart_page_quota(db, current_user, page_count=len(pending))
+
+    codegen_job_id = ""
+    if pending:
+        try:
+            real_id = (body.app_id or "").strip()
+            job_app_id = (
+                real_id
+                if real_id and not real_id.startswith("preview-")
+                else f"compose-{(body.app_name or 'draft')}"[:48]
+            )
+            tpl = (body.web_template_id or "").strip() or "tabs_portal"
+            if (body.entry_source or "").strip() == "industry_site" and tpl == "tabs_portal":
+                tpl = "sidebar_admin"
+            base_html_by_key: dict[str, str] = {}
+            for snap in body.page_snapshots or []:
+                if not isinstance(snap, dict):
+                    continue
+                k = str(snap.get("capability_key") or snap.get("key") or "").strip()
+                html = str(snap.get("source_html") or "").strip()
+                if k and html and k in pending:
+                    base_html_by_key[k] = html[:120_000]
+            codegen_job_id = enqueue_codegen_job(
+                app_id=job_app_id,
+                app_name=body.app_name or "Runtime 编排",
+                unknown_keys=pending,
+                prompt=body.instruction,
+                web_template_id=tpl,
+                app_ui_id=(body.app_ui_id or "").strip() or "bottom_tabs",
+                base_html_by_key=base_html_by_key or None,
+                tenant_id=getattr(current_user, "tenant_id", None) if current_user else None,
+                owner_user_id=getattr(current_user, "id", None) if current_user else None,
+            )
+        except Exception:
+            logger.exception("compose-edit enqueue smart_page failed")
+            codegen_job_id = ""
+
+    if result.get("ops"):
+        assert_and_count_compose_edit(db, current_user)
+    if pending and codegen_job_id:
+        assert_and_count_smart_page(db, current_user, page_count=len(pending))
+    elif pending and not codegen_job_id:
+        result = {
+            **result,
+            "smart_page_skipped": True,
+            "smart_page_skip_reason": "enqueue_failed",
+        }
+
+    if codegen_job_id:
+        result = {**result, "codegen_job_id": codegen_job_id}
+    if current_user and (result.get("ops") or (pending and codegen_job_id)):
+        try:
+            result = {**result, "quota": usage_summary(db, current_user)}
+        except Exception:
+            logger.exception("compose-edit attach quota failed")
+    return result
+
+
+def _sse_pack(event: str, data: dict[str, Any]) -> str:
+    return f"event: {event}\ndata: {json.dumps(data, ensure_ascii=False)}\n\n"
+
+
+@router.post("/compose-edit")
+def compose_edit_api(
+    body: ComposeEditRequest,
+    db: Annotated[Session, Depends(get_db)],
+    current_user: Annotated[User | None, Depends(get_optional_user)] = None,
+) -> dict:
+    """自然语言改 Runtime 菜单/场景；未知/修订页走智能出页（异步）。"""
+    return _execute_compose_edit(body, db, current_user)
+
+
+@router.post("/compose-edit/stream")
+def compose_edit_stream_api(
+    body: ComposeEditRequest,
+    current_user: Annotated[User | None, Depends(get_optional_user)] = None,
+) -> StreamingResponse:
+    """SSE：流式思考步骤 → 最终 result（Cursor 式）。客户端 Abort 可断开。"""
+
+    def event_stream() -> Iterator[str]:
+        plan = compose_thinking_steps(
+            body.instruction,
+            has_images=bool(body.images),
+        )
+        # 先推全量步骤骨架
+        yield _sse_pack(
+            "thinking",
+            {
+                "steps": [
+                    {
+                        "id": s["id"],
+                        "label": s["label"],
+                        "state": "pending" if i else "active",
+                    }
+                    for i, s in enumerate(plan)
+                ]
+            },
+        )
+        for i, step in enumerate(plan[:-1]):
+            time.sleep(0.12)
+            done = [
+                {
+                    "id": s["id"],
+                    "label": s["label"],
+                    "state": "done" if j < i + 1 else ("active" if j == i + 1 else "pending"),
+                }
+                for j, s in enumerate(plan)
+            ]
+            yield _sse_pack(
+                "thinking",
+                {"steps": done, "active": step["id"], "label": step["label"]},
+            )
+
+        db = SessionLocal()
+        try:
+            yield _sse_pack(
+                "thinking",
+                {
+                    "steps": [
+                        {**s, "state": "done" if j < len(plan) - 1 else "active"}
+                        for j, s in enumerate(plan)
+                    ],
+                    "label": "正在生成改页方案…",
+                },
+            )
+            result = _execute_compose_edit(body, db, current_user)
+            yield _sse_pack(
+                "thinking",
+                {
+                    "steps": [{**s, "state": "done"} for s in plan],
+                    "intent": result.get("intent_summary") or "",
+                },
+            )
+            yield _sse_pack("result", result)
+        except HTTPException as he:
+            detail = he.detail if isinstance(he.detail, str) else json.dumps(he.detail, ensure_ascii=False)
+            yield _sse_pack("error", {"message": detail, "status": he.status_code})
+        except Exception as exc:
+            logger.exception("compose-edit stream failed")
+            yield _sse_pack("error", {"message": str(exc)[:400]})
+        finally:
+            db.close()
+
+    return StreamingResponse(
+        event_stream(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )
 
 
 @router.post("/custom-capabilities")
@@ -334,71 +628,6 @@ def flow_ask_api(body: FlowAskRequest) -> dict:
     )
 
 
-@router.post("/compose-edit")
-def compose_edit_api(
-    body: ComposeEditRequest,
-    db: Annotated[Session, Depends(get_db)],
-    current_user: Annotated[User | None, Depends(get_optional_user)] = None,
-) -> dict:
-    """自然语言改 Runtime 菜单/场景；未知/修订页走智能出页（异步）。"""
-    from app.services.plan_usage import assert_and_count_compose_edit, assert_and_count_smart_page
-
-    result = compose_edit_from_instruction(
-        instruction=body.instruction,
-        menu=body.menu,
-        capability_keys=body.capability_keys,
-        app_name=body.app_name,
-        images=body.images,
-        entry_source=body.entry_source,
-        industry_key=body.industry_key,
-        microsite_id=body.microsite_id,
-        web_template_id=body.web_template_id,
-        page_snapshots=body.page_snapshots,
-        chat_history=body.chat_history,
-    )
-    # 仅在真正产出 ops 时计对话改页，避免澄清问答耗尽 Free 配额
-    if result.get("ops"):
-        assert_and_count_compose_edit(db, current_user)
-
-    pending = list(result.get("pending_codegen_keys") or [])
-    codegen_job_id = ""
-    if pending:
-        assert_and_count_smart_page(db, current_user, page_count=len(pending))
-        try:
-            real_id = (body.app_id or "").strip()
-            job_app_id = (
-                real_id
-                if real_id and not real_id.startswith("preview-")
-                else f"compose-{(body.app_name or 'draft')}"[:48]
-            )
-            tpl = (body.web_template_id or "").strip() or "tabs_portal"
-            if (body.entry_source or "").strip() == "industry_site" and tpl == "tabs_portal":
-                tpl = "sidebar_admin"
-            base_html_by_key: dict[str, str] = {}
-            for snap in body.page_snapshots or []:
-                if not isinstance(snap, dict):
-                    continue
-                k = str(snap.get("capability_key") or snap.get("key") or "").strip()
-                html = str(snap.get("source_html") or "").strip()
-                if k and html and k in pending:
-                    base_html_by_key[k] = html[:120_000]
-            codegen_job_id = enqueue_codegen_job(
-                app_id=job_app_id,
-                app_name=body.app_name or "Runtime 编排",
-                unknown_keys=pending,
-                prompt=body.instruction,
-                web_template_id=tpl,
-                app_ui_id=(body.app_ui_id or "").strip() or "bottom_tabs",
-                base_html_by_key=base_html_by_key or None,
-            )
-        except Exception:
-            logger.exception("compose-edit enqueue smart_page failed")
-            codegen_job_id = ""
-    if codegen_job_id:
-        result = {**result, "codegen_job_id": codegen_job_id}
-    return result
-
-
 @router.post("/flow-edit")
 def flow_edit_api(body: FlowEditRequest) -> dict:
     """自然语言改模块数据流，优先大模型。"""
@@ -493,6 +722,8 @@ def publish_app(
                 prompt=body.prompt,
                 web_template_id=app.get("web_template_id") or body.web_template_id,
                 app_ui_id=app.get("app_ui_id") or body.app_ui_id,
+                tenant_id=getattr(current_user, "tenant_id", None),
+                owner_user_id=getattr(current_user, "id", None),
             )
 
         email_sent = False

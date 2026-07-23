@@ -258,7 +258,7 @@ export function resolveAppBundle(opts: ResolveOptions): ResolvedAppBundle {
     if (sugScenario) return sugScenario.label
     const sugFunc = suggestedOrdered.find((m) => m.type === 'module' || m.type === 'capability')
     if (sugFunc) return sugFunc.label
-    return promptTextBuilt.slice(0, 16) || '我的应用'
+    return promptTextBuilt.slice(0, 16) || '积木仓演示页面'
   })()
 
   return {

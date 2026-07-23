@@ -62,12 +62,24 @@ def smoke_local() -> int:
         fails += 1
     else:
         ok("c_plus amount 3900")
-    fen, seats = calc_checkout_amount_fen("b_team", 3)
-    if seats != 5 or fen != 9800 * 5:
-        bad(f"b_team min seats {fen}/{seats}")
+    fen, seats = calc_checkout_amount_fen("b_business", 1)
+    if seats != 1 or fen != 14800:
+        bad(f"b_business amount {fen}/{seats}")
         fails += 1
     else:
-        ok("b_team min seats 5")
+        ok("b_business amount 14800")
+    fen, seats = calc_checkout_amount_fen("c_plus", 5)
+    if seats != 3 or fen != 3900 * 3:
+        bad(f"c_plus max seats {fen}/{seats}")
+        fails += 1
+    else:
+        ok("c_plus max seats 3")
+    try:
+        calc_checkout_amount_fen("b_team", 5)
+        bad("b_team should reject checkout")
+        fails += 1
+    except ValueError:
+        ok("b_team checkout rejected")
     params = {"orderId": "o1", "orderAmount": "39.00", "status": "SUCCESS"}
     sig = sign_params(params, "test-key")
     params2 = {**params, "sign": sig}

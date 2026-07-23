@@ -258,6 +258,11 @@ def persist_published_app(
         microsite_id=microsite_id or None,
         publish_source=source,
     )
+    # 演示页可能追加 gen_snake 等；回写 keys / 模板
+    keys = list(page_schema.get("capability_keys") or keys)
+    meta_ps = page_schema.get("meta") if isinstance(page_schema.get("meta"), dict) else {}
+    if meta_ps.get("web_template_id"):
+        web_tpl = str(meta_ps["web_template_id"])
     # 独立站封面大字：写入行业中文名（Runtime 英雄区用，不依赖应用自定义名）
     meta = page_schema.setdefault("meta", {})
     if isinstance(meta, dict):
@@ -268,6 +273,12 @@ def persist_published_app(
             or pack.get("name")
             or industry_key
         )
+        # 积木仓演示页：展示名覆盖行业标签
+        from app.data.blockhub_demo import BLOCKHUB_DEMO_NAME
+
+        if (name or "").strip() == BLOCKHUB_DEMO_NAME or "积木仓演示" in (name or ""):
+            industry_name = BLOCKHUB_DEMO_NAME
+            meta["demo_page"] = True
         meta["industry_name"] = industry_name
         theme = page_schema.setdefault("theme", {})
         if isinstance(theme, dict):

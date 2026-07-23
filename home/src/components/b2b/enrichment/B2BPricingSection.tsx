@@ -1,28 +1,28 @@
 import { Link } from 'react-router-dom'
 import { AgentButtonContent, AgentChevronGlyph } from '../../AgentChevron'
-import { PRICING_B_TIERS, PRICING_C_TIERS } from '../../../data/sitePricing'
+import { PRICING_TIERS, PRICING_TIP } from '../../../data/sitePricing'
 import { ROUTES } from '../../../routes/paths'
 
 export default function B2BPricingSection() {
-  const highlight = [...PRICING_C_TIERS, ...PRICING_B_TIERS.filter((t) => t.id !== 'b_team')]
   return (
     <section className="enrich-pricing-bar" aria-labelledby="enrich-pricing-title">
       <div className="enrich-pricing-inner">
         <div className="b2b-section-title">
           <span className="b2b-eyebrow enrich-eyebrow">
             <AgentChevronGlyph size="btn" className="enrich-eyebrow-chev" />
-            价格说明
+            套餐定价
           </span>
-          <h2 id="enrich-pricing-title">C 端 + B 端套餐</h2>
+          <h2 id="enrich-pricing-title">Free · Plus · Business · Enterprise</h2>
         </div>
         <div className="enrich-pricing-grid">
-          {highlight.map((tier) => (
+          {PRICING_TIERS.map((tier) => (
             <article
               key={tier.id}
               className={`enrich-tier${tier.featured ? ' is-featured' : ''}`}
             >
               <h4>{tier.name}</h4>
               <div className="enrich-tier-range">{tier.range}</div>
+              <p style={{ fontSize: 13, color: '#6b7280', margin: '0 0 8px' }}>{tier.desc}</p>
               <ul>
                 {tier.features.slice(0, 4).map((f) => (
                   <li key={f}>{f}</li>
@@ -31,6 +31,7 @@ export default function B2BPricingSection() {
             </article>
           ))}
         </div>
+        <p style={{ textAlign: 'center', marginTop: 12, fontSize: 12, color: '#9ca3af' }}>{PRICING_TIP}</p>
         <div className="enrich-section-foot" style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
           <Link to={ROUTES.pricing} className="enrich-link-btn agent-action-btn">
             <AgentButtonContent>查看完整定价说明</AgentButtonContent>

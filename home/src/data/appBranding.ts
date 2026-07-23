@@ -20,7 +20,7 @@ export function resolveAppName(custom: string, fallback: string): string {
 
 /** 20 行业深度包 · 生成应用默认名称（可改） */
 export const INDUSTRY_DEFAULT_APP_NAMES: Record<string, string> = {
-  office: '办公协同助手',
+  office: '积木仓演示页面',
   mfg: '产线智造工作台',
   sales: '销售获客工作台',
   med: '医疗协同助手',
@@ -46,6 +46,25 @@ export const INDUSTRY_DEFAULT_APP_NAMES: Record<string, string> = {
   auto: '车服售后助手',
 }
 
+export const BLOCKHUB_DEMO_APP_NAME = '积木仓演示页面'
+
+/** 自由搭配默认勾选（与 backend blockhub_demo.BLOCKHUB_DEMO_KEYS 对齐） */
+export const BLOCKHUB_DEMO_MODULE_KEYS = [
+  'chat_qa',
+  'approval_flow',
+  'kb_document',
+  'chart_dashboard',
+  'policy_qa',
+  'leave_request',
+  'expense_claim',
+  'hire_onboard',
+  'legal_case',
+  'ops_kpi',
+  'notify_inapp',
+  'game_2048',
+  'game_support',
+] as const
+
 export function defaultAppNameForIndustry(industryKey: string): string {
   const key = (industryKey || '').trim()
   return INDUSTRY_DEFAULT_APP_NAMES[key] || '行业智能应用'
@@ -69,7 +88,7 @@ export function deriveDefaultAppName(opts: {
   usedAi?: boolean
   fallback?: string
 }): string {
-  const { modules, suggestions = [], intentText = '', usedAi = false, fallback = '我的应用' } = opts
+  const { modules, suggestions = [], intentText = '', usedAi = false, fallback = '积木仓演示页面' } = opts
   const intentName = cleanIntentTitle(intentText)
 
   const fromModules = (list: PromptModule[]) => {

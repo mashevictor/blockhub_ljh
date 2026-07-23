@@ -410,20 +410,21 @@ def patch_runtime_schema(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> dict:
-    """直接写正式 page_schema：仅管理员。
+    """直接写正式 page_schema：平台 admin 或租户 owner。
 
-    普通用户请走 /schema/changes 草稿 → 提交审批 → 管理员通过。
+    普通员工请走 /schema/changes 草稿 → 提交（无审批套餐会自动生效）。
     """
     app = db.query(AppRecord).filter(AppRecord.public_id == public_id).first()
     if not app:
         raise HTTPException(status_code=404, detail="应用不存在")
     _assert_can_edit_runtime_app(user, app)
-    if user.role != "admin":
+    role = (user.role or "").lower()
+    if role not in {"admin", "tenant_owner"}:
         raise HTTPException(
             status_code=403,
             detail={
                 "code": "SCHEMA_APPROVAL_REQUIRED",
-                "message": "改页需先保存草稿并提交审批，管理员通过后才会影响正式 Runtime",
+                "message": "改页请先保存草稿并提交；无审批套餐提交后会自动写入正式版",
             },
         )
     schema = dict(body.page_schema or {})

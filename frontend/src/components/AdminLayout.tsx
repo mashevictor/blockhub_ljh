@@ -58,7 +58,24 @@ export default function AdminLayout() {
   useEffect(() => {
     fetchDashboard().then(setStats).catch(() => {})
     fetchCatalogSummary().then(setCatalog).catch(() => {})
-    fetchBillingMe().then(setBilling).catch(() => {})
+    const loadBilling = () => {
+      fetchBillingMe().then(setBilling).catch(() => {})
+    }
+    loadBilling()
+    const onFocus = () => {
+      if (document.visibilityState === 'visible') loadBilling()
+    }
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === 'blockhub:quota-ping' && e.newValue) loadBilling()
+    }
+    window.addEventListener('focus', onFocus)
+    document.addEventListener('visibilitychange', onFocus)
+    window.addEventListener('storage', onStorage)
+    return () => {
+      window.removeEventListener('focus', onFocus)
+      document.removeEventListener('visibilitychange', onFocus)
+      window.removeEventListener('storage', onStorage)
+    }
   }, [])
 
   const visibleNav = useMemo(

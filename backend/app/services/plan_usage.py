@@ -154,12 +154,12 @@ def assert_app_quota(db: Session, user: User | None, *, current_app_count: int) 
     if current_app_count >= int(lim):
         raise HTTPException(
             status_code=402,
-            detail=f"当前套餐「{plan['name']}」最多 {lim} 个应用，请升级 Plus 或 B 端套餐",
+            detail=f"当前套餐「{plan['name']}」最多 {lim} 个应用，请升级 Plus（应用不限）或 Business",
         )
 
 
 def assert_industry_pack_quota(db: Session, user: User, *, industry_key: str) -> None:
-    """行业包配额：Free/Plus=0（仅 office/模块）；Team=1；Business=5；Enterprise 不限。"""
+    """行业包配额：Free/Plus=0（仅 office/模块）；遗留 Team=1；Business=5；Enterprise 不限。"""
     if user.role == "admin":
         return
     key = (industry_key or "").strip().lower()
@@ -174,7 +174,7 @@ def assert_industry_pack_quota(db: Session, user: User, *, industry_key: str) ->
         raise HTTPException(
             status_code=402,
             detail=(
-                f"当前套餐「{plan['name']}」不含行业包，请升级 Team 及以上，"
+                f"当前套餐「{plan['name']}」不含行业包，请升级 Business 及以上，"
                 f"或改用办公模块 / 自由搭配创建。"
             ),
         )
@@ -199,14 +199,12 @@ def assert_industry_pack_quota(db: Session, user: User, *, industry_key: str) ->
         )
 
 
-def assert_and_count_compose_edit(db: Session, user: User | None) -> dict[str, Any]:
-    """对话改页计次（按天）。无用户时按放行（预览草稿）。"""
+def assert_compose_edit_quota(db: Session, user: User | None) -> dict[str, Any]:
+    """仅校验对话改页配额，不扣次。"""
     if not user:
         return {"ok": True, "skipped": True}
     plan = resolve_plan_for_user(db, user)
     lim = plan.get("compose_edit_per_day")
-    if lim is None:
-        return {"ok": True, "plan": plan["id"], "unlimited": True}
     used = get_usage(
         db,
         tenant_id=user.tenant_id,
@@ -214,7 +212,7 @@ def assert_and_count_compose_edit(db: Session, user: User | None) -> dict[str, A
         metric="compose_edit",
         period_key=_period_day(),
     )
-    if used >= int(lim):
+    if lim is not None and used >= int(lim):
         raise HTTPException(
             status_code=402,
             detail=(
@@ -223,14 +221,95 @@ def assert_and_count_compose_edit(db: Session, user: User | None) -> dict[str, A
                 f"Free 为 10 次/天，升级 Plus 可不限制。"
             ),
         )
-    increment_usage(
+    return {"ok": True, "used": used, "limit": lim, "unlimited": lim is None, "plan": plan["id"]}
+
+
+def assert_smart_page_quota(
+    db: Session,
+    user: User | None,
+    *,
+    page_count: int = 1,
+) -> dict[str, Any]:
+    """仅校验智能出页配额，不扣次。"""
+    if not user or page_count <= 0:
+        return {"ok": True, "skipped": True}
+    plan = resolve_plan_for_user(db, user)
+    day_lim = plan.get("smart_page_per_day")
+    month_lim = plan.get("smart_page_per_month")
+    if day_lim is not None:
+        used = get_usage(
+            db,
+            tenant_id=user.tenant_id,
+            user_id=user.id,
+            metric="smart_page",
+            period_key=_period_day(),
+        )
+        if used + page_count > int(day_lim):
+            raise HTTPException(
+                status_code=402,
+                detail=(
+                    f"今日{SMART_PAGE_LABEL}已达上限（{day_lim} 次）。"
+                    f"{SMART_PAGE_LABEL}指 AI 生成/修订整页可运行界面；"
+                    f"升级 Plus 后不限制。"
+                ),
+            )
+        return {"ok": True, "used": used, "limit": day_lim, "plan": plan["id"]}
+    if month_lim is not None:
+        used = get_usage(
+            db,
+            tenant_id=user.tenant_id,
+            user_id=None,
+            metric="smart_page",
+            period_key=_period_month(),
+        )
+        if used + page_count > int(month_lim):
+            raise HTTPException(
+                status_code=402,
+                detail=f"本月组织{SMART_PAGE_LABEL}配额已用尽（{month_lim} 次）。Business 为 2000 次/月共享，请升级 Enterprise 或下月再试。",
+            )
+        return {"ok": True, "used": used, "limit": month_lim, "plan": plan["id"]}
+    return {"ok": True, "unlimited": True, "plan": plan["id"]}
+
+
+def assert_and_count_compose_edit(db: Session, user: User | None) -> dict[str, Any]:
+    """对话改页计次（按天）。无用户时按放行（预览草稿）。
+
+    不限次套餐仍记 used，便于「我的套餐」展示今日已用；仅跳过上限校验。
+    """
+    if not user:
+        return {"ok": True, "skipped": True}
+    plan = resolve_plan_for_user(db, user)
+    lim = plan.get("compose_edit_per_day")
+    used = get_usage(
         db,
         tenant_id=user.tenant_id,
         user_id=user.id,
         metric="compose_edit",
         period_key=_period_day(),
     )
-    return {"ok": True, "used": used + 1, "limit": lim, "plan": plan["id"]}
+    if lim is not None and used >= int(lim):
+        raise HTTPException(
+            status_code=402,
+            detail=(
+                f"今日{COMPOSE_EDIT_LABEL}已达上限（{lim} 次）。"
+                f"{COMPOSE_EDIT_LABEL}指用聊天改菜单/表单；"
+                f"Free 为 10 次/天，升级 Plus 可不限制。"
+            ),
+        )
+    new_used = increment_usage(
+        db,
+        tenant_id=user.tenant_id,
+        user_id=user.id,
+        metric="compose_edit",
+        period_key=_period_day(),
+    )
+    return {
+        "ok": True,
+        "used": new_used,
+        "limit": lim,
+        "unlimited": lim is None,
+        "plan": plan["id"],
+    }
 
 
 def assert_and_count_smart_page(
@@ -239,7 +318,10 @@ def assert_and_count_smart_page(
     *,
     page_count: int = 1,
 ) -> dict[str, Any]:
-    """智能出页计次：C 端按天；B 端可按月共享（user_id=None）。"""
+    """智能出页计次：C 端按天；B 端可按月共享（user_id=None）。
+
+    不限次仍记 used（日或月维度），便于套餐页及时显示已用次数。
+    """
     if not user or page_count <= 0:
         return {"ok": True, "skipped": True}
     plan = resolve_plan_for_user(db, user)
@@ -263,7 +345,7 @@ def assert_and_count_smart_page(
                     f"升级 Plus 后不限制。"
                 ),
             )
-        increment_usage(
+        new_used = increment_usage(
             db,
             tenant_id=user.tenant_id,
             user_id=user.id,
@@ -271,7 +353,7 @@ def assert_and_count_smart_page(
             period_key=_period_day(),
             delta=page_count,
         )
-        return {"ok": True, "used": used + page_count, "limit": day_lim, "plan": plan["id"]}
+        return {"ok": True, "used": new_used, "limit": day_lim, "plan": plan["id"]}
 
     if month_lim is not None:
         used = get_usage(
@@ -284,9 +366,9 @@ def assert_and_count_smart_page(
         if used + page_count > int(month_lim):
             raise HTTPException(
                 status_code=402,
-                detail=f"本月组织{SMART_PAGE_LABEL}配额已用尽（{month_lim} 次），请升级套餐或下月再试。",
+                detail=f"本月组织{SMART_PAGE_LABEL}配额已用尽（{month_lim} 次）。Business 为 2000 次/月共享，请升级 Enterprise 或下月再试。",
             )
-        increment_usage(
+        new_used = increment_usage(
             db,
             tenant_id=user.tenant_id,
             user_id=None,
@@ -294,9 +376,18 @@ def assert_and_count_smart_page(
             period_key=_period_month(),
             delta=page_count,
         )
-        return {"ok": True, "used": used + page_count, "limit": month_lim, "plan": plan["id"]}
+        return {"ok": True, "used": new_used, "limit": month_lim, "plan": plan["id"]}
 
-    return {"ok": True, "unlimited": True, "plan": plan["id"]}
+    # 日/月均不限：仍记日用量，套餐页「已用」能涨
+    new_used = increment_usage(
+        db,
+        tenant_id=user.tenant_id,
+        user_id=user.id,
+        metric="smart_page",
+        period_key=_period_day(),
+        delta=page_count,
+    )
+    return {"ok": True, "used": new_used, "unlimited": True, "plan": plan["id"]}
 
 
 def assert_and_count_code_download(db: Session, user: User) -> dict[str, Any]:

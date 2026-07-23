@@ -158,7 +158,6 @@ export default function B2BHeader({ user, activeSection = 'hero', onLogout }: Pr
           <div className="b2b-nav-actions-tail">
             {user ? (
               <>
-                <span className="b2b-nav-user">{user.display_name}</span>
                 <Link className="b2b-nav-link" to={ROUTES.accountBilling}>我的套餐</Link>
                 <a className="b2b-nav-link" href={getAdminDashboardUrl()}>管理后台</a>
                 <button type="button" className="b2b-nav-link b2b-nav-link-btn" onClick={onLogout}>退出</button>

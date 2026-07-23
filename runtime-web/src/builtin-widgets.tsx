@@ -34,19 +34,22 @@ function snakePlayableHtml(title: string): string {
   return `<!DOCTYPE html><html><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>${t}</title>
 <style>
-body{margin:0;font-family:system-ui,sans-serif;background:#0f172a;color:#e2e8f0;display:flex;flex-direction:column;align-items:center;gap:10px;padding:16px}
-canvas{background:#020617;border:2px solid #334155;border-radius:10px;image-rendering:pixelated;touch-action:none}
-button{border:0;border-radius:8px;padding:10px 14px;background:#0d9488;color:#fff;cursor:pointer;font-size:14px;min-width:44px;min-height:44px}
-.pad{display:grid;grid-template-columns:44px 44px 44px;gap:6px;justify-items:center}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,sans-serif;background:#0f172a;color:#e2e8f0;display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px 12px 16px}
+h2{margin:0;font-size:16px;font-weight:700}
+.meta{margin:0;font-size:12px;opacity:.8}
+canvas{background:#020617;border:2px solid #334155;border-radius:10px;image-rendering:pixelated;touch-action:none;display:block}
+button{border:0;border-radius:8px;padding:8px 12px;background:#0d9488;color:#fff;cursor:pointer;font-size:13px;min-width:40px;min-height:40px}
+.pad{display:grid;grid-template-columns:40px 40px 40px;gap:5px;justify-items:center}
 .pad .u{grid-column:2}.pad .l{grid-column:1;grid-row:2}.pad .d{grid-column:2;grid-row:2}.pad .r{grid-column:3;grid-row:2}
-.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:center}
-#msg{min-height:20px;font-size:13px;color:#fbbf24}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:center;font-size:13px}
+#msg{min-height:16px;font-size:12px;color:#fbbf24;margin:0}
 </style></head><body>
-<h2 style="margin:0">${t}</h2>
-<p style="margin:0;font-size:13px;opacity:.85">方向键 / WASD / 下方按钮</p>
-<canvas id="c" width="320" height="320" tabindex="0"></canvas>
+<h2>${t}</h2>
+<p class="meta">方向键 / WASD / 下方按钮 · 得分 <b id="sc">0</b></p>
+<canvas id="c" width="280" height="280" tabindex="0"></canvas>
 <p id="msg"></p>
-<div class="row"><button type="button" id="go">再来一局</button><span>得分 <b id="sc">0</b></span></div>
+<div class="row"><button type="button" id="go">再来一局</button></div>
 <div class="pad" aria-label="方向">
 <button type="button" class="u" data-d="u">↑</button>
 <button type="button" class="l" data-d="l">←</button>
@@ -55,20 +58,20 @@ button{border:0;border-radius:8px;padding:10px 14px;background:#0d9488;color:#ff
 </div>
 <script>
 (function(){
-const N=16,S=20,C=document.getElementById('c'),X=C.getContext('2d'),MSG=document.getElementById('msg');
+const N=14,S=20,C=document.getElementById('c'),X=C.getContext('2d'),MSG=document.getElementById('msg');
 let snake,dir,food,score,alive,timer,pending=null;
 function rnd(){return Math.floor(Math.random()*N)}
 function place(){let p;do{p={x:rnd(),y:rnd()}}while(snake.some(s=>s.x===p.x&&s.y===p.y));return p}
 function setDir(nx,ny){if(!alive)return;if(nx===-dir.x&&ny===-dir.y)return;pending={x:nx,y:ny}}
-function reset(){snake=[{x:8,y:8}];dir={x:1,y:0};pending=null;food=place();score=0;alive=true;MSG.textContent='';
+function reset(){snake=[{x:7,y:7}];dir={x:1,y:0};pending=null;food=place();score=0;alive=true;MSG.textContent='';
 document.getElementById('sc').textContent=score;clearInterval(timer);timer=setInterval(tick,140);draw();try{C.focus()}catch(e){}}
 function tick(){if(!alive)return;if(pending){dir=pending;pending=null}
 const h={x:snake[0].x+dir.x,y:snake[0].y+dir.y};
 if(h.x<0||h.y<0||h.x>=N||h.y>=N||snake.some(s=>s.x===h.x&&s.y===h.y)){alive=false;MSG.textContent='撞到了 · 点「再来一局」';draw();return}
 snake.unshift(h);if(h.x===food.x&&h.y===food.y){score++;document.getElementById('sc').textContent=score;food=place()}else snake.pop();draw()}
-function draw(){X.clearRect(0,0,320,320);X.fillStyle='#f59e0b';X.fillRect(food.x*S,food.y*S,S-1,S-1);
+function draw(){X.clearRect(0,0,280,280);X.fillStyle='#f59e0b';X.fillRect(food.x*S,food.y*S,S-1,S-1);
 snake.forEach((s,i)=>{X.fillStyle=i?'#34d399':'#6ee7b7';X.fillRect(s.x*S,s.y*S,S-1,S-1)});
-if(!alive){X.fillStyle='rgba(15,23,42,.55)';X.fillRect(0,0,320,320);X.fillStyle='#f87171';X.font='bold 22px sans-serif';X.fillText('Game Over',100,160)}}
+if(!alive){X.fillStyle='rgba(15,23,42,.55)';X.fillRect(0,0,280,280);X.fillStyle='#f87171';X.font='bold 20px sans-serif';X.fillText('Game Over',90,145)}}
 window.addEventListener('keydown',e=>{
 const k=e.key;let handled=true;
 if(['ArrowUp','w','W'].includes(k))setDir(0,-1);
@@ -272,6 +275,7 @@ function wrapPlayableSrcDoc(html: string): string {
 function GeneratedCodeFrame({ title, html }: { title: string; html: string }) {
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const [armed, setArmed] = useState(false)
+  const [frameH, setFrameH] = useState(560)
   const playable = useMemo(() => upgradeLegacyPlayableHtml(html, title), [html, title])
   const upgraded = playable !== (html || '').trim()
   const srcDoc = useMemo(() => wrapPlayableSrcDoc(playable), [playable])
@@ -284,7 +288,20 @@ function GeneratedCodeFrame({ title, html }: { title: string; html: string }) {
 
   useEffect(() => {
     setArmed(false)
+    setFrameH(560)
   }, [frameKey])
+
+  const measureFrame = useCallback(() => {
+    try {
+      const doc = iframeRef.current?.contentDocument
+      const body = doc?.body
+      const root = doc?.documentElement
+      const h = Math.max(body?.scrollHeight || 0, root?.scrollHeight || 0, body?.offsetHeight || 0)
+      if (h > 200) setFrameH(Math.min(Math.max(h + 12, 480), 920))
+    } catch {
+      /* ignore */
+    }
+  }, [])
 
   const focusPlay = () => {
     setArmed(true)
@@ -294,6 +311,7 @@ function GeneratedCodeFrame({ title, html }: { title: string; html: string }) {
     } catch {
       /* ignore cross-origin */
     }
+    window.requestAnimationFrame(measureFrame)
   }
 
   return (
@@ -311,11 +329,15 @@ function GeneratedCodeFrame({ title, html }: { title: string; html: string }) {
           srcDoc={srcDoc}
           tabIndex={0}
           sandbox="allow-scripts allow-modals"
-          onLoad={focusPlay}
+          onLoad={() => {
+            measureFrame()
+            focusPlay()
+          }}
           onFocus={() => setArmed(true)}
           style={{
             width: '100%',
-            minHeight: 440,
+            height: frameH,
+            minHeight: 480,
             border: '1px solid #e2e8f0',
             borderRadius: 12,
             background: '#fff',
@@ -342,9 +364,6 @@ function GeneratedCodeFrame({ title, html }: { title: string; html: string }) {
           </button>
         ) : null}
       </div>
-      <p className="muted" style={{ margin: '8px 0 0', fontSize: 12 }}>
-        点游戏区域后可用方向键或下方按钮；结束后点「再来一局」。
-      </p>
     </article>
   )
 }

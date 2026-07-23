@@ -13,7 +13,7 @@ import { buildPublishedModulesFromWidgets } from '../data/publishDisplay'
 import ContactGateModal, { type ContactInfo } from '../components/ContactGateModal'
 import GenerateLoadingOverlay from '../components/GenerateLoadingOverlay'
 import AppBrandingFields from '../components/AppBrandingFields'
-import { emptyBranding } from '../data/appBranding'
+import { emptyBranding, BLOCKHUB_DEMO_APP_NAME, BLOCKHUB_DEMO_MODULE_KEYS } from '../data/appBranding'
 import SelectionBox, { type SelectionItem } from '../components/SelectionBox'
 import { ChevronDotLoadingRow } from '../components/ChevronDotLoader'
 import DeliverTargetPicker from '../components/DeliverTargetPicker'
@@ -35,23 +35,47 @@ interface CapabilityGroup {
 
 const MODULE_COMPOSER_MODE = COMPOSER_MODES.find((m) => m.id === 'select_modules')?.id ?? 'select_modules'
 
+const DEMO_LABELS: Record<string, string> = {
+  chat_qa: '智能问答',
+  approval_flow: '审批流',
+  kb_document: '知识库',
+  chart_dashboard: '数据看板',
+  policy_qa: '制度问答',
+  leave_request: '请假审批',
+  expense_claim: '报销记账',
+  hire_onboard: '招聘入职',
+  legal_case: '法务合同',
+  ops_kpi: '经营看板',
+  notify_inapp: '站内信',
+  game_2048: '2048小游戏',
+  game_support: '玩家FAQ',
+}
+
+function buildDemoWidgets(): Widget[] {
+  return BLOCKHUB_DEMO_MODULE_KEYS.map((key) => ({
+    key,
+    name: DEMO_LABELS[key] || key,
+    iconKey: MODULE_ICON_KEYS[key] ?? 'creation',
+  }))
+}
+
 export default function ModuleView({ onPublish, active = true }: Props) {
   const { theme } = useTheme()
-  const [widgets, setWidgets] = useState<Widget[]>([])
+  const [widgets, setWidgets] = useState<Widget[]>(() => buildDemoWidgets())
   const [moduleGroups, setModuleGroups] = useState<CapabilityGroup[]>([])
   const [modulesLoading, setModulesLoading] = useState(true)
   const [modulesError, setModulesError] = useState<string | null>(null)
   const [platforms, setPlatforms] = useState<PlatformId[]>(() => deliverToPlatforms('web'))
   const device = platformsToDeliver(platforms)
-  const [webTemplateId, setWebTemplateId] = useState('tabs_portal')
-  const [appUiId, setAppUiId] = useState('bottom_tabs')
+  const [webTemplateId, setWebTemplateId] = useState('sidebar_admin')
+  const [appUiId, setAppUiId] = useState('drawer_nav')
   const [boxOpenSignal, setBoxOpenSignal] = useState(0)
   const [lastAddedId, setLastAddedId] = useState<string | null>(null)
 
   const [loading, setLoading] = useState(false)
   const [publishError, setPublishError] = useState<string | null>(null)
   const [contactOpen, setContactOpen] = useState(false)
-  const [branding, setBranding] = useState(() => emptyBranding('模块组装应用'))
+  const [branding, setBranding] = useState(() => emptyBranding(BLOCKHUB_DEMO_APP_NAME))
 
   const loadModules = () => {
     setModulesLoading(true)
@@ -110,7 +134,8 @@ export default function ModuleView({ onPublish, active = true }: Props) {
 
   const doPublish = async (contact: ContactInfo, nameOverride?: string) => {
     if (!widgets.length) return
-    const finalName = (nameOverride || branding.appName || '模块组装应用').trim() || '模块组装应用'
+    const finalName =
+      (nameOverride || branding.appName || BLOCKHUB_DEMO_APP_NAME).trim() || BLOCKHUB_DEMO_APP_NAME
     await runLoadingPublishPipeline({
       closeContact: () => setContactOpen(false),
       setLoading,
@@ -270,7 +295,7 @@ export default function ModuleView({ onPublish, active = true }: Props) {
 
       <ContactGateModal
         open={active && contactOpen}
-        defaultAppName={branding.appName || '模块组装应用'}
+        defaultAppName={branding.appName || BLOCKHUB_DEMO_APP_NAME}
         onClose={() => setContactOpen(false)}
         onConfirm={(c, opts) => {
           const named = opts?.appName?.trim()

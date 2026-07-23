@@ -112,7 +112,9 @@ def _looks_like_minigame(text: str) -> bool:
         return False
     if any(w in t for w in _MINIGAME_HINTS):
         return True
-    return ("小游戏" in t or "单机游戏" in t) and any(w in t for w in ("生成", "做", "加", "来个", "玩", "页面"))
+    return ("小游戏" in t or "单机游戏" in t) and any(
+        w in t for w in ("生成", "做", "加", "来个", "玩", "页面", "可玩")
+    )
 
 
 def _looks_like_heavy_game(text: str) -> bool:
@@ -132,6 +134,50 @@ def _needs_runnable_codegen(text: str) -> bool:
     if any(w in t for w in ("小工具页", "自定义页面", "可视化小玩法", "可交互页面")):
         return True
     return False
+
+
+def _minigame_title_key(text: str) -> tuple[str, str]:
+    """口语 → (菜单名, gen_key)。"""
+    t = text or ""
+    pairs = (
+        (("贪吃蛇", "snake"), "贪吃蛇", "gen_snake"),
+        (("俄罗斯方块", "tetris"), "俄罗斯方块", "gen_tetris"),
+        (("消消乐", "消除"), "消消乐", "gen_match3"),
+        (("扫雷",), "扫雷", "gen_minesweeper"),
+        (("连连看",), "连连看", "gen_link"),
+        (("飞机大战",), "飞机大战", "gen_shooter"),
+        (("打砖块",), "打砖块", "gen_breakout"),
+        (("五子棋",), "五子棋", "gen_gomoku"),
+        (("英雄联盟", "lol", "MOBA", "王者", "对战模拟"), "对战模拟", "gen_moba_lite"),
+    )
+    for hints, title, key in pairs:
+        if any(h.lower() in t.lower() if h.isascii() else h in t for h in hints):
+            return title, key
+    # 泛化小游戏
+    slug = _slug_gen_key(t[:16] or "minigame")
+    return "可玩小游戏", slug if slug.startswith("gen_") else f"gen_{slug}"
+
+
+def _runnable_page_add_op(text: str, ctx: ComposeCtx | None = None) -> dict[str, Any]:
+    """可玩/可执行页：强制 Path B，禁止落 game_support 等业务表单。"""
+    title, key = _minigame_title_key(text)
+    html = _instant_playable_html(title, text)
+    op: dict[str, Any] = {
+        "op": "add",
+        "label": title,
+        "capability_key": key,
+        "summary": (text or "")[:200],
+        "page_kind": "generated_code",
+        "widget": "GeneratedPageWidget",
+        "category": "互动演示",
+    }
+    if html:
+        op["source_html"] = html
+        op["pending_codegen"] = False
+        op["codegen_pending"] = False
+    else:
+        op["pending_codegen"] = True
+    return _enrich_add_op(op, ctx)
 
 
 def _instant_playable_html(label: str, blob: str) -> str | None:
@@ -247,6 +293,12 @@ def _select_add_caps(matches: list[dict[str, Any]], text: str) -> list[dict[str,
     # 门禁话术勿挂会议室
     if _access_qr_intent(text):
         matches = [m for m in matches if str(m.get("key") or "") != "meeting_booking"]
+        if not matches:
+            return []
+    # 可玩小游戏：挤掉工单/FAQ 类游戏客服能力
+    if _needs_runnable_codegen(text) and "2048" not in (text or ""):
+        drop = {"game_support", "chat_qa", "notify_im", "approval_flow", "kb_document"}
+        matches = [m for m in matches if str(m.get("key") or "") not in drop]
         if not matches:
             return []
     strong = [m for m in matches if float(m.get("score") or 0) >= 7.0]
@@ -393,7 +445,7 @@ def _infer_rename_ops(instruction: str, menu: list[dict[str, Any]]) -> list[dict
         return []
 
     m = re.search(
-        r"把\s*[「『\"]?([^「『」』\"，,]{1,24})[」』\"]?\s*改成\s*[「『\"]?([^「『」』\"，,]{1,24})[」』\"]?",
+        r"把\s*[「『\"]?([^「『」』\"，,]{1,24})[」』\"]?\s*(?:改成|改为|改叫|改名叫|改名为|叫成)\s*[「『\"]?([^「『」』\"，,]{1,24})[」』\"]?",
         text,
     )
     if m:
@@ -735,7 +787,11 @@ def _resolve_matches(text: str) -> list[dict[str, Any]]:
 
 
 def _infer_add_from_text(text: str, ctx: ComposeCtx | None = None) -> list[dict[str, Any]]:
-    """本地兜底：Path-A → 碎片 → 意图模板(C) → 显式弱标签 → 真未知。"""
+    """本地兜底：可执行小游戏硬闸 → Path-A → 碎片 → 意图模板 → 弱标签。"""
+    # 硬闸：贪吃蛇等可玩页禁止被 game_support / 玩家FAQ 抢走
+    if _needs_runnable_codegen(text) and "2048" not in (text or ""):
+        return [_runnable_page_add_op(text, ctx)]
+
     # 显式「增加 X」
     explicit_labels: list[str] = []
     for m in re.finditer(
@@ -829,6 +885,9 @@ def _formal_cap_from_text(text: str) -> str | None:
     blob = (text or "").strip()
     if not blob:
         return None
+    # 可玩小游戏勿 remap 到 game_support
+    if _needs_runnable_codegen(blob) and "2048" not in blob:
+        return None
     # 复合短语优先：销售漏斗 ≠ 销售线索
     if (
         any(w in blob for w in ("销售漏斗", "漏斗看板", "转化漏斗", "漏斗"))
@@ -839,6 +898,8 @@ def _formal_cap_from_text(text: str) -> str | None:
     hits = _resolve_matches(blob)
     if hits:
         key = str(hits[0].get("key") or "")
+        if key == "game_support" and ("小游戏" in blob or _looks_like_minigame(blob)):
+            key = ""
         if key and is_web_ready_capability(key):
             return key
     for aliases, key in _SYNONYM_TO_CAP:
@@ -945,6 +1006,24 @@ def _enrich_add_op(op: dict[str, Any], ctx: ComposeCtx | None = None) -> dict[st
     if not label:
         return op
     text = label + str(op.get("summary") or "")
+    blob_early = f"{label} {text} {op.get('summary') or ''}"
+    # 可玩小游戏：跳过 SSOT/正式能力 remap，保持 gen_* + HTML/pending
+    force_runnable = _needs_runnable_codegen(blob_early) and "2048" not in blob_early
+    if force_runnable:
+        title, key = _minigame_title_key(blob_early)
+        op["label"] = title if title else label
+        op["capability_key"] = key
+        op["page_kind"] = "generated_code"
+        op["widget"] = "GeneratedPageWidget"
+        op["category"] = op.get("category") or "互动演示"
+        html = str(op.get("source_html") or "").strip() or (_instant_playable_html(title, blob_early) or "")
+        if html:
+            op["source_html"] = html
+            op.pop("pending_codegen", None)
+        else:
+            op["pending_codegen"] = True
+        return op
+
     cap = str(op.get("capability_key") or "").strip()
     pending_codegen = False
     cap_def = None
@@ -1330,20 +1409,20 @@ def _fallback_ops(
     ops: list[dict[str, Any]] = []
 
     # 删除（支持「不要报销了」模糊命中「费用报销」）
-    for prefix in ("去掉", "删除", "移除", "关掉", "不要"):
-        if text.startswith(prefix) or prefix in text[:8]:
+    for prefix in ("去掉", "删除", "删掉", "删了", "移除", "关掉", "不要"):
+        if text.startswith(prefix) or prefix in text[:10]:
             target = text
-            for p in ("去掉", "删除", "移除", "关掉", "不要"):
+            for p in ("去掉", "删除", "删掉", "删了", "移除", "关掉", "不要"):
                 target = target.replace(p, "", 1)
-            target = target.strip(" ：:，,了的吧啊哦")
+            target = re.sub(r"(这个|那个)?(菜单|页面|入口|模块|功能)?$", "", target.strip(" ：:，,了的吧啊哦")).strip()
             for lab in labels:
                 if not target:
                     continue
                 if target in lab or lab in target:
                     ops.append({"op": "remove", "label": lab})
                     break
-                # 核心词：报销 ⊂ 费用报销
-                core = re.sub(r"(申请|审批|功能|页面|模块)$", "", target)
+                # 核心词：报销 ⊂ 费用报销；企微 ⊂ 企微通知
+                core = re.sub(r"(申请|审批|功能|页面|模块|菜单|入口|通知)$", "", target)
                 if len(core) >= 2 and core in lab:
                     ops.append({"op": "remove", "label": lab})
                     break
@@ -1631,6 +1710,55 @@ def _infer_revise_generated_ops(
     return ops
 
 
+def _resolve_pronoun_instruction(
+    instruction: str,
+    history: list[dict[str, str]],
+    menu: list[dict[str, Any]],
+) -> str:
+    """把「删掉它 / 把它改成X」解析成带菜单名的完整指令。"""
+    q = (instruction or "").strip()
+    if not q:
+        return q
+    labels = [str(m.get("label") or "").strip() for m in menu if m.get("label")]
+
+    def _pick_label() -> str | None:
+        # 指令里已带名则不必展开
+        for lab in labels:
+            if lab and lab in q:
+                return None
+        # 最近对话里提到的菜单名优先（从新到旧）
+        for h in reversed(history[-6:]):
+            blob = str(h.get("content") or h.get("text") or "")
+            for lab in labels:
+                if lab and lab in blob:
+                    return lab
+        return labels[-1] if len(labels) == 1 else (labels[0] if labels else None)
+
+    # 删掉它 / 删除那个
+    if re.search(r"(删掉|删除|去掉|移除|关掉).{0,6}(它|这个|那个)(菜单|页面|入口)?", q):
+        lab = _pick_label()
+        if lab and lab not in q:
+            return re.sub(
+                r"(删掉|删除|去掉|移除|关掉).{0,6}(它|这个|那个)(菜单|页面|入口)?",
+                rf"\1{lab}",
+                q,
+                count=1,
+            )
+
+    # 把它改名叫 / 改成
+    m = re.search(
+        r"把\s*(它|这个|那个)(菜单|页面)?\s*(?:改成|改为|改叫|改名叫|改名为)\s*[「『\"]?([^「『」』\"，,]{1,24})",
+        q,
+    )
+    if m:
+        lab = _pick_label()
+        dst = m.group(3).strip()
+        if lab and dst:
+            return f"把{lab}改名叫{dst}"
+
+    return q
+
+
 def compose_edit_from_instruction(
     *,
     instruction: str,
@@ -1651,6 +1779,8 @@ def compose_edit_from_instruction(
     keys = [k for k in (capability_keys or []) if k]
     snaps = [s for s in (page_snapshots or []) if isinstance(s, dict)]
     history = [h for h in (chat_history or []) if isinstance(h, dict)][-12:]
+    # 代词指代：删掉它 / 把它改成 → 融合最近对话与菜单
+    q = _resolve_pronoun_instruction(q, history, menu_list)
     ctx: ComposeCtx = {}
     if entry_source.strip():
         ctx["entry_source"] = entry_source.strip()
@@ -1660,6 +1790,46 @@ def compose_edit_from_instruction(
         ctx["microsite_id"] = microsite_id.strip()
     if web_template_id.strip():
         ctx["web_template_id"] = web_template_id.strip()
+
+    llm_ok = bool(gateway_llm_ok() or vision_configured())
+
+    # 硬闸：改名 / 删除 / 可玩小游戏 — 本地理解优先，避免关键词/LLM 误配
+    if _looks_like_title_rename_intent(q):
+        renames = _infer_rename_ops(q, menu_list)
+        if renames:
+            rename_bits = [f"{o.get('from')}→{o.get('to')}" for o in renames]
+            return {
+                "reply": f"已改名：{'、'.join(rename_bits)}。",
+                "ops": renames,
+                "source": "fallback",
+                "llm_configured": llm_ok,
+                "intent_summary": "rename_page",
+                "pending_codegen_keys": [],
+                "matched": _resolve_matches(q)[:5],
+            }
+
+    for prefix in ("去掉", "删除", "删掉", "删了", "移除", "关掉", "不要"):
+        if q.startswith(prefix) or prefix in q[:10]:
+            fb = _fallback_ops(q, menu_list, ctx)
+            if any(o.get("op") == "remove" for o in (fb.get("ops") or [])):
+                return {**fb, "llm_configured": llm_ok, "matched": fb.get("matched") or _resolve_matches(q)[:5]}
+            break
+
+    if _needs_runnable_codegen(q) and "2048" not in q:
+        op = _runnable_page_add_op(q, ctx)
+        pending = [str(op.get("capability_key"))] if op.get("pending_codegen") else []
+        return {
+            "reply": (
+                f"已为「{op.get('label')}」准备可玩页面"
+                + ("（即时预览）。" if op.get("source_html") else "，交智能出页生成可执行代码。")
+            ),
+            "ops": [op],
+            "source": "fallback",
+            "llm_configured": llm_ok,
+            "intent_summary": f"runnable_page:{op.get('capability_key')}",
+            "pending_codegen_keys": pending,
+            "matched": [],
+        }
     llm_ok = gateway_llm_ok()
     if len(q) < 1 and not imgs:
         return {
@@ -1808,6 +1978,24 @@ def compose_edit_from_instruction(
     ops = _merge_llm_with_matches(ops, q, menu_list, ctx)
     # 再次 enrich（纠正后的 key）
     ops = [_enrich_add_op(o, ctx) if o.get("op") == "add" else o for o in ops]
+
+    # 可玩小游戏：LLM 若落成 game_support / FAQ，强制换成 Path B
+    if _needs_runnable_codegen(q) and "2048" not in q:
+        bad = {"game_support", "chat_qa", "notify_im", "kb_document", "approval_flow"}
+        has_bad = any(
+            o.get("op") == "add" and str(o.get("capability_key") or "") in bad for o in ops
+        )
+        has_gen = any(
+            o.get("op") == "add"
+            and (
+                str(o.get("capability_key") or "").startswith("gen_")
+                or o.get("page_kind") == "generated_code"
+                or o.get("pending_codegen")
+            )
+            for o in ops
+        )
+        if has_bad or not has_gen:
+            ops = [_runnable_page_add_op(q, ctx)]
 
     # 改标题意图：丢掉误 add，优先本地 rename
     if _looks_like_title_rename_intent(q):

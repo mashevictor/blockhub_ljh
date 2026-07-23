@@ -148,13 +148,20 @@ def submit_change(
     db.commit()
     db.refresh(row)
 
-    # Free/Plus/Team：无改页审批流 → 提交即自动通过写入正式版
+    # Free/Plus（及遗留 Team）：无改页审批流 → 提交即自动通过写入正式版（作者可自发布）
     try:
         from app.services.plan_usage import resolve_plan_for_user
 
         plan = resolve_plan_for_user(db, user)
         if not plan.get("schema_approval"):
-            return approve_change(db, app, user=user, change_id=change_id, comment="套餐无审批流，自动生效")
+            return approve_change(
+                db,
+                app,
+                user=user,
+                change_id=change_id,
+                comment="套餐无审批流，自动生效",
+                allow_author_self_publish=True,
+            )
     except HTTPException:
         raise
     except Exception:
@@ -201,9 +208,18 @@ def list_changes(
             )
         )
     rows = q.order_by(AppSchemaChangeRequest.updated_at.desc()).limit(max(1, min(limit, 100))).all()
+    schema_approval = False
+    try:
+        from app.services.plan_usage import resolve_plan_for_user
+
+        schema_approval = bool(resolve_plan_for_user(db, user).get("schema_approval"))
+    except Exception:
+        schema_approval = False
     return {
         "public_id": app.public_id,
         "is_admin": _is_admin(user),
+        "schema_approval": schema_approval,
+        "can_direct_publish": _is_admin(user),
         "items": [_row_to_dict(r) for r in rows],
         **schema_meta(app),
     }
@@ -217,10 +233,13 @@ def approve_change(
     change_id: str,
     comment: str = "",
     force: bool = False,
+    allow_author_self_publish: bool = False,
 ) -> dict[str, Any]:
-    """管理员通过：写入正式 page_schema + 版本历史。"""
-    if not _is_admin(user):
-        raise HTTPException(status_code=403, detail="仅管理员可审批通过")
+    """写入正式 page_schema + 版本历史。
+
+    - 默认：仅 admin / tenant_owner 可审
+    - allow_author_self_publish：无审批套餐「提交即生效」，作者可发布自己的单
+    """
     row = (
         db.query(AppSchemaChangeRequest)
         .filter(
@@ -231,6 +250,10 @@ def approve_change(
     )
     if not row:
         raise HTTPException(status_code=404, detail="变更单不存在")
+
+    if not _is_admin(user):
+        if not allow_author_self_publish or row.author_id != user.id:
+            raise HTTPException(status_code=403, detail="仅管理员可审批通过")
     if row.status != "pending":
         raise HTTPException(status_code=400, detail=f"状态为 {row.status}，无法通过")
     if not isinstance(row.page_schema, dict):
@@ -244,14 +267,14 @@ def approve_change(
         user=user,
         page_schema=schema,
         base_rev=row.base_rev,
-        source="approve",
+        source="approve" if _is_admin(user) and not allow_author_self_publish else "auto_publish",
         force=force,
     )
 
     row.status = "approved"
     row.reviewer_id = user.id
     row.reviewer_name = _editor_name(user)
-    row.review_comment = (comment or "已通过")[:500]
+    row.review_comment = (comment or ("套餐无审批流，自动生效" if allow_author_self_publish else "已通过"))[:500]
     row.published_rev = int(result.get("schema_rev") or app.schema_rev)
     row.reviewed_at = datetime.now(timezone.utc)
     row.updated_at = row.reviewed_at
@@ -259,26 +282,29 @@ def approve_change(
     db.commit()
     db.refresh(row)
 
-    try:
-        from app.services.notification_service import create_notification
+    if not allow_author_self_publish:
+        try:
+            from app.services.notification_service import create_notification
 
-        create_notification(
-            db,
-            tenant_id=app.tenant_id,
-            title=f"改页已通过 · {app.name or app.public_id}",
-            content=f"管理员 {row.reviewer_name} 已通过你的变更，正式版本 v{row.published_rev}",
-            type="schema_change",
-            recipient_user_id=row.author_id,
-            reference_id=row.id,
-        )
-    except Exception:
-        pass
+            create_notification(
+                db,
+                tenant_id=app.tenant_id,
+                title=f"改页已通过 · {app.name or app.public_id}",
+                content=f"管理员 {row.reviewer_name} 已通过你的变更，正式版本 v{row.published_rev}",
+                type="schema_change",
+                recipient_user_id=row.author_id,
+                reference_id=row.id,
+            )
+        except Exception:
+            pass
 
     return {
         "success": True,
         "change": _row_to_dict(row),
         "page_schema": result.get("page_schema"),
         "capability_keys": result.get("capability_keys"),
+        "requires_approval": False,
+        "auto_published": bool(allow_author_self_publish),
         **schema_meta(app),
     }
 

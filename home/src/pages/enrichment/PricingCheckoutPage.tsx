@@ -9,14 +9,26 @@ import { PRICING_TIERS } from '../../data/sitePricing'
 import { ROUTES } from '../../routes/paths'
 import { usePageMeta } from '../../hooks/usePageMeta'
 
-const PAID = new Set(['c_plus', 'b_team', 'b_business'])
+const PAID = new Set(['c_plus', 'b_business'])
+
+function planSeatBounds(planId: string): { min: number; max: number } {
+  if (planId === 'c_plus') return { min: 1, max: 3 }
+  if (planId === 'b_business') return { min: 1, max: 500 }
+  return { min: 1, max: 1 }
+}
+
+function planUnitFen(planId: string): number {
+  if (planId === 'c_plus') return 3900
+  if (planId === 'b_business') return 14800
+  return 0
+}
 
 export default function PricingCheckoutPage() {
   const [params] = useSearchParams()
   const navigate = useNavigate()
   const planId = (params.get('plan') || 'c_plus').trim()
   const tier = PRICING_TIERS.find((t) => t.id === planId)
-  const minSeats = planId === 'b_business' ? 10 : planId === 'b_team' ? 5 : 1
+  const { min: minSeats, max: maxSeats } = planSeatBounds(planId)
   const [seats, setSeats] = useState(minSeats)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
@@ -27,10 +39,9 @@ export default function PricingCheckoutPage() {
   })
 
   const estimate = useMemo(() => {
-    const unit =
-      planId === 'c_plus' ? 3900 : planId === 'b_team' ? 9800 : planId === 'b_business' ? 16800 : 0
-    return unit * Math.max(seats, minSeats)
-  }, [planId, seats, minSeats])
+    const n = Math.min(maxSeats, Math.max(seats, minSeats))
+    return planUnitFen(planId) * n
+  }, [planId, seats, minSeats, maxSeats])
 
   const ensureLogin = () => {
     if (getToken()) return true
@@ -50,7 +61,7 @@ export default function PricingCheckoutPage() {
     try {
       const order = await createBillingCheckout({
         plan_tier: planId,
-        seats: Math.max(seats, minSeats),
+        seats: Math.min(maxSeats, Math.max(seats, minSeats)),
         months: 1,
       })
       if (order.pay_url) {
@@ -69,7 +80,7 @@ export default function PricingCheckoutPage() {
   if (!tier || !PAID.has(planId)) {
     return (
       <MarketingSiteShell skin="landed" pageTitle="无法升级" pageEyebrow="定价">
-        <p>该套餐不支持在线支付。Enterprise 请预约演示。</p>
+        <p>该套餐不支持在线支付。Enterprise 请预约演示申请方案。</p>
         <Link to={ROUTES.pricing}>返回定价</Link>
         {' · '}
         <a href={ROUTES.contactDemo}>预约演示</a>
@@ -77,23 +88,25 @@ export default function PricingCheckoutPage() {
     )
   }
 
+  const seatLabel = planId === 'c_plus' ? '开发者人数（最多 3 人）' : '开发者人数'
+
   return (
     <MarketingSiteShell skin="landed" pageTitle={`升级 ${tier.name}`} pageEyebrow="聚合收款">
       <form className="enrich-panel" onSubmit={onSubmit} style={{ maxWidth: 480 }}>
-        <p style={{ marginBottom: 12 }}>{tier.range} · 首期 1 个月</p>
-        {planId !== 'c_plus' ? (
-          <label style={{ display: 'block', marginBottom: 16 }}>
-            坐席数（起购 {minSeats}）
-            <input
-              type="number"
-              min={minSeats}
-              max={500}
-              value={seats}
-              onChange={(ev) => setSeats(Number(ev.target.value) || minSeats)}
-              style={{ display: 'block', width: '100%', marginTop: 8, padding: 10 }}
-            />
-          </label>
-        ) : null}
+        <p style={{ marginBottom: 12 }}>
+          {tier.range} · {tier.desc} · 首期 1 个月
+        </p>
+        <label style={{ display: 'block', marginBottom: 16 }}>
+          {seatLabel}
+          <input
+            type="number"
+            min={minSeats}
+            max={maxSeats}
+            value={seats}
+            onChange={(ev) => setSeats(Number(ev.target.value) || minSeats)}
+            style={{ display: 'block', width: '100%', marginTop: 8, padding: 10 }}
+          />
+        </label>
         <p style={{ fontSize: 20, fontWeight: 600, marginBottom: 16 }}>应付 {formatFen(estimate)}</p>
         {error ? <p style={{ color: '#b91c1c', marginBottom: 12 }}>{error}</p> : null}
         <button type="submit" className="b2b-btn-primary agent-action-btn" disabled={busy}>

@@ -317,3 +317,32 @@ export declare function askFlowEdit(
   source: 'deepseek' | 'fallback'
   llm_configured: boolean
 }>
+
+export type SchemaSyncMessage = {
+  type: 'schema-updated'
+  appId: string
+  schema_rev?: number
+  reason?: string
+  at: number
+}
+
+export declare function notifySchemaUpdated(
+  appId: string | null | undefined,
+  opts?: { schema_rev?: number; reason?: string },
+): void
+
+export declare function notifyQuotaUpdated(opts?: {
+  reason?: string
+  usage?: Record<string, number>
+  remaining?: Record<string, number | null>
+}): void
+
+export declare function subscribeQuotaUpdated(
+  onUpdate: (msg: {
+    type: 'quota-updated'
+    at: number
+    reason?: string
+    usage?: Record<string, number>
+    remaining?: Record<string, number | null>
+  }) => void,
+): () => void

@@ -21,15 +21,21 @@ def _schema_node_for(key: str) -> dict[str, Any]:
     cap = ALL_CAPABILITIES.get(key)
     if not cap:
         return {"id": key, "type": "section", "props": {"capability_key": key}}
+    from app.services.build_manifest import _web_pkg
+
+    web_pkg = _web_pkg(key) or ""
+    props: dict[str, Any] = {
+        "widget": cap.widget,
+        "capability_key": key,
+        "route": _route_for(key),
+        "agent_id": cap.agent_id,
+    }
+    if web_pkg:
+        props["web_pkg"] = web_pkg
     return {
         "id": key,
         "type": cap.widget.replace("Widget", "").lower() or key,
-        "props": {
-            "widget": cap.widget,
-            "capability_key": key,
-            "route": _route_for(key),
-            "agent_id": cap.agent_id,
-        },
+        "props": props,
     }
 
 
@@ -56,6 +62,38 @@ def generate_menu(capability_keys: list[str]) -> list[dict[str, str]]:
 def _scene_route(scene_key: str) -> str:
     slug = scene_key.replace("_", "-")
     return f"/s/{slug}" if not slug.startswith("/") else slug
+
+
+# 工作台次要 Tab：通知/看板/集成等垫后，主业务能力靠前（弹幕/选模块首屏）
+_WORKBENCH_SECONDARY_KEYS = frozenset(
+    {
+        "notify_im",
+        "notify_inapp",
+        "notify_email",
+        "chart_dashboard",
+        "chart_funnel",
+        "rbac_page",
+        "erp_connector",
+        "data_nl_query",
+        "chat_summary",
+    }
+)
+
+
+def prioritize_workbench_capability_keys(keys: list[str]) -> list[str]:
+    """主功能在前、次要 Tab 在后；稳定排序，不丢 key。"""
+    primary: list[str] = []
+    secondary: list[str] = []
+    seen: set[str] = set()
+    for k in keys:
+        if not k or k in seen:
+            continue
+        seen.add(k)
+        if k in _WORKBENCH_SECONDARY_KEYS or k.startswith("notify_"):
+            secondary.append(k)
+        else:
+            primary.append(k)
+    return primary + secondary
 
 
 def generate_menu_from_plan(menu_plan: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
@@ -136,14 +174,25 @@ def generate_page_schema(
         keys = ["chat_qa"]
 
     tpl = normalize_web_template_id(web_template_id)
+
+    # 入口分流先判定：工作台发布时主能力靠前（弹幕/选模块首屏）
+    entry = (entry_source or "").strip()
+    if not entry:
+        src = (publish_source or "").strip().lower()
+        if src in ("industry", "industry_pack", "industry_site", "microsite"):
+            entry = "industry_site"
+        else:
+            entry = "capship_workbench"
+
     if menu_plan:
         menu, children = generate_menu_from_plan(menu_plan)
-        # 保证 capability_keys 覆盖菜单引用
         for item in menu:
             ck = str(item.get("capability_key") or "")
             if ck and ck not in keys:
                 keys.append(ck)
     else:
+        if entry != "industry_site":
+            keys = prioritize_workbench_capability_keys(keys)
         children = [_schema_node_for(k) for k in keys]
         menu = generate_menu(keys)
 
@@ -177,14 +226,6 @@ def generate_page_schema(
     if menu_plan:
         meta["menu_plan"] = menu_plan
 
-    # 入口分流：industry_site（独立站模板皮肤）vs capship_workbench（弹幕/模块默认壳）
-    entry = (entry_source or "").strip()
-    if not entry:
-        src = (publish_source or "").strip().lower()
-        if src in ("industry", "industry_pack", "industry_site", "microsite"):
-            entry = "industry_site"
-        else:
-            entry = "capship_workbench"
     meta["entry_source"] = entry
     if publish_source:
         meta["publish_source"] = publish_source
@@ -192,12 +233,41 @@ def generate_page_schema(
     if mid:
         meta["microsite_id"] = mid
 
+    # 工作台默认落地第一项主能力（避免 / 空白）
+    if entry != "industry_site" and menu:
+        first_route = str((menu[0] or {}).get("route") or "").strip()
+        if first_route and first_route != "/":
+            meta["default_route"] = first_route
+
+    # 积木仓演示：独立站侧栏（单独行业页体验），挂出贪吃蛇 Path-B 页
+    from app.data.blockhub_demo import (
+        BLOCKHUB_DEMO_NAME,
+        append_snake_to_schema,
+        is_blockhub_demo_publish,
+    )
+
+    demo = is_blockhub_demo_publish(
+        app_name=app_name,
+        capability_keys=keys,
+        publish_source=publish_source or "",
+    )
+    if demo or "game_2048" in keys:
+        # 演示页强制侧栏，避免顶栏 Tabs 挤占首屏
+        if demo or app_name.strip() == BLOCKHUB_DEMO_NAME:
+            entry = "industry_site"
+            meta["entry_source"] = entry
+            meta.pop("default_route", None)
+            tpl = "sidebar_admin"
+            layout_type = "sidebar"
+            children = [c for c in children if c.get("type") != "landing_hero"]
+
     # 独立站：强制侧栏场景工作台（行业首页 + 单场景），避免 landing/tabs 能力墙
     if entry == "industry_site":
         tpl = "sidebar_admin"
         layout_type = "sidebar"
         children = [c for c in children if c.get("type") != "landing_hero"]
         meta["web_template_id"] = tpl
+        meta.pop("default_route", None)
 
     theme: dict[str, Any] = {
         "primaryColor": primary_color,
@@ -208,7 +278,7 @@ def generate_page_schema(
         theme["micrositeId"] = mid
         theme["skin"] = mid
 
-    return {
+    schema: dict[str, Any] = {
         "version": "1",
         "appId": app_id,
         "title": app_name,
@@ -223,6 +293,11 @@ def generate_page_schema(
             "children": children,
         },
     }
+
+    if demo or "game_2048" in keys:
+        schema = append_snake_to_schema(schema)
+
+    return schema
 
 
 def validate_page_schema(schema: dict[str, Any]) -> None:

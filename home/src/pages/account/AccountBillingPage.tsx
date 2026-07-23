@@ -1,4 +1,4 @@
-import { useEffect, useState, type CSSProperties } from 'react'
+import { useCallback, useEffect, useState, type CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
 import MarketingSiteShell from '../../components/b2b/enrichment/MarketingSiteShell'
 import { AgentButtonContent } from '../../components/AgentChevron'
@@ -26,8 +26,9 @@ type QuotaItem = {
 
 function planUpgradeHint(tier: string): { label: string; href: string } | null {
   if (tier === 'c_free') return { label: '升级 Plus', href: `${ROUTES.pricingCheckout}?plan=c_plus` }
-  if (tier === 'c_plus') return { label: '升级 Team（团队）', href: `${ROUTES.pricingCheckout}?plan=b_team` }
-  if (tier === 'b_team') return { label: '升级 Business', href: `${ROUTES.pricingCheckout}?plan=b_business` }
+  if (tier === 'c_plus' || tier === 'b_team') {
+    return { label: '升级 Business', href: `${ROUTES.pricingCheckout}?plan=b_business` }
+  }
   if (tier === 'b_business') return { label: '咨询 Enterprise', href: ROUTES.pricing }
   return null
 }
@@ -140,24 +141,59 @@ export default function AccountBillingPage() {
   const [me, setMe] = useState<BillingMe | null>(null)
   const [orders, setOrders] = useState<BillingOrder[]>([])
   const [error, setError] = useState('')
+  const [refreshBusy, setRefreshBusy] = useState(false)
+  const [refreshHint, setRefreshHint] = useState('')
 
   usePageMeta({ title: '我的套餐 · 积木仓', description: '套餐、配额剩余与消费流水' })
 
-  useEffect(() => {
+  const loadBilling = useCallback(async (opts?: { quiet?: boolean }) => {
     if (!getToken()) {
       window.location.href = adminLoginUrlWithReturn(ROUTES.accountBilling)
       return
     }
-    Promise.all([fetchBillingMe(), fetchBillingOrders(30)])
-      .then(([summary, list]) => {
-        setMe(summary)
-        setOrders(list)
-      })
-      .catch((e) => {
-        const detail = (e as { response?: { data?: { detail?: string } } })?.response?.data?.detail
-        setError(typeof detail === 'string' ? detail : '加载失败')
-      })
+    if (!opts?.quiet) setRefreshBusy(true)
+    try {
+      const [summary, list] = await Promise.all([fetchBillingMe(), fetchBillingOrders(30)])
+      setMe(summary)
+      setOrders(list)
+      setError('')
+      if (!opts?.quiet) {
+        setRefreshHint('用量已更新')
+        window.setTimeout(() => setRefreshHint(''), 2000)
+      }
+    } catch (e) {
+      const detail = (e as { response?: { data?: { detail?: string } } })?.response?.data?.detail
+      setError(typeof detail === 'string' ? detail : '加载失败')
+    } finally {
+      setRefreshBusy(false)
+    }
   }, [])
+
+  useEffect(() => {
+    void loadBilling({ quiet: true })
+  }, [loadBilling])
+
+  // 对话改页 / 智能出页后、切回本页时自动刷新
+  useEffect(() => {
+    const onFocus = () => {
+      if (document.visibilityState === 'visible') void loadBilling({ quiet: true })
+    }
+    window.addEventListener('focus', onFocus)
+    document.addEventListener('visibilitychange', onFocus)
+    let unsub = () => undefined
+    void import('@capship/composer')
+      .then((m) => {
+        unsub = m.subscribeQuotaUpdated(() => {
+          void loadBilling({ quiet: true })
+        })
+      })
+      .catch(() => undefined)
+    return () => {
+      window.removeEventListener('focus', onFocus)
+      document.removeEventListener('visibilitychange', onFocus)
+      unsub()
+    }
+  }, [loadBilling])
 
   const upgrade = me ? planUpgradeHint(me.plan_tier) : null
   const features = (me?.plan?.features as string[] | undefined) || []
@@ -272,6 +308,17 @@ export default function AccountBillingPage() {
                 <strong>智能出页</strong>
                 ：AI 生成整页。组织套餐为共享配额。
               </p>
+              <div className="acc-quota-refresh-row">
+                {refreshHint ? <span className="acc-quota-refresh-hint">{refreshHint}</span> : null}
+                <button
+                  type="button"
+                  className="acc-btn-ghost"
+                  disabled={refreshBusy}
+                  onClick={() => void loadBilling({ quiet: false })}
+                >
+                  {refreshBusy ? '刷新中…' : '刷新用量'}
+                </button>
+              </div>
             </div>
             <div className="enrich-panel-body">
               <div className="acc-quota-glossary" aria-label="配额含义说明">
