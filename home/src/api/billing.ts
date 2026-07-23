@@ -30,6 +30,9 @@ export interface BillingMe {
   seat_quota: number
   plan_expires_at?: string | null
   smart_page_label?: string
+  smart_page_hint?: string
+  compose_edit_label?: string
+  compose_edit_hint?: string
   usage: Record<string, number>
   remaining: Record<string, number | null>
   recent_orders?: BillingOrder[]

@@ -18,6 +18,7 @@ import { usePageMeta } from '../../hooks/usePageMeta'
 type QuotaItem = {
   key: string
   label: string
+  hint: string
   used: number
   remaining: number | null
   period: string
@@ -57,6 +58,7 @@ function QuotaMeter({ item }: { item: QuotaItem }) {
       <div className="acc-quota-card__top">
         <span className="acc-quota-card__period">{item.period}</span>
         <strong className="acc-quota-card__label">{item.label}</strong>
+        {item.hint ? <p className="acc-quota-card__hint">{item.hint}</p> : null}
       </div>
       {unlimited ? (
         <div className="acc-quota-card__value">
@@ -83,10 +85,18 @@ function QuotaMeter({ item }: { item: QuotaItem }) {
 
 function buildQuotas(me: BillingMe): QuotaItem[] {
   const smart = me.smart_page_label || '智能出页'
+  const smartHint =
+    me.smart_page_hint ||
+    'AI 生成整页可运行界面（含二次修订）；点选正式能力不计次'
+  const composeLabel = me.compose_edit_label || '对话改页'
+  const composeHint =
+    me.compose_edit_hint ||
+    '用聊天改菜单、表单字段与控件；成功改动计 1 次'
   return [
     {
       key: 'compose',
-      label: '对话改页',
+      label: composeLabel,
+      hint: composeHint,
       period: '今日',
       used: me.usage.compose_edit_today || 0,
       remaining: me.remaining.compose_edit_today ?? null,
@@ -94,6 +104,7 @@ function buildQuotas(me: BillingMe): QuotaItem[] {
     {
       key: 'smart_day',
       label: smart,
+      hint: smartHint,
       period: '今日',
       used: me.usage.smart_page_today || 0,
       remaining: me.remaining.smart_page_today ?? null,
@@ -101,6 +112,7 @@ function buildQuotas(me: BillingMe): QuotaItem[] {
     {
       key: 'smart_month',
       label: smart,
+      hint: '组织共享的本月 AI 整页生成/修订次数',
       period: '本月',
       used: me.usage.smart_page_month || 0,
       remaining: me.remaining.smart_page_month ?? null,
@@ -108,6 +120,7 @@ function buildQuotas(me: BillingMe): QuotaItem[] {
     {
       key: 'dl_life',
       label: '代码下载',
+      hint: '可下载的项目源码包数量（累计）',
       period: '累计',
       used: me.usage.code_download_lifetime || 0,
       remaining: me.remaining.code_download_lifetime ?? null,
@@ -115,6 +128,7 @@ function buildQuotas(me: BillingMe): QuotaItem[] {
     {
       key: 'dl_month',
       label: '代码下载',
+      hint: '本月可下载的契约/源码次数（组织共享）',
       period: '本月',
       used: me.usage.code_download_month || 0,
       remaining: me.remaining.code_download_month ?? null,
@@ -252,9 +266,30 @@ export default function AccountBillingPage() {
           <section className="enrich-panel acc-quota-panel reveal d2" aria-labelledby="acc-quota-title">
             <div className="enrich-panel-head">
               <h2 id="acc-quota-title">用量与配额</h2>
-              <p>对话改页、智能出页与代码下载的实时消耗；组织套餐为共享配额。</p>
+              <p>
+                <strong>对话改页</strong>
+                ：聊天改菜单/表单；
+                <strong>智能出页</strong>
+                ：AI 生成整页。组织套餐为共享配额。
+              </p>
             </div>
             <div className="enrich-panel-body">
+              <div className="acc-quota-glossary" aria-label="配额含义说明">
+                <div>
+                  <strong>对话改页</strong>
+                  <span>
+                    {me.compose_edit_hint ||
+                      '在 Runtime 用自然语言改菜单、表单字段与控件；每次成功改动计 1 次'}
+                  </span>
+                </div>
+                <div>
+                  <strong>{me.smart_page_label || '智能出页'}</strong>
+                  <span>
+                    {me.smart_page_hint ||
+                      'AI 生成或修订一整页可运行界面；点选现成正式能力不占次数'}
+                  </span>
+                </div>
+              </div>
               <div className="acc-quota-grid">
                 {quotas.map((q) => (
                   <QuotaMeter key={q.key} item={q} />

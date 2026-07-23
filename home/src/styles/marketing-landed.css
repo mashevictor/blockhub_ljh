@@ -602,6 +602,38 @@ body.marketing-landed-body {
   color: var(--mk-text, #1a1a1a);
 }
 
+.acc-quota-card__hint {
+  margin: 0.15rem 0 0;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  font-weight: 400;
+  color: var(--mk-muted, rgba(26, 26, 26, 0.62));
+}
+
+.acc-quota-glossary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.85rem;
+  margin: 0 0 1.15rem;
+  padding: 0.95rem 1rem;
+  border: 1px solid var(--mk-line, rgba(26, 26, 26, 0.1));
+  background: color-mix(in srgb, var(--mk-accent, #0d5c4d) 5%, #fff);
+}
+
+.acc-quota-glossary strong {
+  display: block;
+  font-family: var(--mk-fd, inherit);
+  font-size: 0.92rem;
+  margin-bottom: 0.3rem;
+  color: var(--mk-accent, #0d5c4d);
+}
+
+.acc-quota-glossary span {
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--mk-muted, rgba(26, 26, 26, 0.62));
+}
+
 .acc-quota-card__value {
   display: flex;
   align-items: baseline;
@@ -768,6 +800,10 @@ body.marketing-landed-body {
   .acc-plan-hero__main,
   .acc-plan-hero__side {
     padding: 1.25rem;
+  }
+
+  .acc-quota-glossary {
+    grid-template-columns: 1fr;
   }
 
   .acc-quota-grid {

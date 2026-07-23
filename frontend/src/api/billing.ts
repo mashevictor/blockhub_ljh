@@ -18,6 +18,9 @@ export interface BillingMe {
   plan_expires_at: string | null
   plan: PlanInfo
   smart_page_label?: string
+  smart_page_hint?: string
+  compose_edit_label?: string
+  compose_edit_hint?: string
   usage: Record<string, number>
   remaining: Record<string, number | null>
 }

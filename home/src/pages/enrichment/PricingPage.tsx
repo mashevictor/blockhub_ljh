@@ -8,6 +8,7 @@ import {
   PRICING_C_TIERS,
   PRICING_DEPLOY_TIERS,
   PRICING_FAQ,
+  COMPOSE_EDIT_HINT,
   SMART_PAGE_HINT,
   SMART_PAGE_LABEL,
   type PricingTier,
@@ -75,7 +76,11 @@ export default function PricingPage() {
         <div className="enrich-panel-head">
           <h2 id="pricing-c-title">C 端 · 创作者</h2>
           <p>
-            个人试用与接单。{SMART_PAGE_LABEL}：{SMART_PAGE_HINT}。
+            个人试用与接单。
+            <br />
+            <strong>对话改页</strong>：{COMPOSE_EDIT_HINT}
+            <br />
+            <strong>{SMART_PAGE_LABEL}</strong>：{SMART_PAGE_HINT}
           </p>
         </div>
         <TierGrid tiers={PRICING_C_TIERS} />

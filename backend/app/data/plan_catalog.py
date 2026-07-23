@@ -29,8 +29,8 @@ PLAN_CATALOG: dict[str, PlanLimits] = {
         "schema_approval": False,
         "features": [
             "最多 10 个应用",
-            "对话改页 10 次/天",
-            "智能出页 1 次/天",
+            "对话改页 10 次/天：聊天改菜单与表单",
+            "智能出页 1 次/天：AI 生成整页可运行界面",
             "可下载 1 个项目代码",
         ],
     },
@@ -53,8 +53,8 @@ PLAN_CATALOG: dict[str, PlanLimits] = {
         "schema_approval": False,
         "features": [
             "应用数不限",
-            "对话改页不限",
-            "智能出页不限",
+            "对话改页不限：聊天改菜单与表单",
+            "智能出页不限：AI 生成/修订整页",
             "项目代码下载不限",
         ],
     },
@@ -79,7 +79,7 @@ PLAN_CATALOG: dict[str, PlanLimits] = {
         "features": [
             "起购 5 席",
             "应用 10 个 · 行业包 1 个",
-            "对话改页 / 智能出页（组织共享配额）",
+            "对话改页不限 · 智能出页组织共享（改菜单/表单 vs AI 整页生成）",
             "契约下载 10 次/月 · APK 4 次/月",
         ],
     },
@@ -104,7 +104,7 @@ PLAN_CATALOG: dict[str, PlanLimits] = {
         "features": [
             "起购 10 席 · 改页审批流",
             "应用 50 个 · 行业包 5 个",
-            "智能出页 1000 次/月（共享）",
+            "智能出页 1000 次/月（共享）：AI 整页生成/修订",
             "契约下载 30 次/月 · APK 20 次/月 · 知识库 10GB",
         ],
     },
@@ -128,7 +128,7 @@ PLAN_CATALOG: dict[str, PlanLimits] = {
         "features": [
             "混合 / 私有化部署",
             "SSO · 审计 · ERP/OA 集成",
-            "智能出页与下载按合同",
+            "对话改页与智能出页按合同（改表单 vs AI 整页）",
             "对齐混合部署 80–120 万/年叙事",
         ],
     },
@@ -138,7 +138,16 @@ DEFAULT_PLAN_ID = "c_free"
 
 # 产品对外统一中文名（禁止在官网写 Codegen）
 SMART_PAGE_LABEL = "智能出页"
-SMART_PAGE_HINT = "按需求自动生成可运行页面（含二次修订）"
+SMART_PAGE_HINT = (
+    "用一句话让 AI 生成整页可运行界面（小游戏、工具页等），"
+    "也可对已生成页做二次修订；点选现成正式能力不占此次数"
+)
+COMPOSE_EDIT_LABEL = "对话改页"
+COMPOSE_EDIT_HINT = (
+    "在 Runtime 用自然语言改菜单、表单字段与控件"
+    "（例如「请假开始日期改成日期选择」）；每次成功改动计 1 次，"
+    "澄清问答不计次"
+)
 
 
 def get_plan(plan_id: str | None) -> PlanLimits:

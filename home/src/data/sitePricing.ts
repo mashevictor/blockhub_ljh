@@ -16,7 +16,13 @@ export interface PricingFaq {
 
 /** 产品文案：智能出页（原技术名 Codegen，官网不出现） */
 export const SMART_PAGE_LABEL = '智能出页'
-export const SMART_PAGE_HINT = '按需求自动生成可运行页面，支持在现有版本上二次修订'
+export const SMART_PAGE_HINT =
+  '用一句话让 AI 生成整页可运行界面（小游戏、工具页等），也可对已生成页做二次修订；点选现成正式能力不占此次数'
+
+/** 对话改页：自然语言改菜单/表单 */
+export const COMPOSE_EDIT_LABEL = '对话改页'
+export const COMPOSE_EDIT_HINT =
+  '在 Runtime 用自然语言改菜单、表单字段与控件（例如「请假开始日期改成日期选择」）；每次成功改动计 1 次，澄清问答不计次'
 
 export const PRICING_TIERS: PricingTier[] = [
   {
@@ -26,8 +32,8 @@ export const PRICING_TIERS: PricingTier[] = [
     segment: 'c',
     features: [
       '最多 10 个应用',
-      '对话改页 10 次/天',
-      `${SMART_PAGE_LABEL} 1 次/天`,
+      '对话改页 10 次/天：聊天改菜单与表单',
+      `${SMART_PAGE_LABEL} 1 次/天：AI 生成整页可运行界面`,
       '可下载 1 个项目代码',
       '全量标准能力选型',
     ],
@@ -40,8 +46,8 @@ export const PRICING_TIERS: PricingTier[] = [
     featured: true,
     features: [
       '应用数不限',
-      '对话改页不限',
-      `${SMART_PAGE_LABEL}不限（含二次修订）`,
+      '对话改页不限：聊天改菜单与表单',
+      `${SMART_PAGE_LABEL}不限：AI 生成/修订整页`,
       '项目代码下载不限',
       '品牌色 / Plaza 发布',
     ],
@@ -54,7 +60,7 @@ export const PRICING_TIERS: PricingTier[] = [
     features: [
       '起购 5 席 · 应用 10 个',
       '行业包 1 个',
-      '对话改页不限 · 智能出页共享配额',
+      '对话改页不限 · 智能出页组织共享（改表单 vs AI 整页）',
       '契约下载 10 次/月 · APK 4 次/月',
       '知识库 1 GB',
     ],
@@ -68,7 +74,7 @@ export const PRICING_TIERS: PricingTier[] = [
     features: [
       '起购 10 席 · 改页审批流',
       '应用 50 个 · 行业包 5 个',
-      `${SMART_PAGE_LABEL} 1000 次/月（共享）`,
+      `${SMART_PAGE_LABEL} 1000 次/月（共享）：AI 整页生成/修订`,
       '契约下载 30 次/月 · APK 20 次/月',
       '知识库 10 GB · 标准 IM Webhook',
     ],
@@ -82,7 +88,7 @@ export const PRICING_TIERS: PricingTier[] = [
       '混合部署参考 80–120 万/年',
       '私有化 / 等保 / SSO / 审计',
       'ERP·OA 深度集成 · 专属 SLA',
-      `${SMART_PAGE_LABEL}与下载按合同`,
+      `对话改页与${SMART_PAGE_LABEL}按合同`,
       '白标与专属构建队列',
     ],
   },
@@ -112,12 +118,20 @@ export const PRICING_FAQ: PricingFaq[] = [
     a: 'C 端面向个人创作者（Free / Plus），按人计费；B 端面向组织，按坐席计费，含行业包、审批流、APK 与混合/私有化。',
   },
   {
-    q: `什么是「${SMART_PAGE_LABEL}」？`,
-    a: `${SMART_PAGE_HINT}。注册表内正式能力的选型发布不占用该次数；仅「从需求生成可运行页」及二次修订计次。`,
+    q: `什么是「${COMPOSE_EDIT_LABEL}」？`,
+    a: `${COMPOSE_EDIT_HINT}。从能力目录点选正式模块并发布，不占用对话改页次数。`,
   },
   {
-    q: 'Free 对话改页 10 次/天够用吗？',
-    a: '够完成试用与微调。重度改页请升 Plus（不限）。确定性选型发布不占对话改页次数。',
+    q: `什么是「${SMART_PAGE_LABEL}」？`,
+    a: `${SMART_PAGE_HINT}。与「对话改页」不同：后者改现有菜单/表单，前者是 AI 从零做整页。`,
+  },
+  {
+    q: 'Free「对话改页 10 次/天」够用吗？',
+    a: '够完成试用与微调（例如改几个字段、加一个审批页）。每天成功改动满 10 次后需等次日或升 Plus（不限）。',
+  },
+  {
+    q: `Free「${SMART_PAGE_LABEL} 1 次/天」是什么意思？`,
+    a: '每天可用 AI 生成（或整页修订）1 个可交互页面。选型现成正式能力、用对话改页调表单，都不占这 1 次。',
   },
   {
     q: '价格由哪些因素决定？',

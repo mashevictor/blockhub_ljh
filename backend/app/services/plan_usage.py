@@ -8,7 +8,14 @@ from typing import Any
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
-from app.data.plan_catalog import DEFAULT_PLAN_ID, SMART_PAGE_LABEL, get_plan
+from app.data.plan_catalog import (
+    COMPOSE_EDIT_HINT,
+    COMPOSE_EDIT_LABEL,
+    DEFAULT_PLAN_ID,
+    SMART_PAGE_HINT,
+    SMART_PAGE_LABEL,
+    get_plan,
+)
 from app.db.models import Tenant, UsageMeter, User
 
 
@@ -210,7 +217,11 @@ def assert_and_count_compose_edit(db: Session, user: User | None) -> dict[str, A
     if used >= int(lim):
         raise HTTPException(
             status_code=402,
-            detail=f"今日对话改页已达上限（{lim} 次）。Free 为 10 次/天，升级 Plus 可不限制。",
+            detail=(
+                f"今日{COMPOSE_EDIT_LABEL}已达上限（{lim} 次）。"
+                f"{COMPOSE_EDIT_LABEL}指用聊天改菜单/表单；"
+                f"Free 为 10 次/天，升级 Plus 可不限制。"
+            ),
         )
     increment_usage(
         db,
@@ -248,7 +259,8 @@ def assert_and_count_smart_page(
                 status_code=402,
                 detail=(
                     f"今日{SMART_PAGE_LABEL}已达上限（{day_lim} 次）。"
-                    f"升级 Plus 后{SMART_PAGE_LABEL}不限制。"
+                    f"{SMART_PAGE_LABEL}指 AI 生成/修订整页可运行界面；"
+                    f"升级 Plus 后不限制。"
                 ),
             )
         increment_usage(
@@ -387,6 +399,9 @@ def usage_summary(db: Session, user: User) -> dict[str, Any]:
         "seat_quota": int(getattr(tenant, "seat_quota", None) or 1) if tenant else 1,
         "plan_expires_at": expires.isoformat() if expires else None,
         "smart_page_label": SMART_PAGE_LABEL,
+        "smart_page_hint": SMART_PAGE_HINT,
+        "compose_edit_label": COMPOSE_EDIT_LABEL,
+        "compose_edit_hint": COMPOSE_EDIT_HINT,
         "usage": usage,
         "remaining": remaining,
     }
