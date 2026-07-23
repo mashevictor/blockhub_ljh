@@ -150,10 +150,14 @@ else
   fi
 fi
 
-PUBLISH=$(curl -sf --max-time 15 -X POST "$API/creation/publish" \
-  -H "Content-Type: application/json" \
-  -d '{"name":"DB冒烟探测","industry_key":"office","scenario_names":["制度政策问答"],"contact_email":"smoke@test.local"}' 2>/dev/null || echo "")
-if echo "$PUBLISH" | grep -q '"success":true'; then ok "apps table write"; else bad "apps write failed — ${PUBLISH:-empty}"; fi
+PUBLISH=""
+if [ -n "$TOKEN" ]; then
+  PUBLISH=$(curl -sf --max-time 30 -X POST "$API/creation/publish" \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer $TOKEN" \
+    -d '{"name":"DB冒烟探测","industry_key":"office","scenario_names":["制度政策问答"],"contact_email":"smoke@test.local"}' 2>/dev/null || echo "")
+fi
+if echo "$PUBLISH" | grep -q '"success":true'; then ok "apps table write"; else bad "apps write failed — ${PUBLISH:-empty (need admin token)}"; fi
 
 if [ -n "$TOKEN" ]; then
   KB_STATS=$(curl -sf --max-time 10 -H "Authorization: Bearer $TOKEN" "$API/kb/stats" 2>/dev/null || echo "")
