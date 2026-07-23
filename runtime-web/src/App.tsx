@@ -284,13 +284,6 @@ export default function App() {
     }
   }, [])
 
-  if (sso.handled) {
-    return (
-      <div className="login-shell" style={{ padding: 48, textAlign: 'center' }}>
-        <p>正在完成企微登录…</p>
-      </div>
-    )
-  }
   const [config, setConfig] = useState<TenantRuntimeConfig | null>(null)
   const [schema, setSchema] = useState<PageSchema | null>(null)
   const [manifest, setManifest] = useState<BuildManifest | null>(null)
@@ -610,6 +603,14 @@ export default function App() {
     setWidgetsReady(false)
     const returnTo = `${window.location.pathname}${window.location.search}${window.location.hash}`
     window.location.replace(adminLoginUrlWithReturn(returnTo))
+  }
+
+  if (sso.handled) {
+    return (
+      <div className="login-shell" style={{ padding: 48, textAlign: 'center' }}>
+        <p>正在完成企微登录…</p>
+      </div>
+    )
   }
 
   if (!appId) {
