@@ -10,7 +10,7 @@ import {
 } from 'react'
 import { FLOW_EGRESS_ID, FLOW_INGRESS_ID, loadModuleFlow } from '../lib/plazaModuleFlow'
 
-/** Agent 编排试运行状态 */
+/** 流程预览动画相位（不写库、不锁改页——广场恒只读） */
 export type PlazaRunPhase =
   | 'idle'
   | 'running'
@@ -19,8 +19,8 @@ export type PlazaRunPhase =
   | 'error'
   | 'stopped'
 
-/** A+B：编排态可改可测；试运营态锁定 */
-export type PlazaWorkMode = 'edit' | 'run'
+/** 概览（只读）| 流程预览（轻动画） */
+export type PlazaWorkMode = 'overview' | 'preview'
 
 export interface PlazaRunStep {
   id: string
@@ -35,7 +35,7 @@ export interface PlazaFlowRunSnapshot {
   currentStep: PlazaRunStep | null
   progressLabel: string
   errorMessage?: string
-  /** 就绪/已停止才允许改模块、测接口、>> 命令 */
+  /** 广场恒 false：改模块请进 Runtime 对话改页 */
   canEdit: boolean
   canTestApi: boolean
 }
@@ -47,7 +47,11 @@ interface Value extends PlazaFlowRunSnapshot {
   stop: () => void
   retry: () => void
   reset: () => void
+  enterOverviewMode: () => void
+  enterPreviewMode: () => void
+  /** @deprecated 用 enterOverviewMode */
   enterEditMode: () => void
+  /** @deprecated 用 enterPreviewMode */
   enterRunMode: () => void
 }
 
@@ -67,22 +71,23 @@ function buildSteps(appKey: string, moduleLabels: string[]): PlazaRunStep[] {
 function phaseLabel(phase: PlazaRunPhase): string {
   switch (phase) {
     case 'idle':
-      return '就绪'
+      return '概览'
     case 'running':
-      return '执行中'
+      return '流程预览中'
     case 'paused':
-      return '已暂停'
+      return '预览已暂停'
     case 'completed':
-      return '已完成'
+      return '预览完成'
     case 'error':
-      return '失败'
+      return '预览失败'
     case 'stopped':
-      return '已停止'
+      return '已停止预览'
   }
 }
 
-export function isPlazaEditablePhase(phase: PlazaRunPhase): boolean {
-  return phase === 'idle' || phase === 'stopped'
+export function isPlazaEditablePhase(_phase: PlazaRunPhase): boolean {
+  // 广场侧永不开放编排写操作
+  return false
 }
 
 export function PlazaFlowRunProvider({
@@ -95,7 +100,7 @@ export function PlazaFlowRunProvider({
   children: ReactNode
 }) {
   const [phase, setPhase] = useState<PlazaRunPhase>('idle')
-  const [mode, setMode] = useState<PlazaWorkMode>('edit')
+  const [mode, setMode] = useState<PlazaWorkMode>('overview')
   const [stepIndex, setStepIndex] = useState(0)
   const [errorMessage, setErrorMessage] = useState<string | undefined>()
   const timerRef = useRef<number | null>(null)
@@ -119,7 +124,7 @@ export function PlazaFlowRunProvider({
     setPhase('idle')
     setStepIndex(0)
     setErrorMessage(undefined)
-    setMode('edit')
+    setMode('overview')
   }, [clearTimer])
 
   useEffect(() => {
@@ -152,7 +157,7 @@ export function PlazaFlowRunProvider({
     clearTimer()
     setErrorMessage(undefined)
     setStepIndex(0)
-    setMode('run')
+    setMode('preview')
     setPhase('running')
     scheduleNext(0)
   }, [clearTimer, scheduleNext, steps.length])
@@ -172,33 +177,27 @@ export function PlazaFlowRunProvider({
   const stop = useCallback(() => {
     clearTimer()
     setPhase('stopped')
+    setMode('overview')
   }, [clearTimer])
 
   const retry = useCallback(() => {
     start()
   }, [start])
 
-  /** B：回编排 = 停止并解锁 */
-  const enterEditMode = useCallback(() => {
+  const enterOverviewMode = useCallback(() => {
     clearTimer()
-    if (phase === 'running' || phase === 'paused') {
-      setPhase('stopped')
-    } else if (phase === 'completed' || phase === 'error') {
-      setPhase('idle')
-      setStepIndex(0)
-      setErrorMessage(undefined)
-    }
-    setMode('edit')
-  }, [clearTimer, phase])
+    setPhase('idle')
+    setStepIndex(0)
+    setErrorMessage(undefined)
+    setMode('overview')
+  }, [clearTimer])
 
-  /** B：切试运营（不自动 start，由按钮发动） */
-  const enterRunMode = useCallback(() => {
-    setMode('run')
+  const enterPreviewMode = useCallback(() => {
+    setMode('preview')
   }, [])
 
-  /** 仅执行中/暂停锁定；就绪与已停止始终可编排（与「编排|试运营」分段解耦） */
-  const canEdit = isPlazaEditablePhase(phase)
-  const canTestApi = canEdit
+  const canEdit = false
+  const canTestApi = false
 
   const currentStep = steps[stepIndex] ?? null
   const progressLabel =
@@ -223,8 +222,10 @@ export function PlazaFlowRunProvider({
       stop,
       retry,
       reset,
-      enterEditMode,
-      enterRunMode,
+      enterOverviewMode,
+      enterPreviewMode,
+      enterEditMode: enterOverviewMode,
+      enterRunMode: enterPreviewMode,
     }),
     [
       phase,
@@ -234,16 +235,14 @@ export function PlazaFlowRunProvider({
       currentStep,
       progressLabel,
       errorMessage,
-      canEdit,
-      canTestApi,
       start,
       pause,
       resume,
       stop,
       retry,
       reset,
-      enterEditMode,
-      enterRunMode,
+      enterOverviewMode,
+      enterPreviewMode,
     ],
   )
 
@@ -252,19 +251,21 @@ export function PlazaFlowRunProvider({
 
 const EMPTY: Value = {
   phase: 'idle',
-  mode: 'edit',
+  mode: 'overview',
   steps: [],
   stepIndex: 0,
   currentStep: null,
-  progressLabel: '就绪',
-  canEdit: true,
-  canTestApi: true,
+  progressLabel: '概览',
+  canEdit: false,
+  canTestApi: false,
   start: () => {},
   pause: () => {},
   resume: () => {},
   stop: () => {},
   retry: () => {},
   reset: () => {},
+  enterOverviewMode: () => {},
+  enterPreviewMode: () => {},
   enterEditMode: () => {},
   enterRunMode: () => {},
 }

@@ -24,8 +24,16 @@ export default function B2BHeader({ user, activeSection = 'hero', onLogout }: Pr
   const isHome = pathname === ROUTES.home
 
   useEffect(() => {
-    const onScroll = () => setCompact(window.scrollY > 48)
-    onScroll()
+    // 滞回：避免 scrollY 在阈值附近抖动时，logo 尺寸 36↔42 来回跳
+    let compactNow = window.scrollY > 48
+    setCompact(compactNow)
+    const onScroll = () => {
+      const y = window.scrollY
+      const next = compactNow ? y > 28 : y > 64
+      if (next === compactNow) return
+      compactNow = next
+      setCompact(next)
+    }
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
@@ -52,7 +60,7 @@ export default function B2BHeader({ user, activeSection = 'hero', onLogout }: Pr
             }
           }}
         >
-          <BrandMark size={compact ? 36 : 42} />
+          <BrandMark size={40} />
           <span className="b2b-logo-text">
             <strong>{BRAND.nameZh}</strong>
             <em>{BRAND.nameEn}</em>

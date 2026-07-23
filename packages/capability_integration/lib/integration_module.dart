@@ -9,8 +9,6 @@ const integrationCapabilityKeys = {
   'erp_connector',
   'oa_connector',
   'meeting_booking',
-  'it_helpdesk',
-  'asset_manage',
   'im_connector',
   'notify_im',
   'rbac_page',

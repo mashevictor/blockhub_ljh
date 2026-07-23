@@ -32,7 +32,7 @@ export default function PlazaDockCollapsedBar({
   const submit = () => {
     const text = cmd.trim()
     if (!text) return
-    const stayCollapsed = /^(停止试运营|停止运行|先停一下|停止|暂停|开始试运营|试运营验收|跑一遍)$/.test(
+    const stayCollapsed = /^(停止预览|停止试运营|停止运行|先停一下|停止|暂停|流程预览|开始试运营|试运营验收|跑一遍)$/.test(
       text.replace(/^>+\s*/, ''),
     )
     if (!stayCollapsed) dock?.expand()

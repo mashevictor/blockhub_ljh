@@ -83,7 +83,7 @@ export default function PlazaAppStatusButton({
     ? {
         variant: runVariantFromBadge(runUi.badgeClass),
         label: runUi.badge,
-        sub: run.phase === 'running' || run.phase === 'paused' ? '试运营' : '',
+        sub: run.phase === 'running' || run.phase === 'paused' ? '流程预览' : '',
       }
     : deliveryStatus
 
@@ -101,7 +101,7 @@ export default function PlazaAppStatusButton({
     setPendingTrial(false)
     const phase = run.phase
     if (phase === 'idle') {
-      run.enterRunMode()
+      run.enterPreviewMode()
       run.start()
     } else if (phase === 'running') {
       run.pause()
@@ -134,7 +134,7 @@ export default function PlazaAppStatusButton({
     }
     const phase = run.phase
     if (phase === 'idle') {
-      run.enterRunMode()
+      run.enterPreviewMode()
       run.start()
       return
     }
@@ -156,19 +156,19 @@ export default function PlazaAppStatusButton({
     e.stopPropagation()
     focusAndExpand()
     run.stop()
-    run.enterEditMode()
+    run.enterOverviewMode()
   }
 
   const trialLabel =
     !isFocused || run.phase === 'idle'
-      ? '试运营'
+      ? '流程预览'
       : run.phase === 'running'
         ? '暂停'
         : run.phase === 'paused'
           ? '继续'
           : run.phase === 'stopped' || run.phase === 'completed' || run.phase === 'error'
-            ? '再试'
-            : '试运营'
+            ? '再预览'
+            : '流程预览'
 
   const showStop = isFocused && (run.phase === 'running' || run.phase === 'paused')
 
@@ -194,10 +194,10 @@ export default function PlazaAppStatusButton({
       <button
         type="button"
         className="plaza-app-trial-btn"
-        title="在列表中切换试运营状态"
+        title="在列表中切换流程预览"
         onClick={handleTrial}
       >
-        {trialLabel === '试运营' || trialLabel === '继续' || trialLabel === '再试' ? '▶ ' : '⏸ '}
+        {trialLabel === '流程预览' || trialLabel === '继续' || trialLabel === '再预览' ? '▶ ' : '⏸ '}
         {trialLabel}
       </button>
 
@@ -205,7 +205,7 @@ export default function PlazaAppStatusButton({
         <button
           type="button"
           className="plaza-app-trial-btn is-stop"
-          title="停止试运营"
+          title="停止流程预览"
           onClick={handleStop}
         >
           ⏹ 停止
@@ -215,7 +215,7 @@ export default function PlazaAppStatusButton({
       {open && (
         <div className="plaza-app-status-popover" role="dialog" aria-label={`${app.appName} 状态`}>
           <DeliveryProgress app={app} compact />
-          <p className="plaza-app-status-hint">可在此切换试运营，或打开底部工作台继续编排</p>
+          <p className="plaza-app-status-hint">底部为只读概览；改模块请打开 Runtime。可在此启动流程预览。</p>
           {onOpenDetail && (
             <button
               type="button"
@@ -226,7 +226,7 @@ export default function PlazaAppStatusButton({
                 onOpenDetail()
               }}
             >
-              进入全屏编排
+              进入全屏概览
             </button>
           )}
         </div>

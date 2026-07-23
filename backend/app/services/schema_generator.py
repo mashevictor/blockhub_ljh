@@ -96,6 +96,7 @@ def generate_menu_from_plan(menu_plan: list[dict[str, Any]]) -> tuple[list[dict[
             "kb_slug",
             "lock_kb",
             "metrics_source",
+            "vertical",
         ):
             if item.get(passthrough) is not None:
                 props[passthrough] = item[passthrough]

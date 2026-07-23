@@ -11,6 +11,7 @@ import 'package:capability_med_triage/capability_med_triage.dart';
 import 'package:capability_nurse_shift/capability_nurse_shift.dart';
 import 'package:capability_game_support/capability_game_support.dart';
 import 'package:capability_finance/capability_finance.dart';
+import 'package:capability_logistics/capability_logistics.dart';
 import 'package:capability_school_notice/capability_school_notice.dart';
 import 'package:capability_property_repair/capability_property_repair.dart';
 import 'package:capability_site_patrol/capability_site_patrol.dart';
@@ -36,6 +37,8 @@ import 'package:capability_pet_clinic/capability_pet_clinic.dart';
 import 'package:capability_gov_service/capability_gov_service.dart';
 import 'package:capability_legal_case/capability_legal_case.dart';
 import 'package:capability_leave_request/capability_leave_request.dart';
+import 'package:capability_it_ticket/capability_it_ticket.dart';
+import 'package:capability_asset_manage/capability_asset_manage.dart';
 import 'package:capability_expense_claim/capability_expense_claim.dart';
 import 'package:capability_policy_qa/capability_policy_qa.dart';
 import 'package:capability_hire_onboard/capability_hire_onboard.dart';
@@ -80,6 +83,8 @@ final _mod_pet_clinic = const PetClinicModule();
 final _mod_gov_service = const GovServiceModule();
 final _mod_legal_case = const LegalCaseModule();
 final _mod_leave_request = const LeaveRequestModule();
+final _mod_it_ticket = const ItTicketModule();
+final _mod_asset_manage = const AssetManageModule();
 final _mod_expense_claim = const ExpenseClaimModule();
 final _mod_policy_qa = const PolicyQaModule();
 final _mod_hire_onboard = const HireOnboardModule();
@@ -124,6 +129,8 @@ List<CapabilityModule> get generatedMelosCapabilityModules => [
   _mod_gov_service,
   _mod_legal_case,
   _mod_leave_request,
+  _mod_it_ticket,
+  _mod_asset_manage,
   _mod_expense_claim,
   _mod_policy_qa,
   _mod_hire_onboard,
@@ -141,10 +148,19 @@ final Map<String, CapabilityModule> generatedMelosModuleByKey = {
     'due_diligence': FinanceModule(capabilityKey: 'due_diligence'),
     'regulatory_report': FinanceModule(capabilityKey: 'regulatory_report'),
     'insurance_case': FinanceModule(capabilityKey: 'insurance_case'),
+    'finance_news': FinanceModule(capabilityKey: 'finance_news'),
+    'waybill_track': LogisticsModule(capabilityKey: 'waybill_track'),
+    'warehouse_inbound': LogisticsModule(capabilityKey: 'warehouse_inbound'),
+    'warehouse_outbound': LogisticsModule(capabilityKey: 'warehouse_outbound'),
+    'fleet_dispatch': LogisticsModule(capabilityKey: 'fleet_dispatch'),
+    'pod_signoff': LogisticsModule(capabilityKey: 'pod_signoff'),
+    'logistics_exception': LogisticsModule(capabilityKey: 'logistics_exception'),
+    'freight_settle': LogisticsModule(capabilityKey: 'freight_settle'),
+    'cold_chain_alert': LogisticsModule(capabilityKey: 'cold_chain_alert'),
+    'dock_queue': LogisticsModule(capabilityKey: 'dock_queue'),
+    'route_task': LogisticsModule(capabilityKey: 'route_task'),
     'erp_connector': IntegrationModule(capabilityKey: 'erp_connector'),
     'meeting_booking': IntegrationModule(capabilityKey: 'meeting_booking'),
-    'it_helpdesk': IntegrationModule(capabilityKey: 'it_helpdesk'),
-    'asset_manage': IntegrationModule(capabilityKey: 'asset_manage'),
     'notify_im': IntegrationModule(capabilityKey: 'notify_im'),
     'rbac_page': IntegrationModule(capabilityKey: 'rbac_page'),
     'flutter_biometric': const FlutterToolsModule(capabilityKey: 'flutter_biometric'),
@@ -167,6 +183,7 @@ final Map<String, CapabilityModule> generatedMelosModuleByKey = {
     'approval_flow': _mod_approval_flow,
     'approval_inbox': _mod_approval_flow,
     'approval_remind': _mod_approval_flow,
+    'asset_manage': _mod_asset_manage,
     'audit_log': _mod_audit_log,
     'campaign_ops': _mod_campaign_ops,
     'chart_dashboard': _mod_dashboard,
@@ -193,6 +210,8 @@ final Map<String, CapabilityModule> generatedMelosModuleByKey = {
     'hotel_booking': _mod_hotel_booking,
     'house_viewing': _mod_house_viewing,
     'inventory_count': _mod_inventory_count,
+    'it_helpdesk': _mod_it_ticket,
+    'it_ticket': _mod_it_ticket,
     'kb_document': _mod_kb,
     'kb_search': _mod_kb,
     'kill_pipeline': _mod_kill_pipeline,

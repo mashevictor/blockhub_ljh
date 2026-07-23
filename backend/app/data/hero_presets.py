@@ -254,6 +254,11 @@ HERO_PRESETS: list[dict[str, Any]] = [
              {"type": "module", "key": "regulatory_report", "label": "监管报送"}, {"type": "module", "key": "notify_im", "label": "企微钉钉飞书"}],
             [">> 监管报送 · 报表周期", ">> Soft 步进 · 标记已报", ">> 企微钉钉飞书 · 截止提醒", ">> CapShip · 双端真接口"],
             role="资管"),
+    _preset("s40", "行业新闻", "金融 · 情报", "#0f766e", "宏观/微观必读摘要与热议流；演示样本或一键真源入库。",
+            [{"type": "industry", "key": "bank", "label": "商业银行"}, {"type": "scenario", "key": "s40-news", "label": "行业新闻 Agent"},
+             {"type": "module", "key": "finance_news", "label": "行业新闻Agent"}],
+            [">> 行业新闻 · 必读摘要", ">> 演示样本 · source=demo", ">> Token · 一键真源同步", ">> CapShip · 双端真接口"],
+            weight=5, role="投研"),
 ]
 
 CHIP_TEMPLATES: list[dict[str, Any]] = [

@@ -176,7 +176,11 @@ export default function PlazaDualRailFlowPanel({
   const showData = railMode === 'both' || railMode === 'data'
   const [flow, setFlow] = useState<AppModuleFlow>(() => loadModuleFlow(appKey, moduleLabels))
   const run = usePlazaFlowRun()
-  const canMutate = isCreator && run.canEdit
+  // 广场恒只读：改模块/测接口请进 Runtime 对话改页
+  const canMutate = false
+  const openRuntime = () => {
+    if (webUrl) window.open(webUrl, '_blank', 'noopener,noreferrer')
+  }
   const [activeNodeId, setActiveNodeId] = useState<string | null>(FLOW_INGRESS_ID)
   const [activeApiSide, setActiveApiSide] = useState<'input' | 'output' | null>('input')
   const [pickerAfterStepId, setPickerAfterStepId] = useState<string | null>(null)
@@ -402,37 +406,46 @@ export default function PlazaDualRailFlowPanel({
         canMutate ? '' : 'is-run-locked',
         railMode !== 'both' ? `rail-${railMode}` : '',
       ].filter(Boolean).join(' ')}
-      aria-label={`${appName} 双轨编排`}
+      aria-label={`${appName} 只读双轨概览`}
       onPointerDown={(e) => e.stopPropagation()}
     >
       {embedded && (
         <div className="plaza-dual-rail-embed-bar">
           <PlazaWorkModeSwitch />
           <PlazaRunControls compact />
+          {webUrl ? (
+            <button type="button" className="btn-primary-sm" onClick={openRuntime}>
+              打开 Runtime
+            </button>
+          ) : null}
         </div>
       )}
 
-      {!run.canEdit && (
-        <p className="plaza-dual-rail-lock-banner" role="status">
-          {run.mode === 'run'
-            ? '试运营模式 · 修改与测试已锁定 · 请「停止」或切回「编排」'
-            : '当前不可编辑 · 请重置到就绪或停止后再改'}
-        </p>
-      )}
+      <p className="plaza-dual-rail-lock-banner plaza-dual-rail-readonly-banner" role="status">
+        {run.phase === 'running' || run.phase === 'paused'
+          ? '流程预览中 · 仅演示步进，不改 Runtime 数据'
+          : '应用概览（只读）· 看模块与接口信息；增删改请打开 Runtime 对话改页'}
+        {webUrl && !embedded ? (
+          <>
+            {' · '}
+            <button type="button" className="plaza-dual-rail-runtime-link" onClick={openRuntime}>
+              打开 Runtime
+            </button>
+          </>
+        ) : null}
+      </p>
 
       <div className={`plaza-dual-rail-grid${railMode !== 'both' ? ' is-single' : ''}`}>
         {showFunc && (
           <div className="plaza-dual-rail-col">
             <div className="plaza-dual-rail-col-head">
-              <span className="plaza-mflow-chev">&gt;&gt;</span> 功能编排
+              <span className="plaza-mflow-chev">&gt;&gt;</span> 功能概览
               <span className="plaza-dual-rail-col-hint">
                 {run.phase === 'running'
-                  ? '试运营中'
+                  ? '流程预览中'
                   : run.phase === 'paused'
-                    ? '已暂停'
-                    : isCreator
-                      ? `先看前 ${DATA_PAGE} 项 · 可拖动排序`
-                      : '点选查看'}
+                    ? '预览已暂停'
+                    : '点选查看 · 只读'}
               </span>
             </div>
             <div className="plaza-dual-rail-stack">
@@ -448,32 +461,14 @@ export default function PlazaDualRailFlowPanel({
                       sub={node.sub}
                       active={activeNodeId === node.id}
                       running={runningNodeId === node.id}
-                      draggable={
-                        isStep
-                        && isCreator
-                        && !(run.phase === 'running' || run.phase === 'paused')
-                      }
-                      isDragging={isStep && dragIndex === stepIdx}
-                      isDragOver={
-                        isStep
-                        && overIndex === stepIdx
-                        && dragIndex !== null
-                        && dragIndex !== stepIdx
-                      }
+                      draggable={false}
+                      isDragging={false}
+                      isDragOver={false}
                       stepIndex={isStep ? stepIdx : undefined}
                       onSelect={() =>
                         selectNode(node.id, node.kind === 'egress' ? 'output' : 'input')
                       }
-                      onGripDown={(e) => {
-                        if (!isStep || !isCreator || run.phase === 'running' || run.phase === 'paused') return
-                        if (e.button !== 0) return
-                        e.preventDefault()
-                        e.stopPropagation()
-                        e.currentTarget.setPointerCapture(e.pointerId)
-                        dragPointerIdRef.current = e.pointerId
-                        setDragIndex(stepIdx)
-                        setOverIndex(stepIdx)
-                      }}
+                      onGripDown={undefined}
                     />
                   </div>
                 )
@@ -505,8 +500,8 @@ export default function PlazaDualRailFlowPanel({
         {showData && (
           <div className="plaza-dual-rail-col data-col">
             <div className="plaza-dual-rail-col-head">
-              <span className="plaza-mflow-chev">&gt;&gt;</span> 数据编排
-              <span className="plaza-dual-rail-col-hint">先看前 {DATA_PAGE} 项 · 可继续展开</span>
+              <span className="plaza-mflow-chev">&gt;&gt;</span> 数据接口
+              <span className="plaza-dual-rail-col-hint">只读契约 · 先看前 {DATA_PAGE} 项</span>
             </div>
             <div className="plaza-dual-rail-stack">
               {visibleDataRows.map((row, i) => (
@@ -539,13 +534,10 @@ export default function PlazaDualRailFlowPanel({
 
       <p className="plaza-dual-rail-cross-hint">
         {railMode === 'func'
-          ? '点选能力节点，在下方编辑与试运营；接口验证请切到「数据接口与验证」'
+          ? '点选能力查看说明；改模块请打开 Runtime 对话改页'
           : railMode === 'data'
-            ? (commandProfile === 'shanghai'
-              ? '点选数据节点测 IN/OUT；也可用下方 >> 上海话专用指令'
-              : '点选数据节点测 IN/OUT；也可用下方 >> 快速测试')
-            : '点选左侧能力或右侧数据，在下方继续编辑与试运营'}
-        {canMutate && railMode === 'both' ? ' · 也可用指令快速操作' : ''}
+            ? '点选查看 IN/OUT 契约说明（只读）；联调测试请在 Runtime'
+            : '点选查看模块与接口信息 · 增删改请打开 Runtime'}
       </p>
 
       {editingId && activeStep && canMutate && (

@@ -17,43 +17,46 @@ export function usePlazaChevActions(
 
   return useMemo((): PlazaChevAction[] => {
     const items: PlazaChevAction[] = [
-      { id: 'expand', label: '展开双轨编排', onClick: () => dock?.expand() },
+      { id: 'expand', label: '展开只读概览', onClick: () => dock?.expand() },
       {
         id: 'run',
         label:
           run.phase === 'running'
-            ? '暂停试运营'
+            ? '暂停流程预览'
             : run.phase === 'paused'
-              ? '继续试运营'
+              ? '继续流程预览'
               : run.phase === 'completed' || run.phase === 'stopped'
-                ? '再试运营'
+                ? '再预览流程'
                 : run.phase === 'error'
-                  ? '重试试运营'
-                  : '开始试运营',
+                  ? '重试流程预览'
+                  : '开始流程预览',
         onClick: () => {
           if (run.phase === 'paused') run.resume()
           else if (run.phase === 'running') run.pause()
           else if (run.phase === 'completed' || run.phase === 'stopped' || run.phase === 'error') run.retry()
-          else run.start()
+          else {
+            run.enterPreviewMode()
+            run.start()
+          }
         },
         disabled: !run.steps.length,
       },
     ]
     if (run.phase === 'running') {
-      items.push({ id: 'pause', label: '暂停试运营', onClick: () => run.pause() })
+      items.push({ id: 'pause', label: '暂停流程预览', onClick: () => run.pause() })
     }
     if (run.phase === 'running' || run.phase === 'paused') {
-      items.push({ id: 'stop', label: '停止试运营', onClick: () => run.stop() })
+      items.push({ id: 'stop', label: '停止流程预览', onClick: () => run.stop() })
     }
     if (run.phase === 'completed' || run.phase === 'stopped' || run.phase === 'error') {
-      items.push({ id: 'reset', label: '重置为就绪', onClick: () => run.reset() })
+      items.push({ id: 'reset', label: '回到概览', onClick: () => run.reset() })
     }
     items.push(
-      { id: 'open', label: '打开应用', onClick: opts.onOpenApp },
+      { id: 'open', label: '打开 Runtime', onClick: opts.onOpenApp },
       { id: 'copy', label: '复制网页链接', onClick: opts.onCopyLink },
     )
     if (focus.source === 'my' && focus.isCreator) {
-      items.push({ id: 'fullscreen', label: '全屏编排 / 分享发布', onClick: opts.onFullscreen })
+      items.push({ id: 'fullscreen', label: '全屏概览 / 分享发布', onClick: opts.onFullscreen })
     }
     return items
   }, [dock, run, focus, opts.onOpenApp, opts.onCopyLink, opts.onFullscreen])

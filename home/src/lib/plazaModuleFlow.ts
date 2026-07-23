@@ -61,20 +61,23 @@ function saveAll(map: Record<string, AppModuleFlow>) {
   }
 }
 
-/** 本地缓存读取（兼容离线）；真相源为 apps.page_schema.meta.module_flow */
+/** 本地缓存读取（兼容离线）；展示优先水合 Runtime schema，广场侧不写回 DB */
 export function loadModuleFlow(appKey: string, moduleLabels: string[]): AppModuleFlow {
   const stored = loadAll()[appKey]
   if (stored?.steps?.length) return stored
   return buildDefaultFlow(appKey, moduleLabels)
 }
 
+/**
+ * 仅写 localStorage，供本地预览缓存。
+ * 广场「我的应用」为只读概览，禁止通过此路径 PATCH 真 Runtime schema。
+ * Runtime 对话改页才走正式草稿/审批流。
+ */
 export function saveModuleFlow(flow: AppModuleFlow): AppModuleFlow {
   const next = { ...flow, updatedAt: new Date().toISOString() }
   const map = loadAll()
   map[flow.appKey] = next
   saveAll(map)
-  // 异步写回 Runtime DB（失败不阻断 UI）
-  void persistModuleFlowToRuntime(next).catch(() => undefined)
   return next
 }
 
@@ -104,7 +107,7 @@ export async function hydrateModuleFlowFromRuntime(
   return loadModuleFlow(appKey, moduleLabels)
 }
 
-/** 将流程写入 page_schema.meta.module_flow（DB 真相源） */
+/** 将流程写入 page_schema.meta.module_flow（仅 Runtime 正式改页路径可调用；广场禁止） */
 export async function persistModuleFlowToRuntime(flow: AppModuleFlow): Promise<void> {
   const token = getToken()
   if (!token || !flow.appKey) return

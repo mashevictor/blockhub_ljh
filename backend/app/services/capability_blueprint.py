@@ -263,6 +263,51 @@ for _kind, _label in _FINANCE_KIND_LABEL.items():
         ],
     }
 
+_LOGISTICS_KIND_LABEL = {
+    "waybill_track": "运单跟踪",
+    "warehouse_inbound": "入库验收",
+    "warehouse_outbound": "出库拣配",
+    "fleet_dispatch": "车辆调度",
+    "pod_signoff": "签收确认",
+    "logistics_exception": "物流异常",
+    "freight_settle": "运费结算",
+    "cold_chain_alert": "冷链告警",
+    "dock_queue": "装卸排队",
+    "route_task": "路线任务",
+}
+
+for _kind, _label in _LOGISTICS_KIND_LABEL.items():
+    _BINDING[_kind] = {
+        "model": db_models.LogisticsOpsRecord,
+        "table_label": _label,
+        "kind_filter": _kind,
+        "apis": [
+            {
+                "method": "GET",
+                "path": f"/api/v1/logistics-ops/{_kind}/records",
+                "desc": f"{_label}列表",
+                "auth": "JWT",
+            },
+            {
+                "method": "POST",
+                "path": f"/api/v1/logistics-ops/{_kind}/records",
+                "desc": f"新建{_label}",
+                "auth": "JWT",
+            },
+            {
+                "method": "POST",
+                "path": f"/api/v1/logistics-ops/{_kind}/records/{{id}}/{{action}}",
+                "desc": "状态流转（done/approve/close）",
+                "auth": "JWT",
+            },
+        ],
+        "code": [
+            "backend/app/api/v1/logistics_ops.py",
+            "backend/app/services/logistics_ops_store.py",
+            "packages/web-capability-logistics-ops/",
+        ],
+    }
+
 PREVIEW_PACK_KEYS: dict[str, list[str]] = {
     "mfg": [
         "device_repair",
@@ -324,6 +369,20 @@ PREVIEW_PACK_KEYS: dict[str, list[str]] = {
         "chat_qa",
         "chart_dashboard",
         "notify_im",
+    ],
+    "logistics": [
+        "waybill_track",
+        "warehouse_inbound",
+        "warehouse_outbound",
+        "inventory_count",
+        "fleet_dispatch",
+        "pod_signoff",
+        "logistics_exception",
+        "cold_chain_alert",
+        "delivery_order",
+        "chart_dashboard",
+        "notify_im",
+        "kb_document",
     ],
     "office": [
         "policy_qa",

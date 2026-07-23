@@ -150,10 +150,10 @@ export default function PlazaMyAppsPage() {
         <div>
           <h1><span className="plaza-mflow-chev chev-hero" aria-hidden>&gt;&gt;</span> 我的应用</h1>
           <p className="plaza-my-head-sub plaza-my-head-sub--full">
-            点选应用，在底部工作台继续编排与试运营；需要完整视图时点「编排」
+            点选应用，在底部查看只读概览（模块与接口）；改页请进 Runtime 对话改页。完整视图点「概览」
           </p>
           <p className="plaza-my-head-sub plaza-my-head-sub--short">
-            点选应用，在底部工作台继续编排
+            点选应用，底部为只读概览 · 改页进 Runtime
           </p>
         </div>
         <Link to={ROUTES.home} className="plaza-my-create-btn">+ 继续创建</Link>
@@ -166,7 +166,7 @@ export default function PlazaMyAppsPage() {
       )}
 
       {justPublishedId && apps.some((a) => appKey(a) === justPublishedId) && (
-        <p className="plaza-my-success-banner">🎉 发布成功 — 请确认交付进度与分享链接，模块编排可稍后展开</p>
+        <p className="plaza-my-success-banner">🎉 发布成功 — 请确认交付进度与分享链接，模块概览可稍后展开</p>
       )}
 
       {plazaFlash && (
@@ -234,7 +234,7 @@ export default function PlazaMyAppsPage() {
                       className="btn-primary plaza-my-orch-btn"
                       onClick={() => openOrchestration(app)}
                     >
-                      <span className="plaza-mflow-chev">&gt;&gt;</span> 编排
+                      <span className="plaza-mflow-chev">&gt;&gt;</span> 概览
                     </button>
                     <PlazaPublishButton
                       app={app}

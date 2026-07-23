@@ -43,10 +43,23 @@ _STORE_PROBES: dict[str, tuple[str, str, str]] = {
     "due_diligence": ("app.services.finance_ops_store", "list_records", "/finance-ops/due_diligence/records"),
     "regulatory_report": ("app.services.finance_ops_store", "list_records", "/finance-ops/regulatory_report/records"),
     "insurance_case": ("app.services.finance_ops_store", "list_records", "/finance-ops/insurance_case/records"),
+    "finance_news": ("app.services.finance_news_store", "list_items", "/finance-news/items"),
+    "waybill_track": ("app.services.logistics_ops_store", "list_records", "/logistics-ops/waybill_track/records"),
+    "warehouse_inbound": ("app.services.logistics_ops_store", "list_records", "/logistics-ops/warehouse_inbound/records"),
+    "warehouse_outbound": ("app.services.logistics_ops_store", "list_records", "/logistics-ops/warehouse_outbound/records"),
+    "fleet_dispatch": ("app.services.logistics_ops_store", "list_records", "/logistics-ops/fleet_dispatch/records"),
+    "pod_signoff": ("app.services.logistics_ops_store", "list_records", "/logistics-ops/pod_signoff/records"),
+    "logistics_exception": ("app.services.logistics_ops_store", "list_records", "/logistics-ops/logistics_exception/records"),
+    "freight_settle": ("app.services.logistics_ops_store", "list_records", "/logistics-ops/freight_settle/records"),
+    "cold_chain_alert": ("app.services.logistics_ops_store", "list_records", "/logistics-ops/cold_chain_alert/records"),
+    "dock_queue": ("app.services.logistics_ops_store", "list_records", "/logistics-ops/dock_queue/records"),
+    "route_task": ("app.services.logistics_ops_store", "list_records", "/logistics-ops/route_task/records"),
     "school_notice": ("app.services.school_notice_store", "list_records", "/school-notice/records"),
     "homework_qa": ("app.services.homework_qa_store", "list_records", "/homework-qa/records"),
     "class_schedule": ("app.services.class_schedule_store", "list_records", "/class-schedule/records"),
     "campaign_ops": ("app.services.campaign_ops_store", "list_records", "/campaign-ops/records"),
+    "it_ticket": ("app.services.it_ticket_store", "list_tickets", "/it-ticket/tickets"),
+    "asset_manage": ("app.services.asset_manage_store", "list_records", "/asset-manage/records"),
     "property_repair": ("app.services.property_repair_store", "list_records", "/property-repair/records"),
     "house_viewing": ("app.services.house_viewing_store", "list_records", "/house-viewing/records"),
     "hotel_booking": ("app.services.hotel_booking_store", "list_records", "/hotel-booking/records"),
@@ -159,7 +172,7 @@ def _probe_store(key: str, db: Session, tenant_id: str) -> dict[str, Any]:
     try:
         mod = importlib.import_module(mod_name)
         fn = getattr(mod, fn_name)
-        if mod_name.endswith("finance_ops_store"):
+        if mod_name.endswith("finance_ops_store") or mod_name.endswith("logistics_ops_store"):
             items = fn(db, tenant_id, kind=key)
         else:
             items = fn(db, tenant_id)

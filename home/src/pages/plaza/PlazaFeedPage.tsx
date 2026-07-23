@@ -132,7 +132,7 @@ function FeedCard({
           <span className="plaza-mflow-chev" aria-hidden>
             &gt;&gt;
           </span>{' '}
-          进入查看编排
+          进入查看概览
         </span>
         <div className="plaza-feed-actions" onClick={(e) => e.stopPropagation()}>
           <button
@@ -275,9 +275,9 @@ export default function PlazaFeedPage() {
           </a>
         </div>
         <p className="plaza-main-hint plaza-main-hint--full">
-          功能编排与数据编排仅对本应用生效；可在底部工作台试运营。
+          功能与数据轨为只读概览；改模块请打开 Runtime。底部可流程预览（本地动画）。
         </p>
-        <p className="plaza-main-hint plaza-main-hint--short">本应用编排 · 底部可试运营</p>
+        <p className="plaza-main-hint plaza-main-hint--short">本应用概览 · 只读 · 改页进 Runtime</p>
         <PlazaDualRailFlowPanel
           appKey={feedAppKey(opened)}
           appName={opened.appName}
@@ -314,11 +314,11 @@ export default function PlazaFeedPage() {
       </div>
 
       <p className="plaza-main-hint plaza-main-hint--full">
-        浏览公开应用列表；点进某个应用后，再查看功能编排、数据编排与试运营。
+        浏览公开应用列表；点进某个应用后，再查看只读功能/数据概览。
         {loading && <span> · 加载中…</span>}
       </p>
       <p className="plaza-main-hint plaza-main-hint--short">
-        先列表 · 点进应用看编排
+        先列表 · 点进应用看概览
         {loading && <span> · 加载中…</span>}
       </p>
 

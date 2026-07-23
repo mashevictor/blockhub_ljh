@@ -12,6 +12,7 @@ from app.data.finance_vertical_capabilities import (
     securities_pack_scenes,
 )
 from app.data.game_scene_capabilities import game_pack_scenes
+from app.data.logistics_scene_capabilities import logistics_pack_scenes
 from app.data.med_scene_capabilities import med_pack_scenes
 from app.data.office_scene_capabilities import office_pack_scenes
 from app.data.sales_scene_capabilities import sales_pack_scenes
@@ -210,19 +211,8 @@ _LOGISTICS = {
     "name": "物流仓储",
     "icon": "📦",
     "color": "#ca8a04",
-    "tagline": "运单、仓储、调度、签收可视",
-    "scenes": [
-        _scene("运单跟踪", "运输管理", "在途运单实时可视", pages="list+notify", agent="notify"),
-        _scene("仓储盘点", "仓储管理", "周期盘点任务派发", pages="form+approval", agent="approval"),
-        _scene("车辆调度", "运输管理", "车辆路线智能调度", pages="chart+approval", standard="部分", agent="report"),
-        _scene("签收确认", "末端配送", "电子签收与异常登记", pages="form", agent="approval"),
-        _scene("异常上报", "运营管理", "延误破损异常工单", agent="approval"),
-        _scene("路线优化", "运输管理", "配送路线成本优化", pages="chart", standard="部分", agent="report"),
-        _scene("运费结算", "财务管理", "承运商运费对账", pages="approval+chart", agent="approval"),
-        _scene("冷链监控", "特种物流", "温湿度异常告警", pages="notify+chart", standard="部分", agent="notify"),
-        _scene("装卸排队", "场站管理", "月台排队叫号", pages="list", agent="approval"),
-        _scene("在途可视", "运输管理", "GPS在途大屏", pages="chart", agent="report"),
-    ],
+    "tagline": "运单仓配 · 调度签收 · 冷链装卸 · 真表闭环",
+    "scenes": logistics_pack_scenes(),
 }
 
 _REALESTATE = {

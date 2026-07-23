@@ -39,25 +39,40 @@ export default function DashboardWidget(props: { node: SchemaNode }) {
         .catch(() => setFinance({ open: 0, total: 0, cards: [] }))
       return
     }
+    if (metricsSource === 'logistics_ops') {
+      const q = appId ? `?app_id=${encodeURIComponent(appId)}` : ''
+      apiFetch<FinanceStats>(`/api/v1/logistics-ops/stats${q}`, token)
+        .then(setFinance)
+        .catch(() => setFinance({ open: 0, total: 0, cards: [] }))
+      return
+    }
     Promise.all([
       apiFetch<{ pending_approvals?: number; chat_sessions?: number }>('/api/v1/stats/dashboard', token).catch(() => ({})),
       apiFetch<{ knowledge_bases: number; documents: number }>('/api/v1/kb/stats', token).catch(() => ({})),
     ]).then(([overview, kb]) => setStats({ ...overview, ...kb }))
   }, [token, metricsSource, appId])
 
-  if (metricsSource === 'finance_ops') {
+  if (metricsSource === 'finance_ops' || metricsSource === 'logistics_ops') {
+    const title = metricsSource === 'logistics_ops' ? '在途可视看板' : '风险经营看板'
     const cards =
       finance?.cards?.length
         ? finance.cards.map((c) => ({ label: `${c.label}待办`, value: c.open }))
-        : [
-            { label: 'KYC待办', value: finance?.kyc_open ?? 0 },
-            { label: 'AML待办', value: finance?.aml_open ?? 0 },
-            { label: '授信待办', value: finance?.credit_open ?? 0 },
-            { label: '全部待办', value: finance?.open ?? 0 },
-          ]
+        : metricsSource === 'logistics_ops'
+          ? [
+              { label: '运单待办', value: (finance as { waybill_open?: number } | null)?.waybill_open ?? 0 },
+              { label: '异常待办', value: (finance as { exception_open?: number } | null)?.exception_open ?? 0 },
+              { label: '冷链待办', value: (finance as { cold_open?: number } | null)?.cold_open ?? 0 },
+              { label: '全部待办', value: finance?.open ?? 0 },
+            ]
+          : [
+              { label: 'KYC待办', value: finance?.kyc_open ?? 0 },
+              { label: 'AML待办', value: finance?.aml_open ?? 0 },
+              { label: '授信待办', value: finance?.credit_open ?? 0 },
+              { label: '全部待办', value: finance?.open ?? 0 },
+            ]
     return (
       <div className="widget dashboard-widget">
-        <h3>风险经营看板</h3>
+        <h3>{title}</h3>
         <div className="stat-grid">
           {cards.map((c) => (
             <div key={c.label} className="stat-card" style={{ borderColor: primaryColor }}>

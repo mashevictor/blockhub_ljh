@@ -238,9 +238,9 @@ export default function PlazaModuleFlowPipeline({
         </strong>
         <span>
           {readOnly
-            ? '点击模块节点查看能力说明'
+            ? '点击模块节点查看能力说明（只读）'
             : draggable
-              ? '按住节点 ⠿ 拖动排序 · 点击选中后在下方编排'
+              ? '按住节点 ⠿ 拖动排序 · 点击选中后在下方查看'
               : '点击节点查看详情'}
         </span>
       </div>

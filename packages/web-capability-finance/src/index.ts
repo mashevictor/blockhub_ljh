@@ -7,6 +7,7 @@ import {
   InsuranceCaseWidget,
   RegulatoryReportWidget,
 } from './FinanceOpsWidgets'
+import { FinanceNewsWidget } from './FinanceNewsWidget'
 
 registerWidget('FinanceKycWidget', FinanceKycWidget as Parameters<typeof registerWidget>[1])
 registerWidget('FinanceAmlWidget', FinanceAmlWidget as Parameters<typeof registerWidget>[1])
@@ -14,6 +15,7 @@ registerWidget('CreditApprovalWidget', CreditApprovalWidget as Parameters<typeof
 registerWidget('DueDiligenceWidget', DueDiligenceWidget as Parameters<typeof registerWidget>[1])
 registerWidget('RegulatoryReportWidget', RegulatoryReportWidget as Parameters<typeof registerWidget>[1])
 registerWidget('InsuranceCaseWidget', InsuranceCaseWidget as Parameters<typeof registerWidget>[1])
+registerWidget('FinanceNewsWidget', FinanceNewsWidget as Parameters<typeof registerWidget>[1])
 
 export {
   FinanceKycWidget,
@@ -22,4 +24,5 @@ export {
   DueDiligenceWidget,
   RegulatoryReportWidget,
   InsuranceCaseWidget,
+  FinanceNewsWidget,
 }

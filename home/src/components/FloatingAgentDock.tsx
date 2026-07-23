@@ -466,14 +466,18 @@ export default function FloatingAgentDock({
     })
   }, [persistCollapsed, snapToBottom, onExpand, fitPanelInViewport])
 
+  // 仅在 expandSignal 数值变化时展开；勿依赖 expand 引用，否则折叠后每次父组件重渲染会再次展开
+  const lastExpandSignalRef = useRef(0)
   useEffect(() => {
-    if (!expandSignal) return
+    if (!expandSignal || expandSignal === lastExpandSignalRef.current) return
+    lastExpandSignalRef.current = expandSignal
     if (!dockEnabled) {
       setDockEnabled(true)
       persistDockEnabled(true)
     }
     expand({ snap: snapBottomOnExpand, invokeOnExpand: false })
-  }, [expandSignal, expand, dockEnabled, persistDockEnabled, snapBottomOnExpand])
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally ignore expand identity
+  }, [expandSignal, dockEnabled, persistDockEnabled, snapBottomOnExpand])
 
   const collapse = useCallback(() => {
     setCollapsed(true)

@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import Any
 from uuid import uuid4
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text, func
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import JSON
 
@@ -1518,6 +1518,30 @@ class MfgOpsRecord(Base):
     reporter: Mapped[User] = relationship(foreign_keys=[reporter_id])
 
 
+class LogisticsOpsRecord(Base):
+    """CapShip · 物流仓储共享记录（运单/入出库/调度/签收/冷链/装卸等）。"""
+
+    __tablename__ = "logistics_ops_records"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenants.id"), nullable=False, index=True)
+    app_public_id: Mapped[str] = mapped_column(String(64), nullable=False, default="", index=True)
+    reporter_id: Mapped[str] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
+    record_no: Mapped[str] = mapped_column(String(32), nullable=False, index=True)
+    kind: Mapped[str] = mapped_column(String(40), nullable=False, default="", index=True)
+    title: Mapped[str] = mapped_column(String(200), nullable=False, default="")
+    field_a: Mapped[str] = mapped_column(String(200), nullable=False, default="")
+    field_b: Mapped[str] = mapped_column(String(200), nullable=False, default="")
+    field_c: Mapped[str] = mapped_column(String(200), nullable=False, default="")
+    field_d: Mapped[str] = mapped_column(String(200), nullable=False, default="")
+    note: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    status: Mapped[str] = mapped_column(String(32), nullable=False, default="open", index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    reporter: Mapped[User] = relationship(foreign_keys=[reporter_id])
+
+
 class FinanceOpsRecord(Base):
     """CapShip · 金融五垂直共享记录（KYC/AML/授信/尽调/报送/核保理赔）。"""
 
@@ -1540,6 +1564,48 @@ class FinanceOpsRecord(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
     reporter: Mapped[User] = relationship(foreign_keys=[reporter_id])
+
+
+class FinanceNewsItem(Base):
+    """CapShip · 金融行业新闻 Agent 条目（空库空列表；demo 需显式 seed）。"""
+
+    __tablename__ = "finance_news_items"
+    __table_args__ = (
+        UniqueConstraint("tenant_id", "source", "external_id", name="uq_finance_news_tenant_source_ext"),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenants.id"), nullable=False, index=True)
+    app_public_id: Mapped[str] = mapped_column(String(64), nullable=False, default="", index=True)
+    vertical: Mapped[str] = mapped_column(String(32), nullable=False, default="bank", index=True)
+    scope: Mapped[str] = mapped_column(String(32), nullable=False, default="macro_cn", index=True)
+    title: Mapped[str] = mapped_column(String(300), nullable=False, default="")
+    summary: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    body: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    symbols: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+    source: Mapped[str] = mapped_column(String(40), nullable=False, default="demo", index=True)
+    external_id: Mapped[str] = mapped_column(String(120), nullable=False, default="")
+    heat: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+
+class FinanceNewsSourceConfig(Base):
+    """租户级新闻源配置（token 仅存库，不入库外明文日志）。"""
+
+    __tablename__ = "finance_news_source_config"
+    __table_args__ = (UniqueConstraint("tenant_id", "provider", name="uq_finance_news_cfg_tenant_provider"),)
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenants.id"), nullable=False, index=True)
+    provider: Mapped[str] = mapped_column(String(40), nullable=False, default="public_cn")
+    token_enc: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    enabled: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    last_sync_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    last_error: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
 
 class ItTicketRecord(Base):

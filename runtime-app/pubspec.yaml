@@ -33,6 +33,8 @@ dependencies:
     path: ../packages/capability_game_support
   capability_finance:
     path: ../packages/capability_finance
+  capability_logistics:
+    path: ../packages/capability_logistics
   capability_school_notice:
     path: ../packages/capability_school_notice
   capability_property_repair:
@@ -83,6 +85,10 @@ dependencies:
     path: ../packages/capability_legal_case
   capability_leave_request:
     path: ../packages/capability_leave_request
+  capability_it_ticket:
+    path: ../packages/capability_it_ticket
+  capability_asset_manage:
+    path: ../packages/capability_asset_manage
   capability_expense_claim:
     path: ../packages/capability_expense_claim
   capability_policy_qa:

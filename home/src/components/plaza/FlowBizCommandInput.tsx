@@ -60,25 +60,20 @@ const QUICK: BizQuickChip[] = [
   { cat: 'design', label: '梳理功能清单', text: '梳理功能清单' },
   { cat: 'dev', label: '当前流程有哪些模块？', text: '当前流程有哪些模块' },
   { cat: 'dev', label: '打开知识库问答', text: '打开知识库问答' },
-  { cat: 'dev', label: '插入审批流', text: '插入 审批流' },
-  { cat: 'dev', label: '复制当前 IN curl', text: '复制 curl' },
-  { cat: 'test', label: '测试当前 IN 接口', text: '测试当前 IN' },
-  { cat: 'test', label: '回归测一下 OUT', text: '测试 OUT' },
-  { cat: 'test', label: '开始试运营验收', text: '开始试运营' },
-  { cat: 'ops', label: '停止试运营', text: '停止试运营' },
+  { cat: 'ops', label: '打开 Runtime 改页', text: '打开 Runtime' },
+  { cat: 'test', label: '流程预览走一遍', text: '流程预览' },
+  { cat: 'ops', label: '停止预览', text: '停止预览' },
   { cat: 'ops', label: '生成联调检查清单', text: '生成联调检查清单' },
 ]
 
-/** 上海话应用 · >> 内置真业务测试话术 */
+/** 上海话应用 · >> 内置只读/预览话术 */
 const SHANGHAI_QUICK: BizQuickChip[] = [
   { cat: 'dev', label: '打开上海话网页', text: '打开上海话网页' },
   { cat: 'test', label: '测 voice 配置', text: '测 voice 配置' },
   { cat: 'test', label: '测 ASR 鉴权', text: '测 ASR 鉴权' },
   { cat: 'test', label: '试一句「侬好」', text: '试一句侬好' },
-  { cat: 'test', label: '例句·查审批', text: '例句查审批' },
-  { cat: 'test', label: '跑真链路冒烟', text: '跑上海话冒烟' },
-  { cat: 'ops', label: '开始试运营', text: '开始试运营' },
-  { cat: 'ops', label: '停止试运营', text: '停止试运营' },
+  { cat: 'ops', label: '流程预览', text: '流程预览' },
+  { cat: 'ops', label: '停止预览', text: '停止预览' },
   { cat: 'design', label: '怎么测上海话？', text: '怎么测上海话' },
 ]
 
@@ -102,7 +97,7 @@ async function copyText(text: string) {
 const FlowBizCommandInput = forwardRef<FlowBizCommandHandle, Props>(function FlowBizCommandInput({
   mutateLocked = false,
   disabled = false,
-  availableModules,
+  availableModules: _availableModules,
   flowLabels,
   nodeLabels = [],
   activeNodeLabel = '用户意图',
@@ -113,10 +108,10 @@ const FlowBizCommandInput = forwardRef<FlowBizCommandHandle, Props>(function Flo
   commandProfile = 'default',
   inputApi = null,
   outputApi = null,
-  onInsert,
-  onInvoke,
+  onInsert: _onInsert,
+  onInvoke: _onInvoke,
   onAnalyze,
-  onNote,
+  onNote: _onNote,
   onOpenNode,
   onStartTrial,
   onStopTrial,
@@ -134,12 +129,6 @@ const FlowBizCommandInput = forwardRef<FlowBizCommandHandle, Props>(function Flo
     if (nodeLabels.length) return nodeLabels
     return ['用户意图', ...flowLabels, '触达输出']
   }, [nodeLabels, flowLabels])
-
-  const filtered = useMemo(() => {
-    const q = stripCmd(value).replace(/^(插入|加|添加)\s*/, '').trim()
-    if (!q) return availableModules.slice(0, 6)
-    return availableModules.filter((m) => m.label.includes(q)).slice(0, 6)
-  }, [availableModules, value])
 
   const finish = (msg: string, clear = true) => {
     setHint(msg)
@@ -216,24 +205,29 @@ const FlowBizCommandInput = forwardRef<FlowBizCommandHandle, Props>(function Flo
 
     if (runShanghai(text)) return
 
-    // —— 运行控制（锁定时也可停/暂停；开始需可编排）——
-    if (/停止试运营|停止运行|先停一下|^停止$/.test(text)) {
+    // —— 流程预览控制（不写库）——
+    if (/停止预览|停止试运营|停止运行|先停一下|^停止$/.test(text)) {
       onStopTrial?.()
-      finish('已停止试运营，可继续编排与测试')
+      finish('已停止流程预览')
       return
     }
     if (/暂停/.test(text)) {
       onPauseTrial?.()
-      finish('已暂停试运营')
+      finish('已暂停流程预览')
       return
     }
-    if (/开始试运营|试运营验收|跑一遍|启动验收/.test(text)) {
-      if (mutateLocked) {
-        finish('请先停止当前试运营，再重新开始', false)
-        return
-      }
+    if (/流程预览|开始试运营|试运营验收|跑一遍|启动验收/.test(text)) {
       onStartTrial?.()
-      finish('已开始试运营 · 编辑与测试已锁定')
+      finish('已开始流程预览（本地动画，不改 Runtime）')
+      return
+    }
+    if (/打开\s*Runtime|去\s*Runtime|对话改页/.test(text)) {
+      if (webUrl) {
+        window.open(webUrl, '_blank', 'noopener,noreferrer')
+        finish('已打开 Runtime · 请在对话改页做增删改')
+      } else {
+        finish('暂无 Runtime 链接', false)
+      }
       return
     }
 
@@ -261,70 +255,34 @@ const FlowBizCommandInput = forwardRef<FlowBizCommandHandle, Props>(function Flo
       }
     }
 
-    // —— 接口 ——
+    // —— 接口 / 插入：广场只读，引导 Runtime ——
     if (/测试\s*out|回归测.*out|测一下\s*out|测试\s*输出/i.test(text)) {
-      if (mutateLocked) {
-        finish('运行锁定中，请先停止后再测接口', false)
-        return
-      }
-      onOpenNode?.(activeNodeLabel, 'output')
-      onInvoke('output')
-      finish('已测试当前节点 OUT')
+      finish('接口联调请打开 Runtime；此处仅展示契约', false)
       return
     }
     if (/^(调用|测试|测)(\s|$)/.test(text) || /测试|测接口|测一下\s*in|调用模块|联调/.test(text)) {
-      if (mutateLocked) {
-        finish('运行锁定中，请先停止后再测接口', false)
-        return
-      }
-      onInvoke('input')
-      finish('已测试当前节点 IN')
+      finish('接口联调请打开 Runtime；此处为只读概览', false)
       return
     }
     if (/复制\s*curl|拷贝\s*curl|给我 curl/i.test(text)) {
-      if (mutateLocked) {
-        finish('运行锁定中，请先停止后再复制', false)
-        return
-      }
       const api = activeApiSide === 'output' ? outputApi : inputApi
       if (!api) {
         finish('请先选中一个节点', false)
         return
       }
-      void copyText(buildApiCurl(api)).then(() => finish('已复制当前侧重侧 curl'))
+      void copyText(buildApiCurl(api)).then(() => finish('已复制当前侧重侧 curl（只读契约）'))
       return
     }
 
     // —— 插入 ——
     if (/^(插入|加|添加)/.test(text) || /插入|添加模块|加一个/.test(text)) {
-      if (mutateLocked) {
-        finish('运行锁定中，请先停止后再插入模块', false)
-        return
-      }
-      const rest = text
-        .replace(/.*(插入|添加模块|加一个|加|添加)\s*/, '')
-        .trim()
-      const mod =
-        availableModules.find((m) => m.label === rest)
-        ?? availableModules.find((m) => rest && m.label.includes(rest))
-        ?? availableModules.find((m) => m.label.includes('审批'))
-      if (mod) {
-        onInsert(mod)
-        finish(`已插入「${mod.label}」`)
-        return
-      }
-      setHint(rest ? `未找到模块「${rest}」` : '请输入要插入的模块名')
-      setMenuOpen(true)
+      finish('增删模块请打开 Runtime 对话改页（本页只读）', false)
       return
     }
 
     if (/^(备注|记下)\s*/.test(text)) {
-      const note = text.replace(/^(备注|记下)\s*/, '').trim()
-      if (note && !mutateLocked) {
-        onNote?.(note)
-        finish('已写入节点说明')
-        return
-      }
+      finish('改节点说明请打开 Runtime 对话改页', false)
+      return
     }
 
     // —— 未命中动作指令：一律走大模型（带上模块/节点上下文）——
@@ -354,7 +312,6 @@ const FlowBizCommandInput = forwardRef<FlowBizCommandHandle, Props>(function Flo
   useImperativeHandle(ref, () => ({ execute: run }), [
     disabled,
     mutateLocked,
-    availableModules,
     allNodeLabels,
     flowLabels,
     activeNodeLabel,
@@ -365,10 +322,7 @@ const FlowBizCommandInput = forwardRef<FlowBizCommandHandle, Props>(function Flo
     commandProfile,
     inputApi,
     outputApi,
-    onInsert,
-    onInvoke,
     onAnalyze,
-    onNote,
     onOpenNode,
     onStartTrial,
     onStopTrial,
@@ -427,38 +381,25 @@ const FlowBizCommandInput = forwardRef<FlowBizCommandHandle, Props>(function Flo
 
       {mutateLocked && (
         <p className="plaza-biz-cmd-lock">
-          运行锁定中 · 可点「停止试运营」或问答话术；改模块/测接口需先停止
+          只读概览 · 可问答 / 流程预览；增删改与联调请打开 Runtime 对话改页
         </p>
       )}
       {!disabled && hint && <p className="plaza-biz-cmd-hint">{hint}</p>}
 
-      {!disabled && menuOpen && !mutateLocked && (
+      {!disabled && menuOpen && (
         <div className="plaza-biz-cmd-menu" role="menu">
-          <button type="button" role="menuitem" onClick={() => { setValue('>>插入 '); setMenuOpen(true) }}>
-            插入模块 · 在当前节点后加入
+          <button type="button" role="menuitem" onClick={() => run('打开 Runtime')}>
+            打开 Runtime · 对话改页
           </button>
-          <button type="button" role="menuitem" onClick={() => run('>>调用')}>
-            调用模块 · 测试当前 IN
+          <button type="button" role="menuitem" onClick={() => run('流程预览')}>
+            流程预览 · 本地步进动画
           </button>
           <button type="button" role="menuitem" onClick={() => run('梳理功能清单')}>
             项目问答 · 梳理功能清单
           </button>
-          {filtered.length > 0 && (
-            <div className="plaza-biz-cmd-mods">
-              {filtered.map((m) => (
-                <button
-                  key={m.label}
-                  type="button"
-                  onClick={() => {
-                    onInsert(m)
-                    finish(`已插入「${m.label}」`)
-                  }}
-                >
-                  {m.icon} {m.label}
-                </button>
-              ))}
-            </div>
-          )}
+          <button type="button" role="menuitem" onClick={() => run('当前流程有哪些模块')}>
+            查看当前模块链
+          </button>
         </div>
       )}
     </div>

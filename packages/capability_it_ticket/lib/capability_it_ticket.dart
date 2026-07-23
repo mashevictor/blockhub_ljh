@@ -30,10 +30,10 @@ class _ItTicketPageState extends State<_ItTicketPage> {
   Future<void> _load() async {
     setState(() => loading = true);
     try {
-      final dio = getRuntimeAuthedDio(widget.branding);
+      final dio = getRuntimeAuthedDio();
       final appId = widget.branding.appPublicId;
       final q = appId.isNotEmpty ? '?app_id=${Uri.encodeComponent(appId)}' : '';
-      final res = await dio.get('/api/v1/it-ticket/tickets$q');
+      final res = await dio.get('${widget.branding.apiBaseUrl}/it-ticket/tickets$q');
       setState(() {
         items = (res.data is Map && res.data['items'] is List) ? res.data['items'] as List : const [];
         loading = false;

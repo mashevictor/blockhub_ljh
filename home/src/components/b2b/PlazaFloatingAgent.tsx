@@ -116,7 +116,7 @@ function PlazaFocusDockBody({
                         setMenuOpen(false)
                       }}
                     >
-                      全屏编排 / 分享发布
+                      全屏概览 / 分享发布
                     </button>
                   )}
                 </div>
@@ -134,7 +134,7 @@ function PlazaFocusDockBody({
             pageResetSignal={pageResetSignal}
           />
         ) : (
-          <p className="plaza-dual-rail-empty">暂无模块信息，请从「我的应用」进入全屏编排</p>
+          <p className="plaza-dual-rail-empty">暂无模块信息，请从「我的应用」进入全屏概览</p>
         )}
 
         <div className="plaza-dual-rail-dock-foot">
@@ -147,7 +147,7 @@ function PlazaFocusDockBody({
   )
 }
 
-/** 广场页底部 >> 双轨编排（方案 A+B）— 我的应用 / 应用广场共用 */
+/** 广场页底部 >> 只读双轨概览（方案 A+B）— 我的应用 / 应用广场共用 */
 export default function PlazaFloatingAgent() {
   const { contextKey } = useAgentPageContext()
   const copy = AGENT_CONTEXTS[contextKey]
@@ -186,7 +186,7 @@ export default function PlazaFloatingAgent() {
       title={title}
       chevLabel=""
       collapsedHint={collapsedHint}
-      ariaLabel="应用广场双轨编排"
+      ariaLabel="应用广场只读概览"
       variant="capsule"
       showDockToggle
       collapseToggleInTail

@@ -149,10 +149,12 @@ h1, h2, h3, h4, h5, h6 {
   border-radius: 13px;
   display: flex; align-items: center; justify-content: center;
   box-shadow: var(--theme-brand-ring, 0 4px 16px color-mix(in srgb, var(--shadow-glow) 35%, transparent));
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: box-shadow 0.3s ease;
   overflow: hidden;
   background: var(--surface);
   flex-shrink: 0;
+  /* 固定占位，禁止滚动压缩时改宽高导致顶栏抖动 */
+  contain: layout;
 }
 .brand-mark img {
   width: 100%;
@@ -161,7 +163,6 @@ h1, h2, h3, h4, h5, h6 {
   display: block;
 }
 .brand:hover .brand-mark {
-  transform: scale(1.05) rotate(-3deg);
   box-shadow: 0 8px 24px color-mix(in srgb, var(--shadow-glow) 45%, transparent);
 }
 .brand strong { display: block; font-size: var(--fs-lg); letter-spacing: -0.02em; line-height: 1.25; font-weight: 800; }
@@ -8520,6 +8521,28 @@ body.plaza-orch-open .plaza-dual-rail-dock {
   color: #b45309;
   background: #fffbeb;
   border: 1px solid #fcd34d;
+}
+.plaza-dual-rail-readonly-banner {
+  color: #334155;
+  background: color-mix(in srgb, var(--pri-soft) 55%, #f8fafc);
+  border: 1px solid color-mix(in srgb, var(--pri) 22%, var(--border));
+  font-weight: 650;
+}
+.plaza-dual-rail-runtime-link {
+  appearance: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  background: none;
+  color: var(--pri);
+  font: inherit;
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+.plaza-dual-rail-runtime-link:hover {
+  opacity: 0.85;
 }
 .plaza-dual-rail-load-more {
   width: 100%;

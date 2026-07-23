@@ -140,10 +140,32 @@
         "credit_approval",
         "due_diligence",
         "regulatory_report",
-        "insurance_case"
+        "insurance_case",
+        "finance_news"
       ],
       "module_class": "FinanceModule",
       "dart_import": "package:capability_finance/capability_finance.dart"
+    },
+    {
+      "web_pkg": "@blockhub/web-capability-logistics-ops",
+      "web_folder": "web-capability-logistics-ops",
+      "flutter_pkg": "capability_logistics",
+      "p1_scope": "app",
+      "status_target": "ok",
+      "capability_keys": [
+        "waybill_track",
+        "warehouse_inbound",
+        "warehouse_outbound",
+        "fleet_dispatch",
+        "pod_signoff",
+        "logistics_exception",
+        "freight_settle",
+        "cold_chain_alert",
+        "dock_queue",
+        "route_task"
+      ],
+      "module_class": "LogisticsModule",
+      "dart_import": "package:capability_logistics/capability_logistics.dart"
     },
     {
       "web_pkg": "@blockhub/web-capability-school-notice",
@@ -289,8 +311,6 @@
       "capability_keys": [
         "erp_connector",
         "meeting_booking",
-        "it_helpdesk",
-        "asset_manage",
         "notify_im",
         "rbac_page"
       ],
@@ -492,6 +512,31 @@
       ],
       "module_class": "LeaveRequestModule",
       "dart_import": "package:capability_leave_request/capability_leave_request.dart"
+    },
+    {
+      "web_pkg": "@blockhub/web-capability-it-ticket",
+      "web_folder": "web-capability-it-ticket",
+      "flutter_pkg": "capability_it_ticket",
+      "p1_scope": "app",
+      "status_target": "ok",
+      "capability_keys": [
+        "it_ticket",
+        "it_helpdesk"
+      ],
+      "module_class": "ItTicketModule",
+      "dart_import": "package:capability_it_ticket/capability_it_ticket.dart"
+    },
+    {
+      "web_pkg": "@blockhub/web-capability-asset-manage",
+      "web_folder": "web-capability-asset-manage",
+      "flutter_pkg": "capability_asset_manage",
+      "p1_scope": "app",
+      "status_target": "ok",
+      "capability_keys": [
+        "asset_manage"
+      ],
+      "module_class": "AssetManageModule",
+      "dart_import": "package:capability_asset_manage/capability_asset_manage.dart"
     },
     {
       "web_pkg": "@blockhub/web-capability-expense-claim",

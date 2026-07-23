@@ -7,8 +7,21 @@ export interface IndustryAssetSet {
   og: string
 }
 
+/** 金融五垂直复用既有 finance 配图，避免 /industry/bank/thumb.jpg 等 404 引发布局抖动 */
+const ASSET_ALIAS: Record<string, string> = {
+  bank: 'finance',
+  securities: 'finance',
+  insurance: 'finance',
+  fund: 'finance',
+  fintech: 'finance',
+}
+
+function assetKey(key: string): string {
+  return ASSET_ALIAS[key] || key
+}
+
 export function industryAssets(key: string): IndustryAssetSet {
-  const base = `/industry/${key}`
+  const base = `/industry/${assetKey(key)}`
   return {
     hero: staticUrl(`${base}/hero.jpg`),
     thumb: staticUrl(`${base}/thumb.jpg`),

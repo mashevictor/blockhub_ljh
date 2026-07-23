@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { ModuleFlowStep } from '../../lib/plazaModuleFlow'
 import { FLOW_EGRESS_ID, FLOW_INGRESS_ID } from '../../lib/plazaModuleFlow'
 import { getModuleCapability, type ModuleCapability } from '../../data/moduleCatalog'
@@ -8,7 +8,6 @@ import { usePlazaFocus } from '../../context/PlazaFocusContext'
 import FlowApiEndpointRow from './FlowApiEndpointRow'
 import FlowBizCommandInput, { type FlowBizCommandHandle } from './FlowBizCommandInput'
 import PlazaChevTrigger from './PlazaChevTrigger'
-import type { PlazaChevAction } from './PlazaChevMenu'
 
 interface Props {
   activeNodeId: string | null
@@ -52,9 +51,9 @@ export default function FlowOrchestrationDock({
   webUrl = '',
   commandProfile = 'default',
   analysisText,
-  onAddModule,
-  onEditNote,
-  onDelete,
+  onAddModule: _onAddModule,
+  onEditNote: _onEditNote,
+  onDelete: _onDelete,
   onPickModule,
   onClosePicker,
   onInsertModule,
@@ -82,91 +81,71 @@ export default function FlowOrchestrationDock({
 
   const isIngress = activeNodeId === FLOW_INGRESS_ID
   const isEgress = activeNodeId === FLOW_EGRESS_ID
-  const isEndpoint = isIngress || isEgress
   const cap = activeStep ? getModuleCapability(activeStep.label) : null
 
   let title = '点击数据流中的模块'
-  let desc = '在上方双轨选择节点；可编排态下可编辑、测试与 >> 命令'
+  let desc = '在上方双轨选择节点查看说明；增删改请打开 Runtime'
 
   if (isIngress) {
     title = '业务输入'
-    desc = '外部请求进入数据流 · 停止/编排态下可测 IN·OUT · 用 >> 插入/调用/分析'
+    desc = '外部请求进入数据流 · 只读查看 IN/OUT 契约 · 用 >> 问答或打开 Runtime'
   } else if (isEgress) {
     title = '触达输出'
-    desc = '结果推送到网页/App · 可编排态下可测接口'
+    desc = '结果推送到网页/App · 只读查看接口契约'
   } else if (activeStep) {
     title = activeStep.label
     desc = cap?.desc ?? activeStep.note
   }
 
-  const chevActions = useMemo((): PlazaChevAction[] => {
-    if (!canEdit) return []
-    const items: PlazaChevAction[] = []
-    if (!isEgress) {
-      items.push({
-        id: 'insert',
-        label: isIngress ? '插入首模块' : '插入模块',
-        onClick: onAddModule,
-        disabled: availableModules.length === 0,
-      })
-    }
-    if (activeApiNode) {
-      items.push({
-        id: 'invoke-in',
-        label: isEgress ? '调用输出接口' : '调用模块',
-        onClick: () => {
-          if (isEgress) setTestOutputTrigger((n) => n + 1)
-          else setTestInputTrigger((n) => n + 1)
-        },
-      })
-      if (!isEndpoint) {
-        items.push({
-          id: 'invoke-out',
-          label: '调用输出接口',
-          onClick: () => setTestOutputTrigger((n) => n + 1),
-        })
-      }
-    }
-    if (activeStep && !isEndpoint) {
-      items.push({ id: 'edit', label: '编辑说明', onClick: onEditNote })
-      items.push({ id: 'delete', label: '删除模块', onClick: onDelete })
-    }
-    return items
-  }, [
-    canEdit,
-    isEgress,
-    isIngress,
-    isEndpoint,
-    activeApiNode,
-    activeStep,
-    availableModules.length,
-    onAddModule,
-    onEditNote,
-    onDelete,
-  ])
-
   return (
     <div
       className={`plaza-orch-dock${canEdit ? '' : ' is-run-locked'}`}
       role="complementary"
-      aria-label="编排编辑区"
+      aria-label="应用概览编辑区"
       data-active-node={activeNodeId ?? ''}
     >
       {isCreator ? (
         <PlazaChevTrigger
           actions={
-            canEdit && chevActions.length > 0
-              ? chevActions
-              : [
+            webUrl
+              ? [
                   {
-                    id: 'unlock',
+                    id: 'runtime',
+                    label: '打开 Runtime 对话改页',
+                    onClick: () => window.open(webUrl, '_blank', 'noopener,noreferrer'),
+                  },
+                  {
+                    id: 'preview',
                     label:
                       run.phase === 'running' || run.phase === 'paused'
-                        ? '停止并回到可编辑'
-                        : '重置到就绪后可编辑',
+                        ? '停止流程预览'
+                        : '开始流程预览',
                     onClick: () => {
-                      if (run.phase === 'running' || run.phase === 'paused') run.stop()
-                      else run.enterEditMode()
+                      if (run.phase === 'running' || run.phase === 'paused') {
+                        run.stop()
+                        run.enterOverviewMode()
+                      } else {
+                        run.enterPreviewMode()
+                        run.start()
+                      }
+                    },
+                  },
+                ]
+              : [
+                  {
+                    id: 'preview',
+                    label:
+                      run.phase === 'running' || run.phase === 'paused'
+                        ? '停止流程预览'
+                        : '开始流程预览',
+                    onClick: () => {
+                      if (run.phase === 'running' || run.phase === 'paused') {
+                        run.stop()
+                        run.enterOverviewMode()
+                      } else {
+                        run.enterPreviewMode()
+                        run.start()
+                      }
                     },
                   },
                 ]
@@ -187,7 +166,7 @@ export default function FlowOrchestrationDock({
         )}
       </div>
 
-      {/* 业务输入始终保留；运行锁定仍可问答/停止，改模块/测接口需就绪 */}
+      {/* 业务输入：只读概览下仍可问答 / 预览 / 打开 Runtime */}
       <FlowBizCommandInput
         ref={cmdRef}
         disabled={!isCreator}
@@ -225,12 +204,12 @@ export default function FlowOrchestrationDock({
         }}
         onOpenNode={onOpenNodeByLabel}
         onStartTrial={() => {
-          run.enterRunMode()
+          run.enterPreviewMode()
           run.start()
         }}
         onStopTrial={() => {
           run.stop()
-          run.enterEditMode()
+          run.enterOverviewMode()
         }}
         onPauseTrial={() => run.pause()}
       />

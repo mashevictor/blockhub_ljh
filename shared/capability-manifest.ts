@@ -280,6 +280,22 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     ]
   },
   {
+    "key": "cold_chain_alert",
+    "name": "冷链告警",
+    "category": "物流仓储",
+    "widget": "ColdChainAlertWidget",
+    "agent_id": "cold_chain_alert",
+    "web_pkg": "@blockhub/web-capability-logistics-ops",
+    "flutter_pkg": "capability_logistics",
+    "route": "/cold-chain-alert",
+    "keywords": [
+      "冷链",
+      "温控",
+      "温湿度",
+      "冷藏"
+    ]
+  },
+  {
     "key": "contract_editor",
     "name": "合同编辑器",
     "category": "合同签章",
@@ -451,6 +467,22 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     ]
   },
   {
+    "key": "dock_queue",
+    "name": "装卸排队",
+    "category": "物流仓储",
+    "widget": "DockQueueWidget",
+    "agent_id": "dock_queue",
+    "web_pkg": "@blockhub/web-capability-logistics-ops",
+    "flutter_pkg": "capability_logistics",
+    "route": "/dock-queue",
+    "keywords": [
+      "月台",
+      "装卸",
+      "排队叫号",
+      "场站"
+    ]
+  },
+  {
     "key": "due_diligence",
     "name": "尽调报告",
     "category": "金融服务",
@@ -549,6 +581,24 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     ]
   },
   {
+    "key": "finance_news",
+    "name": "行业新闻Agent",
+    "category": "金融服务",
+    "widget": "FinanceNewsWidget",
+    "agent_id": "finance_news",
+    "web_pkg": "@blockhub/web-capability-finance",
+    "flutter_pkg": "capability_finance",
+    "route": "/finance-news",
+    "keywords": [
+      "行业新闻",
+      "新闻Agent",
+      "金融新闻",
+      "必读摘要",
+      "热议",
+      "一页纸"
+    ]
+  },
+  {
     "key": "fitness_checkin",
     "name": "健身打卡",
     "category": "生活服务",
@@ -563,6 +613,22 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
       "训练打卡",
       "教练答疑",
       "健身"
+    ]
+  },
+  {
+    "key": "fleet_dispatch",
+    "name": "车辆调度",
+    "category": "物流仓储",
+    "widget": "FleetDispatchWidget",
+    "agent_id": "fleet_dispatch",
+    "web_pkg": "@blockhub/web-capability-logistics-ops",
+    "flutter_pkg": "capability_logistics",
+    "route": "/fleet-dispatch",
+    "keywords": [
+      "车辆调度",
+      "派车",
+      "司机",
+      "车队"
     ]
   },
   {
@@ -802,6 +868,21 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
       "席位",
       "登记",
       "填写"
+    ]
+  },
+  {
+    "key": "freight_settle",
+    "name": "运费结算",
+    "category": "物流仓储",
+    "widget": "FreightSettleWidget",
+    "agent_id": "freight_settle",
+    "web_pkg": "@blockhub/web-capability-logistics-ops",
+    "flutter_pkg": "capability_logistics",
+    "route": "/freight-settle",
+    "keywords": [
+      "运费",
+      "承运商结算",
+      "运费对账"
     ]
   },
   {
@@ -1101,6 +1182,23 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     ]
   },
   {
+    "key": "logistics_exception",
+    "name": "物流异常",
+    "category": "物流仓储",
+    "widget": "LogisticsExceptionWidget",
+    "agent_id": "logistics_exception",
+    "web_pkg": "@blockhub/web-capability-logistics-ops",
+    "flutter_pkg": "capability_logistics",
+    "route": "/logistics-exception",
+    "keywords": [
+      "物流异常",
+      "破损",
+      "延误",
+      "丢件",
+      "危险品"
+    ]
+  },
+  {
     "key": "maintenance_plan",
     "name": "保养计划",
     "category": "设备管理",
@@ -1329,6 +1427,22 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     ]
   },
   {
+    "key": "pod_signoff",
+    "name": "签收确认",
+    "category": "物流仓储",
+    "widget": "PodSignoffWidget",
+    "agent_id": "pod_signoff",
+    "web_pkg": "@blockhub/web-capability-logistics-ops",
+    "flutter_pkg": "capability_logistics",
+    "route": "/pod-signoff",
+    "keywords": [
+      "签收",
+      "POD",
+      "妥投",
+      "拒收"
+    ]
+  },
+  {
     "key": "policy_qa",
     "name": "制度问答",
     "category": "知识协同",
@@ -1438,6 +1552,22 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
     "flutter_pkg": "capability_report_scheduled",
     "route": "/dashboard",
     "keywords": []
+  },
+  {
+    "key": "route_task",
+    "name": "路线任务",
+    "category": "物流仓储",
+    "widget": "RouteTaskWidget",
+    "agent_id": "route_task",
+    "web_pkg": "@blockhub/web-capability-logistics-ops",
+    "flutter_pkg": "capability_logistics",
+    "route": "/route-task",
+    "keywords": [
+      "路线",
+      "配送路线",
+      "站点顺序",
+      "路线优化"
+    ]
   },
   {
     "key": "sales_lead",
@@ -1644,6 +1774,56 @@ export const CAPABILITY_MANIFEST: CapabilityManifestEntry[] = [
       "景点问答",
       "预订提醒",
       "旅行"
+    ]
+  },
+  {
+    "key": "warehouse_inbound",
+    "name": "入库验收",
+    "category": "物流仓储",
+    "widget": "WarehouseInboundWidget",
+    "agent_id": "warehouse_inbound",
+    "web_pkg": "@blockhub/web-capability-logistics-ops",
+    "flutter_pkg": "capability_logistics",
+    "route": "/warehouse-inbound",
+    "keywords": [
+      "入库",
+      "收货",
+      "上架",
+      "到货验收",
+      "退货入库"
+    ]
+  },
+  {
+    "key": "warehouse_outbound",
+    "name": "出库拣配",
+    "category": "物流仓储",
+    "widget": "WarehouseOutboundWidget",
+    "agent_id": "warehouse_outbound",
+    "web_pkg": "@blockhub/web-capability-logistics-ops",
+    "flutter_pkg": "capability_logistics",
+    "route": "/warehouse-outbound",
+    "keywords": [
+      "出库",
+      "拣货",
+      "波次",
+      "复核出库"
+    ]
+  },
+  {
+    "key": "waybill_track",
+    "name": "运单跟踪",
+    "category": "物流仓储",
+    "widget": "WaybillTrackWidget",
+    "agent_id": "waybill_track",
+    "web_pkg": "@blockhub/web-capability-logistics-ops",
+    "flutter_pkg": "capability_logistics",
+    "route": "/waybill-track",
+    "keywords": [
+      "运单",
+      "在途",
+      "干线",
+      "城配",
+      "物流跟踪"
     ]
   },
   {

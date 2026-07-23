@@ -1,0 +1,11 @@
+name: capability_logistics
+description: CapShip logistics ops — 运单/入出库/调度/签收/冷链等
+version: 0.1.0
+publish_to: none
+environment:
+  sdk: ">=3.3.0 <4.0.0"
+dependencies:
+  flutter:
+    sdk: flutter
+  blockhub_flutter_core:
+    path: ../blockhub_flutter_core

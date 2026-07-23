@@ -63,6 +63,9 @@ class Settings(BaseSettings):
 
     uploads_dir: str = "uploads"
 
+    # Tushare Pro（金融新闻真源；勿把用户粘贴的 key 写入仓库，仅环境变量 / 租户配置）
+    tushare_token: str = ""
+
     # Redis（D5：限流 / OTP 缓存；未配置时回退内存）
     redis_url: str = "redis://127.0.0.1:6379/0"
     rate_limit_enabled: bool = True

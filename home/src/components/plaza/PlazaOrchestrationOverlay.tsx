@@ -72,7 +72,7 @@ export default function PlazaOrchestrationOverlay({
 
   const startTrial = () => {
     setBodyTab('flow')
-    run.enterRunMode()
+    run.enterPreviewMode()
     run.start()
   }
 
@@ -85,7 +85,7 @@ export default function PlazaOrchestrationOverlay({
         setSmokeLog(r.summary)
         setBodyTab('api')
       } else {
-        setSmokeLog(`网页地址：${app.webUrl}\n请点「打开应用」人工验收。编排 REST 演示契约非本应用验收项。`)
+        setSmokeLog(`网页地址：${app.webUrl}\n请点「打开 Runtime」人工验收。广场概览为只读，不测 REST 写路径。`)
       }
     } catch (e) {
       setSmokeLog(`冒烟失败：${e instanceof Error ? e.message : String(e)}`)
@@ -99,7 +99,7 @@ export default function PlazaOrchestrationOverlay({
       className={`plaza-orch-overlay is-plan-b${justPublished ? ' is-just-published' : ''}`}
       role="dialog"
       aria-modal="true"
-      aria-label={justPublished ? `发布成功 ${app.appName}` : `编排 ${app.appName}`}
+      aria-label={justPublished ? `发布成功 ${app.appName}` : `应用概览 ${app.appName}`}
     >
       <div className="plaza-orch-backdrop" onClick={onClose} aria-hidden />
       <div className="plaza-orch-sheet">
@@ -193,7 +193,7 @@ export default function PlazaOrchestrationOverlay({
             </div>
           )}
 
-          <div className="plaza-orch-body-tabs" role="tablist" aria-label="编排分区">
+          <div className="plaza-orch-body-tabs" role="tablist" aria-label="概览分区">
             <button
               type="button"
               role="tab"
@@ -201,7 +201,7 @@ export default function PlazaOrchestrationOverlay({
               aria-selected={bodyTab === 'flow'}
               onClick={() => setBodyTab('flow')}
             >
-              功能编排
+              功能概览
             </button>
             <button
               type="button"
@@ -210,18 +210,18 @@ export default function PlazaOrchestrationOverlay({
               aria-selected={bodyTab === 'api'}
               onClick={() => setBodyTab('api')}
             >
-              数据接口与验证
+              数据接口说明
             </button>
           </div>
 
           <p className="plaza-orch-tab-hint">
             {bodyTab === 'flow'
               ? shanghai
-                ? '突出上海话等用户可感知能力；可拖序、试运营。接口请切右侧 Tab。'
-                : '先看功能能力与试运营；数据路径与接口测试在「数据接口与验证」。'
+                ? '只读查看上海话等用户可感知能力；可流程预览。改模块请打开 Runtime。'
+                : '只读查看功能能力与流程预览；增删改请打开 Runtime 对话改页。'
               : shanghai
-                ? '真链路与编排 mock 分开展示；下方节点 IN/OUT 可点测。'
-                : '查看各节点 REST 契约，点测试验证是否可通。'}
+                ? '真链路契约只读展示；联调请在 Runtime 进行。'
+                : '查看各节点 REST 契约（只读）；联调测试请在 Runtime。'}
           </p>
 
           {bodyTab === 'api' && shanghai && (

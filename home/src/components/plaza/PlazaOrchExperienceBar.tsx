@@ -38,15 +38,15 @@ export default function PlazaOrchExperienceBar({
         <p className="plaza-orch-cta-desc">
           {shanghai
             ? '网页已就绪。先试上海话助手；APK 打包不影响网页。'
-            : '打开网页运行时，或先走一遍试运营验收。'}
+            : '打开 Runtime 真页面，或先走一遍流程预览（本地动画，不改数据）。'}
         </p>
         <div className="plaza-orch-cta-actions">
           <a className="btn-primary" href={app.webUrl} target="_blank" rel="noreferrer">
             <IconGlobe size={14} />
-            {shanghai ? '打开上海话网页' : '打开应用'}
+            {shanghai ? '打开上海话网页' : '打开 Runtime'}
           </a>
           <button type="button" className="btn-ghost" onClick={onStartTrial}>
-            ▶ 试运营
+            ▶ 流程预览
           </button>
         </div>
       </div>

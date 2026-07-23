@@ -119,29 +119,61 @@ export function InboxWidget(_props: { node: SchemaNode }) {
 }
 
 export function EmailWidget(_props: { node: SchemaNode }) {
-  const { primaryColor } = useRuntime()
+  const { token, primaryColor } = useRuntime()
   const [to, setTo] = useState('')
   const [subject, setSubject] = useState('')
   const [body, setBody] = useState('')
+  const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState('')
+
+  const send = async () => {
+    if (!token) return
+    const t = to.trim()
+    const s = subject.trim()
+    const b = body.trim()
+    if (!t || !s || !b) {
+      setMsg('请填写收件人、主题与正文')
+      return
+    }
+    setBusy(true)
+    setMsg('')
+    try {
+      const res = await apiFetch<{ success?: boolean; message?: string; smtp?: boolean }>(
+        '/api/v1/notifications/email',
+        token,
+        {
+          method: 'POST',
+          body: JSON.stringify({ to: t, subject: s, body: b }),
+        },
+      )
+      setMsg(res.message || (res.smtp ? '已发送并写入通知' : '已写入站内通知（SMTP 未配置则仅入库）'))
+      setTo('')
+      setSubject('')
+      setBody('')
+    } catch (e) {
+      setMsg(String(e))
+    } finally {
+      setBusy(false)
+    }
+  }
 
   return (
     <div className="widget">
-      <h3>邮件通知（示意）</h3>
+      <h3>邮件通知</h3>
       <p className="muted" style={{ fontSize: 12 }}>
-        本页为布局示意，不发送真实邮件。请使用企微钉钉飞书等正式通知能力。
+        写入真通知表；若服务端已配置 SMTP 则同步外发。金融场景优先使用企微钉钉飞书。
       </p>
-      <input className="input" placeholder="收件人" value={to} onChange={(e) => setTo(e.target.value)} disabled />
-      <input className="input" placeholder="主题" value={subject} onChange={(e) => setSubject(e.target.value)} disabled />
-      <textarea className="input" rows={3} placeholder="正文" value={body} onChange={(e) => setBody(e.target.value)} disabled />
+      <input className="input" placeholder="收件人邮箱" value={to} onChange={(e) => setTo(e.target.value)} />
+      <input className="input" placeholder="主题" value={subject} onChange={(e) => setSubject(e.target.value)} />
+      <textarea className="input" rows={3} placeholder="正文" value={body} onChange={(e) => setBody(e.target.value)} />
       <button
         type="button"
         className="btn"
         style={{ background: primaryColor, marginTop: 8 }}
-        disabled
-        onClick={() => setMsg('示意页不可发送')}
+        disabled={busy || !token}
+        onClick={() => void send()}
       >
-        发送
+        {busy ? '提交中…' : '发送 / 入库'}
       </button>
       {msg ? <p className="status-msg">{msg}</p> : null}
     </div>
