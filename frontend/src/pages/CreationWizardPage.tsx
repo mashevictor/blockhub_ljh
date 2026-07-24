@@ -7,6 +7,7 @@ import {
   type IndustryPack,
   type WizardStep,
 } from '../api/client'
+import { homeAbsoluteUrl } from '../data/brand'
 
 type DeliverMode = 'web' | 'app' | 'both'
 
@@ -76,6 +77,17 @@ export default function CreationWizardPage() {
       try {
         const result = await publishApp(appName, industryKey, { scenarioIds: [...selected], deliver })
         setPublished(result)
+        const app = result?.app as { id?: string; web_url?: string } | undefined
+        const runtime = result?.runtime as { web_url?: string } | undefined
+        const href =
+          runtime?.web_url ||
+          app?.web_url ||
+          (app?.id ? homeAbsoluteUrl(`/r/${encodeURIComponent(app.id)}`) : '')
+        if (href) {
+          // 生成成功后直达 Runtime（与 Home CreateStudio 一致）
+          window.location.assign(href)
+          return
+        }
         setStep(7)
       } catch {
         setPublishError('发布失败，请稍后重试')

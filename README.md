@@ -13,11 +13,12 @@
 ## 快速启动
 
 ```powershell
-cd cozecode
+cd blockhub_ljh
 .\start-all.ps1
 ```
 
-- **Home 主页**：http://127.0.0.1:5173/（默认方案 A · 一句话生成）
+- **Home 创建入口**：http://127.0.0.1:5173/（默认方案 A · 一句话生成；生成后直达 Runtime `/r/{id}`）
+- **Runtime 员工端**：http://127.0.0.1:5175/r/（Home 的 `/r` 代理依赖此项）
 - **高级开发模式**：http://127.0.0.1:5174/
 - **API 文档**：http://127.0.0.1:8001/docs
 
