@@ -129,10 +129,9 @@ def _normalize_data_url(raw: str) -> str | None:
         return s
     if s.startswith("http://") or s.startswith("https://"):
         return s
-    # 裸 base64 → 当 png（先取出再拼，兼容 Python 3.10：f-string 表达式内不能含反斜杠）
+    # 裸 base64 → 当 png
     if re.fullmatch(r"[A-Za-z0-9+/=\s]+", s) and len(s) > 64:
-        b64 = re.sub(r"\s+", "", s)
-        return f"data:image/png;base64,{b64}"
+        return f"data:image/png;base64,{re.sub(r'\s+', '', s)}"
     return None
 
 
