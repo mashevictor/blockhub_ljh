@@ -1,0 +1,20 @@
+{
+  "nav.product": "Capabilities",
+  "nav.capship": "CapShip",
+  "nav.cases": "Customer stories",
+  "nav.trust": "Trust & compliance",
+  "nav.pricing": "Pricing",
+  "nav.news": "News",
+  "action.plaza": "App plaza",
+  "action.try": "Try online",
+  "action.demo": "Book a demo",
+  "action.compose": "Compose edit",
+  "action.account": "My plan",
+  "action.admin": "Admin",
+  "action.logout": "Log out",
+  "action.login": "Log in",
+  "hero.lead_scenes": "{{n}} business scenarios",
+  "hero.lead_compose": "Compose edit",
+  "hero.lead_effect": "Live for everyone after approval",
+  "hero.cta_group": "Demo & try"
+}

@@ -4,6 +4,8 @@
  */
 import commonZh from './messages/zh-CN/common.json'
 import commonEn from './messages/en-US/common.json'
+import homeZh from './messages/zh-CN/home.json'
+import homeEn from './messages/en-US/home.json'
 import errorsZh from './messages/zh-CN/errors.json'
 import errorsEn from './messages/en-US/errors.json'
 import capZh from './messages/zh-CN/capability.gen.json'
@@ -21,20 +23,22 @@ function stripMeta(raw: Record<string, unknown>): Record<string, string> {
 }
 
 export const SHELL_MESSAGES = {
-  'zh-CN': { common: commonZh, error: errorsZh },
-  'en-US': { common: commonEn, error: errorsEn },
+  'zh-CN': { common: commonZh, home: homeZh, error: errorsZh },
+  'en-US': { common: commonEn, home: homeEn, error: errorsEn },
 } as const
 
 /** Shell + errors + capability/hero catalog (P3/P4). */
 export const APP_MESSAGES = {
   'zh-CN': {
     common: commonZh,
+    home: homeZh,
     error: errorsZh,
     ...stripMeta(capZh as Record<string, unknown>),
     ...stripMeta(heroZh as Record<string, unknown>),
   },
   'en-US': {
     common: commonEn,
+    home: homeEn,
     error: errorsEn,
     ...stripMeta(capEn as Record<string, unknown>),
     ...stripMeta(heroEn as Record<string, unknown>),

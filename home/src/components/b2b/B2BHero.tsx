@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { useT } from '@blockhub/i18n/react'
 import { PLATFORM_STATS } from '@shared/platformStats'
 import HeroStatsPanel from './HeroStatsPanel'
 import { AgentButtonContent } from '../AgentChevron'
@@ -17,6 +18,7 @@ function HeroTagline() {
 }
 
 export default function B2BHero({ onBook, onTry }: Props) {
+  const t = useT()
   const pageReady = useHomePageReady()
 
   return (
@@ -32,30 +34,30 @@ export default function B2BHero({ onBook, onTry }: Props) {
               <HeroTagline />
             </h1>
             <p className="b2b-hero-lead">
-              <span>{PLATFORM_STATS.scenarios} 业务场景</span>
+              <span>{t('home.hero.lead_scenes', { n: PLATFORM_STATS.scenarios })}</span>
               <span className="b2b-hero-lead-sep" aria-hidden>
                 ·
               </span>
               <Link to={ROUTES.capship} className="b2b-hero-compose-pill">
-                对话改页
+                {t('home.hero.lead_compose')}
               </Link>
               <span className="b2b-hero-lead-sep" aria-hidden>
                 ·
               </span>
-              <span>审批后全员生效</span>
+              <span>{t('home.hero.lead_effect')}</span>
             </p>
-            <div className="b2b-hero-btns" role="group" aria-label="预约与体验">
+            <div className="b2b-hero-btns" role="group" aria-label={t('home.hero.cta_group')}>
               <button type="button" className="b2b-btn-primary agent-action-btn b2b-hero-cta" onClick={onBook}>
-                <AgentButtonContent chevSize="nav">预约演示</AgentButtonContent>
+                <AgentButtonContent chevSize="nav">{t('home.action.demo')}</AgentButtonContent>
               </button>
               <button type="button" className="b2b-btn-outline agent-action-btn b2b-hero-cta" onClick={onTry}>
-                <AgentButtonContent chevSize="nav">在线体验</AgentButtonContent>
+                <AgentButtonContent chevSize="nav">{t('home.action.try')}</AgentButtonContent>
               </button>
               <Link
                 to={ROUTES.capship}
                 className="b2b-btn-compose agent-action-btn b2b-hero-cta"
               >
-                <AgentButtonContent chevSize="nav">对话改页</AgentButtonContent>
+                <AgentButtonContent chevSize="nav">{t('home.action.compose')}</AgentButtonContent>
               </Link>
             </div>
           </div>

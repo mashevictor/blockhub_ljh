@@ -1,0 +1,20 @@
+{
+  "nav.product": "产品能力",
+  "nav.capship": "CapShip",
+  "nav.cases": "落地案例",
+  "nav.trust": "信任合规",
+  "nav.pricing": "定价说明",
+  "nav.news": "新闻动态",
+  "action.plaza": "应用广场",
+  "action.try": "在线体验",
+  "action.demo": "预约演示",
+  "action.compose": "对话改页",
+  "action.account": "我的套餐",
+  "action.admin": "管理后台",
+  "action.logout": "退出",
+  "action.login": "登录",
+  "hero.lead_scenes": "{{n}} 业务场景",
+  "hero.lead_compose": "对话改页",
+  "hero.lead_effect": "审批后全员生效",
+  "hero.cta_group": "预约与体验"
+}

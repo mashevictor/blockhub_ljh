@@ -142,26 +142,28 @@ export function LocaleSwitch({ className, variant = 'text' }: LocaleSwitchProps)
   const i18n = useI18n()
   const isZh = i18n.locale === 'zh-CN'
   const other: Locale = isZh ? 'en-US' : 'zh-CN'
+  const switchLabel = isZh ? 'EN' : '中文'
   if (variant === 'chip') {
     return (
       <button
         type="button"
-        className={className}
+        className={`${className ?? ''}${isZh ? '' : ' is-en'}`.trim()}
         aria-label={isZh ? 'Switch to English' : '切换到中文'}
         title={isZh ? 'Switch to English' : '切换到中文'}
         onClick={() => i18n.setLocale(other)}
       >
-        <span className={isZh ? 'is-on' : undefined} lang="zh-CN">
-          中
+        <span className="b2b-locale-current" lang={isZh ? 'zh-CN' : 'en'}>
+          {isZh ? '中' : 'EN'}
         </span>
-        <span aria-hidden>/</span>
-        <span className={!isZh ? 'is-on' : undefined} lang="en">
-          EN
+        <span className="b2b-locale-sep" aria-hidden>
+          →
+        </span>
+        <span className="b2b-locale-next" lang={isZh ? 'en' : 'zh-CN'}>
+          {switchLabel}
         </span>
       </button>
     )
   }
-  const label = isZh ? 'EN' : '中文'
   return (
     <button
       type="button"
@@ -169,7 +171,7 @@ export function LocaleSwitch({ className, variant = 'text' }: LocaleSwitchProps)
       aria-label={isZh ? 'Switch to English' : '切换到中文'}
       onClick={() => i18n.setLocale(other)}
     >
-      {label}
+      {switchLabel}
     </button>
   )
 }

@@ -4,6 +4,7 @@
   "fallbackLocale": "zh-CN",
   "namespaces": {
     "common": { "owner": "apps-shell", "source": "hand" },
+    "home": { "owner": "home-landing", "source": "hand" },
     "error": { "owner": "backend-errors", "source": "hand" },
     "cap": { "owner": "capability_registry", "source": "codegen", "genFile": "capability.gen.json" },
     "hero": { "owner": "hero_presets", "source": "codegen", "genFile": "hero.gen.json" }

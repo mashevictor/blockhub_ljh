@@ -26,6 +26,7 @@
   ],
   "x-hand-written-files": [
     "messages/*/common.json",
+    "messages/*/home.json",
     "messages/*/errors.json"
   ],
   "x-seed-overlays": [
