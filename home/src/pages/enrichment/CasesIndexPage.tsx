@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { useT } from '@blockhub/i18n/react'
 import type { CSSProperties } from 'react'
 import MarketingSiteShell from '../../components/b2b/enrichment/MarketingSiteShell'
 import EnrichCardVisual from '../../components/b2b/enrichment/EnrichCardVisual'
@@ -9,17 +10,18 @@ import { ROUTES } from '../../routes/paths'
 import { usePageMeta } from '../../hooks/usePageMeta'
 
 export default function CasesIndexPage() {
+  const t = useT()
   usePageMeta({
-    title: '客户案例 · 积木仓',
-    description: '制造、零售、物流等行业真实试点案例，含调整过程与可转发材料',
+    title: `${t('home.enrich.cases.title')} · BlockHub`,
+    description: t('home.enrich.cases.lead'),
   })
 
   return (
     <MarketingSiteShell
       skin="landed"
-      pageTitle="客户案例"
-      pageEyebrow="落地案例"
-      pageLead="深度案例 · 短案例速览 · 可下载一页纸摘要"
+      pageTitle={t('home.enrich.cases.title')}
+      pageEyebrow={t('home.enrich.cases.eyebrow')}
+      pageLead={t('home.enrich.cases.lead')}
     >
       <div className="enrich-cases-list">
         {CASE_STUDIES.map((c) => {

@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { useT } from '@blockhub/i18n/react'
 import type { CSSProperties } from 'react'
 import MarketingSiteShell from '../../components/b2b/enrichment/MarketingSiteShell'
 import EnrichCardVisual from '../../components/b2b/enrichment/EnrichCardVisual'
@@ -89,14 +90,18 @@ function TierGrid({ tiers }: { tiers: PricingTier[] }) {
 }
 
 export default function PricingPage() {
+  const t = useT()
   usePageMeta({
-    title: '套餐定价 · 积木仓 AI',
+    title: `${t('home.enrich.pricing.title')} · BlockHub`,
     description: `Free / Plus / Business / Enterprise；含对话改页与${SMART_PAGE_LABEL}配额说明`,
   })
 
   return (
-    <MarketingSiteShell skin="landed" pageTitle="套餐定价" pageEyebrow="定价说明">
-      <p style={{ marginBottom: 20 }}>
+    <MarketingSiteShell
+      skin="landed"
+      pageTitle={t('home.enrich.pricing.title')}
+      pageEyebrow={t('home.enrich.pricing.eyebrow')}
+    >      <p style={{ marginBottom: 20 }}>
         <Link to={ROUTES.accountBilling}>我的套餐与用量</Link>
       </p>
 

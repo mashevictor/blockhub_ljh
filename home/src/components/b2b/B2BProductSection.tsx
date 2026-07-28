@@ -1,5 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useT } from '@blockhub/i18n/react'
 import {
   AGENT_TEMPLATES,
   ATOMIC_AI_CAPABILITIES,
@@ -45,6 +46,7 @@ function SectionBlock({
 }
 
 export default function B2BProductSection({ onTry }: Props) {
+  const t = useT()
   const navigate = useNavigate()
 
   const openIndustryDetail = (key: string) => {
@@ -59,21 +61,22 @@ export default function B2BProductSection({ onTry }: Props) {
   return (
     <section id="product" className="b2b-section b2b-product-section">
       <div className="b2b-section-title b2b-product-head">
-        <span className="b2b-eyebrow">智能体产品能力</span>
-        <h2>
-          丰富 <em>AI 模板</em>，模块积木 · 全行业方案 · 大模型驱动
-        </h2>
+        <span className="b2b-eyebrow">{t('home.product.eyebrow')}</span>
+        <h2>{t('home.product.title')}</h2>
         <p>
-          {PLATFORM_STATS.scenarios} 场景、{PLATFORM_STATS.capabilities} 项模块、{PLATFORM_STATS.agents} 个智能体开箱即用；
-          对话改页即时预览，草稿审批后全员生效，一次发布五端可用。
+          {t('home.product.lead', {
+            scenarios: PLATFORM_STATS.scenarios,
+            capabilities: PLATFORM_STATS.capabilities,
+            agents: PLATFORM_STATS.agents,
+          })}
         </p>
       </div>
 
       {/* ── CapShip 平台编排：对话改页 ── */}
       <SectionBlock
-        eyebrow="CapShip · 开源能力"
-        title={<>对话改页：先预览，审批后全员生效</>}
-        desc="用对话调整应用菜单和页面；改动先落在个人草稿，管理员通过后才正式发布"
+        eyebrow={t('home.product.compose.eyebrow')}
+        title={t('home.product.compose.title')}
+        desc={t('home.product.compose.desc')}
       >
         <div className="b2b-orchestrate-grid">
           {PLATFORM_ORCHESTRATION_STEPS.map((s) => (
@@ -88,23 +91,23 @@ export default function B2BProductSection({ onTry }: Props) {
         </div>
         <div className="b2b-orchestrate-actions">
           <button type="button" className="b2b-btn-primary agent-action-btn" onClick={onTry}>
-            <AgentButtonContent>在线体验对话改页</AgentButtonContent>
+            <AgentButtonContent>{t('home.product.compose.cta_try')}</AgentButtonContent>
           </button>
           <button
             type="button"
             className="b2b-btn-outline agent-action-btn"
             onClick={() => navigate(ROUTES.capship)}
           >
-            <AgentButtonContent>CapShip 开源说明</AgentButtonContent>
+            <AgentButtonContent>{t('home.product.compose.cta_oss')}</AgentButtonContent>
           </button>
         </div>
       </SectionBlock>
 
       {/* ── 开箱模板 ── */}
       <SectionBlock
-        eyebrow="场景模板"
-        title={<>9 套 <em>AI 模板</em>，开箱即用</>}
-        desc="问答、审批、知识库、看板、语音、集成等核心场景，含预览与能力清单"
+        eyebrow={t('home.product.templates.eyebrow')}
+        title={t('home.product.templates.title')}
+        desc={t('home.product.templates.desc')}
       >
         <div className="b2b-template-grid">
           {AGENT_TEMPLATES.map((tpl) => {
@@ -166,9 +169,9 @@ export default function B2BProductSection({ onTry }: Props) {
 
       {/* ── 10 高频模块 ── */}
       <SectionBlock
-        eyebrow="插入模块"
-        title="10 个高频模块，搭积木式组装"
-        desc="创建时一键插入，与行业场景、原子能力自由组合，大模型智能补全推荐"
+        eyebrow={t('home.product.modules.eyebrow')}
+        title={t('home.product.modules.title')}
+        desc={t('home.product.modules.desc')}
       >
         <div className="b2b-module-grid">
           {COMMON_INSERT_MODULES.map((mod) => (
@@ -194,9 +197,9 @@ export default function B2BProductSection({ onTry }: Props) {
 
       {/* ── 全行业方案 ── */}
       <SectionBlock
-        eyebrow="行业方案"
-        title={`${INDUSTRY_SOLUTIONS.length} 个行业 · 独立方案站`}
-        desc="覆盖 20 个行业深度包，每项有独立方案站与贴合行业配图，点选即可查看详情并创建"
+        eyebrow={t('home.product.industry.eyebrow')}
+        title={t('home.product.industry.title')}
+        desc={t('home.product.industry.desc')}
       >
         <p className="b2b-industry-hub-link">
           <button type="button" className="link-btn" onClick={openIndustryHub}>
@@ -269,9 +272,9 @@ export default function B2BProductSection({ onTry }: Props) {
 
       {/* ── 原子能力 ── */}
       <SectionBlock
-        eyebrow="原子能力"
-        title="AI 智能体原子能力"
-        desc="可独立启用或组合编排，沪语语音为特色方言交互能力"
+        eyebrow={t('home.product.atomic.eyebrow')}
+        title={t('home.product.atomic.title')}
+        desc={t('home.product.atomic.desc')}
       >
         <div className="b2b-atomic-grid">
           {ATOMIC_AI_CAPABILITIES.map((cap) => {
@@ -298,9 +301,9 @@ export default function B2BProductSection({ onTry }: Props) {
 
       {/* ── 大模型能力 ── */}
       <SectionBlock
-        eyebrow="大模型"
-        title="5 类大模型驱动的 AI 能力"
-        desc="推荐、对话、生成、编排、方言五类大模型，覆盖意图解析到业务落地"
+        eyebrow={t('home.product.llm.eyebrow')}
+        title={t('home.product.llm.title')}
+        desc={t('home.product.llm.desc')}
       >
         <div className="b2b-deepseek-grid">
           {LLM_POWERED_AGENTS.map((agent) => (

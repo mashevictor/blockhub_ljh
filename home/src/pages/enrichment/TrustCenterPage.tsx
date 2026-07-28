@@ -1,26 +1,28 @@
 import { Link } from 'react-router-dom'
+import { useT } from '@blockhub/i18n/react'
 import type { CSSProperties } from 'react'
 import MarketingSiteShell from '../../components/b2b/enrichment/MarketingSiteShell'
 import EnrichCardVisual from '../../components/b2b/enrichment/EnrichCardVisual'
 import { AgentButtonContent, AgentChevronGlyph } from '../../components/AgentChevron'
-import { TRUST_DOCS, TRUST_FAQ_SAMPLES, TRUST_HERO } from '../../data/siteTrust'
+import { TRUST_DOCS, TRUST_FAQ_SAMPLES } from '../../data/siteTrust'
 import { enrichCardStyle, trustDocTheme } from '../../data/enrichVisualThemes'
 import { ROLE_PAGES } from '../../data/siteRoles'
 import { ROUTES } from '../../routes/paths'
 import { usePageMeta } from '../../hooks/usePageMeta'
 
 export default function TrustCenterPage() {
+  const t = useT()
   usePageMeta({
-    title: '信任与合规中心 · 积木仓',
-    description: TRUST_HERO.desc,
+    title: `${t('home.enrich.trust.eyebrow')} · BlockHub`,
+    description: t('home.landing.trust.lead'),
   })
 
   return (
     <MarketingSiteShell
       skin="landed"
-      pageTitle={TRUST_HERO.title}
-      pageEyebrow="信任与合规"
-      pageLead={TRUST_HERO.desc}
+      pageTitle={t('home.landing.trust.title')}
+      pageEyebrow={t('home.enrich.trust.eyebrow')}
+      pageLead={t('home.landing.trust.lead')}
     >
       <section className="enrich-panel enrich-trust-docs" aria-labelledby="trust-docs-title">
         <div className="enrich-panel-head">

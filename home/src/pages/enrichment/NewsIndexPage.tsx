@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { useT } from '@blockhub/i18n/react'
 import type { CSSProperties } from 'react'
 import MarketingSiteShell from '../../components/b2b/enrichment/MarketingSiteShell'
 import EnrichCardVisual from '../../components/b2b/enrichment/EnrichCardVisual'
@@ -9,16 +10,17 @@ import { ROUTES } from '../../routes/paths'
 import { usePageMeta } from '../../hooks/usePageMeta'
 
 export default function NewsIndexPage() {
+  const t = useT()
   usePageMeta({
-    title: '新闻动态 · 积木仓',
-    description: '产品发布、客户动态与行业洞察',
+    title: `${t('home.enrich.news.title')} · BlockHub`,
+    description: t('home.enrich.news.lead'),
   })
 
   return (
     <MarketingSiteShell
-      pageTitle="新闻动态"
-      pageEyebrow="公司动态"
-      pageLead="产品发布 · 企业新闻 · 品牌活动"
+      pageTitle={t('home.enrich.news.title')}
+      pageEyebrow={t('home.enrich.news.eyebrow')}
+      pageLead={t('home.enrich.news.lead')}
     >
       <div className="enrich-news-list">
         {NEWS_ARTICLES.map((item) => {

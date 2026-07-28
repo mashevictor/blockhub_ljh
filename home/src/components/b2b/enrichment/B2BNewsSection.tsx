@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { useT } from '@blockhub/i18n/react'
 import { AgentButtonContent, AgentChevronGlyph } from '../../AgentChevron'
 import { NEWS_ARTICLES, NEWS_CATEGORY_LABELS } from '../../../data/siteNews'
 import { ROUTES } from '../../../routes/paths'
@@ -6,6 +7,7 @@ import { staticUrl } from '../../../lib/staticUrl'
 import LazyCover from '../../LazyCover'
 
 export default function B2BNewsSection() {
+  const t = useT()
   const latest = NEWS_ARTICLES.slice(0, 3)
 
   return (
@@ -13,18 +15,14 @@ export default function B2BNewsSection() {
       <div className="b2b-section-title">
         <span className="b2b-eyebrow enrich-eyebrow">
           <AgentChevronGlyph size="btn" className="enrich-eyebrow-chev" />
-          新闻动态
+          {t('home.landing.news.eyebrow')}
         </span>
-        <h2 id="enrich-news-title">最新动态</h2>
-        <p>产品发布 · 企业新闻 · 品牌活动</p>
+        <h2 id="enrich-news-title">{t('home.landing.news.title')}</h2>
+        <p>{t('home.landing.news.lead')}</p>
       </div>
       <div className="enrich-news-grid">
         {latest.map((item) => (
-          <Link
-            key={item.slug}
-            to={ROUTES.newsDetail(item.slug)}
-            className="enrich-news-card"
-          >
+          <Link key={item.slug} to={ROUTES.newsDetail(item.slug)} className="enrich-news-card">
             <LazyCover
               className="enrich-news-thumb enrich-news-thumb--photo"
               src={staticUrl(item.coverImage)}
@@ -40,7 +38,7 @@ export default function B2BNewsSection() {
       </div>
       <div className="enrich-section-foot">
         <Link to={ROUTES.news} className="enrich-link-btn agent-action-btn">
-          <AgentButtonContent>查看全部新闻</AgentButtonContent>
+          <AgentButtonContent>{t('home.landing.news.cta')}</AgentButtonContent>
         </Link>
       </div>
     </section>

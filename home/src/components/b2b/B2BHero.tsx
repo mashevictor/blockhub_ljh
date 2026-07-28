@@ -4,7 +4,6 @@ import { PLATFORM_STATS } from '@shared/platformStats'
 import HeroStatsPanel from './HeroStatsPanel'
 import { AgentButtonContent } from '../AgentChevron'
 import AgentSignLine from '../AgentSignLine'
-import { BRAND } from '../../data/brand'
 import { ROUTES } from '../../routes/paths'
 import { useHomePageReady } from '../../context/HomePageReadyContext'
 
@@ -14,7 +13,8 @@ interface Props {
 }
 
 function HeroTagline() {
-  return <em>{BRAND.tagline}</em>
+  const t = useT()
+  return <em>{t('home.brand.tagline')}</em>
 }
 
 export default function B2BHero({ onBook, onTry }: Props) {

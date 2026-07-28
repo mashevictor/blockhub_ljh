@@ -158,7 +158,9 @@ export default function B2BHeader({ user, activeSection = 'hero', onLogout }: Pr
             )}
           </div>
           <div className="b2b-nav-actions-tail">
-            <LocaleSwitch className="b2b-locale-switch" variant="chip" />
+            {!pathname.startsWith(ROUTES.capship) && (
+              <LocaleSwitch className="b2b-locale-switch" variant="chip" />
+            )}
             {user ? (
               <>
                 <Link className="b2b-nav-link" to={ROUTES.accountBilling}>{t('home.action.account')}</Link>

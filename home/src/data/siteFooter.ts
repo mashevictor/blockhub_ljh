@@ -2,59 +2,59 @@ import { ROUTES } from '../routes/paths'
 import { homeSectionHref } from './homeNav'
 
 export interface SiteFooterLink {
-  label: string
+  labelKey: string
   to: string
   external?: boolean
 }
 
 export interface SiteFooterColumn {
-  title: string
+  titleKey: string
   links: SiteFooterLink[]
 }
 
 export const SITE_FOOTER_COLUMNS: SiteFooterColumn[] = [
   {
-    title: '产品',
+    titleKey: 'home.footer.col.product',
     links: [
-      { label: '生成应用', to: homeSectionHref('contact-create') },
-      { label: 'CapShip 开源', to: ROUTES.capship },
-      { label: '应用广场', to: ROUTES.plazaFeed },
-      { label: '我的应用', to: ROUTES.plazaMyApps },
-      { label: '管理后台', to: '/admin/login', external: true },
+      { labelKey: 'home.footer.link.create', to: homeSectionHref('contact-create') },
+      { labelKey: 'home.footer.link.capship', to: ROUTES.capship },
+      { labelKey: 'home.footer.link.plaza', to: ROUTES.plazaFeed },
+      { labelKey: 'home.footer.link.my_apps', to: ROUTES.plazaMyApps },
+      { labelKey: 'home.footer.link.admin', to: '/admin/login', external: true },
     ],
   },
   {
-    title: '解决方案',
+    titleKey: 'home.footer.col.solutions',
     links: [
-      { label: '20 个行业方案', to: homeSectionHref('product') },
-      { label: '落地案例', to: ROUTES.cases },
-      { label: '模块积木库', to: homeSectionHref('product') },
-      { label: '五端发布', to: homeSectionHref('contact-create') },
+      { labelKey: 'home.footer.link.industries', to: homeSectionHref('product') },
+      { labelKey: 'home.footer.link.cases', to: ROUTES.cases },
+      { labelKey: 'home.footer.link.modules', to: homeSectionHref('product') },
+      { labelKey: 'home.footer.link.platforms', to: homeSectionHref('contact-create') },
     ],
   },
   {
-    title: '资源',
+    titleKey: 'home.footer.col.resources',
     links: [
-      { label: '信任与合规', to: ROUTES.trust },
-      { label: '定价说明', to: ROUTES.pricing },
-      { label: '我的套餐', to: ROUTES.accountBilling },
-      { label: '新闻动态', to: ROUTES.news },
-      { label: '资料下载', to: '/downloads/one-pager-mfg.pdf', external: true },
+      { labelKey: 'home.footer.link.trust', to: ROUTES.trust },
+      { labelKey: 'home.footer.link.pricing', to: ROUTES.pricing },
+      { labelKey: 'home.footer.link.billing', to: ROUTES.accountBilling },
+      { labelKey: 'home.footer.link.news', to: ROUTES.news },
+      { labelKey: 'home.footer.link.downloads', to: '/downloads/one-pager-mfg.pdf', external: true },
     ],
   },
   {
-    title: '公司',
+    titleKey: 'home.footer.col.company',
     links: [
-      { label: '预约演示', to: homeSectionHref('contact-demo') },
-      { label: '在线体验', to: homeSectionHref('contact-create') },
-      { label: '联系我们', to: 'mailto:hello@blockhub.local' },
-      { label: '关于积木仓', to: ROUTES.news },
+      { labelKey: 'home.footer.link.demo', to: homeSectionHref('contact-demo') },
+      { labelKey: 'home.footer.link.try', to: homeSectionHref('contact-create') },
+      { labelKey: 'home.footer.link.contact', to: 'mailto:hello@blockhub.local' },
+      { labelKey: 'home.footer.link.about', to: ROUTES.news },
     ],
   },
 ]
 
 export const SITE_FOOTER_LEGAL: SiteFooterLink[] = [
-  { label: '隐私政策', to: ROUTES.trustDoc('privacy') },
-  { label: '服务条款', to: ROUTES.trustDoc('terms') },
-  { label: '安全合规', to: ROUTES.trust },
+  { labelKey: 'home.footer.legal.privacy', to: ROUTES.trustDoc('privacy') },
+  { labelKey: 'home.footer.legal.terms', to: ROUTES.trustDoc('terms') },
+  { labelKey: 'home.footer.legal.security', to: ROUTES.trust },
 ]
