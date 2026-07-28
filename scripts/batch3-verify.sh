@@ -24,7 +24,7 @@ check "docs/GITHUB-E2E-SETUP.md"
 
 echo ""
 echo "GitHub Secret 待配置:"
-echo "  E2E_STAGING_BASE = http://101.32.209.251  (或你的 staging 域名)"
+echo "  E2E_STAGING_BASE = http://124.222.177.43  (或你的 staging 域名)"
 echo ""
 echo "配置后 PR 将自动跑 home-publish + ga9"
 echo "手动触发: gh workflow run e2e-staging-pr.yml"

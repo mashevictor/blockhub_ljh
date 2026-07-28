@@ -206,7 +206,7 @@ server {
 
 ---
 
-## 九、GA 验收（2026-07 · 101.32.209.251 已验）
+## 九、GA 验收（2026-07 · 124.222.177.43 已验）
 
 > 单机 IP 部署已跑通以下项；域名/HTTPS 仍为生产正式化待办。
 
@@ -266,7 +266,7 @@ CONFIRM=YES bash blockhub.sh pg-restore backups/postgres/trackchat_YYYYMMDD_HHMM
 
 ```bash
 bash /root/blockhub/blockhub.sh flutter-build --list
-bash /root/blockhub/blockhub.sh ga-checklist http://101.32.209.251
+bash /root/blockhub/blockhub.sh ga-checklist http://124.222.177.43
 ```
 
 ---

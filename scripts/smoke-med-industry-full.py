@@ -8,7 +8,7 @@ import time
 import urllib.error
 import urllib.request
 
-BASE = (sys.argv[1] if len(sys.argv) > 1 else "http://101.32.209.251").rstrip("/")
+BASE = (sys.argv[1] if len(sys.argv) > 1 else "http://124.222.177.43").rstrip("/")
 API = f"{BASE}/api/v1"
 EMAIL = "admin@trackchat.local"
 PASSWORD = "admin123"

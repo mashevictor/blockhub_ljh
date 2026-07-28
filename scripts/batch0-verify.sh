@@ -3,13 +3,13 @@
 #
 # 用法（服务器，仓库根目录）:
 #   bash /root/blockhub/blockhub.sh batch0
-#   bash /root/blockhub/blockhub.sh batch0 http://101.32.209.251
-#   SKIP_APK=1 bash scripts/batch0-verify.sh http://101.32.209.251 2>&1 | tee /tmp/batch0-$(date +%Y%m%d-%H%M).log
+#   bash /root/blockhub/blockhub.sh batch0 http://124.222.177.43
+#   SKIP_APK=1 bash scripts/batch0-verify.sh http://124.222.177.43 2>&1 | tee /tmp/batch0-$(date +%Y%m%d-%H%M).log
 #
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-BASE="${1:-http://101.32.209.251}"
+BASE="${1:-http://124.222.177.43}"
 API="$BASE/api/v1"
 LOG="${BATCH0_LOG:-/tmp/batch0-$(date +%Y%m%d-%H%M%S).log}"
 FAIL=0

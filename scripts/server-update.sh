@@ -3,7 +3,7 @@
 #
 # 用法:
 #   cd ~/blockhub && bash scripts/server-update.sh
-#   PUBLIC_URL=http://101.32.209.251 bash scripts/server-update.sh
+#   PUBLIC_URL=http://124.222.177.43 bash scripts/server-update.sh
 #
 # 分拆命令:
 #   bash scripts/server-all.sh deploy   # 仅部署

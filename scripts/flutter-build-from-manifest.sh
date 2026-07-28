@@ -12,7 +12,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 KEYS=""
 APP_NAME="${APP_NAME:-BlockHub Test}"
 PUBLIC_ID="${APP_PUBLIC_ID:-}"
-API_BASE="${API_BASE_URL:-http://101.32.209.251/api/v1}"
+API_BASE="${API_BASE_URL:-http://124.222.177.43/api/v1}"
 
 while [ $# -gt 0 ]; do
   case "$1" in

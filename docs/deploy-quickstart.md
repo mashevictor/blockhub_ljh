@@ -2,20 +2,20 @@
 
 ## 域名 blockhub.club
 
-DNS（注册商后台）两条 A 记录指向 `101.32.209.251`：
+DNS（注册商后台）两条 A 记录指向 `124.222.177.43`：
 
 | 主机 | 类型 | 值 |
 |------|------|-----|
-| `@` | A | `101.32.209.251` |
-| `www` | A | `101.32.209.251` |
+| `@` | A | `124.222.177.43` |
+| `www` | A | `124.222.177.43` |
 
-Nginx 模板已含 `server_name blockhub.club www.blockhub.club 101.32.209.251`。`deploy-one.sh` 会写入站点配置。
+Nginx 模板已含 `server_name blockhub.club www.blockhub.club 124.222.177.43`。`deploy-one.sh` 会写入站点配置。
 
 生产 `.env` 建议：
 
 ```bash
 PUBLIC_BASE_URL=https://blockhub.club
-CORS_ORIGINS=https://blockhub.club,https://www.blockhub.club,http://blockhub.club,http://www.blockhub.club,http://101.32.209.251
+CORS_ORIGINS=https://blockhub.club,https://www.blockhub.club,http://blockhub.club,http://www.blockhub.club,http://124.222.177.43
 ```
 
 HTTPS（解析生效后）：

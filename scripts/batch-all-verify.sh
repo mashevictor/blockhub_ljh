@@ -2,13 +2,13 @@
 # 批次 0–5 联跑验收（Post-GA 收口）
 #
 # 用法:
-#   bash blockhub.sh batch-all http://101.32.209.251
-#   SKIP_APK=1 bash blockhub.sh batch-all http://101.32.209.251   # batch0 跳过 APK
+#   bash blockhub.sh batch-all http://124.222.177.43
+#   SKIP_APK=1 bash blockhub.sh batch-all http://124.222.177.43   # batch0 跳过 APK
 #   SKIP_BATCH2=1 bash blockhub.sh batch-all ...                  # 跳过耗时的 APK E2E
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-BASE="${1:-http://101.32.209.251}"
+BASE="${1:-http://124.222.177.43}"
 FAIL=0
 LOG="${BATCH_ALL_LOG:-/tmp/batch-all-$(date +%Y%m%d-%H%M%S).log}"
 

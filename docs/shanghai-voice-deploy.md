@@ -19,7 +19,7 @@
 浏览器 / Flutter App / 生成网页
         │  WebSocket (PCM 音频上行 + 文本/音频下行)
         ▼
-nginx  (101.32.209.251)  →  /api/v1/voice/*   (Upgrade 头已配)
+nginx  (124.222.177.43)  →  /api/v1/voice/*   (Upgrade 头已配)
         ▼
 backend (127.0.0.1:8001, systemd: blockhub-api)
         ├─ ASR  openapi.teleagi.cn  /aipaas/voice/v1/asr/fy      ✅ 已通
@@ -118,7 +118,7 @@ flutter build apk --release
 # 产物：build/app/outputs/flutter-apk/app-release.apk
 ```
 
-默认后端地址已写死为 `http://101.32.209.251/api/v1`（见 `lib/config/app_branding.dart`，可用 `--dart-define=API_BASE_URL=...` 覆盖）。
+默认后端地址已写死为 `http://124.222.177.43/api/v1`（见 `lib/config/app_branding.dart`，可用 `--dart-define=API_BASE_URL=...` 覆盖）。
 
 ---
 
@@ -131,7 +131,7 @@ python3 scripts/generate_voice_app.py \
   --slug mytenant \
   --name "阿拉上海话" \
   --color "#E11D48" \
-  --api  http://101.32.209.251/api/v1 \
+  --api  http://124.222.177.43/api/v1 \
   --out generated
 ```
 
@@ -189,7 +189,7 @@ curl -s 127.0.0.1:8001/api/v1/voice/config
 python3 - <<'PY'
 import asyncio, json, websockets
 async def m():
-    async with websockets.connect("ws://101.32.209.251/api/v1/voice/shanghai-agent?session_id=t") as ws:
+    async with websockets.connect("ws://124.222.177.43/api/v1/voice/shanghai-agent?session_id=t") as ws:
         print(await asyncio.wait_for(ws.recv(), 20))
 asyncio.run(m())
 PY

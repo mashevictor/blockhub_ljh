@@ -57,7 +57,7 @@ CAPABILITY_KEYS=chat_qa,data_nl_query BUILD_PER_APP_ONLY=1 \
 ## 验收
 
 ```bash
-bash scripts/smoke-apk.sh http://101.32.209.251
+bash scripts/smoke-apk.sh http://124.222.177.43
 # per-app 503/200 语义 + build-queue capability_keys 断言
 ```
 

@@ -2,7 +2,7 @@
 # BlockHub 冒烟测试（本地或服务器）
 # 用法:
 #   bash scripts/smoke-test.sh                          # 默认 http://127.0.0.1:8001 直连 API
-#   bash scripts/smoke-test.sh http://101.32.209.251    # 经 Nginx（/api 代理）；不可达时回退 :8001
+#   bash scripts/smoke-test.sh http://124.222.177.43    # 经 Nginx（/api 代理）；不可达时回退 :8001
 #   bash scripts/smoke-test.sh http://127.0.0.1:8001 --seed-only
 set -euo pipefail
 

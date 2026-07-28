@@ -5,7 +5,7 @@
 # 用法（服务器 ~/blockhub 执行）:
 #   bash scripts/deploy-shanghai-one.sh
 #   SKIP_APK=1 bash scripts/deploy-shanghai-one.sh
-#   PUBLIC_URL=http://101.32.209.251 bash scripts/deploy-shanghai-one.sh
+#   PUBLIC_URL=http://124.222.177.43 bash scripts/deploy-shanghai-one.sh
 #
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"

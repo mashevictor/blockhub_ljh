@@ -60,7 +60,7 @@ td code{font-size:11px;background:#f5f5f4;padding:2px 6px;border-radius:4px}
 <header class="hero">
   <h1>积木仓 <em>BlockHub</em> · GA 进度看板</h1>
   <p class="meta">
-    生成时间：2026-07-13 · 目标版本 <strong>v0.2.0-ga</strong> · staging <code>101.32.209.251</code><br>
+    生成时间：2026-07-13 · 目标版本 <strong>v0.2.0-ga</strong> · staging <code>124.222.177.43</code><br>
     本页说明：<strong>当前 Agent 按哪几份清单推进</strong>、<strong>本轮刚做了什么</strong>、<strong>还剩什么</strong>。
   </p>
   <div class="stats">
@@ -242,12 +242,12 @@ td code{font-size:11px;background:#f5f5f4;padding:2px 6px;border-radius:4px}
   <div class="note note-info">
 <pre style="margin:0;font-size:12px;line-height:1.6;white-space:pre-wrap">cd /root/blockhub && git pull
 bash blockhub.sh sync-systemd              # APK 后台 bash PATH（cf2ab64）
-bash blockhub.sh batch-all http://101.32.209.251 2>&1 | tee /tmp/batch-all.log
+bash blockhub.sh batch-all http://124.222.177.43 2>&1 | tee /tmp/batch-all.log
 
 # 或分批：
-bash blockhub.sh batch0 http://101.32.209.251   # SKIP_APK=1 可选
-bash blockhub.sh batch2 http://101.32.209.251   # APK 全链路 ~30min
-bash blockhub.sh batch4 http://101.32.209.251   # GA#9 + go_router
+bash blockhub.sh batch0 http://124.222.177.43   # SKIP_APK=1 可选
+bash blockhub.sh batch2 http://124.222.177.43   # APK 全链路 ~30min
+bash blockhub.sh batch4 http://124.222.177.43   # GA#9 + go_router
 bash blockhub.sh batch5                         # Web 覆盖率
 
 清单：docs/TODO-POST-GA-BATCHES.md</pre>

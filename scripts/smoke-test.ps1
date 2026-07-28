@@ -1,6 +1,6 @@
 # BlockHub 本地冒烟测试 (Windows PowerShell)
 # 用法: powershell -ExecutionPolicy Bypass -File scripts/smoke-test.ps1
-#       powershell -ExecutionPolicy Bypass -File scripts/smoke-test.ps1 -BaseUrl http://101.32.209.251
+#       powershell -ExecutionPolicy Bypass -File scripts/smoke-test.ps1 -BaseUrl http://124.222.177.43
 
 param(
     [string]$BaseUrl = "http://127.0.0.1:8001",

@@ -2,7 +2,7 @@
   "app_name": "TrackChat Demo",
   "app_id": "com.trackchat.runtime.demo",
   "tenant_slug": "demo",
-  "api_base_url": "http://101.32.209.251/api/v1",
+  "api_base_url": "http://124.222.177.43/api/v1",
   "primary_color": "#4338CA",
   "icon_url": ""
 }

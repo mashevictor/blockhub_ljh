@@ -14,7 +14,7 @@ on:
       api_base_url:
         description: API base URL (with /api/v1)
         required: true
-        default: http://101.32.209.251/api/v1
+        default: http://124.222.177.43/api/v1
       primary_color:
         description: Theme color hex
         required: false
@@ -95,7 +95,7 @@ jobs:
         env:
           APP_NAME: ${{ github.event.inputs.app_name || 'TrackChat Demo' }}
           TENANT_SLUG: ${{ github.event.inputs.tenant_slug || 'demo' }}
-          API_BASE_URL: ${{ github.event.inputs.api_base_url || 'http://101.32.209.251/api/v1' }}
+          API_BASE_URL: ${{ github.event.inputs.api_base_url || 'http://124.222.177.43/api/v1' }}
           PRIMARY_COLOR: ${{ github.event.inputs.primary_color || '#4338CA' }}
           APP_PUBLIC_ID: ${{ github.event.inputs.app_public_id || '' }}
         run: bash scripts/flutter-build-apk.sh

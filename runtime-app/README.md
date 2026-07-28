@@ -10,7 +10,7 @@ flutter pub get
 flutter run \
   --dart-define=APP_NAME="演示应用" \
   --dart-define=TENANT_SLUG=demo \
-  --dart-define=API_BASE_URL=http://101.32.209.251/api/v1
+  --dart-define=API_BASE_URL=http://124.222.177.43/api/v1
 ```
 
 ## 一键打包 APK

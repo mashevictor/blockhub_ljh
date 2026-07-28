@@ -3,7 +3,7 @@
 #
 # 用法:
 #   bash blockhub.sh batch4
-#   bash blockhub.sh batch4 http://101.32.209.251   # 含 GA#9 API E2E
+#   bash blockhub.sh batch4 http://124.222.177.43   # 含 GA#9 API E2E
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"

@@ -2,7 +2,7 @@
 # D32 · 10 并发 chat SSE 压测 + Redis 限流友好阈值
 #
 # 用法:
-#   bash scripts/load-chat-sse.sh http://101.32.209.251
+#   bash scripts/load-chat-sse.sh http://124.222.177.43
 #   VU=10 DURATION=20 bash scripts/load-chat-sse.sh http://127.0.0.1:8001
 #
 # 环境变量:

@@ -2,7 +2,7 @@
 # 快速检查 PostgreSQL + 最新 schema（经 API + 直连校验）
 # 用法:
 #   bash scripts/smoke-db.sh                          # 本机 API :8001
-#   bash scripts/smoke-db.sh http://101.32.209.251    # 经 Nginx
+#   bash scripts/smoke-db.sh http://124.222.177.43    # 经 Nginx
 #   bash scripts/smoke-db.sh http://127.0.0.1:8001    # 直连 API
 set -euo pipefail
 

@@ -102,7 +102,7 @@ def main() -> None:
     ap.add_argument("--slug", required=True, help="租户标识(a-z0-9-)，用于目录与 tenant 配置")
     ap.add_argument("--name", required=True, help="展示名称，如 阿拉上海话")
     ap.add_argument("--color", default="#4338CA", help="主题色 hex，如 #E11D48")
-    ap.add_argument("--api", default="http://101.32.209.251/api/v1", help="后端 API 基址")
+    ap.add_argument("--api", default="http://124.222.177.43/api/v1", help="后端 API 基址")
     ap.add_argument("--app-id", default="com.trackchat.runtime", help="Flutter applicationId")
     ap.add_argument("--out", default="generated", help="输出根目录")
     args = ap.parse_args()

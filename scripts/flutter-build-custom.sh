@@ -61,7 +61,7 @@ CAP_KEYS=""
 APP_NAME="积木仓应用"
 PRIMARY_COLOR="#4338CA"
 APP_PUBLIC_ID=""
-API_BASE_URL="${API_BASE_URL:-http://101.32.209.251/api/v1}"
+API_BASE_URL="${API_BASE_URL:-http://124.222.177.43/api/v1}"
 ICON_URL=""
 
 if [ $# -eq 0 ]; then

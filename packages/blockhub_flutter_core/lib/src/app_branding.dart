@@ -27,7 +27,7 @@ class AppBranding {
     appName: 'TrackChat',
     appId: 'com.trackchat.runtime',
     tenantSlug: 'demo',
-    apiBaseUrl: 'http://101.32.209.251/api/v1',
+    apiBaseUrl: 'http://124.222.177.43/api/v1',
     primaryColorHex: '#4338CA',
   );
 

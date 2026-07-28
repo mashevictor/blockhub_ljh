@@ -7,7 +7,7 @@
 
 ## 概要
 
-BlockHub 模块化交付 GA 正式版：1 Web runtime 壳 + 13 Web 能力包 + 1 Flutter 壳。用户勾选 capability → 发布 → runtime/plaza → per-app APK，全链路已在 staging `101.32.209.251` 验收通过。
+BlockHub 模块化交付 GA 正式版：1 Web runtime 壳 + 13 Web 能力包 + 1 Flutter 壳。用户勾选 capability → 发布 → runtime/plaza → per-app APK，全链路已在 staging `124.222.177.43` 验收通过。
 
 ---
 
@@ -53,7 +53,7 @@ cd /root/blockhub && git pull
 bash scripts/deploy-all.sh --web-only
 bash scripts/e2e-prep-browsers.sh
 
-SKIP_APK=1 bash blockhub.sh signoff http://101.32.209.251
+SKIP_APK=1 bash blockhub.sh signoff http://124.222.177.43
 bash blockhub.sh server-test http://127.0.0.1:8001
 ```
 

@@ -2,8 +2,8 @@
 # 批次 2 · 发布 → APK 构建 → download 200
 #
 # 用法:
-#   bash /root/blockhub/blockhub.sh batch2 http://101.32.209.251
-#   E2E_APK_POLL_MS=600000 bash scripts/batch2-verify.sh http://101.32.209.251
+#   bash /root/blockhub/blockhub.sh batch2 http://124.222.177.43
+#   E2E_APK_POLL_MS=600000 bash scripts/batch2-verify.sh http://124.222.177.43
 #
 # 注意: 默认不跑 smoke-apk WITH_BUILD，避免与 E2E 后台构建抢 Gradle（小内存机）
 #   WITH_BUILD=1 bash scripts/batch2-verify.sh ...  # 额外跑一遍手动构建冒烟
@@ -11,7 +11,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-BASE="${1:-http://101.32.209.251}"
+BASE="${1:-http://124.222.177.43}"
 API="$BASE/api/v1"
 LOG="${BATCH2_LOG:-/tmp/batch2-$(date +%Y%m%d-%H%M%S).log}"
 FAIL=0
