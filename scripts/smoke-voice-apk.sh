@@ -3,7 +3,7 @@
 #
 # 用法:
 #   bash scripts/smoke-voice-apk.sh
-#   bash scripts/smoke-voice-apk.sh http://101.32.209.251
+#   bash scripts/smoke-voice-apk.sh http://124.222.177.43
 #
 set -euo pipefail
 

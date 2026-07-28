@@ -2,11 +2,11 @@
 # P3 批次 6 · chat SSE 压测 + 12×12 模板 UI + Melos 拆包
 #
 # 用法:
-#   bash blockhub.sh batch6 http://101.32.209.251
+#   bash blockhub.sh batch6 http://124.222.177.43
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-BASE="${1:-http://101.32.209.251}"
+BASE="${1:-http://124.222.177.43}"
 FAIL=0
 
 step() {

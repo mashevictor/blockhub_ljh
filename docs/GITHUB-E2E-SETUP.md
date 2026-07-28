@@ -6,7 +6,7 @@
 
 | Name | Value 示例 |
 |------|------------|
-| `E2E_STAGING_BASE` | `http://101.32.209.251` |
+| `E2E_STAGING_BASE` | `http://124.222.177.43` |
 
 不要带尾部 `/api/v1`。
 
@@ -30,7 +30,7 @@
 
 ```bash
 bash blockhub.sh batch3
-E2E_HOME_URL=http://101.32.209.251 E2E_BASE_URL=http://101.32.209.251 \
-  E2E_API_URL=http://101.32.209.251/api/v1 \
+E2E_HOME_URL=http://124.222.177.43 E2E_BASE_URL=http://124.222.177.43 \
+  E2E_API_URL=http://124.222.177.43/api/v1 \
   bash -c 'cd e2e && npx playwright test tests/home-publish.spec.ts --project=chromium'
 ```

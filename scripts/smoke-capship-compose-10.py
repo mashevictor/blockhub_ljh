@@ -11,7 +11,7 @@
   python scripts/smoke-capship-compose-10.py
 
 可选打线上 compose-edit:
-  python scripts/smoke-capship-compose-10.py http://101.32.209.251
+  python scripts/smoke-capship-compose-10.py http://124.222.177.43
 """
 from __future__ import annotations
 

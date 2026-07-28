@@ -256,8 +256,8 @@ fi
 echo ""
 echo "=========================================="
 echo " Deploy complete!"
-echo " Home:  http://101.32.209.251/"
-echo " Admin: http://101.32.209.251/admin/login"
+echo " Home:  http://124.222.177.43/"
+echo " Admin: http://124.222.177.43/admin/login"
 if [ -f /var/www/blockhub/home/version.txt ]; then
   echo " Home HTML: $(tr -d '\n\r' < /var/www/blockhub/home/version.txt)"
 fi
@@ -266,5 +266,5 @@ if [ -f /var/www/blockhub/r/version.txt ]; then
   echo " 核对: /version.txt · /r/version.txt · 不一致会自动带 _bhv 刷新"
 fi
 echo " 预约数据表: demo_bookings (API 自动写入，无需手工 SQL)"
-echo " Full smoke: bash scripts/smoke-test.sh http://101.32.209.251"
+echo " Full smoke: bash scripts/smoke-test.sh http://124.222.177.43"
 echo "=========================================="

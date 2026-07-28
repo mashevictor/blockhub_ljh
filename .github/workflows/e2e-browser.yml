@@ -4,13 +4,13 @@ on:
   workflow_dispatch:
     inputs:
       home_url:
-        description: Home SPA URL (e.g. http://101.32.209.251)
+        description: Home SPA URL (e.g. http://124.222.177.43)
         required: true
-        default: http://101.32.209.251
+        default: http://124.222.177.43
       api_base:
         description: API base (no /api/v1 suffix)
         required: true
-        default: http://101.32.209.251
+        default: http://124.222.177.43
 
 jobs:
   browser-e2e:

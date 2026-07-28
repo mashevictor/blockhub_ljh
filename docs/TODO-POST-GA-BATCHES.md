@@ -9,7 +9,7 @@
 ```bash
 cd /root/blockhub && git pull
 bash blockhub.sh sync-systemd          # 修复 APK 后台 bash PATH
-bash blockhub.sh batch-all http://101.32.209.251 2>&1 | tee /tmp/batch-all.log
+bash blockhub.sh batch-all http://124.222.177.43 2>&1 | tee /tmp/batch-all.log
 ```
 
 可选：`SKIP_BATCH2=1` 跳过 30 分钟 APK E2E；`SKIP_APK=1` 仅影响 batch0。
@@ -22,7 +22,7 @@ bash blockhub.sh batch-all http://101.32.209.251 2>&1 | tee /tmp/batch-all.log
 |---|------|------|
 | 0.1–0.4 | pull / signoff / GA#9 / 归档 | 🔶 运维复验 |
 
-`bash blockhub.sh batch0 http://101.32.209.251`
+`bash blockhub.sh batch0 http://124.222.177.43`
 
 ---
 
@@ -66,7 +66,7 @@ bash blockhub.sh batch-all http://101.32.209.251 2>&1 | tee /tmp/batch-all.log
 | 4.1–4.3 | Melos 骨架 / go_router / app.dart | ✅ |
 | 4.4 | voice-only + dual-module  profile + GA#9 | ✅ batch4 含 E2E |
 
-`bash blockhub.sh batch4 http://101.32.209.251`
+`bash blockhub.sh batch4 http://124.222.177.43`
 
 ---
 
@@ -91,8 +91,8 @@ bash blockhub.sh batch-all http://101.32.209.251 2>&1 | tee /tmp/batch-all.log
 | 6.4 | batch6 联跑 | ✅ |
 
 ```bash
-bash blockhub.sh batch6 http://101.32.209.251
-bash blockhub.sh load-chat-sse http://101.32.209.251   # 仅 D32
+bash blockhub.sh batch6 http://124.222.177.43
+bash blockhub.sh load-chat-sse http://124.222.177.43   # 仅 D32
 bash blockhub.sh check-template-ui                    # 仅 D31
 ```
 

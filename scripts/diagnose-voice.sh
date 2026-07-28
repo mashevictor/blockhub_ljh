@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # 诊断上海话语音 API / TELEAI 配置
-# 用法: bash scripts/diagnose-voice.sh [http://101.32.209.251]
+# 用法: bash scripts/diagnose-voice.sh [http://124.222.177.43]
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-PUBLIC="${1:-http://101.32.209.251}"
+PUBLIC="${1:-http://124.222.177.43}"
 ENV_FILE="$ROOT/backend/.env"
 
 echo "=========================================="

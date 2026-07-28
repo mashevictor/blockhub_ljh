@@ -9,14 +9,14 @@
 #   bash scripts/server-all.sh deploy db    # 部署 + 数据库（deploy 已含 migrate，一般不必）
 #
 # 环境变量:
-#   PUBLIC_URL=http://101.32.209.251
+#   PUBLIC_URL=http://124.222.177.43
 #   WITH_APK=1 bash scripts/server-all.sh   # 部署时顺带打 APK
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
-PUBLIC_URL="${PUBLIC_URL:-http://101.32.209.251}"
+PUBLIC_URL="${PUBLIC_URL:-http://124.222.177.43}"
 
 run_deploy() {
   if [ "${WITH_APK:-0}" = "1" ]; then

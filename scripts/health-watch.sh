@@ -3,8 +3,8 @@
 #
 # 用法:
 #   bash scripts/health-watch.sh
-#   bash scripts/health-watch.sh http://101.32.209.251
-#   bash scripts/health-watch.sh http://101.32.209.251 --strict
+#   bash scripts/health-watch.sh http://124.222.177.43
+#   bash scripts/health-watch.sh http://124.222.177.43 --strict
 #
 # cron 示例（每 5 分钟）:
 #   */5 * * * * cd /root/blockhub && bash scripts/health-watch.sh http://127.0.0.1 >> /var/log/blockhub-health.log 2>&1

@@ -2,12 +2,12 @@
 # APK 验收：per-app 下载语义 + 契约一致性（不再依赖 default.apk 回退）
 #
 # 用法:
-#   bash scripts/smoke-apk.sh http://101.32.209.251
+#   bash scripts/smoke-apk.sh http://124.222.177.43
 #   WITH_BUILD=1 bash scripts/smoke-apk.sh http://127.0.0.1:8001  # 构建 per-app APK
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-BASE="${1:-http://101.32.209.251}"
+BASE="${1:-http://124.222.177.43}"
 API="$BASE/api/v1"
 APK_DIR="$ROOT/backend/uploads/apks"
 PASS=0

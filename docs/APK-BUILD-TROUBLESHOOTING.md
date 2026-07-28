@@ -23,7 +23,7 @@ POST /creation/publish (deliver=app|both)
 
 ```bash
 # 查看构建状态
-curl -s http://101.32.209.251/api/v1/runtime/<APP_ID> | python3 -m json.tool | grep apk
+curl -s http://124.222.177.43/api/v1/runtime/<APP_ID> | python3 -m json.tool | grep apk
 
 # 构建队列 spec
 cat backend/uploads/apks/.build-queue/<APP_ID>.json
@@ -36,10 +36,10 @@ cat backend/uploads/apks/.build-status/<APP_ID>.log
 bash blockhub.sh build-apk <APP_ID>
 
 # 批次 2 验收（默认等 30 分钟）
-bash blockhub.sh batch2 http://101.32.209.251
+bash blockhub.sh batch2 http://124.222.177.43
 
 # 快速试跑（10 分钟超时）
-E2E_APK_POLL_MS=600000 bash blockhub.sh batch2 http://101.32.209.251
+E2E_APK_POLL_MS=600000 bash blockhub.sh batch2 http://124.222.177.43
 ```
 
 ## 常见失败

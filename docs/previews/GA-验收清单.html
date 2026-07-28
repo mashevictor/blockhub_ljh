@@ -33,17 +33,17 @@
     <section>
       <h2>一键命令（服务器 ~/blockhub）</h2>
       <pre class="cmd"># 全量冒烟 + E2E
-bash scripts/smoke-ga.sh http://101.32.209.251
+bash scripts/smoke-ga.sh http://124.222.177.43
 
 # GA 八项对照（签字前）
-bash scripts/ga-checklist.sh http://101.32.209.251
+bash scripts/ga-checklist.sh http://124.222.177.43
 
 # 未构建 APK 时先跳过第 6 项
-SKIP_APK=1 bash scripts/ga-checklist.sh http://101.32.209.251
+SKIP_APK=1 bash scripts/ga-checklist.sh http://124.222.177.43
 
 # 构建并验收 APK
 bash scripts/flutter-build-apk.sh
-bash scripts/smoke-apk.sh http://101.32.209.251</pre>
+bash scripts/smoke-apk.sh http://124.222.177.43</pre>
     </section>
 
     <section>

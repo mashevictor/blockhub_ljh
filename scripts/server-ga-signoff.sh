@@ -3,13 +3,13 @@
 #
 # 用法:
 #   bash /root/blockhub/blockhub.sh signoff
-#   bash scripts/server-ga-signoff.sh http://101.32.209.251
-#   SKIP_APK=1 bash scripts/server-ga-signoff.sh http://101.32.209.251
-#   SKIP_BROWSER_E2E=1 bash scripts/server-ga-signoff.sh http://101.32.209.251
+#   bash scripts/server-ga-signoff.sh http://124.222.177.43
+#   SKIP_APK=1 bash scripts/server-ga-signoff.sh http://124.222.177.43
+#   SKIP_BROWSER_E2E=1 bash scripts/server-ga-signoff.sh http://124.222.177.43
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-BASE="${1:-http://101.32.209.251}"
+BASE="${1:-http://124.222.177.43}"
 export SKIP_APK="${SKIP_APK:-1}"
 
 echo "=============================================="

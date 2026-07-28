@@ -11,7 +11,7 @@
 #
 # 环境变量:
 #   APP_NAME=laoliu  ANDROID_HOME=/root/Android  GRADLE_LOW_MEM=1
-#   PUBLIC_URL=http://101.32.209.251  SMOKE_BASE_URL=...
+#   PUBLIC_URL=http://124.222.177.43  SMOKE_BASE_URL=...
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -22,7 +22,7 @@ DO_APK=0
 DO_CACHE=1
 DO_RESTART_ONLY=0
 APP_NAME="${APP_NAME:-TrackChat}"
-PUBLIC_URL="${PUBLIC_URL:-http://101.32.209.251}"
+PUBLIC_URL="${PUBLIC_URL:-http://124.222.177.43}"
 
 usage() {
   sed -n '2,12p' "$0" | sed 's/^# \{0,1\}//'

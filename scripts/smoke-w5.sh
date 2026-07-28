@@ -66,7 +66,7 @@ echo "$OFF" | python3 -c 'import sys,json;d=json.load(sys.stdin);assert d.get("t
 
 # --- CORS preflight (production origin) ---
 CORS=$(curl -sf -X OPTIONS "$API/health" \
-  -H 'Origin: https://101.32.209.251' \
+  -H 'Origin: https://124.222.177.43' \
   -H 'Access-Control-Request-Method: GET' -D - -o /dev/null 2>/dev/null | tr -d '\r' | grep -i 'access-control-allow-origin' || true)
 if echo "$CORS" | grep -qE '101\.32\.209\.251|\*'; then
   ok "CORS allows production origin"

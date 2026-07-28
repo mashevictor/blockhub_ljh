@@ -26,7 +26,7 @@ $envFile = Join-Path $Frontend ".env.local"
 if ($ApiProxy) {
     $proxy = $ApiProxy
 } elseif (-not $pgOk) {
-    $proxy = "http://101.32.209.251"
+    $proxy = "http://124.222.177.43"
     Write-Host "WARN: local PostgreSQL unavailable — API proxy -> $proxy"
     Write-Host "      Demo login: admin@trackchat.local / admin123"
 } else {

@@ -2,7 +2,7 @@
 # Build release APK with tenant branding (name / icon / API).
 # Usage:
 #   bash scripts/flutter-build-apk.sh
-#   APP_NAME="我的应用" TENANT_SLUG=demo API_BASE_URL=http://101.32.209.251/api/v1 bash scripts/flutter-build-apk.sh
+#   APP_NAME="我的应用" TENANT_SLUG=demo API_BASE_URL=http://124.222.177.43/api/v1 bash scripts/flutter-build-apk.sh
 #   BRANDING_JSON=runtime-app/branding/branding.json bash scripts/flutter-build-apk.sh
 #
 # Server first-time setup (Java 17 + SDK licenses):
@@ -141,7 +141,7 @@ APP_NAME="${APP_NAME:-TrackChat}"
 APP_ID="${APP_ID:-com.blockhub.runtime}"
 APP_PUBLIC_ID="${APP_PUBLIC_ID:-}"
 TENANT_SLUG="${TENANT_SLUG:-demo}"
-API_BASE_URL="${API_BASE_URL:-http://101.32.209.251/api/v1}"
+API_BASE_URL="${API_BASE_URL:-http://124.222.177.43/api/v1}"
 PRIMARY_COLOR="${PRIMARY_COLOR:-#4338CA}"
 VOICE_DEMO="${VOICE_DEMO:-0}"
 APP_UI_ID="${APP_UI_ID:-bottom_tabs}"

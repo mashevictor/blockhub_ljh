@@ -3,12 +3,12 @@
 #
 # 用法:
 #   bash scripts/ga-checklist.sh
-#   bash scripts/ga-checklist.sh http://101.32.209.251
+#   bash scripts/ga-checklist.sh http://124.222.177.43
 #   SKIP_APK=1 bash scripts/ga-checklist.sh    # 跳过 APK（未构建时）
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-BASE="${1:-http://101.32.209.251}"
+BASE="${1:-http://124.222.177.43}"
 API="$BASE/api/v1"
 PASS=0
 FAIL=0

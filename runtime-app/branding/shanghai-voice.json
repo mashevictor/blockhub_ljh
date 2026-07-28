@@ -2,7 +2,7 @@
   "app_name": "上海话语音助手",
   "app_id": "com.blockhub.shanghai.voice",
   "tenant_slug": "demo",
-  "api_base_url": "http://101.32.209.251/api/v1",
+  "api_base_url": "http://124.222.177.43/api/v1",
   "primary_color": "#E11D48",
   "icon_url": ""
 }

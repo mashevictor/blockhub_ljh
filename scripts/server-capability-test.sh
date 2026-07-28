@@ -3,7 +3,7 @@
 #
 # 用法:
 #   bash scripts/server-capability-test.sh
-#   bash scripts/server-capability-test.sh http://101.32.209.251
+#   bash scripts/server-capability-test.sh http://124.222.177.43
 #   WITH_APK_BUILD=1 bash scripts/server-capability-test.sh http://127.0.0.1:8001
 set -u
 

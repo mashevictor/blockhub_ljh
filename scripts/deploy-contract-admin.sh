@@ -38,5 +38,5 @@ echo "==> seed catalog (含 contract_esign Agent)"
 bash "$ROOT/scripts/smoke-test.sh" http://127.0.0.1:8001 --seed-only || true
 
 echo ""
-echo "完成! Admin: http://101.32.209.251/admin/contracts"
+echo "完成! Admin: http://124.222.177.43/admin/contracts"
 echo "冒烟: bash scripts/smoke-test.sh http://127.0.0.1:8001"

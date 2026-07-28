@@ -21,7 +21,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
 MODE="${1:-setup}"
-PUBLIC_URL="${PUBLIC_URL:-http://101.32.209.251}"
+PUBLIC_URL="${PUBLIC_URL:-http://124.222.177.43}"
 
 pass=0
 fail=0

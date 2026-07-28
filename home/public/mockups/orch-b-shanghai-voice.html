@@ -253,7 +253,7 @@
         <p>
           顶部「马上体验 / 交付 / 一键冒烟」；下方 Tab 分功能编排与数据接口。
           底部 <strong>>></strong> 内置上海话专用测试话术（可点可输入）。本页为预览 HTML，可真实请求
-          <code>101.32.209.251</code>。
+          <code>124.222.177.43</code>。
         </p>
       </div>
       <span class="tag">方案 B · 上海话专版</span>
@@ -275,7 +275,7 @@
         </div>
         <div class="head-actions">
           <button type="button" class="btn" id="btnCopyLink">复制链接</button>
-          <a class="btn" id="btnOpen" href="http://101.32.209.251/agents/shanghai-voice" target="_blank" rel="noreferrer">打开</a>
+          <a class="btn" id="btnOpen" href="http://124.222.177.43/agents/shanghai-voice" target="_blank" rel="noreferrer">打开</a>
           <button type="button" class="btn primary">关闭</button>
         </div>
       </header>
@@ -286,7 +286,7 @@
           <div class="cta main">
             <h3>马上体验</h3>
             <p>网页已就绪。先听上海话助手说话；APK 打包不影响网页试跑。</p>
-            <a class="btn primary" href="http://101.32.209.251/agents/shanghai-voice" target="_blank" rel="noreferrer">打开上海话网页</a>
+            <a class="btn primary" href="http://124.222.177.43/agents/shanghai-voice" target="_blank" rel="noreferrer">打开上海话网页</a>
             <button type="button" class="btn" id="btnTrial" style="margin-left:6px">▶ 试运营</button>
           </div>
           <div class="cta">
@@ -337,10 +337,10 @@
               <span class="tag">GET</span>
               <div>
                 <div>语音配置 <span class="badge real">真</span></div>
-                <code>http://101.32.209.251/api/v1/voice/config</code>
+                <code>http://124.222.177.43/api/v1/voice/config</code>
                 <div class="api-actions">
                   <button type="button" class="btn sm" data-test="voice-config">测试</button>
-                  <button type="button" class="btn sm" data-copy="http://101.32.209.251/api/v1/voice/config">复制 URL</button>
+                  <button type="button" class="btn sm" data-copy="http://124.222.177.43/api/v1/voice/config">复制 URL</button>
                 </div>
               </div>
             </div>
@@ -348,10 +348,10 @@
               <span class="tag">WS</span>
               <div>
                 <div>上海话 Agent <span class="badge real">真</span></div>
-                <code>ws://101.32.209.251/api/v1/voice/shanghai-agent</code>
+                <code>ws://124.222.177.43/api/v1/voice/shanghai-agent</code>
                 <div class="api-actions">
                   <button type="button" class="btn sm" data-test="voice-ws">说明 / 探测</button>
-                  <a class="btn sm primary" href="http://101.32.209.251/agents/shanghai-voice" target="_blank" rel="noreferrer">去网页对练</a>
+                  <a class="btn sm primary" href="http://124.222.177.43/agents/shanghai-voice" target="_blank" rel="noreferrer">去网页对练</a>
                 </div>
               </div>
             </div>
@@ -421,7 +421,7 @@
   <div class="toast" id="toast"></div>
 
   <script>
-    const API = 'http://101.32.209.251'
+    const API = 'http://124.222.177.43'
     const SLUG = '2225d4b2'
     const nodes = ['intent', 'voice', 'office', 'todo', 'portal']
     let trialTimer = null
@@ -501,7 +501,7 @@
         }
         let ws
         try {
-          ws = new WebSocket('ws://101.32.209.251/api/v1/voice/shanghai-agent')
+          ws = new WebSocket('ws://124.222.177.43/api/v1/voice/shanghai-agent')
         } catch (e) {
           finish('无法创建 WS：' + e.message + '\n建议到网页应用内开麦实测。', 'err')
           return

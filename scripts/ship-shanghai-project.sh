@@ -4,13 +4,13 @@
 # 服务器 ~/blockhub 执行:
 #   bash scripts/ship-shanghai-project.sh
 #   SKIP_APK=1 bash scripts/ship-shanghai-project.sh          # 仅网页+冒烟
-#   PUBLIC_URL=http://101.32.209.251 bash scripts/ship-shanghai-project.sh
+#   PUBLIC_URL=http://124.222.177.43 bash scripts/ship-shanghai-project.sh
 #
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
-PUBLIC_URL="${PUBLIC_URL:-http://101.32.209.251}"
+PUBLIC_URL="${PUBLIC_URL:-http://124.222.177.43}"
 SKIP_APK="${SKIP_APK:-0}"
 PROJECT_JSON="$ROOT/projects/shanghai-voice/project.json"
 

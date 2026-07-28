@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     app_name: str = "TrackChat PaaS API"
     app_version: str = "1.2.2"
     api_prefix: str = "/api/v1"
-    cors_origins: str = "http://localhost:5173,http://127.0.0.1:5173,http://localhost:5174,http://127.0.0.1:5174,http://101.32.209.251,http://101.32.209.251/admin,https://101.32.209.251,https://101.32.209.251/admin"
+    cors_origins: str = "http://localhost:5173,http://127.0.0.1:5173,http://localhost:5174,http://127.0.0.1:5174,http://124.222.177.43,http://124.222.177.43/admin,https://124.222.177.43,https://124.222.177.43/admin"
 
     deepseek_api_key: str = ""
     deepseek_base_url: str = "https://api.deepseek.com/v1"
@@ -50,7 +50,7 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 60 * 24 * 7
 
-    public_base_url: str = "http://101.32.209.251"
+    public_base_url: str = "http://124.222.177.43"
     otp_debug_expose: bool = False
 
     # 腾讯云 CAM（验证码票据校验 / 短信；空则回退 COS_SECRET_*）

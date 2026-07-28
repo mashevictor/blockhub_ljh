@@ -45,7 +45,7 @@ cd /root/blockhub && git pull
 bash scripts/deploy-all.sh --web-only
 bash scripts/e2e-prep-browsers.sh
 
-SKIP_APK=1 bash blockhub.sh ga-checklist http://101.32.209.251
+SKIP_APK=1 bash blockhub.sh ga-checklist http://124.222.177.43
 bash blockhub.sh server-test http://127.0.0.1:8001
 ```
 

@@ -3,7 +3,7 @@
 #
 # 用法（推荐绝对路径，避免 cd 到 e2e 后找不到 scripts/）:
 #   bash /root/blockhub/blockhub.sh flutter-build --list
-#   bash /root/blockhub/blockhub.sh ga-checklist http://101.32.209.251
+#   bash /root/blockhub/blockhub.sh ga-checklist http://124.222.177.43
 #   bash /root/blockhub/blockhub.sh e2e-prep
 #
 set -euo pipefail
@@ -164,7 +164,7 @@ BlockHub CLI · 仓库根: $ROOT
 
 示例:
   bash $ROOT/blockhub.sh flutter-build chat_qa,approval_flow --name "测试" --public-id t001
-  SKIP_APK=1 bash $ROOT/blockhub.sh ga-checklist http://101.32.209.251
+  SKIP_APK=1 bash $ROOT/blockhub.sh ga-checklist http://124.222.177.43
 
 注意: 若在 e2e/ 子目录，不要用相对路径 scripts/xxx，请用上述 blockhub.sh。
 EOF

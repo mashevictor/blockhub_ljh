@@ -20,7 +20,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 # shellcheck source=lib/apk-version.sh
 source "$ROOT/scripts/lib/apk-version.sh"
 
-PUBLIC_URL="${PUBLIC_URL:-http://101.32.209.251}"
+PUBLIC_URL="${PUBLIC_URL:-http://124.222.177.43}"
 API_BASE="${API_BASE_URL:-${PUBLIC_URL%/}/api/v1}"
 BRANDING="$ROOT/runtime-app/branding/shanghai-voice.json"
 

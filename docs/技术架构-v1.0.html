@@ -46,7 +46,7 @@ footer{margin-top:40px;font-size:11px;color:var(--muted);text-align:center}
   <h1>积木仓 <em>BlockHub</em> · 技术架构 v1.0</h1>
   <p>本文档描述当前已部署系统的真实架构（Git <code>main</code> · 冒烟 17/17 通过）。D1/D2 基建与 Catalog 落 PostgreSQL 已完成；runtime 网页与 APK 打包属于 W3/W5，尚未实现。</p>
   <div class="kpi">
-    <div><b>101.32.209.251</b><span>生产服务器</span></div>
+    <div><b>124.222.177.43</b><span>生产服务器</span></div>
     <div><b>17/17</b><span>冒烟测试</span></div>
     <div><b>114+</b><span>场景 Catalog</span></div>
     <div><b>004</b><span>Alembic head</span></div>
@@ -73,7 +73,7 @@ flowchart TB
     Admin["Admin 管理后台<br/>/admin/"]
   end
 
-  subgraph CVM["Ubuntu CVM · 101.32.209.251"]
+  subgraph CVM["Ubuntu CVM · 124.222.177.43"]
     Nginx["Nginx :80<br/>gzip + 静态资源"]
     API["FastAPI :8001<br/>blockhub-api.service"]
     PG[("PostgreSQL<br/>trackchat")]
@@ -113,7 +113,7 @@ flowchart TB
       <tr><td>部署脚本</td><td><code>scripts/deploy.sh</code></td><td>pull → migrate → repair-db → build → nginx → smoke</td></tr>
     </tbody>
   </table>
-  <div class="note">环境变量：<code>PUBLIC_BASE_URL=http://101.32.209.251</code> 用于生成 <code>web_url</code> / <code>download_url</code>；<code>JWT_SECRET</code>、<code>CORS_ORIGINS</code>、<code>OTP_DEBUG_EXPOSE</code> 见 <code>backend/.env</code>。</div>
+  <div class="note">环境变量：<code>PUBLIC_BASE_URL=http://124.222.177.43</code> 用于生成 <code>web_url</code> / <code>download_url</code>；<code>JWT_SECRET</code>、<code>CORS_ORIGINS</code>、<code>OTP_DEBUG_EXPOSE</code> 见 <code>backend/.env</code>。</div>
 </section>
 
 <section id="data">
