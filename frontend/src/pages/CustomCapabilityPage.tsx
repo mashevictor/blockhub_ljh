@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useT } from '@blockhub/i18n/react'
 import {
   fetchCustomCapabilities,
   reviewCustomCapability,
@@ -13,6 +14,7 @@ const STATUS_MAP: Record<string, { label: string; class: string }> = {
 }
 
 export default function CustomCapabilityPage() {
+  const t = useT()
   const [filter, setFilter] = useState('pending')
   const [items, setItems] = useState<CustomCapabilityItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -111,7 +113,7 @@ export default function CustomCapabilityPage() {
       ) : null}
 
       {loading ? (
-        <div className="card" style={{ padding: 24, color: 'var(--muted)' }}>加载中…</div>
+        <div className="card" style={{ padding: 24, color: 'var(--muted)' }}>{t('common.loading')}</div>
       ) : items.length === 0 ? (
         <div className="card" style={{ padding: 24, color: 'var(--muted)' }}>
           {filter === 'pending' ? '暂无待审核的能力提案（空库为空列表）' : '暂无记录'}

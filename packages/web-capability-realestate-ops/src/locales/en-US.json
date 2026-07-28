@@ -1,0 +1,12 @@
+{
+  "cap.broker_commission.ui.title": "Broker Commission",
+  "cap.deco_acceptance.ui.title": "Deco Acceptance",
+  "cap.lease_renewal.ui.title": "Lease Renewal",
+  "cap.listing_publish.ui.title": "Listing Publish",
+  "cap.owner_complaint.ui.title": "Owner Complaint",
+  "cap.property_fee.ui.title": "Property Fee",
+  "cap.re_contract.ui.title": "Re Contract",
+  "cap.rent_collection.ui.title": "Rent Collection",
+  "cap.sales_followup.ui.title": "Sales Followup",
+  "cap.viewing_feedback.ui.title": "Viewing Feedback"
+}

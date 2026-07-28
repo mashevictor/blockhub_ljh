@@ -17,9 +17,16 @@ def _preset(
     flow_lines: list[str] | None = None,
     weight: int = 3,
     role: str | None = None,
+    labels: dict[str, str] | None = None,
 ) -> dict[str, Any]:
     if flow_lines is None:
         flow_lines = [f">> {label} · 一键生成", f">> 智能编排 · 场景就绪"]
+    # labels: optional overrides (e.g. {"en-US": "Leave Request"}). zh-CN always from label.
+    resolved = {"zh-CN": label}
+    if labels:
+        for lang, text in labels.items():
+            if lang and text:
+                resolved[lang] = text
     return {
         "id": id,
         "label": label,
@@ -30,6 +37,7 @@ def _preset(
         "flow_lines": flow_lines,
         "weight": weight,
         "role": role,
+        "labels": resolved,
     }
 
 

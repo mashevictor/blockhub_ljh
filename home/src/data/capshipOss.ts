@@ -1,8 +1,13 @@
 /** CapShip open-source landing (Edge vs Stable) — English-only page copy */
 import { ROLE_PRESETS, presetRole } from './rolePresets'
 import { ROUTES } from '../routes/paths'
+import heroEnGen from '@shared/i18n/messages/en-US/hero.gen.json'
+import heroZhGen from '@shared/i18n/messages/zh-CN/hero.gen.json'
 
-/** English titles for CapShip UI / marquee / catalog export */
+/**
+ * @deprecated Seed / glossary fallback only — not the SSOT.
+ * Prefer shared/i18n/messages/{locale}/hero.gen.json (codegen from hero_presets + seed).
+ */
 export const CAPSHIP_SCENE_EN: Record<string, string> = {
   s00: 'Shanghai Voice Agent',
   s01: 'Leave Request',
@@ -41,8 +46,23 @@ export const CAPSHIP_SCENE_EN: Record<string, string> = {
   s34: 'Teacher Plan',
 }
 
+function heroGenLabel(gen: Record<string, unknown>, id: string): string | undefined {
+  const v = gen[`hero.${id}.label`]
+  return typeof v === 'string' && v ? v : undefined
+}
+
+/** Scene title: hero.gen.json first, then deprecated CAPSHIP_SCENE_EN seed. */
 export function capshipSceneTitle(id: string, fallback?: string): string {
-  return CAPSHIP_SCENE_EN[id] || fallback || id
+  return (
+    heroGenLabel(heroEnGen as Record<string, unknown>, id) ||
+    CAPSHIP_SCENE_EN[id] ||
+    fallback ||
+    id
+  )
+}
+
+export function capshipSceneTitleZh(id: string, fallback?: string): string {
+  return heroGenLabel(heroZhGen as Record<string, unknown>, id) || fallback || id
 }
 
 export const CAPSHIP_GITHUB = {
@@ -261,7 +281,7 @@ export function buildCapshipCatalog(lang: CapshipLang = 'en') {
     pillars: CAPSHIP_PILLARS.map((p) => resolvePillar(p, lang)),
     scenarios: ROLE_PRESETS.map((p) => ({
       id: p.id,
-      title: lang === 'zh' ? p.label : capshipSceneTitle(p.id, p.label),
+      title: lang === 'zh' ? capshipSceneTitleZh(p.id, p.label) : capshipSceneTitle(p.id, p.label),
       hint: p.hint,
       role: presetRole(p),
       modules: p.picks.filter((x) => x.type === 'module').map((x) => ({ key: x.key, label: x.label })),

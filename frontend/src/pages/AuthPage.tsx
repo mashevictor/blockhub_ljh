@@ -1,5 +1,7 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react'
 import { useLocation, useSearchParams } from 'react-router-dom'
+import { formatAxiosApiError } from '@blockhub/i18n'
+import { useT } from '@blockhub/i18n/react'
 import { loginOtp, loginWithPassword, sendOtpCode } from '../auth/session'
 import { getToken } from '../auth/storage'
 import { BRAND, resolveAdminPostLoginUrl } from '../data/brand'
@@ -32,6 +34,7 @@ export default function AuthPage({
   defaultMode = 'otp',
   showLogo = true,
 }: Props) {
+  const t = useT()
   const location = useLocation()
   const [searchParams] = useSearchParams()
   /** Home 传 ?from=；ProtectedRoute 传 location.state.from — 两者都要认 */
@@ -83,8 +86,7 @@ export default function AuthPage({
       setCountdown(60)
       setHint(res.message)
     } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail
-      setError(typeof msg === 'string' ? msg : '验证码发送失败')
+      setError(formatAxiosApiError(err, t, t('error.SEND_CODE_FAILED')))
     } finally {
       setSending(false)
     }
@@ -97,8 +99,8 @@ export default function AuthPage({
     try {
       await loginOtp(account.trim(), code.trim())
       goAfterLogin()
-    } catch {
-      setError('验证码错误或已过期')
+    } catch (err: unknown) {
+      setError(formatAxiosApiError(err, t, t('error.INVALID_CODE')))
     } finally {
       setLoading(false)
     }
@@ -112,14 +114,11 @@ export default function AuthPage({
       await loginWithPassword(email, password)
       goAfterLogin()
     } catch (err: unknown) {
-      const resp = (err as { response?: { status?: number; data?: { detail?: string } } })?.response
+      const resp = (err as { response?: { status?: number } })?.response
       if (!resp) {
-        setError('无法连接服务，请稍后重试')
-      } else if (resp.status === 503 || resp.status === 500) {
-        setError('服务暂不可用，请稍后重试')
+        setError(t('error.NETWORK_ERROR'))
       } else {
-        const detail = resp.data?.detail
-        setError(typeof detail === 'string' ? detail : '登录失败，请检查邮箱和密码')
+        setError(formatAxiosApiError(err, t, t('error.LOGIN_FAILED')))
       }
     } finally {
       setLoading(false)

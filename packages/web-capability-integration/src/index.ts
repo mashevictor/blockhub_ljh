@@ -1,6 +1,7 @@
 import { registerWidget } from '@blockhub/web-core'
 
 import {
+import './locales'
   AssetWidget,
   ERPWidget,
   HelpdeskWidget,

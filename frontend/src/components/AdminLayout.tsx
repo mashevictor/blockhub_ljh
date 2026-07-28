@@ -1,5 +1,6 @@
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useEffect, useMemo, useState } from 'react'
+import { LocaleSwitch } from '@blockhub/i18n/react'
 import { fetchCatalogSummary, fetchDashboard, type CatalogSummary, type DashboardStats } from '../api/client'
 import { fetchBillingMe, type BillingMe } from '../api/billing'
 import { logout } from '../auth/session'
@@ -159,6 +160,7 @@ export default function AdminLayout() {
               创建入口
             </a>
             <ThemePicker />
+            <LocaleSwitch className="topbar-home-link" />
             {user && (
               <span className="topbar-user">
                 {user.display_name || user.email}

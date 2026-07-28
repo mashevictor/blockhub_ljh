@@ -108,7 +108,7 @@ app.add_middleware(RateLimitMiddleware)
 async def database_unavailable(_: Request, __: OperationalError) -> JSONResponse:
     return JSONResponse(
         status_code=503,
-        content={"detail": "数据库不可用，请启动 PostgreSQL（docker compose up -d postgres）"},
+        content={"detail": {"code": "DB_UNAVAILABLE"}},
     )
 
 

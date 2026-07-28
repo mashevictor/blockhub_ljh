@@ -1,14 +1,6 @@
 import 'package:blockhub_flutter_core/blockhub_flutter_core.dart';
 import 'package:flutter/material.dart';
 
-const _catLabel = {'travel': '差旅', 'meal': '餐饮', 'office': '办公'};
-const _statusLabel = {
-  'open': '待审核',
-  'reviewing': '审核中',
-  'paid': '已付款',
-  'rejected': '已驳回',
-};
-
 class ExpenseClaimPage extends StatefulWidget {
   const ExpenseClaimPage({super.key, required this.branding});
   final AppBranding branding;
@@ -27,6 +19,9 @@ class _ExpenseClaimPageState extends State<ExpenseClaimPage> {
   String get _base => '${widget.branding.apiBaseUrl}/expense-claim';
   String get _appId => widget.branding.appPublicId.trim();
 
+  String _cat(String raw) => bhTf('cap.expense_claim.cat.$raw', raw);
+  String _status(String raw) => bhTf('cap.expense_claim.status.$raw', raw);
+
   List<Map<String, dynamic>> get _pending => _items
       .map((e) => Map<String, dynamic>.from(e as Map))
       .where((t) => {'open', 'reviewing'}.contains('${t['status']}'))
@@ -40,7 +35,18 @@ class _ExpenseClaimPageState extends State<ExpenseClaimPage> {
   @override
   void initState() {
     super.initState();
+    BhL10n.instance.addListener(_onL10n);
     _load();
+  }
+
+  @override
+  void dispose() {
+    BhL10n.instance.removeListener(_onL10n);
+    super.dispose();
+  }
+
+  void _onL10n() {
+    if (mounted) setState(() {});
   }
 
   Future<void> _load() async {
@@ -93,33 +99,47 @@ class _ExpenseClaimPageState extends State<ExpenseClaimPage> {
       padding: const EdgeInsets.all(16),
       children: [
         GtgtStepComposer(
-          title: '我要报销',
-          flowHint: '类型 → 内容金额 → 交财务审',
+          title: bhTf('cap.expense_claim.title.default', '我要报销'),
+          flowHint: bhTf('cap.expense_claim.flow.hint', '类型 → 内容金额 → 交财务审'),
           accent: color,
-          steps: const [
+          steps: [
             GtgtStep(
               key: 'category',
-              label: '费用类型',
+              label: bhTf('cap.expense_claim.field.category', '费用类型'),
               choices: [
-                (value: 'travel', label: '差旅'),
-                (value: 'meal', label: '餐饮'),
-                (value: 'office', label: '办公'),
+                (value: 'travel', label: bhTf('cap.expense_claim.cat.travel', '差旅')),
+                (value: 'meal', label: bhTf('cap.expense_claim.cat.meal', '餐饮')),
+                (value: 'office', label: bhTf('cap.expense_claim.cat.office', '办公')),
               ],
             ),
-            GtgtStep(key: 'title', label: '报销内容', placeholder: '如：上海出差高铁'),
-            GtgtStep(key: 'amount', label: '金额（元）', placeholder: '328.00'),
-            GtgtStep(key: 'invoice_no', label: '发票号（可空）', optional: true),
+            GtgtStep(
+              key: 'title',
+              label: bhTf('cap.expense_claim.field.title', '报销内容'),
+              placeholder: '如：上海出差高铁',
+            ),
+            GtgtStep(
+              key: 'amount',
+              label: bhTf('cap.expense_claim.field.amount', '金额（元）'),
+              placeholder: '328.00',
+            ),
+            GtgtStep(
+              key: 'invoice_no',
+              label: bhTf('cap.expense_claim.field.invoice_no', '发票号（可空）'),
+              optional: true,
+            ),
           ],
           values: _values,
           onChanged: (k, v) => setState(() => _values[k] = v),
           onComplete: _submit,
           busy: _busy,
           resetKey: _resetKey,
-          submitLabel: '提交报销',
+          submitLabel: bhTf('cap.expense_claim.submit.default', '提交报销'),
         ),
         const SizedBox(height: 16),
-        Text('待我审${_pending.isEmpty ? '' : ' · ${_pending.length}'}',
-            style: Theme.of(context).textTheme.titleSmall),
+        Text(
+          _pending.isEmpty ? '待审核' : '待审核 · ${_pending.length}',
+          style: Theme.of(context).textTheme.titleSmall,
+        ),
         const SizedBox(height: 8),
         if (_loading)
           const Center(child: CircularProgressIndicator())
@@ -128,32 +148,15 @@ class _ExpenseClaimPageState extends State<ExpenseClaimPage> {
         else
           ..._pending.map((t) {
             final id = '${t['id']}';
-            final status = '${t['status']}';
             return Card(
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+              child: ListTile(
+                title: Text('${t['title']} · ${_cat('${t['category']}')}'),
+                subtitle: Text('${t['amount']} · ${_status('${t['status']}')}'),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text('${t['title']}', style: const TextStyle(fontWeight: FontWeight.bold)),
-                    Text(
-                      '¥${t['amount']} · ${_catLabel['${t['category']}'] ?? t['category']} · ${_statusLabel[status] ?? status}',
-                    ),
-                    if ('${t['invoice_no'] ?? ''}'.isNotEmpty) Text('发票 ${t['invoice_no']}'),
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8,
-                      children: [
-                        if (status == 'open')
-                          OutlinedButton(onPressed: () => _advance(id, 'reviewing'), child: const Text('收下审核')),
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(backgroundColor: color),
-                          onPressed: () => _advance(id, 'paid'),
-                          child: const Text('付款通过'),
-                        ),
-                        OutlinedButton(onPressed: () => _advance(id, 'rejected'), child: const Text('驳回')),
-                      ],
-                    ),
+                    TextButton(onPressed: () => _advance(id, 'paid'), child: const Text('付款')),
+                    TextButton(onPressed: () => _advance(id, 'rejected'), child: const Text('驳回')),
                   ],
                 ),
               ),
@@ -165,12 +168,14 @@ class _ExpenseClaimPageState extends State<ExpenseClaimPage> {
             child: Text(_showDone ? '收起已处理' : '已处理 ${_done.length}'),
           ),
           if (_showDone)
-            ..._done.map((t) => Card(
-                  child: ListTile(
-                    title: Text('${t['title']}'),
-                    subtitle: Text('¥${t['amount']} · ${_statusLabel['${t['status']}'] ?? t['status']}'),
-                  ),
-                )),
+            ..._done.map((t) {
+              return Card(
+                child: ListTile(
+                  title: Text('${t['title']}'),
+                  subtitle: Text('${_status('${t['status']}')} · ${t['amount']}'),
+                ),
+              );
+            }),
         ],
       ],
     );

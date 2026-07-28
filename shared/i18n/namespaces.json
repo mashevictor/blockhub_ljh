@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "locales": ["zh-CN", "en-US"],
+  "fallbackLocale": "zh-CN",
+  "namespaces": {
+    "common": { "owner": "apps-shell", "source": "hand" },
+    "error": { "owner": "backend-errors", "source": "hand" },
+    "cap": { "owner": "capability_registry", "source": "codegen", "genFile": "capability.gen.json" },
+    "hero": { "owner": "hero_presets", "source": "codegen", "genFile": "hero.gen.json" }
+  },
+  "packageLocales": {
+    "pattern": "packages/web-capability-*/src/locales",
+    "keyPrefix": "cap.{owned_capability_key}.*",
+    "ci": "scripts/check_i18n_namespace.py",
+    "scaffold": "scripts/scaffold-capability-locales.py"
+  },
+  "flutter": {
+    "codegen": "scripts/codegen-flutter-arb.py",
+    "arbDir": "shared/i18n/flutter",
+    "runtimeAssets": "packages/blockhub_flutter_core/assets/i18n",
+    "api": "BhL10n / bhTf (same dotted keys as Web)"
+  }
+}

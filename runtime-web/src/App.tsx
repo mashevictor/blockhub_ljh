@@ -9,6 +9,7 @@ import {
   type ComponentType,
   type CSSProperties,
 } from 'react'
+import { LocaleSwitch } from '@blockhub/i18n/react'
 import {
   DeveloperBlueprintPanel,
   RuntimeContext,
@@ -995,6 +996,7 @@ export default function App() {
             </div>
           </div>
           <div className="runtime-header-actions">
+            <LocaleSwitch className="btn btn-ghost" />
             <RuntimeNotifyBell />
             {refreshHint ? <span className="runtime-refresh-hint">{refreshHint}</span> : null}
             <button

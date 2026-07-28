@@ -1,0 +1,14 @@
+{
+  "name": "@blockhub/i18n-lint",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "lint": "eslint --config ./eslint.config.mjs"
+  },
+  "devDependencies": {
+    "@blockhub/eslint-plugin-i18n": "file:../packages/eslint-plugin-blockhub-i18n",
+    "eslint": "^9.22.0",
+    "typescript-eslint": "^8.26.0"
+  }
+}

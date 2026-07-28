@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useT } from '@blockhub/i18n/react'
 import { fetchTenantConfig, updateTenantConfig } from '../api/client'
 
 const MENU_PRESETS = [
@@ -9,6 +10,7 @@ const MENU_PRESETS = [
 ]
 
 export default function TenantSettingsPage() {
+  const t = useT()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [msg, setMsg] = useState('')
@@ -52,7 +54,7 @@ export default function TenantSettingsPage() {
   }
 
   if (loading) {
-    return <div className="placeholder-page"><div className="icon">⏳</div><h2>加载租户配置…</h2></div>
+    return <div className="placeholder-page"><div className="icon">⏳</div><h2>{t('common.loading')}</h2></div>
   }
 
   return (
@@ -91,7 +93,7 @@ export default function TenantSettingsPage() {
 
         <div style={{ marginTop: 20, display: 'flex', gap: 10, alignItems: 'center' }}>
           <button type="button" className="btn btn-primary-dark" disabled={saving} onClick={() => void handleSave()}>
-            {saving ? '保存中…' : '保存配置'}
+            {saving ? t('common.saving') : t('common.save')}
           </button>
           {msg && <span style={{ fontSize: 12, color: 'var(--muted)' }}>{msg}</span>}
         </div>

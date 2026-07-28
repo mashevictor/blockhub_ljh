@@ -1,0 +1,12 @@
+{
+  "submit": "提交",
+  "cancel": "取消",
+  "save": "保存",
+  "loading": "加载中…",
+  "saving": "保存中…",
+  "submitting": "提交中…",
+  "confirm": "确认",
+  "skip": "跳过",
+  "back": "上一步",
+  "fill": "填写{{label}}"
+}

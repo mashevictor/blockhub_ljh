@@ -39,6 +39,14 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: [
         { find: '@shared', replacement: path.resolve(__dirname, '../shared') },
+        {
+          find: /^@blockhub\/i18n\/react$/,
+          replacement: path.resolve(__dirname, '../packages/i18n/src/react.tsx'),
+        },
+        {
+          find: /^@blockhub\/i18n$/,
+          replacement: path.resolve(__dirname, '../packages/i18n/src/index.ts'),
+        },
         // 子路径必须精确匹配，且排在 @blockhub/web-core 之前，避免拼成 DeveloperBlueprintPanel.tsx/xxx
         {
           find: /^@blockhub\/web-core\/gtgt$/,

@@ -1,0 +1,12 @@
+{
+  "submit": "Submit",
+  "cancel": "Cancel",
+  "save": "Save",
+  "loading": "Loading…",
+  "saving": "Saving…",
+  "submitting": "Submitting…",
+  "confirm": "Confirm",
+  "skip": "Skip",
+  "back": "Back",
+  "fill": "Enter {{label}}"
+}

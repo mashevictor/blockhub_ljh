@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BlockHub · 手机版生成 · 技术选型</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0f1419;
+      --bg-elev: #171e26;
+      --bg-card: #1c2530;
+      --line: #2a3544;
+      --text: #e8eef5;
+      --muted: #8b9bb0;
+      --accent: #3d9a7a;
+      --accent-dim: rgba(61, 154, 122, 0.15);
+      --warn: #d4a017;
+      --warn-dim: rgba(212, 160, 23, 0.14);
+      --todo: #5b8def;
+      --todo-dim: rgba(91, 141, 239, 0.14);
+      --deny: #c45c5c;
+      --deny-dim: rgba(196, 92, 92, 0.14);
+      --radius: 10px;
+      --font: "DM Sans", system-ui, sans-serif;
+      --mono: "JetBrains Mono", ui-monospace, monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font);
+      background:
+        radial-gradient(1200px 600px at 10% -10%, rgba(61, 154, 122, 0.12), transparent 55%),
+        radial-gradient(900px 500px at 90% 0%, rgba(91, 141, 239, 0.1), transparent 50%),
+        var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+      min-height: 100vh;
+    }
+    .wrap { max-width: 1080px; margin: 0 auto; padding: 48px 24px 80px; }
+    header.hero {
+      margin-bottom: 36px;
+      padding-bottom: 28px;
+      border-bottom: 1px solid var(--line);
+    }
+    .eyebrow {
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+    h1 {
+      font-size: clamp(1.75rem, 3.5vw, 2.35rem);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      margin-bottom: 10px;
+    }
+    .lede { color: var(--muted); font-size: 1.05rem; max-width: 68ch; }
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 18px;
+    }
+    .chip {
+      font-size: 12px;
+      padding: 5px 11px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: var(--bg-elev);
+      color: var(--muted);
+    }
+    .chip.on {
+      border-color: rgba(61, 154, 122, 0.45);
+      background: var(--accent-dim);
+      color: var(--accent);
+    }
+    nav.toc {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 32px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: rgba(15, 20, 25, 0.92);
+      backdrop-filter: blur(10px);
+      padding: 12px 0;
+      border-bottom: 1px solid var(--line);
+    }
+    nav.toc a {
+      font-size: 12px;
+      padding: 6px 12px;
+      border-radius: 8px;
+      background: var(--bg-card);
+      border: 1px solid var(--line);
+      color: var(--muted);
+      text-decoration: none;
+    }
+    nav.toc a:hover { color: var(--accent); border-color: rgba(61, 154, 122, 0.4); }
+    section {
+      margin-bottom: 40px;
+      scroll-margin-top: 64px;
+    }
+    h2 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 14px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--line);
+    }
+    h3 {
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin: 20px 0 10px;
+      color: #c5d0dc;
+    }
+    p { margin-bottom: 12px; color: #c5d0dc; }
+    ul, ol { margin: 0 0 14px 1.25rem; color: #c5d0dc; }
+    li { margin-bottom: 6px; }
+    .callout {
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      margin: 14px 0;
+      border: 1px solid var(--line);
+      background: var(--bg-elev);
+      font-size: 0.95rem;
+    }
+    .callout.ok {
+      border-color: rgba(61, 154, 122, 0.4);
+      background: var(--accent-dim);
+    }
+    .callout.warn {
+      border-color: rgba(212, 160, 23, 0.4);
+      background: var(--warn-dim);
+    }
+    .callout.deny {
+      border-color: rgba(196, 92, 92, 0.4);
+      background: var(--deny-dim);
+    }
+    .callout strong { color: var(--text); }
+    .grid2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin: 14px 0;
+    }
+    .grid3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin: 14px 0;
+    }
+    @media (max-width: 800px) {
+      .grid2, .grid3 { grid-template-columns: 1fr; }
+    }
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 16px;
+    }
+    .card h4 {
+      font-size: 0.95rem;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+    .card p, .card li { font-size: 0.9rem; margin-bottom: 6px; }
+    .card .tag {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 999px;
+      margin-bottom: 10px;
+    }
+    .tag-pick { background: var(--accent-dim); color: var(--accent); }
+    .tag-alt { background: var(--todo-dim); color: var(--todo); }
+    .tag-no { background: var(--deny-dim); color: #e08a8a; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+      background: var(--bg-card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin: 14px 0;
+    }
+    th {
+      background: #121820;
+      color: #a8b8c8;
+      text-align: left;
+      padding: 10px 12px;
+      font-weight: 600;
+      border-bottom: 1px solid var(--line);
+    }
+    td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+      color: #c5d0dc;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255,255,255,0.02); }
+    code, .mono {
+      font-family: var(--mono);
+      font-size: 0.82em;
+      background: #121820;
+      padding: 1px 6px;
+      border-radius: 4px;
+      color: #9ec5b5;
+    }
+    pre {
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      line-height: 1.65;
+      background: #0c1118;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      overflow-x: auto;
+      color: #b8c4d0;
+      margin: 12px 0 16px;
+      white-space: pre;
+    }
+    .diagram {
+      background: var(--bg-card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin: 14px 0;
+      overflow-x: auto;
+    }
+    .steps {
+      counter-reset: step;
+      list-style: none;
+      margin: 14px 0;
+      padding: 0;
+    }
+    .steps li {
+      position: relative;
+      padding: 14px 16px 14px 56px;
+      margin-bottom: 10px;
+      background: var(--bg-card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+    }
+    .steps li::before {
+      counter-increment: step;
+      content: counter(step);
+      position: absolute;
+      left: 14px;
+      top: 14px;
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: var(--accent-dim);
+      color: var(--accent);
+      font-weight: 700;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .steps li strong { color: var(--text); display: block; margin-bottom: 4px; }
+    a.doc {
+      color: var(--todo);
+      text-decoration: none;
+      border-bottom: 1px dotted rgba(91, 141, 239, 0.45);
+    }
+    a.doc:hover { color: #7aa8f5; }
+    footer {
+      margin-top: 48px;
+      padding-top: 20px;
+      border-top: 1px solid var(--line);
+      font-size: 12px;
+      color: var(--muted);
+      text-align: center;
+    }
+    footer a { color: var(--accent); }
+    .mermaid { color: var(--text); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="hero">
+      <div class="eyebrow">CapShip · Dual Runtime</div>
+      <h1>怎么生成这个网站的手机版本</h1>
+      <p class="lede">
+        BlockHub / CapShip <strong style="color:var(--text)">不是把官网压成响应式页</strong>，
+        而是：选型 → 同一份 <code>page_schema</code> + <code>build_manifest</code> →
+        Web Runtime 与 Flutter APK <strong style="color:var(--text)">对称交付</strong>。
+        本文给出技术选型拍板、生成路径与操作清单。
+      </p>
+      <div class="meta">
+        <span class="chip on">拍板：Flutter 3.x</span>
+        <span class="chip">同 Schema · 同 API</span>
+        <span class="chip">deliver: both</span>
+        <span class="chip">runtime-app + capability_*</span>
+        <span class="chip">2026-07-27</span>
+      </div>
+    </header>
+
+    <nav class="toc">
+      <a href="#s1">1. 结论</a>
+      <a href="#s2">2. 选型对比</a>
+      <a href="#s3">3. 架构</a>
+      <a href="#s4">4. 怎么生成</a>
+      <a href="#s5">5. 能力包对称</a>
+      <a href="#s6">6. 命令速查</a>
+      <a href="#s7">7. 验收</a>
+      <a href="#s8">8. 相关文档</a>
+    </nav>
+
+    <!-- 1 -->
+    <section id="s1">
+      <h2>1. 一句话结论</h2>
+      <div class="callout ok">
+        <strong>生产手机版 = Flutter 原生 App（APK）</strong>，由 Home 发布时勾选
+        <code>deliver: both</code>（或 <code>app</code>）触发构建队列，按已选
+        <code>capability_keys</code> 裁剪进包。员工端 Web 仍走 <code>runtime-web</code>；
+        两端读同一 Backend API 与同一 <code>page_schema</code>。
+      </div>
+      <div class="grid3">
+        <div class="card">
+          <span class="tag tag-pick">主路径 · 已拍板</span>
+          <h4>Flutter Native APK</h4>
+          <p>Android 优先；壳在 <code>runtime-app/</code>；能力在 <code>packages/capability_*</code>。</p>
+        </div>
+        <div class="card">
+          <span class="tag tag-alt">并行可用</span>
+          <h4>手机浏览器 H5</h4>
+          <p>同一应用的 <code>/r/{appId}</code> Web Runtime；适合演示 / 未装 APK 时。</p>
+        </div>
+        <div class="card">
+          <span class="tag tag-no">不采用</span>
+          <h4>React Native / 纯响应式官网</h4>
+          <p>与 CapShip 裁剪矩阵、双端包契约不一致；官网 Home 本身不是交付物。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2 -->
+    <section id="s2">
+      <h2>2. 技术选型对比</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>方案</th>
+            <th>适合什么</th>
+            <th>与本仓契合度</th>
+            <th>决策</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Flutter 3.x + Dart</strong><br/><span class="mono">runtime-app</span></td>
+            <td>租户定制 APK、扫码/推送、按能力裁剪体积、应用商店/MDM</td>
+            <td>已有双端包、parity 矩阵、APK 构建队列</td>
+            <td><span style="color:var(--accent);font-weight:600">✅ 拍板</span></td>
+          </tr>
+          <tr>
+            <td><strong>Web Runtime H5</strong><br/><span class="mono">runtime-web</span></td>
+            <td>快速预览、无安装、与 Web 共用 Widget</td>
+            <td>已有；手机浏览器可直接打开</td>
+            <td><span style="color:var(--todo);font-weight:600">并行交付</span></td>
+          </tr>
+          <tr>
+            <td>PWA / 加桌面图标</td>
+            <td>轻量「类 App」入口</td>
+            <td>可作增强，不能替代原生裁剪与系统能力</td>
+            <td>可选增强</td>
+          </tr>
+          <tr>
+            <td>React Native / Expo</td>
+            <td>JS 团队一条栈</td>
+            <td>无现成能力包与构建链；重复建设</td>
+            <td>❌ 否决</td>
+          </tr>
+          <tr>
+            <td>把 Home 官网做成响应式</td>
+            <td>营销站移动适配</td>
+            <td>Home 是选型面，不是员工端 Runtime</td>
+            <td>❌ 不是「手机版产品」</td>
+          </tr>
+          <tr>
+            <td>WebView 套壳</td>
+            <td>极速包一层 H5</td>
+            <td>丢掉 Flutter 能力包与按 key 裁剪</td>
+            <td>❌ 禁止冒充正式交付</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>栈明细（拍板）</h3>
+      <table>
+        <thead>
+          <tr><th>层</th><th>选型</th><th>说明</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>App 壳</td><td>Flutter 3.x · <code>runtime-app/</code></td><td><code>app_ui_id</code>：bottom_tabs / drawer_nav / immersive_chat</td></tr>
+          <tr><td>能力包</td><td><code>packages/capability_{key}/</code></td><td>与 Web 的 <code>web-capability-*</code> 对称</td></tr>
+          <tr><td>内核</td><td><code>blockhub_flutter_core</code></td><td>鉴权 Dio、GtgtStepComposer、BhL10n</td></tr>
+          <tr><td>契约</td><td><code>page_schema</code> + <code>build_manifest.flutter_pkgs</code></td><td>Publish 热路径无 LLM</td></tr>
+          <tr><td>通信</td><td>REST + SSE</td><td>与 Web 同 API；WebSocket 为增强项</td></tr>
+          <tr><td>构建</td><td><code>flutter-build-from-publish.sh</code></td><td>按 <code>capability_keys</code> 裁剪 + split-per-abi</td></tr>
+          <tr><td>包名</td><td><code>com.blockhub.app.{slug(public_id)}</code></td><td>每应用唯一，不落 default.apk</td></tr>
+          <tr><td>i18n</td><td>同源 key · <code>bhTf</code></td><td>禁止 App 单独维护英文文案</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 3 -->
+    <section id="s3">
+      <h2>3. 架构：网站 → 手机版</h2>
+      <div class="diagram">
+        <div class="mermaid">
+flowchart LR
+  subgraph Select["选型面 · 非交付物"]
+    Home["Home / 广场"]
+  end
+
+  subgraph Contract["契约引擎"]
+    Pub["POST /creation/publish"]
+    Sch["page_schema"]
+    Man["build_manifest"]
+  end
+
+  subgraph Dual["双端 Runtime"]
+    Web["runtime-web<br/>手机浏览器也可开"]
+    Queue["APK Build Queue"]
+    App["runtime-app<br/>Flutter APK"]
+  end
+
+  Home --> Pub
+  Pub --> Sch
+  Pub --> Man
+  Sch --> Web
+  Sch --> App
+  Man --> Web
+  Man --> Queue
+  Queue --> App
+        </div>
+      </div>
+      <div class="callout warn">
+        <strong>边界：</strong>「手机版」指员工/终端用户使用的 Runtime App，
+        不是把 <code>home/</code> 营销站或管理后台压成窄屏布局。
+        管理端可继续用手机浏览器访问 Admin；产品交付以 Flutter APK 为准。
+      </div>
+    </section>
+
+    <!-- 4 -->
+    <section id="s4">
+      <h2>4. 怎么生成（操作路径）</h2>
+
+      <h3>路径 A · 产品发布（推荐）</h3>
+      <ol class="steps">
+        <li>
+          <strong>Home 选型</strong>
+          勾选需要的 <code>capability_keys</code>；选 App 壳 <code>app_ui_id</code>（默认 bottom_tabs）；
+          交付选 <code>both</code> 或 <code>app</code>。
+        </li>
+        <li>
+          <strong>发布</strong>
+          调用 <code>POST /creation/publish</code>。后端写入 <code>page_schema</code>、
+          <code>build_manifest</code>（含 <code>flutter_pkgs</code>），并入队 APK。
+        </li>
+        <li>
+          <strong>拿 Web 与下载链</strong>
+          返回 <code>web_url</code>（手机浏览器可预览）与
+          <code>download_url</code> → <code>/r/{public_id}/download</code>。
+        </li>
+        <li>
+          <strong>构建完成</strong>
+          Worker 跑 <code>scripts/flutter-build-from-publish.sh</code>，
+          产出 <code>backend/uploads/apks/{public_id}.apk</code>。
+        </li>
+        <li>
+          <strong>真机安装</strong>
+          扫码 / 下载安装；登录后读写与 Web 同一租户 API（空库=空列表）。
+        </li>
+      </ol>
+
+      <h3>Publish 输入示例</h3>
+      <pre>{
+  "capability_keys": ["device_repair", "approval_flow"],
+  "web_template_id": "tabs_portal",
+  "app_ui_id": "bottom_tabs",
+  "deliver": "both"
+}</pre>
+
+      <h3>路径 B · 本地/运维手动打 APK</h3>
+      <pre># 按发布队列（与 Home 一致）
+bash scripts/flutter-build-from-publish.sh &lt;public_id&gt;
+
+# 自选能力打包
+bash scripts/flutter-build-custom.sh device_repair,approval_flow \
+  --name "门店助手" --color "#2563EB" --public-id abc12345
+
+# 冒烟
+bash scripts/smoke-apk.sh http://&lt;host&gt;</pre>
+
+      <h3>仅要「手机上能用」的最快路径</h3>
+      <div class="callout">
+        若暂时不打 APK：发布后打开 <code>web_url</code>（或 <code>/r/{appId}</code>），
+        用手机浏览器访问 Web Runtime。这是正式契约渲染，不是假 Demo；
+        但系统能力（扫码、推送、独立包名）仍以 Flutter APK 为准。
+      </div>
+    </section>
+
+    <!-- 5 -->
+    <section id="s5">
+      <h2>5. 能力包：Web ⟂ App 怎么对称</h2>
+      <p>每新增一个业务能力，必须走路径 A（见 CapShip 规范），禁止「只做 Web」却声称已有手机版。</p>
+      <table>
+        <thead>
+          <tr><th>步骤</th><th>Web</th><th>App（手机版）</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>注册</td>
+            <td colspan="2"><code>capability_registry.py</code> + i18n labels</td>
+          </tr>
+          <tr>
+            <td>包目录</td>
+            <td><code>packages/web-capability-{slug}/</code></td>
+            <td><code>packages/capability_{key}/</code></td>
+          </tr>
+          <tr>
+            <td>UI 文案</td>
+            <td><code>useTf('cap.{key}.*')</code></td>
+            <td><code>bhTf('cap.{key}.*')</code> · 同源 key</td>
+          </tr>
+          <tr>
+            <td>填表交互</td>
+            <td><code>GtgtStepComposer</code>（web-core）</td>
+            <td><code>GtgtStepComposer</code>（flutter_core）</td>
+          </tr>
+          <tr>
+            <td>数据</td>
+            <td><code>apiFetch</code> + 真 API</td>
+            <td><code>getRuntimeAuthedDio()</code> + 真 API</td>
+          </tr>
+          <tr>
+            <td>裁剪</td>
+            <td><code>manifest.web_pkgs</code></td>
+            <td><code>manifest.flutter_pkgs</code> + parity 矩阵</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="callout deny">
+        <strong>禁止：</strong>localStorage / 内存假列表冒充业务数据；
+        用 WebView 套官网冒充 App；只交 HTML 预览却宣称「手机版已生成」。
+      </div>
+    </section>
+
+    <!-- 6 -->
+    <section id="s6">
+      <h2>6. 目录与命令速查</h2>
+      <pre>runtime-app/                    # Flutter 壳
+packages/blockhub_flutter_core/ # App 内核（含 Gtgt / i18n）
+packages/capability_{key}/      # 各能力 Flutter 包
+shared/flutter-parity-matrix.json
+scripts/flutter-build-from-publish.sh
+scripts/flutter-build-custom.sh
+scripts/flutter-sync-pubspec-from-manifest.py
+scripts/codegen-flutter-arb.py
+docs/opensource/capship.html    # SSOT 规范
+docs/FLUTTER-MODULAR-APK.md
+docs/FLUTTER-APP-RUNTIME.md</pre>
+
+      <div class="grid2">
+        <div class="card">
+          <h4>App 壳矩阵</h4>
+          <ul>
+            <li><code>bottom_tabs</code> — 底部 Tab（默认）</li>
+            <li><code>drawer_nav</code> — 抽屉导航</li>
+            <li><code>immersive_chat</code> — 沉浸对话</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h4>制品</h4>
+          <ul>
+            <li>APK：<code>uploads/apks/{public_id}.apk</code></li>
+            <li>下载：不走 default.apk</li>
+            <li>体积：<code>--split-per-abi</code></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7 -->
+    <section id="s7">
+      <h2>7. 验收清单</h2>
+      <table>
+        <thead>
+          <tr><th>#</th><th>检查项</th><th>期望</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td>Publish <code>deliver</code> 含 app</td><td>构建队列有对应 <code>public_id</code></td></tr>
+          <tr><td>2</td><td>manifest 含 <code>flutter_pkgs</code></td><td>与勾选 keys 一致</td></tr>
+          <tr><td>3</td><td>安装 APK 后菜单</td><td>仅含已选能力 Tab/路由</td></tr>
+          <tr><td>4</td><td>业务读写</td><td>与 Web 同 API；刷新后数据仍在</td></tr>
+          <tr><td>5</td><td>空库</td><td>空列表，无假 seed 工单</td></tr>
+          <tr><td>6</td><td>填单</td><td><code>&gt;&gt; 字段名</code> 单字段步进</td></tr>
+          <tr><td>7</td><td>包名</td><td><code>com.blockhub.app.{slug}</code> 独立</td></tr>
+          <tr><td>8</td><td>冒烟</td><td><code>smoke-apk.sh</code> 通过</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 8 -->
+    <section id="s8">
+      <h2>8. 相关文档</h2>
+      <table>
+        <thead>
+          <tr><th>文档</th><th>用途</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><a class="doc" href="../opensource/capship.html">docs/opensource/capship.html</a></td>
+            <td>CapShip SSOT：双端契约与路径 A/B</td>
+          </tr>
+          <tr>
+            <td><a class="doc" href="../FLUTTER-MODULAR-APK.md">docs/FLUTTER-MODULAR-APK.md</a></td>
+            <td>按能力裁剪 APK、构建命令</td>
+          </tr>
+          <tr>
+            <td><a class="doc" href="../FLUTTER-APP-RUNTIME.md">docs/FLUTTER-APP-RUNTIME.md</a></td>
+            <td>Flutter Runtime 定位与 UI 生态参考</td>
+          </tr>
+          <tr>
+            <td><a class="doc" href="../APK-BUILD-TROUBLESHOOTING.md">docs/APK-BUILD-TROUBLESHOOTING.md</a></td>
+            <td>构建失败排查</td>
+          </tr>
+          <tr>
+            <td><a class="doc" href="./flutter-parity-matrix.html">docs/previews/flutter-parity-matrix.html</a></td>
+            <td>Web ⟂ Flutter 包对照表</td>
+          </tr>
+          <tr>
+            <td><a class="doc" href="../opensource/ARCHITECTURE.md">docs/opensource/ARCHITECTURE.md</a></td>
+            <td>开源架构说明</td>
+          </tr>
+          <tr>
+            <td><span class="mono">.cursor/skills/capship-capability/SKILL.md</span></td>
+            <td>Agent 实现能力包时的强制流程</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <footer>
+      BlockHub CapShip · 手机版技术选型与生成说明 ·
+      冲突时以 <a href="../opensource/capship.html">capship.html</a> 为准
+    </footer>
+  </div>
+
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: "dark",
+      themeVariables: {
+        primaryColor: "#1c2530",
+        primaryTextColor: "#e8eef5",
+        primaryBorderColor: "#3d9a7a",
+        lineColor: "#5b8def",
+        secondaryColor: "#171e26",
+        tertiaryColor: "#121820",
+        background: "#1c2530",
+        mainBkg: "#1c2530",
+        nodeBorder: "#3d9a7a",
+        clusterBkg: "#171e26",
+        titleColor: "#e8eef5",
+        edgeLabelBackground: "#121820"
+      }
+    });
+  </script>
+</body>
+</html>

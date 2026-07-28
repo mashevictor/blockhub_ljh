@@ -1,0 +1,20 @@
+{
+  "cap.allergen_note.ui.title": "过敏原工单",
+  "cap.banquet_order.ui.title": "宴会预订",
+  "cap.concierge_req.ui.title": "礼宾需求",
+  "cap.fnb_order.ui.title": "餐饮点单",
+  "cap.food_purchase.ui.title": "食材申购",
+  "cap.group_checkin.ui.title": "团队入住",
+  "cap.guest_complaint.ui.title": "客诉处理",
+  "cap.hk_task.ui.title": "客房打扫",
+  "cap.hotel_revenue.ui.title": "营收日报",
+  "cap.hygiene_check.ui.title": "卫生检查",
+  "cap.kitchen_waste.ui.title": "厨余报损",
+  "cap.lost_found.ui.title": "失物招领",
+  "cap.menu_86.ui.title": "菜品沽清",
+  "cap.minibar_charge.ui.title": "迷你吧计费",
+  "cap.night_audit.ui.title": "夜审确认",
+  "cap.room_service.ui.title": "客房服务",
+  "cap.room_status.ui.title": "房态变更",
+  "cap.table_reserve.ui.title": "餐厅订位"
+}

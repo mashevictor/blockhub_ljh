@@ -20,11 +20,17 @@ class _ApprovalPageState extends State<ApprovalPage> {
   @override
   void initState() {
     super.initState();
+    BhL10n.instance.addListener(_onL10n);
     _load();
+  }
+
+  void _onL10n() {
+    if (mounted) setState(() {});
   }
 
   @override
   void dispose() {
+    BhL10n.instance.removeListener(_onL10n);
     _titleCtrl.dispose();
     _summaryCtrl.dispose();
     super.dispose();
@@ -87,11 +93,30 @@ class _ApprovalPageState extends State<ApprovalPage> {
           padding: const EdgeInsets.all(12),
           child: Row(
             children: [
-              Expanded(child: TextField(controller: _titleCtrl, decoration: const InputDecoration(hintText: '审批标题', border: OutlineInputBorder()))),
+              Expanded(
+                child: TextField(
+                  controller: _titleCtrl,
+                  decoration: InputDecoration(
+                    hintText: bhTf('cap.approval_flow.field.title', '审批标题'),
+                    border: const OutlineInputBorder(),
+                  ),
+                ),
+              ),
               const SizedBox(width: 8),
-              Expanded(child: TextField(controller: _summaryCtrl, decoration: const InputDecoration(hintText: '摘要', border: OutlineInputBorder()))),
+              Expanded(
+                child: TextField(
+                  controller: _summaryCtrl,
+                  decoration: InputDecoration(
+                    hintText: bhTf('cap.approval_flow.field.summary', '摘要'),
+                    border: const OutlineInputBorder(),
+                  ),
+                ),
+              ),
               const SizedBox(width: 8),
-              FilledButton(onPressed: _submit, child: const Text('提交')),
+              FilledButton(
+                onPressed: _submit,
+                child: Text(bhTf('cap.approval_flow.submit', '提交')),
+              ),
             ],
           ),
         ),

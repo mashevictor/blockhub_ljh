@@ -25,7 +25,18 @@ class _MemberLoyaltyPageState extends State<MemberLoyaltyPage> {
   @override
   void initState() {
     super.initState();
+    BhL10n.instance.addListener(_onL10n);
     _load();
+  }
+
+  void _onL10n() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    BhL10n.instance.removeListener(_onL10n);
+    super.dispose();
   }
 
   Future<void> _load() async {
@@ -108,13 +119,13 @@ class _MemberLoyaltyPageState extends State<MemberLoyaltyPage> {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        Text('会员营销', style: Theme.of(context).textTheme.titleLarge),
+        Text(bhTf('cap.member_loyalty.ui.title', '会员营销'), style: Theme.of(context).textTheme.titleLarge),
         const SizedBox(height: 8),
         SegmentedButton<int>(
-          segments: const [
-            ButtonSegment(value: 0, label: Text('建会员')),
-            ButtonSegment(value: 1, label: Text('建活动')),
-            ButtonSegment(value: 2, label: Text('列表')),
+          segments: [
+            ButtonSegment(value: 0, label: Text(bhTf('cap.member_loyalty.mode.member', '建会员'))),
+            ButtonSegment(value: 1, label: Text(bhTf('cap.member_loyalty.mode.campaign', '建活动'))),
+            ButtonSegment(value: 2, label: Text(bhTf('cap.member_loyalty.mode.list', '列表'))),
           ],
           selected: {_tab},
           onSelectionChanged: (s) => setState(() {
@@ -125,37 +136,52 @@ class _MemberLoyaltyPageState extends State<MemberLoyaltyPage> {
         const SizedBox(height: 12),
         if (_tab == 0)
           GtgtStepComposer(
-            title: '新建会员',
+            title: bhTf('cap.member_loyalty.mode.member', '新建会员'),
             flowHint: '姓名 → 手机 → 初始积分',
             accent: color,
-            steps: const [
-              GtgtStep(key: 'name', label: '会员姓名'),
-              GtgtStep(key: 'phone', label: '手机', optional: true, keyboardType: TextInputType.phone),
-              GtgtStep(key: 'points', label: '初始积分', placeholder: '0', keyboardType: TextInputType.number),
+            steps: [
+              GtgtStep(key: 'name', label: bhTf('cap.member_loyalty.field.name', '会员姓名')),
+              GtgtStep(
+                key: 'phone',
+                label: bhTf('cap.member_loyalty.field.phone', '手机'),
+                optional: true,
+                keyboardType: TextInputType.phone,
+              ),
+              GtgtStep(
+                key: 'points',
+                label: bhTf('cap.member_loyalty.field.points', '初始积分'),
+                placeholder: '0',
+                keyboardType: TextInputType.number,
+              ),
             ],
             values: _values,
             onChanged: (k, v) => setState(() => _values[k] = v),
             onComplete: _createMember,
             busy: _busy,
             resetKey: _resetKey,
-            submitLabel: '确认建档',
+            submitLabel: bhTf('cap.member_loyalty.submit', '确认建档'),
           )
         else if (_tab == 1)
           GtgtStepComposer(
-            title: '新建活动',
+            title: bhTf('cap.member_loyalty.mode.campaign', '新建活动'),
             flowHint: '活动名 → 规则 → 积分增减',
             accent: color,
-            steps: const [
-              GtgtStep(key: 'camp', label: '活动名'),
+            steps: [
+              GtgtStep(key: 'camp', label: bhTf('cap.member_loyalty.field.campaign_name', '活动名')),
               GtgtStep(key: 'rule', label: '规则', optional: true),
-              GtgtStep(key: 'points_delta', label: '积分增减', placeholder: '100', keyboardType: TextInputType.number),
+              GtgtStep(
+                key: 'points_delta',
+                label: '积分增减',
+                placeholder: '100',
+                keyboardType: TextInputType.number,
+              ),
             ],
             values: _values,
             onChanged: (k, v) => setState(() => _values[k] = v),
             onComplete: _createCampaign,
             busy: _busy,
             resetKey: _resetKey,
-            submitLabel: '确认创建',
+            submitLabel: bhTf('cap.member_loyalty.submit', '确认创建'),
           )
         else ...[
           if (_loading) const Center(child: CircularProgressIndicator()),

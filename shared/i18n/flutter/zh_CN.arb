@@ -1,0 +1,5263 @@
+{
+  "@@locale": "zh_CN",
+  "_generated_by": "scripts/codegen-i18n-messages.py",
+  "@_generated_by": {
+    "description": "_generated_by",
+    "x-blockhub-key": "_generated_by"
+  },
+  "cap_agro_inventory_category": "农业",
+  "@cap_agro_inventory_category": {
+    "description": "cap.agro_inventory.category",
+    "x-blockhub-key": "cap.agro_inventory.category"
+  },
+  "cap_agro_inventory_name": "农资出入库",
+  "@cap_agro_inventory_name": {
+    "description": "cap.agro_inventory.name",
+    "x-blockhub-key": "cap.agro_inventory.name"
+  },
+  "cap_agro_inventory_ui_title": "农资出入库",
+  "@cap_agro_inventory_ui_title": {
+    "description": "cap.agro_inventory.ui.title",
+    "x-blockhub-key": "cap.agro_inventory.ui.title"
+  },
+  "cap_agro_patrol_category": "农业",
+  "@cap_agro_patrol_category": {
+    "description": "cap.agro_patrol.category",
+    "x-blockhub-key": "cap.agro_patrol.category"
+  },
+  "cap_agro_patrol_name": "田间巡查",
+  "@cap_agro_patrol_name": {
+    "description": "cap.agro_patrol.name",
+    "x-blockhub-key": "cap.agro_patrol.name"
+  },
+  "cap_agro_patrol_ui_title": "田间巡查",
+  "@cap_agro_patrol_ui_title": {
+    "description": "cap.agro_patrol.ui.title",
+    "x-blockhub-key": "cap.agro_patrol.ui.title"
+  },
+  "cap_agro_pest_category": "农业",
+  "@cap_agro_pest_category": {
+    "description": "cap.agro_pest.category",
+    "x-blockhub-key": "cap.agro_pest.category"
+  },
+  "cap_agro_pest_name": "病虫害上报",
+  "@cap_agro_pest_name": {
+    "description": "cap.agro_pest.name",
+    "x-blockhub-key": "cap.agro_pest.name"
+  },
+  "cap_agro_pest_ui_title": "病虫害上报",
+  "@cap_agro_pest_ui_title": {
+    "description": "cap.agro_pest.ui.title",
+    "x-blockhub-key": "cap.agro_pest.ui.title"
+  },
+  "cap_agro_subsidy_category": "农业",
+  "@cap_agro_subsidy_category": {
+    "description": "cap.agro_subsidy.category",
+    "x-blockhub-key": "cap.agro_subsidy.category"
+  },
+  "cap_agro_subsidy_name": "补贴申请",
+  "@cap_agro_subsidy_name": {
+    "description": "cap.agro_subsidy.name",
+    "x-blockhub-key": "cap.agro_subsidy.name"
+  },
+  "cap_agro_subsidy_ui_title": "补贴申请",
+  "@cap_agro_subsidy_ui_title": {
+    "description": "cap.agro_subsidy.ui.title",
+    "x-blockhub-key": "cap.agro_subsidy.ui.title"
+  },
+  "cap_agro_trace_category": "农业",
+  "@cap_agro_trace_category": {
+    "description": "cap.agro_trace.category",
+    "x-blockhub-key": "cap.agro_trace.category"
+  },
+  "cap_agro_trace_name": "溯源批次",
+  "@cap_agro_trace_name": {
+    "description": "cap.agro_trace.name",
+    "x-blockhub-key": "cap.agro_trace.name"
+  },
+  "cap_agro_trace_ui_title": "溯源批次",
+  "@cap_agro_trace_ui_title": {
+    "description": "cap.agro_trace.ui.title",
+    "x-blockhub-key": "cap.agro_trace.ui.title"
+  },
+  "cap_allergen_note_category": "酒店餐饮",
+  "@cap_allergen_note_category": {
+    "description": "cap.allergen_note.category",
+    "x-blockhub-key": "cap.allergen_note.category"
+  },
+  "cap_allergen_note_name": "过敏原工单",
+  "@cap_allergen_note_name": {
+    "description": "cap.allergen_note.name",
+    "x-blockhub-key": "cap.allergen_note.name"
+  },
+  "cap_allergen_note_ui_title": "过敏原工单",
+  "@cap_allergen_note_ui_title": {
+    "description": "cap.allergen_note.ui.title",
+    "x-blockhub-key": "cap.allergen_note.ui.title"
+  },
+  "cap_approval_flow_category": "流程审批",
+  "@cap_approval_flow_category": {
+    "description": "cap.approval_flow.category",
+    "x-blockhub-key": "cap.approval_flow.category"
+  },
+  "cap_approval_flow_expense_headline": "费用报销",
+  "@cap_approval_flow_expense_headline": {
+    "description": "cap.approval_flow.expense.headline",
+    "x-blockhub-key": "cap.approval_flow.expense.headline"
+  },
+  "cap_approval_flow_expense_submit": "提交报销",
+  "@cap_approval_flow_expense_submit": {
+    "description": "cap.approval_flow.expense.submit",
+    "x-blockhub-key": "cap.approval_flow.expense.submit"
+  },
+  "cap_approval_flow_field_dept": "所属部门",
+  "@cap_approval_flow_field_dept": {
+    "description": "cap.approval_flow.field.dept",
+    "x-blockhub-key": "cap.approval_flow.field.dept"
+  },
+  "cap_approval_flow_field_summary": "说明",
+  "@cap_approval_flow_field_summary": {
+    "description": "cap.approval_flow.field.summary",
+    "x-blockhub-key": "cap.approval_flow.field.summary"
+  },
+  "cap_approval_flow_field_title": "事项标题",
+  "@cap_approval_flow_field_title": {
+    "description": "cap.approval_flow.field.title",
+    "x-blockhub-key": "cap.approval_flow.field.title"
+  },
+  "cap_approval_flow_headline": "发起审批",
+  "@cap_approval_flow_headline": {
+    "description": "cap.approval_flow.headline",
+    "x-blockhub-key": "cap.approval_flow.headline"
+  },
+  "cap_approval_flow_hint": ">> 单字段推进，提交后进入待办",
+  "@cap_approval_flow_hint": {
+    "description": "cap.approval_flow.hint",
+    "x-blockhub-key": "cap.approval_flow.hint"
+  },
+  "cap_approval_flow_leave_headline": "请假申请",
+  "@cap_approval_flow_leave_headline": {
+    "description": "cap.approval_flow.leave.headline",
+    "x-blockhub-key": "cap.approval_flow.leave.headline"
+  },
+  "cap_approval_flow_leave_submit": "提交请假",
+  "@cap_approval_flow_leave_submit": {
+    "description": "cap.approval_flow.leave.submit",
+    "x-blockhub-key": "cap.approval_flow.leave.submit"
+  },
+  "cap_approval_flow_name": "审批流",
+  "@cap_approval_flow_name": {
+    "description": "cap.approval_flow.name",
+    "x-blockhub-key": "cap.approval_flow.name"
+  },
+  "cap_approval_flow_seal_headline": "用印申请",
+  "@cap_approval_flow_seal_headline": {
+    "description": "cap.approval_flow.seal.headline",
+    "x-blockhub-key": "cap.approval_flow.seal.headline"
+  },
+  "cap_approval_flow_seal_submit": "提交用印",
+  "@cap_approval_flow_seal_submit": {
+    "description": "cap.approval_flow.seal.submit",
+    "x-blockhub-key": "cap.approval_flow.seal.submit"
+  },
+  "cap_approval_flow_status_approved": "已通过",
+  "@cap_approval_flow_status_approved": {
+    "description": "cap.approval_flow.status.approved",
+    "x-blockhub-key": "cap.approval_flow.status.approved"
+  },
+  "cap_approval_flow_status_pending": "审批中",
+  "@cap_approval_flow_status_pending": {
+    "description": "cap.approval_flow.status.pending",
+    "x-blockhub-key": "cap.approval_flow.status.pending"
+  },
+  "cap_approval_flow_status_rejected": "已拒绝",
+  "@cap_approval_flow_status_rejected": {
+    "description": "cap.approval_flow.status.rejected",
+    "x-blockhub-key": "cap.approval_flow.status.rejected"
+  },
+  "cap_approval_flow_submit": "提交申请",
+  "@cap_approval_flow_submit": {
+    "description": "cap.approval_flow.submit",
+    "x-blockhub-key": "cap.approval_flow.submit"
+  },
+  "cap_approval_flow_success": "申请已提交，等待审批",
+  "@cap_approval_flow_success": {
+    "description": "cap.approval_flow.success",
+    "x-blockhub-key": "cap.approval_flow.success"
+  },
+  "cap_approval_flow_ui_title": "审批流",
+  "@cap_approval_flow_ui_title": {
+    "description": "cap.approval_flow.ui.title",
+    "x-blockhub-key": "cap.approval_flow.ui.title"
+  },
+  "cap_approval_inbox_category": "流程审批",
+  "@cap_approval_inbox_category": {
+    "description": "cap.approval_inbox.category",
+    "x-blockhub-key": "cap.approval_inbox.category"
+  },
+  "cap_approval_inbox_name": "待办中心",
+  "@cap_approval_inbox_name": {
+    "description": "cap.approval_inbox.name",
+    "x-blockhub-key": "cap.approval_inbox.name"
+  },
+  "cap_approval_inbox_ui_title": "待办中心",
+  "@cap_approval_inbox_ui_title": {
+    "description": "cap.approval_inbox.ui.title",
+    "x-blockhub-key": "cap.approval_inbox.ui.title"
+  },
+  "cap_asset_manage_category": "IT与资产",
+  "@cap_asset_manage_category": {
+    "description": "cap.asset_manage.category",
+    "x-blockhub-key": "cap.asset_manage.category"
+  },
+  "cap_asset_manage_name": "资产管理",
+  "@cap_asset_manage_name": {
+    "description": "cap.asset_manage.name",
+    "x-blockhub-key": "cap.asset_manage.name"
+  },
+  "cap_asset_manage_ui_title": "资产管理",
+  "@cap_asset_manage_ui_title": {
+    "description": "cap.asset_manage.ui.title",
+    "x-blockhub-key": "cap.asset_manage.ui.title"
+  },
+  "cap_auto_charge_category": "汽车交通",
+  "@cap_auto_charge_category": {
+    "description": "cap.auto_charge.category",
+    "x-blockhub-key": "cap.auto_charge.category"
+  },
+  "cap_auto_charge_name": "充电桩运维",
+  "@cap_auto_charge_name": {
+    "description": "cap.auto_charge.name",
+    "x-blockhub-key": "cap.auto_charge.name"
+  },
+  "cap_auto_charge_ui_title": "充电桩运维",
+  "@cap_auto_charge_ui_title": {
+    "description": "cap.auto_charge.ui.title",
+    "x-blockhub-key": "cap.auto_charge.ui.title"
+  },
+  "cap_auto_claim_category": "汽车交通",
+  "@cap_auto_claim_category": {
+    "description": "cap.auto_claim.category",
+    "x-blockhub-key": "cap.auto_claim.category"
+  },
+  "cap_auto_claim_name": "事故理赔",
+  "@cap_auto_claim_name": {
+    "description": "cap.auto_claim.name",
+    "x-blockhub-key": "cap.auto_claim.name"
+  },
+  "cap_auto_claim_ui_title": "事故理赔",
+  "@cap_auto_claim_ui_title": {
+    "description": "cap.auto_claim.ui.title",
+    "x-blockhub-key": "cap.auto_claim.ui.title"
+  },
+  "cap_auto_fleet_category": "汽车交通",
+  "@cap_auto_fleet_category": {
+    "description": "cap.auto_fleet.category",
+    "x-blockhub-key": "cap.auto_fleet.category"
+  },
+  "cap_auto_fleet_name": "车队调度",
+  "@cap_auto_fleet_name": {
+    "description": "cap.auto_fleet.name",
+    "x-blockhub-key": "cap.auto_fleet.name"
+  },
+  "cap_auto_fleet_ui_title": "车队调度",
+  "@cap_auto_fleet_ui_title": {
+    "description": "cap.auto_fleet.ui.title",
+    "x-blockhub-key": "cap.auto_fleet.ui.title"
+  },
+  "cap_auto_parts_category": "汽车交通",
+  "@cap_auto_parts_category": {
+    "description": "cap.auto_parts.category",
+    "x-blockhub-key": "cap.auto_parts.category"
+  },
+  "cap_auto_parts_name": "配件库存",
+  "@cap_auto_parts_name": {
+    "description": "cap.auto_parts.name",
+    "x-blockhub-key": "cap.auto_parts.name"
+  },
+  "cap_auto_parts_ui_title": "配件库存",
+  "@cap_auto_parts_ui_title": {
+    "description": "cap.auto_parts.ui.title",
+    "x-blockhub-key": "cap.auto_parts.ui.title"
+  },
+  "cap_auto_service_category": "汽车交通",
+  "@cap_auto_service_category": {
+    "description": "cap.auto_service.category",
+    "x-blockhub-key": "cap.auto_service.category"
+  },
+  "cap_auto_service_name": "维保工单",
+  "@cap_auto_service_name": {
+    "description": "cap.auto_service.name",
+    "x-blockhub-key": "cap.auto_service.name"
+  },
+  "cap_auto_service_ui_title": "维保工单",
+  "@cap_auto_service_ui_title": {
+    "description": "cap.auto_service.ui.title",
+    "x-blockhub-key": "cap.auto_service.ui.title"
+  },
+  "cap_banquet_order_category": "酒店餐饮",
+  "@cap_banquet_order_category": {
+    "description": "cap.banquet_order.category",
+    "x-blockhub-key": "cap.banquet_order.category"
+  },
+  "cap_banquet_order_name": "宴会预订",
+  "@cap_banquet_order_name": {
+    "description": "cap.banquet_order.name",
+    "x-blockhub-key": "cap.banquet_order.name"
+  },
+  "cap_banquet_order_ui_title": "宴会预订",
+  "@cap_banquet_order_ui_title": {
+    "description": "cap.banquet_order.ui.title",
+    "x-blockhub-key": "cap.banquet_order.ui.title"
+  },
+  "cap_broker_commission_category": "房地产",
+  "@cap_broker_commission_category": {
+    "description": "cap.broker_commission.category",
+    "x-blockhub-key": "cap.broker_commission.category"
+  },
+  "cap_broker_commission_name": "中介佣金",
+  "@cap_broker_commission_name": {
+    "description": "cap.broker_commission.name",
+    "x-blockhub-key": "cap.broker_commission.name"
+  },
+  "cap_broker_commission_ui_title": "中介佣金",
+  "@cap_broker_commission_ui_title": {
+    "description": "cap.broker_commission.ui.title",
+    "x-blockhub-key": "cap.broker_commission.ui.title"
+  },
+  "cap_campaign_ops_category": "营销运营",
+  "@cap_campaign_ops_category": {
+    "description": "cap.campaign_ops.category",
+    "x-blockhub-key": "cap.campaign_ops.category"
+  },
+  "cap_campaign_ops_name": "活动运营",
+  "@cap_campaign_ops_name": {
+    "description": "cap.campaign_ops.name",
+    "x-blockhub-key": "cap.campaign_ops.name"
+  },
+  "cap_campaign_ops_ui_title": "活动运营",
+  "@cap_campaign_ops_ui_title": {
+    "description": "cap.campaign_ops.ui.title",
+    "x-blockhub-key": "cap.campaign_ops.ui.title"
+  },
+  "cap_chart_dashboard_category": "可视化",
+  "@cap_chart_dashboard_category": {
+    "description": "cap.chart_dashboard.category",
+    "x-blockhub-key": "cap.chart_dashboard.category"
+  },
+  "cap_chart_dashboard_name": "数据看板",
+  "@cap_chart_dashboard_name": {
+    "description": "cap.chart_dashboard.name",
+    "x-blockhub-key": "cap.chart_dashboard.name"
+  },
+  "cap_chart_dashboard_ui_title": "数据看板",
+  "@cap_chart_dashboard_ui_title": {
+    "description": "cap.chart_dashboard.ui.title",
+    "x-blockhub-key": "cap.chart_dashboard.ui.title"
+  },
+  "cap_chart_funnel_category": "可视化",
+  "@cap_chart_funnel_category": {
+    "description": "cap.chart_funnel.category",
+    "x-blockhub-key": "cap.chart_funnel.category"
+  },
+  "cap_chart_funnel_name": "销售漏斗",
+  "@cap_chart_funnel_name": {
+    "description": "cap.chart_funnel.name",
+    "x-blockhub-key": "cap.chart_funnel.name"
+  },
+  "cap_chart_funnel_ui_title": "销售漏斗",
+  "@cap_chart_funnel_ui_title": {
+    "description": "cap.chart_funnel.ui.title",
+    "x-blockhub-key": "cap.chart_funnel.ui.title"
+  },
+  "cap_chat_qa_category": "智能交互",
+  "@cap_chat_qa_category": {
+    "description": "cap.chat_qa.category",
+    "x-blockhub-key": "cap.chat_qa.category"
+  },
+  "cap_chat_qa_name": "智能问答",
+  "@cap_chat_qa_name": {
+    "description": "cap.chat_qa.name",
+    "x-blockhub-key": "cap.chat_qa.name"
+  },
+  "cap_chat_qa_ui_title": "智能问答",
+  "@cap_chat_qa_ui_title": {
+    "description": "cap.chat_qa.ui.title",
+    "x-blockhub-key": "cap.chat_qa.ui.title"
+  },
+  "cap_chat_summary_category": "智能交互",
+  "@cap_chat_summary_category": {
+    "description": "cap.chat_summary.category",
+    "x-blockhub-key": "cap.chat_summary.category"
+  },
+  "cap_chat_summary_name": "对话摘要",
+  "@cap_chat_summary_name": {
+    "description": "cap.chat_summary.name",
+    "x-blockhub-key": "cap.chat_summary.name"
+  },
+  "cap_chat_summary_ui_title": "对话摘要",
+  "@cap_chat_summary_ui_title": {
+    "description": "cap.chat_summary.ui.title",
+    "x-blockhub-key": "cap.chat_summary.ui.title"
+  },
+  "cap_chat_voice_category": "智能交互",
+  "@cap_chat_voice_category": {
+    "description": "cap.chat_voice.category",
+    "x-blockhub-key": "cap.chat_voice.category"
+  },
+  "cap_chat_voice_name": "语音问答",
+  "@cap_chat_voice_name": {
+    "description": "cap.chat_voice.name",
+    "x-blockhub-key": "cap.chat_voice.name"
+  },
+  "cap_chat_voice_ui_title": "语音问答",
+  "@cap_chat_voice_ui_title": {
+    "description": "cap.chat_voice.ui.title",
+    "x-blockhub-key": "cap.chat_voice.ui.title"
+  },
+  "cap_class_schedule_category": "教育培训",
+  "@cap_class_schedule_category": {
+    "description": "cap.class_schedule.category",
+    "x-blockhub-key": "cap.class_schedule.category"
+  },
+  "cap_class_schedule_name": "课表查询",
+  "@cap_class_schedule_name": {
+    "description": "cap.class_schedule.name",
+    "x-blockhub-key": "cap.class_schedule.name"
+  },
+  "cap_class_schedule_ui_title": "课表查询",
+  "@cap_class_schedule_ui_title": {
+    "description": "cap.class_schedule.ui.title",
+    "x-blockhub-key": "cap.class_schedule.ui.title"
+  },
+  "cap_cold_chain_alert_category": "物流仓储",
+  "@cap_cold_chain_alert_category": {
+    "description": "cap.cold_chain_alert.category",
+    "x-blockhub-key": "cap.cold_chain_alert.category"
+  },
+  "cap_cold_chain_alert_name": "冷链告警",
+  "@cap_cold_chain_alert_name": {
+    "description": "cap.cold_chain_alert.name",
+    "x-blockhub-key": "cap.cold_chain_alert.name"
+  },
+  "cap_cold_chain_alert_ui_title": "冷链告警",
+  "@cap_cold_chain_alert_ui_title": {
+    "description": "cap.cold_chain_alert.ui.title",
+    "x-blockhub-key": "cap.cold_chain_alert.ui.title"
+  },
+  "cap_competitor_price_category": "零售电商",
+  "@cap_competitor_price_category": {
+    "description": "cap.competitor_price.category",
+    "x-blockhub-key": "cap.competitor_price.category"
+  },
+  "cap_competitor_price_name": "竞品采价",
+  "@cap_competitor_price_name": {
+    "description": "cap.competitor_price.name",
+    "x-blockhub-key": "cap.competitor_price.name"
+  },
+  "cap_competitor_price_ui_title": "竞品采价",
+  "@cap_competitor_price_ui_title": {
+    "description": "cap.competitor_price.ui.title",
+    "x-blockhub-key": "cap.competitor_price.ui.title"
+  },
+  "cap_concierge_req_category": "酒店餐饮",
+  "@cap_concierge_req_category": {
+    "description": "cap.concierge_req.category",
+    "x-blockhub-key": "cap.concierge_req.category"
+  },
+  "cap_concierge_req_name": "礼宾需求",
+  "@cap_concierge_req_name": {
+    "description": "cap.concierge_req.name",
+    "x-blockhub-key": "cap.concierge_req.name"
+  },
+  "cap_concierge_req_ui_title": "礼宾需求",
+  "@cap_concierge_req_ui_title": {
+    "description": "cap.concierge_req.ui.title",
+    "x-blockhub-key": "cap.concierge_req.ui.title"
+  },
+  "cap_const_accept_category": "建筑工程",
+  "@cap_const_accept_category": {
+    "description": "cap.const_accept.category",
+    "x-blockhub-key": "cap.const_accept.category"
+  },
+  "cap_const_accept_name": "材料验收",
+  "@cap_const_accept_name": {
+    "description": "cap.const_accept.name",
+    "x-blockhub-key": "cap.const_accept.name"
+  },
+  "cap_const_accept_ui_title": "材料验收",
+  "@cap_const_accept_ui_title": {
+    "description": "cap.const_accept.ui.title",
+    "x-blockhub-key": "cap.const_accept.ui.title"
+  },
+  "cap_const_labor_category": "建筑工程",
+  "@cap_const_labor_category": {
+    "description": "cap.const_labor.category",
+    "x-blockhub-key": "cap.const_labor.category"
+  },
+  "cap_const_labor_name": "劳务实名",
+  "@cap_const_labor_name": {
+    "description": "cap.const_labor.name",
+    "x-blockhub-key": "cap.const_labor.name"
+  },
+  "cap_const_labor_ui_title": "劳务实名",
+  "@cap_const_labor_ui_title": {
+    "description": "cap.const_labor.ui.title",
+    "x-blockhub-key": "cap.const_labor.ui.title"
+  },
+  "cap_const_progress_category": "建筑工程",
+  "@cap_const_progress_category": {
+    "description": "cap.const_progress.category",
+    "x-blockhub-key": "cap.const_progress.category"
+  },
+  "cap_const_progress_name": "进度填报",
+  "@cap_const_progress_name": {
+    "description": "cap.const_progress.name",
+    "x-blockhub-key": "cap.const_progress.name"
+  },
+  "cap_const_progress_ui_title": "进度填报",
+  "@cap_const_progress_ui_title": {
+    "description": "cap.const_progress.ui.title",
+    "x-blockhub-key": "cap.const_progress.ui.title"
+  },
+  "cap_const_safety_category": "建筑工程",
+  "@cap_const_safety_category": {
+    "description": "cap.const_safety.category",
+    "x-blockhub-key": "cap.const_safety.category"
+  },
+  "cap_const_safety_name": "现场安全",
+  "@cap_const_safety_name": {
+    "description": "cap.const_safety.name",
+    "x-blockhub-key": "cap.const_safety.name"
+  },
+  "cap_const_safety_ui_title": "现场安全",
+  "@cap_const_safety_ui_title": {
+    "description": "cap.const_safety.ui.title",
+    "x-blockhub-key": "cap.const_safety.ui.title"
+  },
+  "cap_const_visa_category": "建筑工程",
+  "@cap_const_visa_category": {
+    "description": "cap.const_visa.category",
+    "x-blockhub-key": "cap.const_visa.category"
+  },
+  "cap_const_visa_name": "工程签证",
+  "@cap_const_visa_name": {
+    "description": "cap.const_visa.name",
+    "x-blockhub-key": "cap.const_visa.name"
+  },
+  "cap_const_visa_ui_title": "工程签证",
+  "@cap_const_visa_ui_title": {
+    "description": "cap.const_visa.ui.title",
+    "x-blockhub-key": "cap.const_visa.ui.title"
+  },
+  "cap_credit_approval_category": "金融服务",
+  "@cap_credit_approval_category": {
+    "description": "cap.credit_approval.category",
+    "x-blockhub-key": "cap.credit_approval.category"
+  },
+  "cap_credit_approval_name": "授信审批",
+  "@cap_credit_approval_name": {
+    "description": "cap.credit_approval.name",
+    "x-blockhub-key": "cap.credit_approval.name"
+  },
+  "cap_credit_approval_ui_title": "授信审批",
+  "@cap_credit_approval_ui_title": {
+    "description": "cap.credit_approval.ui.title",
+    "x-blockhub-key": "cap.credit_approval.ui.title"
+  },
+  "cap_data_nl_query_category": "知识数据",
+  "@cap_data_nl_query_category": {
+    "description": "cap.data_nl_query.category",
+    "x-blockhub-key": "cap.data_nl_query.category"
+  },
+  "cap_data_nl_query_name": "智能问数",
+  "@cap_data_nl_query_name": {
+    "description": "cap.data_nl_query.name",
+    "x-blockhub-key": "cap.data_nl_query.name"
+  },
+  "cap_data_nl_query_ui_title": "智能问数",
+  "@cap_data_nl_query_ui_title": {
+    "description": "cap.data_nl_query.ui.title",
+    "x-blockhub-key": "cap.data_nl_query.ui.title"
+  },
+  "cap_deal_evidence_category": "销售行业",
+  "@cap_deal_evidence_category": {
+    "description": "cap.deal_evidence.category",
+    "x-blockhub-key": "cap.deal_evidence.category"
+  },
+  "cap_deal_evidence_name": "成交证据",
+  "@cap_deal_evidence_name": {
+    "description": "cap.deal_evidence.name",
+    "x-blockhub-key": "cap.deal_evidence.name"
+  },
+  "cap_deal_evidence_ui_title": "成交证据",
+  "@cap_deal_evidence_ui_title": {
+    "description": "cap.deal_evidence.ui.title",
+    "x-blockhub-key": "cap.deal_evidence.ui.title"
+  },
+  "cap_deco_acceptance_category": "房地产",
+  "@cap_deco_acceptance_category": {
+    "description": "cap.deco_acceptance.category",
+    "x-blockhub-key": "cap.deco_acceptance.category"
+  },
+  "cap_deco_acceptance_name": "装修验收",
+  "@cap_deco_acceptance_name": {
+    "description": "cap.deco_acceptance.name",
+    "x-blockhub-key": "cap.deco_acceptance.name"
+  },
+  "cap_deco_acceptance_ui_title": "装修验收",
+  "@cap_deco_acceptance_ui_title": {
+    "description": "cap.deco_acceptance.ui.title",
+    "x-blockhub-key": "cap.deco_acceptance.ui.title"
+  },
+  "cap_deco_material_category": "建筑工程",
+  "@cap_deco_material_category": {
+    "description": "cap.deco_material.category",
+    "x-blockhub-key": "cap.deco_material.category"
+  },
+  "cap_deco_material_name": "装修选材",
+  "@cap_deco_material_name": {
+    "description": "cap.deco_material.name",
+    "x-blockhub-key": "cap.deco_material.name"
+  },
+  "cap_deco_material_ui_title": "装修选材",
+  "@cap_deco_material_ui_title": {
+    "description": "cap.deco_material.ui.title",
+    "x-blockhub-key": "cap.deco_material.ui.title"
+  },
+  "cap_delivery_order_category": "物流仓储",
+  "@cap_delivery_order_category": {
+    "description": "cap.delivery_order.category",
+    "x-blockhub-key": "cap.delivery_order.category"
+  },
+  "cap_delivery_order_name": "外卖配送",
+  "@cap_delivery_order_name": {
+    "description": "cap.delivery_order.name",
+    "x-blockhub-key": "cap.delivery_order.name"
+  },
+  "cap_delivery_order_ui_title": "外卖配送",
+  "@cap_delivery_order_ui_title": {
+    "description": "cap.delivery_order.ui.title",
+    "x-blockhub-key": "cap.delivery_order.ui.title"
+  },
+  "cap_device_repair_category": "现场运维",
+  "@cap_device_repair_category": {
+    "description": "cap.device_repair.category",
+    "x-blockhub-key": "cap.device_repair.category"
+  },
+  "cap_device_repair_dispatch": "确认派工",
+  "@cap_device_repair_dispatch": {
+    "description": "cap.device_repair.dispatch",
+    "x-blockhub-key": "cap.device_repair.dispatch"
+  },
+  "cap_device_repair_dispatching": "派工中…",
+  "@cap_device_repair_dispatching": {
+    "description": "cap.device_repair.dispatching",
+    "x-blockhub-key": "cap.device_repair.dispatching"
+  },
+  "cap_device_repair_field_asset_code": "设备编号",
+  "@cap_device_repair_field_asset_code": {
+    "description": "cap.device_repair.field.asset_code",
+    "x-blockhub-key": "cap.device_repair.field.asset_code"
+  },
+  "cap_device_repair_field_fault": "故障描述",
+  "@cap_device_repair_field_fault": {
+    "description": "cap.device_repair.field.fault",
+    "x-blockhub-key": "cap.device_repair.field.fault"
+  },
+  "cap_device_repair_field_location": "位置/工位",
+  "@cap_device_repair_field_location": {
+    "description": "cap.device_repair.field.location",
+    "x-blockhub-key": "cap.device_repair.field.location"
+  },
+  "cap_device_repair_name": "设备报修",
+  "@cap_device_repair_name": {
+    "description": "cap.device_repair.name",
+    "x-blockhub-key": "cap.device_repair.name"
+  },
+  "cap_device_repair_ph_asset_code": "扫码或输入，如 CNC-A12",
+  "@cap_device_repair_ph_asset_code": {
+    "description": "cap.device_repair.ph.asset_code",
+    "x-blockhub-key": "cap.device_repair.ph.asset_code"
+  },
+  "cap_device_repair_ph_fault": "现象、是否停机、影响产线…",
+  "@cap_device_repair_ph_fault": {
+    "description": "cap.device_repair.ph.fault",
+    "x-blockhub-key": "cap.device_repair.ph.fault"
+  },
+  "cap_device_repair_ph_location": "一车间·3号线（可留空）",
+  "@cap_device_repair_ph_location": {
+    "description": "cap.device_repair.ph.location",
+    "x-blockhub-key": "cap.device_repair.ph.location"
+  },
+  "cap_device_repair_status_dispatched": "维修中",
+  "@cap_device_repair_status_dispatched": {
+    "description": "cap.device_repair.status.dispatched",
+    "x-blockhub-key": "cap.device_repair.status.dispatched"
+  },
+  "cap_device_repair_status_done": "已完工",
+  "@cap_device_repair_status_done": {
+    "description": "cap.device_repair.status.done",
+    "x-blockhub-key": "cap.device_repair.status.done"
+  },
+  "cap_device_repair_status_pending": "待派工",
+  "@cap_device_repair_status_pending": {
+    "description": "cap.device_repair.status.pending",
+    "x-blockhub-key": "cap.device_repair.status.pending"
+  },
+  "cap_device_repair_submit": "提交报修",
+  "@cap_device_repair_submit": {
+    "description": "cap.device_repair.submit",
+    "x-blockhub-key": "cap.device_repair.submit"
+  },
+  "cap_device_repair_title": "设备报修",
+  "@cap_device_repair_title": {
+    "description": "cap.device_repair.title",
+    "x-blockhub-key": "cap.device_repair.title"
+  },
+  "cap_device_repair_ui_title": "设备报修",
+  "@cap_device_repair_ui_title": {
+    "description": "cap.device_repair.ui.title",
+    "x-blockhub-key": "cap.device_repair.ui.title"
+  },
+  "cap_display_check_category": "零售电商",
+  "@cap_display_check_category": {
+    "description": "cap.display_check.category",
+    "x-blockhub-key": "cap.display_check.category"
+  },
+  "cap_display_check_name": "陈列检查",
+  "@cap_display_check_name": {
+    "description": "cap.display_check.name",
+    "x-blockhub-key": "cap.display_check.name"
+  },
+  "cap_display_check_ui_title": "陈列检查",
+  "@cap_display_check_ui_title": {
+    "description": "cap.display_check.ui.title",
+    "x-blockhub-key": "cap.display_check.ui.title"
+  },
+  "cap_dock_queue_category": "物流仓储",
+  "@cap_dock_queue_category": {
+    "description": "cap.dock_queue.category",
+    "x-blockhub-key": "cap.dock_queue.category"
+  },
+  "cap_dock_queue_name": "装卸排队",
+  "@cap_dock_queue_name": {
+    "description": "cap.dock_queue.name",
+    "x-blockhub-key": "cap.dock_queue.name"
+  },
+  "cap_dock_queue_ui_title": "装卸排队",
+  "@cap_dock_queue_ui_title": {
+    "description": "cap.dock_queue.ui.title",
+    "x-blockhub-key": "cap.dock_queue.ui.title"
+  },
+  "cap_due_diligence_category": "金融服务",
+  "@cap_due_diligence_category": {
+    "description": "cap.due_diligence.category",
+    "x-blockhub-key": "cap.due_diligence.category"
+  },
+  "cap_due_diligence_name": "尽调报告",
+  "@cap_due_diligence_name": {
+    "description": "cap.due_diligence.name",
+    "x-blockhub-key": "cap.due_diligence.name"
+  },
+  "cap_due_diligence_ui_title": "尽调报告",
+  "@cap_due_diligence_ui_title": {
+    "description": "cap.due_diligence.ui.title",
+    "x-blockhub-key": "cap.due_diligence.ui.title"
+  },
+  "cap_edu_attendance_category": "教育培训",
+  "@cap_edu_attendance_category": {
+    "description": "cap.edu_attendance.category",
+    "x-blockhub-key": "cap.edu_attendance.category"
+  },
+  "cap_edu_attendance_name": "到课考勤",
+  "@cap_edu_attendance_name": {
+    "description": "cap.edu_attendance.name",
+    "x-blockhub-key": "cap.edu_attendance.name"
+  },
+  "cap_edu_attendance_ui_title": "到课考勤",
+  "@cap_edu_attendance_ui_title": {
+    "description": "cap.edu_attendance.ui.title",
+    "x-blockhub-key": "cap.edu_attendance.ui.title"
+  },
+  "cap_edu_grade_alert_category": "教育培训",
+  "@cap_edu_grade_alert_category": {
+    "description": "cap.edu_grade_alert.category",
+    "x-blockhub-key": "cap.edu_grade_alert.category"
+  },
+  "cap_edu_grade_alert_name": "成绩预警",
+  "@cap_edu_grade_alert_name": {
+    "description": "cap.edu_grade_alert.name",
+    "x-blockhub-key": "cap.edu_grade_alert.name"
+  },
+  "cap_edu_grade_alert_ui_title": "成绩预警",
+  "@cap_edu_grade_alert_ui_title": {
+    "description": "cap.edu_grade_alert.ui.title",
+    "x-blockhub-key": "cap.edu_grade_alert.ui.title"
+  },
+  "cap_edu_makeup_category": "教育培训",
+  "@cap_edu_makeup_category": {
+    "description": "cap.edu_makeup.category",
+    "x-blockhub-key": "cap.edu_makeup.category"
+  },
+  "cap_edu_makeup_name": "补考登记",
+  "@cap_edu_makeup_name": {
+    "description": "cap.edu_makeup.name",
+    "x-blockhub-key": "cap.edu_makeup.name"
+  },
+  "cap_edu_makeup_ui_title": "补考登记",
+  "@cap_edu_makeup_ui_title": {
+    "description": "cap.edu_makeup.ui.title",
+    "x-blockhub-key": "cap.edu_makeup.ui.title"
+  },
+  "cap_edu_quiz_category": "教育培训",
+  "@cap_edu_quiz_category": {
+    "description": "cap.edu_quiz.category",
+    "x-blockhub-key": "cap.edu_quiz.category"
+  },
+  "cap_edu_quiz_name": "题库练习",
+  "@cap_edu_quiz_name": {
+    "description": "cap.edu_quiz.name",
+    "x-blockhub-key": "cap.edu_quiz.name"
+  },
+  "cap_edu_quiz_ui_title": "题库练习",
+  "@cap_edu_quiz_ui_title": {
+    "description": "cap.edu_quiz.ui.title",
+    "x-blockhub-key": "cap.edu_quiz.ui.title"
+  },
+  "cap_edu_textbook_category": "教育培训",
+  "@cap_edu_textbook_category": {
+    "description": "cap.edu_textbook.category",
+    "x-blockhub-key": "cap.edu_textbook.category"
+  },
+  "cap_edu_textbook_name": "教材发放",
+  "@cap_edu_textbook_name": {
+    "description": "cap.edu_textbook.name",
+    "x-blockhub-key": "cap.edu_textbook.name"
+  },
+  "cap_edu_textbook_ui_title": "教材发放",
+  "@cap_edu_textbook_ui_title": {
+    "description": "cap.edu_textbook.ui.title",
+    "x-blockhub-key": "cap.edu_textbook.ui.title"
+  },
+  "cap_edu_transfer_category": "教育培训",
+  "@cap_edu_transfer_category": {
+    "description": "cap.edu_transfer.category",
+    "x-blockhub-key": "cap.edu_transfer.category"
+  },
+  "cap_edu_transfer_name": "学籍异动",
+  "@cap_edu_transfer_name": {
+    "description": "cap.edu_transfer.name",
+    "x-blockhub-key": "cap.edu_transfer.name"
+  },
+  "cap_edu_transfer_ui_title": "学籍异动",
+  "@cap_edu_transfer_ui_title": {
+    "description": "cap.edu_transfer.ui.title",
+    "x-blockhub-key": "cap.edu_transfer.ui.title"
+  },
+  "cap_edu_tuition_category": "教育培训",
+  "@cap_edu_tuition_category": {
+    "description": "cap.edu_tuition.category",
+    "x-blockhub-key": "cap.edu_tuition.category"
+  },
+  "cap_edu_tuition_name": "学费收缴",
+  "@cap_edu_tuition_name": {
+    "description": "cap.edu_tuition.name",
+    "x-blockhub-key": "cap.edu_tuition.name"
+  },
+  "cap_edu_tuition_ui_title": "学费收缴",
+  "@cap_edu_tuition_ui_title": {
+    "description": "cap.edu_tuition.ui.title",
+    "x-blockhub-key": "cap.edu_tuition.ui.title"
+  },
+  "cap_energy_carbon_category": "绿色制造",
+  "@cap_energy_carbon_category": {
+    "description": "cap.energy_carbon.category",
+    "x-blockhub-key": "cap.energy_carbon.category"
+  },
+  "cap_energy_carbon_name": "能耗碳排",
+  "@cap_energy_carbon_name": {
+    "description": "cap.energy_carbon.name",
+    "x-blockhub-key": "cap.energy_carbon.name"
+  },
+  "cap_energy_carbon_ui_title": "能耗碳排",
+  "@cap_energy_carbon_ui_title": {
+    "description": "cap.energy_carbon.ui.title",
+    "x-blockhub-key": "cap.energy_carbon.ui.title"
+  },
+  "cap_energy_defect_category": "能源电力",
+  "@cap_energy_defect_category": {
+    "description": "cap.energy_defect.category",
+    "x-blockhub-key": "cap.energy_defect.category"
+  },
+  "cap_energy_defect_name": "缺陷隐患",
+  "@cap_energy_defect_name": {
+    "description": "cap.energy_defect.name",
+    "x-blockhub-key": "cap.energy_defect.name"
+  },
+  "cap_energy_defect_ui_title": "缺陷隐患",
+  "@cap_energy_defect_ui_title": {
+    "description": "cap.energy_defect.ui.title",
+    "x-blockhub-key": "cap.energy_defect.ui.title"
+  },
+  "cap_energy_emissions_category": "能源电力",
+  "@cap_energy_emissions_category": {
+    "description": "cap.energy_emissions.category",
+    "x-blockhub-key": "cap.energy_emissions.category"
+  },
+  "cap_energy_emissions_name": "碳排填报",
+  "@cap_energy_emissions_name": {
+    "description": "cap.energy_emissions.name",
+    "x-blockhub-key": "cap.energy_emissions.name"
+  },
+  "cap_energy_emissions_ui_title": "碳排填报",
+  "@cap_energy_emissions_ui_title": {
+    "description": "cap.energy_emissions.ui.title",
+    "x-blockhub-key": "cap.energy_emissions.ui.title"
+  },
+  "cap_energy_hotwork_category": "能源电力",
+  "@cap_energy_hotwork_category": {
+    "description": "cap.energy_hotwork.category",
+    "x-blockhub-key": "cap.energy_hotwork.category"
+  },
+  "cap_energy_hotwork_name": "动火票",
+  "@cap_energy_hotwork_name": {
+    "description": "cap.energy_hotwork.name",
+    "x-blockhub-key": "cap.energy_hotwork.name"
+  },
+  "cap_energy_hotwork_ui_title": "动火票",
+  "@cap_energy_hotwork_ui_title": {
+    "description": "cap.energy_hotwork.ui.title",
+    "x-blockhub-key": "cap.energy_hotwork.ui.title"
+  },
+  "cap_energy_outage_category": "能源电力",
+  "@cap_energy_outage_category": {
+    "description": "cap.energy_outage.category",
+    "x-blockhub-key": "cap.energy_outage.category"
+  },
+  "cap_energy_outage_name": "停电计划",
+  "@cap_energy_outage_name": {
+    "description": "cap.energy_outage.name",
+    "x-blockhub-key": "cap.energy_outage.name"
+  },
+  "cap_energy_outage_ui_title": "停电计划",
+  "@cap_energy_outage_ui_title": {
+    "description": "cap.energy_outage.ui.title",
+    "x-blockhub-key": "cap.energy_outage.ui.title"
+  },
+  "cap_energy_restore_category": "能源电力",
+  "@cap_energy_restore_category": {
+    "description": "cap.energy_restore.category",
+    "x-blockhub-key": "cap.energy_restore.category"
+  },
+  "cap_energy_restore_name": "复电确认",
+  "@cap_energy_restore_name": {
+    "description": "cap.energy_restore.name",
+    "x-blockhub-key": "cap.energy_restore.name"
+  },
+  "cap_energy_restore_ui_title": "复电确认",
+  "@cap_energy_restore_ui_title": {
+    "description": "cap.energy_restore.ui.title",
+    "x-blockhub-key": "cap.energy_restore.ui.title"
+  },
+  "cap_energy_spare_category": "能源电力",
+  "@cap_energy_spare_category": {
+    "description": "cap.energy_spare.category",
+    "x-blockhub-key": "cap.energy_spare.category"
+  },
+  "cap_energy_spare_name": "备件领用",
+  "@cap_energy_spare_name": {
+    "description": "cap.energy_spare.name",
+    "x-blockhub-key": "cap.energy_spare.name"
+  },
+  "cap_energy_spare_ui_title": "备件领用",
+  "@cap_energy_spare_ui_title": {
+    "description": "cap.energy_spare.ui.title",
+    "x-blockhub-key": "cap.energy_spare.ui.title"
+  },
+  "cap_energy_ticket_category": "能源电力",
+  "@cap_energy_ticket_category": {
+    "description": "cap.energy_ticket.category",
+    "x-blockhub-key": "cap.energy_ticket.category"
+  },
+  "cap_energy_ticket_name": "两票管理",
+  "@cap_energy_ticket_name": {
+    "description": "cap.energy_ticket.name",
+    "x-blockhub-key": "cap.energy_ticket.name"
+  },
+  "cap_energy_ticket_ui_title": "两票管理",
+  "@cap_energy_ticket_ui_title": {
+    "description": "cap.energy_ticket.ui.title",
+    "x-blockhub-key": "cap.energy_ticket.ui.title"
+  },
+  "cap_erp_connector_category": "外部集成",
+  "@cap_erp_connector_category": {
+    "description": "cap.erp_connector.category",
+    "x-blockhub-key": "cap.erp_connector.category"
+  },
+  "cap_erp_connector_name": "ERP对接",
+  "@cap_erp_connector_name": {
+    "description": "cap.erp_connector.name",
+    "x-blockhub-key": "cap.erp_connector.name"
+  },
+  "cap_erp_connector_ui_title": "ERP对接",
+  "@cap_erp_connector_ui_title": {
+    "description": "cap.erp_connector.ui.title",
+    "x-blockhub-key": "cap.erp_connector.ui.title"
+  },
+  "cap_expense_claim_cat_hospitality": "客户招待",
+  "@cap_expense_claim_cat_hospitality": {
+    "description": "cap.expense_claim.cat.hospitality",
+    "x-blockhub-key": "cap.expense_claim.cat.hospitality"
+  },
+  "cap_expense_claim_cat_invoice": "发票",
+  "@cap_expense_claim_cat_invoice": {
+    "description": "cap.expense_claim.cat.invoice",
+    "x-blockhub-key": "cap.expense_claim.cat.invoice"
+  },
+  "cap_expense_claim_cat_loan": "借款",
+  "@cap_expense_claim_cat_loan": {
+    "description": "cap.expense_claim.cat.loan",
+    "x-blockhub-key": "cap.expense_claim.cat.loan"
+  },
+  "cap_expense_claim_cat_meal": "餐饮",
+  "@cap_expense_claim_cat_meal": {
+    "description": "cap.expense_claim.cat.meal",
+    "x-blockhub-key": "cap.expense_claim.cat.meal"
+  },
+  "cap_expense_claim_cat_office": "办公",
+  "@cap_expense_claim_cat_office": {
+    "description": "cap.expense_claim.cat.office",
+    "x-blockhub-key": "cap.expense_claim.cat.office"
+  },
+  "cap_expense_claim_cat_payment": "付款",
+  "@cap_expense_claim_cat_payment": {
+    "description": "cap.expense_claim.cat.payment",
+    "x-blockhub-key": "cap.expense_claim.cat.payment"
+  },
+  "cap_expense_claim_cat_sample": "样品礼品",
+  "@cap_expense_claim_cat_sample": {
+    "description": "cap.expense_claim.cat.sample",
+    "x-blockhub-key": "cap.expense_claim.cat.sample"
+  },
+  "cap_expense_claim_cat_travel": "差旅",
+  "@cap_expense_claim_cat_travel": {
+    "description": "cap.expense_claim.cat.travel",
+    "x-blockhub-key": "cap.expense_claim.cat.travel"
+  },
+  "cap_expense_claim_category": "财务法务",
+  "@cap_expense_claim_category": {
+    "description": "cap.expense_claim.category",
+    "x-blockhub-key": "cap.expense_claim.category"
+  },
+  "cap_expense_claim_field_amount": "金额（元）",
+  "@cap_expense_claim_field_amount": {
+    "description": "cap.expense_claim.field.amount",
+    "x-blockhub-key": "cap.expense_claim.field.amount"
+  },
+  "cap_expense_claim_field_category": "类型",
+  "@cap_expense_claim_field_category": {
+    "description": "cap.expense_claim.field.category",
+    "x-blockhub-key": "cap.expense_claim.field.category"
+  },
+  "cap_expense_claim_field_invoice_no": "单号（可空）",
+  "@cap_expense_claim_field_invoice_no": {
+    "description": "cap.expense_claim.field.invoice_no",
+    "x-blockhub-key": "cap.expense_claim.field.invoice_no"
+  },
+  "cap_expense_claim_field_note": "说明（可空）",
+  "@cap_expense_claim_field_note": {
+    "description": "cap.expense_claim.field.note",
+    "x-blockhub-key": "cap.expense_claim.field.note"
+  },
+  "cap_expense_claim_field_title": "申请内容",
+  "@cap_expense_claim_field_title": {
+    "description": "cap.expense_claim.field.title",
+    "x-blockhub-key": "cap.expense_claim.field.title"
+  },
+  "cap_expense_claim_flow_hint": "类型 → 内容金额 → 交财务审",
+  "@cap_expense_claim_flow_hint": {
+    "description": "cap.expense_claim.flow.hint",
+    "x-blockhub-key": "cap.expense_claim.flow.hint"
+  },
+  "cap_expense_claim_name": "报销记账",
+  "@cap_expense_claim_name": {
+    "description": "cap.expense_claim.name",
+    "x-blockhub-key": "cap.expense_claim.name"
+  },
+  "cap_expense_claim_status_open": "待审核",
+  "@cap_expense_claim_status_open": {
+    "description": "cap.expense_claim.status.open",
+    "x-blockhub-key": "cap.expense_claim.status.open"
+  },
+  "cap_expense_claim_status_paid": "已付款",
+  "@cap_expense_claim_status_paid": {
+    "description": "cap.expense_claim.status.paid",
+    "x-blockhub-key": "cap.expense_claim.status.paid"
+  },
+  "cap_expense_claim_status_rejected": "已驳回",
+  "@cap_expense_claim_status_rejected": {
+    "description": "cap.expense_claim.status.rejected",
+    "x-blockhub-key": "cap.expense_claim.status.rejected"
+  },
+  "cap_expense_claim_status_reviewing": "审核中",
+  "@cap_expense_claim_status_reviewing": {
+    "description": "cap.expense_claim.status.reviewing",
+    "x-blockhub-key": "cap.expense_claim.status.reviewing"
+  },
+  "cap_expense_claim_submit_apply": "提交申请",
+  "@cap_expense_claim_submit_apply": {
+    "description": "cap.expense_claim.submit.apply",
+    "x-blockhub-key": "cap.expense_claim.submit.apply"
+  },
+  "cap_expense_claim_submit_default": "提交报销",
+  "@cap_expense_claim_submit_default": {
+    "description": "cap.expense_claim.submit.default",
+    "x-blockhub-key": "cap.expense_claim.submit.default"
+  },
+  "cap_expense_claim_title_default": "费用报销",
+  "@cap_expense_claim_title_default": {
+    "description": "cap.expense_claim.title.default",
+    "x-blockhub-key": "cap.expense_claim.title.default"
+  },
+  "cap_expense_claim_ui_title": "报销记账",
+  "@cap_expense_claim_ui_title": {
+    "description": "cap.expense_claim.ui.title",
+    "x-blockhub-key": "cap.expense_claim.ui.title"
+  },
+  "cap_finance_aml_category": "金融服务",
+  "@cap_finance_aml_category": {
+    "description": "cap.finance_aml.category",
+    "x-blockhub-key": "cap.finance_aml.category"
+  },
+  "cap_finance_aml_name": "反洗钱监测",
+  "@cap_finance_aml_name": {
+    "description": "cap.finance_aml.name",
+    "x-blockhub-key": "cap.finance_aml.name"
+  },
+  "cap_finance_aml_ui_title": "反洗钱监测",
+  "@cap_finance_aml_ui_title": {
+    "description": "cap.finance_aml.ui.title",
+    "x-blockhub-key": "cap.finance_aml.ui.title"
+  },
+  "cap_finance_kyc_category": "金融服务",
+  "@cap_finance_kyc_category": {
+    "description": "cap.finance_kyc.category",
+    "x-blockhub-key": "cap.finance_kyc.category"
+  },
+  "cap_finance_kyc_name": "金融KYC",
+  "@cap_finance_kyc_name": {
+    "description": "cap.finance_kyc.name",
+    "x-blockhub-key": "cap.finance_kyc.name"
+  },
+  "cap_finance_kyc_ui_title": "金融KYC",
+  "@cap_finance_kyc_ui_title": {
+    "description": "cap.finance_kyc.ui.title",
+    "x-blockhub-key": "cap.finance_kyc.ui.title"
+  },
+  "cap_finance_news_category": "金融服务",
+  "@cap_finance_news_category": {
+    "description": "cap.finance_news.category",
+    "x-blockhub-key": "cap.finance_news.category"
+  },
+  "cap_finance_news_name": "行业新闻Agent",
+  "@cap_finance_news_name": {
+    "description": "cap.finance_news.name",
+    "x-blockhub-key": "cap.finance_news.name"
+  },
+  "cap_finance_news_ui_title": "行业新闻Agent",
+  "@cap_finance_news_ui_title": {
+    "description": "cap.finance_news.ui.title",
+    "x-blockhub-key": "cap.finance_news.ui.title"
+  },
+  "cap_fitness_checkin_category": "生活服务",
+  "@cap_fitness_checkin_category": {
+    "description": "cap.fitness_checkin.category",
+    "x-blockhub-key": "cap.fitness_checkin.category"
+  },
+  "cap_fitness_checkin_name": "健身打卡",
+  "@cap_fitness_checkin_name": {
+    "description": "cap.fitness_checkin.name",
+    "x-blockhub-key": "cap.fitness_checkin.name"
+  },
+  "cap_fitness_checkin_ui_title": "健身打卡",
+  "@cap_fitness_checkin_ui_title": {
+    "description": "cap.fitness_checkin.ui.title",
+    "x-blockhub-key": "cap.fitness_checkin.ui.title"
+  },
+  "cap_fleet_dispatch_category": "物流仓储",
+  "@cap_fleet_dispatch_category": {
+    "description": "cap.fleet_dispatch.category",
+    "x-blockhub-key": "cap.fleet_dispatch.category"
+  },
+  "cap_fleet_dispatch_name": "车辆调度",
+  "@cap_fleet_dispatch_name": {
+    "description": "cap.fleet_dispatch.name",
+    "x-blockhub-key": "cap.fleet_dispatch.name"
+  },
+  "cap_fleet_dispatch_ui_title": "车辆调度",
+  "@cap_fleet_dispatch_ui_title": {
+    "description": "cap.fleet_dispatch.ui.title",
+    "x-blockhub-key": "cap.fleet_dispatch.ui.title"
+  },
+  "cap_flutter_biometric_category": "Flutter工具",
+  "@cap_flutter_biometric_category": {
+    "description": "cap.flutter_biometric.category",
+    "x-blockhub-key": "cap.flutter_biometric.category"
+  },
+  "cap_flutter_biometric_name": "生物识别",
+  "@cap_flutter_biometric_name": {
+    "description": "cap.flutter_biometric.name",
+    "x-blockhub-key": "cap.flutter_biometric.name"
+  },
+  "cap_flutter_camera_category": "Flutter工具",
+  "@cap_flutter_camera_category": {
+    "description": "cap.flutter_camera.category",
+    "x-blockhub-key": "cap.flutter_camera.category"
+  },
+  "cap_flutter_camera_name": "拍照上传",
+  "@cap_flutter_camera_name": {
+    "description": "cap.flutter_camera.name",
+    "x-blockhub-key": "cap.flutter_camera.name"
+  },
+  "cap_flutter_chart_category": "Flutter工具",
+  "@cap_flutter_chart_category": {
+    "description": "cap.flutter_chart.category",
+    "x-blockhub-key": "cap.flutter_chart.category"
+  },
+  "cap_flutter_chart_name": "移动图表",
+  "@cap_flutter_chart_name": {
+    "description": "cap.flutter_chart.name",
+    "x-blockhub-key": "cap.flutter_chart.name"
+  },
+  "cap_flutter_file_picker_category": "Flutter工具",
+  "@cap_flutter_file_picker_category": {
+    "description": "cap.flutter_file_picker.category",
+    "x-blockhub-key": "cap.flutter_file_picker.category"
+  },
+  "cap_flutter_file_picker_name": "文件选择",
+  "@cap_flutter_file_picker_name": {
+    "description": "cap.flutter_file_picker.name",
+    "x-blockhub-key": "cap.flutter_file_picker.name"
+  },
+  "cap_flutter_geolocation_category": "Flutter工具",
+  "@cap_flutter_geolocation_category": {
+    "description": "cap.flutter_geolocation.category",
+    "x-blockhub-key": "cap.flutter_geolocation.category"
+  },
+  "cap_flutter_geolocation_name": "定位签到",
+  "@cap_flutter_geolocation_name": {
+    "description": "cap.flutter_geolocation.name",
+    "x-blockhub-key": "cap.flutter_geolocation.name"
+  },
+  "cap_flutter_map_category": "Flutter工具",
+  "@cap_flutter_map_category": {
+    "description": "cap.flutter_map.category",
+    "x-blockhub-key": "cap.flutter_map.category"
+  },
+  "cap_flutter_map_name": "地图导航",
+  "@cap_flutter_map_name": {
+    "description": "cap.flutter_map.name",
+    "x-blockhub-key": "cap.flutter_map.name"
+  },
+  "cap_flutter_offline_category": "Flutter工具",
+  "@cap_flutter_offline_category": {
+    "description": "cap.flutter_offline.category",
+    "x-blockhub-key": "cap.flutter_offline.category"
+  },
+  "cap_flutter_offline_name": "离线缓存",
+  "@cap_flutter_offline_name": {
+    "description": "cap.flutter_offline.name",
+    "x-blockhub-key": "cap.flutter_offline.name"
+  },
+  "cap_flutter_pdf_category": "Flutter工具",
+  "@cap_flutter_pdf_category": {
+    "description": "cap.flutter_pdf.category",
+    "x-blockhub-key": "cap.flutter_pdf.category"
+  },
+  "cap_flutter_pdf_name": "PDF预览",
+  "@cap_flutter_pdf_name": {
+    "description": "cap.flutter_pdf.name",
+    "x-blockhub-key": "cap.flutter_pdf.name"
+  },
+  "cap_flutter_push_category": "Flutter工具",
+  "@cap_flutter_push_category": {
+    "description": "cap.flutter_push.category",
+    "x-blockhub-key": "cap.flutter_push.category"
+  },
+  "cap_flutter_push_name": "移动推送",
+  "@cap_flutter_push_name": {
+    "description": "cap.flutter_push.name",
+    "x-blockhub-key": "cap.flutter_push.name"
+  },
+  "cap_flutter_scan_qr_category": "Flutter工具",
+  "@cap_flutter_scan_qr_category": {
+    "description": "cap.flutter_scan_qr.category",
+    "x-blockhub-key": "cap.flutter_scan_qr.category"
+  },
+  "cap_flutter_scan_qr_name": "扫码识别",
+  "@cap_flutter_scan_qr_name": {
+    "description": "cap.flutter_scan_qr.name",
+    "x-blockhub-key": "cap.flutter_scan_qr.name"
+  },
+  "cap_flutter_signature_category": "Flutter工具",
+  "@cap_flutter_signature_category": {
+    "description": "cap.flutter_signature.category",
+    "x-blockhub-key": "cap.flutter_signature.category"
+  },
+  "cap_flutter_signature_name": "手写签名",
+  "@cap_flutter_signature_name": {
+    "description": "cap.flutter_signature.name",
+    "x-blockhub-key": "cap.flutter_signature.name"
+  },
+  "cap_flutter_speech_category": "Flutter工具",
+  "@cap_flutter_speech_category": {
+    "description": "cap.flutter_speech.category",
+    "x-blockhub-key": "cap.flutter_speech.category"
+  },
+  "cap_flutter_speech_name": "语音交互",
+  "@cap_flutter_speech_name": {
+    "description": "cap.flutter_speech.name",
+    "x-blockhub-key": "cap.flutter_speech.name"
+  },
+  "cap_flutter_webview_category": "Flutter工具",
+  "@cap_flutter_webview_category": {
+    "description": "cap.flutter_webview.category",
+    "x-blockhub-key": "cap.flutter_webview.category"
+  },
+  "cap_flutter_webview_name": "内嵌网页",
+  "@cap_flutter_webview_name": {
+    "description": "cap.flutter_webview.name",
+    "x-blockhub-key": "cap.flutter_webview.name"
+  },
+  "cap_fnb_order_category": "酒店餐饮",
+  "@cap_fnb_order_category": {
+    "description": "cap.fnb_order.category",
+    "x-blockhub-key": "cap.fnb_order.category"
+  },
+  "cap_fnb_order_name": "餐饮点单",
+  "@cap_fnb_order_name": {
+    "description": "cap.fnb_order.name",
+    "x-blockhub-key": "cap.fnb_order.name"
+  },
+  "cap_fnb_order_ui_title": "餐饮点单",
+  "@cap_fnb_order_ui_title": {
+    "description": "cap.fnb_order.ui.title",
+    "x-blockhub-key": "cap.fnb_order.ui.title"
+  },
+  "cap_food_purchase_category": "酒店餐饮",
+  "@cap_food_purchase_category": {
+    "description": "cap.food_purchase.category",
+    "x-blockhub-key": "cap.food_purchase.category"
+  },
+  "cap_food_purchase_name": "食材申购",
+  "@cap_food_purchase_name": {
+    "description": "cap.food_purchase.name",
+    "x-blockhub-key": "cap.food_purchase.name"
+  },
+  "cap_food_purchase_ui_title": "食材申购",
+  "@cap_food_purchase_ui_title": {
+    "description": "cap.food_purchase.ui.title",
+    "x-blockhub-key": "cap.food_purchase.ui.title"
+  },
+  "cap_form_widget_category": "平台能力",
+  "@cap_form_widget_category": {
+    "description": "cap.form_widget.category",
+    "x-blockhub-key": "cap.form_widget.category"
+  },
+  "cap_form_widget_name": "表单组件",
+  "@cap_form_widget_name": {
+    "description": "cap.form_widget.name",
+    "x-blockhub-key": "cap.form_widget.name"
+  },
+  "cap_form_widget_ui_title": "表单组件",
+  "@cap_form_widget_ui_title": {
+    "description": "cap.form_widget.ui.title",
+    "x-blockhub-key": "cap.form_widget.ui.title"
+  },
+  "cap_freight_settle_category": "物流仓储",
+  "@cap_freight_settle_category": {
+    "description": "cap.freight_settle.category",
+    "x-blockhub-key": "cap.freight_settle.category"
+  },
+  "cap_freight_settle_name": "运费结算",
+  "@cap_freight_settle_name": {
+    "description": "cap.freight_settle.name",
+    "x-blockhub-key": "cap.freight_settle.name"
+  },
+  "cap_freight_settle_ui_title": "运费结算",
+  "@cap_freight_settle_ui_title": {
+    "description": "cap.freight_settle.ui.title",
+    "x-blockhub-key": "cap.freight_settle.ui.title"
+  },
+  "cap_game_2048_category": "游戏娱乐",
+  "@cap_game_2048_category": {
+    "description": "cap.game_2048.category",
+    "x-blockhub-key": "cap.game_2048.category"
+  },
+  "cap_game_2048_name": "2048",
+  "@cap_game_2048_name": {
+    "description": "cap.game_2048.name",
+    "x-blockhub-key": "cap.game_2048.name"
+  },
+  "cap_game_2048_ui_title": "2048",
+  "@cap_game_2048_ui_title": {
+    "description": "cap.game_2048.ui.title",
+    "x-blockhub-key": "cap.game_2048.ui.title"
+  },
+  "cap_game_support_category": "游戏娱乐",
+  "@cap_game_support_category": {
+    "description": "cap.game_support.category",
+    "x-blockhub-key": "cap.game_support.category"
+  },
+  "cap_game_support_name": "玩家FAQ",
+  "@cap_game_support_name": {
+    "description": "cap.game_support.name",
+    "x-blockhub-key": "cap.game_support.name"
+  },
+  "cap_game_support_ui_title": "玩家FAQ",
+  "@cap_game_support_ui_title": {
+    "description": "cap.game_support.ui.title",
+    "x-blockhub-key": "cap.game_support.ui.title"
+  },
+  "cap_gift_card_category": "零售电商",
+  "@cap_gift_card_category": {
+    "description": "cap.gift_card.category",
+    "x-blockhub-key": "cap.gift_card.category"
+  },
+  "cap_gift_card_name": "储值卡充值",
+  "@cap_gift_card_name": {
+    "description": "cap.gift_card.name",
+    "x-blockhub-key": "cap.gift_card.name"
+  },
+  "cap_gift_card_ui_title": "储值卡充值",
+  "@cap_gift_card_ui_title": {
+    "description": "cap.gift_card.ui.title",
+    "x-blockhub-key": "cap.gift_card.ui.title"
+  },
+  "cap_gov_appeal_category": "政务公用",
+  "@cap_gov_appeal_category": {
+    "description": "cap.gov_appeal.category",
+    "x-blockhub-key": "cap.gov_appeal.category"
+  },
+  "cap_gov_appeal_name": "诉求受理",
+  "@cap_gov_appeal_name": {
+    "description": "cap.gov_appeal.name",
+    "x-blockhub-key": "cap.gov_appeal.name"
+  },
+  "cap_gov_appeal_ui_title": "诉求受理",
+  "@cap_gov_appeal_ui_title": {
+    "description": "cap.gov_appeal.ui.title",
+    "x-blockhub-key": "cap.gov_appeal.ui.title"
+  },
+  "cap_gov_grid_category": "政务公用",
+  "@cap_gov_grid_category": {
+    "description": "cap.gov_grid.category",
+    "x-blockhub-key": "cap.gov_grid.category"
+  },
+  "cap_gov_grid_name": "网格事件",
+  "@cap_gov_grid_name": {
+    "description": "cap.gov_grid.name",
+    "x-blockhub-key": "cap.gov_grid.name"
+  },
+  "cap_gov_grid_ui_title": "网格事件",
+  "@cap_gov_grid_ui_title": {
+    "description": "cap.gov_grid.ui.title",
+    "x-blockhub-key": "cap.gov_grid.ui.title"
+  },
+  "cap_gov_hotline_category": "政务公用",
+  "@cap_gov_hotline_category": {
+    "description": "cap.gov_hotline.category",
+    "x-blockhub-key": "cap.gov_hotline.category"
+  },
+  "cap_gov_hotline_name": "热线转办",
+  "@cap_gov_hotline_name": {
+    "description": "cap.gov_hotline.name",
+    "x-blockhub-key": "cap.gov_hotline.name"
+  },
+  "cap_gov_hotline_ui_title": "热线转办",
+  "@cap_gov_hotline_ui_title": {
+    "description": "cap.gov_hotline.ui.title",
+    "x-blockhub-key": "cap.gov_hotline.ui.title"
+  },
+  "cap_gov_license_category": "政务公用",
+  "@cap_gov_license_category": {
+    "description": "cap.gov_license.category",
+    "x-blockhub-key": "cap.gov_license.category"
+  },
+  "cap_gov_license_name": "证照申领",
+  "@cap_gov_license_name": {
+    "description": "cap.gov_license.name",
+    "x-blockhub-key": "cap.gov_license.name"
+  },
+  "cap_gov_license_ui_title": "证照申领",
+  "@cap_gov_license_ui_title": {
+    "description": "cap.gov_license.ui.title",
+    "x-blockhub-key": "cap.gov_license.ui.title"
+  },
+  "cap_gov_public_category": "政务公用",
+  "@cap_gov_public_category": {
+    "description": "cap.gov_public.category",
+    "x-blockhub-key": "cap.gov_public.category"
+  },
+  "cap_gov_public_name": "信息公开",
+  "@cap_gov_public_name": {
+    "description": "cap.gov_public.name",
+    "x-blockhub-key": "cap.gov_public.name"
+  },
+  "cap_gov_public_ui_title": "信息公开",
+  "@cap_gov_public_ui_title": {
+    "description": "cap.gov_public.ui.title",
+    "x-blockhub-key": "cap.gov_public.ui.title"
+  },
+  "cap_gov_service_category": "政务公用",
+  "@cap_gov_service_category": {
+    "description": "cap.gov_service.category",
+    "x-blockhub-key": "cap.gov_service.category"
+  },
+  "cap_gov_service_name": "政务办事",
+  "@cap_gov_service_name": {
+    "description": "cap.gov_service.name",
+    "x-blockhub-key": "cap.gov_service.name"
+  },
+  "cap_gov_service_ui_title": "政务办事",
+  "@cap_gov_service_ui_title": {
+    "description": "cap.gov_service.ui.title",
+    "x-blockhub-key": "cap.gov_service.ui.title"
+  },
+  "cap_gov_supervise_category": "政务公用",
+  "@cap_gov_supervise_category": {
+    "description": "cap.gov_supervise.category",
+    "x-blockhub-key": "cap.gov_supervise.category"
+  },
+  "cap_gov_supervise_name": "催办督办",
+  "@cap_gov_supervise_name": {
+    "description": "cap.gov_supervise.name",
+    "x-blockhub-key": "cap.gov_supervise.name"
+  },
+  "cap_gov_supervise_ui_title": "催办督办",
+  "@cap_gov_supervise_ui_title": {
+    "description": "cap.gov_supervise.ui.title",
+    "x-blockhub-key": "cap.gov_supervise.ui.title"
+  },
+  "cap_group_checkin_category": "酒店餐饮",
+  "@cap_group_checkin_category": {
+    "description": "cap.group_checkin.category",
+    "x-blockhub-key": "cap.group_checkin.category"
+  },
+  "cap_group_checkin_name": "团队入住",
+  "@cap_group_checkin_name": {
+    "description": "cap.group_checkin.name",
+    "x-blockhub-key": "cap.group_checkin.name"
+  },
+  "cap_group_checkin_ui_title": "团队入住",
+  "@cap_group_checkin_ui_title": {
+    "description": "cap.group_checkin.ui.title",
+    "x-blockhub-key": "cap.group_checkin.ui.title"
+  },
+  "cap_guest_complaint_category": "酒店餐饮",
+  "@cap_guest_complaint_category": {
+    "description": "cap.guest_complaint.category",
+    "x-blockhub-key": "cap.guest_complaint.category"
+  },
+  "cap_guest_complaint_name": "客诉处理",
+  "@cap_guest_complaint_name": {
+    "description": "cap.guest_complaint.name",
+    "x-blockhub-key": "cap.guest_complaint.name"
+  },
+  "cap_guest_complaint_ui_title": "客诉处理",
+  "@cap_guest_complaint_ui_title": {
+    "description": "cap.guest_complaint.ui.title",
+    "x-blockhub-key": "cap.guest_complaint.ui.title"
+  },
+  "cap_hire_onboard_category": "人事行政",
+  "@cap_hire_onboard_category": {
+    "description": "cap.hire_onboard.category",
+    "x-blockhub-key": "cap.hire_onboard.category"
+  },
+  "cap_hire_onboard_name": "招聘入职",
+  "@cap_hire_onboard_name": {
+    "description": "cap.hire_onboard.name",
+    "x-blockhub-key": "cap.hire_onboard.name"
+  },
+  "cap_hire_onboard_ui_title": "招聘入职",
+  "@cap_hire_onboard_ui_title": {
+    "description": "cap.hire_onboard.ui.title",
+    "x-blockhub-key": "cap.hire_onboard.ui.title"
+  },
+  "cap_hk_task_category": "酒店餐饮",
+  "@cap_hk_task_category": {
+    "description": "cap.hk_task.category",
+    "x-blockhub-key": "cap.hk_task.category"
+  },
+  "cap_hk_task_name": "客房打扫",
+  "@cap_hk_task_name": {
+    "description": "cap.hk_task.name",
+    "x-blockhub-key": "cap.hk_task.name"
+  },
+  "cap_hk_task_ui_title": "客房打扫",
+  "@cap_hk_task_ui_title": {
+    "description": "cap.hk_task.ui.title",
+    "x-blockhub-key": "cap.hk_task.ui.title"
+  },
+  "cap_homework_qa_category": "教育培训",
+  "@cap_homework_qa_category": {
+    "description": "cap.homework_qa.category",
+    "x-blockhub-key": "cap.homework_qa.category"
+  },
+  "cap_homework_qa_name": "作业答疑",
+  "@cap_homework_qa_name": {
+    "description": "cap.homework_qa.name",
+    "x-blockhub-key": "cap.homework_qa.name"
+  },
+  "cap_homework_qa_ui_title": "作业答疑",
+  "@cap_homework_qa_ui_title": {
+    "description": "cap.homework_qa.ui.title",
+    "x-blockhub-key": "cap.homework_qa.ui.title"
+  },
+  "cap_hotel_booking_category": "酒店餐饮",
+  "@cap_hotel_booking_category": {
+    "description": "cap.hotel_booking.category",
+    "x-blockhub-key": "cap.hotel_booking.category"
+  },
+  "cap_hotel_booking_name": "酒店预订",
+  "@cap_hotel_booking_name": {
+    "description": "cap.hotel_booking.name",
+    "x-blockhub-key": "cap.hotel_booking.name"
+  },
+  "cap_hotel_booking_ui_title": "酒店预订",
+  "@cap_hotel_booking_ui_title": {
+    "description": "cap.hotel_booking.ui.title",
+    "x-blockhub-key": "cap.hotel_booking.ui.title"
+  },
+  "cap_hotel_revenue_category": "酒店餐饮",
+  "@cap_hotel_revenue_category": {
+    "description": "cap.hotel_revenue.category",
+    "x-blockhub-key": "cap.hotel_revenue.category"
+  },
+  "cap_hotel_revenue_name": "营收日报",
+  "@cap_hotel_revenue_name": {
+    "description": "cap.hotel_revenue.name",
+    "x-blockhub-key": "cap.hotel_revenue.name"
+  },
+  "cap_hotel_revenue_ui_title": "营收日报",
+  "@cap_hotel_revenue_ui_title": {
+    "description": "cap.hotel_revenue.ui.title",
+    "x-blockhub-key": "cap.hotel_revenue.ui.title"
+  },
+  "cap_house_viewing_category": "房地产",
+  "@cap_house_viewing_category": {
+    "description": "cap.house_viewing.category",
+    "x-blockhub-key": "cap.house_viewing.category"
+  },
+  "cap_house_viewing_name": "看房签约",
+  "@cap_house_viewing_name": {
+    "description": "cap.house_viewing.name",
+    "x-blockhub-key": "cap.house_viewing.name"
+  },
+  "cap_house_viewing_ui_title": "看房签约",
+  "@cap_house_viewing_ui_title": {
+    "description": "cap.house_viewing.ui.title",
+    "x-blockhub-key": "cap.house_viewing.ui.title"
+  },
+  "cap_hr_headcount_category": "人力资源",
+  "@cap_hr_headcount_category": {
+    "description": "cap.hr_headcount.category",
+    "x-blockhub-key": "cap.hr_headcount.category"
+  },
+  "cap_hr_headcount_name": "编制申请",
+  "@cap_hr_headcount_name": {
+    "description": "cap.hr_headcount.name",
+    "x-blockhub-key": "cap.hr_headcount.name"
+  },
+  "cap_hr_headcount_ui_title": "编制申请",
+  "@cap_hr_headcount_ui_title": {
+    "description": "cap.hr_headcount.ui.title",
+    "x-blockhub-key": "cap.hr_headcount.ui.title"
+  },
+  "cap_hr_idp_category": "人力资源",
+  "@cap_hr_idp_category": {
+    "description": "cap.hr_idp.category",
+    "x-blockhub-key": "cap.hr_idp.category"
+  },
+  "cap_hr_idp_name": "个人发展",
+  "@cap_hr_idp_name": {
+    "description": "cap.hr_idp.name",
+    "x-blockhub-key": "cap.hr_idp.name"
+  },
+  "cap_hr_idp_ui_title": "个人发展",
+  "@cap_hr_idp_ui_title": {
+    "description": "cap.hr_idp.ui.title",
+    "x-blockhub-key": "cap.hr_idp.ui.title"
+  },
+  "cap_hr_offer_category": "人力资源",
+  "@cap_hr_offer_category": {
+    "description": "cap.hr_offer.category",
+    "x-blockhub-key": "cap.hr_offer.category"
+  },
+  "cap_hr_offer_name": "Offer审批",
+  "@cap_hr_offer_name": {
+    "description": "cap.hr_offer.name",
+    "x-blockhub-key": "cap.hr_offer.name"
+  },
+  "cap_hr_offer_ui_title": "Offer审批",
+  "@cap_hr_offer_ui_title": {
+    "description": "cap.hr_offer.ui.title",
+    "x-blockhub-key": "cap.hr_offer.ui.title"
+  },
+  "cap_hr_payroll_category": "人力资源",
+  "@cap_hr_payroll_category": {
+    "description": "cap.hr_payroll.category",
+    "x-blockhub-key": "cap.hr_payroll.category"
+  },
+  "cap_hr_payroll_name": "薪资异议",
+  "@cap_hr_payroll_name": {
+    "description": "cap.hr_payroll.name",
+    "x-blockhub-key": "cap.hr_payroll.name"
+  },
+  "cap_hr_payroll_ui_title": "薪资异议",
+  "@cap_hr_payroll_ui_title": {
+    "description": "cap.hr_payroll.ui.title",
+    "x-blockhub-key": "cap.hr_payroll.ui.title"
+  },
+  "cap_hr_perf_category": "人力资源",
+  "@cap_hr_perf_category": {
+    "description": "cap.hr_perf.category",
+    "x-blockhub-key": "cap.hr_perf.category"
+  },
+  "cap_hr_perf_name": "绩效考核",
+  "@cap_hr_perf_name": {
+    "description": "cap.hr_perf.name",
+    "x-blockhub-key": "cap.hr_perf.name"
+  },
+  "cap_hr_perf_ui_title": "绩效考核",
+  "@cap_hr_perf_ui_title": {
+    "description": "cap.hr_perf.ui.title",
+    "x-blockhub-key": "cap.hr_perf.ui.title"
+  },
+  "cap_hr_training_category": "人力资源",
+  "@cap_hr_training_category": {
+    "description": "cap.hr_training.category",
+    "x-blockhub-key": "cap.hr_training.category"
+  },
+  "cap_hr_training_name": "培训报名",
+  "@cap_hr_training_name": {
+    "description": "cap.hr_training.name",
+    "x-blockhub-key": "cap.hr_training.name"
+  },
+  "cap_hr_training_ui_title": "培训报名",
+  "@cap_hr_training_ui_title": {
+    "description": "cap.hr_training.ui.title",
+    "x-blockhub-key": "cap.hr_training.ui.title"
+  },
+  "cap_hygiene_check_category": "酒店餐饮",
+  "@cap_hygiene_check_category": {
+    "description": "cap.hygiene_check.category",
+    "x-blockhub-key": "cap.hygiene_check.category"
+  },
+  "cap_hygiene_check_name": "卫生检查",
+  "@cap_hygiene_check_name": {
+    "description": "cap.hygiene_check.name",
+    "x-blockhub-key": "cap.hygiene_check.name"
+  },
+  "cap_hygiene_check_ui_title": "卫生检查",
+  "@cap_hygiene_check_ui_title": {
+    "description": "cap.hygiene_check.ui.title",
+    "x-blockhub-key": "cap.hygiene_check.ui.title"
+  },
+  "cap_insurance_case_category": "金融服务",
+  "@cap_insurance_case_category": {
+    "description": "cap.insurance_case.category",
+    "x-blockhub-key": "cap.insurance_case.category"
+  },
+  "cap_insurance_case_name": "保险核保理赔",
+  "@cap_insurance_case_name": {
+    "description": "cap.insurance_case.name",
+    "x-blockhub-key": "cap.insurance_case.name"
+  },
+  "cap_insurance_case_ui_title": "保险核保理赔",
+  "@cap_insurance_case_ui_title": {
+    "description": "cap.insurance_case.ui.title",
+    "x-blockhub-key": "cap.insurance_case.ui.title"
+  },
+  "cap_inventory_count_category": "仓储物流",
+  "@cap_inventory_count_category": {
+    "description": "cap.inventory_count.category",
+    "x-blockhub-key": "cap.inventory_count.category"
+  },
+  "cap_inventory_count_name": "库存盘点",
+  "@cap_inventory_count_name": {
+    "description": "cap.inventory_count.name",
+    "x-blockhub-key": "cap.inventory_count.name"
+  },
+  "cap_inventory_count_ui_title": "库存盘点",
+  "@cap_inventory_count_ui_title": {
+    "description": "cap.inventory_count.ui.title",
+    "x-blockhub-key": "cap.inventory_count.ui.title"
+  },
+  "cap_it_helpdesk_category": "IT与资产",
+  "@cap_it_helpdesk_category": {
+    "description": "cap.it_helpdesk.category",
+    "x-blockhub-key": "cap.it_helpdesk.category"
+  },
+  "cap_it_helpdesk_name": "IT报障",
+  "@cap_it_helpdesk_name": {
+    "description": "cap.it_helpdesk.name",
+    "x-blockhub-key": "cap.it_helpdesk.name"
+  },
+  "cap_it_helpdesk_ui_title": "IT报障",
+  "@cap_it_helpdesk_ui_title": {
+    "description": "cap.it_helpdesk.ui.title",
+    "x-blockhub-key": "cap.it_helpdesk.ui.title"
+  },
+  "cap_it_ticket_category": "IT与资产",
+  "@cap_it_ticket_category": {
+    "description": "cap.it_ticket.category",
+    "x-blockhub-key": "cap.it_ticket.category"
+  },
+  "cap_it_ticket_name": "IT报障",
+  "@cap_it_ticket_name": {
+    "description": "cap.it_ticket.name",
+    "x-blockhub-key": "cap.it_ticket.name"
+  },
+  "cap_it_ticket_ui_title": "IT报障",
+  "@cap_it_ticket_ui_title": {
+    "description": "cap.it_ticket.ui.title",
+    "x-blockhub-key": "cap.it_ticket.ui.title"
+  },
+  "cap_kb_document_category": "知识数据",
+  "@cap_kb_document_category": {
+    "description": "cap.kb_document.category",
+    "x-blockhub-key": "cap.kb_document.category"
+  },
+  "cap_kb_document_name": "知识库",
+  "@cap_kb_document_name": {
+    "description": "cap.kb_document.name",
+    "x-blockhub-key": "cap.kb_document.name"
+  },
+  "cap_kb_document_ui_title": "知识库",
+  "@cap_kb_document_ui_title": {
+    "description": "cap.kb_document.ui.title",
+    "x-blockhub-key": "cap.kb_document.ui.title"
+  },
+  "cap_kill_pipeline_category": "销售行业",
+  "@cap_kill_pipeline_category": {
+    "description": "cap.kill_pipeline.category",
+    "x-blockhub-key": "cap.kill_pipeline.category"
+  },
+  "cap_kill_pipeline_name": "杀单工作台",
+  "@cap_kill_pipeline_name": {
+    "description": "cap.kill_pipeline.name",
+    "x-blockhub-key": "cap.kill_pipeline.name"
+  },
+  "cap_kill_pipeline_ui_title": "杀单工作台",
+  "@cap_kill_pipeline_ui_title": {
+    "description": "cap.kill_pipeline.ui.title",
+    "x-blockhub-key": "cap.kill_pipeline.ui.title"
+  },
+  "cap_kitchen_waste_category": "酒店餐饮",
+  "@cap_kitchen_waste_category": {
+    "description": "cap.kitchen_waste.category",
+    "x-blockhub-key": "cap.kitchen_waste.category"
+  },
+  "cap_kitchen_waste_name": "厨余报损",
+  "@cap_kitchen_waste_name": {
+    "description": "cap.kitchen_waste.name",
+    "x-blockhub-key": "cap.kitchen_waste.name"
+  },
+  "cap_kitchen_waste_ui_title": "厨余报损",
+  "@cap_kitchen_waste_ui_title": {
+    "description": "cap.kitchen_waste.ui.title",
+    "x-blockhub-key": "cap.kitchen_waste.ui.title"
+  },
+  "cap_lease_renewal_category": "房地产",
+  "@cap_lease_renewal_category": {
+    "description": "cap.lease_renewal.category",
+    "x-blockhub-key": "cap.lease_renewal.category"
+  },
+  "cap_lease_renewal_name": "租约续签",
+  "@cap_lease_renewal_name": {
+    "description": "cap.lease_renewal.name",
+    "x-blockhub-key": "cap.lease_renewal.name"
+  },
+  "cap_lease_renewal_ui_title": "租约续签",
+  "@cap_lease_renewal_ui_title": {
+    "description": "cap.lease_renewal.ui.title",
+    "x-blockhub-key": "cap.lease_renewal.ui.title"
+  },
+  "cap_leave_request_action_approve": "通过",
+  "@cap_leave_request_action_approve": {
+    "description": "cap.leave_request.action.approve",
+    "x-blockhub-key": "cap.leave_request.action.approve"
+  },
+  "cap_leave_request_action_archive": "归档",
+  "@cap_leave_request_action_archive": {
+    "description": "cap.leave_request.action.archive",
+    "x-blockhub-key": "cap.leave_request.action.archive"
+  },
+  "cap_leave_request_action_reject": "驳回",
+  "@cap_leave_request_action_reject": {
+    "description": "cap.leave_request.action.reject",
+    "x-blockhub-key": "cap.leave_request.action.reject"
+  },
+  "cap_leave_request_cat_annual": "年假",
+  "@cap_leave_request_cat_annual": {
+    "description": "cap.leave_request.cat.annual",
+    "x-blockhub-key": "cap.leave_request.cat.annual"
+  },
+  "cap_leave_request_cat_overtime": "加班",
+  "@cap_leave_request_cat_overtime": {
+    "description": "cap.leave_request.cat.overtime",
+    "x-blockhub-key": "cap.leave_request.cat.overtime"
+  },
+  "cap_leave_request_cat_personal": "事假",
+  "@cap_leave_request_cat_personal": {
+    "description": "cap.leave_request.cat.personal",
+    "x-blockhub-key": "cap.leave_request.cat.personal"
+  },
+  "cap_leave_request_cat_sick": "病假",
+  "@cap_leave_request_cat_sick": {
+    "description": "cap.leave_request.cat.sick",
+    "x-blockhub-key": "cap.leave_request.cat.sick"
+  },
+  "cap_leave_request_cat_trip": "出差",
+  "@cap_leave_request_cat_trip": {
+    "description": "cap.leave_request.cat.trip",
+    "x-blockhub-key": "cap.leave_request.cat.trip"
+  },
+  "cap_leave_request_category": "人事行政",
+  "@cap_leave_request_category": {
+    "description": "cap.leave_request.category",
+    "x-blockhub-key": "cap.leave_request.category"
+  },
+  "cap_leave_request_colleague": "同事",
+  "@cap_leave_request_colleague": {
+    "description": "cap.leave_request.colleague",
+    "x-blockhub-key": "cap.leave_request.colleague"
+  },
+  "cap_leave_request_done_hide": "收起已处理",
+  "@cap_leave_request_done_hide": {
+    "description": "cap.leave_request.done.hide",
+    "x-blockhub-key": "cap.leave_request.done.hide"
+  },
+  "cap_leave_request_done_show": "已处理 {{n}}",
+  "@cap_leave_request_done_show": {
+    "description": "cap.leave_request.done.show",
+    "x-blockhub-key": "cap.leave_request.done.show"
+  },
+  "cap_leave_request_field_category": "假种",
+  "@cap_leave_request_field_category": {
+    "description": "cap.leave_request.field.category",
+    "x-blockhub-key": "cap.leave_request.field.category"
+  },
+  "cap_leave_request_field_end_date": "结束日期",
+  "@cap_leave_request_field_end_date": {
+    "description": "cap.leave_request.field.end_date",
+    "x-blockhub-key": "cap.leave_request.field.end_date"
+  },
+  "cap_leave_request_field_end_time": "结束时间",
+  "@cap_leave_request_field_end_time": {
+    "description": "cap.leave_request.field.end_time",
+    "x-blockhub-key": "cap.leave_request.field.end_time"
+  },
+  "cap_leave_request_field_note": "事由（可空）",
+  "@cap_leave_request_field_note": {
+    "description": "cap.leave_request.field.note",
+    "x-blockhub-key": "cap.leave_request.field.note"
+  },
+  "cap_leave_request_field_start_date": "开始日期",
+  "@cap_leave_request_field_start_date": {
+    "description": "cap.leave_request.field.start_date",
+    "x-blockhub-key": "cap.leave_request.field.start_date"
+  },
+  "cap_leave_request_field_start_time": "开始时间",
+  "@cap_leave_request_field_start_time": {
+    "description": "cap.leave_request.field.start_time",
+    "x-blockhub-key": "cap.leave_request.field.start_time"
+  },
+  "cap_leave_request_field_type": "申请类型",
+  "@cap_leave_request_field_type": {
+    "description": "cap.leave_request.field.type",
+    "x-blockhub-key": "cap.leave_request.field.type"
+  },
+  "cap_leave_request_flow_leave": "选假种 → 填起止日期 → 交主管审",
+  "@cap_leave_request_flow_leave": {
+    "description": "cap.leave_request.flow.leave",
+    "x-blockhub-key": "cap.leave_request.flow.leave"
+  },
+  "cap_leave_request_flow_overtime": "选加班 → 填起止时间 → 交主管审",
+  "@cap_leave_request_flow_overtime": {
+    "description": "cap.leave_request.flow.overtime",
+    "x-blockhub-key": "cap.leave_request.flow.overtime"
+  },
+  "cap_leave_request_flow_trip": "选出差 → 填起止日期 → 交主管审",
+  "@cap_leave_request_flow_trip": {
+    "description": "cap.leave_request.flow.trip",
+    "x-blockhub-key": "cap.leave_request.flow.trip"
+  },
+  "cap_leave_request_inbox_empty": "暂无待审批记录",
+  "@cap_leave_request_inbox_empty": {
+    "description": "cap.leave_request.inbox.empty",
+    "x-blockhub-key": "cap.leave_request.inbox.empty"
+  },
+  "cap_leave_request_inbox_pending": "待我审",
+  "@cap_leave_request_inbox_pending": {
+    "description": "cap.leave_request.inbox.pending",
+    "x-blockhub-key": "cap.leave_request.inbox.pending"
+  },
+  "cap_leave_request_meta_applicant": "申请人",
+  "@cap_leave_request_meta_applicant": {
+    "description": "cap.leave_request.meta.applicant",
+    "x-blockhub-key": "cap.leave_request.meta.applicant"
+  },
+  "cap_leave_request_meta_im": "群消息入口",
+  "@cap_leave_request_meta_im": {
+    "description": "cap.leave_request.meta.im",
+    "x-blockhub-key": "cap.leave_request.meta.im"
+  },
+  "cap_leave_request_msg_submitted": "已提交审批",
+  "@cap_leave_request_msg_submitted": {
+    "description": "cap.leave_request.msg.submitted",
+    "x-blockhub-key": "cap.leave_request.msg.submitted"
+  },
+  "cap_leave_request_name": "请假审批",
+  "@cap_leave_request_name": {
+    "description": "cap.leave_request.name",
+    "x-blockhub-key": "cap.leave_request.name"
+  },
+  "cap_leave_request_status_approved": "已通过",
+  "@cap_leave_request_status_approved": {
+    "description": "cap.leave_request.status.approved",
+    "x-blockhub-key": "cap.leave_request.status.approved"
+  },
+  "cap_leave_request_status_done": "已归档",
+  "@cap_leave_request_status_done": {
+    "description": "cap.leave_request.status.done",
+    "x-blockhub-key": "cap.leave_request.status.done"
+  },
+  "cap_leave_request_status_open": "待审批",
+  "@cap_leave_request_status_open": {
+    "description": "cap.leave_request.status.open",
+    "x-blockhub-key": "cap.leave_request.status.open"
+  },
+  "cap_leave_request_status_rejected": "已驳回",
+  "@cap_leave_request_status_rejected": {
+    "description": "cap.leave_request.status.rejected",
+    "x-blockhub-key": "cap.leave_request.status.rejected"
+  },
+  "cap_leave_request_submit_leave": "提交请假",
+  "@cap_leave_request_submit_leave": {
+    "description": "cap.leave_request.submit.leave",
+    "x-blockhub-key": "cap.leave_request.submit.leave"
+  },
+  "cap_leave_request_submit_overtime": "提交加班",
+  "@cap_leave_request_submit_overtime": {
+    "description": "cap.leave_request.submit.overtime",
+    "x-blockhub-key": "cap.leave_request.submit.overtime"
+  },
+  "cap_leave_request_submit_trip": "提交出差",
+  "@cap_leave_request_submit_trip": {
+    "description": "cap.leave_request.submit.trip",
+    "x-blockhub-key": "cap.leave_request.submit.trip"
+  },
+  "cap_leave_request_title_leave": "我要请假",
+  "@cap_leave_request_title_leave": {
+    "description": "cap.leave_request.title.leave",
+    "x-blockhub-key": "cap.leave_request.title.leave"
+  },
+  "cap_leave_request_title_overtime": "我要加班",
+  "@cap_leave_request_title_overtime": {
+    "description": "cap.leave_request.title.overtime",
+    "x-blockhub-key": "cap.leave_request.title.overtime"
+  },
+  "cap_leave_request_title_trip": "出差申请",
+  "@cap_leave_request_title_trip": {
+    "description": "cap.leave_request.title.trip",
+    "x-blockhub-key": "cap.leave_request.title.trip"
+  },
+  "cap_leave_request_ui_title": "请假审批",
+  "@cap_leave_request_ui_title": {
+    "description": "cap.leave_request.ui.title",
+    "x-blockhub-key": "cap.leave_request.ui.title"
+  },
+  "cap_legal_case_category": "法律服务",
+  "@cap_legal_case_category": {
+    "description": "cap.legal_case.category",
+    "x-blockhub-key": "cap.legal_case.category"
+  },
+  "cap_legal_case_name": "法务合同",
+  "@cap_legal_case_name": {
+    "description": "cap.legal_case.name",
+    "x-blockhub-key": "cap.legal_case.name"
+  },
+  "cap_legal_case_ui_title": "法务合同",
+  "@cap_legal_case_ui_title": {
+    "description": "cap.legal_case.ui.title",
+    "x-blockhub-key": "cap.legal_case.ui.title"
+  },
+  "cap_legal_contract_ops_category": "法律服务",
+  "@cap_legal_contract_ops_category": {
+    "description": "cap.legal_contract_ops.category",
+    "x-blockhub-key": "cap.legal_contract_ops.category"
+  },
+  "cap_legal_contract_ops_name": "合同审查单",
+  "@cap_legal_contract_ops_name": {
+    "description": "cap.legal_contract_ops.name",
+    "x-blockhub-key": "cap.legal_contract_ops.name"
+  },
+  "cap_legal_contract_ops_ui_title": "合同审查单",
+  "@cap_legal_contract_ops_ui_title": {
+    "description": "cap.legal_contract_ops.ui.title",
+    "x-blockhub-key": "cap.legal_contract_ops.ui.title"
+  },
+  "cap_legal_enforce_category": "法律服务",
+  "@cap_legal_enforce_category": {
+    "description": "cap.legal_enforce.category",
+    "x-blockhub-key": "cap.legal_enforce.category"
+  },
+  "cap_legal_enforce_name": "执行回款",
+  "@cap_legal_enforce_name": {
+    "description": "cap.legal_enforce.name",
+    "x-blockhub-key": "cap.legal_enforce.name"
+  },
+  "cap_legal_enforce_ui_title": "执行回款",
+  "@cap_legal_enforce_ui_title": {
+    "description": "cap.legal_enforce.ui.title",
+    "x-blockhub-key": "cap.legal_enforce.ui.title"
+  },
+  "cap_legal_evidence_category": "法律服务",
+  "@cap_legal_evidence_category": {
+    "description": "cap.legal_evidence.category",
+    "x-blockhub-key": "cap.legal_evidence.category"
+  },
+  "cap_legal_evidence_name": "证据台账",
+  "@cap_legal_evidence_name": {
+    "description": "cap.legal_evidence.name",
+    "x-blockhub-key": "cap.legal_evidence.name"
+  },
+  "cap_legal_evidence_ui_title": "证据台账",
+  "@cap_legal_evidence_ui_title": {
+    "description": "cap.legal_evidence.ui.title",
+    "x-blockhub-key": "cap.legal_evidence.ui.title"
+  },
+  "cap_legal_filing_category": "法律服务",
+  "@cap_legal_filing_category": {
+    "description": "cap.legal_filing.category",
+    "x-blockhub-key": "cap.legal_filing.category"
+  },
+  "cap_legal_filing_name": "立案登记",
+  "@cap_legal_filing_name": {
+    "description": "cap.legal_filing.name",
+    "x-blockhub-key": "cap.legal_filing.name"
+  },
+  "cap_legal_filing_ui_title": "立案登记",
+  "@cap_legal_filing_ui_title": {
+    "description": "cap.legal_filing.ui.title",
+    "x-blockhub-key": "cap.legal_filing.ui.title"
+  },
+  "cap_legal_hearing_category": "法律服务",
+  "@cap_legal_hearing_category": {
+    "description": "cap.legal_hearing.category",
+    "x-blockhub-key": "cap.legal_hearing.category"
+  },
+  "cap_legal_hearing_name": "开庭排期",
+  "@cap_legal_hearing_name": {
+    "description": "cap.legal_hearing.name",
+    "x-blockhub-key": "cap.legal_hearing.name"
+  },
+  "cap_legal_hearing_ui_title": "开庭排期",
+  "@cap_legal_hearing_ui_title": {
+    "description": "cap.legal_hearing.ui.title",
+    "x-blockhub-key": "cap.legal_hearing.ui.title"
+  },
+  "cap_legal_preserve_category": "法律服务",
+  "@cap_legal_preserve_category": {
+    "description": "cap.legal_preserve.category",
+    "x-blockhub-key": "cap.legal_preserve.category"
+  },
+  "cap_legal_preserve_name": "诉讼保全",
+  "@cap_legal_preserve_name": {
+    "description": "cap.legal_preserve.name",
+    "x-blockhub-key": "cap.legal_preserve.name"
+  },
+  "cap_legal_preserve_ui_title": "诉讼保全",
+  "@cap_legal_preserve_ui_title": {
+    "description": "cap.legal_preserve.ui.title",
+    "x-blockhub-key": "cap.legal_preserve.ui.title"
+  },
+  "cap_list_widget_category": "平台能力",
+  "@cap_list_widget_category": {
+    "description": "cap.list_widget.category",
+    "x-blockhub-key": "cap.list_widget.category"
+  },
+  "cap_list_widget_name": "列表组件",
+  "@cap_list_widget_name": {
+    "description": "cap.list_widget.name",
+    "x-blockhub-key": "cap.list_widget.name"
+  },
+  "cap_list_widget_ui_title": "列表组件",
+  "@cap_list_widget_ui_title": {
+    "description": "cap.list_widget.ui.title",
+    "x-blockhub-key": "cap.list_widget.ui.title"
+  },
+  "cap_listing_publish_category": "房地产",
+  "@cap_listing_publish_category": {
+    "description": "cap.listing_publish.category",
+    "x-blockhub-key": "cap.listing_publish.category"
+  },
+  "cap_listing_publish_name": "房源上架",
+  "@cap_listing_publish_name": {
+    "description": "cap.listing_publish.name",
+    "x-blockhub-key": "cap.listing_publish.name"
+  },
+  "cap_listing_publish_ui_title": "房源上架",
+  "@cap_listing_publish_ui_title": {
+    "description": "cap.listing_publish.ui.title",
+    "x-blockhub-key": "cap.listing_publish.ui.title"
+  },
+  "cap_logistics_exception_category": "物流仓储",
+  "@cap_logistics_exception_category": {
+    "description": "cap.logistics_exception.category",
+    "x-blockhub-key": "cap.logistics_exception.category"
+  },
+  "cap_logistics_exception_name": "物流异常",
+  "@cap_logistics_exception_name": {
+    "description": "cap.logistics_exception.name",
+    "x-blockhub-key": "cap.logistics_exception.name"
+  },
+  "cap_logistics_exception_ui_title": "物流异常",
+  "@cap_logistics_exception_ui_title": {
+    "description": "cap.logistics_exception.ui.title",
+    "x-blockhub-key": "cap.logistics_exception.ui.title"
+  },
+  "cap_loss_shrinkage_category": "零售电商",
+  "@cap_loss_shrinkage_category": {
+    "description": "cap.loss_shrinkage.category",
+    "x-blockhub-key": "cap.loss_shrinkage.category"
+  },
+  "cap_loss_shrinkage_name": "损耗报损",
+  "@cap_loss_shrinkage_name": {
+    "description": "cap.loss_shrinkage.name",
+    "x-blockhub-key": "cap.loss_shrinkage.name"
+  },
+  "cap_loss_shrinkage_ui_title": "损耗报损",
+  "@cap_loss_shrinkage_ui_title": {
+    "description": "cap.loss_shrinkage.ui.title",
+    "x-blockhub-key": "cap.loss_shrinkage.ui.title"
+  },
+  "cap_lost_found_category": "酒店餐饮",
+  "@cap_lost_found_category": {
+    "description": "cap.lost_found.category",
+    "x-blockhub-key": "cap.lost_found.category"
+  },
+  "cap_lost_found_name": "失物招领",
+  "@cap_lost_found_name": {
+    "description": "cap.lost_found.name",
+    "x-blockhub-key": "cap.lost_found.name"
+  },
+  "cap_lost_found_ui_title": "失物招领",
+  "@cap_lost_found_ui_title": {
+    "description": "cap.lost_found.ui.title",
+    "x-blockhub-key": "cap.lost_found.ui.title"
+  },
+  "cap_maintenance_plan_category": "设备管理",
+  "@cap_maintenance_plan_category": {
+    "description": "cap.maintenance_plan.category",
+    "x-blockhub-key": "cap.maintenance_plan.category"
+  },
+  "cap_maintenance_plan_name": "保养计划",
+  "@cap_maintenance_plan_name": {
+    "description": "cap.maintenance_plan.name",
+    "x-blockhub-key": "cap.maintenance_plan.name"
+  },
+  "cap_maintenance_plan_ui_title": "保养计划",
+  "@cap_maintenance_plan_ui_title": {
+    "description": "cap.maintenance_plan.ui.title",
+    "x-blockhub-key": "cap.maintenance_plan.ui.title"
+  },
+  "cap_material_issue_category": "物料管理",
+  "@cap_material_issue_category": {
+    "description": "cap.material_issue.category",
+    "x-blockhub-key": "cap.material_issue.category"
+  },
+  "cap_material_issue_name": "物料领用",
+  "@cap_material_issue_name": {
+    "description": "cap.material_issue.name",
+    "x-blockhub-key": "cap.material_issue.name"
+  },
+  "cap_material_issue_ui_title": "物料领用",
+  "@cap_material_issue_ui_title": {
+    "description": "cap.material_issue.ui.title",
+    "x-blockhub-key": "cap.material_issue.ui.title"
+  },
+  "cap_med_triage_category": "患者服务",
+  "@cap_med_triage_category": {
+    "description": "cap.med_triage.category",
+    "x-blockhub-key": "cap.med_triage.category"
+  },
+  "cap_med_triage_name": "医疗导诊",
+  "@cap_med_triage_name": {
+    "description": "cap.med_triage.name",
+    "x-blockhub-key": "cap.med_triage.name"
+  },
+  "cap_med_triage_ui_title": "医疗导诊",
+  "@cap_med_triage_ui_title": {
+    "description": "cap.med_triage.ui.title",
+    "x-blockhub-key": "cap.med_triage.ui.title"
+  },
+  "cap_media_asset_category": "传媒内容",
+  "@cap_media_asset_category": {
+    "description": "cap.media_asset.category",
+    "x-blockhub-key": "cap.media_asset.category"
+  },
+  "cap_media_asset_name": "素材版权",
+  "@cap_media_asset_name": {
+    "description": "cap.media_asset.name",
+    "x-blockhub-key": "cap.media_asset.name"
+  },
+  "cap_media_asset_ui_title": "素材版权",
+  "@cap_media_asset_ui_title": {
+    "description": "cap.media_asset.ui.title",
+    "x-blockhub-key": "cap.media_asset.ui.title"
+  },
+  "cap_media_calendar_category": "传媒内容",
+  "@cap_media_calendar_category": {
+    "description": "cap.media_calendar.category",
+    "x-blockhub-key": "cap.media_calendar.category"
+  },
+  "cap_media_calendar_name": "发布排期",
+  "@cap_media_calendar_name": {
+    "description": "cap.media_calendar.name",
+    "x-blockhub-key": "cap.media_calendar.name"
+  },
+  "cap_media_calendar_ui_title": "发布排期",
+  "@cap_media_calendar_ui_title": {
+    "description": "cap.media_calendar.ui.title",
+    "x-blockhub-key": "cap.media_calendar.ui.title"
+  },
+  "cap_media_live_category": "传媒内容",
+  "@cap_media_live_category": {
+    "description": "cap.media_live.category",
+    "x-blockhub-key": "cap.media_live.category"
+  },
+  "cap_media_live_name": "直播场控",
+  "@cap_media_live_name": {
+    "description": "cap.media_live.name",
+    "x-blockhub-key": "cap.media_live.name"
+  },
+  "cap_media_live_ui_title": "直播场控",
+  "@cap_media_live_ui_title": {
+    "description": "cap.media_live.ui.title",
+    "x-blockhub-key": "cap.media_live.ui.title"
+  },
+  "cap_media_review_category": "传媒内容",
+  "@cap_media_review_category": {
+    "description": "cap.media_review.category",
+    "x-blockhub-key": "cap.media_review.category"
+  },
+  "cap_media_review_name": "内容审核",
+  "@cap_media_review_name": {
+    "description": "cap.media_review.name",
+    "x-blockhub-key": "cap.media_review.name"
+  },
+  "cap_media_review_ui_title": "内容审核",
+  "@cap_media_review_ui_title": {
+    "description": "cap.media_review.ui.title",
+    "x-blockhub-key": "cap.media_review.ui.title"
+  },
+  "cap_media_topic_category": "传媒内容",
+  "@cap_media_topic_category": {
+    "description": "cap.media_topic.category",
+    "x-blockhub-key": "cap.media_topic.category"
+  },
+  "cap_media_topic_name": "选题申报",
+  "@cap_media_topic_name": {
+    "description": "cap.media_topic.name",
+    "x-blockhub-key": "cap.media_topic.name"
+  },
+  "cap_media_topic_ui_title": "选题申报",
+  "@cap_media_topic_ui_title": {
+    "description": "cap.media_topic.ui.title",
+    "x-blockhub-key": "cap.media_topic.ui.title"
+  },
+  "cap_meeting_booking_category": "人事行政",
+  "@cap_meeting_booking_category": {
+    "description": "cap.meeting_booking.category",
+    "x-blockhub-key": "cap.meeting_booking.category"
+  },
+  "cap_meeting_booking_name": "会议室预约",
+  "@cap_meeting_booking_name": {
+    "description": "cap.meeting_booking.name",
+    "x-blockhub-key": "cap.meeting_booking.name"
+  },
+  "cap_meeting_booking_ui_title": "会议室预约",
+  "@cap_meeting_booking_ui_title": {
+    "description": "cap.meeting_booking.ui.title",
+    "x-blockhub-key": "cap.meeting_booking.ui.title"
+  },
+  "cap_member_loyalty_category": "营销运营",
+  "@cap_member_loyalty_category": {
+    "description": "cap.member_loyalty.category",
+    "x-blockhub-key": "cap.member_loyalty.category"
+  },
+  "cap_member_loyalty_field_campaign_name": "活动名称",
+  "@cap_member_loyalty_field_campaign_name": {
+    "description": "cap.member_loyalty.field.campaign_name",
+    "x-blockhub-key": "cap.member_loyalty.field.campaign_name"
+  },
+  "cap_member_loyalty_field_campaign_type": "活动类型",
+  "@cap_member_loyalty_field_campaign_type": {
+    "description": "cap.member_loyalty.field.campaign_type",
+    "x-blockhub-key": "cap.member_loyalty.field.campaign_type"
+  },
+  "cap_member_loyalty_field_name": "会员姓名",
+  "@cap_member_loyalty_field_name": {
+    "description": "cap.member_loyalty.field.name",
+    "x-blockhub-key": "cap.member_loyalty.field.name"
+  },
+  "cap_member_loyalty_field_phone": "手机号",
+  "@cap_member_loyalty_field_phone": {
+    "description": "cap.member_loyalty.field.phone",
+    "x-blockhub-key": "cap.member_loyalty.field.phone"
+  },
+  "cap_member_loyalty_field_points": "初始积分",
+  "@cap_member_loyalty_field_points": {
+    "description": "cap.member_loyalty.field.points",
+    "x-blockhub-key": "cap.member_loyalty.field.points"
+  },
+  "cap_member_loyalty_mode_campaign": "建营销活动",
+  "@cap_member_loyalty_mode_campaign": {
+    "description": "cap.member_loyalty.mode.campaign",
+    "x-blockhub-key": "cap.member_loyalty.mode.campaign"
+  },
+  "cap_member_loyalty_mode_list": "列表",
+  "@cap_member_loyalty_mode_list": {
+    "description": "cap.member_loyalty.mode.list",
+    "x-blockhub-key": "cap.member_loyalty.mode.list"
+  },
+  "cap_member_loyalty_mode_member": "建会员档案",
+  "@cap_member_loyalty_mode_member": {
+    "description": "cap.member_loyalty.mode.member",
+    "x-blockhub-key": "cap.member_loyalty.mode.member"
+  },
+  "cap_member_loyalty_mode_outreach": "沉睡唤醒触达",
+  "@cap_member_loyalty_mode_outreach": {
+    "description": "cap.member_loyalty.mode.outreach",
+    "x-blockhub-key": "cap.member_loyalty.mode.outreach"
+  },
+  "cap_member_loyalty_mode_points": "积分入账/兑礼",
+  "@cap_member_loyalty_mode_points": {
+    "description": "cap.member_loyalty.mode.points",
+    "x-blockhub-key": "cap.member_loyalty.mode.points"
+  },
+  "cap_member_loyalty_name": "会员营销",
+  "@cap_member_loyalty_name": {
+    "description": "cap.member_loyalty.name",
+    "x-blockhub-key": "cap.member_loyalty.name"
+  },
+  "cap_member_loyalty_status_active": "活跃",
+  "@cap_member_loyalty_status_active": {
+    "description": "cap.member_loyalty.status.active",
+    "x-blockhub-key": "cap.member_loyalty.status.active"
+  },
+  "cap_member_loyalty_status_sleeping": "沉睡",
+  "@cap_member_loyalty_status_sleeping": {
+    "description": "cap.member_loyalty.status.sleeping",
+    "x-blockhub-key": "cap.member_loyalty.status.sleeping"
+  },
+  "cap_member_loyalty_submit": "提交",
+  "@cap_member_loyalty_submit": {
+    "description": "cap.member_loyalty.submit",
+    "x-blockhub-key": "cap.member_loyalty.submit"
+  },
+  "cap_member_loyalty_type_points": "送积分",
+  "@cap_member_loyalty_type_points": {
+    "description": "cap.member_loyalty.type.points",
+    "x-blockhub-key": "cap.member_loyalty.type.points"
+  },
+  "cap_member_loyalty_type_redeem": "兑礼",
+  "@cap_member_loyalty_type_redeem": {
+    "description": "cap.member_loyalty.type.redeem",
+    "x-blockhub-key": "cap.member_loyalty.type.redeem"
+  },
+  "cap_member_loyalty_type_wake": "唤醒",
+  "@cap_member_loyalty_type_wake": {
+    "description": "cap.member_loyalty.type.wake",
+    "x-blockhub-key": "cap.member_loyalty.type.wake"
+  },
+  "cap_member_loyalty_ui_title": "会员营销",
+  "@cap_member_loyalty_ui_title": {
+    "description": "cap.member_loyalty.ui.title",
+    "x-blockhub-key": "cap.member_loyalty.ui.title"
+  },
+  "cap_menu_86_category": "酒店餐饮",
+  "@cap_menu_86_category": {
+    "description": "cap.menu_86.category",
+    "x-blockhub-key": "cap.menu_86.category"
+  },
+  "cap_menu_86_name": "菜品沽清",
+  "@cap_menu_86_name": {
+    "description": "cap.menu_86.name",
+    "x-blockhub-key": "cap.menu_86.name"
+  },
+  "cap_menu_86_ui_title": "菜品沽清",
+  "@cap_menu_86_ui_title": {
+    "description": "cap.menu_86.ui.title",
+    "x-blockhub-key": "cap.menu_86.ui.title"
+  },
+  "cap_mfg_oee_category": "生产管理",
+  "@cap_mfg_oee_category": {
+    "description": "cap.mfg_oee.category",
+    "x-blockhub-key": "cap.mfg_oee.category"
+  },
+  "cap_mfg_oee_name": "生产日报OEE",
+  "@cap_mfg_oee_name": {
+    "description": "cap.mfg_oee.name",
+    "x-blockhub-key": "cap.mfg_oee.name"
+  },
+  "cap_mfg_oee_ui_title": "生产日报OEE",
+  "@cap_mfg_oee_ui_title": {
+    "description": "cap.mfg_oee.ui.title",
+    "x-blockhub-key": "cap.mfg_oee.ui.title"
+  },
+  "cap_minibar_charge_category": "酒店餐饮",
+  "@cap_minibar_charge_category": {
+    "description": "cap.minibar_charge.category",
+    "x-blockhub-key": "cap.minibar_charge.category"
+  },
+  "cap_minibar_charge_name": "迷你吧计费",
+  "@cap_minibar_charge_name": {
+    "description": "cap.minibar_charge.name",
+    "x-blockhub-key": "cap.minibar_charge.name"
+  },
+  "cap_minibar_charge_ui_title": "迷你吧计费",
+  "@cap_minibar_charge_ui_title": {
+    "description": "cap.minibar_charge.ui.title",
+    "x-blockhub-key": "cap.minibar_charge.ui.title"
+  },
+  "cap_mkt_ab_test_category": "市场营销",
+  "@cap_mkt_ab_test_category": {
+    "description": "cap.mkt_ab_test.category",
+    "x-blockhub-key": "cap.mkt_ab_test.category"
+  },
+  "cap_mkt_ab_test_name": "AB文案测试",
+  "@cap_mkt_ab_test_name": {
+    "description": "cap.mkt_ab_test.name",
+    "x-blockhub-key": "cap.mkt_ab_test.name"
+  },
+  "cap_mkt_ab_test_ui_title": "AB文案测试",
+  "@cap_mkt_ab_test_ui_title": {
+    "description": "cap.mkt_ab_test.ui.title",
+    "x-blockhub-key": "cap.mkt_ab_test.ui.title"
+  },
+  "cap_mkt_content_category": "市场营销",
+  "@cap_mkt_content_category": {
+    "description": "cap.mkt_content.category",
+    "x-blockhub-key": "cap.mkt_content.category"
+  },
+  "cap_mkt_content_name": "内容排期",
+  "@cap_mkt_content_name": {
+    "description": "cap.mkt_content.name",
+    "x-blockhub-key": "cap.mkt_content.name"
+  },
+  "cap_mkt_content_ui_title": "内容排期",
+  "@cap_mkt_content_ui_title": {
+    "description": "cap.mkt_content.ui.title",
+    "x-blockhub-key": "cap.mkt_content.ui.title"
+  },
+  "cap_mkt_coupon_category": "市场营销",
+  "@cap_mkt_coupon_category": {
+    "description": "cap.mkt_coupon.category",
+    "x-blockhub-key": "cap.mkt_coupon.category"
+  },
+  "cap_mkt_coupon_name": "券包触达",
+  "@cap_mkt_coupon_name": {
+    "description": "cap.mkt_coupon.name",
+    "x-blockhub-key": "cap.mkt_coupon.name"
+  },
+  "cap_mkt_coupon_ui_title": "券包触达",
+  "@cap_mkt_coupon_ui_title": {
+    "description": "cap.mkt_coupon.ui.title",
+    "x-blockhub-key": "cap.mkt_coupon.ui.title"
+  },
+  "cap_mkt_lead_category": "市场营销",
+  "@cap_mkt_lead_category": {
+    "description": "cap.mkt_lead.category",
+    "x-blockhub-key": "cap.mkt_lead.category"
+  },
+  "cap_mkt_lead_name": "线索分配",
+  "@cap_mkt_lead_name": {
+    "description": "cap.mkt_lead.name",
+    "x-blockhub-key": "cap.mkt_lead.name"
+  },
+  "cap_mkt_lead_ui_title": "线索分配",
+  "@cap_mkt_lead_ui_title": {
+    "description": "cap.mkt_lead.ui.title",
+    "x-blockhub-key": "cap.mkt_lead.ui.title"
+  },
+  "cap_mkt_roi_category": "市场营销",
+  "@cap_mkt_roi_category": {
+    "description": "cap.mkt_roi.category",
+    "x-blockhub-key": "cap.mkt_roi.category"
+  },
+  "cap_mkt_roi_name": "投放复盘",
+  "@cap_mkt_roi_name": {
+    "description": "cap.mkt_roi.name",
+    "x-blockhub-key": "cap.mkt_roi.name"
+  },
+  "cap_mkt_roi_ui_title": "投放复盘",
+  "@cap_mkt_roi_ui_title": {
+    "description": "cap.mkt_roi.ui.title",
+    "x-blockhub-key": "cap.mkt_roi.ui.title"
+  },
+  "cap_mkt_sign_category": "市场营销",
+  "@cap_mkt_sign_category": {
+    "description": "cap.mkt_sign.category",
+    "x-blockhub-key": "cap.mkt_sign.category"
+  },
+  "cap_mkt_sign_name": "活动签到",
+  "@cap_mkt_sign_name": {
+    "description": "cap.mkt_sign.name",
+    "x-blockhub-key": "cap.mkt_sign.name"
+  },
+  "cap_mkt_sign_ui_title": "活动签到",
+  "@cap_mkt_sign_ui_title": {
+    "description": "cap.mkt_sign.ui.title",
+    "x-blockhub-key": "cap.mkt_sign.ui.title"
+  },
+  "cap_multi_agent_category": "智能交互",
+  "@cap_multi_agent_category": {
+    "description": "cap.multi_agent.category",
+    "x-blockhub-key": "cap.multi_agent.category"
+  },
+  "cap_multi_agent_name": "多助手",
+  "@cap_multi_agent_name": {
+    "description": "cap.multi_agent.name",
+    "x-blockhub-key": "cap.multi_agent.name"
+  },
+  "cap_multi_agent_ui_title": "多助手",
+  "@cap_multi_agent_ui_title": {
+    "description": "cap.multi_agent.ui.title",
+    "x-blockhub-key": "cap.multi_agent.ui.title"
+  },
+  "cap_new_sku_launch_category": "零售电商",
+  "@cap_new_sku_launch_category": {
+    "description": "cap.new_sku_launch.category",
+    "x-blockhub-key": "cap.new_sku_launch.category"
+  },
+  "cap_new_sku_launch_name": "新品上架",
+  "@cap_new_sku_launch_name": {
+    "description": "cap.new_sku_launch.name",
+    "x-blockhub-key": "cap.new_sku_launch.name"
+  },
+  "cap_new_sku_launch_ui_title": "新品上架",
+  "@cap_new_sku_launch_ui_title": {
+    "description": "cap.new_sku_launch.ui.title",
+    "x-blockhub-key": "cap.new_sku_launch.ui.title"
+  },
+  "cap_night_audit_category": "酒店餐饮",
+  "@cap_night_audit_category": {
+    "description": "cap.night_audit.category",
+    "x-blockhub-key": "cap.night_audit.category"
+  },
+  "cap_night_audit_name": "夜审确认",
+  "@cap_night_audit_name": {
+    "description": "cap.night_audit.name",
+    "x-blockhub-key": "cap.night_audit.name"
+  },
+  "cap_night_audit_ui_title": "夜审确认",
+  "@cap_night_audit_ui_title": {
+    "description": "cap.night_audit.ui.title",
+    "x-blockhub-key": "cap.night_audit.ui.title"
+  },
+  "cap_notify_email_category": "通知集成",
+  "@cap_notify_email_category": {
+    "description": "cap.notify_email.category",
+    "x-blockhub-key": "cap.notify_email.category"
+  },
+  "cap_notify_email_name": "邮件通知",
+  "@cap_notify_email_name": {
+    "description": "cap.notify_email.name",
+    "x-blockhub-key": "cap.notify_email.name"
+  },
+  "cap_notify_email_ui_title": "邮件通知",
+  "@cap_notify_email_ui_title": {
+    "description": "cap.notify_email.ui.title",
+    "x-blockhub-key": "cap.notify_email.ui.title"
+  },
+  "cap_notify_im_category": "通知集成",
+  "@cap_notify_im_category": {
+    "description": "cap.notify_im.category",
+    "x-blockhub-key": "cap.notify_im.category"
+  },
+  "cap_notify_im_name": "企微钉钉飞书",
+  "@cap_notify_im_name": {
+    "description": "cap.notify_im.name",
+    "x-blockhub-key": "cap.notify_im.name"
+  },
+  "cap_notify_im_ui_title": "企微钉钉飞书",
+  "@cap_notify_im_ui_title": {
+    "description": "cap.notify_im.ui.title",
+    "x-blockhub-key": "cap.notify_im.ui.title"
+  },
+  "cap_notify_inapp_category": "通知集成",
+  "@cap_notify_inapp_category": {
+    "description": "cap.notify_inapp.category",
+    "x-blockhub-key": "cap.notify_inapp.category"
+  },
+  "cap_notify_inapp_name": "站内信",
+  "@cap_notify_inapp_name": {
+    "description": "cap.notify_inapp.name",
+    "x-blockhub-key": "cap.notify_inapp.name"
+  },
+  "cap_notify_inapp_ui_title": "站内信",
+  "@cap_notify_inapp_ui_title": {
+    "description": "cap.notify_inapp.ui.title",
+    "x-blockhub-key": "cap.notify_inapp.ui.title"
+  },
+  "cap_nurse_shift_category": "患者服务",
+  "@cap_nurse_shift_category": {
+    "description": "cap.nurse_shift.category",
+    "x-blockhub-key": "cap.nurse_shift.category"
+  },
+  "cap_nurse_shift_name": "护士排班",
+  "@cap_nurse_shift_name": {
+    "description": "cap.nurse_shift.name",
+    "x-blockhub-key": "cap.nurse_shift.name"
+  },
+  "cap_nurse_shift_ui_title": "护士排班",
+  "@cap_nurse_shift_ui_title": {
+    "description": "cap.nurse_shift.ui.title",
+    "x-blockhub-key": "cap.nurse_shift.ui.title"
+  },
+  "cap_omni_pickup_category": "零售电商",
+  "@cap_omni_pickup_category": {
+    "description": "cap.omni_pickup.category",
+    "x-blockhub-key": "cap.omni_pickup.category"
+  },
+  "cap_omni_pickup_name": "全渠道自提",
+  "@cap_omni_pickup_name": {
+    "description": "cap.omni_pickup.name",
+    "x-blockhub-key": "cap.omni_pickup.name"
+  },
+  "cap_omni_pickup_ui_title": "全渠道自提",
+  "@cap_omni_pickup_ui_title": {
+    "description": "cap.omni_pickup.ui.title",
+    "x-blockhub-key": "cap.omni_pickup.ui.title"
+  },
+  "cap_online_refund_category": "零售电商",
+  "@cap_online_refund_category": {
+    "description": "cap.online_refund.category",
+    "x-blockhub-key": "cap.online_refund.category"
+  },
+  "cap_online_refund_name": "电商仅退款",
+  "@cap_online_refund_name": {
+    "description": "cap.online_refund.name",
+    "x-blockhub-key": "cap.online_refund.name"
+  },
+  "cap_online_refund_ui_title": "电商仅退款",
+  "@cap_online_refund_ui_title": {
+    "description": "cap.online_refund.ui.title",
+    "x-blockhub-key": "cap.online_refund.ui.title"
+  },
+  "cap_ops_kpi_category": "数据报表",
+  "@cap_ops_kpi_category": {
+    "description": "cap.ops_kpi.category",
+    "x-blockhub-key": "cap.ops_kpi.category"
+  },
+  "cap_ops_kpi_name": "经营看板",
+  "@cap_ops_kpi_name": {
+    "description": "cap.ops_kpi.name",
+    "x-blockhub-key": "cap.ops_kpi.name"
+  },
+  "cap_ops_kpi_ui_title": "经营看板",
+  "@cap_ops_kpi_ui_title": {
+    "description": "cap.ops_kpi.ui.title",
+    "x-blockhub-key": "cap.ops_kpi.ui.title"
+  },
+  "cap_owner_complaint_category": "房地产",
+  "@cap_owner_complaint_category": {
+    "description": "cap.owner_complaint.category",
+    "x-blockhub-key": "cap.owner_complaint.category"
+  },
+  "cap_owner_complaint_name": "业主投诉",
+  "@cap_owner_complaint_name": {
+    "description": "cap.owner_complaint.name",
+    "x-blockhub-key": "cap.owner_complaint.name"
+  },
+  "cap_owner_complaint_ui_title": "业主投诉",
+  "@cap_owner_complaint_ui_title": {
+    "description": "cap.owner_complaint.ui.title",
+    "x-blockhub-key": "cap.owner_complaint.ui.title"
+  },
+  "cap_pet_clinic_category": "医疗健康",
+  "@cap_pet_clinic_category": {
+    "description": "cap.pet_clinic.category",
+    "x-blockhub-key": "cap.pet_clinic.category"
+  },
+  "cap_pet_clinic_name": "宠物问诊",
+  "@cap_pet_clinic_name": {
+    "description": "cap.pet_clinic.name",
+    "x-blockhub-key": "cap.pet_clinic.name"
+  },
+  "cap_pet_clinic_ui_title": "宠物问诊",
+  "@cap_pet_clinic_ui_title": {
+    "description": "cap.pet_clinic.ui.title",
+    "x-blockhub-key": "cap.pet_clinic.ui.title"
+  },
+  "cap_pod_signoff_category": "物流仓储",
+  "@cap_pod_signoff_category": {
+    "description": "cap.pod_signoff.category",
+    "x-blockhub-key": "cap.pod_signoff.category"
+  },
+  "cap_pod_signoff_name": "签收确认",
+  "@cap_pod_signoff_name": {
+    "description": "cap.pod_signoff.name",
+    "x-blockhub-key": "cap.pod_signoff.name"
+  },
+  "cap_pod_signoff_ui_title": "签收确认",
+  "@cap_pod_signoff_ui_title": {
+    "description": "cap.pod_signoff.ui.title",
+    "x-blockhub-key": "cap.pod_signoff.ui.title"
+  },
+  "cap_policy_qa_category": "知识协同",
+  "@cap_policy_qa_category": {
+    "description": "cap.policy_qa.category",
+    "x-blockhub-key": "cap.policy_qa.category"
+  },
+  "cap_policy_qa_name": "制度问答",
+  "@cap_policy_qa_name": {
+    "description": "cap.policy_qa.name",
+    "x-blockhub-key": "cap.policy_qa.name"
+  },
+  "cap_policy_qa_ui_title": "制度问答",
+  "@cap_policy_qa_ui_title": {
+    "description": "cap.policy_qa.ui.title",
+    "x-blockhub-key": "cap.policy_qa.ui.title"
+  },
+  "cap_pos_exception_category": "零售电商",
+  "@cap_pos_exception_category": {
+    "description": "cap.pos_exception.category",
+    "x-blockhub-key": "cap.pos_exception.category"
+  },
+  "cap_pos_exception_name": "收银异常",
+  "@cap_pos_exception_name": {
+    "description": "cap.pos_exception.name",
+    "x-blockhub-key": "cap.pos_exception.name"
+  },
+  "cap_pos_exception_ui_title": "收银异常",
+  "@cap_pos_exception_ui_title": {
+    "description": "cap.pos_exception.ui.title",
+    "x-blockhub-key": "cap.pos_exception.ui.title"
+  },
+  "cap_price_change_category": "零售电商",
+  "@cap_price_change_category": {
+    "description": "cap.price_change.category",
+    "x-blockhub-key": "cap.price_change.category"
+  },
+  "cap_price_change_name": "价格变更",
+  "@cap_price_change_name": {
+    "description": "cap.price_change.name",
+    "x-blockhub-key": "cap.price_change.name"
+  },
+  "cap_price_change_ui_title": "价格变更",
+  "@cap_price_change_ui_title": {
+    "description": "cap.price_change.ui.title",
+    "x-blockhub-key": "cap.price_change.ui.title"
+  },
+  "cap_promo_coupon_category": "零售电商",
+  "@cap_promo_coupon_category": {
+    "description": "cap.promo_coupon.category",
+    "x-blockhub-key": "cap.promo_coupon.category"
+  },
+  "cap_promo_coupon_name": "优惠券核销",
+  "@cap_promo_coupon_name": {
+    "description": "cap.promo_coupon.name",
+    "x-blockhub-key": "cap.promo_coupon.name"
+  },
+  "cap_promo_coupon_ui_title": "优惠券核销",
+  "@cap_promo_coupon_ui_title": {
+    "description": "cap.promo_coupon.ui.title",
+    "x-blockhub-key": "cap.promo_coupon.ui.title"
+  },
+  "cap_property_fee_category": "房地产",
+  "@cap_property_fee_category": {
+    "description": "cap.property_fee.category",
+    "x-blockhub-key": "cap.property_fee.category"
+  },
+  "cap_property_fee_name": "物业费催缴",
+  "@cap_property_fee_name": {
+    "description": "cap.property_fee.name",
+    "x-blockhub-key": "cap.property_fee.name"
+  },
+  "cap_property_fee_ui_title": "物业费催缴",
+  "@cap_property_fee_ui_title": {
+    "description": "cap.property_fee.ui.title",
+    "x-blockhub-key": "cap.property_fee.ui.title"
+  },
+  "cap_property_repair_category": "生活服务",
+  "@cap_property_repair_category": {
+    "description": "cap.property_repair.category",
+    "x-blockhub-key": "cap.property_repair.category"
+  },
+  "cap_property_repair_name": "物业报修",
+  "@cap_property_repair_name": {
+    "description": "cap.property_repair.name",
+    "x-blockhub-key": "cap.property_repair.name"
+  },
+  "cap_property_repair_ui_title": "物业报修",
+  "@cap_property_repair_ui_title": {
+    "description": "cap.property_repair.ui.title",
+    "x-blockhub-key": "cap.property_repair.ui.title"
+  },
+  "cap_quality_inspect_category": "现场运维",
+  "@cap_quality_inspect_category": {
+    "description": "cap.quality_inspect.category",
+    "x-blockhub-key": "cap.quality_inspect.category"
+  },
+  "cap_quality_inspect_name": "质检SOP",
+  "@cap_quality_inspect_name": {
+    "description": "cap.quality_inspect.name",
+    "x-blockhub-key": "cap.quality_inspect.name"
+  },
+  "cap_quality_inspect_ui_title": "质检SOP",
+  "@cap_quality_inspect_ui_title": {
+    "description": "cap.quality_inspect.ui.title",
+    "x-blockhub-key": "cap.quality_inspect.ui.title"
+  },
+  "cap_quote_contract_category": "销售行业",
+  "@cap_quote_contract_category": {
+    "description": "cap.quote_contract.category",
+    "x-blockhub-key": "cap.quote_contract.category"
+  },
+  "cap_quote_contract_name": "报价合同",
+  "@cap_quote_contract_name": {
+    "description": "cap.quote_contract.name",
+    "x-blockhub-key": "cap.quote_contract.name"
+  },
+  "cap_quote_contract_ui_title": "报价合同",
+  "@cap_quote_contract_ui_title": {
+    "description": "cap.quote_contract.ui.title",
+    "x-blockhub-key": "cap.quote_contract.ui.title"
+  },
+  "cap_rbac_page_category": "权限安全",
+  "@cap_rbac_page_category": {
+    "description": "cap.rbac_page.category",
+    "x-blockhub-key": "cap.rbac_page.category"
+  },
+  "cap_rbac_page_name": "角色权限",
+  "@cap_rbac_page_name": {
+    "description": "cap.rbac_page.name",
+    "x-blockhub-key": "cap.rbac_page.name"
+  },
+  "cap_rbac_page_ui_title": "角色权限",
+  "@cap_rbac_page_ui_title": {
+    "description": "cap.rbac_page.ui.title",
+    "x-blockhub-key": "cap.rbac_page.ui.title"
+  },
+  "cap_re_contract_category": "房地产",
+  "@cap_re_contract_category": {
+    "description": "cap.re_contract.category",
+    "x-blockhub-key": "cap.re_contract.category"
+  },
+  "cap_re_contract_name": "签约认购",
+  "@cap_re_contract_name": {
+    "description": "cap.re_contract.name",
+    "x-blockhub-key": "cap.re_contract.name"
+  },
+  "cap_re_contract_ui_title": "签约认购",
+  "@cap_re_contract_ui_title": {
+    "description": "cap.re_contract.ui.title",
+    "x-blockhub-key": "cap.re_contract.ui.title"
+  },
+  "cap_receipt_audit_category": "零售电商",
+  "@cap_receipt_audit_category": {
+    "description": "cap.receipt_audit.category",
+    "x-blockhub-key": "cap.receipt_audit.category"
+  },
+  "cap_receipt_audit_name": "小票稽核",
+  "@cap_receipt_audit_name": {
+    "description": "cap.receipt_audit.name",
+    "x-blockhub-key": "cap.receipt_audit.name"
+  },
+  "cap_receipt_audit_ui_title": "小票稽核",
+  "@cap_receipt_audit_ui_title": {
+    "description": "cap.receipt_audit.ui.title",
+    "x-blockhub-key": "cap.receipt_audit.ui.title"
+  },
+  "cap_regulatory_report_category": "金融服务",
+  "@cap_regulatory_report_category": {
+    "description": "cap.regulatory_report.category",
+    "x-blockhub-key": "cap.regulatory_report.category"
+  },
+  "cap_regulatory_report_name": "监管报送",
+  "@cap_regulatory_report_name": {
+    "description": "cap.regulatory_report.name",
+    "x-blockhub-key": "cap.regulatory_report.name"
+  },
+  "cap_regulatory_report_ui_title": "监管报送",
+  "@cap_regulatory_report_ui_title": {
+    "description": "cap.regulatory_report.ui.title",
+    "x-blockhub-key": "cap.regulatory_report.ui.title"
+  },
+  "cap_rent_collection_category": "房地产",
+  "@cap_rent_collection_category": {
+    "description": "cap.rent_collection.category",
+    "x-blockhub-key": "cap.rent_collection.category"
+  },
+  "cap_rent_collection_name": "租金收缴",
+  "@cap_rent_collection_name": {
+    "description": "cap.rent_collection.name",
+    "x-blockhub-key": "cap.rent_collection.name"
+  },
+  "cap_rent_collection_ui_title": "租金收缴",
+  "@cap_rent_collection_ui_title": {
+    "description": "cap.rent_collection.ui.title",
+    "x-blockhub-key": "cap.rent_collection.ui.title"
+  },
+  "cap_retail_order_category": "零售电商",
+  "@cap_retail_order_category": {
+    "description": "cap.retail_order.category",
+    "x-blockhub-key": "cap.retail_order.category"
+  },
+  "cap_retail_order_name": "订单跟踪",
+  "@cap_retail_order_name": {
+    "description": "cap.retail_order.name",
+    "x-blockhub-key": "cap.retail_order.name"
+  },
+  "cap_retail_order_ui_title": "订单跟踪",
+  "@cap_retail_order_ui_title": {
+    "description": "cap.retail_order.ui.title",
+    "x-blockhub-key": "cap.retail_order.ui.title"
+  },
+  "cap_return_exchange_category": "零售电商",
+  "@cap_return_exchange_category": {
+    "description": "cap.return_exchange.category",
+    "x-blockhub-key": "cap.return_exchange.category"
+  },
+  "cap_return_exchange_name": "退换货",
+  "@cap_return_exchange_name": {
+    "description": "cap.return_exchange.name",
+    "x-blockhub-key": "cap.return_exchange.name"
+  },
+  "cap_return_exchange_ui_title": "退换货",
+  "@cap_return_exchange_ui_title": {
+    "description": "cap.return_exchange.ui.title",
+    "x-blockhub-key": "cap.return_exchange.ui.title"
+  },
+  "cap_room_service_category": "酒店餐饮",
+  "@cap_room_service_category": {
+    "description": "cap.room_service.category",
+    "x-blockhub-key": "cap.room_service.category"
+  },
+  "cap_room_service_name": "客房服务",
+  "@cap_room_service_name": {
+    "description": "cap.room_service.name",
+    "x-blockhub-key": "cap.room_service.name"
+  },
+  "cap_room_service_ui_title": "客房服务",
+  "@cap_room_service_ui_title": {
+    "description": "cap.room_service.ui.title",
+    "x-blockhub-key": "cap.room_service.ui.title"
+  },
+  "cap_room_status_category": "酒店餐饮",
+  "@cap_room_status_category": {
+    "description": "cap.room_status.category",
+    "x-blockhub-key": "cap.room_status.category"
+  },
+  "cap_room_status_name": "房态变更",
+  "@cap_room_status_name": {
+    "description": "cap.room_status.name",
+    "x-blockhub-key": "cap.room_status.name"
+  },
+  "cap_room_status_ui_title": "房态变更",
+  "@cap_room_status_ui_title": {
+    "description": "cap.room_status.ui.title",
+    "x-blockhub-key": "cap.room_status.ui.title"
+  },
+  "cap_route_task_category": "物流仓储",
+  "@cap_route_task_category": {
+    "description": "cap.route_task.category",
+    "x-blockhub-key": "cap.route_task.category"
+  },
+  "cap_route_task_name": "路线任务",
+  "@cap_route_task_name": {
+    "description": "cap.route_task.name",
+    "x-blockhub-key": "cap.route_task.name"
+  },
+  "cap_route_task_ui_title": "路线任务",
+  "@cap_route_task_ui_title": {
+    "description": "cap.route_task.ui.title",
+    "x-blockhub-key": "cap.route_task.ui.title"
+  },
+  "cap_sales_followup_category": "房地产",
+  "@cap_sales_followup_category": {
+    "description": "cap.sales_followup.category",
+    "x-blockhub-key": "cap.sales_followup.category"
+  },
+  "cap_sales_followup_name": "客户跟进",
+  "@cap_sales_followup_name": {
+    "description": "cap.sales_followup.name",
+    "x-blockhub-key": "cap.sales_followup.name"
+  },
+  "cap_sales_followup_ui_title": "客户跟进",
+  "@cap_sales_followup_ui_title": {
+    "description": "cap.sales_followup.ui.title",
+    "x-blockhub-key": "cap.sales_followup.ui.title"
+  },
+  "cap_sales_lead_category": "销售行业",
+  "@cap_sales_lead_category": {
+    "description": "cap.sales_lead.category",
+    "x-blockhub-key": "cap.sales_lead.category"
+  },
+  "cap_sales_lead_name": "销售获客",
+  "@cap_sales_lead_name": {
+    "description": "cap.sales_lead.name",
+    "x-blockhub-key": "cap.sales_lead.name"
+  },
+  "cap_sales_lead_ui_title": "销售获客",
+  "@cap_sales_lead_ui_title": {
+    "description": "cap.sales_lead.ui.title",
+    "x-blockhub-key": "cap.sales_lead.ui.title"
+  },
+  "cap_schedule_alarm_category": "Flutter工具",
+  "@cap_schedule_alarm_category": {
+    "description": "cap.schedule_alarm.category",
+    "x-blockhub-key": "cap.schedule_alarm.category"
+  },
+  "cap_schedule_alarm_name": "定时闹钟",
+  "@cap_schedule_alarm_name": {
+    "description": "cap.schedule_alarm.name",
+    "x-blockhub-key": "cap.schedule_alarm.name"
+  },
+  "cap_school_notice_category": "教育培训",
+  "@cap_school_notice_category": {
+    "description": "cap.school_notice.category",
+    "x-blockhub-key": "cap.school_notice.category"
+  },
+  "cap_school_notice_name": "家校通知",
+  "@cap_school_notice_name": {
+    "description": "cap.school_notice.name",
+    "x-blockhub-key": "cap.school_notice.name"
+  },
+  "cap_school_notice_ui_title": "家校通知",
+  "@cap_school_notice_ui_title": {
+    "description": "cap.school_notice.ui.title",
+    "x-blockhub-key": "cap.school_notice.ui.title"
+  },
+  "cap_seal_request_category": "人事行政",
+  "@cap_seal_request_category": {
+    "description": "cap.seal_request.category",
+    "x-blockhub-key": "cap.seal_request.category"
+  },
+  "cap_seal_request_name": "用印申请",
+  "@cap_seal_request_name": {
+    "description": "cap.seal_request.name",
+    "x-blockhub-key": "cap.seal_request.name"
+  },
+  "cap_seal_request_ui_title": "用印申请",
+  "@cap_seal_request_ui_title": {
+    "description": "cap.seal_request.ui.title",
+    "x-blockhub-key": "cap.seal_request.ui.title"
+  },
+  "cap_shanghai_voice_category": "智能交互",
+  "@cap_shanghai_voice_category": {
+    "description": "cap.shanghai_voice.category",
+    "x-blockhub-key": "cap.shanghai_voice.category"
+  },
+  "cap_shanghai_voice_name": "上海话语音交互",
+  "@cap_shanghai_voice_name": {
+    "description": "cap.shanghai_voice.name",
+    "x-blockhub-key": "cap.shanghai_voice.name"
+  },
+  "cap_shanghai_voice_ui_title": "上海话语音交互",
+  "@cap_shanghai_voice_ui_title": {
+    "description": "cap.shanghai_voice.ui.title",
+    "x-blockhub-key": "cap.shanghai_voice.ui.title"
+  },
+  "cap_shanghai_voice_stream_category": "智能交互",
+  "@cap_shanghai_voice_stream_category": {
+    "description": "cap.shanghai_voice_stream.category",
+    "x-blockhub-key": "cap.shanghai_voice_stream.category"
+  },
+  "cap_shanghai_voice_stream_name": "实时语音流",
+  "@cap_shanghai_voice_stream_name": {
+    "description": "cap.shanghai_voice_stream.name",
+    "x-blockhub-key": "cap.shanghai_voice_stream.name"
+  },
+  "cap_shanghai_voice_stream_ui_title": "实时语音流",
+  "@cap_shanghai_voice_stream_ui_title": {
+    "description": "cap.shanghai_voice_stream.ui.title",
+    "x-blockhub-key": "cap.shanghai_voice_stream.ui.title"
+  },
+  "cap_shelf_replenish_category": "零售电商",
+  "@cap_shelf_replenish_category": {
+    "description": "cap.shelf_replenish.category",
+    "x-blockhub-key": "cap.shelf_replenish.category"
+  },
+  "cap_shelf_replenish_name": "补货上架",
+  "@cap_shelf_replenish_name": {
+    "description": "cap.shelf_replenish.name",
+    "x-blockhub-key": "cap.shelf_replenish.name"
+  },
+  "cap_shelf_replenish_ui_title": "补货上架",
+  "@cap_shelf_replenish_ui_title": {
+    "description": "cap.shelf_replenish.ui.title",
+    "x-blockhub-key": "cap.shelf_replenish.ui.title"
+  },
+  "cap_shift_attendance_category": "人事管理",
+  "@cap_shift_attendance_category": {
+    "description": "cap.shift_attendance.category",
+    "x-blockhub-key": "cap.shift_attendance.category"
+  },
+  "cap_shift_attendance_name": "排班考勤",
+  "@cap_shift_attendance_name": {
+    "description": "cap.shift_attendance.name",
+    "x-blockhub-key": "cap.shift_attendance.name"
+  },
+  "cap_shift_attendance_ui_title": "排班考勤",
+  "@cap_shift_attendance_ui_title": {
+    "description": "cap.shift_attendance.ui.title",
+    "x-blockhub-key": "cap.shift_attendance.ui.title"
+  },
+  "cap_site_patrol_category": "现场运维",
+  "@cap_site_patrol_category": {
+    "description": "cap.site_patrol.category",
+    "x-blockhub-key": "cap.site_patrol.category"
+  },
+  "cap_site_patrol_name": "巡检打卡",
+  "@cap_site_patrol_name": {
+    "description": "cap.site_patrol.name",
+    "x-blockhub-key": "cap.site_patrol.name"
+  },
+  "cap_site_patrol_ui_title": "巡检打卡",
+  "@cap_site_patrol_ui_title": {
+    "description": "cap.site_patrol.ui.title",
+    "x-blockhub-key": "cap.site_patrol.ui.title"
+  },
+  "cap_stock_alert_category": "零售电商",
+  "@cap_stock_alert_category": {
+    "description": "cap.stock_alert.category",
+    "x-blockhub-key": "cap.stock_alert.category"
+  },
+  "cap_stock_alert_name": "库存预警",
+  "@cap_stock_alert_name": {
+    "description": "cap.stock_alert.name",
+    "x-blockhub-key": "cap.stock_alert.name"
+  },
+  "cap_stock_alert_ui_title": "库存预警",
+  "@cap_stock_alert_ui_title": {
+    "description": "cap.stock_alert.ui.title",
+    "x-blockhub-key": "cap.stock_alert.ui.title"
+  },
+  "cap_store_transfer_category": "零售电商",
+  "@cap_store_transfer_category": {
+    "description": "cap.store_transfer.category",
+    "x-blockhub-key": "cap.store_transfer.category"
+  },
+  "cap_store_transfer_name": "门店调拨",
+  "@cap_store_transfer_name": {
+    "description": "cap.store_transfer.name",
+    "x-blockhub-key": "cap.store_transfer.name"
+  },
+  "cap_store_transfer_ui_title": "门店调拨",
+  "@cap_store_transfer_ui_title": {
+    "description": "cap.store_transfer.ui.title",
+    "x-blockhub-key": "cap.store_transfer.ui.title"
+  },
+  "cap_study_coach_category": "教育培训",
+  "@cap_study_coach_category": {
+    "description": "cap.study_coach.category",
+    "x-blockhub-key": "cap.study_coach.category"
+  },
+  "cap_study_coach_name": "课本学习",
+  "@cap_study_coach_name": {
+    "description": "cap.study_coach.name",
+    "x-blockhub-key": "cap.study_coach.name"
+  },
+  "cap_study_coach_ui_title": "课本学习",
+  "@cap_study_coach_ui_title": {
+    "description": "cap.study_coach.ui.title",
+    "x-blockhub-key": "cap.study_coach.ui.title"
+  },
+  "cap_supplier_recon_category": "零售电商",
+  "@cap_supplier_recon_category": {
+    "description": "cap.supplier_recon.category",
+    "x-blockhub-key": "cap.supplier_recon.category"
+  },
+  "cap_supplier_recon_name": "供应商对账",
+  "@cap_supplier_recon_name": {
+    "description": "cap.supplier_recon.name",
+    "x-blockhub-key": "cap.supplier_recon.name"
+  },
+  "cap_supplier_recon_ui_title": "供应商对账",
+  "@cap_supplier_recon_ui_title": {
+    "description": "cap.supplier_recon.ui.title",
+    "x-blockhub-key": "cap.supplier_recon.ui.title"
+  },
+  "cap_table_reserve_category": "酒店餐饮",
+  "@cap_table_reserve_category": {
+    "description": "cap.table_reserve.category",
+    "x-blockhub-key": "cap.table_reserve.category"
+  },
+  "cap_table_reserve_name": "餐厅订位",
+  "@cap_table_reserve_name": {
+    "description": "cap.table_reserve.name",
+    "x-blockhub-key": "cap.table_reserve.name"
+  },
+  "cap_table_reserve_ui_title": "餐厅订位",
+  "@cap_table_reserve_ui_title": {
+    "description": "cap.table_reserve.ui.title",
+    "x-blockhub-key": "cap.table_reserve.ui.title"
+  },
+  "cap_training_record_category": "人事管理",
+  "@cap_training_record_category": {
+    "description": "cap.training_record.category",
+    "x-blockhub-key": "cap.training_record.category"
+  },
+  "cap_training_record_name": "技能培训",
+  "@cap_training_record_name": {
+    "description": "cap.training_record.name",
+    "x-blockhub-key": "cap.training_record.name"
+  },
+  "cap_training_record_ui_title": "技能培训",
+  "@cap_training_record_ui_title": {
+    "description": "cap.training_record.ui.title",
+    "x-blockhub-key": "cap.training_record.ui.title"
+  },
+  "cap_travel_plan_category": "生活服务",
+  "@cap_travel_plan_category": {
+    "description": "cap.travel_plan.category",
+    "x-blockhub-key": "cap.travel_plan.category"
+  },
+  "cap_travel_plan_name": "旅行攻略",
+  "@cap_travel_plan_name": {
+    "description": "cap.travel_plan.name",
+    "x-blockhub-key": "cap.travel_plan.name"
+  },
+  "cap_travel_plan_ui_title": "旅行攻略",
+  "@cap_travel_plan_ui_title": {
+    "description": "cap.travel_plan.ui.title",
+    "x-blockhub-key": "cap.travel_plan.ui.title"
+  },
+  "cap_viewing_feedback_category": "房地产",
+  "@cap_viewing_feedback_category": {
+    "description": "cap.viewing_feedback.category",
+    "x-blockhub-key": "cap.viewing_feedback.category"
+  },
+  "cap_viewing_feedback_name": "看房回访",
+  "@cap_viewing_feedback_name": {
+    "description": "cap.viewing_feedback.name",
+    "x-blockhub-key": "cap.viewing_feedback.name"
+  },
+  "cap_viewing_feedback_ui_title": "看房回访",
+  "@cap_viewing_feedback_ui_title": {
+    "description": "cap.viewing_feedback.ui.title",
+    "x-blockhub-key": "cap.viewing_feedback.ui.title"
+  },
+  "cap_vip_hold_category": "零售电商",
+  "@cap_vip_hold_category": {
+    "description": "cap.vip_hold.category",
+    "x-blockhub-key": "cap.vip_hold.category"
+  },
+  "cap_vip_hold_name": "会员预留",
+  "@cap_vip_hold_name": {
+    "description": "cap.vip_hold.name",
+    "x-blockhub-key": "cap.vip_hold.name"
+  },
+  "cap_vip_hold_ui_title": "会员预留",
+  "@cap_vip_hold_ui_title": {
+    "description": "cap.vip_hold.ui.title",
+    "x-blockhub-key": "cap.vip_hold.ui.title"
+  },
+  "cap_warehouse_inbound_category": "物流仓储",
+  "@cap_warehouse_inbound_category": {
+    "description": "cap.warehouse_inbound.category",
+    "x-blockhub-key": "cap.warehouse_inbound.category"
+  },
+  "cap_warehouse_inbound_name": "入库验收",
+  "@cap_warehouse_inbound_name": {
+    "description": "cap.warehouse_inbound.name",
+    "x-blockhub-key": "cap.warehouse_inbound.name"
+  },
+  "cap_warehouse_inbound_ui_title": "入库验收",
+  "@cap_warehouse_inbound_ui_title": {
+    "description": "cap.warehouse_inbound.ui.title",
+    "x-blockhub-key": "cap.warehouse_inbound.ui.title"
+  },
+  "cap_warehouse_outbound_category": "物流仓储",
+  "@cap_warehouse_outbound_category": {
+    "description": "cap.warehouse_outbound.category",
+    "x-blockhub-key": "cap.warehouse_outbound.category"
+  },
+  "cap_warehouse_outbound_name": "出库拣配",
+  "@cap_warehouse_outbound_name": {
+    "description": "cap.warehouse_outbound.name",
+    "x-blockhub-key": "cap.warehouse_outbound.name"
+  },
+  "cap_warehouse_outbound_ui_title": "出库拣配",
+  "@cap_warehouse_outbound_ui_title": {
+    "description": "cap.warehouse_outbound.ui.title",
+    "x-blockhub-key": "cap.warehouse_outbound.ui.title"
+  },
+  "cap_waybill_track_category": "物流仓储",
+  "@cap_waybill_track_category": {
+    "description": "cap.waybill_track.category",
+    "x-blockhub-key": "cap.waybill_track.category"
+  },
+  "cap_waybill_track_name": "运单跟踪",
+  "@cap_waybill_track_name": {
+    "description": "cap.waybill_track.name",
+    "x-blockhub-key": "cap.waybill_track.name"
+  },
+  "cap_waybill_track_ui_title": "运单跟踪",
+  "@cap_waybill_track_ui_title": {
+    "description": "cap.waybill_track.ui.title",
+    "x-blockhub-key": "cap.waybill_track.ui.title"
+  },
+  "cap_wedding_plan_category": "生活服务",
+  "@cap_wedding_plan_category": {
+    "description": "cap.wedding_plan.category",
+    "x-blockhub-key": "cap.wedding_plan.category"
+  },
+  "cap_wedding_plan_name": "婚礼筹备",
+  "@cap_wedding_plan_name": {
+    "description": "cap.wedding_plan.name",
+    "x-blockhub-key": "cap.wedding_plan.name"
+  },
+  "cap_wedding_plan_ui_title": "婚礼筹备",
+  "@cap_wedding_plan_ui_title": {
+    "description": "cap.wedding_plan.ui.title",
+    "x-blockhub-key": "cap.wedding_plan.ui.title"
+  },
+  "common_back": "上一步",
+  "@common_back": {
+    "description": "common.back",
+    "x-blockhub-key": "common.back"
+  },
+  "common_cancel": "取消",
+  "@common_cancel": {
+    "description": "common.cancel",
+    "x-blockhub-key": "common.cancel"
+  },
+  "common_confirm": "确认",
+  "@common_confirm": {
+    "description": "common.confirm",
+    "x-blockhub-key": "common.confirm"
+  },
+  "common_fill": "填写{{label}}",
+  "@common_fill": {
+    "description": "common.fill",
+    "x-blockhub-key": "common.fill"
+  },
+  "common_loading": "加载中…",
+  "@common_loading": {
+    "description": "common.loading",
+    "x-blockhub-key": "common.loading"
+  },
+  "common_save": "保存",
+  "@common_save": {
+    "description": "common.save",
+    "x-blockhub-key": "common.save"
+  },
+  "common_saving": "保存中…",
+  "@common_saving": {
+    "description": "common.saving",
+    "x-blockhub-key": "common.saving"
+  },
+  "common_skip": "跳过",
+  "@common_skip": {
+    "description": "common.skip",
+    "x-blockhub-key": "common.skip"
+  },
+  "common_submit": "提交",
+  "@common_submit": {
+    "description": "common.submit",
+    "x-blockhub-key": "common.submit"
+  },
+  "common_submitting": "提交中…",
+  "@common_submitting": {
+    "description": "common.submitting",
+    "x-blockhub-key": "common.submitting"
+  },
+  "error_ACCOUNT_DISABLED": "账号已禁用",
+  "@error_ACCOUNT_DISABLED": {
+    "description": "error.ACCOUNT_DISABLED",
+    "x-blockhub-key": "error.ACCOUNT_DISABLED"
+  },
+  "error_BAD_CREDENTIALS": "邮箱或密码错误",
+  "@error_BAD_CREDENTIALS": {
+    "description": "error.BAD_CREDENTIALS",
+    "x-blockhub-key": "error.BAD_CREDENTIALS"
+  },
+  "error_BAD_GATEWAY": "服务器网关错误，请稍后重试",
+  "@error_BAD_GATEWAY": {
+    "description": "error.BAD_GATEWAY",
+    "x-blockhub-key": "error.BAD_GATEWAY"
+  },
+  "error_DB_UNAVAILABLE": "数据库不可用，请启动 PostgreSQL",
+  "@error_DB_UNAVAILABLE": {
+    "description": "error.DB_UNAVAILABLE",
+    "x-blockhub-key": "error.DB_UNAVAILABLE"
+  },
+  "error_EMAIL_NOT_CONFIGURED": "邮件服务未配置，请联系管理员",
+  "@error_EMAIL_NOT_CONFIGURED": {
+    "description": "error.EMAIL_NOT_CONFIGURED",
+    "x-blockhub-key": "error.EMAIL_NOT_CONFIGURED"
+  },
+  "error_EMAIL_SEND_FAILED": "邮件发送失败，请稍后重试",
+  "@error_EMAIL_SEND_FAILED": {
+    "description": "error.EMAIL_SEND_FAILED",
+    "x-blockhub-key": "error.EMAIL_SEND_FAILED"
+  },
+  "error_FORBIDDEN": "权限不足",
+  "@error_FORBIDDEN": {
+    "description": "error.FORBIDDEN",
+    "x-blockhub-key": "error.FORBIDDEN"
+  },
+  "error_INDUSTRY_PACK_NOT_FOUND": "行业包不存在",
+  "@error_INDUSTRY_PACK_NOT_FOUND": {
+    "description": "error.INDUSTRY_PACK_NOT_FOUND",
+    "x-blockhub-key": "error.INDUSTRY_PACK_NOT_FOUND"
+  },
+  "error_INVALID_CODE": "验证码错误或已过期",
+  "@error_INVALID_CODE": {
+    "description": "error.INVALID_CODE",
+    "x-blockhub-key": "error.INVALID_CODE"
+  },
+  "error_LOGIN_FAILED": "登录失败，请检查账号与密码",
+  "@error_LOGIN_FAILED": {
+    "description": "error.LOGIN_FAILED",
+    "x-blockhub-key": "error.LOGIN_FAILED"
+  },
+  "error_MISSING_CODE": "缺少 code",
+  "@error_MISSING_CODE": {
+    "description": "error.MISSING_CODE",
+    "x-blockhub-key": "error.MISSING_CODE"
+  },
+  "error_NETWORK_ERROR": "无法连接服务，请稍后重试",
+  "@error_NETWORK_ERROR": {
+    "description": "error.NETWORK_ERROR",
+    "x-blockhub-key": "error.NETWORK_ERROR"
+  },
+  "error_NOT_FOUND": "记录不存在",
+  "@error_NOT_FOUND": {
+    "description": "error.NOT_FOUND",
+    "x-blockhub-key": "error.NOT_FOUND"
+  },
+  "error_RATE_LIMITED": "请求过于频繁，请稍后再试",
+  "@error_RATE_LIMITED": {
+    "description": "error.RATE_LIMITED",
+    "x-blockhub-key": "error.RATE_LIMITED"
+  },
+  "error_REQUIRED": "必填项不能为空",
+  "@error_REQUIRED": {
+    "description": "error.REQUIRED",
+    "x-blockhub-key": "error.REQUIRED"
+  },
+  "error_SCHEMA_APPROVAL_REQUIRED": "改页需提交审批后生效",
+  "@error_SCHEMA_APPROVAL_REQUIRED": {
+    "description": "error.SCHEMA_APPROVAL_REQUIRED",
+    "x-blockhub-key": "error.SCHEMA_APPROVAL_REQUIRED"
+  },
+  "error_SCHEMA_REV_CONFLICT": "页面版本冲突，请刷新后重试",
+  "@error_SCHEMA_REV_CONFLICT": {
+    "description": "error.SCHEMA_REV_CONFLICT",
+    "x-blockhub-key": "error.SCHEMA_REV_CONFLICT"
+  },
+  "error_SEND_CODE_FAILED": "验证码发送失败",
+  "@error_SEND_CODE_FAILED": {
+    "description": "error.SEND_CODE_FAILED",
+    "x-blockhub-key": "error.SEND_CODE_FAILED"
+  },
+  "error_SERVICE_UNAVAILABLE": "服务暂不可用，请稍后重试",
+  "@error_SERVICE_UNAVAILABLE": {
+    "description": "error.SERVICE_UNAVAILABLE",
+    "x-blockhub-key": "error.SERVICE_UNAVAILABLE"
+  },
+  "error_SMS_NOT_CONFIGURED": "短信服务未配置，请联系管理员",
+  "@error_SMS_NOT_CONFIGURED": {
+    "description": "error.SMS_NOT_CONFIGURED",
+    "x-blockhub-key": "error.SMS_NOT_CONFIGURED"
+  },
+  "error_SMS_SEND_FAILED": "短信发送失败，请稍后重试",
+  "@error_SMS_SEND_FAILED": {
+    "description": "error.SMS_SEND_FAILED",
+    "x-blockhub-key": "error.SMS_SEND_FAILED"
+  },
+  "error_TITLE_REQUIRED": "标题不能为空",
+  "@error_TITLE_REQUIRED": {
+    "description": "error.TITLE_REQUIRED",
+    "x-blockhub-key": "error.TITLE_REQUIRED"
+  },
+  "error_TOKEN_INVALID": "令牌已过期或无效",
+  "@error_TOKEN_INVALID": {
+    "description": "error.TOKEN_INVALID",
+    "x-blockhub-key": "error.TOKEN_INVALID"
+  },
+  "error_UNAUTHORIZED": "未登录或缺少访问令牌",
+  "@error_UNAUTHORIZED": {
+    "description": "error.UNAUTHORIZED",
+    "x-blockhub-key": "error.UNAUTHORIZED"
+  },
+  "error_UNKNOWN_CAPABILITY": "未知能力",
+  "@error_UNKNOWN_CAPABILITY": {
+    "description": "error.UNKNOWN_CAPABILITY",
+    "x-blockhub-key": "error.UNKNOWN_CAPABILITY"
+  },
+  "error_UNSUPPORTED_ACTION": "不支持的动作",
+  "@error_UNSUPPORTED_ACTION": {
+    "description": "error.UNSUPPORTED_ACTION",
+    "x-blockhub-key": "error.UNSUPPORTED_ACTION"
+  },
+  "error_USERS_EXIST": "已有用户，请直接登录",
+  "@error_USERS_EXIST": {
+    "description": "error.USERS_EXIST",
+    "x-blockhub-key": "error.USERS_EXIST"
+  },
+  "error_WECOM_SSO_NOT_CONFIGURED": "企业微信 SSO 未配置",
+  "@error_WECOM_SSO_NOT_CONFIGURED": {
+    "description": "error.WECOM_SSO_NOT_CONFIGURED",
+    "x-blockhub-key": "error.WECOM_SSO_NOT_CONFIGURED"
+  },
+  "hero_s00_flow_0": ">> 上海话语音 · 开口即说",
+  "@hero_s00_flow_0": {
+    "description": "hero.s00.flow.0",
+    "x-blockhub-key": "hero.s00.flow.0"
+  },
+  "hero_s00_flow_1": ">> 实时 ASR · 方言识别",
+  "@hero_s00_flow_1": {
+    "description": "hero.s00.flow.1",
+    "x-blockhub-key": "hero.s00.flow.1"
+  },
+  "hero_s00_flow_2": ">> 智能问答 · 语音播报",
+  "@hero_s00_flow_2": {
+    "description": "hero.s00.flow.2",
+    "x-blockhub-key": "hero.s00.flow.2"
+  },
+  "hero_s00_flow_3": ">> 网页/APK · 一键生成",
+  "@hero_s00_flow_3": {
+    "description": "hero.s00.flow.3",
+    "x-blockhub-key": "hero.s00.flow.3"
+  },
+  "hero_s00_hint": "方言 · 交互",
+  "@hero_s00_hint": {
+    "description": "hero.s00.hint",
+    "x-blockhub-key": "hero.s00.hint"
+  },
+  "hero_s00_label": "上海话语音助手",
+  "@hero_s00_label": {
+    "description": "hero.s00.label",
+    "x-blockhub-key": "hero.s00.label"
+  },
+  "hero_s00_prompt": "用上海话实时语音对话，说方言也能问答、办事。",
+  "@hero_s00_prompt": {
+    "description": "hero.s00.prompt",
+    "x-blockhub-key": "hero.s00.prompt"
+  },
+  "hero_s00_role": "沪语用户",
+  "@hero_s00_role": {
+    "description": "hero.s00.role",
+    "x-blockhub-key": "hero.s00.role"
+  },
+  "hero_s01_flow_0": ">> 请假审批 · 在线提单",
+  "@hero_s01_flow_0": {
+    "description": "hero.s01.flow.0",
+    "x-blockhub-key": "hero.s01.flow.0"
+  },
+  "hero_s01_flow_1": ">> 主管批复 · 通过/驳回",
+  "@hero_s01_flow_1": {
+    "description": "hero.s01.flow.1",
+    "x-blockhub-key": "hero.s01.flow.1"
+  },
+  "hero_s01_flow_2": ">> 企微钉钉飞书 · 结果推送",
+  "@hero_s01_flow_2": {
+    "description": "hero.s01.flow.2",
+    "x-blockhub-key": "hero.s01.flow.2"
+  },
+  "hero_s01_flow_3": ">> CapShip · 双端真接口",
+  "@hero_s01_flow_3": {
+    "description": "hero.s01.flow.3",
+    "x-blockhub-key": "hero.s01.flow.3"
+  },
+  "hero_s01_hint": "人事 · 流程",
+  "@hero_s01_hint": {
+    "description": "hero.s01.hint",
+    "x-blockhub-key": "hero.s01.hint"
+  },
+  "hero_s01_label": "请假审批",
+  "@hero_s01_label": {
+    "description": "hero.s01.label",
+    "x-blockhub-key": "hero.s01.label"
+  },
+  "hero_s01_prompt": "请假在线申请、主管审批与假期余额查询。",
+  "@hero_s01_prompt": {
+    "description": "hero.s01.prompt",
+    "x-blockhub-key": "hero.s01.prompt"
+  },
+  "hero_s01_role": "HR",
+  "@hero_s01_role": {
+    "description": "hero.s01.role",
+    "x-blockhub-key": "hero.s01.role"
+  },
+  "hero_s02_flow_0": ">> 报销记账 · 费用登记",
+  "@hero_s02_flow_0": {
+    "description": "hero.s02.flow.0",
+    "x-blockhub-key": "hero.s02.flow.0"
+  },
+  "hero_s02_flow_1": ">> 财务审核 · 付款闭环",
+  "@hero_s02_flow_1": {
+    "description": "hero.s02.flow.1",
+    "x-blockhub-key": "hero.s02.flow.1"
+  },
+  "hero_s02_flow_2": ">> 企微钉钉飞书 · 审核推送",
+  "@hero_s02_flow_2": {
+    "description": "hero.s02.flow.2",
+    "x-blockhub-key": "hero.s02.flow.2"
+  },
+  "hero_s02_flow_3": ">> CapShip · 双端真接口",
+  "@hero_s02_flow_3": {
+    "description": "hero.s02.flow.3",
+    "x-blockhub-key": "hero.s02.flow.3"
+  },
+  "hero_s02_hint": "财务 · 票据",
+  "@hero_s02_hint": {
+    "description": "hero.s02.hint",
+    "x-blockhub-key": "hero.s02.hint"
+  },
+  "hero_s02_label": "报销记账",
+  "@hero_s02_label": {
+    "description": "hero.s02.label",
+    "x-blockhub-key": "hero.s02.label"
+  },
+  "hero_s02_prompt": "费用报销拍照上传、财务审核与台账查询。",
+  "@hero_s02_prompt": {
+    "description": "hero.s02.prompt",
+    "x-blockhub-key": "hero.s02.prompt"
+  },
+  "hero_s02_role": "财务",
+  "@hero_s02_role": {
+    "description": "hero.s02.role",
+    "x-blockhub-key": "hero.s02.role"
+  },
+  "hero_s03_flow_0": ">> 制度问答 · 提问入库",
+  "@hero_s03_flow_0": {
+    "description": "hero.s03.flow.0",
+    "x-blockhub-key": "hero.s03.flow.0"
+  },
+  "hero_s03_flow_1": ">> 答复归档 · 知识闭环",
+  "@hero_s03_flow_1": {
+    "description": "hero.s03.flow.1",
+    "x-blockhub-key": "hero.s03.flow.1"
+  },
+  "hero_s03_flow_2": ">> 企微钉钉飞书 · 答复推送",
+  "@hero_s03_flow_2": {
+    "description": "hero.s03.flow.2",
+    "x-blockhub-key": "hero.s03.flow.2"
+  },
+  "hero_s03_flow_3": ">> CapShip · 双端真接口",
+  "@hero_s03_flow_3": {
+    "description": "hero.s03.flow.3",
+    "x-blockhub-key": "hero.s03.flow.3"
+  },
+  "hero_s03_hint": "知识 · 自助",
+  "@hero_s03_hint": {
+    "description": "hero.s03.hint",
+    "x-blockhub-key": "hero.s03.hint"
+  },
+  "hero_s03_label": "制度问答",
+  "@hero_s03_label": {
+    "description": "hero.s03.label",
+    "x-blockhub-key": "hero.s03.label"
+  },
+  "hero_s03_prompt": "公司制度、福利政策智能问答，随时自助查询。",
+  "@hero_s03_prompt": {
+    "description": "hero.s03.prompt",
+    "x-blockhub-key": "hero.s03.prompt"
+  },
+  "hero_s03_role": "使用者",
+  "@hero_s03_role": {
+    "description": "hero.s03.role",
+    "x-blockhub-key": "hero.s03.role"
+  },
+  "hero_s04_flow_0": ">> 招聘入职 · 候选人登记",
+  "@hero_s04_flow_0": {
+    "description": "hero.s04.flow.0",
+    "x-blockhub-key": "hero.s04.flow.0"
+  },
+  "hero_s04_flow_1": ">> 面试/Offer · 入职闭环",
+  "@hero_s04_flow_1": {
+    "description": "hero.s04.flow.1",
+    "x-blockhub-key": "hero.s04.flow.1"
+  },
+  "hero_s04_flow_2": ">> 企微钉钉飞书 · 进度推送",
+  "@hero_s04_flow_2": {
+    "description": "hero.s04.flow.2",
+    "x-blockhub-key": "hero.s04.flow.2"
+  },
+  "hero_s04_flow_3": ">> CapShip · 双端真接口",
+  "@hero_s04_flow_3": {
+    "description": "hero.s04.flow.3",
+    "x-blockhub-key": "hero.s04.flow.3"
+  },
+  "hero_s04_hint": "HR · 人才",
+  "@hero_s04_hint": {
+    "description": "hero.s04.hint",
+    "x-blockhub-key": "hero.s04.hint"
+  },
+  "hero_s04_label": "招聘入职",
+  "@hero_s04_label": {
+    "description": "hero.s04.label",
+    "x-blockhub-key": "hero.s04.label"
+  },
+  "hero_s04_prompt": "招聘发布、简历筛选与入职指引一站式。",
+  "@hero_s04_prompt": {
+    "description": "hero.s04.prompt",
+    "x-blockhub-key": "hero.s04.prompt"
+  },
+  "hero_s04_role": "HR",
+  "@hero_s04_role": {
+    "description": "hero.s04.role",
+    "x-blockhub-key": "hero.s04.role"
+  },
+  "hero_s05_flow_0": ">> 销售线索 · 客户登记",
+  "@hero_s05_flow_0": {
+    "description": "hero.s05.flow.0",
+    "x-blockhub-key": "hero.s05.flow.0"
+  },
+  "hero_s05_flow_1": ">> 跟进成交 · 漏斗闭环",
+  "@hero_s05_flow_1": {
+    "description": "hero.s05.flow.1",
+    "x-blockhub-key": "hero.s05.flow.1"
+  },
+  "hero_s05_flow_2": ">> 企微钉钉飞书 · 跟进提醒",
+  "@hero_s05_flow_2": {
+    "description": "hero.s05.flow.2",
+    "x-blockhub-key": "hero.s05.flow.2"
+  },
+  "hero_s05_flow_3": ">> CapShip · 双端真接口",
+  "@hero_s05_flow_3": {
+    "description": "hero.s05.flow.3",
+    "x-blockhub-key": "hero.s05.flow.3"
+  },
+  "hero_s05_hint": "CRM · 跟进",
+  "@hero_s05_hint": {
+    "description": "hero.s05.hint",
+    "x-blockhub-key": "hero.s05.hint"
+  },
+  "hero_s05_label": "销售线索",
+  "@hero_s05_label": {
+    "description": "hero.s05.label",
+    "x-blockhub-key": "hero.s05.label"
+  },
+  "hero_s05_prompt": "线索录入、客户跟进与销售漏斗管理。",
+  "@hero_s05_prompt": {
+    "description": "hero.s05.prompt",
+    "x-blockhub-key": "hero.s05.prompt"
+  },
+  "hero_s05_role": "销售",
+  "@hero_s05_role": {
+    "description": "hero.s05.role",
+    "x-blockhub-key": "hero.s05.role"
+  },
+  "hero_s06_flow_0": ">> 报价合同 · 单据登记",
+  "@hero_s06_flow_0": {
+    "description": "hero.s06.flow.0",
+    "x-blockhub-key": "hero.s06.flow.0"
+  },
+  "hero_s06_flow_1": ">> 评审签约 · 闭环完成",
+  "@hero_s06_flow_1": {
+    "description": "hero.s06.flow.1",
+    "x-blockhub-key": "hero.s06.flow.1"
+  },
+  "hero_s06_flow_2": ">> 企微钉钉飞书 · 审批推送",
+  "@hero_s06_flow_2": {
+    "description": "hero.s06.flow.2",
+    "x-blockhub-key": "hero.s06.flow.2"
+  },
+  "hero_s06_flow_3": ">> CapShip · 双端真接口",
+  "@hero_s06_flow_3": {
+    "description": "hero.s06.flow.3",
+    "x-blockhub-key": "hero.s06.flow.3"
+  },
+  "hero_s06_hint": "销售 · 签单",
+  "@hero_s06_hint": {
+    "description": "hero.s06.hint",
+    "x-blockhub-key": "hero.s06.hint"
+  },
+  "hero_s06_label": "报价合同",
+  "@hero_s06_label": {
+    "description": "hero.s06.label",
+    "x-blockhub-key": "hero.s06.label"
+  },
+  "hero_s06_prompt": "报价审批、合同评审与特价申请。",
+  "@hero_s06_prompt": {
+    "description": "hero.s06.prompt",
+    "x-blockhub-key": "hero.s06.prompt"
+  },
+  "hero_s06_role": "销售",
+  "@hero_s06_role": {
+    "description": "hero.s06.role",
+    "x-blockhub-key": "hero.s06.role"
+  },
+  "hero_s07_flow_0": ">> 经营看板 · 指标登记",
+  "@hero_s07_flow_0": {
+    "description": "hero.s07.flow.0",
+    "x-blockhub-key": "hero.s07.flow.0"
+  },
+  "hero_s07_flow_1": ">> 发布预警 · 归档闭环",
+  "@hero_s07_flow_1": {
+    "description": "hero.s07.flow.1",
+    "x-blockhub-key": "hero.s07.flow.1"
+  },
+  "hero_s07_flow_2": ">> 企微钉钉飞书 · 指标推送",
+  "@hero_s07_flow_2": {
+    "description": "hero.s07.flow.2",
+    "x-blockhub-key": "hero.s07.flow.2"
+  },
+  "hero_s07_flow_3": ">> CapShip · 双端真接口",
+  "@hero_s07_flow_3": {
+    "description": "hero.s07.flow.3",
+    "x-blockhub-key": "hero.s07.flow.3"
+  },
+  "hero_s07_hint": "老板 · 决策",
+  "@hero_s07_hint": {
+    "description": "hero.s07.hint",
+    "x-blockhub-key": "hero.s07.hint"
+  },
+  "hero_s07_label": "经营看板",
+  "@hero_s07_label": {
+    "description": "hero.s07.label",
+    "x-blockhub-key": "hero.s07.label"
+  },
+  "hero_s07_prompt": "核心经营指标一屏掌控，自然语言查数。",
+  "@hero_s07_prompt": {
+    "description": "hero.s07.prompt",
+    "x-blockhub-key": "hero.s07.prompt"
+  },
+  "hero_s07_role": "老板",
+  "@hero_s07_role": {
+    "description": "hero.s07.role",
+    "x-blockhub-key": "hero.s07.role"
+  },
+  "hero_s08_flow_0": ">> 设备报修 · 扫码提单",
+  "@hero_s08_flow_0": {
+    "description": "hero.s08.flow.0",
+    "x-blockhub-key": "hero.s08.flow.0"
+  },
+  "hero_s08_flow_1": ">> 工单派发 · 进度跟踪",
+  "@hero_s08_flow_1": {
+    "description": "hero.s08.flow.1",
+    "x-blockhub-key": "hero.s08.flow.1"
+  },
+  "hero_s08_flow_2": ">> 企微钉钉飞书 · 状态推送",
+  "@hero_s08_flow_2": {
+    "description": "hero.s08.flow.2",
+    "x-blockhub-key": "hero.s08.flow.2"
+  },
+  "hero_s08_flow_3": ">> CapShip · 双端真接口",
+  "@hero_s08_flow_3": {
+    "description": "hero.s08.flow.3",
+    "x-blockhub-key": "hero.s08.flow.3"
+  },
+  "hero_s08_hint": "制造 · 运维",
+  "@hero_s08_hint": {
+    "description": "hero.s08.hint",
+    "x-blockhub-key": "hero.s08.hint"
+  },
+  "hero_s08_label": "设备报修",
+  "@hero_s08_label": {
+    "description": "hero.s08.label",
+    "x-blockhub-key": "hero.s08.label"
+  },
+  "hero_s08_prompt": "现场设备故障报修、工单派发与维修跟踪。",
+  "@hero_s08_prompt": {
+    "description": "hero.s08.prompt",
+    "x-blockhub-key": "hero.s08.prompt"
+  },
+  "hero_s08_role": "制造",
+  "@hero_s08_role": {
+    "description": "hero.s08.role",
+    "x-blockhub-key": "hero.s08.role"
+  },
+  "hero_s09_flow_0": ">> 质检SOP · 批次工序录入",
+  "@hero_s09_flow_0": {
+    "description": "hero.s09.flow.0",
+    "x-blockhub-key": "hero.s09.flow.0"
+  },
+  "hero_s09_flow_1": ">> 合格/不合格 · 当场判定",
+  "@hero_s09_flow_1": {
+    "description": "hero.s09.flow.1",
+    "x-blockhub-key": "hero.s09.flow.1"
+  },
+  "hero_s09_flow_2": ">> 企微钉钉飞书 · 异常推送",
+  "@hero_s09_flow_2": {
+    "description": "hero.s09.flow.2",
+    "x-blockhub-key": "hero.s09.flow.2"
+  },
+  "hero_s09_flow_3": ">> CapShip · 双端真接口",
+  "@hero_s09_flow_3": {
+    "description": "hero.s09.flow.3",
+    "x-blockhub-key": "hero.s09.flow.3"
+  },
+  "hero_s09_hint": "制造 · 工艺",
+  "@hero_s09_hint": {
+    "description": "hero.s09.hint",
+    "x-blockhub-key": "hero.s09.hint"
+  },
+  "hero_s09_label": "质检SOP",
+  "@hero_s09_label": {
+    "description": "hero.s09.label",
+    "x-blockhub-key": "hero.s09.label"
+  },
+  "hero_s09_prompt": "SOP 工艺问答、质检记录与异常上报。",
+  "@hero_s09_prompt": {
+    "description": "hero.s09.prompt",
+    "x-blockhub-key": "hero.s09.prompt"
+  },
+  "hero_s09_role": "质检",
+  "@hero_s09_role": {
+    "description": "hero.s09.role",
+    "x-blockhub-key": "hero.s09.role"
+  },
+  "hero_s10_flow_0": ">> 全渠道自提 · 提货码核销",
+  "@hero_s10_flow_0": {
+    "description": "hero.s10.flow.0",
+    "x-blockhub-key": "hero.s10.flow.0"
+  },
+  "hero_s10_flow_1": ">> 门店调拨 · 店仓真表",
+  "@hero_s10_flow_1": {
+    "description": "hero.s10.flow.1",
+    "x-blockhub-key": "hero.s10.flow.1"
+  },
+  "hero_s10_flow_2": ">> 企微钉钉飞书 · 到店通知",
+  "@hero_s10_flow_2": {
+    "description": "hero.s10.flow.2",
+    "x-blockhub-key": "hero.s10.flow.2"
+  },
+  "hero_s10_flow_3": ">> CapShip · 双端真接口",
+  "@hero_s10_flow_3": {
+    "description": "hero.s10.flow.3",
+    "x-blockhub-key": "hero.s10.flow.3"
+  },
+  "hero_s10_hint": "零售 · 履约",
+  "@hero_s10_hint": {
+    "description": "hero.s10.hint",
+    "x-blockhub-key": "hero.s10.hint"
+  },
+  "hero_s10_label": "全渠道自提",
+  "@hero_s10_label": {
+    "description": "hero.s10.label",
+    "x-blockhub-key": "hero.s10.label"
+  },
+  "hero_s10_prompt": "线上下单到店自提、调拨与券核销。",
+  "@hero_s10_prompt": {
+    "description": "hero.s10.prompt",
+    "x-blockhub-key": "hero.s10.prompt"
+  },
+  "hero_s10_role": "零售",
+  "@hero_s10_role": {
+    "description": "hero.s10.role",
+    "x-blockhub-key": "hero.s10.role"
+  },
+  "hero_s11_flow_0": ">> 会员营销 · 积分活动登记",
+  "@hero_s11_flow_0": {
+    "description": "hero.s11.flow.0",
+    "x-blockhub-key": "hero.s11.flow.0"
+  },
+  "hero_s11_flow_1": ">> 券码/积分 · 待触达确认",
+  "@hero_s11_flow_1": {
+    "description": "hero.s11.flow.1",
+    "x-blockhub-key": "hero.s11.flow.1"
+  },
+  "hero_s11_flow_2": ">> 企微钉钉飞书 · 活动推送",
+  "@hero_s11_flow_2": {
+    "description": "hero.s11.flow.2",
+    "x-blockhub-key": "hero.s11.flow.2"
+  },
+  "hero_s11_flow_3": ">> CapShip · 双端真接口",
+  "@hero_s11_flow_3": {
+    "description": "hero.s11.flow.3",
+    "x-blockhub-key": "hero.s11.flow.3"
+  },
+  "hero_s11_hint": "零售 · 运营",
+  "@hero_s11_hint": {
+    "description": "hero.s11.hint",
+    "x-blockhub-key": "hero.s11.hint"
+  },
+  "hero_s11_label": "会员营销",
+  "@hero_s11_label": {
+    "description": "hero.s11.label",
+    "x-blockhub-key": "hero.s11.label"
+  },
+  "hero_s11_prompt": "会员积分、促销活动与消息推送。",
+  "@hero_s11_prompt": {
+    "description": "hero.s11.prompt",
+    "x-blockhub-key": "hero.s11.prompt"
+  },
+  "hero_s11_role": "运营",
+  "@hero_s11_role": {
+    "description": "hero.s11.role",
+    "x-blockhub-key": "hero.s11.role"
+  },
+  "hero_s12_flow_0": ">> 医疗导诊 · 症状预问诊",
+  "@hero_s12_flow_0": {
+    "description": "hero.s12.flow.0",
+    "x-blockhub-key": "hero.s12.flow.0"
+  },
+  "hero_s12_flow_1": ">> 推荐科室 · 就诊指引",
+  "@hero_s12_flow_1": {
+    "description": "hero.s12.flow.1",
+    "x-blockhub-key": "hero.s12.flow.1"
+  },
+  "hero_s12_flow_2": ">> 企微钉钉飞书 · 提醒推送",
+  "@hero_s12_flow_2": {
+    "description": "hero.s12.flow.2",
+    "x-blockhub-key": "hero.s12.flow.2"
+  },
+  "hero_s12_flow_3": ">> CapShip · 双端真接口",
+  "@hero_s12_flow_3": {
+    "description": "hero.s12.flow.3",
+    "x-blockhub-key": "hero.s12.flow.3"
+  },
+  "hero_s12_hint": "医院 · 患者",
+  "@hero_s12_hint": {
+    "description": "hero.s12.hint",
+    "x-blockhub-key": "hero.s12.hint"
+  },
+  "hero_s12_label": "医疗导诊",
+  "@hero_s12_label": {
+    "description": "hero.s12.label",
+    "x-blockhub-key": "hero.s12.label"
+  },
+  "hero_s12_prompt": "就医指南、排班查询与导诊问答。",
+  "@hero_s12_prompt": {
+    "description": "hero.s12.prompt",
+    "x-blockhub-key": "hero.s12.prompt"
+  },
+  "hero_s12_role": "医护",
+  "@hero_s12_role": {
+    "description": "hero.s12.role",
+    "x-blockhub-key": "hero.s12.role"
+  },
+  "hero_s13_flow_0": ">> 护士排班 · 调班在线申请",
+  "@hero_s13_flow_0": {
+    "description": "hero.s13.flow.0",
+    "x-blockhub-key": "hero.s13.flow.0"
+  },
+  "hero_s13_flow_1": ">> 护士长 · 通过/驳回",
+  "@hero_s13_flow_1": {
+    "description": "hero.s13.flow.1",
+    "x-blockhub-key": "hero.s13.flow.1"
+  },
+  "hero_s13_flow_2": ">> 企微钉钉飞书 · 值班通知",
+  "@hero_s13_flow_2": {
+    "description": "hero.s13.flow.2",
+    "x-blockhub-key": "hero.s13.flow.2"
+  },
+  "hero_s13_flow_3": ">> CapShip · 双端真接口",
+  "@hero_s13_flow_3": {
+    "description": "hero.s13.flow.3",
+    "x-blockhub-key": "hero.s13.flow.3"
+  },
+  "hero_s13_hint": "医院 · 排班",
+  "@hero_s13_hint": {
+    "description": "hero.s13.hint",
+    "x-blockhub-key": "hero.s13.hint"
+  },
+  "hero_s13_label": "护士排班",
+  "@hero_s13_label": {
+    "description": "hero.s13.label",
+    "x-blockhub-key": "hero.s13.label"
+  },
+  "hero_s13_prompt": "护士排班、调班申请与值班通知。",
+  "@hero_s13_prompt": {
+    "description": "hero.s13.prompt",
+    "x-blockhub-key": "hero.s13.prompt"
+  },
+  "hero_s13_role": "护士",
+  "@hero_s13_role": {
+    "description": "hero.s13.role",
+    "x-blockhub-key": "hero.s13.role"
+  },
+  "hero_s14_flow_0": ">> 玩家FAQ · 攻略入库",
+  "@hero_s14_flow_0": {
+    "description": "hero.s14.flow.0",
+    "x-blockhub-key": "hero.s14.flow.0"
+  },
+  "hero_s14_flow_1": ">> 客服工单 · 问题跟踪",
+  "@hero_s14_flow_1": {
+    "description": "hero.s14.flow.1",
+    "x-blockhub-key": "hero.s14.flow.1"
+  },
+  "hero_s14_flow_2": ">> 企微钉钉飞书 · 活动规则推送",
+  "@hero_s14_flow_2": {
+    "description": "hero.s14.flow.2",
+    "x-blockhub-key": "hero.s14.flow.2"
+  },
+  "hero_s14_flow_3": ">> CapShip · 双端真接口",
+  "@hero_s14_flow_3": {
+    "description": "hero.s14.flow.3",
+    "x-blockhub-key": "hero.s14.flow.3"
+  },
+  "hero_s14_hint": "游戏 · 客服",
+  "@hero_s14_hint": {
+    "description": "hero.s14.hint",
+    "x-blockhub-key": "hero.s14.hint"
+  },
+  "hero_s14_label": "玩家FAQ",
+  "@hero_s14_label": {
+    "description": "hero.s14.label",
+    "x-blockhub-key": "hero.s14.label"
+  },
+  "hero_s14_prompt": "玩家攻略 FAQ、活动规则与客服工单。",
+  "@hero_s14_prompt": {
+    "description": "hero.s14.prompt",
+    "x-blockhub-key": "hero.s14.prompt"
+  },
+  "hero_s14_role": "玩家",
+  "@hero_s14_role": {
+    "description": "hero.s14.role",
+    "x-blockhub-key": "hero.s14.role"
+  },
+  "hero_s15_flow_0": ">> 家校通知 · 活动公告推送",
+  "@hero_s15_flow_0": {
+    "description": "hero.s15.flow.0",
+    "x-blockhub-key": "hero.s15.flow.0"
+  },
+  "hero_s15_flow_1": ">> 报名留言 · 在线互动",
+  "@hero_s15_flow_1": {
+    "description": "hero.s15.flow.1",
+    "x-blockhub-key": "hero.s15.flow.1"
+  },
+  "hero_s15_flow_2": ">> 企微钉钉飞书 · 家长触达",
+  "@hero_s15_flow_2": {
+    "description": "hero.s15.flow.2",
+    "x-blockhub-key": "hero.s15.flow.2"
+  },
+  "hero_s15_flow_3": ">> CapShip · 双端真接口",
+  "@hero_s15_flow_3": {
+    "description": "hero.s15.flow.3",
+    "x-blockhub-key": "hero.s15.flow.3"
+  },
+  "hero_s15_hint": "教育 · 家长",
+  "@hero_s15_hint": {
+    "description": "hero.s15.hint",
+    "x-blockhub-key": "hero.s15.hint"
+  },
+  "hero_s15_label": "家校通知",
+  "@hero_s15_label": {
+    "description": "hero.s15.label",
+    "x-blockhub-key": "hero.s15.label"
+  },
+  "hero_s15_prompt": "学校通知、活动报名与家长留言。",
+  "@hero_s15_prompt": {
+    "description": "hero.s15.prompt",
+    "x-blockhub-key": "hero.s15.prompt"
+  },
+  "hero_s15_role": "家长",
+  "@hero_s15_role": {
+    "description": "hero.s15.role",
+    "x-blockhub-key": "hero.s15.role"
+  },
+  "hero_s16_flow_0": ">> 作业答疑 · 页码题号卡点",
+  "@hero_s16_flow_0": {
+    "description": "hero.s16.flow.0",
+    "x-blockhub-key": "hero.s16.flow.0"
+  },
+  "hero_s16_flow_1": ">> Soft 步进 · 提交真库",
+  "@hero_s16_flow_1": {
+    "description": "hero.s16.flow.1",
+    "x-blockhub-key": "hero.s16.flow.1"
+  },
+  "hero_s16_flow_2": ">> 企微钉钉飞书 · 批改通知",
+  "@hero_s16_flow_2": {
+    "description": "hero.s16.flow.2",
+    "x-blockhub-key": "hero.s16.flow.2"
+  },
+  "hero_s16_flow_3": ">> CapShip · 双端真接口",
+  "@hero_s16_flow_3": {
+    "description": "hero.s16.flow.3",
+    "x-blockhub-key": "hero.s16.flow.3"
+  },
+  "hero_s16_hint": "教育 · 学生",
+  "@hero_s16_hint": {
+    "description": "hero.s16.hint",
+    "x-blockhub-key": "hero.s16.hint"
+  },
+  "hero_s16_label": "作业答疑",
+  "@hero_s16_label": {
+    "description": "hero.s16.label",
+    "x-blockhub-key": "hero.s16.label"
+  },
+  "hero_s16_prompt": "写清页码题号与卡点，>> Soft 步进提问，老师批改闭环。",
+  "@hero_s16_prompt": {
+    "description": "hero.s16.prompt",
+    "x-blockhub-key": "hero.s16.prompt"
+  },
+  "hero_s16_role": "学生",
+  "@hero_s16_role": {
+    "description": "hero.s16.role",
+    "x-blockhub-key": "hero.s16.role"
+  },
+  "hero_s17_flow_0": ">> 课表 · 课程考试登记",
+  "@hero_s17_flow_0": {
+    "description": "hero.s17.flow.0",
+    "x-blockhub-key": "hero.s17.flow.0"
+  },
+  "hero_s17_flow_1": ">> 日期时段 · Soft 步进",
+  "@hero_s17_flow_1": {
+    "description": "hero.s17.flow.1",
+    "x-blockhub-key": "hero.s17.flow.1"
+  },
+  "hero_s17_flow_2": ">> 企微钉钉飞书 · 日程提醒",
+  "@hero_s17_flow_2": {
+    "description": "hero.s17.flow.2",
+    "x-blockhub-key": "hero.s17.flow.2"
+  },
+  "hero_s17_flow_3": ">> CapShip · 双端真接口",
+  "@hero_s17_flow_3": {
+    "description": "hero.s17.flow.3",
+    "x-blockhub-key": "hero.s17.flow.3"
+  },
+  "hero_s17_hint": "校园 · 日程",
+  "@hero_s17_hint": {
+    "description": "hero.s17.hint",
+    "x-blockhub-key": "hero.s17.hint"
+  },
+  "hero_s17_label": "课表查询",
+  "@hero_s17_label": {
+    "description": "hero.s17.label",
+    "x-blockhub-key": "hero.s17.label"
+  },
+  "hero_s17_prompt": "课程/考试登记：日期点选 + 时段推进，教室可空，归档真库。",
+  "@hero_s17_prompt": {
+    "description": "hero.s17.prompt",
+    "x-blockhub-key": "hero.s17.prompt"
+  },
+  "hero_s17_role": "学生",
+  "@hero_s17_role": {
+    "description": "hero.s17.role",
+    "x-blockhub-key": "hero.s17.role"
+  },
+  "hero_s18_flow_0": ">> 活动运营 · 排期素材登记",
+  "@hero_s18_flow_0": {
+    "description": "hero.s18.flow.0",
+    "x-blockhub-key": "hero.s18.flow.0"
+  },
+  "hero_s18_flow_1": ">> 报名复盘 · 指标闭环",
+  "@hero_s18_flow_1": {
+    "description": "hero.s18.flow.1",
+    "x-blockhub-key": "hero.s18.flow.1"
+  },
+  "hero_s18_flow_2": ">> 企微钉钉飞书 · 触达推送",
+  "@hero_s18_flow_2": {
+    "description": "hero.s18.flow.2",
+    "x-blockhub-key": "hero.s18.flow.2"
+  },
+  "hero_s18_flow_3": ">> CapShip · 双端真接口",
+  "@hero_s18_flow_3": {
+    "description": "hero.s18.flow.3",
+    "x-blockhub-key": "hero.s18.flow.3"
+  },
+  "hero_s18_hint": "市场 · 活动",
+  "@hero_s18_hint": {
+    "description": "hero.s18.hint",
+    "x-blockhub-key": "hero.s18.hint"
+  },
+  "hero_s18_label": "活动运营",
+  "@hero_s18_label": {
+    "description": "hero.s18.label",
+    "x-blockhub-key": "hero.s18.label"
+  },
+  "hero_s18_prompt": "活动策划、报名统计与转化复盘。",
+  "@hero_s18_prompt": {
+    "description": "hero.s18.prompt",
+    "x-blockhub-key": "hero.s18.prompt"
+  },
+  "hero_s18_role": "运营",
+  "@hero_s18_role": {
+    "description": "hero.s18.role",
+    "x-blockhub-key": "hero.s18.role"
+  },
+  "hero_s19_flow_0": ">> 物业报修 · 业主扫码提单",
+  "@hero_s19_flow_0": {
+    "description": "hero.s19.flow.0",
+    "x-blockhub-key": "hero.s19.flow.0"
+  },
+  "hero_s19_flow_1": ">> 派工维修 · 进度跟踪",
+  "@hero_s19_flow_1": {
+    "description": "hero.s19.flow.1",
+    "x-blockhub-key": "hero.s19.flow.1"
+  },
+  "hero_s19_flow_2": ">> 企微钉钉飞书 · 状态推送",
+  "@hero_s19_flow_2": {
+    "description": "hero.s19.flow.2",
+    "x-blockhub-key": "hero.s19.flow.2"
+  },
+  "hero_s19_flow_3": ">> CapShip · 双端真接口",
+  "@hero_s19_flow_3": {
+    "description": "hero.s19.flow.3",
+    "x-blockhub-key": "hero.s19.flow.3"
+  },
+  "hero_s19_hint": "生活 · 社区",
+  "@hero_s19_hint": {
+    "description": "hero.s19.hint",
+    "x-blockhub-key": "hero.s19.hint"
+  },
+  "hero_s19_label": "物业报修",
+  "@hero_s19_label": {
+    "description": "hero.s19.label",
+    "x-blockhub-key": "hero.s19.label"
+  },
+  "hero_s19_prompt": "业主报修、工单处理与进度查询。",
+  "@hero_s19_prompt": {
+    "description": "hero.s19.prompt",
+    "x-blockhub-key": "hero.s19.prompt"
+  },
+  "hero_s19_role": "业主",
+  "@hero_s19_role": {
+    "description": "hero.s19.role",
+    "x-blockhub-key": "hero.s19.role"
+  },
+  "hero_s20_flow_0": ">> 看房签约 · 客户房源登记",
+  "@hero_s20_flow_0": {
+    "description": "hero.s20.flow.0",
+    "x-blockhub-key": "hero.s20.flow.0"
+  },
+  "hero_s20_flow_1": ">> 意向/签约 · 跟进闭环",
+  "@hero_s20_flow_1": {
+    "description": "hero.s20.flow.1",
+    "x-blockhub-key": "hero.s20.flow.1"
+  },
+  "hero_s20_flow_2": ">> 企微钉钉飞书 · 进度推送",
+  "@hero_s20_flow_2": {
+    "description": "hero.s20.flow.2",
+    "x-blockhub-key": "hero.s20.flow.2"
+  },
+  "hero_s20_flow_3": ">> CapShip · 双端真接口",
+  "@hero_s20_flow_3": {
+    "description": "hero.s20.flow.3",
+    "x-blockhub-key": "hero.s20.flow.3"
+  },
+  "hero_s20_hint": "房产 · 销售",
+  "@hero_s20_hint": {
+    "description": "hero.s20.hint",
+    "x-blockhub-key": "hero.s20.hint"
+  },
+  "hero_s20_label": "看房签约",
+  "@hero_s20_label": {
+    "description": "hero.s20.label",
+    "x-blockhub-key": "hero.s20.label"
+  },
+  "hero_s20_prompt": "看房预约、意向登记与签约跟进。",
+  "@hero_s20_prompt": {
+    "description": "hero.s20.prompt",
+    "x-blockhub-key": "hero.s20.prompt"
+  },
+  "hero_s20_role": "销售",
+  "@hero_s20_role": {
+    "description": "hero.s20.role",
+    "x-blockhub-key": "hero.s20.role"
+  },
+  "hero_s21_flow_0": ">> 房态变更 · 净房脏房",
+  "@hero_s21_flow_0": {
+    "description": "hero.s21.flow.0",
+    "x-blockhub-key": "hero.s21.flow.0"
+  },
+  "hero_s21_flow_1": ">> 客房打扫 · 急扫闭环",
+  "@hero_s21_flow_1": {
+    "description": "hero.s21.flow.1",
+    "x-blockhub-key": "hero.s21.flow.1"
+  },
+  "hero_s21_flow_2": ">> 餐厅订位 · 真库",
+  "@hero_s21_flow_2": {
+    "description": "hero.s21.flow.2",
+    "x-blockhub-key": "hero.s21.flow.2"
+  },
+  "hero_s21_flow_3": ">> CapShip · 双端真接口",
+  "@hero_s21_flow_3": {
+    "description": "hero.s21.flow.3",
+    "x-blockhub-key": "hero.s21.flow.3"
+  },
+  "hero_s21_hint": "餐饮 · 客房",
+  "@hero_s21_hint": {
+    "description": "hero.s21.hint",
+    "x-blockhub-key": "hero.s21.hint"
+  },
+  "hero_s21_label": "房态打扫",
+  "@hero_s21_label": {
+    "description": "hero.s21.label",
+    "x-blockhub-key": "hero.s21.label"
+  },
+  "hero_s21_prompt": "房态变更、客房打扫与餐厅订位沽清。",
+  "@hero_s21_prompt": {
+    "description": "hero.s21.prompt",
+    "x-blockhub-key": "hero.s21.prompt"
+  },
+  "hero_s21_role": "酒店",
+  "@hero_s21_role": {
+    "description": "hero.s21.role",
+    "x-blockhub-key": "hero.s21.role"
+  },
+  "hero_s22_flow_0": ">> 外卖配送 · 取送信息登记",
+  "@hero_s22_flow_0": {
+    "description": "hero.s22.flow.0",
+    "x-blockhub-key": "hero.s22.flow.0"
+  },
+  "hero_s22_flow_1": ">> 配送中/完成 · 状态闭环",
+  "@hero_s22_flow_1": {
+    "description": "hero.s22.flow.1",
+    "x-blockhub-key": "hero.s22.flow.1"
+  },
+  "hero_s22_flow_2": ">> 企微钉钉飞书 · 异常推送",
+  "@hero_s22_flow_2": {
+    "description": "hero.s22.flow.2",
+    "x-blockhub-key": "hero.s22.flow.2"
+  },
+  "hero_s22_flow_3": ">> CapShip · 双端真接口",
+  "@hero_s22_flow_3": {
+    "description": "hero.s22.flow.3",
+    "x-blockhub-key": "hero.s22.flow.3"
+  },
+  "hero_s22_hint": "生活 · 配送",
+  "@hero_s22_hint": {
+    "description": "hero.s22.hint",
+    "x-blockhub-key": "hero.s22.hint"
+  },
+  "hero_s22_label": "外卖配送",
+  "@hero_s22_label": {
+    "description": "hero.s22.label",
+    "x-blockhub-key": "hero.s22.label"
+  },
+  "hero_s22_prompt": "订单跟踪、骑手调度与异常处理。",
+  "@hero_s22_prompt": {
+    "description": "hero.s22.prompt",
+    "x-blockhub-key": "hero.s22.prompt"
+  },
+  "hero_s22_role": "骑手",
+  "@hero_s22_role": {
+    "description": "hero.s22.role",
+    "x-blockhub-key": "hero.s22.role"
+  },
+  "hero_s23_flow_0": ">> 健身打卡 · 课程预约登记",
+  "@hero_s23_flow_0": {
+    "description": "hero.s23.flow.0",
+    "x-blockhub-key": "hero.s23.flow.0"
+  },
+  "hero_s23_flow_1": ">> 训练打卡 · 完成闭环",
+  "@hero_s23_flow_1": {
+    "description": "hero.s23.flow.1",
+    "x-blockhub-key": "hero.s23.flow.1"
+  },
+  "hero_s23_flow_2": ">> 企微钉钉飞书 · 提醒推送",
+  "@hero_s23_flow_2": {
+    "description": "hero.s23.flow.2",
+    "x-blockhub-key": "hero.s23.flow.2"
+  },
+  "hero_s23_flow_3": ">> CapShip · 双端真接口",
+  "@hero_s23_flow_3": {
+    "description": "hero.s23.flow.3",
+    "x-blockhub-key": "hero.s23.flow.3"
+  },
+  "hero_s23_hint": "生活 · 健康",
+  "@hero_s23_hint": {
+    "description": "hero.s23.hint",
+    "x-blockhub-key": "hero.s23.hint"
+  },
+  "hero_s23_label": "健身打卡",
+  "@hero_s23_label": {
+    "description": "hero.s23.label",
+    "x-blockhub-key": "hero.s23.label"
+  },
+  "hero_s23_prompt": "课程预约、训练打卡与教练答疑。",
+  "@hero_s23_prompt": {
+    "description": "hero.s23.prompt",
+    "x-blockhub-key": "hero.s23.prompt"
+  },
+  "hero_s23_role": "会员",
+  "@hero_s23_role": {
+    "description": "hero.s23.role",
+    "x-blockhub-key": "hero.s23.role"
+  },
+  "hero_s24_flow_0": ">> 旅行攻略 · 目的地行程登记",
+  "@hero_s24_flow_0": {
+    "description": "hero.s24.flow.0",
+    "x-blockhub-key": "hero.s24.flow.0"
+  },
+  "hero_s24_flow_1": ">> 景点/预订 · 确认闭环",
+  "@hero_s24_flow_1": {
+    "description": "hero.s24.flow.1",
+    "x-blockhub-key": "hero.s24.flow.1"
+  },
+  "hero_s24_flow_2": ">> 企微钉钉飞书 · 提醒推送",
+  "@hero_s24_flow_2": {
+    "description": "hero.s24.flow.2",
+    "x-blockhub-key": "hero.s24.flow.2"
+  },
+  "hero_s24_flow_3": ">> CapShip · 双端真接口",
+  "@hero_s24_flow_3": {
+    "description": "hero.s24.flow.3",
+    "x-blockhub-key": "hero.s24.flow.3"
+  },
+  "hero_s24_hint": "生活 · 出行",
+  "@hero_s24_hint": {
+    "description": "hero.s24.hint",
+    "x-blockhub-key": "hero.s24.hint"
+  },
+  "hero_s24_label": "旅行攻略",
+  "@hero_s24_label": {
+    "description": "hero.s24.label",
+    "x-blockhub-key": "hero.s24.label"
+  },
+  "hero_s24_prompt": "行程规划、景点问答与预订提醒。",
+  "@hero_s24_prompt": {
+    "description": "hero.s24.prompt",
+    "x-blockhub-key": "hero.s24.prompt"
+  },
+  "hero_s24_role": "旅行",
+  "@hero_s24_role": {
+    "description": "hero.s24.role",
+    "x-blockhub-key": "hero.s24.role"
+  },
+  "hero_s25_flow_0": ">> 婚礼筹备 · 宾客供应商登记",
+  "@hero_s25_flow_0": {
+    "description": "hero.s25.flow.0",
+    "x-blockhub-key": "hero.s25.flow.0"
+  },
+  "hero_s25_flow_1": ">> 预算确认 · 进度闭环",
+  "@hero_s25_flow_1": {
+    "description": "hero.s25.flow.1",
+    "x-blockhub-key": "hero.s25.flow.1"
+  },
+  "hero_s25_flow_2": ">> 企微钉钉飞书 · 协同提醒",
+  "@hero_s25_flow_2": {
+    "description": "hero.s25.flow.2",
+    "x-blockhub-key": "hero.s25.flow.2"
+  },
+  "hero_s25_flow_3": ">> CapShip · 双端真接口",
+  "@hero_s25_flow_3": {
+    "description": "hero.s25.flow.3",
+    "x-blockhub-key": "hero.s25.flow.3"
+  },
+  "hero_s25_hint": "生活 · 庆典",
+  "@hero_s25_hint": {
+    "description": "hero.s25.hint",
+    "x-blockhub-key": "hero.s25.hint"
+  },
+  "hero_s25_label": "婚礼筹备",
+  "@hero_s25_label": {
+    "description": "hero.s25.label",
+    "x-blockhub-key": "hero.s25.label"
+  },
+  "hero_s25_prompt": "宾客名单、供应商协同与预算跟踪。",
+  "@hero_s25_prompt": {
+    "description": "hero.s25.prompt",
+    "x-blockhub-key": "hero.s25.prompt"
+  },
+  "hero_s25_role": "新人",
+  "@hero_s25_role": {
+    "description": "hero.s25.role",
+    "x-blockhub-key": "hero.s25.role"
+  },
+  "hero_s26_flow_0": ">> 装修选材 · 材料部位登记",
+  "@hero_s26_flow_0": {
+    "description": "hero.s26.flow.0",
+    "x-blockhub-key": "hero.s26.flow.0"
+  },
+  "hero_s26_flow_1": ">> 进度验收 · 闭环完成",
+  "@hero_s26_flow_1": {
+    "description": "hero.s26.flow.1",
+    "x-blockhub-key": "hero.s26.flow.1"
+  },
+  "hero_s26_flow_2": ">> 企微钉钉飞书 · 验收提醒",
+  "@hero_s26_flow_2": {
+    "description": "hero.s26.flow.2",
+    "x-blockhub-key": "hero.s26.flow.2"
+  },
+  "hero_s26_flow_3": ">> CapShip · 双端真接口",
+  "@hero_s26_flow_3": {
+    "description": "hero.s26.flow.3",
+    "x-blockhub-key": "hero.s26.flow.3"
+  },
+  "hero_s26_hint": "生活 · 家装",
+  "@hero_s26_hint": {
+    "description": "hero.s26.hint",
+    "x-blockhub-key": "hero.s26.hint"
+  },
+  "hero_s26_label": "装修选材",
+  "@hero_s26_label": {
+    "description": "hero.s26.label",
+    "x-blockhub-key": "hero.s26.label"
+  },
+  "hero_s26_prompt": "材料选型、进度验收与预算审批。",
+  "@hero_s26_prompt": {
+    "description": "hero.s26.prompt",
+    "x-blockhub-key": "hero.s26.prompt"
+  },
+  "hero_s26_role": "业主",
+  "@hero_s26_role": {
+    "description": "hero.s26.role",
+    "x-blockhub-key": "hero.s26.role"
+  },
+  "hero_s27_flow_0": ">> 宠物问诊 · 症状登记",
+  "@hero_s27_flow_0": {
+    "description": "hero.s27.flow.0",
+    "x-blockhub-key": "hero.s27.flow.0"
+  },
+  "hero_s27_flow_1": ">> 就诊/疫苗 · 预约闭环",
+  "@hero_s27_flow_1": {
+    "description": "hero.s27.flow.1",
+    "x-blockhub-key": "hero.s27.flow.1"
+  },
+  "hero_s27_flow_2": ">> 企微钉钉飞书 · 提醒推送",
+  "@hero_s27_flow_2": {
+    "description": "hero.s27.flow.2",
+    "x-blockhub-key": "hero.s27.flow.2"
+  },
+  "hero_s27_flow_3": ">> CapShip · 双端真接口",
+  "@hero_s27_flow_3": {
+    "description": "hero.s27.flow.3",
+    "x-blockhub-key": "hero.s27.flow.3"
+  },
+  "hero_s27_hint": "生活 · 宠物",
+  "@hero_s27_hint": {
+    "description": "hero.s27.hint",
+    "x-blockhub-key": "hero.s27.hint"
+  },
+  "hero_s27_label": "宠物问诊",
+  "@hero_s27_label": {
+    "description": "hero.s27.label",
+    "x-blockhub-key": "hero.s27.label"
+  },
+  "hero_s27_prompt": "宠物健康问答、预约就诊与疫苗提醒。",
+  "@hero_s27_prompt": {
+    "description": "hero.s27.prompt",
+    "x-blockhub-key": "hero.s27.prompt"
+  },
+  "hero_s27_role": "宠主",
+  "@hero_s27_role": {
+    "description": "hero.s27.role",
+    "x-blockhub-key": "hero.s27.role"
+  },
+  "hero_s28_flow_0": ">> 巡检打卡 · 站点点位录入",
+  "@hero_s28_flow_0": {
+    "description": "hero.s28.flow.0",
+    "x-blockhub-key": "hero.s28.flow.0"
+  },
+  "hero_s28_flow_1": ">> 合格/隐患 · 当场闭环",
+  "@hero_s28_flow_1": {
+    "description": "hero.s28.flow.1",
+    "x-blockhub-key": "hero.s28.flow.1"
+  },
+  "hero_s28_flow_2": ">> 企微钉钉飞书 · 合规推送",
+  "@hero_s28_flow_2": {
+    "description": "hero.s28.flow.2",
+    "x-blockhub-key": "hero.s28.flow.2"
+  },
+  "hero_s28_flow_3": ">> CapShip · 双端真接口",
+  "@hero_s28_flow_3": {
+    "description": "hero.s28.flow.3",
+    "x-blockhub-key": "hero.s28.flow.3"
+  },
+  "hero_s28_hint": "能源 · 安全",
+  "@hero_s28_hint": {
+    "description": "hero.s28.hint",
+    "x-blockhub-key": "hero.s28.hint"
+  },
+  "hero_s28_label": "巡检打卡",
+  "@hero_s28_label": {
+    "description": "hero.s28.label",
+    "x-blockhub-key": "hero.s28.label"
+  },
+  "hero_s28_prompt": "设备巡检、隐患上报与安全合规。",
+  "@hero_s28_prompt": {
+    "description": "hero.s28.prompt",
+    "x-blockhub-key": "hero.s28.prompt"
+  },
+  "hero_s28_role": "巡检",
+  "@hero_s28_role": {
+    "description": "hero.s28.role",
+    "x-blockhub-key": "hero.s28.role"
+  },
+  "hero_s29_flow_0": ">> 政务办事 · 事项诉求登记",
+  "@hero_s29_flow_0": {
+    "description": "hero.s29.flow.0",
+    "x-blockhub-key": "hero.s29.flow.0"
+  },
+  "hero_s29_flow_1": ">> 办理进度 · 办结闭环",
+  "@hero_s29_flow_1": {
+    "description": "hero.s29.flow.1",
+    "x-blockhub-key": "hero.s29.flow.1"
+  },
+  "hero_s29_flow_2": ">> 企微钉钉飞书 · 进度推送",
+  "@hero_s29_flow_2": {
+    "description": "hero.s29.flow.2",
+    "x-blockhub-key": "hero.s29.flow.2"
+  },
+  "hero_s29_flow_3": ">> CapShip · 双端真接口",
+  "@hero_s29_flow_3": {
+    "description": "hero.s29.flow.3",
+    "x-blockhub-key": "hero.s29.flow.3"
+  },
+  "hero_s29_hint": "政务 · 便民",
+  "@hero_s29_hint": {
+    "description": "hero.s29.hint",
+    "x-blockhub-key": "hero.s29.hint"
+  },
+  "hero_s29_label": "政务办事",
+  "@hero_s29_label": {
+    "description": "hero.s29.label",
+    "x-blockhub-key": "hero.s29.label"
+  },
+  "hero_s29_prompt": "办事指南、诉求提交与进度查询。",
+  "@hero_s29_prompt": {
+    "description": "hero.s29.prompt",
+    "x-blockhub-key": "hero.s29.prompt"
+  },
+  "hero_s29_role": "市民",
+  "@hero_s29_role": {
+    "description": "hero.s29.role",
+    "x-blockhub-key": "hero.s29.role"
+  },
+  "hero_s30_flow_0": ">> 法务合同 · 审查案件登记",
+  "@hero_s30_flow_0": {
+    "description": "hero.s30.flow.0",
+    "x-blockhub-key": "hero.s30.flow.0"
+  },
+  "hero_s30_flow_1": ">> 节点跟进 · 闭环完成",
+  "@hero_s30_flow_1": {
+    "description": "hero.s30.flow.1",
+    "x-blockhub-key": "hero.s30.flow.1"
+  },
+  "hero_s30_flow_2": ">> 企微钉钉飞书 · 节点提醒",
+  "@hero_s30_flow_2": {
+    "description": "hero.s30.flow.2",
+    "x-blockhub-key": "hero.s30.flow.2"
+  },
+  "hero_s30_flow_3": ">> CapShip · 双端真接口",
+  "@hero_s30_flow_3": {
+    "description": "hero.s30.flow.3",
+    "x-blockhub-key": "hero.s30.flow.3"
+  },
+  "hero_s30_hint": "法务 · 合规",
+  "@hero_s30_hint": {
+    "description": "hero.s30.hint",
+    "x-blockhub-key": "hero.s30.hint"
+  },
+  "hero_s30_label": "法务合同",
+  "@hero_s30_label": {
+    "description": "hero.s30.label",
+    "x-blockhub-key": "hero.s30.label"
+  },
+  "hero_s30_prompt": "合同审查、法规检索与案件跟踪。",
+  "@hero_s30_prompt": {
+    "description": "hero.s30.prompt",
+    "x-blockhub-key": "hero.s30.prompt"
+  },
+  "hero_s30_role": "法务",
+  "@hero_s30_role": {
+    "description": "hero.s30.role",
+    "x-blockhub-key": "hero.s30.role"
+  },
+  "hero_s31_flow_0": ">> 上海话语音 · 开口即问",
+  "@hero_s31_flow_0": {
+    "description": "hero.s31.flow.0",
+    "x-blockhub-key": "hero.s31.flow.0"
+  },
+  "hero_s31_flow_1": ">> 实时语音 · 边说边答",
+  "@hero_s31_flow_1": {
+    "description": "hero.s31.flow.1",
+    "x-blockhub-key": "hero.s31.flow.1"
+  },
+  "hero_s31_flow_2": ">> 语音播报 · 听得到",
+  "@hero_s31_flow_2": {
+    "description": "hero.s31.flow.2",
+    "x-blockhub-key": "hero.s31.flow.2"
+  },
+  "hero_s31_flow_3": ">> 手机/网页 · 直接可用",
+  "@hero_s31_flow_3": {
+    "description": "hero.s31.flow.3",
+    "x-blockhub-key": "hero.s31.flow.3"
+  },
+  "hero_s31_hint": "方言 · 语音",
+  "@hero_s31_hint": {
+    "description": "hero.s31.hint",
+    "x-blockhub-key": "hero.s31.hint"
+  },
+  "hero_s31_label": "上海话语音助手",
+  "@hero_s31_label": {
+    "description": "hero.s31.label",
+    "x-blockhub-key": "hero.s31.label"
+  },
+  "hero_s31_prompt": "上海话实时语音交互：开口即问、语音播报、支持方言识别。",
+  "@hero_s31_prompt": {
+    "description": "hero.s31.prompt",
+    "x-blockhub-key": "hero.s31.prompt"
+  },
+  "hero_s31_role": "全员",
+  "@hero_s31_role": {
+    "description": "hero.s31.role",
+    "x-blockhub-key": "hero.s31.role"
+  },
+  "hero_s32_flow_0": ">> 课本 · 书名定位册次",
+  "@hero_s32_flow_0": {
+    "description": "hero.s32.flow.0",
+    "x-blockhub-key": "hero.s32.flow.0"
+  },
+  "hero_s32_flow_1": ">> 大纲 · Module/Unit 规划",
+  "@hero_s32_flow_1": {
+    "description": "hero.s32.flow.1",
+    "x-blockhub-key": "hero.s32.flow.1"
+  },
+  "hero_s32_flow_2": ">> 家默复习考试 · Soft 步进",
+  "@hero_s32_flow_2": {
+    "description": "hero.s32.flow.2",
+    "x-blockhub-key": "hero.s32.flow.2"
+  },
+  "hero_s32_flow_3": ">> CapShip · 双端真接口",
+  "@hero_s32_flow_3": {
+    "description": "hero.s32.flow.3",
+    "x-blockhub-key": "hero.s32.flow.3"
+  },
+  "hero_s32_hint": "教育 · 学生",
+  "@hero_s32_hint": {
+    "description": "hero.s32.hint",
+    "x-blockhub-key": "hero.s32.hint"
+  },
+  "hero_s32_label": "课本学习",
+  "@hero_s32_label": {
+    "description": "hero.s32.label",
+    "x-blockhub-key": "hero.s32.label"
+  },
+  "hero_s32_prompt": "说书名定位册次 → 生成大纲 → Soft 步进记家默/复习/考试，进度真库。",
+  "@hero_s32_prompt": {
+    "description": "hero.s32.prompt",
+    "x-blockhub-key": "hero.s32.prompt"
+  },
+  "hero_s32_role": "学生",
+  "@hero_s32_role": {
+    "description": "hero.s32.role",
+    "x-blockhub-key": "hero.s32.role"
+  },
+  "hero_s33_flow_0": ">> 家默 · 听写错词得分",
+  "@hero_s33_flow_0": {
+    "description": "hero.s33.flow.0",
+    "x-blockhub-key": "hero.s33.flow.0"
+  },
+  "hero_s33_flow_1": ">> 选单元 · Soft 步进",
+  "@hero_s33_flow_1": {
+    "description": "hero.s33.flow.1",
+    "x-blockhub-key": "hero.s33.flow.1"
+  },
+  "hero_s33_flow_2": ">> 企微钉钉飞书 · 提醒推送",
+  "@hero_s33_flow_2": {
+    "description": "hero.s33.flow.2",
+    "x-blockhub-key": "hero.s33.flow.2"
+  },
+  "hero_s33_flow_3": ">> CapShip · 双端真接口",
+  "@hero_s33_flow_3": {
+    "description": "hero.s33.flow.3",
+    "x-blockhub-key": "hero.s33.flow.3"
+  },
+  "hero_s33_hint": "教育 · 家长",
+  "@hero_s33_hint": {
+    "description": "hero.s33.hint",
+    "x-blockhub-key": "hero.s33.hint"
+  },
+  "hero_s33_label": "家默督导",
+  "@hero_s33_label": {
+    "description": "hero.s33.label",
+    "x-blockhub-key": "hero.s33.label"
+  },
+  "hero_s33_prompt": "家长代记听写默写：选单元、写错词得分，与课本学习同一真库闭环。",
+  "@hero_s33_prompt": {
+    "description": "hero.s33.prompt",
+    "x-blockhub-key": "hero.s33.prompt"
+  },
+  "hero_s33_role": "家长",
+  "@hero_s33_role": {
+    "description": "hero.s33.role",
+    "x-blockhub-key": "hero.s33.role"
+  },
+  "hero_s34_flow_0": ">> 教学规划 · 课本大纲",
+  "@hero_s34_flow_0": {
+    "description": "hero.s34.flow.0",
+    "x-blockhub-key": "hero.s34.flow.0"
+  },
+  "hero_s34_flow_1": ">> 测验家默 · 掌握度跟进",
+  "@hero_s34_flow_1": {
+    "description": "hero.s34.flow.1",
+    "x-blockhub-key": "hero.s34.flow.1"
+  },
+  "hero_s34_flow_2": ">> 作业答疑 · Soft 批改",
+  "@hero_s34_flow_2": {
+    "description": "hero.s34.flow.2",
+    "x-blockhub-key": "hero.s34.flow.2"
+  },
+  "hero_s34_flow_3": ">> CapShip · 双端真接口",
+  "@hero_s34_flow_3": {
+    "description": "hero.s34.flow.3",
+    "x-blockhub-key": "hero.s34.flow.3"
+  },
+  "hero_s34_hint": "教育 · 老师",
+  "@hero_s34_hint": {
+    "description": "hero.s34.hint",
+    "x-blockhub-key": "hero.s34.hint"
+  },
+  "hero_s34_label": "教学规划",
+  "@hero_s34_label": {
+    "description": "hero.s34.label",
+    "x-blockhub-key": "hero.s34.label"
+  },
+  "hero_s34_prompt": "按课本生成教学单元，跟学生进度、测验与作业答疑闭环。",
+  "@hero_s34_prompt": {
+    "description": "hero.s34.prompt",
+    "x-blockhub-key": "hero.s34.prompt"
+  },
+  "hero_s34_role": "老师",
+  "@hero_s34_role": {
+    "description": "hero.s34.role",
+    "x-blockhub-key": "hero.s34.role"
+  },
+  "hero_s35_flow_0": ">> 金融KYC · 客户核验",
+  "@hero_s35_flow_0": {
+    "description": "hero.s35.flow.0",
+    "x-blockhub-key": "hero.s35.flow.0"
+  },
+  "hero_s35_flow_1": ">> Soft 步进 · 提交真库",
+  "@hero_s35_flow_1": {
+    "description": "hero.s35.flow.1",
+    "x-blockhub-key": "hero.s35.flow.1"
+  },
+  "hero_s35_flow_2": ">> 企微钉钉飞书 · 开户提醒",
+  "@hero_s35_flow_2": {
+    "description": "hero.s35.flow.2",
+    "x-blockhub-key": "hero.s35.flow.2"
+  },
+  "hero_s35_flow_3": ">> CapShip · 双端真接口",
+  "@hero_s35_flow_3": {
+    "description": "hero.s35.flow.3",
+    "x-blockhub-key": "hero.s35.flow.3"
+  },
+  "hero_s35_hint": "银行 · 开户",
+  "@hero_s35_hint": {
+    "description": "hero.s35.hint",
+    "x-blockhub-key": "hero.s35.hint"
+  },
+  "hero_s35_label": "银行KYC",
+  "@hero_s35_label": {
+    "description": "hero.s35.label",
+    "x-blockhub-key": "hero.s35.label"
+  },
+  "hero_s35_prompt": "对公/零售开户身份核验，真 KYC 工单入库。",
+  "@hero_s35_prompt": {
+    "description": "hero.s35.prompt",
+    "x-blockhub-key": "hero.s35.prompt"
+  },
+  "hero_s35_role": "银行",
+  "@hero_s35_role": {
+    "description": "hero.s35.role",
+    "x-blockhub-key": "hero.s35.role"
+  },
+  "hero_s36_flow_0": ">> 反洗钱 · 预警登记",
+  "@hero_s36_flow_0": {
+    "description": "hero.s36.flow.0",
+    "x-blockhub-key": "hero.s36.flow.0"
+  },
+  "hero_s36_flow_1": ">> Soft 步进 · 研判归档",
+  "@hero_s36_flow_1": {
+    "description": "hero.s36.flow.1",
+    "x-blockhub-key": "hero.s36.flow.1"
+  },
+  "hero_s36_flow_2": ">> 企微钉钉飞书 · 合规推送",
+  "@hero_s36_flow_2": {
+    "description": "hero.s36.flow.2",
+    "x-blockhub-key": "hero.s36.flow.2"
+  },
+  "hero_s36_flow_3": ">> CapShip · 双端真接口",
+  "@hero_s36_flow_3": {
+    "description": "hero.s36.flow.3",
+    "x-blockhub-key": "hero.s36.flow.3"
+  },
+  "hero_s36_hint": "银行 · 合规",
+  "@hero_s36_hint": {
+    "description": "hero.s36.hint",
+    "x-blockhub-key": "hero.s36.hint"
+  },
+  "hero_s36_label": "反洗钱监测",
+  "@hero_s36_label": {
+    "description": "hero.s36.label",
+    "x-blockhub-key": "hero.s36.label"
+  },
+  "hero_s36_prompt": "可疑交易识别与风控预警，真 AML 工单。",
+  "@hero_s36_prompt": {
+    "description": "hero.s36.prompt",
+    "x-blockhub-key": "hero.s36.prompt"
+  },
+  "hero_s36_role": "合规",
+  "@hero_s36_role": {
+    "description": "hero.s36.role",
+    "x-blockhub-key": "hero.s36.role"
+  },
+  "hero_s37_flow_0": ">> 授信审批 · 额度担保",
+  "@hero_s37_flow_0": {
+    "description": "hero.s37.flow.0",
+    "x-blockhub-key": "hero.s37.flow.0"
+  },
+  "hero_s37_flow_1": ">> Soft 步进 · 真库闭环",
+  "@hero_s37_flow_1": {
+    "description": "hero.s37.flow.1",
+    "x-blockhub-key": "hero.s37.flow.1"
+  },
+  "hero_s37_flow_2": ">> 企微钉钉飞书 · 审批通知",
+  "@hero_s37_flow_2": {
+    "description": "hero.s37.flow.2",
+    "x-blockhub-key": "hero.s37.flow.2"
+  },
+  "hero_s37_flow_3": ">> CapShip · 双端真接口",
+  "@hero_s37_flow_3": {
+    "description": "hero.s37.flow.3",
+    "x-blockhub-key": "hero.s37.flow.3"
+  },
+  "hero_s37_hint": "银行 · 信贷",
+  "@hero_s37_hint": {
+    "description": "hero.s37.hint",
+    "x-blockhub-key": "hero.s37.hint"
+  },
+  "hero_s37_label": "授信审批",
+  "@hero_s37_label": {
+    "description": "hero.s37.label",
+    "x-blockhub-key": "hero.s37.label"
+  },
+  "hero_s37_prompt": "授信额度/担保审批与贷后检查。",
+  "@hero_s37_prompt": {
+    "description": "hero.s37.prompt",
+    "x-blockhub-key": "hero.s37.prompt"
+  },
+  "hero_s37_role": "信贷",
+  "@hero_s37_role": {
+    "description": "hero.s37.role",
+    "x-blockhub-key": "hero.s37.role"
+  },
+  "hero_s38_flow_0": ">> 核保理赔 · 保单客户",
+  "@hero_s38_flow_0": {
+    "description": "hero.s38.flow.0",
+    "x-blockhub-key": "hero.s38.flow.0"
+  },
+  "hero_s38_flow_1": ">> Soft 步进 · 办结真库",
+  "@hero_s38_flow_1": {
+    "description": "hero.s38.flow.1",
+    "x-blockhub-key": "hero.s38.flow.1"
+  },
+  "hero_s38_flow_2": ">> 企微钉钉飞书 · 案件通知",
+  "@hero_s38_flow_2": {
+    "description": "hero.s38.flow.2",
+    "x-blockhub-key": "hero.s38.flow.2"
+  },
+  "hero_s38_flow_3": ">> CapShip · 双端真接口",
+  "@hero_s38_flow_3": {
+    "description": "hero.s38.flow.3",
+    "x-blockhub-key": "hero.s38.flow.3"
+  },
+  "hero_s38_hint": "保险 · 承保",
+  "@hero_s38_hint": {
+    "description": "hero.s38.hint",
+    "x-blockhub-key": "hero.s38.hint"
+  },
+  "hero_s38_label": "核保理赔",
+  "@hero_s38_label": {
+    "description": "hero.s38.label",
+    "x-blockhub-key": "hero.s38.label"
+  },
+  "hero_s38_prompt": "核保评估与理赔报案，真保险工单。",
+  "@hero_s38_prompt": {
+    "description": "hero.s38.prompt",
+    "x-blockhub-key": "hero.s38.prompt"
+  },
+  "hero_s38_role": "保险",
+  "@hero_s38_role": {
+    "description": "hero.s38.role",
+    "x-blockhub-key": "hero.s38.role"
+  },
+  "hero_s39_flow_0": ">> 监管报送 · 报表周期",
+  "@hero_s39_flow_0": {
+    "description": "hero.s39.flow.0",
+    "x-blockhub-key": "hero.s39.flow.0"
+  },
+  "hero_s39_flow_1": ">> Soft 步进 · 标记已报",
+  "@hero_s39_flow_1": {
+    "description": "hero.s39.flow.1",
+    "x-blockhub-key": "hero.s39.flow.1"
+  },
+  "hero_s39_flow_2": ">> 企微钉钉飞书 · 截止提醒",
+  "@hero_s39_flow_2": {
+    "description": "hero.s39.flow.2",
+    "x-blockhub-key": "hero.s39.flow.2"
+  },
+  "hero_s39_flow_3": ">> CapShip · 双端真接口",
+  "@hero_s39_flow_3": {
+    "description": "hero.s39.flow.3",
+    "x-blockhub-key": "hero.s39.flow.3"
+  },
+  "hero_s39_hint": "资管 · 合规",
+  "@hero_s39_hint": {
+    "description": "hero.s39.hint",
+    "x-blockhub-key": "hero.s39.hint"
+  },
+  "hero_s39_label": "监管报送",
+  "@hero_s39_label": {
+    "description": "hero.s39.label",
+    "x-blockhub-key": "hero.s39.label"
+  },
+  "hero_s39_prompt": "监管报表报送任务登记与办结。",
+  "@hero_s39_prompt": {
+    "description": "hero.s39.prompt",
+    "x-blockhub-key": "hero.s39.prompt"
+  },
+  "hero_s39_role": "资管",
+  "@hero_s39_role": {
+    "description": "hero.s39.role",
+    "x-blockhub-key": "hero.s39.role"
+  },
+  "hero_s40_flow_0": ">> 行业新闻 · 必读摘要",
+  "@hero_s40_flow_0": {
+    "description": "hero.s40.flow.0",
+    "x-blockhub-key": "hero.s40.flow.0"
+  },
+  "hero_s40_flow_1": ">> 演示样本 · source=demo",
+  "@hero_s40_flow_1": {
+    "description": "hero.s40.flow.1",
+    "x-blockhub-key": "hero.s40.flow.1"
+  },
+  "hero_s40_flow_2": ">> Token · 一键真源同步",
+  "@hero_s40_flow_2": {
+    "description": "hero.s40.flow.2",
+    "x-blockhub-key": "hero.s40.flow.2"
+  },
+  "hero_s40_flow_3": ">> CapShip · 双端真接口",
+  "@hero_s40_flow_3": {
+    "description": "hero.s40.flow.3",
+    "x-blockhub-key": "hero.s40.flow.3"
+  },
+  "hero_s40_hint": "金融 · 情报",
+  "@hero_s40_hint": {
+    "description": "hero.s40.hint",
+    "x-blockhub-key": "hero.s40.hint"
+  },
+  "hero_s40_label": "行业新闻",
+  "@hero_s40_label": {
+    "description": "hero.s40.label",
+    "x-blockhub-key": "hero.s40.label"
+  },
+  "hero_s40_prompt": "宏观/微观必读摘要与热议流；演示样本或一键真源入库。",
+  "@hero_s40_prompt": {
+    "description": "hero.s40.prompt",
+    "x-blockhub-key": "hero.s40.prompt"
+  },
+  "hero_s40_role": "投研",
+  "@hero_s40_role": {
+    "description": "hero.s40.role",
+    "x-blockhub-key": "hero.s40.role"
+  }
+}

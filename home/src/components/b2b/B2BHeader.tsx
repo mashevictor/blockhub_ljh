@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { LocaleSwitch } from '@blockhub/i18n/react'
 import BrandMark from '../BrandMark'
 import { BRAND } from '../../data/brand'
 import { B2B_NAV_ITEMS, homeSectionHref } from '../../data/homeNav'
@@ -156,6 +157,7 @@ export default function B2BHeader({ user, activeSection = 'hero', onLogout }: Pr
             )}
           </div>
           <div className="b2b-nav-actions-tail">
+            <LocaleSwitch className="b2b-nav-link b2b-nav-link-btn" />
             {user ? (
               <>
                 <Link className="b2b-nav-link" to={ROUTES.accountBilling}>我的套餐</Link>

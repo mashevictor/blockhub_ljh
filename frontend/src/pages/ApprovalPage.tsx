@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useT } from '@blockhub/i18n/react'
 import {
   approvalAction,
   fetchApprovalStats,
@@ -17,6 +18,7 @@ const STATUS_MAP: Record<string, { label: string; class: string }> = {
 }
 
 export default function ApprovalPage() {
+  const t = useT()
   const { user, role } = useAuth()
   const canApprove = isTenantAdmin(user?.role ?? role)
   const [stats, setStats] = useState<{ pending: number; approved: number; rejected: number } | null>(null)
@@ -80,7 +82,7 @@ export default function ApprovalPage() {
           </p>
         </div>
         <button type="button" className="btn btn-primary-dark" onClick={() => setShowSubmit((v) => !v)}>
-          {showSubmit ? '取消' : '发起申请'}
+          {showSubmit ? t('common.cancel') : '发起申请'}
         </button>
       </div>
 
@@ -128,7 +130,7 @@ export default function ApprovalPage() {
             </label>
             <div>
               <button type="button" className="btn btn-primary-dark" disabled={submitting || !form.title.trim()} onClick={() => void handleSubmit()}>
-                {submitting ? '提交中…' : '提交申请'}
+                {submitting ? t('common.submitting') : '提交申请'}
               </button>
             </div>
           </div>

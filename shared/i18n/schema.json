@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://blockhub.local/i18n/schema.json",
+  "title": "BlockHub i18n message catalog",
+  "description": "Contract for shared/i18n/messages. Runtime (@blockhub/i18n) only sees flat or nested string maps; it does not know capability/hero.",
+  "type": "object",
+  "additionalProperties": {
+    "oneOf": [
+      { "type": "string" },
+      { "$ref": "#" }
+    ]
+  },
+  "x-key-conventions": {
+    "common.*": "Shell UI (home / frontend / runtime-web / web-core)",
+    "error.*": "Stable API error codes",
+    "cap.{capability_key}.name": "Capability display name (codegen from registry)",
+    "cap.{capability_key}.category": "Capability category label (codegen)",
+    "hero.{preset_id}.label": "Hero danmaku label (codegen from hero_presets)",
+    "hero.{preset_id}.hint": "Hero danmaku hint (codegen)"
+  },
+  "x-generated-files": [
+    "messages/*/capability.gen.json",
+    "messages/*/hero.gen.json",
+    "flutter/*.arb",
+    "../packages/blockhub_flutter_core/assets/i18n/*.json"
+  ],
+  "x-hand-written-files": [
+    "messages/*/common.json",
+    "messages/*/errors.json"
+  ],
+  "x-seed-overlays": [
+    "seed/capability.en-US.json",
+    "seed/hero.en-US.json",
+    "seed/hero-copy.en-US.json",
+    "seed/category.en-US.json"
+  ],
+  "x-quality": {
+    "reviewStatus": "meta/en-review-status.json",
+    "drafts": "drafts/en-US.missing.json",
+    "eslintPlugin": "packages/eslint-plugin-blockhub-i18n",
+    "windowsDrift": "scripts/check_i18n_drift.py",
+    "draftWorkflow": ".github/workflows/i18n-draft-en.yml",
+    "flutterArb": "scripts/codegen-flutter-arb.py",
+    "namespaceCheck": "scripts/check_i18n_namespace.py",
+    "scaffoldLocales": "scripts/scaffold-capability-locales.py"
+  }
+}

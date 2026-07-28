@@ -1,5 +1,6 @@
 import { registerWidget } from '@blockhub/web-core'
 import {
+import './locales'
   CreditApprovalWidget,
   DueDiligenceWidget,
   FinanceAmlWidget,

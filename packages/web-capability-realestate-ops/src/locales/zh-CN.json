@@ -1,0 +1,12 @@
+{
+  "cap.broker_commission.ui.title": "中介佣金",
+  "cap.deco_acceptance.ui.title": "装修验收",
+  "cap.lease_renewal.ui.title": "租约续签",
+  "cap.listing_publish.ui.title": "房源上架",
+  "cap.owner_complaint.ui.title": "业主投诉",
+  "cap.property_fee.ui.title": "物业费催缴",
+  "cap.re_contract.ui.title": "签约认购",
+  "cap.rent_collection.ui.title": "租金收缴",
+  "cap.sales_followup.ui.title": "客户跟进",
+  "cap.viewing_feedback.ui.title": "看房回访"
+}

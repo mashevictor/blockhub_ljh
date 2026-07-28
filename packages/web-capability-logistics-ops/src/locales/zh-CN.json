@@ -1,0 +1,12 @@
+{
+  "cap.cold_chain_alert.ui.title": "冷链告警",
+  "cap.dock_queue.ui.title": "装卸排队",
+  "cap.fleet_dispatch.ui.title": "车辆调度",
+  "cap.freight_settle.ui.title": "运费结算",
+  "cap.logistics_exception.ui.title": "物流异常",
+  "cap.pod_signoff.ui.title": "签收确认",
+  "cap.route_task.ui.title": "路线任务",
+  "cap.warehouse_inbound.ui.title": "入库验收",
+  "cap.warehouse_outbound.ui.title": "出库拣配",
+  "cap.waybill_track.ui.title": "运单跟踪"
+}

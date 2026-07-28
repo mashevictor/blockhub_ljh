@@ -1,12 +1,18 @@
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy.exc import ProgrammingError, SQLAlchemyError
 from sqlalchemy.orm import Session
 
+from app.core.api_error import raise_api_error
 from app.db.session import get_db
 from app.services import catalog_store
 from app.services.catalog_seed import ensure_catalog_seeded, seed_catalog
+from app.services.i18n_catalog import (
+    localize_capabilities,
+    localize_hero,
+    resolve_request_locale,
+)
 from app.services.industry_site import list_all_sites
 
 router = APIRouter(prefix="/catalog", tags=["catalog"])
@@ -148,7 +154,7 @@ def industry_pack_detail(
     if not detail:
         detail = catalog_store.get_industry_pack_detail_static(pack_key, enrich=enrich)
     if not detail:
-        raise HTTPException(status_code=404, detail=f"Industry pack '{pack_key}' not found")
+        raise_api_error(404, "INDUSTRY_PACK_NOT_FOUND", pack=pack_key)
     return detail
 
 
@@ -166,24 +172,46 @@ def list_all_scenarios(
 
 
 @router.get("/modules")
-def list_capabilities(db: Annotated[Session, Depends(get_db)]) -> dict:
-    items, by_category = catalog_store.list_capabilities(db)
-    return {"total": len(items), "items": items, "by_category": by_category}
+def list_capabilities(
+    request: Request,
+    db: Annotated[Session, Depends(get_db)],
+    lang: str | None = Query(None, description="Override Accept-Language (zh-CN|en-US)"),
+) -> dict:
+    locale = resolve_request_locale(request, lang)
+    items, _ = catalog_store.list_capabilities(db)
+    items, by_category = localize_capabilities(items, locale)
+    return {
+        "total": len(items),
+        "items": items,
+        "by_category": by_category,
+        "locale": locale,
+    }
 
 
 @router.get("/hero-presets")
-def hero_presets(db: Annotated[Session, Depends(get_db)]) -> dict:
+def hero_presets(
+    request: Request,
+    db: Annotated[Session, Depends(get_db)],
+    lang: str | None = Query(None, description="Override Accept-Language (zh-CN|en-US)"),
+) -> dict:
+    locale = resolve_request_locale(request, lang)
+    source = "static"
+    items: list[dict[str, Any]] = []
     try:
         items = catalog_store.list_hero_presets(db)
         if items:
-            return {"total": len(items), "items": items, "source": "database"}
+            source = "database"
     except SQLAlchemyError:
         try:
             db.rollback()
         except Exception:
             pass
-    items = catalog_store.list_hero_presets_static()
-    return {"total": len(items), "items": items, "source": "static"}
+        items = []
+    if not items:
+        items = catalog_store.list_hero_presets_static()
+        source = "static"
+    items = [localize_hero(i, locale) for i in items]
+    return {"total": len(items), "items": items, "source": source, "locale": locale}
 
 
 @router.get("/chip-templates")

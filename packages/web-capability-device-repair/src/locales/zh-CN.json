@@ -1,0 +1,16 @@
+{
+  "cap.device_repair.dispatch": "确认派工",
+  "cap.device_repair.dispatching": "派工中…",
+  "cap.device_repair.field.asset_code": "设备编号",
+  "cap.device_repair.field.fault": "故障描述",
+  "cap.device_repair.field.location": "位置/工位",
+  "cap.device_repair.ph.asset_code": "扫码或输入，如 CNC-A12",
+  "cap.device_repair.ph.fault": "现象、是否停机、影响产线…",
+  "cap.device_repair.ph.location": "一车间·3号线（可留空）",
+  "cap.device_repair.status.dispatched": "维修中",
+  "cap.device_repair.status.done": "已完工",
+  "cap.device_repair.status.pending": "待派工",
+  "cap.device_repair.submit": "提交报修",
+  "cap.device_repair.title": "设备报修",
+  "cap.device_repair.ui.title": "设备报修"
+}

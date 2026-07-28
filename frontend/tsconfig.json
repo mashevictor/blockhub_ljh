@@ -12,11 +12,16 @@
     "noEmit": true,
     "jsx": "react-jsx",
     "strict": true,
+    "resolveJsonModule": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
-    "paths": { "@shared/*": ["../shared/*"] }
+    "paths": {
+      "@shared/*": ["../shared/*"],
+      "@blockhub/i18n": ["../packages/i18n/src/index.d.ts"],
+      "@blockhub/i18n/react": ["../packages/i18n/src/react.d.ts"]
+    }
   },
   "include": ["src", "../shared"]
 }

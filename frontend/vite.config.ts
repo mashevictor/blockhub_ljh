@@ -21,7 +21,17 @@ export default defineConfig(({ mode }) => {
     plugins: [react(), htmlCacheVersionPlugin({ appName: 'admin', appVersion })],
     publicDir: path.resolve(__dirname, '../home/public'),
     resolve: {
-      alias: { '@shared': path.resolve(__dirname, '../shared') },
+      alias: [
+        { find: '@shared', replacement: path.resolve(__dirname, '../shared') },
+        {
+          find: /^@blockhub\/i18n\/react$/,
+          replacement: path.resolve(__dirname, '../packages/i18n/src/react.tsx'),
+        },
+        {
+          find: /^@blockhub\/i18n$/,
+          replacement: path.resolve(__dirname, '../packages/i18n/src/index.ts'),
+        },
+      ],
     },
     server: {
       port: 5174,

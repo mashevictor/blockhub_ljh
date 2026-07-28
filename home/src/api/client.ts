@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { readStoredLocale } from '@blockhub/i18n'
 import { getToken, clearToken, redirectToLogin } from '../auth/storage'
 
 export const api = axios.create({ baseURL: '/api/v1', timeout: 20000 })
@@ -8,6 +9,7 @@ api.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
   }
+  config.headers['Accept-Language'] = readStoredLocale()
   return config
 })
 

@@ -1,0 +1,47 @@
+name: i18n draft EN
+
+# Scheme D: when EN is missing / CJK placeholders remain, open a *draft* PR.
+# Never auto-merge — humans review glossary-backed drafts then promote to seed.
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Mondays 03:15 UTC
+    - cron: "15 3 * * 1"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  draft-en:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Detect missing / CJK EN and write draft overlay
+        id: draft
+        run: |
+          python scripts/draft_en_pr.py --write --fix-cjk | tee /tmp/draft-en.log
+          if grep -q "draft entries: 0" /tmp/draft-en.log; then
+            echo "empty=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "empty=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create draft pull request
+        if: steps.draft.outputs.empty != 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "chore(i18n): draft missing EN translations (reviewed:false)"
+          title: "chore(i18n): draft missing EN translations"
+          body-path: shared/i18n/drafts/PR_BODY.md
+          branch: chore/i18n-draft-en
+          delete-branch: true
+          draft: true
+          labels: i18n, needs-review
+          # Explicitly no auto-merge

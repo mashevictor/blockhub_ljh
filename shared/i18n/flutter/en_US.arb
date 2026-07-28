@@ -1,0 +1,5263 @@
+{
+  "@@locale": "en_US",
+  "_generated_by": "scripts/codegen-i18n-messages.py",
+  "@_generated_by": {
+    "description": "_generated_by",
+    "x-blockhub-key": "_generated_by"
+  },
+  "cap_agro_inventory_category": "Agriculture",
+  "@cap_agro_inventory_category": {
+    "description": "cap.agro_inventory.category",
+    "x-blockhub-key": "cap.agro_inventory.category"
+  },
+  "cap_agro_inventory_name": "Agro Inventory",
+  "@cap_agro_inventory_name": {
+    "description": "cap.agro_inventory.name",
+    "x-blockhub-key": "cap.agro_inventory.name"
+  },
+  "cap_agro_inventory_ui_title": "Agro Inventory",
+  "@cap_agro_inventory_ui_title": {
+    "description": "cap.agro_inventory.ui.title",
+    "x-blockhub-key": "cap.agro_inventory.ui.title"
+  },
+  "cap_agro_patrol_category": "Agriculture",
+  "@cap_agro_patrol_category": {
+    "description": "cap.agro_patrol.category",
+    "x-blockhub-key": "cap.agro_patrol.category"
+  },
+  "cap_agro_patrol_name": "Agro Patrol",
+  "@cap_agro_patrol_name": {
+    "description": "cap.agro_patrol.name",
+    "x-blockhub-key": "cap.agro_patrol.name"
+  },
+  "cap_agro_patrol_ui_title": "Agro Patrol",
+  "@cap_agro_patrol_ui_title": {
+    "description": "cap.agro_patrol.ui.title",
+    "x-blockhub-key": "cap.agro_patrol.ui.title"
+  },
+  "cap_agro_pest_category": "Agriculture",
+  "@cap_agro_pest_category": {
+    "description": "cap.agro_pest.category",
+    "x-blockhub-key": "cap.agro_pest.category"
+  },
+  "cap_agro_pest_name": "Agro Pest",
+  "@cap_agro_pest_name": {
+    "description": "cap.agro_pest.name",
+    "x-blockhub-key": "cap.agro_pest.name"
+  },
+  "cap_agro_pest_ui_title": "Agro Pest",
+  "@cap_agro_pest_ui_title": {
+    "description": "cap.agro_pest.ui.title",
+    "x-blockhub-key": "cap.agro_pest.ui.title"
+  },
+  "cap_agro_subsidy_category": "Agriculture",
+  "@cap_agro_subsidy_category": {
+    "description": "cap.agro_subsidy.category",
+    "x-blockhub-key": "cap.agro_subsidy.category"
+  },
+  "cap_agro_subsidy_name": "Agro Subsidy",
+  "@cap_agro_subsidy_name": {
+    "description": "cap.agro_subsidy.name",
+    "x-blockhub-key": "cap.agro_subsidy.name"
+  },
+  "cap_agro_subsidy_ui_title": "Agro Subsidy",
+  "@cap_agro_subsidy_ui_title": {
+    "description": "cap.agro_subsidy.ui.title",
+    "x-blockhub-key": "cap.agro_subsidy.ui.title"
+  },
+  "cap_agro_trace_category": "Agriculture",
+  "@cap_agro_trace_category": {
+    "description": "cap.agro_trace.category",
+    "x-blockhub-key": "cap.agro_trace.category"
+  },
+  "cap_agro_trace_name": "Agro Trace",
+  "@cap_agro_trace_name": {
+    "description": "cap.agro_trace.name",
+    "x-blockhub-key": "cap.agro_trace.name"
+  },
+  "cap_agro_trace_ui_title": "Agro Trace",
+  "@cap_agro_trace_ui_title": {
+    "description": "cap.agro_trace.ui.title",
+    "x-blockhub-key": "cap.agro_trace.ui.title"
+  },
+  "cap_allergen_note_category": "Hospitality",
+  "@cap_allergen_note_category": {
+    "description": "cap.allergen_note.category",
+    "x-blockhub-key": "cap.allergen_note.category"
+  },
+  "cap_allergen_note_name": "Allergen Note",
+  "@cap_allergen_note_name": {
+    "description": "cap.allergen_note.name",
+    "x-blockhub-key": "cap.allergen_note.name"
+  },
+  "cap_allergen_note_ui_title": "Allergen Note",
+  "@cap_allergen_note_ui_title": {
+    "description": "cap.allergen_note.ui.title",
+    "x-blockhub-key": "cap.allergen_note.ui.title"
+  },
+  "cap_approval_flow_category": "Approvals",
+  "@cap_approval_flow_category": {
+    "description": "cap.approval_flow.category",
+    "x-blockhub-key": "cap.approval_flow.category"
+  },
+  "cap_approval_flow_expense_headline": "Expense claim",
+  "@cap_approval_flow_expense_headline": {
+    "description": "cap.approval_flow.expense.headline",
+    "x-blockhub-key": "cap.approval_flow.expense.headline"
+  },
+  "cap_approval_flow_expense_submit": "Submit claim",
+  "@cap_approval_flow_expense_submit": {
+    "description": "cap.approval_flow.expense.submit",
+    "x-blockhub-key": "cap.approval_flow.expense.submit"
+  },
+  "cap_approval_flow_field_dept": "Department",
+  "@cap_approval_flow_field_dept": {
+    "description": "cap.approval_flow.field.dept",
+    "x-blockhub-key": "cap.approval_flow.field.dept"
+  },
+  "cap_approval_flow_field_summary": "Details",
+  "@cap_approval_flow_field_summary": {
+    "description": "cap.approval_flow.field.summary",
+    "x-blockhub-key": "cap.approval_flow.field.summary"
+  },
+  "cap_approval_flow_field_title": "Title",
+  "@cap_approval_flow_field_title": {
+    "description": "cap.approval_flow.field.title",
+    "x-blockhub-key": "cap.approval_flow.field.title"
+  },
+  "cap_approval_flow_headline": "Start approval",
+  "@cap_approval_flow_headline": {
+    "description": "cap.approval_flow.headline",
+    "x-blockhub-key": "cap.approval_flow.headline"
+  },
+  "cap_approval_flow_hint": ">> One field at a time, then inbox",
+  "@cap_approval_flow_hint": {
+    "description": "cap.approval_flow.hint",
+    "x-blockhub-key": "cap.approval_flow.hint"
+  },
+  "cap_approval_flow_leave_headline": "Leave request",
+  "@cap_approval_flow_leave_headline": {
+    "description": "cap.approval_flow.leave.headline",
+    "x-blockhub-key": "cap.approval_flow.leave.headline"
+  },
+  "cap_approval_flow_leave_submit": "Submit leave",
+  "@cap_approval_flow_leave_submit": {
+    "description": "cap.approval_flow.leave.submit",
+    "x-blockhub-key": "cap.approval_flow.leave.submit"
+  },
+  "cap_approval_flow_name": "Approval Flow",
+  "@cap_approval_flow_name": {
+    "description": "cap.approval_flow.name",
+    "x-blockhub-key": "cap.approval_flow.name"
+  },
+  "cap_approval_flow_seal_headline": "Seal request",
+  "@cap_approval_flow_seal_headline": {
+    "description": "cap.approval_flow.seal.headline",
+    "x-blockhub-key": "cap.approval_flow.seal.headline"
+  },
+  "cap_approval_flow_seal_submit": "Submit seal",
+  "@cap_approval_flow_seal_submit": {
+    "description": "cap.approval_flow.seal.submit",
+    "x-blockhub-key": "cap.approval_flow.seal.submit"
+  },
+  "cap_approval_flow_status_approved": "Approved",
+  "@cap_approval_flow_status_approved": {
+    "description": "cap.approval_flow.status.approved",
+    "x-blockhub-key": "cap.approval_flow.status.approved"
+  },
+  "cap_approval_flow_status_pending": "Pending",
+  "@cap_approval_flow_status_pending": {
+    "description": "cap.approval_flow.status.pending",
+    "x-blockhub-key": "cap.approval_flow.status.pending"
+  },
+  "cap_approval_flow_status_rejected": "Rejected",
+  "@cap_approval_flow_status_rejected": {
+    "description": "cap.approval_flow.status.rejected",
+    "x-blockhub-key": "cap.approval_flow.status.rejected"
+  },
+  "cap_approval_flow_submit": "Submit request",
+  "@cap_approval_flow_submit": {
+    "description": "cap.approval_flow.submit",
+    "x-blockhub-key": "cap.approval_flow.submit"
+  },
+  "cap_approval_flow_success": "Submitted — awaiting approval",
+  "@cap_approval_flow_success": {
+    "description": "cap.approval_flow.success",
+    "x-blockhub-key": "cap.approval_flow.success"
+  },
+  "cap_approval_flow_ui_title": "Approval Flow",
+  "@cap_approval_flow_ui_title": {
+    "description": "cap.approval_flow.ui.title",
+    "x-blockhub-key": "cap.approval_flow.ui.title"
+  },
+  "cap_approval_inbox_category": "Approvals",
+  "@cap_approval_inbox_category": {
+    "description": "cap.approval_inbox.category",
+    "x-blockhub-key": "cap.approval_inbox.category"
+  },
+  "cap_approval_inbox_name": "Approval Inbox",
+  "@cap_approval_inbox_name": {
+    "description": "cap.approval_inbox.name",
+    "x-blockhub-key": "cap.approval_inbox.name"
+  },
+  "cap_approval_inbox_ui_title": "Approval Inbox",
+  "@cap_approval_inbox_ui_title": {
+    "description": "cap.approval_inbox.ui.title",
+    "x-blockhub-key": "cap.approval_inbox.ui.title"
+  },
+  "cap_asset_manage_category": "IT & assets",
+  "@cap_asset_manage_category": {
+    "description": "cap.asset_manage.category",
+    "x-blockhub-key": "cap.asset_manage.category"
+  },
+  "cap_asset_manage_name": "Asset Management",
+  "@cap_asset_manage_name": {
+    "description": "cap.asset_manage.name",
+    "x-blockhub-key": "cap.asset_manage.name"
+  },
+  "cap_asset_manage_ui_title": "Asset Management",
+  "@cap_asset_manage_ui_title": {
+    "description": "cap.asset_manage.ui.title",
+    "x-blockhub-key": "cap.asset_manage.ui.title"
+  },
+  "cap_auto_charge_category": "Auto & transport",
+  "@cap_auto_charge_category": {
+    "description": "cap.auto_charge.category",
+    "x-blockhub-key": "cap.auto_charge.category"
+  },
+  "cap_auto_charge_name": "Auto Charge",
+  "@cap_auto_charge_name": {
+    "description": "cap.auto_charge.name",
+    "x-blockhub-key": "cap.auto_charge.name"
+  },
+  "cap_auto_charge_ui_title": "Auto Charge",
+  "@cap_auto_charge_ui_title": {
+    "description": "cap.auto_charge.ui.title",
+    "x-blockhub-key": "cap.auto_charge.ui.title"
+  },
+  "cap_auto_claim_category": "Auto & transport",
+  "@cap_auto_claim_category": {
+    "description": "cap.auto_claim.category",
+    "x-blockhub-key": "cap.auto_claim.category"
+  },
+  "cap_auto_claim_name": "Auto Claim",
+  "@cap_auto_claim_name": {
+    "description": "cap.auto_claim.name",
+    "x-blockhub-key": "cap.auto_claim.name"
+  },
+  "cap_auto_claim_ui_title": "Auto Claim",
+  "@cap_auto_claim_ui_title": {
+    "description": "cap.auto_claim.ui.title",
+    "x-blockhub-key": "cap.auto_claim.ui.title"
+  },
+  "cap_auto_fleet_category": "Auto & transport",
+  "@cap_auto_fleet_category": {
+    "description": "cap.auto_fleet.category",
+    "x-blockhub-key": "cap.auto_fleet.category"
+  },
+  "cap_auto_fleet_name": "Auto Fleet",
+  "@cap_auto_fleet_name": {
+    "description": "cap.auto_fleet.name",
+    "x-blockhub-key": "cap.auto_fleet.name"
+  },
+  "cap_auto_fleet_ui_title": "Auto Fleet",
+  "@cap_auto_fleet_ui_title": {
+    "description": "cap.auto_fleet.ui.title",
+    "x-blockhub-key": "cap.auto_fleet.ui.title"
+  },
+  "cap_auto_parts_category": "Auto & transport",
+  "@cap_auto_parts_category": {
+    "description": "cap.auto_parts.category",
+    "x-blockhub-key": "cap.auto_parts.category"
+  },
+  "cap_auto_parts_name": "Auto Parts",
+  "@cap_auto_parts_name": {
+    "description": "cap.auto_parts.name",
+    "x-blockhub-key": "cap.auto_parts.name"
+  },
+  "cap_auto_parts_ui_title": "Auto Parts",
+  "@cap_auto_parts_ui_title": {
+    "description": "cap.auto_parts.ui.title",
+    "x-blockhub-key": "cap.auto_parts.ui.title"
+  },
+  "cap_auto_service_category": "Auto & transport",
+  "@cap_auto_service_category": {
+    "description": "cap.auto_service.category",
+    "x-blockhub-key": "cap.auto_service.category"
+  },
+  "cap_auto_service_name": "Auto Service",
+  "@cap_auto_service_name": {
+    "description": "cap.auto_service.name",
+    "x-blockhub-key": "cap.auto_service.name"
+  },
+  "cap_auto_service_ui_title": "Auto Service",
+  "@cap_auto_service_ui_title": {
+    "description": "cap.auto_service.ui.title",
+    "x-blockhub-key": "cap.auto_service.ui.title"
+  },
+  "cap_banquet_order_category": "Hospitality",
+  "@cap_banquet_order_category": {
+    "description": "cap.banquet_order.category",
+    "x-blockhub-key": "cap.banquet_order.category"
+  },
+  "cap_banquet_order_name": "Banquet Order",
+  "@cap_banquet_order_name": {
+    "description": "cap.banquet_order.name",
+    "x-blockhub-key": "cap.banquet_order.name"
+  },
+  "cap_banquet_order_ui_title": "Banquet Order",
+  "@cap_banquet_order_ui_title": {
+    "description": "cap.banquet_order.ui.title",
+    "x-blockhub-key": "cap.banquet_order.ui.title"
+  },
+  "cap_broker_commission_category": "Real estate",
+  "@cap_broker_commission_category": {
+    "description": "cap.broker_commission.category",
+    "x-blockhub-key": "cap.broker_commission.category"
+  },
+  "cap_broker_commission_name": "Broker Commission",
+  "@cap_broker_commission_name": {
+    "description": "cap.broker_commission.name",
+    "x-blockhub-key": "cap.broker_commission.name"
+  },
+  "cap_broker_commission_ui_title": "Broker Commission",
+  "@cap_broker_commission_ui_title": {
+    "description": "cap.broker_commission.ui.title",
+    "x-blockhub-key": "cap.broker_commission.ui.title"
+  },
+  "cap_campaign_ops_category": "Growth marketing",
+  "@cap_campaign_ops_category": {
+    "description": "cap.campaign_ops.category",
+    "x-blockhub-key": "cap.campaign_ops.category"
+  },
+  "cap_campaign_ops_name": "Campaign Ops",
+  "@cap_campaign_ops_name": {
+    "description": "cap.campaign_ops.name",
+    "x-blockhub-key": "cap.campaign_ops.name"
+  },
+  "cap_campaign_ops_ui_title": "Campaign Ops",
+  "@cap_campaign_ops_ui_title": {
+    "description": "cap.campaign_ops.ui.title",
+    "x-blockhub-key": "cap.campaign_ops.ui.title"
+  },
+  "cap_chart_dashboard_category": "Visualization",
+  "@cap_chart_dashboard_category": {
+    "description": "cap.chart_dashboard.category",
+    "x-blockhub-key": "cap.chart_dashboard.category"
+  },
+  "cap_chart_dashboard_name": "Chart Dashboard",
+  "@cap_chart_dashboard_name": {
+    "description": "cap.chart_dashboard.name",
+    "x-blockhub-key": "cap.chart_dashboard.name"
+  },
+  "cap_chart_dashboard_ui_title": "Chart Dashboard",
+  "@cap_chart_dashboard_ui_title": {
+    "description": "cap.chart_dashboard.ui.title",
+    "x-blockhub-key": "cap.chart_dashboard.ui.title"
+  },
+  "cap_chart_funnel_category": "Visualization",
+  "@cap_chart_funnel_category": {
+    "description": "cap.chart_funnel.category",
+    "x-blockhub-key": "cap.chart_funnel.category"
+  },
+  "cap_chart_funnel_name": "Chart Funnel",
+  "@cap_chart_funnel_name": {
+    "description": "cap.chart_funnel.name",
+    "x-blockhub-key": "cap.chart_funnel.name"
+  },
+  "cap_chart_funnel_ui_title": "Chart Funnel",
+  "@cap_chart_funnel_ui_title": {
+    "description": "cap.chart_funnel.ui.title",
+    "x-blockhub-key": "cap.chart_funnel.ui.title"
+  },
+  "cap_chat_qa_category": "Smart interaction",
+  "@cap_chat_qa_category": {
+    "description": "cap.chat_qa.category",
+    "x-blockhub-key": "cap.chat_qa.category"
+  },
+  "cap_chat_qa_name": "Smart Q&A",
+  "@cap_chat_qa_name": {
+    "description": "cap.chat_qa.name",
+    "x-blockhub-key": "cap.chat_qa.name"
+  },
+  "cap_chat_qa_ui_title": "Smart Q&A",
+  "@cap_chat_qa_ui_title": {
+    "description": "cap.chat_qa.ui.title",
+    "x-blockhub-key": "cap.chat_qa.ui.title"
+  },
+  "cap_chat_summary_category": "Smart interaction",
+  "@cap_chat_summary_category": {
+    "description": "cap.chat_summary.category",
+    "x-blockhub-key": "cap.chat_summary.category"
+  },
+  "cap_chat_summary_name": "Chat Summary",
+  "@cap_chat_summary_name": {
+    "description": "cap.chat_summary.name",
+    "x-blockhub-key": "cap.chat_summary.name"
+  },
+  "cap_chat_summary_ui_title": "Chat Summary",
+  "@cap_chat_summary_ui_title": {
+    "description": "cap.chat_summary.ui.title",
+    "x-blockhub-key": "cap.chat_summary.ui.title"
+  },
+  "cap_chat_voice_category": "Smart interaction",
+  "@cap_chat_voice_category": {
+    "description": "cap.chat_voice.category",
+    "x-blockhub-key": "cap.chat_voice.category"
+  },
+  "cap_chat_voice_name": "Chat Voice",
+  "@cap_chat_voice_name": {
+    "description": "cap.chat_voice.name",
+    "x-blockhub-key": "cap.chat_voice.name"
+  },
+  "cap_chat_voice_ui_title": "Chat Voice",
+  "@cap_chat_voice_ui_title": {
+    "description": "cap.chat_voice.ui.title",
+    "x-blockhub-key": "cap.chat_voice.ui.title"
+  },
+  "cap_class_schedule_category": "Education & training",
+  "@cap_class_schedule_category": {
+    "description": "cap.class_schedule.category",
+    "x-blockhub-key": "cap.class_schedule.category"
+  },
+  "cap_class_schedule_name": "Class Schedule",
+  "@cap_class_schedule_name": {
+    "description": "cap.class_schedule.name",
+    "x-blockhub-key": "cap.class_schedule.name"
+  },
+  "cap_class_schedule_ui_title": "Class Schedule",
+  "@cap_class_schedule_ui_title": {
+    "description": "cap.class_schedule.ui.title",
+    "x-blockhub-key": "cap.class_schedule.ui.title"
+  },
+  "cap_cold_chain_alert_category": "Logistics",
+  "@cap_cold_chain_alert_category": {
+    "description": "cap.cold_chain_alert.category",
+    "x-blockhub-key": "cap.cold_chain_alert.category"
+  },
+  "cap_cold_chain_alert_name": "Cold Chain Alert",
+  "@cap_cold_chain_alert_name": {
+    "description": "cap.cold_chain_alert.name",
+    "x-blockhub-key": "cap.cold_chain_alert.name"
+  },
+  "cap_cold_chain_alert_ui_title": "Cold Chain Alert",
+  "@cap_cold_chain_alert_ui_title": {
+    "description": "cap.cold_chain_alert.ui.title",
+    "x-blockhub-key": "cap.cold_chain_alert.ui.title"
+  },
+  "cap_competitor_price_category": "Retail & e-commerce",
+  "@cap_competitor_price_category": {
+    "description": "cap.competitor_price.category",
+    "x-blockhub-key": "cap.competitor_price.category"
+  },
+  "cap_competitor_price_name": "Competitor Price",
+  "@cap_competitor_price_name": {
+    "description": "cap.competitor_price.name",
+    "x-blockhub-key": "cap.competitor_price.name"
+  },
+  "cap_competitor_price_ui_title": "Competitor Price",
+  "@cap_competitor_price_ui_title": {
+    "description": "cap.competitor_price.ui.title",
+    "x-blockhub-key": "cap.competitor_price.ui.title"
+  },
+  "cap_concierge_req_category": "Hospitality",
+  "@cap_concierge_req_category": {
+    "description": "cap.concierge_req.category",
+    "x-blockhub-key": "cap.concierge_req.category"
+  },
+  "cap_concierge_req_name": "Concierge Req",
+  "@cap_concierge_req_name": {
+    "description": "cap.concierge_req.name",
+    "x-blockhub-key": "cap.concierge_req.name"
+  },
+  "cap_concierge_req_ui_title": "Concierge Req",
+  "@cap_concierge_req_ui_title": {
+    "description": "cap.concierge_req.ui.title",
+    "x-blockhub-key": "cap.concierge_req.ui.title"
+  },
+  "cap_const_accept_category": "Construction",
+  "@cap_const_accept_category": {
+    "description": "cap.const_accept.category",
+    "x-blockhub-key": "cap.const_accept.category"
+  },
+  "cap_const_accept_name": "Const Accept",
+  "@cap_const_accept_name": {
+    "description": "cap.const_accept.name",
+    "x-blockhub-key": "cap.const_accept.name"
+  },
+  "cap_const_accept_ui_title": "Const Accept",
+  "@cap_const_accept_ui_title": {
+    "description": "cap.const_accept.ui.title",
+    "x-blockhub-key": "cap.const_accept.ui.title"
+  },
+  "cap_const_labor_category": "Construction",
+  "@cap_const_labor_category": {
+    "description": "cap.const_labor.category",
+    "x-blockhub-key": "cap.const_labor.category"
+  },
+  "cap_const_labor_name": "Const Labor",
+  "@cap_const_labor_name": {
+    "description": "cap.const_labor.name",
+    "x-blockhub-key": "cap.const_labor.name"
+  },
+  "cap_const_labor_ui_title": "Const Labor",
+  "@cap_const_labor_ui_title": {
+    "description": "cap.const_labor.ui.title",
+    "x-blockhub-key": "cap.const_labor.ui.title"
+  },
+  "cap_const_progress_category": "Construction",
+  "@cap_const_progress_category": {
+    "description": "cap.const_progress.category",
+    "x-blockhub-key": "cap.const_progress.category"
+  },
+  "cap_const_progress_name": "Const Progress",
+  "@cap_const_progress_name": {
+    "description": "cap.const_progress.name",
+    "x-blockhub-key": "cap.const_progress.name"
+  },
+  "cap_const_progress_ui_title": "Const Progress",
+  "@cap_const_progress_ui_title": {
+    "description": "cap.const_progress.ui.title",
+    "x-blockhub-key": "cap.const_progress.ui.title"
+  },
+  "cap_const_safety_category": "Construction",
+  "@cap_const_safety_category": {
+    "description": "cap.const_safety.category",
+    "x-blockhub-key": "cap.const_safety.category"
+  },
+  "cap_const_safety_name": "Const Safety",
+  "@cap_const_safety_name": {
+    "description": "cap.const_safety.name",
+    "x-blockhub-key": "cap.const_safety.name"
+  },
+  "cap_const_safety_ui_title": "Const Safety",
+  "@cap_const_safety_ui_title": {
+    "description": "cap.const_safety.ui.title",
+    "x-blockhub-key": "cap.const_safety.ui.title"
+  },
+  "cap_const_visa_category": "Construction",
+  "@cap_const_visa_category": {
+    "description": "cap.const_visa.category",
+    "x-blockhub-key": "cap.const_visa.category"
+  },
+  "cap_const_visa_name": "Const Visa",
+  "@cap_const_visa_name": {
+    "description": "cap.const_visa.name",
+    "x-blockhub-key": "cap.const_visa.name"
+  },
+  "cap_const_visa_ui_title": "Const Visa",
+  "@cap_const_visa_ui_title": {
+    "description": "cap.const_visa.ui.title",
+    "x-blockhub-key": "cap.const_visa.ui.title"
+  },
+  "cap_credit_approval_category": "Financial services",
+  "@cap_credit_approval_category": {
+    "description": "cap.credit_approval.category",
+    "x-blockhub-key": "cap.credit_approval.category"
+  },
+  "cap_credit_approval_name": "Credit Approval",
+  "@cap_credit_approval_name": {
+    "description": "cap.credit_approval.name",
+    "x-blockhub-key": "cap.credit_approval.name"
+  },
+  "cap_credit_approval_ui_title": "Credit Approval",
+  "@cap_credit_approval_ui_title": {
+    "description": "cap.credit_approval.ui.title",
+    "x-blockhub-key": "cap.credit_approval.ui.title"
+  },
+  "cap_data_nl_query_category": "Knowledge data",
+  "@cap_data_nl_query_category": {
+    "description": "cap.data_nl_query.category",
+    "x-blockhub-key": "cap.data_nl_query.category"
+  },
+  "cap_data_nl_query_name": "Natural Language Query",
+  "@cap_data_nl_query_name": {
+    "description": "cap.data_nl_query.name",
+    "x-blockhub-key": "cap.data_nl_query.name"
+  },
+  "cap_data_nl_query_ui_title": "Natural Language Query",
+  "@cap_data_nl_query_ui_title": {
+    "description": "cap.data_nl_query.ui.title",
+    "x-blockhub-key": "cap.data_nl_query.ui.title"
+  },
+  "cap_deal_evidence_category": "Sales",
+  "@cap_deal_evidence_category": {
+    "description": "cap.deal_evidence.category",
+    "x-blockhub-key": "cap.deal_evidence.category"
+  },
+  "cap_deal_evidence_name": "Deal Evidence",
+  "@cap_deal_evidence_name": {
+    "description": "cap.deal_evidence.name",
+    "x-blockhub-key": "cap.deal_evidence.name"
+  },
+  "cap_deal_evidence_ui_title": "Deal Evidence",
+  "@cap_deal_evidence_ui_title": {
+    "description": "cap.deal_evidence.ui.title",
+    "x-blockhub-key": "cap.deal_evidence.ui.title"
+  },
+  "cap_deco_acceptance_category": "Real estate",
+  "@cap_deco_acceptance_category": {
+    "description": "cap.deco_acceptance.category",
+    "x-blockhub-key": "cap.deco_acceptance.category"
+  },
+  "cap_deco_acceptance_name": "Deco Acceptance",
+  "@cap_deco_acceptance_name": {
+    "description": "cap.deco_acceptance.name",
+    "x-blockhub-key": "cap.deco_acceptance.name"
+  },
+  "cap_deco_acceptance_ui_title": "Deco Acceptance",
+  "@cap_deco_acceptance_ui_title": {
+    "description": "cap.deco_acceptance.ui.title",
+    "x-blockhub-key": "cap.deco_acceptance.ui.title"
+  },
+  "cap_deco_material_category": "Construction",
+  "@cap_deco_material_category": {
+    "description": "cap.deco_material.category",
+    "x-blockhub-key": "cap.deco_material.category"
+  },
+  "cap_deco_material_name": "Home Renovation",
+  "@cap_deco_material_name": {
+    "description": "cap.deco_material.name",
+    "x-blockhub-key": "cap.deco_material.name"
+  },
+  "cap_deco_material_ui_title": "Home Renovation",
+  "@cap_deco_material_ui_title": {
+    "description": "cap.deco_material.ui.title",
+    "x-blockhub-key": "cap.deco_material.ui.title"
+  },
+  "cap_delivery_order_category": "Logistics",
+  "@cap_delivery_order_category": {
+    "description": "cap.delivery_order.category",
+    "x-blockhub-key": "cap.delivery_order.category"
+  },
+  "cap_delivery_order_name": "Delivery / Ride",
+  "@cap_delivery_order_name": {
+    "description": "cap.delivery_order.name",
+    "x-blockhub-key": "cap.delivery_order.name"
+  },
+  "cap_delivery_order_ui_title": "Delivery / Ride",
+  "@cap_delivery_order_ui_title": {
+    "description": "cap.delivery_order.ui.title",
+    "x-blockhub-key": "cap.delivery_order.ui.title"
+  },
+  "cap_device_repair_category": "Field ops",
+  "@cap_device_repair_category": {
+    "description": "cap.device_repair.category",
+    "x-blockhub-key": "cap.device_repair.category"
+  },
+  "cap_device_repair_dispatch": "Confirm dispatch",
+  "@cap_device_repair_dispatch": {
+    "description": "cap.device_repair.dispatch",
+    "x-blockhub-key": "cap.device_repair.dispatch"
+  },
+  "cap_device_repair_dispatching": "Dispatching…",
+  "@cap_device_repair_dispatching": {
+    "description": "cap.device_repair.dispatching",
+    "x-blockhub-key": "cap.device_repair.dispatching"
+  },
+  "cap_device_repair_field_asset_code": "Asset code",
+  "@cap_device_repair_field_asset_code": {
+    "description": "cap.device_repair.field.asset_code",
+    "x-blockhub-key": "cap.device_repair.field.asset_code"
+  },
+  "cap_device_repair_field_fault": "Fault description",
+  "@cap_device_repair_field_fault": {
+    "description": "cap.device_repair.field.fault",
+    "x-blockhub-key": "cap.device_repair.field.fault"
+  },
+  "cap_device_repair_field_location": "Location / station",
+  "@cap_device_repair_field_location": {
+    "description": "cap.device_repair.field.location",
+    "x-blockhub-key": "cap.device_repair.field.location"
+  },
+  "cap_device_repair_name": "Device Repair",
+  "@cap_device_repair_name": {
+    "description": "cap.device_repair.name",
+    "x-blockhub-key": "cap.device_repair.name"
+  },
+  "cap_device_repair_ph_asset_code": "Scan or type, e.g. CNC-A12",
+  "@cap_device_repair_ph_asset_code": {
+    "description": "cap.device_repair.ph.asset_code",
+    "x-blockhub-key": "cap.device_repair.ph.asset_code"
+  },
+  "cap_device_repair_ph_fault": "Symptom, downtime, line impact…",
+  "@cap_device_repair_ph_fault": {
+    "description": "cap.device_repair.ph.fault",
+    "x-blockhub-key": "cap.device_repair.ph.fault"
+  },
+  "cap_device_repair_ph_location": "Workshop · line (optional)",
+  "@cap_device_repair_ph_location": {
+    "description": "cap.device_repair.ph.location",
+    "x-blockhub-key": "cap.device_repair.ph.location"
+  },
+  "cap_device_repair_status_dispatched": "In repair",
+  "@cap_device_repair_status_dispatched": {
+    "description": "cap.device_repair.status.dispatched",
+    "x-blockhub-key": "cap.device_repair.status.dispatched"
+  },
+  "cap_device_repair_status_done": "Completed",
+  "@cap_device_repair_status_done": {
+    "description": "cap.device_repair.status.done",
+    "x-blockhub-key": "cap.device_repair.status.done"
+  },
+  "cap_device_repair_status_pending": "Pending dispatch",
+  "@cap_device_repair_status_pending": {
+    "description": "cap.device_repair.status.pending",
+    "x-blockhub-key": "cap.device_repair.status.pending"
+  },
+  "cap_device_repair_submit": "Submit ticket",
+  "@cap_device_repair_submit": {
+    "description": "cap.device_repair.submit",
+    "x-blockhub-key": "cap.device_repair.submit"
+  },
+  "cap_device_repair_title": "Device repair",
+  "@cap_device_repair_title": {
+    "description": "cap.device_repair.title",
+    "x-blockhub-key": "cap.device_repair.title"
+  },
+  "cap_device_repair_ui_title": "Device Repair",
+  "@cap_device_repair_ui_title": {
+    "description": "cap.device_repair.ui.title",
+    "x-blockhub-key": "cap.device_repair.ui.title"
+  },
+  "cap_display_check_category": "Retail & e-commerce",
+  "@cap_display_check_category": {
+    "description": "cap.display_check.category",
+    "x-blockhub-key": "cap.display_check.category"
+  },
+  "cap_display_check_name": "Display Check",
+  "@cap_display_check_name": {
+    "description": "cap.display_check.name",
+    "x-blockhub-key": "cap.display_check.name"
+  },
+  "cap_display_check_ui_title": "Display Check",
+  "@cap_display_check_ui_title": {
+    "description": "cap.display_check.ui.title",
+    "x-blockhub-key": "cap.display_check.ui.title"
+  },
+  "cap_dock_queue_category": "Logistics",
+  "@cap_dock_queue_category": {
+    "description": "cap.dock_queue.category",
+    "x-blockhub-key": "cap.dock_queue.category"
+  },
+  "cap_dock_queue_name": "Dock Queue",
+  "@cap_dock_queue_name": {
+    "description": "cap.dock_queue.name",
+    "x-blockhub-key": "cap.dock_queue.name"
+  },
+  "cap_dock_queue_ui_title": "Dock Queue",
+  "@cap_dock_queue_ui_title": {
+    "description": "cap.dock_queue.ui.title",
+    "x-blockhub-key": "cap.dock_queue.ui.title"
+  },
+  "cap_due_diligence_category": "Financial services",
+  "@cap_due_diligence_category": {
+    "description": "cap.due_diligence.category",
+    "x-blockhub-key": "cap.due_diligence.category"
+  },
+  "cap_due_diligence_name": "Due Diligence",
+  "@cap_due_diligence_name": {
+    "description": "cap.due_diligence.name",
+    "x-blockhub-key": "cap.due_diligence.name"
+  },
+  "cap_due_diligence_ui_title": "Due Diligence",
+  "@cap_due_diligence_ui_title": {
+    "description": "cap.due_diligence.ui.title",
+    "x-blockhub-key": "cap.due_diligence.ui.title"
+  },
+  "cap_edu_attendance_category": "Education & training",
+  "@cap_edu_attendance_category": {
+    "description": "cap.edu_attendance.category",
+    "x-blockhub-key": "cap.edu_attendance.category"
+  },
+  "cap_edu_attendance_name": "Edu Attendance",
+  "@cap_edu_attendance_name": {
+    "description": "cap.edu_attendance.name",
+    "x-blockhub-key": "cap.edu_attendance.name"
+  },
+  "cap_edu_attendance_ui_title": "Edu Attendance",
+  "@cap_edu_attendance_ui_title": {
+    "description": "cap.edu_attendance.ui.title",
+    "x-blockhub-key": "cap.edu_attendance.ui.title"
+  },
+  "cap_edu_grade_alert_category": "Education & training",
+  "@cap_edu_grade_alert_category": {
+    "description": "cap.edu_grade_alert.category",
+    "x-blockhub-key": "cap.edu_grade_alert.category"
+  },
+  "cap_edu_grade_alert_name": "Edu Grade Alert",
+  "@cap_edu_grade_alert_name": {
+    "description": "cap.edu_grade_alert.name",
+    "x-blockhub-key": "cap.edu_grade_alert.name"
+  },
+  "cap_edu_grade_alert_ui_title": "Edu Grade Alert",
+  "@cap_edu_grade_alert_ui_title": {
+    "description": "cap.edu_grade_alert.ui.title",
+    "x-blockhub-key": "cap.edu_grade_alert.ui.title"
+  },
+  "cap_edu_makeup_category": "Education & training",
+  "@cap_edu_makeup_category": {
+    "description": "cap.edu_makeup.category",
+    "x-blockhub-key": "cap.edu_makeup.category"
+  },
+  "cap_edu_makeup_name": "Edu Makeup",
+  "@cap_edu_makeup_name": {
+    "description": "cap.edu_makeup.name",
+    "x-blockhub-key": "cap.edu_makeup.name"
+  },
+  "cap_edu_makeup_ui_title": "Edu Makeup",
+  "@cap_edu_makeup_ui_title": {
+    "description": "cap.edu_makeup.ui.title",
+    "x-blockhub-key": "cap.edu_makeup.ui.title"
+  },
+  "cap_edu_quiz_category": "Education & training",
+  "@cap_edu_quiz_category": {
+    "description": "cap.edu_quiz.category",
+    "x-blockhub-key": "cap.edu_quiz.category"
+  },
+  "cap_edu_quiz_name": "Edu Quiz",
+  "@cap_edu_quiz_name": {
+    "description": "cap.edu_quiz.name",
+    "x-blockhub-key": "cap.edu_quiz.name"
+  },
+  "cap_edu_quiz_ui_title": "Edu Quiz",
+  "@cap_edu_quiz_ui_title": {
+    "description": "cap.edu_quiz.ui.title",
+    "x-blockhub-key": "cap.edu_quiz.ui.title"
+  },
+  "cap_edu_textbook_category": "Education & training",
+  "@cap_edu_textbook_category": {
+    "description": "cap.edu_textbook.category",
+    "x-blockhub-key": "cap.edu_textbook.category"
+  },
+  "cap_edu_textbook_name": "Edu Textbook",
+  "@cap_edu_textbook_name": {
+    "description": "cap.edu_textbook.name",
+    "x-blockhub-key": "cap.edu_textbook.name"
+  },
+  "cap_edu_textbook_ui_title": "Edu Textbook",
+  "@cap_edu_textbook_ui_title": {
+    "description": "cap.edu_textbook.ui.title",
+    "x-blockhub-key": "cap.edu_textbook.ui.title"
+  },
+  "cap_edu_transfer_category": "Education & training",
+  "@cap_edu_transfer_category": {
+    "description": "cap.edu_transfer.category",
+    "x-blockhub-key": "cap.edu_transfer.category"
+  },
+  "cap_edu_transfer_name": "Edu Transfer",
+  "@cap_edu_transfer_name": {
+    "description": "cap.edu_transfer.name",
+    "x-blockhub-key": "cap.edu_transfer.name"
+  },
+  "cap_edu_transfer_ui_title": "Edu Transfer",
+  "@cap_edu_transfer_ui_title": {
+    "description": "cap.edu_transfer.ui.title",
+    "x-blockhub-key": "cap.edu_transfer.ui.title"
+  },
+  "cap_edu_tuition_category": "Education & training",
+  "@cap_edu_tuition_category": {
+    "description": "cap.edu_tuition.category",
+    "x-blockhub-key": "cap.edu_tuition.category"
+  },
+  "cap_edu_tuition_name": "Edu Tuition",
+  "@cap_edu_tuition_name": {
+    "description": "cap.edu_tuition.name",
+    "x-blockhub-key": "cap.edu_tuition.name"
+  },
+  "cap_edu_tuition_ui_title": "Edu Tuition",
+  "@cap_edu_tuition_ui_title": {
+    "description": "cap.edu_tuition.ui.title",
+    "x-blockhub-key": "cap.edu_tuition.ui.title"
+  },
+  "cap_energy_carbon_category": "Green manufacturing",
+  "@cap_energy_carbon_category": {
+    "description": "cap.energy_carbon.category",
+    "x-blockhub-key": "cap.energy_carbon.category"
+  },
+  "cap_energy_carbon_name": "Energy Carbon",
+  "@cap_energy_carbon_name": {
+    "description": "cap.energy_carbon.name",
+    "x-blockhub-key": "cap.energy_carbon.name"
+  },
+  "cap_energy_carbon_ui_title": "Energy Carbon",
+  "@cap_energy_carbon_ui_title": {
+    "description": "cap.energy_carbon.ui.title",
+    "x-blockhub-key": "cap.energy_carbon.ui.title"
+  },
+  "cap_energy_defect_category": "Energy & power",
+  "@cap_energy_defect_category": {
+    "description": "cap.energy_defect.category",
+    "x-blockhub-key": "cap.energy_defect.category"
+  },
+  "cap_energy_defect_name": "Energy Defect",
+  "@cap_energy_defect_name": {
+    "description": "cap.energy_defect.name",
+    "x-blockhub-key": "cap.energy_defect.name"
+  },
+  "cap_energy_defect_ui_title": "Energy Defect",
+  "@cap_energy_defect_ui_title": {
+    "description": "cap.energy_defect.ui.title",
+    "x-blockhub-key": "cap.energy_defect.ui.title"
+  },
+  "cap_energy_emissions_category": "Energy & power",
+  "@cap_energy_emissions_category": {
+    "description": "cap.energy_emissions.category",
+    "x-blockhub-key": "cap.energy_emissions.category"
+  },
+  "cap_energy_emissions_name": "Energy Emissions",
+  "@cap_energy_emissions_name": {
+    "description": "cap.energy_emissions.name",
+    "x-blockhub-key": "cap.energy_emissions.name"
+  },
+  "cap_energy_emissions_ui_title": "Energy Emissions",
+  "@cap_energy_emissions_ui_title": {
+    "description": "cap.energy_emissions.ui.title",
+    "x-blockhub-key": "cap.energy_emissions.ui.title"
+  },
+  "cap_energy_hotwork_category": "Energy & power",
+  "@cap_energy_hotwork_category": {
+    "description": "cap.energy_hotwork.category",
+    "x-blockhub-key": "cap.energy_hotwork.category"
+  },
+  "cap_energy_hotwork_name": "Energy Hotwork",
+  "@cap_energy_hotwork_name": {
+    "description": "cap.energy_hotwork.name",
+    "x-blockhub-key": "cap.energy_hotwork.name"
+  },
+  "cap_energy_hotwork_ui_title": "Energy Hotwork",
+  "@cap_energy_hotwork_ui_title": {
+    "description": "cap.energy_hotwork.ui.title",
+    "x-blockhub-key": "cap.energy_hotwork.ui.title"
+  },
+  "cap_energy_outage_category": "Energy & power",
+  "@cap_energy_outage_category": {
+    "description": "cap.energy_outage.category",
+    "x-blockhub-key": "cap.energy_outage.category"
+  },
+  "cap_energy_outage_name": "Energy Outage",
+  "@cap_energy_outage_name": {
+    "description": "cap.energy_outage.name",
+    "x-blockhub-key": "cap.energy_outage.name"
+  },
+  "cap_energy_outage_ui_title": "Energy Outage",
+  "@cap_energy_outage_ui_title": {
+    "description": "cap.energy_outage.ui.title",
+    "x-blockhub-key": "cap.energy_outage.ui.title"
+  },
+  "cap_energy_restore_category": "Energy & power",
+  "@cap_energy_restore_category": {
+    "description": "cap.energy_restore.category",
+    "x-blockhub-key": "cap.energy_restore.category"
+  },
+  "cap_energy_restore_name": "Energy Restore",
+  "@cap_energy_restore_name": {
+    "description": "cap.energy_restore.name",
+    "x-blockhub-key": "cap.energy_restore.name"
+  },
+  "cap_energy_restore_ui_title": "Energy Restore",
+  "@cap_energy_restore_ui_title": {
+    "description": "cap.energy_restore.ui.title",
+    "x-blockhub-key": "cap.energy_restore.ui.title"
+  },
+  "cap_energy_spare_category": "Energy & power",
+  "@cap_energy_spare_category": {
+    "description": "cap.energy_spare.category",
+    "x-blockhub-key": "cap.energy_spare.category"
+  },
+  "cap_energy_spare_name": "Energy Spare",
+  "@cap_energy_spare_name": {
+    "description": "cap.energy_spare.name",
+    "x-blockhub-key": "cap.energy_spare.name"
+  },
+  "cap_energy_spare_ui_title": "Energy Spare",
+  "@cap_energy_spare_ui_title": {
+    "description": "cap.energy_spare.ui.title",
+    "x-blockhub-key": "cap.energy_spare.ui.title"
+  },
+  "cap_energy_ticket_category": "Energy & power",
+  "@cap_energy_ticket_category": {
+    "description": "cap.energy_ticket.category",
+    "x-blockhub-key": "cap.energy_ticket.category"
+  },
+  "cap_energy_ticket_name": "Energy Ticket",
+  "@cap_energy_ticket_name": {
+    "description": "cap.energy_ticket.name",
+    "x-blockhub-key": "cap.energy_ticket.name"
+  },
+  "cap_energy_ticket_ui_title": "Energy Ticket",
+  "@cap_energy_ticket_ui_title": {
+    "description": "cap.energy_ticket.ui.title",
+    "x-blockhub-key": "cap.energy_ticket.ui.title"
+  },
+  "cap_erp_connector_category": "External integrations",
+  "@cap_erp_connector_category": {
+    "description": "cap.erp_connector.category",
+    "x-blockhub-key": "cap.erp_connector.category"
+  },
+  "cap_erp_connector_name": "Erp Connector",
+  "@cap_erp_connector_name": {
+    "description": "cap.erp_connector.name",
+    "x-blockhub-key": "cap.erp_connector.name"
+  },
+  "cap_erp_connector_ui_title": "Erp Connector",
+  "@cap_erp_connector_ui_title": {
+    "description": "cap.erp_connector.ui.title",
+    "x-blockhub-key": "cap.erp_connector.ui.title"
+  },
+  "cap_expense_claim_cat_hospitality": "Client hospitality",
+  "@cap_expense_claim_cat_hospitality": {
+    "description": "cap.expense_claim.cat.hospitality",
+    "x-blockhub-key": "cap.expense_claim.cat.hospitality"
+  },
+  "cap_expense_claim_cat_invoice": "Invoice",
+  "@cap_expense_claim_cat_invoice": {
+    "description": "cap.expense_claim.cat.invoice",
+    "x-blockhub-key": "cap.expense_claim.cat.invoice"
+  },
+  "cap_expense_claim_cat_loan": "Loan",
+  "@cap_expense_claim_cat_loan": {
+    "description": "cap.expense_claim.cat.loan",
+    "x-blockhub-key": "cap.expense_claim.cat.loan"
+  },
+  "cap_expense_claim_cat_meal": "Meals",
+  "@cap_expense_claim_cat_meal": {
+    "description": "cap.expense_claim.cat.meal",
+    "x-blockhub-key": "cap.expense_claim.cat.meal"
+  },
+  "cap_expense_claim_cat_office": "Office",
+  "@cap_expense_claim_cat_office": {
+    "description": "cap.expense_claim.cat.office",
+    "x-blockhub-key": "cap.expense_claim.cat.office"
+  },
+  "cap_expense_claim_cat_payment": "Payment",
+  "@cap_expense_claim_cat_payment": {
+    "description": "cap.expense_claim.cat.payment",
+    "x-blockhub-key": "cap.expense_claim.cat.payment"
+  },
+  "cap_expense_claim_cat_sample": "Samples / gifts",
+  "@cap_expense_claim_cat_sample": {
+    "description": "cap.expense_claim.cat.sample",
+    "x-blockhub-key": "cap.expense_claim.cat.sample"
+  },
+  "cap_expense_claim_cat_travel": "Travel",
+  "@cap_expense_claim_cat_travel": {
+    "description": "cap.expense_claim.cat.travel",
+    "x-blockhub-key": "cap.expense_claim.cat.travel"
+  },
+  "cap_expense_claim_category": "Finance & legal",
+  "@cap_expense_claim_category": {
+    "description": "cap.expense_claim.category",
+    "x-blockhub-key": "cap.expense_claim.category"
+  },
+  "cap_expense_claim_field_amount": "Amount",
+  "@cap_expense_claim_field_amount": {
+    "description": "cap.expense_claim.field.amount",
+    "x-blockhub-key": "cap.expense_claim.field.amount"
+  },
+  "cap_expense_claim_field_category": "Type",
+  "@cap_expense_claim_field_category": {
+    "description": "cap.expense_claim.field.category",
+    "x-blockhub-key": "cap.expense_claim.field.category"
+  },
+  "cap_expense_claim_field_invoice_no": "Ref no. (optional)",
+  "@cap_expense_claim_field_invoice_no": {
+    "description": "cap.expense_claim.field.invoice_no",
+    "x-blockhub-key": "cap.expense_claim.field.invoice_no"
+  },
+  "cap_expense_claim_field_note": "Notes (optional)",
+  "@cap_expense_claim_field_note": {
+    "description": "cap.expense_claim.field.note",
+    "x-blockhub-key": "cap.expense_claim.field.note"
+  },
+  "cap_expense_claim_field_title": "Description",
+  "@cap_expense_claim_field_title": {
+    "description": "cap.expense_claim.field.title",
+    "x-blockhub-key": "cap.expense_claim.field.title"
+  },
+  "cap_expense_claim_flow_hint": "Type → amount → finance review",
+  "@cap_expense_claim_flow_hint": {
+    "description": "cap.expense_claim.flow.hint",
+    "x-blockhub-key": "cap.expense_claim.flow.hint"
+  },
+  "cap_expense_claim_name": "Expense Claim",
+  "@cap_expense_claim_name": {
+    "description": "cap.expense_claim.name",
+    "x-blockhub-key": "cap.expense_claim.name"
+  },
+  "cap_expense_claim_status_open": "Pending review",
+  "@cap_expense_claim_status_open": {
+    "description": "cap.expense_claim.status.open",
+    "x-blockhub-key": "cap.expense_claim.status.open"
+  },
+  "cap_expense_claim_status_paid": "Paid",
+  "@cap_expense_claim_status_paid": {
+    "description": "cap.expense_claim.status.paid",
+    "x-blockhub-key": "cap.expense_claim.status.paid"
+  },
+  "cap_expense_claim_status_rejected": "Rejected",
+  "@cap_expense_claim_status_rejected": {
+    "description": "cap.expense_claim.status.rejected",
+    "x-blockhub-key": "cap.expense_claim.status.rejected"
+  },
+  "cap_expense_claim_status_reviewing": "In review",
+  "@cap_expense_claim_status_reviewing": {
+    "description": "cap.expense_claim.status.reviewing",
+    "x-blockhub-key": "cap.expense_claim.status.reviewing"
+  },
+  "cap_expense_claim_submit_apply": "Submit request",
+  "@cap_expense_claim_submit_apply": {
+    "description": "cap.expense_claim.submit.apply",
+    "x-blockhub-key": "cap.expense_claim.submit.apply"
+  },
+  "cap_expense_claim_submit_default": "Submit claim",
+  "@cap_expense_claim_submit_default": {
+    "description": "cap.expense_claim.submit.default",
+    "x-blockhub-key": "cap.expense_claim.submit.default"
+  },
+  "cap_expense_claim_title_default": "Expense claim",
+  "@cap_expense_claim_title_default": {
+    "description": "cap.expense_claim.title.default",
+    "x-blockhub-key": "cap.expense_claim.title.default"
+  },
+  "cap_expense_claim_ui_title": "Expense Claim",
+  "@cap_expense_claim_ui_title": {
+    "description": "cap.expense_claim.ui.title",
+    "x-blockhub-key": "cap.expense_claim.ui.title"
+  },
+  "cap_finance_aml_category": "Financial services",
+  "@cap_finance_aml_category": {
+    "description": "cap.finance_aml.category",
+    "x-blockhub-key": "cap.finance_aml.category"
+  },
+  "cap_finance_aml_name": "AML Monitoring",
+  "@cap_finance_aml_name": {
+    "description": "cap.finance_aml.name",
+    "x-blockhub-key": "cap.finance_aml.name"
+  },
+  "cap_finance_aml_ui_title": "AML Monitoring",
+  "@cap_finance_aml_ui_title": {
+    "description": "cap.finance_aml.ui.title",
+    "x-blockhub-key": "cap.finance_aml.ui.title"
+  },
+  "cap_finance_kyc_category": "Financial services",
+  "@cap_finance_kyc_category": {
+    "description": "cap.finance_kyc.category",
+    "x-blockhub-key": "cap.finance_kyc.category"
+  },
+  "cap_finance_kyc_name": "Bank KYC",
+  "@cap_finance_kyc_name": {
+    "description": "cap.finance_kyc.name",
+    "x-blockhub-key": "cap.finance_kyc.name"
+  },
+  "cap_finance_kyc_ui_title": "Bank KYC",
+  "@cap_finance_kyc_ui_title": {
+    "description": "cap.finance_kyc.ui.title",
+    "x-blockhub-key": "cap.finance_kyc.ui.title"
+  },
+  "cap_finance_news_category": "Financial services",
+  "@cap_finance_news_category": {
+    "description": "cap.finance_news.category",
+    "x-blockhub-key": "cap.finance_news.category"
+  },
+  "cap_finance_news_name": "Industry News Agent",
+  "@cap_finance_news_name": {
+    "description": "cap.finance_news.name",
+    "x-blockhub-key": "cap.finance_news.name"
+  },
+  "cap_finance_news_ui_title": "Industry News Agent",
+  "@cap_finance_news_ui_title": {
+    "description": "cap.finance_news.ui.title",
+    "x-blockhub-key": "cap.finance_news.ui.title"
+  },
+  "cap_fitness_checkin_category": "Lifestyle services",
+  "@cap_fitness_checkin_category": {
+    "description": "cap.fitness_checkin.category",
+    "x-blockhub-key": "cap.fitness_checkin.category"
+  },
+  "cap_fitness_checkin_name": "Fitness Check-in",
+  "@cap_fitness_checkin_name": {
+    "description": "cap.fitness_checkin.name",
+    "x-blockhub-key": "cap.fitness_checkin.name"
+  },
+  "cap_fitness_checkin_ui_title": "Fitness Check-in",
+  "@cap_fitness_checkin_ui_title": {
+    "description": "cap.fitness_checkin.ui.title",
+    "x-blockhub-key": "cap.fitness_checkin.ui.title"
+  },
+  "cap_fleet_dispatch_category": "Logistics",
+  "@cap_fleet_dispatch_category": {
+    "description": "cap.fleet_dispatch.category",
+    "x-blockhub-key": "cap.fleet_dispatch.category"
+  },
+  "cap_fleet_dispatch_name": "Fleet Dispatch",
+  "@cap_fleet_dispatch_name": {
+    "description": "cap.fleet_dispatch.name",
+    "x-blockhub-key": "cap.fleet_dispatch.name"
+  },
+  "cap_fleet_dispatch_ui_title": "Fleet Dispatch",
+  "@cap_fleet_dispatch_ui_title": {
+    "description": "cap.fleet_dispatch.ui.title",
+    "x-blockhub-key": "cap.fleet_dispatch.ui.title"
+  },
+  "cap_flutter_biometric_category": "Flutter tools",
+  "@cap_flutter_biometric_category": {
+    "description": "cap.flutter_biometric.category",
+    "x-blockhub-key": "cap.flutter_biometric.category"
+  },
+  "cap_flutter_biometric_name": "Flutter Biometric",
+  "@cap_flutter_biometric_name": {
+    "description": "cap.flutter_biometric.name",
+    "x-blockhub-key": "cap.flutter_biometric.name"
+  },
+  "cap_flutter_camera_category": "Flutter tools",
+  "@cap_flutter_camera_category": {
+    "description": "cap.flutter_camera.category",
+    "x-blockhub-key": "cap.flutter_camera.category"
+  },
+  "cap_flutter_camera_name": "Flutter Camera",
+  "@cap_flutter_camera_name": {
+    "description": "cap.flutter_camera.name",
+    "x-blockhub-key": "cap.flutter_camera.name"
+  },
+  "cap_flutter_chart_category": "Flutter tools",
+  "@cap_flutter_chart_category": {
+    "description": "cap.flutter_chart.category",
+    "x-blockhub-key": "cap.flutter_chart.category"
+  },
+  "cap_flutter_chart_name": "Flutter Chart",
+  "@cap_flutter_chart_name": {
+    "description": "cap.flutter_chart.name",
+    "x-blockhub-key": "cap.flutter_chart.name"
+  },
+  "cap_flutter_file_picker_category": "Flutter tools",
+  "@cap_flutter_file_picker_category": {
+    "description": "cap.flutter_file_picker.category",
+    "x-blockhub-key": "cap.flutter_file_picker.category"
+  },
+  "cap_flutter_file_picker_name": "Flutter File Picker",
+  "@cap_flutter_file_picker_name": {
+    "description": "cap.flutter_file_picker.name",
+    "x-blockhub-key": "cap.flutter_file_picker.name"
+  },
+  "cap_flutter_geolocation_category": "Flutter tools",
+  "@cap_flutter_geolocation_category": {
+    "description": "cap.flutter_geolocation.category",
+    "x-blockhub-key": "cap.flutter_geolocation.category"
+  },
+  "cap_flutter_geolocation_name": "Flutter Geolocation",
+  "@cap_flutter_geolocation_name": {
+    "description": "cap.flutter_geolocation.name",
+    "x-blockhub-key": "cap.flutter_geolocation.name"
+  },
+  "cap_flutter_map_category": "Flutter tools",
+  "@cap_flutter_map_category": {
+    "description": "cap.flutter_map.category",
+    "x-blockhub-key": "cap.flutter_map.category"
+  },
+  "cap_flutter_map_name": "Flutter Map",
+  "@cap_flutter_map_name": {
+    "description": "cap.flutter_map.name",
+    "x-blockhub-key": "cap.flutter_map.name"
+  },
+  "cap_flutter_offline_category": "Flutter tools",
+  "@cap_flutter_offline_category": {
+    "description": "cap.flutter_offline.category",
+    "x-blockhub-key": "cap.flutter_offline.category"
+  },
+  "cap_flutter_offline_name": "Flutter Offline",
+  "@cap_flutter_offline_name": {
+    "description": "cap.flutter_offline.name",
+    "x-blockhub-key": "cap.flutter_offline.name"
+  },
+  "cap_flutter_pdf_category": "Flutter tools",
+  "@cap_flutter_pdf_category": {
+    "description": "cap.flutter_pdf.category",
+    "x-blockhub-key": "cap.flutter_pdf.category"
+  },
+  "cap_flutter_pdf_name": "Flutter Pdf",
+  "@cap_flutter_pdf_name": {
+    "description": "cap.flutter_pdf.name",
+    "x-blockhub-key": "cap.flutter_pdf.name"
+  },
+  "cap_flutter_push_category": "Flutter tools",
+  "@cap_flutter_push_category": {
+    "description": "cap.flutter_push.category",
+    "x-blockhub-key": "cap.flutter_push.category"
+  },
+  "cap_flutter_push_name": "Flutter Push",
+  "@cap_flutter_push_name": {
+    "description": "cap.flutter_push.name",
+    "x-blockhub-key": "cap.flutter_push.name"
+  },
+  "cap_flutter_scan_qr_category": "Flutter tools",
+  "@cap_flutter_scan_qr_category": {
+    "description": "cap.flutter_scan_qr.category",
+    "x-blockhub-key": "cap.flutter_scan_qr.category"
+  },
+  "cap_flutter_scan_qr_name": "Flutter Scan Qr",
+  "@cap_flutter_scan_qr_name": {
+    "description": "cap.flutter_scan_qr.name",
+    "x-blockhub-key": "cap.flutter_scan_qr.name"
+  },
+  "cap_flutter_signature_category": "Flutter tools",
+  "@cap_flutter_signature_category": {
+    "description": "cap.flutter_signature.category",
+    "x-blockhub-key": "cap.flutter_signature.category"
+  },
+  "cap_flutter_signature_name": "Flutter Signature",
+  "@cap_flutter_signature_name": {
+    "description": "cap.flutter_signature.name",
+    "x-blockhub-key": "cap.flutter_signature.name"
+  },
+  "cap_flutter_speech_category": "Flutter tools",
+  "@cap_flutter_speech_category": {
+    "description": "cap.flutter_speech.category",
+    "x-blockhub-key": "cap.flutter_speech.category"
+  },
+  "cap_flutter_speech_name": "Flutter Speech",
+  "@cap_flutter_speech_name": {
+    "description": "cap.flutter_speech.name",
+    "x-blockhub-key": "cap.flutter_speech.name"
+  },
+  "cap_flutter_webview_category": "Flutter tools",
+  "@cap_flutter_webview_category": {
+    "description": "cap.flutter_webview.category",
+    "x-blockhub-key": "cap.flutter_webview.category"
+  },
+  "cap_flutter_webview_name": "Flutter Webview",
+  "@cap_flutter_webview_name": {
+    "description": "cap.flutter_webview.name",
+    "x-blockhub-key": "cap.flutter_webview.name"
+  },
+  "cap_fnb_order_category": "Hospitality",
+  "@cap_fnb_order_category": {
+    "description": "cap.fnb_order.category",
+    "x-blockhub-key": "cap.fnb_order.category"
+  },
+  "cap_fnb_order_name": "Fnb Order",
+  "@cap_fnb_order_name": {
+    "description": "cap.fnb_order.name",
+    "x-blockhub-key": "cap.fnb_order.name"
+  },
+  "cap_fnb_order_ui_title": "Fnb Order",
+  "@cap_fnb_order_ui_title": {
+    "description": "cap.fnb_order.ui.title",
+    "x-blockhub-key": "cap.fnb_order.ui.title"
+  },
+  "cap_food_purchase_category": "Hospitality",
+  "@cap_food_purchase_category": {
+    "description": "cap.food_purchase.category",
+    "x-blockhub-key": "cap.food_purchase.category"
+  },
+  "cap_food_purchase_name": "Food Purchase",
+  "@cap_food_purchase_name": {
+    "description": "cap.food_purchase.name",
+    "x-blockhub-key": "cap.food_purchase.name"
+  },
+  "cap_food_purchase_ui_title": "Food Purchase",
+  "@cap_food_purchase_ui_title": {
+    "description": "cap.food_purchase.ui.title",
+    "x-blockhub-key": "cap.food_purchase.ui.title"
+  },
+  "cap_form_widget_category": "Platform",
+  "@cap_form_widget_category": {
+    "description": "cap.form_widget.category",
+    "x-blockhub-key": "cap.form_widget.category"
+  },
+  "cap_form_widget_name": "Form Widget",
+  "@cap_form_widget_name": {
+    "description": "cap.form_widget.name",
+    "x-blockhub-key": "cap.form_widget.name"
+  },
+  "cap_form_widget_ui_title": "Form Widget",
+  "@cap_form_widget_ui_title": {
+    "description": "cap.form_widget.ui.title",
+    "x-blockhub-key": "cap.form_widget.ui.title"
+  },
+  "cap_freight_settle_category": "Logistics",
+  "@cap_freight_settle_category": {
+    "description": "cap.freight_settle.category",
+    "x-blockhub-key": "cap.freight_settle.category"
+  },
+  "cap_freight_settle_name": "Freight Settle",
+  "@cap_freight_settle_name": {
+    "description": "cap.freight_settle.name",
+    "x-blockhub-key": "cap.freight_settle.name"
+  },
+  "cap_freight_settle_ui_title": "Freight Settle",
+  "@cap_freight_settle_ui_title": {
+    "description": "cap.freight_settle.ui.title",
+    "x-blockhub-key": "cap.freight_settle.ui.title"
+  },
+  "cap_game_2048_category": "Games & entertainment",
+  "@cap_game_2048_category": {
+    "description": "cap.game_2048.category",
+    "x-blockhub-key": "cap.game_2048.category"
+  },
+  "cap_game_2048_name": "Game 2048",
+  "@cap_game_2048_name": {
+    "description": "cap.game_2048.name",
+    "x-blockhub-key": "cap.game_2048.name"
+  },
+  "cap_game_2048_ui_title": "Game 2048",
+  "@cap_game_2048_ui_title": {
+    "description": "cap.game_2048.ui.title",
+    "x-blockhub-key": "cap.game_2048.ui.title"
+  },
+  "cap_game_support_category": "Games & entertainment",
+  "@cap_game_support_category": {
+    "description": "cap.game_support.category",
+    "x-blockhub-key": "cap.game_support.category"
+  },
+  "cap_game_support_name": "Player Support",
+  "@cap_game_support_name": {
+    "description": "cap.game_support.name",
+    "x-blockhub-key": "cap.game_support.name"
+  },
+  "cap_game_support_ui_title": "Player Support",
+  "@cap_game_support_ui_title": {
+    "description": "cap.game_support.ui.title",
+    "x-blockhub-key": "cap.game_support.ui.title"
+  },
+  "cap_gift_card_category": "Retail & e-commerce",
+  "@cap_gift_card_category": {
+    "description": "cap.gift_card.category",
+    "x-blockhub-key": "cap.gift_card.category"
+  },
+  "cap_gift_card_name": "Gift Card",
+  "@cap_gift_card_name": {
+    "description": "cap.gift_card.name",
+    "x-blockhub-key": "cap.gift_card.name"
+  },
+  "cap_gift_card_ui_title": "Gift Card",
+  "@cap_gift_card_ui_title": {
+    "description": "cap.gift_card.ui.title",
+    "x-blockhub-key": "cap.gift_card.ui.title"
+  },
+  "cap_gov_appeal_category": "Government services",
+  "@cap_gov_appeal_category": {
+    "description": "cap.gov_appeal.category",
+    "x-blockhub-key": "cap.gov_appeal.category"
+  },
+  "cap_gov_appeal_name": "Gov Appeal",
+  "@cap_gov_appeal_name": {
+    "description": "cap.gov_appeal.name",
+    "x-blockhub-key": "cap.gov_appeal.name"
+  },
+  "cap_gov_appeal_ui_title": "Gov Appeal",
+  "@cap_gov_appeal_ui_title": {
+    "description": "cap.gov_appeal.ui.title",
+    "x-blockhub-key": "cap.gov_appeal.ui.title"
+  },
+  "cap_gov_grid_category": "Government services",
+  "@cap_gov_grid_category": {
+    "description": "cap.gov_grid.category",
+    "x-blockhub-key": "cap.gov_grid.category"
+  },
+  "cap_gov_grid_name": "Gov Grid",
+  "@cap_gov_grid_name": {
+    "description": "cap.gov_grid.name",
+    "x-blockhub-key": "cap.gov_grid.name"
+  },
+  "cap_gov_grid_ui_title": "Gov Grid",
+  "@cap_gov_grid_ui_title": {
+    "description": "cap.gov_grid.ui.title",
+    "x-blockhub-key": "cap.gov_grid.ui.title"
+  },
+  "cap_gov_hotline_category": "Government services",
+  "@cap_gov_hotline_category": {
+    "description": "cap.gov_hotline.category",
+    "x-blockhub-key": "cap.gov_hotline.category"
+  },
+  "cap_gov_hotline_name": "Gov Hotline",
+  "@cap_gov_hotline_name": {
+    "description": "cap.gov_hotline.name",
+    "x-blockhub-key": "cap.gov_hotline.name"
+  },
+  "cap_gov_hotline_ui_title": "Gov Hotline",
+  "@cap_gov_hotline_ui_title": {
+    "description": "cap.gov_hotline.ui.title",
+    "x-blockhub-key": "cap.gov_hotline.ui.title"
+  },
+  "cap_gov_license_category": "Government services",
+  "@cap_gov_license_category": {
+    "description": "cap.gov_license.category",
+    "x-blockhub-key": "cap.gov_license.category"
+  },
+  "cap_gov_license_name": "Gov License",
+  "@cap_gov_license_name": {
+    "description": "cap.gov_license.name",
+    "x-blockhub-key": "cap.gov_license.name"
+  },
+  "cap_gov_license_ui_title": "Gov License",
+  "@cap_gov_license_ui_title": {
+    "description": "cap.gov_license.ui.title",
+    "x-blockhub-key": "cap.gov_license.ui.title"
+  },
+  "cap_gov_public_category": "Government services",
+  "@cap_gov_public_category": {
+    "description": "cap.gov_public.category",
+    "x-blockhub-key": "cap.gov_public.category"
+  },
+  "cap_gov_public_name": "Gov Public",
+  "@cap_gov_public_name": {
+    "description": "cap.gov_public.name",
+    "x-blockhub-key": "cap.gov_public.name"
+  },
+  "cap_gov_public_ui_title": "Gov Public",
+  "@cap_gov_public_ui_title": {
+    "description": "cap.gov_public.ui.title",
+    "x-blockhub-key": "cap.gov_public.ui.title"
+  },
+  "cap_gov_service_category": "Government services",
+  "@cap_gov_service_category": {
+    "description": "cap.gov_service.category",
+    "x-blockhub-key": "cap.gov_service.category"
+  },
+  "cap_gov_service_name": "Gov Services",
+  "@cap_gov_service_name": {
+    "description": "cap.gov_service.name",
+    "x-blockhub-key": "cap.gov_service.name"
+  },
+  "cap_gov_service_ui_title": "Gov Services",
+  "@cap_gov_service_ui_title": {
+    "description": "cap.gov_service.ui.title",
+    "x-blockhub-key": "cap.gov_service.ui.title"
+  },
+  "cap_gov_supervise_category": "Government services",
+  "@cap_gov_supervise_category": {
+    "description": "cap.gov_supervise.category",
+    "x-blockhub-key": "cap.gov_supervise.category"
+  },
+  "cap_gov_supervise_name": "Gov Supervise",
+  "@cap_gov_supervise_name": {
+    "description": "cap.gov_supervise.name",
+    "x-blockhub-key": "cap.gov_supervise.name"
+  },
+  "cap_gov_supervise_ui_title": "Gov Supervise",
+  "@cap_gov_supervise_ui_title": {
+    "description": "cap.gov_supervise.ui.title",
+    "x-blockhub-key": "cap.gov_supervise.ui.title"
+  },
+  "cap_group_checkin_category": "Hospitality",
+  "@cap_group_checkin_category": {
+    "description": "cap.group_checkin.category",
+    "x-blockhub-key": "cap.group_checkin.category"
+  },
+  "cap_group_checkin_name": "Group Checkin",
+  "@cap_group_checkin_name": {
+    "description": "cap.group_checkin.name",
+    "x-blockhub-key": "cap.group_checkin.name"
+  },
+  "cap_group_checkin_ui_title": "Group Checkin",
+  "@cap_group_checkin_ui_title": {
+    "description": "cap.group_checkin.ui.title",
+    "x-blockhub-key": "cap.group_checkin.ui.title"
+  },
+  "cap_guest_complaint_category": "Hospitality",
+  "@cap_guest_complaint_category": {
+    "description": "cap.guest_complaint.category",
+    "x-blockhub-key": "cap.guest_complaint.category"
+  },
+  "cap_guest_complaint_name": "Guest Complaint",
+  "@cap_guest_complaint_name": {
+    "description": "cap.guest_complaint.name",
+    "x-blockhub-key": "cap.guest_complaint.name"
+  },
+  "cap_guest_complaint_ui_title": "Guest Complaint",
+  "@cap_guest_complaint_ui_title": {
+    "description": "cap.guest_complaint.ui.title",
+    "x-blockhub-key": "cap.guest_complaint.ui.title"
+  },
+  "cap_hire_onboard_category": "HR & admin",
+  "@cap_hire_onboard_category": {
+    "description": "cap.hire_onboard.category",
+    "x-blockhub-key": "cap.hire_onboard.category"
+  },
+  "cap_hire_onboard_name": "Hire & Onboard",
+  "@cap_hire_onboard_name": {
+    "description": "cap.hire_onboard.name",
+    "x-blockhub-key": "cap.hire_onboard.name"
+  },
+  "cap_hire_onboard_ui_title": "Hire & Onboard",
+  "@cap_hire_onboard_ui_title": {
+    "description": "cap.hire_onboard.ui.title",
+    "x-blockhub-key": "cap.hire_onboard.ui.title"
+  },
+  "cap_hk_task_category": "Hospitality",
+  "@cap_hk_task_category": {
+    "description": "cap.hk_task.category",
+    "x-blockhub-key": "cap.hk_task.category"
+  },
+  "cap_hk_task_name": "Hk Task",
+  "@cap_hk_task_name": {
+    "description": "cap.hk_task.name",
+    "x-blockhub-key": "cap.hk_task.name"
+  },
+  "cap_hk_task_ui_title": "Hk Task",
+  "@cap_hk_task_ui_title": {
+    "description": "cap.hk_task.ui.title",
+    "x-blockhub-key": "cap.hk_task.ui.title"
+  },
+  "cap_homework_qa_category": "Education & training",
+  "@cap_homework_qa_category": {
+    "description": "cap.homework_qa.category",
+    "x-blockhub-key": "cap.homework_qa.category"
+  },
+  "cap_homework_qa_name": "Homework Help",
+  "@cap_homework_qa_name": {
+    "description": "cap.homework_qa.name",
+    "x-blockhub-key": "cap.homework_qa.name"
+  },
+  "cap_homework_qa_ui_title": "Homework Help",
+  "@cap_homework_qa_ui_title": {
+    "description": "cap.homework_qa.ui.title",
+    "x-blockhub-key": "cap.homework_qa.ui.title"
+  },
+  "cap_hotel_booking_category": "Hospitality",
+  "@cap_hotel_booking_category": {
+    "description": "cap.hotel_booking.category",
+    "x-blockhub-key": "cap.hotel_booking.category"
+  },
+  "cap_hotel_booking_name": "Hotel Booking",
+  "@cap_hotel_booking_name": {
+    "description": "cap.hotel_booking.name",
+    "x-blockhub-key": "cap.hotel_booking.name"
+  },
+  "cap_hotel_booking_ui_title": "Hotel Booking",
+  "@cap_hotel_booking_ui_title": {
+    "description": "cap.hotel_booking.ui.title",
+    "x-blockhub-key": "cap.hotel_booking.ui.title"
+  },
+  "cap_hotel_revenue_category": "Hospitality",
+  "@cap_hotel_revenue_category": {
+    "description": "cap.hotel_revenue.category",
+    "x-blockhub-key": "cap.hotel_revenue.category"
+  },
+  "cap_hotel_revenue_name": "Hotel Revenue",
+  "@cap_hotel_revenue_name": {
+    "description": "cap.hotel_revenue.name",
+    "x-blockhub-key": "cap.hotel_revenue.name"
+  },
+  "cap_hotel_revenue_ui_title": "Hotel Revenue",
+  "@cap_hotel_revenue_ui_title": {
+    "description": "cap.hotel_revenue.ui.title",
+    "x-blockhub-key": "cap.hotel_revenue.ui.title"
+  },
+  "cap_house_viewing_category": "Real estate",
+  "@cap_house_viewing_category": {
+    "description": "cap.house_viewing.category",
+    "x-blockhub-key": "cap.house_viewing.category"
+  },
+  "cap_house_viewing_name": "House Viewing",
+  "@cap_house_viewing_name": {
+    "description": "cap.house_viewing.name",
+    "x-blockhub-key": "cap.house_viewing.name"
+  },
+  "cap_house_viewing_ui_title": "House Viewing",
+  "@cap_house_viewing_ui_title": {
+    "description": "cap.house_viewing.ui.title",
+    "x-blockhub-key": "cap.house_viewing.ui.title"
+  },
+  "cap_hr_headcount_category": "Human resources",
+  "@cap_hr_headcount_category": {
+    "description": "cap.hr_headcount.category",
+    "x-blockhub-key": "cap.hr_headcount.category"
+  },
+  "cap_hr_headcount_name": "Hr Headcount",
+  "@cap_hr_headcount_name": {
+    "description": "cap.hr_headcount.name",
+    "x-blockhub-key": "cap.hr_headcount.name"
+  },
+  "cap_hr_headcount_ui_title": "Hr Headcount",
+  "@cap_hr_headcount_ui_title": {
+    "description": "cap.hr_headcount.ui.title",
+    "x-blockhub-key": "cap.hr_headcount.ui.title"
+  },
+  "cap_hr_idp_category": "Human resources",
+  "@cap_hr_idp_category": {
+    "description": "cap.hr_idp.category",
+    "x-blockhub-key": "cap.hr_idp.category"
+  },
+  "cap_hr_idp_name": "Hr Idp",
+  "@cap_hr_idp_name": {
+    "description": "cap.hr_idp.name",
+    "x-blockhub-key": "cap.hr_idp.name"
+  },
+  "cap_hr_idp_ui_title": "Hr Idp",
+  "@cap_hr_idp_ui_title": {
+    "description": "cap.hr_idp.ui.title",
+    "x-blockhub-key": "cap.hr_idp.ui.title"
+  },
+  "cap_hr_offer_category": "Human resources",
+  "@cap_hr_offer_category": {
+    "description": "cap.hr_offer.category",
+    "x-blockhub-key": "cap.hr_offer.category"
+  },
+  "cap_hr_offer_name": "Hr Offer",
+  "@cap_hr_offer_name": {
+    "description": "cap.hr_offer.name",
+    "x-blockhub-key": "cap.hr_offer.name"
+  },
+  "cap_hr_offer_ui_title": "Hr Offer",
+  "@cap_hr_offer_ui_title": {
+    "description": "cap.hr_offer.ui.title",
+    "x-blockhub-key": "cap.hr_offer.ui.title"
+  },
+  "cap_hr_payroll_category": "Human resources",
+  "@cap_hr_payroll_category": {
+    "description": "cap.hr_payroll.category",
+    "x-blockhub-key": "cap.hr_payroll.category"
+  },
+  "cap_hr_payroll_name": "Hr Payroll",
+  "@cap_hr_payroll_name": {
+    "description": "cap.hr_payroll.name",
+    "x-blockhub-key": "cap.hr_payroll.name"
+  },
+  "cap_hr_payroll_ui_title": "Hr Payroll",
+  "@cap_hr_payroll_ui_title": {
+    "description": "cap.hr_payroll.ui.title",
+    "x-blockhub-key": "cap.hr_payroll.ui.title"
+  },
+  "cap_hr_perf_category": "Human resources",
+  "@cap_hr_perf_category": {
+    "description": "cap.hr_perf.category",
+    "x-blockhub-key": "cap.hr_perf.category"
+  },
+  "cap_hr_perf_name": "Hr Perf",
+  "@cap_hr_perf_name": {
+    "description": "cap.hr_perf.name",
+    "x-blockhub-key": "cap.hr_perf.name"
+  },
+  "cap_hr_perf_ui_title": "Hr Perf",
+  "@cap_hr_perf_ui_title": {
+    "description": "cap.hr_perf.ui.title",
+    "x-blockhub-key": "cap.hr_perf.ui.title"
+  },
+  "cap_hr_training_category": "Human resources",
+  "@cap_hr_training_category": {
+    "description": "cap.hr_training.category",
+    "x-blockhub-key": "cap.hr_training.category"
+  },
+  "cap_hr_training_name": "Hr Training",
+  "@cap_hr_training_name": {
+    "description": "cap.hr_training.name",
+    "x-blockhub-key": "cap.hr_training.name"
+  },
+  "cap_hr_training_ui_title": "Hr Training",
+  "@cap_hr_training_ui_title": {
+    "description": "cap.hr_training.ui.title",
+    "x-blockhub-key": "cap.hr_training.ui.title"
+  },
+  "cap_hygiene_check_category": "Hospitality",
+  "@cap_hygiene_check_category": {
+    "description": "cap.hygiene_check.category",
+    "x-blockhub-key": "cap.hygiene_check.category"
+  },
+  "cap_hygiene_check_name": "Hygiene Check",
+  "@cap_hygiene_check_name": {
+    "description": "cap.hygiene_check.name",
+    "x-blockhub-key": "cap.hygiene_check.name"
+  },
+  "cap_hygiene_check_ui_title": "Hygiene Check",
+  "@cap_hygiene_check_ui_title": {
+    "description": "cap.hygiene_check.ui.title",
+    "x-blockhub-key": "cap.hygiene_check.ui.title"
+  },
+  "cap_insurance_case_category": "Financial services",
+  "@cap_insurance_case_category": {
+    "description": "cap.insurance_case.category",
+    "x-blockhub-key": "cap.insurance_case.category"
+  },
+  "cap_insurance_case_name": "Insurance UW & Claims",
+  "@cap_insurance_case_name": {
+    "description": "cap.insurance_case.name",
+    "x-blockhub-key": "cap.insurance_case.name"
+  },
+  "cap_insurance_case_ui_title": "Insurance UW & Claims",
+  "@cap_insurance_case_ui_title": {
+    "description": "cap.insurance_case.ui.title",
+    "x-blockhub-key": "cap.insurance_case.ui.title"
+  },
+  "cap_inventory_count_category": "Warehouse & logistics",
+  "@cap_inventory_count_category": {
+    "description": "cap.inventory_count.category",
+    "x-blockhub-key": "cap.inventory_count.category"
+  },
+  "cap_inventory_count_name": "Inventory Count",
+  "@cap_inventory_count_name": {
+    "description": "cap.inventory_count.name",
+    "x-blockhub-key": "cap.inventory_count.name"
+  },
+  "cap_inventory_count_ui_title": "Inventory Count",
+  "@cap_inventory_count_ui_title": {
+    "description": "cap.inventory_count.ui.title",
+    "x-blockhub-key": "cap.inventory_count.ui.title"
+  },
+  "cap_it_helpdesk_category": "IT & assets",
+  "@cap_it_helpdesk_category": {
+    "description": "cap.it_helpdesk.category",
+    "x-blockhub-key": "cap.it_helpdesk.category"
+  },
+  "cap_it_helpdesk_name": "It Helpdesk",
+  "@cap_it_helpdesk_name": {
+    "description": "cap.it_helpdesk.name",
+    "x-blockhub-key": "cap.it_helpdesk.name"
+  },
+  "cap_it_helpdesk_ui_title": "It Helpdesk",
+  "@cap_it_helpdesk_ui_title": {
+    "description": "cap.it_helpdesk.ui.title",
+    "x-blockhub-key": "cap.it_helpdesk.ui.title"
+  },
+  "cap_it_ticket_category": "IT & assets",
+  "@cap_it_ticket_category": {
+    "description": "cap.it_ticket.category",
+    "x-blockhub-key": "cap.it_ticket.category"
+  },
+  "cap_it_ticket_name": "IT Ticket",
+  "@cap_it_ticket_name": {
+    "description": "cap.it_ticket.name",
+    "x-blockhub-key": "cap.it_ticket.name"
+  },
+  "cap_it_ticket_ui_title": "IT Ticket",
+  "@cap_it_ticket_ui_title": {
+    "description": "cap.it_ticket.ui.title",
+    "x-blockhub-key": "cap.it_ticket.ui.title"
+  },
+  "cap_kb_document_category": "Knowledge data",
+  "@cap_kb_document_category": {
+    "description": "cap.kb_document.category",
+    "x-blockhub-key": "cap.kb_document.category"
+  },
+  "cap_kb_document_name": "Knowledge Base",
+  "@cap_kb_document_name": {
+    "description": "cap.kb_document.name",
+    "x-blockhub-key": "cap.kb_document.name"
+  },
+  "cap_kb_document_ui_title": "Knowledge Base",
+  "@cap_kb_document_ui_title": {
+    "description": "cap.kb_document.ui.title",
+    "x-blockhub-key": "cap.kb_document.ui.title"
+  },
+  "cap_kill_pipeline_category": "Sales",
+  "@cap_kill_pipeline_category": {
+    "description": "cap.kill_pipeline.category",
+    "x-blockhub-key": "cap.kill_pipeline.category"
+  },
+  "cap_kill_pipeline_name": "Kill Pipeline",
+  "@cap_kill_pipeline_name": {
+    "description": "cap.kill_pipeline.name",
+    "x-blockhub-key": "cap.kill_pipeline.name"
+  },
+  "cap_kill_pipeline_ui_title": "Kill Pipeline",
+  "@cap_kill_pipeline_ui_title": {
+    "description": "cap.kill_pipeline.ui.title",
+    "x-blockhub-key": "cap.kill_pipeline.ui.title"
+  },
+  "cap_kitchen_waste_category": "Hospitality",
+  "@cap_kitchen_waste_category": {
+    "description": "cap.kitchen_waste.category",
+    "x-blockhub-key": "cap.kitchen_waste.category"
+  },
+  "cap_kitchen_waste_name": "Kitchen Waste",
+  "@cap_kitchen_waste_name": {
+    "description": "cap.kitchen_waste.name",
+    "x-blockhub-key": "cap.kitchen_waste.name"
+  },
+  "cap_kitchen_waste_ui_title": "Kitchen Waste",
+  "@cap_kitchen_waste_ui_title": {
+    "description": "cap.kitchen_waste.ui.title",
+    "x-blockhub-key": "cap.kitchen_waste.ui.title"
+  },
+  "cap_lease_renewal_category": "Real estate",
+  "@cap_lease_renewal_category": {
+    "description": "cap.lease_renewal.category",
+    "x-blockhub-key": "cap.lease_renewal.category"
+  },
+  "cap_lease_renewal_name": "Lease Renewal",
+  "@cap_lease_renewal_name": {
+    "description": "cap.lease_renewal.name",
+    "x-blockhub-key": "cap.lease_renewal.name"
+  },
+  "cap_lease_renewal_ui_title": "Lease Renewal",
+  "@cap_lease_renewal_ui_title": {
+    "description": "cap.lease_renewal.ui.title",
+    "x-blockhub-key": "cap.lease_renewal.ui.title"
+  },
+  "cap_leave_request_action_approve": "Approve",
+  "@cap_leave_request_action_approve": {
+    "description": "cap.leave_request.action.approve",
+    "x-blockhub-key": "cap.leave_request.action.approve"
+  },
+  "cap_leave_request_action_archive": "Archive",
+  "@cap_leave_request_action_archive": {
+    "description": "cap.leave_request.action.archive",
+    "x-blockhub-key": "cap.leave_request.action.archive"
+  },
+  "cap_leave_request_action_reject": "Reject",
+  "@cap_leave_request_action_reject": {
+    "description": "cap.leave_request.action.reject",
+    "x-blockhub-key": "cap.leave_request.action.reject"
+  },
+  "cap_leave_request_cat_annual": "Annual leave",
+  "@cap_leave_request_cat_annual": {
+    "description": "cap.leave_request.cat.annual",
+    "x-blockhub-key": "cap.leave_request.cat.annual"
+  },
+  "cap_leave_request_cat_overtime": "Overtime",
+  "@cap_leave_request_cat_overtime": {
+    "description": "cap.leave_request.cat.overtime",
+    "x-blockhub-key": "cap.leave_request.cat.overtime"
+  },
+  "cap_leave_request_cat_personal": "Personal leave",
+  "@cap_leave_request_cat_personal": {
+    "description": "cap.leave_request.cat.personal",
+    "x-blockhub-key": "cap.leave_request.cat.personal"
+  },
+  "cap_leave_request_cat_sick": "Sick leave",
+  "@cap_leave_request_cat_sick": {
+    "description": "cap.leave_request.cat.sick",
+    "x-blockhub-key": "cap.leave_request.cat.sick"
+  },
+  "cap_leave_request_cat_trip": "Business trip",
+  "@cap_leave_request_cat_trip": {
+    "description": "cap.leave_request.cat.trip",
+    "x-blockhub-key": "cap.leave_request.cat.trip"
+  },
+  "cap_leave_request_category": "HR & admin",
+  "@cap_leave_request_category": {
+    "description": "cap.leave_request.category",
+    "x-blockhub-key": "cap.leave_request.category"
+  },
+  "cap_leave_request_colleague": "Colleague",
+  "@cap_leave_request_colleague": {
+    "description": "cap.leave_request.colleague",
+    "x-blockhub-key": "cap.leave_request.colleague"
+  },
+  "cap_leave_request_done_hide": "Hide processed",
+  "@cap_leave_request_done_hide": {
+    "description": "cap.leave_request.done.hide",
+    "x-blockhub-key": "cap.leave_request.done.hide"
+  },
+  "cap_leave_request_done_show": "Done {{n}}",
+  "@cap_leave_request_done_show": {
+    "description": "cap.leave_request.done.show",
+    "x-blockhub-key": "cap.leave_request.done.show"
+  },
+  "cap_leave_request_field_category": "Leave type",
+  "@cap_leave_request_field_category": {
+    "description": "cap.leave_request.field.category",
+    "x-blockhub-key": "cap.leave_request.field.category"
+  },
+  "cap_leave_request_field_end_date": "End date",
+  "@cap_leave_request_field_end_date": {
+    "description": "cap.leave_request.field.end_date",
+    "x-blockhub-key": "cap.leave_request.field.end_date"
+  },
+  "cap_leave_request_field_end_time": "End time",
+  "@cap_leave_request_field_end_time": {
+    "description": "cap.leave_request.field.end_time",
+    "x-blockhub-key": "cap.leave_request.field.end_time"
+  },
+  "cap_leave_request_field_note": "Reason (optional)",
+  "@cap_leave_request_field_note": {
+    "description": "cap.leave_request.field.note",
+    "x-blockhub-key": "cap.leave_request.field.note"
+  },
+  "cap_leave_request_field_start_date": "Start date",
+  "@cap_leave_request_field_start_date": {
+    "description": "cap.leave_request.field.start_date",
+    "x-blockhub-key": "cap.leave_request.field.start_date"
+  },
+  "cap_leave_request_field_start_time": "Start time",
+  "@cap_leave_request_field_start_time": {
+    "description": "cap.leave_request.field.start_time",
+    "x-blockhub-key": "cap.leave_request.field.start_time"
+  },
+  "cap_leave_request_field_type": "Request type",
+  "@cap_leave_request_field_type": {
+    "description": "cap.leave_request.field.type",
+    "x-blockhub-key": "cap.leave_request.field.type"
+  },
+  "cap_leave_request_flow_leave": "Pick type → dates → manager review",
+  "@cap_leave_request_flow_leave": {
+    "description": "cap.leave_request.flow.leave",
+    "x-blockhub-key": "cap.leave_request.flow.leave"
+  },
+  "cap_leave_request_flow_overtime": "Pick overtime → times → manager review",
+  "@cap_leave_request_flow_overtime": {
+    "description": "cap.leave_request.flow.overtime",
+    "x-blockhub-key": "cap.leave_request.flow.overtime"
+  },
+  "cap_leave_request_flow_trip": "Pick trip → dates → manager review",
+  "@cap_leave_request_flow_trip": {
+    "description": "cap.leave_request.flow.trip",
+    "x-blockhub-key": "cap.leave_request.flow.trip"
+  },
+  "cap_leave_request_inbox_empty": "No pending requests",
+  "@cap_leave_request_inbox_empty": {
+    "description": "cap.leave_request.inbox.empty",
+    "x-blockhub-key": "cap.leave_request.inbox.empty"
+  },
+  "cap_leave_request_inbox_pending": "Pending my review",
+  "@cap_leave_request_inbox_pending": {
+    "description": "cap.leave_request.inbox.pending",
+    "x-blockhub-key": "cap.leave_request.inbox.pending"
+  },
+  "cap_leave_request_meta_applicant": "Applicant",
+  "@cap_leave_request_meta_applicant": {
+    "description": "cap.leave_request.meta.applicant",
+    "x-blockhub-key": "cap.leave_request.meta.applicant"
+  },
+  "cap_leave_request_meta_im": "IM entry",
+  "@cap_leave_request_meta_im": {
+    "description": "cap.leave_request.meta.im",
+    "x-blockhub-key": "cap.leave_request.meta.im"
+  },
+  "cap_leave_request_msg_submitted": "Submitted for approval",
+  "@cap_leave_request_msg_submitted": {
+    "description": "cap.leave_request.msg.submitted",
+    "x-blockhub-key": "cap.leave_request.msg.submitted"
+  },
+  "cap_leave_request_name": "Leave Request",
+  "@cap_leave_request_name": {
+    "description": "cap.leave_request.name",
+    "x-blockhub-key": "cap.leave_request.name"
+  },
+  "cap_leave_request_status_approved": "Approved",
+  "@cap_leave_request_status_approved": {
+    "description": "cap.leave_request.status.approved",
+    "x-blockhub-key": "cap.leave_request.status.approved"
+  },
+  "cap_leave_request_status_done": "Archived",
+  "@cap_leave_request_status_done": {
+    "description": "cap.leave_request.status.done",
+    "x-blockhub-key": "cap.leave_request.status.done"
+  },
+  "cap_leave_request_status_open": "Pending",
+  "@cap_leave_request_status_open": {
+    "description": "cap.leave_request.status.open",
+    "x-blockhub-key": "cap.leave_request.status.open"
+  },
+  "cap_leave_request_status_rejected": "Rejected",
+  "@cap_leave_request_status_rejected": {
+    "description": "cap.leave_request.status.rejected",
+    "x-blockhub-key": "cap.leave_request.status.rejected"
+  },
+  "cap_leave_request_submit_leave": "Submit leave",
+  "@cap_leave_request_submit_leave": {
+    "description": "cap.leave_request.submit.leave",
+    "x-blockhub-key": "cap.leave_request.submit.leave"
+  },
+  "cap_leave_request_submit_overtime": "Submit overtime",
+  "@cap_leave_request_submit_overtime": {
+    "description": "cap.leave_request.submit.overtime",
+    "x-blockhub-key": "cap.leave_request.submit.overtime"
+  },
+  "cap_leave_request_submit_trip": "Submit trip",
+  "@cap_leave_request_submit_trip": {
+    "description": "cap.leave_request.submit.trip",
+    "x-blockhub-key": "cap.leave_request.submit.trip"
+  },
+  "cap_leave_request_title_leave": "Request leave",
+  "@cap_leave_request_title_leave": {
+    "description": "cap.leave_request.title.leave",
+    "x-blockhub-key": "cap.leave_request.title.leave"
+  },
+  "cap_leave_request_title_overtime": "Request overtime",
+  "@cap_leave_request_title_overtime": {
+    "description": "cap.leave_request.title.overtime",
+    "x-blockhub-key": "cap.leave_request.title.overtime"
+  },
+  "cap_leave_request_title_trip": "Business trip",
+  "@cap_leave_request_title_trip": {
+    "description": "cap.leave_request.title.trip",
+    "x-blockhub-key": "cap.leave_request.title.trip"
+  },
+  "cap_leave_request_ui_title": "Leave Request",
+  "@cap_leave_request_ui_title": {
+    "description": "cap.leave_request.ui.title",
+    "x-blockhub-key": "cap.leave_request.ui.title"
+  },
+  "cap_legal_case_category": "Legal services",
+  "@cap_legal_case_category": {
+    "description": "cap.legal_case.category",
+    "x-blockhub-key": "cap.legal_case.category"
+  },
+  "cap_legal_case_name": "Legal Contract",
+  "@cap_legal_case_name": {
+    "description": "cap.legal_case.name",
+    "x-blockhub-key": "cap.legal_case.name"
+  },
+  "cap_legal_case_ui_title": "Legal Contract",
+  "@cap_legal_case_ui_title": {
+    "description": "cap.legal_case.ui.title",
+    "x-blockhub-key": "cap.legal_case.ui.title"
+  },
+  "cap_legal_contract_ops_category": "Legal services",
+  "@cap_legal_contract_ops_category": {
+    "description": "cap.legal_contract_ops.category",
+    "x-blockhub-key": "cap.legal_contract_ops.category"
+  },
+  "cap_legal_contract_ops_name": "Legal Contract Ops",
+  "@cap_legal_contract_ops_name": {
+    "description": "cap.legal_contract_ops.name",
+    "x-blockhub-key": "cap.legal_contract_ops.name"
+  },
+  "cap_legal_contract_ops_ui_title": "Legal Contract Ops",
+  "@cap_legal_contract_ops_ui_title": {
+    "description": "cap.legal_contract_ops.ui.title",
+    "x-blockhub-key": "cap.legal_contract_ops.ui.title"
+  },
+  "cap_legal_enforce_category": "Legal services",
+  "@cap_legal_enforce_category": {
+    "description": "cap.legal_enforce.category",
+    "x-blockhub-key": "cap.legal_enforce.category"
+  },
+  "cap_legal_enforce_name": "Legal Enforce",
+  "@cap_legal_enforce_name": {
+    "description": "cap.legal_enforce.name",
+    "x-blockhub-key": "cap.legal_enforce.name"
+  },
+  "cap_legal_enforce_ui_title": "Legal Enforce",
+  "@cap_legal_enforce_ui_title": {
+    "description": "cap.legal_enforce.ui.title",
+    "x-blockhub-key": "cap.legal_enforce.ui.title"
+  },
+  "cap_legal_evidence_category": "Legal services",
+  "@cap_legal_evidence_category": {
+    "description": "cap.legal_evidence.category",
+    "x-blockhub-key": "cap.legal_evidence.category"
+  },
+  "cap_legal_evidence_name": "Legal Evidence",
+  "@cap_legal_evidence_name": {
+    "description": "cap.legal_evidence.name",
+    "x-blockhub-key": "cap.legal_evidence.name"
+  },
+  "cap_legal_evidence_ui_title": "Legal Evidence",
+  "@cap_legal_evidence_ui_title": {
+    "description": "cap.legal_evidence.ui.title",
+    "x-blockhub-key": "cap.legal_evidence.ui.title"
+  },
+  "cap_legal_filing_category": "Legal services",
+  "@cap_legal_filing_category": {
+    "description": "cap.legal_filing.category",
+    "x-blockhub-key": "cap.legal_filing.category"
+  },
+  "cap_legal_filing_name": "Legal Filing",
+  "@cap_legal_filing_name": {
+    "description": "cap.legal_filing.name",
+    "x-blockhub-key": "cap.legal_filing.name"
+  },
+  "cap_legal_filing_ui_title": "Legal Filing",
+  "@cap_legal_filing_ui_title": {
+    "description": "cap.legal_filing.ui.title",
+    "x-blockhub-key": "cap.legal_filing.ui.title"
+  },
+  "cap_legal_hearing_category": "Legal services",
+  "@cap_legal_hearing_category": {
+    "description": "cap.legal_hearing.category",
+    "x-blockhub-key": "cap.legal_hearing.category"
+  },
+  "cap_legal_hearing_name": "Legal Hearing",
+  "@cap_legal_hearing_name": {
+    "description": "cap.legal_hearing.name",
+    "x-blockhub-key": "cap.legal_hearing.name"
+  },
+  "cap_legal_hearing_ui_title": "Legal Hearing",
+  "@cap_legal_hearing_ui_title": {
+    "description": "cap.legal_hearing.ui.title",
+    "x-blockhub-key": "cap.legal_hearing.ui.title"
+  },
+  "cap_legal_preserve_category": "Legal services",
+  "@cap_legal_preserve_category": {
+    "description": "cap.legal_preserve.category",
+    "x-blockhub-key": "cap.legal_preserve.category"
+  },
+  "cap_legal_preserve_name": "Legal Preserve",
+  "@cap_legal_preserve_name": {
+    "description": "cap.legal_preserve.name",
+    "x-blockhub-key": "cap.legal_preserve.name"
+  },
+  "cap_legal_preserve_ui_title": "Legal Preserve",
+  "@cap_legal_preserve_ui_title": {
+    "description": "cap.legal_preserve.ui.title",
+    "x-blockhub-key": "cap.legal_preserve.ui.title"
+  },
+  "cap_list_widget_category": "Platform",
+  "@cap_list_widget_category": {
+    "description": "cap.list_widget.category",
+    "x-blockhub-key": "cap.list_widget.category"
+  },
+  "cap_list_widget_name": "List Widget",
+  "@cap_list_widget_name": {
+    "description": "cap.list_widget.name",
+    "x-blockhub-key": "cap.list_widget.name"
+  },
+  "cap_list_widget_ui_title": "List Widget",
+  "@cap_list_widget_ui_title": {
+    "description": "cap.list_widget.ui.title",
+    "x-blockhub-key": "cap.list_widget.ui.title"
+  },
+  "cap_listing_publish_category": "Real estate",
+  "@cap_listing_publish_category": {
+    "description": "cap.listing_publish.category",
+    "x-blockhub-key": "cap.listing_publish.category"
+  },
+  "cap_listing_publish_name": "Listing Publish",
+  "@cap_listing_publish_name": {
+    "description": "cap.listing_publish.name",
+    "x-blockhub-key": "cap.listing_publish.name"
+  },
+  "cap_listing_publish_ui_title": "Listing Publish",
+  "@cap_listing_publish_ui_title": {
+    "description": "cap.listing_publish.ui.title",
+    "x-blockhub-key": "cap.listing_publish.ui.title"
+  },
+  "cap_logistics_exception_category": "Logistics",
+  "@cap_logistics_exception_category": {
+    "description": "cap.logistics_exception.category",
+    "x-blockhub-key": "cap.logistics_exception.category"
+  },
+  "cap_logistics_exception_name": "Logistics Exception",
+  "@cap_logistics_exception_name": {
+    "description": "cap.logistics_exception.name",
+    "x-blockhub-key": "cap.logistics_exception.name"
+  },
+  "cap_logistics_exception_ui_title": "Logistics Exception",
+  "@cap_logistics_exception_ui_title": {
+    "description": "cap.logistics_exception.ui.title",
+    "x-blockhub-key": "cap.logistics_exception.ui.title"
+  },
+  "cap_loss_shrinkage_category": "Retail & e-commerce",
+  "@cap_loss_shrinkage_category": {
+    "description": "cap.loss_shrinkage.category",
+    "x-blockhub-key": "cap.loss_shrinkage.category"
+  },
+  "cap_loss_shrinkage_name": "Loss Shrinkage",
+  "@cap_loss_shrinkage_name": {
+    "description": "cap.loss_shrinkage.name",
+    "x-blockhub-key": "cap.loss_shrinkage.name"
+  },
+  "cap_loss_shrinkage_ui_title": "Loss Shrinkage",
+  "@cap_loss_shrinkage_ui_title": {
+    "description": "cap.loss_shrinkage.ui.title",
+    "x-blockhub-key": "cap.loss_shrinkage.ui.title"
+  },
+  "cap_lost_found_category": "Hospitality",
+  "@cap_lost_found_category": {
+    "description": "cap.lost_found.category",
+    "x-blockhub-key": "cap.lost_found.category"
+  },
+  "cap_lost_found_name": "Lost Found",
+  "@cap_lost_found_name": {
+    "description": "cap.lost_found.name",
+    "x-blockhub-key": "cap.lost_found.name"
+  },
+  "cap_lost_found_ui_title": "Lost Found",
+  "@cap_lost_found_ui_title": {
+    "description": "cap.lost_found.ui.title",
+    "x-blockhub-key": "cap.lost_found.ui.title"
+  },
+  "cap_maintenance_plan_category": "Equipment",
+  "@cap_maintenance_plan_category": {
+    "description": "cap.maintenance_plan.category",
+    "x-blockhub-key": "cap.maintenance_plan.category"
+  },
+  "cap_maintenance_plan_name": "Maintenance Plan",
+  "@cap_maintenance_plan_name": {
+    "description": "cap.maintenance_plan.name",
+    "x-blockhub-key": "cap.maintenance_plan.name"
+  },
+  "cap_maintenance_plan_ui_title": "Maintenance Plan",
+  "@cap_maintenance_plan_ui_title": {
+    "description": "cap.maintenance_plan.ui.title",
+    "x-blockhub-key": "cap.maintenance_plan.ui.title"
+  },
+  "cap_material_issue_category": "Materials",
+  "@cap_material_issue_category": {
+    "description": "cap.material_issue.category",
+    "x-blockhub-key": "cap.material_issue.category"
+  },
+  "cap_material_issue_name": "Material Issue",
+  "@cap_material_issue_name": {
+    "description": "cap.material_issue.name",
+    "x-blockhub-key": "cap.material_issue.name"
+  },
+  "cap_material_issue_ui_title": "Material Issue",
+  "@cap_material_issue_ui_title": {
+    "description": "cap.material_issue.ui.title",
+    "x-blockhub-key": "cap.material_issue.ui.title"
+  },
+  "cap_med_triage_category": "Patient services",
+  "@cap_med_triage_category": {
+    "description": "cap.med_triage.category",
+    "x-blockhub-key": "cap.med_triage.category"
+  },
+  "cap_med_triage_name": "Medical Triage",
+  "@cap_med_triage_name": {
+    "description": "cap.med_triage.name",
+    "x-blockhub-key": "cap.med_triage.name"
+  },
+  "cap_med_triage_ui_title": "Medical Triage",
+  "@cap_med_triage_ui_title": {
+    "description": "cap.med_triage.ui.title",
+    "x-blockhub-key": "cap.med_triage.ui.title"
+  },
+  "cap_media_asset_category": "Media & content",
+  "@cap_media_asset_category": {
+    "description": "cap.media_asset.category",
+    "x-blockhub-key": "cap.media_asset.category"
+  },
+  "cap_media_asset_name": "Media Asset",
+  "@cap_media_asset_name": {
+    "description": "cap.media_asset.name",
+    "x-blockhub-key": "cap.media_asset.name"
+  },
+  "cap_media_asset_ui_title": "Media Asset",
+  "@cap_media_asset_ui_title": {
+    "description": "cap.media_asset.ui.title",
+    "x-blockhub-key": "cap.media_asset.ui.title"
+  },
+  "cap_media_calendar_category": "Media & content",
+  "@cap_media_calendar_category": {
+    "description": "cap.media_calendar.category",
+    "x-blockhub-key": "cap.media_calendar.category"
+  },
+  "cap_media_calendar_name": "Media Calendar",
+  "@cap_media_calendar_name": {
+    "description": "cap.media_calendar.name",
+    "x-blockhub-key": "cap.media_calendar.name"
+  },
+  "cap_media_calendar_ui_title": "Media Calendar",
+  "@cap_media_calendar_ui_title": {
+    "description": "cap.media_calendar.ui.title",
+    "x-blockhub-key": "cap.media_calendar.ui.title"
+  },
+  "cap_media_live_category": "Media & content",
+  "@cap_media_live_category": {
+    "description": "cap.media_live.category",
+    "x-blockhub-key": "cap.media_live.category"
+  },
+  "cap_media_live_name": "Media Live",
+  "@cap_media_live_name": {
+    "description": "cap.media_live.name",
+    "x-blockhub-key": "cap.media_live.name"
+  },
+  "cap_media_live_ui_title": "Media Live",
+  "@cap_media_live_ui_title": {
+    "description": "cap.media_live.ui.title",
+    "x-blockhub-key": "cap.media_live.ui.title"
+  },
+  "cap_media_review_category": "Media & content",
+  "@cap_media_review_category": {
+    "description": "cap.media_review.category",
+    "x-blockhub-key": "cap.media_review.category"
+  },
+  "cap_media_review_name": "Media Review",
+  "@cap_media_review_name": {
+    "description": "cap.media_review.name",
+    "x-blockhub-key": "cap.media_review.name"
+  },
+  "cap_media_review_ui_title": "Media Review",
+  "@cap_media_review_ui_title": {
+    "description": "cap.media_review.ui.title",
+    "x-blockhub-key": "cap.media_review.ui.title"
+  },
+  "cap_media_topic_category": "Media & content",
+  "@cap_media_topic_category": {
+    "description": "cap.media_topic.category",
+    "x-blockhub-key": "cap.media_topic.category"
+  },
+  "cap_media_topic_name": "Media Topic",
+  "@cap_media_topic_name": {
+    "description": "cap.media_topic.name",
+    "x-blockhub-key": "cap.media_topic.name"
+  },
+  "cap_media_topic_ui_title": "Media Topic",
+  "@cap_media_topic_ui_title": {
+    "description": "cap.media_topic.ui.title",
+    "x-blockhub-key": "cap.media_topic.ui.title"
+  },
+  "cap_meeting_booking_category": "HR & admin",
+  "@cap_meeting_booking_category": {
+    "description": "cap.meeting_booking.category",
+    "x-blockhub-key": "cap.meeting_booking.category"
+  },
+  "cap_meeting_booking_name": "Meeting Booking",
+  "@cap_meeting_booking_name": {
+    "description": "cap.meeting_booking.name",
+    "x-blockhub-key": "cap.meeting_booking.name"
+  },
+  "cap_meeting_booking_ui_title": "Meeting Booking",
+  "@cap_meeting_booking_ui_title": {
+    "description": "cap.meeting_booking.ui.title",
+    "x-blockhub-key": "cap.meeting_booking.ui.title"
+  },
+  "cap_member_loyalty_category": "Growth marketing",
+  "@cap_member_loyalty_category": {
+    "description": "cap.member_loyalty.category",
+    "x-blockhub-key": "cap.member_loyalty.category"
+  },
+  "cap_member_loyalty_field_campaign_name": "Campaign name",
+  "@cap_member_loyalty_field_campaign_name": {
+    "description": "cap.member_loyalty.field.campaign_name",
+    "x-blockhub-key": "cap.member_loyalty.field.campaign_name"
+  },
+  "cap_member_loyalty_field_campaign_type": "Campaign type",
+  "@cap_member_loyalty_field_campaign_type": {
+    "description": "cap.member_loyalty.field.campaign_type",
+    "x-blockhub-key": "cap.member_loyalty.field.campaign_type"
+  },
+  "cap_member_loyalty_field_name": "Member name",
+  "@cap_member_loyalty_field_name": {
+    "description": "cap.member_loyalty.field.name",
+    "x-blockhub-key": "cap.member_loyalty.field.name"
+  },
+  "cap_member_loyalty_field_phone": "Phone",
+  "@cap_member_loyalty_field_phone": {
+    "description": "cap.member_loyalty.field.phone",
+    "x-blockhub-key": "cap.member_loyalty.field.phone"
+  },
+  "cap_member_loyalty_field_points": "Starting points",
+  "@cap_member_loyalty_field_points": {
+    "description": "cap.member_loyalty.field.points",
+    "x-blockhub-key": "cap.member_loyalty.field.points"
+  },
+  "cap_member_loyalty_mode_campaign": "Create campaign",
+  "@cap_member_loyalty_mode_campaign": {
+    "description": "cap.member_loyalty.mode.campaign",
+    "x-blockhub-key": "cap.member_loyalty.mode.campaign"
+  },
+  "cap_member_loyalty_mode_list": "List",
+  "@cap_member_loyalty_mode_list": {
+    "description": "cap.member_loyalty.mode.list",
+    "x-blockhub-key": "cap.member_loyalty.mode.list"
+  },
+  "cap_member_loyalty_mode_member": "Create member",
+  "@cap_member_loyalty_mode_member": {
+    "description": "cap.member_loyalty.mode.member",
+    "x-blockhub-key": "cap.member_loyalty.mode.member"
+  },
+  "cap_member_loyalty_mode_outreach": "Win-back outreach",
+  "@cap_member_loyalty_mode_outreach": {
+    "description": "cap.member_loyalty.mode.outreach",
+    "x-blockhub-key": "cap.member_loyalty.mode.outreach"
+  },
+  "cap_member_loyalty_mode_points": "Points / redeem",
+  "@cap_member_loyalty_mode_points": {
+    "description": "cap.member_loyalty.mode.points",
+    "x-blockhub-key": "cap.member_loyalty.mode.points"
+  },
+  "cap_member_loyalty_name": "Membership Growth",
+  "@cap_member_loyalty_name": {
+    "description": "cap.member_loyalty.name",
+    "x-blockhub-key": "cap.member_loyalty.name"
+  },
+  "cap_member_loyalty_status_active": "Active",
+  "@cap_member_loyalty_status_active": {
+    "description": "cap.member_loyalty.status.active",
+    "x-blockhub-key": "cap.member_loyalty.status.active"
+  },
+  "cap_member_loyalty_status_sleeping": "Dormant",
+  "@cap_member_loyalty_status_sleeping": {
+    "description": "cap.member_loyalty.status.sleeping",
+    "x-blockhub-key": "cap.member_loyalty.status.sleeping"
+  },
+  "cap_member_loyalty_submit": "Submit",
+  "@cap_member_loyalty_submit": {
+    "description": "cap.member_loyalty.submit",
+    "x-blockhub-key": "cap.member_loyalty.submit"
+  },
+  "cap_member_loyalty_type_points": "Earn points",
+  "@cap_member_loyalty_type_points": {
+    "description": "cap.member_loyalty.type.points",
+    "x-blockhub-key": "cap.member_loyalty.type.points"
+  },
+  "cap_member_loyalty_type_redeem": "Redeem",
+  "@cap_member_loyalty_type_redeem": {
+    "description": "cap.member_loyalty.type.redeem",
+    "x-blockhub-key": "cap.member_loyalty.type.redeem"
+  },
+  "cap_member_loyalty_type_wake": "Wake",
+  "@cap_member_loyalty_type_wake": {
+    "description": "cap.member_loyalty.type.wake",
+    "x-blockhub-key": "cap.member_loyalty.type.wake"
+  },
+  "cap_member_loyalty_ui_title": "Membership Growth",
+  "@cap_member_loyalty_ui_title": {
+    "description": "cap.member_loyalty.ui.title",
+    "x-blockhub-key": "cap.member_loyalty.ui.title"
+  },
+  "cap_menu_86_category": "Hospitality",
+  "@cap_menu_86_category": {
+    "description": "cap.menu_86.category",
+    "x-blockhub-key": "cap.menu_86.category"
+  },
+  "cap_menu_86_name": "Menu 86",
+  "@cap_menu_86_name": {
+    "description": "cap.menu_86.name",
+    "x-blockhub-key": "cap.menu_86.name"
+  },
+  "cap_menu_86_ui_title": "Menu 86",
+  "@cap_menu_86_ui_title": {
+    "description": "cap.menu_86.ui.title",
+    "x-blockhub-key": "cap.menu_86.ui.title"
+  },
+  "cap_mfg_oee_category": "Production",
+  "@cap_mfg_oee_category": {
+    "description": "cap.mfg_oee.category",
+    "x-blockhub-key": "cap.mfg_oee.category"
+  },
+  "cap_mfg_oee_name": "Mfg Oee",
+  "@cap_mfg_oee_name": {
+    "description": "cap.mfg_oee.name",
+    "x-blockhub-key": "cap.mfg_oee.name"
+  },
+  "cap_mfg_oee_ui_title": "Mfg Oee",
+  "@cap_mfg_oee_ui_title": {
+    "description": "cap.mfg_oee.ui.title",
+    "x-blockhub-key": "cap.mfg_oee.ui.title"
+  },
+  "cap_minibar_charge_category": "Hospitality",
+  "@cap_minibar_charge_category": {
+    "description": "cap.minibar_charge.category",
+    "x-blockhub-key": "cap.minibar_charge.category"
+  },
+  "cap_minibar_charge_name": "Minibar Charge",
+  "@cap_minibar_charge_name": {
+    "description": "cap.minibar_charge.name",
+    "x-blockhub-key": "cap.minibar_charge.name"
+  },
+  "cap_minibar_charge_ui_title": "Minibar Charge",
+  "@cap_minibar_charge_ui_title": {
+    "description": "cap.minibar_charge.ui.title",
+    "x-blockhub-key": "cap.minibar_charge.ui.title"
+  },
+  "cap_mkt_ab_test_category": "Marketing",
+  "@cap_mkt_ab_test_category": {
+    "description": "cap.mkt_ab_test.category",
+    "x-blockhub-key": "cap.mkt_ab_test.category"
+  },
+  "cap_mkt_ab_test_name": "Mkt Ab Test",
+  "@cap_mkt_ab_test_name": {
+    "description": "cap.mkt_ab_test.name",
+    "x-blockhub-key": "cap.mkt_ab_test.name"
+  },
+  "cap_mkt_ab_test_ui_title": "Mkt Ab Test",
+  "@cap_mkt_ab_test_ui_title": {
+    "description": "cap.mkt_ab_test.ui.title",
+    "x-blockhub-key": "cap.mkt_ab_test.ui.title"
+  },
+  "cap_mkt_content_category": "Marketing",
+  "@cap_mkt_content_category": {
+    "description": "cap.mkt_content.category",
+    "x-blockhub-key": "cap.mkt_content.category"
+  },
+  "cap_mkt_content_name": "Mkt Content",
+  "@cap_mkt_content_name": {
+    "description": "cap.mkt_content.name",
+    "x-blockhub-key": "cap.mkt_content.name"
+  },
+  "cap_mkt_content_ui_title": "Mkt Content",
+  "@cap_mkt_content_ui_title": {
+    "description": "cap.mkt_content.ui.title",
+    "x-blockhub-key": "cap.mkt_content.ui.title"
+  },
+  "cap_mkt_coupon_category": "Marketing",
+  "@cap_mkt_coupon_category": {
+    "description": "cap.mkt_coupon.category",
+    "x-blockhub-key": "cap.mkt_coupon.category"
+  },
+  "cap_mkt_coupon_name": "Mkt Coupon",
+  "@cap_mkt_coupon_name": {
+    "description": "cap.mkt_coupon.name",
+    "x-blockhub-key": "cap.mkt_coupon.name"
+  },
+  "cap_mkt_coupon_ui_title": "Mkt Coupon",
+  "@cap_mkt_coupon_ui_title": {
+    "description": "cap.mkt_coupon.ui.title",
+    "x-blockhub-key": "cap.mkt_coupon.ui.title"
+  },
+  "cap_mkt_lead_category": "Marketing",
+  "@cap_mkt_lead_category": {
+    "description": "cap.mkt_lead.category",
+    "x-blockhub-key": "cap.mkt_lead.category"
+  },
+  "cap_mkt_lead_name": "Mkt Lead",
+  "@cap_mkt_lead_name": {
+    "description": "cap.mkt_lead.name",
+    "x-blockhub-key": "cap.mkt_lead.name"
+  },
+  "cap_mkt_lead_ui_title": "Mkt Lead",
+  "@cap_mkt_lead_ui_title": {
+    "description": "cap.mkt_lead.ui.title",
+    "x-blockhub-key": "cap.mkt_lead.ui.title"
+  },
+  "cap_mkt_roi_category": "Marketing",
+  "@cap_mkt_roi_category": {
+    "description": "cap.mkt_roi.category",
+    "x-blockhub-key": "cap.mkt_roi.category"
+  },
+  "cap_mkt_roi_name": "Mkt Roi",
+  "@cap_mkt_roi_name": {
+    "description": "cap.mkt_roi.name",
+    "x-blockhub-key": "cap.mkt_roi.name"
+  },
+  "cap_mkt_roi_ui_title": "Mkt Roi",
+  "@cap_mkt_roi_ui_title": {
+    "description": "cap.mkt_roi.ui.title",
+    "x-blockhub-key": "cap.mkt_roi.ui.title"
+  },
+  "cap_mkt_sign_category": "Marketing",
+  "@cap_mkt_sign_category": {
+    "description": "cap.mkt_sign.category",
+    "x-blockhub-key": "cap.mkt_sign.category"
+  },
+  "cap_mkt_sign_name": "Mkt Sign",
+  "@cap_mkt_sign_name": {
+    "description": "cap.mkt_sign.name",
+    "x-blockhub-key": "cap.mkt_sign.name"
+  },
+  "cap_mkt_sign_ui_title": "Mkt Sign",
+  "@cap_mkt_sign_ui_title": {
+    "description": "cap.mkt_sign.ui.title",
+    "x-blockhub-key": "cap.mkt_sign.ui.title"
+  },
+  "cap_multi_agent_category": "Smart interaction",
+  "@cap_multi_agent_category": {
+    "description": "cap.multi_agent.category",
+    "x-blockhub-key": "cap.multi_agent.category"
+  },
+  "cap_multi_agent_name": "Multi Agent",
+  "@cap_multi_agent_name": {
+    "description": "cap.multi_agent.name",
+    "x-blockhub-key": "cap.multi_agent.name"
+  },
+  "cap_multi_agent_ui_title": "Multi Agent",
+  "@cap_multi_agent_ui_title": {
+    "description": "cap.multi_agent.ui.title",
+    "x-blockhub-key": "cap.multi_agent.ui.title"
+  },
+  "cap_new_sku_launch_category": "Retail & e-commerce",
+  "@cap_new_sku_launch_category": {
+    "description": "cap.new_sku_launch.category",
+    "x-blockhub-key": "cap.new_sku_launch.category"
+  },
+  "cap_new_sku_launch_name": "New Sku Launch",
+  "@cap_new_sku_launch_name": {
+    "description": "cap.new_sku_launch.name",
+    "x-blockhub-key": "cap.new_sku_launch.name"
+  },
+  "cap_new_sku_launch_ui_title": "New Sku Launch",
+  "@cap_new_sku_launch_ui_title": {
+    "description": "cap.new_sku_launch.ui.title",
+    "x-blockhub-key": "cap.new_sku_launch.ui.title"
+  },
+  "cap_night_audit_category": "Hospitality",
+  "@cap_night_audit_category": {
+    "description": "cap.night_audit.category",
+    "x-blockhub-key": "cap.night_audit.category"
+  },
+  "cap_night_audit_name": "Night Audit",
+  "@cap_night_audit_name": {
+    "description": "cap.night_audit.name",
+    "x-blockhub-key": "cap.night_audit.name"
+  },
+  "cap_night_audit_ui_title": "Night Audit",
+  "@cap_night_audit_ui_title": {
+    "description": "cap.night_audit.ui.title",
+    "x-blockhub-key": "cap.night_audit.ui.title"
+  },
+  "cap_notify_email_category": "Notify & integration",
+  "@cap_notify_email_category": {
+    "description": "cap.notify_email.category",
+    "x-blockhub-key": "cap.notify_email.category"
+  },
+  "cap_notify_email_name": "Notify Email",
+  "@cap_notify_email_name": {
+    "description": "cap.notify_email.name",
+    "x-blockhub-key": "cap.notify_email.name"
+  },
+  "cap_notify_email_ui_title": "Notify Email",
+  "@cap_notify_email_ui_title": {
+    "description": "cap.notify_email.ui.title",
+    "x-blockhub-key": "cap.notify_email.ui.title"
+  },
+  "cap_notify_im_category": "Notify & integration",
+  "@cap_notify_im_category": {
+    "description": "cap.notify_im.category",
+    "x-blockhub-key": "cap.notify_im.category"
+  },
+  "cap_notify_im_name": "IM Notify",
+  "@cap_notify_im_name": {
+    "description": "cap.notify_im.name",
+    "x-blockhub-key": "cap.notify_im.name"
+  },
+  "cap_notify_im_ui_title": "IM Notify",
+  "@cap_notify_im_ui_title": {
+    "description": "cap.notify_im.ui.title",
+    "x-blockhub-key": "cap.notify_im.ui.title"
+  },
+  "cap_notify_inapp_category": "Notify & integration",
+  "@cap_notify_inapp_category": {
+    "description": "cap.notify_inapp.category",
+    "x-blockhub-key": "cap.notify_inapp.category"
+  },
+  "cap_notify_inapp_name": "Notify Inapp",
+  "@cap_notify_inapp_name": {
+    "description": "cap.notify_inapp.name",
+    "x-blockhub-key": "cap.notify_inapp.name"
+  },
+  "cap_notify_inapp_ui_title": "Notify Inapp",
+  "@cap_notify_inapp_ui_title": {
+    "description": "cap.notify_inapp.ui.title",
+    "x-blockhub-key": "cap.notify_inapp.ui.title"
+  },
+  "cap_nurse_shift_category": "Patient services",
+  "@cap_nurse_shift_category": {
+    "description": "cap.nurse_shift.category",
+    "x-blockhub-key": "cap.nurse_shift.category"
+  },
+  "cap_nurse_shift_name": "Nurse Shift",
+  "@cap_nurse_shift_name": {
+    "description": "cap.nurse_shift.name",
+    "x-blockhub-key": "cap.nurse_shift.name"
+  },
+  "cap_nurse_shift_ui_title": "Nurse Shift",
+  "@cap_nurse_shift_ui_title": {
+    "description": "cap.nurse_shift.ui.title",
+    "x-blockhub-key": "cap.nurse_shift.ui.title"
+  },
+  "cap_omni_pickup_category": "Retail & e-commerce",
+  "@cap_omni_pickup_category": {
+    "description": "cap.omni_pickup.category",
+    "x-blockhub-key": "cap.omni_pickup.category"
+  },
+  "cap_omni_pickup_name": "Omni Pickup",
+  "@cap_omni_pickup_name": {
+    "description": "cap.omni_pickup.name",
+    "x-blockhub-key": "cap.omni_pickup.name"
+  },
+  "cap_omni_pickup_ui_title": "Omni Pickup",
+  "@cap_omni_pickup_ui_title": {
+    "description": "cap.omni_pickup.ui.title",
+    "x-blockhub-key": "cap.omni_pickup.ui.title"
+  },
+  "cap_online_refund_category": "Retail & e-commerce",
+  "@cap_online_refund_category": {
+    "description": "cap.online_refund.category",
+    "x-blockhub-key": "cap.online_refund.category"
+  },
+  "cap_online_refund_name": "Online Refund",
+  "@cap_online_refund_name": {
+    "description": "cap.online_refund.name",
+    "x-blockhub-key": "cap.online_refund.name"
+  },
+  "cap_online_refund_ui_title": "Online Refund",
+  "@cap_online_refund_ui_title": {
+    "description": "cap.online_refund.ui.title",
+    "x-blockhub-key": "cap.online_refund.ui.title"
+  },
+  "cap_ops_kpi_category": "Data & reports",
+  "@cap_ops_kpi_category": {
+    "description": "cap.ops_kpi.category",
+    "x-blockhub-key": "cap.ops_kpi.category"
+  },
+  "cap_ops_kpi_name": "Ops KPI Board",
+  "@cap_ops_kpi_name": {
+    "description": "cap.ops_kpi.name",
+    "x-blockhub-key": "cap.ops_kpi.name"
+  },
+  "cap_ops_kpi_ui_title": "Ops KPI Board",
+  "@cap_ops_kpi_ui_title": {
+    "description": "cap.ops_kpi.ui.title",
+    "x-blockhub-key": "cap.ops_kpi.ui.title"
+  },
+  "cap_owner_complaint_category": "Real estate",
+  "@cap_owner_complaint_category": {
+    "description": "cap.owner_complaint.category",
+    "x-blockhub-key": "cap.owner_complaint.category"
+  },
+  "cap_owner_complaint_name": "Owner Complaint",
+  "@cap_owner_complaint_name": {
+    "description": "cap.owner_complaint.name",
+    "x-blockhub-key": "cap.owner_complaint.name"
+  },
+  "cap_owner_complaint_ui_title": "Owner Complaint",
+  "@cap_owner_complaint_ui_title": {
+    "description": "cap.owner_complaint.ui.title",
+    "x-blockhub-key": "cap.owner_complaint.ui.title"
+  },
+  "cap_pet_clinic_category": "Healthcare",
+  "@cap_pet_clinic_category": {
+    "description": "cap.pet_clinic.category",
+    "x-blockhub-key": "cap.pet_clinic.category"
+  },
+  "cap_pet_clinic_name": "Pet Clinic",
+  "@cap_pet_clinic_name": {
+    "description": "cap.pet_clinic.name",
+    "x-blockhub-key": "cap.pet_clinic.name"
+  },
+  "cap_pet_clinic_ui_title": "Pet Clinic",
+  "@cap_pet_clinic_ui_title": {
+    "description": "cap.pet_clinic.ui.title",
+    "x-blockhub-key": "cap.pet_clinic.ui.title"
+  },
+  "cap_pod_signoff_category": "Logistics",
+  "@cap_pod_signoff_category": {
+    "description": "cap.pod_signoff.category",
+    "x-blockhub-key": "cap.pod_signoff.category"
+  },
+  "cap_pod_signoff_name": "Pod Signoff",
+  "@cap_pod_signoff_name": {
+    "description": "cap.pod_signoff.name",
+    "x-blockhub-key": "cap.pod_signoff.name"
+  },
+  "cap_pod_signoff_ui_title": "Pod Signoff",
+  "@cap_pod_signoff_ui_title": {
+    "description": "cap.pod_signoff.ui.title",
+    "x-blockhub-key": "cap.pod_signoff.ui.title"
+  },
+  "cap_policy_qa_category": "Knowledge collab",
+  "@cap_policy_qa_category": {
+    "description": "cap.policy_qa.category",
+    "x-blockhub-key": "cap.policy_qa.category"
+  },
+  "cap_policy_qa_name": "Policy Q&A",
+  "@cap_policy_qa_name": {
+    "description": "cap.policy_qa.name",
+    "x-blockhub-key": "cap.policy_qa.name"
+  },
+  "cap_policy_qa_ui_title": "Policy Q&A",
+  "@cap_policy_qa_ui_title": {
+    "description": "cap.policy_qa.ui.title",
+    "x-blockhub-key": "cap.policy_qa.ui.title"
+  },
+  "cap_pos_exception_category": "Retail & e-commerce",
+  "@cap_pos_exception_category": {
+    "description": "cap.pos_exception.category",
+    "x-blockhub-key": "cap.pos_exception.category"
+  },
+  "cap_pos_exception_name": "Pos Exception",
+  "@cap_pos_exception_name": {
+    "description": "cap.pos_exception.name",
+    "x-blockhub-key": "cap.pos_exception.name"
+  },
+  "cap_pos_exception_ui_title": "Pos Exception",
+  "@cap_pos_exception_ui_title": {
+    "description": "cap.pos_exception.ui.title",
+    "x-blockhub-key": "cap.pos_exception.ui.title"
+  },
+  "cap_price_change_category": "Retail & e-commerce",
+  "@cap_price_change_category": {
+    "description": "cap.price_change.category",
+    "x-blockhub-key": "cap.price_change.category"
+  },
+  "cap_price_change_name": "Price Change",
+  "@cap_price_change_name": {
+    "description": "cap.price_change.name",
+    "x-blockhub-key": "cap.price_change.name"
+  },
+  "cap_price_change_ui_title": "Price Change",
+  "@cap_price_change_ui_title": {
+    "description": "cap.price_change.ui.title",
+    "x-blockhub-key": "cap.price_change.ui.title"
+  },
+  "cap_promo_coupon_category": "Retail & e-commerce",
+  "@cap_promo_coupon_category": {
+    "description": "cap.promo_coupon.category",
+    "x-blockhub-key": "cap.promo_coupon.category"
+  },
+  "cap_promo_coupon_name": "Promo Coupon",
+  "@cap_promo_coupon_name": {
+    "description": "cap.promo_coupon.name",
+    "x-blockhub-key": "cap.promo_coupon.name"
+  },
+  "cap_promo_coupon_ui_title": "Promo Coupon",
+  "@cap_promo_coupon_ui_title": {
+    "description": "cap.promo_coupon.ui.title",
+    "x-blockhub-key": "cap.promo_coupon.ui.title"
+  },
+  "cap_property_fee_category": "Real estate",
+  "@cap_property_fee_category": {
+    "description": "cap.property_fee.category",
+    "x-blockhub-key": "cap.property_fee.category"
+  },
+  "cap_property_fee_name": "Property Fee",
+  "@cap_property_fee_name": {
+    "description": "cap.property_fee.name",
+    "x-blockhub-key": "cap.property_fee.name"
+  },
+  "cap_property_fee_ui_title": "Property Fee",
+  "@cap_property_fee_ui_title": {
+    "description": "cap.property_fee.ui.title",
+    "x-blockhub-key": "cap.property_fee.ui.title"
+  },
+  "cap_property_repair_category": "Lifestyle services",
+  "@cap_property_repair_category": {
+    "description": "cap.property_repair.category",
+    "x-blockhub-key": "cap.property_repair.category"
+  },
+  "cap_property_repair_name": "Property Repair",
+  "@cap_property_repair_name": {
+    "description": "cap.property_repair.name",
+    "x-blockhub-key": "cap.property_repair.name"
+  },
+  "cap_property_repair_ui_title": "Property Repair",
+  "@cap_property_repair_ui_title": {
+    "description": "cap.property_repair.ui.title",
+    "x-blockhub-key": "cap.property_repair.ui.title"
+  },
+  "cap_quality_inspect_category": "Field ops",
+  "@cap_quality_inspect_category": {
+    "description": "cap.quality_inspect.category",
+    "x-blockhub-key": "cap.quality_inspect.category"
+  },
+  "cap_quality_inspect_name": "Quality Inspect",
+  "@cap_quality_inspect_name": {
+    "description": "cap.quality_inspect.name",
+    "x-blockhub-key": "cap.quality_inspect.name"
+  },
+  "cap_quality_inspect_ui_title": "Quality Inspect",
+  "@cap_quality_inspect_ui_title": {
+    "description": "cap.quality_inspect.ui.title",
+    "x-blockhub-key": "cap.quality_inspect.ui.title"
+  },
+  "cap_quote_contract_category": "Sales",
+  "@cap_quote_contract_category": {
+    "description": "cap.quote_contract.category",
+    "x-blockhub-key": "cap.quote_contract.category"
+  },
+  "cap_quote_contract_name": "Quote & Contract",
+  "@cap_quote_contract_name": {
+    "description": "cap.quote_contract.name",
+    "x-blockhub-key": "cap.quote_contract.name"
+  },
+  "cap_quote_contract_ui_title": "Quote & Contract",
+  "@cap_quote_contract_ui_title": {
+    "description": "cap.quote_contract.ui.title",
+    "x-blockhub-key": "cap.quote_contract.ui.title"
+  },
+  "cap_rbac_page_category": "Auth & security",
+  "@cap_rbac_page_category": {
+    "description": "cap.rbac_page.category",
+    "x-blockhub-key": "cap.rbac_page.category"
+  },
+  "cap_rbac_page_name": "Rbac Page",
+  "@cap_rbac_page_name": {
+    "description": "cap.rbac_page.name",
+    "x-blockhub-key": "cap.rbac_page.name"
+  },
+  "cap_rbac_page_ui_title": "Rbac Page",
+  "@cap_rbac_page_ui_title": {
+    "description": "cap.rbac_page.ui.title",
+    "x-blockhub-key": "cap.rbac_page.ui.title"
+  },
+  "cap_re_contract_category": "Real estate",
+  "@cap_re_contract_category": {
+    "description": "cap.re_contract.category",
+    "x-blockhub-key": "cap.re_contract.category"
+  },
+  "cap_re_contract_name": "Re Contract",
+  "@cap_re_contract_name": {
+    "description": "cap.re_contract.name",
+    "x-blockhub-key": "cap.re_contract.name"
+  },
+  "cap_re_contract_ui_title": "Re Contract",
+  "@cap_re_contract_ui_title": {
+    "description": "cap.re_contract.ui.title",
+    "x-blockhub-key": "cap.re_contract.ui.title"
+  },
+  "cap_receipt_audit_category": "Retail & e-commerce",
+  "@cap_receipt_audit_category": {
+    "description": "cap.receipt_audit.category",
+    "x-blockhub-key": "cap.receipt_audit.category"
+  },
+  "cap_receipt_audit_name": "Receipt Audit",
+  "@cap_receipt_audit_name": {
+    "description": "cap.receipt_audit.name",
+    "x-blockhub-key": "cap.receipt_audit.name"
+  },
+  "cap_receipt_audit_ui_title": "Receipt Audit",
+  "@cap_receipt_audit_ui_title": {
+    "description": "cap.receipt_audit.ui.title",
+    "x-blockhub-key": "cap.receipt_audit.ui.title"
+  },
+  "cap_regulatory_report_category": "Financial services",
+  "@cap_regulatory_report_category": {
+    "description": "cap.regulatory_report.category",
+    "x-blockhub-key": "cap.regulatory_report.category"
+  },
+  "cap_regulatory_report_name": "Regulatory Reporting",
+  "@cap_regulatory_report_name": {
+    "description": "cap.regulatory_report.name",
+    "x-blockhub-key": "cap.regulatory_report.name"
+  },
+  "cap_regulatory_report_ui_title": "Regulatory Reporting",
+  "@cap_regulatory_report_ui_title": {
+    "description": "cap.regulatory_report.ui.title",
+    "x-blockhub-key": "cap.regulatory_report.ui.title"
+  },
+  "cap_rent_collection_category": "Real estate",
+  "@cap_rent_collection_category": {
+    "description": "cap.rent_collection.category",
+    "x-blockhub-key": "cap.rent_collection.category"
+  },
+  "cap_rent_collection_name": "Rent Collection",
+  "@cap_rent_collection_name": {
+    "description": "cap.rent_collection.name",
+    "x-blockhub-key": "cap.rent_collection.name"
+  },
+  "cap_rent_collection_ui_title": "Rent Collection",
+  "@cap_rent_collection_ui_title": {
+    "description": "cap.rent_collection.ui.title",
+    "x-blockhub-key": "cap.rent_collection.ui.title"
+  },
+  "cap_retail_order_category": "Retail & e-commerce",
+  "@cap_retail_order_category": {
+    "description": "cap.retail_order.category",
+    "x-blockhub-key": "cap.retail_order.category"
+  },
+  "cap_retail_order_name": "Retail Order",
+  "@cap_retail_order_name": {
+    "description": "cap.retail_order.name",
+    "x-blockhub-key": "cap.retail_order.name"
+  },
+  "cap_retail_order_ui_title": "Retail Order",
+  "@cap_retail_order_ui_title": {
+    "description": "cap.retail_order.ui.title",
+    "x-blockhub-key": "cap.retail_order.ui.title"
+  },
+  "cap_return_exchange_category": "Retail & e-commerce",
+  "@cap_return_exchange_category": {
+    "description": "cap.return_exchange.category",
+    "x-blockhub-key": "cap.return_exchange.category"
+  },
+  "cap_return_exchange_name": "Return Exchange",
+  "@cap_return_exchange_name": {
+    "description": "cap.return_exchange.name",
+    "x-blockhub-key": "cap.return_exchange.name"
+  },
+  "cap_return_exchange_ui_title": "Return Exchange",
+  "@cap_return_exchange_ui_title": {
+    "description": "cap.return_exchange.ui.title",
+    "x-blockhub-key": "cap.return_exchange.ui.title"
+  },
+  "cap_room_service_category": "Hospitality",
+  "@cap_room_service_category": {
+    "description": "cap.room_service.category",
+    "x-blockhub-key": "cap.room_service.category"
+  },
+  "cap_room_service_name": "Room Service",
+  "@cap_room_service_name": {
+    "description": "cap.room_service.name",
+    "x-blockhub-key": "cap.room_service.name"
+  },
+  "cap_room_service_ui_title": "Room Service",
+  "@cap_room_service_ui_title": {
+    "description": "cap.room_service.ui.title",
+    "x-blockhub-key": "cap.room_service.ui.title"
+  },
+  "cap_room_status_category": "Hospitality",
+  "@cap_room_status_category": {
+    "description": "cap.room_status.category",
+    "x-blockhub-key": "cap.room_status.category"
+  },
+  "cap_room_status_name": "Room Status",
+  "@cap_room_status_name": {
+    "description": "cap.room_status.name",
+    "x-blockhub-key": "cap.room_status.name"
+  },
+  "cap_room_status_ui_title": "Room Status",
+  "@cap_room_status_ui_title": {
+    "description": "cap.room_status.ui.title",
+    "x-blockhub-key": "cap.room_status.ui.title"
+  },
+  "cap_route_task_category": "Logistics",
+  "@cap_route_task_category": {
+    "description": "cap.route_task.category",
+    "x-blockhub-key": "cap.route_task.category"
+  },
+  "cap_route_task_name": "Route Task",
+  "@cap_route_task_name": {
+    "description": "cap.route_task.name",
+    "x-blockhub-key": "cap.route_task.name"
+  },
+  "cap_route_task_ui_title": "Route Task",
+  "@cap_route_task_ui_title": {
+    "description": "cap.route_task.ui.title",
+    "x-blockhub-key": "cap.route_task.ui.title"
+  },
+  "cap_sales_followup_category": "Real estate",
+  "@cap_sales_followup_category": {
+    "description": "cap.sales_followup.category",
+    "x-blockhub-key": "cap.sales_followup.category"
+  },
+  "cap_sales_followup_name": "Sales Followup",
+  "@cap_sales_followup_name": {
+    "description": "cap.sales_followup.name",
+    "x-blockhub-key": "cap.sales_followup.name"
+  },
+  "cap_sales_followup_ui_title": "Sales Followup",
+  "@cap_sales_followup_ui_title": {
+    "description": "cap.sales_followup.ui.title",
+    "x-blockhub-key": "cap.sales_followup.ui.title"
+  },
+  "cap_sales_lead_category": "Sales",
+  "@cap_sales_lead_category": {
+    "description": "cap.sales_lead.category",
+    "x-blockhub-key": "cap.sales_lead.category"
+  },
+  "cap_sales_lead_name": "Sales Lead",
+  "@cap_sales_lead_name": {
+    "description": "cap.sales_lead.name",
+    "x-blockhub-key": "cap.sales_lead.name"
+  },
+  "cap_sales_lead_ui_title": "Sales Lead",
+  "@cap_sales_lead_ui_title": {
+    "description": "cap.sales_lead.ui.title",
+    "x-blockhub-key": "cap.sales_lead.ui.title"
+  },
+  "cap_schedule_alarm_category": "Flutter tools",
+  "@cap_schedule_alarm_category": {
+    "description": "cap.schedule_alarm.category",
+    "x-blockhub-key": "cap.schedule_alarm.category"
+  },
+  "cap_schedule_alarm_name": "Schedule Alarm",
+  "@cap_schedule_alarm_name": {
+    "description": "cap.schedule_alarm.name",
+    "x-blockhub-key": "cap.schedule_alarm.name"
+  },
+  "cap_school_notice_category": "Education & training",
+  "@cap_school_notice_category": {
+    "description": "cap.school_notice.category",
+    "x-blockhub-key": "cap.school_notice.category"
+  },
+  "cap_school_notice_name": "School Notify",
+  "@cap_school_notice_name": {
+    "description": "cap.school_notice.name",
+    "x-blockhub-key": "cap.school_notice.name"
+  },
+  "cap_school_notice_ui_title": "School Notify",
+  "@cap_school_notice_ui_title": {
+    "description": "cap.school_notice.ui.title",
+    "x-blockhub-key": "cap.school_notice.ui.title"
+  },
+  "cap_seal_request_category": "HR & admin",
+  "@cap_seal_request_category": {
+    "description": "cap.seal_request.category",
+    "x-blockhub-key": "cap.seal_request.category"
+  },
+  "cap_seal_request_name": "Seal Request",
+  "@cap_seal_request_name": {
+    "description": "cap.seal_request.name",
+    "x-blockhub-key": "cap.seal_request.name"
+  },
+  "cap_seal_request_ui_title": "Seal Request",
+  "@cap_seal_request_ui_title": {
+    "description": "cap.seal_request.ui.title",
+    "x-blockhub-key": "cap.seal_request.ui.title"
+  },
+  "cap_shanghai_voice_category": "Smart interaction",
+  "@cap_shanghai_voice_category": {
+    "description": "cap.shanghai_voice.category",
+    "x-blockhub-key": "cap.shanghai_voice.category"
+  },
+  "cap_shanghai_voice_name": "Shanghai Voice Agent",
+  "@cap_shanghai_voice_name": {
+    "description": "cap.shanghai_voice.name",
+    "x-blockhub-key": "cap.shanghai_voice.name"
+  },
+  "cap_shanghai_voice_ui_title": "Shanghai Voice Agent",
+  "@cap_shanghai_voice_ui_title": {
+    "description": "cap.shanghai_voice.ui.title",
+    "x-blockhub-key": "cap.shanghai_voice.ui.title"
+  },
+  "cap_shanghai_voice_stream_category": "Smart interaction",
+  "@cap_shanghai_voice_stream_category": {
+    "description": "cap.shanghai_voice_stream.category",
+    "x-blockhub-key": "cap.shanghai_voice_stream.category"
+  },
+  "cap_shanghai_voice_stream_name": "Shanghai Voice (Realtime)",
+  "@cap_shanghai_voice_stream_name": {
+    "description": "cap.shanghai_voice_stream.name",
+    "x-blockhub-key": "cap.shanghai_voice_stream.name"
+  },
+  "cap_shanghai_voice_stream_ui_title": "Shanghai Voice (Realtime)",
+  "@cap_shanghai_voice_stream_ui_title": {
+    "description": "cap.shanghai_voice_stream.ui.title",
+    "x-blockhub-key": "cap.shanghai_voice_stream.ui.title"
+  },
+  "cap_shelf_replenish_category": "Retail & e-commerce",
+  "@cap_shelf_replenish_category": {
+    "description": "cap.shelf_replenish.category",
+    "x-blockhub-key": "cap.shelf_replenish.category"
+  },
+  "cap_shelf_replenish_name": "Shelf Replenish",
+  "@cap_shelf_replenish_name": {
+    "description": "cap.shelf_replenish.name",
+    "x-blockhub-key": "cap.shelf_replenish.name"
+  },
+  "cap_shelf_replenish_ui_title": "Shelf Replenish",
+  "@cap_shelf_replenish_ui_title": {
+    "description": "cap.shelf_replenish.ui.title",
+    "x-blockhub-key": "cap.shelf_replenish.ui.title"
+  },
+  "cap_shift_attendance_category": "HR management",
+  "@cap_shift_attendance_category": {
+    "description": "cap.shift_attendance.category",
+    "x-blockhub-key": "cap.shift_attendance.category"
+  },
+  "cap_shift_attendance_name": "Shift Attendance",
+  "@cap_shift_attendance_name": {
+    "description": "cap.shift_attendance.name",
+    "x-blockhub-key": "cap.shift_attendance.name"
+  },
+  "cap_shift_attendance_ui_title": "Shift Attendance",
+  "@cap_shift_attendance_ui_title": {
+    "description": "cap.shift_attendance.ui.title",
+    "x-blockhub-key": "cap.shift_attendance.ui.title"
+  },
+  "cap_site_patrol_category": "Field ops",
+  "@cap_site_patrol_category": {
+    "description": "cap.site_patrol.category",
+    "x-blockhub-key": "cap.site_patrol.category"
+  },
+  "cap_site_patrol_name": "Site Patrol",
+  "@cap_site_patrol_name": {
+    "description": "cap.site_patrol.name",
+    "x-blockhub-key": "cap.site_patrol.name"
+  },
+  "cap_site_patrol_ui_title": "Site Patrol",
+  "@cap_site_patrol_ui_title": {
+    "description": "cap.site_patrol.ui.title",
+    "x-blockhub-key": "cap.site_patrol.ui.title"
+  },
+  "cap_stock_alert_category": "Retail & e-commerce",
+  "@cap_stock_alert_category": {
+    "description": "cap.stock_alert.category",
+    "x-blockhub-key": "cap.stock_alert.category"
+  },
+  "cap_stock_alert_name": "Stock Alert",
+  "@cap_stock_alert_name": {
+    "description": "cap.stock_alert.name",
+    "x-blockhub-key": "cap.stock_alert.name"
+  },
+  "cap_stock_alert_ui_title": "Stock Alert",
+  "@cap_stock_alert_ui_title": {
+    "description": "cap.stock_alert.ui.title",
+    "x-blockhub-key": "cap.stock_alert.ui.title"
+  },
+  "cap_store_transfer_category": "Retail & e-commerce",
+  "@cap_store_transfer_category": {
+    "description": "cap.store_transfer.category",
+    "x-blockhub-key": "cap.store_transfer.category"
+  },
+  "cap_store_transfer_name": "Store Transfer",
+  "@cap_store_transfer_name": {
+    "description": "cap.store_transfer.name",
+    "x-blockhub-key": "cap.store_transfer.name"
+  },
+  "cap_store_transfer_ui_title": "Store Transfer",
+  "@cap_store_transfer_ui_title": {
+    "description": "cap.store_transfer.ui.title",
+    "x-blockhub-key": "cap.store_transfer.ui.title"
+  },
+  "cap_study_coach_category": "Education & training",
+  "@cap_study_coach_category": {
+    "description": "cap.study_coach.category",
+    "x-blockhub-key": "cap.study_coach.category"
+  },
+  "cap_study_coach_name": "Study Coach",
+  "@cap_study_coach_name": {
+    "description": "cap.study_coach.name",
+    "x-blockhub-key": "cap.study_coach.name"
+  },
+  "cap_study_coach_ui_title": "Study Coach",
+  "@cap_study_coach_ui_title": {
+    "description": "cap.study_coach.ui.title",
+    "x-blockhub-key": "cap.study_coach.ui.title"
+  },
+  "cap_supplier_recon_category": "Retail & e-commerce",
+  "@cap_supplier_recon_category": {
+    "description": "cap.supplier_recon.category",
+    "x-blockhub-key": "cap.supplier_recon.category"
+  },
+  "cap_supplier_recon_name": "Supplier Recon",
+  "@cap_supplier_recon_name": {
+    "description": "cap.supplier_recon.name",
+    "x-blockhub-key": "cap.supplier_recon.name"
+  },
+  "cap_supplier_recon_ui_title": "Supplier Recon",
+  "@cap_supplier_recon_ui_title": {
+    "description": "cap.supplier_recon.ui.title",
+    "x-blockhub-key": "cap.supplier_recon.ui.title"
+  },
+  "cap_table_reserve_category": "Hospitality",
+  "@cap_table_reserve_category": {
+    "description": "cap.table_reserve.category",
+    "x-blockhub-key": "cap.table_reserve.category"
+  },
+  "cap_table_reserve_name": "Table Reserve",
+  "@cap_table_reserve_name": {
+    "description": "cap.table_reserve.name",
+    "x-blockhub-key": "cap.table_reserve.name"
+  },
+  "cap_table_reserve_ui_title": "Table Reserve",
+  "@cap_table_reserve_ui_title": {
+    "description": "cap.table_reserve.ui.title",
+    "x-blockhub-key": "cap.table_reserve.ui.title"
+  },
+  "cap_training_record_category": "HR management",
+  "@cap_training_record_category": {
+    "description": "cap.training_record.category",
+    "x-blockhub-key": "cap.training_record.category"
+  },
+  "cap_training_record_name": "Training Record",
+  "@cap_training_record_name": {
+    "description": "cap.training_record.name",
+    "x-blockhub-key": "cap.training_record.name"
+  },
+  "cap_training_record_ui_title": "Training Record",
+  "@cap_training_record_ui_title": {
+    "description": "cap.training_record.ui.title",
+    "x-blockhub-key": "cap.training_record.ui.title"
+  },
+  "cap_travel_plan_category": "Lifestyle services",
+  "@cap_travel_plan_category": {
+    "description": "cap.travel_plan.category",
+    "x-blockhub-key": "cap.travel_plan.category"
+  },
+  "cap_travel_plan_name": "Travel Playbook",
+  "@cap_travel_plan_name": {
+    "description": "cap.travel_plan.name",
+    "x-blockhub-key": "cap.travel_plan.name"
+  },
+  "cap_travel_plan_ui_title": "Travel Playbook",
+  "@cap_travel_plan_ui_title": {
+    "description": "cap.travel_plan.ui.title",
+    "x-blockhub-key": "cap.travel_plan.ui.title"
+  },
+  "cap_viewing_feedback_category": "Real estate",
+  "@cap_viewing_feedback_category": {
+    "description": "cap.viewing_feedback.category",
+    "x-blockhub-key": "cap.viewing_feedback.category"
+  },
+  "cap_viewing_feedback_name": "Viewing Feedback",
+  "@cap_viewing_feedback_name": {
+    "description": "cap.viewing_feedback.name",
+    "x-blockhub-key": "cap.viewing_feedback.name"
+  },
+  "cap_viewing_feedback_ui_title": "Viewing Feedback",
+  "@cap_viewing_feedback_ui_title": {
+    "description": "cap.viewing_feedback.ui.title",
+    "x-blockhub-key": "cap.viewing_feedback.ui.title"
+  },
+  "cap_vip_hold_category": "Retail & e-commerce",
+  "@cap_vip_hold_category": {
+    "description": "cap.vip_hold.category",
+    "x-blockhub-key": "cap.vip_hold.category"
+  },
+  "cap_vip_hold_name": "Vip Hold",
+  "@cap_vip_hold_name": {
+    "description": "cap.vip_hold.name",
+    "x-blockhub-key": "cap.vip_hold.name"
+  },
+  "cap_vip_hold_ui_title": "Vip Hold",
+  "@cap_vip_hold_ui_title": {
+    "description": "cap.vip_hold.ui.title",
+    "x-blockhub-key": "cap.vip_hold.ui.title"
+  },
+  "cap_warehouse_inbound_category": "Logistics",
+  "@cap_warehouse_inbound_category": {
+    "description": "cap.warehouse_inbound.category",
+    "x-blockhub-key": "cap.warehouse_inbound.category"
+  },
+  "cap_warehouse_inbound_name": "Warehouse Inbound",
+  "@cap_warehouse_inbound_name": {
+    "description": "cap.warehouse_inbound.name",
+    "x-blockhub-key": "cap.warehouse_inbound.name"
+  },
+  "cap_warehouse_inbound_ui_title": "Warehouse Inbound",
+  "@cap_warehouse_inbound_ui_title": {
+    "description": "cap.warehouse_inbound.ui.title",
+    "x-blockhub-key": "cap.warehouse_inbound.ui.title"
+  },
+  "cap_warehouse_outbound_category": "Logistics",
+  "@cap_warehouse_outbound_category": {
+    "description": "cap.warehouse_outbound.category",
+    "x-blockhub-key": "cap.warehouse_outbound.category"
+  },
+  "cap_warehouse_outbound_name": "Warehouse Outbound",
+  "@cap_warehouse_outbound_name": {
+    "description": "cap.warehouse_outbound.name",
+    "x-blockhub-key": "cap.warehouse_outbound.name"
+  },
+  "cap_warehouse_outbound_ui_title": "Warehouse Outbound",
+  "@cap_warehouse_outbound_ui_title": {
+    "description": "cap.warehouse_outbound.ui.title",
+    "x-blockhub-key": "cap.warehouse_outbound.ui.title"
+  },
+  "cap_waybill_track_category": "Logistics",
+  "@cap_waybill_track_category": {
+    "description": "cap.waybill_track.category",
+    "x-blockhub-key": "cap.waybill_track.category"
+  },
+  "cap_waybill_track_name": "Waybill Track",
+  "@cap_waybill_track_name": {
+    "description": "cap.waybill_track.name",
+    "x-blockhub-key": "cap.waybill_track.name"
+  },
+  "cap_waybill_track_ui_title": "Waybill Track",
+  "@cap_waybill_track_ui_title": {
+    "description": "cap.waybill_track.ui.title",
+    "x-blockhub-key": "cap.waybill_track.ui.title"
+  },
+  "cap_wedding_plan_category": "Lifestyle services",
+  "@cap_wedding_plan_category": {
+    "description": "cap.wedding_plan.category",
+    "x-blockhub-key": "cap.wedding_plan.category"
+  },
+  "cap_wedding_plan_name": "Wedding Planner",
+  "@cap_wedding_plan_name": {
+    "description": "cap.wedding_plan.name",
+    "x-blockhub-key": "cap.wedding_plan.name"
+  },
+  "cap_wedding_plan_ui_title": "Wedding Planner",
+  "@cap_wedding_plan_ui_title": {
+    "description": "cap.wedding_plan.ui.title",
+    "x-blockhub-key": "cap.wedding_plan.ui.title"
+  },
+  "common_back": "Back",
+  "@common_back": {
+    "description": "common.back",
+    "x-blockhub-key": "common.back"
+  },
+  "common_cancel": "Cancel",
+  "@common_cancel": {
+    "description": "common.cancel",
+    "x-blockhub-key": "common.cancel"
+  },
+  "common_confirm": "Confirm",
+  "@common_confirm": {
+    "description": "common.confirm",
+    "x-blockhub-key": "common.confirm"
+  },
+  "common_fill": "Enter {{label}}",
+  "@common_fill": {
+    "description": "common.fill",
+    "x-blockhub-key": "common.fill"
+  },
+  "common_loading": "Loading…",
+  "@common_loading": {
+    "description": "common.loading",
+    "x-blockhub-key": "common.loading"
+  },
+  "common_save": "Save",
+  "@common_save": {
+    "description": "common.save",
+    "x-blockhub-key": "common.save"
+  },
+  "common_saving": "Saving…",
+  "@common_saving": {
+    "description": "common.saving",
+    "x-blockhub-key": "common.saving"
+  },
+  "common_skip": "Skip",
+  "@common_skip": {
+    "description": "common.skip",
+    "x-blockhub-key": "common.skip"
+  },
+  "common_submit": "Submit",
+  "@common_submit": {
+    "description": "common.submit",
+    "x-blockhub-key": "common.submit"
+  },
+  "common_submitting": "Submitting…",
+  "@common_submitting": {
+    "description": "common.submitting",
+    "x-blockhub-key": "common.submitting"
+  },
+  "error_ACCOUNT_DISABLED": "Account disabled",
+  "@error_ACCOUNT_DISABLED": {
+    "description": "error.ACCOUNT_DISABLED",
+    "x-blockhub-key": "error.ACCOUNT_DISABLED"
+  },
+  "error_BAD_CREDENTIALS": "Incorrect email or password",
+  "@error_BAD_CREDENTIALS": {
+    "description": "error.BAD_CREDENTIALS",
+    "x-blockhub-key": "error.BAD_CREDENTIALS"
+  },
+  "error_BAD_GATEWAY": "Bad gateway. Please try again later.",
+  "@error_BAD_GATEWAY": {
+    "description": "error.BAD_GATEWAY",
+    "x-blockhub-key": "error.BAD_GATEWAY"
+  },
+  "error_DB_UNAVAILABLE": "Database unavailable. Start PostgreSQL and retry.",
+  "@error_DB_UNAVAILABLE": {
+    "description": "error.DB_UNAVAILABLE",
+    "x-blockhub-key": "error.DB_UNAVAILABLE"
+  },
+  "error_EMAIL_NOT_CONFIGURED": "Email is not configured. Contact an administrator.",
+  "@error_EMAIL_NOT_CONFIGURED": {
+    "description": "error.EMAIL_NOT_CONFIGURED",
+    "x-blockhub-key": "error.EMAIL_NOT_CONFIGURED"
+  },
+  "error_EMAIL_SEND_FAILED": "Failed to send email. Please try again later.",
+  "@error_EMAIL_SEND_FAILED": {
+    "description": "error.EMAIL_SEND_FAILED",
+    "x-blockhub-key": "error.EMAIL_SEND_FAILED"
+  },
+  "error_FORBIDDEN": "Insufficient permissions",
+  "@error_FORBIDDEN": {
+    "description": "error.FORBIDDEN",
+    "x-blockhub-key": "error.FORBIDDEN"
+  },
+  "error_INDUSTRY_PACK_NOT_FOUND": "Industry pack not found",
+  "@error_INDUSTRY_PACK_NOT_FOUND": {
+    "description": "error.INDUSTRY_PACK_NOT_FOUND",
+    "x-blockhub-key": "error.INDUSTRY_PACK_NOT_FOUND"
+  },
+  "error_INVALID_CODE": "Invalid or expired verification code",
+  "@error_INVALID_CODE": {
+    "description": "error.INVALID_CODE",
+    "x-blockhub-key": "error.INVALID_CODE"
+  },
+  "error_LOGIN_FAILED": "Sign-in failed. Check your credentials.",
+  "@error_LOGIN_FAILED": {
+    "description": "error.LOGIN_FAILED",
+    "x-blockhub-key": "error.LOGIN_FAILED"
+  },
+  "error_MISSING_CODE": "Missing code",
+  "@error_MISSING_CODE": {
+    "description": "error.MISSING_CODE",
+    "x-blockhub-key": "error.MISSING_CODE"
+  },
+  "error_NETWORK_ERROR": "Cannot reach the server. Please try again later.",
+  "@error_NETWORK_ERROR": {
+    "description": "error.NETWORK_ERROR",
+    "x-blockhub-key": "error.NETWORK_ERROR"
+  },
+  "error_NOT_FOUND": "Record not found",
+  "@error_NOT_FOUND": {
+    "description": "error.NOT_FOUND",
+    "x-blockhub-key": "error.NOT_FOUND"
+  },
+  "error_RATE_LIMITED": "Too many requests. Please try again later.",
+  "@error_RATE_LIMITED": {
+    "description": "error.RATE_LIMITED",
+    "x-blockhub-key": "error.RATE_LIMITED"
+  },
+  "error_REQUIRED": "Required fields cannot be empty",
+  "@error_REQUIRED": {
+    "description": "error.REQUIRED",
+    "x-blockhub-key": "error.REQUIRED"
+  },
+  "error_SCHEMA_APPROVAL_REQUIRED": "Schema changes require approval before taking effect",
+  "@error_SCHEMA_APPROVAL_REQUIRED": {
+    "description": "error.SCHEMA_APPROVAL_REQUIRED",
+    "x-blockhub-key": "error.SCHEMA_APPROVAL_REQUIRED"
+  },
+  "error_SCHEMA_REV_CONFLICT": "Page version conflict. Refresh and retry.",
+  "@error_SCHEMA_REV_CONFLICT": {
+    "description": "error.SCHEMA_REV_CONFLICT",
+    "x-blockhub-key": "error.SCHEMA_REV_CONFLICT"
+  },
+  "error_SEND_CODE_FAILED": "Failed to send verification code",
+  "@error_SEND_CODE_FAILED": {
+    "description": "error.SEND_CODE_FAILED",
+    "x-blockhub-key": "error.SEND_CODE_FAILED"
+  },
+  "error_SERVICE_UNAVAILABLE": "Service temporarily unavailable. Please try again later.",
+  "@error_SERVICE_UNAVAILABLE": {
+    "description": "error.SERVICE_UNAVAILABLE",
+    "x-blockhub-key": "error.SERVICE_UNAVAILABLE"
+  },
+  "error_SMS_NOT_CONFIGURED": "SMS is not configured. Contact an administrator.",
+  "@error_SMS_NOT_CONFIGURED": {
+    "description": "error.SMS_NOT_CONFIGURED",
+    "x-blockhub-key": "error.SMS_NOT_CONFIGURED"
+  },
+  "error_SMS_SEND_FAILED": "Failed to send SMS. Please try again later.",
+  "@error_SMS_SEND_FAILED": {
+    "description": "error.SMS_SEND_FAILED",
+    "x-blockhub-key": "error.SMS_SEND_FAILED"
+  },
+  "error_TITLE_REQUIRED": "Title is required",
+  "@error_TITLE_REQUIRED": {
+    "description": "error.TITLE_REQUIRED",
+    "x-blockhub-key": "error.TITLE_REQUIRED"
+  },
+  "error_TOKEN_INVALID": "Token expired or invalid",
+  "@error_TOKEN_INVALID": {
+    "description": "error.TOKEN_INVALID",
+    "x-blockhub-key": "error.TOKEN_INVALID"
+  },
+  "error_UNAUTHORIZED": "Not signed in or missing access token",
+  "@error_UNAUTHORIZED": {
+    "description": "error.UNAUTHORIZED",
+    "x-blockhub-key": "error.UNAUTHORIZED"
+  },
+  "error_UNKNOWN_CAPABILITY": "Unknown capability",
+  "@error_UNKNOWN_CAPABILITY": {
+    "description": "error.UNKNOWN_CAPABILITY",
+    "x-blockhub-key": "error.UNKNOWN_CAPABILITY"
+  },
+  "error_UNSUPPORTED_ACTION": "Unsupported action",
+  "@error_UNSUPPORTED_ACTION": {
+    "description": "error.UNSUPPORTED_ACTION",
+    "x-blockhub-key": "error.UNSUPPORTED_ACTION"
+  },
+  "error_USERS_EXIST": "Users already exist. Please sign in.",
+  "@error_USERS_EXIST": {
+    "description": "error.USERS_EXIST",
+    "x-blockhub-key": "error.USERS_EXIST"
+  },
+  "error_WECOM_SSO_NOT_CONFIGURED": "WeCom SSO is not configured",
+  "@error_WECOM_SSO_NOT_CONFIGURED": {
+    "description": "error.WECOM_SSO_NOT_CONFIGURED",
+    "x-blockhub-key": "error.WECOM_SSO_NOT_CONFIGURED"
+  },
+  "hero_s00_flow_0": ">> Shanghai voice · speak naturally",
+  "@hero_s00_flow_0": {
+    "description": "hero.s00.flow.0",
+    "x-blockhub-key": "hero.s00.flow.0"
+  },
+  "hero_s00_flow_1": ">> Real-time ASR · dialect recognition",
+  "@hero_s00_flow_1": {
+    "description": "hero.s00.flow.1",
+    "x-blockhub-key": "hero.s00.flow.1"
+  },
+  "hero_s00_flow_2": ">> Smart Q&A · voice playback",
+  "@hero_s00_flow_2": {
+    "description": "hero.s00.flow.2",
+    "x-blockhub-key": "hero.s00.flow.2"
+  },
+  "hero_s00_flow_3": ">> Web/APK · one-click generate",
+  "@hero_s00_flow_3": {
+    "description": "hero.s00.flow.3",
+    "x-blockhub-key": "hero.s00.flow.3"
+  },
+  "hero_s00_hint": "Dialect · Voice",
+  "@hero_s00_hint": {
+    "description": "hero.s00.hint",
+    "x-blockhub-key": "hero.s00.hint"
+  },
+  "hero_s00_label": "Shanghai Voice Agent",
+  "@hero_s00_label": {
+    "description": "hero.s00.label",
+    "x-blockhub-key": "hero.s00.label"
+  },
+  "hero_s00_prompt": "Real-time Shanghai dialect voice chat — ask questions and get things done in dialect.",
+  "@hero_s00_prompt": {
+    "description": "hero.s00.prompt",
+    "x-blockhub-key": "hero.s00.prompt"
+  },
+  "hero_s00_role": "Shanghai speaker",
+  "@hero_s00_role": {
+    "description": "hero.s00.role",
+    "x-blockhub-key": "hero.s00.role"
+  },
+  "hero_s01_flow_0": ">> Leave · submit online",
+  "@hero_s01_flow_0": {
+    "description": "hero.s01.flow.0",
+    "x-blockhub-key": "hero.s01.flow.0"
+  },
+  "hero_s01_flow_1": ">> Manager approve / reject",
+  "@hero_s01_flow_1": {
+    "description": "hero.s01.flow.1",
+    "x-blockhub-key": "hero.s01.flow.1"
+  },
+  "hero_s01_flow_2": ">> WeCom/DingTalk/Feishu · notify",
+  "@hero_s01_flow_2": {
+    "description": "hero.s01.flow.2",
+    "x-blockhub-key": "hero.s01.flow.2"
+  },
+  "hero_s01_flow_3": ">> CapShip · real dual-end APIs",
+  "@hero_s01_flow_3": {
+    "description": "hero.s01.flow.3",
+    "x-blockhub-key": "hero.s01.flow.3"
+  },
+  "hero_s01_hint": "HR · Workflow",
+  "@hero_s01_hint": {
+    "description": "hero.s01.hint",
+    "x-blockhub-key": "hero.s01.hint"
+  },
+  "hero_s01_label": "Leave Request",
+  "@hero_s01_label": {
+    "description": "hero.s01.label",
+    "x-blockhub-key": "hero.s01.label"
+  },
+  "hero_s01_prompt": "Submit leave online, manager approval, and leave balance lookup.",
+  "@hero_s01_prompt": {
+    "description": "hero.s01.prompt",
+    "x-blockhub-key": "hero.s01.prompt"
+  },
+  "hero_s01_role": "HR",
+  "@hero_s01_role": {
+    "description": "hero.s01.role",
+    "x-blockhub-key": "hero.s01.role"
+  },
+  "hero_s02_flow_0": ">> Expense · register costs",
+  "@hero_s02_flow_0": {
+    "description": "hero.s02.flow.0",
+    "x-blockhub-key": "hero.s02.flow.0"
+  },
+  "hero_s02_flow_1": ">> Finance review · payment loop",
+  "@hero_s02_flow_1": {
+    "description": "hero.s02.flow.1",
+    "x-blockhub-key": "hero.s02.flow.1"
+  },
+  "hero_s02_flow_2": ">> WeCom/DingTalk/Feishu · notify",
+  "@hero_s02_flow_2": {
+    "description": "hero.s02.flow.2",
+    "x-blockhub-key": "hero.s02.flow.2"
+  },
+  "hero_s02_flow_3": ">> CapShip · real dual-end APIs",
+  "@hero_s02_flow_3": {
+    "description": "hero.s02.flow.3",
+    "x-blockhub-key": "hero.s02.flow.3"
+  },
+  "hero_s02_hint": "Finance · Receipts",
+  "@hero_s02_hint": {
+    "description": "hero.s02.hint",
+    "x-blockhub-key": "hero.s02.hint"
+  },
+  "hero_s02_label": "Expense Claim",
+  "@hero_s02_label": {
+    "description": "hero.s02.label",
+    "x-blockhub-key": "hero.s02.label"
+  },
+  "hero_s02_prompt": "Expense claims with photo upload, finance review, and ledger lookup.",
+  "@hero_s02_prompt": {
+    "description": "hero.s02.prompt",
+    "x-blockhub-key": "hero.s02.prompt"
+  },
+  "hero_s02_role": "Finance",
+  "@hero_s02_role": {
+    "description": "hero.s02.role",
+    "x-blockhub-key": "hero.s02.role"
+  },
+  "hero_s03_flow_0": ">> Policy Q&A · ask & store",
+  "@hero_s03_flow_0": {
+    "description": "hero.s03.flow.0",
+    "x-blockhub-key": "hero.s03.flow.0"
+  },
+  "hero_s03_flow_1": ">> Answers archived · knowledge loop",
+  "@hero_s03_flow_1": {
+    "description": "hero.s03.flow.1",
+    "x-blockhub-key": "hero.s03.flow.1"
+  },
+  "hero_s03_flow_2": ">> WeCom/DingTalk/Feishu · notify",
+  "@hero_s03_flow_2": {
+    "description": "hero.s03.flow.2",
+    "x-blockhub-key": "hero.s03.flow.2"
+  },
+  "hero_s03_flow_3": ">> CapShip · real dual-end APIs",
+  "@hero_s03_flow_3": {
+    "description": "hero.s03.flow.3",
+    "x-blockhub-key": "hero.s03.flow.3"
+  },
+  "hero_s03_hint": "Knowledge · Self-serve",
+  "@hero_s03_hint": {
+    "description": "hero.s03.hint",
+    "x-blockhub-key": "hero.s03.hint"
+  },
+  "hero_s03_label": "Policy Q&A",
+  "@hero_s03_label": {
+    "description": "hero.s03.label",
+    "x-blockhub-key": "hero.s03.label"
+  },
+  "hero_s03_prompt": "Company policy and benefits Q&A — self-serve anytime.",
+  "@hero_s03_prompt": {
+    "description": "hero.s03.prompt",
+    "x-blockhub-key": "hero.s03.prompt"
+  },
+  "hero_s03_role": "Employee",
+  "@hero_s03_role": {
+    "description": "hero.s03.role",
+    "x-blockhub-key": "hero.s03.role"
+  },
+  "hero_s04_flow_0": ">> Hire · candidate intake",
+  "@hero_s04_flow_0": {
+    "description": "hero.s04.flow.0",
+    "x-blockhub-key": "hero.s04.flow.0"
+  },
+  "hero_s04_flow_1": ">> Interview/Offer · onboard loop",
+  "@hero_s04_flow_1": {
+    "description": "hero.s04.flow.1",
+    "x-blockhub-key": "hero.s04.flow.1"
+  },
+  "hero_s04_flow_2": ">> WeCom/DingTalk/Feishu · progress",
+  "@hero_s04_flow_2": {
+    "description": "hero.s04.flow.2",
+    "x-blockhub-key": "hero.s04.flow.2"
+  },
+  "hero_s04_flow_3": ">> CapShip · real dual-end APIs",
+  "@hero_s04_flow_3": {
+    "description": "hero.s04.flow.3",
+    "x-blockhub-key": "hero.s04.flow.3"
+  },
+  "hero_s04_hint": "HR · Talent",
+  "@hero_s04_hint": {
+    "description": "hero.s04.hint",
+    "x-blockhub-key": "hero.s04.hint"
+  },
+  "hero_s04_label": "Hire & Onboard",
+  "@hero_s04_label": {
+    "description": "hero.s04.label",
+    "x-blockhub-key": "hero.s04.label"
+  },
+  "hero_s04_prompt": "Job posting, resume screening, and onboarding in one place.",
+  "@hero_s04_prompt": {
+    "description": "hero.s04.prompt",
+    "x-blockhub-key": "hero.s04.prompt"
+  },
+  "hero_s04_role": "HR",
+  "@hero_s04_role": {
+    "description": "hero.s04.role",
+    "x-blockhub-key": "hero.s04.role"
+  },
+  "hero_s05_flow_0": ">> Sales lead · customer intake",
+  "@hero_s05_flow_0": {
+    "description": "hero.s05.flow.0",
+    "x-blockhub-key": "hero.s05.flow.0"
+  },
+  "hero_s05_flow_1": ">> Follow-up · close the deal",
+  "@hero_s05_flow_1": {
+    "description": "hero.s05.flow.1",
+    "x-blockhub-key": "hero.s05.flow.1"
+  },
+  "hero_s05_flow_2": ">> WeCom/DingTalk/Feishu · reminders",
+  "@hero_s05_flow_2": {
+    "description": "hero.s05.flow.2",
+    "x-blockhub-key": "hero.s05.flow.2"
+  },
+  "hero_s05_flow_3": ">> CapShip · real dual-end APIs",
+  "@hero_s05_flow_3": {
+    "description": "hero.s05.flow.3",
+    "x-blockhub-key": "hero.s05.flow.3"
+  },
+  "hero_s05_hint": "CRM · Follow-up",
+  "@hero_s05_hint": {
+    "description": "hero.s05.hint",
+    "x-blockhub-key": "hero.s05.hint"
+  },
+  "hero_s05_label": "Sales Lead",
+  "@hero_s05_label": {
+    "description": "hero.s05.label",
+    "x-blockhub-key": "hero.s05.label"
+  },
+  "hero_s05_prompt": "Lead intake, customer follow-up, and sales funnel management.",
+  "@hero_s05_prompt": {
+    "description": "hero.s05.prompt",
+    "x-blockhub-key": "hero.s05.prompt"
+  },
+  "hero_s05_role": "Sales",
+  "@hero_s05_role": {
+    "description": "hero.s05.role",
+    "x-blockhub-key": "hero.s05.role"
+  },
+  "hero_s06_flow_0": ">> Quote/contract · register",
+  "@hero_s06_flow_0": {
+    "description": "hero.s06.flow.0",
+    "x-blockhub-key": "hero.s06.flow.0"
+  },
+  "hero_s06_flow_1": ">> Review & sign · close loop",
+  "@hero_s06_flow_1": {
+    "description": "hero.s06.flow.1",
+    "x-blockhub-key": "hero.s06.flow.1"
+  },
+  "hero_s06_flow_2": ">> WeCom/DingTalk/Feishu · notify",
+  "@hero_s06_flow_2": {
+    "description": "hero.s06.flow.2",
+    "x-blockhub-key": "hero.s06.flow.2"
+  },
+  "hero_s06_flow_3": ">> CapShip · real dual-end APIs",
+  "@hero_s06_flow_3": {
+    "description": "hero.s06.flow.3",
+    "x-blockhub-key": "hero.s06.flow.3"
+  },
+  "hero_s06_hint": "Sales · Closing",
+  "@hero_s06_hint": {
+    "description": "hero.s06.hint",
+    "x-blockhub-key": "hero.s06.hint"
+  },
+  "hero_s06_label": "Quote & Contract",
+  "@hero_s06_label": {
+    "description": "hero.s06.label",
+    "x-blockhub-key": "hero.s06.label"
+  },
+  "hero_s06_prompt": "Quote approval, contract review, and special-price requests.",
+  "@hero_s06_prompt": {
+    "description": "hero.s06.prompt",
+    "x-blockhub-key": "hero.s06.prompt"
+  },
+  "hero_s06_role": "Sales",
+  "@hero_s06_role": {
+    "description": "hero.s06.role",
+    "x-blockhub-key": "hero.s06.role"
+  },
+  "hero_s07_flow_0": ">> Ops KPI · register metrics",
+  "@hero_s07_flow_0": {
+    "description": "hero.s07.flow.0",
+    "x-blockhub-key": "hero.s07.flow.0"
+  },
+  "hero_s07_flow_1": ">> Publish alerts · archive",
+  "@hero_s07_flow_1": {
+    "description": "hero.s07.flow.1",
+    "x-blockhub-key": "hero.s07.flow.1"
+  },
+  "hero_s07_flow_2": ">> WeCom/DingTalk/Feishu · push",
+  "@hero_s07_flow_2": {
+    "description": "hero.s07.flow.2",
+    "x-blockhub-key": "hero.s07.flow.2"
+  },
+  "hero_s07_flow_3": ">> CapShip · real dual-end APIs",
+  "@hero_s07_flow_3": {
+    "description": "hero.s07.flow.3",
+    "x-blockhub-key": "hero.s07.flow.3"
+  },
+  "hero_s07_hint": "Exec · Decisions",
+  "@hero_s07_hint": {
+    "description": "hero.s07.hint",
+    "x-blockhub-key": "hero.s07.hint"
+  },
+  "hero_s07_label": "Ops KPI Board",
+  "@hero_s07_label": {
+    "description": "hero.s07.label",
+    "x-blockhub-key": "hero.s07.label"
+  },
+  "hero_s07_prompt": "Core KPIs on one screen with natural-language data queries.",
+  "@hero_s07_prompt": {
+    "description": "hero.s07.prompt",
+    "x-blockhub-key": "hero.s07.prompt"
+  },
+  "hero_s07_role": "Executive",
+  "@hero_s07_role": {
+    "description": "hero.s07.role",
+    "x-blockhub-key": "hero.s07.role"
+  },
+  "hero_s08_flow_0": ">> Device repair · scan & submit",
+  "@hero_s08_flow_0": {
+    "description": "hero.s08.flow.0",
+    "x-blockhub-key": "hero.s08.flow.0"
+  },
+  "hero_s08_flow_1": ">> Work order · track progress",
+  "@hero_s08_flow_1": {
+    "description": "hero.s08.flow.1",
+    "x-blockhub-key": "hero.s08.flow.1"
+  },
+  "hero_s08_flow_2": ">> WeCom/DingTalk/Feishu · status",
+  "@hero_s08_flow_2": {
+    "description": "hero.s08.flow.2",
+    "x-blockhub-key": "hero.s08.flow.2"
+  },
+  "hero_s08_flow_3": ">> CapShip · real dual-end APIs",
+  "@hero_s08_flow_3": {
+    "description": "hero.s08.flow.3",
+    "x-blockhub-key": "hero.s08.flow.3"
+  },
+  "hero_s08_hint": "Manufacturing · Ops",
+  "@hero_s08_hint": {
+    "description": "hero.s08.hint",
+    "x-blockhub-key": "hero.s08.hint"
+  },
+  "hero_s08_label": "Device Repair",
+  "@hero_s08_label": {
+    "description": "hero.s08.label",
+    "x-blockhub-key": "hero.s08.label"
+  },
+  "hero_s08_prompt": "On-site device fault tickets, dispatch, and repair tracking.",
+  "@hero_s08_prompt": {
+    "description": "hero.s08.prompt",
+    "x-blockhub-key": "hero.s08.prompt"
+  },
+  "hero_s08_role": "Manufacturing",
+  "@hero_s08_role": {
+    "description": "hero.s08.role",
+    "x-blockhub-key": "hero.s08.role"
+  },
+  "hero_s09_flow_0": ">> QA SOP · batch & step entry",
+  "@hero_s09_flow_0": {
+    "description": "hero.s09.flow.0",
+    "x-blockhub-key": "hero.s09.flow.0"
+  },
+  "hero_s09_flow_1": ">> Pass/fail · on-the-spot",
+  "@hero_s09_flow_1": {
+    "description": "hero.s09.flow.1",
+    "x-blockhub-key": "hero.s09.flow.1"
+  },
+  "hero_s09_flow_2": ">> WeCom/DingTalk/Feishu · exceptions",
+  "@hero_s09_flow_2": {
+    "description": "hero.s09.flow.2",
+    "x-blockhub-key": "hero.s09.flow.2"
+  },
+  "hero_s09_flow_3": ">> CapShip · real dual-end APIs",
+  "@hero_s09_flow_3": {
+    "description": "hero.s09.flow.3",
+    "x-blockhub-key": "hero.s09.flow.3"
+  },
+  "hero_s09_hint": "Manufacturing · Process",
+  "@hero_s09_hint": {
+    "description": "hero.s09.hint",
+    "x-blockhub-key": "hero.s09.hint"
+  },
+  "hero_s09_label": "Quality Inspect",
+  "@hero_s09_label": {
+    "description": "hero.s09.label",
+    "x-blockhub-key": "hero.s09.label"
+  },
+  "hero_s09_prompt": "SOP process Q&A, quality records, and exception reporting.",
+  "@hero_s09_prompt": {
+    "description": "hero.s09.prompt",
+    "x-blockhub-key": "hero.s09.prompt"
+  },
+  "hero_s09_role": "QA",
+  "@hero_s09_role": {
+    "description": "hero.s09.role",
+    "x-blockhub-key": "hero.s09.role"
+  },
+  "hero_s10_flow_0": ">> Omni pickup · redeem code",
+  "@hero_s10_flow_0": {
+    "description": "hero.s10.flow.0",
+    "x-blockhub-key": "hero.s10.flow.0"
+  },
+  "hero_s10_flow_1": ">> Store transfer · real inventory",
+  "@hero_s10_flow_1": {
+    "description": "hero.s10.flow.1",
+    "x-blockhub-key": "hero.s10.flow.1"
+  },
+  "hero_s10_flow_2": ">> WeCom/DingTalk/Feishu · arrival",
+  "@hero_s10_flow_2": {
+    "description": "hero.s10.flow.2",
+    "x-blockhub-key": "hero.s10.flow.2"
+  },
+  "hero_s10_flow_3": ">> CapShip · real dual-end APIs",
+  "@hero_s10_flow_3": {
+    "description": "hero.s10.flow.3",
+    "x-blockhub-key": "hero.s10.flow.3"
+  },
+  "hero_s10_hint": "Retail · Fulfillment",
+  "@hero_s10_hint": {
+    "description": "hero.s10.hint",
+    "x-blockhub-key": "hero.s10.hint"
+  },
+  "hero_s10_label": "Inventory Count",
+  "@hero_s10_label": {
+    "description": "hero.s10.label",
+    "x-blockhub-key": "hero.s10.label"
+  },
+  "hero_s10_prompt": "Online order to store pickup, transfers, and coupon redemption.",
+  "@hero_s10_prompt": {
+    "description": "hero.s10.prompt",
+    "x-blockhub-key": "hero.s10.prompt"
+  },
+  "hero_s10_role": "Retail",
+  "@hero_s10_role": {
+    "description": "hero.s10.role",
+    "x-blockhub-key": "hero.s10.role"
+  },
+  "hero_s11_flow_0": ">> Membership · campaign intake",
+  "@hero_s11_flow_0": {
+    "description": "hero.s11.flow.0",
+    "x-blockhub-key": "hero.s11.flow.0"
+  },
+  "hero_s11_flow_1": ">> Coupons/points · ready to send",
+  "@hero_s11_flow_1": {
+    "description": "hero.s11.flow.1",
+    "x-blockhub-key": "hero.s11.flow.1"
+  },
+  "hero_s11_flow_2": ">> WeCom/DingTalk/Feishu · push",
+  "@hero_s11_flow_2": {
+    "description": "hero.s11.flow.2",
+    "x-blockhub-key": "hero.s11.flow.2"
+  },
+  "hero_s11_flow_3": ">> CapShip · real dual-end APIs",
+  "@hero_s11_flow_3": {
+    "description": "hero.s11.flow.3",
+    "x-blockhub-key": "hero.s11.flow.3"
+  },
+  "hero_s11_hint": "Retail · Growth",
+  "@hero_s11_hint": {
+    "description": "hero.s11.hint",
+    "x-blockhub-key": "hero.s11.hint"
+  },
+  "hero_s11_label": "Membership Growth",
+  "@hero_s11_label": {
+    "description": "hero.s11.label",
+    "x-blockhub-key": "hero.s11.label"
+  },
+  "hero_s11_prompt": "Member points, promotions, and outreach messaging.",
+  "@hero_s11_prompt": {
+    "description": "hero.s11.prompt",
+    "x-blockhub-key": "hero.s11.prompt"
+  },
+  "hero_s11_role": "Ops",
+  "@hero_s11_role": {
+    "description": "hero.s11.role",
+    "x-blockhub-key": "hero.s11.role"
+  },
+  "hero_s12_flow_0": ">> Medical triage · pre-intake",
+  "@hero_s12_flow_0": {
+    "description": "hero.s12.flow.0",
+    "x-blockhub-key": "hero.s12.flow.0"
+  },
+  "hero_s12_flow_1": ">> Recommend department · guide",
+  "@hero_s12_flow_1": {
+    "description": "hero.s12.flow.1",
+    "x-blockhub-key": "hero.s12.flow.1"
+  },
+  "hero_s12_flow_2": ">> WeCom/DingTalk/Feishu · reminders",
+  "@hero_s12_flow_2": {
+    "description": "hero.s12.flow.2",
+    "x-blockhub-key": "hero.s12.flow.2"
+  },
+  "hero_s12_flow_3": ">> CapShip · real dual-end APIs",
+  "@hero_s12_flow_3": {
+    "description": "hero.s12.flow.3",
+    "x-blockhub-key": "hero.s12.flow.3"
+  },
+  "hero_s12_hint": "Hospital · Patient",
+  "@hero_s12_hint": {
+    "description": "hero.s12.hint",
+    "x-blockhub-key": "hero.s12.hint"
+  },
+  "hero_s12_label": "Medical Guide",
+  "@hero_s12_label": {
+    "description": "hero.s12.label",
+    "x-blockhub-key": "hero.s12.label"
+  },
+  "hero_s12_prompt": "Care guide, schedule lookup, and triage Q&A.",
+  "@hero_s12_prompt": {
+    "description": "hero.s12.prompt",
+    "x-blockhub-key": "hero.s12.prompt"
+  },
+  "hero_s12_role": "Clinician",
+  "@hero_s12_role": {
+    "description": "hero.s12.role",
+    "x-blockhub-key": "hero.s12.role"
+  },
+  "hero_s13_flow_0": ">> Nurse shift · swap online",
+  "@hero_s13_flow_0": {
+    "description": "hero.s13.flow.0",
+    "x-blockhub-key": "hero.s13.flow.0"
+  },
+  "hero_s13_flow_1": ">> Head nurse · approve/reject",
+  "@hero_s13_flow_1": {
+    "description": "hero.s13.flow.1",
+    "x-blockhub-key": "hero.s13.flow.1"
+  },
+  "hero_s13_flow_2": ">> WeCom/DingTalk/Feishu · duty notice",
+  "@hero_s13_flow_2": {
+    "description": "hero.s13.flow.2",
+    "x-blockhub-key": "hero.s13.flow.2"
+  },
+  "hero_s13_flow_3": ">> CapShip · real dual-end APIs",
+  "@hero_s13_flow_3": {
+    "description": "hero.s13.flow.3",
+    "x-blockhub-key": "hero.s13.flow.3"
+  },
+  "hero_s13_hint": "Hospital · Scheduling",
+  "@hero_s13_hint": {
+    "description": "hero.s13.hint",
+    "x-blockhub-key": "hero.s13.hint"
+  },
+  "hero_s13_label": "Nurse Shift",
+  "@hero_s13_label": {
+    "description": "hero.s13.label",
+    "x-blockhub-key": "hero.s13.label"
+  },
+  "hero_s13_prompt": "Nurse schedules, shift swaps, and duty notifications.",
+  "@hero_s13_prompt": {
+    "description": "hero.s13.prompt",
+    "x-blockhub-key": "hero.s13.prompt"
+  },
+  "hero_s13_role": "Nursing",
+  "@hero_s13_role": {
+    "description": "hero.s13.role",
+    "x-blockhub-key": "hero.s13.role"
+  },
+  "hero_s14_flow_0": ">> Player FAQ · ticket intake",
+  "@hero_s14_flow_0": {
+    "description": "hero.s14.flow.0",
+    "x-blockhub-key": "hero.s14.flow.0"
+  },
+  "hero_s14_flow_1": ">> Escalate · resolve loop",
+  "@hero_s14_flow_1": {
+    "description": "hero.s14.flow.1",
+    "x-blockhub-key": "hero.s14.flow.1"
+  },
+  "hero_s14_flow_2": ">> WeCom/DingTalk/Feishu · notify",
+  "@hero_s14_flow_2": {
+    "description": "hero.s14.flow.2",
+    "x-blockhub-key": "hero.s14.flow.2"
+  },
+  "hero_s14_flow_3": ">> CapShip · real dual-end APIs",
+  "@hero_s14_flow_3": {
+    "description": "hero.s14.flow.3",
+    "x-blockhub-key": "hero.s14.flow.3"
+  },
+  "hero_s14_hint": "Gaming · Support",
+  "@hero_s14_hint": {
+    "description": "hero.s14.hint",
+    "x-blockhub-key": "hero.s14.hint"
+  },
+  "hero_s14_label": "Player FAQ",
+  "@hero_s14_label": {
+    "description": "hero.s14.label",
+    "x-blockhub-key": "hero.s14.label"
+  },
+  "hero_s14_prompt": "Player FAQ, ticket intake, and escalation workflows.",
+  "@hero_s14_prompt": {
+    "description": "hero.s14.prompt",
+    "x-blockhub-key": "hero.s14.prompt"
+  },
+  "hero_s14_role": "Support",
+  "@hero_s14_role": {
+    "description": "hero.s14.role",
+    "x-blockhub-key": "hero.s14.role"
+  },
+  "hero_s15_flow_0": ">> School notice · draft & send",
+  "@hero_s15_flow_0": {
+    "description": "hero.s15.flow.0",
+    "x-blockhub-key": "hero.s15.flow.0"
+  },
+  "hero_s15_flow_1": ">> Read receipts · follow-up",
+  "@hero_s15_flow_1": {
+    "description": "hero.s15.flow.1",
+    "x-blockhub-key": "hero.s15.flow.1"
+  },
+  "hero_s15_flow_2": ">> WeCom/DingTalk/Feishu · push",
+  "@hero_s15_flow_2": {
+    "description": "hero.s15.flow.2",
+    "x-blockhub-key": "hero.s15.flow.2"
+  },
+  "hero_s15_flow_3": ">> CapShip · real dual-end APIs",
+  "@hero_s15_flow_3": {
+    "description": "hero.s15.flow.3",
+    "x-blockhub-key": "hero.s15.flow.3"
+  },
+  "hero_s15_hint": "School · Notify",
+  "@hero_s15_hint": {
+    "description": "hero.s15.hint",
+    "x-blockhub-key": "hero.s15.hint"
+  },
+  "hero_s15_label": "School Notify",
+  "@hero_s15_label": {
+    "description": "hero.s15.label",
+    "x-blockhub-key": "hero.s15.label"
+  },
+  "hero_s15_prompt": "School notices to parents with read tracking.",
+  "@hero_s15_prompt": {
+    "description": "hero.s15.prompt",
+    "x-blockhub-key": "hero.s15.prompt"
+  },
+  "hero_s15_role": "Teacher",
+  "@hero_s15_role": {
+    "description": "hero.s15.role",
+    "x-blockhub-key": "hero.s15.role"
+  },
+  "hero_s16_flow_0": ">> Homework help · ask a question",
+  "@hero_s16_flow_0": {
+    "description": "hero.s16.flow.0",
+    "x-blockhub-key": "hero.s16.flow.0"
+  },
+  "hero_s16_flow_1": ">> Step-by-step · understand",
+  "@hero_s16_flow_1": {
+    "description": "hero.s16.flow.1",
+    "x-blockhub-key": "hero.s16.flow.1"
+  },
+  "hero_s16_flow_2": ">> WeCom/DingTalk/Feishu · share",
+  "@hero_s16_flow_2": {
+    "description": "hero.s16.flow.2",
+    "x-blockhub-key": "hero.s16.flow.2"
+  },
+  "hero_s16_flow_3": ">> CapShip · real dual-end APIs",
+  "@hero_s16_flow_3": {
+    "description": "hero.s16.flow.3",
+    "x-blockhub-key": "hero.s16.flow.3"
+  },
+  "hero_s16_hint": "Education · Tutoring",
+  "@hero_s16_hint": {
+    "description": "hero.s16.hint",
+    "x-blockhub-key": "hero.s16.hint"
+  },
+  "hero_s16_label": "Homework Help",
+  "@hero_s16_label": {
+    "description": "hero.s16.label",
+    "x-blockhub-key": "hero.s16.label"
+  },
+  "hero_s16_prompt": "Homework help with step-by-step explanations.",
+  "@hero_s16_prompt": {
+    "description": "hero.s16.prompt",
+    "x-blockhub-key": "hero.s16.prompt"
+  },
+  "hero_s16_role": "Student",
+  "@hero_s16_role": {
+    "description": "hero.s16.role",
+    "x-blockhub-key": "hero.s16.role"
+  },
+  "hero_s17_flow_0": ">> Class schedule · publish",
+  "@hero_s17_flow_0": {
+    "description": "hero.s17.flow.0",
+    "x-blockhub-key": "hero.s17.flow.0"
+  },
+  "hero_s17_flow_1": ">> Room change · notify",
+  "@hero_s17_flow_1": {
+    "description": "hero.s17.flow.1",
+    "x-blockhub-key": "hero.s17.flow.1"
+  },
+  "hero_s17_flow_2": ">> WeCom/DingTalk/Feishu · remind",
+  "@hero_s17_flow_2": {
+    "description": "hero.s17.flow.2",
+    "x-blockhub-key": "hero.s17.flow.2"
+  },
+  "hero_s17_flow_3": ">> CapShip · real dual-end APIs",
+  "@hero_s17_flow_3": {
+    "description": "hero.s17.flow.3",
+    "x-blockhub-key": "hero.s17.flow.3"
+  },
+  "hero_s17_hint": "Education · Schedule",
+  "@hero_s17_hint": {
+    "description": "hero.s17.hint",
+    "x-blockhub-key": "hero.s17.hint"
+  },
+  "hero_s17_label": "Class Schedule",
+  "@hero_s17_label": {
+    "description": "hero.s17.label",
+    "x-blockhub-key": "hero.s17.label"
+  },
+  "hero_s17_prompt": "Class schedules, room changes, and reminders.",
+  "@hero_s17_prompt": {
+    "description": "hero.s17.prompt",
+    "x-blockhub-key": "hero.s17.prompt"
+  },
+  "hero_s17_role": "Teacher",
+  "@hero_s17_role": {
+    "description": "hero.s17.role",
+    "x-blockhub-key": "hero.s17.role"
+  },
+  "hero_s18_flow_0": ">> Campaign · plan & launch",
+  "@hero_s18_flow_0": {
+    "description": "hero.s18.flow.0",
+    "x-blockhub-key": "hero.s18.flow.0"
+  },
+  "hero_s18_flow_1": ">> Track results · optimize",
+  "@hero_s18_flow_1": {
+    "description": "hero.s18.flow.1",
+    "x-blockhub-key": "hero.s18.flow.1"
+  },
+  "hero_s18_flow_2": ">> WeCom/DingTalk/Feishu · updates",
+  "@hero_s18_flow_2": {
+    "description": "hero.s18.flow.2",
+    "x-blockhub-key": "hero.s18.flow.2"
+  },
+  "hero_s18_flow_3": ">> CapShip · real dual-end APIs",
+  "@hero_s18_flow_3": {
+    "description": "hero.s18.flow.3",
+    "x-blockhub-key": "hero.s18.flow.3"
+  },
+  "hero_s18_hint": "Marketing · Campaigns",
+  "@hero_s18_hint": {
+    "description": "hero.s18.hint",
+    "x-blockhub-key": "hero.s18.hint"
+  },
+  "hero_s18_label": "Campaign Ops",
+  "@hero_s18_label": {
+    "description": "hero.s18.label",
+    "x-blockhub-key": "hero.s18.label"
+  },
+  "hero_s18_prompt": "Campaign planning, execution tracking, and results.",
+  "@hero_s18_prompt": {
+    "description": "hero.s18.prompt",
+    "x-blockhub-key": "hero.s18.prompt"
+  },
+  "hero_s18_role": "Marketer",
+  "@hero_s18_role": {
+    "description": "hero.s18.role",
+    "x-blockhub-key": "hero.s18.role"
+  },
+  "hero_s19_flow_0": ">> Property repair · submit",
+  "@hero_s19_flow_0": {
+    "description": "hero.s19.flow.0",
+    "x-blockhub-key": "hero.s19.flow.0"
+  },
+  "hero_s19_flow_1": ">> Dispatch · track to close",
+  "@hero_s19_flow_1": {
+    "description": "hero.s19.flow.1",
+    "x-blockhub-key": "hero.s19.flow.1"
+  },
+  "hero_s19_flow_2": ">> WeCom/DingTalk/Feishu · status",
+  "@hero_s19_flow_2": {
+    "description": "hero.s19.flow.2",
+    "x-blockhub-key": "hero.s19.flow.2"
+  },
+  "hero_s19_flow_3": ">> CapShip · real dual-end APIs",
+  "@hero_s19_flow_3": {
+    "description": "hero.s19.flow.3",
+    "x-blockhub-key": "hero.s19.flow.3"
+  },
+  "hero_s19_hint": "Property · Maintenance",
+  "@hero_s19_hint": {
+    "description": "hero.s19.hint",
+    "x-blockhub-key": "hero.s19.hint"
+  },
+  "hero_s19_label": "Property Repair",
+  "@hero_s19_label": {
+    "description": "hero.s19.label",
+    "x-blockhub-key": "hero.s19.label"
+  },
+  "hero_s19_prompt": "Property repair tickets from report to close.",
+  "@hero_s19_prompt": {
+    "description": "hero.s19.prompt",
+    "x-blockhub-key": "hero.s19.prompt"
+  },
+  "hero_s19_role": "Property",
+  "@hero_s19_role": {
+    "description": "hero.s19.role",
+    "x-blockhub-key": "hero.s19.role"
+  },
+  "hero_s20_flow_0": ">> Viewing · book a slot",
+  "@hero_s20_flow_0": {
+    "description": "hero.s20.flow.0",
+    "x-blockhub-key": "hero.s20.flow.0"
+  },
+  "hero_s20_flow_1": ">> Feedback · follow-up",
+  "@hero_s20_flow_1": {
+    "description": "hero.s20.flow.1",
+    "x-blockhub-key": "hero.s20.flow.1"
+  },
+  "hero_s20_flow_2": ">> WeCom/DingTalk/Feishu · remind",
+  "@hero_s20_flow_2": {
+    "description": "hero.s20.flow.2",
+    "x-blockhub-key": "hero.s20.flow.2"
+  },
+  "hero_s20_flow_3": ">> CapShip · real dual-end APIs",
+  "@hero_s20_flow_3": {
+    "description": "hero.s20.flow.3",
+    "x-blockhub-key": "hero.s20.flow.3"
+  },
+  "hero_s20_hint": "Real estate · Viewing",
+  "@hero_s20_hint": {
+    "description": "hero.s20.hint",
+    "x-blockhub-key": "hero.s20.hint"
+  },
+  "hero_s20_label": "House Viewing",
+  "@hero_s20_label": {
+    "description": "hero.s20.label",
+    "x-blockhub-key": "hero.s20.label"
+  },
+  "hero_s20_prompt": "House viewing bookings and feedback capture.",
+  "@hero_s20_prompt": {
+    "description": "hero.s20.prompt",
+    "x-blockhub-key": "hero.s20.prompt"
+  },
+  "hero_s20_role": "Agent",
+  "@hero_s20_role": {
+    "description": "hero.s20.role",
+    "x-blockhub-key": "hero.s20.role"
+  },
+  "hero_s21_flow_0": ">> Hotel booking · reserve",
+  "@hero_s21_flow_0": {
+    "description": "hero.s21.flow.0",
+    "x-blockhub-key": "hero.s21.flow.0"
+  },
+  "hero_s21_flow_1": ">> Room status · guest requests",
+  "@hero_s21_flow_1": {
+    "description": "hero.s21.flow.1",
+    "x-blockhub-key": "hero.s21.flow.1"
+  },
+  "hero_s21_flow_2": ">> WeCom/DingTalk/Feishu · notify",
+  "@hero_s21_flow_2": {
+    "description": "hero.s21.flow.2",
+    "x-blockhub-key": "hero.s21.flow.2"
+  },
+  "hero_s21_flow_3": ">> CapShip · real dual-end APIs",
+  "@hero_s21_flow_3": {
+    "description": "hero.s21.flow.3",
+    "x-blockhub-key": "hero.s21.flow.3"
+  },
+  "hero_s21_hint": "Hospitality · Booking",
+  "@hero_s21_hint": {
+    "description": "hero.s21.hint",
+    "x-blockhub-key": "hero.s21.hint"
+  },
+  "hero_s21_label": "Hotel Booking",
+  "@hero_s21_label": {
+    "description": "hero.s21.label",
+    "x-blockhub-key": "hero.s21.label"
+  },
+  "hero_s21_prompt": "Hotel booking, room status, and guest requests.",
+  "@hero_s21_prompt": {
+    "description": "hero.s21.prompt",
+    "x-blockhub-key": "hero.s21.prompt"
+  },
+  "hero_s21_role": "Hotel",
+  "@hero_s21_role": {
+    "description": "hero.s21.role",
+    "x-blockhub-key": "hero.s21.role"
+  },
+  "hero_s22_flow_0": ">> Delivery · place order",
+  "@hero_s22_flow_0": {
+    "description": "hero.s22.flow.0",
+    "x-blockhub-key": "hero.s22.flow.0"
+  },
+  "hero_s22_flow_1": ">> Track status · complete",
+  "@hero_s22_flow_1": {
+    "description": "hero.s22.flow.1",
+    "x-blockhub-key": "hero.s22.flow.1"
+  },
+  "hero_s22_flow_2": ">> WeCom/DingTalk/Feishu · updates",
+  "@hero_s22_flow_2": {
+    "description": "hero.s22.flow.2",
+    "x-blockhub-key": "hero.s22.flow.2"
+  },
+  "hero_s22_flow_3": ">> CapShip · real dual-end APIs",
+  "@hero_s22_flow_3": {
+    "description": "hero.s22.flow.3",
+    "x-blockhub-key": "hero.s22.flow.3"
+  },
+  "hero_s22_hint": "Logistics · Delivery",
+  "@hero_s22_hint": {
+    "description": "hero.s22.hint",
+    "x-blockhub-key": "hero.s22.hint"
+  },
+  "hero_s22_label": "Delivery Ride",
+  "@hero_s22_label": {
+    "description": "hero.s22.label",
+    "x-blockhub-key": "hero.s22.label"
+  },
+  "hero_s22_prompt": "Delivery / ride orders with status tracking.",
+  "@hero_s22_prompt": {
+    "description": "hero.s22.prompt",
+    "x-blockhub-key": "hero.s22.prompt"
+  },
+  "hero_s22_role": "Ops",
+  "@hero_s22_role": {
+    "description": "hero.s22.role",
+    "x-blockhub-key": "hero.s22.role"
+  },
+  "hero_s23_flow_0": ">> Fitness · check in",
+  "@hero_s23_flow_0": {
+    "description": "hero.s23.flow.0",
+    "x-blockhub-key": "hero.s23.flow.0"
+  },
+  "hero_s23_flow_1": ">> Class booking · streaks",
+  "@hero_s23_flow_1": {
+    "description": "hero.s23.flow.1",
+    "x-blockhub-key": "hero.s23.flow.1"
+  },
+  "hero_s23_flow_2": ">> WeCom/DingTalk/Feishu · remind",
+  "@hero_s23_flow_2": {
+    "description": "hero.s23.flow.2",
+    "x-blockhub-key": "hero.s23.flow.2"
+  },
+  "hero_s23_flow_3": ">> CapShip · real dual-end APIs",
+  "@hero_s23_flow_3": {
+    "description": "hero.s23.flow.3",
+    "x-blockhub-key": "hero.s23.flow.3"
+  },
+  "hero_s23_hint": "Fitness · Check-in",
+  "@hero_s23_hint": {
+    "description": "hero.s23.hint",
+    "x-blockhub-key": "hero.s23.hint"
+  },
+  "hero_s23_label": "Fitness Check-in",
+  "@hero_s23_label": {
+    "description": "hero.s23.label",
+    "x-blockhub-key": "hero.s23.label"
+  },
+  "hero_s23_prompt": "Gym check-in, class booking, and streak tracking.",
+  "@hero_s23_prompt": {
+    "description": "hero.s23.prompt",
+    "x-blockhub-key": "hero.s23.prompt"
+  },
+  "hero_s23_role": "Member",
+  "@hero_s23_role": {
+    "description": "hero.s23.role",
+    "x-blockhub-key": "hero.s23.role"
+  },
+  "hero_s24_flow_0": ">> Travel plan · build itinerary",
+  "@hero_s24_flow_0": {
+    "description": "hero.s24.flow.0",
+    "x-blockhub-key": "hero.s24.flow.0"
+  },
+  "hero_s24_flow_1": ">> Bookings · day-of guide",
+  "@hero_s24_flow_1": {
+    "description": "hero.s24.flow.1",
+    "x-blockhub-key": "hero.s24.flow.1"
+  },
+  "hero_s24_flow_2": ">> WeCom/DingTalk/Feishu · share",
+  "@hero_s24_flow_2": {
+    "description": "hero.s24.flow.2",
+    "x-blockhub-key": "hero.s24.flow.2"
+  },
+  "hero_s24_flow_3": ">> CapShip · real dual-end APIs",
+  "@hero_s24_flow_3": {
+    "description": "hero.s24.flow.3",
+    "x-blockhub-key": "hero.s24.flow.3"
+  },
+  "hero_s24_hint": "Travel · Playbook",
+  "@hero_s24_hint": {
+    "description": "hero.s24.hint",
+    "x-blockhub-key": "hero.s24.hint"
+  },
+  "hero_s24_label": "Travel Playbook",
+  "@hero_s24_label": {
+    "description": "hero.s24.label",
+    "x-blockhub-key": "hero.s24.label"
+  },
+  "hero_s24_prompt": "Travel itineraries, bookings, and day-of playbooks.",
+  "@hero_s24_prompt": {
+    "description": "hero.s24.prompt",
+    "x-blockhub-key": "hero.s24.prompt"
+  },
+  "hero_s24_role": "Traveler",
+  "@hero_s24_role": {
+    "description": "hero.s24.role",
+    "x-blockhub-key": "hero.s24.role"
+  },
+  "hero_s25_flow_0": ">> Wedding · task board",
+  "@hero_s25_flow_0": {
+    "description": "hero.s25.flow.0",
+    "x-blockhub-key": "hero.s25.flow.0"
+  },
+  "hero_s25_flow_1": ">> Vendors · timeline",
+  "@hero_s25_flow_1": {
+    "description": "hero.s25.flow.1",
+    "x-blockhub-key": "hero.s25.flow.1"
+  },
+  "hero_s25_flow_2": ">> WeCom/DingTalk/Feishu · updates",
+  "@hero_s25_flow_2": {
+    "description": "hero.s25.flow.2",
+    "x-blockhub-key": "hero.s25.flow.2"
+  },
+  "hero_s25_flow_3": ">> CapShip · real dual-end APIs",
+  "@hero_s25_flow_3": {
+    "description": "hero.s25.flow.3",
+    "x-blockhub-key": "hero.s25.flow.3"
+  },
+  "hero_s25_hint": "Events · Wedding",
+  "@hero_s25_hint": {
+    "description": "hero.s25.hint",
+    "x-blockhub-key": "hero.s25.hint"
+  },
+  "hero_s25_label": "Wedding Planner",
+  "@hero_s25_label": {
+    "description": "hero.s25.label",
+    "x-blockhub-key": "hero.s25.label"
+  },
+  "hero_s25_prompt": "Wedding planning tasks, vendors, and timelines.",
+  "@hero_s25_prompt": {
+    "description": "hero.s25.prompt",
+    "x-blockhub-key": "hero.s25.prompt"
+  },
+  "hero_s25_role": "Planner",
+  "@hero_s25_role": {
+    "description": "hero.s25.role",
+    "x-blockhub-key": "hero.s25.role"
+  },
+  "hero_s26_flow_0": ">> Renovation · materials",
+  "@hero_s26_flow_0": {
+    "description": "hero.s26.flow.0",
+    "x-blockhub-key": "hero.s26.flow.0"
+  },
+  "hero_s26_flow_1": ">> Progress · acceptance",
+  "@hero_s26_flow_1": {
+    "description": "hero.s26.flow.1",
+    "x-blockhub-key": "hero.s26.flow.1"
+  },
+  "hero_s26_flow_2": ">> WeCom/DingTalk/Feishu · updates",
+  "@hero_s26_flow_2": {
+    "description": "hero.s26.flow.2",
+    "x-blockhub-key": "hero.s26.flow.2"
+  },
+  "hero_s26_flow_3": ">> CapShip · real dual-end APIs",
+  "@hero_s26_flow_3": {
+    "description": "hero.s26.flow.3",
+    "x-blockhub-key": "hero.s26.flow.3"
+  },
+  "hero_s26_hint": "Home · Renovation",
+  "@hero_s26_hint": {
+    "description": "hero.s26.hint",
+    "x-blockhub-key": "hero.s26.hint"
+  },
+  "hero_s26_label": "Home Renovation",
+  "@hero_s26_label": {
+    "description": "hero.s26.label",
+    "x-blockhub-key": "hero.s26.label"
+  },
+  "hero_s26_prompt": "Renovation materials, progress, and acceptance.",
+  "@hero_s26_prompt": {
+    "description": "hero.s26.prompt",
+    "x-blockhub-key": "hero.s26.prompt"
+  },
+  "hero_s26_role": "Owner",
+  "@hero_s26_role": {
+    "description": "hero.s26.role",
+    "x-blockhub-key": "hero.s26.role"
+  },
+  "hero_s27_flow_0": ">> Pet clinic · book visit",
+  "@hero_s27_flow_0": {
+    "description": "hero.s27.flow.0",
+    "x-blockhub-key": "hero.s27.flow.0"
+  },
+  "hero_s27_flow_1": ">> Records · follow-up",
+  "@hero_s27_flow_1": {
+    "description": "hero.s27.flow.1",
+    "x-blockhub-key": "hero.s27.flow.1"
+  },
+  "hero_s27_flow_2": ">> WeCom/DingTalk/Feishu · remind",
+  "@hero_s27_flow_2": {
+    "description": "hero.s27.flow.2",
+    "x-blockhub-key": "hero.s27.flow.2"
+  },
+  "hero_s27_flow_3": ">> CapShip · real dual-end APIs",
+  "@hero_s27_flow_3": {
+    "description": "hero.s27.flow.3",
+    "x-blockhub-key": "hero.s27.flow.3"
+  },
+  "hero_s27_hint": "Pets · Clinic",
+  "@hero_s27_hint": {
+    "description": "hero.s27.hint",
+    "x-blockhub-key": "hero.s27.hint"
+  },
+  "hero_s27_label": "Pet Clinic",
+  "@hero_s27_label": {
+    "description": "hero.s27.label",
+    "x-blockhub-key": "hero.s27.label"
+  },
+  "hero_s27_prompt": "Pet clinic appointments, records, and reminders.",
+  "@hero_s27_prompt": {
+    "description": "hero.s27.prompt",
+    "x-blockhub-key": "hero.s27.prompt"
+  },
+  "hero_s27_role": "Clinic",
+  "@hero_s27_role": {
+    "description": "hero.s27.role",
+    "x-blockhub-key": "hero.s27.role"
+  },
+  "hero_s28_flow_0": ">> Site patrol · start route",
+  "@hero_s28_flow_0": {
+    "description": "hero.s28.flow.0",
+    "x-blockhub-key": "hero.s28.flow.0"
+  },
+  "hero_s28_flow_1": ">> Checkpoints · incidents",
+  "@hero_s28_flow_1": {
+    "description": "hero.s28.flow.1",
+    "x-blockhub-key": "hero.s28.flow.1"
+  },
+  "hero_s28_flow_2": ">> WeCom/DingTalk/Feishu · alert",
+  "@hero_s28_flow_2": {
+    "description": "hero.s28.flow.2",
+    "x-blockhub-key": "hero.s28.flow.2"
+  },
+  "hero_s28_flow_3": ">> CapShip · real dual-end APIs",
+  "@hero_s28_flow_3": {
+    "description": "hero.s28.flow.3",
+    "x-blockhub-key": "hero.s28.flow.3"
+  },
+  "hero_s28_hint": "Security · Patrol",
+  "@hero_s28_hint": {
+    "description": "hero.s28.hint",
+    "x-blockhub-key": "hero.s28.hint"
+  },
+  "hero_s28_label": "Site Patrol",
+  "@hero_s28_label": {
+    "description": "hero.s28.label",
+    "x-blockhub-key": "hero.s28.label"
+  },
+  "hero_s28_prompt": "Site patrol routes, checkpoints, and incident reports.",
+  "@hero_s28_prompt": {
+    "description": "hero.s28.prompt",
+    "x-blockhub-key": "hero.s28.prompt"
+  },
+  "hero_s28_role": "Security",
+  "@hero_s28_role": {
+    "description": "hero.s28.role",
+    "x-blockhub-key": "hero.s28.role"
+  },
+  "hero_s29_flow_0": ">> Gov service · submit request",
+  "@hero_s29_flow_0": {
+    "description": "hero.s29.flow.0",
+    "x-blockhub-key": "hero.s29.flow.0"
+  },
+  "hero_s29_flow_1": ">> Track progress · close",
+  "@hero_s29_flow_1": {
+    "description": "hero.s29.flow.1",
+    "x-blockhub-key": "hero.s29.flow.1"
+  },
+  "hero_s29_flow_2": ">> WeCom/DingTalk/Feishu · notify",
+  "@hero_s29_flow_2": {
+    "description": "hero.s29.flow.2",
+    "x-blockhub-key": "hero.s29.flow.2"
+  },
+  "hero_s29_flow_3": ">> CapShip · real dual-end APIs",
+  "@hero_s29_flow_3": {
+    "description": "hero.s29.flow.3",
+    "x-blockhub-key": "hero.s29.flow.3"
+  },
+  "hero_s29_hint": "Gov · Services",
+  "@hero_s29_hint": {
+    "description": "hero.s29.hint",
+    "x-blockhub-key": "hero.s29.hint"
+  },
+  "hero_s29_label": "Gov Services",
+  "@hero_s29_label": {
+    "description": "hero.s29.label",
+    "x-blockhub-key": "hero.s29.label"
+  },
+  "hero_s29_prompt": "Government service intake, tracking, and notifications.",
+  "@hero_s29_prompt": {
+    "description": "hero.s29.prompt",
+    "x-blockhub-key": "hero.s29.prompt"
+  },
+  "hero_s29_role": "Citizen",
+  "@hero_s29_role": {
+    "description": "hero.s29.role",
+    "x-blockhub-key": "hero.s29.role"
+  },
+  "hero_s30_flow_0": ">> Legal contract · intake",
+  "@hero_s30_flow_0": {
+    "description": "hero.s30.flow.0",
+    "x-blockhub-key": "hero.s30.flow.0"
+  },
+  "hero_s30_flow_1": ">> Review · file",
+  "@hero_s30_flow_1": {
+    "description": "hero.s30.flow.1",
+    "x-blockhub-key": "hero.s30.flow.1"
+  },
+  "hero_s30_flow_2": ">> WeCom/DingTalk/Feishu · notify",
+  "@hero_s30_flow_2": {
+    "description": "hero.s30.flow.2",
+    "x-blockhub-key": "hero.s30.flow.2"
+  },
+  "hero_s30_flow_3": ">> CapShip · real dual-end APIs",
+  "@hero_s30_flow_3": {
+    "description": "hero.s30.flow.3",
+    "x-blockhub-key": "hero.s30.flow.3"
+  },
+  "hero_s30_hint": "Legal · Contracts",
+  "@hero_s30_hint": {
+    "description": "hero.s30.hint",
+    "x-blockhub-key": "hero.s30.hint"
+  },
+  "hero_s30_label": "Legal Contract",
+  "@hero_s30_label": {
+    "description": "hero.s30.label",
+    "x-blockhub-key": "hero.s30.label"
+  },
+  "hero_s30_prompt": "Legal contract drafting, review, and filing.",
+  "@hero_s30_prompt": {
+    "description": "hero.s30.prompt",
+    "x-blockhub-key": "hero.s30.prompt"
+  },
+  "hero_s30_role": "Legal",
+  "@hero_s30_role": {
+    "description": "hero.s30.role",
+    "x-blockhub-key": "hero.s30.role"
+  },
+  "hero_s31_flow_0": ">> Shanghai voice · realtime",
+  "@hero_s31_flow_0": {
+    "description": "hero.s31.flow.0",
+    "x-blockhub-key": "hero.s31.flow.0"
+  },
+  "hero_s31_flow_1": ">> Streaming ASR · dialect",
+  "@hero_s31_flow_1": {
+    "description": "hero.s31.flow.1",
+    "x-blockhub-key": "hero.s31.flow.1"
+  },
+  "hero_s31_flow_2": ">> Smart reply · voice out",
+  "@hero_s31_flow_2": {
+    "description": "hero.s31.flow.2",
+    "x-blockhub-key": "hero.s31.flow.2"
+  },
+  "hero_s31_flow_3": ">> CapShip · real dual-end APIs",
+  "@hero_s31_flow_3": {
+    "description": "hero.s31.flow.3",
+    "x-blockhub-key": "hero.s31.flow.3"
+  },
+  "hero_s31_hint": "Dialect · Realtime",
+  "@hero_s31_hint": {
+    "description": "hero.s31.hint",
+    "x-blockhub-key": "hero.s31.hint"
+  },
+  "hero_s31_label": "Shanghai Voice (Realtime)",
+  "@hero_s31_label": {
+    "description": "hero.s31.label",
+    "x-blockhub-key": "hero.s31.label"
+  },
+  "hero_s31_prompt": "Realtime Shanghai dialect voice agent with streaming ASR/TTS.",
+  "@hero_s31_prompt": {
+    "description": "hero.s31.prompt",
+    "x-blockhub-key": "hero.s31.prompt"
+  },
+  "hero_s31_role": "Shanghai speaker",
+  "@hero_s31_role": {
+    "description": "hero.s31.role",
+    "x-blockhub-key": "hero.s31.role"
+  },
+  "hero_s32_flow_0": ">> Study coach · set goals",
+  "@hero_s32_flow_0": {
+    "description": "hero.s32.flow.0",
+    "x-blockhub-key": "hero.s32.flow.0"
+  },
+  "hero_s32_flow_1": ">> Quizzes · track progress",
+  "@hero_s32_flow_1": {
+    "description": "hero.s32.flow.1",
+    "x-blockhub-key": "hero.s32.flow.1"
+  },
+  "hero_s32_flow_2": ">> WeCom/DingTalk/Feishu · remind",
+  "@hero_s32_flow_2": {
+    "description": "hero.s32.flow.2",
+    "x-blockhub-key": "hero.s32.flow.2"
+  },
+  "hero_s32_flow_3": ">> CapShip · real dual-end APIs",
+  "@hero_s32_flow_3": {
+    "description": "hero.s32.flow.3",
+    "x-blockhub-key": "hero.s32.flow.3"
+  },
+  "hero_s32_hint": "Learning · Coach",
+  "@hero_s32_hint": {
+    "description": "hero.s32.hint",
+    "x-blockhub-key": "hero.s32.hint"
+  },
+  "hero_s32_label": "Study Coach",
+  "@hero_s32_label": {
+    "description": "hero.s32.label",
+    "x-blockhub-key": "hero.s32.label"
+  },
+  "hero_s32_prompt": "Study coach with plans, quizzes, and progress.",
+  "@hero_s32_prompt": {
+    "description": "hero.s32.prompt",
+    "x-blockhub-key": "hero.s32.prompt"
+  },
+  "hero_s32_role": "Student",
+  "@hero_s32_role": {
+    "description": "hero.s32.role",
+    "x-blockhub-key": "hero.s32.role"
+  },
+  "hero_s33_flow_0": ">> Parent coach · guidance",
+  "@hero_s33_flow_0": {
+    "description": "hero.s33.flow.0",
+    "x-blockhub-key": "hero.s33.flow.0"
+  },
+  "hero_s33_flow_1": ">> Align with study plan",
+  "@hero_s33_flow_1": {
+    "description": "hero.s33.flow.1",
+    "x-blockhub-key": "hero.s33.flow.1"
+  },
+  "hero_s33_flow_2": ">> WeCom/DingTalk/Feishu · share",
+  "@hero_s33_flow_2": {
+    "description": "hero.s33.flow.2",
+    "x-blockhub-key": "hero.s33.flow.2"
+  },
+  "hero_s33_flow_3": ">> CapShip · real dual-end APIs",
+  "@hero_s33_flow_3": {
+    "description": "hero.s33.flow.3",
+    "x-blockhub-key": "hero.s33.flow.3"
+  },
+  "hero_s33_hint": "Parent · Coach",
+  "@hero_s33_hint": {
+    "description": "hero.s33.hint",
+    "x-blockhub-key": "hero.s33.hint"
+  },
+  "hero_s33_label": "Parent Coach",
+  "@hero_s33_label": {
+    "description": "hero.s33.label",
+    "x-blockhub-key": "hero.s33.label"
+  },
+  "hero_s33_prompt": "Parent coaching tips aligned with student progress.",
+  "@hero_s33_prompt": {
+    "description": "hero.s33.prompt",
+    "x-blockhub-key": "hero.s33.prompt"
+  },
+  "hero_s33_role": "Parent",
+  "@hero_s33_role": {
+    "description": "hero.s33.role",
+    "x-blockhub-key": "hero.s33.role"
+  },
+  "hero_s34_flow_0": ">> Teacher plan · prepare class",
+  "@hero_s34_flow_0": {
+    "description": "hero.s34.flow.0",
+    "x-blockhub-key": "hero.s34.flow.0"
+  },
+  "hero_s34_flow_1": ">> Materials · publish",
+  "@hero_s34_flow_1": {
+    "description": "hero.s34.flow.1",
+    "x-blockhub-key": "hero.s34.flow.1"
+  },
+  "hero_s34_flow_2": ">> WeCom/DingTalk/Feishu · notify",
+  "@hero_s34_flow_2": {
+    "description": "hero.s34.flow.2",
+    "x-blockhub-key": "hero.s34.flow.2"
+  },
+  "hero_s34_flow_3": ">> CapShip · real dual-end APIs",
+  "@hero_s34_flow_3": {
+    "description": "hero.s34.flow.3",
+    "x-blockhub-key": "hero.s34.flow.3"
+  },
+  "hero_s34_hint": "Teacher · Planning",
+  "@hero_s34_hint": {
+    "description": "hero.s34.hint",
+    "x-blockhub-key": "hero.s34.hint"
+  },
+  "hero_s34_label": "Teacher Plan",
+  "@hero_s34_label": {
+    "description": "hero.s34.label",
+    "x-blockhub-key": "hero.s34.label"
+  },
+  "hero_s34_prompt": "Teacher lesson plans, materials, and class prep.",
+  "@hero_s34_prompt": {
+    "description": "hero.s34.prompt",
+    "x-blockhub-key": "hero.s34.prompt"
+  },
+  "hero_s34_role": "Teacher",
+  "@hero_s34_role": {
+    "description": "hero.s34.role",
+    "x-blockhub-key": "hero.s34.role"
+  },
+  "hero_s35_flow_0": ">> Bank KYC · verify customer",
+  "@hero_s35_flow_0": {
+    "description": "hero.s35.flow.0",
+    "x-blockhub-key": "hero.s35.flow.0"
+  },
+  "hero_s35_flow_1": ">> Soft steps · persist to DB",
+  "@hero_s35_flow_1": {
+    "description": "hero.s35.flow.1",
+    "x-blockhub-key": "hero.s35.flow.1"
+  },
+  "hero_s35_flow_2": ">> WeCom/DingTalk/Feishu · onboarding",
+  "@hero_s35_flow_2": {
+    "description": "hero.s35.flow.2",
+    "x-blockhub-key": "hero.s35.flow.2"
+  },
+  "hero_s35_flow_3": ">> CapShip · real dual-end APIs",
+  "@hero_s35_flow_3": {
+    "description": "hero.s35.flow.3",
+    "x-blockhub-key": "hero.s35.flow.3"
+  },
+  "hero_s35_hint": "Banking · Onboarding",
+  "@hero_s35_hint": {
+    "description": "hero.s35.hint",
+    "x-blockhub-key": "hero.s35.hint"
+  },
+  "hero_s35_label": "Bank KYC",
+  "@hero_s35_label": {
+    "description": "hero.s35.label",
+    "x-blockhub-key": "hero.s35.label"
+  },
+  "hero_s35_prompt": "Corporate/retail account KYC with real work orders.",
+  "@hero_s35_prompt": {
+    "description": "hero.s35.prompt",
+    "x-blockhub-key": "hero.s35.prompt"
+  },
+  "hero_s35_role": "Bank",
+  "@hero_s35_role": {
+    "description": "hero.s35.role",
+    "x-blockhub-key": "hero.s35.role"
+  },
+  "hero_s36_flow_0": ">> AML · register alert",
+  "@hero_s36_flow_0": {
+    "description": "hero.s36.flow.0",
+    "x-blockhub-key": "hero.s36.flow.0"
+  },
+  "hero_s36_flow_1": ">> Soft steps · case archive",
+  "@hero_s36_flow_1": {
+    "description": "hero.s36.flow.1",
+    "x-blockhub-key": "hero.s36.flow.1"
+  },
+  "hero_s36_flow_2": ">> WeCom/DingTalk/Feishu · compliance",
+  "@hero_s36_flow_2": {
+    "description": "hero.s36.flow.2",
+    "x-blockhub-key": "hero.s36.flow.2"
+  },
+  "hero_s36_flow_3": ">> CapShip · real dual-end APIs",
+  "@hero_s36_flow_3": {
+    "description": "hero.s36.flow.3",
+    "x-blockhub-key": "hero.s36.flow.3"
+  },
+  "hero_s36_hint": "Banking · Compliance",
+  "@hero_s36_hint": {
+    "description": "hero.s36.hint",
+    "x-blockhub-key": "hero.s36.hint"
+  },
+  "hero_s36_label": "AML Monitoring",
+  "@hero_s36_label": {
+    "description": "hero.s36.label",
+    "x-blockhub-key": "hero.s36.label"
+  },
+  "hero_s36_prompt": "Suspicious transaction detection with real AML tickets.",
+  "@hero_s36_prompt": {
+    "description": "hero.s36.prompt",
+    "x-blockhub-key": "hero.s36.prompt"
+  },
+  "hero_s36_role": "Compliance",
+  "@hero_s36_role": {
+    "description": "hero.s36.role",
+    "x-blockhub-key": "hero.s36.role"
+  },
+  "hero_s37_flow_0": ">> Credit · limit & collateral",
+  "@hero_s37_flow_0": {
+    "description": "hero.s37.flow.0",
+    "x-blockhub-key": "hero.s37.flow.0"
+  },
+  "hero_s37_flow_1": ">> Soft steps · close in DB",
+  "@hero_s37_flow_1": {
+    "description": "hero.s37.flow.1",
+    "x-blockhub-key": "hero.s37.flow.1"
+  },
+  "hero_s37_flow_2": ">> WeCom/DingTalk/Feishu · notify",
+  "@hero_s37_flow_2": {
+    "description": "hero.s37.flow.2",
+    "x-blockhub-key": "hero.s37.flow.2"
+  },
+  "hero_s37_flow_3": ">> CapShip · real dual-end APIs",
+  "@hero_s37_flow_3": {
+    "description": "hero.s37.flow.3",
+    "x-blockhub-key": "hero.s37.flow.3"
+  },
+  "hero_s37_hint": "Banking · Credit",
+  "@hero_s37_hint": {
+    "description": "hero.s37.hint",
+    "x-blockhub-key": "hero.s37.hint"
+  },
+  "hero_s37_label": "Credit Approval",
+  "@hero_s37_label": {
+    "description": "hero.s37.label",
+    "x-blockhub-key": "hero.s37.label"
+  },
+  "hero_s37_prompt": "Credit limit / collateral approval and post-loan checks.",
+  "@hero_s37_prompt": {
+    "description": "hero.s37.prompt",
+    "x-blockhub-key": "hero.s37.prompt"
+  },
+  "hero_s37_role": "Credit",
+  "@hero_s37_role": {
+    "description": "hero.s37.role",
+    "x-blockhub-key": "hero.s37.role"
+  },
+  "hero_s38_flow_0": ">> UW & claims · policy/customer",
+  "@hero_s38_flow_0": {
+    "description": "hero.s38.flow.0",
+    "x-blockhub-key": "hero.s38.flow.0"
+  },
+  "hero_s38_flow_1": ">> Soft steps · close in DB",
+  "@hero_s38_flow_1": {
+    "description": "hero.s38.flow.1",
+    "x-blockhub-key": "hero.s38.flow.1"
+  },
+  "hero_s38_flow_2": ">> WeCom/DingTalk/Feishu · case notify",
+  "@hero_s38_flow_2": {
+    "description": "hero.s38.flow.2",
+    "x-blockhub-key": "hero.s38.flow.2"
+  },
+  "hero_s38_flow_3": ">> CapShip · real dual-end APIs",
+  "@hero_s38_flow_3": {
+    "description": "hero.s38.flow.3",
+    "x-blockhub-key": "hero.s38.flow.3"
+  },
+  "hero_s38_hint": "Insurance · Underwriting",
+  "@hero_s38_hint": {
+    "description": "hero.s38.hint",
+    "x-blockhub-key": "hero.s38.hint"
+  },
+  "hero_s38_label": "Insurance UW & Claims",
+  "@hero_s38_label": {
+    "description": "hero.s38.label",
+    "x-blockhub-key": "hero.s38.label"
+  },
+  "hero_s38_prompt": "Underwriting assessment and claims intake with real tickets.",
+  "@hero_s38_prompt": {
+    "description": "hero.s38.prompt",
+    "x-blockhub-key": "hero.s38.prompt"
+  },
+  "hero_s38_role": "Insurance",
+  "@hero_s38_role": {
+    "description": "hero.s38.role",
+    "x-blockhub-key": "hero.s38.role"
+  },
+  "hero_s39_flow_0": ">> Regulatory · report cycle",
+  "@hero_s39_flow_0": {
+    "description": "hero.s39.flow.0",
+    "x-blockhub-key": "hero.s39.flow.0"
+  },
+  "hero_s39_flow_1": ">> Soft steps · mark filed",
+  "@hero_s39_flow_1": {
+    "description": "hero.s39.flow.1",
+    "x-blockhub-key": "hero.s39.flow.1"
+  },
+  "hero_s39_flow_2": ">> WeCom/DingTalk/Feishu · deadline",
+  "@hero_s39_flow_2": {
+    "description": "hero.s39.flow.2",
+    "x-blockhub-key": "hero.s39.flow.2"
+  },
+  "hero_s39_flow_3": ">> CapShip · real dual-end APIs",
+  "@hero_s39_flow_3": {
+    "description": "hero.s39.flow.3",
+    "x-blockhub-key": "hero.s39.flow.3"
+  },
+  "hero_s39_hint": "Asset mgmt · Compliance",
+  "@hero_s39_hint": {
+    "description": "hero.s39.hint",
+    "x-blockhub-key": "hero.s39.hint"
+  },
+  "hero_s39_label": "Regulatory Reporting",
+  "@hero_s39_label": {
+    "description": "hero.s39.label",
+    "x-blockhub-key": "hero.s39.label"
+  },
+  "hero_s39_prompt": "Regulatory report filing tasks from intake to done.",
+  "@hero_s39_prompt": {
+    "description": "hero.s39.prompt",
+    "x-blockhub-key": "hero.s39.prompt"
+  },
+  "hero_s39_role": "Asset mgmt",
+  "@hero_s39_role": {
+    "description": "hero.s39.role",
+    "x-blockhub-key": "hero.s39.role"
+  },
+  "hero_s40_flow_0": ">> Industry news · digests",
+  "@hero_s40_flow_0": {
+    "description": "hero.s40.flow.0",
+    "x-blockhub-key": "hero.s40.flow.0"
+  },
+  "hero_s40_flow_1": ">> Demo samples · source=demo",
+  "@hero_s40_flow_1": {
+    "description": "hero.s40.flow.1",
+    "x-blockhub-key": "hero.s40.flow.1"
+  },
+  "hero_s40_flow_2": ">> Token · sync live sources",
+  "@hero_s40_flow_2": {
+    "description": "hero.s40.flow.2",
+    "x-blockhub-key": "hero.s40.flow.2"
+  },
+  "hero_s40_flow_3": ">> CapShip · real dual-end APIs",
+  "@hero_s40_flow_3": {
+    "description": "hero.s40.flow.3",
+    "x-blockhub-key": "hero.s40.flow.3"
+  },
+  "hero_s40_hint": "Finance · Intelligence",
+  "@hero_s40_hint": {
+    "description": "hero.s40.hint",
+    "x-blockhub-key": "hero.s40.hint"
+  },
+  "hero_s40_label": "Industry News",
+  "@hero_s40_label": {
+    "description": "hero.s40.label",
+    "x-blockhub-key": "hero.s40.label"
+  },
+  "hero_s40_prompt": "Macro/micro must-read digests and discussion streams; demo or live sources.",
+  "@hero_s40_prompt": {
+    "description": "hero.s40.prompt",
+    "x-blockhub-key": "hero.s40.prompt"
+  },
+  "hero_s40_role": "Research",
+  "@hero_s40_role": {
+    "description": "hero.s40.role",
+    "x-blockhub-key": "hero.s40.role"
+  }
+}

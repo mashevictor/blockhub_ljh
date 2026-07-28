@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react'
+import { useTf } from '@blockhub/i18n/react'
 import { buildDanmakuLayout, presetRole, type RolePreset } from '../data/rolePresets'
 import {
   getInstantHeroPresets,
@@ -16,6 +17,7 @@ interface Props {
 }
 
 export default function HeroDanmakuCloud({ onRoleApply, integrated }: Props) {
+  const tf = useTf()
   const [presets, setPresets] = useState<RolePreset[]>(getInstantHeroPresets)
   const [syncing, setSyncing] = useState(false)
   const [syncError, setSyncError] = useState<string | null>(null)
@@ -119,6 +121,7 @@ export default function HeroDanmakuCloud({ onRoleApply, integrated }: Props) {
           ))}
           {items.map(({ preset, track, delay, duration, direction, startLeft }, index) => {
             const role = presetRole(preset)
+            const label = tf(`hero.${preset.id}.label`, preset.label)
             const hot = index % 4 === 0
             return (
               <button
@@ -137,12 +140,12 @@ export default function HeroDanmakuCloud({ onRoleApply, integrated }: Props) {
                   setPaused(true)
                   setActive(preset)
                 }}
-                title={`${role} · ${preset.label}`}
+                title={`${role} · ${label}`}
               >
                 <span className="hero-danmaku-role">{role}</span>
                 <span className="hero-danmaku-sep" aria-hidden>×</span>
                 <span className="hero-danmaku-prefix">&gt;&gt;</span>
-                <span className="hero-danmaku-label">{preset.label}</span>
+                <span className="hero-danmaku-label">{label}</span>
               </button>
             )
           })}

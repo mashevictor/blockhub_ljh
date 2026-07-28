@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useI18nOptional } from '@blockhub/i18n/react'
 
 export type GtgtStep = {
   key: string
@@ -38,6 +39,7 @@ type Props = {
  * 预约演示同款：单字段 >> 前缀 + Enter 确认推进，最后一步提交。
  * 视觉类名对齐 home BookingFloatingAgent（bh-gtgt / booking-float 双类）。
  * Runtime 默认 Soft 壳。
+ * submit / confirm / skip / back 优先走 I18nProvider 的 common.*（无 Provider 时回退中文）。
  */
 export function GtgtStepComposer({
   title,
@@ -48,12 +50,20 @@ export function GtgtStepComposer({
   onChange,
   onComplete,
   busy = false,
-  submitLabel = '提交',
+  submitLabel,
   flowHint,
   resetKey,
   variant = 'soft',
   children,
 }: Props) {
+  const i18n = useI18nOptional()
+  const t = (key: string, fallback: string) => (i18n ? i18n.t(key) : fallback)
+  const resolvedSubmit = submitLabel ?? t('common.submit', '提交')
+  const labelConfirm = t('common.confirm', '确认')
+  const labelSubmitting = t('common.submitting', '提交中…')
+  const labelSkip = t('common.skip', '跳过')
+  const labelBack = t('common.back', '上一步')
+
   const [step, setStep] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
   const advancingRef = useRef(false)
@@ -164,7 +174,7 @@ export function GtgtStepComposer({
           disabled={busy || !canGo}
           onClick={() => void advance()}
         >
-          {busy && isLast ? '提交中…' : isLast ? submitLabel : '确认'}
+          {busy && isLast ? labelSubmitting : isLast ? resolvedSubmit : labelConfirm}
         </button>
       </div>
 
@@ -172,12 +182,12 @@ export function GtgtStepComposer({
       <div className="bh-gtgt-actions">
         {current.optional && (
           <button type="button" className="btn btn-ghost booking-float-skip" disabled={busy} onClick={() => void advance()}>
-            跳过
+            {labelSkip}
           </button>
         )}
         {step > 0 && (
           <button type="button" className="btn btn-ghost" disabled={busy} onClick={() => setStep((s) => s - 1)}>
-            上一步
+            {labelBack}
           </button>
         )}
       </div>

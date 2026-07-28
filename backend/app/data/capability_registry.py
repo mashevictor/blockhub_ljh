@@ -21,6 +21,18 @@ class CapabilityDef:
     menu_icon: str = ""    # 菜单图标名；留空走 "module"
     menu_label: str = ""   # 菜单别名；留空走 name
     route: str = ""        # 路由路径；留空走 /{slug} 约定
+    # i18n：显式多语言覆盖。zh-CN 默认取 name；en-US 可在此声明，
+    # 或由 shared/i18n/seed/capability.en-US.json 提供（codegen 合并）。tuple 保证 frozen 可哈希。
+    # 例：labels=(("en-US", "Leave Request"),)
+    labels: tuple[tuple[str, str], ...] = ()
+
+    def resolved_labels(self) -> dict[str, str]:
+        """Return locale → display name. Always includes zh-CN from ``name``."""
+        out: dict[str, str] = {"zh-CN": self.name}
+        for lang, text in self.labels:
+            if lang and text:
+                out[lang] = text
+        return out
 
 
 # ── Flutter / 移动端工具能力（纳入能力板块）────────────────────────
@@ -80,7 +92,8 @@ CORE_CAPABILITIES: list[CapabilityDef] = [
     CapabilityDef("device_repair", "设备报修", "现场运维", "DeviceRepairWidget", "device_repair",
                     "", ("设备报修", "报修", "扫码提单", "维修工单", "产线故障", "设备故障"),
                     web_pkg="@blockhub/web-capability-device-repair",
-                    menu_icon="approval", menu_label="设备报修", route="/device-repair"),
+                    menu_icon="approval", menu_label="设备报修", route="/device-repair",
+                    labels=(("en-US", "Device Repair"),)),
     CapabilityDef("quality_inspect", "质检SOP", "现场运维", "QualityInspectWidget", "quality_inspect",
                     "", ("质检", "SOP", "工艺", "不合格", "终检", "安环", "隐患"),
                     web_pkg="@blockhub/web-capability-quality-inspect",
@@ -92,7 +105,8 @@ CORE_CAPABILITIES: list[CapabilityDef] = [
     CapabilityDef("member_loyalty", "会员营销", "营销运营", "MemberLoyaltyWidget", "member_loyalty",
                     "", ("会员营销", "会员积分", "会员管理", "促销", "券码", "积分兑换", "触达"),
                     web_pkg="@blockhub/web-capability-member-loyalty",
-                    menu_icon="chart", menu_label="会员营销", route="/member-loyalty"),
+                    menu_icon="chart", menu_label="会员营销", route="/member-loyalty",
+                    labels=(("en-US", "Membership Growth"),)),
     CapabilityDef("med_triage", "医疗导诊", "患者服务", "MedTriageWidget", "med_triage",
                     "", ("医疗导诊", "智能导诊", "就医指南", "导诊", "科室", "预问诊", "症状"),
                     web_pkg="@blockhub/web-capability-med-triage",
@@ -196,7 +210,8 @@ CORE_CAPABILITIES: list[CapabilityDef] = [
     CapabilityDef("leave_request", "请假审批", "人事行政", "LeaveRequestWidget", "leave_request",
                     "", ("请假审批", "请假申请", "假期余额", "请假"),
                     web_pkg="@blockhub/web-capability-leave-request",
-                    menu_icon="approval", menu_label="请假审批", route="/leave-request"),
+                    menu_icon="approval", menu_label="请假审批", route="/leave-request",
+                    labels=(("en-US", "Leave Request"),)),
     CapabilityDef("expense_claim", "报销记账", "财务法务", "ExpenseClaimWidget", "expense_claim",
                     "", ("报销记账", "费用报销", "发票上传", "报销申请"),
                     web_pkg="@blockhub/web-capability-expense-claim",
@@ -821,6 +836,7 @@ def list_capabilities() -> list[dict]:
             "agent_id": c.agent_id,
             "flutter_pkg": c.flutter_pkg,
             "keywords": list(c.keywords),
+            "labels": c.resolved_labels(),
         })
     return sorted(out, key=lambda x: (x["category"], x["key"]))
 

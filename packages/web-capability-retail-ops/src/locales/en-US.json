@@ -1,0 +1,20 @@
+{
+  "cap.competitor_price.ui.title": "Competitor Price",
+  "cap.display_check.ui.title": "Display Check",
+  "cap.gift_card.ui.title": "Gift Card",
+  "cap.loss_shrinkage.ui.title": "Loss Shrinkage",
+  "cap.new_sku_launch.ui.title": "New Sku Launch",
+  "cap.omni_pickup.ui.title": "Omni Pickup",
+  "cap.online_refund.ui.title": "Online Refund",
+  "cap.pos_exception.ui.title": "Pos Exception",
+  "cap.price_change.ui.title": "Price Change",
+  "cap.promo_coupon.ui.title": "Promo Coupon",
+  "cap.receipt_audit.ui.title": "Receipt Audit",
+  "cap.retail_order.ui.title": "Retail Order",
+  "cap.return_exchange.ui.title": "Return Exchange",
+  "cap.shelf_replenish.ui.title": "Shelf Replenish",
+  "cap.stock_alert.ui.title": "Stock Alert",
+  "cap.store_transfer.ui.title": "Store Transfer",
+  "cap.supplier_recon.ui.title": "Supplier Recon",
+  "cap.vip_hold.ui.title": "Vip Hold"
+}

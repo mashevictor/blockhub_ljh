@@ -1,0 +1,20 @@
+{
+  "cap.competitor_price.ui.title": "竞品采价",
+  "cap.display_check.ui.title": "陈列检查",
+  "cap.gift_card.ui.title": "储值卡充值",
+  "cap.loss_shrinkage.ui.title": "损耗报损",
+  "cap.new_sku_launch.ui.title": "新品上架",
+  "cap.omni_pickup.ui.title": "全渠道自提",
+  "cap.online_refund.ui.title": "电商仅退款",
+  "cap.pos_exception.ui.title": "收银异常",
+  "cap.price_change.ui.title": "价格变更",
+  "cap.promo_coupon.ui.title": "优惠券核销",
+  "cap.receipt_audit.ui.title": "小票稽核",
+  "cap.retail_order.ui.title": "订单跟踪",
+  "cap.return_exchange.ui.title": "退换货",
+  "cap.shelf_replenish.ui.title": "补货上架",
+  "cap.stock_alert.ui.title": "库存预警",
+  "cap.store_transfer.ui.title": "门店调拨",
+  "cap.supplier_recon.ui.title": "供应商对账",
+  "cap.vip_hold.ui.title": "会员预留"
+}

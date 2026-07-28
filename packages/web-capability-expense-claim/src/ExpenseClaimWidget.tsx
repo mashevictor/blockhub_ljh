@@ -1,4 +1,5 @@
 ﻿import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useTf } from '@blockhub/i18n/react'
 import type { FormFieldDef, SchemaNode } from '@blockhub/web-core'
 import { apiFetch, GtgtStepComposer, resolveFormSteps, useRuntime, type GtgtStep } from '@blockhub/web-core'
 
@@ -14,26 +15,17 @@ interface RecordItem {
   reporter_name?: string
 }
 
-const CAT_LABEL: Record<string, string> = {
-  travel: '差旅',
-  meal: '餐饮',
-  office: '办公',
-  loan: '借款',
-  payment: '付款',
-  invoice: '发票',
-  sample: '样品礼品',
-  hospitality: '客户招待',
-}
-
-const STATUS_LABEL: Record<string, string> = {
-  open: '待审核',
-  reviewing: '审核中',
-  paid: '已付款',
-  rejected: '已驳回',
-}
-
 export function ExpenseClaimWidget({ node }: { node: SchemaNode }) {
+  const tf = useTf()
   const { token, primaryColor, appId, user, entrySource } = useRuntime()
+  const catLabel = useCallback(
+    (key: string) => tf(`cap.expense_claim.cat.${key}`, key),
+    [tf],
+  )
+  const statusLabel = useCallback(
+    (key: string) => tf(`cap.expense_claim.status.${key}`, key),
+    [tf],
+  )
   const defaultCat = String(node.props?.default_category || 'travel')
   const sceneLabel = String(node.props?.scene_label || node.props?.form_headline || '')
   const formHeadline = String(node.props?.form_headline || '')
@@ -78,48 +70,67 @@ export function ExpenseClaimWidget({ node }: { node: SchemaNode }) {
   const formTitle =
     formHeadline ||
     (isSample
-      ? '样品/礼品申请'
+      ? tf('cap.expense_claim.cat.sample', '样品礼品')
       : isHospitality
-        ? '客户招待申请'
+        ? tf('cap.expense_claim.cat.hospitality', '客户招待')
         : isInvoice
-          ? '开票/发票申请'
+          ? tf('cap.expense_claim.cat.invoice', '发票')
           : isLoan
-            ? '借款申请'
+            ? tf('cap.expense_claim.cat.loan', '借款')
             : isPayment
-              ? '付款申请'
-              : '费用报销')
+              ? tf('cap.expense_claim.cat.payment', '付款')
+              : tf('cap.expense_claim.title.default', '费用报销'))
   const submitLabel =
-    isSample || isHospitality ? '提交申请' : isInvoice ? '提交开票' : isLoan ? '提交借款' : isPayment ? '提交付款' : '提交报销'
+    isSample || isHospitality
+      ? tf('cap.expense_claim.submit.apply', '提交申请')
+      : tf('cap.expense_claim.submit.default', '提交报销')
 
   const catOptions = useMemo(() => {
-    if (isSample) return [['sample', '样品礼品']] as const
-    if (isHospitality) return [['hospitality', '客户招待']] as const
-    if (isLoan) return [['loan', '借款']] as const
-    if (isPayment) return [['payment', '付款']] as const
-    if (isInvoice) return [['invoice', '开票/发票']] as const
-    return [
-      ['sample', '样品礼品'],
-      ['hospitality', '客户招待'],
-      ['travel', '差旅'],
-      ['meal', '餐饮'],
-      ['office', '办公'],
-      ['invoice', '发票'],
-      ['loan', '借款'],
-      ['payment', '付款'],
-    ] as const
-  }, [isSample, isHospitality, isLoan, isPayment, isInvoice])
+    if (isSample) return [['sample', catLabel('sample')]] as const
+    if (isHospitality) return [['hospitality', catLabel('hospitality')]] as const
+    if (isLoan) return [['loan', catLabel('loan')]] as const
+    if (isPayment) return [['payment', catLabel('payment')]] as const
+    if (isInvoice) return [['invoice', catLabel('invoice')]] as const
+    return (
+      [
+        ['sample', catLabel('sample')],
+        ['hospitality', catLabel('hospitality')],
+        ['travel', catLabel('travel')],
+        ['meal', catLabel('meal')],
+        ['office', catLabel('office')],
+        ['invoice', catLabel('invoice')],
+        ['loan', catLabel('loan')],
+        ['payment', catLabel('payment')],
+      ] as const
+    )
+  }, [isSample, isHospitality, isLoan, isPayment, isInvoice, catLabel])
 
   const steps: GtgtStep[] = useMemo(() => {
     const defaults: FormFieldDef[] = [
-      { key: 'category', label: '类型' },
+      { key: 'category', label: tf('cap.expense_claim.field.category', '类型') },
       {
         key: 'title',
-        label: isSample ? '物品名称' : isHospitality ? '招待事由' : isInvoice ? '开票事由' : '申请内容',
+        label: tf('cap.expense_claim.field.title', '申请内容'),
         placeholder: isSample ? '样品 / 礼品名称' : '事由摘要',
       },
-      { key: 'amount', label: isSample ? '数量或金额' : '金额（元）', placeholder: '328.00' },
-      { key: 'invoice_no', label: '单号（可空）', placeholder: '发票或合同号', optional: true },
-      { key: 'note', label: '说明（可空）', placeholder: '客户 / 用途', type: 'textarea', optional: true },
+      {
+        key: 'amount',
+        label: tf('cap.expense_claim.field.amount', '金额（元）'),
+        placeholder: '328.00',
+      },
+      {
+        key: 'invoice_no',
+        label: tf('cap.expense_claim.field.invoice_no', '单号（可空）'),
+        placeholder: '发票或合同号',
+        optional: true,
+      },
+      {
+        key: 'note',
+        label: tf('cap.expense_claim.field.note', '说明（可空）'),
+        placeholder: '客户 / 用途',
+        type: 'textarea',
+        optional: true,
+      },
     ]
     const resolved = resolveFormSteps({
       defaults,
@@ -147,7 +158,7 @@ export function ExpenseClaimWidget({ node }: { node: SchemaNode }) {
         ),
       }
     })
-  }, [catOptions, initialCat, isSample, isHospitality, isInvoice, node.props?.form_fields, node.props?.page_mock])
+  }, [catOptions, initialCat, isSample, isHospitality, isInvoice, node.props?.form_fields, node.props?.page_mock, tf])
 
   const load = useCallback(async () => {
     if (!token) {
@@ -239,9 +250,9 @@ export function ExpenseClaimWidget({ node }: { node: SchemaNode }) {
               <li key={t.id} className="list-card">
                 <div className="list-card-head">
                   <strong>
-                    {CAT_LABEL[t.category] || t.category} · {t.title}
+                    {catLabel(t.category)} · {t.title}
                   </strong>
-                  <span className="tag">{STATUS_LABEL[t.status]}</span>
+                  <span className="tag">{statusLabel(t.status)}</span>
                 </div>
                 <p style={{ margin: '8px 0 0', fontSize: 13 }}>¥{t.amount}</p>
                 <div className="row-actions" style={{ marginTop: 12 }}>
@@ -266,9 +277,9 @@ export function ExpenseClaimWidget({ node }: { node: SchemaNode }) {
                     <li key={t.id} className="list-card" style={{ opacity: 0.85 }}>
                       <div className="list-card-head">
                         <strong>
-                          {CAT_LABEL[t.category] || t.category} · {t.title}
+                          {catLabel(t.category)} · {t.title}
                         </strong>
-                        <span className="tag">{STATUS_LABEL[t.status] || t.status}</span>
+                        <span className="tag">{statusLabel(t.status)}</span>
                       </div>
                     </li>
                   ))}

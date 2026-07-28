@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useT } from '@blockhub/i18n/react'
 import {
   fetchPlazaFeedComments,
   postPlazaFeedComment,
@@ -190,6 +191,7 @@ const FILTER_LABELS: Record<FeedFilter, string> = {
 }
 
 export default function PlazaFeedPage() {
+  const t = useT()
   const [filter, setFilter] = useState<FeedFilter>('latest')
   const [items, setItems] = useState<PlazaFeedItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -315,11 +317,11 @@ export default function PlazaFeedPage() {
 
       <p className="plaza-main-hint plaza-main-hint--full">
         浏览公开应用列表；点进某个应用后，再查看只读功能/数据概览。
-        {loading && <span> · 加载中…</span>}
+        {loading && <span> · {t('common.loading')}</span>}
       </p>
       <p className="plaza-main-hint plaza-main-hint--short">
         先列表 · 点进应用看概览
-        {loading && <span> · 加载中…</span>}
+        {loading && <span> · {t('common.loading')}</span>}
       </p>
 
       <div className="plaza-feed-list">

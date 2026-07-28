@@ -1,0 +1,3 @@
+# Ignore generated quality reports that change every --write run.
+# Keep en-review-status.json when curated; report is ephemeral CI artifact.
+en-quality-report.json

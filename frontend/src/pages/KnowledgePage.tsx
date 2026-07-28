@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useT } from '@blockhub/i18n/react'
 import {
   createKbBase,
   fetchKbBases,
@@ -23,6 +24,7 @@ type DocRow = {
 }
 
 export default function KnowledgePage() {
+  const t = useT()
   const [stats, setStats] = useState<{
     knowledge_bases: number
     documents: number
@@ -141,7 +143,7 @@ export default function KnowledgePage() {
           <input className="search-input" placeholder="知识库名称" value={newKbName} onChange={(e) => setNewKbName(e.target.value)} />
           <div style={{ marginTop: 10, display: 'flex', gap: 8 }}>
             <button type="button" className="btn btn-primary-dark" onClick={handleCreate}>创建</button>
-            <button type="button" className="btn btn-ghost-dark" onClick={() => setShowCreate(false)}>取消</button>
+            <button type="button" className="btn btn-ghost-dark" onClick={() => setShowCreate(false)}>{t('common.cancel')}</button>
           </div>
         </div>
       )}

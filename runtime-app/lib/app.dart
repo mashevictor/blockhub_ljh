@@ -88,6 +88,8 @@ class _RuntimeAppState extends State<RuntimeApp> {
 
     return MaterialApp(
       title: widget.branding.appName,
+      locale: BhL10n.instance.flutterLocale,
+      supportedLocales: BhL10n.supportedLocales,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: primary),
         useMaterial3: true,
@@ -95,6 +97,16 @@ class _RuntimeAppState extends State<RuntimeApp> {
       home: Scaffold(
         appBar: AppBar(
           title: Text(widget.branding.appName),
+          actions: [
+            TextButton(
+              onPressed: () {
+                final next = BhL10n.instance.locale == BhL10n.enUS ? BhL10n.zhCN : BhL10n.enUS;
+                BhL10n.instance.setLocale(next);
+                setState(() {});
+              },
+              child: Text(BhL10n.instance.locale == BhL10n.enUS ? '中文' : 'EN'),
+            ),
+          ],
           bottom: widget.branding.voiceDemoMode
               ? PreferredSize(
                   preferredSize: const Size.fromHeight(28),
