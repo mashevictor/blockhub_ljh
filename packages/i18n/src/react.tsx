@@ -133,18 +133,40 @@ export function useFormat() {
 
 export interface LocaleSwitchProps {
   className?: string
+  /** Visual variant: plain text (default) or bordered chip for landing headers */
+  variant?: 'text' | 'chip'
 }
 
 /** Compact ZH | EN control for shell headers. */
-export function LocaleSwitch({ className }: LocaleSwitchProps) {
+export function LocaleSwitch({ className, variant = 'text' }: LocaleSwitchProps) {
   const i18n = useI18n()
-  const other: Locale = i18n.locale === 'zh-CN' ? 'en-US' : 'zh-CN'
-  const label = i18n.locale === 'zh-CN' ? 'EN' : '中文'
+  const isZh = i18n.locale === 'zh-CN'
+  const other: Locale = isZh ? 'en-US' : 'zh-CN'
+  if (variant === 'chip') {
+    return (
+      <button
+        type="button"
+        className={className}
+        aria-label={isZh ? 'Switch to English' : '切换到中文'}
+        title={isZh ? 'Switch to English' : '切换到中文'}
+        onClick={() => i18n.setLocale(other)}
+      >
+        <span className={isZh ? 'is-on' : undefined} lang="zh-CN">
+          中
+        </span>
+        <span aria-hidden>/</span>
+        <span className={!isZh ? 'is-on' : undefined} lang="en">
+          EN
+        </span>
+      </button>
+    )
+  }
+  const label = isZh ? 'EN' : '中文'
   return (
     <button
       type="button"
       className={className}
-      aria-label={i18n.locale === 'zh-CN' ? 'Switch to English' : '切换到中文'}
+      aria-label={isZh ? 'Switch to English' : '切换到中文'}
       onClick={() => i18n.setLocale(other)}
     >
       {label}

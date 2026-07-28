@@ -289,6 +289,36 @@
   border-left: 1px solid #e2e8f0;
 }
 
+.b2b-locale-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  min-height: 32px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  border: 1px solid #bfdbfe;
+  background: #eff6ff;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: inherit;
+  line-height: 1;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.b2b-locale-switch:hover {
+  background: #dbeafe;
+  border-color: #93c5fd;
+  color: var(--b2b-primary, #0d47a1);
+}
+
+.b2b-locale-switch .is-on {
+  color: var(--b2b-primary, #0d47a1);
+  font-weight: 700;
+}
+
 a.b2b-nav-btn-link {
   display: inline-flex;
   align-items: center;
