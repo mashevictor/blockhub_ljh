@@ -41,27 +41,41 @@ def write_json(path: Path, data: dict) -> None:
 
 
 def ensure_locales_import(index_ts: Path) -> bool:
+    """Insert ``import './locales'`` after all top-level import statements.
+
+    Must not splice into a multi-line ``import { ... }`` block.
+    """
     if not index_ts.is_file():
         return False
     text = index_ts.read_text(encoding="utf-8")
     if "./locales" in text or "locales/index" in text:
         return False
-    # insert after first import block or at top
-    if text.lstrip().startswith("import"):
-        lines = text.splitlines(keepends=True)
-        insert_at = 0
-        for i, line in enumerate(lines):
-            if line.startswith("import ") or line.startswith("import{"):
+
+    lines = text.splitlines(keepends=True)
+    insert_at = 0
+    in_brace_import = False
+    for i, line in enumerate(lines):
+        stripped = line.lstrip()
+        if in_brace_import:
+            if "}" in line and "from " in line:
+                in_brace_import = False
                 insert_at = i + 1
+            continue
+        if stripped.startswith("import ") or stripped.startswith("import{"):
+            if "{" in stripped and "}" not in stripped:
+                in_brace_import = True
                 continue
-            if insert_at and line.strip() == "":
-                insert_at = i + 1
+            insert_at = i + 1
+            continue
+        if stripped == "" or stripped.startswith("//"):
+            # keep scanning past blank/comment lines between imports
+            if insert_at:
                 continue
-            break
-        lines.insert(insert_at, "import './locales'\n")
-        index_ts.write_text("".join(lines), encoding="utf-8")
-    else:
-        index_ts.write_text(f"import './locales'\n{text}", encoding="utf-8")
+            continue
+        break
+
+    lines.insert(insert_at, "import './locales'\n")
+    index_ts.write_text("".join(lines), encoding="utf-8")
     return True
 
 

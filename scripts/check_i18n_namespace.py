@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -25,6 +26,7 @@ def main() -> int:
     owners = build_web_owner_map()
     failed = False
     missing_locales = []
+    brace_splice = re.compile(r"import\s*\{\s*\n\s*import\s+['\"]\./locales['\"]")
 
     for folder in list_web_capability_folders():
         name = folder.name
@@ -53,7 +55,10 @@ def main() -> int:
         pkg_index = folder / "src" / "index.ts"
         if pkg_index.is_file():
             text = pkg_index.read_text(encoding="utf-8")
-            if "./locales" not in text and "locales/index" not in text:
+            if brace_splice.search(text):
+                print(f"ERROR {name}: locales import spliced into multi-line import {{ }}")
+                failed = True
+            elif "./locales" not in text and "locales/index" not in text:
                 print(f"ERROR {name}: src/index.ts missing locales import")
                 failed = True
 

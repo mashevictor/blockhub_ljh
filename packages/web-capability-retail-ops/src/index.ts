@@ -1,6 +1,6 @@
 import { registerWidget } from '@blockhub/web-core'
-import {
 import './locales'
+import {
   StockAlertWidget,
   RetailOrderWidget,
   ReturnExchangeWidget,
