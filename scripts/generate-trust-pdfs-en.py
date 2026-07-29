@@ -469,9 +469,12 @@ def main() -> None:
         pdf_bytes = render_pdf(meta, body)
         pdf_path = OUT_DIR / meta["file"]
         pdf_path.write_bytes(pdf_bytes)
+        # Flat sibling next to zh PDFs — preferred by localizeDownloadPath
+        flat = OUT_DIR.parent / meta["file"].replace(".pdf", ".en-US.pdf")
+        flat.write_bytes(pdf_bytes)
         html_path = OUT_DIR / meta["html"]
         html_path.write_text(render_html(meta, body), encoding="utf-8")
-        print(f"OK  {pdf_path.relative_to(REPO)}  ({len(pdf_bytes)} bytes)")
+        print(f"OK  {pdf_path.relative_to(REPO)}  + {flat.name}  ({len(pdf_bytes)} bytes)")
 
 
 if __name__ == "__main__":

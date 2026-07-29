@@ -9,6 +9,7 @@ import { enrichCardStyle, trustDocTheme } from '../../data/enrichVisualThemes'
 import { getTrustDocArticle } from '../../data/enrichmentContent'
 import { TRUST_DOCS } from '../../data/siteTrust'
 import { localizeTrustArticle, trustDocDescription } from '../../i18n/contentLabels'
+import { localizeDownloadPath } from '../../i18n/downloadLocale'
 import { ROUTES } from '../../routes/paths'
 import { usePageMeta } from '../../hooks/usePageMeta'
 import type { CSSProperties } from 'react'
@@ -21,6 +22,9 @@ export default function TrustDocDetailPage() {
   const raw = getTrustDocArticle(docId)
   const article = raw ? localizeTrustArticle(t, raw, locale) : undefined
   const desc = meta ? trustDocDescription(t, meta.id, meta.description) : ''
+  const pdfHref = meta
+    ? localizeDownloadPath(meta.downloadPath, locale)
+    : article?.downloadPath
 
   usePageMeta(
     article
@@ -60,9 +64,11 @@ export default function TrustDocDetailPage() {
 
       <div className="enrich-section-foot enrich-detail-actions">
         <a
-          href={article.downloadPath}
+          href={pdfHref}
           target="_blank"
           rel="noopener noreferrer"
+          download
+          data-locale={locale}
           className="b2b-btn-primary agent-action-btn"
         >
           <AgentButtonContent>{t('home.enrich.trust.download_pdf')}</AgentButtonContent>

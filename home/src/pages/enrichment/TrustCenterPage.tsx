@@ -8,6 +8,7 @@ import { TRUST_DOCS, TRUST_FAQ_SAMPLES } from '../../data/siteTrust'
 import { enrichCardStyle, trustDocTheme } from '../../data/enrichVisualThemes'
 import { ROLE_PAGES } from '../../data/siteRoles'
 import { localizeRolePage, localizeTrustDocCard } from '../../i18n/contentLabels'
+import { localizeDownloadPath } from '../../i18n/downloadLocale'
 import { ROUTES } from '../../routes/paths'
 import { usePageMeta } from '../../hooks/usePageMeta'
 
@@ -15,7 +16,11 @@ export default function TrustCenterPage() {
   const t = useT()
   const { locale } = useI18n()
   const rolePages = ROLE_PAGES.map((r) => localizeRolePage(t, r))
-  const docs = TRUST_DOCS.map((d) => localizeTrustDocCard(t, d, locale))
+  const docs = TRUST_DOCS.map((d) => {
+    const card = localizeTrustDocCard(t, d, locale)
+    // Always rewrite from the zh SSOT path so locale flips never stick on a stale href
+    return { ...card, downloadPath: localizeDownloadPath(d.downloadPath, locale) }
+  })
   const faqs = TRUST_FAQ_SAMPLES.map((q, i) => {
     const key = `home.enrich.trust.faq.${i}`
     const text = t(key)
@@ -59,6 +64,8 @@ export default function TrustCenterPage() {
                       href={doc.downloadPath}
                       target="_blank"
                       rel="noopener noreferrer"
+                      download
+                      data-locale={locale}
                       className="enrich-dl-btn enrich-dl-btn--secondary"
                     >
                       <AgentChevronGlyph size="sm" className="enrich-dl-chev" />
