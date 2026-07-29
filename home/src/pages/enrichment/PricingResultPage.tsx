@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
+import { useT } from '@blockhub/i18n/react'
 import MarketingSiteShell from '../../components/b2b/enrichment/MarketingSiteShell'
 import { fetchBillingMe, fetchBillingOrder, formatFen, type BillingMe, type BillingOrder } from '../../api/billing'
 import { getToken } from '../../auth/storage'
@@ -8,13 +9,17 @@ import { ROUTES } from '../../routes/paths'
 import { usePageMeta } from '../../hooks/usePageMeta'
 
 export default function PricingResultPage() {
+  const t = useT()
   const [params] = useSearchParams()
   const orderId = (params.get('order_id') || '').trim()
   const [order, setOrder] = useState<BillingOrder | null>(null)
   const [me, setMe] = useState<BillingMe | null>(null)
   const [error, setError] = useState('')
 
-  usePageMeta({ title: '支付结果 · 积木仓', description: '套餐升级结果' })
+  usePageMeta({
+    title: t('home.enrich.result.meta_title'),
+    description: t('home.enrich.result.meta_desc'),
+  })
 
   useEffect(() => {
     if (!getToken()) {
@@ -22,7 +27,7 @@ export default function PricingResultPage() {
       return
     }
     if (!orderId) {
-      setError('缺少订单号')
+      setError(t('home.enrich.result.missing_order'))
       return
     }
     let cancelled = false
@@ -42,7 +47,7 @@ export default function PricingResultPage() {
       } catch (e) {
         if (!cancelled) {
           const detail = (e as { response?: { data?: { detail?: string } } })?.response?.data?.detail
-          setError(typeof detail === 'string' ? detail : '查询订单失败')
+          setError(typeof detail === 'string' ? detail : t('home.enrich.result.query_fail'))
         }
       }
     }
@@ -50,33 +55,45 @@ export default function PricingResultPage() {
     return () => {
       cancelled = true
     }
-  }, [orderId])
+  }, [orderId, t])
 
   return (
-    <MarketingSiteShell skin="landed" pageTitle="支付结果" pageEyebrow="升级套餐">
+    <MarketingSiteShell
+      skin="landed"
+      pageTitle={t('home.enrich.result.title')}
+      pageEyebrow={t('home.enrich.result.eyebrow')}
+    >
       <div className="enrich-panel" style={{ maxWidth: 560 }}>
         {error ? <p style={{ color: '#b91c1c' }}>{error}</p> : null}
-        {!error && !order ? <p>正在确认支付状态…</p> : null}
+        {!error && !order ? <p>{t('home.enrich.result.confirming')}</p> : null}
         {order ? (
           <>
             <p>
-              订单 <code>{order.id.slice(0, 8)}</code> · {order.plan_tier} · {formatFen(order.amount_fen)}
+              {t('home.enrich.result.order_line', {
+                id: order.id.slice(0, 8),
+                tier: order.plan_tier,
+                amount: formatFen(order.amount_fen),
+              })}
             </p>
             <p style={{ fontSize: 18, fontWeight: 600 }}>
-              {order.status === 'paid' ? '支付成功，套餐已生效' : `状态：${order.status}（可稍候刷新）`}
+              {order.status === 'paid'
+                ? t('home.enrich.result.paid')
+                : t('home.enrich.result.status', { status: order.status })}
             </p>
             {me ? (
               <p style={{ marginTop: 12 }}>
-                当前套餐：{me.plan?.name || me.plan_tier}
-                {me.plan_expires_at ? ` · 有效至 ${me.plan_expires_at.slice(0, 10)}` : ''}
+                {t('home.enrich.result.current', { name: me.plan?.name || me.plan_tier })}
+                {me.plan_expires_at
+                  ? t('home.enrich.result.expires', { date: me.plan_expires_at.slice(0, 10) })
+                  : ''}
               </p>
             ) : null}
           </>
         ) : null}
         <p style={{ marginTop: 20 }}>
-          <Link to={ROUTES.accountBilling}>查看我的套餐与用量</Link>
+          <Link to={ROUTES.accountBilling}>{t('home.enrich.result.view_plan')}</Link>
           {' · '}
-          <Link to={ROUTES.pricing}>返回定价</Link>
+          <Link to={ROUTES.pricing}>{t('home.enrich.result.back_pricing')}</Link>
         </p>
       </div>
     </MarketingSiteShell>

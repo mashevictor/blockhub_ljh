@@ -48,7 +48,7 @@ export default function NewsIndexPage() {
                 </h2>
                 <p>{item.summary}</p>
                 <Link to={ROUTES.newsDetail(item.slug)} className="enrich-link-btn agent-action-btn">
-                  <AgentButtonContent>阅读全文</AgentButtonContent>
+                  <AgentButtonContent>{t('home.enrich.news.read')}</AgentButtonContent>
                 </Link>
               </div>
             </article>

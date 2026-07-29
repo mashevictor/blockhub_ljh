@@ -89,7 +89,7 @@ export default function PlazaOrchestrationOverlay({
     setSmokeLog(t('home.plaza.orch.smoke_checking'))
     try {
       if (shanghai) {
-        const r = await runShanghaiVoiceSmoke()
+        const r = await runShanghaiVoiceSmoke(t)
         setSmokeLog(r.summary)
         setBodyTab('api')
       } else {

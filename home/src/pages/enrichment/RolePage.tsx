@@ -24,7 +24,7 @@ export default function RolePage() {
   const page = raw ? localizeRolePage(t, raw) : undefined
 
   usePageMeta(
-    page ? { title: `${page.title} · 积木仓`, description: page.subtitle } : null,
+    page ? { title: `${page.title} · BlockHub`, description: page.subtitle } : null,
   )
 
   if (!page) {
@@ -45,8 +45,8 @@ export default function RolePage() {
 
       <section className="enrich-panel enrich-role-questions" aria-labelledby="role-questions-title">
         <div className="enrich-panel-head">
-          <h2 id="role-questions-title">您可能关心的问题</h2>
-          <p>可向全站智能体助手提问，以下为高频问题</p>
+          <h2 id="role-questions-title">{t('home.enrich.role.questions_title')}</h2>
+          <p>{t('home.enrich.role.questions_lead')}</p>
         </div>
         <div className="enrich-panel-body">
           <ul className="enrich-faq-list enrich-faq-list--cards">
@@ -59,8 +59,8 @@ export default function RolePage() {
 
       <section className="enrich-panel enrich-role-downloads" aria-labelledby="role-downloads-title">
         <div className="enrich-panel-head">
-          <h2 id="role-downloads-title">推荐资料</h2>
-          <p>与子站列表页同套卡片与链接样式</p>
+          <h2 id="role-downloads-title">{t('home.enrich.role.downloads_title')}</h2>
+          <p>{t('home.enrich.role.downloads_lead')}</p>
         </div>
         <div className="enrich-panel-body">
           <div className="enrich-trust-dl enrich-trust-dl--role">
@@ -96,7 +96,7 @@ export default function RolePage() {
           <AgentButtonContent>{page.cta}</AgentButtonContent>
         </a>
         <Link to={ROUTES.pricing} className="enrich-link-btn agent-action-btn">
-          <AgentButtonContent trailing={false}>定价说明</AgentButtonContent>
+          <AgentButtonContent trailing={false}>{t('home.enrich.role.pricing')}</AgentButtonContent>
         </Link>
       </div>
     </MarketingSiteShell>

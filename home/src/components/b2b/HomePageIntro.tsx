@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useT } from '@blockhub/i18n/react'
 import ChevronDotLoader from '../ChevronDotLoader'
 
 const INTRO_KEY = 'blockhub-page-intro-done'
@@ -38,6 +39,7 @@ export function useHomePageIntro() {
 type Phase = 'assemble' | 'fly' | 'settle' | 'gone'
 
 export default function HomePageIntro({ onDone }: Props) {
+  const t = useT()
   const [phase, setPhase] = useState<Phase>('assemble')
   const loaderRef = useRef<HTMLSpanElement>(null)
   const doneRef = useRef(false)
@@ -114,13 +116,13 @@ export default function HomePageIntro({ onDone }: Props) {
         .join(' ')}
       role="status"
       aria-live="polite"
-      aria-label="页面加载中"
+      aria-label={t('home.hero.intro.aria')}
     >
       <ChevronDotLoader
         ref={loaderRef}
         variant="intro"
         size="hero"
-        label="加载中"
+        label={t('home.hero.intro.loading')}
         className="home-page-intro-loader"
       />
     </div>

@@ -98,7 +98,7 @@ export default function BookingFloatingAgent() {
                     publishBookLoading(t)
                   ) : (
                     <AgentButtonContent trailing={false}>
-                      {isLastStep ? '提交' : '确认'}
+                      {isLastStep ? t('home.booking.submit') : t('home.booking.confirm')}
                     </AgentButtonContent>
                   )}
                 </button>
@@ -108,7 +108,7 @@ export default function BookingFloatingAgent() {
               )}
               {!currentField.required && !submitting && (
                 <button type="button" className="booking-float-skip" onClick={skipOptional}>
-                  跳过
+                  {t('home.booking.skip')}
                 </button>
               )}
             </>
@@ -119,13 +119,14 @@ export default function BookingFloatingAgent() {
               {submitting && <DemoBookingDeliveryLoading compact />}
               {delivery && !submitting && <DemoBookingSuccess delivery={delivery} compact />}
               {!delivery && !submitting && (
-                <ul className="booking-float-review-list" aria-label="已提交的预约信息">
+                <ul className="booking-float-review-list" aria-label={t('home.booking.review_aria')}>
                   {BOOKING_FIELDS.map((field) => {
                     const value = values[field.key]?.trim()
+                    const label = t(`home.booking.field.${field.key}.label`)
                     return (
                       <li key={field.key} className={!value ? 'is-empty' : ''}>
-                        <span>{field.label}</span>
-                        <strong>{value || '未填写'}</strong>
+                        <span>{label === `home.booking.field.${field.key}.label` ? field.label : label}</span>
+                        <strong>{value || t('home.booking.empty')}</strong>
                       </li>
                     )
                   })}
@@ -140,7 +141,7 @@ export default function BookingFloatingAgent() {
               {fieldError}
               {submitted && !submitting && (
                 <button type="button" className="booking-float-retry" onClick={retrySubmit}>
-                  重试
+                  {t('home.booking.retry')}
                 </button>
               )}
             </p>

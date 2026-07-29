@@ -101,8 +101,19 @@ export function localizeRolePage(t: TranslateFn, role: RolePage): RolePage {
 export function localizePricingTier(t: TranslateFn, tier: PricingTier): PricingTier {
   const prefix = `pricing.${tier.id}`
   const limits = tier.limits ?? []
+  const nameKey = `home.pricing.tier.${tier.id}.name`
+  const ctaKey = `home.pricing.tier.${tier.id}.cta`
+  const badgeKey = `home.pricing.tier.${tier.id}.badge`
+  const name = t(nameKey)
+  const cta = t(ctaKey)
+  const badge = t(badgeKey)
   return {
     ...tier,
+    name: name === nameKey ? tier.name : name,
+    ctaLabel: cta === ctaKey ? tier.ctaLabel : cta,
+    tag: tier.tag
+      ? (badge === badgeKey ? tier.tag : badge)
+      : tier.tag,
     range: contentTr(t, `${prefix}.range`, tier.range),
     desc: contentTr(t, `${prefix}.desc`, tier.desc),
     features: tier.features.map((f, i) => contentTr(t, `${prefix}.f${i}`, f)),

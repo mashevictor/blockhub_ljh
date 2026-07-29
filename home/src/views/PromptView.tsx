@@ -61,9 +61,9 @@ import { useHomeActiveSection } from '../hooks/useHomeActiveSection'
 import {
   buildHeroDockDemoModules,
   buildHeroDockDemoSuggestions,
-  HERO_DOCK_DEMO_ENHANCED,
+  heroDockDemoEnhanced,
   HERO_DOCK_DEMO_PROMPT,
-  HERO_DOCK_DEMO_VALIDATION,
+  heroDockDemoValidation,
   HERO_DOCK_TYPING_CHAR_MS,
   isHeroDockTypingDemoSeen,
   markHeroDockTypingDemoSeen,
@@ -190,7 +190,7 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
     heroDemoAppliedRef.current = true
     setHeroDemoActive(true)
 
-    const modules = buildHeroDockDemoModules()
+    const modules = buildHeroDockDemoModules(t)
     userSuffixRef.current = HERO_DOCK_DEMO_PROMPT
     skipSyncRef.current = true
     setDebouncedIntent(HERO_DOCK_DEMO_PROMPT)
@@ -198,8 +198,8 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
     setIndustryKeys(new Set(['office']))
     setOfficeCats(new Set(['知识协同']))
     setSelected(new Set(['hero-demo-create']))
-    setPromptSuggestions(buildHeroDockDemoSuggestions())
-    setSuggestValidation(HERO_DOCK_DEMO_VALIDATION)
+    setPromptSuggestions(buildHeroDockDemoSuggestions(t))
+    setSuggestValidation(heroDockDemoValidation(t))
     setSuggestSourceSpec({ id: 'brand' })
     setSuggestUsedAi(true)
     setSuggestConfidence(0.88)
@@ -208,7 +208,7 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
     setAnalysisProgress(0)
     lastAutoSuggestSigRef.current = `${HERO_DOCK_DEMO_PROMPT}::${modules.map((m) => m.id).join(',')}`
     window.setTimeout(() => setBoxOpenSignal((n) => n + 1), 120)
-  }, [])
+  }, [t])
 
   const startHeroTypingDemo = useCallback(() => {
     if (
@@ -701,12 +701,12 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
   }, [debouncedIntent, catalogScenarios, applySuggestModules, clearSuggestModules, heroDemoActive, t])
 
   const displaySuggestions = useMemo(() => {
-    if (heroDemoActive) return buildHeroDockDemoSuggestions()
+    if (heroDemoActive) return buildHeroDockDemoSuggestions(t)
     if (suggestValidation?.status !== 'unclear') return promptSuggestions
     return promptSuggestions.filter(
       (s) => s.score >= 5.5 && !String(s.reason).includes('· AI'),
     )
-  }, [heroDemoActive, promptSuggestions, suggestValidation?.status])
+  }, [heroDemoActive, promptSuggestions, suggestValidation?.status, t])
 
   const selectedModuleIds = useMemo(
     () => new Set(promptModules.map((m) => m.id)),
@@ -746,12 +746,12 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
   }, [promptModules, promptSuggestions, suggestUsedAi, suggestValidation?.status])
 
   const enhancedPreview = useMemo(() => {
-    if (heroDemoActive) return HERO_DOCK_DEMO_ENHANCED
+    if (heroDemoActive) return heroDockDemoEnhanced(t)
     if (debouncedIntent.trim().length < 2) return ''
     if (suggestValidation?.status === 'invalid' || suggestValidation?.status === 'unclear') return ''
     if (!hasStructuredPicks(previewPicks) && suggestValidation?.status !== 'valid') return ''
     return enhanceSimplePrompt(debouncedIntent, previewPicks, suggestValidation)
-  }, [heroDemoActive, debouncedIntent, previewPicks, suggestValidation])
+  }, [heroDemoActive, debouncedIntent, previewPicks, suggestValidation, t])
 
   const applyEnhancedPreview = useCallback(() => {
     if (!enhancedPreview) return

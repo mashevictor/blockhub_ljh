@@ -16,7 +16,7 @@ export default function NewsDetailPage() {
 
   usePageMeta(
     article
-      ? { title: `${article.title} · 积木仓`, description: article.summary, ogImage: article.coverImage }
+      ? { title: `${article.title} · BlockHub`, description: article.summary, ogImage: article.coverImage }
       : null,
   )
 
@@ -35,10 +35,10 @@ export default function NewsDetailPage() {
       <NewsArticleBody article={article} />
       <div className="enrich-section-foot enrich-detail-actions">
         <Link to={ROUTES.news} className="enrich-link-btn agent-action-btn">
-          <AgentButtonContent trailing={false}>返回新闻列表</AgentButtonContent>
+          <AgentButtonContent trailing={false}>{t('home.enrich.news.back')}</AgentButtonContent>
         </Link>
         <a href={ROUTES.contactDemo} className="b2b-btn-primary agent-action-btn">
-          <AgentButtonContent>预约演示</AgentButtonContent>
+          <AgentButtonContent>{t('home.enrich.news.book_demo')}</AgentButtonContent>
         </a>
       </div>
     </MarketingSiteShell>

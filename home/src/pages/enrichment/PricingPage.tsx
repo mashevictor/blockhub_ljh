@@ -92,7 +92,7 @@ function TierGrid({ tiers }: { tiers: PricingTier[] }) {
                   </li>
                 ))}
               </ul>
-              <TierCta tier={raw} />
+              <TierCta tier={tier} />
             </div>
           </article>
         )
@@ -113,7 +113,7 @@ export default function PricingPage() {
 
   usePageMeta({
     title: `${t('home.enrich.pricing.title')} · BlockHub`,
-    description: `Free / Plus / Business / Enterprise；含对话改页与${smartPageLabel}配额说明`,
+    description: t('home.enrich.pricing.meta_desc', { smart: smartPageLabel }),
   })
 
   return (
@@ -121,13 +121,14 @@ export default function PricingPage() {
       skin="landed"
       pageTitle={t('home.enrich.pricing.title')}
       pageEyebrow={t('home.enrich.pricing.eyebrow')}
-    >      <p style={{ marginBottom: 20 }}>
-        <Link to={ROUTES.accountBilling}>我的套餐与用量</Link>
+    >
+      <p style={{ marginBottom: 20 }}>
+        <Link to={ROUTES.accountBilling}>{t('home.enrich.pricing.my_plan')}</Link>
       </p>
 
       <section className="enrich-panel" aria-labelledby="pricing-tiers-title" style={{ marginBottom: 28 }}>
         <div className="enrich-panel-head">
-          <h2 id="pricing-tiers-title">四档套餐</h2>
+          <h2 id="pricing-tiers-title">{t('home.enrich.pricing.tiers_title')}</h2>
           <p>
             <strong>{composeEditLabel}</strong>：{composeEditHint}
             <br />
@@ -140,8 +141,8 @@ export default function PricingPage() {
 
       <section className="enrich-panel enrich-pricing-faq" aria-labelledby="pricing-faq-title">
         <div className="enrich-panel-head">
-          <h2 id="pricing-faq-title">常见问题</h2>
-          <p>套餐边界、{smartPageLabel}、商用与试点</p>
+          <h2 id="pricing-faq-title">{t('home.enrich.pricing.faq_title')}</h2>
+          <p>{t('home.enrich.pricing.faq_lead', { smart: smartPageLabel })}</p>
         </div>
         <div className="enrich-panel-body">
           <dl className="enrich-faq-dl enrich-faq-dl--grid">
@@ -157,8 +158,8 @@ export default function PricingPage() {
 
       <section className="enrich-panel enrich-role-links" aria-labelledby="pricing-roles-title">
         <div className="enrich-panel-head">
-          <h2 id="pricing-roles-title">按角色查看</h2>
-          <p>采购、业务负责人与信息部门的不同关注点</p>
+          <h2 id="pricing-roles-title">{t('home.enrich.pricing.roles_title')}</h2>
+          <p>{t('home.enrich.pricing.roles_lead')}</p>
         </div>
         <div className="enrich-panel-body">
           <div className="enrich-role-chip-grid">
@@ -174,7 +175,7 @@ export default function PricingPage() {
 
       <div className="enrich-section-foot enrich-detail-actions">
         <a href={ROUTES.contactDemo} className="b2b-btn-primary agent-action-btn">
-          <AgentButtonContent>预约演示 · 获取专属报价说明</AgentButtonContent>
+          <AgentButtonContent>{t('home.enrich.pricing.cta_quote')}</AgentButtonContent>
         </a>
       </div>
     </MarketingSiteShell>

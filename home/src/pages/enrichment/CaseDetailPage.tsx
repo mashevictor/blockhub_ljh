@@ -19,7 +19,7 @@ export default function CaseDetailPage() {
 
   usePageMeta(
     study
-      ? { title: `${study.name} · 积木仓`, description: study.summary }
+      ? { title: `${study.name} · BlockHub`, description: study.summary }
       : null,
   )
 
@@ -38,7 +38,7 @@ export default function CaseDetailPage() {
       pageLead={study.summary}
     >
       <article className="enrich-card enrich-detail-hero" style={enrichCardStyle(theme) as CSSProperties}>
-        <EnrichCardVisual icon={theme.icon} label={study.industry} sublabel="完整案例" />
+        <EnrichCardVisual icon={theme.icon} label={study.industry} sublabel={t('home.enrich.case.full_sublabel')} />
         <div className="enrich-case-metrics enrich-case-metrics--detail enrich-card-body enrich-card-body--inline">
           {study.metrics.map((m) => (
             <div key={m.label} className="enrich-metric">
@@ -58,13 +58,13 @@ export default function CaseDetailPage() {
           rel="noopener noreferrer"
           className="b2b-btn-primary agent-action-btn"
         >
-          <AgentButtonContent>打开一页纸摘要（PDF）</AgentButtonContent>
+          <AgentButtonContent>{t('home.enrich.case.open_pdf')}</AgentButtonContent>
         </a>
         <Link to={ROUTES.cases} className="enrich-link-btn agent-action-btn">
-          <AgentButtonContent trailing={false}>返回案例列表</AgentButtonContent>
+          <AgentButtonContent trailing={false}>{t('home.enrich.case.back')}</AgentButtonContent>
         </Link>
         <a href={ROUTES.contactDemo} className="enrich-link-btn agent-action-btn">
-          <AgentButtonContent>预约演示</AgentButtonContent>
+          <AgentButtonContent>{t('home.enrich.case.book_demo')}</AgentButtonContent>
         </a>
       </div>
     </MarketingSiteShell>

@@ -112,7 +112,7 @@ function buildQuotas(me: BillingMe, t: TFn): QuotaItem[] {
     {
       key: 'smart_month',
       label: smart,
-      hint: '组织共享的本月 AI 整页生成/修订次数',
+      hint: t('home.billing.quota.smart_month_hint'),
       period: t('home.billing.period.month'),
       used: me.usage.smart_page_month || 0,
       remaining: me.remaining.smart_page_month ?? null,
@@ -128,7 +128,7 @@ function buildQuotas(me: BillingMe, t: TFn): QuotaItem[] {
     {
       key: 'dl_month',
       label: t('home.billing.quota.code'),
-      hint: '本月可下载的契约/源码次数（组织共享）',
+      hint: t('home.billing.quota.code_month_hint'),
       period: t('home.billing.period.month'),
       used: me.usage.code_download_month || 0,
       remaining: me.remaining.code_download_month ?? null,
@@ -294,11 +294,11 @@ export default function AccountBillingPage() {
               <div className="acc-plan-hero__stat-row">
                 <div>
                   <strong>{unlimitedQuotaCount}</strong>
-                  <span>项不限用量</span>
+                  <span>{t('home.billing.stat.unlimited')}</span>
                 </div>
                 <div>
                   <strong>{quotas.length - unlimitedQuotaCount}</strong>
-                  <span>项有配额</span>
+                  <span>{t('home.billing.stat.limited')}</span>
                 </div>
               </div>
             </aside>
@@ -309,9 +309,9 @@ export default function AccountBillingPage() {
               <h2 id="acc-quota-title">{t('home.billing.quota_title')}</h2>
               <p>
                 <strong>{t('home.billing.quota.compose')}</strong>
-                ：聊天改菜单/表单；
+                {t('home.billing.quota_lead')}
                 <strong>{t('home.billing.quota.smart')}</strong>
-                ：AI 生成整页。组织套餐为共享配额。
+                {t('home.billing.quota_lead_smart')}
               </p>
               <div className="acc-quota-refresh-row">
                 {refreshHint ? <span className="acc-quota-refresh-hint">{refreshHint}</span> : null}
@@ -326,7 +326,7 @@ export default function AccountBillingPage() {
               </div>
             </div>
             <div className="enrich-panel-body">
-              <div className="acc-quota-glossary" aria-label="配额含义说明">
+              <div className="acc-quota-glossary" aria-label={t('home.billing.glossary_aria')}>
                 <div>
                   <strong>{t('home.billing.quota.compose')}</strong>
                   <span>
@@ -351,7 +351,7 @@ export default function AccountBillingPage() {
           <section className="enrich-panel acc-orders-panel reveal d3" aria-labelledby="acc-orders-title">
             <div className="enrich-panel-head">
               <h2 id="acc-orders-title">{t('home.billing.orders_title')}</h2>
-              <p>最近 {orders.length || 0} 笔升级 / 续费订单</p>
+              <p>{t('home.billing.orders_lead', { n: orders.length || 0 })}</p>
             </div>
             <div className="enrich-panel-body">
               {orders.length === 0 ? (
