@@ -13,10 +13,10 @@ import PlazaDualRailFlowPanel from '../../components/plaza/PlazaDualRailFlowPane
 
 type FeedFilter = 'latest' | 'hot' | 'mention'
 
-function visLabel(v: PlazaFeedItem['visibility']) {
-  if (v === 'public') return { text: '@公开', cls: 'vis-public' }
-  if (v === 'dept') return { text: '@部门', cls: 'vis-dept' }
-  return { text: '@组织', cls: 'vis-role' }
+function visLabel(v: PlazaFeedItem['visibility'], t: (key: string) => string) {
+  if (v === 'public') return { text: t('home.plaza.vis.public'), cls: 'vis-public' }
+  if (v === 'dept') return { text: t('home.plaza.vis.dept'), cls: 'vis-dept' }
+  return { text: t('home.plaza.vis.org'), cls: 'vis-role' }
 }
 
 function FeedCard({
@@ -28,6 +28,7 @@ function FeedCard({
   onOpen: () => void
   onInteraction: () => void
 }) {
+  const t = useT()
   const appId = feedAppKey(item)
   const [liked, setLiked] = useState(false)
   const [likes, setLikes] = useState(item.likes)
@@ -36,7 +37,7 @@ function FeedCard({
   const [commentRows, setCommentRows] = useState<Array<{ id: string; author: string; text: string }>>([])
   const [commentText, setCommentText] = useState('')
   const [busy, setBusy] = useState(false)
-  const vis = visLabel(item.visibility)
+  const vis = visLabel(item.visibility, t)
   const creator = isFeedCreator(item)
 
   useEffect(() => {
@@ -70,13 +71,13 @@ function FeedCard({
     const text = commentText.trim()
     if (!text) return
     if (!appId || appId.startsWith('mock-')) {
-      setCommentRows((prev) => [...prev, { id: `local-${Date.now()}`, author: '我', text }])
+      setCommentRows((prev) => [...prev, { id: `local-${Date.now()}`, author: t('home.plaza.feed.me'), text }])
       setComments((n) => n + 1)
       setCommentText('')
       return
     }
     setBusy(true)
-    void postPlazaFeedComment(appId, text, '访客')
+    void postPlazaFeedComment(appId, text, t('home.plaza.feed.guest'))
       .then((res) => {
         setComments(res.comments)
         setLikes(res.likes)
@@ -99,7 +100,7 @@ function FeedCard({
       }}
       role="button"
       tabIndex={0}
-      aria-label={`打开应用 ${item.appName}`}
+      aria-label={t('home.plaza.feed.open_aria', { name: item.appName })}
     >
       <div className="plaza-feed-head">
         <div className="plaza-feed-avatar">{item.authorInitial}</div>
@@ -107,10 +108,10 @@ function FeedCard({
           <strong>
             {item.authorName} · {item.authorMeta}
           </strong>
-          <span>{item.timeLabel} · 通过「描述需求」创建</span>
+          <span>{item.timeLabel} · {t('home.plaza.feed.created_via')}</span>
         </div>
         <span className={`plaza-vis-badge ${vis.cls}`}>{item.atLabel || vis.text}</span>
-        {creator && <span className="plaza-creator-badge">创建者</span>}
+        {creator && <span className="plaza-creator-badge">{t('home.plaza.feed.creator')}</span>}
       </div>
       <div className="plaza-feed-app">
         <h4>
@@ -133,7 +134,7 @@ function FeedCard({
           <span className="plaza-mflow-chev" aria-hidden>
             &gt;&gt;
           </span>{' '}
-          进入查看概览
+          {t('home.plaza.feed.enter')}
         </span>
         <div className="plaza-feed-actions" onClick={(e) => e.stopPropagation()}>
           <button
@@ -148,7 +149,7 @@ function FeedCard({
             💬 {comments}
           </button>
           <button type="button" className="plaza-feed-act">
-            ↗ 转发 {item.reposts}
+            ↗ {t('home.plaza.feed.share')} {item.reposts}
           </button>
         </div>
       </div>
@@ -163,7 +164,7 @@ function FeedCard({
             <input
               type="text"
               value={commentText}
-              placeholder="写评论…"
+              placeholder={t('home.plaza.feed.comment_ph')}
               onChange={(e) => setCommentText(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') handleComment()
@@ -175,7 +176,7 @@ function FeedCard({
               disabled={busy || !commentText.trim()}
               onClick={handleComment}
             >
-              发送
+              {t('home.plaza.feed.send')}
             </button>
           </div>
         </div>
@@ -184,14 +185,13 @@ function FeedCard({
   )
 }
 
-const FILTER_LABELS: Record<FeedFilter, string> = {
-  latest: '最新',
-  hot: '热门',
-  mention: '@我',
-}
-
 export default function PlazaFeedPage() {
   const t = useT()
+  const filterLabels: Record<FeedFilter, string> = {
+    latest: t('home.plaza.feed.filter.latest'),
+    hot: t('home.plaza.feed.filter.hot'),
+    mention: t('home.plaza.feed.filter.mention'),
+  }
   const [filter, setFilter] = useState<FeedFilter>('latest')
   const [items, setItems] = useState<PlazaFeedItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -261,7 +261,7 @@ export default function PlazaFeedPage() {
       <main className="plaza-main plaza-main--detail">
         <div className="plaza-detail-bar">
           <button type="button" className="plaza-detail-back" onClick={backToList}>
-            ← 返回列表
+            {t('home.plaza.feed.back')}
           </button>
           <div className="plaza-detail-title">
             <span className="plaza-at-tag">{opened.atLabel}</span>
@@ -273,13 +273,13 @@ export default function PlazaFeedPage() {
             target="_blank"
             rel="noopener noreferrer"
           >
-            打开应用
+            {t('home.plaza.feed.open_app')}
           </a>
         </div>
         <p className="plaza-main-hint plaza-main-hint--full">
           功能与数据轨可查看与测接口；改模块请打开 Runtime。底部可流程预览（本地动画）。
         </p>
-        <p className="plaza-main-hint plaza-main-hint--short">本应用概览 · 只读 · 改页进 Runtime</p>
+        <p className="plaza-main-hint plaza-main-hint--short">{t('home.plaza.feed.hint_detail')}</p>
         <PlazaDualRailFlowPanel
           appKey={feedAppKey(opened)}
           appName={opened.appName}
@@ -299,7 +299,7 @@ export default function PlazaFeedPage() {
           <span className="plaza-title-chev" aria-hidden>
             &gt;&gt;
           </span>
-          应用广场
+          {t('home.plaza.feed.title')}
         </h1>
         <div className="plaza-filters">
           {(['latest', 'hot', 'mention'] as const).map((key) => (
@@ -309,7 +309,7 @@ export default function PlazaFeedPage() {
               className={filter === key ? 'on' : ''}
               onClick={() => setFilter(key)}
             >
-              {FILTER_LABELS[key]}
+              {filterLabels[key]}
             </button>
           ))}
         </div>
@@ -327,7 +327,7 @@ export default function PlazaFeedPage() {
       <div className="plaza-feed-list">
         {!loading && filtered.length === 0 && (
           <p className="plaza-main-hint">
-            暂无 @公开 应用。在首页创建应用并发布到应用广场后，将显示在这里。
+            {t('home.plaza.feed.empty')}
           </p>
         )}
         {filtered.map((item) => (

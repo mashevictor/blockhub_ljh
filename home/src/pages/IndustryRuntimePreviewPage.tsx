@@ -9,6 +9,7 @@ import {
   type LazyExoticComponent,
 } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
+import { useT } from '@blockhub/i18n/react'
 import type {
   ComposerPageMock,
   ComposerPageSchema,
@@ -419,6 +420,7 @@ function SceneBodyStatic({ kind, scene }: { kind: ScenePageKind; scene: Industry
 }
 
 export default function IndustryRuntimePreviewPage() {
+  const t = useT()
   const { pack = 'mfg' } = useParams()
   const [search] = useSearchParams()
   const micrositeId = search.get('microsite') || loadSavedMicrositeId(pack)
@@ -432,8 +434,10 @@ export default function IndustryRuntimePreviewPage() {
   const [homeRole, setHomeRole] = useState('')
 
   usePageMeta({
-    title: preview ? `${preview.name} · 独立站 Runtime 预览` : '独立站 Runtime 预览',
-    description: '行业独立站入口的场景工作台预览（与弹幕/模块工作台壳分离）',
+    title: preview
+      ? t('home.industry.runtime.meta', { name: preview.name })
+      : t('home.industry.runtime.meta_fallback'),
+    description: t('home.industry.runtime.meta_desc'),
   })
 
   useEffect(() => {
@@ -456,8 +460,8 @@ export default function IndustryRuntimePreviewPage() {
   if (!preview) {
     return (
       <div className="irp-root irp-empty">
-        <p>暂无「{pack}」预览包，当前可打开制造样板。</p>
-        <Link to="/preview/industry-runtime/mfg">查看传统制造 12 场景</Link>
+        <p>{t('home.industry.runtime.missing', { pack })}</p>
+        <Link to="/preview/industry-runtime/mfg">{t('home.industry.runtime.missing_cta')}</Link>
       </div>
     )
   }
@@ -465,6 +469,15 @@ export default function IndustryRuntimePreviewPage() {
   const groups = groupScenesByCategory(scenes)
   const active = scenes.find((s) => s.id === activeId) ?? scenes[0]
   const keys = [...new Set(scenes.map((s) => s.capabilityHint.split(/\s*\+\s*/)[0].trim()))]
+  const siteLabel =
+    preview.key === 'office'
+      ? t('home.industry.runtime.site_office')
+      : preview.key === 'mfg'
+        ? t('home.industry.runtime.site_mfg')
+        : t('home.industry.runtime.site_generic')
+  const hintSkin = skin
+    ? t('home.industry.runtime.hint_skin', { label: skin.styleLabel })
+    : ''
 
   const applySchema = (next: ComposerPageSchema) => {
     setSchema(next)
@@ -507,32 +520,32 @@ export default function IndustryRuntimePreviewPage() {
         <div className="irp-brand">
           <span className="irp-mark" aria-hidden />
           <div>
-            <p className="irp-brand-label">独立站 → Runtime（模板皮肤预览）</p>
+            <p className="irp-brand-label">{t('home.industry.runtime.brand')}</p>
             <strong className="irp-brand-name">{preview.name}</strong>
           </div>
         </div>
         <div className="irp-top-actions">
           <span className="irp-pill">
-            {scenes.length} 场景
+            {t('home.industry.runtime.scenes_pill', { n: scenes.length })}
             {skin ? ` · ${skin.styleLabel}` : ''}
           </span>
           <a className="irp-link" href={ROUTES.industrySiteHtml(preview.key)}>
-            {preview.key === 'office' ? '办公独立站' : preview.key === 'mfg' ? '制造独立站' : '行业独立站'}
+            {siteLabel}
           </a>
-          <Link className="irp-link" to={ROUTES.industryDetail(preview.key)}>方案站</Link>
-          <Link className="irp-link" to={ROUTES.home}>首页</Link>
+          <Link className="irp-link" to={ROUTES.industryDetail(preview.key)}>
+            {t('home.industry.runtime.site_plan')}
+          </Link>
+          <Link className="irp-link" to={ROUTES.home}>{t('home.industry.runtime.home')}</Link>
         </div>
       </header>
 
       <p className="irp-compose-hint">
-        本页是<strong>独立站入口</strong>的场景工作台预览
-        {skin ? `，视觉关联模板「${skin.styleLabel}」` : ''}
-        。弹幕 / 选模块 / 描述需求生成的是另一套 CapShip 标准工作台壳（/r/应用，无独立站皮肤）。
+        {t('home.industry.runtime.hint', { skin: hintSkin })}
       </p>
 
       <div className="irp-body">
-        <aside className="irp-nav" aria-label="场景清单">
-          <p className="irp-nav-title">场景</p>
+        <aside className="irp-nav" aria-label={t('home.industry.runtime.nav_aria')}>
+          <p className="irp-nav-title">{t('home.industry.runtime.nav_title')}</p>
           {groups.map((g) => (
             <div key={g.category} className="irp-nav-group">
               <h4>{g.category}</h4>
@@ -553,7 +566,7 @@ export default function IndustryRuntimePreviewPage() {
           {active ? (
             <SceneWorkspace scene={active} token={homeToken} />
           ) : (
-            <p className="irp-summary">请从左侧选择场景</p>
+            <p className="irp-summary">{t('home.industry.runtime.pick_scene')}</p>
           )}
         </main>
       </div>

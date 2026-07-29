@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
+import { useT } from '@blockhub/i18n/react'
 import { DynamicIcon, IconCheckCircle, IconX } from './icons'
-import { GENERATE_APP_LABEL, GENERATE_APP_LOADING } from '../data/publishUi'
+import { publishGenerateLabel, publishGenerateLoading } from '../i18n/publishLabels'
 import { AgentButtonContent } from './AgentChevron'
 import { iconWrapStyle } from '../data/iconPalette'
 import { BRAND, LOGO } from '../data/brand'
+import { suggestKindLabel } from '../data/promptSuggest'
 
 export interface SelectionItem {
   id: string
@@ -30,14 +32,6 @@ interface Props {
   dormant?: boolean
 }
 
-const KIND_LABEL: Record<SelectionItem['kind'], string> = {
-  industry: '行业',
-  office: '分类',
-  scenario: '场景',
-  capability: '能力',
-  module: '模块',
-}
-
 function ItemRow({
   item,
   index,
@@ -49,7 +43,9 @@ function ItemRow({
   onRemove: (id: string) => void
   isNew?: boolean
 }) {
-  const sub = item.auto ? '系统补齐' : (item.category ?? KIND_LABEL[item.kind])
+  const t = useT()
+  const kindLabel = suggestKindLabel(t, item.kind)
+  const sub = item.auto ? kindLabel : (item.category ?? kindLabel)
   return (
     <li
       className={`selbox-item${isNew ? ' is-new' : ''}${item.auto ? ' is-auto' : ''}`}
@@ -86,6 +82,7 @@ export default function SelectionBox({
   openSignal = 0,
   dormant = false,
 }: Props) {
+  const t = useT()
   const [open, setOpen] = useState(false)
   const [pulse, setPulse] = useState(false)
   const [toast, setToast] = useState<{ name: string; id: string } | null>(null)
@@ -210,8 +207,8 @@ export default function SelectionBox({
               </div>
               {onGenerate && (
                 <button type="button" className="btn-primary selbox-generate agent-action-btn" disabled={generating} onClick={onGenerate}>
-                  {generating ? GENERATE_APP_LOADING : (
-                    <AgentButtonContent>{GENERATE_APP_LABEL}</AgentButtonContent>
+                  {generating ? publishGenerateLoading(t) : (
+                    <AgentButtonContent>{publishGenerateLabel(t)}</AgentButtonContent>
                   )}
                 </button>
               )}

@@ -7,11 +7,13 @@ import { AgentButtonContent, AgentChevronGlyph } from '../../components/AgentChe
 import { TRUST_DOCS, TRUST_FAQ_SAMPLES } from '../../data/siteTrust'
 import { enrichCardStyle, trustDocTheme } from '../../data/enrichVisualThemes'
 import { ROLE_PAGES } from '../../data/siteRoles'
+import { localizeRolePage } from '../../i18n/contentLabels'
 import { ROUTES } from '../../routes/paths'
 import { usePageMeta } from '../../hooks/usePageMeta'
 
 export default function TrustCenterPage() {
   const t = useT()
+  const rolePages = ROLE_PAGES.map((r) => localizeRolePage(t, r))
   usePageMeta({
     title: `${t('home.enrich.trust.eyebrow')} · BlockHub`,
     description: t('home.landing.trust.lead'),
@@ -83,7 +85,7 @@ export default function TrustCenterPage() {
         </div>
         <div className="enrich-panel-body">
           <div className="enrich-role-chip-grid">
-            {ROLE_PAGES.map((role) => (
+            {rolePages.map((role) => (
               <Link key={role.key} to={ROUTES.rolePage(role.key)} className="enrich-role-chip">
                 <AgentChevronGlyph size="sm" className="enrich-dl-chev" />
                 {role.title}

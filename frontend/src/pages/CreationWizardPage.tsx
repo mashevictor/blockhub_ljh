@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useT } from '@blockhub/i18n/react'
 import {
   checkFeasibility,
   fetchCreationScenarios,
@@ -18,6 +19,7 @@ const DELIVER_OPTIONS: { key: DeliverMode; label: string; desc: string }[] = [
 ]
 
 export default function CreationWizardPage() {
+  const t = useT()
   const [steps, setSteps] = useState<WizardStep[]>([])
   const [packs, setPacks] = useState<IndustryPack[]>([])
   const [step, setStep] = useState(1)
@@ -106,8 +108,8 @@ export default function CreationWizardPage() {
   return (
     <>
       <div className="page-header">
-        <h1>创建应用</h1>
-        <p>七步向导：选行业 → 勾选场景 → 方案研判 → 命名 → 交付方式 → 确认发布 → 完成</p>
+        <h1>{t('admin.page.create.title')}</h1>
+        <p>{t('admin.page.create.desc')}</p>
       </div>
 
       <div className="wizard-steps">

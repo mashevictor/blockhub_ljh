@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { useT } from '@blockhub/i18n/react'
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock'
-import { GENERATE_APP_LABEL, PUBLISH_OVERLAY_PROGRESS_MS } from '../data/publishUi'
+import { PUBLISH_OVERLAY_PROGRESS_MS } from '../data/publishUi'
+import { publishGenerateLabel } from '../i18n/publishLabels'
 import ChevronDotLoader from './ChevronDotLoader'
 
 export type GeneratePhase = 'analyze' | 'publish' | 'redirect'
@@ -23,6 +25,8 @@ interface Props {
 }
 
 export default function GenerateLoadingOverlay({ phase, appName, redirectHint }: Props) {
+  const t = useT()
+  const generateLabel = publishGenerateLabel(t)
   useBodyScrollLock(true)
   const [progress, setProgress] = useState(8)
   const startAt = useRef(performance.now())
@@ -57,7 +61,7 @@ export default function GenerateLoadingOverlay({ phase, appName, redirectHint }:
             <div className="loading-progress-fill" style={{ width: `${progress}%` }} />
           </div>
           <p className="loading-headline">
-            {redirectHint || `${GENERATE_APP_LABEL}完成，正在打开「我的应用」…`}
+            {redirectHint || `${generateLabel}完成，正在打开「我的应用」…`}
           </p>
           <ol className="loading-steps">
             {STEPS.map((step) => (
@@ -77,8 +81,8 @@ export default function GenerateLoadingOverlay({ phase, appName, redirectHint }:
     phase === 'analyze'
       ? '正在理解你想做什么…'
       : progress >= 100
-        ? `${GENERATE_APP_LABEL}完成，稍候…`
-        : `快好了，正在${GENERATE_APP_LABEL}${nameHint}`
+        ? `${generateLabel}完成，稍候…`
+        : `快好了，正在${generateLabel}${nameHint}`
 
   return createPortal(
     <div className="loading-overlay loading-overlay-portal loading-overlay-brand" role="alertdialog" aria-busy="true" aria-live="polite">

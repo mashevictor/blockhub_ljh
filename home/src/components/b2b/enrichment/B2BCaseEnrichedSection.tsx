@@ -2,13 +2,16 @@ import { Link } from 'react-router-dom'
 import { useT } from '@blockhub/i18n/react'
 import { AgentButtonContent, AgentChevronGlyph } from '../../AgentChevron'
 import { CASE_STUDIES, getFeaturedCase } from '../../../data/siteCases'
+import { localizeCaseStudy } from '../../../i18n/contentLabels'
 import { ROUTES } from '../../../routes/paths'
-
-const FEATURED_CASE = getFeaturedCase()
-const SHORT_CASES = CASE_STUDIES.filter((c) => c.slug !== FEATURED_CASE.slug).slice(0, 2)
 
 export default function B2BCaseEnrichedSection() {
   const t = useT()
+  const featured = localizeCaseStudy(t, getFeaturedCase())
+  const shortCases = CASE_STUDIES.filter((c) => c.slug !== featured.slug)
+    .slice(0, 2)
+    .map((c) => localizeCaseStudy(t, c))
+
   return (
     <section id="case" className="b2b-section enrich-case-section" aria-labelledby="enrich-case-title">
       <div className="b2b-section-title">
@@ -21,11 +24,11 @@ export default function B2BCaseEnrichedSection() {
       </div>
       <div className="enrich-case-featured">
         <article className="enrich-case-long">
-          {FEATURED_CASE.tag ? <span className="enrich-case-tag">{FEATURED_CASE.tag}</span> : null}
-          <h3>{FEATURED_CASE.name}</h3>
-          <p className="enrich-case-summary">{FEATURED_CASE.summary}</p>
+          {featured.tag ? <span className="enrich-case-tag">{featured.tag}</span> : null}
+          <h3>{featured.name}</h3>
+          <p className="enrich-case-summary">{featured.summary}</p>
           <div className="enrich-case-metrics">
-            {FEATURED_CASE.metrics.map((m) => (
+            {featured.metrics.map((m) => (
               <div key={m.label} className="enrich-metric">
                 <strong>{m.value}</strong>
                 <span>{m.label}</span>
@@ -33,14 +36,14 @@ export default function B2BCaseEnrichedSection() {
             ))}
           </div>
           <Link
-            to={ROUTES.caseDetail(FEATURED_CASE.slug)}
+            to={ROUTES.caseDetail(featured.slug)}
             className="b2b-btn-primary agent-action-btn enrich-case-cta"
           >
             <AgentButtonContent>{t('home.landing.cases.cta')}</AgentButtonContent>
           </Link>
         </article>
         <div className="enrich-case-short-grid">
-          {SHORT_CASES.map((c) => (
+          {shortCases.map((c) => (
             <article key={c.slug} className="b2b-case-item enrich-case-short">
               <div className="b2b-case-name">{c.industry}</div>
               <p>{c.summary}</p>

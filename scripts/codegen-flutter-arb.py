@@ -26,8 +26,15 @@ META_KEYS = {"$schema", "_comment", "_meta", "@@locale"}
 SHELL_FILES = (
     "common.json",
     "errors.json",
+    "home.json",
+    "product.json",
+    "admin.json",
+    "runtime.json",
+    "content.json",
     "capability.gen.json",
     "hero.gen.json",
+    "industry.gen.json",
+    "scene.gen.json",
 )
 
 
@@ -89,7 +96,7 @@ def flatten_message_file(path: Path, *, force_ns: str | None = None) -> dict[str
                     continue
                 flat[f"{k}.{sk}"] = sv
         elif isinstance(v, str):
-            if force_ns and "." not in str(k):
+            if force_ns:
                 flat[f"{force_ns}.{k}"] = v
             else:
                 flat[str(k)] = v
@@ -101,8 +108,16 @@ def load_shell(locale: str) -> dict[str, str]:
     out: dict[str, str] = {}
     out.update(flatten_message_file(base / "common.json", force_ns="common"))
     out.update(flatten_message_file(base / "errors.json", force_ns="error"))
+    out.update(flatten_message_file(base / "home.json", force_ns="home"))
+    out.update(flatten_message_file(base / "product.json", force_ns="product"))
+    out.update(flatten_message_file(base / "admin.json", force_ns="admin"))
+    out.update(flatten_message_file(base / "runtime.json", force_ns="runtime"))
+    out.update(flatten_message_file(base / "content.json", force_ns="content"))
     out.update(flatten_message_file(base / "capability.gen.json"))
     out.update(flatten_message_file(base / "hero.gen.json"))
+    out.update(flatten_message_file(base / "industry.gen.json"))
+    # scene.gen is large; Flutter packs can pull on demand later — include for parity with Web marketing shell
+    out.update(flatten_message_file(base / "scene.gen.json"))
     return out
 
 

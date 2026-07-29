@@ -42,10 +42,10 @@ export default function ReportPage() {
     <>
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between' }}>
         <div>
-          <h1>数据报表</h1>
-          <p>查看使用情况、审批与问答趋势，支持常用报表查询</p>
+          <h1>{t('admin.page.reports.title')}</h1>
+          <p>{t('admin.page.reports.desc')}</p>
         </div>
-        <button type="button" className="btn btn-primary-dark" onClick={handleExport}>导出报表</button>
+        <button type="button" className="btn btn-primary-dark" onClick={handleExport}>{t('admin.page.reports.export')}</button>
       </div>
 
       <div className="kpi-grid">

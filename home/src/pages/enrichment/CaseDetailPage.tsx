@@ -1,17 +1,21 @@
 import { Link, Navigate, useParams } from 'react-router-dom'
+import { useT } from '@blockhub/i18n/react'
 import MarketingSiteShell from '../../components/b2b/enrichment/MarketingSiteShell'
 import EnrichArticleBody from '../../components/b2b/enrichment/EnrichArticleBody'
 import EnrichCardVisual from '../../components/b2b/enrichment/EnrichCardVisual'
 import { AgentButtonContent } from '../../components/AgentChevron'
 import { getCaseStudy, resolveCaseBlocks } from '../../data/siteCases'
 import { caseIndustryTheme, enrichCardStyle } from '../../data/enrichVisualThemes'
+import { localizeCaseStudy } from '../../i18n/contentLabels'
 import { ROUTES } from '../../routes/paths'
 import { usePageMeta } from '../../hooks/usePageMeta'
 import type { CSSProperties } from 'react'
 
 export default function CaseDetailPage() {
+  const t = useT()
   const { slug = '' } = useParams()
-  const study = getCaseStudy(slug)
+  const raw = getCaseStudy(slug)
+  const study = raw ? localizeCaseStudy(t, raw) : undefined
 
   usePageMeta(
     study
@@ -27,7 +31,12 @@ export default function CaseDetailPage() {
   const blocks = resolveCaseBlocks(study)
 
   return (
-    <MarketingSiteShell skin="landed" pageTitle={study.name} pageEyebrow={study.tag ?? '客户案例'} pageLead={study.summary}>
+    <MarketingSiteShell
+      skin="landed"
+      pageTitle={study.name}
+      pageEyebrow={study.tag ?? t('content.enrich.case_customer')}
+      pageLead={study.summary}
+    >
       <article className="enrich-card enrich-detail-hero" style={enrichCardStyle(theme) as CSSProperties}>
         <EnrichCardVisual icon={theme.icon} label={study.industry} sublabel="完整案例" />
         <div className="enrich-case-metrics enrich-case-metrics--detail enrich-card-body enrich-card-body--inline">

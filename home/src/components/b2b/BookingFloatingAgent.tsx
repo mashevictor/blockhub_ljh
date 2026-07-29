@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { useT } from '@blockhub/i18n/react'
 import { AgentButtonContent, AgentChevronGlyph } from '../AgentChevron'
-import { BOOK_DEMO_LOADING } from '../../data/publishUi'
+import { publishBookLoading } from '../../i18n/publishLabels'
 import { useDemoBooking } from '../../context/DemoBookingContext'
 import { BOOKING_FIELDS } from '../../data/demoBookingFlow'
 import DemoBookingSuccess from './DemoBookingSuccess'
@@ -95,7 +95,7 @@ export default function BookingFloatingAgent() {
                 />
                 <button type="button" className="booking-float-go" onClick={submitDraft} disabled={submitting}>
                   {submitting && isLastStep ? (
-                    BOOK_DEMO_LOADING
+                    publishBookLoading(t)
                   ) : (
                     <AgentButtonContent trailing={false}>
                       {isLastStep ? '提交' : '确认'}

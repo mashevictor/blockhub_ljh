@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useT } from '@blockhub/i18n/react'
 import {
   fetchChatConfig,
   fetchChatMessages,
@@ -9,6 +10,7 @@ import {
 } from '../api/client'
 
 export default function ChatPage() {
+  const t = useT()
   const [config, setConfig] = useState<{
     title: string
     description: string
@@ -146,7 +148,7 @@ export default function ChatPage() {
       <div className="chat-main">
         <div className="chat-header">
           <div>
-            <h2>{config?.title ?? '智能问答'}</h2>
+            <h2>{config?.title ?? t('admin.page.chat.title')}</h2>
             <p>{config?.description ?? '基于企业知识库的多轮对话'}</p>
           </div>
           <select className="model-select" value={model} onChange={(e) => setModel(e.target.value)} aria-label="对话模型">

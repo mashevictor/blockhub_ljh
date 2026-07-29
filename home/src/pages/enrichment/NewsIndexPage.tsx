@@ -4,8 +4,9 @@ import type { CSSProperties } from 'react'
 import MarketingSiteShell from '../../components/b2b/enrichment/MarketingSiteShell'
 import EnrichCardVisual from '../../components/b2b/enrichment/EnrichCardVisual'
 import { AgentButtonContent } from '../../components/AgentChevron'
-import { NEWS_ARTICLES, NEWS_CATEGORY_LABELS } from '../../data/siteNews'
+import { NEWS_ARTICLES } from '../../data/siteNews'
 import { enrichCardStyle, NEWS_CATEGORY_THEMES } from '../../data/enrichVisualThemes'
+import { localizeNewsArticle, newsCategoryLabel } from '../../i18n/contentLabels'
 import { ROUTES } from '../../routes/paths'
 import { usePageMeta } from '../../hooks/usePageMeta'
 
@@ -23,9 +24,10 @@ export default function NewsIndexPage() {
       pageLead={t('home.enrich.news.lead')}
     >
       <div className="enrich-news-list">
-        {NEWS_ARTICLES.map((item) => {
+        {NEWS_ARTICLES.map((raw) => {
+          const item = localizeNewsArticle(t, raw)
           const theme = NEWS_CATEGORY_THEMES[item.category]
-          const catLabel = NEWS_CATEGORY_LABELS[item.category]
+          const catLabel = newsCategoryLabel(t, item.category)
           return (
             <article
               key={item.slug}

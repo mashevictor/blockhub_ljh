@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BlockHub i18n · 剩余待翻译 TodoList</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0f1419;
+      --bg-elev: #171e26;
+      --bg-card: #1c2530;
+      --line: #2a3544;
+      --text: #e8eef5;
+      --muted: #8b9bb0;
+      --accent: #3d9a7a;
+      --accent-dim: rgba(61, 154, 122, 0.15);
+      --warn: #d4a017;
+      --warn-dim: rgba(212, 160, 23, 0.14);
+      --todo: #5b8def;
+      --todo-dim: rgba(91, 141, 239, 0.14);
+      --done: #3d9a7a;
+      --done-dim: rgba(61, 154, 122, 0.14);
+      --p0: #ef6b6b;
+      --p1: #d4a017;
+      --p2: #5b8def;
+      --p3: #8b9bb0;
+      --radius: 10px;
+      --font: "DM Sans", system-ui, sans-serif;
+      --mono: "JetBrains Mono", ui-monospace, monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font);
+      background:
+        radial-gradient(1100px 520px at 8% -8%, rgba(61, 154, 122, 0.12), transparent 55%),
+        radial-gradient(900px 480px at 92% 0%, rgba(91, 141, 239, 0.1), transparent 50%),
+        var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+      min-height: 100vh;
+    }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 48px 24px 80px; }
+    header.hero { margin-bottom: 28px; padding-bottom: 24px; border-bottom: 1px solid var(--line); }
+    .eyebrow { font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); font-weight: 600; margin-bottom: 10px; }
+    h1 { font-size: clamp(1.6rem, 3.2vw, 2.1rem); font-weight: 700; letter-spacing: -0.03em; margin-bottom: 10px; }
+    .lede { color: var(--muted); font-size: 1.02rem; max-width: 68ch; }
+    .meta { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+    .chip { font-size: 12px; font-weight: 500; padding: 5px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg-elev); color: var(--muted); }
+    .chip strong { color: var(--text); }
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 24px 0 28px; }
+    @media (max-width: 720px) { .stats { grid-template-columns: repeat(2, 1fr); } }
+    .stat { background: var(--bg-card); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; }
+    .stat .n { font-size: 1.6rem; font-weight: 700; letter-spacing: -0.03em; }
+    .stat .l { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .stat.done .n { color: var(--done); }
+    .stat.todo .n { color: var(--todo); }
+    .stat.warn .n { color: var(--warn); }
+    section.block { margin-bottom: 18px; background: var(--bg-card); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+    .block-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 16px 18px; background: var(--bg-elev); border-bottom: 1px solid var(--line); }
+    .block-head h2 { font-size: 1.05rem; font-weight: 650; letter-spacing: -0.02em; }
+    .block-head p { color: var(--muted); font-size: 13px; margin-top: 4px; max-width: 62ch; }
+    .pri { font-family: var(--mono); font-size: 11px; font-weight: 600; padding: 4px 8px; border-radius: 6px; white-space: nowrap; }
+    .pri.p0 { background: rgba(239,107,107,.14); color: var(--p0); }
+    .pri.p1 { background: var(--warn-dim); color: var(--p1); }
+    .pri.p2 { background: var(--todo-dim); color: var(--p2); }
+    .pri.p3 { background: rgba(139,155,176,.12); color: var(--p3); }
+    .pri.done { background: var(--done-dim); color: var(--done); }
+    ul.items { list-style: none; padding: 6px 0; }
+    li.item { display: grid; grid-template-columns: 22px 1fr auto; gap: 10px; align-items: start; padding: 11px 18px; border-top: 1px solid transparent; }
+    li.item + li.item { border-top-color: var(--line); }
+    .box { width: 16px; height: 16px; margin-top: 3px; border: 1.5px solid #4a5a6e; border-radius: 4px; background: transparent; }
+    li.item.done .box { background: var(--accent); border-color: var(--accent); box-shadow: inset 0 0 0 2px var(--bg-card); }
+    .item-title { font-size: 14px; font-weight: 550; }
+    .item-desc { font-size: 12.5px; color: var(--muted); margin-top: 3px; }
+    .item-desc code { font-family: var(--mono); font-size: 11px; color: #a8bdd4; }
+    .tag { font-size: 11px; color: var(--muted); font-family: var(--mono); }
+    footer.note { margin-top: 28px; color: var(--muted); font-size: 13px; }
+    footer.note a { color: var(--accent); }
+    .legend { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="hero">
+      <div class="eyebrow">i18n remaining · 2026-07-29</div>
+      <h1>还有哪些需要翻译</h1>
+      <p class="lede">
+        P0–P6 基础设施已完成；壳层导航 / Hero / Footer / Plaza / 行业卡片 /
+        <strong style="color:var(--text);font-weight:600">管理后台壳 + Runtime 壳</strong> 已接入。
+        下面按优先级列出仍含中文硬编码、切英文后仍会露中文的区域。
+      </p>
+      <div class="meta">
+        <span class="chip">扫描日 <strong>2026-07-29</strong></span>
+        <span class="chip">P3 营销/场景 <strong>已完成</strong></span>
+        <span class="chip">CapShip <strong>自有切换 · 暂缓</strong></span>
+        <span class="chip"><a href="./i18n-todolist.html" style="color:inherit;text-decoration:none">← 完整 P0–P6 清单</a></span>
+      </div>
+    </header>
+
+    <div class="stats">
+      <div class="stat done"><div class="n">P0–P3</div><div class="l">产品区 + 后台 + 营销正文 · 完成</div></div>
+      <div class="stat"><div class="n">续</div><div class="l">非 Top5 widget / HTML 演示</div></div>
+      <div class="stat"><div class="n">scene</div><div class="l">术语表 EN 可 seed 精修</div></div>
+      <div class="stat"><div class="n">CapShip</div><div class="l">自有切换 · Skip</div></div>
+    </div>
+
+    <div class="legend">
+      <span class="pri p0">P0 用户必见</span>
+      <span class="pri p1">P1 高流量</span>
+      <span class="pri p2">P2 后台 / Runtime</span>
+      <span class="pri p3">P3 长尾内容 / 数据 SSOT</span>
+      <span class="pri done">Done</span>
+    </div>
+
+    <!-- Done -->
+    <section class="block">
+      <div class="block-head">
+        <div>
+          <h2>已完成（本轮 + 前期）</h2>
+          <p>切换顶栏语言后这些区域应跟英文化；CapShip 页面用自带开关。</p>
+        </div>
+        <span class="pri done">Done</span>
+      </div>
+      <ul class="items">
+        <li class="item done">
+          <span class="box"></span>
+          <div>
+            <div class="item-title">行业卡片名（24 个深度包）</div>
+            <div class="item-desc">
+              <code>home.industry.{key}.name/desc</code> +
+              <code>B2BProductSection</code> /
+              <code>IndustrySitesIndexPage</code> /
+              <code>IndustryDetailPage</code>（标题与「更多行业」卡片）
+            </div>
+          </div>
+          <span class="tag">home</span>
+        </li>
+        <li class="item done">
+          <span class="box"></span>
+          <div>
+            <div class="item-title">首页壳：导航 / Hero / Stats / Product 区块标题 / Footer / Plaza 顶栏 / Booking 浮层</div>
+            <div class="item-desc"><code>home.json</code> + <code>useT()</code>；CapShip 隐藏全局 LocaleSwitch</div>
+          </div>
+          <span class="tag">home</span>
+        </li>
+        <li class="item done">
+          <span class="box"></span>
+          <div>
+            <div class="item-title">能力 / Hero catalog · Top5 能力包 · Flutter ARB · CI drift</div>
+            <div class="item-desc">P0–P6 见 <code>i18n-todolist.html</code></div>
+          </div>
+          <span class="tag">shared</span>
+        </li>
+      </ul>
+    </section>
+
+    <!-- P0 DONE -->
+    <section class="block">
+      <div class="block-head">
+        <div>
+          <h2>P0 · 首页产品区剩余卡片文案</h2>
+          <p>已完成：模板 / 模块 / 原子 / 大模型 / 编排步骤（<code>product.json</code>）。solutions 短名 → P3。</p>
+        </div>
+        <span class="pri done">Done</span>
+      </div>
+      <ul class="items">
+        <li class="item done">
+          <span class="box"></span>
+          <div>
+            <div class="item-title">AI 模板卡片 · 插入模块卡片</div>
+            <div class="item-desc"><code>product.tpl.*</code> / <code>product.mod.*</code></div>
+          </div>
+          <span class="tag">done</span>
+        </li>
+        <li class="item done">
+          <span class="box"></span>
+          <div>
+            <div class="item-title">原子能力 / 大模型编排卡片</div>
+            <div class="item-desc"><code>product.atom.*</code> / <code>product.llm.*</code> / <code>product.orch.*</code></div>
+          </div>
+          <span class="tag">done</span>
+        </li>
+        <li class="item done">
+          <span class="box"></span>
+          <div>
+            <div class="item-title">行业卡片内 solutions 列表（场景短名）</div>
+            <div class="item-desc"><code>content.solution.{pack}.{i}</code> · B2BProductSection 已接入</div>
+          </div>
+          <span class="tag">done</span>
+        </li>
+      </ul>
+    </section>
+
+    <section class="block">
+      <div class="block-head">
+        <div>
+          <h2>P0 · 行业独立站内页（非卡片名）</h2>
+          <p>壳层已译；enrichment / 场景 name·problem 正文仍中文 → P3。</p>
+        </div>
+        <span class="pri done">Done</span>
+      </div>
+      <ul class="items">
+        <li class="item done">
+          <span class="box"></span>
+          <div>
+            <div class="item-title">IndustryDetailPage 壳层文案</div>
+            <div class="item-desc">Hero CTA、方案总述、场景清单标签、页脚 CTA</div>
+          </div>
+          <span class="tag">done</span>
+        </li>
+        <li class="item done">
+          <span class="box"></span>
+          <div>
+            <div class="item-title">行业包 enrichment / 场景清单 / visualTheme</div>
+            <div class="item-desc">场景名·problem·分类走 Catalog Accept-Language + <code>scene.gen</code>；enrichment LLM 正文仍中文可续</div>
+          </div>
+          <span class="tag">done*</span>
+        </li>
+        <li class="item done">
+          <span class="box"></span>
+          <div>
+            <div class="item-title">IndustryView / Runtime 预览 / 模板画廊</div>
+            <div class="item-desc">壳层已译；Runtime 场景 mock 正文 → P1</div>
+          </div>
+          <span class="tag">done</span>
+        </li>
+      </ul>
+    </section>
+
+    <!-- P1 DONE -->
+    <section class="block">
+      <div class="block-head">
+        <div>
+          <h2>P1 · 创建 / Agent / 发布</h2>
+          <p>Agent 输入壳、hero 弹幕标签、发布按钮/默认应用名、LiveOffice 状态壳已接入。</p>
+        </div>
+        <span class="pri done">Done</span>
+      </div>
+      <ul class="items">
+        <li class="item done">
+          <span class="box"></span>
+          <div>
+            <div class="item-title">Agent 输入 / 建议 / LiveOffice 场景体</div>
+            <div class="item-desc"><code>AgentInput</code> · <code>AgentOrbPanel</code> · <code>suggestKindLabel</code> · LiveOffice chrome；表单字段正文仍中文</div>
+          </div>
+          <span class="tag">done</span>
+        </li>
+        <li class="item done">
+          <span class="box"></span>
+          <div>
+            <div class="item-title">发布流展示文案</div>
+            <div class="item-desc"><code>publishLabels.ts</code> · Generate/Booking CTAs · 行业默认应用名</div>
+          </div>
+          <span class="tag">done</span>
+        </li>
+        <li class="item done">
+          <span class="box"></span>
+          <div>
+            <div class="item-title">rolePresets 角色标签</div>
+            <div class="item-desc">弹幕面板走 <code>hero.{id}.label/role/hint</code>（hero.gen）；完整 picks 正文 → P3</div>
+          </div>
+          <span class="tag">done</span>
+        </li>
+      </ul>
+    </section>
+
+    <section class="block">
+      <div class="block-head">
+        <div>
+          <h2>P1 · 应用广场 · 账户套餐</h2>
+          <p>Feed / 我的应用 / FlowBiz 壳 / 计费页已译。</p>
+        </div>
+        <span class="pri done">Done</span>
+      </div>
+      <ul class="items">
+        <li class="item done">
+          <span class="box"></span>
+          <div>
+            <div class="item-title">Plaza Feed / 我的应用 / FlowBiz 指令框</div>
+            <div class="item-desc">静态 chrome + chip 标签；动态 analyze 串仍中文</div>
+          </div>
+          <span class="tag">done</span>
+        </li>
+        <li class="item done">
+          <span class="box"></span>
+          <div>
+            <div class="item-title">账户计费页</div>
+            <div class="item-desc"><code>AccountBillingPage</code> 套餐/配额/流水壳；定价正文 FAQ → 可用 pricing.* 续</div>
+          </div>
+          <span class="tag">done</span>
+        </li>
+      </ul>
+    </section>
+
+    <!-- P2 DONE -->
+    <section class="block">
+      <div class="block-head">
+        <div>
+          <h2>P2 · 管理后台 frontend</h2>
+          <p>已完成：侧栏 / Auth / Overview / 各业务页标题壳（<code>admin.json</code>）。页内深表单正文可续译。</p>
+        </div>
+        <span class="pri done">Done</span>
+      </div>
+      <ul class="items">
+        <li class="item done">
+          <span class="box"></span>
+          <div>
+            <div class="item-title">AdminLayout 侧栏菜单 + Overview / Auth</div>
+            <div class="item-desc"><code>admin.nav.*</code> · <code>admin.overview.*</code> · <code>admin.auth.*</code> · 角色标签</div>
+          </div>
+          <span class="tag">done</span>
+        </li>
+        <li class="item done">
+          <span class="box"></span>
+          <div>
+            <div class="item-title">业务页标题壳：审批 / 知识库 / 合同 / 集成 / 创建向导 / 报表…</div>
+            <div class="item-desc"><code>admin.page.*</code> · 状态筛选 / 主 CTA；深表单字段仍中文</div>
+          </div>
+          <span class="tag">done</span>
+        </li>
+      </ul>
+    </section>
+
+    <section class="block">
+      <div class="block-head">
+        <div>
+          <h2>P2 · Runtime Web</h2>
+          <p>App 壳 / IndustrySiteHome / GeneratedPage React 壳已译（<code>runtime.json</code>）。</p>
+        </div>
+        <span class="pri done">Done</span>
+      </div>
+      <ul class="items">
+        <li class="item done">
+          <span class="box"></span>
+          <div>
+            <div class="item-title">App 壳 / IndustrySiteHome / 生成页进度壳</div>
+            <div class="item-desc"><code>runtime.*</code> · boot/banner/nav/refresh · <code>runtime.gen.*</code></div>
+          </div>
+          <span class="tag">done</span>
+        </li>
+        <li class="item">
+          <span class="box"></span>
+          <div>
+            <div class="item-title">builtin HTML 演示小游戏 / 非 Top5 web-capability-* 业务文案</div>
+            <div class="item-desc">snake/moba/stock srcDoc 与能力包内字段逐步 <code>tf()</code>；locales 骨架已有</div>
+          </div>
+          <span class="tag">→ 续</span>
+        </li>
+      </ul>
+    </section>
+
+    <!-- P3 DONE -->
+    <section class="block">
+      <div class="block-head">
+        <div>
+          <h2>P3 · 营销内容 / 案例新闻定价</h2>
+          <p>独立 <code>content.json</code>（741 keys）；案例 / 新闻 / 角色 / 信任正文 / 定价 FAQ / showcase 已接入。</p>
+        </div>
+        <span class="pri done">Done</span>
+      </div>
+      <ul class="items">
+        <li class="item done">
+          <span class="box"></span>
+          <div>
+            <div class="item-title">siteCases / siteNews / siteRoles / enrichmentContent / pricing</div>
+            <div class="item-desc"><code>content.case/news/role/trust/pricing.*</code> + <code>contentLabels.ts</code></div>
+          </div>
+          <span class="tag">done</span>
+        </li>
+        <li class="item done">
+          <span class="box"></span>
+          <div>
+            <div class="item-title">showcase CAPABILITIES / PLATFORMS + 行业卡片 solutions</div>
+            <div class="item-desc"><code>content.showcase.*</code> · <code>content.solution.{pack}.{i}</code></div>
+          </div>
+          <span class="tag">done</span>
+        </li>
+      </ul>
+    </section>
+
+    <section class="block">
+      <div class="block-head">
+        <div>
+          <h2>P3 · 后端行业包 SSOT labels</h2>
+          <p><code>industry.gen</code> / <code>scene.gen</code> + Catalog Accept-Language；pack 带 labels。</p>
+        </div>
+        <span class="pri done">Done</span>
+      </div>
+      <ul class="items">
+        <li class="item done">
+          <span class="box"></span>
+          <div>
+            <div class="item-title">industry_packs_all.name / tagline → labels + industry.gen.json</div>
+            <div class="item-desc"><code>labels</code> / <code>tagline_labels</code> · Catalog <code>/industry/{key}</code> 跟 locale</div>
+          </div>
+          <span class="tag">done</span>
+        </li>
+        <li class="item done">
+          <span class="box"></span>
+          <div>
+            <div class="item-title">场景名 / problem / 分类 多语言</div>
+            <div class="item-desc"><code>scene.gen.json</code>（2208 keys）· 术语表 + seed；可继续用 seed/scene.en-US.json 精修</div>
+          </div>
+          <span class="tag">done</span>
+        </li>
+      </ul>
+    </section>
+
+    <section class="block">
+      <div class="block-head">
+        <div>
+          <h2>暂缓 · CapShip</h2>
+          <p>已有中英文切换；全局 LocaleSwitch 在 CapShip 路由隐藏，避免双开关冲突。</p>
+        </div>
+        <span class="pri p3">Skip</span>
+      </div>
+      <ul class="items">
+        <li class="item done">
+          <span class="box"></span>
+          <div>
+            <div class="item-title">CapShip OSS / 对话改页页内切换</div>
+            <div class="item-desc">保持现状；勿强行并入全局 locale，除非产品明确要求统一</div>
+          </div>
+          <span class="tag">capship</span>
+        </li>
+      </ul>
+    </section>
+
+    <footer class="note">
+      验证行业卡片：打开首页 → 产品能力「全行业方案」或 <code>/industry</code> → 点顶栏中英切换，卡片标题应变为 Manufacturing / Healthcare 等。
+      完整基础设施清单：<a href="./i18n-todolist.html">i18n-todolist.html</a>。
+    </footer>
+  </div>
+</body>
+</html>

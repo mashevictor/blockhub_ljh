@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useT } from '@blockhub/i18n/react'
 import {
   GtgtStepComposer,
   registerWidget,
@@ -273,6 +274,7 @@ function wrapPlayableSrcDoc(html: string): string {
 }
 
 function GeneratedCodeFrame({ title, html }: { title: string; html: string }) {
+  const t = useT()
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const [armed, setArmed] = useState(false)
   const [frameH, setFrameH] = useState(560)
@@ -318,7 +320,7 @@ function GeneratedCodeFrame({ title, html }: { title: string; html: string }) {
     <article className="generated-page generated-page--code" data-source="generated">
       {upgraded ? (
         <p className="muted" style={{ margin: '0 0 8px', fontSize: 12, color: '#0f766e' }}>
-          已自动升级为可玩版（触屏方向键 · 无弹窗），无需再对话改页。
+          {t('runtime.gen.upgraded')}
         </p>
       ) : null}
       <div style={{ position: 'relative', width: '100%' }}>
@@ -360,7 +362,7 @@ function GeneratedCodeFrame({ title, html }: { title: string; html: string }) {
               cursor: 'pointer',
             }}
           >
-            点击开始游玩 · 键盘/触屏方向可用
+            {t('runtime.gen.play_hint')}
           </button>
         ) : null}
       </div>
@@ -378,7 +380,25 @@ type LocalRecord = {
 
 type SeedRow = LocalRecord & { seed: true }
 
-const STATUS_CYCLE = ['待处理', '进行中', '已完成'] as const
+const STATUS_KEYS = ['todo', 'doing', 'done'] as const
+type StatusKey = (typeof STATUS_KEYS)[number]
+
+const LEGACY_STATUS: Record<string, StatusKey> = {
+  待处理: 'todo',
+  进行中: 'doing',
+  已完成: 'done',
+  todo: 'todo',
+  doing: 'doing',
+  done: 'done',
+}
+
+function normalizeStatus(status: string): StatusKey {
+  return LEGACY_STATUS[status] || 'todo'
+}
+
+function statusLabel(status: string, t: (key: string) => string): string {
+  return t(`runtime.gen.status.${normalizeStatus(status)}`)
+}
 
 function storageKey(cap: string) {
   return `blockhub_gen_records:${cap}`
@@ -404,8 +424,16 @@ function saveRecords(cap: string, rows: LocalRecord[]) {
 }
 
 /** compose page_mock → 静态块（说明区兜底） */
-export function pageMockToBlocks(mock: PageMock | null | undefined): Block[] {
+export function pageMockToBlocks(
+  mock: PageMock | null | undefined,
+  t?: (key: string) => string,
+): Block[] {
   if (!mock || typeof mock !== 'object') return []
+  const tr = (key: string, fallback: string) => {
+    if (!t) return fallback
+    const text = t(key)
+    return text === key ? fallback : text
+  }
   const blocks: Block[] = []
   if (mock.form_title) blocks.push({ type: 'heading', text: String(mock.form_title) })
   for (const f of mock.fields || []) {
@@ -417,22 +445,28 @@ export function pageMockToBlocks(mock: PageMock | null | undefined): Block[] {
   if (mock.list?.length) {
     blocks.push({
       type: 'list',
-      text: mock.list_title || '列表',
+      text: mock.list_title || tr('runtime.gen.list_fallback', '列表'),
       items: mock.list.map((row) => {
-        const t = row.title || row.id || '条目'
-        return row.status ? `${t} · ${row.status}` : String(t)
+        const itemTitle = row.title || row.id || tr('runtime.gen.item', '条目')
+        return row.status ? `${itemTitle} · ${row.status}` : String(itemTitle)
       }),
     })
   }
   if (mock.chat_title) blocks.push({ type: 'heading', text: String(mock.chat_title) })
   for (const c of mock.chat || []) {
-    if (c?.text) blocks.push({ type: 'paragraph', text: `${c.role === 'bot' ? '助手' : '用户'}：${c.text}` })
+    if (c?.text) {
+      const role = c.role === 'bot' ? tr('runtime.gen.bot', '助手') : tr('runtime.gen.user', '用户')
+      blocks.push({ type: 'paragraph', text: `${role}：${c.text}` })
+    }
   }
   if (mock.kpis?.length) {
     blocks.push({
       type: 'list',
-      text: '指标',
-      items: mock.kpis.map((k) => `${k.label || '指标'}：${k.value || '—'}${k.hint ? `（${k.hint}）` : ''}`),
+      text: tr('runtime.gen.kpi', '指标'),
+      items: mock.kpis.map(
+        (k) =>
+          `${k.label || tr('runtime.gen.kpi', '指标')}：${k.value || '—'}${k.hint ? `（${k.hint}）` : ''}`,
+      ),
     })
   }
   return blocks
@@ -475,18 +509,8 @@ function resolveInteractiveForNode(node: SchemaNode) {
   return interactiveSchemaFromIntent(blob)
 }
 
-const GEN_STEPS = [
-  { key: 'understand', label: '理解需求' },
-  { key: 'codegen', label: '生成可运行页面' },
-  { key: 'verify', label: '后台自检' },
-  { key: 'ready', label: '即将可用' },
-] as const
-
-const GEN_TIPS = [
-  '正在智能出页，把需求变成可交互页面…',
-  '生成完成后会自动出现，无需刷新…',
-  '若在改已有页面，会基于上一版源码修订…',
-]
+const GEN_STEP_KEYS = ['understand', 'codegen', 'verify', 'ready'] as const
+const GEN_TIP_KEYS = ['runtime.gen.tip.1', 'runtime.gen.tip.2', 'runtime.gen.tip.3'] as const
 
 function GeneratingProgress({
   title,
@@ -500,6 +524,7 @@ function GeneratingProgress({
   /** 超过该秒数仍无成品时回调（只触发一次） */
   onTimeout?: () => void
 }) {
+  const t = useT()
   const [elapsed, setElapsed] = useState(0)
   const [tipIdx, setTipIdx] = useState(0)
   const timedOutRef = useRef(false)
@@ -520,48 +545,51 @@ function GeneratingProgress({
   }, [onTimeout])
 
   useEffect(() => {
-    const tip = window.setInterval(() => setTipIdx((i) => (i + 1) % GEN_TIPS.length), 4500)
+    const tip = window.setInterval(
+      () => setTipIdx((i) => (i + 1) % GEN_TIP_KEYS.length),
+      4500,
+    )
     return () => window.clearInterval(tip)
   }, [])
 
   const stepIdx = elapsed < 4 ? 0 : elapsed < 10 ? 1 : elapsed < 16 ? 2 : 3
   const etaHint =
     elapsed < 8
-      ? '预计约 10–20 秒'
+      ? t('runtime.gen.eta.fast')
       : elapsed < MAX_WAIT
-        ? '比平时稍慢；即将换成可玩精简版'
-        : '正在切换可玩精简版…'
+        ? t('runtime.gen.eta.slow')
+        : t('runtime.gen.eta.fallback')
 
   return (
     <article
       className="generated-page generated-page--skeleton generated-page--progress"
       data-source="generating"
       aria-busy="true"
-      aria-label={`${title} 生成中`}
+      aria-label={t('runtime.gen.aria', { title })}
       style={{ ['--accent' as string]: accent }}
     >
       <header className="generated-skeleton-head">
-        <p className="generated-badge">生成中 · {elapsed}s</p>
+        <p className="generated-badge">{t('runtime.gen.badge', { s: elapsed })}</p>
         <h2>{title}</h2>
-        <p className="generated-summary">{summary || '正在为你生成可交互页面'}</p>
+        <p className="generated-summary">{summary || t('runtime.gen.summary')}</p>
       </header>
 
-      <ol className="generated-progress-steps" aria-label="生成进度">
-        {GEN_STEPS.map((s, i) => (
+      <ol className="generated-progress-steps" aria-label={t('runtime.gen.progress_aria')}>
+        {GEN_STEP_KEYS.map((key, i) => (
           <li
-            key={s.key}
+            key={key}
             className={i < stepIdx ? 'is-done' : i === stepIdx ? 'is-active' : ''}
           >
             <span className="generated-progress-dot" aria-hidden />
-            <span>{s.label}</span>
+            <span>{t(`runtime.gen.step.${key}`)}</span>
           </li>
         ))}
       </ol>
 
       <p className="generated-progress-eta">{etaHint}</p>
-      <p className="generated-progress-tip muted">{GEN_TIPS[tipIdx]}</p>
+      <p className="generated-progress-tip muted">{t(GEN_TIP_KEYS[tipIdx])}</p>
       <p className="muted" style={{ margin: '8px 0 0', fontSize: 13 }}>
-        仍在处理时可先去其他菜单；超时将自动打开精简可玩版，无需干等灰色占位块。
+        {t('runtime.gen.hint')}
       </p>
     </article>
   )
@@ -572,6 +600,7 @@ function GeneratingProgress({
  * 生成中展示进度与预期，不把校验细节暴露给用户。
  */
 function GeneratedPageWidget({ node }: { node: SchemaNode }) {
+  const t = useT()
   const { primaryColor, user, schema } = useRuntime()
   const accent = primaryColor || '#4338ca'
   const meta = (schema?.meta || {}) as Record<string, unknown>
@@ -580,7 +609,7 @@ function GeneratedPageWidget({ node }: { node: SchemaNode }) {
     String(meta.entry_source || '') === 'industry_site' ||
     Boolean(meta.microsite_id) ||
     Boolean(theme.micrositeId)
-  const title = String(node.props?.title || node.props?.scene_label || node.id || '新页面')
+  const title = String(node.props?.title || node.props?.scene_label || node.id || t('runtime.gen.new_page'))
   const summary = String(node.props?.summary || '')
   const capKey = String(node.props?.capability_key || node.id || 'gen_page')
   const pending = Boolean(node.props?.codegen_pending)
@@ -658,13 +687,13 @@ function GeneratedPageWidget({ node }: { node: SchemaNode }) {
     () =>
       (mock?.list || []).map((row, i) => ({
         id: String(row.id || `seed_${i}`),
-        title: String(row.title || row.id || '条目'),
-        status: String(row.status || '示例'),
+        title: String(row.title || row.id || t('runtime.gen.item')),
+        status: String(row.status || t('runtime.gen.sample')),
         detail: '',
         at: '',
         seed: true as const,
       })),
-    [mock?.list],
+    [mock?.list, t],
   )
 
   const [records, setRecords] = useState<LocalRecord[]>(() => loadRecords(capKey))
@@ -684,9 +713,7 @@ function GeneratedPageWidget({ node }: { node: SchemaNode }) {
     return (
       <div>
         <p className="muted" style={{ margin: '0 0 8px', fontSize: 12, color: '#0f766e' }}>
-          {pending
-            ? '已打开精简可玩版（勿干等空骨架）。后台若生成更完整页，将自动升级。'
-            : '精简可玩版（非完整客户端）。可继续对话打磨。'}
+          {pending ? t('runtime.gen.fallback_banner') : t('runtime.gen.fallback_lite')}
         </p>
         <GeneratedCodeFrame title={title} html={forceLiteHtml} />
       </div>
@@ -710,7 +737,7 @@ function GeneratedPageWidget({ node }: { node: SchemaNode }) {
   }
 
   if (interactive) {
-    return <InteractiveToolPad schema={interactive} title={title || '交互工具'} summary={summary} />
+    return <InteractiveToolPad schema={interactive} title={title || t('runtime.gen.tool')} summary={summary} />
   }
 
   const displayList: Array<LocalRecord | SeedRow> = [
@@ -723,17 +750,19 @@ function GeneratedPageWidget({ node }: { node: SchemaNode }) {
   const infoBlocks =
     hasFormFields
       ? []
-      : (rawBlocks.length ? rawBlocks : pageMockToBlocks(mock)).filter((b) => b.type !== 'button')
+      : (rawBlocks.length ? rawBlocks : pageMockToBlocks(mock, t)).filter((b) => b.type !== 'button')
 
-  const submitLabel = String(mock?.primary_action || node.props?.primary_action || `提交${title}`).slice(0, 16)
+  const submitLabel = String(
+    mock?.primary_action || node.props?.primary_action || t('runtime.gen.submit_prefix', { title }),
+  ).slice(0, 16)
   const formTitle = String(mock?.form_title || node.props?.form_headline || title)
-  const listTitle = String(mock?.list_title || '记录')
+  const listTitle = String(mock?.list_title || t('runtime.gen.list'))
 
   const handleSubmit = async () => {
     const primaryKey = fieldDefs[0]?.key || 'title'
     const primaryVal = (values[primaryKey] || values.title || '').trim()
     if (!primaryVal) {
-      setMsg('请先填写必填项')
+      setMsg(t('runtime.gen.need_required'))
       return
     }
     setBusy(true)
@@ -751,7 +780,7 @@ function GeneratedPageWidget({ node }: { node: SchemaNode }) {
       const row: LocalRecord = {
         id: `r_${Date.now().toString(36)}`,
         title: primaryVal,
-        status: '待处理',
+        status: 'todo',
         detail,
         at: new Date().toLocaleString(),
       }
@@ -762,7 +791,7 @@ function GeneratedPageWidget({ node }: { node: SchemaNode }) {
       })
       setValues({})
       setResetKey((k) => k + 1)
-      setMsg(pending ? '已写入本机预览记录（能力接口仍在生成）' : '已提交，记录已加入下方列表')
+      setMsg(pending ? t('runtime.gen.saved_local') : t('runtime.gen.saved_ok'))
     } finally {
       setBusy(false)
     }
@@ -772,8 +801,8 @@ function GeneratedPageWidget({ node }: { node: SchemaNode }) {
     setRecords((prev) => {
       const next = prev.map((r) => {
         if (r.id !== id) return r
-        const idx = STATUS_CYCLE.indexOf(r.status as (typeof STATUS_CYCLE)[number])
-        const status = STATUS_CYCLE[(idx + 1) % STATUS_CYCLE.length] || '待处理'
+        const idx = STATUS_KEYS.indexOf(normalizeStatus(r.status))
+        const status = STATUS_KEYS[(idx + 1) % STATUS_KEYS.length] || 'todo'
         return { ...r, status }
       })
       saveRecords(capKey, next)
@@ -797,18 +826,20 @@ function GeneratedPageWidget({ node }: { node: SchemaNode }) {
     >
       <header>
         {!industrySite ? (
-          <p className="generated-badge">{pending ? '预览录入 · 接口生成中' : '预览页 · 可交互'}</p>
+          <p className="generated-badge">
+            {pending ? t('runtime.gen.preview_pending') : t('runtime.gen.preview_badge')}
+          </p>
         ) : null}
         <h2>{title}</h2>
         {summary ? <p className="generated-summary">{summary}</p> : null}
         {hasFormFields ? (
           <p className="muted" style={{ margin: '0 0 8px', fontSize: 13 }}>
-            下方表单逐项填写（Enter 推进），点「{submitLabel}」写入本机记录；列表状态可点击切换。
+            {t('runtime.gen.preview_hint', { action: submitLabel })}
             {user?.display_name ? ` · ${user.display_name}` : ''}
           </p>
         ) : (
           <p className="muted" style={{ margin: '0 0 8px', fontSize: 13 }}>
-            可继续对话细化字段或玩法；未指定表单时不套用「标题/说明」通用壳。
+            {t('runtime.gen.preview_hint_free')}
             {user?.display_name ? ` · ${user.display_name}` : ''}
           </p>
         )}
@@ -841,9 +872,9 @@ function GeneratedPageWidget({ node }: { node: SchemaNode }) {
           <div className="generated-page-form">
             <GtgtStepComposer
               title={formTitle}
-              meta={industrySite ? '业务录入' : '预览录入'}
+              meta={industrySite ? t('runtime.gen.meta_biz') : t('runtime.gen.meta_preview')}
               accent={accent}
-              flowHint=">> 单字段 Enter 推进 · 提交后写入本机列表（非正式业务库）"
+              flowHint={t('runtime.gen.flow_hint')}
               steps={steps}
               values={values}
               onChange={(k, v) => setValues((p) => ({ ...p, [k]: v }))}
@@ -894,7 +925,7 @@ function GeneratedPageWidget({ node }: { node: SchemaNode }) {
                             if (!isSeed) cycleStatus(row.id)
                           }}
                         >
-                          {row.status}
+                          {statusLabel(row.status, t)}
                         </button>
                         {!isSeed ? (
                           <button type="button" className="btn btn-ghost" onClick={() => removeRecord(row.id)}>
@@ -902,7 +933,7 @@ function GeneratedPageWidget({ node }: { node: SchemaNode }) {
                           </button>
                         ) : (
                           <span className="muted" style={{ fontSize: 11 }}>
-                            示例
+                            {t('runtime.gen.sample')}
                           </span>
                         )}
                       </div>

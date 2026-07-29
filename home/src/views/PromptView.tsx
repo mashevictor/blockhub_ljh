@@ -8,13 +8,14 @@ import {
 import { publishApp, suggestModules as suggestModulesApi, type SuggestValidation } from '../api/client'
 import { publishApiToResult } from '../api/publishHelpers'
 import { runContactPublishPipeline } from '../lib/publishFlow'
+import { useT } from '@blockhub/i18n/react'
 import { useTheme } from '../context/ThemeContext'
 import {
   categoryColor,
 } from '../data/iconPalette'
 import SelectionBox, { type SelectionItem } from '../components/SelectionBox'
 import AgentInput, { type AgentInputHandle, type AgentPick } from '../components/AgentInput'
-import { GENERATE_APP_LABEL, GENERATE_APP_LOADING } from '../data/publishUi'
+import { publishGenerateLabel, publishGenerateLoading } from '../i18n/publishLabels'
 import { AgentButtonContent } from '../components/AgentChevron'
 import PromptSuggestBar from '../components/PromptSuggestBar'
 import IntentAnalysisStrip from '../components/IntentAnalysisStrip'
@@ -106,6 +107,7 @@ function filterByIndustries(
 const PROMPT_COMPOSER_MODE = COMPOSER_MODES.find((m) => m.id === 'live_edit')?.id ?? 'live_edit'
 
 export default function PromptView({ onPublish, roleApply, onRoleApplyDone, active = true }: Props) {
+  const t = useT()
   const bookingZoneActive = useDemoBookingActive()
   const pageReady = useHomePageReady()
   const activeSection = useHomeActiveSection()
@@ -1186,8 +1188,8 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
             />
             <DeliverTargetPicker value={platforms} onChange={setPlatforms} compact className="minimal-deliver" />
             <button type="button" className="btn-primary minimal-generate agent-action-btn" disabled={loading || !canGenerate} onClick={handleGenerate}>
-              {loading ? GENERATE_APP_LOADING : (
-                <AgentButtonContent>{GENERATE_APP_LABEL}</AgentButtonContent>
+              {loading ? publishGenerateLoading(t) : (
+                <AgentButtonContent>{publishGenerateLabel(t)}</AgentButtonContent>
               )}
             </button>
           </div>

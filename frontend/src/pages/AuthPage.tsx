@@ -26,8 +26,8 @@ interface Props {
 }
 
 export default function AuthPage({
-  title = `${BRAND.nameZh} ${BRAND.nameEn}`,
-  subtitle = '登录或注册',
+  title,
+  subtitle,
   defaultEmail = '',
   defaultPassword = '',
   showPasswordLogin = true,
@@ -35,6 +35,8 @@ export default function AuthPage({
   showLogo = true,
 }: Props) {
   const t = useT()
+  const resolvedTitle = title ?? `${BRAND.nameZh} ${BRAND.nameEn}`
+  const resolvedSubtitle = subtitle ?? t('admin.auth.subtitle')
   const location = useLocation()
   const [searchParams] = useSearchParams()
   /** Home 传 ?from=；ProtectedRoute 传 location.state.from — 两者都要认 */
@@ -74,7 +76,7 @@ export default function AuthPage({
   }
 
   if (getToken()) {
-    return <p className="login-hint" style={{ padding: 24, textAlign: 'center' }}>正在进入管理后台…</p>
+    return <p className="login-hint" style={{ padding: 24, textAlign: 'center' }}>{t('admin.auth.redirecting')}</p>
   }
 
   const handleSendCode = async () => {
@@ -131,18 +133,18 @@ export default function AuthPage({
         <div className="login-brand">
           {showLogo && <BrandMark size={40} />}
           <div>
-            <h1>{title}</h1>
-            <p>{subtitle}</p>
+            <h1>{resolvedTitle}</h1>
+            <p>{resolvedSubtitle}</p>
           </div>
         </div>
 
         {showPasswordLogin && (
           <div className="login-mode-tabs">
             <button type="button" className={mode === 'otp' ? 'on' : ''} onClick={() => setMode('otp')}>
-              验证码登录
+              {t('admin.auth.tab.otp')}
             </button>
             <button type="button" className={mode === 'password' ? 'on' : ''} onClick={() => setMode('password')}>
-              密码登录
+              {t('admin.auth.tab.password')}
             </button>
           </div>
         )}
@@ -150,18 +152,18 @@ export default function AuthPage({
         {mode === 'otp' ? (
           <>
             <label>
-              手机号 / 邮箱
+              {t('admin.auth.account')}
               <input
                 type="text"
                 value={account}
                 onChange={(e) => setAccount(e.target.value)}
-                placeholder="手机号或邮箱"
+                placeholder={t('admin.auth.account_ph')}
                 required
                 autoComplete="username"
               />
             </label>
             <label className="otp-code-row">
-              验证码
+              {t('admin.auth.code')}
               <div className="otp-code-inputs">
                 <input
                   type="text"
@@ -169,24 +171,24 @@ export default function AuthPage({
                   maxLength={6}
                   value={code}
                   onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
-                  placeholder="验证码"
+                  placeholder={t('admin.auth.code_ph')}
                   required
                 />
                 <button type="button" className="btn-ghost otp-send-btn" disabled={!canSendCode} onClick={handleSendCode}>
-                  {sending ? '发送中…' : countdown > 0 ? `${countdown}s` : '获取验证码'}
+                  {sending ? t('admin.auth.sending') : countdown > 0 ? `${countdown}s` : t('admin.auth.send')}
                 </button>
               </div>
             </label>
-            <p className="login-hint">未注册的手机号/邮箱验证后将自动创建账号</p>
+            <p className="login-hint">{t('admin.auth.otp_hint')}</p>
           </>
         ) : (
           <>
             <label>
-              邮箱
+              {t('admin.auth.email')}
               <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="username" />
             </label>
             <label>
-              密码
+              {t('admin.auth.password')}
               <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="current-password" />
             </label>
           </>
@@ -195,10 +197,14 @@ export default function AuthPage({
         {error && <p className="login-error">{error}</p>}
         {hint && !error && <p className="login-hint">{hint}</p>}
         <button type="submit" disabled={loading || (mode === 'otp' && !canSubmitOtp)}>
-          {loading ? '登录中…' : mode === 'otp' ? '登录 / 注册' : '登录'}
+          {loading
+            ? t('admin.auth.submitting')
+            : mode === 'otp'
+              ? t('admin.auth.submit_otp')
+              : t('admin.auth.submit')}
         </button>
         {typeof __APP_BUILD_VERSION__ === 'string' && (
-          <p className="login-hint">版本 {__APP_BUILD_VERSION__}</p>
+          <p className="login-hint">{t('admin.auth.version', { v: __APP_BUILD_VERSION__ })}</p>
         )}
       </form>
     </div>

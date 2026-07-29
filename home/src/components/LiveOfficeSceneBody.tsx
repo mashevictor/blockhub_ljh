@@ -3,9 +3,11 @@
  * 填表走 >> GtgtStepComposer（与正式 Runtime / 预约演示同构）。
  */
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useT } from '@blockhub/i18n/react'
 import { GtgtStepComposer } from '@blockhub/web-core/gtgt'
 import { resolveFormSteps } from '@blockhub/web-core/resolveFormSteps'
 import type { IndustryRuntimeScene } from '../data/industryRuntimeScenes'
+import { liveOfficeStatusLabel } from '../i18n/liveOfficeLabels'
 import {
   isReadonlyLiveCap,
   LiveReadonlySceneBody,
@@ -27,27 +29,6 @@ type CapApi = {
   advances?: Array<{ action: string; label: string }>
   mapItem: (raw: Record<string, unknown>) => Row
   itemsKey?: string
-}
-
-function statusLabel(s: string): string {
-  const m: Record<string, string> = {
-    open: '待审批',
-    approved: '已通过',
-    rejected: '已驳回',
-    done: '已归档',
-    reviewing: '审核中',
-    paid: '已付款',
-    pending: '待处理',
-    dispatched: '已派工',
-    booked: '已预约',
-    cancelled: '已取消',
-    interview: '面试中',
-    offered: '已发 offer',
-    joined: '已入职',
-    published: '已发布',
-    archived: '已归档',
-  }
-  return m[s] || s || '—'
 }
 
 function apiFor(cap: string, scene: IndustryRuntimeScene): CapApi | null {
@@ -619,6 +600,7 @@ export function LiveOfficeSceneBody({
   scene: IndustryRuntimeScene
   token: string
 }) {
+  const t = useT()
   const cap = resolveLiveCap(scene) || scene.capabilityHint.split(/\s*\+\s*/)[0].trim()
   const api = useMemo(() => apiFor(cap, scene), [cap, scene])
   const steps = useMemo(() => {
@@ -650,12 +632,12 @@ export function LiveOfficeSceneBody({
       setRows(Array.isArray(list) ? list.map(api.mapItem) : [])
       setMsg('')
     } catch (e) {
-      setMsg(`加载失败：${String(e)}`)
+      setMsg(t('home.liveOffice.load_error', { err: String(e) }))
       setRows([])
     } finally {
       setLoading(false)
     }
-  }, [api, token])
+  }, [api, token, t])
 
   useEffect(() => {
     void load()
@@ -668,7 +650,7 @@ export function LiveOfficeSceneBody({
     return (
       <div className="irp-panel">
         <p className="irp-summary">
-          「{scene.name}」挂接能力 <code>{cap}</code>。本预览尚未接入；发布后的 /r/应用中可使用对应 Widget。
+          {t('home.liveOffice.unsupported', { name: scene.name, cap })}
         </p>
       </div>
     )
@@ -678,7 +660,7 @@ export function LiveOfficeSceneBody({
     if (!token || busy || !api) return
     const missing = steps.find((s) => !s.optional && !String(vals[s.key] ?? '').trim())
     if (missing) {
-      setMsg(`请填写「${missing.label}」`)
+      setMsg(t('home.liveOffice.required', { label: missing.label }))
       return
     }
     const body = api.buildBody(vals, scene)
@@ -703,14 +685,14 @@ export function LiveOfficeSceneBody({
       await apiJson(api.createPath, token, { method: 'POST', body: JSON.stringify(body) })
       setVals({})
       setResetKey((k) => k + 1)
-      setMsg('已提交 · 右侧列表已刷新（真库）')
+      setMsg(t('home.liveOffice.submitted'))
       await load()
     } catch (e) {
       const raw = String(e)
       if (raw.includes('string_too_short') || raw.includes('min_length')) {
         setMsg('提交失败：必填项为空，请用日期控件重新填写开始/结束后再提交')
       } else {
-        setMsg(`提交失败：${raw}`)
+        setMsg(t('home.liveOffice.submit_error', { err: raw }))
       }
     } finally {
       setBusy(false)
@@ -801,10 +783,11 @@ export function LiveOfficeSceneBody({
           body: '{}',
         })
       }
-      setMsg(`已${action} · 流程已更新`)
+      const advLabel = (api.advances || []).find((a) => a.action === action)?.label || action
+      setMsg(t('home.liveOffice.advanced', { action: advLabel }))
       await load()
     } catch (e) {
-      setMsg(`推进失败：${String(e)}`)
+      setMsg(t('home.liveOffice.advance_error', { err: String(e) }))
     } finally {
       setBusy(false)
     }
@@ -814,14 +797,14 @@ export function LiveOfficeSceneBody({
     <div className="irp-grid-2">
       <section className="irp-panel irp-gtgt-panel">
         <p className="irp-summary" style={{ marginBottom: 12 }}>
-          真 API · {cap} · Gtgt 步进 · Soft · 提交写入数据库
+          {t('home.liveOffice.banner', { cap })}
         </p>
         {steps.length > 0 ? (
           <GtgtStepComposer
-            title={`${scene.name} · 提交`}
+            title={t('home.liveOffice.title_submit', { name: scene.name })}
             accent="#6366f1"
             variant="soft"
-            flowHint=">> 单字段推进 → 确认 → 提交真库"
+            flowHint={t('home.liveOffice.flow_hint')}
             steps={steps}
             values={vals}
             onChange={(k: string, v: string) => setVals((p) => ({ ...p, [k]: v }))}
@@ -836,16 +819,16 @@ export function LiveOfficeSceneBody({
       </section>
       <section className="irp-panel">
         <h3>
-          {scene.name}记录 {loading ? '…' : `(${rows.length})`}
+          {t('home.liveOffice.list_title', { name: scene.name, n: loading ? '…' : rows.length })}
         </h3>
         {rows.length === 0 && !loading ? (
-          <p className="irp-summary">空库无数据 — 左侧提交后会出现在这里</p>
+          <p className="irp-summary">{t('home.liveOffice.empty_list')}</p>
         ) : null}
         {rows.map((row) => (
           <div key={row.id} className="irp-row" style={{ flexWrap: 'wrap', gap: 8 }}>
             <strong>{row.id.slice(0, 8)}</strong>
             <span style={{ flex: 1 }}>{row.title}</span>
-            <em>{statusLabel(row.status)}</em>
+            <em>{liveOfficeStatusLabel(t, row.status)}</em>
             {(api.advances || []).map((a) => (
               <button
                 key={a.action}

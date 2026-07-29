@@ -15,6 +15,16 @@ import {
 } from '../../data/sitePricing'
 import { enrichCardStyle, pricingTierTheme } from '../../data/enrichVisualThemes'
 import { ROLE_PAGES } from '../../data/siteRoles'
+import {
+  localizePricingFaq,
+  localizePricingTier,
+  localizeRolePage,
+  pricingComposeEditHint,
+  pricingComposeEditLabel,
+  pricingSmartPageHint,
+  pricingSmartPageLabel,
+  pricingTip,
+} from '../../i18n/contentLabels'
 import { ROUTES } from '../../routes/paths'
 import { usePageMeta } from '../../hooks/usePageMeta'
 
@@ -51,9 +61,11 @@ function TierCta({ tier }: { tier: PricingTier }) {
 }
 
 function TierGrid({ tiers }: { tiers: PricingTier[] }) {
+  const t = useT()
   return (
     <div className="enrich-pricing-grid enrich-pricing-grid--page">
-      {tiers.map((tier) => {
+      {tiers.map((raw) => {
+        const tier = localizePricingTier(t, raw)
         const theme = pricingTierTheme(tier.id)
         return (
           <article
@@ -80,7 +92,7 @@ function TierGrid({ tiers }: { tiers: PricingTier[] }) {
                   </li>
                 ))}
               </ul>
-              <TierCta tier={tier} />
+              <TierCta tier={raw} />
             </div>
           </article>
         )
@@ -91,9 +103,17 @@ function TierGrid({ tiers }: { tiers: PricingTier[] }) {
 
 export default function PricingPage() {
   const t = useT()
+  const smartPageLabel = pricingSmartPageLabel(t, SMART_PAGE_LABEL)
+  const smartPageHint = pricingSmartPageHint(t, SMART_PAGE_HINT)
+  const composeEditLabel = pricingComposeEditLabel(t, '对话改页')
+  const composeEditHint = pricingComposeEditHint(t, COMPOSE_EDIT_HINT)
+  const tip = pricingTip(t, PRICING_TIP)
+  const localizedFaq = PRICING_FAQ.map((item, i) => localizePricingFaq(t, item, i))
+  const rolePages = ROLE_PAGES.map((r) => localizeRolePage(t, r))
+
   usePageMeta({
     title: `${t('home.enrich.pricing.title')} · BlockHub`,
-    description: `Free / Plus / Business / Enterprise；含对话改页与${SMART_PAGE_LABEL}配额说明`,
+    description: `Free / Plus / Business / Enterprise；含对话改页与${smartPageLabel}配额说明`,
   })
 
   return (
@@ -109,23 +129,23 @@ export default function PricingPage() {
         <div className="enrich-panel-head">
           <h2 id="pricing-tiers-title">四档套餐</h2>
           <p>
-            <strong>对话改页</strong>：{COMPOSE_EDIT_HINT}
+            <strong>{composeEditLabel}</strong>：{composeEditHint}
             <br />
-            <strong>{SMART_PAGE_LABEL}</strong>：{SMART_PAGE_HINT}
+            <strong>{smartPageLabel}</strong>：{smartPageHint}
           </p>
         </div>
         <TierGrid tiers={PRICING_TIERS} />
-        <p style={{ textAlign: 'center', marginTop: 20, fontSize: 12, color: '#9ca3af' }}>{PRICING_TIP}</p>
+        <p style={{ textAlign: 'center', marginTop: 20, fontSize: 12, color: '#9ca3af' }}>{tip}</p>
       </section>
 
       <section className="enrich-panel enrich-pricing-faq" aria-labelledby="pricing-faq-title">
         <div className="enrich-panel-head">
           <h2 id="pricing-faq-title">常见问题</h2>
-          <p>套餐边界、{SMART_PAGE_LABEL}、商用与试点</p>
+          <p>套餐边界、{smartPageLabel}、商用与试点</p>
         </div>
         <div className="enrich-panel-body">
           <dl className="enrich-faq-dl enrich-faq-dl--grid">
-            {PRICING_FAQ.map((item) => (
+            {localizedFaq.map((item) => (
               <div key={item.q} className="enrich-faq-item">
                 <dt>{item.q}</dt>
                 <dd>{item.a}</dd>
@@ -142,7 +162,7 @@ export default function PricingPage() {
         </div>
         <div className="enrich-panel-body">
           <div className="enrich-role-chip-grid">
-            {ROLE_PAGES.map((role) => (
+            {rolePages.map((role) => (
               <Link key={role.key} to={ROUTES.rolePage(role.key)} className="enrich-role-chip">
                 <AgentChevronGlyph size="sm" className="enrich-dl-chev" />
                 {role.title}

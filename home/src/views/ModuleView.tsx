@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
+import { useT } from '@blockhub/i18n/react'
 import { COMPOSER_MODES } from '@capship/composer'
 import { fetchCatalogModules, publishApp } from '../api/client'
 import { publishApiToResult } from '../api/publishHelpers'
 import { runLoadingPublishPipeline } from '../lib/publishFlow'
-import { GENERATE_APP_LABEL, GENERATE_APP_LOADING } from '../data/publishUi'
+import { publishGenerateLabel, publishGenerateLoading, blockhubDemoAppNameI18n } from '../i18n/publishLabels'
 import { AgentButtonContent } from '../components/AgentChevron'
 import type { PublishResult } from '../data/constants'
 import { DynamicIcon } from '../components/icons'
@@ -60,6 +61,7 @@ function buildDemoWidgets(): Widget[] {
 }
 
 export default function ModuleView({ onPublish, active = true }: Props) {
+  const t = useT()
   const { theme } = useTheme()
   const [widgets, setWidgets] = useState<Widget[]>(() => buildDemoWidgets())
   const [moduleGroups, setModuleGroups] = useState<CapabilityGroup[]>([])
@@ -135,7 +137,7 @@ export default function ModuleView({ onPublish, active = true }: Props) {
   const doPublish = async (contact: ContactInfo, nameOverride?: string) => {
     if (!widgets.length) return
     const finalName =
-      (nameOverride || branding.appName || BLOCKHUB_DEMO_APP_NAME).trim() || BLOCKHUB_DEMO_APP_NAME
+      (nameOverride || branding.appName || blockhubDemoAppNameI18n(t)).trim() || blockhubDemoAppNameI18n(t)
     await runLoadingPublishPipeline({
       closeContact: () => setContactOpen(false),
       setLoading,
@@ -270,8 +272,8 @@ export default function ModuleView({ onPublish, active = true }: Props) {
           </dl>
           <AppBrandingFields value={branding} onChange={setBranding} compact />
           <button type="button" className="btn-primary full agent-action-btn" disabled={!widgets.length || loading} onClick={handlePublish}>
-            {loading ? GENERATE_APP_LOADING : (
-              <AgentButtonContent>{GENERATE_APP_LABEL}</AgentButtonContent>
+            {loading ? publishGenerateLoading(t) : (
+              <AgentButtonContent>{publishGenerateLabel(t)}</AgentButtonContent>
             )}
           </button>
         </aside>
@@ -295,7 +297,7 @@ export default function ModuleView({ onPublish, active = true }: Props) {
 
       <ContactGateModal
         open={active && contactOpen}
-        defaultAppName={branding.appName || BLOCKHUB_DEMO_APP_NAME}
+        defaultAppName={branding.appName || blockhubDemoAppNameI18n(t)}
         onClose={() => setContactOpen(false)}
         onConfirm={(c, opts) => {
           const named = opts?.appName?.trim()

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { useT } from '@blockhub/i18n/react'
 import type { PublishResult } from '../data/constants'
 import { loadMyApps, removeMyApp, type StoredMyApp } from '../lib/myAppsStorage'
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock'
@@ -20,6 +21,7 @@ function formatWhen(iso: string) {
 }
 
 export default function MyAppsPanel({ onClose, onOpenApp }: Props) {
+  const t = useT()
   const [apps, setApps] = useState<StoredMyApp[]>([])
   const [mounted, setMounted] = useState(false)
 
@@ -44,15 +46,15 @@ export default function MyAppsPanel({ onClose, onOpenApp }: Props) {
         <div className="my-apps-head">
           <IconLayers size={22} />
           <div>
-            <h3 id="my-apps-title">我的应用</h3>
+            <h3 id="my-apps-title">{t('home.plaza.my.title')}</h3>
             <p className="modal-sub">本浏览器发布过的应用（未登录也可查看，仅存于此设备）</p>
           </div>
         </div>
 
         {apps.length === 0 ? (
           <div className="my-apps-empty">
-            <p>还没有发布过应用</p>
-            <p className="my-apps-empty-hint">在首页创建并发布后，会出现在这里</p>
+            <p>{t('home.plaza.my.empty')}</p>
+            <p className="my-apps-empty-hint">{t('home.plaza.my.empty_hint')}</p>
           </div>
         ) : (
           <ul className="my-apps-list">
@@ -67,7 +69,7 @@ export default function MyAppsPanel({ onClose, onOpenApp }: Props) {
                 <div className="my-apps-item-main">
                   <strong>{app.appName}</strong>
                   <span className="my-apps-meta">
-                    {app.moduleCount} 项功能 · {formatWhen(app.savedAt)}
+                    {t('home.plaza.my.modules_n', { n: app.moduleCount })} · {formatWhen(app.savedAt)}
                   </span>
                   <code className="my-apps-url">{app.webUrl}</code>
                 </div>
@@ -80,11 +82,11 @@ export default function MyAppsPanel({ onClose, onOpenApp }: Props) {
                     className="btn-ghost"
                     onClick={() => navigator.clipboard.writeText(app.webUrl)}
                   >
-                    复制链接
+                    {t('home.plaza.my.copy_link')}
                   </button>
                   <a className="btn-ghost" href={app.webUrl} target="_blank" rel="noreferrer">
                     <IconGlobe size={14} />
-                    打开
+                    {t('home.plaza.my.open_web')}
                   </a>
                   <button type="button" className="btn-ghost my-apps-remove" onClick={() => handleRemove(app)}>
                     移除

@@ -5,9 +5,15 @@
   "namespaces": {
     "common": { "owner": "apps-shell", "source": "hand" },
     "home": { "owner": "home-landing", "source": "hand" },
+    "product": { "owner": "home-product-showcase", "source": "hand", "genHint": "scripts/codegen-product-i18n.py" },
+    "admin": { "owner": "frontend-admin", "source": "hand", "genHint": "scripts/codegen-p2-i18n.py" },
+    "runtime": { "owner": "runtime-web", "source": "hand", "genHint": "scripts/codegen-p2-i18n.py" },
+    "content": { "owner": "home-marketing", "source": "hand", "genHint": "scripts/codegen-p3-content-i18n.py" },
     "error": { "owner": "backend-errors", "source": "hand" },
     "cap": { "owner": "capability_registry", "source": "codegen", "genFile": "capability.gen.json" },
-    "hero": { "owner": "hero_presets", "source": "codegen", "genFile": "hero.gen.json" }
+    "hero": { "owner": "hero_presets", "source": "codegen", "genFile": "hero.gen.json" },
+    "industry": { "owner": "industry_packs_all", "source": "codegen", "genFile": "industry.gen.json", "genHint": "scripts/codegen-industry-scene-i18n.py" },
+    "scene": { "owner": "industry_packs_all", "source": "codegen", "genFile": "scene.gen.json", "genHint": "scripts/codegen-industry-scene-i18n.py" }
   },
   "packageLocales": {
     "pattern": "packages/web-capability-*/src/locales",

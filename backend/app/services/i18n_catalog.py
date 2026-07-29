@@ -154,6 +154,77 @@ def localize_capabilities(
     return localized, by_category
 
 
+def localize_industry_pack(pack: dict[str, Any], lang: str | None) -> dict[str, Any]:
+    """Localize pack name/tagline from industry.gen.json (fallback: pack labels)."""
+    locale = normalize_locale(lang)
+    out = dict(pack)
+    key = str(out.get("key") or "")
+    msgs = _load_flat_messages(locale, "industry")
+    labels = out.get("labels") if isinstance(out.get("labels"), dict) else {}
+    tagline_labels = out.get("tagline_labels") if isinstance(out.get("tagline_labels"), dict) else {}
+    if key:
+        nk = f"industry.{key}.name"
+        tk = f"industry.{key}.tagline"
+        if nk in msgs:
+            out["name"] = msgs[nk]
+        elif labels:
+            out["name"] = pick_label(labels, locale, fallback=str(out.get("name") or key))
+        if tk in msgs:
+            out["tagline"] = msgs[tk]
+        elif tagline_labels:
+            out["tagline"] = pick_label(
+                tagline_labels, locale, fallback=str(out.get("tagline") or "")
+            )
+    return out
+
+
+def localize_scene_row(scene: dict[str, Any], pack_key: str, index: int, lang: str | None) -> dict[str, Any]:
+    """Localize a scene by pack + 1-based index (scene.{pack}.{idx:03d}.*)."""
+    locale = normalize_locale(lang)
+    out = dict(scene)
+    msgs = _load_flat_messages(locale, "scene")
+    idx = f"{index:03d}"
+    nkey = f"scene.{pack_key}.{idx}.name"
+    pkey = f"scene.{pack_key}.{idx}.problem"
+    ckey = f"scene.{pack_key}.{idx}.category"
+    if nkey in msgs:
+        out["name"] = msgs[nkey]
+    if pkey in msgs:
+        out["problem"] = msgs[pkey]
+    if ckey in msgs:
+        out["category"] = msgs[ckey]
+    return out
+
+
+def localize_industry_pack_detail(detail: dict[str, Any], lang: str | None) -> dict[str, Any]:
+    """Deep-localize industry pack detail (pack + scenes + groups)."""
+    locale = normalize_locale(lang)
+    if locale == "zh-CN":
+        return detail
+    out = dict(detail)
+    pack = dict(out.get("pack") or {})
+    pack_key = str(pack.get("key") or "")
+    out["pack"] = localize_industry_pack(pack, locale)
+
+    scenes_in = list(out.get("scenes") or [])
+    scenes_out = [
+        localize_scene_row(s, pack_key, i, locale) if isinstance(s, dict) else s
+        for i, s in enumerate(scenes_in, start=1)
+    ]
+    out["scenes"] = scenes_out
+
+    # Rebuild groups from localized scenes to keep category labels in sync
+    grouped: dict[str, list[dict[str, Any]]] = {}
+    for s in scenes_out:
+        if not isinstance(s, dict):
+            continue
+        cat = str(s.get("category") or "")
+        grouped.setdefault(cat, []).append(s)
+    out["groups"] = [{"category": k, "items": v} for k, v in grouped.items()]
+    out["locale"] = locale
+    return out
+
+
 _CJK_RE = re.compile(r"[\u4e00-\u9fff]")
 
 

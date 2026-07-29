@@ -56,11 +56,25 @@ export function canAccessRole(role: string | null | undefined, allowed: AppRole[
   return false
 }
 
-export function roleDisplayLabel(role: string | null | undefined): string {
-  if (role === 'admin') return '管理员'
-  if (role === 'tenant_owner') return '空间所有者'
-  if (role === 'employee') return '使用者'
-  return role || ''
+type TranslateFn = (key: string, vars?: Record<string, string | number>) => string
+
+const ROLE_FALLBACK: Record<string, string> = {
+  admin: '管理员',
+  tenant_owner: '空间所有者',
+  employee: '使用者',
+}
+
+export function roleDisplayLabel(
+  role: string | null | undefined,
+  t?: TranslateFn,
+): string {
+  if (!role) return ''
+  if (t) {
+    if (role === 'admin') return t('admin.role.admin')
+    if (role === 'tenant_owner') return t('admin.role.tenant_owner')
+    if (role === 'employee') return t('admin.role.employee')
+  }
+  return ROLE_FALLBACK[role] ?? role
 }
 
 /** Admin-only backend modules（路径级提示；实际以 RoleGate + canAccessRole 为准） */

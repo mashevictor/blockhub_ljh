@@ -130,8 +130,8 @@ export default function KnowledgePage() {
     <>
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div>
-          <h1>知识库</h1>
-          <p>上传制度、手册等文档，自动分段并向量化，供智能问答引用</p>
+          <h1>{t('admin.page.knowledge.title')}</h1>
+          <p>{t('admin.page.knowledge.desc')}</p>
         </div>
         <button type="button" className="btn btn-primary-dark" onClick={() => setShowCreate(true)}>
           + 新建知识库

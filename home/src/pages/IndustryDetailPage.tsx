@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
+import { useT, useI18n } from '@blockhub/i18n/react'
 import { fetchIndustryPackDetail, fetchIndustrySites, type IndustryPackDetail, type IndustrySiteSummary } from '../api/client'
+import { industryAlt, industryDesc, industryName } from '../i18n/industryLabels'
 import IndustrySiteShell from '../components/industry/IndustrySiteShell'
 import { DynamicIcon, INDUSTRY_ICONS, IconSparkles } from '../components/icons'
 import { usePageMeta } from '../hooks/usePageMeta'
@@ -23,6 +25,8 @@ import '../styles/industry-style-packs.css'
 
 export default function IndustryDetailPage() {
   const { key = '' } = useParams<{ key: string }>()
+  const t = useT()
+  const { locale } = useI18n()
   const navigate = useNavigate()
   const { theme } = useTheme()
   const fallbackDetail = useMemo(() => buildIndustryPackDetailFallback(key), [key])
@@ -44,7 +48,7 @@ export default function IndustryDetailPage() {
   useEffect(() => {
     const fb = buildIndustryPackDetailFallback(key)
     setDetail(fb)
-    setError(fb ? null : '行业包不存在')
+    setError(fb ? null : 'PACK_MISSING')
     if (!key || !fb) return
 
     fetchIndustryPackDetail(key, { enrich: false })
@@ -55,7 +59,7 @@ export default function IndustryDetailPage() {
       .catch(() => {
         /* 保留本地 fallback，不阻断页面 */
       })
-  }, [key])
+  }, [key, locale])
 
   useEffect(() => {
     fetchIndustrySites()
@@ -75,7 +79,7 @@ export default function IndustryDetailPage() {
           })),
         )
       })
-  }, [key])
+  }, [key, locale])
 
   const site = detail?.site
   usePageMeta(site ? {
@@ -84,8 +88,8 @@ export default function IndustryDetailPage() {
     ogImage: site.assets.og,
     ogUrl: typeof window !== 'undefined' ? `${window.location.origin}${site.site_url}` : undefined,
   } : showcaseMeta ? {
-    title: `${showcaseMeta.name} · 行业深度包`,
-    description: showcaseMeta.desc,
+    title: t('home.industry.detail.meta_suffix', { name: industryName(t, key, showcaseMeta.name) }),
+    description: industryDesc(t, key, showcaseMeta.desc),
     ogImage: industryAssets(key).og,
   } : null)
 
@@ -127,8 +131,10 @@ export default function IndustryDetailPage() {
   if (error || !detail || !site) {
     return (
       <IndustrySiteShell theme={{ primary: '#0d47a1' }}>
-        <p className="industry-detail-error">{error ?? '行业包不存在'}</p>
-        <Link to={`${ROUTES.home}#product`} className="btn-secondary">返回首页行业方案</Link>
+        <p className="industry-detail-error">
+          {error === 'PACK_MISSING' || !error ? t('home.industry.detail.not_found') : error}
+        </p>
+        <Link to={`${ROUTES.home}#product`} className="btn-secondary">{t('home.industry.detail.back_home')}</Link>
       </IndustrySiteShell>
     )
   }
@@ -136,40 +142,41 @@ export default function IndustryDetailPage() {
   const { pack, groups, total, enrichment } = detail
   const Icon = INDUSTRY_ICONS[pack.key] ?? IconSparkles
   const accent = site.theme.primary
+  const packDisplayName = industryName(t, pack.key, pack.name)
   const enrichmentSourceLabel =
     enrichment?.source === 'deepseek'
-      ? '大模型（已缓存，可再丰富）'
+      ? t('home.industry.detail.source.deepseek')
       : enrichment?.source === 'static'
-        ? '第一版生产文案（可大模型再丰富）'
+        ? t('home.industry.detail.source.static')
         : enrichment?.source
-          ? '自动生成'
+          ? t('home.industry.detail.source.auto')
           : null
 
   return (
-    <IndustrySiteShell theme={site.theme} industryName={pack.name} layoutClass={layoutClass}>
+    <IndustrySiteShell theme={site.theme} industryName={packDisplayName} layoutClass={layoutClass}>
       <IndustryHeroSection
         variant={stylePackMeta.heroVariant}
         accent={accent}
         gradientTo={site.theme.gradient_to}
         heroImage={site.assets.hero}
         motif={visualTheme.motif}
-        badge={`独立方案站 · ${total} 场景`}
-        title={pack.name}
+        badge={t('home.industry.detail.badge', { n: total })}
+        title={packDisplayName}
         tagline={visualTheme.heroPitch ?? pack.tagline}
         stats={visualTheme.stats}
         icon={<Icon size={40} />}
         ctaPrimary={
           <button type="button" className="btn-primary" onClick={handleUseIndustry}>
-            编排生成应用（进入 Runtime）→
+            {t('home.industry.detail.cta_compose')}
           </button>
         }
         ctaSecondary={
           <>
             <button type="button" className="btn-ghost industry-site-ghost" onClick={handleOpenDecoupledSite}>
-              打开落地页预览
+              {t('home.industry.detail.cta_preview')}
             </button>
             <button type="button" className="btn-ghost industry-site-ghost" disabled={enriching} onClick={handleReEnrich}>
-              {enriching ? '大模型丰富中…' : '大模型重新丰富'}
+              {enriching ? t('home.industry.detail.cta_enriching') : t('home.industry.detail.cta_enrich')}
             </button>
           </>
         }
@@ -177,8 +184,8 @@ export default function IndustryDetailPage() {
 
       <section className="industry-detail-overview industry-site-section industry-site-panel">
         <div className="b2b-section-title industry-site-section-head">
-          <span className="b2b-eyebrow">方案总述</span>
-          <h2>{pack.name} · 行业智能应用方案</h2>
+          <span className="b2b-eyebrow">{t('home.industry.detail.overview_eyebrow')}</span>
+          <h2>{t('home.industry.detail.overview_title', { name: packDisplayName })}</h2>
         </div>
         <p className="industry-detail-overview-text">{enrichment?.overview}</p>
         <ul className="industry-detail-highlights">
@@ -187,7 +194,7 @@ export default function IndustryDetailPage() {
           ))}
         </ul>
         <div className="industry-site-modules">
-          <h3>推荐模块（正式能力，可在悬浮框增减）</h3>
+          <h3>{t('home.industry.detail.modules_title')}</h3>
           <div className="industry-site-module-chips">
             {(enrichment?.recommended_modules?.length ? enrichment.recommended_modules : visualTheme.focusModules).map((m) => (
               <code key={m}>{m}</code>
@@ -195,18 +202,18 @@ export default function IndustryDetailPage() {
           </div>
         </div>
         {enrichmentSourceLabel ? (
-          <span className="industry-detail-source">文案来源：{enrichmentSourceLabel}</span>
+          <span className="industry-detail-source">{t('home.industry.detail.source', { source: enrichmentSourceLabel })}</span>
         ) : null}
       </section>
 
       <IndustryMicrositePreview
         packKey={pack.key}
-        packName={pack.name}
+        packName={packDisplayName}
         tagline={visualTheme.heroPitch ?? pack.tagline}
         overview={enrichment?.overview ?? pack.tagline}
         highlights={enrichment?.highlights?.length ? enrichment.highlights : visualTheme.highlights}
         scenes={(enrichment?.scene_tips?.length
-          ? enrichment.scene_tips.map((t) => ({ name: t.name, detail: t.tip }))
+          ? enrichment.scene_tips.map((tip) => ({ name: tip.name, detail: tip.tip }))
           : groups.flatMap((g) => g.items).slice(0, 6).map((s) => ({
               name: s.name,
               detail: s.problem || s.name,
@@ -220,14 +227,14 @@ export default function IndustryDetailPage() {
         <IndustryPageTemplateGallery
           templates={pageTemplates}
           accent={accent}
-          packName={pack.name}
+          packName={packDisplayName}
         />
       ) : null}
 
       <section className="industry-detail-scenes industry-site-section industry-site-panel">
         <div className="b2b-section-title industry-site-section-head">
-          <span className="b2b-eyebrow">场景清单</span>
-          <h2>按业务分类 · 共 {total} 项</h2>
+          <span className="b2b-eyebrow">{t('home.industry.detail.scenes_eyebrow')}</span>
+          <h2>{t('home.industry.detail.scenes_title', { n: total })}</h2>
         </div>
         {groups.map(({ category, items }) => (
           <div key={category} className="industry-detail-group">
@@ -236,7 +243,7 @@ export default function IndustryDetailPage() {
                 <DynamicIcon name={resolveCategoryIcon(category, 'industry')} size={16} color={categoryColor(category, theme)} />
               </span>
               {category}
-              <em>{items.length} 项</em>
+              <em>{t('home.industry.detail.items', { n: items.length })}</em>
             </h3>
             <div className="industry-detail-scene-grid">
               {items.map((scene) => (
@@ -248,8 +255,8 @@ export default function IndustryDetailPage() {
                     </span>
                   </header>
                   <p className="ind-scene-problem">{scene.problem}</p>
-                  {scene.pages ? <p className="ind-scene-pages">页面组合：<code>{scene.pages}</code></p> : null}
-                  {scene.agent ? <p className="ind-scene-agent">主智能体：<code>{scene.agent}</code></p> : null}
+                  {scene.pages ? <p className="ind-scene-pages">{t('home.industry.detail.pages')}<code>{scene.pages}</code></p> : null}
+                  {scene.agent ? <p className="ind-scene-agent">{t('home.industry.detail.agent')}<code>{scene.agent}</code></p> : null}
                   {sceneTips.get(scene.name) ? <p className="ind-scene-tip">💡 {sceneTips.get(scene.name)}</p> : null}
                 </article>
               ))}
@@ -261,11 +268,13 @@ export default function IndustryDetailPage() {
       {others.length > 0 ? (
         <section className="industry-site-others industry-site-section industry-site-panel">
           <div className="b2b-section-title industry-site-section-head">
-            <span className="b2b-eyebrow">更多行业</span>
-            <h2>探索其他独立站</h2>
+            <span className="b2b-eyebrow">{t('home.industry.others.eyebrow')}</span>
+            <h2>{t('home.industry.others.title')}</h2>
           </div>
           <div className="industry-hub-grid industry-hub-grid-compact">
-            {others.map((s) => (
+            {others.map((s) => {
+              const name = industryName(t, s.key, s.name)
+              return (
               <Link
                 key={s.key}
                 to={ROUTES.industryDetail(s.key)}
@@ -275,29 +284,30 @@ export default function IndustryDetailPage() {
                 <LazyCover
                   className="industry-hub-thumb"
                   src={industryCardImage(s.key)}
-                  alt={`${s.name}行业配图`}
+                  alt={industryAlt(t, s.key, s.name)}
                 >
-                  <span className="industry-card-visual-title">{s.name}</span>
+                  <span className="industry-card-visual-title">{name}</span>
                 </LazyCover>
                 <div className="industry-hub-body">
-                  <h3>{s.name}</h3>
-                  <p>{s.scenes} 场景</p>
+                  <h3>{name}</h3>
+                  <p>{t('home.industry.card.scenes', { n: s.scenes })}</p>
                 </div>
               </Link>
-            ))}
+              )
+            })}
           </div>
         </section>
       ) : null}
 
       <section className="industry-site-cta-band">
-        <h2>确认方案后去编排应用</h2>
+        <h2>{t('home.industry.detail.cta_band_title')}</h2>
         <p>{site.stats.delivery}</p>
         <div className="industry-site-cta-band-actions">
           <button type="button" className="btn-primary agent-action-btn" onClick={handleUseIndustry}>
             {site.cta.create_label} →
           </button>
           <button type="button" className="btn-ghost" onClick={handleOpenDecoupledSite}>
-            打开落地页预览
+            {t('home.industry.detail.cta_preview')}
           </button>
         </div>
       </section>

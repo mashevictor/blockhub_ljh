@@ -4,6 +4,8 @@ import { DynamicIcon } from './icons'
 import { groupSuggestions, type SuggestItem } from '../data/promptSuggest'
 import type { SuggestValidation } from '../api/client'
 import { ChevronDotSign, ChevronStrokeLoader } from './ChevronDotLoader'
+import { useT } from '@blockhub/i18n/react'
+import { localizeCapabilityPickLabel } from '../i18n/contentLabels'
 
 interface Props {
   userIntent: string
@@ -39,10 +41,11 @@ export default function PromptSuggestBar({
   validation = null,
   registered,
 }: Props) {
+  const t = useT()
   if (!userIntent.trim() || userIntent.trim().length < 2) return null
 
   const snippet = intentSnippet(userIntent)
-  const groups = groupSuggestions(suggestions)
+  const groups = groupSuggestions(suggestions, t)
   const isInvalid = !loading && validation?.status === 'invalid'
   const isUnclear = !loading && validation?.status === 'unclear' && groups.length === 0
   const lowConfidence = !loading && !isInvalid && groups.length === 0
@@ -120,7 +123,7 @@ export default function PromptSuggestBar({
                             <DynamicIcon name={s.iconKey} size={14} color={s.color} />
                           </span>
                         )}
-                        <span>{s.pick.label}</span>
+                        <span>{localizeCapabilityPickLabel(t, s.pick)}</span>
                         {on && <em className="prompt-suggest-check">✓</em>}
                       </button>
                     )

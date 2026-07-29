@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { useT } from '@blockhub/i18n/react'
 import { contactsForMode, saveContactHistory } from '../auth/contactHistory'
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock'
-import { GENERATE_APP_LABEL, GENERATE_APP_LOADING } from '../data/publishUi'
+import { publishGenerateLabel, publishGenerateLoading } from '../i18n/publishLabels'
 import { AgentButtonContent } from './AgentChevron'
 
 export interface ContactInfo {
@@ -46,6 +47,7 @@ export default function ContactGateModal({
   onClose,
   onConfirm,
 }: Props) {
+  const t = useT()
   const [mode, setMode] = useState<'email' | 'phone'>('email')
   const [value, setValue] = useState('')
   const [appName, setAppName] = useState('')
@@ -150,7 +152,7 @@ export default function ContactGateModal({
         {busy && (
           <div className="contact-gate-progress" role="status" aria-live="polite">
             <div className="contact-gate-progress-bar" aria-hidden />
-            <p>{GENERATE_APP_LOADING}</p>
+            <p>{publishGenerateLoading(t)}</p>
           </div>
         )}
 
@@ -257,8 +259,8 @@ export default function ContactGateModal({
             disabled={!canSubmit || busy}
             onClick={handleConfirm}
           >
-            {busy ? GENERATE_APP_LOADING : (
-              <AgentButtonContent>{GENERATE_APP_LABEL}</AgentButtonContent>
+            {busy ? publishGenerateLoading(t) : (
+              <AgentButtonContent>{publishGenerateLabel(t)}</AgentButtonContent>
             )}
           </button>
         </div>

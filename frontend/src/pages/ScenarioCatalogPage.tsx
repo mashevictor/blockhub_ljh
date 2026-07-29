@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useT } from '@blockhub/i18n/react'
 import {
   fetchCatalogSummary,
   fetchIndustryScenarios,
@@ -55,6 +56,7 @@ function groupKey(item: CatalogItem): string {
 }
 
 export default function ScenarioCatalogPage() {
+  const t = useT()
   const [tab, setTab] = useState<Tab>('all')
   const [pack, setPack] = useState('')
   const [category, setCategory] = useState('全部')
@@ -147,12 +149,8 @@ export default function ScenarioCatalogPage() {
   return (
     <>
       <div className="page-header">
-        <h1>场景目录</h1>
-        <p>
-          {summary?.office_count ?? PLATFORM_STATS.officeScenarios} 办公场景 +{' '}
-          {summary?.industry_count ?? PLATFORM_STATS.industryScenarios} 行业场景 ={' '}
-          <strong>{summary?.total ?? PLATFORM_STATS.scenarios}</strong> 总计（PG 分页）
-        </p>
+        <h1>{t('admin.page.scenarios.title')}</h1>
+        <p>{t('admin.page.scenarios.desc')}</p>
       </div>
 
       <div className="summary-pills">
@@ -285,7 +283,7 @@ export default function ScenarioCatalogPage() {
       {categoryGroups.length === 0 && (
         <div className="placeholder-page">
           <div className="icon">🔍</div>
-          <h2>没有匹配的场景</h2>
+          <h2>{t('admin.page.scenarios.empty')}</h2>
           <p>试试调整 Tab、行业包或搜索关键词</p>
         </div>
       )}

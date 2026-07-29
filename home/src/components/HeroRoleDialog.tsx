@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { useTf } from '@blockhub/i18n/react'
+import { useTf, useT } from '@blockhub/i18n/react'
 import type { RolePreset } from '../data/rolePresets'
 import { presetRole } from '../data/rolePresets'
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock'
-import { GENERATE_APP_LABEL } from '../data/publishUi'
+import { publishGenerateLabel } from '../i18n/publishLabels'
 import { AgentButtonContent } from './AgentChevron'
 
 interface Props {
@@ -15,6 +15,7 @@ interface Props {
 
 export default function HeroRoleDialog({ role, onClose, onApply }: Props) {
   const tf = useTf()
+  const t = useT()
   const [visibleLines, setVisibleLines] = useState(0)
   const [showCursor, setShowCursor] = useState(true)
   const [mounted, setMounted] = useState(false)
@@ -107,7 +108,7 @@ export default function HeroRoleDialog({ role, onClose, onApply }: Props) {
             disabled={!ready}
             onClick={() => onApply(role, true)}
           >
-            <AgentButtonContent>{GENERATE_APP_LABEL}</AgentButtonContent>
+            <AgentButtonContent>{publishGenerateLabel(t)}</AgentButtonContent>
           </button>
         </div>
       </div>

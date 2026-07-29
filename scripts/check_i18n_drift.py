@@ -20,6 +20,10 @@ GEN_PATHS = [
     "shared/i18n/messages/en-US/capability.gen.json",
     "shared/i18n/messages/zh-CN/hero.gen.json",
     "shared/i18n/messages/en-US/hero.gen.json",
+    "shared/i18n/messages/zh-CN/industry.gen.json",
+    "shared/i18n/messages/en-US/industry.gen.json",
+    "shared/i18n/messages/zh-CN/scene.gen.json",
+    "shared/i18n/messages/en-US/scene.gen.json",
     "packages/blockhub_flutter_core/assets/i18n/zh-CN.json",
     "packages/blockhub_flutter_core/assets/i18n/en-US.json",
     "shared/i18n/flutter/zh_CN.arb",
@@ -59,6 +63,8 @@ def main() -> int:
     py = pick_python()
     print("==> regenerate i18n messages from registry + hero_presets")
     run([*py, "scripts/codegen-i18n-messages.py"])
+    print("==> regenerate industry + scene catalogs")
+    run([*py, "scripts/codegen-industry-scene-i18n.py"])
     print("==> regenerate Flutter ARB + core assets (同源)")
     run([*py, "scripts/codegen-flutter-arb.py"])
 

@@ -1,14 +1,15 @@
 import { Link } from 'react-router-dom'
 import { useT } from '@blockhub/i18n/react'
 import { AgentButtonContent, AgentChevronGlyph } from '../../AgentChevron'
-import { NEWS_ARTICLES, NEWS_CATEGORY_LABELS } from '../../../data/siteNews'
+import { NEWS_ARTICLES } from '../../../data/siteNews'
+import { localizeNewsArticle, newsCategoryLabel } from '../../../i18n/contentLabels'
 import { ROUTES } from '../../../routes/paths'
 import { staticUrl } from '../../../lib/staticUrl'
 import LazyCover from '../../LazyCover'
 
 export default function B2BNewsSection() {
   const t = useT()
-  const latest = NEWS_ARTICLES.slice(0, 3)
+  const latest = NEWS_ARTICLES.slice(0, 3).map((a) => localizeNewsArticle(t, a))
 
   return (
     <section className="enrich-news-section b2b-section" aria-labelledby="enrich-news-title">
@@ -29,7 +30,7 @@ export default function B2BNewsSection() {
               alt={item.title}
             />
             <div className="enrich-news-body">
-              <span className="enrich-news-cat">{NEWS_CATEGORY_LABELS[item.category]}</span>
+              <span className="enrich-news-cat">{newsCategoryLabel(t, item.category)}</span>
               <h4>{item.title}</h4>
               <span className="enrich-news-date">{item.date}</span>
             </div>

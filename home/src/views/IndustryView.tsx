@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
+import { useT } from '@blockhub/i18n/react'
 import { publishApp } from '../api/client'
 import { publishApiToResult } from '../api/publishHelpers'
 import { runContactPublishPipeline, type PublishWorkPhase } from '../lib/publishFlow'
-import { GENERATE_APP_LABEL, GENERATE_APP_LOADING } from '../data/publishUi'
 import { AgentButtonContent } from '../components/AgentChevron'
 import { INDUSTRIES, type Audience, type PublishResult, type PublishedModuleItem } from '../data/constants'
 import { DynamicIcon } from '../components/icons'
@@ -26,8 +26,6 @@ import { buildIndustryMicrositeSrcDoc } from '../data/industryMicrositePreviewHt
 import {
   MICROSITE_PREVIEW_CACHE_LIMIT,
   getCachedMicrositeIds,
-  micrositeCacheHint,
-  micrositeChipBadge,
   type MicrositeLoadState,
 } from '../data/industryMicrositePreviewCache'
 import { getMicrositeRuntimeSkin } from '../data/micrositeRuntimeSkin'
@@ -35,8 +33,11 @@ import ContactGateModal, { type ContactInfo } from '../components/ContactGateMod
 import GenerateLoadingOverlay from '../components/GenerateLoadingOverlay'
 import AppBrandingFields from '../components/AppBrandingFields'
 import { emptyBranding, resolveAppName, defaultAppNameForIndustry } from '../data/appBranding'
+import { defaultAppNameI18n, publishGenerateLabel, publishGenerateLoading } from '../i18n/publishLabels'
 import SelectionBox, { type SelectionItem } from '../components/SelectionBox'
 import DeliveryTemplatePicker from '../components/DeliveryTemplatePicker'
+import { industryDesc, industryName } from '../i18n/industryLabels'
+import { msCacheHint, msChipBadge, msFrameBadge } from '../i18n/micrositeStatus'
 
 interface Props {
   onPublish: (r: PublishResult) => void
@@ -52,6 +53,7 @@ export default function IndustryView({
   initialIndustry,
   initialMicrosite,
 }: Props) {
+  const t = useT()
   const { theme } = useTheme()
   const [industry, setIndustry] = useState(initialIndustry ?? 'office')
   const [step, setStep] = useState(1)
@@ -114,10 +116,10 @@ export default function IndustryView({
   }, [industry, active])
 
   useEffect(() => {
-    const next = defaultAppNameForIndustry(industry)
+    const next = defaultAppNameI18n(t, industry)
     setAppName(next)
     setBranding((prev) => ({ ...prev, appName: next }))
-  }, [industry])
+  }, [industry, t])
 
   useEffect(() => {
     if (!active) return
@@ -136,6 +138,7 @@ export default function IndustryView({
   }, [active])
 
   const pack = INDUSTRIES.find((p) => p.key === industry)!
+  const packDisplayName = industryName(t, pack.key, pack.name)
   const micrositeMeta = getMicrositeTemplate(micrositeId)
   const apiPackKey = resolveIndustryApiKey(industry)
   const cachedMicrositeIds = useMemo(() => getCachedMicrositeIds(apiPackKey), [apiPackKey])
@@ -243,7 +246,7 @@ export default function IndustryView({
     }
     const finalName = resolveAppName(
       nameOverride || branding.appName,
-      appName || defaultAppNameForIndustry(industry),
+      appName || defaultAppNameI18n(t, industry),
     )
     await runContactPublishPipeline({
       closeContact: () => setContactOpen(false),
@@ -323,8 +326,8 @@ export default function IndustryView({
   return (
     <div className="view industry-view">
       <div className="view-hero compact cube-panel">
-        <h2>选择您的行业</h2>
-        <p>共 <strong>{INDUSTRIES.length}</strong> 个行业深度包 · 每项含完整场景清单 · 您可再按需增减</p>
+        <h2>{t('home.industry.view.pick_title')}</h2>
+        <p>{t('home.industry.view.pick_lead', { n: INDUSTRIES.length })}</p>
       </div>
 
       {(preferKeys.length > 0 || micrositeMeta) && (
@@ -345,9 +348,9 @@ export default function IndustryView({
           ) : null}
           <div className="industry-wizard-quick">
             <button type="button" className="btn-ghost" onClick={openRuntimePreview}>
-              打开 {pack.name} Runtime 预览 →
+              {t('home.industry.view.runtime_preview', { name: packDisplayName })}
             </button>
-            <span className="industry-wizard-quick-hint">约定页：全场景工作台预览（无需先发布）</span>
+            <span className="industry-wizard-quick-hint">{t('home.industry.view.runtime_hint')}</span>
           </div>
         </div>
       )}
@@ -355,75 +358,71 @@ export default function IndustryView({
       {step <= 2 && micrositeMeta ? (
         <div className="industry-wizard-microsite cube-panel">
           <div className="industry-wizard-microsite-head">
-            <strong>20 套页面模板</strong>
+            <strong>{t('home.industry.view.tpl_title')}</strong>
             <span>
-              前 {MICROSITE_PREVIEW_CACHE_LIMIT} 套预载可点即切；其余未预载 · 点选后即时生成，完成后标记「已加载」。行业文案保持「{pack.name}」
+              {t('home.industry.ms.lead', { name: packDisplayName, n: MICROSITE_PREVIEW_CACHE_LIMIT })}
             </span>
           </div>
           <p className="industry-microsite-cache-legend" role="status">
             <span className="industry-microsite-cache-pill is-cached">
-              已预载 {cachedMicrositeIds.length}/{MICROSITE_PREVIEW_CACHE_LIMIT}
+              {t('home.industry.ms.cached', { a: cachedMicrositeIds.length, b: MICROSITE_PREVIEW_CACHE_LIMIT })}
             </span>
             <span className="industry-microsite-cache-pill is-live">
-              {micrositeCacheHint(micrositeLoadState(micrositeId))}
+              {msCacheHint(t, micrositeLoadState(micrositeId))}
             </span>
             {sessionLoadedMicrosites.size > 0 ? (
               <span className="industry-microsite-cache-pill is-session">
-                本会话已加载 {sessionLoadedMicrosites.size}
+                {t('home.industry.ms.session', { n: sessionLoadedMicrosites.size })}
               </span>
             ) : null}
             {micrositeLoadState(micrositeId) === 'idle' ? (
-              <span className="industry-microsite-cache-warn">
-                当前模板未纳入预载槽，首次打开需短暂生成预览
-              </span>
+              <span className="industry-microsite-cache-warn">{t('home.industry.ms.uncached_hint')}</span>
             ) : null}
             {previewBusy ? (
-              <span className="industry-microsite-cache-warn">正在加载预览…</span>
+              <span className="industry-microsite-cache-warn">{t('home.industry.ms.loading')}</span>
             ) : null}
           </p>
-          <div className="industry-wizard-microsite-picker" role="listbox" aria-label="视觉模板">
-            {INDUSTRY_MICROSITE_TEMPLATES.map((t) => {
-              const skin = getMicrositeRuntimeSkin(t.id)
-              const state = micrositeLoadState(t.id)
+          <div className="industry-wizard-microsite-picker" role="listbox" aria-label={t('home.industry.ms.aria')}>
+            {INDUSTRY_MICROSITE_TEMPLATES.map((tpl) => {
+              const skin = getMicrositeRuntimeSkin(tpl.id)
+              const state = micrositeLoadState(tpl.id)
               const chipClass =
                 state === 'cached' ? ' is-cached' : state === 'ready' || state === 'loading' ? ' is-session' : ' is-uncached'
               return (
               <button
-                key={t.id}
+                key={tpl.id}
                 type="button"
                 role="option"
-                aria-selected={t.id === micrositeId}
-                className={`industry-wizard-ms-chip${t.id === micrositeId ? ' on' : ''}${chipClass}`}
-                title={micrositeCacheHint(state)}
-                onClick={() => switchMicrosite(t.id)}
+                aria-selected={tpl.id === micrositeId}
+                className={`industry-wizard-ms-chip${tpl.id === micrositeId ? ' on' : ''}${chipClass}`}
+                title={msCacheHint(t, state)}
+                onClick={() => switchMicrosite(tpl.id)}
               >
-                <strong>{t.styleLabel}</strong>
+                <strong>{tpl.styleLabel}</strong>
                 <span>
-                  {skin ? `${skin.layout} · ${skin.nav}` : t.name}
+                  {skin ? `${skin.layout} · ${skin.nav}` : tpl.name}
                 </span>
-                <em className="industry-microsite-chip-badge">{micrositeChipBadge(state)}</em>
+                <em className="industry-microsite-chip-badge">{msChipBadge(t, state)}</em>
               </button>
               )
             })}
           </div>
           <div className={`industry-wizard-ms-frame-wrap${previewFade ? ' is-fading' : ''}`}>
             <div className="industry-wizard-ms-frame-bar">
-              <span>{pack.name}</span>
+              <span>{packDisplayName}</span>
               <span>
                 {micrositeMeta.styleLabel}
-                {cachedMicrositeSet.has(micrositeId)
-                  ? ' · 预载切换'
-                  : previewBusy
-                    ? ' · 生成中…'
-                    : sessionLoadedMicrosites.has(micrositeId)
-                      ? ' · 已加载'
-                      : ' · 即时预览'}
+                {msFrameBadge(t, {
+                  cached: cachedMicrositeSet.has(micrositeId),
+                  busy: previewBusy,
+                  sessionLoaded: sessionLoadedMicrosites.has(micrositeId),
+                })}
               </span>
             </div>
             <div className="industry-wizard-ms-frame-stack">
               <iframe
                 key={`${apiPackKey}-${micrositeId}`}
-                title={`${pack.name} · ${micrositeMeta.styleLabel}`}
+                title={`${packDisplayName} · ${micrositeMeta.styleLabel}`}
                 className={`industry-wizard-ms-frame${previewBusy ? ' is-loading' : ''}`}
                 srcDoc={micrositeSrcDoc}
                 sandbox="allow-same-origin allow-scripts"
@@ -442,7 +441,7 @@ export default function IndustryView({
               />
               {previewBusy ? (
                 <div className="industry-wizard-ms-frame-loading" role="status">
-                  未预载模板 · 正在生成预览…
+                  {t('home.industry.ms.generating')}
                 </div>
               ) : null}
             </div>
@@ -451,7 +450,12 @@ export default function IndustryView({
       ) : null}
 
       <div className="step-bar">
-        {['选行业', '选场景', '选受众', '发布'].map((s, i) => (
+        {[
+          t('home.industry.view.step.industry'),
+          t('home.industry.view.step.scenes'),
+          t('home.industry.view.step.audience'),
+          t('home.industry.view.step.publish'),
+        ].map((s, i) => (
           <div key={s} className={`step-item${step > i ? ' done' : ''}${step === i + 1 ? ' current' : ''}`}>
             <span>{i + 1}</span> {s}
           </div>
@@ -463,7 +467,8 @@ export default function IndustryView({
           <div className="industry-grid industry-grid-20">
             {INDUSTRIES.map((p) => {
               const ic = industryColor(p.key, theme)
-              const short = clipIndustryDesc(p.desc, 3)
+              const short = clipIndustryDesc(industryDesc(t, p.key, p.desc), 3)
+              const name = industryName(t, p.key, p.name)
               return (
               <button
                 key={p.key}
@@ -472,12 +477,12 @@ export default function IndustryView({
                 style={{ '--accent': ic, '--icon-color': ic } as CSSProperties}
                 onClick={() => setIndustry(p.key)}
               >
-                <span className="ind-count">{p.count} 场景</span>
-                <span className="ind-full">深度包</span>
+                <span className="ind-count">{t('home.industry.card.scenes', { n: p.count })}</span>
+                <span className="ind-full">{t('home.industry.card.deep_pack')}</span>
                 <div className="ind-icon icon-themed" style={iconWrapStyle(ic)}>
                   <DynamicIcon name={p.iconKey} size={28} color={ic} />
                 </div>
-                <strong className="ind-name">{p.name}</strong>
+                <strong className="ind-name">{name}</strong>
                 <span className="ind-desc">
                   {short.text}
                   {short.more > 0 ? <em className="ind-desc-more"> +{short.more}</em> : null}
@@ -487,13 +492,13 @@ export default function IndustryView({
                   className="ind-detail-btn"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  方案站
+                  {t('home.industry.view.site_link')}
                 </Link>
               </button>
               )
             })}
           </div>
-          <button type="button" className="btn-primary" onClick={() => setStep(2)}>下一步：选择场景</button>
+          <button type="button" className="btn-primary" onClick={() => setStep(2)}>{t('home.industry.view.next_scenes')}</button>
         </>
       )}
 
@@ -501,27 +506,27 @@ export default function IndustryView({
         <>
           <div className="scene-toolbar">
             <p style={{ fontSize: 13, color: 'var(--muted)', margin: 0 }}>
-              深度包默认<strong>全选</strong> {selected.size} / {scenes.length} · 可取消不需要的场景
+              {t('home.industry.view.selected_hint', { a: selected.size, b: scenes.length })}
             </p>
             <div className="scene-toolbar-actions">
-              <button type="button" className="btn-ghost" onClick={selectAllScenes}>全选</button>
-              <button type="button" className="btn-ghost" onClick={clearSelection}>清空</button>
+              <button type="button" className="btn-ghost" onClick={selectAllScenes}>{t('home.industry.view.select_all')}</button>
+              <button type="button" className="btn-ghost" onClick={clearSelection}>{t('home.industry.view.clear')}</button>
               <button type="button" className="btn-ghost" onClick={openRuntimePreview}>
-                先看 Runtime 预览
+                {t('home.industry.view.preview_first')}
               </button>
             </div>
           </div>
           {scenes.length === 0 ? (
             <div className="catalog-error">
-              <p>该行业暂无缓存场景清单</p>
+              <p>{t('home.industry.view.no_scenes')}</p>
             </div>
           ) : (
             sceneGroups.map(([cat, items]) => (
             <div key={cat} className="scene-panel">
               <h4>
-                {pack.name} · {cat}
+                {packDisplayName} · {cat}
                 <span style={{ fontSize: 11, color: 'var(--muted)', fontWeight: 400, marginLeft: 8 }}>
-                  {items.length} 项 · 已选 {items.filter((s) => selected.has(s.id)).length}
+                  {t('home.industry.detail.items', { n: items.length })} · {items.filter((s) => selected.has(s.id)).length}
                 </span>
               </h4>
               <div className="scene-grid">
@@ -605,8 +610,8 @@ export default function IndustryView({
           <div className="step-actions">
             <button type="button" className="btn-ghost" onClick={() => setStep(2)}>上一步</button>
             <button type="button" className="btn-primary agent-action-btn" disabled={Boolean(workPhase)} onClick={handlePublish}>
-              {workPhase ? GENERATE_APP_LOADING : (
-                <AgentButtonContent>{GENERATE_APP_LABEL}</AgentButtonContent>
+              {workPhase ? publishGenerateLoading(t) : (
+                <AgentButtonContent>{publishGenerateLabel(t)}</AgentButtonContent>
               )}
             </button>
           </div>
@@ -618,7 +623,7 @@ export default function IndustryView({
       {workPhase && (
         <GenerateLoadingOverlay
           phase={workPhase}
-          appName={appName || defaultAppNameForIndustry(industry)}
+          appName={appName || defaultAppNameI18n(t, industry)}
           redirectHint="正在打开行业应用工作台…"
         />
       )}
@@ -637,7 +642,7 @@ export default function IndustryView({
 
       <ContactGateModal
         open={active && contactOpen}
-        defaultAppName={appName || defaultAppNameForIndustry(industry)}
+        defaultAppName={appName || defaultAppNameI18n(t, industry)}
         onClose={() => setContactOpen(false)}
         onConfirm={(c, opts) => {
           const named = opts?.appName?.trim()

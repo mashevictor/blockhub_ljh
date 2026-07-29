@@ -2,11 +2,7 @@ import type { NavigateFunction } from 'react-router-dom'
 import { createI18n, formatApiErrorDetail, readStoredLocale } from '@blockhub/i18n'
 import { APP_MESSAGES } from '@shared/i18n/shellBundles'
 import type { PublishResult } from '../data/constants'
-import {
-  GENERATE_ERROR_FALLBACK,
-  PUBLISH_ANALYZE_PHASE_MS,
-  PUBLISH_OVERLAY_PROGRESS_MS,
-} from '../data/publishUi'
+import { PUBLISH_ANALYZE_PHASE_MS, PUBLISH_OVERLAY_PROGRESS_MS } from '../data/publishUi'
 import { ROUTES } from '../routes/paths'
 import { addMyApp } from './myAppsStorage'
 
@@ -213,7 +209,7 @@ export async function runContactPublishPipeline(opts: {
   } catch (error) {
     clearOverlayTimers()
     opts.setPhase(null)
-    opts.setError(errorMessageFromApi(error, opts.errorMessage ?? GENERATE_ERROR_FALLBACK))
+    opts.setError(errorMessageFromApi(error, opts.errorMessage ?? shellT('home.publish.error_fallback')))
   }
 }
 
@@ -237,6 +233,6 @@ export async function runLoadingPublishPipeline(opts: {
     opts.onSuccess(result)
   } catch (error) {
     opts.setLoading(false)
-    opts.setError(errorMessageFromApi(error, opts.errorMessage ?? GENERATE_ERROR_FALLBACK))
+    opts.setError(errorMessageFromApi(error, opts.errorMessage ?? shellT('home.publish.error_fallback')))
   }
 }

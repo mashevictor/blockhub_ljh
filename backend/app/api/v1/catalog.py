@@ -11,6 +11,8 @@ from app.services.catalog_seed import ensure_catalog_seeded, seed_catalog
 from app.services.i18n_catalog import (
     localize_capabilities,
     localize_hero,
+    localize_industry_pack,
+    localize_industry_pack_detail,
     resolve_request_locale,
 )
 from app.services.industry_site import list_all_sites
@@ -99,6 +101,7 @@ def office_groups(db: Annotated[Session, Depends(get_db)]) -> dict:
 
 @router.get("/industry")
 def list_industry(
+    request: Request,
     db: Annotated[Session, Depends(get_db)],
     pack: str | None = Query(None, description="Filter by pack key: mfg|sales|med|game"),
     category: str | None = Query(None, description="Filter by sub-category e.g. 临床知识"),
@@ -106,7 +109,9 @@ def list_industry(
     lite: bool = Query(False, description="Minimal fields for Home list (faster)"),
     limit: int = Query(50, description="分页大小", ge=1, le=500),
     offset: int = Query(0, description="分页偏移", ge=0),
+    lang: str | None = Query(None, description="Override Accept-Language (zh-CN|en-US)"),
 ) -> dict:
+    locale = resolve_request_locale(request, lang)
     try:
         items, packs = catalog_store.list_industry_scenarios(db, pack=pack, category=category, q=q, lite=lite)
         source = "database"
@@ -117,6 +122,7 @@ def list_industry(
             pass
         items, packs = catalog_store.list_industry_scenarios_static(pack=pack, category=category, q=q, lite=lite)
         source = "static"
+    packs = [localize_industry_pack(p, locale) for p in (packs or [])]
     total = len(items)
     return {
         "total": total,
@@ -125,26 +131,35 @@ def list_industry(
         "limit": limit,
         "offset": offset,
         "source": source,
+        "locale": locale,
     }
 
 
 @router.get("/industry-sites")
-def industry_sites_index(db: Annotated[Session, Depends(get_db)]) -> dict:
+def industry_sites_index(
+    request: Request,
+    db: Annotated[Session, Depends(get_db)],
+    lang: str | None = Query(None, description="Override Accept-Language (zh-CN|en-US)"),
+) -> dict:
     """20 个行业深度包独立站索引。"""
+    locale = resolve_request_locale(request, lang)
     packs: list[dict[str, Any]] = []
     try:
         packs = catalog_store.list_industry_packs(db)
     except SQLAlchemyError:
         db.rollback()
+    packs = [localize_industry_pack(p, locale) for p in packs]
     items = list_all_sites(packs)
-    return {"total": len(items), "items": items, "source": "database" if packs else "static"}
+    return {"total": len(items), "items": items, "source": "database" if packs else "static", "locale": locale}
 
 
 @router.get("/industry/{pack_key}")
 def industry_pack_detail(
     pack_key: str,
+    request: Request,
     db: Annotated[Session, Depends(get_db)],
     enrich: bool = Query(False, description="使用大模型丰富行业方案文案"),
+    lang: str | None = Query(None, description="Override Accept-Language (zh-CN|en-US)"),
 ) -> dict:
     detail: dict[str, Any] | None = None
     try:
@@ -155,8 +170,8 @@ def industry_pack_detail(
         detail = catalog_store.get_industry_pack_detail_static(pack_key, enrich=enrich)
     if not detail:
         raise_api_error(404, "INDUSTRY_PACK_NOT_FOUND", pack=pack_key)
-    return detail
-
+    locale = resolve_request_locale(request, lang)
+    return localize_industry_pack_detail(detail, locale)
 
 @router.get("/scenarios")
 def list_all_scenarios(

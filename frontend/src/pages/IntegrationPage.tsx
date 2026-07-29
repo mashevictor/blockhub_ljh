@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useT } from '@blockhub/i18n/react'
 import {
   createConnector,
   deleteConnector,
@@ -21,6 +22,7 @@ const TYPE_LABEL: Record<string, string> = {
 }
 
 export default function IntegrationPage() {
+  const t = useT()
   const [items, setItems] = useState<Connector[]>([])
   const [selected, setSelected] = useState<Connector | null>(null)
   const [jobs, setJobs] = useState<EtlJobItem[]>([])
@@ -132,8 +134,8 @@ export default function IntegrationPage() {
     <>
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between' }}>
         <div>
-          <h1>系统集成</h1>
-          <p>P4-I1/I2：Adapter 同步 · CRM Webhook 验签 · IM 真推送 · vendor / field_map 可配</p>
+          <h1>{t('admin.page.integrations.title')}</h1>
+          <p>{t('admin.page.integrations.desc')}</p>
         </div>
         <button type="button" className="btn btn-primary-dark" onClick={() => setShowForm((v) => !v)}>
           {showForm ? '取消' : '新建连接器'}

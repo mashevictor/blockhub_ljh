@@ -7,6 +7,7 @@ import {
   useRef,
   useState,
 } from 'react'
+import { useT, useTf } from '@blockhub/i18n/react'
 import { MODULES } from '../data/constants'
 import { CAPABILITIES_SHOWCASE, INDUSTRIES_SHOWCASE, resolveCategoryIcon, type IndustryItem } from '../data/showcase'
 import {
@@ -23,7 +24,6 @@ import {
   cancelTrigger,
   completeCommand,
   DEFAULT_GUIDE_TEXT,
-  GUIDE_PLACEHOLDER,
   isLoneTrigger,
   normalizeChevronInput,
   PANEL_HINT_TEXT,
@@ -38,6 +38,9 @@ import { useAgentPageContext } from '../context/AgentPageContext'
 import { useFloatingDock } from '../context/FloatingDockContext'
 import { AGENT_CONTEXTS } from '../data/agentContext'
 import { ChevronDotSign } from './ChevronDotLoader'
+import { officeCategories, PANEL_HINT_KEYS } from '../i18n/agentLabels'
+import { industryName } from '../i18n/industryLabels'
+import { showcaseCapDesc, showcaseCapName } from '../i18n/contentLabels'
 
 export type { AgentPick } from './agentInputLogic'
 
@@ -48,14 +51,9 @@ export interface AgentInputHandle {
 }
 
 const ACTIONS = [
-  { key: 'add-scene', label: '添加场景', hint: '打开 >> 选模块' },
-  { key: 'warehouse', label: '查看积木仓', hint: '已选清单' },
+  { key: 'add-scene', labelKey: 'home.agent.action.add_scene', hintKey: 'home.agent.action.add_scene_hint' },
+  { key: 'warehouse', labelKey: 'home.agent.action.warehouse', hintKey: 'home.agent.action.warehouse_hint' },
 ] as const
-
-const OFFICE_CATS = [
-  '人事行政', '财务法务', '知识协同', '流程审批',
-  '数据报表', '消息通知', 'IT与资产', '外部对接',
-]
 
 interface ScenarioRef {
   id: string
@@ -125,6 +123,8 @@ export default forwardRef<AgentInputHandle, Props>(function AgentInput({
   guideOnEmptyFocus = true,
   inputLocked = false,
 }, ref) {
+  const t = useT()
+  const tf = useTf()
   const innerRef = useRef<HTMLTextAreaElement>(null)
   const compactRef = useRef<HTMLInputElement>(null)
   const wrapRef = useRef<HTMLDivElement>(null)
@@ -145,9 +145,13 @@ export default forwardRef<AgentInputHandle, Props>(function AgentInput({
   const textareaRows = isFloatingCapsule ? 2 : (expanded ? 5 : 2)
   const { contextKey } = useAgentPageContext()
   const contextCopy = AGENT_CONTEXTS[contextKey]
+  const guidePlaceholder = t('home.agent.placeholder')
   const placeholderText = capsuleCompact
     ? (contextCopy.placeholderCollapsed ?? contextCopy.placeholder)
-    : (isMinimal ? contextCopy.placeholder : GUIDE_PLACEHOLDER)
+    : (isMinimal ? contextCopy.placeholder : guidePlaceholder)
+
+  const panelHintText = (hint: keyof typeof PANEL_HINT_TEXT) =>
+    t(PANEL_HINT_KEYS[hint] ?? 'home.agent.hint.browse')
 
   const [focused, setFocused] = useState(false)
   const [composing, setComposing] = useState(false)
@@ -253,17 +257,35 @@ export default forwardRef<AgentInputHandle, Props>(function AgentInput({
       selected: isSelected(pick, modules),
     })
 
-    const actionItems = ACTIONS.filter((a) => match(a.label, a.hint)).map((a) =>
-      mk({ type: 'action', key: a.key, label: a.label }, { hint: a.hint }),
-    )
-    const industryItems = INDUSTRIES_SHOWCASE.filter((i: IndustryItem) => match(i.name, i.desc)).map((i) =>
-      mk({ type: 'industry', key: i.key, label: i.name }, { hint: i.desc, iconKey: i.iconKey, color: i.color }),
-    )
-    const officeItems = OFFICE_CATS.filter((c) => match(c)).map((c) =>
-      mk({ type: 'office', key: c, label: c }, { iconKey: 'briefcase', color: theme?.pri }),
-    )
+    const actionItems = ACTIONS.filter((a) => {
+      const label = t(a.labelKey)
+      const hint = t(a.hintKey)
+      return match(label, hint) || match(a.key)
+    }).map((a) => {
+      const label = t(a.labelKey)
+      const hint = t(a.hintKey)
+      return mk({ type: 'action', key: a.key, label }, { hint })
+    })
+    const industryItems = INDUSTRIES_SHOWCASE.filter((i: IndustryItem) => {
+      const name = industryName(t, i.key, i.name)
+      return match(name, i.desc) || match(i.name, i.desc)
+    }).map((i) => {
+      const name = industryName(t, i.key, i.name)
+      return mk(
+        { type: 'industry', key: i.key, label: name },
+        { hint: i.desc, iconKey: i.iconKey, color: i.color },
+      )
+    })
+    const officeItems = officeCategories(t)
+      .filter((c) => match(c.label) || match(c.key))
+      .map((c) =>
+        mk({ type: 'office', key: c.key, label: c.label }, { iconKey: 'briefcase', color: theme?.pri }),
+      )
     const capItems = CAPABILITIES_SHOWCASE.filter((c) => match(c.name, c.desc)).map((c) =>
-      mk({ type: 'capability', key: c.id, label: c.name }, { hint: c.desc, iconKey: c.iconKey, color: c.color }),
+      mk(
+        { type: 'capability', key: c.id, label: showcaseCapName(t, c.id, c.name) },
+        { hint: showcaseCapDesc(t, c.id, c.desc), iconKey: c.iconKey, color: c.color },
+      ),
     )
     const moduleItems = MODULES.flatMap((group) =>
       group.items
@@ -286,18 +308,23 @@ export default forwardRef<AgentInputHandle, Props>(function AgentInput({
     const heroPresets = filterHeroPresetsForQuery(q)
     const heroSceneItems = heroPresets.map((preset) => {
       const picks = picksForCapabilityAlign(preset)
+      const label = tf(`hero.${preset.id}.label`, preset.label)
+      const hint = tf(`hero.${preset.id}.hint`, preset.hint)
+      const role = tf(`hero.${preset.id}.role`, presetRole(preset))
       const primary =
         picks.find((p) => p.type === 'module' || p.type === 'capability') ??
         picks[0] ??
-        ({ type: 'scenario' as const, key: preset.id, label: preset.label })
-      const role = presetRole(preset)
-      return mk(primary, {
-        displayLabel: `${role} × ${preset.label}`,
-        hint: `${role} · ${preset.hint}`,
-        iconKey: 'zap',
-        color: preset.color,
-        bundle: picks,
-      })
+        ({ type: 'scenario' as const, key: preset.id, label })
+      return mk(
+        { ...primary, label: primary.label === preset.label ? label : primary.label },
+        {
+          displayLabel: `${role} × ${label}`,
+          hint: `${role} · ${hint}`,
+          iconKey: 'zap',
+          color: preset.color,
+          bundle: picks,
+        },
+      )
     })
 
     const showFullCatalog = !isMinimal || Boolean(filterQuery) || pickerSession
@@ -306,17 +333,17 @@ export default forwardRef<AgentInputHandle, Props>(function AgentInput({
     const heroLimit = q ? 20 : 10
 
     const out: PanelSection[] = []
-    if (actionItems.length && !isMinimal) out.push({ id: 'actions', title: '快捷指令', items: actionItems })
+    if (actionItems.length && !isMinimal) out.push({ id: 'actions', title: t('home.agent.section.actions'), items: actionItems })
     if (heroSceneItems.length && showFullCatalog) {
-      out.push({ id: 'hero-scenes', title: '弹幕场景', items: heroSceneItems.slice(0, heroLimit) })
+      out.push({ id: 'hero-scenes', title: t('home.agent.section.hero'), items: heroSceneItems.slice(0, heroLimit) })
     }
-    if (scenarioItems.length && showFullCatalog) out.push({ id: 'scenarios', title: '业务场景', items: scenarioItems })
-    if (industryItems.length) out.push({ id: 'industries', title: '行业视角', items: industryItems.slice(0, industryLimit) })
-    if (officeItems.length) out.push({ id: 'office', title: '办公分类', items: officeItems })
-    if (capItems.length) out.push({ id: 'capabilities', title: '平台能力', items: capItems.slice(0, q ? 10 : 6) })
-    if (moduleItems.length && showFullCatalog) out.push({ id: 'modules', title: '功能模块', items: moduleItems.slice(0, moduleLimit) })
+    if (scenarioItems.length && showFullCatalog) out.push({ id: 'scenarios', title: t('home.agent.section.scenarios'), items: scenarioItems })
+    if (industryItems.length) out.push({ id: 'industries', title: t('home.agent.section.industries'), items: industryItems.slice(0, industryLimit) })
+    if (officeItems.length) out.push({ id: 'office', title: t('home.agent.section.office'), items: officeItems })
+    if (capItems.length) out.push({ id: 'capabilities', title: t('home.agent.section.capabilities'), items: capItems.slice(0, q ? 10 : 6) })
+    if (moduleItems.length && showFullCatalog) out.push({ id: 'modules', title: t('home.agent.section.modules'), items: moduleItems.slice(0, moduleLimit) })
     return out
-  }, [filterQuery, scenarios, modules, isMinimal, theme, pickerSession])
+  }, [filterQuery, scenarios, modules, isMinimal, theme, pickerSession, t, tf])
 
   const flatItems = useMemo(() => sections.flatMap((s) => s.items), [sections])
   const panelMode = mode === 'guide' ? 'guide' : 'command'
@@ -579,7 +606,7 @@ export default forwardRef<AgentInputHandle, Props>(function AgentInput({
                 type="button"
                 className={`agent-brand-trigger${effectivePanelOpen ? ' active' : ''}`}
                 title="积木仓符号 · >>重新定义智能体新交互"
-                aria-label="打开模块选择"
+                aria-label={t('home.agent.aria.open_picker')}
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => {
                   if (effectivePanelOpen && pickerSession) closePanel()
@@ -650,14 +677,14 @@ export default forwardRef<AgentInputHandle, Props>(function AgentInput({
             </span>
             <div className="agent-input-field-wrap">
               {showGhost && (
-                <div className="agent-input-ghost" aria-hidden>{GUIDE_PLACEHOLDER}</div>
+                <div className="agent-input-ghost" aria-hidden>{guidePlaceholder}</div>
               )}
               <textarea
                 ref={innerRef}
                 className="agent-input-field"
                 value={value}
                 rows={expanded ? 5 : 2}
-                placeholder={focused ? '' : GUIDE_PLACEHOLDER}
+                placeholder={focused ? '' : guidePlaceholder}
                 onChange={(e) => handleChange(e.target.value)}
                 onFocus={handleFocus}
                 onBlur={handleBlur}
@@ -684,25 +711,18 @@ export default forwardRef<AgentInputHandle, Props>(function AgentInput({
         <div className="agent-input-tip" role="note">
           {mode === 'free' && !effectivePanelOpen && (
             <span>
-              {isMinimal ? (
-                <>自由描述中 · 输入 <code>&gt;&gt;</code> 多选模块</>
-              ) : (
-                <>自由描述中 · 需要模块时在空格后输入 <code>&gt;&gt;</code></>
-              )}
+              {isMinimal ? t('home.agent.tip.free_compact') : t('home.agent.tip.free')}
             </span>
           )}
           {(mode === 'guide' || (pickerSession && effectivePanelOpen)) && mode !== 'command' && (
             <span>
-              {isMinimal
-                ? '点上方光球选模块 · 选完点「完成选模块」查看积木仓'
-                : '可多选模块 · 选完后 Esc 或直接输入描述'}
+              {isMinimal ? panelHintText('browse') : panelHintText('guide')}
             </span>
           )}
           {mode === 'command' && (
             <span>
-              <code>&gt;&gt;</code> 编排中 · 可多选
-              {ctx.query.trim() ? ` · 筛选「${ctx.query.trim()}」` : ' · 或直接输入需求，如：游戏'}
-              {pickerSession && !ctx.open ? ' · Esc 完成' : ''}
+              {t('home.agent.tip.command')}
+              {ctx.query.trim() ? ` · ${t('home.agent.panel.filter', { q: ctx.query.trim() })}` : ''}
             </span>
           )}
         </div>
@@ -715,7 +735,7 @@ export default forwardRef<AgentInputHandle, Props>(function AgentInput({
             mode={panelMode}
             query={ctx.open ? ctx.query : ''}
             count={flatItems.length}
-            foot={PANEL_HINT_TEXT[panelHint]}
+            foot={panelHintText(panelHint)}
             theme={theme}
             size={orbSize}
             showDone={pickerSession}
@@ -726,18 +746,21 @@ export default forwardRef<AgentInputHandle, Props>(function AgentInput({
       )}
 
       {effectivePanelOpen && !isMinimal && (
-        <div className="agent-module-panel" ref={panelRef} role="listbox" aria-label="可用模块">
+        <div className="agent-module-panel" ref={panelRef} role="listbox" aria-label={t('home.agent.aria.open_picker')}>
           <div className="agent-module-head">
             <span className="agent-module-title">
-              {mode === 'guide' ? '开始创建 — 选一项或直接输入' : ctx.query.trim() ? `筛选：${ctx.query.trim()}` : '插入模块'}
+              {mode === 'guide'
+                ? t('home.agent.panel.guide_title')
+                : ctx.query.trim()
+                  ? t('home.agent.panel.filter', { q: ctx.query.trim() })
+                  : t('home.agent.panel.insert')}
             </span>
-            <span className="agent-module-count">{flatItems.length} 项</span>
+            <span className="agent-module-count">{flatItems.length}</span>
           </div>
           <div className="agent-module-body">
             {sections.length === 0 ? (
               <div className="agent-module-empty">
-                <p>没有匹配的模块</p>
-                <span>继续输入文字，或 Esc 删除 <code>&gt;&gt;</code></span>
+                <p>{t('home.agent.panel.empty')}</p>
               </div>
             ) : (
               sections.map((section) => (
@@ -764,7 +787,7 @@ export default forwardRef<AgentInputHandle, Props>(function AgentInput({
                           </span>
                         )}
                         <span className="agent-module-label">{item.displayLabel ?? item.pick.label}</span>
-                        {item.selected && <span className="agent-module-badge">已选</span>}
+                        {item.selected && <span className="agent-module-badge">{t('home.agent.panel.selected')}</span>}
                         {item.hint && <span className="agent-module-meta">{item.hint}</span>}
                       </button>
                     )
@@ -773,7 +796,7 @@ export default forwardRef<AgentInputHandle, Props>(function AgentInput({
               ))
             )}
           </div>
-          <footer className="agent-module-foot">{PANEL_HINT_TEXT[panelHint]}</footer>
+          <footer className="agent-module-foot">{panelHintText(panelHint)}</footer>
         </div>
       )}
     </div>

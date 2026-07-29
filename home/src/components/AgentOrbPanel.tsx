@@ -3,6 +3,7 @@ import { categoryColor, iconWrapStyle } from '../data/iconPalette'
 import { resolveCategoryIcon } from '../data/showcase'
 import type { ThemeTokens } from '../data/themes'
 import { BRAND_TAGLINE } from './agentInputLogic'
+import { useT } from '@blockhub/i18n/react'
 
 interface OrbItem {
   idx: number
@@ -48,31 +49,35 @@ export default function AgentOrbPanel({
   selectedCount = 0,
   onDone,
 }: Props) {
+  const t = useT()
   const empty = count === 0
   const large = size === 'large'
   const iconSize = large ? 22 : 20
   const labelMax = large ? 10 : 6
 
   return (
-    <div className={`agent-orb-panel${large ? ' agent-orb-panel-large' : ''}`} role="listbox" aria-label="可用模块">
+    <div className={`agent-orb-panel${large ? ' agent-orb-panel-large' : ''}`} role="listbox" aria-label={t('home.agent.aria.open_picker')}>
       <header className="agent-orb-head">
         <div className="agent-orb-brand">
           <span className="agent-orb-brand-chev" aria-hidden>&gt;&gt;</span>
           <div className="agent-orb-brand-copy">
             <span className="agent-orb-brand-title">
-              {mode === 'guide' ? '开始编排' : query.trim() ? `筛选「${query.trim()}」` : '插入模块'}
+              {mode === 'guide'
+                ? t('home.agent.orb.start')
+                : query.trim()
+                  ? t('home.agent.panel.filter', { q: query.trim() })
+                  : t('home.agent.panel.insert')}
             </span>
             <span className="agent-orb-brand-tag">{BRAND_TAGLINE}</span>
           </div>
         </div>
-        <span className="agent-orb-count">{count} 项</span>
+        <span className="agent-orb-count">{count}</span>
       </header>
 
       <div className="agent-orb-body">
         {empty ? (
           <div className="agent-orb-empty">
-            <p>没有匹配的模块</p>
-            <span>继续输入文字，或 Esc 删除 <code>&gt;&gt;</code></span>
+            <p>{t('home.agent.panel.empty')}</p>
           </div>
         ) : (
           sections.map((section) => (
@@ -103,7 +108,7 @@ export default function AgentOrbPanel({
                       <span className="agent-orb-label">
                         {item.label.length > labelMax ? `${item.label.slice(0, labelMax - 1)}…` : item.label}
                       </span>
-                      {item.selected && <span className="agent-orb-badge">已选</span>}
+                      {item.selected && <span className="agent-orb-badge">{t('home.agent.panel.selected')}</span>}
                     </button>
                   )
                 })}
@@ -117,7 +122,9 @@ export default function AgentOrbPanel({
         <span className="agent-orb-foot-hint">{foot}</span>
         {showDone && onDone ? (
           <button type="button" className="agent-orb-done-btn" onClick={onDone}>
-            完成选模块{selectedCount > 0 ? ` · ${selectedCount} 项` : ''}
+            {selectedCount > 0
+              ? t('home.agent.orb.done_n', { n: selectedCount })
+              : t('home.agent.orb.done')}
           </button>
         ) : null}
       </footer>

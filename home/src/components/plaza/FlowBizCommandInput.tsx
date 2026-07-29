@@ -1,4 +1,5 @@
 import { forwardRef, useImperativeHandle, useMemo, useState } from 'react'
+import { useT } from '@blockhub/i18n/react'
 import type { ModuleCapability } from '../../data/moduleCatalog'
 import { api, askFlowQuestion, fetchVoiceConfig } from '../../api/client'
 import { buildApiCurl, type FlowApiEndpoint } from '../../lib/flowModuleApis'
@@ -54,17 +55,17 @@ interface Props {
   placeholder?: string
 }
 
-const QUICK: BizQuickChip[] = [
-  { cat: 'design', label: '这个应用解决什么问题？', text: '这个应用解决什么问题' },
-  { cat: 'design', label: '画一下完整用户旅程', text: '画一下完整用户旅程' },
-  { cat: 'design', label: '梳理功能清单', text: '梳理功能清单' },
-  { cat: 'dev', label: '当前流程有哪些模块？', text: '当前流程有哪些模块' },
-  { cat: 'dev', label: '打开知识库问答', text: '打开知识库问答' },
-  { cat: 'ops', label: '打开 Runtime 改页', text: '打开 Runtime' },
-  { cat: 'test', label: '流程预览走一遍', text: '流程预览' },
-  { cat: 'test', label: '测一下当前接口', text: '测试' },
-  { cat: 'ops', label: '停止预览', text: '停止预览' },
-  { cat: 'ops', label: '生成联调检查清单', text: '生成联调检查清单' },
+const QUICK_DEFS: Array<{ cat: BizQuickChip['cat']; labelKey: string; text: string }> = [
+  { cat: 'design', labelKey: 'home.plaza.cmd.chip.problem', text: '这个应用解决什么问题' },
+  { cat: 'design', labelKey: 'home.plaza.cmd.chip.journey', text: '画一下完整用户旅程' },
+  { cat: 'design', labelKey: 'home.plaza.cmd.chip.features', text: '梳理功能清单' },
+  { cat: 'dev', labelKey: 'home.plaza.cmd.chip.modules', text: '当前流程有哪些模块' },
+  { cat: 'dev', labelKey: 'home.plaza.cmd.chip.kb', text: '打开知识库问答' },
+  { cat: 'ops', labelKey: 'home.plaza.cmd.chip.runtime', text: '打开 Runtime' },
+  { cat: 'test', labelKey: 'home.plaza.cmd.chip.preview', text: '流程预览' },
+  { cat: 'test', labelKey: 'home.plaza.cmd.chip.test', text: '测试' },
+  { cat: 'ops', labelKey: 'home.plaza.cmd.chip.stop', text: '停止预览' },
+  { cat: 'ops', labelKey: 'home.plaza.cmd.chip.checklist', text: '生成联调检查清单' },
 ]
 
 /** 上海话应用 · >> 内置只读/预览话术 */
@@ -117,19 +118,30 @@ const FlowBizCommandInput = forwardRef<FlowBizCommandHandle, Props>(function Flo
   onStartTrial,
   onStopTrial,
   onPauseTrial,
-  placeholder = '>> 询问应用、打开能力，或点下方常用指令',
+  placeholder: placeholderProp,
 }, ref) {
+  const t = useT()
   const [value, setValue] = useState('')
   const [menuOpen, setMenuOpen] = useState(false)
   const [hint, setHint] = useState('')
 
-  const chips = commandProfile === 'shanghai' ? SHANGHAI_QUICK : QUICK
+  const defaultPlaceholder = t('home.plaza.cmd.placeholder')
+  const placeholder = placeholderProp ?? defaultPlaceholder
+
+  const quickChips = useMemo(
+    (): BizQuickChip[] => QUICK_DEFS.map((d) => ({ cat: d.cat, label: t(d.labelKey), text: d.text })),
+    [t],
+  )
+  const chips = commandProfile === 'shanghai' ? SHANGHAI_QUICK : quickChips
   const voiceWeb = webUrl || '/agents/shanghai-voice'
+
+  const intentLabel = t('home.plaza.cmd.intent')
+  const outputLabel = t('home.plaza.cmd.output')
 
   const allNodeLabels = useMemo(() => {
     if (nodeLabels.length) return nodeLabels
-    return ['用户意图', ...flowLabels, '触达输出']
-  }, [nodeLabels, flowLabels])
+    return [intentLabel, ...flowLabels, outputLabel]
+  }, [nodeLabels, flowLabels, intentLabel, outputLabel])
 
   const finish = (msg: string, clear = true) => {
     setHint(msg)
@@ -209,25 +221,25 @@ const FlowBizCommandInput = forwardRef<FlowBizCommandHandle, Props>(function Flo
     // —— 流程预览控制（不写库）——
     if (/停止预览|停止试运营|停止运行|先停一下|^停止$/.test(text)) {
       onStopTrial?.()
-      finish('已停止流程预览')
+      finish(t('home.plaza.cmd.hint.stop'))
       return
     }
     if (/暂停/.test(text)) {
       onPauseTrial?.()
-      finish('已暂停流程预览')
+      finish(t('home.plaza.cmd.hint.stop'))
       return
     }
     if (/流程预览|开始试运营|试运营验收|跑一遍|启动验收/.test(text)) {
       onStartTrial?.()
-      finish('已开始流程预览（本地动画，不改 Runtime）')
+      finish(t('home.plaza.cmd.hint.start'))
       return
     }
     if (/打开\s*Runtime|去\s*Runtime|对话改页/.test(text)) {
       if (webUrl) {
         window.open(webUrl, '_blank', 'noopener,noreferrer')
-        finish('已打开 Runtime · 请在对话改页做增删改')
+        finish(t('home.plaza.cmd.hint.runtime'))
       } else {
-        finish('暂无 Runtime 链接', false)
+        finish(t('home.plaza.cmd.hint.no_runtime'), false)
       }
       return
     }
@@ -279,17 +291,17 @@ const FlowBizCommandInput = forwardRef<FlowBizCommandHandle, Props>(function Flo
 
     // —— 插入：禁止改结构 ——
     if (/^(插入|加|添加)/.test(text) || /插入|添加模块|加一个/.test(text)) {
-      finish('增删模块请打开 Runtime 对话改页（本页不可改结构）', false)
+      finish(t('home.plaza.cmd.hint.structure'), false)
       return
     }
 
     if (/^(备注|记下)\s*/.test(text)) {
-      finish('改节点说明请打开 Runtime 对话改页', false)
+      finish(t('home.plaza.cmd.hint.structure'), false)
       return
     }
 
     // —— 未命中动作指令：一律走大模型（带上模块/节点上下文）——
-    finish('大模型分析中…')
+    finish(t('home.plaza.cmd.hint.analyzing'))
     void askFlowQuestion({
       question: text,
       appName,
@@ -336,7 +348,7 @@ const FlowBizCommandInput = forwardRef<FlowBizCommandHandle, Props>(function Flo
   return (
     <div className={`plaza-biz-cmd${mutateLocked ? ' is-locked' : ''}${disabled ? ' is-disabled' : ''}${commandProfile === 'shanghai' ? ' is-shanghai' : ''}`}>
       {!disabled && (
-        <div className="plaza-biz-cmd-chips" aria-label={commandProfile === 'shanghai' ? '上海话内置测试' : '内置话术'}>
+        <div className="plaza-biz-cmd-chips" aria-label={commandProfile === 'shanghai' ? t('home.plaza.cmd.chips_shanghai') : t('home.plaza.cmd.chips_aria')}>
           {chips.map((q) => (
             <button
               key={q.text}
@@ -356,8 +368,8 @@ const FlowBizCommandInput = forwardRef<FlowBizCommandHandle, Props>(function Flo
           type="text"
           value={value}
           disabled={disabled}
-          placeholder={disabled ? '仅创建者可输入指令' : placeholder}
-          aria-label="业务输入命令"
+          placeholder={disabled ? t('home.plaza.cmd.disabled') : placeholder}
+          aria-label={t('home.plaza.cmd.placeholder')}
           onChange={(e) => {
             setValue(e.target.value)
             setMenuOpen(e.target.value.includes('>') || e.target.value.startsWith('>>'))
@@ -379,7 +391,7 @@ const FlowBizCommandInput = forwardRef<FlowBizCommandHandle, Props>(function Flo
           disabled={disabled}
           onClick={() => run(value || '当前流程有哪些模块')}
         >
-          执行
+          {t('home.plaza.cmd.execute')}
         </button>
       </div>
 
@@ -388,16 +400,16 @@ const FlowBizCommandInput = forwardRef<FlowBizCommandHandle, Props>(function Flo
       {!disabled && menuOpen && (
         <div className="plaza-biz-cmd-menu" role="menu">
           <button type="button" role="menuitem" onClick={() => run('打开 Runtime')}>
-            打开 Runtime · 对话改页
+            {t('home.plaza.cmd.chip.runtime')}
           </button>
           <button type="button" role="menuitem" onClick={() => run('流程预览')}>
-            流程预览 · 本地步进动画
+            {t('home.plaza.cmd.chip.preview')}
           </button>
           <button type="button" role="menuitem" onClick={() => run('梳理功能清单')}>
-            项目问答 · 梳理功能清单
+            {t('home.plaza.cmd.chip.features')}
           </button>
           <button type="button" role="menuitem" onClick={() => run('当前流程有哪些模块')}>
-            查看当前模块链
+            {t('home.plaza.cmd.chip.modules')}
           </button>
         </div>
       )}

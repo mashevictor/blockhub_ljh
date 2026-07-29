@@ -1,19 +1,24 @@
 import { Link, Navigate, useParams } from 'react-router-dom'
+import { useT } from '@blockhub/i18n/react'
 import MarketingSiteShell from '../../components/b2b/enrichment/MarketingSiteShell'
 import EnrichArticleBody from '../../components/b2b/enrichment/EnrichArticleBody'
 import EnrichCardVisual from '../../components/b2b/enrichment/EnrichCardVisual'
 import { AgentButtonContent } from '../../components/AgentChevron'
+import { sectionsToBlocks } from '../../data/enrichBlocks'
 import { enrichCardStyle, trustDocTheme } from '../../data/enrichVisualThemes'
-import { getTrustDocArticle, resolveTrustDocBlocks } from '../../data/enrichmentContent'
+import { getTrustDocArticle } from '../../data/enrichmentContent'
 import { TRUST_DOCS } from '../../data/siteTrust'
+import { localizeTrustArticle } from '../../i18n/contentLabels'
 import { ROUTES } from '../../routes/paths'
 import { usePageMeta } from '../../hooks/usePageMeta'
 import type { CSSProperties } from 'react'
 
 export default function TrustDocDetailPage() {
+  const t = useT()
   const { docId = '' } = useParams()
   const meta = TRUST_DOCS.find((d) => d.id === docId)
-  const article = getTrustDocArticle(docId)
+  const raw = getTrustDocArticle(docId)
+  const article = raw ? localizeTrustArticle(t, raw) : undefined
 
   usePageMeta(
     article
@@ -26,7 +31,7 @@ export default function TrustDocDetailPage() {
   }
 
   const theme = trustDocTheme(docId)
-  const blocks = resolveTrustDocBlocks(docId)
+  const blocks = sectionsToBlocks(article.sections, { relatedLinks: article.relatedLinks })
 
   return (
     <MarketingSiteShell

@@ -1,6 +1,6 @@
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useEffect, useMemo, useState } from 'react'
-import { LocaleSwitch } from '@blockhub/i18n/react'
+import { LocaleSwitch, useT } from '@blockhub/i18n/react'
 import { fetchCatalogSummary, fetchDashboard, type CatalogSummary, type DashboardStats } from '../api/client'
 import { fetchBillingMe, type BillingMe } from '../api/billing'
 import { logout } from '../auth/session'
@@ -27,29 +27,25 @@ import {
   IconGrid,
 } from './icons'
 
-const NAV: Array<{ to: string; label: string; icon: typeof IconHome; end?: boolean; roles: AppRole[] }> = [
-  // 全员
-  { to: '/', label: '工作台', icon: IconHome, end: true, roles: ['admin', 'tenant_owner', 'employee'] },
-  // 本租户管理（admin + tenant_owner；canAccessRole 对 admin 项也会放行 owner）
-  { to: '/agents', label: '能力中心', icon: IconBot, roles: ['admin'] },
-  { to: '/capabilities/review', label: '能力审核', icon: IconGrid, roles: ['admin'] },
-  { to: '/scenarios', label: '业务场景', icon: IconList, roles: ['admin'] },
-  { to: '/create', label: '创建应用', icon: IconSparkles, roles: ['admin'] },
-  // 全员协作
-  { to: '/chat', label: '智能问答', icon: IconMessage, roles: ['admin', 'tenant_owner', 'employee'] },
-  { to: '/voice/shanghai', label: '上海话语音', icon: IconMic, roles: ['admin', 'tenant_owner', 'employee'] },
-  { to: '/knowledge', label: '知识库', icon: IconBook, roles: ['admin', 'tenant_owner', 'employee'] },
-  { to: '/approvals', label: '审批中心', icon: IconCheckCircle, roles: ['admin', 'tenant_owner', 'employee'] },
-  // 本租户管理
-  { to: '/contracts', label: '合同盖章', icon: IconStamp, roles: ['admin'] },
-  { to: '/reports', label: '数据报表', icon: IconBarChart, roles: ['admin'] },
-  { to: '/integrations', label: '系统集成', icon: IconLayers, roles: ['admin'] },
-  { to: '/settings/tenant', label: '租户配置', icon: IconSettings, roles: ['admin'] },
-  // 全员
-  { to: '/notifications', label: '消息通知', icon: IconBell, roles: ['admin', 'tenant_owner', 'employee'] },
+const NAV: Array<{ to: string; labelKey: string; icon: typeof IconHome; end?: boolean; roles: AppRole[] }> = [
+  { to: '/', labelKey: 'admin.nav.workbench', icon: IconHome, end: true, roles: ['admin', 'tenant_owner', 'employee'] },
+  { to: '/agents', labelKey: 'admin.nav.agents', icon: IconBot, roles: ['admin'] },
+  { to: '/capabilities/review', labelKey: 'admin.nav.review', icon: IconGrid, roles: ['admin'] },
+  { to: '/scenarios', labelKey: 'admin.nav.scenarios', icon: IconList, roles: ['admin'] },
+  { to: '/create', labelKey: 'admin.nav.create', icon: IconSparkles, roles: ['admin'] },
+  { to: '/chat', labelKey: 'admin.nav.chat', icon: IconMessage, roles: ['admin', 'tenant_owner', 'employee'] },
+  { to: '/voice/shanghai', labelKey: 'admin.nav.voice', icon: IconMic, roles: ['admin', 'tenant_owner', 'employee'] },
+  { to: '/knowledge', labelKey: 'admin.nav.knowledge', icon: IconBook, roles: ['admin', 'tenant_owner', 'employee'] },
+  { to: '/approvals', labelKey: 'admin.nav.approvals', icon: IconCheckCircle, roles: ['admin', 'tenant_owner', 'employee'] },
+  { to: '/contracts', labelKey: 'admin.nav.contracts', icon: IconStamp, roles: ['admin'] },
+  { to: '/reports', labelKey: 'admin.nav.reports', icon: IconBarChart, roles: ['admin'] },
+  { to: '/integrations', labelKey: 'admin.nav.integrations', icon: IconLayers, roles: ['admin'] },
+  { to: '/settings/tenant', labelKey: 'admin.nav.settings', icon: IconSettings, roles: ['admin'] },
+  { to: '/notifications', labelKey: 'admin.nav.notifications', icon: IconBell, roles: ['admin', 'tenant_owner', 'employee'] },
 ]
 
 export default function AdminLayout() {
+  const t = useT()
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [catalog, setCatalog] = useState<CatalogSummary | null>(null)
   const [billing, setBilling] = useState<BillingMe | null>(null)
@@ -84,11 +80,17 @@ export default function AdminLayout() {
     [user, role],
   )
 
-  const roleLabel = roleDisplayLabel(user?.role)
+  const roleLabel = roleDisplayLabel(user?.role, t)
   const planName = billing?.plan?.name || billing?.plan_tier || ''
   const planFeatures = (billing?.plan?.features || []).slice(0, 3)
   const hasApproval = Boolean(billing?.plan?.schema_approval)
   const industryPacks = billing?.plan?.industry_packs
+  const packsText =
+    industryPacks === null || industryPacks === undefined
+      ? t('admin.sidebar.packs_unlimited')
+      : industryPacks === 0
+        ? t('admin.sidebar.packs_none')
+        : t('admin.sidebar.packs_n', { n: industryPacks })
 
   return (
     <div className="layout">
@@ -97,20 +99,19 @@ export default function AdminLayout() {
           <BrandMark size={42} className="sidebar-brand-mark" />
           <div>
             <h2>{BRAND.nameZh}</h2>
-            <p>{BRAND.nameEn} · {user?.role === 'employee' ? '工作台' : '管理后台'}</p>
+            <p>
+              {BRAND.nameEn} ·{' '}
+              {user?.role === 'employee' ? t('admin.sidebar.workbench') : t('admin.sidebar.admin')}
+            </p>
           </div>
         </div>
         {planName ? (
           <div className="sidebar-meta" style={{ marginBottom: 8 }}>
             <strong>{planName}</strong>
             <br />
-            {industryPacks === null || industryPacks === undefined
-              ? '行业包不限'
-              : industryPacks === 0
-                ? '无行业包（办公/模块）'
-                : `行业包 ${industryPacks} 个`}
+            {packsText}
             {' · '}
-            {hasApproval ? '改页需审批' : '改页即生效'}
+            {hasApproval ? t('admin.sidebar.approval_required') : t('admin.sidebar.approval_instant')}
             {planFeatures.length > 0 ? (
               <>
                 <br />
@@ -120,14 +121,17 @@ export default function AdminLayout() {
           </div>
         ) : null}
         <div className="sidebar-meta">
-          {catalog ? `${catalog.total} 个业务场景` : `${PLATFORM_STATS.scenarios} 个业务场景`}
+          {t('admin.sidebar.scenarios', { n: catalog?.total ?? PLATFORM_STATS.scenarios })}
           <>
             <br />
-            {PLATFORM_STATS.capabilities} 项能力 · {PLATFORM_STATS.agents} 个助手 · 运行正常
+            {t('admin.sidebar.platform', {
+              caps: PLATFORM_STATS.capabilities,
+              agents: PLATFORM_STATS.agents,
+            })}
           </>
         </div>
         <nav className="nav-section">
-          <div className="nav-label">导航</div>
+          <div className="nav-label">{t('admin.nav.section')}</div>
           {visibleNav.map((n) => {
             const NavIcon = n.icon
             return (
@@ -140,7 +144,7 @@ export default function AdminLayout() {
                 <span className="nav-icon">
                   <NavIcon size={17} />
                 </span>
-                {n.label}
+                {t(n.labelKey)}
               </NavLink>
             )
           })}
@@ -154,10 +158,10 @@ export default function AdminLayout() {
               className="topbar-home-link"
               href={`${homePublicUrl().replace(/\/$/, '')}/account/billing`}
             >
-              我的套餐
+              {t('admin.topbar.billing')}
             </a>
             <a className="topbar-home-link" href={homePublicUrl()} target="_blank" rel="noreferrer">
-              创建入口
+              {t('admin.topbar.create')}
             </a>
             <ThemePicker />
             <LocaleSwitch className="topbar-home-link" />
@@ -168,10 +172,12 @@ export default function AdminLayout() {
                 {planName ? ` · ${planName}` : ''}
               </span>
             )}
-            <button type="button" className="topbar-logout" onClick={() => logout()}>退出</button>
+            <button type="button" className="topbar-logout" onClick={() => logout()}>
+              {t('admin.topbar.logout')}
+            </button>
             <span className="status-badge">
               <span className="status-dot" />
-              {stats?.status_text ?? '系统运行正常'}
+              {stats?.status_text ?? t('admin.topbar.status_ok')}
             </span>
           </div>
         </header>

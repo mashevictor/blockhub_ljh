@@ -1,10 +1,12 @@
 import { Link, Navigate, useParams } from 'react-router-dom'
+import { useT } from '@blockhub/i18n/react'
 import type { CSSProperties } from 'react'
 import MarketingSiteShell from '../../components/b2b/enrichment/MarketingSiteShell'
 import EnrichCardVisual from '../../components/b2b/enrichment/EnrichCardVisual'
 import { AgentButtonContent, AgentChevronGlyph } from '../../components/AgentChevron'
 import { enrichCardStyle } from '../../data/enrichVisualThemes'
 import { getRolePage } from '../../data/siteRoles'
+import { localizeRolePage } from '../../i18n/contentLabels'
 import { ROUTES } from '../../routes/paths'
 import { usePageMeta } from '../../hooks/usePageMeta'
 
@@ -16,8 +18,10 @@ const ROLE_THEMES: Record<string, { color: string; from: string; to: string; ico
 }
 
 export default function RolePage() {
+  const t = useT()
   const { role = '' } = useParams()
-  const page = getRolePage(role)
+  const raw = getRolePage(role)
+  const page = raw ? localizeRolePage(t, raw) : undefined
 
   usePageMeta(
     page ? { title: `${page.title} · 积木仓`, description: page.subtitle } : null,
@@ -30,9 +34,13 @@ export default function RolePage() {
   const theme = ROLE_THEMES[page.key] ?? ROLE_THEMES['sales-ops']
 
   return (
-    <MarketingSiteShell pageTitle={page.title} pageEyebrow="角色视角" pageLead={page.subtitle}>
+    <MarketingSiteShell
+      pageTitle={page.title}
+      pageEyebrow={t('home.enrich.role.eyebrow')}
+      pageLead={page.subtitle}
+    >
       <article className="enrich-card enrich-role-hero" style={enrichCardStyle(theme) as CSSProperties}>
-        <EnrichCardVisual icon={theme.icon} label={page.title} sublabel="按角色查看" />
+        <EnrichCardVisual icon={theme.icon} label={page.title} sublabel={t('home.enrich.role.eyebrow')} />
       </article>
 
       <section className="enrich-panel enrich-role-questions" aria-labelledby="role-questions-title">
