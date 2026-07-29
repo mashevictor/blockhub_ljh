@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useT } from '@blockhub/i18n/react'
 import { fetchRuntimeInfo } from '../api/client'
 import { showAppDeliver, showWebDeliver } from '../data/deliverDisplay'
 import type { PublishResult } from '../data/constants'
@@ -15,6 +16,7 @@ const POLL_MS = 4000
 const MAX_POLLS = 90
 
 export function useApkBuildProgress(app: Pick<PublishResult, 'appId' | 'deliver' | 'apkReady'>) {
+  const t = useT()
   const needWeb = showWebDeliver(app)
   const needApk = showAppDeliver(app)
   const [apkReady, setApkReady] = useState(Boolean(app.apkReady))
@@ -55,7 +57,7 @@ export function useApkBuildProgress(app: Pick<PublishResult, 'appId' | 'deliver'
 
     poll()
     const pollId = window.setInterval(poll, POLL_MS)
-    const animId = window.setInterval(() => setAnimTick((t) => t + 1), 600)
+    const animId = window.setInterval(() => setAnimTick((n) => n + 1), 600)
 
     return () => {
       cancelled = true
@@ -68,18 +70,18 @@ export function useApkBuildProgress(app: Pick<PublishResult, 'appId' | 'deliver'
     const list: DeliveryStep[] = [
       {
         id: 'publish',
-        label: '应用已创建',
+        label: t('home.delivery.step.publish'),
         status: 'done',
-        detail: '已保存到「我的应用」',
+        detail: t('home.delivery.step.publish_detail'),
       },
     ]
 
     if (needWeb) {
       list.push({
         id: 'web',
-        label: '网页运行时就绪',
+        label: t('home.delivery.step.web'),
         status: 'done',
-        detail: '链接已就绪，可立即打开',
+        detail: t('home.delivery.step.web_detail'),
       })
     }
 
@@ -87,27 +89,27 @@ export function useApkBuildProgress(app: Pick<PublishResult, 'appId' | 'deliver'
       if (apkReady) {
         list.push({
           id: 'apk',
-          label: 'Android APK 可下载',
+          label: t('home.delivery.step.apk_ready'),
           status: 'done',
-          detail: '安装包已就绪，可扫码或下载',
+          detail: t('home.delivery.step.apk_ready_detail'),
         })
       } else if (buildFailed) {
         list.push({
           id: 'apk',
-          label: 'APK 构建未完成',
+          label: t('home.delivery.step.apk_error'),
           status: 'error',
-          detail: '请稍后刷新，或联系管理员查看构建日志',
+          detail: t('home.delivery.step.apk_error_detail'),
         })
       } else {
         const statusHint =
           buildStatus === 'building'
-            ? 'Gradle 打包中，请稍候…'
+            ? t('home.delivery.step.apk_building_gradle')
             : buildStatus === 'pending'
-              ? '已排队，等待后台构建…'
-              : '后台异步构建，完成后自动更新下载链接'
+              ? t('home.delivery.step.apk_building_pending')
+              : t('home.delivery.step.apk_building_async')
         list.push({
           id: 'apk',
-          label: 'Flutter APK 打包中',
+          label: t('home.delivery.step.apk_building'),
           status: 'active',
           detail: statusHint,
         })
@@ -115,7 +117,7 @@ export function useApkBuildProgress(app: Pick<PublishResult, 'appId' | 'deliver'
     }
 
     return list
-  }, [needWeb, needApk, apkReady, buildFailed, buildStatus])
+  }, [needWeb, needApk, apkReady, buildFailed, buildStatus, t])
 
   const progress = useMemo(() => {
     if (!needApk) return 100

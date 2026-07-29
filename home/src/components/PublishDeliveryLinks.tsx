@@ -1,3 +1,4 @@
+import { useT } from '@blockhub/i18n/react'
 import type { PublishResult } from '../data/constants'
 import { deliverLabel, normalizeDeliver, showAppDeliver, showWebDeliver } from '../data/deliverDisplay'
 import { DynamicIcon } from './icons'
@@ -13,22 +14,22 @@ function qrImageUrl(data: string, size = 140) {
 }
 
 export default function PublishDeliveryLinks({ result, emphasize = false }: Props) {
+  const t = useT()
   const showWeb = showWebDeliver(result)
   const showApp = showAppDeliver(result)
   const downloadUrl = result.downloadUrl || `${result.webUrl}/download`
   const mode = normalizeDeliver(result.deliver)
-  // App-only：扫码下载；含网页：扫码打开网页，APK 用大按钮下
   const qrTarget = showWeb ? result.webUrl : downloadUrl
-  const qrLabel = showWeb ? '扫码打开网页版' : '扫码下载 App'
+  const qrLabel = showWeb ? t('home.delivery.qr_web') : t('home.delivery.qr_app')
   const qrSize = emphasize ? 140 : 88
 
   return (
     <div className={`publish-delivery${emphasize ? ' emphasize' : ''}`}>
-      <div className="publish-deliver-badges" aria-label="交付形式">
-        <span className={`publish-deliver-badge mode-${mode}`}>{deliverLabel(mode)}</span>
+      <div className="publish-deliver-badges" aria-label={t('home.delivery.aria')}>
+        <span className={`publish-deliver-badge mode-${mode}`}>{deliverLabel(mode, t)}</span>
         {showApp && (
           <span className={`publish-deliver-badge ${result.apkReady ? 'mode-app' : 'mode-pending'}`}>
-            {result.apkReady ? 'APK 可下载' : 'APK 生成中'}
+            {result.apkReady ? t('home.delivery.apk_ready') : t('home.delivery.apk_pending')}
           </span>
         )}
       </div>
@@ -38,7 +39,7 @@ export default function PublishDeliveryLinks({ result, emphasize = false }: Prop
           <img
             className="publish-qr-img"
             src={qrImageUrl(qrTarget, qrSize)}
-            alt={`${result.appName} 二维码`}
+            alt={t('home.delivery.qr_alt', { name: result.appName })}
             width={qrSize}
             height={qrSize}
           />
@@ -49,7 +50,7 @@ export default function PublishDeliveryLinks({ result, emphasize = false }: Prop
           {showWeb && (
             <a className="btn-primary publish-delivery-cta" href={result.webUrl} target="_blank" rel="noreferrer">
               <DynamicIcon name="web" size={16} />
-              打开网页版
+              {t('home.delivery.open_web')}
             </a>
           )}
           {showApp && (
@@ -60,7 +61,7 @@ export default function PublishDeliveryLinks({ result, emphasize = false }: Prop
               rel="noreferrer"
             >
               <DynamicIcon name="android" size={16} />
-              {result.apkReady ? '下载 Android APK' : 'APK 链接（生成中也可收藏）'}
+              {result.apkReady ? t('home.delivery.download_apk') : t('home.delivery.download_pending')}
             </a>
           )}
           {showApp && (
@@ -69,7 +70,7 @@ export default function PublishDeliveryLinks({ result, emphasize = false }: Prop
               className="btn-ghost publish-delivery-cta"
               onClick={() => navigator.clipboard.writeText(downloadUrl)}
             >
-              复制下载链接
+              {t('home.delivery.copy_download')}
             </button>
           )}
           {showWeb && !showApp && (
@@ -78,7 +79,7 @@ export default function PublishDeliveryLinks({ result, emphasize = false }: Prop
               className="btn-ghost publish-delivery-cta"
               onClick={() => navigator.clipboard.writeText(result.webUrl)}
             >
-              复制网页链接
+              {t('home.delivery.copy_web')}
             </button>
           )}
         </div>
@@ -89,37 +90,37 @@ export default function PublishDeliveryLinks({ result, emphasize = false }: Prop
           <div className="link-row">
             <span className="link-row-label">
               <DynamicIcon name="web" size={14} />
-              网页链接
+              {t('home.delivery.link_web')}
             </span>
             <code>{result.webUrl}</code>
-            <button type="button" onClick={() => navigator.clipboard.writeText(result.webUrl)}>复制</button>
+            <button type="button" onClick={() => navigator.clipboard.writeText(result.webUrl)}>{t('home.delivery.copy')}</button>
           </div>
         )}
         {showApp && (
           <div className="link-row">
             <span className="link-row-label">
               <DynamicIcon name="android" size={14} />
-              下载链接
+              {t('home.delivery.link_download')}
             </span>
             <code>{downloadUrl}</code>
-            <button type="button" onClick={() => navigator.clipboard.writeText(downloadUrl)}>复制</button>
+            <button type="button" onClick={() => navigator.clipboard.writeText(downloadUrl)}>{t('home.delivery.copy')}</button>
           </div>
         )}
         {showApp && result.androidAppId && (
           <div className="link-row">
             <span className="link-row-label">
               <DynamicIcon name="android" size={14} />
-              应用包名
+              {t('home.delivery.link_pkg')}
             </span>
             <code>{result.androidAppId}</code>
-            <button type="button" onClick={() => navigator.clipboard.writeText(result.androidAppId!)}>复制</button>
+            <button type="button" onClick={() => navigator.clipboard.writeText(result.androidAppId!)}>{t('home.delivery.copy')}</button>
           </div>
         )}
         {showApp && (
           <p className="publish-apk-hint">
             {result.apkReady
-              ? '专属 APK 已就绪；手机浏览器打开下载链接或用上方按钮直接下载。独立包名可与其他积木仓应用并存安装。'
-              : '专属安装包正在后台生成；上方「APK 可下载」亮起后点下载即可。'}
+              ? t('home.delivery.apk_hint_ready')
+              : t('home.delivery.apk_hint_pending')}
           </p>
         )}
       </div>

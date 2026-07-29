@@ -1,3 +1,4 @@
+import { useT } from '@blockhub/i18n/react'
 import { IconGlobe } from '../icons'
 import type { StoredMyApp } from '../../lib/myAppsStorage'
 import { showAppDeliver } from '../../data/deliverDisplay'
@@ -21,55 +22,58 @@ export default function PlazaOrchExperienceBar({
   onSmoke,
   smokeBusy,
 }: Props) {
+  const t = useT()
   const shanghai = isShanghaiVoiceApp(app)
   const showDelivery = showAppDeliver(app)
   const deliverBrief = [
-    '网页 ✓',
-    showDelivery ? (app.apkReady ? 'APK ✓' : 'APK 打包中') : null,
-    shanghai ? '语音 API' : null,
+    t('home.plaza.exp.web_ok'),
+    showDelivery ? (app.apkReady ? t('home.plaza.exp.apk_ok') : t('home.plaza.exp.apk_building')) : null,
+    shanghai ? t('home.plaza.exp.voice_api') : null,
   ]
     .filter(Boolean)
     .join(' · ')
 
   return (
-    <div className="plaza-orch-cta-row" aria-label="体验与验收">
+    <div className="plaza-orch-cta-row" aria-label={t('home.plaza.exp.aria')}>
       <div className="plaza-orch-cta is-main">
-        <h3 className="plaza-orch-cta-title">马上体验</h3>
+        <h3 className="plaza-orch-cta-title">{t('home.plaza.exp.try_title')}</h3>
         <p className="plaza-orch-cta-desc">
-          {shanghai
-            ? '网页已就绪。先试上海话助手；APK 打包不影响网页。'
-            : '打开 Runtime 真页面，或先走一遍流程预览（本地动画，不改数据）。'}
+          {shanghai ? t('home.plaza.exp.try_desc_shanghai') : t('home.plaza.exp.try_desc')}
         </p>
         <div className="plaza-orch-cta-actions">
           <a className="btn-primary" href={app.webUrl} target="_blank" rel="noreferrer">
             <IconGlobe size={14} />
-            {shanghai ? '打开上海话网页' : '打开 Runtime'}
+            {shanghai ? t('home.plaza.exp.open_shanghai') : t('home.plaza.exp.open_runtime')}
           </a>
           <button type="button" className="btn-ghost" onClick={onStartTrial}>
-            ▶ 流程预览
+            {t('home.plaza.exp.flow_preview')}
           </button>
         </div>
       </div>
 
       <div className="plaza-orch-cta">
-        <h3 className="plaza-orch-cta-title">交付摘要</h3>
+        <h3 className="plaza-orch-cta-title">{t('home.plaza.exp.deliver_title')}</h3>
         <p className="plaza-orch-cta-desc">{deliverBrief}</p>
         {showDelivery ? (
           <button type="button" className="btn-ghost" onClick={onToggleProgress}>
-            {progressExpanded ? '收起进度' : '展开进度'}
+            {progressExpanded ? t('home.plaza.exp.collapse_progress') : t('home.plaza.exp.expand_progress')}
           </button>
         ) : (
-          <span className="plaza-orch-cta-muted">仅网页交付</span>
+          <span className="plaza-orch-cta-muted">{t('home.plaza.exp.web_only')}</span>
         )}
       </div>
 
       <div className="plaza-orch-cta">
-        <h3 className="plaza-orch-cta-title">一键冒烟</h3>
+        <h3 className="plaza-orch-cta-title">{t('home.plaza.exp.smoke_title')}</h3>
         <p className="plaza-orch-cta-desc">
-          {shanghai ? 'config + status + ASR 鉴权（全真链路）' : '检查网页是否可打开'}
+          {shanghai ? t('home.plaza.exp.smoke_desc_shanghai') : t('home.plaza.exp.smoke_desc')}
         </p>
         <button type="button" className="btn-primary" onClick={onSmoke} disabled={smokeBusy}>
-          {smokeBusy ? '检测中…' : shanghai ? '跑真链路冒烟' : '检查交付'}
+          {smokeBusy
+            ? t('home.plaza.exp.smoke_busy')
+            : shanghai
+              ? t('home.plaza.exp.smoke_run_shanghai')
+              : t('home.plaza.exp.smoke_run')}
         </button>
       </div>
     </div>

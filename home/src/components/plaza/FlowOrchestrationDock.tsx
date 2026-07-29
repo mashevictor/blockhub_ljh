@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useT } from '@blockhub/i18n/react'
 import type { ModuleFlowStep } from '../../lib/plazaModuleFlow'
 import { FLOW_EGRESS_ID, FLOW_INGRESS_ID } from '../../lib/plazaModuleFlow'
 import { getModuleCapability, type ModuleCapability } from '../../data/moduleCatalog'
@@ -61,6 +62,7 @@ export default function FlowOrchestrationDock({
   onAnalyze,
   onOpenNodeByLabel,
 }: Props) {
+  const t = useT()
   const run = usePlazaFlowRun()
   const { registerCommandRunner } = usePlazaFocus()
   const cmdRef = useRef<FlowBizCommandHandle>(null)
@@ -83,15 +85,15 @@ export default function FlowOrchestrationDock({
   const isEgress = activeNodeId === FLOW_EGRESS_ID
   const cap = activeStep ? getModuleCapability(activeStep.label) : null
 
-  let title = '点击数据流中的模块'
-  let desc = '在上方双轨选择节点查看说明与接口；增删模块请打开 Runtime'
+  let title = t('home.plaza.dock.title_empty')
+  let desc = t('home.plaza.dock.desc_empty')
 
   if (isIngress) {
-    title = '业务输入'
-    desc = '外部请求进入数据流 · 可问答 / 测 IN·OUT · 改结构请打开 Runtime'
+    title = t('home.plaza.dock.title_ingress')
+    desc = t('home.plaza.dock.desc_ingress')
   } else if (isEgress) {
-    title = '触达输出'
-    desc = '结果推送到网页/App · 可测接口契约'
+    title = t('home.plaza.dock.title_egress')
+    desc = t('home.plaza.dock.desc_egress')
   } else if (activeStep) {
     title = activeStep.label
     desc = cap?.desc ?? activeStep.note
@@ -101,7 +103,7 @@ export default function FlowOrchestrationDock({
     <div
       className={`plaza-orch-dock${canEdit ? '' : ' is-run-locked'}`}
       role="complementary"
-      aria-label="应用概览编辑区"
+      aria-label={t('home.plaza.dock.aria')}
       data-active-node={activeNodeId ?? ''}
     >
       {isCreator ? (
@@ -111,15 +113,15 @@ export default function FlowOrchestrationDock({
               ? [
                   {
                     id: 'runtime',
-                    label: '打开 Runtime 对话改页',
+                    label: t('home.plaza.dock.runtime_edit'),
                     onClick: () => window.open(webUrl, '_blank', 'noopener,noreferrer'),
                   },
                   {
                     id: 'preview',
                     label:
                       run.phase === 'running' || run.phase === 'paused'
-                        ? '停止流程预览'
-                        : '开始流程预览',
+                        ? t('home.plaza.dock.stop_preview')
+                        : t('home.plaza.dock.start_preview'),
                     onClick: () => {
                       if (run.phase === 'running' || run.phase === 'paused') {
                         run.stop()
@@ -136,8 +138,8 @@ export default function FlowOrchestrationDock({
                     id: 'preview',
                     label:
                       run.phase === 'running' || run.phase === 'paused'
-                        ? '停止流程预览'
-                        : '开始流程预览',
+                        ? t('home.plaza.dock.stop_preview')
+                        : t('home.plaza.dock.start_preview'),
                     onClick: () => {
                       if (run.phase === 'running' || run.phase === 'paused') {
                         run.stop()
@@ -160,8 +162,12 @@ export default function FlowOrchestrationDock({
         <span>{desc}</span>
         {activeApiNode && (
           <em className="plaza-orch-dock-linkhint">
-            已联动 · {activeApiNode.label}
-            {activeApiSide === 'input' ? ' · 侧重 IN' : activeApiSide === 'output' ? ' · 侧重 OUT' : ''}
+            {t('home.plaza.dock.linked', { label: activeApiNode.label })}
+            {activeApiSide === 'input'
+              ? t('home.plaza.dock.side_in')
+              : activeApiSide === 'output'
+                ? t('home.plaza.dock.side_out')
+                : ''}
           </em>
         )}
       </div>
@@ -179,15 +185,19 @@ export default function FlowOrchestrationDock({
         webUrl={webUrl}
         commandProfile={commandProfile}
         activeNodeLabel={
-          isIngress ? '用户意图' : isEgress ? '触达输出' : activeStep?.label ?? activeApiNode?.label ?? '用户意图'
+          isIngress
+            ? t('home.plaza.cmd.intent')
+            : isEgress
+              ? t('home.plaza.cmd.output')
+              : activeStep?.label ?? activeApiNode?.label ?? t('home.plaza.cmd.intent')
         }
         activeApiSide={activeApiSide}
         inputApi={activeApiNode?.input_api ?? null}
         outputApi={activeApiNode?.output_api ?? null}
         placeholder={
           commandProfile === 'shanghai'
-            ? '>> 测 voice 配置 · 试一句侬好 · 跑上海话冒烟'
-            : '>> 询问应用、打开能力，或点下方常用指令'
+            ? t('home.plaza.dock.ph_shanghai')
+            : t('home.plaza.cmd.placeholder')
         }
         onInsert={onInsertModule}
         onInvoke={(side) => {
@@ -216,7 +226,7 @@ export default function FlowOrchestrationDock({
 
       {(analysisText || localAnalysis) && (
         <div className="plaza-orch-analysis" role="status">
-          <strong>指令结果</strong>
+          <strong>{t('home.plaza.dock.result')}</strong>
           <p>{analysisText || localAnalysis}</p>
         </div>
       )}
@@ -245,18 +255,18 @@ export default function FlowOrchestrationDock({
           />
         </div>
       ) : (
-        <p className="plaza-orch-dock-empty">点击上方功能轨或数据轨节点，下方将显示该节点的输入/输出字段</p>
+        <p className="plaza-orch-dock-empty">{t('home.plaza.dock.empty_api')}</p>
       )}
 
       {pickerOpen && canEdit && (
         <div className="plaza-orch-dock-picker">
           <div className="plaza-orch-dock-picker-head">
             <span className="plaza-mflow-chev">&gt;&gt;</span>
-            <strong>{isIngress ? '插入首模块' : '插入模块'}</strong>
-            <button type="button" className="plaza-mflow-picker-close" onClick={onClosePicker} aria-label="关闭">×</button>
+            <strong>{isIngress ? t('home.plaza.dock.insert_first') : t('home.plaza.dock.insert')}</strong>
+            <button type="button" className="plaza-mflow-picker-close" onClick={onClosePicker} aria-label={t('home.plaza.orch.close')}>×</button>
           </div>
           {availableModules.length === 0 ? (
-            <p className="plaza-mflow-picker-empty">推荐模块已全部添加</p>
+            <p className="plaza-mflow-picker-empty">{t('home.plaza.dock.picker_empty')}</p>
           ) : (
             <div className="plaza-orch-dock-picker-grid">
               {availableModules.slice(0, 6).map((mod) => (

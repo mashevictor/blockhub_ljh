@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { useT } from '@blockhub/i18n/react'
 import {
   apiNodeMap,
   buildApiCurl,
@@ -21,6 +22,7 @@ interface Props {
 }
 
 function ApiRow({ title, api }: { title: string; api: FlowApiEndpoint }) {
+  const t = useT()
   const [testing, setTesting] = useState(false)
   const [testResult, setTestResult] = useState<ApiTestResult | null>(null)
 
@@ -35,7 +37,7 @@ function ApiRow({ title, api }: { title: string; api: FlowApiEndpoint }) {
       const res = await testFlowApi(api)
       setTestResult(res)
     } catch {
-      setTestResult({ ok: false, status: 0, body: '请求失败，请稍后重试', ms: 0 })
+      setTestResult({ ok: false, status: 0, body: t('home.plaza.api.req_fail'), ms: 0 })
     } finally {
       setTesting(false)
     }
@@ -46,9 +48,9 @@ function ApiRow({ title, api }: { title: string; api: FlowApiEndpoint }) {
       <div className="plaza-mflow-api-row-head">
         <span className="plaza-mflow-api-tag">{title}</span>
         <span className="plaza-mflow-api-actions">
-          <button type="button" className="btn-ghost-sm" onClick={copyCurl}>复制 curl</button>
+          <button type="button" className="btn-ghost-sm" onClick={copyCurl}>{t('home.plaza.api.copy_curl')}</button>
           <button type="button" className="btn-ghost-sm" disabled={testing} onClick={() => void runTest()}>
-            {testing ? '测试中…' : '测试'}
+            {testing ? t('home.plaza.api.testing') : t('home.plaza.api.test')}
           </button>
         </span>
       </div>
@@ -68,6 +70,7 @@ function ApiRow({ title, api }: { title: string; api: FlowApiEndpoint }) {
 }
 
 export function ModuleApiPanel({ appKey, appName, steps, activeNodeId }: Props) {
+  const t = useT()
   const fingerprint = flowStepsFingerprint(steps)
   const [result, setResult] = useState<FlowApiResult | null>(() =>
     loadCachedFlowApis(appKey, fingerprint),
@@ -120,20 +123,22 @@ export function ModuleApiPanel({ appKey, appName, steps, activeNodeId }: Props) 
   const nodeMap = apiNodeMap(result)
   const activeApi = activeNodeId ? nodeMap.get(activeNodeId) : null
 
+  const sourceLabel = loading
+    ? t('home.plaza.mapi.src.generating')
+    : result?.source === 'deepseek'
+      ? t('home.plaza.mapi.src.llm')
+      : result
+        ? (result.llm_configured === false
+          ? t('home.plaza.mapi.src.no_key')
+          : t('home.plaza.mapi.src.rule_fail'))
+        : t('home.plaza.mapi.src.dialing')
+
   return (
     <div className="plaza-mflow-api-panel">
       <div className="plaza-mflow-api-panel-head">
         <div>
-          <strong>模块数据接口</strong>
-          <span className="plaza-mflow-api-source">
-            {loading
-              ? '大模型生成中…'
-              : result?.source === 'deepseek'
-                ? '大模型智能生成'
-                : result
-                  ? (result.llm_configured === false ? '未配置密钥 · 规则模拟' : '规则模拟（大模型失败）')
-                  : '拨通中…'}
-          </span>
+          <strong>{t('home.plaza.mapi.title')}</strong>
+          <span className="plaza-mflow-api-source">{sourceLabel}</span>
         </div>
         <button
           type="button"
@@ -141,36 +146,38 @@ export function ModuleApiPanel({ appKey, appName, steps, activeNodeId }: Props) 
           disabled={loading || steps.length === 0}
           onClick={() => void dial(Boolean(result))}
         >
-          {loading ? '拨通中…' : result ? '重新拨通' : '拨通全部模块'}
+          {loading
+            ? t('home.plaza.mapi.btn.dialing')
+            : result
+              ? t('home.plaza.mapi.btn.redial')
+              : t('home.plaza.mapi.btn.dial_all')}
         </button>
       </div>
 
       {error && <p className="plaza-mflow-api-error" role="alert">{error}</p>}
 
       {!result && !loading && steps.length > 0 && (
-        <p className="plaza-mflow-api-hint">正在生成各节点模拟 REST 接口…</p>
+        <p className="plaza-mflow-api-hint">{t('home.plaza.mapi.hint.generating')}</p>
       )}
 
       {result && (
-        <p className="plaza-mflow-api-hint">
-          已为输入链、各模块、输出链生成模拟接口。可复制 curl 或直接点「测试」验证返回。
-        </p>
+        <p className="plaza-mflow-api-hint">{t('home.plaza.mapi.hint.ready')}</p>
       )}
 
       {activeApi && (
         <div className="plaza-mflow-api-active">
           <p className="plaza-mflow-api-active-title">
             <span className="plaza-mflow-chev" aria-hidden>&gt;&gt;</span>
-            当前节点：<strong>{activeApi.label}</strong>
+            {t('home.plaza.mapi.current')}<strong>{activeApi.label}</strong>
           </p>
-          <ApiRow title="流入接口（input）" api={activeApi.input_api} />
-          <ApiRow title="流出接口（output）" api={activeApi.output_api} />
+          <ApiRow title={t('home.plaza.mapi.in')} api={activeApi.input_api} />
+          <ApiRow title={t('home.plaza.mapi.out')} api={activeApi.output_api} />
         </div>
       )}
 
       {result && (
         <details className="plaza-mflow-api-all">
-          <summary>查看全部 {result.nodes.length} 个节点接口</summary>
+          <summary>{t('home.plaza.mapi.view_all', { n: result.nodes.length })}</summary>
           <ul className="plaza-mflow-api-list">
             {result.nodes.map((n) => (
               <li key={n.node_id} className={activeNodeId === n.node_id ? 'on' : ''}>

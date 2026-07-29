@@ -1,11 +1,13 @@
+import { useT } from '@blockhub/i18n/react'
 import { usePlazaFlowRun } from '../../context/PlazaFlowRunContext'
 
 /** 概览 | 流程预览 — 广场只读；预览不锁 UI、不写库 */
 export default function PlazaWorkModeSwitch() {
+  const t = useT()
   const run = usePlazaFlowRun()
 
   return (
-    <div className="plaza-work-mode" role="tablist" aria-label="工作台模式">
+    <div className="plaza-work-mode" role="tablist" aria-label={t('home.plaza.work.aria')}>
       <button
         type="button"
         role="tab"
@@ -13,7 +15,7 @@ export default function PlazaWorkModeSwitch() {
         aria-selected={run.mode === 'overview'}
         onClick={() => run.enterOverviewMode()}
       >
-        概览
+        {t('home.plaza.work.overview')}
       </button>
       <button
         type="button"
@@ -27,7 +29,7 @@ export default function PlazaWorkModeSwitch() {
           }
         }}
       >
-        流程预览
+        {t('home.plaza.work.preview')}
       </button>
     </div>
   )

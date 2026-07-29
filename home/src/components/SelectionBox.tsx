@@ -5,7 +5,7 @@ import { DynamicIcon, IconCheckCircle, IconX } from './icons'
 import { publishGenerateLabel, publishGenerateLoading } from '../i18n/publishLabels'
 import { AgentButtonContent } from './AgentChevron'
 import { iconWrapStyle } from '../data/iconPalette'
-import { BRAND, LOGO } from '../data/brand'
+import { LOGO } from '../data/brand'
 import { suggestKindLabel } from '../data/promptSuggest'
 
 export interface SelectionItem {
@@ -63,7 +63,7 @@ function ItemRow({
         <span>{sub}</span>
       </div>
       {!item.auto && (
-        <button type="button" className="selbox-item-remove" onClick={() => onRemove(item.id)} aria-label={`移除 ${item.name}`}>
+        <button type="button" className="selbox-item-remove" onClick={() => onRemove(item.id)} aria-label={t('home.warehouse.remove', { name: item.name })}>
           <IconX size={14} />
         </button>
       )}
@@ -142,13 +142,13 @@ export default function SelectionBox({
     <div
       className={`selbox selbox-warehouse wh-portal${open ? ' open' : ''}${pulse ? ' pulse' : ''}${dormant ? ' is-dormant' : ''}`}
       role="region"
-      aria-label="积木仓"
+      aria-label={t('home.warehouse.aria')}
       aria-hidden={dormant}
     >
       {toast && (
         <div key={toast.id} className="warehouse-toast" aria-live="polite">
           <IconCheckCircle size={16} />
-          <span><strong>{toast.name}</strong> 已入仓</span>
+          <span>{t('home.warehouse.added', { name: toast.name })}</span>
         </div>
       )}
 
@@ -160,9 +160,9 @@ export default function SelectionBox({
           aria-expanded={open}
         >
           <img src={LOGO.mark} alt="" width={28} height={28} className="warehouse-logo" />
-          <span className="warehouse-brand">{BRAND.nameZh}</span>
+          <span className="warehouse-brand">{t('home.warehouse.aria')}</span>
           <em className={`warehouse-count${pulse ? ' bump' : ''}`}>{userItems.length || items.length}</em>
-          <span className="warehouse-lid-tag">{open ? '收起' : '展开'}</span>
+          <span className="warehouse-lid-tag">{open ? t('home.warehouse.collapse') : t('home.warehouse.expand')}</span>
           <span className="warehouse-lid-chevron" aria-hidden>{open ? '▴' : '▾'}</span>
         </button>
 
@@ -173,7 +173,7 @@ export default function SelectionBox({
             <div className="warehouse-panel-scroll">
             {userItems.length > 0 && (
               <>
-                <div className="selbox-group-title">我的选择 · 按顺序组合</div>
+                <div className="selbox-group-title">{t('home.warehouse.my_picks')}</div>
                 <ul className="selbox-list">
                   {userItems.map((item, i) => (
                     <ItemRow
@@ -189,7 +189,7 @@ export default function SelectionBox({
             )}
             {autoItems.length > 0 && (
               <>
-                <div className="selbox-group-title auto">系统将自动补齐</div>
+                <div className="selbox-group-title auto">{t('home.warehouse.auto_fill')}</div>
                 <ul className="selbox-list auto">
                   {autoItems.map((item, i) => (
                     <ItemRow key={item.id} item={item} index={i} onRemove={onRemove} />
@@ -200,10 +200,12 @@ export default function SelectionBox({
             </div>
             <div className="selbox-foot">
               <div className="selbox-foot-row">
-                <button type="button" className="selbox-clear" onClick={handleClear}>清空</button>
-                <button type="button" className="btn-primary selbox-go" onClick={onScrollToPrompt}>
-                  查看提示词
-                </button>
+                <button type="button" className="selbox-clear" onClick={handleClear}>{t('home.warehouse.clear')}</button>
+                {onScrollToPrompt ? (
+                  <button type="button" className="btn-primary selbox-go" onClick={onScrollToPrompt}>
+                    {t('home.warehouse.view_prompt')}
+                  </button>
+                ) : null}
               </div>
               {onGenerate && (
                 <button type="button" className="btn-primary selbox-generate agent-action-btn" disabled={generating} onClick={onGenerate}>

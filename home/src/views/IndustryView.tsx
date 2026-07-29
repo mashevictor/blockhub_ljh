@@ -152,14 +152,14 @@ export default function IndustryView({
         packKey: apiPackKey,
         packName: pack.name,
         tagline: pack.desc,
-        overview: `${pack.name}深度包 · ${scenes.length} 个业务场景可按需裁剪`,
+        overview: t('home.industry.view.overview', { name: packDisplayName, n: scenes.length }),
         highlights: preferKeys.slice(0, 4),
         scenes: scenes.slice(0, 8).map((s) => ({ name: s.name, detail: s.summary })),
       },
       micrositeMeta,
       origin,
     )
-  }, [micrositeMeta, apiPackKey, pack.name, pack.desc, scenes, preferKeys])
+  }, [micrositeMeta, apiPackKey, packDisplayName, pack.desc, scenes, preferKeys, t])
 
   // 进入未预载模板时先标加载中，iframe onLoad 后改为「已加载」
   useEffect(() => {
@@ -197,18 +197,19 @@ export default function IndustryView({
   const sceneGroups = useMemo(() => {
     const map = new Map<string, CachedIndustryScene[]>()
     for (const s of scenes) {
-      const cat = s.category || '其他'
+      const cat = s.category || t('home.industry.view.cat_other')
       const list = map.get(cat) ?? []
       list.push(s)
       map.set(cat, list)
     }
     return [...map.entries()]
-  }, [scenes])
+  }, [scenes, t])
 
   const selectionItems = useMemo<SelectionItem[]>(() => {
+    const other = t('home.industry.view.cat_other')
     const industryItem: SelectionItem = {
       id: `industry:${industry}`,
-      name: pack.name,
+      name: packDisplayName,
       kind: 'industry',
       iconKey: pack.iconKey,
       color: industryColor(pack.key, theme),
@@ -218,13 +219,13 @@ export default function IndustryView({
       .map((s) => ({
         id: s.id,
         name: s.name,
-        category: s.category ?? '其他',
+        category: s.category ?? other,
         kind: 'scenario' as const,
-        iconKey: resolveCategoryIcon(s.category ?? '其他', 'industry'),
-        color: categoryColor(s.category ?? '其他', theme),
+        iconKey: resolveCategoryIcon(s.category ?? other, 'industry'),
+        color: categoryColor(s.category ?? other, theme),
       }))
     return [industryItem, ...sceneItems]
-  }, [industry, pack.iconKey, pack.key, pack.name, scenes, selected, theme])
+  }, [industry, pack.iconKey, pack.key, packDisplayName, scenes, selected, theme, t])
 
   const removeSelectionItem = (id: string) => {
     if (id.startsWith('industry:')) return
@@ -241,7 +242,7 @@ export default function IndustryView({
 
   const doPublish = async (contact: ContactInfo, nameOverride?: string) => {
     if (selected.size === 0) {
-      setPublishError('请至少勾选 1 个场景后再生成（默认已全选，可取消不需要的项）')
+      setPublishError(t('home.industry.view.err.need_scene'))
       return
     }
     const finalName = resolveAppName(
@@ -253,7 +254,7 @@ export default function IndustryView({
       setPhase: setWorkPhase,
       setError: setPublishError,
       onSuccess: onPublish,
-      errorMessage: '生成失败，请重试',
+      errorMessage: t('home.industry.view.err.generate'),
       execute: async (markPhase) => {
         markPhase('publish')
         const packKey = resolveIndustryApiKey(industry)
@@ -268,7 +269,7 @@ export default function IndustryView({
         const publishedModules: PublishedModuleItem[] = [
           {
             key: packKey,
-            label: pack.name,
+            label: packDisplayName,
             iconKey: pack.iconKey,
             kind: 'industry',
             source: 'user',
@@ -334,13 +335,15 @@ export default function IndustryView({
         <div className="industry-compose-hint cube-panel">
           {micrositeMeta ? (
             <p>
-              已选落地页模板：<strong>{micrositeMeta.styleLabel}</strong>（{micrositeMeta.brand}）
-              · 下方可切换 20 套视觉模板 · 交付壳默认「单页落地」，可在发布步骤改模板
+              {t('home.industry.view.compose_tpl', {
+                style: micrositeMeta.styleLabel,
+                brand: micrositeMeta.brand,
+              })}
             </p>
           ) : null}
           {preferKeys.length > 0 ? (
             <p>
-              正式能力将一并打包（可后续在悬浮框继续编排）：
+              {t('home.industry.view.compose_caps')}
               {preferKeys.map((k) => (
                 <code key={k} className="industry-compose-chip">{k}</code>
               ))}
@@ -531,7 +534,7 @@ export default function IndustryView({
               </h4>
               <div className="scene-grid">
                 {items.map((s) => {
-                  const catName = s.category || '其他'
+                  const catName = s.category || t('home.industry.view.cat_other')
                   const ic = categoryColor(catName, theme)
                   const iconKey = resolveCategoryIcon(catName, 'industry')
                   return (
@@ -564,17 +567,17 @@ export default function IndustryView({
             ))
           )}
           <p style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 16 }}>
-            合计已选 {selected.size} / {scenes.length} 个场景 · 本地缓存即时加载
+            {t('home.industry.view.total_selected', { a: selected.size, b: scenes.length })}
           </p>
           <div className="step-actions">
-            <button type="button" className="btn-ghost" onClick={() => setStep(1)}>上一步</button>
+            <button type="button" className="btn-ghost" onClick={() => setStep(1)}>{t('home.industry.view.prev')}</button>
             <button
               type="button"
               className="btn-primary"
               disabled={selected.size === 0}
               onClick={() => setStep(3)}
             >
-              下一步：选择受众
+              {t('home.industry.view.next_audience')}
             </button>
           </div>
         </>
@@ -584,13 +587,13 @@ export default function IndustryView({
         <>
           <div className="audience-panel">
             {([
-              ['b', '🏢 内部使用', '问答、审批、看板等完整功能'],
-              ['c', '👤 给客户/玩家用', '对外轻量版：以问答、查询为主'],
-              ['both', '🔀 内外都要', '同时生成内部版与对外版'],
-            ] as const).map(([k, title, desc]) => (
+              ['b', 'home.industry.view.aud.b.title', 'home.industry.view.aud.b.desc'],
+              ['c', 'home.industry.view.aud.c.title', 'home.industry.view.aud.c.desc'],
+              ['both', 'home.industry.view.aud.both.title', 'home.industry.view.aud.both.desc'],
+            ] as const).map(([k, titleKey, descKey]) => (
               <label key={k} className={`audience-opt${audience === k ? ' on' : ''}`}>
                 <input type="radio" name="aud" checked={audience === k} onChange={() => setAudience(k)} />
-                <div><strong>{title}</strong><span>{desc}</span></div>
+                <div><strong>{t(titleKey)}</strong><span>{t(descKey)}</span></div>
               </label>
             ))}
           </div>
@@ -608,7 +611,7 @@ export default function IndustryView({
             onAppUiChange={setAppUiId}
           />
           <div className="step-actions">
-            <button type="button" className="btn-ghost" onClick={() => setStep(2)}>上一步</button>
+            <button type="button" className="btn-ghost" onClick={() => setStep(2)}>{t('home.industry.view.prev')}</button>
             <button type="button" className="btn-primary agent-action-btn" disabled={Boolean(workPhase)} onClick={handlePublish}>
               {workPhase ? publishGenerateLoading(t) : (
                 <AgentButtonContent>{publishGenerateLabel(t)}</AgentButtonContent>
@@ -624,7 +627,7 @@ export default function IndustryView({
         <GenerateLoadingOverlay
           phase={workPhase}
           appName={appName || defaultAppNameI18n(t, industry)}
-          redirectHint="正在打开行业应用工作台…"
+          redirectHint={t('home.industry.view.redirect')}
         />
       )}
 

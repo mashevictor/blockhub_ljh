@@ -29,6 +29,7 @@ function PlazaFocusDockBody({
   onOrchestration: (appKey: string) => void
   pageResetSignal: number
 }) {
+  const t = useT()
   const dock = useFloatingDock()
   const openApp = () => window.open(focus.webUrl, '_blank', 'noopener,noreferrer')
   const copyLink = () => void navigator.clipboard.writeText(focus.webUrl)
@@ -57,8 +58,8 @@ function PlazaFocusDockBody({
               e.stopPropagation()
               dock?.collapse()
             }}
-            aria-label="折叠悬浮框"
-            title="折叠"
+            aria-label={t('home.dock.collapse')}
+            title={t('home.dock.collapse_short')}
           >
             ▾
           </button>
@@ -76,7 +77,7 @@ function PlazaFocusDockBody({
                 className="plaza-dual-rail-tool is-fullscreen"
                 onClick={() => onOrchestration(focus.appKey)}
               >
-                全屏
+                {t('home.plaza.dual.fullscreen')}
               </button>
             )}
             <a
@@ -85,7 +86,7 @@ function PlazaFocusDockBody({
               target="_blank"
               rel="noreferrer"
             >
-              打开
+              {t('home.plaza.dual.open')}
             </a>
             <div className="plaza-dual-rail-menu-wrap">
               <button
@@ -106,7 +107,7 @@ function PlazaFocusDockBody({
                       setMenuOpen(false)
                     }}
                   >
-                    复制网页链接
+                    {t('home.plaza.dual.copy_web')}
                   </button>
                   {focus.source === 'my' && focus.isCreator && (
                     <button
@@ -117,7 +118,7 @@ function PlazaFocusDockBody({
                         setMenuOpen(false)
                       }}
                     >
-                      全屏概览 / 分享发布
+                      {t('home.plaza.dual.overview_share')}
                     </button>
                   )}
                 </div>
@@ -135,12 +136,12 @@ function PlazaFocusDockBody({
             pageResetSignal={pageResetSignal}
           />
         ) : (
-          <p className="plaza-dual-rail-empty">暂无模块信息，请从「我的应用」进入全屏概览</p>
+          <p className="plaza-dual-rail-empty">{t('home.plaza.dual.empty')}</p>
         )}
 
         <div className="plaza-dual-rail-dock-foot">
           <Link to={ROUTES.home} className="plaza-floating-create">
-            <span className="agent-chevron-glyph">&gt;&gt;</span> 继续创建应用
+            <span className="agent-chevron-glyph">&gt;&gt;</span> {t('home.plaza.dual.continue_create')}
           </Link>
         </div>
       </div>

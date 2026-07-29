@@ -80,6 +80,8 @@ def gen_capability() -> tuple[dict[str, str], dict[str, str]]:
     seed_cat = _load_seed_strings("category.en-US.json")
     zh: dict[str, str] = {}
     en: dict[str, str] = {}
+
+    # Registry SSOT
     for key in sorted(ALL_CAPABILITIES.keys()):
         cap = ALL_CAPABILITIES[key]
         labels = cap.resolved_labels()
@@ -90,6 +92,28 @@ def gen_capability() -> tuple[dict[str, str], dict[str, str]]:
         en_cat = seed_cat.get(cap.category) or cap.category
         en[f"cap.{key}.name"] = en_name
         en[f"cap.{key}.category"] = en_cat
+
+    # Manifest fill-in: catalog modules that ship in capability-manifest but not yet in registry
+    manifest_path = ROOT / "shared" / "capability-manifest.json"
+    if manifest_path.is_file():
+        raw = json.loads(manifest_path.read_text(encoding="utf-8"))
+        items = raw.get("capabilities") if isinstance(raw, dict) else raw
+        if isinstance(items, list):
+            for item in items:
+                if not isinstance(item, dict):
+                    continue
+                key = str(item.get("key") or "").strip()
+                if not key or f"cap.{key}.name" in zh:
+                    continue
+                name_zh = str(item.get("name") or key)
+                cat_zh = str(item.get("category") or "")
+                zh[f"cap.{key}.name"] = name_zh
+                if cat_zh:
+                    zh[f"cap.{key}.category"] = cat_zh
+                en[f"cap.{key}.name"] = seed_cap.get(key) or humanize_key(key)
+                if cat_zh:
+                    en[f"cap.{key}.category"] = seed_cat.get(cat_zh) or cat_zh
+
     return zh, en
 
 

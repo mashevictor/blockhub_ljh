@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useT } from '@blockhub/i18n/react'
 import { usePlazaFlowRun } from '../../context/PlazaFlowRunContext'
 import {
   getModuleCapability,
@@ -78,6 +79,7 @@ function FuncNode({
   onGripDown?: (e: React.PointerEvent<HTMLButtonElement>) => void
   stepIndex?: number
 }) {
+  const t = useT()
   return (
     <div
       className={`plaza-dual-rail-node-wrap${isDragging ? ' dragging' : ''}${isDragOver ? ' drag-over' : ''}`}
@@ -88,7 +90,7 @@ function FuncNode({
         <button
           type="button"
           className="plaza-dual-rail-grip"
-          aria-label={`拖动 ${label}`}
+          aria-label={t('home.plaza.rail.drag', { name: label })}
           onPointerDown={(e) => {
             e.stopPropagation()
             onGripDown?.(e)
@@ -172,6 +174,7 @@ export default function PlazaDualRailFlowPanel({
   commandProfile = 'default',
   webUrl = '',
 }: Props) {
+  const t = useT()
   const showFunc = railMode === 'both' || railMode === 'func'
   const showData = railMode === 'both' || railMode === 'data'
   const [flow, setFlow] = useState<AppModuleFlow>(() => loadModuleFlow(appKey, moduleLabels))
@@ -302,7 +305,13 @@ export default function PlazaDualRailFlowPanel({
 
   const funcChain = useMemo(() => {
     return [
-      { kind: 'ingress' as const, id: FLOW_INGRESS_ID, label: '📥 用户意图', sub: '业务请求进入', stepIndex: -1 },
+      {
+        kind: 'ingress' as const,
+        id: FLOW_INGRESS_ID,
+        label: t('home.plaza.rail.ingress_label'),
+        sub: t('home.plaza.rail.ingress_sub'),
+        stepIndex: -1,
+      },
       ...flow.steps.map((s, i) => ({
         kind: 'step' as const,
         id: s.id,
@@ -310,9 +319,15 @@ export default function PlazaDualRailFlowPanel({
         sub: getModuleCapability(s.label)?.desc ?? s.note,
         stepIndex: i,
       })),
-      { kind: 'egress' as const, id: FLOW_EGRESS_ID, label: '📤 网页 + App', sub: '触达输出', stepIndex: -1 },
+      {
+        kind: 'egress' as const,
+        id: FLOW_EGRESS_ID,
+        label: t('home.plaza.rail.egress_label'),
+        sub: t('home.plaza.rail.egress_sub'),
+        stepIndex: -1,
+      },
     ]
-  }, [flow.steps])
+  }, [flow.steps, t])
 
   const visibleFuncNodes = funcChain.slice(0, funcVisible)
   const funcRemaining = Math.max(0, funcChain.length - funcVisible)
@@ -340,11 +355,11 @@ export default function PlazaDualRailFlowPanel({
 
   const openNodeByLabel = (label: string, side: 'input' | 'output' = 'input') => {
     const norm = label.replace(/^📥\s*|^📤\s*/, '').trim()
-    if (/用户意图|业务输入|业务请求/.test(norm)) {
+    if (/用户意图|业务输入|业务请求|User intent|Business input|Business request/i.test(norm)) {
       selectNode(FLOW_INGRESS_ID, side === 'output' ? 'output' : 'input')
       return
     }
-    if (/触达输出|网页\s*\+\s*App|网页/.test(norm)) {
+    if (/触达输出|网页\s*\+\s*App|网页|Reach output|Web\s*\+\s*App/i.test(norm)) {
       selectNode(FLOW_EGRESS_ID, 'output')
       return
     }
@@ -355,8 +370,8 @@ export default function PlazaDualRailFlowPanel({
   }
 
   const nodeLabels = useMemo(
-    () => ['用户意图', ...flow.steps.map((s) => s.label), '触达输出'],
-    [flow.steps],
+    () => [t('home.plaza.cmd.intent'), ...flow.steps.map((s) => s.label), t('home.plaza.cmd.output')],
+    [flow.steps, t],
   )
 
   const handleAddFromCatalog = (mod: ModuleCapability, afterId: string | null) => {
@@ -411,7 +426,7 @@ export default function PlazaDualRailFlowPanel({
         canMutate ? '' : 'is-run-locked',
         railMode !== 'both' ? `rail-${railMode}` : '',
       ].filter(Boolean).join(' ')}
-      aria-label={`${appName} 应用双轨概览`}
+      aria-label={t('home.plaza.rail.aria', { name: appName })}
       onPointerDown={(e) => e.stopPropagation()}
     >
       {embedded && (
@@ -420,7 +435,7 @@ export default function PlazaDualRailFlowPanel({
           <PlazaRunControls compact />
           {webUrl ? (
             <button type="button" className="btn-primary-sm" onClick={openRuntime}>
-              打开 Runtime
+              {t('home.plaza.exp.open_runtime')}
             </button>
           ) : null}
         </div>
@@ -428,9 +443,7 @@ export default function PlazaDualRailFlowPanel({
 
       {run.phase === 'running' || run.phase === 'paused' ? (
         <p className="plaza-dual-rail-lock-banner plaza-dual-rail-readonly-banner" role="status">
-          流程预览 · {run.progressLabel}
-          {' · '}
-          自动步进中可暂停；点「下一步」或点选节点推进
+          {t('home.plaza.rail.preview_banner', { progress: run.progressLabel })}
         </p>
       ) : null}
 
@@ -438,13 +451,13 @@ export default function PlazaDualRailFlowPanel({
         {showFunc && (
           <div className="plaza-dual-rail-col">
             <div className="plaza-dual-rail-col-head">
-              <span className="plaza-mflow-chev">&gt;&gt;</span> 功能概览
+              <span className="plaza-mflow-chev">&gt;&gt;</span> {t('home.plaza.rail.func_title')}
               <span className="plaza-dual-rail-col-hint">
                 {run.phase === 'running'
-                  ? '自动预览中'
+                  ? t('home.plaza.rail.hint.running')
                   : run.phase === 'paused'
-                    ? '已暂停 · 可点下一步'
-                    : '点选查看'}
+                    ? t('home.plaza.rail.hint.paused')
+                    : t('home.plaza.rail.hint.idle')}
               </span>
             </div>
             <div className="plaza-dual-rail-stack">
@@ -478,7 +491,7 @@ export default function PlazaDualRailFlowPanel({
                   className="plaza-dual-rail-load-more"
                   onClick={() => setFuncVisible((n) => Math.min(n + DATA_PAGE, funcChain.length))}
                 >
-                  展开更多能力（还有 {funcRemaining} 项）
+                  {t('home.plaza.rail.more_func', { n: funcRemaining })}
                 </button>
               )}
             </div>
@@ -499,8 +512,8 @@ export default function PlazaDualRailFlowPanel({
         {showData && (
           <div className="plaza-dual-rail-col data-col">
             <div className="plaza-dual-rail-col-head">
-              <span className="plaza-mflow-chev">&gt;&gt;</span> 数据接口
-              <span className="plaza-dual-rail-col-hint">可测试 · 先看前 {DATA_PAGE} 项</span>
+              <span className="plaza-mflow-chev">&gt;&gt;</span> {t('home.plaza.rail.data_title')}
+              <span className="plaza-dual-rail-col-hint">{t('home.plaza.rail.data_hint', { n: DATA_PAGE })}</span>
             </div>
             <div className="plaza-dual-rail-stack">
               {visibleDataRows.map((row, i) => (
@@ -523,7 +536,7 @@ export default function PlazaDualRailFlowPanel({
                   className="plaza-dual-rail-load-more"
                   onClick={() => setDataVisible((n) => Math.min(n + DATA_PAGE, dataRows.length))}
                 >
-                  展开更多数据（还有 {dataRemaining} 项）
+                  {t('home.plaza.rail.more_data', { n: dataRemaining })}
                 </button>
               )}
             </div>
@@ -533,10 +546,10 @@ export default function PlazaDualRailFlowPanel({
 
       <p className="plaza-dual-rail-cross-hint">
         {railMode === 'func'
-          ? '点选能力查看说明；增删模块请打开 Runtime 对话改页'
+          ? t('home.plaza.rail.cross.func')
           : railMode === 'data'
-            ? '点选查看 IN/OUT · 可复制 curl / 测试接口；改结构请打开 Runtime'
-            : '点选查看模块与接口 · 可测试；增删改结构请打开 Runtime'}
+            ? t('home.plaza.rail.cross.data')
+            : t('home.plaza.rail.cross.both')}
       </p>
 
       {editingId && activeStep && canMutate && (
@@ -544,11 +557,11 @@ export default function PlazaDualRailFlowPanel({
           <input
             value={editNote}
             onChange={(e) => setEditNote(e.target.value)}
-            placeholder={`${activeStep.label} 数据流说明`}
-            aria-label="节点说明"
+            placeholder={t('home.plaza.rail.note_ph', { label: activeStep.label })}
+            aria-label={t('home.plaza.rail.note_aria')}
           />
-          <button type="button" className="btn-ghost-sm" onClick={() => setEditingId(null)}>取消</button>
-          <button type="button" className="btn-primary-sm" onClick={saveEdit}>保存</button>
+          <button type="button" className="btn-ghost-sm" onClick={() => setEditingId(null)}>{t('home.plaza.rail.cancel')}</button>
+          <button type="button" className="btn-primary-sm" onClick={saveEdit}>{t('home.plaza.rail.save')}</button>
         </div>
       )}
 

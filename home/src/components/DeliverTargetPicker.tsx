@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { useT } from '@blockhub/i18n/react'
 import { DynamicIcon } from './icons'
 import {
   DELIVER_PRESETS,
@@ -10,10 +11,10 @@ import {
 } from '../data/deliverTargets'
 
 const CHANNEL_SLOTS = [
-  { key: 'web', icon: 'web', title: '网页' },
-  { key: 'mobile', icon: 'ios', title: 'App' },
-  { key: 'desktop', icon: 'windows', title: '桌面' },
-] as const
+  { key: 'web' as const, icon: 'web', titleKey: 'home.deliver.channel.web' },
+  { key: 'mobile' as const, icon: 'ios', titleKey: 'home.deliver.channel.mobile' },
+  { key: 'desktop' as const, icon: 'windows', titleKey: 'home.deliver.channel.desktop' },
+]
 
 interface Props {
   value: PlatformId[]
@@ -28,6 +29,7 @@ type PopoverPos =
 
 /** 五端发布目标：与模板选择一致，portal 弹框避免悬浮框裁切 */
 export default function DeliverTargetPicker({ value, onChange, compact = false, className = '' }: Props) {
+  const t = useT()
   const [open, setOpen] = useState(false)
   const [pos, setPos] = useState<PopoverPos | null>(null)
   const rootRef = useRef<HTMLDivElement>(null)
@@ -59,7 +61,7 @@ export default function DeliverTargetPicker({ value, onChange, compact = false, 
         left,
         top: rect.bottom + gap,
         width,
-        maxHeight: Math.min(320, Math.max(160, spaceBelow)),
+        maxHeight: Math.min(320, Math.max(180, spaceBelow)),
       })
     }
   }
@@ -82,9 +84,9 @@ export default function DeliverTargetPicker({ value, onChange, compact = false, 
   useEffect(() => {
     if (!open) return
     const onDoc = (e: MouseEvent) => {
-      const t = e.target as Node
-      if (rootRef.current?.contains(t)) return
-      if (popoverRef.current?.contains(t)) return
+      const node = e.target as Node
+      if (rootRef.current?.contains(node)) return
+      if (popoverRef.current?.contains(node)) return
       setOpen(false)
     }
     const onKey = (e: KeyboardEvent) => {
@@ -107,7 +109,8 @@ export default function DeliverTargetPicker({ value, onChange, compact = false, 
     onChange([...platforms])
   }
 
-  const summary = platformsSummary(value)
+  const summary = platformsSummary(value, t)
+  const platformLabel = (id: PlatformId) => t(`home.deliver.platform.${id}`)
 
   const popover =
     open &&
@@ -117,7 +120,7 @@ export default function DeliverTargetPicker({ value, onChange, compact = false, 
         ref={popoverRef}
         className="deliver-target-popover is-ported b2b-brand-scope"
         role="dialog"
-        aria-label="选择发布平台"
+        aria-label={t('home.deliver.aria')}
         style={{
           position: 'fixed',
           left: pos.left,
@@ -130,12 +133,12 @@ export default function DeliverTargetPicker({ value, onChange, compact = false, 
         }}
       >
         <div className="deliver-target-popover-head">
-          <strong>选择五端</strong>
+          <strong>{t('home.deliver.pick_title')}</strong>
           <button
             type="button"
             className="deliver-target-popover-close"
             onClick={() => setOpen(false)}
-            aria-label="关闭"
+            aria-label={t('home.deliver.close')}
           >
             ×
           </button>
@@ -149,13 +152,14 @@ export default function DeliverTargetPicker({ value, onChange, compact = false, 
                 className={`deliver-preset-chip${platformsMatch(value, preset.platforms) ? ' on' : ''}`}
                 onClick={() => applyPreset(preset.platforms)}
               >
-                {preset.label}
+                {t(`home.deliver.preset.${preset.id}`)}
               </button>
             ))}
           </div>
           <div className="deliver-target-grid">
             {PLATFORM_META.map((p) => {
               const on = value.includes(p.id)
+              const label = platformLabel(p.id)
               return (
                 <button
                   key={p.id}
@@ -163,10 +167,10 @@ export default function DeliverTargetPicker({ value, onChange, compact = false, 
                   className={`deliver-platform-chip${on ? ' on' : ''}`}
                   aria-pressed={on}
                   onClick={() => togglePlatform(p.id)}
-                  title={p.label}
+                  title={label}
                 >
                   <DynamicIcon name={p.id} size={15} />
-                  <span>{p.label}</span>
+                  <span>{label}</span>
                   {on && <span className="deliver-platform-check" aria-hidden>✓</span>}
                 </button>
               )
@@ -175,7 +179,7 @@ export default function DeliverTargetPicker({ value, onChange, compact = false, 
         </div>
         <div className="deliver-target-popover-foot">
           <button type="button" className="deliver-target-done" onClick={() => setOpen(false)}>
-            完成
+            {t('home.deliver.done')}
           </button>
         </div>
       </div>,
@@ -199,7 +203,7 @@ export default function DeliverTargetPicker({ value, onChange, compact = false, 
           {CHANNEL_SLOTS.map((slot) => {
             const on = summary.channels[slot.key]
             return (
-              <span key={slot.key} className={`deliver-target-dot${on ? ' on' : ''}`} title={slot.title}>
+              <span key={slot.key} className={`deliver-target-dot${on ? ' on' : ''}`} title={t(slot.titleKey)}>
                 <DynamicIcon name={slot.icon} size={compact ? 12 : 14} />
               </span>
             )

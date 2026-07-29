@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react'
-import { useT } from '@blockhub/i18n/react'
+import { useEffect, useMemo, useState } from 'react'
+import { useI18n, useT } from '@blockhub/i18n/react'
 import { COMPOSER_MODES } from '@capship/composer'
 import { fetchCatalogModules, publishApp } from '../api/client'
 import { publishApiToResult } from '../api/publishHelpers'
 import { runLoadingPublishPipeline } from '../lib/publishFlow'
 import { publishGenerateLabel, publishGenerateLoading, blockhubDemoAppNameI18n } from '../i18n/publishLabels'
+import { capabilityName, localizeModuleGroupCat } from '../i18n/capabilityLabels'
 import { AgentButtonContent } from '../components/AgentChevron'
 import type { PublishResult } from '../data/constants'
 import { DynamicIcon } from '../components/icons'
@@ -14,7 +15,7 @@ import { buildPublishedModulesFromWidgets } from '../data/publishDisplay'
 import ContactGateModal, { type ContactInfo } from '../components/ContactGateModal'
 import GenerateLoadingOverlay from '../components/GenerateLoadingOverlay'
 import AppBrandingFields from '../components/AppBrandingFields'
-import { emptyBranding, BLOCKHUB_DEMO_APP_NAME, BLOCKHUB_DEMO_MODULE_KEYS } from '../data/appBranding'
+import { emptyBranding, BLOCKHUB_DEMO_MODULE_KEYS } from '../data/appBranding'
 import SelectionBox, { type SelectionItem } from '../components/SelectionBox'
 import { ChevronDotLoadingRow } from '../components/ChevronDotLoader'
 import DeliverTargetPicker from '../components/DeliverTargetPicker'
@@ -36,34 +37,19 @@ interface CapabilityGroup {
 
 const MODULE_COMPOSER_MODE = COMPOSER_MODES.find((m) => m.id === 'select_modules')?.id ?? 'select_modules'
 
-const DEMO_LABELS: Record<string, string> = {
-  chat_qa: '智能问答',
-  approval_flow: '审批流',
-  kb_document: '知识库',
-  chart_dashboard: '数据看板',
-  policy_qa: '制度问答',
-  leave_request: '请假审批',
-  expense_claim: '报销记账',
-  hire_onboard: '招聘入职',
-  legal_case: '法务合同',
-  ops_kpi: '经营看板',
-  notify_inapp: '站内信',
-  game_2048: '2048小游戏',
-  game_support: '玩家FAQ',
-}
-
-function buildDemoWidgets(): Widget[] {
+function buildDemoWidgets(t: (key: string, vars?: Record<string, string | number>) => string): Widget[] {
   return BLOCKHUB_DEMO_MODULE_KEYS.map((key) => ({
     key,
-    name: DEMO_LABELS[key] || key,
+    name: capabilityName(t, key, key),
     iconKey: MODULE_ICON_KEYS[key] ?? 'creation',
   }))
 }
 
 export default function ModuleView({ onPublish, active = true }: Props) {
   const t = useT()
+  const { locale } = useI18n()
   const { theme } = useTheme()
-  const [widgets, setWidgets] = useState<Widget[]>(() => buildDemoWidgets())
+  const [widgets, setWidgets] = useState<Widget[]>(() => buildDemoWidgets(t))
   const [moduleGroups, setModuleGroups] = useState<CapabilityGroup[]>([])
   const [modulesLoading, setModulesLoading] = useState(true)
   const [modulesError, setModulesError] = useState<string | null>(null)
@@ -77,7 +63,9 @@ export default function ModuleView({ onPublish, active = true }: Props) {
   const [loading, setLoading] = useState(false)
   const [publishError, setPublishError] = useState<string | null>(null)
   const [contactOpen, setContactOpen] = useState(false)
-  const [branding, setBranding] = useState(() => emptyBranding(BLOCKHUB_DEMO_APP_NAME))
+  const [branding, setBranding] = useState(() => emptyBranding(blockhubDemoAppNameI18n(t)))
+
+  const labelOf = (key: string, fallback: string) => capabilityName(t, key, fallback)
 
   const loadModules = () => {
     setModulesLoading(true)
@@ -93,14 +81,14 @@ export default function ModuleView({ onPublish, active = true }: Props) {
           })),
         }))
         if (groups.length === 0) {
-          setModulesError('能力模块为空，请执行 POST /api/v1/seed')
+          setModulesError(t('home.builder.modules_empty'))
           setModuleGroups([])
           return
         }
         setModuleGroups(groups)
       })
       .catch(() => {
-        setModulesError('无法加载能力模块，请稍后重试')
+        setModulesError(t('home.builder.modules_error'))
         setModuleGroups([])
       })
       .finally(() => setModulesLoading(false))
@@ -109,7 +97,22 @@ export default function ModuleView({ onPublish, active = true }: Props) {
   useEffect(() => {
     if (!active) return
     loadModules()
-  }, [active])
+  }, [active, locale])
+
+  useEffect(() => {
+    setWidgets((prev) => {
+      if (!prev.length) return buildDemoWidgets(t)
+      return prev.map((w) => ({ ...w, name: labelOf(w.key, w.name) }))
+    })
+    setBranding((prev) => {
+      const demo = blockhubDemoAppNameI18n(t)
+      const knownDefaults = new Set(['积木仓演示页面', 'BlockHub demo page', demo])
+      if (!prev.appName || knownDefaults.has(prev.appName)) {
+        return { ...prev, appName: demo }
+      }
+      return prev
+    })
+  }, [locale, t])
 
   useEffect(() => {
     if (active) return
@@ -118,7 +121,8 @@ export default function ModuleView({ onPublish, active = true }: Props) {
 
   const add = (w: Widget) => {
     if (widgets.some((x) => x.key === w.key)) return
-    setWidgets((prev) => [...prev, w])
+    const next = { ...w, name: labelOf(w.key, w.name) }
+    setWidgets((prev) => [...prev, next])
     setLastAddedId(w.key)
     setBoxOpenSignal((n) => n + 1)
   }
@@ -126,13 +130,24 @@ export default function ModuleView({ onPublish, active = true }: Props) {
   const remove = (key: string) => setWidgets((prev) => prev.filter((w) => w.key !== key))
   const clearSelection = () => setWidgets([])
 
-  const selectionItems: SelectionItem[] = widgets.map((w) => ({
-    id: w.key,
-    name: w.name,
-    kind: 'module',
-    iconKey: w.iconKey,
-    color: moduleColor(w.key, theme),
-  }))
+  const selectionItems: SelectionItem[] = useMemo(
+    () => widgets.map((w) => ({
+      id: w.key,
+      name: labelOf(w.key, w.name),
+      kind: 'module' as const,
+      iconKey: w.iconKey,
+      color: moduleColor(w.key, theme),
+    })),
+    [widgets, theme, t],
+  )
+
+  const deliverLabel =
+    device === 'web'
+      ? t('home.builder.deliver.web')
+      : device === 'app'
+        ? t('home.builder.deliver.app')
+        : t('home.builder.deliver.both')
+  const styleLabel = device === 'app' ? t('home.builder.style.simple') : t('home.builder.style.workbench')
 
   const doPublish = async (contact: ContactInfo, nameOverride?: string) => {
     if (!widgets.length) return
@@ -144,10 +159,11 @@ export default function ModuleView({ onPublish, active = true }: Props) {
       setError: setPublishError,
       onSuccess: onPublish,
       execute: async () => {
-        const publishedModules = buildPublishedModulesFromWidgets(widgets)
+        const named = widgets.map((w) => ({ ...w, name: labelOf(w.key, w.name) }))
+        const publishedModules = buildPublishedModulesFromWidgets(named)
         const res = await publishApp(finalName, 'office', {
-          scenarioNames: widgets.map((w) => w.name),
-          capabilityKeys: widgets.map((w) => w.key),
+          scenarioNames: named.map((w) => w.name),
+          capabilityKeys: named.map((w) => w.key),
           modules: publishedModules.map((m) => ({
             key: m.key,
             label: m.label,
@@ -168,7 +184,7 @@ export default function ModuleView({ onPublish, active = true }: Props) {
         return publishApiToResult(res, {
           moduleCount: publishedModules.length,
           modules: publishedModules,
-          scenarios: widgets.map((w) => w.name),
+          scenarios: named.map((w) => w.name),
         })
       },
     })
@@ -180,36 +196,37 @@ export default function ModuleView({ onPublish, active = true }: Props) {
     <div className="view module-view" data-capship-mode={MODULE_COMPOSER_MODE}>
       <div className="builder-layout cube-panel">
         <aside className="builder-palette cube-panel-inner">
-          <h3>功能模块</h3>
-          <p className="palette-hint">点击添加到右侧 · 来自平台能力库</p>
+          <h3>{t('home.builder.modules_title')}</h3>
+          <p className="palette-hint">{t('home.builder.modules_hint')}</p>
           {modulesLoading && (
-            <ChevronDotLoadingRow variant="scan" size="sm" text="加载能力模块…" className="catalog-loading" />
+            <ChevronDotLoadingRow variant="scan" size="sm" text={t('home.builder.modules_loading')} className="catalog-loading" />
           )}
           {modulesError && (
             <div className="catalog-error">
               <p>{modulesError}</p>
-              <button type="button" className="btn-secondary" onClick={loadModules}>重试</button>
+              <button type="button" className="btn-secondary" onClick={loadModules}>{t('home.builder.retry')}</button>
             </div>
           )}
           {!modulesLoading && !modulesError && moduleGroups.map((g) => (
             <div key={g.cat} className="palette-group">
-              <div className="palette-cat">{g.cat}</div>
+              <div className="palette-cat">{localizeModuleGroupCat(t, g.cat, g.items[0]?.key)}</div>
               {g.items.map((m) => {
                 const iconKey = MODULE_ICON_KEYS[m.key] ?? 'creation'
                 const ic = moduleColor(m.key, theme)
                 const added = widgets.some((w) => w.key === m.key)
+                const name = labelOf(m.key, m.name)
                 return (
                   <button
                     key={m.key}
                     type="button"
                     className={`palette-item${added ? ' added' : ''}`}
-                    onClick={() => add({ key: m.key, name: m.name, iconKey })}
+                    onClick={() => add({ key: m.key, name, iconKey })}
                     disabled={added}
                   >
                     <span className="module-icon-wrap icon-themed" style={iconWrapStyle(ic)}>
                       <DynamicIcon name={iconKey} size={16} color={ic} />
                     </span>
-                    {m.name}
+                    {name}
                   </button>
                 )
               })}
@@ -219,7 +236,7 @@ export default function ModuleView({ onPublish, active = true }: Props) {
 
         <div className="builder-canvas cube-panel-inner">
           <div className="canvas-toolbar">
-            <h3>您的应用</h3>
+            <h3>{t('home.builder.your_app')}</h3>
             <div className="canvas-toolbar-right" style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
               <DeliveryTemplatePicker
                 webTemplateId={webTemplateId}
@@ -235,7 +252,7 @@ export default function ModuleView({ onPublish, active = true }: Props) {
             </div>
           </div>
           <CapabilitySplitBanner
-            knownLabels={widgets.map((w) => w.name)}
+            knownLabels={widgets.map((w) => labelOf(w.key, w.name))}
             pendingLabels={[]}
             compact
           />
@@ -245,18 +262,19 @@ export default function ModuleView({ onPublish, active = true }: Props) {
                 <span className="canvas-empty-icon icon-themed" style={iconWrapStyle(theme.pri)}>
                   <DynamicIcon name="creation" size={32} color={theme.pri} />
                 </span>
-                <p>从左侧选择功能，组合成专属应用</p>
+                <p>{t('home.builder.empty')}</p>
               </div>
             )}
             {widgets.map((w) => {
               const ic = moduleColor(w.key, theme)
+              const name = labelOf(w.key, w.name)
               return (
                 <div key={w.key} className="canvas-widget">
                   <span className="cw-icon icon-themed" style={iconWrapStyle(ic)}>
                     <DynamicIcon name={w.iconKey} size={22} color={ic} />
                   </span>
-                  <div><strong>{w.name}</strong></div>
-                  <button type="button" onClick={() => remove(w.key)} aria-label="移除">×</button>
+                  <div><strong>{name}</strong></div>
+                  <button type="button" onClick={() => remove(w.key)} aria-label={t('home.builder.remove')}>×</button>
                 </div>
               )
             })}
@@ -264,11 +282,11 @@ export default function ModuleView({ onPublish, active = true }: Props) {
         </div>
 
         <aside className="builder-inspector cube-panel-inner">
-          <h3>应用摘要</h3>
+          <h3>{t('home.builder.summary')}</h3>
           <dl className="inspect-list">
-            <div><dt>已选功能</dt><dd>{widgets.length}</dd></div>
-            <div><dt>发布形式</dt><dd>{device === 'web' ? '网页版' : device === 'app' ? '手机 App' : '网页 + 手机'}</dd></div>
-            <div><dt>界面风格</dt><dd>{device === 'app' ? '简洁单列' : '完整工作台'}</dd></div>
+            <div><dt>{t('home.builder.selected')}</dt><dd>{widgets.length}</dd></div>
+            <div><dt>{t('home.builder.deliver')}</dt><dd>{deliverLabel}</dd></div>
+            <div><dt>{t('home.builder.style')}</dt><dd>{styleLabel}</dd></div>
           </dl>
           <AppBrandingFields value={branding} onChange={setBranding} compact />
           <button type="button" className="btn-primary full agent-action-btn" disabled={!widgets.length || loading} onClick={handlePublish}>

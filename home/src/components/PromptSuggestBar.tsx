@@ -50,56 +50,67 @@ export default function PromptSuggestBar({
   const isUnclear = !loading && validation?.status === 'unclear' && groups.length === 0
   const lowConfidence = !loading && !isInvalid && groups.length === 0
   const hasAutoSelected = !loading && !isInvalid && groups.length > 0
+  const joiner = t('home.cap_split.joiner')
 
   const registeredNote = (() => {
     const parts: string[] = []
-    if (registered?.industries?.length) parts.push(`新行业 ${registered.industries.join('、')}`)
-    if (registered?.capabilities?.length) parts.push(`新能力 ${registered.capabilities.join('、')}`)
-    if (registered?.scenes?.length) parts.push(`${registered.scenes.length} 个新场景`)
+    if (registered?.industries?.length) {
+      parts.push(t('home.suggest.reg.industry', { list: registered.industries.join(joiner) }))
+    }
+    if (registered?.capabilities?.length) {
+      parts.push(t('home.suggest.reg.capability', { list: registered.capabilities.join(joiner) }))
+    }
+    if (registered?.scenes?.length) {
+      parts.push(t('home.suggest.reg.scenes', { n: registered.scenes.length }))
+    }
     return parts.length ? parts.join(' · ') : ''
   })()
+
+  const title = isInvalid
+    ? t('home.suggest.title.invalid')
+    : loading
+      ? t('home.suggest.title.loading', { snippet })
+      : hasAutoSelected
+        ? t('home.suggest.title.auto', { snippet })
+        : isUnclear
+          ? t('home.suggest.title.unclear', { snippet })
+          : t('home.suggest.title.done', { snippet })
 
   return (
     <div className={`prompt-suggest-bar${loading ? ' is-loading' : ''}${isInvalid ? ' is-invalid' : ''}`}>
       <div className="prompt-suggest-head">
         {loading ? (
-          <ChevronStrokeLoader variant="scan" size="btn" label="分析中" />
+          <ChevronStrokeLoader variant="scan" size="btn" label={t('home.suggest.analyzing')} />
         ) : (
           <ChevronDotSign size="btn" className="prompt-suggest-prefix-chev" />
         )}
-        <span className="prompt-suggest-title">
-          {isInvalid
-            ? '意图理解 Agent · 无法识别该需求'
-            : loading
-              ? `正在分析「${snippet}」…`
-              : hasAutoSelected
-                ? `已根据「${snippet}」自动勾选推荐模块，点击可取消`
-                : isUnclear
-                  ? `已分析「${snippet}」，请补充业务信息`
-                  : `已分析「${snippet}」，可继续补充或手动选模块`}
-        </span>
+        <span className="prompt-suggest-title">{title}</span>
         {loading ? (
-          <em className="prompt-suggest-ai-tag loading prompt-suggest-ai-loading">意图 Agent 分析中…</em>
+          <em className="prompt-suggest-ai-tag loading prompt-suggest-ai-loading">{t('home.suggest.agent_analyzing')}</em>
         ) : sourceLabel ? (
           <em className="prompt-suggest-ai-tag">{sourceLabel}</em>
         ) : validation?.status === 'valid' ? (
-          <em className="prompt-suggest-ai-tag">意图 Agent</em>
+          <em className="prompt-suggest-ai-tag">{t('home.suggest.agent')}</em>
         ) : null}
       </div>
 
       {isInvalid ? (
         <div className="prompt-suggest-clarify prompt-suggest-reject">
-          <p>{validation?.rejection_reason || '输入内容与搭建企业智能应用无关，无法生成方案。'}</p>
+          <p>{validation?.rejection_reason || t('home.suggest.reject_default')}</p>
           {validation?.guidance ? <p className="prompt-suggest-guidance">{validation.guidance}</p> : null}
-          <p>请描述真实业务场景，例如：制造设备报修、销售 CRM、医院排班、游戏玩家 FAQ、零售会员营销。</p>
+          <p>{t('home.suggest.reject_examples')}</p>
         </div>
       ) : groups.length > 0 ? (
         <>
           {validation?.intent_summary ? (
-            <p className="prompt-suggest-intent-summary">理解：{validation.intent_summary}</p>
+            <p className="prompt-suggest-intent-summary">
+              {t('home.suggest.understood', { summary: validation.intent_summary })}
+            </p>
           ) : null}
           {registeredNote ? (
-            <p className="prompt-suggest-registered">已自动注册：{registeredNote}</p>
+            <p className="prompt-suggest-registered">
+              {t('home.suggest.registered', { note: registeredNote })}
+            </p>
           ) : null}
           <div className="prompt-suggest-groups">
             {groups.map((group) => (
@@ -135,32 +146,36 @@ export default function PromptSuggestBar({
         </>
       ) : isUnclear ? (
         <div className="prompt-suggest-clarify">
-          <p>{validation?.guidance || '描述还不够具体，请补充行业与业务关键词。'}</p>
+          <p>{validation?.guidance || t('home.suggest.unclear_default')}</p>
           <ul>
-            <li>行业：制造报修、销售 CRM、医院排班、游戏 FAQ、健身课程预约</li>
-            <li>能力：审批流、智能问答、数据看板、消息通知、直播带货</li>
+            <li>{t('home.suggest.hint.industry_long')}</li>
+            <li>{t('home.suggest.hint.capability_long')}</li>
           </ul>
-          <p>或输入 <code>&gt;&gt;</code> 手动选择模块</p>
+          <p>{t('home.suggest.or_manual')}</p>
         </div>
       ) : lowConfidence ? (
         <div className="prompt-suggest-clarify">
-          <p>暂未识别明确的行业或模块，请补充关键词，例如：</p>
+          <p>{t('home.suggest.low_confidence')}</p>
           <ul>
-            <li>行业：制造报修、销售 CRM、医院排班、游戏 FAQ</li>
-            <li>能力：审批流、智能问答、数据看板、消息通知</li>
+            <li>{t('home.suggest.hint.industry_short')}</li>
+            <li>{t('home.suggest.hint.capability_short')}</li>
           </ul>
-          <p>或输入 <code>&gt;&gt;</code> 手动选择模块</p>
+          <p>{t('home.suggest.or_manual')}</p>
         </div>
       ) : (
-        <p className="prompt-suggest-empty">继续输入更多关键词，或输入 <code>&gt;&gt;</code> 手动选模块</p>
+        <p className="prompt-suggest-empty">{t('home.suggest.keep_typing')}</p>
       )}
 
       {enhancedPreview && !isInvalid && (
         <div className={`prompt-suggest-preview${loading ? ' is-loading' : ''}`}>
           <div className="prompt-suggest-preview-head">
-            <span><ChevronDotSign size="btn" className="prompt-suggest-prefix-chev" /> 整理后的描述</span>
+            <span>
+              <ChevronDotSign size="btn" className="prompt-suggest-prefix-chev" /> {t('home.suggest.preview_title')}
+            </span>
             {!loading && confidence >= 0.4 && (
-              <button type="button" className="link-btn" onClick={onApplyPreview}>采用到输入框</button>
+              <button type="button" className="link-btn" onClick={onApplyPreview}>
+                {t('home.suggest.apply_preview')}
+              </button>
             )}
           </div>
           <pre className="prompt-suggest-preview-body">{enhancedPreview}</pre>

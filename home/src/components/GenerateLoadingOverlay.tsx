@@ -8,10 +8,7 @@ import ChevronDotLoader from './ChevronDotLoader'
 
 export type GeneratePhase = 'analyze' | 'publish' | 'redirect'
 
-const STEPS: { key: Exclude<GeneratePhase, 'redirect'>; label: string }[] = [
-  { key: 'analyze', label: '读懂你的需求' },
-  { key: 'publish', label: '正在生成应用' },
-]
+const STEP_KEYS: Exclude<GeneratePhase, 'redirect'>[] = ['analyze', 'publish']
 
 function easeOutCubic(t: number): number {
   return 1 - (1 - t) ** 3
@@ -31,6 +28,11 @@ export default function GenerateLoadingOverlay({ phase, appName, redirectHint }:
   const [progress, setProgress] = useState(8)
   const startAt = useRef(performance.now())
 
+  const steps = STEP_KEYS.map((key) => ({
+    key,
+    label: t(`home.loading.step.${key}`),
+  }))
+
   useEffect(() => {
     if (phase === 'redirect') {
       setProgress(100)
@@ -39,32 +41,34 @@ export default function GenerateLoadingOverlay({ phase, appName, redirectHint }:
 
     let raf = 0
     const tick = (now: number) => {
-      const t = Math.min(1, (now - startAt.current) / PUBLISH_OVERLAY_PROGRESS_MS)
-      const next = t >= 1 ? 100 : Math.max(8, Math.round(easeOutCubic(t) * 100))
+      const ratio = Math.min(1, (now - startAt.current) / PUBLISH_OVERLAY_PROGRESS_MS)
+      const next = ratio >= 1 ? 100 : Math.max(8, Math.round(easeOutCubic(ratio) * 100))
       setProgress(next)
-      if (t < 1) raf = requestAnimationFrame(tick)
+      if (ratio < 1) raf = requestAnimationFrame(tick)
     }
     raf = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(raf)
   }, [phase])
 
-  const phaseIndex = STEPS.findIndex((s) => s.key === phase)
-  const nameHint = appName?.trim() ? `「${appName.trim()}」` : '你的应用'
+  const phaseIndex = steps.findIndex((s) => s.key === phase)
+  const nameHint = appName?.trim()
+    ? t('home.loading.name_wrap', { name: appName.trim() })
+    : t('home.loading.app_fallback')
 
   if (phase === 'redirect') {
     return createPortal(
       <div className="loading-overlay loading-overlay-portal loading-overlay-brand" role="alertdialog" aria-busy="true" aria-live="polite">
         <div className="loading-box">
-          <ChevronDotLoader variant="converge" size="md" className="loading-chevron" label="完成" />
+          <ChevronDotLoader variant="converge" size="md" className="loading-chevron" label={t('home.loading.done')} />
           <p className="loading-progress-value">{progress}%</p>
           <div className="loading-progress-track" aria-hidden>
             <div className="loading-progress-fill" style={{ width: `${progress}%` }} />
           </div>
           <p className="loading-headline">
-            {redirectHint || `${generateLabel}完成，正在打开「我的应用」…`}
+            {redirectHint || t('home.loading.redirect', { action: generateLabel })}
           </p>
           <ol className="loading-steps">
-            {STEPS.map((step) => (
+            {steps.map((step) => (
               <li key={step.key} className="loading-step done">
                 <span className="loading-step-dot" aria-hidden />
                 {step.label}
@@ -79,10 +83,10 @@ export default function GenerateLoadingOverlay({ phase, appName, redirectHint }:
 
   const headline =
     phase === 'analyze'
-      ? '正在理解你想做什么…'
+      ? t('home.loading.analyze')
       : progress >= 100
-        ? `${generateLabel}完成，稍候…`
-        : `快好了，正在${generateLabel}${nameHint}`
+        ? t('home.loading.publish_done', { action: generateLabel })
+        : t('home.loading.publish_busy', { action: generateLabel, name: nameHint })
 
   return createPortal(
     <div className="loading-overlay loading-overlay-portal loading-overlay-brand" role="alertdialog" aria-busy="true" aria-live="polite">
@@ -99,7 +103,7 @@ export default function GenerateLoadingOverlay({ phase, appName, redirectHint }:
         </div>
         <p className="loading-headline">{headline}</p>
         <ol className="loading-steps">
-          {STEPS.map((step, i) => {
+          {steps.map((step, i) => {
             const done = i < phaseIndex || (i === phaseIndex && progress >= 100)
             const active = i === phaseIndex && progress < 100
             return (

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useI18n, useT } from '@blockhub/i18n/react'
 import { IconGlobe } from '../icons'
 import AppIconAvatar from '../AppIconAvatar'
 import DeliveryProgress from '../DeliveryProgress'
@@ -23,9 +24,14 @@ interface Props {
   onPlazaPublished?: (meta: PlazaAudienceMeta) => void
 }
 
-function formatWhen(iso: string) {
+function formatWhen(iso: string, locale: string) {
   try {
-    return new Date(iso).toLocaleString('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+    return new Date(iso).toLocaleString(locale === 'en-US' ? 'en-US' : 'zh-CN', {
+      month: 'numeric',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    })
   } catch {
     return iso
   }
@@ -46,6 +52,8 @@ export default function PlazaOrchestrationOverlay({
   onRemove,
   onPlazaPublished,
 }: Props) {
+  const t = useT()
+  const { locale } = useI18n()
   const appKey = app.appId || app.webUrl
   const showDelivery = showAppDeliver(app)
   const shanghai = isShanghaiVoiceApp(app)
@@ -78,17 +86,19 @@ export default function PlazaOrchestrationOverlay({
 
   const runSmoke = async () => {
     setSmokeBusy(true)
-    setSmokeLog('检测中…')
+    setSmokeLog(t('home.plaza.orch.smoke_checking'))
     try {
       if (shanghai) {
         const r = await runShanghaiVoiceSmoke()
         setSmokeLog(r.summary)
         setBodyTab('api')
       } else {
-        setSmokeLog(`网页地址：${app.webUrl}\n请点「打开 Runtime」人工验收。广场概览为只读，不测 REST 写路径。`)
+        setSmokeLog(t('home.plaza.orch.smoke_web', { url: app.webUrl }))
       }
     } catch (e) {
-      setSmokeLog(`冒烟失败：${e instanceof Error ? e.message : String(e)}`)
+      setSmokeLog(t('home.plaza.orch.smoke_fail', {
+        error: e instanceof Error ? e.message : String(e),
+      }))
     } finally {
       setSmokeBusy(false)
     }
@@ -99,7 +109,11 @@ export default function PlazaOrchestrationOverlay({
       className={`plaza-orch-overlay is-plan-b${justPublished ? ' is-just-published' : ''}`}
       role="dialog"
       aria-modal="true"
-      aria-label={justPublished ? `发布成功 ${app.appName}` : `应用概览 ${app.appName}`}
+      aria-label={
+        justPublished
+          ? t('home.plaza.orch.aria_success', { name: app.appName })
+          : t('home.plaza.orch.aria_overview', { name: app.appName })
+      }
     >
       <div className="plaza-orch-backdrop" onClick={onClose} aria-hidden />
       <div className="plaza-orch-sheet">
@@ -117,24 +131,24 @@ export default function PlazaOrchestrationOverlay({
                 {app.appName}
               </h2>
               <div className="plaza-orch-pills">
-                <span className="plaza-orch-pill">{app.moduleCount} 项能力</span>
-                <span className="plaza-orch-pill">创建者</span>
-                {shanghai && <span className="plaza-orch-pill ok">上海话</span>}
+                <span className="plaza-orch-pill">{t('home.plaza.orch.modules_n', { n: app.moduleCount })}</span>
+                <span className="plaza-orch-pill">{t('home.plaza.orch.creator')}</span>
+                {shanghai && <span className="plaza-orch-pill ok">{t('home.plaza.orch.shanghai')}</span>}
                 {showDelivery && !app.apkReady && (
-                  <span className="plaza-orch-pill warn">APK 构建中</span>
+                  <span className="plaza-orch-pill warn">{t('home.plaza.orch.apk_building')}</span>
                 )}
-                {app.apkReady && <span className="plaza-orch-pill ok">APK 就绪</span>}
+                {app.apkReady && <span className="plaza-orch-pill ok">{t('home.plaza.orch.apk_ready')}</span>}
                 {app.plaza && <span className="plaza-orch-pill">{app.plaza.label}</span>}
-                <span className="plaza-orch-pill muted">{formatWhen(app.savedAt)}</span>
+                <span className="plaza-orch-pill muted">{formatWhen(app.savedAt, locale)}</span>
               </div>
             </div>
           </div>
           <div className="plaza-orch-head-actions">
             <button type="button" className="btn-ghost" onClick={() => navigator.clipboard.writeText(app.webUrl)}>
-              复制链接
+              {t('home.plaza.orch.copy_link')}
             </button>
             <a className="btn-ghost" href={app.webUrl} target="_blank" rel="noreferrer">
-              <IconGlobe size={14} /> 打开网页
+              <IconGlobe size={14} /> {t('home.plaza.orch.open_web')}
             </a>
             {showDelivery && (
               <a
@@ -143,19 +157,23 @@ export default function PlazaOrchestrationOverlay({
                 target="_blank"
                 rel="noreferrer"
               >
-                {app.apkReady ? '下载 APK' : 'APK 链接'}
+                {app.apkReady ? t('home.plaza.orch.download_apk') : t('home.plaza.orch.apk_link')}
               </a>
             )}
-            <button type="button" className="btn-ghost plaza-my-remove" onClick={onRemove}>移除</button>
-            <button type="button" className="btn-primary plaza-orch-close" onClick={onClose}>关闭</button>
+            <button type="button" className="btn-ghost plaza-my-remove" onClick={onRemove}>
+              {t('home.plaza.orch.remove')}
+            </button>
+            <button type="button" className="btn-primary plaza-orch-close" onClick={onClose}>
+              {t('home.plaza.orch.close')}
+            </button>
           </div>
         </header>
 
         <div className="plaza-orch-body">
           {justPublished && (
-            <section className="plaza-orch-publish-primary" aria-label="交付与分享">
+            <section className="plaza-orch-publish-primary" aria-label={t('home.plaza.orch.deliver_aria')}>
               <h3 className="plaza-orch-section-title">
-                <span className="plaza-mflow-chev" aria-hidden>&gt;&gt;</span> 交付与分享
+                <span className="plaza-mflow-chev" aria-hidden>&gt;&gt;</span> {t('home.plaza.orch.deliver_share')}
               </h3>
               <PublishSuccessCard
                 result={app}
@@ -188,12 +206,12 @@ export default function PlazaOrchestrationOverlay({
 
           {smokeLog && (
             <div className="plaza-orch-analysis" role="status">
-              <strong>冒烟结果</strong>
+              <strong>{t('home.plaza.orch.smoke_result')}</strong>
               <p>{smokeLog}</p>
             </div>
           )}
 
-          <div className="plaza-orch-body-tabs" role="tablist" aria-label="概览分区">
+          <div className="plaza-orch-body-tabs" role="tablist" aria-label={t('home.plaza.orch.tabs_aria')}>
             <button
               type="button"
               role="tab"
@@ -201,7 +219,7 @@ export default function PlazaOrchestrationOverlay({
               aria-selected={bodyTab === 'flow'}
               onClick={() => setBodyTab('flow')}
             >
-              功能概览
+              {t('home.plaza.orch.tab.flow')}
             </button>
             <button
               type="button"
@@ -210,18 +228,18 @@ export default function PlazaOrchestrationOverlay({
               aria-selected={bodyTab === 'api'}
               onClick={() => setBodyTab('api')}
             >
-              数据接口说明
+              {t('home.plaza.orch.tab.api')}
             </button>
           </div>
 
           <p className="plaza-orch-tab-hint">
             {bodyTab === 'flow'
               ? shanghai
-                ? '查看上海话等用户可感知能力；可流程预览。改模块请打开 Runtime。'
-                : '查看功能能力与流程预览；增删模块请打开 Runtime 对话改页。'
+                ? t('home.plaza.orch.hint.flow_shanghai')
+                : t('home.plaza.orch.hint.flow')
               : shanghai
-                ? '真链路契约可测；改结构请在 Runtime 进行。'
-                : '查看各节点 REST 契约 · 可复制 curl / 测试；改结构请打开 Runtime。'}
+                ? t('home.plaza.orch.hint.api_shanghai')
+                : t('home.plaza.orch.hint.api')}
           </p>
 
           {bodyTab === 'api' && shanghai && (
@@ -239,7 +257,7 @@ export default function PlazaOrchestrationOverlay({
             embedded
             railMode={
               shanghai
-                ? 'func' /* 上海话不把 runtime mock 数据轨当验收内容 */
+                ? 'func'
                 : bodyTab === 'flow'
                   ? 'func'
                   : 'data'
@@ -251,8 +269,8 @@ export default function PlazaOrchestrationOverlay({
           {!justPublished && (
             <details className="plaza-orch-share">
               <summary>
-                <span className="plaza-mflow-chev">&gt;&gt;</span> 分享与发布
-                <span className="plaza-orch-share-hint">默认 @公开 · 全体可见</span>
+                <span className="plaza-mflow-chev">&gt;&gt;</span> {t('home.plaza.orch.share')}
+                <span className="plaza-orch-share-hint">{t('home.plaza.orch.share_hint')}</span>
               </summary>
               <PublishSuccessCard
                 result={app}
