@@ -122,8 +122,8 @@ export default function IndustryDetailPage() {
   const pageTemplates = useMemo(() => {
     if (!detail) return []
     const flat = detail.groups.flatMap((g) => g.items)
-    return buildIndustryPageTemplates(detail.pack.name, flat)
-  }, [detail])
+    return buildIndustryPageTemplates(detail.pack.name, flat, t)
+  }, [detail, t])
 
   const handleOpenDecoupledSite = () => {
     window.open(ROUTES.industrySiteHtml(key), '_blank', 'noopener,noreferrer')

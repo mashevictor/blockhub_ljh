@@ -266,8 +266,9 @@ def glossary_en(text: str) -> str:
         remaining = remaining[1:]
     out = " ".join(p for p in parts if p).strip()
     out = re.sub(r"\s+", " ", out)
-    # If still mostly CJK, return original (parity) — quality gate may flag later
-    if re.search(r"[\u4e00-\u9fff]", out) and out == text:
+    # Partial glossary leaves spaced CJK + Latin ("统 防 统 治 dispatch") — refuse mixed junk.
+    # Keep original zh so runtime can fall back cleanly; prefer seed/scene.en-US.json overrides.
+    if re.search(r"[\u4e00-\u9fff]", out):
         return text
     return out[:1].upper() + out[1:] if out else text
 

@@ -13,6 +13,25 @@ function hasCjk(text: string | undefined | null): boolean {
   return Boolean(text && CJK_RE.test(text))
 }
 
+/** Glossary leftovers like "Subsidy request 填报" / "统 防 统 治 dispatch". */
+function isGlossaryJunk(text: string | undefined | null): boolean {
+  if (!text) return false
+  // Spaced-out CJK from failed char-by-char glossary
+  if (/[\u4e00-\u9fff]\s+[\u4e00-\u9fff]/.test(text)) return true
+  // Latin glossary token glued next to CJK (not trailing acronyms like RAG/API/KPI)
+  if (/[\u4e00-\u9fff]\s+[a-z]{3,}\b/i.test(text)) return true
+  if (/\b[a-z]{3,}\s+[\u4e00-\u9fff]/i.test(text)) return true
+  if (
+    /[\u4e00-\u9fff]/.test(text) &&
+    /\b(dispatch|registration|confirmation|request|mgmt|analytics|workflow|inventory|notification|subsidy|handover|traceability|progress|materials|standard|online|integration|config|alert|dashboard|query|tracking)\b/i.test(
+      text,
+    )
+  ) {
+    return true
+  }
+  return false
+}
+
 function tr(t: TranslateFn, key: string, fallback: string): string {
   const text = t(key)
   return text === key ? fallback : text
@@ -54,12 +73,12 @@ function localizeSceneName(
   fallback: string,
 ): string {
   const fromScene = sceneField(t, packKey, index1, 'name', fallback)
-  if (!hasCjk(fromScene)) return fromScene
+  if (fromScene && !isGlossaryJunk(fromScene)) return fromScene
   // content.solution.* is hand-translated EN; prefer over glossary leftovers in scene.gen
   const fromSolution = solutionLabel(t, packKey, index1 - 1, '')
-  if (fromSolution && !hasCjk(fromSolution)) return fromSolution
-  if (fallback && !hasCjk(fallback)) return fallback
-  return fromSolution || fromScene
+  if (fromSolution && !isGlossaryJunk(fromSolution)) return fromSolution
+  if (fallback && !isGlossaryJunk(fallback)) return fallback
+  return fromSolution || fromScene || fallback
 }
 
 function localizeSceneProblem(
@@ -71,8 +90,15 @@ function localizeSceneProblem(
 ): string | undefined {
   if (!fallback) return undefined
   const fromScene = sceneField(t, packKey, index1, 'problem', fallback)
-  if (!hasCjk(fromScene)) return fromScene
-  if (fallback && !hasCjk(fallback)) return fallback
+  if (fromScene && !isGlossaryJunk(fromScene)) return fromScene
+  if (fallback && !isGlossaryJunk(fallback)) return fallback
+  // Never splice a CJK/mixed name into the EN template
+  if (hasCjk(name) || isGlossaryJunk(name)) {
+    const generic = t('home.industry.detail.problem_generic')
+    return generic === 'home.industry.detail.problem_generic'
+      ? 'Typical industry closed-loop scenario'
+      : generic
+  }
   const fb = t('home.industry.detail.problem_fallback', { name })
   return fb === 'home.industry.detail.problem_fallback' ? name : fb
 }
@@ -85,7 +111,7 @@ function localizeSceneCategory(
   packName: string,
 ): string {
   const fromScene = sceneField(t, packKey, index1, 'category', fallback)
-  if (!hasCjk(fromScene)) return fromScene
+  if (fromScene && !isGlossaryJunk(fromScene)) return fromScene
   return industryName(t, packKey, packName)
 }
 
@@ -125,6 +151,41 @@ function localizeScene(
     problem: localizeSceneProblem(t, packKey, index1, name, scene.problem),
     category: localizeSceneCategory(t, packKey, index1, scene.category, packName),
   }
+}
+
+/** Localize cached IndustryView / SelectionBox scenes (index aligned with pack SSOT). */
+export function localizeCachedScenes<T extends { name: string; category: string; summary?: string }>(
+  t: TranslateFn,
+  packKey: string,
+  scenes: T[],
+  packNameFallback?: string,
+): T[] {
+  const packName = industryName(t, packKey, packNameFallback ?? packKey)
+  return scenes.map((scene, i) => {
+    const index1 = i + 1
+    const name = localizeSceneName(t, packKey, index1, scene.name)
+    const category = localizeSceneCategory(t, packKey, index1, scene.category, packName)
+    const summaryRaw = scene.summary
+    const summary = summaryRaw
+      ? localizeSceneProblem(t, packKey, index1, name, summaryRaw) ?? summaryRaw
+      : scene.summary
+    return { ...scene, name, category, summary }
+  })
+}
+
+/** Localize industry Runtime preview pack chrome + scene list. */
+export function localizeRuntimePackPreview<
+  T extends {
+    key: string
+    name: string
+    tagline: string
+    scenes: Array<{ name: string; category: string; summary: string }>
+  },
+>(t: TranslateFn, preview: T): T {
+  const name = industryName(t, preview.key, preview.name)
+  const tagline = industryTagline(t, preview.key, preview.tagline)
+  const scenes = localizeCachedScenes(t, preview.key, preview.scenes, name)
+  return { ...preview, name, tagline, scenes }
 }
 
 function localizeEnrichment(

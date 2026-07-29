@@ -1,6 +1,5 @@
 {
-  "_generated_by": "scripts/codegen-industry-scene-i18n.py",
-  "_do_not_edit": true,
+  "_comment": "Hand + glossary seeds for scene.{pack}.{idx}.name|problem|category. Codegen prefers these.",
   "scene.agriculture.001.category": "Field operations",
   "scene.agriculture.001.name": "Field inspection log",
   "scene.agriculture.001.problem": "Paper inspection notes get lost and history is hard to trace. Capture results in forms, auto-archive by plot and date, and search later.",

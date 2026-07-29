@@ -14,6 +14,17 @@ import {
   type MicrositeLoadState,
 } from '../../data/industryMicrositePreviewCache'
 import { msCacheHint, msChipBadge, msFrameBadge } from '../../i18n/micrositeStatus'
+import { micrositeBrand, micrositeName, micrositeStyleLabel } from '../../i18n/micrositeLabels'
+import type { TranslateFn } from '../../i18n/industryLabels'
+
+function localizedMicrositeTpl(t: TranslateFn, tpl: IndustryMicrositeTemplate): IndustryMicrositeTemplate {
+  return {
+    ...tpl,
+    styleLabel: micrositeStyleLabel(t, tpl),
+    brand: micrositeBrand(t, tpl),
+    name: micrositeName(t, tpl),
+  }
+}
 
 interface Props {
   packKey: string
@@ -72,10 +83,10 @@ export default function IndustryMicrositePreview({
     const map: Record<string, string> = {}
     for (const id of cachedIds) {
       const tpl = getMicrositeTemplate(id)
-      if (tpl) map[id] = buildIndustryMicrositeSrcDoc(copy, tpl, origin)
+      if (tpl) map[id] = buildIndustryMicrositeSrcDoc(copy, localizedMicrositeTpl(t, tpl), origin)
     }
     return map
-  }, [cachedIds, copy])
+  }, [cachedIds, copy, t])
 
   /** 预取前 N 套 CSS，标记就绪 */
   useEffect(() => {
@@ -153,7 +164,7 @@ export default function IndustryMicrositePreview({
         if (tpl) {
           const origin = window.location.origin
           window.requestAnimationFrame(() => {
-            const doc = buildIndustryMicrositeSrcDoc(copy, tpl, origin)
+            const doc = buildIndustryMicrositeSrcDoc(copy, localizedMicrositeTpl(t, tpl), origin)
             setOndemandSrcDoc(doc)
             setSessionSrcDocs((prev) => ({ ...prev, [id]: doc }))
             // 保持 busy 直到 iframe onLoad，徽章同步为「加载中…」
@@ -177,7 +188,7 @@ export default function IndustryMicrositePreview({
     }
     const origin = typeof window !== 'undefined' ? window.location.origin : ''
     setOndemandBusy(true)
-    const doc = buildIndustryMicrositeSrcDoc(copy, current, origin)
+    const doc = buildIndustryMicrositeSrcDoc(copy, localizedMicrositeTpl(t, current), origin)
     setOndemandSrcDoc(doc)
     setSessionSrcDocs((prev) => ({ ...prev, [current.id]: doc }))
     // 仅随 activeId / pack 变化补载；sessionSrcDocs 由本 effect 写入，勿放入 deps
@@ -214,7 +225,7 @@ export default function IndustryMicrositePreview({
             return (
               <option key={tpl.id} value={tpl.id}>
                 {state === 'idle' ? '○ ' : '● '}
-                {tpl.styleLabel} · {packName}（{badge}）
+                {micrositeStyleLabel(t, tpl)} · {packName}（{badge}）
               </option>
             )
           })}
@@ -262,7 +273,7 @@ export default function IndustryMicrositePreview({
               title={msCacheHint(t, state)}
               style={tpl.id === current.id ? { borderColor: accent, color: accent } : undefined}
             >
-              <strong>{tpl.styleLabel}</strong>
+              <strong>{micrositeStyleLabel(t, tpl)}</strong>
               <span>{packName}</span>
               <em className="industry-microsite-chip-badge">
                 {msChipBadge(t, state, cssReady[tpl.id] !== false)}
@@ -276,7 +287,7 @@ export default function IndustryMicrositePreview({
         <div className="industry-microsite-frame-bar">
           <span>{t('home.industry.ms.pack_suffix', { name: packName })}</span>
           <span>
-            {current.styleLabel}
+            {micrositeStyleLabel(t, current)}
             {msFrameBadge(t, {
               cached: activeCached,
               busy: ondemandBusy,
@@ -289,7 +300,7 @@ export default function IndustryMicrositePreview({
           {cachedIds.map((id) => (
             <iframe
               key={`cache-${packKey}-${id}`}
-              title={`${packName} · ${getMicrositeTemplate(id)?.styleLabel ?? id}`}
+              title={`${packName} · ${micrositeStyleLabel(t, getMicrositeTemplate(id) ?? current)}`}
               className={`industry-microsite-frame${activeId === id ? ' is-visible' : ' is-hidden'}`}
               srcDoc={cachedSrcDocs[id] || ''}
               sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"
@@ -300,7 +311,7 @@ export default function IndustryMicrositePreview({
           {!activeCached ? (
             <iframe
               key={`ondemand-${packKey}-${current.id}`}
-              title={`${packName} · ${current.styleLabel}`}
+              title={`${packName} · ${micrositeStyleLabel(t, current)}`}
               className={`industry-microsite-frame is-visible${ondemandBusy ? ' is-loading' : ''}`}
               srcDoc={ondemandSrcDoc || sessionSrcDocs[current.id] || ''}
               sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"

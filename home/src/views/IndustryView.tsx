@@ -37,6 +37,8 @@ import { defaultAppNameI18n, publishGenerateLabel, publishGenerateLoading } from
 import SelectionBox, { type SelectionItem } from '../components/SelectionBox'
 import DeliveryTemplatePicker from '../components/DeliveryTemplatePicker'
 import { industryDesc, industryName } from '../i18n/industryLabels'
+import { localizeCachedScenes } from '../i18n/industryPackI18n'
+import { micrositeStyleLabel, micrositeBrand } from '../i18n/micrositeLabels'
 import { msCacheHint, msChipBadge, msFrameBadge } from '../i18n/micrositeStatus'
 
 interface Props {
@@ -58,7 +60,7 @@ export default function IndustryView({
   const [industry, setIndustry] = useState(initialIndustry ?? 'office')
   const [step, setStep] = useState(1)
   const [audience, setAudience] = useState<Audience>('b')
-  const [scenes, setScenes] = useState<CachedIndustryScene[]>(() =>
+  const [scenesRaw, setScenesRaw] = useState<CachedIndustryScene[]>(() =>
     getCachedIndustryScenes(resolveIndustryApiKey(initialIndustry ?? 'office')),
   )
   const [selected, setSelected] = useState<Set<string>>(() => {
@@ -90,7 +92,7 @@ export default function IndustryView({
   const loadScenesFromCache = (packKey: string) => {
     const apiKey = resolveIndustryApiKey(packKey)
     const items = getCachedIndustryScenes(apiKey)
-    setScenes(items)
+    setScenesRaw(items)
     // 深度包默认全选：用户可再取消不需要的场景
     setSelected(new Set(items.map((s) => s.id)))
   }
@@ -139,8 +141,14 @@ export default function IndustryView({
 
   const pack = INDUSTRIES.find((p) => p.key === industry)!
   const packDisplayName = industryName(t, pack.key, pack.name)
-  const micrositeMeta = getMicrositeTemplate(micrositeId)
   const apiPackKey = resolveIndustryApiKey(industry)
+  const scenes = useMemo(
+    () => localizeCachedScenes(t, apiPackKey, scenesRaw, pack.name),
+    [t, apiPackKey, scenesRaw, pack.name],
+  )
+  const micrositeMeta = getMicrositeTemplate(micrositeId)
+  const micrositeStyle = micrositeMeta ? micrositeStyleLabel(t, micrositeMeta) : ''
+  const micrositeBrandLabel = micrositeMeta ? micrositeBrand(t, micrositeMeta) : ''
   const cachedMicrositeIds = useMemo(() => getCachedMicrositeIds(apiPackKey), [apiPackKey])
   const cachedMicrositeSet = useMemo(() => new Set(cachedMicrositeIds), [cachedMicrositeIds])
 
@@ -150,16 +158,27 @@ export default function IndustryView({
     return buildIndustryMicrositeSrcDoc(
       {
         packKey: apiPackKey,
-        packName: pack.name,
-        tagline: pack.desc,
+        packName: packDisplayName,
+        tagline: industryDesc(t, pack.key, pack.desc),
         overview: t('home.industry.view.overview', { name: packDisplayName, n: scenes.length }),
         highlights: preferKeys.slice(0, 4),
         scenes: scenes.slice(0, 8).map((s) => ({ name: s.name, detail: s.summary })),
       },
-      micrositeMeta,
+      { ...micrositeMeta, styleLabel: micrositeStyle, brand: micrositeBrandLabel },
       origin,
     )
-  }, [micrositeMeta, apiPackKey, packDisplayName, pack.desc, scenes, preferKeys, t])
+  }, [
+    micrositeMeta,
+    apiPackKey,
+    packDisplayName,
+    pack.key,
+    pack.desc,
+    scenes,
+    preferKeys,
+    t,
+    micrositeStyle,
+    micrositeBrandLabel,
+  ])
 
   // 进入未预载模板时先标加载中，iframe onLoad 后改为「已加载」
   useEffect(() => {
@@ -336,8 +355,8 @@ export default function IndustryView({
           {micrositeMeta ? (
             <p>
               {t('home.industry.view.compose_tpl', {
-                style: micrositeMeta.styleLabel,
-                brand: micrositeMeta.brand,
+                style: micrositeStyle,
+                brand: micrositeBrandLabel,
               })}
             </p>
           ) : null}
@@ -401,9 +420,9 @@ export default function IndustryView({
                 title={msCacheHint(t, state)}
                 onClick={() => switchMicrosite(tpl.id)}
               >
-                <strong>{tpl.styleLabel}</strong>
+                <strong>{micrositeStyleLabel(t, tpl)}</strong>
                 <span>
-                  {skin ? `${skin.layout} · ${skin.nav}` : tpl.name}
+                  {skin ? `${skin.layout} · ${skin.nav}` : micrositeStyleLabel(t, tpl)}
                 </span>
                 <em className="industry-microsite-chip-badge">{msChipBadge(t, state)}</em>
               </button>
@@ -414,7 +433,7 @@ export default function IndustryView({
             <div className="industry-wizard-ms-frame-bar">
               <span>{packDisplayName}</span>
               <span>
-                {micrositeMeta.styleLabel}
+                {micrositeStyle}
                 {msFrameBadge(t, {
                   cached: cachedMicrositeSet.has(micrositeId),
                   busy: previewBusy,
@@ -425,7 +444,7 @@ export default function IndustryView({
             <div className="industry-wizard-ms-frame-stack">
               <iframe
                 key={`${apiPackKey}-${micrositeId}`}
-                title={`${packDisplayName} · ${micrositeMeta.styleLabel}`}
+                title={`${packDisplayName} · ${micrositeStyle}`}
                 className={`industry-wizard-ms-frame${previewBusy ? ' is-loading' : ''}`}
                 srcDoc={micrositeSrcDoc}
                 sandbox="allow-same-origin allow-scripts"
