@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { useT } from '@blockhub/i18n/react'
+import { useT, useI18n } from '@blockhub/i18n/react'
 import type { CSSProperties } from 'react'
 import MarketingSiteShell from '../../components/b2b/enrichment/MarketingSiteShell'
 import EnrichCardVisual from '../../components/b2b/enrichment/EnrichCardVisual'
@@ -13,8 +13,9 @@ import { usePageMeta } from '../../hooks/usePageMeta'
 
 export default function TrustCenterPage() {
   const t = useT()
+  const { locale } = useI18n()
   const rolePages = ROLE_PAGES.map((r) => localizeRolePage(t, r))
-  const docs = TRUST_DOCS.map((d) => localizeTrustDocCard(t, d))
+  const docs = TRUST_DOCS.map((d) => localizeTrustDocCard(t, d, locale))
   const faqs = TRUST_FAQ_SAMPLES.map((q, i) => {
     const key = `home.enrich.trust.faq.${i}`
     const text = t(key)

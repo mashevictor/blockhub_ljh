@@ -1,5 +1,5 @@
 import { Link, Navigate, useParams } from 'react-router-dom'
-import { useT } from '@blockhub/i18n/react'
+import { useT, useI18n } from '@blockhub/i18n/react'
 import MarketingSiteShell from '../../components/b2b/enrichment/MarketingSiteShell'
 import EnrichArticleBody from '../../components/b2b/enrichment/EnrichArticleBody'
 import EnrichCardVisual from '../../components/b2b/enrichment/EnrichCardVisual'
@@ -15,10 +15,11 @@ import type { CSSProperties } from 'react'
 
 export default function TrustDocDetailPage() {
   const t = useT()
+  const { locale } = useI18n()
   const { docId = '' } = useParams()
   const meta = TRUST_DOCS.find((d) => d.id === docId)
   const raw = getTrustDocArticle(docId)
-  const article = raw ? localizeTrustArticle(t, raw) : undefined
+  const article = raw ? localizeTrustArticle(t, raw, locale) : undefined
   const desc = meta ? trustDocDescription(t, meta.id, meta.description) : ''
 
   usePageMeta(

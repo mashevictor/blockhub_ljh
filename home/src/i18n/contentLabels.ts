@@ -6,6 +6,7 @@ import type { NewsArticle, NewsCategory } from '../data/siteNews'
 import type { RolePage } from '../data/siteRoles'
 import type { PricingTier, PricingFaq } from '../data/sitePricing'
 import { NEWS_CATEGORY_LABELS } from '../data/siteNews'
+import { localizeDownloadPath, localizePdfLinksInText } from './downloadLocale'
 
 export type TranslateFn = (key: string, vars?: Record<string, string | number>) => string
 
@@ -65,7 +66,7 @@ export function localizeCaseStudy(t: TranslateFn, study: CaseStudy): CaseStudy {
     summary: contentTr(t, `${prefix}.summary`, study.summary),
     pilotNote: contentTr(t, `${prefix}.pilot`, study.pilotNote),
     metrics: study.metrics.map((m, i) => ({
-      ...m,
+      value: contentTr(t, `${prefix}.metric.${i}.value`, m.value),
       label: contentTr(t, `${prefix}.metric.${i}.label`, m.label),
     })),
     story: study.story.map((p, i) => contentTr(t, `${prefix}.story.${i}`, p)),
@@ -150,20 +151,28 @@ export function pricingTip(t: TranslateFn, fallback: string): string {
   return contentTr(t, 'pricing.tip', fallback)
 }
 
-export function localizeTrustArticle(t: TranslateFn, article: TrustDocArticle): TrustDocArticle {
+export function localizeTrustArticle(
+  t: TranslateFn,
+  article: TrustDocArticle,
+  locale = 'zh-CN',
+): TrustDocArticle {
   const id = article.id
   const prefix = `trust.${id}`
   return {
     ...article,
     title: contentTr(t, `${prefix}.title`, article.title),
     subtitle: contentTr(t, `${prefix}.subtitle`, article.subtitle),
+    downloadPath: localizeDownloadPath(article.downloadPath, locale),
     sections: article.sections.map((sec, si) => ({
       heading: contentTr(t, `${prefix}.sec.${si}.h`, sec.heading),
-      paragraphs: sec.paragraphs.map((p, pi) => contentTr(t, `${prefix}.sec.${si}.p.${pi}`, p)),
+      paragraphs: sec.paragraphs.map((p, pi) =>
+        localizePdfLinksInText(contentTr(t, `${prefix}.sec.${si}.p.${pi}`, p), locale),
+      ),
     })),
     relatedLinks: article.relatedLinks.map((link, li) => ({
       ...link,
       label: contentTr(t, `${prefix}.link.${li}`, link.label),
+      href: localizePdfLinksInText(link.href, locale),
     })),
   }
 }
@@ -177,14 +186,18 @@ export function trustDocDescription(t: TranslateFn, id: string, fallback: string
   return contentTr(t, `trust.${id}.subtitle`, fallback)
 }
 
-export function localizeTrustDocCard<T extends { id: string; title: string; description: string }>(
+export function localizeTrustDocCard<T extends { id: string; title: string; description: string; downloadPath?: string }>(
   t: TranslateFn,
   doc: T,
+  locale = 'zh-CN',
 ): T {
   return {
     ...doc,
     title: trustDocTitle(t, doc.id, doc.title),
     description: trustDocDescription(t, doc.id, doc.description),
+    ...(doc.downloadPath
+      ? { downloadPath: localizeDownloadPath(doc.downloadPath, locale) }
+      : {}),
   }
 }
 
