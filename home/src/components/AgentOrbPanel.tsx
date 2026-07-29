@@ -2,7 +2,6 @@ import { DynamicIcon } from './icons'
 import { categoryColor, iconWrapStyle } from '../data/iconPalette'
 import { resolveCategoryIcon } from '../data/showcase'
 import type { ThemeTokens } from '../data/themes'
-import { BRAND_TAGLINE } from './agentInputLogic'
 import { useT } from '@blockhub/i18n/react'
 
 interface OrbItem {
@@ -68,7 +67,7 @@ export default function AgentOrbPanel({
                   ? t('home.agent.panel.filter', { q: query.trim() })
                   : t('home.agent.panel.insert')}
             </span>
-            <span className="agent-orb-brand-tag">{BRAND_TAGLINE}</span>
+            <span className="agent-orb-brand-tag">{t('home.agent.brand_tagline')}</span>
           </div>
         </div>
         <span className="agent-orb-count">{count}</span>

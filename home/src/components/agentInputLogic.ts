@@ -172,16 +172,16 @@ export function resolvePanelHint(
   return 'browse'
 }
 
+/** @deprecated Prefer `t('home.agent.hint.*')` via PANEL_HINT_KEYS — kept for PanelHint keyof only. */
 export const PANEL_HINT_TEXT: Record<PanelHint, string> = {
-  guide: '可多选模块 · 选完后 Esc 或直接输入描述',
-  browse: '点上方光球多选 · 选完点「完成选模块」',
-  filtering: '继续筛选 · 点击或 Enter 添加 · Esc 完成',
-  empty: '无匹配，Esc 关闭选模块',
-  free: '自由描述中；需要模块时在空格后输入 >>',
-  ime: '输入法组词中，完成后再选',
+  guide: '',
+  browse: '',
+  filtering: '',
+  empty: '',
+  free: '',
+  ime: '',
 }
 
-export const BRAND_TAGLINE = '>>重新定义智能体新交互'
-
-export const GUIDE_PLACEHOLDER = '描述您想要的应用，例如：制造业设备报修 + 审批流程…'
+/** @deprecated Prefer `t('home.agent.placeholder')`. */
+export const GUIDE_PLACEHOLDER = ''
 export const DEFAULT_GUIDE_TEXT = TRIGGER_TOKEN

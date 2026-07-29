@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react'
-import { useTf } from '@blockhub/i18n/react'
+import { useT, useTf } from '@blockhub/i18n/react'
 import { buildDanmakuLayout, presetRole, type RolePreset } from '../data/rolePresets'
 import {
   getInstantHeroPresets,
@@ -17,6 +17,7 @@ interface Props {
 }
 
 export default function HeroDanmakuCloud({ onRoleApply, integrated }: Props) {
+  const t = useT()
   const tf = useTf()
   const [presets, setPresets] = useState<RolePreset[]>(getInstantHeroPresets)
   const [syncing, setSyncing] = useState(false)
@@ -35,15 +36,15 @@ export default function HeroDanmakuCloud({ onRoleApply, integrated }: Props) {
       })
       .catch(() => {
         if (presets.length === 0) {
-          setSyncError('无法加载英雄区预设，请稍后重试')
+          setSyncError(t('home.danmaku.err_load'))
         } else {
-          setSyncError('后台同步失败，当前为本地预设')
+          setSyncError(t('home.danmaku.err_sync'))
         }
       })
       .finally(() => {
         if (manual) setSyncing(false)
       })
-  }, [presets.length])
+  }, [presets.length, t])
 
   useEffect(() => {
     let cancelled = false
@@ -58,7 +59,7 @@ export default function HeroDanmakuCloud({ onRoleApply, integrated }: Props) {
       .catch(() => {
         if (cancelled) return
         if (presets.length === 0) {
-          setSyncError('无法加载英雄区预设，请稍后重试')
+          setSyncError(t('home.danmaku.err_load'))
         }
       })
       .finally(() => {
@@ -80,7 +81,7 @@ export default function HeroDanmakuCloud({ onRoleApply, integrated }: Props) {
     <>
       <div
         className={`hero-danmaku-hud${paused ? ' paused' : ''}${integrated ? ' integrated' : ''}`}
-        aria-label="身份与场景弹幕流"
+        aria-label={t('home.danmaku.aria')}
         onMouseEnter={() => setPaused(true)}
         onMouseLeave={() => !active && setPaused(false)}
       >
@@ -101,15 +102,15 @@ export default function HeroDanmakuCloud({ onRoleApply, integrated }: Props) {
           <span className="hud-title">&gt;&gt; IDENTITY × SCENARIO</span>
           <span className="hud-meta">
             {syncing && presets.length > 0
-              ? `${presets.length} 场景 · 同步中…`
-              : `${presets.length} 场景 · 点击生成`}
+              ? t('home.danmaku.meta_sync', { n: presets.length })
+              : t('home.danmaku.meta_ready', { n: presets.length })}
           </span>
         </header>
 
         {syncError && presets.length === 0 && (
           <div className="hero-danmaku-error">
             <p>{syncError}</p>
-            <button type="button" onClick={() => void syncPresets(true)}>重试</button>
+            <button type="button" onClick={() => void syncPresets(true)}>{t('home.danmaku.retry')}</button>
           </div>
         )}
 
@@ -152,13 +153,13 @@ export default function HeroDanmakuCloud({ onRoleApply, integrated }: Props) {
         </div>
 
         <footer className="hero-danmaku-hud-foot">
-          <span>&gt;&gt; 符号编排</span>
+          <span>&gt;&gt; {t('home.danmaku.foot.compose')}</span>
           <span className="hud-foot-dot" />
-          <span>身份识别</span>
+          <span>{t('home.danmaku.foot.identity')}</span>
           <span className="hud-foot-dot" />
-          <span>场景匹配</span>
+          <span>{t('home.danmaku.foot.match')}</span>
           <span className="hud-foot-dot" />
-          <span>点击生成应用</span>
+          <span>{t('home.danmaku.foot.generate')}</span>
         </footer>
       </div>
 

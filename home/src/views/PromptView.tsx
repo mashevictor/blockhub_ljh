@@ -1115,7 +1115,7 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
         anchorVerticalAlign="top"
         repositionSignal={dockReposition}
         closedAnchorSelector=".b2b-header .brand-mark"
-        ariaLabel="生成应用悬浮助手"
+        ariaLabel={t('home.dock.prompt_aria')}
         onExpand={handleDockExpand}
       >
         <div

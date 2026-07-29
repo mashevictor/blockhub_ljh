@@ -26,7 +26,6 @@ import {
   DEFAULT_GUIDE_TEXT,
   isLoneTrigger,
   normalizeChevronInput,
-  PANEL_HINT_TEXT,
   resolveInputState,
   resolvePanelHint,
   TRIGGER_TOKEN,
@@ -36,8 +35,8 @@ import {
 } from './agentInputLogic'
 import { useAgentPageContext } from '../context/AgentPageContext'
 import { useFloatingDock } from '../context/FloatingDockContext'
-import { AGENT_CONTEXTS } from '../data/agentContext'
 import { ChevronDotSign } from './ChevronDotLoader'
+import { localizeAgentContext } from '../i18n/agentContextLabels'
 import { officeCategories, PANEL_HINT_KEYS } from '../i18n/agentLabels'
 import { industryName } from '../i18n/industryLabels'
 import { showcaseCapDesc, showcaseCapName } from '../i18n/contentLabels'
@@ -144,13 +143,13 @@ export default forwardRef<AgentInputHandle, Props>(function AgentInput({
   )
   const textareaRows = isFloatingCapsule ? 2 : (expanded ? 5 : 2)
   const { contextKey } = useAgentPageContext()
-  const contextCopy = AGENT_CONTEXTS[contextKey]
+  const contextCopy = localizeAgentContext(t, contextKey)
   const guidePlaceholder = t('home.agent.placeholder')
   const placeholderText = capsuleCompact
     ? (contextCopy.placeholderCollapsed ?? contextCopy.placeholder)
     : (isMinimal ? contextCopy.placeholder : guidePlaceholder)
 
-  const panelHintText = (hint: keyof typeof PANEL_HINT_TEXT) =>
+  const panelHintText = (hint: keyof typeof PANEL_HINT_KEYS) =>
     t(PANEL_HINT_KEYS[hint] ?? 'home.agent.hint.browse')
 
   const [focused, setFocused] = useState(false)
@@ -570,7 +569,7 @@ export default forwardRef<AgentInputHandle, Props>(function AgentInput({
       type="button"
       className={`agent-inline-module${isMinimal ? ' minimal' : ''}`}
       style={m.color ? { '--chip-color': m.color } as React.CSSProperties : undefined}
-      title={`${m.label} · 点击移除`}
+      title={t('home.agent.chip.remove_title', { label: m.label })}
       onClick={() => onRemoveModule?.(m.id)}
     >
       {m.iconKey && m.color && (
@@ -605,7 +604,7 @@ export default forwardRef<AgentInputHandle, Props>(function AgentInput({
               <button
                 type="button"
                 className={`agent-brand-trigger${effectivePanelOpen ? ' active' : ''}`}
-                title="积木仓符号 · >>重新定义智能体新交互"
+                title={t('home.agent.brand_trigger_title', { sign: t('home.brand.agent_sign') })}
                 aria-label={t('home.agent.aria.open_picker')}
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => {
@@ -639,7 +638,7 @@ export default forwardRef<AgentInputHandle, Props>(function AgentInput({
                       }
                     }}
                     spellCheck={false}
-                    aria-label="描述应用需求"
+                    aria-label={t('home.agent.aria.describe')}
                   />
                 ) : (
                 <textarea

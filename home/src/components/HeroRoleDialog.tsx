@@ -71,7 +71,7 @@ export default function HeroRoleDialog({ role, onClose, onApply }: Props) {
         aria-modal="true"
         aria-labelledby="hero-role-title"
       >
-        <button type="button" className="hero-role-close" onClick={onClose} aria-label="关闭">×</button>
+        <button type="button" className="hero-role-close" onClick={onClose} aria-label={t('home.danmaku.close')}>×</button>
 
         <div className="hero-role-head">
           <span className="hero-role-badge role" style={{ background: role.color }}>{roleName}</span>
@@ -101,7 +101,7 @@ export default function HeroRoleDialog({ role, onClose, onApply }: Props) {
         <p className="hero-role-prompt-preview">{prompt}</p>
 
         <div className="hero-role-actions">
-          <button type="button" className="btn-ghost" onClick={onClose}>再看看</button>
+          <button type="button" className="btn-ghost" onClick={onClose}>{t('home.danmaku.look_again')}</button>
           <button
             type="button"
             className="btn-primary agent-action-btn"
