@@ -27,8 +27,8 @@ export default function CaseDetailPage() {
     return <Navigate to={ROUTES.cases} replace />
   }
 
-  const theme = caseIndustryTheme(study.industry)
-  const blocks = resolveCaseBlocks(study)
+  const theme = caseIndustryTheme(study.slug)
+  const blocks = resolveCaseBlocks(study, t)
 
   return (
     <MarketingSiteShell

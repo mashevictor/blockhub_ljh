@@ -32,7 +32,10 @@ export default function TrustDocDetailPage() {
   }
 
   const theme = trustDocTheme(docId)
-  const blocks = sectionsToBlocks(article.sections, { relatedLinks: article.relatedLinks })
+  const blocks = sectionsToBlocks(article.sections, {
+    relatedLinks: article.relatedLinks,
+    relatedTitle: t('home.enrich.case.related_title'),
+  })
 
   return (
     <MarketingSiteShell

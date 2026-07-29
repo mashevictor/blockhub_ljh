@@ -15,15 +15,21 @@ const DEFAULT_THEME: EnrichCardTheme = {
   icon: '📦',
 }
 
-/** 案例 · 按行业一色 */
+/** 案例 · 按行业一色（中英 label + slug，避免 localize 后丢主题） */
 export const CASE_INDUSTRY_THEMES: Record<string, EnrichCardTheme> = {
   制造: { color: '#3b82f6', from: '#eff6ff', to: '#dbeafe', icon: '🏭' },
+  Manufacturing: { color: '#3b82f6', from: '#eff6ff', to: '#dbeafe', icon: '🏭' },
+  'mfg-leads': { color: '#3b82f6', from: '#eff6ff', to: '#dbeafe', icon: '🏭' },
   零售: { color: '#f97316', from: '#fff7ed', to: '#ffedd5', icon: '🛒' },
+  Retail: { color: '#f97316', from: '#fff7ed', to: '#ffedd5', icon: '🛒' },
+  'retail-office': { color: '#f97316', from: '#fff7ed', to: '#ffedd5', icon: '🛒' },
   物流: { color: '#ca8a04', from: '#fffbeb', to: '#fef3c7', icon: '📦' },
+  Logistics: { color: '#ca8a04', from: '#fffbeb', to: '#fef3c7', icon: '📦' },
+  'logistics-tracking': { color: '#ca8a04', from: '#fffbeb', to: '#fef3c7', icon: '📦' },
 }
 
-export function caseIndustryTheme(industry: string): EnrichCardTheme {
-  return CASE_INDUSTRY_THEMES[industry] ?? DEFAULT_THEME
+export function caseIndustryTheme(industryOrSlug: string): EnrichCardTheme {
+  return CASE_INDUSTRY_THEMES[industryOrSlug] ?? DEFAULT_THEME
 }
 
 /** 新闻 · 按分类一色（万兴风格：企业新闻 / 品牌活动 / 产品动态） */

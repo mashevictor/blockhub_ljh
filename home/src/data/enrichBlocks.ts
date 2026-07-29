@@ -15,7 +15,11 @@ export interface EnrichSection {
 
 export function sectionsToBlocks(
   sections: EnrichSection[],
-  opts?: { relatedLinks?: EnrichLinkItem[]; heroImage?: { src: string; alt: string; caption?: string } },
+  opts?: {
+    relatedLinks?: EnrichLinkItem[]
+    relatedTitle?: string
+    heroImage?: { src: string; alt: string; caption?: string }
+  },
 ): EnrichBlock[] {
   const blocks: EnrichBlock[] = []
   if (opts?.heroImage) {
@@ -29,7 +33,11 @@ export function sectionsToBlocks(
     })
   }
   if (opts?.relatedLinks?.length) {
-    blocks.push({ type: 'links', title: '延伸阅读', items: opts.relatedLinks })
+    blocks.push({
+      type: 'links',
+      title: opts.relatedTitle ?? '延伸阅读',
+      items: opts.relatedLinks,
+    })
   }
   return blocks
 }

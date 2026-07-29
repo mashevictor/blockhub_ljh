@@ -27,7 +27,7 @@ export default function CasesIndexPage() {
       <div className="enrich-cases-list">
         {CASE_STUDIES.map((raw) => {
           const c = localizeCaseStudy(t, raw)
-          const theme = caseIndustryTheme(c.industry)
+          const theme = caseIndustryTheme(raw.slug)
           return (
             <article
               key={c.slug}
