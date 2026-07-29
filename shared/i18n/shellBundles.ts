@@ -1,7 +1,7 @@
 /**
- * App message bundles: shell common.* + error.* + catalog cap/hero codegen.
+ * App message bundles: shell common.* + error.* + catalog cap/hero/industry/scene codegen.
  * Capability widget locales arrive via contributeI18nMessages (lazy packages).
- * Scene labels (scene.gen.json) stay backend-only — Catalog API localizes via Accept-Language.
+ * Scene + industry UI copy also ship client-side so industry microsites switch offline / on fallback.
  */
 import commonZh from './messages/zh-CN/common.json'
 import commonEn from './messages/en-US/common.json'
@@ -23,6 +23,10 @@ import heroZh from './messages/zh-CN/hero.gen.json'
 import heroEn from './messages/en-US/hero.gen.json'
 import industryZh from './messages/zh-CN/industry.gen.json'
 import industryEn from './messages/en-US/industry.gen.json'
+import industryUiZh from './messages/zh-CN/industry.ui.gen.json'
+import industryUiEn from './messages/en-US/industry.ui.gen.json'
+import sceneZh from './messages/zh-CN/scene.gen.json'
+import sceneEn from './messages/en-US/scene.gen.json'
 
 function stripMeta(raw: Record<string, unknown>): Record<string, string> {
   const out: Record<string, string> = {}
@@ -54,7 +58,7 @@ export const SHELL_MESSAGES = {
   },
 } as const
 
-/** Shell + marketing content + capability/hero/industry catalog. */
+/** Shell + marketing content + capability/hero/industry/scene catalog. */
 export const APP_MESSAGES = {
   'zh-CN': {
     common: commonZh,
@@ -67,6 +71,8 @@ export const APP_MESSAGES = {
     ...stripMeta(capZh as Record<string, unknown>),
     ...stripMeta(heroZh as Record<string, unknown>),
     ...stripMeta(industryZh as Record<string, unknown>),
+    ...stripMeta(industryUiZh as Record<string, unknown>),
+    ...stripMeta(sceneZh as Record<string, unknown>),
   },
   'en-US': {
     common: commonEn,
@@ -79,5 +85,7 @@ export const APP_MESSAGES = {
     ...stripMeta(capEn as Record<string, unknown>),
     ...stripMeta(heroEn as Record<string, unknown>),
     ...stripMeta(industryEn as Record<string, unknown>),
+    ...stripMeta(industryUiEn as Record<string, unknown>),
+    ...stripMeta(sceneEn as Record<string, unknown>),
   },
 } as const

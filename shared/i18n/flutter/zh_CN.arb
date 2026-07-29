@@ -10405,10 +10405,90 @@
     "description": "home.enrich.role.eyebrow",
     "x-blockhub-key": "home.enrich.role.eyebrow"
   },
+  "home_enrich_trust_back": "返回信任中心",
+  "@home_enrich_trust_back": {
+    "description": "home.enrich.trust.back",
+    "x-blockhub-key": "home.enrich.trust.back"
+  },
+  "home_enrich_trust_book_demo": "预约演示",
+  "@home_enrich_trust_book_demo": {
+    "description": "home.enrich.trust.book_demo",
+    "x-blockhub-key": "home.enrich.trust.book_demo"
+  },
+  "home_enrich_trust_cta_demo": "预约演示 · 获取完整资质包",
+  "@home_enrich_trust_cta_demo": {
+    "description": "home.enrich.trust.cta_demo",
+    "x-blockhub-key": "home.enrich.trust.cta_demo"
+  },
+  "home_enrich_trust_doc_sublabel": "合规资料",
+  "@home_enrich_trust_doc_sublabel": {
+    "description": "home.enrich.trust.doc_sublabel",
+    "x-blockhub-key": "home.enrich.trust.doc_sublabel"
+  },
+  "home_enrich_trust_docs_lead": "安全白皮书、集成清单、DPA 摘要等 · 可直接转发给信息部门",
+  "@home_enrich_trust_docs_lead": {
+    "description": "home.enrich.trust.docs_lead",
+    "x-blockhub-key": "home.enrich.trust.docs_lead"
+  },
+  "home_enrich_trust_docs_title": "可下载资料",
+  "@home_enrich_trust_docs_title": {
+    "description": "home.enrich.trust.docs_title",
+    "x-blockhub-key": "home.enrich.trust.docs_title"
+  },
+  "home_enrich_trust_download_pdf": "下载 PDF",
+  "@home_enrich_trust_download_pdf": {
+    "description": "home.enrich.trust.download_pdf",
+    "x-blockhub-key": "home.enrich.trust.download_pdf"
+  },
   "home_enrich_trust_eyebrow": "信任与合规",
   "@home_enrich_trust_eyebrow": {
     "description": "home.enrich.trust.eyebrow",
     "x-blockhub-key": "home.enrich.trust.eyebrow"
+  },
+  "home_enrich_trust_faq_0": "客户数据会不会用于模型训练？",
+  "@home_enrich_trust_faq_0": {
+    "description": "home.enrich.trust.faq.0",
+    "x-blockhub-key": "home.enrich.trust.faq.0"
+  },
+  "home_enrich_trust_faq_1": "删数据流程是什么？",
+  "@home_enrich_trust_faq_1": {
+    "description": "home.enrich.trust.faq.1",
+    "x-blockhub-key": "home.enrich.trust.faq.1"
+  },
+  "home_enrich_trust_faq_2": "是否支持私有化部署？",
+  "@home_enrich_trust_faq_2": {
+    "description": "home.enrich.trust.faq.2",
+    "x-blockhub-key": "home.enrich.trust.faq.2"
+  },
+  "home_enrich_trust_faq_3": "等保二级如何对齐？",
+  "@home_enrich_trust_faq_3": {
+    "description": "home.enrich.trust.faq.3",
+    "x-blockhub-key": "home.enrich.trust.faq.3"
+  },
+  "home_enrich_trust_faq_lead": "可直接向全站智能体助手提问，以下为高频问题示例",
+  "@home_enrich_trust_faq_lead": {
+    "description": "home.enrich.trust.faq_lead",
+    "x-blockhub-key": "home.enrich.trust.faq_lead"
+  },
+  "home_enrich_trust_faq_title": "常见安全提问",
+  "@home_enrich_trust_faq_title": {
+    "description": "home.enrich.trust.faq_title",
+    "x-blockhub-key": "home.enrich.trust.faq_title"
+  },
+  "home_enrich_trust_read_online": "在线阅读",
+  "@home_enrich_trust_read_online": {
+    "description": "home.enrich.trust.read_online",
+    "x-blockhub-key": "home.enrich.trust.read_online"
+  },
+  "home_enrich_trust_roles_lead": "业务、信息、采购等不同视角的入口与资料",
+  "@home_enrich_trust_roles_lead": {
+    "description": "home.enrich.trust.roles_lead",
+    "x-blockhub-key": "home.enrich.trust.roles_lead"
+  },
+  "home_enrich_trust_roles_title": "按角色查看",
+  "@home_enrich_trust_roles_title": {
+    "description": "home.enrich.trust.roles_title",
+    "x-blockhub-key": "home.enrich.trust.roles_title"
   },
   "home_footer_col_company": "公司",
   "@home_footer_col_company": {
@@ -10790,6 +10870,11 @@
     "description": "home.industry.detail.badge",
     "x-blockhub-key": "home.industry.detail.badge"
   },
+  "home_industry_detail_create_label": "用 {{name}} 深度包创建",
+  "@home_industry_detail_create_label": {
+    "description": "home.industry.detail.create_label",
+    "x-blockhub-key": "home.industry.detail.create_label"
+  },
   "home_industry_detail_cta_band_title": "确认方案后去编排应用",
   "@home_industry_detail_cta_band_title": {
     "description": "home.industry.detail.cta_band_title",
@@ -10850,6 +10935,11 @@
     "description": "home.industry.detail.pages",
     "x-blockhub-key": "home.industry.detail.pages"
   },
+  "home_industry_detail_problem_fallback": "{{name}} · 行业典型业务闭环",
+  "@home_industry_detail_problem_fallback": {
+    "description": "home.industry.detail.problem_fallback",
+    "x-blockhub-key": "home.industry.detail.problem_fallback"
+  },
   "home_industry_detail_scenes_eyebrow": "场景清单",
   "@home_industry_detail_scenes_eyebrow": {
     "description": "home.industry.detail.scenes_eyebrow",
@@ -10859,6 +10949,16 @@
   "@home_industry_detail_scenes_title": {
     "description": "home.industry.detail.scenes_title",
     "x-blockhub-key": "home.industry.detail.scenes_title"
+  },
+  "home_industry_detail_site_desc": "{{tagline}}。含 {{n}} 项业务场景，>> 选模块一键生成网页与 App 应用。",
+  "@home_industry_detail_site_desc": {
+    "description": "home.industry.detail.site_desc",
+    "x-blockhub-key": "home.industry.detail.site_desc"
+  },
+  "home_industry_detail_site_title": "{{name}} · 行业深度包 | 积木仓 BlockHub",
+  "@home_industry_detail_site_title": {
+    "description": "home.industry.detail.site_title",
+    "x-blockhub-key": "home.industry.detail.site_title"
   },
   "home_industry_detail_source": "文案来源：{{source}}",
   "@home_industry_detail_source": {
@@ -11345,6 +11445,16 @@
     "description": "home.industry.securities.name",
     "x-blockhub-key": "home.industry.securities.name"
   },
+  "home_industry_shell_footer_all": "20 个行业深度包",
+  "@home_industry_shell_footer_all": {
+    "description": "home.industry.shell.footer_all",
+    "x-blockhub-key": "home.industry.shell.footer_all"
+  },
+  "home_industry_shell_footer_pack": "{{name}} 行业深度包",
+  "@home_industry_shell_footer_pack": {
+    "description": "home.industry.shell.footer_pack",
+    "x-blockhub-key": "home.industry.shell.footer_pack"
+  },
   "home_industry_tpl_aria": "页面模板选择",
   "@home_industry_tpl_aria": {
     "description": "home.industry.tpl.aria",
@@ -11379,6 +11489,131 @@
   "@home_industry_tpl_eyebrow": {
     "description": "home.industry.tpl.eyebrow",
     "x-blockhub-key": "home.industry.tpl.eyebrow"
+  },
+  "home_industry_tpl_mock_applicant": "申请人",
+  "@home_industry_tpl_mock_applicant": {
+    "description": "home.industry.tpl.mock.applicant",
+    "x-blockhub-key": "home.industry.tpl.mock.applicant"
+  },
+  "home_industry_tpl_mock_applicant_name": "张三",
+  "@home_industry_tpl_mock_applicant_name": {
+    "description": "home.industry.tpl.mock.applicant_name",
+    "x-blockhub-key": "home.industry.tpl.mock.applicant_name"
+  },
+  "home_industry_tpl_mock_approve": "通过",
+  "@home_industry_tpl_mock_approve": {
+    "description": "home.industry.tpl.mock.approve",
+    "x-blockhub-key": "home.industry.tpl.mock.approve"
+  },
+  "home_industry_tpl_mock_ask": "如何办理？",
+  "@home_industry_tpl_mock_ask": {
+    "description": "home.industry.tpl.mock.ask",
+    "x-blockhub-key": "home.industry.tpl.mock.ask"
+  },
+  "home_industry_tpl_mock_checkin": "签到 · 09:32",
+  "@home_industry_tpl_mock_checkin": {
+    "description": "home.industry.tpl.mock.checkin",
+    "x-blockhub-key": "home.industry.tpl.mock.checkin"
+  },
+  "home_industry_tpl_mock_funnel_lead": "线索 100%",
+  "@home_industry_tpl_mock_funnel_lead": {
+    "description": "home.industry.tpl.mock.funnel_lead",
+    "x-blockhub-key": "home.industry.tpl.mock.funnel_lead"
+  },
+  "home_industry_tpl_mock_funnel_opp": "商机 72%",
+  "@home_industry_tpl_mock_funnel_opp": {
+    "description": "home.industry.tpl.mock.funnel_opp",
+    "x-blockhub-key": "home.industry.tpl.mock.funnel_opp"
+  },
+  "home_industry_tpl_mock_funnel_pay": "回款 31%",
+  "@home_industry_tpl_mock_funnel_pay": {
+    "description": "home.industry.tpl.mock.funnel_pay",
+    "x-blockhub-key": "home.industry.tpl.mock.funnel_pay"
+  },
+  "home_industry_tpl_mock_funnel_sign": "签约 48%",
+  "@home_industry_tpl_mock_funnel_sign": {
+    "description": "home.industry.tpl.mock.funnel_sign",
+    "x-blockhub-key": "home.industry.tpl.mock.funnel_sign"
+  },
+  "home_industry_tpl_mock_in_progress": "进行中",
+  "@home_industry_tpl_mock_in_progress": {
+    "description": "home.industry.tpl.mock.in_progress",
+    "x-blockhub-key": "home.industry.tpl.mock.in_progress"
+  },
+  "home_industry_tpl_mock_kb_reply": "已检索知识库，为您找到 3 条相关制度…",
+  "@home_industry_tpl_mock_kb_reply": {
+    "description": "home.industry.tpl.mock.kb_reply",
+    "x-blockhub-key": "home.industry.tpl.mock.kb_reply"
+  },
+  "home_industry_tpl_mock_kpi_alert": "预警",
+  "@home_industry_tpl_mock_kpi_alert": {
+    "description": "home.industry.tpl.mock.kpi_alert",
+    "x-blockhub-key": "home.industry.tpl.mock.kpi_alert"
+  },
+  "home_industry_tpl_mock_kpi_rate": "达成率",
+  "@home_industry_tpl_mock_kpi_rate": {
+    "description": "home.industry.tpl.mock.kpi_rate",
+    "x-blockhub-key": "home.industry.tpl.mock.kpi_rate"
+  },
+  "home_industry_tpl_mock_kpi_today": "今日量",
+  "@home_industry_tpl_mock_kpi_today": {
+    "description": "home.industry.tpl.mock.kpi_today",
+    "x-blockhub-key": "home.industry.tpl.mock.kpi_today"
+  },
+  "home_industry_tpl_mock_manual": "操作手册.docx",
+  "@home_industry_tpl_mock_manual": {
+    "description": "home.industry.tpl.mock.manual",
+    "x-blockhub-key": "home.industry.tpl.mock.manual"
+  },
+  "home_industry_tpl_mock_notes": "说明",
+  "@home_industry_tpl_mock_notes": {
+    "description": "home.industry.tpl.mock.notes",
+    "x-blockhub-key": "home.industry.tpl.mock.notes"
+  },
+  "home_industry_tpl_mock_notes_ph": "填写业务详情…",
+  "@home_industry_tpl_mock_notes_ph": {
+    "description": "home.industry.tpl.mock.notes_ph",
+    "x-blockhub-key": "home.industry.tpl.mock.notes_ph"
+  },
+  "home_industry_tpl_mock_notify_pending": "{{name}} 待处理",
+  "@home_industry_tpl_mock_notify_pending": {
+    "description": "home.industry.tpl.mock.notify_pending",
+    "x-blockhub-key": "home.industry.tpl.mock.notify_pending"
+  },
+  "home_industry_tpl_mock_pending": "待处理",
+  "@home_industry_tpl_mock_pending": {
+    "description": "home.industry.tpl.mock.pending",
+    "x-blockhub-key": "home.industry.tpl.mock.pending"
+  },
+  "home_industry_tpl_mock_pending_me": "待我审批",
+  "@home_industry_tpl_mock_pending_me": {
+    "description": "home.industry.tpl.mock.pending_me",
+    "x-blockhub-key": "home.industry.tpl.mock.pending_me"
+  },
+  "home_industry_tpl_mock_reject": "驳回",
+  "@home_industry_tpl_mock_reject": {
+    "description": "home.industry.tpl.mock.reject",
+    "x-blockhub-key": "home.industry.tpl.mock.reject"
+  },
+  "home_industry_tpl_mock_search": "语义检索…",
+  "@home_industry_tpl_mock_search": {
+    "description": "home.industry.tpl.mock.search",
+    "x-blockhub-key": "home.industry.tpl.mock.search"
+  },
+  "home_industry_tpl_mock_subject": "事项",
+  "@home_industry_tpl_mock_subject": {
+    "description": "home.industry.tpl.mock.subject",
+    "x-blockhub-key": "home.industry.tpl.mock.subject"
+  },
+  "home_industry_tpl_mock_wecom": "企微",
+  "@home_industry_tpl_mock_wecom": {
+    "description": "home.industry.tpl.mock.wecom",
+    "x-blockhub-key": "home.industry.tpl.mock.wecom"
+  },
+  "home_industry_tpl_mock_wecom_just_now": "企微 · 刚刚",
+  "@home_industry_tpl_mock_wecom_just_now": {
+    "description": "home.industry.tpl.mock.wecom_just_now",
+    "x-blockhub-key": "home.industry.tpl.mock.wecom_just_now"
   },
   "home_industry_tpl_title": "10 套行业页面模板 · 开箱即用",
   "@home_industry_tpl_title": {
@@ -12745,47 +12980,47 @@
     "description": "industry.securities.tagline",
     "x-blockhub-key": "industry.securities.tagline"
   },
-  "product_action_browse_all": "Browse all templates",
+  "product_action_browse_all": "浏览全部模板",
   "@product_action_browse_all": {
     "description": "product.action.browse_all",
     "x-blockhub-key": "product.action.browse_all"
   },
-  "product_action_insert_module": "+ Insert module",
+  "product_action_insert_module": "+ 插入模块",
   "@product_action_insert_module": {
     "description": "product.action.insert_module",
     "x-blockhub-key": "product.action.insert_module"
   },
-  "product_action_try_capability": "Try capability",
+  "product_action_try_capability": "体验能力",
   "@product_action_try_capability": {
     "description": "product.action.try_capability",
     "x-blockhub-key": "product.action.try_capability"
   },
-  "product_action_try_template": "Try template",
+  "product_action_try_template": "体验模板",
   "@product_action_try_template": {
     "description": "product.action.try_template",
     "x-blockhub-key": "product.action.try_template"
   },
-  "product_atom_atom_approval_name": "Approval agent",
+  "product_atom_atom_approval_name": "审批 Agent",
   "@product_atom_atom_approval_name": {
     "description": "product.atom.atom-approval.name",
     "x-blockhub-key": "product.atom.atom-approval.name"
   },
-  "product_atom_atom_approval_summary": "Forms, sign-off, todo aggregation, state machine",
+  "product_atom_atom_approval_summary": "表单提交、会签流转、待办聚合与状态机驱动",
   "@product_atom_atom_approval_summary": {
     "description": "product.atom.atom-approval.summary",
     "x-blockhub-key": "product.atom.atom-approval.summary"
   },
-  "product_atom_atom_approval_tag": "Workflow",
+  "product_atom_atom_approval_tag": "流程",
   "@product_atom_atom_approval_tag": {
     "description": "product.atom.atom-approval.tag",
     "x-blockhub-key": "product.atom.atom-approval.tag"
   },
-  "product_atom_atom_chat_name": "Smart Q&A",
+  "product_atom_atom_chat_name": "智能问答",
   "@product_atom_atom_chat_name": {
     "description": "product.atom.atom-chat.name",
     "x-blockhub-key": "product.atom.atom-chat.name"
   },
-  "product_atom_atom_chat_summary": "RAG-backed multi-turn streaming chat with citeable sources",
+  "product_atom_atom_chat_summary": "知识库检索增强，多轮对话流式输出，引用原文可溯源",
   "@product_atom_atom_chat_summary": {
     "description": "product.atom.atom-chat.summary",
     "x-blockhub-key": "product.atom.atom-chat.summary"
@@ -12795,12 +13030,12 @@
     "description": "product.atom.atom-chat.tag",
     "x-blockhub-key": "product.atom.atom-chat.tag"
   },
-  "product_atom_atom_compose_edit_name": "Compose edit",
+  "product_atom_atom_compose_edit_name": "对话改页",
   "@product_atom_atom_compose_edit_name": {
     "description": "product.atom.atom-compose-edit.name",
     "x-blockhub-key": "product.atom.atom-compose-edit.name"
   },
-  "product_atom_atom_compose_edit_summary": "Edit menus/pages via chat; preview privately; publish after approval",
+  "product_atom_atom_compose_edit_summary": "用对话改菜单和页面，先自己预览；保存草稿、提交审批后，全员才看到正式效果",
   "@product_atom_atom_compose_edit_summary": {
     "description": "product.atom.atom-compose-edit.summary",
     "x-blockhub-key": "product.atom.atom-compose-edit.summary"
@@ -12810,72 +13045,72 @@
     "description": "product.atom.atom-compose-edit.tag",
     "x-blockhub-key": "product.atom.atom-compose-edit.tag"
   },
-  "product_atom_atom_creation_name": "Creation agent",
+  "product_atom_atom_creation_name": "智能创建 Agent",
   "@product_atom_atom_creation_name": {
     "description": "product.atom.atom-creation.name",
     "x-blockhub-key": "product.atom.atom-creation.name"
   },
-  "product_atom_atom_creation_summary": "Describe needs, get module recommendations, publish in one click",
+  "product_atom_atom_creation_summary": "描述需求自动推荐模块，评估方案后一键发布应用",
   "@product_atom_atom_creation_summary": {
     "description": "product.atom.atom-creation.summary",
     "x-blockhub-key": "product.atom.atom-creation.summary"
   },
-  "product_atom_atom_creation_tag": "Orchestration",
+  "product_atom_atom_creation_tag": "编排",
   "@product_atom_atom_creation_tag": {
     "description": "product.atom.atom-creation.tag",
     "x-blockhub-key": "product.atom.atom-creation.tag"
   },
-  "product_atom_atom_integration_name": "Integration agent",
+  "product_atom_atom_integration_name": "系统集成 Agent",
   "@product_atom_atom_integration_name": {
     "description": "product.atom.atom-integration.name",
     "x-blockhub-key": "product.atom.atom-integration.name"
   },
-  "product_atom_atom_integration_summary": "Webhook/REST connectors; bi-dir sync with ERP/OA/MES",
+  "product_atom_atom_integration_summary": "Webhook/REST 连接器，ERP、OA、MES 数据双向同步",
   "@product_atom_atom_integration_summary": {
     "description": "product.atom.atom-integration.summary",
     "x-blockhub-key": "product.atom.atom-integration.summary"
   },
-  "product_atom_atom_integration_tag": "Integrate",
+  "product_atom_atom_integration_tag": "对接",
   "@product_atom_atom_integration_tag": {
     "description": "product.atom.atom-integration.tag",
     "x-blockhub-key": "product.atom.atom-integration.tag"
   },
-  "product_atom_atom_kb_name": "Knowledge retrieval",
+  "product_atom_atom_kb_name": "知识库检索",
   "@product_atom_atom_kb_name": {
     "description": "product.atom.atom-kb.name",
     "x-blockhub-key": "product.atom.atom-kb.name"
   },
-  "product_atom_atom_kb_summary": "Chunking + pgvector search; batch PDF/Word import",
+  "product_atom_atom_kb_summary": "文档切片 + pgvector 语义搜索，支持 PDF/Word 批量导入",
   "@product_atom_atom_kb_summary": {
     "description": "product.atom.atom-kb.summary",
     "x-blockhub-key": "product.atom.atom-kb.summary"
   },
-  "product_atom_atom_kb_tag": "Vector",
+  "product_atom_atom_kb_tag": "向量",
   "@product_atom_atom_kb_tag": {
     "description": "product.atom.atom-kb.tag",
     "x-blockhub-key": "product.atom.atom-kb.tag"
   },
-  "product_atom_atom_multi_name": "Multi-agent orchestration",
+  "product_atom_atom_multi_name": "多助手编排",
   "@product_atom_atom_multi_name": {
     "description": "product.atom.atom-multi.name",
     "x-blockhub-key": "product.atom.atom-multi.name"
   },
-  "product_atom_atom_multi_summary": "Route Q&A, approval, and report agents by intent",
+  "product_atom_atom_multi_summary": "问答、审批、报表多 Agent 按意图自动路由协同",
   "@product_atom_atom_multi_summary": {
     "description": "product.atom.atom-multi.summary",
     "x-blockhub-key": "product.atom.atom-multi.summary"
   },
-  "product_atom_atom_multi_tag": "Orchestration",
+  "product_atom_atom_multi_tag": "编排",
   "@product_atom_atom_multi_tag": {
     "description": "product.atom.atom-multi.tag",
     "x-blockhub-key": "product.atom.atom-multi.tag"
   },
-  "product_atom_atom_nl_name": "NL data query",
+  "product_atom_atom_nl_name": "智能问数",
   "@product_atom_atom_nl_name": {
     "description": "product.atom.atom-nl.name",
     "x-blockhub-key": "product.atom.atom-nl.name"
   },
-  "product_atom_atom_nl_summary": "Natural-language business queries with charts and insights",
+  "product_atom_atom_nl_summary": "自然语言查业务数据，自动生成图表与摘要洞察",
   "@product_atom_atom_nl_summary": {
     "description": "product.atom.atom-nl.summary",
     "x-blockhub-key": "product.atom.atom-nl.summary"
@@ -12885,767 +13120,767 @@
     "description": "product.atom.atom-nl.tag",
     "x-blockhub-key": "product.atom.atom-nl.tag"
   },
-  "product_atom_atom_notify_name": "Notify agent",
+  "product_atom_atom_notify_name": "消息推送 Agent",
   "@product_atom_atom_notify_name": {
     "description": "product.atom.atom-notify.name",
     "x-blockhub-key": "product.atom.atom-notify.name"
   },
-  "product_atom_atom_notify_summary": "In-app, WeCom, DingTalk; auto alerts on approval nodes",
+  "product_atom_atom_notify_summary": "站内信、企微、钉钉多渠道触达，审批节点自动提醒",
   "@product_atom_atom_notify_summary": {
     "description": "product.atom.atom-notify.summary",
     "x-blockhub-key": "product.atom.atom-notify.summary"
   },
-  "product_atom_atom_notify_tag": "Notify",
+  "product_atom_atom_notify_tag": "通知",
   "@product_atom_atom_notify_tag": {
     "description": "product.atom.atom-notify.tag",
     "x-blockhub-key": "product.atom.atom-notify.tag"
   },
-  "product_atom_atom_portal_name": "Multi-end portal agent",
+  "product_atom_atom_portal_name": "多端门户 Agent",
   "@product_atom_atom_portal_name": {
     "description": "product.atom.atom-portal.name",
     "x-blockhub-key": "product.atom.atom-portal.name"
   },
-  "product_atom_atom_portal_summary": "One schema publish to Web/iOS/Android/Win/Mac",
+  "product_atom_atom_portal_summary": "一次 Schema 发布，Web/iOS/Android/Win/Mac 五端同步",
   "@product_atom_atom_portal_summary": {
     "description": "product.atom.atom-portal.summary",
     "x-blockhub-key": "product.atom.atom-portal.summary"
   },
-  "product_atom_atom_portal_tag": "Deliver",
+  "product_atom_atom_portal_tag": "交付",
   "@product_atom_atom_portal_tag": {
     "description": "product.atom.atom-portal.tag",
     "x-blockhub-key": "product.atom.atom-portal.tag"
   },
-  "product_atom_atom_security_name": "Security agent",
+  "product_atom_atom_security_name": "安全合规 Agent",
   "@product_atom_atom_security_name": {
     "description": "product.atom.atom-security.name",
     "x-blockhub-key": "product.atom.atom-security.name"
   },
-  "product_atom_atom_security_summary": "RBAC, audit trails, field masking, compliance logs",
+  "product_atom_atom_security_summary": "RBAC 权限、操作审计、敏感字段脱敏与合规留痕",
   "@product_atom_atom_security_summary": {
     "description": "product.atom.atom-security.summary",
     "x-blockhub-key": "product.atom.atom-security.summary"
   },
-  "product_atom_atom_security_tag": "Audit",
+  "product_atom_atom_security_tag": "审计",
   "@product_atom_atom_security_tag": {
     "description": "product.atom.atom-security.tag",
     "x-blockhub-key": "product.atom.atom-security.tag"
   },
-  "product_atom_atom_shanghai_name": "Shanghainese voice agent",
+  "product_atom_atom_shanghai_name": "上海话语音智能体",
   "@product_atom_atom_shanghai_name": {
     "description": "product.atom.atom-shanghai.name",
     "x-blockhub-key": "product.atom.atom-shanghai.name"
   },
-  "product_atom_atom_shanghai_summary": "ASR/TTS + dialect LLM for real-time Web/Flutter dialogue",
+  "product_atom_atom_shanghai_summary": "星辰 ASR/TTS + 方言大模型沪语回复，Web/Flutter 双端实时对话",
   "@product_atom_atom_shanghai_summary": {
     "description": "product.atom.atom-shanghai.summary",
     "x-blockhub-key": "product.atom.atom-shanghai.summary"
   },
-  "product_atom_atom_shanghai_tag": "Dialect",
+  "product_atom_atom_shanghai_tag": "方言",
   "@product_atom_atom_shanghai_tag": {
     "description": "product.atom.atom-shanghai.tag",
     "x-blockhub-key": "product.atom.atom-shanghai.tag"
   },
-  "product_atom_atom_voice_name": "Mandarin voice Q&A",
+  "product_atom_atom_voice_name": "普通话语音问答",
   "@product_atom_atom_voice_name": {
     "description": "product.atom.atom-voice.name",
     "x-blockhub-key": "product.atom.atom-voice.name"
   },
-  "product_atom_atom_voice_summary": "Speech-to-text and TTS for field and accessibility use",
+  "product_atom_atom_voice_summary": "语音输入识别与 TTS 播报，适合外勤与无障碍场景",
   "@product_atom_atom_voice_summary": {
     "description": "product.atom.atom-voice.summary",
     "x-blockhub-key": "product.atom.atom-voice.summary"
   },
-  "product_atom_atom_voice_tag": "Voice",
+  "product_atom_atom_voice_tag": "语音",
   "@product_atom_atom_voice_tag": {
     "description": "product.atom.atom-voice.tag",
     "x-blockhub-key": "product.atom.atom-voice.tag"
   },
-  "product_llm_llm_chat_f0": "Streaming typewriter effect",
+  "product_llm_llm_chat_f0": "流式打字效果",
   "@product_llm_llm_chat_f0": {
     "description": "product.llm.llm-chat.f0",
     "x-blockhub-key": "product.llm.llm-chat.f0"
   },
-  "product_llm_llm_chat_f1": "Knowledge-base paragraph cites",
+  "product_llm_llm_chat_f1": "知识库段落引用",
   "@product_llm_llm_chat_f1": {
     "description": "product.llm.llm-chat.f1",
     "x-blockhub-key": "product.llm.llm-chat.f1"
   },
-  "product_llm_llm_chat_f2": "Retry and multi-model switch",
+  "product_llm_llm_chat_f2": "错误重试与多模型切换",
   "@product_llm_llm_chat_f2": {
     "description": "product.llm.llm-chat.f2",
     "x-blockhub-key": "product.llm.llm-chat.f2"
   },
-  "product_llm_llm_chat_model": "Chat LLM",
+  "product_llm_llm_chat_model": "对话大模型",
   "@product_llm_llm_chat_model": {
     "description": "product.llm.llm-chat.model",
     "x-blockhub-key": "product.llm.llm-chat.model"
   },
-  "product_llm_llm_chat_name": "Smart Q&A",
+  "product_llm_llm_chat_name": "智能问答",
   "@product_llm_llm_chat_name": {
     "description": "product.llm.llm-chat.name",
     "x-blockhub-key": "product.llm.llm-chat.name"
   },
-  "product_llm_llm_chat_scene": "Policy Q&A · business consult",
+  "product_llm_llm_chat_scene": "制度问答 · 业务咨询",
   "@product_llm_llm_chat_scene": {
     "description": "product.llm.llm-chat.scene",
     "x-blockhub-key": "product.llm.llm-chat.scene"
   },
-  "product_llm_llm_chat_summary": "RAG + SSE streaming chat with multi-turn context and citation bubbles",
+  "product_llm_llm_chat_summary": "RAG 检索增强 + 大模型 SSE 流式对话，支持多轮上下文与引用气泡展示",
   "@product_llm_llm_chat_summary": {
     "description": "product.llm.llm-chat.summary",
     "x-blockhub-key": "product.llm.llm-chat.summary"
   },
-  "product_llm_llm_contract_f0": "Labor/procurement template fill-in",
+  "product_llm_llm_contract_f0": "劳动/采购等模板填空",
   "@product_llm_llm_contract_f0": {
     "description": "product.llm.llm-contract.f0",
     "x-blockhub-key": "product.llm.llm-contract.f0"
   },
-  "product_llm_llm_contract_f1": "LLM generates full contracts",
+  "product_llm_llm_contract_f1": "大模型生成完整合同",
   "@product_llm_llm_contract_f1": {
     "description": "product.llm.llm-contract.f1",
     "x-blockhub-key": "product.llm.llm-contract.f1"
   },
-  "product_llm_llm_contract_f2": "E-sign integration",
+  "product_llm_llm_contract_f2": "电子签章联动",
   "@product_llm_llm_contract_f2": {
     "description": "product.llm.llm-contract.f2",
     "x-blockhub-key": "product.llm.llm-contract.f2"
   },
-  "product_llm_llm_contract_model": "Generate LLM",
+  "product_llm_llm_contract_model": "生成大模型",
   "@product_llm_llm_contract_model": {
     "description": "product.llm.llm-contract.model",
     "x-blockhub-key": "product.llm.llm-contract.model"
   },
-  "product_llm_llm_contract_name": "Contract drafting",
+  "product_llm_llm_contract_name": "合同起草",
   "@product_llm_llm_contract_name": {
     "description": "product.llm.llm-contract.name",
     "x-blockhub-key": "product.llm.llm-contract.name"
   },
-  "product_llm_llm_contract_scene": "Legal · HR contracts",
+  "product_llm_llm_contract_scene": "法务 · 人事合同",
   "@product_llm_llm_contract_scene": {
     "description": "product.llm.llm-contract.scene",
     "x-blockhub-key": "product.llm.llm-contract.scene"
   },
-  "product_llm_llm_contract_summary": "Fill a structured form; the model drafts full contract text with polish and clauses",
+  "product_llm_llm_contract_summary": "结构化表单填写后，由大模型自动生成完整合同正文，支持润色与条款补全",
   "@product_llm_llm_contract_summary": {
     "description": "product.llm.llm-contract.summary",
     "x-blockhub-key": "product.llm.llm-contract.summary"
   },
-  "product_llm_llm_flow_api_f0": "Per-node API descriptions",
+  "product_llm_llm_flow_api_f0": "节点级 API 描述",
   "@product_llm_llm_flow_api_f0": {
     "description": "product.llm.llm-flow-api.f0",
     "x-blockhub-key": "product.llm.llm-flow-api.f0"
   },
-  "product_llm_llm_flow_api_f1": "Rules fallback + LLM upgrade",
+  "product_llm_llm_flow_api_f1": "规则兜底 + 大模型升级",
   "@product_llm_llm_flow_api_f1": {
     "description": "product.llm.llm-flow-api.f1",
     "x-blockhub-key": "product.llm.llm-flow-api.f1"
   },
-  "product_llm_llm_flow_api_f2": "Visual dataflow orchestration",
+  "product_llm_llm_flow_api_f2": "可视化数据流编排",
   "@product_llm_llm_flow_api_f2": {
     "description": "product.llm.llm-flow-api.f2",
     "x-blockhub-key": "product.llm.llm-flow-api.f2"
   },
-  "product_llm_llm_flow_api_model": "Orchestration LLM",
+  "product_llm_llm_flow_api_model": "编排大模型",
   "@product_llm_llm_flow_api_model": {
     "description": "product.llm.llm-flow-api.model",
     "x-blockhub-key": "product.llm.llm-flow-api.model"
   },
-  "product_llm_llm_flow_api_name": "Dataflow generation",
+  "product_llm_llm_flow_api_name": "数据流生成",
   "@product_llm_llm_flow_api_name": {
     "description": "product.llm.llm-flow-api.name",
     "x-blockhub-key": "product.llm.llm-flow-api.name"
   },
-  "product_llm_llm_flow_api_scene": "Integration · flow simulation",
+  "product_llm_llm_flow_api_scene": "集成对接 · 流程模拟",
   "@product_llm_llm_flow_api_scene": {
     "description": "product.llm.llm-flow-api.scene",
     "x-blockhub-key": "product.llm.llm-flow-api.scene"
   },
-  "product_llm_llm_flow_api_summary": "Auto-generate mock REST APIs for dataflow nodes with I/O mapping",
+  "product_llm_llm_flow_api_summary": "大模型为数据流各节点自动生成模拟 REST API，含输入/输出节点与字段映射",
   "@product_llm_llm_flow_api_summary": {
     "description": "product.llm.llm-flow-api.summary",
     "x-blockhub-key": "product.llm.llm-flow-api.summary"
   },
-  "product_llm_llm_intent_f0": "99/100 hit rate across 100 scenarios",
+  "product_llm_llm_intent_f0": "100 场景评估 99/100 命中",
   "@product_llm_llm_intent_f0": {
     "description": "product.llm.llm-intent.f0",
     "x-blockhub-key": "product.llm.llm-intent.f0"
   },
-  "product_llm_llm_intent_f1": "Keyword + LLM dual-path recommend",
+  "product_llm_llm_intent_f1": "关键词 + 大模型双路推荐",
   "@product_llm_llm_intent_f1": {
     "description": "product.llm.llm-intent.f1",
     "x-blockhub-key": "product.llm.llm-intent.f1"
   },
-  "product_llm_llm_intent_f2": "intentPublish pre-check before publish",
+  "product_llm_llm_intent_f2": "发布前 intentPublish 预检",
   "@product_llm_llm_intent_f2": {
     "description": "product.llm.llm-intent.f2",
     "x-blockhub-key": "product.llm.llm-intent.f2"
   },
-  "product_llm_llm_intent_model": "Recommend LLM",
+  "product_llm_llm_intent_model": "推荐大模型",
   "@product_llm_llm_intent_model": {
     "description": "product.llm.llm-intent.model",
     "x-blockhub-key": "product.llm.llm-intent.model"
   },
-  "product_llm_llm_intent_name": "Intent parsing",
+  "product_llm_llm_intent_name": "意图解析",
   "@product_llm_llm_intent_name": {
     "description": "product.llm.llm-intent.name",
     "x-blockhub-key": "product.llm.llm-intent.name"
   },
-  "product_llm_llm_intent_scene": "Describe & recommend",
+  "product_llm_llm_intent_scene": "描述创建 · 模块推荐",
   "@product_llm_llm_intent_scene": {
     "description": "product.llm.llm-intent.scene",
     "x-blockhub-key": "product.llm.llm-intent.scene"
   },
-  "product_llm_llm_intent_summary": "Describe needs in natural language; the model maps industry, scenarios, and modules",
+  "product_llm_llm_intent_summary": "用户用自然语言描述需求，大模型自动拆解为行业、场景与模块组合，置信度低时智能补全",
   "@product_llm_llm_intent_summary": {
     "description": "product.llm.llm-intent.summary",
     "x-blockhub-key": "product.llm.llm-intent.summary"
   },
-  "product_llm_llm_shanghai_f0": "Dialect system prompt",
+  "product_llm_llm_shanghai_f0": "方言 system prompt",
   "@product_llm_llm_shanghai_f0": {
     "description": "product.llm.llm-shanghai.f0",
     "x-blockhub-key": "product.llm.llm-shanghai.f0"
   },
-  "product_llm_llm_shanghai_f1": "Sentence-level streaming",
+  "product_llm_llm_shanghai_f1": "按句流式返回",
   "@product_llm_llm_shanghai_f1": {
     "description": "product.llm.llm-shanghai.f1",
     "x-blockhub-key": "product.llm.llm-shanghai.f1"
   },
-  "product_llm_llm_shanghai_f2": "Wired to telecom voice stack",
+  "product_llm_llm_shanghai_f2": "与星辰语音链路串联",
   "@product_llm_llm_shanghai_f2": {
     "description": "product.llm.llm-shanghai.f2",
     "x-blockhub-key": "product.llm.llm-shanghai.f2"
   },
-  "product_llm_llm_shanghai_model": "Dialect LLM",
+  "product_llm_llm_shanghai_model": "方言大模型",
   "@product_llm_llm_shanghai_model": {
     "description": "product.llm.llm-shanghai.model",
     "x-blockhub-key": "product.llm.llm-shanghai.model"
   },
-  "product_llm_llm_shanghai_name": "Shanghainese dialogue",
+  "product_llm_llm_shanghai_name": "沪语对话",
   "@product_llm_llm_shanghai_name": {
     "description": "product.llm.llm-shanghai.name",
     "x-blockhub-key": "product.llm.llm-shanghai.name"
   },
-  "product_llm_llm_shanghai_scene": "Shanghainese voice agent",
+  "product_llm_llm_shanghai_scene": "上海话语音智能体",
   "@product_llm_llm_shanghai_scene": {
     "description": "product.llm.llm-shanghai.scene",
     "x-blockhub-key": "product.llm.llm-shanghai.scene"
   },
-  "product_llm_llm_shanghai_summary": "Shanghainese ASR → dialect LLM reply → streaming TTS",
+  "product_llm_llm_shanghai_summary": "上海话 ASR 识别后由方言大模型生成地道沪语回复，再 TTS 流式合成播报",
   "@product_llm_llm_shanghai_summary": {
     "description": "product.llm.llm-shanghai.summary",
     "x-blockhub-key": "product.llm.llm-shanghai.summary"
   },
-  "product_llm_prefix": "LLM · ",
+  "product_llm_prefix": "大模型 · ",
   "@product_llm_prefix": {
     "description": "product.llm.prefix",
     "x-blockhub-key": "product.llm.prefix"
   },
-  "product_mod_approval_flow_category": "Approvals",
+  "product_mod_approval_flow_category": "流程审批",
   "@product_mod_approval_flow_category": {
     "description": "product.mod.approval_flow.category",
     "x-blockhub-key": "product.mod.approval_flow.category"
   },
-  "product_mod_approval_flow_desc": "Leave, expense, and general approvals online",
+  "product_mod_approval_flow_desc": "请假、报销、通用审批在线流转",
   "@product_mod_approval_flow_desc": {
     "description": "product.mod.approval_flow.desc",
     "x-blockhub-key": "product.mod.approval_flow.desc"
   },
-  "product_mod_approval_flow_name": "Approvals",
+  "product_mod_approval_flow_name": "审批流",
   "@product_mod_approval_flow_name": {
     "description": "product.mod.approval_flow.name",
     "x-blockhub-key": "product.mod.approval_flow.name"
   },
-  "product_mod_approval_flow_use": "HR admin, expense claims",
+  "product_mod_approval_flow_use": "人事行政、财务报销",
   "@product_mod_approval_flow_use": {
     "description": "product.mod.approval_flow.use",
     "x-blockhub-key": "product.mod.approval_flow.use"
   },
-  "product_mod_approval_inbox_category": "Approvals",
+  "product_mod_approval_inbox_category": "流程审批",
   "@product_mod_approval_inbox_category": {
     "description": "product.mod.approval_inbox.category",
     "x-blockhub-key": "product.mod.approval_inbox.category"
   },
-  "product_mod_approval_inbox_desc": "Aggregate pending and done approvals",
+  "product_mod_approval_inbox_desc": "聚合待我审批与已办事项",
   "@product_mod_approval_inbox_desc": {
     "description": "product.mod.approval_inbox.desc",
     "x-blockhub-key": "product.mod.approval_inbox.desc"
   },
-  "product_mod_approval_inbox_name": "Todo inbox",
+  "product_mod_approval_inbox_name": "待办中心",
   "@product_mod_approval_inbox_name": {
     "description": "product.mod.approval_inbox.name",
     "x-blockhub-key": "product.mod.approval_inbox.name"
   },
-  "product_mod_approval_inbox_use": "Manager desk, mobile approvals",
+  "product_mod_approval_inbox_use": "主管工作台、移动审批",
   "@product_mod_approval_inbox_use": {
     "description": "product.mod.approval_inbox.use",
     "x-blockhub-key": "product.mod.approval_inbox.use"
   },
-  "product_mod_chart_dashboard_category": "Visual",
+  "product_mod_chart_dashboard_category": "可视化",
   "@product_mod_chart_dashboard_category": {
     "description": "product.mod.chart_dashboard.category",
     "x-blockhub-key": "product.mod.chart_dashboard.category"
   },
-  "product_mod_chart_dashboard_desc": "KPI cards and trend charts on one screen",
+  "product_mod_chart_dashboard_desc": "KPI 卡片与趋势图表一屏总览",
   "@product_mod_chart_dashboard_desc": {
     "description": "product.mod.chart_dashboard.desc",
     "x-blockhub-key": "product.mod.chart_dashboard.desc"
   },
-  "product_mod_chart_dashboard_name": "Dashboard",
+  "product_mod_chart_dashboard_name": "数据看板",
   "@product_mod_chart_dashboard_name": {
     "description": "product.mod.chart_dashboard.name",
     "x-blockhub-key": "product.mod.chart_dashboard.name"
   },
-  "product_mod_chart_dashboard_use": "Ops daily, team boards",
+  "product_mod_chart_dashboard_use": "运营日报、部门看板",
   "@product_mod_chart_dashboard_use": {
     "description": "product.mod.chart_dashboard.use",
     "x-blockhub-key": "product.mod.chart_dashboard.use"
   },
-  "product_mod_chart_funnel_category": "Visual",
+  "product_mod_chart_funnel_category": "可视化",
   "@product_mod_chart_funnel_category": {
     "description": "product.mod.chart_funnel.category",
     "x-blockhub-key": "product.mod.chart_funnel.category"
   },
-  "product_mod_chart_funnel_desc": "Stage conversion and funnel analytics",
+  "product_mod_chart_funnel_desc": "商机阶段转化与漏斗分析",
   "@product_mod_chart_funnel_desc": {
     "description": "product.mod.chart_funnel.desc",
     "x-blockhub-key": "product.mod.chart_funnel.desc"
   },
-  "product_mod_chart_funnel_name": "Sales funnel",
+  "product_mod_chart_funnel_name": "销售漏斗",
   "@product_mod_chart_funnel_name": {
     "description": "product.mod.chart_funnel.name",
     "x-blockhub-key": "product.mod.chart_funnel.name"
   },
-  "product_mod_chart_funnel_use": "Sales CRM boards",
+  "product_mod_chart_funnel_use": "销售团队 CRM 看板",
   "@product_mod_chart_funnel_use": {
     "description": "product.mod.chart_funnel.use",
     "x-blockhub-key": "product.mod.chart_funnel.use"
   },
-  "product_mod_chat_qa_category": "Interaction",
+  "product_mod_chat_qa_category": "智能交互",
   "@product_mod_chat_qa_category": {
     "description": "product.mod.chat_qa.category",
     "x-blockhub-key": "product.mod.chat_qa.category"
   },
-  "product_mod_chat_qa_desc": "Answer policy and business questions from the knowledge base",
+  "product_mod_chat_qa_desc": "结合知识库回答制度与业务问题",
   "@product_mod_chat_qa_desc": {
     "description": "product.mod.chat_qa.desc",
     "x-blockhub-key": "product.mod.chat_qa.desc"
   },
-  "product_mod_chat_qa_name": "Smart Q&A",
+  "product_mod_chat_qa_name": "智能问答",
   "@product_mod_chat_qa_name": {
     "description": "product.mod.chat_qa.name",
     "x-blockhub-key": "product.mod.chat_qa.name"
   },
-  "product_mod_chat_qa_use": "Policies, product specs, FAQ",
+  "product_mod_chat_qa_use": "制度政策、产品参数、FAQ",
   "@product_mod_chat_qa_use": {
     "description": "product.mod.chat_qa.use",
     "x-blockhub-key": "product.mod.chat_qa.use"
   },
-  "product_mod_kb_document_category": "Knowledge",
+  "product_mod_kb_document_category": "知识数据",
   "@product_mod_kb_document_category": {
     "description": "product.mod.kb_document.category",
     "x-blockhub-key": "product.mod.kb_document.category"
   },
-  "product_mod_kb_document_desc": "Upload docs, chunk, and semantic Q&A",
+  "product_mod_kb_document_desc": "文档上传切片，语义检索问答",
   "@product_mod_kb_document_desc": {
     "description": "product.mod.kb_document.desc",
     "x-blockhub-key": "product.mod.kb_document.desc"
   },
-  "product_mod_kb_document_name": "Knowledge base",
+  "product_mod_kb_document_name": "知识库",
   "@product_mod_kb_document_name": {
     "description": "product.mod.kb_document.name",
     "x-blockhub-key": "product.mod.kb_document.name"
   },
-  "product_mod_kb_document_use": "Handbooks, SOPs, contract templates",
+  "product_mod_kb_document_use": "员工手册、SOP、合同范本",
   "@product_mod_kb_document_use": {
     "description": "product.mod.kb_document.use",
     "x-blockhub-key": "product.mod.kb_document.use"
   },
-  "product_mod_notify_im_category": "Notify",
+  "product_mod_notify_im_category": "通知集成",
   "@product_mod_notify_im_category": {
     "description": "product.mod.notify_im.category",
     "x-blockhub-key": "product.mod.notify_im.category"
   },
-  "product_mod_notify_im_desc": "Push via WeCom / DingTalk",
+  "product_mod_notify_im_desc": "对接企业微信/钉钉消息推送",
   "@product_mod_notify_im_desc": {
     "description": "product.mod.notify_im.desc",
     "x-blockhub-key": "product.mod.notify_im.desc"
   },
-  "product_mod_notify_im_name": "WeCom / DingTalk",
+  "product_mod_notify_im_name": "企微钉钉",
   "@product_mod_notify_im_name": {
     "description": "product.mod.notify_im.name",
     "x-blockhub-key": "product.mod.notify_im.name"
   },
-  "product_mod_notify_im_use": "Field alerts, approval nudges",
+  "product_mod_notify_im_use": "外勤提醒、审批催办",
   "@product_mod_notify_im_use": {
     "description": "product.mod.notify_im.use",
     "x-blockhub-key": "product.mod.notify_im.use"
   },
-  "product_mod_notify_inapp_category": "Notify",
+  "product_mod_notify_inapp_category": "通知集成",
   "@product_mod_notify_inapp_category": {
     "description": "product.mod.notify_inapp.category",
     "x-blockhub-key": "product.mod.notify_inapp.category"
   },
-  "product_mod_notify_inapp_desc": "Approval alerts and system announcements in-app",
+  "product_mod_notify_inapp_desc": "审批提醒与系统公告站内触达",
   "@product_mod_notify_inapp_desc": {
     "description": "product.mod.notify_inapp.desc",
     "x-blockhub-key": "product.mod.notify_inapp.desc"
   },
-  "product_mod_notify_inapp_name": "In-app mail",
+  "product_mod_notify_inapp_name": "站内信",
   "@product_mod_notify_inapp_name": {
     "description": "product.mod.notify_inapp.name",
     "x-blockhub-key": "product.mod.notify_inapp.name"
   },
-  "product_mod_notify_inapp_use": "Workflow alerts, campaign broadcasts",
+  "product_mod_notify_inapp_use": "流程节点通知、活动广播",
   "@product_mod_notify_inapp_use": {
     "description": "product.mod.notify_inapp.use",
     "x-blockhub-key": "product.mod.notify_inapp.use"
   },
-  "product_mod_rbac_page_category": "Access",
+  "product_mod_rbac_page_category": "权限/外部",
   "@product_mod_rbac_page_category": {
     "description": "product.mod.rbac_page.category",
     "x-blockhub-key": "product.mod.rbac_page.category"
   },
-  "product_mod_rbac_page_desc": "Role-based page and action control",
+  "product_mod_rbac_page_desc": "按角色控制页面与操作权限",
   "@product_mod_rbac_page_desc": {
     "description": "product.mod.rbac_page.desc",
     "x-blockhub-key": "product.mod.rbac_page.desc"
   },
-  "product_mod_rbac_page_name": "RBAC",
+  "product_mod_rbac_page_name": "角色权限",
   "@product_mod_rbac_page_name": {
     "description": "product.mod.rbac_page.name",
     "x-blockhub-key": "product.mod.rbac_page.name"
   },
-  "product_mod_rbac_page_use": "Multi-dept, multi-tenant isolation",
+  "product_mod_rbac_page_use": "多部门、多租户隔离",
   "@product_mod_rbac_page_use": {
     "description": "product.mod.rbac_page.use",
     "x-blockhub-key": "product.mod.rbac_page.use"
   },
-  "product_mod_shanghai_voice_category": "Interaction",
+  "product_mod_shanghai_voice_category": "智能交互",
   "@product_mod_shanghai_voice_category": {
     "description": "product.mod.shanghai_voice.category",
     "x-blockhub-key": "product.mod.shanghai_voice.category"
   },
-  "product_mod_shanghai_voice_desc": "Real-time Shanghainese voice agent",
+  "product_mod_shanghai_voice_desc": "沪语实时语音对话智能体",
   "@product_mod_shanghai_voice_desc": {
     "description": "product.mod.shanghai_voice.desc",
     "x-blockhub-key": "product.mod.shanghai_voice.desc"
   },
-  "product_mod_shanghai_voice_name": "Shanghainese voice",
+  "product_mod_shanghai_voice_name": "上海话语音",
   "@product_mod_shanghai_voice_name": {
     "description": "product.mod.shanghai_voice.name",
     "x-blockhub-key": "product.mod.shanghai_voice.name"
   },
-  "product_mod_shanghai_voice_use": "Dialect support, local demos",
+  "product_mod_shanghai_voice_use": "方言客服、本地化演示",
   "@product_mod_shanghai_voice_use": {
     "description": "product.mod.shanghai_voice.use",
     "x-blockhub-key": "product.mod.shanghai_voice.use"
   },
-  "product_more_summary": "{{capabilities}} capability modules · {{industries}} industry packs · {{scenarios}}+ scenarios to mix",
+  "product_more_summary": "{{capabilities}} 项能力模块 · {{industries}} 个行业包 · {{scenarios}}+ 场景可自由搭配",
   "@product_more_summary": {
     "description": "product.more.summary",
     "x-blockhub-key": "product.more.summary"
   },
-  "product_more_title": "More AI templates",
+  "product_more_title": "更多 AI 模板",
   "@product_more_title": {
     "description": "product.more.title",
     "x-blockhub-key": "product.more.title"
   },
-  "product_orch_approve_summary": "Submit for admin approval; everyone sees it only after it passes",
+  "product_orch_approve_summary": "提交给管理员审批，通过后才正式生效，全员打开应用都能看到新页面",
   "@product_orch_approve_summary": {
     "description": "product.orch.approve.summary",
     "x-blockhub-key": "product.orch.approve.summary"
   },
-  "product_orch_approve_title": "Approve & publish",
+  "product_orch_approve_title": "审批发布",
   "@product_orch_approve_title": {
     "description": "product.orch.approve.title",
     "x-blockhub-key": "product.orch.approve.title"
   },
-  "product_orch_compose_summary": "Change menus and layout in natural language; preview only affects you",
+  "product_orch_compose_summary": "用自然语言改菜单与页面布局，左侧马上能看到效果；此时只影响你的预览，不影响其他人",
   "@product_orch_compose_summary": {
     "description": "product.orch.compose.summary",
     "x-blockhub-key": "product.orch.compose.summary"
   },
-  "product_orch_compose_title": "Compose with chat",
+  "product_orch_compose_title": "对话改页",
   "@product_orch_compose_title": {
     "description": "product.orch.compose.title",
     "x-blockhub-key": "product.orch.compose.title"
   },
-  "product_orch_draft_summary": "Save a private draft; keep editing or discard anytime",
+  "product_orch_draft_summary": "改满意后保存为自己的草稿，仅本人可见；还可继续改，或取消草稿",
   "@product_orch_draft_summary": {
     "description": "product.orch.draft.summary",
     "x-blockhub-key": "product.orch.draft.summary"
   },
-  "product_orch_draft_title": "Personal draft",
+  "product_orch_draft_title": "个人草稿",
   "@product_orch_draft_title": {
     "description": "product.orch.draft.title",
     "x-blockhub-key": "product.orch.draft.title"
   },
-  "product_tpl_ai_approval_f0": "Submit triggers notifications",
+  "product_tpl_ai_approval_f0": "提交即触发消息通知",
   "@product_tpl_ai_approval_f0": {
     "description": "product.tpl.ai-approval.f0",
     "x-blockhub-key": "product.tpl.ai-approval.f0"
   },
-  "product_tpl_ai_approval_f1": "Multi-level sign-off and state machine",
+  "product_tpl_ai_approval_f1": "多级会签与状态机",
   "@product_tpl_ai_approval_f1": {
     "description": "product.tpl.ai-approval.f1",
     "x-blockhub-key": "product.tpl.ai-approval.f1"
   },
-  "product_tpl_ai_approval_f2": "Results pushed back to the requester",
+  "product_tpl_ai_approval_f2": "审批结果实时回传申请人",
   "@product_tpl_ai_approval_f2": {
     "description": "product.tpl.ai-approval.f2",
     "x-blockhub-key": "product.tpl.ai-approval.f2"
   },
-  "product_tpl_ai_approval_name": "AI Approvals",
+  "product_tpl_ai_approval_name": "AI 审批流程",
   "@product_tpl_ai_approval_name": {
     "description": "product.tpl.ai-approval.name",
     "x-blockhub-key": "product.tpl.ai-approval.name"
   },
-  "product_tpl_ai_approval_summary": "Submit leave, expense, and seal requests online; managers clear todos in one click",
+  "product_tpl_ai_approval_summary": "请假、报销、用印等通用审批在线提交，主管待办一键处理",
   "@product_tpl_ai_approval_summary": {
     "description": "product.tpl.ai-approval.summary",
     "x-blockhub-key": "product.tpl.ai-approval.summary"
   },
-  "product_tpl_ai_approval_tag": "Approvals",
+  "product_tpl_ai_approval_tag": "流程审批",
   "@product_tpl_ai_approval_tag": {
     "description": "product.tpl.ai-approval.tag",
     "x-blockhub-key": "product.tpl.ai-approval.tag"
   },
-  "product_tpl_ai_chat_qa_f0": "RAG retrieval with citation bubbles",
+  "product_tpl_ai_chat_qa_f0": "RAG 检索增强与引用气泡",
   "@product_tpl_ai_chat_qa_f0": {
     "description": "product.tpl.ai-chat-qa.f0",
     "x-blockhub-key": "product.tpl.ai-chat-qa.f0"
   },
-  "product_tpl_ai_chat_qa_f1": "Multi-turn chat with SSE streaming",
+  "product_tpl_ai_chat_qa_f1": "多轮对话 SSE 流式输出",
   "@product_tpl_ai_chat_qa_f1": {
     "description": "product.tpl.ai-chat-qa.f1",
     "x-blockhub-key": "product.tpl.ai-chat-qa.f1"
   },
-  "product_tpl_ai_chat_qa_f2": "Model switching and chat history",
+  "product_tpl_ai_chat_qa_f2": "多模型切换与会话历史",
   "@product_tpl_ai_chat_qa_f2": {
     "description": "product.tpl.ai-chat-qa.f2",
     "x-blockhub-key": "product.tpl.ai-chat-qa.f2"
   },
-  "product_tpl_ai_chat_qa_name": "AI Q&A",
+  "product_tpl_ai_chat_qa_name": "AI 智能问答",
   "@product_tpl_ai_chat_qa_name": {
     "description": "product.tpl.ai-chat-qa.name",
     "x-blockhub-key": "product.tpl.ai-chat-qa.name"
   },
-  "product_tpl_ai_chat_qa_summary": "Answer policy and business questions from your knowledge base, with citeable sources",
+  "product_tpl_ai_chat_qa_summary": "结合企业知识库，制度与业务问题即问即答，引用原文可追溯",
   "@product_tpl_ai_chat_qa_summary": {
     "description": "product.tpl.ai-chat-qa.summary",
     "x-blockhub-key": "product.tpl.ai-chat-qa.summary"
   },
-  "product_tpl_ai_chat_qa_tag": "Knowledge",
+  "product_tpl_ai_chat_qa_tag": "知识协同",
   "@product_tpl_ai_chat_qa_tag": {
     "description": "product.tpl.ai-chat-qa.tag",
     "x-blockhub-key": "product.tpl.ai-chat-qa.tag"
   },
-  "product_tpl_ai_dashboard_f0": "Chart components",
+  "product_tpl_ai_dashboard_f0": "fl_chart 图表组件",
   "@product_tpl_ai_dashboard_f0": {
     "description": "product.tpl.ai-dashboard.f0",
     "x-blockhub-key": "product.tpl.ai-dashboard.f0"
   },
-  "product_tpl_ai_dashboard_f1": "One-line NL query",
+  "product_tpl_ai_dashboard_f1": "一句话查数 NL Query",
   "@product_tpl_ai_dashboard_f1": {
     "description": "product.tpl.ai-dashboard.f1",
     "x-blockhub-key": "product.tpl.ai-dashboard.f1"
   },
-  "product_tpl_ai_dashboard_f2": "Last-7-day trends from live data",
+  "product_tpl_ai_dashboard_f2": "近 7 日趋势真数据",
   "@product_tpl_ai_dashboard_f2": {
     "description": "product.tpl.ai-dashboard.f2",
     "x-blockhub-key": "product.tpl.ai-dashboard.f2"
   },
-  "product_tpl_ai_dashboard_name": "AI Dashboard",
+  "product_tpl_ai_dashboard_name": "AI 数据看板",
   "@product_tpl_ai_dashboard_name": {
     "description": "product.tpl.ai-dashboard.name",
     "x-blockhub-key": "product.tpl.ai-dashboard.name"
   },
-  "product_tpl_ai_dashboard_summary": "KPI cards and natural-language queries for approval and Q&A usage",
+  "product_tpl_ai_dashboard_summary": "KPI 卡片与自然语言问数，审批与问答使用量一屏掌握",
   "@product_tpl_ai_dashboard_summary": {
     "description": "product.tpl.ai-dashboard.summary",
     "x-blockhub-key": "product.tpl.ai-dashboard.summary"
   },
-  "product_tpl_ai_dashboard_tag": "Analytics",
+  "product_tpl_ai_dashboard_tag": "数据报表",
   "@product_tpl_ai_dashboard_tag": {
     "description": "product.tpl.ai-dashboard.tag",
     "x-blockhub-key": "product.tpl.ai-dashboard.tag"
   },
-  "product_tpl_ai_integration_f0": "Connector CRUD + sync jobs",
+  "product_tpl_ai_integration_f0": "连接器 CRUD + 同步任务",
   "@product_tpl_ai_integration_f0": {
     "description": "product.tpl.ai-integration.f0",
     "x-blockhub-key": "product.tpl.ai-integration.f0"
   },
-  "product_tpl_ai_integration_f1": "Approvals trigger in-app mail",
+  "product_tpl_ai_integration_f1": "审批触发站内信",
   "@product_tpl_ai_integration_f1": {
     "description": "product.tpl.ai-integration.f1",
     "x-blockhub-key": "product.tpl.ai-integration.f1"
   },
-  "product_tpl_ai_integration_f2": "Open REST API integration",
+  "product_tpl_ai_integration_f2": "REST API 开放对接",
   "@product_tpl_ai_integration_f2": {
     "description": "product.tpl.ai-integration.f2",
     "x-blockhub-key": "product.tpl.ai-integration.f2"
   },
-  "product_tpl_ai_integration_name": "AI Integrations",
+  "product_tpl_ai_integration_name": "AI 系统集成",
   "@product_tpl_ai_integration_name": {
     "description": "product.tpl.ai-integration.name",
     "x-blockhub-key": "product.tpl.ai-integration.name"
   },
-  "product_tpl_ai_integration_summary": "Webhook connectors and ETL jobs; approvals push to WeCom / OA",
+  "product_tpl_ai_integration_summary": "Webhook 连接器与 ETL 任务，审批联动企微/OA 推送",
   "@product_tpl_ai_integration_summary": {
     "description": "product.tpl.ai-integration.summary",
     "x-blockhub-key": "product.tpl.ai-integration.summary"
   },
-  "product_tpl_ai_integration_tag": "Integrations",
+  "product_tpl_ai_integration_tag": "通知集成",
   "@product_tpl_ai_integration_tag": {
     "description": "product.tpl.ai-integration.tag",
     "x-blockhub-key": "product.tpl.ai-integration.tag"
   },
-  "product_tpl_ai_kb_f0": "pgvector semantic search",
+  "product_tpl_ai_kb_f0": "pgvector 语义检索",
   "@product_tpl_ai_kb_f0": {
     "description": "product.tpl.ai-kb.f0",
     "x-blockhub-key": "product.tpl.ai-kb.f0"
   },
-  "product_tpl_ai_kb_f1": "Document upload and async parsing",
+  "product_tpl_ai_kb_f1": "文档上传与异步解析",
   "@product_tpl_ai_kb_f1": {
     "description": "product.tpl.ai-kb.f1",
     "x-blockhub-key": "product.tpl.ai-kb.f1"
   },
-  "product_tpl_ai_kb_f2": "Citations back to source paragraphs",
+  "product_tpl_ai_kb_f2": "引用溯源到原文段落",
   "@product_tpl_ai_kb_f2": {
     "description": "product.tpl.ai-kb.f2",
     "x-blockhub-key": "product.tpl.ai-kb.f2"
   },
-  "product_tpl_ai_kb_name": "AI Knowledge Base",
+  "product_tpl_ai_kb_name": "AI 知识库",
   "@product_tpl_ai_kb_name": {
     "description": "product.tpl.ai-kb.name",
     "x-blockhub-key": "product.tpl.ai-kb.name"
   },
-  "product_tpl_ai_kb_summary": "Upload PDF/Word for auto chunking; shared semantic search across Q&A and approvals",
+  "product_tpl_ai_kb_summary": "PDF/Word 上传自动切片，问答与审批场景共享语义检索能力",
   "@product_tpl_ai_kb_summary": {
     "description": "product.tpl.ai-kb.summary",
     "x-blockhub-key": "product.tpl.ai-kb.summary"
   },
-  "product_tpl_ai_kb_tag": "Knowledge data",
+  "product_tpl_ai_kb_tag": "知识数据",
   "@product_tpl_ai_kb_tag": {
     "description": "product.tpl.ai-kb.tag",
     "x-blockhub-key": "product.tpl.ai-kb.tag"
   },
-  "product_tpl_ai_multi_agent_f0": "Intent-based auto routing",
+  "product_tpl_ai_multi_agent_f0": "意图识别自动分流",
   "@product_tpl_ai_multi_agent_f0": {
     "description": "product.tpl.ai-multi-agent.f0",
     "x-blockhub-key": "product.tpl.ai-multi-agent.f0"
   },
-  "product_tpl_ai_multi_agent_f1": "Cross-agent shared context",
+  "product_tpl_ai_multi_agent_f1": "跨 Agent 上下文共享",
   "@product_tpl_ai_multi_agent_f1": {
     "description": "product.tpl.ai-multi-agent.f1",
     "x-blockhub-key": "product.tpl.ai-multi-agent.f1"
   },
-  "product_tpl_ai_multi_agent_f2": "Visual capability orchestration",
+  "product_tpl_ai_multi_agent_f2": "可视化能力编排",
   "@product_tpl_ai_multi_agent_f2": {
     "description": "product.tpl.ai-multi-agent.f2",
     "x-blockhub-key": "product.tpl.ai-multi-agent.f2"
   },
-  "product_tpl_ai_multi_agent_name": "AI Multi-Agent",
+  "product_tpl_ai_multi_agent_name": "AI 多助手编排",
   "@product_tpl_ai_multi_agent_name": {
     "description": "product.tpl.ai-multi-agent.name",
     "x-blockhub-key": "product.tpl.ai-multi-agent.name"
   },
-  "product_tpl_ai_multi_agent_summary": "Q&A, approval, and report agents collaborate with intent-based routing",
+  "product_tpl_ai_multi_agent_summary": "问答、审批、报表多 Agent 协同，按场景自动路由到合适助手",
   "@product_tpl_ai_multi_agent_summary": {
     "description": "product.tpl.ai-multi-agent.summary",
     "x-blockhub-key": "product.tpl.ai-multi-agent.summary"
   },
-  "product_tpl_ai_multi_agent_tag": "Interaction",
+  "product_tpl_ai_multi_agent_tag": "智能交互",
   "@product_tpl_ai_multi_agent_tag": {
     "description": "product.tpl.ai-multi-agent.tag",
     "x-blockhub-key": "product.tpl.ai-multi-agent.tag"
   },
-  "product_tpl_ai_nl_query_f0": "NL2SQL in a secure sandbox",
+  "product_tpl_ai_nl_query_f0": "NL2SQL 安全沙箱",
   "@product_tpl_ai_nl_query_f0": {
     "description": "product.tpl.ai-nl-query.f0",
     "x-blockhub-key": "product.tpl.ai-nl-query.f0"
   },
-  "product_tpl_ai_nl_query_f1": "One-click chart export",
+  "product_tpl_ai_nl_query_f1": "图表一键导出",
   "@product_tpl_ai_nl_query_f1": {
     "description": "product.tpl.ai-nl-query.f1",
     "x-blockhub-key": "product.tpl.ai-nl-query.f1"
   },
-  "product_tpl_ai_nl_query_f2": "Works with the dashboard module",
+  "product_tpl_ai_nl_query_f2": "与看板模块联动",
   "@product_tpl_ai_nl_query_f2": {
     "description": "product.tpl.ai-nl-query.f2",
     "x-blockhub-key": "product.tpl.ai-nl-query.f2"
   },
-  "product_tpl_ai_nl_query_name": "AI Data Query",
+  "product_tpl_ai_nl_query_name": "AI 智能问数",
   "@product_tpl_ai_nl_query_name": {
     "description": "product.tpl.ai-nl-query.name",
     "x-blockhub-key": "product.tpl.ai-nl-query.name"
   },
-  "product_tpl_ai_nl_query_summary": "Query business data in natural language; auto charts and insight summaries",
+  "product_tpl_ai_nl_query_summary": "用自然语言查业务数据，自动生成图表与洞察摘要",
   "@product_tpl_ai_nl_query_summary": {
     "description": "product.tpl.ai-nl-query.summary",
     "x-blockhub-key": "product.tpl.ai-nl-query.summary"
   },
-  "product_tpl_ai_nl_query_tag": "Analytics",
+  "product_tpl_ai_nl_query_tag": "数据报表",
   "@product_tpl_ai_nl_query_tag": {
     "description": "product.tpl.ai-nl-query.tag",
     "x-blockhub-key": "product.tpl.ai-nl-query.tag"
   },
-  "product_tpl_ai_notify_f0": "In-app + IM dual channel",
+  "product_tpl_ai_notify_f0": "站内信 + IM 双通道",
   "@product_tpl_ai_notify_f0": {
     "description": "product.tpl.ai-notify.f0",
     "x-blockhub-key": "product.tpl.ai-notify.f0"
   },
-  "product_tpl_ai_notify_f1": "Push on approval status change",
+  "product_tpl_ai_notify_f1": "审批状态变更推送",
   "@product_tpl_ai_notify_f1": {
     "description": "product.tpl.ai-notify.f1",
     "x-blockhub-key": "product.tpl.ai-notify.f1"
   },
-  "product_tpl_ai_notify_f2": "Scheduled campaign announcements",
+  "product_tpl_ai_notify_f2": "活动公告定时发送",
   "@product_tpl_ai_notify_f2": {
     "description": "product.tpl.ai-notify.f2",
     "x-blockhub-key": "product.tpl.ai-notify.f2"
   },
-  "product_tpl_ai_notify_name": "AI Notifications",
+  "product_tpl_ai_notify_name": "AI 消息通知",
   "@product_tpl_ai_notify_name": {
     "description": "product.tpl.ai-notify.name",
     "x-blockhub-key": "product.tpl.ai-notify.name"
   },
-  "product_tpl_ai_notify_summary": "Approval alerts, broadcasts, and WeCom/DingTalk multi-channel delivery",
+  "product_tpl_ai_notify_summary": "审批提醒、公告广播与企微/钉钉多渠道触达，不漏关键节点",
   "@product_tpl_ai_notify_summary": {
     "description": "product.tpl.ai-notify.summary",
     "x-blockhub-key": "product.tpl.ai-notify.summary"
   },
-  "product_tpl_ai_notify_tag": "Notifications",
+  "product_tpl_ai_notify_tag": "消息通知",
   "@product_tpl_ai_notify_tag": {
     "description": "product.tpl.ai-notify.tag",
     "x-blockhub-key": "product.tpl.ai-notify.tag"
   },
-  "product_tpl_ai_voice_f0": "WebSocket streaming audio",
+  "product_tpl_ai_voice_f0": "WebSocket 流式语音",
   "@product_tpl_ai_voice_f0": {
     "description": "product.tpl.ai-voice.f0",
     "x-blockhub-key": "product.tpl.ai-voice.f0"
   },
-  "product_tpl_ai_voice_f1": "PCM playback and sentence segmentation",
+  "product_tpl_ai_voice_f1": "PCM 播放与断句识别",
   "@product_tpl_ai_voice_f1": {
     "description": "product.tpl.ai-voice.f1",
     "x-blockhub-key": "product.tpl.ai-voice.f1"
   },
-  "product_tpl_ai_voice_f2": "Dialect customer-service demo",
+  "product_tpl_ai_voice_f2": "方言场景客服演示",
   "@product_tpl_ai_voice_f2": {
     "description": "product.tpl.ai-voice.f2",
     "x-blockhub-key": "product.tpl.ai-voice.f2"
   },
-  "product_tpl_ai_voice_name": "AI Shanghainese Voice",
+  "product_tpl_ai_voice_name": "AI 上海话语音",
   "@product_tpl_ai_voice_name": {
     "description": "product.tpl.ai-voice.name",
     "x-blockhub-key": "product.tpl.ai-voice.name"
   },
-  "product_tpl_ai_voice_summary": "Telecom ASR/TTS + LLM for real-time Shanghainese dialogue with barge-in",
+  "product_tpl_ai_voice_summary": "电信星辰 ASR/TTS + 大模型，沪语实时语音对话，支持打断",
   "@product_tpl_ai_voice_summary": {
     "description": "product.tpl.ai-voice.summary",
     "x-blockhub-key": "product.tpl.ai-voice.summary"
   },
-  "product_tpl_ai_voice_tag": "Interaction",
+  "product_tpl_ai_voice_tag": "智能交互",
   "@product_tpl_ai_voice_tag": {
     "description": "product.tpl.ai-voice.tag",
     "x-blockhub-key": "product.tpl.ai-voice.tag"

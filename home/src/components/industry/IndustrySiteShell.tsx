@@ -1,5 +1,6 @@
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
+import { useT } from '@blockhub/i18n/react'
 import B2BHeader from '../b2b/B2BHeader'
 import { BRAND } from '../../data/brand'
 import { ROUTES } from '../../routes/paths'
@@ -23,6 +24,7 @@ interface Props {
 
 /** 行业独立站 — 与首页 / 案例 / 定价等子站共用 B2BHeader */
 export default function IndustrySiteShell({ theme, children, industryName, layoutClass }: Props) {
+  const t = useT()
   const [user, setUser] = useState<AuthUser | null>(null)
 
   useEffect(() => {
@@ -37,6 +39,10 @@ export default function IndustrySiteShell({ theme, children, industryName, layou
     }
     fetchMe().then(setUser).catch(() => setUser(null))
   }, [])
+
+  const footerPack = industryName
+    ? t('home.industry.shell.footer_pack', { name: industryName })
+    : t('home.industry.shell.footer_all')
 
   return (
     <div
@@ -54,17 +60,17 @@ export default function IndustrySiteShell({ theme, children, industryName, layou
       <footer className="b2b-footer industry-site-footer">
         <p>
           © {new Date().getFullYear()} {BRAND.nameZh}
-          {industryName ? ` · ${industryName} 行业深度包` : ' · 20 个行业深度包'}
-          {' · '}{BRAND.tagline}
+          {' · '}{footerPack}
+          {' · '}{t('home.brand.tagline')}
         </p>
         <div className="industry-site-footer-links marketing-site-footer-links">
-          <Link to={homeSectionHref('product')}>20 个行业方案</Link>
+          <Link to={homeSectionHref('product')}>{t('home.footer.link.industries')}</Link>
           <Link to={ROUTES.capship}>CapShip</Link>
-          <Link to={ROUTES.cases}>落地案例</Link>
-          <Link to={ROUTES.trust}>信任合规</Link>
-          <Link to={ROUTES.pricing}>定价说明</Link>
-          <Link to={ROUTES.news}>新闻动态</Link>
-          <Link to={homeSectionHref('contact-demo')}>预约演示</Link>
+          <Link to={ROUTES.cases}>{t('home.footer.link.cases')}</Link>
+          <Link to={ROUTES.trust}>{t('home.nav.trust')}</Link>
+          <Link to={ROUTES.pricing}>{t('home.footer.link.pricing')}</Link>
+          <Link to={ROUTES.news}>{t('home.footer.link.news')}</Link>
+          <Link to={homeSectionHref('contact-demo')}>{t('home.footer.link.demo')}</Link>
         </div>
       </footer>
     </div>

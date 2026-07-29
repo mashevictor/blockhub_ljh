@@ -3,6 +3,11 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useT, useI18n } from '@blockhub/i18n/react'
 import { fetchIndustryPackDetail, fetchIndustrySites, type IndustryPackDetail, type IndustrySiteSummary } from '../api/client'
 import { industryAlt, industryDesc, industryName } from '../i18n/industryLabels'
+import {
+  industryTagline,
+  localizeIndustryPackDetail,
+  localizeVisualTheme,
+} from '../i18n/industryPackI18n'
 import IndustrySiteShell from '../components/industry/IndustrySiteShell'
 import { DynamicIcon, INDUSTRY_ICONS, IconSparkles } from '../components/icons'
 import { usePageMeta } from '../hooks/usePageMeta'
@@ -30,7 +35,7 @@ export default function IndustryDetailPage() {
   const navigate = useNavigate()
   const { theme } = useTheme()
   const fallbackDetail = useMemo(() => buildIndustryPackDetailFallback(key), [key])
-  const [detail, setDetail] = useState<IndustryPackDetail | null>(fallbackDetail)
+  const [detailRaw, setDetailRaw] = useState<IndustryPackDetail | null>(fallbackDetail)
   const [others, setOthers] = useState<IndustrySiteSummary[]>([])
   const [error, setError] = useState<string | null>(null)
   const [enriching, setEnriching] = useState(false)
@@ -40,20 +45,25 @@ export default function IndustryDetailPage() {
     [key],
   )
 
-  const visualTheme = useMemo(() => getIndustryVisualTheme(key), [key])
+  const visualThemeRaw = useMemo(() => getIndustryVisualTheme(key), [key])
+  const visualTheme = useMemo(() => localizeVisualTheme(t, visualThemeRaw), [t, visualThemeRaw])
+  const detail = useMemo(
+    () => (detailRaw ? localizeIndustryPackDetail(t, detailRaw, visualThemeRaw) : null),
+    [detailRaw, t, visualThemeRaw],
+  )
   const stylePack = useMemo(() => getIndustryStylePack(key), [key])
   const stylePackMeta = useMemo(() => getStylePackMeta(stylePack), [stylePack])
   const layoutClass = `${industrySitePackClass(key)} industry-site--pattern-${visualTheme.pattern}`
 
   useEffect(() => {
     const fb = buildIndustryPackDetailFallback(key)
-    setDetail(fb)
+    setDetailRaw(fb)
     setError(fb ? null : 'PACK_MISSING')
     if (!key || !fb) return
 
     fetchIndustryPackDetail(key, { enrich: false })
       .then((next) => {
-        setDetail(next)
+        setDetailRaw(next)
         setError(null)
       })
       .catch(() => {
@@ -94,9 +104,20 @@ export default function IndustryDetailPage() {
   } : null)
 
   const sceneTips = useMemo(() => {
-    const tips = detail?.enrichment?.scene_tips ?? []
-    return new Map(tips.map((t) => [t.name, t.tip]))
-  }, [detail])
+    const rawTips = detailRaw?.enrichment?.scene_tips ?? []
+    const localizedTips = detail?.enrichment?.scene_tips ?? []
+    const rawScenes = detailRaw?.scenes ?? []
+    const map = new Map<string, string>()
+    rawTips.forEach((tip, i) => {
+      const loc = localizedTips[i]
+      if (!loc) return
+      const match = rawScenes.find((s) => s.name === tip.name)
+      if (!match) return
+      const locScene = detail?.scenes.find((s) => s.id === match.id)
+      if (locScene) map.set(locScene.name, loc.tip)
+    })
+    return map
+  }, [detail, detailRaw])
 
   const pageTemplates = useMemo(() => {
     if (!detail) return []
@@ -124,7 +145,7 @@ export default function IndustryDetailPage() {
   const handleReEnrich = () => {
     setEnriching(true)
     fetchIndustryPackDetail(key, { enrich: true })
-      .then(setDetail)
+      .then(setDetailRaw)
       .finally(() => setEnriching(false))
   }
 
@@ -142,7 +163,10 @@ export default function IndustryDetailPage() {
   const { pack, groups, total, enrichment } = detail
   const Icon = INDUSTRY_ICONS[pack.key] ?? IconSparkles
   const accent = site.theme.primary
-  const packDisplayName = industryName(t, pack.key, pack.name)
+  const packDisplayName = pack.name
+  const heroTagline = visualTheme.heroPitch ?? pack.tagline ?? industryTagline(t, key)
+  const overviewText = enrichment?.overview ?? pack.tagline
+  const highlightList = enrichment?.highlights?.length ? enrichment.highlights : visualTheme.highlights
   const enrichmentSourceLabel =
     enrichment?.source === 'deepseek'
       ? t('home.industry.detail.source.deepseek')
@@ -162,7 +186,7 @@ export default function IndustryDetailPage() {
         motif={visualTheme.motif}
         badge={t('home.industry.detail.badge', { n: total })}
         title={packDisplayName}
-        tagline={visualTheme.heroPitch ?? pack.tagline}
+        tagline={heroTagline}
         stats={visualTheme.stats}
         icon={<Icon size={40} />}
         ctaPrimary={
@@ -187,9 +211,9 @@ export default function IndustryDetailPage() {
           <span className="b2b-eyebrow">{t('home.industry.detail.overview_eyebrow')}</span>
           <h2>{t('home.industry.detail.overview_title', { name: packDisplayName })}</h2>
         </div>
-        <p className="industry-detail-overview-text">{enrichment?.overview}</p>
+        <p className="industry-detail-overview-text">{overviewText}</p>
         <ul className="industry-detail-highlights">
-          {(enrichment?.highlights?.length ? enrichment.highlights : visualTheme.highlights).map((h) => (
+          {highlightList.map((h) => (
             <li key={h}>{h}</li>
           ))}
         </ul>
@@ -209,9 +233,9 @@ export default function IndustryDetailPage() {
       <IndustryMicrositePreview
         packKey={pack.key}
         packName={packDisplayName}
-        tagline={visualTheme.heroPitch ?? pack.tagline}
-        overview={enrichment?.overview ?? pack.tagline}
-        highlights={enrichment?.highlights?.length ? enrichment.highlights : visualTheme.highlights}
+        tagline={heroTagline}
+        overview={overviewText}
+        highlights={highlightList}
         scenes={(enrichment?.scene_tips?.length
           ? enrichment.scene_tips.map((tip) => ({ name: tip.name, detail: tip.tip }))
           : groups.flatMap((g) => g.items).slice(0, 6).map((s) => ({

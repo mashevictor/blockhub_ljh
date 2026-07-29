@@ -7,13 +7,20 @@ import { AgentButtonContent, AgentChevronGlyph } from '../../components/AgentChe
 import { TRUST_DOCS, TRUST_FAQ_SAMPLES } from '../../data/siteTrust'
 import { enrichCardStyle, trustDocTheme } from '../../data/enrichVisualThemes'
 import { ROLE_PAGES } from '../../data/siteRoles'
-import { localizeRolePage } from '../../i18n/contentLabels'
+import { localizeRolePage, localizeTrustDocCard } from '../../i18n/contentLabels'
 import { ROUTES } from '../../routes/paths'
 import { usePageMeta } from '../../hooks/usePageMeta'
 
 export default function TrustCenterPage() {
   const t = useT()
   const rolePages = ROLE_PAGES.map((r) => localizeRolePage(t, r))
+  const docs = TRUST_DOCS.map((d) => localizeTrustDocCard(t, d))
+  const faqs = TRUST_FAQ_SAMPLES.map((q, i) => {
+    const key = `home.enrich.trust.faq.${i}`
+    const text = t(key)
+    return text === key ? q : text
+  })
+
   usePageMeta({
     title: `${t('home.enrich.trust.eyebrow')} · BlockHub`,
     description: t('home.landing.trust.lead'),
@@ -28,12 +35,12 @@ export default function TrustCenterPage() {
     >
       <section className="enrich-panel enrich-trust-docs" aria-labelledby="trust-docs-title">
         <div className="enrich-panel-head">
-          <h2 id="trust-docs-title">可下载资料</h2>
-          <p>安全白皮书、集成清单、DPA 摘要等 · 可直接转发给信息部门</p>
+          <h2 id="trust-docs-title">{t('home.enrich.trust.docs_title')}</h2>
+          <p>{t('home.enrich.trust.docs_lead')}</p>
         </div>
         <div className="enrich-panel-body">
           <div className="enrich-trust-doc-grid">
-            {TRUST_DOCS.map((doc) => {
+            {docs.map((doc) => {
               const theme = trustDocTheme(doc.id)
               return (
                 <article
@@ -45,7 +52,7 @@ export default function TrustCenterPage() {
                   <div className="enrich-card-body enrich-card-body--compact">
                     <p>{doc.description}</p>
                     <Link to={ROUTES.trustDoc(doc.id)} className="enrich-link-btn agent-action-btn">
-                      <AgentButtonContent>在线阅读</AgentButtonContent>
+                      <AgentButtonContent>{t('home.enrich.trust.read_online')}</AgentButtonContent>
                     </Link>
                     <a
                       href={doc.downloadPath}
@@ -54,7 +61,7 @@ export default function TrustCenterPage() {
                       className="enrich-dl-btn enrich-dl-btn--secondary"
                     >
                       <AgentChevronGlyph size="sm" className="enrich-dl-chev" />
-                      下载 PDF
+                      {t('home.enrich.trust.download_pdf')}
                     </a>
                   </div>
                 </article>
@@ -66,12 +73,12 @@ export default function TrustCenterPage() {
 
       <section className="enrich-panel enrich-trust-faq" aria-labelledby="trust-faq-title">
         <div className="enrich-panel-head">
-          <h2 id="trust-faq-title">常见安全提问</h2>
-          <p>可直接向全站智能体助手提问，以下为高频问题示例</p>
+          <h2 id="trust-faq-title">{t('home.enrich.trust.faq_title')}</h2>
+          <p>{t('home.enrich.trust.faq_lead')}</p>
         </div>
         <div className="enrich-panel-body">
           <ul className="enrich-faq-list enrich-faq-list--cards">
-            {TRUST_FAQ_SAMPLES.map((q) => (
+            {faqs.map((q) => (
               <li key={q}>{q}</li>
             ))}
           </ul>
@@ -80,8 +87,8 @@ export default function TrustCenterPage() {
 
       <section className="enrich-panel enrich-role-links" aria-labelledby="trust-roles-title">
         <div className="enrich-panel-head">
-          <h2 id="trust-roles-title">按角色查看</h2>
-          <p>业务、信息、采购等不同视角的入口与资料</p>
+          <h2 id="trust-roles-title">{t('home.enrich.trust.roles_title')}</h2>
+          <p>{t('home.enrich.trust.roles_lead')}</p>
         </div>
         <div className="enrich-panel-body">
           <div className="enrich-role-chip-grid">
@@ -97,7 +104,7 @@ export default function TrustCenterPage() {
 
       <div className="enrich-section-foot">
         <a href={ROUTES.contactDemo} className="b2b-btn-primary agent-action-btn">
-          <AgentButtonContent>预约演示 · 获取完整资质包</AgentButtonContent>
+          <AgentButtonContent>{t('home.enrich.trust.cta_demo')}</AgentButtonContent>
         </a>
       </div>
     </MarketingSiteShell>

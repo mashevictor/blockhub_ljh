@@ -10405,10 +10405,90 @@
     "description": "home.enrich.role.eyebrow",
     "x-blockhub-key": "home.enrich.role.eyebrow"
   },
+  "home_enrich_trust_back": "Back to Trust Center",
+  "@home_enrich_trust_back": {
+    "description": "home.enrich.trust.back",
+    "x-blockhub-key": "home.enrich.trust.back"
+  },
+  "home_enrich_trust_book_demo": "Book a demo",
+  "@home_enrich_trust_book_demo": {
+    "description": "home.enrich.trust.book_demo",
+    "x-blockhub-key": "home.enrich.trust.book_demo"
+  },
+  "home_enrich_trust_cta_demo": "Book a demo · get the full qualification pack",
+  "@home_enrich_trust_cta_demo": {
+    "description": "home.enrich.trust.cta_demo",
+    "x-blockhub-key": "home.enrich.trust.cta_demo"
+  },
+  "home_enrich_trust_doc_sublabel": "Compliance docs",
+  "@home_enrich_trust_doc_sublabel": {
+    "description": "home.enrich.trust.doc_sublabel",
+    "x-blockhub-key": "home.enrich.trust.doc_sublabel"
+  },
+  "home_enrich_trust_docs_lead": "Security whitepaper, integration checklist, DPA summary — forwardable to IT",
+  "@home_enrich_trust_docs_lead": {
+    "description": "home.enrich.trust.docs_lead",
+    "x-blockhub-key": "home.enrich.trust.docs_lead"
+  },
+  "home_enrich_trust_docs_title": "Downloadable materials",
+  "@home_enrich_trust_docs_title": {
+    "description": "home.enrich.trust.docs_title",
+    "x-blockhub-key": "home.enrich.trust.docs_title"
+  },
+  "home_enrich_trust_download_pdf": "Download PDF",
+  "@home_enrich_trust_download_pdf": {
+    "description": "home.enrich.trust.download_pdf",
+    "x-blockhub-key": "home.enrich.trust.download_pdf"
+  },
   "home_enrich_trust_eyebrow": "Trust & compliance",
   "@home_enrich_trust_eyebrow": {
     "description": "home.enrich.trust.eyebrow",
     "x-blockhub-key": "home.enrich.trust.eyebrow"
+  },
+  "home_enrich_trust_faq_0": "Is customer data used for model training?",
+  "@home_enrich_trust_faq_0": {
+    "description": "home.enrich.trust.faq.0",
+    "x-blockhub-key": "home.enrich.trust.faq.0"
+  },
+  "home_enrich_trust_faq_1": "What is the data deletion process?",
+  "@home_enrich_trust_faq_1": {
+    "description": "home.enrich.trust.faq.1",
+    "x-blockhub-key": "home.enrich.trust.faq.1"
+  },
+  "home_enrich_trust_faq_2": "Do you support private deployment?",
+  "@home_enrich_trust_faq_2": {
+    "description": "home.enrich.trust.faq.2",
+    "x-blockhub-key": "home.enrich.trust.faq.2"
+  },
+  "home_enrich_trust_faq_3": "How do you align with Classified Protection Level 2?",
+  "@home_enrich_trust_faq_3": {
+    "description": "home.enrich.trust.faq.3",
+    "x-blockhub-key": "home.enrich.trust.faq.3"
+  },
+  "home_enrich_trust_faq_lead": "Ask the site agent anytime — sample high-frequency questions below",
+  "@home_enrich_trust_faq_lead": {
+    "description": "home.enrich.trust.faq_lead",
+    "x-blockhub-key": "home.enrich.trust.faq_lead"
+  },
+  "home_enrich_trust_faq_title": "Common security questions",
+  "@home_enrich_trust_faq_title": {
+    "description": "home.enrich.trust.faq_title",
+    "x-blockhub-key": "home.enrich.trust.faq_title"
+  },
+  "home_enrich_trust_read_online": "Read online",
+  "@home_enrich_trust_read_online": {
+    "description": "home.enrich.trust.read_online",
+    "x-blockhub-key": "home.enrich.trust.read_online"
+  },
+  "home_enrich_trust_roles_lead": "Entries and materials for sales, IT, procurement, and more",
+  "@home_enrich_trust_roles_lead": {
+    "description": "home.enrich.trust.roles_lead",
+    "x-blockhub-key": "home.enrich.trust.roles_lead"
+  },
+  "home_enrich_trust_roles_title": "Browse by role",
+  "@home_enrich_trust_roles_title": {
+    "description": "home.enrich.trust.roles_title",
+    "x-blockhub-key": "home.enrich.trust.roles_title"
   },
   "home_footer_col_company": "Company",
   "@home_footer_col_company": {
@@ -10790,6 +10870,11 @@
     "description": "home.industry.detail.badge",
     "x-blockhub-key": "home.industry.detail.badge"
   },
+  "home_industry_detail_create_label": "Create with {{name}} deep pack",
+  "@home_industry_detail_create_label": {
+    "description": "home.industry.detail.create_label",
+    "x-blockhub-key": "home.industry.detail.create_label"
+  },
   "home_industry_detail_cta_band_title": "Ready? Compose your app",
   "@home_industry_detail_cta_band_title": {
     "description": "home.industry.detail.cta_band_title",
@@ -10850,6 +10935,11 @@
     "description": "home.industry.detail.pages",
     "x-blockhub-key": "home.industry.detail.pages"
   },
+  "home_industry_detail_problem_fallback": "{{name}} · typical industry closed loop",
+  "@home_industry_detail_problem_fallback": {
+    "description": "home.industry.detail.problem_fallback",
+    "x-blockhub-key": "home.industry.detail.problem_fallback"
+  },
   "home_industry_detail_scenes_eyebrow": "Scenario list",
   "@home_industry_detail_scenes_eyebrow": {
     "description": "home.industry.detail.scenes_eyebrow",
@@ -10859,6 +10949,16 @@
   "@home_industry_detail_scenes_title": {
     "description": "home.industry.detail.scenes_title",
     "x-blockhub-key": "home.industry.detail.scenes_title"
+  },
+  "home_industry_detail_site_desc": "{{tagline}}. {{n}} business scenarios — pick modules and generate Web + App.",
+  "@home_industry_detail_site_desc": {
+    "description": "home.industry.detail.site_desc",
+    "x-blockhub-key": "home.industry.detail.site_desc"
+  },
+  "home_industry_detail_site_title": "{{name}} · industry deep pack | BlockHub",
+  "@home_industry_detail_site_title": {
+    "description": "home.industry.detail.site_title",
+    "x-blockhub-key": "home.industry.detail.site_title"
   },
   "home_industry_detail_source": "Copy source: {{source}}",
   "@home_industry_detail_source": {
@@ -11345,6 +11445,16 @@
     "description": "home.industry.securities.name",
     "x-blockhub-key": "home.industry.securities.name"
   },
+  "home_industry_shell_footer_all": "20 deep industry packs",
+  "@home_industry_shell_footer_all": {
+    "description": "home.industry.shell.footer_all",
+    "x-blockhub-key": "home.industry.shell.footer_all"
+  },
+  "home_industry_shell_footer_pack": "{{name}} deep pack",
+  "@home_industry_shell_footer_pack": {
+    "description": "home.industry.shell.footer_pack",
+    "x-blockhub-key": "home.industry.shell.footer_pack"
+  },
   "home_industry_tpl_aria": "Page template picker",
   "@home_industry_tpl_aria": {
     "description": "home.industry.tpl.aria",
@@ -11379,6 +11489,131 @@
   "@home_industry_tpl_eyebrow": {
     "description": "home.industry.tpl.eyebrow",
     "x-blockhub-key": "home.industry.tpl.eyebrow"
+  },
+  "home_industry_tpl_mock_applicant": "Applicant",
+  "@home_industry_tpl_mock_applicant": {
+    "description": "home.industry.tpl.mock.applicant",
+    "x-blockhub-key": "home.industry.tpl.mock.applicant"
+  },
+  "home_industry_tpl_mock_applicant_name": "Alex",
+  "@home_industry_tpl_mock_applicant_name": {
+    "description": "home.industry.tpl.mock.applicant_name",
+    "x-blockhub-key": "home.industry.tpl.mock.applicant_name"
+  },
+  "home_industry_tpl_mock_approve": "Approve",
+  "@home_industry_tpl_mock_approve": {
+    "description": "home.industry.tpl.mock.approve",
+    "x-blockhub-key": "home.industry.tpl.mock.approve"
+  },
+  "home_industry_tpl_mock_ask": "How do I proceed?",
+  "@home_industry_tpl_mock_ask": {
+    "description": "home.industry.tpl.mock.ask",
+    "x-blockhub-key": "home.industry.tpl.mock.ask"
+  },
+  "home_industry_tpl_mock_checkin": "Check-in · 09:32",
+  "@home_industry_tpl_mock_checkin": {
+    "description": "home.industry.tpl.mock.checkin",
+    "x-blockhub-key": "home.industry.tpl.mock.checkin"
+  },
+  "home_industry_tpl_mock_funnel_lead": "Leads 100%",
+  "@home_industry_tpl_mock_funnel_lead": {
+    "description": "home.industry.tpl.mock.funnel_lead",
+    "x-blockhub-key": "home.industry.tpl.mock.funnel_lead"
+  },
+  "home_industry_tpl_mock_funnel_opp": "Opps 72%",
+  "@home_industry_tpl_mock_funnel_opp": {
+    "description": "home.industry.tpl.mock.funnel_opp",
+    "x-blockhub-key": "home.industry.tpl.mock.funnel_opp"
+  },
+  "home_industry_tpl_mock_funnel_pay": "Paid 31%",
+  "@home_industry_tpl_mock_funnel_pay": {
+    "description": "home.industry.tpl.mock.funnel_pay",
+    "x-blockhub-key": "home.industry.tpl.mock.funnel_pay"
+  },
+  "home_industry_tpl_mock_funnel_sign": "Signed 48%",
+  "@home_industry_tpl_mock_funnel_sign": {
+    "description": "home.industry.tpl.mock.funnel_sign",
+    "x-blockhub-key": "home.industry.tpl.mock.funnel_sign"
+  },
+  "home_industry_tpl_mock_in_progress": "In progress",
+  "@home_industry_tpl_mock_in_progress": {
+    "description": "home.industry.tpl.mock.in_progress",
+    "x-blockhub-key": "home.industry.tpl.mock.in_progress"
+  },
+  "home_industry_tpl_mock_kb_reply": "Found 3 related policies in the knowledge base…",
+  "@home_industry_tpl_mock_kb_reply": {
+    "description": "home.industry.tpl.mock.kb_reply",
+    "x-blockhub-key": "home.industry.tpl.mock.kb_reply"
+  },
+  "home_industry_tpl_mock_kpi_alert": "Alerts",
+  "@home_industry_tpl_mock_kpi_alert": {
+    "description": "home.industry.tpl.mock.kpi_alert",
+    "x-blockhub-key": "home.industry.tpl.mock.kpi_alert"
+  },
+  "home_industry_tpl_mock_kpi_rate": "Attainment",
+  "@home_industry_tpl_mock_kpi_rate": {
+    "description": "home.industry.tpl.mock.kpi_rate",
+    "x-blockhub-key": "home.industry.tpl.mock.kpi_rate"
+  },
+  "home_industry_tpl_mock_kpi_today": "Today",
+  "@home_industry_tpl_mock_kpi_today": {
+    "description": "home.industry.tpl.mock.kpi_today",
+    "x-blockhub-key": "home.industry.tpl.mock.kpi_today"
+  },
+  "home_industry_tpl_mock_manual": "Playbook.docx",
+  "@home_industry_tpl_mock_manual": {
+    "description": "home.industry.tpl.mock.manual",
+    "x-blockhub-key": "home.industry.tpl.mock.manual"
+  },
+  "home_industry_tpl_mock_notes": "Notes",
+  "@home_industry_tpl_mock_notes": {
+    "description": "home.industry.tpl.mock.notes",
+    "x-blockhub-key": "home.industry.tpl.mock.notes"
+  },
+  "home_industry_tpl_mock_notes_ph": "Enter business details…",
+  "@home_industry_tpl_mock_notes_ph": {
+    "description": "home.industry.tpl.mock.notes_ph",
+    "x-blockhub-key": "home.industry.tpl.mock.notes_ph"
+  },
+  "home_industry_tpl_mock_notify_pending": "{{name}} pending",
+  "@home_industry_tpl_mock_notify_pending": {
+    "description": "home.industry.tpl.mock.notify_pending",
+    "x-blockhub-key": "home.industry.tpl.mock.notify_pending"
+  },
+  "home_industry_tpl_mock_pending": "Pending",
+  "@home_industry_tpl_mock_pending": {
+    "description": "home.industry.tpl.mock.pending",
+    "x-blockhub-key": "home.industry.tpl.mock.pending"
+  },
+  "home_industry_tpl_mock_pending_me": "Pending me",
+  "@home_industry_tpl_mock_pending_me": {
+    "description": "home.industry.tpl.mock.pending_me",
+    "x-blockhub-key": "home.industry.tpl.mock.pending_me"
+  },
+  "home_industry_tpl_mock_reject": "Reject",
+  "@home_industry_tpl_mock_reject": {
+    "description": "home.industry.tpl.mock.reject",
+    "x-blockhub-key": "home.industry.tpl.mock.reject"
+  },
+  "home_industry_tpl_mock_search": "Semantic search…",
+  "@home_industry_tpl_mock_search": {
+    "description": "home.industry.tpl.mock.search",
+    "x-blockhub-key": "home.industry.tpl.mock.search"
+  },
+  "home_industry_tpl_mock_subject": "Subject",
+  "@home_industry_tpl_mock_subject": {
+    "description": "home.industry.tpl.mock.subject",
+    "x-blockhub-key": "home.industry.tpl.mock.subject"
+  },
+  "home_industry_tpl_mock_wecom": "WeCom",
+  "@home_industry_tpl_mock_wecom": {
+    "description": "home.industry.tpl.mock.wecom",
+    "x-blockhub-key": "home.industry.tpl.mock.wecom"
+  },
+  "home_industry_tpl_mock_wecom_just_now": "WeCom · just now",
+  "@home_industry_tpl_mock_wecom_just_now": {
+    "description": "home.industry.tpl.mock.wecom_just_now",
+    "x-blockhub-key": "home.industry.tpl.mock.wecom_just_now"
   },
   "home_industry_tpl_title": "10 industry page templates · ready to use",
   "@home_industry_tpl_title": {

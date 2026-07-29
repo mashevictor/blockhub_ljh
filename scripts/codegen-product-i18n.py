@@ -258,7 +258,7 @@ LLM = [
 
 
 def build(lang: str) -> dict[str, str]:
-    zh = lang == "zh"
+    zh = lang.startswith("zh")
     out: dict[str, str] = {}
 
     # actions / chrome

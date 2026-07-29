@@ -157,6 +157,26 @@ export function localizeTrustArticle(t: TranslateFn, article: TrustDocArticle): 
   }
 }
 
+/** Trust catalog card / homepage strip — title & description (maps to content.trust.{id}.title/subtitle). */
+export function trustDocTitle(t: TranslateFn, id: string, fallback: string): string {
+  return contentTr(t, `trust.${id}.title`, fallback)
+}
+
+export function trustDocDescription(t: TranslateFn, id: string, fallback: string): string {
+  return contentTr(t, `trust.${id}.subtitle`, fallback)
+}
+
+export function localizeTrustDocCard<T extends { id: string; title: string; description: string }>(
+  t: TranslateFn,
+  doc: T,
+): T {
+  return {
+    ...doc,
+    title: trustDocTitle(t, doc.id, doc.title),
+    description: trustDocDescription(t, doc.id, doc.description),
+  }
+}
+
 /** Localize capability pick label when shown in suggest UI. */
 export function localizeCapabilityPickLabel(
   t: TranslateFn,

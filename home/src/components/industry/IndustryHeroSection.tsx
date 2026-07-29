@@ -1,5 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { Link } from 'react-router-dom'
+import { useT } from '@blockhub/i18n/react'
 import type { IndustryHeroVariant } from '../../data/industryStylePacks'
 import { homeSectionHref } from '../../data/homeNav'
 
@@ -37,10 +38,16 @@ export default function IndustryHeroSection({
   ctaPrimary,
   ctaSecondary,
 }: Props) {
+  const t = useT()
+  const backLabel = `← ${t('home.industry.detail.back_home')}`
   const grad = `linear-gradient(105deg, rgba(6, 11, 22, 0.88) 0%, rgba(6, 11, 22, 0.74) 42%, color-mix(in srgb, ${accent} 22%, rgba(6, 11, 22, 0.65)) 100%)`
   const bgStyle = {
     backgroundImage: `${grad}, url(${heroImage})`,
   } as CSSProperties
+
+  const backLink = (
+    <Link to={homeSectionHref('product')} className="industry-detail-back">{backLabel}</Link>
+  )
 
   const statsRow = (
     <div className="industry-site-stats-row">
@@ -65,7 +72,7 @@ export default function IndustryHeroSection({
       <section className="industry-site-hero-banner industry-hero--split-left" style={bgStyle}>
         <div className="industry-hero-split">
           <div className="industry-hero-split-text industry-hero-readable">
-            <Link to={homeSectionHref('product')} className="industry-detail-back">← 返回首页行业方案</Link>
+            {backLink}
             <span className="industry-detail-badge">{badge}</span>
             <div className="industry-site-hero-row">
               <span className="industry-detail-icon" aria-hidden>{icon}</span>
@@ -93,7 +100,7 @@ export default function IndustryHeroSection({
             <span className="industry-hero-motif">{motif}</span>
           </div>
           <div className="industry-hero-split-text industry-hero-readable">
-            <Link to={homeSectionHref('product')} className="industry-detail-back">← 返回首页行业方案</Link>
+            {backLink}
             <span className="industry-detail-badge">{badge}</span>
             <h1>{title}</h1>
             <p className="industry-detail-tagline">{tagline}</p>
@@ -109,7 +116,7 @@ export default function IndustryHeroSection({
     return (
       <section className="industry-site-hero-banner industry-hero--stacked-dark" style={bgStyle}>
         <div className="industry-site-hero-content industry-hero-readable">
-          <Link to={homeSectionHref('product')} className="industry-detail-back">← 返回首页行业方案</Link>
+          {backLink}
           <span className="industry-hero-motif industry-hero-motif-bg" aria-hidden>{motif}</span>
           <span className="industry-detail-badge">{badge}</span>
           <h1>{title}</h1>
@@ -125,7 +132,7 @@ export default function IndustryHeroSection({
     return (
       <section className="industry-site-hero-banner industry-hero--soft-card" style={bgStyle}>
         <div className="industry-site-hero-content industry-hero-readable">
-          <Link to={homeSectionHref('product')} className="industry-detail-back">← 返回首页行业方案</Link>
+          {backLink}
           <div className="industry-hero-card">
             <div className="industry-site-hero-row">
               <span className="industry-detail-icon" aria-hidden>{icon}</span>
@@ -148,7 +155,7 @@ export default function IndustryHeroSection({
     return (
       <section className="industry-site-hero-banner industry-hero--minimal-bar" style={bgStyle}>
         <div className="industry-site-hero-content industry-hero-readable">
-          <Link to={homeSectionHref('product')} className="industry-detail-back">← 返回首页行业方案</Link>
+          {backLink}
           <div className="industry-hero-bar">
             <span className="industry-detail-icon" aria-hidden>{icon}</span>
             <div className="industry-hero-bar-text">
@@ -169,7 +176,7 @@ export default function IndustryHeroSection({
   return (
     <section className="industry-site-hero-banner industry-hero--centered" style={bgStyle}>
       <div className="industry-site-hero-content industry-hero-readable">
-        <Link to={homeSectionHref('product')} className="industry-detail-back">← 返回首页行业方案</Link>
+        {backLink}
         <div className="industry-site-hero-row">
           <span className="industry-detail-icon" aria-hidden>{icon}</span>
           <div>

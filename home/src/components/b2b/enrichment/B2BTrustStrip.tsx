@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { useT } from '@blockhub/i18n/react'
 import { AgentButtonContent, AgentChevronGlyph } from '../../AgentChevron'
 import { TRUST_STRIP_DOWNLOADS } from '../../../data/siteTrust'
+import { trustDocTitle } from '../../../i18n/contentLabels'
 import { ROUTES } from '../../../routes/paths'
 
 export default function B2BTrustStrip() {
@@ -24,7 +25,7 @@ export default function B2BTrustStrip() {
           {TRUST_STRIP_DOWNLOADS.map((item) => (
             <Link key={item.id} to={ROUTES.trustDoc(item.id)} className="enrich-dl-btn">
               <AgentChevronGlyph size="sm" className="enrich-dl-chev" />
-              {item.title}
+              {trustDocTitle(t, item.id, item.title)}
             </Link>
           ))}
         </div>

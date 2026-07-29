@@ -8,7 +8,7 @@ import { sectionsToBlocks } from '../../data/enrichBlocks'
 import { enrichCardStyle, trustDocTheme } from '../../data/enrichVisualThemes'
 import { getTrustDocArticle } from '../../data/enrichmentContent'
 import { TRUST_DOCS } from '../../data/siteTrust'
-import { localizeTrustArticle } from '../../i18n/contentLabels'
+import { localizeTrustArticle, trustDocDescription } from '../../i18n/contentLabels'
 import { ROUTES } from '../../routes/paths'
 import { usePageMeta } from '../../hooks/usePageMeta'
 import type { CSSProperties } from 'react'
@@ -19,10 +19,11 @@ export default function TrustDocDetailPage() {
   const meta = TRUST_DOCS.find((d) => d.id === docId)
   const raw = getTrustDocArticle(docId)
   const article = raw ? localizeTrustArticle(t, raw) : undefined
+  const desc = meta ? trustDocDescription(t, meta.id, meta.description) : ''
 
   usePageMeta(
     article
-      ? { title: `${article.title} · 积木仓`, description: article.subtitle }
+      ? { title: `${article.title} · BlockHub`, description: article.subtitle }
       : null,
   )
 
@@ -37,13 +38,17 @@ export default function TrustDocDetailPage() {
     <MarketingSiteShell
       skin="landed"
       pageTitle={article.title}
-      pageEyebrow="信任与合规"
+      pageEyebrow={t('home.enrich.trust.eyebrow')}
       pageLead={article.subtitle}
     >
       <article className="enrich-card enrich-trust-doc-detail" style={enrichCardStyle(theme) as CSSProperties}>
-        <EnrichCardVisual icon={theme.icon} label={article.title} sublabel="合规资料" />
+        <EnrichCardVisual
+          icon={theme.icon}
+          label={article.title}
+          sublabel={t('home.enrich.trust.doc_sublabel')}
+        />
         <div className="enrich-card-body enrich-card-body--compact">
-          <p>{meta.description}</p>
+          <p>{desc}</p>
         </div>
       </article>
 
@@ -56,13 +61,13 @@ export default function TrustDocDetailPage() {
           rel="noopener noreferrer"
           className="b2b-btn-primary agent-action-btn"
         >
-          <AgentButtonContent>下载 PDF</AgentButtonContent>
+          <AgentButtonContent>{t('home.enrich.trust.download_pdf')}</AgentButtonContent>
         </a>
         <Link to={ROUTES.trust} className="enrich-link-btn agent-action-btn">
-          <AgentButtonContent trailing={false}>返回信任中心</AgentButtonContent>
+          <AgentButtonContent trailing={false}>{t('home.enrich.trust.back')}</AgentButtonContent>
         </Link>
         <a href={ROUTES.contactDemo} className="enrich-link-btn agent-action-btn">
-          <AgentButtonContent>预约演示</AgentButtonContent>
+          <AgentButtonContent>{t('home.enrich.trust.book_demo')}</AgentButtonContent>
         </a>
       </div>
     </MarketingSiteShell>

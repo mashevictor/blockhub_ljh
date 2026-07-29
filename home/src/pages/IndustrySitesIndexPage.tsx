@@ -1,6 +1,6 @@
 import { useEffect, useState, type CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
-import { useT } from '@blockhub/i18n/react'
+import { useT, useI18n } from '@blockhub/i18n/react'
 import { fetchIndustrySites, type IndustrySiteSummary } from '../api/client'
 import { INDUSTRIES_SHOWCASE } from '../data/showcase'
 import { industryAssets, industryCardImage } from '../data/industryAssets'
@@ -27,6 +27,7 @@ const FALLBACK_SITES: IndustrySiteSummary[] = INDUSTRIES_SHOWCASE.map((ind) => (
 
 export default function IndustrySitesIndexPage() {
   const t = useT()
+  const { locale } = useI18n()
   const [sites, setSites] = useState<IndustrySiteSummary[]>(FALLBACK_SITES)
 
   usePageMeta({
@@ -40,7 +41,7 @@ export default function IndustrySitesIndexPage() {
     fetchIndustrySites()
       .then(setSites)
       .catch(() => setSites(FALLBACK_SITES))
-  }, [])
+  }, [locale])
 
   return (
     <IndustrySiteShell theme={{ primary: '#0d47a1' }}>
