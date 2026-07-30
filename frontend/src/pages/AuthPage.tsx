@@ -1,7 +1,7 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react'
 import { useLocation, useSearchParams } from 'react-router-dom'
 import { formatAxiosApiError } from '@blockhub/i18n'
-import { useT } from '@blockhub/i18n/react'
+import { LocaleSwitch, useI18n, useT } from '@blockhub/i18n/react'
 import { loginOtp, loginWithPassword, sendOtpCode } from '../auth/session'
 import { getToken } from '../auth/storage'
 import { BRAND, resolveAdminPostLoginUrl } from '../data/brand'
@@ -35,7 +35,10 @@ export default function AuthPage({
   showLogo = true,
 }: Props) {
   const t = useT()
-  const resolvedTitle = title ?? `${BRAND.nameZh} ${BRAND.nameEn}`
+  const { locale } = useI18n()
+  const isEn = locale === 'en-US'
+  const resolvedTitle =
+    title ?? (isEn ? `${BRAND.nameEn} · ${t('admin.topbar.title')}` : `${BRAND.nameZh} ${BRAND.nameEn}`)
   const resolvedSubtitle = subtitle ?? t('admin.auth.subtitle')
   const location = useLocation()
   const [searchParams] = useSearchParams()
@@ -67,6 +70,10 @@ export default function AuthPage({
     const timer = window.setTimeout(() => setCountdown((v) => v - 1), 1000)
     return () => window.clearTimeout(timer)
   }, [countdown])
+
+  useEffect(() => {
+    document.documentElement.lang = locale === 'en-US' ? 'en' : 'zh-CN'
+  }, [locale])
 
   const canSendCode = useMemo(() => isValidAccount(account) && countdown === 0 && !sending, [account, countdown, sending])
   const canSubmitOtp = useMemo(() => isValidAccount(account) && /^\d{4,8}$/.test(code.trim()), [account, code])
@@ -132,10 +139,11 @@ export default function AuthPage({
       <form className="login-card" onSubmit={mode === 'otp' ? onSubmitOtp : onSubmitPassword}>
         <div className="login-brand">
           {showLogo && <BrandMark size={40} />}
-          <div>
+          <div className="login-brand-text">
             <h1>{resolvedTitle}</h1>
             <p>{resolvedSubtitle}</p>
           </div>
+          <LocaleSwitch className="admin-locale-switch login-locale" variant="chip" />
         </div>
 
         {showPasswordLogin && (

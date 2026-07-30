@@ -13,7 +13,7 @@ export default function ShanghaiVoicePage() {
       </div>
       <div className="card shanghai-voice-embed">
         <iframe
-          title="上海话语音演示"
+          title={t('admin.page.voice.title')}
           src={src}
           className="shanghai-voice-frame"
         />

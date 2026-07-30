@@ -40,7 +40,7 @@ export default function ReportPage() {
 
   return (
     <>
-      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between' }}>
+      <div className="page-header page-header--split">
         <div>
           <h1>{t('admin.page.reports.title')}</h1>
           <p>{t('admin.page.reports.desc')}</p>
@@ -59,10 +59,19 @@ export default function ReportPage() {
       </div>
 
       <div className="card" style={{ marginBottom: 20 }}>
-        <h3 style={{ marginBottom: 12 }}>一句话查数据</h3>
-        <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
-          <input className="search-input" style={{ flex: 1 }} placeholder="输入查询问题…" value={nlQuestion} onChange={(e) => setNlQuestion(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleNlQuery()} />
-          <button type="button" className="btn btn-primary-dark" onClick={() => handleNlQuery()}>查询</button>
+        <h3 style={{ marginBottom: 12 }}>{t('admin.page.reports.nl_title')}</h3>
+        <div className="nl-query-row">
+          <input
+            className="search-input"
+            style={{ flex: 1 }}
+            placeholder={t('admin.page.reports.nl_ph')}
+            value={nlQuestion}
+            onChange={(e) => setNlQuestion(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleNlQuery()}
+          />
+          <button type="button" className="btn btn-primary-dark" onClick={() => handleNlQuery()}>
+            {t('admin.page.reports.nl_query')}
+          </button>
         </div>
         <div className="nl-suggestions">
           {data.nl_suggestions.map((s) => (
@@ -75,7 +84,10 @@ export default function ReportPage() {
       <div className="two-col">
         <div className="card">
           <div className="trend-header">
-            <div><h3>审批趋势</h3><span style={{ fontSize: 12, color: 'var(--muted)' }}>近 6 个月审批数量</span></div>
+            <div>
+              <h3>{t('admin.page.reports.approval_trend')}</h3>
+              <span style={{ fontSize: 12, color: 'var(--muted)' }}>{t('admin.page.reports.approval_trend_sub')}</span>
+            </div>
             <span className="trend-growth">{data.approval_trend.growth}</span>
           </div>
           <div className="month-chart">
@@ -91,7 +103,10 @@ export default function ReportPage() {
 
         <div className="card">
           <div className="trend-header">
-            <div><h3>问答趋势</h3><span style={{ fontSize: 12, color: 'var(--muted)' }}>近 6 个月问答次数</span></div>
+            <div>
+              <h3>{t('admin.page.reports.chat_trend')}</h3>
+              <span style={{ fontSize: 12, color: 'var(--muted)' }}>{t('admin.page.reports.chat_trend_sub')}</span>
+            </div>
             <span className="trend-growth">{data.chat_trend.growth}</span>
           </div>
           <div className="month-chart">
@@ -107,8 +122,8 @@ export default function ReportPage() {
       </div>
 
       <div className="card" style={{ marginTop: 20 }}>
-        <h3 style={{ marginBottom: 14 }}>各功能使用占比</h3>
-        <p style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 12 }}>本月各能力使用次数</p>
+        <h3 style={{ marginBottom: 14 }}>{t('admin.page.reports.usage_title')}</h3>
+        <p style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 12 }}>{t('admin.page.reports.usage_sub')}</p>
         {data.agent_usage.map((a) => (
           <div key={a.agent} className="usage-row">
             <span className="usage-label">{a.agent}</span>
@@ -119,9 +134,9 @@ export default function ReportPage() {
           </div>
         ))}
         <div className="report-footer-stats">
-          <div><strong>{data.total_calls.toLocaleString()}</strong><span>本月总使用</span></div>
-          <div><strong>{data.availability}</strong><span>系统可用率</span></div>
-          <div><strong>{data.avg_response_ms}ms</strong><span>平均响应</span></div>
+          <div><strong>{data.total_calls.toLocaleString()}</strong><span>{t('admin.page.reports.total_calls')}</span></div>
+          <div><strong>{data.availability}</strong><span>{t('admin.page.reports.availability')}</span></div>
+          <div><strong>{data.avg_response_ms}ms</strong><span>{t('admin.page.reports.avg_response')}</span></div>
         </div>
       </div>
     </>

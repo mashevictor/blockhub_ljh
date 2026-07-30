@@ -1,6 +1,6 @@
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useEffect, useMemo, useState } from 'react'
-import { LocaleSwitch, useT } from '@blockhub/i18n/react'
+import { LocaleSwitch, useI18n, useT } from '@blockhub/i18n/react'
 import { fetchCatalogSummary, fetchDashboard, type CatalogSummary, type DashboardStats } from '../api/client'
 import { fetchBillingMe, type BillingMe } from '../api/billing'
 import { logout } from '../auth/session'
@@ -48,12 +48,19 @@ const NAV: Array<{ to: string; labelKey: string; icon: typeof IconHome; end?: bo
 
 export default function AdminLayout() {
   const t = useT()
+  const { locale } = useI18n()
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [catalog, setCatalog] = useState<CatalogSummary | null>(null)
   const [billing, setBilling] = useState<BillingMe | null>(null)
   const [navOpen, setNavOpen] = useState(false)
   const { user, role } = useAuth()
   const location = useLocation()
+
+  const isEn = locale === 'en-US'
+  const brandPrimary = isEn ? BRAND.nameEn : BRAND.nameZh
+  const brandSecondary = isEn ? BRAND.nameZh : BRAND.nameEn
+  const roleModeLabel =
+    user?.role === 'employee' ? t('admin.shell.brand_workbench') : t('admin.shell.brand_admin')
 
   useEffect(() => {
     fetchDashboard().then(setStats).catch(() => {})
@@ -96,6 +103,10 @@ export default function AdminLayout() {
     }
   }, [navOpen])
 
+  useEffect(() => {
+    document.documentElement.lang = locale === 'en-US' ? 'en' : 'zh-CN'
+  }, [locale])
+
   const visibleNav = useMemo(
     () => NAV.filter((n) => canAccessRole(user?.role ?? role, n.roles)),
     [user, role],
@@ -114,6 +125,7 @@ export default function AdminLayout() {
         : t('admin.sidebar.packs_n', { n: industryPacks })
 
   const closeNav = () => setNavOpen(false)
+  const billingHref = `${homePublicUrl().replace(/\/$/, '')}/account/billing`
 
   return (
     <div className={`layout${navOpen ? ' is-nav-open' : ''}`}>
@@ -122,14 +134,13 @@ export default function AdminLayout() {
         aria-hidden={!navOpen}
         onClick={closeNav}
       />
-      <aside className="sidebar" id="admin-sidebar-nav" aria-hidden={false}>
+      <aside className="sidebar" id="admin-sidebar-nav">
         <div className="sidebar-brand">
           <BrandMark size={42} className="sidebar-brand-mark" />
-          <div>
-            <h2>{BRAND.nameZh}</h2>
+          <div className="sidebar-brand-text">
+            <h2>{brandPrimary}</h2>
             <p>
-              {BRAND.nameEn} ·{' '}
-              {user?.role === 'employee' ? t('admin.sidebar.workbench') : t('admin.sidebar.admin')}
+              {brandSecondary} · {roleModeLabel}
             </p>
           </div>
           <button
@@ -181,11 +192,28 @@ export default function AdminLayout() {
                 <span className="nav-icon">
                   <NavIcon size={17} />
                 </span>
-                {t(n.labelKey)}
+                <span className="nav-link-text">{t(n.labelKey)}</span>
               </NavLink>
             )
           })}
         </nav>
+        <div className="sidebar-footer">
+          <div className="sidebar-footer-links">
+            <a className="sidebar-footer-link" href={billingHref} onClick={closeNav}>
+              {t('admin.topbar.billing')}
+            </a>
+            <a
+              className="sidebar-footer-link"
+              href={homePublicUrl()}
+              target="_blank"
+              rel="noreferrer"
+              onClick={closeNav}
+            >
+              {t('admin.topbar.create')}
+            </a>
+          </div>
+          <LocaleSwitch className="admin-locale-switch" variant="chip" />
+        </div>
       </aside>
       <div className="main-area">
         <header className="topbar">
@@ -200,20 +228,22 @@ export default function AdminLayout() {
             >
               {navOpen ? <IconX size={22} aria-hidden /> : <IconMenu size={22} aria-hidden />}
             </button>
-            <span className="topbar-title">{BRAND.adminTitle}</span>
+            <span className="topbar-title">{t('admin.topbar.title')}</span>
           </div>
           <div className="topbar-actions">
-            <a
-              className="topbar-home-link"
-              href={`${homePublicUrl().replace(/\/$/, '')}/account/billing`}
-            >
+            <a className="topbar-home-link topbar-link-desktop" href={billingHref}>
               {t('admin.topbar.billing')}
             </a>
-            <a className="topbar-home-link" href={homePublicUrl()} target="_blank" rel="noreferrer">
+            <a
+              className="topbar-home-link topbar-link-desktop"
+              href={homePublicUrl()}
+              target="_blank"
+              rel="noreferrer"
+            >
               {t('admin.topbar.create')}
             </a>
             <ThemePicker />
-            <LocaleSwitch className="topbar-home-link" />
+            <LocaleSwitch className="admin-locale-switch topbar-locale" variant="chip" />
             {user && (
               <span className="topbar-user">
                 {user.display_name || user.email}
