@@ -41,6 +41,11 @@ import { officeCategories, PANEL_HINT_KEYS } from '../i18n/agentLabels'
 import { localizePromptPickLabel } from '../i18n/pickLabels'
 import { industryName } from '../i18n/industryLabels'
 import { showcaseCapDesc, showcaseCapName } from '../i18n/contentLabels'
+import { capabilityName, localizeModuleGroupCat } from '../i18n/capabilityLabels'
+import {
+  localizeCatalogScenarioCategory,
+  localizeCatalogScenarioName,
+} from '../i18n/catalogSceneLabels'
 
 export type { AgentPick } from './agentInputLogic'
 
@@ -59,6 +64,7 @@ interface ScenarioRef {
   id: string
   name: string
   category: string
+  pack_key?: string
 }
 
 interface Props {
@@ -290,19 +296,37 @@ export default forwardRef<AgentInputHandle, Props>(function AgentInput({
     const moduleItems = MODULES.flatMap((group) =>
       group.items
         .filter((m) => {
-          if (match(m.name, group.cat)) return true
+          const name = capabilityName(t, m.key, m.name)
+          const cat = localizeModuleGroupCat(t, group.cat, m.key)
+          if (match(name, cat) || match(m.name, group.cat)) return true
           const hint = moduleHints.get(m.key)
           return Boolean(q && hint?.includes(q))
         })
-        .map((m) => mk({ type: 'module', key: m.key, label: m.name }, { hint: group.cat, iconKey: 'box', color: theme?.priLight })),
+        .map((m) => {
+          const name = capabilityName(t, m.key, m.name)
+          const cat = localizeModuleGroupCat(t, group.cat, m.key)
+          return mk(
+            { type: 'module', key: m.key, label: m.name },
+            { displayLabel: name, hint: cat, iconKey: 'box', color: theme?.priLight },
+          )
+        }),
     )
     const scenarioItems = scenarios
-      .filter((s) => match(s.name, s.category))
+      .filter((s) => {
+        const name = localizeCatalogScenarioName(t, s)
+        const cat = localizeCatalogScenarioCategory(t, s)
+        return match(name, cat) || match(s.name, s.category)
+      })
       .slice(0, isMinimal ? 24 : 32)
       .map((s) => {
+        const name = localizeCatalogScenarioName(t, s)
+        const cat = localizeCatalogScenarioCategory(t, s)
         const ic = theme ? categoryColor(s.category, theme) : undefined
         const iconKey = resolveCategoryIcon(s.category, 'office')
-        return mk({ type: 'scenario', key: s.id, label: s.name }, { hint: s.category, iconKey, color: ic })
+        return mk(
+          { type: 'scenario', key: s.id, label: s.name },
+          { displayLabel: name, hint: cat, iconKey, color: ic },
+        )
       })
 
     const heroPresets = filterHeroPresetsForQuery(q)

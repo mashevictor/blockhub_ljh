@@ -121,7 +121,7 @@ export default function HeroDanmakuCloud({ onRoleApply, integrated }: Props) {
             <div key={track} className="hero-danmaku-lane" style={{ '--lane-i': track } as CSSProperties} />
           ))}
           {items.map(({ preset, track, delay, duration, direction, startLeft }, index) => {
-            const role = presetRole(preset)
+            const role = tf(`hero.${preset.id}.role`, presetRole(preset))
             const label = tf(`hero.${preset.id}.label`, preset.label)
             const hot = index % 4 === 0
             return (

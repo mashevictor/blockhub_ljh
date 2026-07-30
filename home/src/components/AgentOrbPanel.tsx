@@ -2,7 +2,7 @@ import { DynamicIcon } from './icons'
 import { categoryColor, iconWrapStyle } from '../data/iconPalette'
 import { resolveCategoryIcon } from '../data/showcase'
 import type { ThemeTokens } from '../data/themes'
-import { useT } from '@blockhub/i18n/react'
+import { useI18nOptional, useT } from '@blockhub/i18n/react'
 
 interface OrbItem {
   idx: number
@@ -49,10 +49,12 @@ export default function AgentOrbPanel({
   onDone,
 }: Props) {
   const t = useT()
+  const locale = useI18nOptional()?.locale ?? 'zh-CN'
   const empty = count === 0
   const large = size === 'large'
   const iconSize = large ? 22 : 20
-  const labelMax = large ? 10 : 6
+  const en = locale.startsWith('en')
+  const labelMax = en ? (large ? 18 : 14) : large ? 10 : 6
 
   return (
     <div className={`agent-orb-panel${large ? ' agent-orb-panel-large' : ''}`} role="listbox" aria-label={t('home.agent.aria.open_picker')}>

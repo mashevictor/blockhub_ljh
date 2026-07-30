@@ -3,10 +3,11 @@
 import { capabilityName } from './capabilityLabels'
 import { industryName } from './industryLabels'
 import { officeCategoryLabel } from './agentLabels'
+import { localizeCatalogScenarioName } from './catalogSceneLabels'
 
 export type TranslateFn = (key: string, vars?: Record<string, string | number>) => string
 
-function heroScenarioLabel(t: TranslateFn, key: string, fallback: string): string {
+function heroScenarioLabel(t: TranslateFn, key: string, _fallback: string): string {
   const direct = t(`hero.${key}.label`)
   if (direct !== `hero.${key}.label`) return direct
   // rolePresets use s38-case / chip-* ; hero SSOT is s38
@@ -15,7 +16,7 @@ function heroScenarioLabel(t: TranslateFn, key: string, fallback: string): strin
     const fromHero = t(`hero.${base}.label`)
     if (fromHero !== `hero.${base}.label`) return fromHero
   }
-  return fallback
+  return ''
 }
 
 /** Display label for a pick stored with Chinese SSOT `label`. */
@@ -35,7 +36,11 @@ export function localizePromptPickLabel(
   if (type === 'capability' || type === 'module' || type === 'supplement') {
     return capabilityName(t, key, fallback)
   }
-  if (type === 'scenario') return heroScenarioLabel(t, key, fallback)
+  if (type === 'scenario') {
+    const fromHero = heroScenarioLabel(t, key, fallback)
+    if (fromHero) return fromHero
+    return localizeCatalogScenarioName(t, { id: key, name: fallback })
+  }
   return fallback || key
 }
 

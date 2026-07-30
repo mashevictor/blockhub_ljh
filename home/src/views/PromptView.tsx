@@ -1057,7 +1057,13 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
   }, [promptModules.length, upsertModule, focusPrompt])
 
   const panelScenarios = useMemo(
-    () => visibleItems.slice(0, 48).map((s) => ({ id: s.id, name: s.name, category: s.category })),
+    () =>
+      visibleItems.slice(0, 48).map((s) => ({
+        id: s.id,
+        name: s.name,
+        category: s.category,
+        pack_key: 'pack_key' in s ? s.pack_key : undefined,
+      })),
     [visibleItems],
   )
 
