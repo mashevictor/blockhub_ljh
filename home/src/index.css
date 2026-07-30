@@ -1,5 +1,11 @@
 @import '../../shared/design-tokens.css';
 
+/* Breakpoints (home mobile SSOT):
+   --bp-sm: 480px; --bp-md: 768px; --bp-lg: 960px; --bp-xl: 1200px;
+   新 @media 只准用以上四档；历史 900/860/800/640 仅只读维护。
+   规范：docs/HOME-MOBILE-RESPONSIVE.md
+*/
+
 /* 颜色 / 间距 / 圆角：design-tokens.css + shared/themes.ts applyTheme() */
 
 html.theme-transition,
@@ -9138,4 +9144,23 @@ body.plaza-orch-open .plaza-dual-rail-dock {
   margin-top: 4px;
   position: relative;
   bottom: auto;
+}
+
+/* home mobile SSOT · 768：广场防整页横溢 */
+@media (max-width: 768px) {
+  .plaza-page,
+  .b2b-brand-scope.plaza-page {
+    overflow-x: hidden;
+  }
+
+  .plaza-feed,
+  .plaza-main,
+  .plaza-layout {
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .plaza-mobile-tabs a {
+    min-height: 44px;
+  }
 }

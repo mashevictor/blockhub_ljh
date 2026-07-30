@@ -855,3 +855,24 @@ body.marketing-landed-body {
     grid-template-columns: 1fr;
   }
 }
+
+/* home mobile SSOT · 768 */
+@media (max-width: 768px) {
+  .marketing-site--landed {
+    overflow-x: hidden;
+  }
+
+  .acc-plan-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .acc-quota-glossary,
+  .enrich-grid,
+  .mk-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .acc-order-row {
+    flex-direction: column;
+  }
+}

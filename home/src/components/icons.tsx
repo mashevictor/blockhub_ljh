@@ -83,6 +83,7 @@ export const IconDatabase = mkIcon(<><ellipse cx="12" cy="5" rx="9" ry="3" /><pa
 export const IconWrench = mkIcon(<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />)
 export const IconLink = mkIcon(<><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></>)
 export const IconX = mkIcon(<><path d="M18 6 6 18M6 6l12 12" /></>)
+export const IconMenu = mkIcon(<><path d="M4 5h16M4 12h16M4 19h16" /></>)
 export const IconChevronDown = mkIcon(<path d="m6 9 6 6 6-6" />)
 
 export const CAPABILITY_ICONS: Record<string, IconComp> = {
