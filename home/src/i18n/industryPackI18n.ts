@@ -126,7 +126,7 @@ export function localizeVisualTheme(t: TranslateFn, theme: IndustryVisualTheme):
   const pitch = ui(t, key, 'pitch', theme.heroPitch ?? '')
   const highlights = theme.highlights.map((h, i) => ui(t, key, `highlight.${i}`, h))
   const stats = theme.stats.map((s, i) => ({
-    ...s,
+    value: ui(t, key, `stat.${i}.value`, s.value),
     label: ui(t, key, `stat.${i}.label`, s.label),
   })) as IndustryVisualTheme['stats']
   return {

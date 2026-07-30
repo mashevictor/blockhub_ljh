@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
-import { useT } from '@blockhub/i18n/react'
+import { useT, useI18n } from '@blockhub/i18n/react'
 import { publishApp } from '../api/client'
 import { publishApiToResult } from '../api/publishHelpers'
 import { runContactPublishPipeline, type PublishWorkPhase } from '../lib/publishFlow'
@@ -38,7 +38,7 @@ import SelectionBox, { type SelectionItem } from '../components/SelectionBox'
 import DeliveryTemplatePicker from '../components/DeliveryTemplatePicker'
 import { industryDesc, industryName } from '../i18n/industryLabels'
 import { localizeCachedScenes } from '../i18n/industryPackI18n'
-import { micrositeStyleLabel, micrositeBrand } from '../i18n/micrositeLabels'
+import { micrositeStyleLabel, micrositeBrand, micrositePreviewChrome } from '../i18n/micrositeLabels'
 import { msCacheHint, msChipBadge, msFrameBadge } from '../i18n/micrositeStatus'
 
 interface Props {
@@ -56,6 +56,7 @@ export default function IndustryView({
   initialMicrosite,
 }: Props) {
   const t = useT()
+  const { locale } = useI18n()
   const { theme } = useTheme()
   const [industry, setIndustry] = useState(initialIndustry ?? 'office')
   const [step, setStep] = useState(1)
@@ -163,6 +164,8 @@ export default function IndustryView({
         overview: t('home.industry.view.overview', { name: packDisplayName, n: scenes.length }),
         highlights: preferKeys.slice(0, 4),
         scenes: scenes.slice(0, 8).map((s) => ({ name: s.name, detail: s.summary })),
+        chrome: micrositePreviewChrome(t),
+        lang: locale.startsWith('zh') ? 'zh-CN' : 'en',
       },
       { ...micrositeMeta, styleLabel: micrositeStyle, brand: micrositeBrandLabel },
       origin,
@@ -176,6 +179,7 @@ export default function IndustryView({
     scenes,
     preferKeys,
     t,
+    locale,
     micrositeStyle,
     micrositeBrandLabel,
   ])

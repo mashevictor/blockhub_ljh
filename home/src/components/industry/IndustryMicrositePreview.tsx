@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useT } from '@blockhub/i18n/react'
+import { useT, useI18n } from '@blockhub/i18n/react'
 import {
   INDUSTRY_MICROSITE_TEMPLATES,
   getMicrositeTemplate,
@@ -14,7 +14,7 @@ import {
   type MicrositeLoadState,
 } from '../../data/industryMicrositePreviewCache'
 import { msCacheHint, msChipBadge, msFrameBadge } from '../../i18n/micrositeStatus'
-import { micrositeBrand, micrositeName, micrositeStyleLabel } from '../../i18n/micrositeLabels'
+import { micrositeBrand, micrositeName, micrositeStyleLabel, micrositePreviewChrome } from '../../i18n/micrositeLabels'
 import type { TranslateFn } from '../../i18n/industryLabels'
 
 function localizedMicrositeTpl(t: TranslateFn, tpl: IndustryMicrositeTemplate): IndustryMicrositeTemplate {
@@ -48,6 +48,7 @@ export default function IndustryMicrositePreview({
   onCompose,
 }: Props) {
   const t = useT()
+  const { locale } = useI18n()
   const [activeId, setActiveId] = useState(() => loadSavedMicrositeId(packKey))
   const [fading, setFading] = useState(false)
   const [ondemandBusy, setOndemandBusy] = useState(false)
@@ -69,8 +70,17 @@ export default function IndustryMicrositePreview({
   }, [packKey])
 
   const copy = useMemo<MicrositePreviewCopy>(
-    () => ({ packKey, packName, tagline, overview, highlights, scenes }),
-    [packKey, packName, tagline, overview, highlights, scenes],
+    () => ({
+      packKey,
+      packName,
+      tagline,
+      overview,
+      highlights,
+      scenes,
+      chrome: micrositePreviewChrome(t),
+      lang: locale.startsWith('zh') ? 'zh-CN' : 'en',
+    }),
+    [packKey, packName, tagline, overview, highlights, scenes, t, locale],
   )
 
   const current = useMemo(

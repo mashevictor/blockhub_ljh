@@ -607,6 +607,7 @@ def emit_locale(visual: dict, enrich: dict, lang: str) -> dict[str, str]:
             for i, h in enumerate(v["highlights"]):
                 out[f"industry.ui.{key}.highlight.{i}"] = h
             for i, st in enumerate(v["stats"]):
+                out[f"industry.ui.{key}.stat.{i}.value"] = st["value"]
                 out[f"industry.ui.{key}.stat.{i}.label"] = st["label"]
         else:
             en = VISUAL_EN.get(key)
@@ -615,8 +616,21 @@ def emit_locale(visual: dict, enrich: dict, lang: str) -> dict[str, str]:
             out[f"industry.ui.{key}.pitch"] = en["pitch"]
             for i, h in enumerate(en["highlights"]):
                 out[f"industry.ui.{key}.highlight.{i}"] = h
-            for i, lab in enumerate(en["stats"]):
-                out[f"industry.ui.{key}.stat.{i}.label"] = lab
+            for i, st in enumerate(en["stats"]):
+                if isinstance(st, dict):
+                    out[f"industry.ui.{key}.stat.{i}.value"] = st["value"]
+                    out[f"industry.ui.{key}.stat.{i}.label"] = st["label"]
+                else:
+                    # legacy: stats were label-only strings — keep Latin values, never copy CJK into EN
+                    out[f"industry.ui.{key}.stat.{i}.label"] = st
+                    zh_vals = v.get("stats") or []
+                    if i < len(zh_vals):
+                        zv = zh_vals[i]["value"]
+                        if re.search(r"[\u4e00-\u9fff]", zv):
+                            # Prefer EN label keyword when value was a CJK keyword in ZH themes
+                            out[f"industry.ui.{key}.stat.{i}.value"] = st
+                        else:
+                            out[f"industry.ui.{key}.stat.{i}.value"] = zv
 
     for key, e in enrich.items():
         if lang == "zh-CN":
