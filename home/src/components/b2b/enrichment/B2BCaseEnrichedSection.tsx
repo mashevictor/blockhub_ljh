@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { useT } from '@blockhub/i18n/react'
+import { useI18n, useT } from '@blockhub/i18n/react'
 import { AgentButtonContent, AgentChevronGlyph } from '../../AgentChevron'
 import { CASE_STUDIES, getFeaturedCase } from '../../../data/siteCases'
 import { localizeCaseStudy } from '../../../i18n/contentLabels'
@@ -7,10 +7,11 @@ import { ROUTES } from '../../../routes/paths'
 
 export default function B2BCaseEnrichedSection() {
   const t = useT()
-  const featured = localizeCaseStudy(t, getFeaturedCase())
+  const { locale } = useI18n()
+  const featured = localizeCaseStudy(t, getFeaturedCase(), locale)
   const shortCases = CASE_STUDIES.filter((c) => c.slug !== featured.slug)
     .slice(0, 2)
-    .map((c) => localizeCaseStudy(t, c))
+    .map((c) => localizeCaseStudy(t, c, locale))
 
   return (
     <section id="case" className="b2b-section enrich-case-section" aria-labelledby="enrich-case-title">

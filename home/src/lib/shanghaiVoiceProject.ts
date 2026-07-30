@@ -12,6 +12,7 @@ import {
   PLAZA_FEED_UPDATED_EVENT,
   type StoredPlazaPost,
 } from './plazaFeedStorage'
+import { homeT } from '../i18n/homeT'
 
 export const SHANGHAI_VOICE_APP_ID = 'shanghai-voice-agent'
 
@@ -22,7 +23,7 @@ export function isShanghaiVoiceApp(app?: { appId?: string; webUrl?: string; sour
     return (
       app === SHANGHAI_VOICE_APP_ID
       || app.includes('shanghai-voice')
-      || /上海话/.test(app)
+      || /上海话|shanghainese/i.test(app)
     )
   }
   if (app.appId === SHANGHAI_VOICE_APP_ID || app.source === 'shanghai-voice-project') return true
@@ -30,11 +31,12 @@ export function isShanghaiVoiceApp(app?: { appId?: string; webUrl?: string; sour
   return false
 }
 
-/** 仅声明真实能力，避免广场展示「假模块」冒充业务 */
-const MODULE_DEFS = [
-  { key: 'shanghai_voice', label: '上海话语音', iconKey: 'mic' },
-  { key: 'chat_qa', label: '智能问答', iconKey: 'chat' },
-] as const
+function moduleDefs(): readonly { key: string; label: string; iconKey: string }[] {
+  return [
+    { key: 'shanghai_voice', label: homeT('product.mod.shanghai_voice.name'), iconKey: 'mic' },
+    { key: 'chat_qa', label: homeT('product.mod.chat_qa.name'), iconKey: 'chat' },
+  ] as const
+}
 
 function absolutize(path: string): string {
   if (path.startsWith('http')) return path
@@ -46,7 +48,7 @@ function absolutize(path: string): string {
 }
 
 export function buildShanghaiVoicePublishResult(): PublishResult {
-  const modules: PublishedModuleItem[] = MODULE_DEFS.map((m) => ({
+  const modules: PublishedModuleItem[] = moduleDefs().map((m) => ({
     key: m.key,
     label: m.label,
     iconKey: m.iconKey,
@@ -55,7 +57,7 @@ export function buildShanghaiVoicePublishResult(): PublishResult {
   }))
   return {
     appId: SHANGHAI_VOICE_APP_ID,
-    appName: '上海话语音助手',
+    appName: homeT('home.shanghai.app_name'),
     webUrl: absolutize(ROUTES.shanghaiVoice),
     appQr: absolutize('/downloads/shanghai-voice.apk'),
     downloadUrl: absolutize('/downloads/shanghai-voice.apk'),
@@ -89,9 +91,10 @@ function writePlazaCache(entry: StoredPlazaPost) {
 export function ensureShanghaiVoiceMyApp(): StoredMyApp {
   const next = buildShanghaiVoicePublishResult()
   addMyApp(next)
+  const publicLabel = homeT('home.plaza.vis.public')
   setMyAppPlazaAudience(SHANGHAI_VOICE_APP_ID, {
     type: 'public',
-    label: '@公开',
+    label: publicLabel,
     publishedAt: new Date().toISOString(),
     onPlazaFeed: true,
   })
@@ -102,7 +105,7 @@ export function ensureShanghaiVoiceMyApp(): StoredMyApp {
       savedAt: new Date().toISOString(),
       plaza: {
         type: 'public',
-        label: '@公开',
+        label: publicLabel,
         publishedAt: new Date().toISOString(),
         onPlazaFeed: true,
       },
@@ -113,20 +116,21 @@ export function ensureShanghaiVoiceMyApp(): StoredMyApp {
 /** 同步到本机广场 feed */
 export function ensureShanghaiVoicePlazaFeed(): void {
   const app = buildShanghaiVoicePublishResult()
+  const publicLabel = homeT('home.plaza.vis.public')
   const entry: StoredPlazaPost = {
     id: `project-${SHANGHAI_VOICE_APP_ID}`,
     appKey: SHANGHAI_VOICE_APP_ID,
     audienceType: 'public',
     savedAt: new Date().toISOString(),
-    authorName: '积木仓',
-    authorInitial: '积',
-    authorMeta: '官方演示项目',
-    timeLabel: '项目',
+    authorName: homeT('home.shanghai.author_name'),
+    authorInitial: homeT('home.shanghai.author_initial'),
+    authorMeta: homeT('home.shanghai.author_meta'),
+    timeLabel: homeT('home.shanghai.time_label'),
     visibility: 'public',
-    atLabel: '@公开',
+    atLabel: publicLabel,
     appName: app.appName,
     modules: app.modules.map((m) => m.label),
-    summary: `上海话实时语音智能体：开口即说、方言识别、智能问答、语音播报。含 ${app.moduleCount} 项能力，Web + APK。`,
+    summary: homeT('home.shanghai.summary', { n: app.moduleCount }),
     webUrl: app.webUrl,
     likes: 12,
     comments: 0,

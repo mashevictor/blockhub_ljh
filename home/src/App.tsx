@@ -1,5 +1,5 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
-import ErrorBoundary from './components/ErrorBoundary'
+import ErrorBoundary, { LocalizedErrorBoundary } from './components/ErrorBoundary'
 import ScrollToTop from './components/ScrollToTop'
 import IndustryHubRedirect from './components/IndustryHubRedirect'
 import HomeApp from './HomeApp'
@@ -26,11 +26,18 @@ import RolePage from './pages/enrichment/RolePage'
 import CapShipPage from './pages/CapShipPage'
 import IndustryRuntimePreviewPage from './pages/IndustryRuntimePreviewPage'
 import { ROUTES } from './routes/paths'
+import { useT } from '@blockhub/i18n/react'
 
-function AuthPage({ children, title }: { children: React.ReactNode; title: string }) {
+function AuthPage({ children, titleKey }: { children: React.ReactNode; titleKey: string }) {
+  const t = useT()
   return (
     <RequireAuth>
-      <ErrorBoundary fallbackTitle={title}>{children}</ErrorBoundary>
+      <ErrorBoundary
+        fallbackTitle={t(titleKey)}
+        backHomeLabel={t('home.error.back_home')}
+      >
+        {children}
+      </ErrorBoundary>
     </RequireAuth>
   )
 }
@@ -44,83 +51,83 @@ export default function App() {
       <Route path="/register" element={<RedirectToAdminLogin />} />
       <Route path="/plaza" element={<PlazaLayout />}>
         <Route index element={<PlazaFeedPage />} />
-        <Route path="my" element={<AuthPage title="我的应用加载失败"><PlazaMyAppsPage /></AuthPage>} />
+        <Route path="my" element={<AuthPage titleKey="home.error.plaza_my"><PlazaMyAppsPage /></AuthPage>} />
       </Route>
       <Route path="/industry/:key" element={
-        <ErrorBoundary fallbackTitle="行业详情页加载失败">
+        <LocalizedErrorBoundary titleKey="home.error.industry_detail">
           <IndustryDetailPage />
-        </ErrorBoundary>
+        </LocalizedErrorBoundary>
       } />
       <Route path={ROUTES.industryHub} element={<IndustryHubRedirect />} />
       <Route path={ROUTES.shanghaiVoice} element={
-        <ErrorBoundary fallbackTitle="上海话语音页加载失败">
+        <LocalizedErrorBoundary titleKey="home.error.shanghai_voice">
           <ShanghaiVoicePage />
-        </ErrorBoundary>
+        </LocalizedErrorBoundary>
       } />
       <Route path="/share/:token" element={
-        <ErrorBoundary fallbackTitle="资料包加载失败">
+        <LocalizedErrorBoundary titleKey="home.error.share_pack">
           <SharePackPage />
-        </ErrorBoundary>
+        </LocalizedErrorBoundary>
       } />
       <Route path="/s/:token" element={<ShareShortRedirect />} />
       <Route path={`${ROUTES.trust}/:docId`} element={
-        <ErrorBoundary fallbackTitle="信任资料加载失败">
+        <LocalizedErrorBoundary titleKey="home.error.trust_doc">
           <TrustDocDetailPage />
-        </ErrorBoundary>
+        </LocalizedErrorBoundary>
       } />
       <Route path={ROUTES.trust} element={
-        <ErrorBoundary fallbackTitle="信任中心加载失败">
+        <LocalizedErrorBoundary titleKey="home.error.trust">
           <TrustCenterPage />
-        </ErrorBoundary>
+        </LocalizedErrorBoundary>
       } />
       <Route path={ROUTES.cases} element={
-        <ErrorBoundary fallbackTitle="案例页加载失败">
+        <LocalizedErrorBoundary titleKey="home.error.cases">
           <CasesIndexPage />
-        </ErrorBoundary>
+        </LocalizedErrorBoundary>
       } />
       <Route path="/cases/:slug" element={
-        <ErrorBoundary fallbackTitle="案例详情加载失败">
+        <LocalizedErrorBoundary titleKey="home.error.case_detail">
           <CaseDetailPage />
-        </ErrorBoundary>
+        </LocalizedErrorBoundary>
       } />
       <Route path={ROUTES.pricing} element={
-        <ErrorBoundary fallbackTitle="定价页加载失败">
+        <LocalizedErrorBoundary titleKey="home.error.pricing">
           <PricingPage />
-        </ErrorBoundary>
+        </LocalizedErrorBoundary>
       } />
       <Route path={ROUTES.pricingCheckout} element={
-        <AuthPage title="升级套餐页加载失败"><PricingCheckoutPage /></AuthPage>
+        <AuthPage titleKey="home.error.pricing_checkout"><PricingCheckoutPage /></AuthPage>
       } />
       <Route path={ROUTES.pricingResult} element={
-        <AuthPage title="支付结果页加载失败"><PricingResultPage /></AuthPage>
+        <AuthPage titleKey="home.error.pricing_result"><PricingResultPage /></AuthPage>
       } />
       <Route path={ROUTES.accountBilling} element={
-        <AuthPage title="账户套餐页加载失败"><AccountBillingPage /></AuthPage>
+        <AuthPage titleKey="home.error.account_billing"><AccountBillingPage /></AuthPage>
       } />
       <Route path={ROUTES.news} element={
-        <ErrorBoundary fallbackTitle="新闻页加载失败">
+        <LocalizedErrorBoundary titleKey="home.error.news">
           <NewsIndexPage />
-        </ErrorBoundary>
+        </LocalizedErrorBoundary>
       } />
       <Route path="/news/:slug" element={
-        <ErrorBoundary fallbackTitle="新闻详情加载失败">
+        <LocalizedErrorBoundary titleKey="home.error.news_detail">
           <NewsDetailPage />
-        </ErrorBoundary>
+        </LocalizedErrorBoundary>
       } />
       <Route path="/for/:role" element={
-        <ErrorBoundary fallbackTitle="角色页加载失败">
+        <LocalizedErrorBoundary titleKey="home.error.role">
           <RolePage />
-        </ErrorBoundary>
+        </LocalizedErrorBoundary>
       } />
       <Route path={ROUTES.capship} element={
-        <ErrorBoundary fallbackTitle="CapShip 开源页加载失败">
+        <LocalizedErrorBoundary titleKey="home.error.capship">
           <CapShipPage />
-        </ErrorBoundary>
+        </LocalizedErrorBoundary>
       } />
       <Route path="/preview/industry-runtime/:pack" element={
-        <ErrorBoundary fallbackTitle="行业 Runtime 预览加载失败">
+        <LocalizedErrorBoundary titleKey="home.error.industry_runtime">
           <IndustryRuntimePreviewPage />
-        </ErrorBoundary>
+        </LocalizedErrorBoundary>
       } />
       <Route path="/preview/industry-runtime" element={<Navigate to="/preview/industry-runtime/mfg" replace />} />
       <Route path="/sites" element={<Navigate to="/" replace />} />

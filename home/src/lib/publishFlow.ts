@@ -5,6 +5,7 @@ import type { PublishResult } from '../data/constants'
 import { PUBLISH_ANALYZE_PHASE_MS, PUBLISH_OVERLAY_PROGRESS_MS } from '../data/publishUi'
 import { ROUTES } from '../routes/paths'
 import { addMyApp } from './myAppsStorage'
+import { homeT } from '../i18n/homeT'
 
 export const JUST_PUBLISHED_STORAGE_KEY = 'blockhub:just-published'
 
@@ -38,21 +39,21 @@ function errorMessageFromApi(error: unknown, fallback: string): string {
     const detail = response?.data?.detail
     const status = response?.status
     if (status === 405 || (typeof detail === 'string' && /method not allowed/i.test(detail))) {
-      return `${fallback}：请求方式被拦截(405)。请用 https://blockhub.club 打开本站后强制刷新(Ctrl+F5)再试，勿用未跳转的 http 书签`
+      return homeT('home.publish.err.method_405', { fallback })
     }
     const coded = formatApiErrorDetail(detail, shellT, '')
     if (coded) return coded
     if (typeof detail === 'string' && detail.trim()) return detail
     if (status === 502) {
-      return shellT('error.BAD_GATEWAY') || `${fallback}：服务器网关错误(502)，请确认 blockhub-api 已启动`
+      return shellT('error.BAD_GATEWAY') || homeT('home.publish.err.gateway_502', { fallback })
     }
     if (status === 503) {
-      return shellT('error.SERVICE_UNAVAILABLE') || `${fallback}：服务暂时不可用(503)，请稍后重试`
+      return shellT('error.SERVICE_UNAVAILABLE') || homeT('home.publish.err.service_503', { fallback })
     }
   }
   if (error instanceof Error) {
     if (/timeout|ECONNABORTED/i.test(error.message)) {
-      return `${fallback}：请求超时，服务器处理较慢。若已填写联系方式，可到「我的应用」查看是否已生成`
+      return homeT('home.publish.err.timeout', { fallback })
     }
     if (error.message) return `${fallback}：${error.message}`
   }

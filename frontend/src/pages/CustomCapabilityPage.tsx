@@ -79,15 +79,15 @@ export default function CustomCapabilityPage() {
       <div className="summary-pills">
         <div className="summary-pill">
           <div className="n">{filter === 'pending' ? items.length : counts.pending || '—'}</div>
-          <div className="l">待审核</div>
+          <div className="l">{t('admin.status.review_pending')}</div>
         </div>
         <div className="summary-pill">
           <div className="n">{filter === 'approved' ? items.length : counts.approved || '—'}</div>
-          <div className="l">已通过</div>
+          <div className="l">{t('admin.status.approved')}</div>
         </div>
         <div className="summary-pill">
           <div className="n">{filter === 'rejected' ? items.length : counts.rejected || '—'}</div>
-          <div className="l">已拒绝</div>
+          <div className="l">{t('admin.status.rejected')}</div>
         </div>
       </div>
 
@@ -115,7 +115,7 @@ export default function CustomCapabilityPage() {
         <div className="card" style={{ padding: 24, color: 'var(--muted)' }}>{t('common.loading')}</div>
       ) : items.length === 0 ? (
         <div className="card" style={{ padding: 24, color: 'var(--muted)' }}>
-          {filter === 'pending' ? '暂无待审核的能力提案（空库为空列表）' : '暂无记录'}
+          {filter === 'pending' ? t('admin.page.review.empty_pending') : t('admin.page.review.empty')}
         </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(280px,360px)', gap: 16 }}>
@@ -156,7 +156,9 @@ export default function CustomCapabilityPage() {
               <>
                 <h2 style={{ margin: '0 0 8px', fontSize: 16 }}>{selected.name}</h2>
                 <p style={{ margin: '0 0 12px', color: 'var(--muted)', fontSize: 13 }}>
-                  提案详情 · {STATUS_MAP[selected.status]?.label ?? selected.status}
+                  {t('admin.page.review.detail', {
+                    status: STATUS_MAP[selected.status]?.label ?? selected.status,
+                  })}
                 </p>
                 <dl style={{ margin: 0, display: 'grid', gap: 8, fontSize: 13 }}>
                   <div>
@@ -166,27 +168,27 @@ export default function CustomCapabilityPage() {
                     </dd>
                   </div>
                   <div>
-                    <dt style={{ color: 'var(--muted)' }}>分类</dt>
+                    <dt style={{ color: 'var(--muted)' }}>{t('admin.page.review.field.category')}</dt>
                     <dd style={{ margin: 0 }}>{selected.category || '—'}</dd>
                   </div>
                   <div>
-                    <dt style={{ color: 'var(--muted)' }}>描述</dt>
+                    <dt style={{ color: 'var(--muted)' }}>{t('admin.page.review.field.description')}</dt>
                     <dd style={{ margin: 0 }}>{selected.description || '—'}</dd>
                   </div>
                   <div>
-                    <dt style={{ color: 'var(--muted)' }}>关键词</dt>
+                    <dt style={{ color: 'var(--muted)' }}>{t('admin.page.review.field.keywords')}</dt>
                     <dd style={{ margin: 0 }}>
                       {selected.keywords.length ? selected.keywords.join('、') : '—'}
                     </dd>
                   </div>
                   <div>
-                    <dt style={{ color: 'var(--muted)' }}>提案人</dt>
+                    <dt style={{ color: 'var(--muted)' }}>{t('admin.page.review.field.proposer')}</dt>
                     <dd style={{ margin: 0 }}>
                       <code style={{ fontSize: '0.85em' }}>{selected.proposed_by_id || '—'}</code>
                     </dd>
                   </div>
                   <div>
-                    <dt style={{ color: 'var(--muted)' }}>提交时间</dt>
+                    <dt style={{ color: 'var(--muted)' }}>{t('admin.page.review.field.submitted')}</dt>
                     <dd style={{ margin: 0 }}>{selected.created_at || '—'}</dd>
                   </div>
                 </dl>
@@ -198,7 +200,7 @@ export default function CustomCapabilityPage() {
                       disabled={actingId === selected.id}
                       onClick={() => void handleReview(selected.id, 'approve')}
                     >
-                      {actingId === selected.id ? '处理中…' : '通过'}
+                      {actingId === selected.id ? t('admin.page.review.acting') : t('admin.action.approve')}
                     </button>
                     <button
                       type="button"
@@ -206,13 +208,13 @@ export default function CustomCapabilityPage() {
                       disabled={actingId === selected.id}
                       onClick={() => void handleReview(selected.id, 'reject')}
                     >
-                      拒绝
+                      {t('admin.action.reject')}
                     </button>
                   </div>
                 ) : null}
               </>
             ) : (
-              <p style={{ color: 'var(--muted)', margin: 0 }}>选择左侧提案查看详情</p>
+              <p style={{ color: 'var(--muted)', margin: 0 }}>{t('admin.page.review.pick')}</p>
             )}
           </aside>
         </div>

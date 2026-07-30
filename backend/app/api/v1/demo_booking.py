@@ -14,6 +14,7 @@ class DemoBookingCreate(BaseModel):
     salutation: str = Field("", max_length=120)
     company_name: str = Field("", max_length=200)
     source: str = Field("home", max_length=64)
+    locale: str = Field("zh-CN", max_length=16, description="zh-CN | en-US")
 
 
 class DemoBookingOut(BaseModel):
@@ -51,7 +52,7 @@ def create_demo_booking(body: DemoBookingCreate, db: Session = Depends(get_db)) 
     db.refresh(row)
 
     try:
-        result = deliver_booking(db, row)
+        result = deliver_booking(db, row, locale=body.locale)
     except Exception:
         import logging
 

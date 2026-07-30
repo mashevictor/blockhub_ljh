@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useT } from '@blockhub/i18n/react'
 import {
   createKbBase,
@@ -46,6 +46,12 @@ export default function KnowledgePage() {
   const [uploadMsg, setUploadMsg] = useState('')
   const fileRef = useRef<HTMLInputElement>(null)
   const pollRef = useRef<number | null>(null)
+
+  const tabs = useMemo((): [Tab, string][] => [
+    ['bases', t('admin.knowledge.tab.bases')],
+    ['documents', t('admin.knowledge.tab.documents')],
+    ['search', t('admin.knowledge.tab.search')],
+  ], [t])
 
   const load = useCallback(() => {
     fetchKbStats().then(setStats)
@@ -95,18 +101,18 @@ export default function KnowledgePage() {
 
   const handleUpload = async (file: File) => {
     if (!uploadKbId) {
-      setUploadMsg('请先创建并选择知识库')
+      setUploadMsg(t('admin.knowledge.err.select_kb'))
       return
     }
     setUploading(true)
     setUploadMsg('')
     try {
       await uploadKbDocument(uploadKbId, file)
-      setUploadMsg(`已上传「${file.name}」，正在后台解析与建索引…`)
+      setUploadMsg(t('admin.knowledge.upload_ok', { name: file.name }))
       setTab('documents')
       load()
     } catch (e) {
-      setUploadMsg(e instanceof Error ? e.message : '上传失败')
+      setUploadMsg(e instanceof Error ? e.message : t('admin.knowledge.upload_failed'))
     } finally {
       setUploading(false)
       if (fileRef.current) fileRef.current.value = ''
@@ -115,14 +121,14 @@ export default function KnowledgePage() {
 
   const handleReindex = async (docId: string) => {
     await reindexKbDocument(docId)
-    setUploadMsg('已提交重新索引')
+    setUploadMsg(t('admin.knowledge.reindex_submitted'))
     load()
   }
 
   const statusLabel = (s: string) => {
-    if (s === 'indexed') return '已就绪'
-    if (s === 'processing' || s === 'pending') return '处理中'
-    if (s === 'failed') return '失败'
+    if (s === 'indexed') return t('admin.knowledge.status.indexed')
+    if (s === 'processing' || s === 'pending') return t('admin.knowledge.status.processing')
+    if (s === 'failed') return t('admin.knowledge.status.failed')
     return s
   }
 
@@ -134,15 +140,15 @@ export default function KnowledgePage() {
           <p>{t('admin.page.knowledge.desc')}</p>
         </div>
         <button type="button" className="btn btn-primary-dark" onClick={() => setShowCreate(true)}>
-          + 新建知识库
+          {t('admin.knowledge.new_kb')}
         </button>
       </div>
 
       {showCreate && (
         <div className="card" style={{ marginBottom: 16 }}>
-          <input className="search-input" placeholder="知识库名称" value={newKbName} onChange={(e) => setNewKbName(e.target.value)} />
+          <input className="search-input" placeholder={t('admin.knowledge.name_ph')} value={newKbName} onChange={(e) => setNewKbName(e.target.value)} />
           <div style={{ marginTop: 10, display: 'flex', gap: 8 }}>
-            <button type="button" className="btn btn-primary-dark" onClick={handleCreate}>创建</button>
+            <button type="button" className="btn btn-primary-dark" onClick={handleCreate}>{t('admin.knowledge.create')}</button>
             <button type="button" className="btn btn-ghost-dark" onClick={() => setShowCreate(false)}>{t('common.cancel')}</button>
           </div>
         </div>
@@ -151,14 +157,14 @@ export default function KnowledgePage() {
       <div className="card" style={{ marginBottom: 16 }}>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center' }}>
           <label style={{ fontSize: 13 }}>
-            上传到知识库
+            {t('admin.knowledge.upload_to')}
             <select
               className="model-select"
               style={{ marginLeft: 8 }}
               value={uploadKbId}
               onChange={(e) => setUploadKbId(e.target.value)}
             >
-              <option value="">请选择</option>
+              <option value="">{t('admin.knowledge.select_ph')}</option>
               {bases.map((kb) => (
                 <option key={kb.id} value={kb.id}>{kb.name}</option>
               ))}
@@ -180,13 +186,13 @@ export default function KnowledgePage() {
             disabled={uploading || !uploadKbId || bases.length === 0}
             onClick={() => fileRef.current?.click()}
           >
-            {uploading ? '上传中…' : '上传文档（PDF / TXT / MD）'}
+            {uploading ? t('admin.knowledge.uploading') : t('admin.knowledge.upload_btn')}
           </button>
           {uploadMsg && <span style={{ fontSize: 12, color: 'var(--muted)' }}>{uploadMsg}</span>}
         </div>
         {stats && !stats.embedding_configured && (
           <p style={{ margin: '10px 0 0', fontSize: 12, color: 'var(--muted)' }}>
-            未配置 Embedding API 时将使用全文关键词检索；配置 EMBEDDING_API_KEY 后可启用向量语义搜索。
+            {t('admin.knowledge.embedding_hint')}
           </p>
         )}
       </div>
@@ -201,14 +207,14 @@ export default function KnowledgePage() {
       </div>
 
       <div className="summary-pills">
-        <div className="summary-pill"><div className="n">{stats?.knowledge_bases ?? '—'}</div><div className="l">知识库</div></div>
-        <div className="summary-pill"><div className="n">{stats?.documents ?? '—'}</div><div className="l">文档</div></div>
-        <div className="summary-pill"><div className="n">{stats?.chunks ?? '—'}</div><div className="l">内容片段</div></div>
-        <div className="summary-pill"><div className="n">{stats?.indexed ?? '—'}</div><div className="l">已索引</div></div>
+        <div className="summary-pill"><div className="n">{stats?.knowledge_bases ?? '—'}</div><div className="l">{t('admin.knowledge.stat.bases')}</div></div>
+        <div className="summary-pill"><div className="n">{stats?.documents ?? '—'}</div><div className="l">{t('admin.knowledge.stat.documents')}</div></div>
+        <div className="summary-pill"><div className="n">{stats?.chunks ?? '—'}</div><div className="l">{t('admin.knowledge.stat.chunks')}</div></div>
+        <div className="summary-pill"><div className="n">{stats?.indexed ?? '—'}</div><div className="l">{t('admin.knowledge.stat.indexed')}</div></div>
       </div>
 
       <div className="filter-tabs" style={{ marginBottom: 16 }}>
-        {([['bases', '知识库列表'], ['documents', '文档管理'], ['search', '智能搜索']] as [Tab, string][]).map(([k, label]) => (
+        {tabs.map(([k, label]) => (
           <button key={k} type="button" className={`filter-tab${tab === k ? ' active' : ''}`} onClick={() => setTab(k)}>
             {label}
           </button>
@@ -218,14 +224,14 @@ export default function KnowledgePage() {
       {tab === 'bases' && (
         <div className="kb-grid">
           {bases.length === 0 ? (
-            <p style={{ color: 'var(--muted)' }}>还没有知识库，请先新建并上传文档。</p>
+            <p style={{ color: 'var(--muted)' }}>{t('admin.knowledge.empty_bases')}</p>
           ) : bases.map((kb) => (
             <div key={kb.id} className="kb-card">
               <div className="kb-card-icon">📚</div>
               <h4>{kb.name}</h4>
               <p>{kb.description || '—'}</p>
               <div className="kb-meta">
-                {kb.doc_count} 份文档 · {kb.chunk_count} 个片段 ·{' '}
+                {t('admin.knowledge.meta_docs', { docs: kb.doc_count, chunks: kb.chunk_count })}
                 <span className={kb.status === 'indexed' ? 'tag-ok' : ''}>{statusLabel(kb.status)}</span>
               </div>
             </div>
@@ -237,7 +243,13 @@ export default function KnowledgePage() {
         <div className="card">
           <table className="catalog-table">
             <thead>
-              <tr><th>文档名</th><th>大小</th><th>片段数</th><th>状态</th><th>操作</th></tr>
+              <tr>
+                <th>{t('admin.knowledge.col.name')}</th>
+                <th>{t('admin.knowledge.col.size')}</th>
+                <th>{t('admin.knowledge.col.chunks')}</th>
+                <th>{t('admin.knowledge.col.status')}</th>
+                <th>{t('admin.knowledge.col.actions')}</th>
+              </tr>
             </thead>
             <tbody>
               {documents.map((d) => (
@@ -253,14 +265,14 @@ export default function KnowledgePage() {
                   <td><span className={d.status === 'indexed' ? 'tag-ok' : ''}>{statusLabel(d.status)}</span></td>
                   <td>
                     <button type="button" className="btn btn-ghost-dark" onClick={() => void handleReindex(d.id)}>
-                      重新索引
+                      {t('admin.knowledge.reindex')}
                     </button>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-          {documents.length === 0 && <p style={{ padding: 16, color: 'var(--muted)' }}>暂无文档，请上传 PDF 或文本文件。</p>}
+          {documents.length === 0 && <p style={{ padding: 16, color: 'var(--muted)' }}>{t('admin.knowledge.empty_docs')}</p>}
         </div>
       )}
 
@@ -268,7 +280,7 @@ export default function KnowledgePage() {
         <div className="card">
           <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
             <select className="model-select" value={searchKbId} onChange={(e) => setSearchKbId(e.target.value)}>
-              <option value="">全部知识库</option>
+              <option value="">{t('admin.knowledge.all_bases')}</option>
               {bases.map((kb) => (
                 <option key={kb.id} value={kb.id}>{kb.name}</option>
               ))}
@@ -276,12 +288,12 @@ export default function KnowledgePage() {
             <input
               className="search-input"
               style={{ flex: 1, minWidth: 200 }}
-              placeholder="输入检索关键词…"
+              placeholder={t('admin.knowledge.search_ph')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && void handleSearch()}
             />
-            <button type="button" className="btn btn-primary-dark" onClick={() => void handleSearch()}>检索</button>
+            <button type="button" className="btn btn-primary-dark" onClick={() => void handleSearch()}>{t('admin.knowledge.search_btn')}</button>
           </div>
           {searchResults.map((r, i) => (
             <div key={i} className="search-result">

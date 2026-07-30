@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useT } from '@blockhub/i18n/react'
 import {
   checkFeasibility,
@@ -12,14 +12,13 @@ import { homeAbsoluteUrl } from '../data/brand'
 
 type DeliverMode = 'web' | 'app' | 'both'
 
-const DELIVER_OPTIONS: { key: DeliverMode; label: string; desc: string }[] = [
-  { key: 'web', label: '网页版', desc: '生成 /r/:id 链接，浏览器即可使用' },
-  { key: 'app', label: 'App 版', desc: '打包 Android APK，适合内部分发' },
-  { key: 'both', label: '网页 + App', desc: '同时提供链接与 APK 下载' },
-]
-
 export default function CreationWizardPage() {
   const t = useT()
+  const deliverOptions = useMemo((): { key: DeliverMode; label: string; desc: string }[] => [
+    { key: 'web', label: t('admin.overview.deliver.web'), desc: t('admin.create.deliver.web.desc') },
+    { key: 'app', label: t('admin.overview.deliver.app'), desc: t('admin.create.deliver.app.desc') },
+    { key: 'both', label: t('admin.overview.deliver.both'), desc: t('admin.create.deliver.both.desc') },
+  ], [t])
   const [steps, setSteps] = useState<WizardStep[]>([])
   const [packs, setPacks] = useState<IndustryPack[]>([])
   const [step, setStep] = useState(1)
@@ -27,7 +26,7 @@ export default function CreationWizardPage() {
   const [scenarios, setScenarios] = useState<{ id: string; name: string }[]>([])
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [feasibility, setFeasibility] = useState<Record<string, unknown> | null>(null)
-  const [appName, setAppName] = useState('我的智能应用')
+  const [appName, setAppName] = useState(() => t('admin.create.default_app_name'))
   const [deliver, setDeliver] = useState<DeliverMode>('both')
   const [publishing, setPublishing] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -86,13 +85,12 @@ export default function CreationWizardPage() {
           app?.web_url ||
           (app?.id ? homeAbsoluteUrl(`/r/${encodeURIComponent(app.id)}`) : '')
         if (href) {
-          // 生成成功后直达 Runtime（与 Home CreateStudio 一致）
           window.location.assign(href)
           return
         }
         setStep(7)
       } catch {
-        setPublishError('发布失败，请稍后重试')
+        setPublishError(t('admin.create.publish_failed'))
       } finally {
         setPublishing(false)
       }
@@ -104,6 +102,7 @@ export default function CreationWizardPage() {
   const publishedApp = published?.app as { name?: string; id?: string; web_url?: string } | undefined
   const runtime = published?.runtime as { web_url?: string } | undefined
   const webUrl = runtime?.web_url || publishedApp?.web_url
+  const selectedDeliver = deliverOptions.find((d) => d.key === deliver)
 
   return (
     <>
@@ -123,9 +122,9 @@ export default function CreationWizardPage() {
 
       {step === 1 && (
         <div className="card">
-          <h3 style={{ marginBottom: 6 }}>① 选择行业方案包</h3>
+          <h3 style={{ marginBottom: 6 }}>{t('admin.create.step1.title')}</h3>
           <p style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 16 }}>
-            选择行业后，系统将预填推荐场景，您可以在此基础上增减
+            {t('admin.create.step1.lead')}
           </p>
           <div className="industry-grid">
             {packs.map((p) => (
@@ -138,12 +137,12 @@ export default function CreationWizardPage() {
                 <div className="industry-icon">{p.icon}</div>
                 <div className="industry-name">{p.name}</div>
                 <div className="industry-desc">{p.description}</div>
-                {industryKey === p.key && <span className="industry-selected-tag">已选择</span>}
+                {industryKey === p.key && <span className="industry-selected-tag">{t('admin.create.selected_tag')}</span>}
               </button>
             ))}
           </div>
           <div className="preview-box">
-            <strong>行业方案包预览</strong>
+            <strong>{t('admin.create.pack_preview')}</strong>
             <p>{currentPack?.preview}</p>
           </div>
         </div>
@@ -151,7 +150,7 @@ export default function CreationWizardPage() {
 
       {step === 2 && (
         <div className="card">
-          <h3 style={{ marginBottom: 12 }}>② 选择场景（已选 {selected.size} 项）</h3>
+          <h3 style={{ marginBottom: 12 }}>{t('admin.create.step2.title', { n: selected.size })}</h3>
           <div className="scenario-check-grid">
             {scenarios.map((s) => (
               <label key={s.id} className={`scenario-check${selected.has(s.id) ? ' checked' : ''}`}>
@@ -169,43 +168,43 @@ export default function CreationWizardPage() {
 
       {step === 3 && (
         <div className="card">
-          <h3 style={{ marginBottom: 12 }}>③ 方案研判</h3>
+          <h3 style={{ marginBottom: 12 }}>{t('admin.create.step3.title')}</h3>
           {feasibility ? (
             <div className="feasibility-result">
-              <div className="feas-score">{(feasibility.score as number) ?? 92} 分</div>
+              <div className="feas-score">{t('admin.create.step3.score', { n: (feasibility.score as number) ?? 92 })}</div>
               <p>{feasibility.summary as string}</p>
               <div style={{ marginTop: 10, fontSize: 12, color: 'var(--muted)' }}>
-                将包含：{(feasibility.capabilities as string[])?.join('、')}
+                {t('admin.create.step3.includes', { list: (feasibility.capabilities as string[])?.join('、') ?? '' })}
               </div>
             </div>
           ) : (
-            <p style={{ color: 'var(--muted)' }}>正在评估方案…</p>
+            <p style={{ color: 'var(--muted)' }}>{t('admin.create.step3.evaluating')}</p>
           )}
         </div>
       )}
 
       {step === 4 && (
         <div className="card">
-          <h3 style={{ marginBottom: 12 }}>④ 应用命名</h3>
-          <label style={{ fontSize: 12, fontWeight: 600 }}>应用名称</label>
+          <h3 style={{ marginBottom: 12 }}>{t('admin.create.step4.title')}</h3>
+          <label style={{ fontSize: 12, fontWeight: 600 }}>{t('admin.create.step4.field_name')}</label>
           <input
             className="search-input"
             style={{ display: 'block', marginTop: 6, width: '100%' }}
             value={appName}
             onChange={(e) => setAppName(e.target.value)}
-            placeholder="例如：研发部智能助手"
+            placeholder={t('admin.create.step4.name_ph')}
           />
           <p style={{ marginTop: 10, fontSize: 12, color: 'var(--muted)' }}>
-            行业：{currentPack?.name} · 已选 {selected.size} 个场景
+            {t('admin.create.step4.summary', { industry: currentPack?.name ?? '', n: selected.size })}
           </p>
         </div>
       )}
 
       {step === 5 && (
         <div className="card">
-          <h3 style={{ marginBottom: 12 }}>⑤ 交付方式</h3>
+          <h3 style={{ marginBottom: 12 }}>{t('admin.create.step5.title')}</h3>
           <div className="industry-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))' }}>
-            {DELIVER_OPTIONS.map((d) => (
+            {deliverOptions.map((d) => (
               <button
                 key={d.key}
                 type="button"
@@ -222,14 +221,14 @@ export default function CreationWizardPage() {
 
       {step === 6 && (
         <div className="card">
-          <h3 style={{ marginBottom: 12 }}>⑥ 确认发布</h3>
+          <h3 style={{ marginBottom: 12 }}>{t('admin.create.step6.title')}</h3>
           <ul style={{ fontSize: 14, lineHeight: 1.8, paddingLeft: 20 }}>
-            <li>应用名称：<strong>{appName}</strong></li>
-            <li>行业方案：{currentPack?.name}</li>
-            <li>场景数量：{selected.size} 项</li>
-            <li>交付方式：{DELIVER_OPTIONS.find((d) => d.key === deliver)?.label}</li>
+            <li>{t('admin.create.step6.app_name')}<strong>{appName}</strong></li>
+            <li>{t('admin.create.step6.industry')}{currentPack?.name}</li>
+            <li>{t('admin.create.step6.scenes', { n: selected.size })}</li>
+            <li>{t('admin.create.step6.deliver')}{selectedDeliver?.label}</li>
             {feasibility && (
-              <li>方案评分：{(feasibility.score as number) ?? 92} 分</li>
+              <li>{t('admin.create.step6.score', { n: (feasibility.score as number) ?? 92 })}</li>
             )}
           </ul>
           {publishError && <p style={{ color: '#dc2626', fontSize: 13, marginTop: 8 }}>{publishError}</p>}
@@ -239,32 +238,32 @@ export default function CreationWizardPage() {
       {step === 7 && published && (
         <div className="card success-card">
           <div style={{ fontSize: 48, marginBottom: 12 }}>🎉</div>
-          <h3>⑦ 创建完成</h3>
+          <h3>{t('admin.create.step7.title')}</h3>
           <p style={{ margin: '8px 0' }}>
-            应用「{publishedApp?.name ?? appName}」已发布，可分享给团队使用
+            {t('admin.create.step7.published', { name: publishedApp?.name ?? appName })}
           </p>
           {webUrl && (
             <p style={{ fontSize: 12, marginTop: 8 }}>
-              访问链接：<a href={webUrl} target="_blank" rel="noreferrer">{webUrl}</a>
+              {t('admin.create.step7.link')}<a href={webUrl} target="_blank" rel="noreferrer">{webUrl}</a>
             </p>
           )}
           <p style={{ fontSize: 12, color: 'var(--muted)', marginTop: 8 }}>
-            runtime-web 与 Flutter 将按同一 schema/manifest 契约渲染
+            {t('admin.create.step7.manifest_hint')}
           </p>
         </div>
       )}
 
       <div className="wizard-actions">
         <button type="button" className="btn btn-ghost-dark" disabled={step === 1 || publishing} onClick={() => setStep((s) => s - 1)}>
-          上一步
+          {t('common.back')}
         </button>
         {step < 6 ? (
           <button type="button" className="btn btn-primary-dark" disabled={(step === 2 && selected.size === 0) || loading} onClick={handleNext}>
-            {loading ? '评估中…' : '下一步'}
+            {loading ? t('admin.create.evaluating') : t('admin.create.next')}
           </button>
         ) : step === 6 ? (
           <button type="button" className="btn btn-primary-dark" disabled={publishing || !appName.trim()} onClick={handleNext}>
-            {publishing ? '发布中…' : '确认发布'}
+            {publishing ? t('admin.create.publishing') : t('admin.create.confirm_publish')}
           </button>
         ) : (
           <button
@@ -276,7 +275,7 @@ export default function CreationWizardPage() {
               setFeasibility(null)
             }}
           >
-            再创建一个
+            {t('admin.create.create_another')}
           </button>
         )}
       </div>

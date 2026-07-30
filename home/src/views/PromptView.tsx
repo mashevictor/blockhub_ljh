@@ -11,6 +11,7 @@ import { runContactPublishPipeline } from '../lib/publishFlow'
 import { useT } from '@blockhub/i18n/react'
 import { useTheme } from '../context/ThemeContext'
 import { capabilityName } from '../i18n/capabilityLabels'
+import { localizePromptPickLabel } from '../i18n/pickLabels'
 import { formatSuggestSource, type SuggestSourceSpec } from '../i18n/suggestLabels'
 import {
   categoryColor,
@@ -428,8 +429,8 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
   }, [applyModuleToFilters])
 
   const composedFromModules = useMemo(
-    () => composeLogicalPrompt(promptModules),
-    [promptModules],
+    () => composeLogicalPrompt(promptModules, t),
+    [promptModules, t],
   )
 
   useEffect(() => {
@@ -462,19 +463,19 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
       setPrompt(mergePromptText(composedFromModules, ''))
       return
     }
-    const { suffix } = splitPromptText(value, promptModules)
+    const { suffix } = splitPromptText(value, promptModules, t)
     userSuffixRef.current = suffix
     skipSyncRef.current = true
     setPrompt(value)
-  }, [promptModules, composedFromModules, heroDemoActive, heroDemoTyping, exitHeroDemo, cancelHeroTypingDemo])
+  }, [promptModules, composedFromModules, heroDemoActive, heroDemoTyping, exitHeroDemo, cancelHeroTypingDemo, t])
 
   const userIntentText = useMemo(() => {
     const raw = prompt.replace(/^>>\s*/, '').trim()
     if (!raw) return ''
-    const { suffix, base } = splitPromptText(prompt, promptModules)
+    const { suffix, base } = splitPromptText(prompt, promptModules, t)
     const tail = suffix.trim() || (!base ? raw : '')
     return tail.replace(/^>>\s*/, '').trim()
-  }, [prompt, promptModules])
+  }, [prompt, promptModules, t])
 
   const canGenerate = promptModules.length > 0
     || prompt.replace(/^>>\s*$/, '').trim().length >= 2
@@ -750,7 +751,7 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
     if (debouncedIntent.trim().length < 2) return ''
     if (suggestValidation?.status === 'invalid' || suggestValidation?.status === 'unclear') return ''
     if (!hasStructuredPicks(previewPicks) && suggestValidation?.status !== 'valid') return ''
-    return enhanceSimplePrompt(debouncedIntent, previewPicks, suggestValidation)
+    return enhanceSimplePrompt(debouncedIntent, previewPicks, suggestValidation, t)
   }, [heroDemoActive, debouncedIntent, previewPicks, suggestValidation, t])
 
   const applyEnhancedPreview = useCallback(() => {
@@ -932,9 +933,10 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
       promptText: preset.prompt,
       scenarioIds,
       catalogNames,
+      t,
     })
     return runPublish(bundle, contact, appNameOverride)
-  }, [buildModulesFromPreset, catalogNames, runPublish])
+  }, [buildModulesFromPreset, catalogNames, runPublish, t])
 
   const resolvedBundle = useMemo(
     () => resolveAppBundle({
@@ -942,8 +944,9 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
       promptText: prompt,
       scenarioIds: [...selected],
       catalogNames,
+      t,
     }),
-    [promptModules, prompt, selected, catalogNames],
+    [promptModules, prompt, selected, catalogNames, t],
   )
 
   const defaultAppName = useMemo(
@@ -992,6 +995,7 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
             scenarioIds: [...selected],
             catalogNames,
             intentText: intent,
+            t,
           })
           markPhase('publish')
           return runPublish(bundle, contact, appNameOverride)
@@ -1000,7 +1004,7 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
     } finally {
       setContactBusy(false)
     }
-  }, [contactBusy, pendingPreset, executePresetGenerate, runPublish, handlePublishSuccess, userIntentText, prompt, promptModules, selected, catalogNames, defaultAppName])
+  }, [contactBusy, pendingPreset, executePresetGenerate, runPublish, handlePublishSuccess, userIntentText, prompt, promptModules, selected, catalogNames, defaultAppName, t])
 
   useEffect(() => {
     if (!roleApply) return
@@ -1065,10 +1069,7 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
       else if (m.type === 'capability') kind = 'capability'
       else if (m.type === 'module') kind = 'module'
       const boxId = m.type === 'industry' ? `ind-${m.key}` : m.type === 'office' ? `off-${m.key}` : m.id
-      const localizedName =
-        m.type === 'capability' || m.type === 'module'
-          ? capabilityName(t, m.key, m.label)
-          : m.label
+      const localizedName = localizePromptPickLabel(t, m.type, m.key, m.label)
       return {
         id: boxId,
         name: localizedName,

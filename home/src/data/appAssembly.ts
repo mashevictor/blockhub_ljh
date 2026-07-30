@@ -2,6 +2,12 @@ import type { AgentPick } from '../components/agentInputLogic'
 import { moduleId, pickToModule, type PromptModule } from '../components/agentInputLogic'
 import { MODULES, SCENES } from './constants'
 import { CAPABILITIES_SHOWCASE, INDUSTRIES_SHOWCASE, resolveIndustryApiKey } from './showcase'
+import {
+  localizePromptListJoin,
+  localizePromptPickLabel,
+  type TranslateFn,
+} from '../i18n/pickLabels'
+import { industryDesc } from '../i18n/industryLabels'
 
 /**
  * 可选底座能力（默认不再静默注入 —— 选型即交付）。
@@ -138,6 +144,8 @@ export interface ResolveOptions {
   skipBaseline?: boolean
   /** 纯文字描述时的场景/应用名摘要 */
   intentLabel?: string
+  /** UI 语言；传入后提示词 / 展示名按 locale 本地化 */
+  t?: TranslateFn
 }
 
 export function resolveAppBundle(opts: ResolveOptions): ResolvedAppBundle {
@@ -149,6 +157,7 @@ export function resolveAppBundle(opts: ResolveOptions): ResolvedAppBundle {
     suggestedModules = [],
     skipBaseline = true,
     intentLabel = '',
+    t,
   } = opts
 
   const userOrdered = userModules.map((m, i) => ({ ...m, order: i, source: m.source ?? 'user' as const }))
@@ -222,22 +231,25 @@ export function resolveAppBundle(opts: ResolveOptions): ResolvedAppBundle {
 
   const scenarioNames: string[] = []
   for (const m of [...userOrdered, ...suggestedOrdered]) {
-    if (m.type === 'scenario') scenarioNames.push(m.label)
+    if (m.type === 'scenario') scenarioNames.push(labelOf(m, t))
   }
   for (const id of scenarioIds) {
     const name = catalogNames.get(id)
-    if (name && !scenarioNames.includes(name)) scenarioNames.push(name)
+    if (!name) continue
+    const localized = t ? localizePromptPickLabel(t, 'scenario', id, name) : name
+    if (!scenarioNames.includes(localized)) scenarioNames.push(localized)
   }
   if (scenarioNames.length === 0 && intentLabel.trim()) {
     scenarioNames.push(intentLabel.trim().slice(0, 32))
   } else if (scenarioNames.length === 0) {
-    scenarioNames.push('自定义应用')
+    scenarioNames.push(t ? t('home.prompt.logical.custom_app') : '自定义应用')
   }
 
   const promptTextBuilt = buildPromptText(
     [...userOrdered, ...suggestedOrdered],
     autoModules,
     promptText,
+    t,
   )
 
   const appName = (() => {
@@ -246,19 +258,27 @@ export function resolveAppBundle(opts: ResolveOptions): ResolvedAppBundle {
     const funcs = userMods.filter((m) => m.type === 'module' || m.type === 'capability')
     const industry = userMods.find((m) => m.type === 'industry')
     const intentName = intentLabel.trim().replace(/[，。！？、,.!?；;：:\s]+/g, '').slice(0, 14)
+    const L = (m: PromptModule) => labelOf(m, t)
 
-    if (scenarios.length === 1) return scenarios[0].label
-    if (scenarios.length > 1) return `${scenarios[0].label}·${scenarios[1].label}`
-    if (funcs.length >= 2) return `${funcs[0].label}${funcs[1].label}`
-    if (funcs.length === 1 && industry) return `${industry.label}·${funcs[0].label}`
-    if (funcs.length === 1) return funcs[0].label
+    if (scenarios.length === 1) return L(scenarios[0])
+    if (scenarios.length > 1) return `${L(scenarios[0])}·${L(scenarios[1])}`
+    if (funcs.length >= 2) return `${L(funcs[0])}${L(funcs[1])}`
+    if (funcs.length === 1 && industry) return `${L(industry)}·${L(funcs[0])}`
+    if (funcs.length === 1) return L(funcs[0])
     if (intentName.length >= 2) return intentName
-    if (industry) return `${industry.label}助手`
+    if (industry) {
+      return t
+        ? t('home.prompt.logical.industry_assistant', { name: L(industry) })
+        : `${industry.label}助手`
+    }
     const sugScenario = suggestedOrdered.find((m) => m.type === 'scenario')
-    if (sugScenario) return sugScenario.label
+    if (sugScenario) return L(sugScenario)
     const sugFunc = suggestedOrdered.find((m) => m.type === 'module' || m.type === 'capability')
-    if (sugFunc) return sugFunc.label
-    return promptTextBuilt.slice(0, 16) || '积木仓演示页面'
+    if (sugFunc) return L(sugFunc)
+    return (
+      promptTextBuilt.slice(0, 16) ||
+      (t ? t('home.prompt.logical.demo_app') : '积木仓演示页面')
+    )
   })()
 
   return {
@@ -273,17 +293,26 @@ export function resolveAppBundle(opts: ResolveOptions): ResolvedAppBundle {
   }
 }
 
-function groupLabel(type: PromptModule['type']): string {
-  if (type === 'industry') return '（行业）'
-  if (type === 'office') return '（办公分类）'
-  if (type === 'scenario') return '（场景）'
-  if (type === 'capability') return '（能力）'
-  if (type === 'module') return '（模块）'
-  return ''
+function groupLabel(type: PromptModule['type'], t?: TranslateFn): string {
+  if (!t) {
+    if (type === 'industry') return '（行业）'
+    if (type === 'office') return '（办公分类）'
+    if (type === 'scenario') return '（场景）'
+    if (type === 'capability') return '（能力）'
+    if (type === 'module') return '（模块）'
+    return ''
+  }
+  const key = `home.prompt.logical.type.${type}`
+  const text = t(key)
+  return text === key ? '' : text
+}
+
+function labelOf(m: PromptModule, t?: TranslateFn): string {
+  return t ? localizePromptPickLabel(t, m.type, m.key, m.label) : m.label
 }
 
 /** 根据已选模块生成输入框内的逻辑描述（实时展示） */
-export function composeLogicalPrompt(modules: PromptModule[]): string {
+export function composeLogicalPrompt(modules: PromptModule[], t?: TranslateFn): string {
   const user = modules.filter((m) => m.source !== 'auto')
   if (!user.length) return ''
 
@@ -292,44 +321,78 @@ export function composeLogicalPrompt(modules: PromptModule[]): string {
   const scenarios = user.filter((m) => m.type === 'scenario')
   const caps = user.filter((m) => m.type === 'capability')
   const mods = user.filter((m) => m.type === 'module')
+  const join = (items: string[]) => (t ? localizePromptListJoin(t, items) : items.join('、'))
 
   const lines: string[] = []
 
   if (industries.length === 1) {
     const ind = INDUSTRIES_SHOWCASE.find((i) => i.key === industries[0].key)
-    lines.push(`我们是「${industries[0].label}」行业${ind ? `，${ind.desc}` : ''}。`)
+    const name = labelOf(industries[0], t)
+    const descRaw = ind
+      ? t
+        ? industryDesc(t, industries[0].key, ind.desc)
+        : ind.desc
+      : ''
+    if (t) {
+      const descPart = descRaw
+        ? t('home.prompt.logical.industry_desc_suffix', { desc: descRaw })
+        : ''
+      lines.push(t('home.prompt.logical.industry_one', { name, desc: descPart }))
+    } else {
+      lines.push(`我们是「${name}」行业${descRaw ? `，${descRaw}` : ''}。`)
+    }
   } else if (industries.length > 1) {
-    lines.push(
-      `我们涉及 ${industries.length} 个行业：${industries.map((i) => i.label).join('、')}，需要一套可跨行业复用的智能应用。`,
-    )
+    const list = join(industries.map((i) => labelOf(i, t)))
+    if (t) {
+      lines.push(t('home.prompt.logical.industry_many', { n: industries.length, list }))
+    } else {
+      lines.push(`我们涉及 ${industries.length} 个行业：${list}，需要一套可跨行业复用的智能应用。`)
+    }
+  } else if (t) {
+    lines.push(t('home.prompt.logical.generic'))
   } else {
     lines.push('需要搭建一套企业智能应用。')
   }
 
   if (offices.length > 0) {
-    lines.push(`办公侧重点关注：${offices.map((o) => o.label).join('、')}。`)
+    const list = join(offices.map((o) => labelOf(o, t)))
+    lines.push(t ? t('home.prompt.logical.offices', { list }) : `办公侧重点关注：${list}。`)
   }
 
   if (scenarios.length > 0) {
-    lines.push(`核心业务场景：${scenarios.map((s) => s.label).join('、')}。`)
+    const list = join(scenarios.map((s) => labelOf(s, t)))
+    lines.push(t ? t('home.prompt.logical.scenarios', { list }) : `核心业务场景：${list}。`)
   }
 
   const funcs = [...caps, ...mods]
   if (funcs.length > 0) {
-    lines.push(`必备能力模块：${funcs.map((f) => f.label).join('、')}。`)
+    const list = join(funcs.map((f) => labelOf(f, t)))
+    lines.push(t ? t('home.prompt.logical.modules', { list }) : `必备能力模块：${list}。`)
   }
 
   if (industries.length > 0 && scenarios.length === 0 && funcs.length === 0) {
-    lines.push('请基于上述行业视角，组合典型场景，生成可直接使用的应用。')
+    lines.push(
+      t
+        ? t('home.prompt.logical.industry_only')
+        : '请基于上述行业视角，组合典型场景，生成可直接使用的应用。',
+    )
   } else {
-    lines.push('请按以上组合生成网页和手机都能用的应用，打开即可使用。')
+    lines.push(
+      t
+        ? t('home.prompt.logical.closing')
+        : '请按以上组合生成网页和手机都能用的应用，打开即可使用。',
+    )
   }
 
   return lines.join('\n')
 }
 
-export function splitPromptText(full: string, modules: PromptModule[]): { base: string; suffix: string } {
-  const base = composeLogicalPrompt(modules)
+export function splitPromptText(
+  full: string,
+  modules: PromptModule[],
+  t?: TranslateFn,
+): { base: string; suffix: string } {
+  const base = composeLogicalPrompt(modules, t)
   if (!base) return { base: '', suffix: full.trim().replace(/^>>$/, '').trim() }
   if (full.startsWith(base)) {
     return { base, suffix: full.slice(base.length).replace(/^\n+/, '').trim() }
@@ -347,29 +410,41 @@ function buildPromptText(
   userModules: PromptModule[],
   autoModules: PromptModule[],
   raw: string,
+  t?: TranslateFn,
 ): string {
-  const { suffix } = splitPromptText(raw, userModules)
-  const logical = composeLogicalPrompt(userModules)
+  const { suffix } = splitPromptText(raw, userModules, t)
+  const logical = composeLogicalPrompt(userModules, t)
   const body = mergePromptText(logical, suffix)
+  const join = (items: string[]) => (t ? localizePromptListJoin(t, items) : items.join('、'))
 
   if (body.trim()) {
     if (autoModules.length === 0) return body
-    return `${body}\n\n（系统已自动补齐：${autoModules.map((m) => m.label).join('、')}）`
+    const list = join(autoModules.map((m) => labelOf(m, t)))
+    return t
+      ? `${body}${t('home.prompt.logical.auto_fill', { list })}`
+      : `${body}\n\n（系统已自动补齐：${list}）`
   }
 
   if (userModules.length === 0 && autoModules.length > 0) {
-    return `生成标准企业应用，系统自动包含：${autoModules.map((m) => m.label).join('、')}。`
+    const list = join(autoModules.map((m) => labelOf(m, t)))
+    return t
+      ? t('home.prompt.logical.auto_only', { list })
+      : `生成标准企业应用，系统自动包含：${list}。`
   }
 
-  const lines: string[] = ['需要搭建一套企业智能应用，按优先级包含：']
+  const lines: string[] = [
+    t ? t('home.prompt.logical.priority_header') : '需要搭建一套企业智能应用，按优先级包含：',
+  ]
   userModules.forEach((m, i) => {
-    lines.push(`${i + 1}. ${m.label}${groupLabel(m.type)}`)
+    lines.push(`${i + 1}. ${labelOf(m, t)}${groupLabel(m.type, t)}`)
   })
   if (autoModules.length) {
-    lines.push('\n系统自动补齐基础能力：')
-    lines.push(autoModules.map((m) => m.label).join('、'))
+    lines.push(t ? t('home.prompt.logical.auto_header') : '\n系统自动补齐基础能力：')
+    lines.push(join(autoModules.map((m) => labelOf(m, t))))
   }
-  lines.push('\n请组合为可发布的网页/App 双端应用。')
+  lines.push(
+    t ? t('home.prompt.logical.closing_publish') : '\n请组合为可发布的网页/App 双端应用。',
+  )
   return lines.join('\n')
 }
 

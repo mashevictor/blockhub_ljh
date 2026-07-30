@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
+import { useT } from '@blockhub/i18n/react'
 import { fetchCodegenJob } from '../api/client'
 
 export type CodegenPhase = 'idle' | 'pending' | 'running' | 'ready' | 'failed'
 
 /** 轮询 AI 页面生成任务 */
 export function useCodegenProgress(jobId?: string | null) {
+  const t = useT()
   const [status, setStatus] = useState<CodegenPhase>('idle')
   const [detail, setDetail] = useState('')
   const [routes, setRoutes] = useState<string[]>([])
@@ -19,7 +21,7 @@ export function useCodegenProgress(jobId?: string | null) {
     let cancelled = false
     let ticks = 0
     setStatus('pending')
-    setDetail('AI 页面生成排队中…')
+    setDetail(t('home.publish.codegen.queued'))
 
     const tick = async () => {
       try {
@@ -29,19 +31,19 @@ export function useCodegenProgress(jobId?: string | null) {
         setStatus(st === 'pending' || st === 'running' || st === 'ready' || st === 'failed' ? st : 'pending')
         if (st === 'ready') {
           setDetail(
-            `已生成 ${job.result?.page_count ?? 0} 个预览页` +
-              (job.result?.llm ? '（大模型）' : '（规则兜底）'),
+            t('home.publish.codegen.pages_done', { n: job.result?.page_count ?? 0 }) +
+              (job.result?.llm ? t('home.publish.codegen.via_llm') : t('home.publish.codegen.via_rules')),
           )
           setRoutes(job.result?.routes ?? [])
           return true
         }
         if (st === 'failed') {
-          setDetail(job.error || 'AI 生成失败')
+          setDetail(job.error || t('home.publish.codegen.failed_detail'))
           return true
         }
-        setDetail(st === 'running' ? '大模型正在生成页面…' : 'AI 页面生成排队中…')
+        setDetail(st === 'running' ? t('home.publish.codegen.running') : t('home.publish.codegen.queued'))
       } catch {
-        if (!cancelled) setDetail('查询生成状态失败，稍后重试')
+        if (!cancelled) setDetail(t('home.publish.codegen.poll_error'))
       }
       return false
     }
@@ -62,7 +64,7 @@ export function useCodegenProgress(jobId?: string | null) {
       cancelled = true
       window.clearInterval(timer)
     }
-  }, [jobId])
+  }, [jobId, t])
 
   return { status, detail, routes }
 }

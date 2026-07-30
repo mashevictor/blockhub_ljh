@@ -1,8 +1,13 @@
 import axios from 'axios'
 import { readStoredLocale } from '@blockhub/i18n'
 import { getToken, clearToken, redirectToLogin } from '../auth/storage'
+import { homeT, type HomeTranslateFn } from '../i18n/homeT'
 
 export const api = axios.create({ baseURL: '/api/v1', timeout: 20000 })
+
+function clientUi(zh: string, en: string): string {
+  return readStoredLocale() === 'en-US' ? en : zh
+}
 
 api.interceptors.request.use((config) => {
   const token = getToken()
@@ -332,7 +337,7 @@ export async function publishApp(
     const { adminLoginUrlWithReturn } = await import('../data/brand')
     const ret = `${window.location.pathname}${window.location.search}${window.location.hash}`
     window.location.href = adminLoginUrlWithReturn(ret || '/')
-    throw new Error('请先登录后再发布应用')
+    throw new Error(clientUi('请先登录后再发布应用', 'Sign in before publishing an app'))
   }
   try {
     const res = await api.post<{
@@ -433,7 +438,7 @@ export async function publishAppToPlaza(appId: string, visibility: string, deptN
   if (!getToken()) {
     const { adminLoginUrlWithReturn } = await import('../data/brand')
     window.location.href = adminLoginUrlWithReturn('/plaza/my')
-    throw new Error('请先登录后再发布到广场')
+    throw new Error(clientUi('请先登录后再发布到广场', 'Sign in before publishing to the plaza'))
   }
   const res = await api.post<{
     success: boolean
@@ -470,7 +475,7 @@ export async function togglePlazaFeedLike(appId: string) {
   return res.data
 }
 
-export async function postPlazaFeedComment(appId: string, text: string, authorName = '访客') {
+export async function postPlazaFeedComment(appId: string, text: string, authorName = clientUi('访客', 'Guest')) {
   const res = await api.post<{ id: string; author: string; text: string; likes: number; comments: number }>(
     `/creation/plaza/feed/${appId}/comment`,
     { author_name: authorName, text },
@@ -663,19 +668,26 @@ export async function checkFeasibility(industryKey: string, scenarioIds: string[
   return res.data
 }
 
+function catalogTr(t: HomeTranslateFn | undefined, key: string, vars?: Record<string, string | number>): string {
+  const full = key.startsWith('home.') ? key : `home.${key}`
+  return t ? t(full, vars) : homeT(full, vars)
+}
+
 /** 根据选中场景合成输入框文案 */
 export function composePromptFromCatalog(
   selectedIds: string[],
   items: CatalogScenario[],
   industry?: { name: string; desc: string },
+  t?: HomeTranslateFn,
 ): string {
   const picked = items.filter((s) => selectedIds.includes(s.id))
+  const sep = catalogTr(t, 'prompt.logical.sep')
   const intro = industry
-    ? `我们是「${industry.name}」行业，${industry.desc}。\n\n需要搭建一套企业智能应用，包含以下场景：`
-    : '我需要搭建一套企业智能应用，包含以下场景：'
+    ? catalogTr(t, 'catalog.compose.industry_intro', { name: industry.name, desc: industry.desc })
+    : catalogTr(t, 'catalog.compose.generic_intro')
 
   if (!selectedIds.length) {
-    return industry ? `${intro}\n\n（请在下方点选具体场景，描述会自动补全）` : ''
+    return industry ? `${intro}${catalogTr(t, 'catalog.compose.pick_hint')}` : ''
   }
   if (!picked.length) return intro
 
@@ -684,13 +696,13 @@ export function composePromptFromCatalog(
     return acc
   }, {})
   const lines = Object.entries(byCat).map(([cat, list]) => {
-    const sceneText = list.map((s) => s.name).join('、')
-    return `\n【${cat}】${sceneText}`
+    const sceneText = list.map((s) => s.name).join(sep)
+    return catalogTr(t, 'catalog.compose.category_line', { cat, scenes: sceneText })
   })
   const hasExternal = picked.some(
     (s) => s.kind === 'industry' && (s.pack_key === 'med' || s.pack_key === 'game'),
   )
-  const footer = `\n\n系统将自动组合所需功能并生成网页版${hasExternal ? '，如需对外服务可同时生成对外轻量版' : ''}。`
+  const footer = catalogTr(t, hasExternal ? 'catalog.compose.footer_external' : 'catalog.compose.footer')
   return intro + lines.join('') + footer
 }
 
@@ -700,40 +712,51 @@ export function composeFullPrompt(opts: {
   officeCats: string[]
   selectedIds: string[]
   items: CatalogScenario[]
+  t?: HomeTranslateFn
 }): string {
-  const { industries, officeCats, selectedIds, items } = opts
+  const { industries, officeCats, selectedIds, items, t } = opts
   const lines: string[] = []
+  const sep = catalogTr(t, 'prompt.logical.sep')
 
   if (industries.length === 1) {
-    lines.push(`我们是「${industries[0].name}」行业，${industries[0].desc}。`)
+    lines.push(catalogTr(t, 'prompt.logical.industry_one', {
+      name: industries[0].name,
+      desc: catalogTr(t, 'prompt.logical.industry_desc_suffix', { desc: industries[0].desc }),
+    }))
   } else if (industries.length > 1) {
-    lines.push(`我们涉及 ${industries.length} 个行业：${industries.map((i) => i.name).join('、')}。`)
+    lines.push(catalogTr(t, 'catalog.compose.industry_many', {
+      n: industries.length,
+      list: industries.map((i) => i.name).join(sep),
+    }))
     for (const ind of industries) {
-      lines.push(`· ${ind.name}：${ind.desc}`)
+      lines.push(catalogTr(t, 'catalog.compose.industry_bullet', { name: ind.name, desc: ind.desc }))
     }
   }
 
   if (officeCats.length > 0) {
-    lines.push(`\n重点关注办公领域：${officeCats.join('、')}。`)
+    lines.push(catalogTr(t, 'catalog.compose.office_focus', { list: officeCats.join(sep) }))
   }
 
   const picked = items.filter((s) => selectedIds.includes(s.id))
 
   if (selectedIds.length > 0 && picked.length > 0) {
-    lines.push('\n需要搭建一套企业智能应用，包含以下场景：')
+    lines.push(catalogTr(t, 'catalog.compose.scenarios_header'))
     const byCat = picked.reduce<Record<string, CatalogScenario[]>>((acc, s) => {
       (acc[s.category] ??= []).push(s)
       return acc
     }, {})
     for (const [cat, list] of Object.entries(byCat)) {
-      lines.push(`\n【${cat}】${list.map((s) => s.name).join('、')}`)
+      lines.push(catalogTr(t, 'catalog.compose.category_line', {
+        cat,
+        scenes: list.map((s) => s.name).join(sep),
+      }))
     }
     const hasExternal = picked.some(
       (s) => s.kind === 'industry' && (s.pack_key === 'med' || s.pack_key === 'game'),
     )
-    lines.push(`\n系统将自动组合所需功能并生成网页版${hasExternal ? '，如需对外服务可同时生成对外轻量版' : ''}。`)
+    lines.push(catalogTr(t, hasExternal ? 'catalog.compose.footer_external' : 'catalog.compose.footer'))
   } else if (industries.length > 0 || officeCats.length > 0) {
-    lines.push('\n（请在下方勾选具体场景，描述会自动补全）')
+    lines.push(catalogTr(t, 'catalog.compose.check_hint'))
   }
 
   return lines.join('')
@@ -744,6 +767,7 @@ export interface DemoBookingPayload {
   salutation?: string
   company_name?: string
   source?: string
+  locale?: string
 }
 
 export interface DemoBookingDelivery {
@@ -842,7 +866,9 @@ export async function submitDemoBookingWithFallback(payload: DemoBookingPayload)
   }
 }
 
-export async function fetchSharePack(token: string): Promise<SharePack> {
-  const res = await api.get<SharePack>(`/share/${encodeURIComponent(token)}`)
+export async function fetchSharePack(token: string, locale?: string): Promise<SharePack> {
+  const res = await api.get<SharePack>(`/share/${encodeURIComponent(token)}`, {
+    params: locale ? { locale } : undefined,
+  })
   return res.data
 }

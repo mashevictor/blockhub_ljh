@@ -8,7 +8,7 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import { useT } from '@blockhub/i18n/react'
+import { useT, useI18n } from '@blockhub/i18n/react'
 import { submitDemoBookingWithFallback, type DemoBookingDelivery } from '../api/client'
 import { scrollToHomeSection } from '../hooks/useHomeActiveSection'
 import { useAgentPageContext } from './AgentPageContext'
@@ -50,17 +50,22 @@ interface Value {
 
 const DemoBookingContext = createContext<Value | null>(null)
 
-function toPayload(values: Partial<Record<BookingFieldKey, string>>) {
+function toPayload(
+  values: Partial<Record<BookingFieldKey, string>>,
+  locale: string,
+) {
   return {
     contact: values.contact?.trim() ?? '',
     salutation: values.salutation?.trim() ?? '',
     company_name: values.company?.trim() ?? '',
     source: 'home',
+    locale,
   }
 }
 
 export function DemoBookingProvider({ children }: { children: ReactNode }) {
   const t = useT()
+  const { locale } = useI18n()
   const [values, setValues] = useState<Partial<Record<BookingFieldKey, string>>>({})
   const [stepIndex, setStepIndex] = useState(0)
   const [submitted, setSubmitted] = useState(false)
@@ -116,7 +121,7 @@ export function DemoBookingProvider({ children }: { children: ReactNode }) {
       setFieldError(null)
       setSubmitting(true)
       try {
-        const result = await submitDemoBookingWithFallback(toPayload(nextValues))
+        const result = await submitDemoBookingWithFallback(toPayload(nextValues, locale))
         setDelivery(result)
         scrollToHomeSection('contact-demo')
       } catch {
@@ -126,7 +131,7 @@ export function DemoBookingProvider({ children }: { children: ReactNode }) {
         setSubmitting(false)
       }
     },
-    [t],
+    [t, locale],
   )
 
   const retrySubmit = useCallback(async () => {
@@ -134,14 +139,14 @@ export function DemoBookingProvider({ children }: { children: ReactNode }) {
     setSubmitting(true)
     setFieldError(null)
     try {
-      const result = await submitDemoBookingWithFallback(toPayload(values))
+      const result = await submitDemoBookingWithFallback(toPayload(values, locale))
       setDelivery(result)
     } catch {
       setFieldError(t('home.booking.save_fail'))
     } finally {
       setSubmitting(false)
     }
-  }, [submitted, submitting, values, t])
+  }, [submitted, submitting, values, t, locale])
 
   const advanceAfterField = useCallback(
     (field: (typeof BOOKING_FIELDS)[number], value: string) => {

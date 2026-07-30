@@ -101,19 +101,21 @@ export default function ChatPage() {
   }
 
   const sourceLabel = (s?: string) => {
-    if (s === 'llm') return '智能生成'
-    if (s === 'kb') return '知识库检索'
-    if (s === 'mock') return '演示模式'
+    if (s === 'llm') return t('admin.chat.source.llm')
+    if (s === 'kb') return t('admin.chat.source.kb')
+    if (s === 'mock') return t('admin.chat.source.mock')
     return s ?? ''
   }
+
+  const modelLabel = (m: string) => (m === 'doubao-seed-2-0-mini' ? t('admin.chat.model.standard') : m)
 
   return (
     <div className="chat-layout">
       <aside className="chat-sidebar">
         <button type="button" className="btn btn-primary-dark" style={{ width: '100%', marginBottom: 12 }}>
-          + 新对话
+          {t('admin.chat.new_conversation')}
         </button>
-        <div className="chat-sidebar-item active">默认会话</div>
+        <div className="chat-sidebar-item active">{t('admin.chat.default_session')}</div>
         <label className="chat-rag-toggle">
           <input
             type="checkbox"
@@ -121,7 +123,7 @@ export default function ChatPage() {
             onChange={(e) => setUseRag(e.target.checked)}
             disabled={!config?.rag_available}
           />
-          <span>结合知识库（RAG）</span>
+          <span>{t('admin.chat.rag_toggle')}</span>
         </label>
         {useRag && kbOptions.length > 0 && (
           <select
@@ -129,7 +131,7 @@ export default function ChatPage() {
             style={{ width: '100%', marginTop: 8 }}
             value={kbId}
             onChange={(e) => setKbId(e.target.value)}
-            aria-label="知识库范围"
+            aria-label={t('admin.chat.kb_scope_aria')}
           >
             {kbOptions.map((kb) => (
               <option key={kb.id} value={kb.id}>{kb.name}</option>
@@ -138,8 +140,8 @@ export default function ChatPage() {
         )}
         {config && (
           <p className="chat-sidebar-meta">
-            {config.llm_configured ? '对话模型已连接' : '演示模式'}
-            {config.embedding_configured ? ' · 向量检索已启用' : ' · 关键词检索'}
+            {config.llm_configured ? t('admin.chat.llm_connected') : t('admin.chat.demo_mode')}
+            {config.embedding_configured ? t('admin.chat.vector_search') : t('admin.chat.keyword_search')}
             {streamSource && ` · ${sourceLabel(streamSource)}`}
           </p>
         )}
@@ -149,11 +151,11 @@ export default function ChatPage() {
         <div className="chat-header">
           <div>
             <h2>{config?.title ?? t('admin.page.chat.title')}</h2>
-            <p>{config?.description ?? '基于企业知识库的多轮对话'}</p>
+            <p>{config?.description ?? t('admin.chat.default_desc')}</p>
           </div>
-          <select className="model-select" value={model} onChange={(e) => setModel(e.target.value)} aria-label="对话模型">
-            {(config?.models ?? ['标准模式']).map((m) => (
-              <option key={m} value={m}>{m === 'doubao-seed-2-0-mini' ? '标准模式' : m}</option>
+          <select className="model-select" value={model} onChange={(e) => setModel(e.target.value)} aria-label={t('admin.chat.model_aria')}>
+            {(config?.models ?? [t('admin.chat.model.standard')]).map((m) => (
+              <option key={m} value={m}>{modelLabel(m)}</option>
             ))}
           </select>
         </div>
@@ -161,8 +163,8 @@ export default function ChatPage() {
         <div className="chat-messages">
           {messages.length === 0 && (
             <div className="chat-welcome">
-              <h3>有什么可以帮您？</h3>
-              <p>可询问公司制度、操作指引等；开启 RAG 后将引用已上传文档</p>
+              <h3>{t('admin.chat.welcome.title')}</h3>
+              <p>{t('admin.chat.welcome.lead')}</p>
               <div className="chat-suggestions">
                 {(config?.suggestions ?? []).map((s) => (
                   <button key={s} type="button" className="suggestion-chip" onClick={() => void handleSend(s)}>
@@ -179,7 +181,7 @@ export default function ChatPage() {
               </div>
               {m.role === 'assistant' && m.citations && m.citations.length > 0 && (
                 <div className="chat-citations">
-                  <strong>引用来源</strong>
+                  <strong>{t('admin.chat.citations.title')}</strong>
                   <ul>
                     {m.citations.map((c) => (
                       <li key={`${c.document_id}-${c.chunk_index}`}>
@@ -195,7 +197,7 @@ export default function ChatPage() {
           ))}
           {liveCitations && liveCitations.length > 0 && loading && (
             <div className="chat-citations chat-citations-live">
-              <strong>检索到 {liveCitations.length} 条片段…</strong>
+              <strong>{t('admin.chat.citations.live', { n: liveCitations.length })}</strong>
             </div>
           )}
           <div ref={bottomRef} />
@@ -204,17 +206,17 @@ export default function ChatPage() {
         <div className="chat-input-bar">
           <input
             className="chat-input"
-            placeholder="输入您的问题…"
+            placeholder={t('admin.chat.input_ph')}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && void handleSend()}
             disabled={loading}
           />
           <button type="button" className="btn btn-primary-dark" onClick={() => void handleSend()} disabled={loading}>
-            {loading ? '生成中…' : '发送'}
+            {loading ? t('admin.chat.generating') : t('admin.chat.send')}
           </button>
         </div>
-        <p className="chat-disclaimer">回答由 AI 生成，重要事项请以正式制度文件为准</p>
+        <p className="chat-disclaimer">{t('admin.chat.disclaimer')}</p>
       </div>
     </div>
   )

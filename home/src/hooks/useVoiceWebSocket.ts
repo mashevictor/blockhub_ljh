@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useT } from '@blockhub/i18n/react'
 import { api } from '../api/client'
 import { MicCapture, PcmPlayer } from '../lib/audioPcm'
 
@@ -27,6 +28,7 @@ function resolveWsUrl(configUrl: string): string {
 }
 
 export function useVoiceWebSocket(sessionId: string) {
+  const t = useT()
   const [state, setState] = useState<VoiceSessionState>('disconnected')
   const [partialText, setPartialText] = useState('')
   const [messages, setMessages] = useState<VoiceMessage[]>([])
@@ -72,7 +74,7 @@ export function useVoiceWebSocket(sessionId: string) {
     try {
       const res = await api.get<VoiceWsConfig & { configured: boolean }>('/voice/config')
       if (!res.data.configured) {
-        throw new Error('电信语音服务未配置')
+        throw new Error(t('home.voice.err.not_configured'))
       }
       configRef.current = res.data
       const url = `${resolveWsUrl(res.data.ws_url)}?session_id=${encodeURIComponent(sessionId)}`
@@ -109,14 +111,14 @@ export function useVoiceWebSocket(sessionId: string) {
           void playerRef.current?.resume()
           playerRef.current?.enqueueBase64Pcm(String(msg.data || ''), configRef.current?.playback_sample_rate)
         } else if (type === 'error') {
-          const message = String(msg.message || '语音会话错误')
+          const message = String(msg.message || t('home.voice.err.session'))
           setError(message)
           setState('error')
         }
       }
 
       ws.onerror = () => {
-        setError('WebSocket 连接失败')
+        setError(t('home.voice.err.ws'))
         setState('error')
       }
 
@@ -126,10 +128,10 @@ export function useVoiceWebSocket(sessionId: string) {
         setState('disconnected')
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : '连接失败')
+      setError(e instanceof Error ? e.message : t('home.voice.err.connect'))
       setState('error')
     }
-  }, [appendAssistantDelta, appendMessage, sessionId])
+  }, [appendAssistantDelta, appendMessage, sessionId, t])
 
   const sendText = useCallback(async (text: string, via: 'text' | 'simulate' = 'text') => {
     const trimmed = text.trim()
@@ -171,11 +173,11 @@ export function useVoiceWebSocket(sessionId: string) {
       setMicActive(false)
       setMicError(
         e instanceof Error
-          ? `麦克风不可用：${e.message}。可用下方文字输入，仍走真实 LLM + 上海话 TTS。`
-          : '麦克风不可用。请用文字输入继续。',
+          ? t('home.voice.err.mic_detail', { msg: e.message })
+          : t('home.voice.err.mic'),
       )
     }
-  }, [connect])
+  }, [connect, t])
 
   const stopMic = useCallback(() => {
     micRef.current?.stop()

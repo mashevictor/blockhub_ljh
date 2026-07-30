@@ -21,6 +21,10 @@ _LINK = "#1D4ED8"
 _ACCENT = "#0F172A"
 
 
+def _is_en(locale: str | None) -> bool:
+    return (locale or "").strip().lower().startswith("en")
+
+
 def _cta_button(href: str, label: str) -> str:
     return (
         '<table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:16px 0;">'
@@ -32,17 +36,18 @@ def _cta_button(href: str, label: str) -> str:
     )
 
 
-def _summary_block(summary: str) -> str:
+def _summary_block(summary: str, *, locale: str | None) -> str:
     lines = [ln.strip() for ln in summary.split("\n") if ln.strip()]
     body = "".join(
         f'<p style="margin:0 0 8px;font-size:14px;color:{_MUTED};line-height:1.65;">'
         f"{html.escape(ln)}</p>"
         for ln in lines
     )
+    head = "Forward summary for colleagues" if _is_en(locale) else "给同事的转发摘要"
     return (
         f'<div style="background:{_BG};border:1px solid {_BORDER};border-left:4px solid {_ACCENT};'
         f'border-radius:8px;padding:16px;margin:18px 0;">'
-        f'<p style="margin:0 0 10px;font-size:12px;font-weight:700;color:{_INK};">给同事的转发摘要</p>'
+        f'<p style="margin:0 0 10px;font-size:12px;font-weight:700;color:{_INK};">{head}</p>'
         f"{body}</div>"
     )
 
@@ -53,20 +58,62 @@ def build_booking_email_html(
     company_name: str,
     summary: str,
     share_url: str,
+    locale: str | None = None,
 ) -> str:
-    who = html.escape(salutation.strip() or "您好")
+    en = _is_en(locale)
+    who = html.escape(salutation.strip() or ("Hello" if en else "您好"))
     co = html.escape(company_name.strip())
-    co_line = f"（{co}）" if co else ""
+    if en:
+        co_line = f" ({co})" if co else ""
+        greeting = f"{who},"
+        body_lead = (
+            f"We received your demo booking{co_line}. "
+            f'<strong style="color:{_INK};">Within 24 hours</strong> an advisor will contact you.'
+        )
+        cta = "Open your exclusive demo pack"
+        link_label = "Link (valid for 30 days):"
+        pack_note = (
+            "The pack usually includes a one-pager, security & integration notes, customer cases, "
+            "and pricing / deployment guidance."
+        )
+        reply_note = "Reply to this email if you want to add requirements."
+        sign = "Best regards,<br /><span style=\"font-weight:700;color:{_INK};\">The BlockHub team</span>"
+        sign = sign.replace("{_INK}", _INK)
+        footer = "This email was sent automatically by BlockHub. blockhub.club"
+        title = "BlockHub · Demo booking confirmation"
+        preheader = "Demo booking received — your materials pack is ready. An advisor will contact you within 24 hours."
+        brand_sub = "Demo booking confirmation"
+        lang = "en"
+    else:
+        co_line = f"（{co}）" if co else ""
+        greeting = f"{who}，您好："
+        body_lead = (
+            f"我们已收到您的演示预约{co_line}。"
+            f'<strong style="color:{_INK};">24 小时内</strong>会有顾问与您联系。'
+        )
+        cta = "打开专属演示资料包"
+        link_label = "链接（30 天内有效）："
+        pack_note = "资料包通常包含：一页纸方案摘要、安全与对接说明、客户案例，以及价格与部署说明。"
+        reply_note = "如需补充需求，直接回复本邮件即可。"
+        sign = '祝好，<br /><span style="font-weight:700;color:{_INK};">积木仓团队</span>'.replace(
+            "{_INK}", _INK
+        )
+        footer = "此邮件由积木仓系统自动发送。blockhub.club"
+        title = "积木仓 · 演示预约确认"
+        preheader = "演示预约已收到，专属资料包已备好，24 小时内顾问将联系您。"
+        brand_sub = "演示预约确认"
+        lang = "zh-CN"
+
     safe_url = html.escape(share_url)
     return f"""<!DOCTYPE html>
-<html lang="zh-CN"><head>
+<html lang="{lang}"><head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>积木仓 · 演示预约确认</title>
+<title>{title}</title>
 </head>
 <body style="margin:0;padding:0;background-color:#F1F5F9;font-family:Arial,'PingFang SC','Microsoft YaHei',sans-serif;">
 <div style="display:none;max-height:0;overflow:hidden;mso-hide:all;opacity:0;">
-演示预约已收到，专属资料包已备好，24 小时内顾问将联系您。
+{preheader}
 </div>
 <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#F1F5F9;">
 <tr><td align="center" style="padding:28px 12px;">
@@ -76,37 +123,37 @@ def build_booking_email_html(
 <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
 <tr>
 <td style="font-size:18px;font-weight:700;color:#FFFFFF;">积木仓 BlockHub</td>
-<td align="right" style="font-size:12px;color:#94A3B8;">演示预约确认</td>
+<td align="right" style="font-size:12px;color:#94A3B8;">{brand_sub}</td>
 </tr>
 </table>
 </td>
 </tr>
 <tr>
 <td style="padding:24px 28px 8px;color:{_INK};">
-<p style="margin:0 0 12px;font-size:16px;font-weight:600;">{who}，您好：</p>
+<p style="margin:0 0 12px;font-size:16px;font-weight:600;">{greeting}</p>
 <p style="margin:0 0 8px;font-size:14px;color:{_MUTED};line-height:1.7;">
-我们已收到您的演示预约{co_line}。<strong style="color:{_INK};">24 小时内</strong>会有顾问与您联系。
+{body_lead}
 </p>
-{_summary_block(summary)}
-{_cta_button(share_url, "打开专属演示资料包")}
+{_summary_block(summary, locale=locale)}
+{_cta_button(share_url, cta)}
 <p style="margin:0 0 16px;font-size:12px;color:{_LABEL};word-break:break-all;line-height:1.5;">
-链接（30 天内有效）：<a href="{safe_url}" style="color:{_LINK};">{safe_url}</a>
+{link_label} <a href="{safe_url}" style="color:{_LINK};">{safe_url}</a>
 </p>
 <p style="margin:0 0 8px;font-size:13px;color:{_MUTED};line-height:1.7;">
-资料包通常包含：一页纸方案摘要、安全与对接说明、客户案例，以及价格与部署说明。
+{pack_note}
 </p>
 <p style="margin:0 0 4px;font-size:13px;color:{_MUTED};line-height:1.7;">
-如需补充需求，直接回复本邮件即可。
+{reply_note}
 </p>
 <p style="margin:18px 0 0;font-size:13px;color:{_LABEL};line-height:1.6;">
-祝好，<br /><span style="font-weight:700;color:{_INK};">积木仓团队</span>
+{sign}
 </p>
 </td>
 </tr>
 <tr>
 <td style="padding:18px 28px 22px;border-top:1px solid {_BORDER};background-color:{_BG};">
 <p style="margin:0;font-size:11px;color:#94A3B8;line-height:1.5;">
-此邮件由积木仓系统自动发送。blockhub.club
+{footer}
 </p>
 </td>
 </tr>
@@ -122,7 +169,22 @@ def build_booking_email_text(
     company_name: str,
     summary: str,
     share_url: str,
+    locale: str | None = None,
 ) -> str:
+    en = _is_en(locale)
+    if en:
+        who = salutation.strip() or "Hello"
+        co = f" ({company_name.strip()})" if company_name.strip() else ""
+        return (
+            f"{who},\n\n"
+            f"We received your demo booking{co}. An advisor will contact you within 24 hours.\n\n"
+            f"Forward summary:\n{summary}\n\n"
+            f"Exclusive pack: {share_url}\n"
+            f"(Valid for 30 days)\n\n"
+            f"Materials usually include a one-pager, security & integration notes, cases, and pricing guidance.\n"
+            f"Reply to this email to add requirements.\n\n"
+            f"The BlockHub team\nhttps://blockhub.club"
+        )
     who = salutation.strip() or "您好"
     co = f"（{company_name.strip()}）" if company_name.strip() else ""
     return (
@@ -144,22 +206,29 @@ def send_booking_delivery_email(
     company_name: str,
     summary: str,
     share_url: str,
+    locale: str | None = None,
 ) -> bool:
     if not smtp_configured():
         logger.warning("SMTP not configured — skip booking email to %s", to)
         return False
-    subject = "积木仓：演示预约已确认"
+    subject = (
+        "BlockHub: demo booking confirmed"
+        if _is_en(locale)
+        else "积木仓：演示预约已确认"
+    )
     text = build_booking_email_text(
         salutation=salutation,
         company_name=company_name,
         summary=summary,
         share_url=share_url,
+        locale=locale,
     )
     html_body = build_booking_email_html(
         salutation=salutation,
         company_name=company_name,
         summary=summary,
         share_url=share_url,
+        locale=locale,
     )
     return send_email(
         to,

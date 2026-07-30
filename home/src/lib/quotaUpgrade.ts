@@ -1,4 +1,5 @@
 import { ROUTES } from '../routes/paths'
+import { homeT } from '../i18n/homeT'
 
 /** 从 API 402 detail 提取可读文案 */
 export function quotaErrorMessage(err: unknown): string {
@@ -6,7 +7,7 @@ export function quotaErrorMessage(err: unknown): string {
     ?.detail
   if (typeof detail === 'string' && detail.trim()) return detail
   if (err instanceof Error && err.message) return err.message
-  return '当前套餐配额不足，请升级后重试'
+  return homeT('home.quota.insufficient')
 }
 
 export function isQuotaError(err: unknown): boolean {
@@ -32,12 +33,16 @@ export function handleQuotaOrThrow(err: unknown): never {
       msg.includes('审批') ||
       msg.includes('行业包') ||
       msg.includes('商用') ||
-      msg.includes('组织')
+      msg.includes('组织') ||
+      lower.includes('approval') ||
+      lower.includes('industry pack') ||
+      lower.includes('commercial') ||
+      lower.includes('organization')
     ) {
       plan = 'b_business'
     }
     window.setTimeout(() => {
-      const go = window.confirm(`${msg}\n\n是否前往升级套餐？`)
+      const go = window.confirm(`${msg}\n\n${homeT('home.quota.upgrade_confirm')}`)
       if (go) redirectToUpgrade(plan)
     }, 80)
     throw Object.assign(new Error(msg), { response: (err as { response?: unknown }).response })

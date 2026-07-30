@@ -1,6 +1,7 @@
 import { defaultFlowHint } from '../data/moduleCatalog'
 import { getToken } from '../auth/storage'
 import { patchRuntimeSchema } from '@capship/composer'
+import { homeT } from '../i18n/homeT'
 
 /** 单个模块在数据流中的节点 */
 export interface ModuleFlowStep {
@@ -18,19 +19,21 @@ export interface AppModuleFlow {
 
 const STORAGE_KEY = 'blockhub_plaza_module_flow'
 
-const DEFAULT_NOTES: Record<string, string> = {
-  智能问答: '接收用户提问 · 解析意图',
-  审批流: '生成工单 · 流转审批节点',
-  知识库: '检索 SOP / 制度文档',
-  待办中心: '汇总待办 · 推送提醒',
-  数据看板: '聚合指标 · 可视化输出',
-  智能问数: 'NL2SQL · 返回分析结果',
-  站内信: '通知相关人 · 状态同步',
-  企微钉钉: '推送 IM 消息',
+const NOTE_KEY_BY_LABEL: Record<string, string> = {
+  智能问答: 'home.plaza.flow.note.chat_qa',
+  审批流: 'home.plaza.flow.note.approval',
+  知识库: 'home.plaza.flow.note.kb',
+  待办中心: 'home.plaza.flow.note.todo',
+  数据看板: 'home.plaza.flow.note.dashboard',
+  智能问数: 'home.plaza.flow.note.nl_query',
+  站内信: 'home.plaza.flow.note.notify',
+  企微钉钉: 'home.plaza.flow.note.im',
 }
 
 function defaultNote(label: string): string {
-  return DEFAULT_NOTES[label] ?? defaultFlowHint(label)
+  const key = NOTE_KEY_BY_LABEL[label]
+  if (key) return homeT(key)
+  return defaultFlowHint(label)
 }
 
 export function buildDefaultFlow(appKey: string, moduleLabels: string[]): AppModuleFlow {
@@ -239,12 +242,22 @@ export const FLOW_EGRESS_ID = '__egress__'
 
 export function buildFlowApiNodeList(steps: ModuleFlowStep[]) {
   const nodes: Array<{ node_id: string; label: string; kind: string; note: string }> = [
-    { node_id: FLOW_INGRESS_ID, label: '业务输入', kind: 'ingress', note: '用户 / 业务请求进入' },
+    {
+      node_id: FLOW_INGRESS_ID,
+      label: homeT('home.plaza.flow.ingress_label'),
+      kind: 'ingress',
+      note: homeT('home.plaza.flow.ingress_note'),
+    },
   ]
   for (const s of steps) {
     nodes.push({ node_id: s.id, label: s.label, kind: 'module', note: s.note })
   }
-  nodes.push({ node_id: FLOW_EGRESS_ID, label: '触达输出', kind: 'egress', note: '团队可见' })
+  nodes.push({
+    node_id: FLOW_EGRESS_ID,
+    label: homeT('home.plaza.cmd.output'),
+    kind: 'egress',
+    note: homeT('home.plaza.flow.egress_note'),
+  })
   return nodes
 }
 

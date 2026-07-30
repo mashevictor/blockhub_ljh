@@ -55,7 +55,11 @@ export function localizeSolutions(t: TranslateFn, packKey: string, solutions: st
   return solutions.map((s, i) => solutionLabel(t, packKey, i, s))
 }
 
-export function localizeCaseStudy(t: TranslateFn, study: CaseStudy): CaseStudy {
+export function localizeCaseStudy(
+  t: TranslateFn,
+  study: CaseStudy,
+  locale = 'zh-CN',
+): CaseStudy {
   const slug = study.slug
   const prefix = `case.${slug}`
   return {
@@ -65,11 +69,14 @@ export function localizeCaseStudy(t: TranslateFn, study: CaseStudy): CaseStudy {
     tag: study.tag ? contentTr(t, `${prefix}.tag`, study.tag) : study.tag,
     summary: contentTr(t, `${prefix}.summary`, study.summary),
     pilotNote: contentTr(t, `${prefix}.pilot`, study.pilotNote),
+    onePagerPath: localizeDownloadPath(study.onePagerPath, locale),
     metrics: study.metrics.map((m, i) => ({
       value: contentTr(t, `${prefix}.metric.${i}.value`, m.value),
       label: contentTr(t, `${prefix}.metric.${i}.label`, m.label),
     })),
-    story: study.story.map((p, i) => contentTr(t, `${prefix}.story.${i}`, p)),
+    story: study.story.map((p, i) =>
+      localizePdfLinksInText(contentTr(t, `${prefix}.story.${i}`, p), locale),
+    ),
   }
 }
 
@@ -84,7 +91,7 @@ export function localizeNewsArticle(t: TranslateFn, article: NewsArticle): NewsA
   }
 }
 
-export function localizeRolePage(t: TranslateFn, role: RolePage): RolePage {
+export function localizeRolePage(t: TranslateFn, role: RolePage, locale = 'zh-CN'): RolePage {
   const k = role.key
   return {
     ...role,
@@ -95,6 +102,9 @@ export function localizeRolePage(t: TranslateFn, role: RolePage): RolePage {
     downloads: role.downloads.map((dl, i) => ({
       ...dl,
       title: contentTr(t, `role.${k}.dl.${i}`, dl.title),
+      path: dl.path.startsWith('/downloads/')
+        ? localizeDownloadPath(dl.path, locale)
+        : dl.path,
     })),
   }
 }

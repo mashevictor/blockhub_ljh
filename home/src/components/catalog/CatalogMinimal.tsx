@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useT } from '@blockhub/i18n/react'
 import { DynamicIcon } from '../icons'
 import { categoryColor, iconWrapStyle } from '../../data/iconPalette'
 import { resolveCategoryIcon } from '../../data/showcase'
@@ -39,6 +40,7 @@ export default function CatalogMinimal({
   loading,
   hasIntent,
 }: Props) {
+  const t = useT()
   const [open, setOpen] = useState(false)
 
   useEffect(() => {
@@ -70,7 +72,7 @@ export default function CatalogMinimal({
   })()
 
   return (
-    <section className="catalog-minimal" aria-label="选择模块">
+    <section className="catalog-minimal" aria-label={t('home.catalog.aria')}>
       {modules.length > 0 && (
         <div className="catalog-minimal-pills">
           {modules.map((m) => (
@@ -78,7 +80,7 @@ export default function CatalogMinimal({
               key={m.id}
               type="button"
               className="catalog-minimal-pill"
-              title={`移除 ${m.label}`}
+              title={t('home.catalog.remove', { name: m.label })}
               onClick={() => onRemoveModule(m.id)}
             >
               {m.label.length > 8 ? `${m.label.slice(0, 7)}…` : m.label}
@@ -90,27 +92,27 @@ export default function CatalogMinimal({
 
       {!open ? (
         <button type="button" className="catalog-minimal-trigger" onClick={() => setOpen(true)}>
-          {modules.length > 0 ? '继续选模块' : '+ 选模块'}
+          {modules.length > 0 ? t('home.catalog.continue_pick') : t('home.catalog.add')}
         </button>
       ) : (
         <div className="catalog-minimal-panel">
           <div className="catalog-minimal-panel-head">
             <input
               className="catalog-minimal-search"
-              placeholder="搜索场景…"
+              placeholder={t('home.catalog.search_ph')}
               value={search}
               onChange={(e) => onSearch(e.target.value)}
-              aria-label="搜索场景"
+              aria-label={t('home.catalog.search_aria')}
             />
-            <button type="button" className="catalog-minimal-close" onClick={() => setOpen(false)} aria-label="收起">
-              收起
+            <button type="button" className="catalog-minimal-close" onClick={() => setOpen(false)} aria-label={t('home.catalog.collapse')}>
+              {t('home.catalog.collapse')}
             </button>
           </div>
 
           {loading ? (
-            <p className="catalog-minimal-hint">加载中…</p>
+            <p className="catalog-minimal-hint">{t('home.catalog.loading')}</p>
           ) : displayItems.length === 0 ? (
-            <p className="catalog-minimal-hint">无匹配场景</p>
+            <p className="catalog-minimal-hint">{t('home.catalog.no_match')}</p>
           ) : (
             <div className="catalog-minimal-orbs">
               {displayItems.map((item) => {

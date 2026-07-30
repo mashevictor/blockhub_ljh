@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useT } from '@blockhub/i18n/react'
 import { getModuleCapability } from '../../data/moduleCatalog'
 import type { ModuleFlowStep } from '../../lib/plazaModuleFlow'
 
@@ -10,6 +11,7 @@ interface Props {
 }
 
 export default function ModuleReorderStrip({ steps, activeNodeId, onSelect, onReorder }: Props) {
+  const t = useT()
   const [dragIndex, setDragIndex] = useState<number | null>(null)
   const [overIndex, setOverIndex] = useState<number | null>(null)
   const overIndexRef = useRef<number | null>(null)
@@ -54,8 +56,8 @@ export default function ModuleReorderStrip({ steps, activeNodeId, onSelect, onRe
   return (
     <div className="plaza-mflow-reorder">
       <div className="plaza-mflow-reorder-head">
-        <strong>模块顺序</strong>
-        <span>按住左侧 <em>⠿</em> 拖动可调整顺序</span>
+        <strong>{t('home.plaza.mflow.reorder.title')}</strong>
+        <span>{t('home.plaza.mflow.reorder.hint')}</span>
       </div>
       <div className="plaza-mflow-reorder-track">
         {steps.map((step, index) => {
@@ -71,7 +73,7 @@ export default function ModuleReorderStrip({ steps, activeNodeId, onSelect, onRe
               <button
                 type="button"
                 className="plaza-mflow-reorder-grip"
-                aria-label={`拖动 ${step.label}`}
+                aria-label={t('home.plaza.mflow.reorder.drag', { label: step.label })}
                 onPointerDown={(e) => {
                   if (e.button !== 0) return
                   e.preventDefault()

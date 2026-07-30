@@ -1,5 +1,7 @@
 /** 腾讯云验证码（文字点选）客户端封装 */
 
+import { homeT } from '../i18n/homeT'
+
 const CAPTCHA_SCRIPT = 'https://turing.captcha.qcloud.com/TJCaptcha.js'
 
 export type CaptchaTicket = { ticket: string; randstr: string }
@@ -27,14 +29,14 @@ declare global {
 let loading: Promise<void> | null = null
 
 function loadCaptchaScript(): Promise<void> {
-  if (typeof window === 'undefined') return Promise.reject(new Error('非浏览器环境'))
+  if (typeof window === 'undefined') return Promise.reject(new Error(homeT('home.captcha.err.no_browser')))
   if (window.TencentCaptcha) return Promise.resolve()
   if (loading) return loading
   loading = new Promise((resolve, reject) => {
     const existing = document.querySelector<HTMLScriptElement>(`script[src="${CAPTCHA_SCRIPT}"]`)
     if (existing) {
       existing.addEventListener('load', () => resolve())
-      existing.addEventListener('error', () => reject(new Error('人机验证脚本加载失败')))
+      existing.addEventListener('error', () => reject(new Error(homeT('home.captcha.err.script_load'))))
       if (window.TencentCaptcha) resolve()
       return
     }
@@ -44,7 +46,7 @@ function loadCaptchaScript(): Promise<void> {
     s.onload = () => resolve()
     s.onerror = () => {
       loading = null
-      reject(new Error('人机验证脚本加载失败'))
+      reject(new Error(homeT('home.captcha.err.script_load')))
     }
     document.head.appendChild(s)
   })
@@ -54,10 +56,10 @@ function loadCaptchaScript(): Promise<void> {
 /** 弹出文字点选验证；成功返回 ticket/randstr，用户关闭则抛错 */
 export async function runTencentCaptcha(appId: string): Promise<CaptchaTicket> {
   const id = String(appId || '').trim()
-  if (!id) throw new Error('人机验证未配置')
+  if (!id) throw new Error(homeT('home.captcha.err.not_configured'))
   await loadCaptchaScript()
   const Ctor = window.TencentCaptcha
-  if (!Ctor) throw new Error('人机验证组件不可用')
+  if (!Ctor) throw new Error(homeT('home.captcha.err.unavailable'))
 
   return new Promise((resolve, reject) => {
     try {
@@ -69,16 +71,16 @@ export async function runTencentCaptcha(appId: string): Promise<CaptchaTicket> {
             return
           }
           if (res.ret === 2) {
-            reject(new Error('已取消人机验证'))
+            reject(new Error(homeT('home.captcha.err.cancelled')))
             return
           }
-          reject(new Error(res.errorMessage || '人机验证未通过'))
+          reject(new Error(res.errorMessage || homeT('home.captcha.err.failed')))
         },
         { needFeedBack: false },
       )
       captcha.show()
     } catch (e) {
-      reject(e instanceof Error ? e : new Error('人机验证启动失败'))
+      reject(e instanceof Error ? e : new Error(homeT('home.captcha.err.start_failed')))
     }
   })
 }

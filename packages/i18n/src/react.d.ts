@@ -30,7 +30,7 @@ export declare function useFormat(): {
 }
 export interface LocaleSwitchProps {
   className?: string
-  variant?: 'text' | 'chip'
+  variant?: 'text' | 'chip' | 'toggle'
 }
 
 export declare function LocaleSwitch(props: LocaleSwitchProps): JSX.Element

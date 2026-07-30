@@ -21,11 +21,14 @@ import {
   type ContractRecord,
 } from '../api/client'
 
-const STATUS_LABEL: Record<string, string> = {
-  draft: '草稿',
-  reviewing: '审阅中',
-  signed: '已签署',
+const STATUS_KEYS: Record<string, string> = {
+  draft: 'admin.contracts.status.draft',
+  reviewing: 'admin.contracts.status.reviewing',
+  signed: 'admin.contracts.status.signed',
 }
+
+/** Backend asset label — keep Chinese for API persistence */
+const API_SIG_LABEL = '手写签名'
 
 function fileToDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -36,7 +39,7 @@ function fileToDataUrl(file: File): Promise<string> {
   })
 }
 
-function SignaturePad({ onSave }: { onSave: (dataUrl: string) => void }) {
+function SignaturePad({ onSave, clearLabel, saveLabel }: { onSave: (dataUrl: string) => void; clearLabel: string; saveLabel: string }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const drawing = useRef(false)
 
@@ -105,9 +108,9 @@ function SignaturePad({ onSave }: { onSave: (dataUrl: string) => void }) {
         onTouchEnd={end}
       />
       <div className="sig-actions">
-        <button type="button" className="btn btn-ghost-dark" onClick={clear}>清除重签</button>
+        <button type="button" className="btn btn-ghost-dark" onClick={clear}>{clearLabel}</button>
         <button type="button" className="btn btn-primary-dark" onClick={() => canvasRef.current && onSave(canvasRef.current.toDataURL('image/png'))}>
-          保存手写签名
+          {saveLabel}
         </button>
       </div>
     </div>
@@ -147,6 +150,10 @@ function FieldInput({
 
 export default function ContractPage() {
   const t = useT()
+  const statusLabel = (status: string) => {
+    const key = STATUS_KEYS[status]
+    return key ? t(key) : status
+  }
   const [config, setConfig] = useState<{
     llm_configured?: boolean
     templates?: { key: string; name: string; description?: string; category?: string }[]
@@ -162,7 +169,7 @@ export default function ContractPage() {
   const [bodyHtml, setBodyHtml] = useState('')
   const [reviewNotes, setReviewNotes] = useState('')
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
-  const [sealText, setSealText] = useState('合同专用章')
+  const [sealText, setSealText] = useState(() => t('admin.contracts.seal_default'))
   const [sealStyle, setSealStyle] = useState<'round' | 'square'>('round')
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState('')
@@ -170,12 +177,12 @@ export default function ContractPage() {
   const sections = useMemo(() => {
     const map = new Map<string, ContractFieldDef[]>()
     for (const f of fields) {
-      const s = f.section || '其他'
+      const s = f.section || t('admin.contracts.section.other')
       if (!map.has(s)) map.set(s, [])
       map.get(s)!.push(f)
     }
     return [...map.entries()]
-  }, [fields])
+  }, [fields, t])
 
   const loadTemplateFields = useCallback(async (key: string) => {
     const tpl = await fetchContractTemplate(key)
@@ -239,7 +246,7 @@ export default function ContractPage() {
       await loadOne(c.id)
       setTab('fill')
     } catch (e: unknown) {
-      setMsg(e instanceof Error ? e.message : '创建失败')
+      setMsg(e instanceof Error ? e.message : t('admin.contracts.err.create_failed'))
     } finally {
       setBusy(false)
     }
@@ -249,7 +256,7 @@ export default function ContractPage() {
     setTemplateKey(key)
     await loadTemplateFields(key)
     if (!selected) return
-    if (!window.confirm('切换模板将重新渲染正文，继续？')) return
+    if (!window.confirm(t('admin.contracts.confirm.template_change'))) return
     setBusy(true)
     try {
       const c = await updateContract(selected.id, { template_key: key })
@@ -267,10 +274,10 @@ export default function ContractPage() {
     try {
       const c = await renderContractFields(selected.id, fieldValues)
       await loadOne(c.id)
-      setMsg('已根据表单生成合同正文')
+      setMsg(t('admin.contracts.msg.body_from_template'))
       setTab('body')
     } catch (e: unknown) {
-      setMsg(e instanceof Error ? e.message : '生成失败')
+      setMsg(e instanceof Error ? e.message : t('admin.contracts.err.generate_failed'))
     } finally {
       setBusy(false)
     }
@@ -284,10 +291,10 @@ export default function ContractPage() {
       await renderContractFields(selected.id, fieldValues, false)
       const c = await aiGenerateContract(selected.id)
       await loadOne(c.id)
-      setMsg('已生成完整合同')
+      setMsg(t('admin.contracts.msg.ai_generated'))
       setTab('body')
     } catch (e: unknown) {
-      setMsg(e instanceof Error ? e.message : 'AI 生成失败')
+      setMsg(e instanceof Error ? e.message : t('admin.contracts.err.ai_failed'))
     } finally {
       setBusy(false)
     }
@@ -300,7 +307,7 @@ export default function ContractPage() {
       const c = await updateContract(selected.id, { title, body_html: bodyHtml, field_values: fieldValues })
       setSelected(c)
       loadList()
-      setMsg('已保存')
+      setMsg(t('admin.contracts.msg.saved'))
     } finally {
       setBusy(false)
     }
@@ -313,7 +320,7 @@ export default function ContractPage() {
       await handleSaveBody()
       const c = await aiReviewContract(selected.id)
       await loadOne(c.id)
-      setMsg('法务审阅完成')
+      setMsg(t('admin.contracts.msg.review_done'))
     } finally {
       setBusy(false)
     }
@@ -323,9 +330,9 @@ export default function ContractPage() {
     if (!selected) return
     setBusy(true)
     try {
-      const c = await uploadContractAsset(selected.id, { asset_type: 'signature', data_url: dataUrl, label: '手写签名' })
+      const c = await uploadContractAsset(selected.id, { asset_type: 'signature', data_url: dataUrl, label: API_SIG_LABEL })
       await loadOne(c.id)
-      setMsg('签名已保存')
+      setMsg(t('admin.contracts.msg.sig_saved'))
     } finally {
       setBusy(false)
     }
@@ -338,7 +345,7 @@ export default function ContractPage() {
       const dataUrl = await fileToDataUrl(file)
       const c = await uploadContractAsset(selected.id, { asset_type: 'seal', data_url: dataUrl, label: file.name })
       await loadOne(c.id)
-      setMsg('电子章已上传')
+      setMsg(t('admin.contracts.msg.seal_uploaded'))
     } finally {
       setBusy(false)
     }
@@ -355,7 +362,7 @@ export default function ContractPage() {
         style: sealStyle,
       })
       await loadOne(c.id)
-      setMsg('模拟电子章已生成')
+      setMsg(t('admin.contracts.msg.sim_seal'))
     } finally {
       setBusy(false)
     }
@@ -367,7 +374,7 @@ export default function ContractPage() {
       <div className="placement-sliders">
         {(['x_pct', 'y_pct', 'width_pct', 'height_pct'] as const).map((k) => (
           <label key={k}>
-            {k === 'x_pct' ? '水平' : k === 'y_pct' ? '垂直' : k === 'width_pct' ? '宽度' : '高度'}
+            {k === 'x_pct' ? t('admin.contracts.placement.horizontal') : k === 'y_pct' ? t('admin.contracts.placement.vertical') : k === 'width_pct' ? t('admin.contracts.placement.width') : t('admin.contracts.placement.height')}
             <input
               type="range"
               min={5}
@@ -389,7 +396,7 @@ export default function ContractPage() {
   )
 
   const handleSign = async () => {
-    if (!selected || !window.confirm('确认签署并生成 PDF？签署后不可再编辑。')) return
+    if (!selected || !window.confirm(t('admin.contracts.confirm.sign'))) return
     setBusy(true)
     try {
       await renderContractFields(selected.id, fieldValues)
@@ -397,9 +404,9 @@ export default function ContractPage() {
       await loadOne(c.id)
       loadList()
       setTab('preview')
-      setMsg('签署成功')
+      setMsg(t('admin.contracts.msg.sign_ok'))
     } catch (e: unknown) {
-      setMsg(e instanceof Error ? e.message : '签署失败')
+      setMsg(e instanceof Error ? e.message : t('admin.contracts.err.sign_failed'))
     } finally {
       setBusy(false)
     }
@@ -415,7 +422,7 @@ export default function ContractPage() {
         <p>{t('admin.page.contracts.desc')}</p>
         {config && (
           <span className={`contract-llm-badge${config.llm_configured ? ' on' : ''}`}>
-            {config.llm_configured ? '智能生成已就绪' : '配置后可使用智能生成'}
+            {config.llm_configured ? t('admin.contracts.llm_ready') : t('admin.contracts.llm_configure')}
           </span>
         )}
       </div>
@@ -423,13 +430,13 @@ export default function ContractPage() {
       <div className="contract-layout">
         <aside className="contract-list-panel">
           <button type="button" className="btn btn-primary-dark" style={{ width: '100%' }} onClick={handleNew} disabled={busy}>
-            + 新建劳动合同
+            {t('admin.contracts.new_labor')}
           </button>
           <label className="contract-new-template">
-            模板
+            {t('admin.contracts.template')}
             <select value={templateKey} onChange={(e) => { setTemplateKey(e.target.value); loadTemplateFields(e.target.value) }}>
-              {(config?.templates || []).map((t) => (
-                <option key={t.key} value={t.key}>{t.name}</option>
+              {(config?.templates || []).map((tpl) => (
+                <option key={tpl.key} value={tpl.key}>{tpl.name}</option>
               ))}
             </select>
           </label>
@@ -442,7 +449,7 @@ export default function ContractPage() {
                 onClick={() => { loadOne(c.id); setTab('fill') }}
               >
                 <strong>{c.title}</strong>
-                <span>{STATUS_LABEL[c.status] || c.status}</span>
+                <span>{statusLabel(c.status)}</span>
                 <small>{c.updated_at?.slice(0, 10)}</small>
               </button>
             ))}
@@ -452,23 +459,23 @@ export default function ContractPage() {
         <section className="contract-main">
           {!selected ? (
             <div className="contract-placeholder">
-              <p>选择合同或点击「新建劳动合同」</p>
-              <p className="muted">推荐流程：填写信息 → 应用模板/AI生成 → 签名盖章 → 下载 PDF</p>
+              <p>{t('admin.contracts.placeholder.select')}</p>
+              <p className="muted">{t('admin.contracts.placeholder.flow')}</p>
             </div>
           ) : (
             <>
               <div className="contract-tabs">
                 {([
-                  ['fill', '① 填写信息'],
-                  ['body', '② 合同正文'],
-                  ['sign', '③ 签名盖章'],
-                  ['preview', '④ 预览下载'],
-                ] as const).map(([t, label]) => (
-                  <button key={t} type="button" className={`filter-tab${tab === t ? ' active' : ''}`} onClick={() => setTab(t)}>
-                    {label}
+                  ['fill', 'admin.contracts.tab.fill'],
+                  ['body', 'admin.contracts.tab.body'],
+                  ['sign', 'admin.contracts.tab.sign'],
+                  ['preview', 'admin.contracts.tab.preview'],
+                ] as const).map(([tabKey, labelKey]) => (
+                  <button key={tabKey} type="button" className={`filter-tab${tab === tabKey ? ' active' : ''}`} onClick={() => setTab(tabKey)}>
+                    {t(labelKey)}
                   </button>
                 ))}
-                <span className="contract-status-tag">{STATUS_LABEL[selected.status] || selected.status}</span>
+                <span className="contract-status-tag">{statusLabel(selected.status)}</span>
               </div>
 
               {msg && <div className="contract-msg">{msg}</div>}
@@ -476,11 +483,11 @@ export default function ContractPage() {
               {tab === 'fill' && (
                 <div className="contract-fill">
                   <div className="contract-form-row">
-                    <label>合同标题<input value={title} onChange={(e) => setTitle(e.target.value)} /></label>
-                    <label>模板
+                    <label>{t('admin.contracts.field.title')}<input value={title} onChange={(e) => setTitle(e.target.value)} /></label>
+                    <label>{t('admin.contracts.template')}
                       <select value={templateKey} onChange={(e) => handleTemplateChange(e.target.value)} disabled={selected.status === 'signed'}>
-                        {(config?.templates || []).map((t) => (
-                          <option key={t.key} value={t.key}>{t.name}</option>
+                        {(config?.templates || []).map((tpl) => (
+                          <option key={tpl.key} value={tpl.key}>{tpl.name}</option>
                         ))}
                       </select>
                     </label>
@@ -505,14 +512,14 @@ export default function ContractPage() {
                   ))}
                   <div className="contract-actions">
                     <button type="button" className="btn btn-primary-dark" onClick={handleApplyTemplate} disabled={busy || selected.status === 'signed'}>
-                      应用模板填空
+                      {t('admin.contracts.apply_template')}
                     </button>
                     {config?.llm_configured && (
                       <button type="button" className="btn btn-ghost-dark" onClick={handleAiGenerate} disabled={busy || selected.status === 'signed'}>
-                        智能生成完整合同
+                        {t('admin.contracts.ai_generate')}
                       </button>
                     )}
-                    <button type="button" className="btn btn-ghost-dark" onClick={() => setTab('body')}>下一步：查看正文 →</button>
+                    <button type="button" className="btn btn-ghost-dark" onClick={() => setTab('body')}>{t('admin.contracts.next_body')}</button>
                   </div>
                 </div>
               )}
@@ -521,18 +528,18 @@ export default function ContractPage() {
                 <div className="contract-edit">
                   <div className="contract-body-preview" dangerouslySetInnerHTML={{ __html: bodyHtml }} />
                   <details className="contract-advanced">
-                    <summary>高级：编辑 HTML 源码</summary>
+                    <summary>{t('admin.contracts.advanced_html')}</summary>
                     <textarea value={bodyHtml} onChange={(e) => setBodyHtml(e.target.value)} rows={12} disabled={selected.status === 'signed'} />
                   </details>
                   {config?.llm_configured && selected.status !== 'signed' && (
-                    <button type="button" className="btn btn-ghost-dark" onClick={handleReview} disabled={busy}>智能法务审阅</button>
+                    <button type="button" className="btn btn-ghost-dark" onClick={handleReview} disabled={busy}>{t('admin.contracts.ai_review')}</button>
                   )}
                   {reviewNotes && (
-                    <div className="contract-review"><h4>审阅意见</h4><pre>{reviewNotes}</pre></div>
+                    <div className="contract-review"><h4>{t('admin.contracts.review_notes')}</h4><pre>{reviewNotes}</pre></div>
                   )}
                   <div className="contract-actions">
-                    <button type="button" className="btn btn-primary-dark" onClick={handleSaveBody} disabled={busy || selected.status === 'signed'}>保存正文</button>
-                    <button type="button" className="btn btn-ghost-dark" onClick={() => setTab('sign')}>下一步：签名盖章 →</button>
+                    <button type="button" className="btn btn-primary-dark" onClick={handleSaveBody} disabled={busy || selected.status === 'signed'}>{t('admin.contracts.save_body')}</button>
+                    <button type="button" className="btn btn-ghost-dark" onClick={() => setTab('sign')}>{t('admin.contracts.next_sign')}</button>
                   </div>
                 </div>
               )}
@@ -540,47 +547,51 @@ export default function ContractPage() {
               {tab === 'sign' && (
                 <div className="contract-sign">
                   {selected.status === 'signed' ? (
-                    <p>已签署，请到「预览下载」页下载 PDF。</p>
+                    <p>{t('admin.contracts.signed_hint')}</p>
                   ) : (
                     <>
                       <div className="contract-sign-block">
-                        <h3>手写签名</h3>
-                        <p className="muted">请在下方手写签名（参考开放签手写面板交互）</p>
-                        <SignaturePad onSave={handleSaveSignature} />
-                        {sigAsset && <p className="ok-text">✓ 已保存签名</p>}
+                        <h3>{t('admin.contracts.hand_sig')}</h3>
+                        <p className="muted">{t('admin.contracts.hand_sig_hint')}</p>
+                        <SignaturePad
+                          onSave={handleSaveSignature}
+                          clearLabel={t('admin.contracts.sig.clear')}
+                          saveLabel={t('admin.contracts.sig.save')}
+                        />
+                        {sigAsset && <p className="ok-text">{t('admin.contracts.sig_saved_ok')}</p>}
                       </div>
                       <div className="contract-sign-block">
-                        <h3>电子公章</h3>
+                        <h3>{t('admin.contracts.e_seal')}</h3>
                         <div className="contract-seal-actions">
                           <label className="btn btn-ghost-dark file-btn">
-                            上传公章 PNG
+                            {t('admin.contracts.upload_seal')}
                             <input type="file" accept="image/png,image/jpeg,image/webp" hidden onChange={(e) => handleSealFile(e.target.files?.[0] || null)} />
                           </label>
                         </div>
                         <div className="contract-seal-sim">
-                          <h4>模拟电子章（演示用）</h4>
+                          <h4>{t('admin.contracts.sim_seal_title')}</h4>
                           <div className="contract-form-row">
-                            <label>章面文字<input value={sealText} onChange={(e) => setSealText(e.target.value)} placeholder="合同专用章" /></label>
-                            <label>样式
+                            <label>{t('admin.contracts.seal_text')}<input value={sealText} onChange={(e) => setSealText(e.target.value)} placeholder={t('admin.contracts.seal_default')} /></label>
+                            <label>{t('admin.contracts.seal_style')}
                               <select value={sealStyle} onChange={(e) => setSealStyle(e.target.value as 'round' | 'square')}>
-                                <option value="round">圆形公章</option>
-                                <option value="square">方形章</option>
+                                <option value="round">{t('admin.contracts.seal.round')}</option>
+                                <option value="square">{t('admin.contracts.seal.square')}</option>
                               </select>
                             </label>
                           </div>
-                          <button type="button" className="btn btn-ghost-dark" onClick={handleSimSeal} disabled={busy}>生成模拟电子章</button>
+                          <button type="button" className="btn btn-ghost-dark" onClick={handleSimSeal} disabled={busy}>{t('admin.contracts.generate_sim_seal')}</button>
                         </div>
-                        {sealAsset && <img src={sealAsset.file_url} alt="电子章" className="seal-preview" />}
+                        {sealAsset && <img src={sealAsset.file_url} alt={t('admin.contracts.seal_alt')} className="seal-preview" />}
                       </div>
                       {(sigAsset || sealAsset) && (
                         <div className="contract-sign-block">
-                          <h3>签章位置</h3>
-                          {sigAsset && placementControl(sigAsset, '签名')}
-                          {sealAsset && placementControl(sealAsset, '公章')}
+                          <h3>{t('admin.contracts.placement_title')}</h3>
+                          {sigAsset && placementControl(sigAsset, t('admin.contracts.placement.sig'))}
+                          {sealAsset && placementControl(sealAsset, t('admin.contracts.placement.seal'))}
                         </div>
                       )}
                       <button type="button" className="btn btn-primary-dark btn-lg" onClick={handleSign} disabled={busy}>
-                        确认签署并生成 PDF
+                        {t('admin.contracts.confirm_sign_btn')}
                       </button>
                     </>
                   )}
@@ -589,7 +600,7 @@ export default function ContractPage() {
 
               {tab === 'preview' && (
                 <div className="contract-preview">
-                  {previewUrl ? <iframe title="合同预览" src={previewUrl} className="contract-pdf-frame" /> : <p>加载中…</p>}
+                  {previewUrl ? <iframe title={t('admin.contracts.preview_title')} src={previewUrl} className="contract-pdf-frame" /> : <p>{t('common.loading')}</p>}
                   {selected.status === 'signed' && (
                     <button type="button" className="btn btn-primary-dark" onClick={async () => {
                       const blob = await downloadSignedPdfBlob(selected.id)
@@ -599,7 +610,7 @@ export default function ContractPage() {
                       a.download = `${title || 'contract'}.pdf`
                       a.click()
                       URL.revokeObjectURL(url)
-                    }}>下载已签署 PDF</button>
+                    }}>{t('admin.contracts.download_signed')}</button>
                   )}
                 </div>
               )}

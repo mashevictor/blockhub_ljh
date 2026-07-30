@@ -1,5 +1,5 @@
 import { Link, Navigate, useParams } from 'react-router-dom'
-import { useT } from '@blockhub/i18n/react'
+import { useI18n, useT } from '@blockhub/i18n/react'
 import type { CSSProperties } from 'react'
 import MarketingSiteShell from '../../components/b2b/enrichment/MarketingSiteShell'
 import EnrichCardVisual from '../../components/b2b/enrichment/EnrichCardVisual'
@@ -19,9 +19,10 @@ const ROLE_THEMES: Record<string, { color: string; from: string; to: string; ico
 
 export default function RolePage() {
   const t = useT()
+  const { locale } = useI18n()
   const { role = '' } = useParams()
   const raw = getRolePage(role)
-  const page = raw ? localizeRolePage(t, raw) : undefined
+  const page = raw ? localizeRolePage(t, raw, locale) : undefined
 
   usePageMeta(
     page ? { title: `${page.title} · BlockHub`, description: page.subtitle } : null,

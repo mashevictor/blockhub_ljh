@@ -1,7 +1,7 @@
 /**
  * 行业预览 · 非表单能力：只读真 API / 配置态，禁止假 KPI、假列表。
  */
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useT } from '@blockhub/i18n/react'
 import { GtgtStepComposer, type GtgtStep } from '@blockhub/web-core/gtgt'
 import type { IndustryRuntimeScene } from '../data/industryRuntimeScenes'
@@ -16,15 +16,11 @@ async function apiJson<T>(path: string, token: string, init?: RequestInit): Prom
     },
   })
   if (!res.ok) {
-    const t = await res.text()
-    throw new Error(t || `HTTP ${res.status}`)
+    const body = await res.text()
+    throw new Error(body || `HTTP ${res.status}`)
   }
   return res.json() as Promise<T>
 }
-
-const NL_STEPS: GtgtStep[] = [
-  { key: 'question', label: '自然语言问题', placeholder: '本月待审批有多少？', inputType: 'textarea' },
-]
 
 export const READONLY_LIVE_CAPS = [
   'kb_document',
@@ -52,6 +48,15 @@ export function LiveReadonlySceneBody({
   token: string
 }) {
   const t = useT()
+  const nlSteps = useMemo((): GtgtStep[] => [
+    {
+      key: 'question',
+      label: t('home.liveOffice.readonly.nl_question'),
+      placeholder: t('home.liveOffice.readonly.nl_ph'),
+      inputType: 'textarea',
+    },
+  ], [t])
+  const realStats = t('home.liveOffice.readonly.real_stats')
   const [loading, setLoading] = useState(true)
   const [err, setErr] = useState('')
   const [lines, setLines] = useState<string[]>([])
@@ -78,12 +83,12 @@ export function LiveReadonlySceneBody({
         ).catch((): { items: Array<{ title?: string; name?: string }> } => ({ items: [] }))
         const items = docs.items || []
         setKpis([
-          { label: '知识库', value: String(stats.knowledge_bases ?? 0), hint: '真统计' },
-          { label: '文档', value: String(stats.documents ?? items.length), hint: '真统计' },
+          { label: t('home.liveOffice.readonly.kpi_kb'), value: String(stats.knowledge_bases ?? 0), hint: realStats },
+          { label: t('home.liveOffice.readonly.kpi_docs'), value: String(stats.documents ?? items.length), hint: realStats },
         ])
         setLines(
           items.length
-            ? items.slice(0, 12).map((d) => String(d.title || d.name || '未命名文档'))
+            ? items.slice(0, 12).map((d) => String(d.title || d.name || t('home.liveOffice.readonly.unnamed_doc')))
             : [t('home.liveOffice.readonly.empty_docs')],
         )
       } else if (cap === 'chat_qa') {
@@ -93,9 +98,11 @@ export function LiveReadonlySceneBody({
         ).catch((): { model?: string; provider?: string } => ({}))
         setLines([
           cfg.model || cfg.provider
-            ? `问答服务已配置${cfg.model ? ` · ${cfg.model}` : ''}`
-            : '问答服务配置未返回详情',
-          '对话会话请在发布后的 /r/应用 Chat Widget 中使用（本预览不造假消息）。',
+            ? t('home.liveOffice.readonly.chat_configured', {
+              model: cfg.model ? t('home.liveOffice.readonly.chat_model_suffix', { model: cfg.model }) : '',
+            })
+            : t('home.liveOffice.readonly.chat_unconfigured'),
+          t('home.liveOffice.readonly.chat_runtime_hint'),
         ])
       } else if (cap === 'notify_inapp') {
         const data = await apiJson<{ items?: Array<{ title?: string; body?: string; read?: boolean }> }>(
@@ -107,8 +114,10 @@ export function LiveReadonlySceneBody({
         const items = data.items || []
         setLines(
           items.length
-            ? items.slice(0, 12).map((n) => `${n.read ? '已读' : '未读'} · ${n.title || n.body || '通知'}`)
-            : ['空库无站内信'],
+            ? items.slice(0, 12).map((n) =>
+              `${n.read ? t('home.liveOffice.readonly.notify_read') : t('home.liveOffice.readonly.notify_unread')} · ${n.title || n.body || t('home.liveOffice.readonly.notify_fallback')}`,
+            )
+            : [t('home.liveOffice.readonly.notify_empty')],
         )
       } else if (cap === 'notify_im' || cap === 'erp_connector') {
         type Conn = { name?: string; connector_type?: string; status?: string }
@@ -125,14 +134,14 @@ export function LiveReadonlySceneBody({
         setLines(
           filtered.length
             ? filtered.map(
-                (c: Conn) =>
-                  `${c.name || '未命名'} · ${c.connector_type || '—'} · ${c.status || '未知'}`,
-              )
+              (c: Conn) =>
+                `${c.name || t('home.liveOffice.readonly.conn_unnamed')} · ${c.connector_type || '—'} · ${c.status || t('home.liveOffice.readonly.conn_unknown')}`,
+            )
             : [
-                cap === 'notify_im'
-                  ? '未配置 IM Webhook（企微/钉钉/飞书）— 正式 Runtime 中添加连接器'
-                  : '未配置 ERP / 业务系统对接 — 正式 Runtime 中添加连接器',
-              ],
+              cap === 'notify_im'
+                ? t('home.liveOffice.readonly.im_empty')
+                : t('home.liveOffice.readonly.erp_empty'),
+            ],
         )
       } else if (cap === 'chart_dashboard') {
         const [dash, kb] = await Promise.all([
@@ -145,23 +154,23 @@ export function LiveReadonlySceneBody({
           ),
         ])
         setKpis([
-          { label: '待审批', value: String(dash.pending_approvals ?? 0), hint: '真统计' },
-          { label: '会话', value: String(dash.chat_sessions ?? 0), hint: '真统计' },
-          { label: '知识库', value: String(kb.knowledge_bases ?? 0), hint: '真统计' },
-          { label: '文档', value: String(kb.documents ?? 0), hint: '真统计' },
+          { label: t('home.liveOffice.readonly.kpi_pending'), value: String(dash.pending_approvals ?? 0), hint: realStats },
+          { label: t('home.liveOffice.readonly.kpi_sessions'), value: String(dash.chat_sessions ?? 0), hint: realStats },
+          { label: t('home.liveOffice.readonly.kpi_kb'), value: String(kb.knowledge_bases ?? 0), hint: realStats },
+          { label: t('home.liveOffice.readonly.kpi_docs'), value: String(kb.documents ?? 0), hint: realStats },
         ])
-        setLines(['看板数字来自 /stats/dashboard 与 /kb/stats；空库为 0，无演示假数。'])
+        setLines([t('home.liveOffice.readonly.dashboard_hint')])
       } else if (cap === 'data_nl_query') {
-        setLines(['用下方 Gtgt 提问；结果来自 /reports/nl-query，无历史假记录。'])
+        setLines([t('home.liveOffice.readonly.nl_hint')])
       } else {
-        setLines([`能力 ${cap}：只读预览未单独实现，请发布后使用 /r/应用。`])
+        setLines([t('home.liveOffice.readonly.unsupported', { cap })])
       }
     } catch (e) {
       setErr(String(e))
     } finally {
       setLoading(false)
     }
-  }, [cap, token, t])
+  }, [cap, token, t, realStats])
 
   useEffect(() => {
     void load()
@@ -178,11 +187,11 @@ export function LiveReadonlySceneBody({
         token,
         { method: 'POST', body: JSON.stringify({ question: q }) },
       )
-      setNlMsg(data.answer || data.summary || data.error || '已返回（无文本字段）')
+      setNlMsg(data.answer || data.summary || data.error || t('home.liveOffice.readonly.nl_empty'))
       setNlReset((k) => k + 1)
       setNlVals({})
     } catch (e) {
-      setNlMsg(`查询失败：${String(e)}`)
+      setNlMsg(t('home.liveOffice.readonly.nl_fail', { err: String(e) }))
     } finally {
       setNlBusy(false)
     }
@@ -208,9 +217,9 @@ export function LiveReadonlySceneBody({
       ) : null}
       <section className="irp-panel">
         <h3>{scene.name}</h3>
-        {lines.map((t) => (
-          <p key={t} className="irp-summary">
-            {t}
+        {lines.map((line) => (
+          <p key={line} className="irp-summary">
+            {line}
           </p>
         ))}
       </section>
@@ -220,8 +229,8 @@ export function LiveReadonlySceneBody({
             title={t('home.liveOffice.readonly.nl')}
             accent="#6366f1"
             variant="soft"
-            flowHint=">> 单字段提问 → 调真 API"
-            steps={NL_STEPS}
+            flowHint={t('home.liveOffice.readonly.flow_hint')}
+            steps={nlSteps}
             values={nlVals}
             onChange={(k, v) => setNlVals((p) => ({ ...p, [k]: v }))}
             onComplete={() => void runNl()}

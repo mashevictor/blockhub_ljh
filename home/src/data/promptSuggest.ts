@@ -3,6 +3,7 @@ import { moduleId } from '../components/agentInputLogic'
 import { MODULES } from './constants'
 import { CAPABILITIES_SHOWCASE, INDUSTRIES_SHOWCASE } from './showcase'
 import type { SuggestValidation } from '../api/client'
+import { localizePromptPickLabel } from '../i18n/pickLabels'
 
 export interface ScenarioRef {
   id: string
@@ -189,17 +190,30 @@ export function enhanceSimplePrompt(
   raw: string,
   picks: AgentPick[],
   validation?: SuggestValidation | null,
+  t?: (key: string, vars?: Record<string, string | number>) => string,
 ): string {
-  const t = raw.trim().replace(/^>>\s*$/, '').trim()
-  if (!t) return ''
+  const text = raw.trim().replace(/^>>\s*$/, '').trim()
+  if (!text) return ''
 
   const summary = validation?.intent_summary?.trim()
   const lines: string[] = []
+  const join = (items: string[]) =>
+    t ? items.join(t('home.prompt.logical.sep') === 'home.prompt.logical.sep' ? '、' : t('home.prompt.logical.sep')) : items.join('、')
+  const pickLabel = (p: AgentPick) =>
+    t ? localizePromptPickLabel(t, p.type, p.key, p.label) : p.label
 
   if (summary) {
-    lines.push(`>> 需求理解：${summary}`)
+    lines.push(
+      t
+        ? t('home.prompt.enhance.understood', { text: summary })
+        : `>> 需求理解：${summary}`,
+    )
   } else if (hasStructuredPicks(picks)) {
-    lines.push(`>> 需求理解：${t}`)
+    lines.push(
+      t
+        ? t('home.prompt.enhance.understood', { text })
+        : `>> 需求理解：${text}`,
+    )
   } else {
     return ''
   }
@@ -211,22 +225,31 @@ export function enhanceSimplePrompt(
   const modules = picks.filter((p) => p.type === 'module' || p.type === 'supplement')
 
   if (industries.length) {
-    lines.push(`>> 建议行业：${industries.map((p) => p.label).join('、')}`)
+    const list = join(industries.map(pickLabel))
+    lines.push(t ? t('home.prompt.enhance.industry', { list }) : `>> 建议行业：${list}`)
   }
   if (offices.length) {
-    lines.push(`>> 办公侧重：${offices.map((p) => p.label).join('、')}`)
+    const list = join(offices.map(pickLabel))
+    lines.push(t ? t('home.prompt.enhance.office', { list }) : `>> 办公侧重：${list}`)
   }
   if (capabilities.length) {
-    lines.push(`>> 平台能力：${capabilities.map((p) => p.label).join('、')}`)
+    const list = join(capabilities.map(pickLabel))
+    lines.push(t ? t('home.prompt.enhance.capability', { list }) : `>> 平台能力：${list}`)
   }
   if (modules.length) {
-    lines.push(`>> 功能模块：${modules.map((p) => p.label).join('、')}`)
+    const list = join(modules.map(pickLabel))
+    lines.push(t ? t('home.prompt.enhance.module', { list }) : `>> 功能模块：${list}`)
   }
   if (scenes.length) {
-    lines.push(`>> 业务场景：${scenes.map((p) => p.label).join('、')}`)
+    const list = join(scenes.map(pickLabel))
+    lines.push(t ? t('home.prompt.enhance.scenario', { list }) : `>> 业务场景：${list}`)
   }
 
-  lines.push('>> 请按以上组合生成网页和手机都能用的应用，打开即可使用')
+  lines.push(
+    t
+      ? t('home.prompt.enhance.closing')
+      : '>> 请按以上组合生成网页和手机都能用的应用，打开即可使用',
+  )
   return lines.join('\n')
 }
 

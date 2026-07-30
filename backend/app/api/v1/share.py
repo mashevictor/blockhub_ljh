@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
@@ -25,8 +25,12 @@ class SharePackOut(BaseModel):
 
 
 @router.get("/{token}", response_model=SharePackOut)
-def get_share_pack_api(token: str, db: Session = Depends(get_db)) -> SharePackOut:
-    data = get_share_pack(db, token.strip())
+def get_share_pack_api(
+    token: str,
+    db: Session = Depends(get_db),
+    locale: str = Query("zh-CN", max_length=16),
+) -> SharePackOut:
+    data = get_share_pack(db, token.strip(), locale=locale)
     if not data:
-        raise HTTPException(status_code=404, detail="资料链接无效或已过期")
+        raise HTTPException(status_code=404, detail="invalid_or_expired")
     return SharePackOut(**data)

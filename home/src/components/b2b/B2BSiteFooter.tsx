@@ -1,9 +1,10 @@
 import { Link } from 'react-router-dom'
-import { useT } from '@blockhub/i18n/react'
+import { useI18n, useT } from '@blockhub/i18n/react'
 import BrandMark from '../BrandMark'
 import { BRAND } from '../../data/brand'
 import { ROUTES } from '../../routes/paths'
 import { SITE_FOOTER_COLUMNS, SITE_FOOTER_LEGAL } from '../../data/siteFooter'
+import { localizeDownloadPath } from '../../i18n/downloadLocale'
 
 interface Props {
   /** dark：首页深色底；light：广场/子站浅色底 */
@@ -27,6 +28,7 @@ function FooterLink({ to, external, children }: { to: string; external?: boolean
 
 export default function B2BSiteFooter({ variant = 'dark', className = '' }: Props) {
   const t = useT()
+  const { locale } = useI18n()
   const year = new Date().getFullYear()
   const tagline = t('home.brand.tagline')
 
@@ -49,11 +51,16 @@ export default function B2BSiteFooter({ variant = 'dark', className = '' }: Prop
             <div key={col.titleKey} className="b2b-site-footer-col">
               <h4>{t(col.titleKey)}</h4>
               <ul>
-                {col.links.map((link) => (
-                  <li key={link.labelKey}>
-                    <FooterLink to={link.to} external={link.external}>{t(link.labelKey)}</FooterLink>
-                  </li>
-                ))}
+                {col.links.map((link) => {
+                  const href = link.to.startsWith('/downloads/')
+                    ? localizeDownloadPath(link.to, locale)
+                    : link.to
+                  return (
+                    <li key={link.labelKey}>
+                      <FooterLink to={href} external={link.external}>{t(link.labelKey)}</FooterLink>
+                    </li>
+                  )
+                })}
               </ul>
             </div>
           ))}

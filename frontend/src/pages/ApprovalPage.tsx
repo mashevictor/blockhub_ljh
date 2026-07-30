@@ -81,7 +81,7 @@ export default function ApprovalPage() {
           </p>
         </div>
         <button type="button" className="btn btn-primary-dark" onClick={() => setShowSubmit((v) => !v)}>
-          {showSubmit ? t('common.cancel') : '发起申请'}
+          {showSubmit ? t('common.cancel') : t('admin.approvals.new_request')}
         </button>
       </div>
 
@@ -89,42 +89,42 @@ export default function ApprovalPage() {
 
       {showSubmit && (
         <div className="card" style={{ marginBottom: 20, padding: 20 }}>
-          <h3 style={{ marginTop: 0 }}>新建审批申请</h3>
+          <h3 style={{ marginTop: 0 }}>{t('admin.approvals.form.title')}</h3>
           <div style={{ display: 'grid', gap: 12, maxWidth: 520 }}>
             <label>
-              标题
+              {t('admin.approvals.form.field.title')}
               <input
                 className="input"
                 value={form.title}
                 onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
-                placeholder="例如：年假申请 3 天"
+                placeholder={t('admin.approvals.form.field.title_ph')}
               />
             </label>
             <label>
-              类型
+              {t('admin.approvals.form.field.type')}
               <select className="input" value={form.type} onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))}>
-                <option value="leave">请假</option>
-                <option value="expense">报销</option>
-                <option value="general">通用</option>
+                <option value="leave">{t('admin.approvals.type.leave')}</option>
+                <option value="expense">{t('admin.approvals.type.expense')}</option>
+                <option value="general">{t('admin.approvals.type.general')}</option>
               </select>
             </label>
             <label>
-              部门
+              {t('admin.approvals.form.field.department')}
               <input
                 className="input"
                 value={form.department}
                 onChange={(e) => setForm((f) => ({ ...f, department: e.target.value }))}
-                placeholder="例如：研发部"
+                placeholder={t('admin.approvals.form.field.department_ph')}
               />
             </label>
             <label>
-              说明
+              {t('admin.approvals.form.field.summary')}
               <textarea
                 className="input"
                 rows={3}
                 value={form.summary}
                 onChange={(e) => setForm((f) => ({ ...f, summary: e.target.value }))}
-                placeholder="补充申请事由"
+                placeholder={t('admin.approvals.form.field.summary_ph')}
               />
             </label>
             <div>
@@ -137,9 +137,9 @@ export default function ApprovalPage() {
       )}
 
       <div className="summary-pills">
-        <div className="summary-pill"><div className="n">{stats?.pending ?? '—'}</div><div className="l">待审批</div></div>
-        <div className="summary-pill"><div className="n">{stats?.approved ?? '—'}</div><div className="l">已通过</div></div>
-        <div className="summary-pill"><div className="n">{stats?.rejected ?? '—'}</div><div className="l">已拒绝</div></div>
+        <div className="summary-pill"><div className="n">{stats?.pending ?? '—'}</div><div className="l">{t('admin.approvals.stat.pending')}</div></div>
+        <div className="summary-pill"><div className="n">{stats?.approved ?? '—'}</div><div className="l">{t('admin.approvals.stat.approved')}</div></div>
+        <div className="summary-pill"><div className="n">{stats?.rejected ?? '—'}</div><div className="l">{t('admin.approvals.stat.rejected')}</div></div>
       </div>
 
       <div className="filter-tabs" style={{ marginBottom: 16 }}>
@@ -164,12 +164,12 @@ export default function ApprovalPage() {
             </div>
             {a.status === 'pending' && canApprove && (
               <div className="approval-actions">
-                <button type="button" className="btn btn-primary-dark" onClick={() => void handleAction(a.id, 'approve')}>通过</button>
-                <button type="button" className="btn btn-ghost-dark" onClick={() => void handleAction(a.id, 'reject')}>拒绝</button>
+                <button type="button" className="btn btn-primary-dark" onClick={() => void handleAction(a.id, 'approve')}>{t('admin.action.approve')}</button>
+                <button type="button" className="btn btn-ghost-dark" onClick={() => void handleAction(a.id, 'reject')}>{t('admin.action.reject')}</button>
               </div>
             )}
             {a.status === 'pending' && !canApprove && (
-              <p style={{ fontSize: 12, color: 'var(--muted)', margin: '8px 0 0' }}>等待管理员审批</p>
+              <p style={{ fontSize: 12, color: 'var(--muted)', margin: '8px 0 0' }}>{t('admin.approvals.waiting_admin')}</p>
             )}
           </div>
         ))}

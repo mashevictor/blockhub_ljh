@@ -55,28 +55,28 @@ interface Props {
   placeholder?: string
 }
 
-const QUICK_DEFS: Array<{ cat: BizQuickChip['cat']; labelKey: string; text: string }> = [
-  { cat: 'design', labelKey: 'home.plaza.cmd.chip.problem', text: '这个应用解决什么问题' },
-  { cat: 'design', labelKey: 'home.plaza.cmd.chip.journey', text: '画一下完整用户旅程' },
-  { cat: 'design', labelKey: 'home.plaza.cmd.chip.features', text: '梳理功能清单' },
-  { cat: 'dev', labelKey: 'home.plaza.cmd.chip.modules', text: '当前流程有哪些模块' },
-  { cat: 'dev', labelKey: 'home.plaza.cmd.chip.kb', text: '打开知识库问答' },
-  { cat: 'ops', labelKey: 'home.plaza.cmd.chip.runtime', text: '打开 Runtime' },
-  { cat: 'test', labelKey: 'home.plaza.cmd.chip.preview', text: '流程预览' },
-  { cat: 'test', labelKey: 'home.plaza.cmd.chip.test', text: '测试' },
-  { cat: 'ops', labelKey: 'home.plaza.cmd.chip.stop', text: '停止预览' },
-  { cat: 'ops', labelKey: 'home.plaza.cmd.chip.checklist', text: '生成联调检查清单' },
+const QUICK_DEFS: Array<{ cat: BizQuickChip['cat']; labelKey: string }> = [
+  { cat: 'design', labelKey: 'home.plaza.cmd.chip.problem' },
+  { cat: 'design', labelKey: 'home.plaza.cmd.chip.journey' },
+  { cat: 'design', labelKey: 'home.plaza.cmd.chip.features' },
+  { cat: 'dev', labelKey: 'home.plaza.cmd.chip.modules' },
+  { cat: 'dev', labelKey: 'home.plaza.cmd.chip.kb' },
+  { cat: 'ops', labelKey: 'home.plaza.cmd.chip.runtime' },
+  { cat: 'test', labelKey: 'home.plaza.cmd.chip.preview' },
+  { cat: 'test', labelKey: 'home.plaza.cmd.chip.test' },
+  { cat: 'ops', labelKey: 'home.plaza.cmd.chip.stop' },
+  { cat: 'ops', labelKey: 'home.plaza.cmd.chip.checklist' },
 ]
 
-/** 上海话应用 · >> 内置只读/预览话术（text 保持中文以匹配指令正则） */
-const SHANGHAI_QUICK_DEFS: Array<{ cat: BizQuickChip['cat']; labelKey: string; text: string }> = [
-  { cat: 'dev', labelKey: 'home.plaza.cmd.sh.open_web', text: '打开上海话网页' },
-  { cat: 'test', labelKey: 'home.plaza.cmd.sh.test_voice', text: '测 voice 配置' },
-  { cat: 'test', labelKey: 'home.plaza.cmd.sh.test_asr', text: '测 ASR 鉴权' },
-  { cat: 'test', labelKey: 'home.plaza.cmd.sh.try_hello', text: '试一句侬好' },
-  { cat: 'ops', labelKey: 'home.plaza.cmd.sh.preview', text: '流程预览' },
-  { cat: 'ops', labelKey: 'home.plaza.cmd.sh.stop', text: '停止预览' },
-  { cat: 'design', labelKey: 'home.plaza.cmd.sh.howto', text: '怎么测上海话' },
+/** 上海话应用 · >> 内置只读/预览话术（展示文案走 i18n；指令匹配仍兼容中英文） */
+const SHANGHAI_QUICK_DEFS: Array<{ cat: BizQuickChip['cat']; labelKey: string }> = [
+  { cat: 'dev', labelKey: 'home.plaza.cmd.sh.open_web' },
+  { cat: 'test', labelKey: 'home.plaza.cmd.sh.test_voice' },
+  { cat: 'test', labelKey: 'home.plaza.cmd.sh.test_asr' },
+  { cat: 'test', labelKey: 'home.plaza.cmd.sh.try_hello' },
+  { cat: 'ops', labelKey: 'home.plaza.cmd.sh.preview' },
+  { cat: 'ops', labelKey: 'home.plaza.cmd.sh.stop' },
+  { cat: 'design', labelKey: 'home.plaza.cmd.sh.howto' },
 ]
 
 function stripCmd(raw: string) {
@@ -130,11 +130,17 @@ const FlowBizCommandInput = forwardRef<FlowBizCommandHandle, Props>(function Flo
   const resolvedActiveNode = activeNodeLabel ?? t('home.plaza.cmd.intent')
 
   const quickChips = useMemo(
-    (): BizQuickChip[] => QUICK_DEFS.map((d) => ({ cat: d.cat, label: t(d.labelKey), text: d.text })),
+    (): BizQuickChip[] => QUICK_DEFS.map((d) => {
+      const label = t(d.labelKey)
+      return { cat: d.cat, label, text: label.replace(/[？?]$/, '') }
+    }),
     [t],
   )
   const shanghaiChips = useMemo(
-    (): BizQuickChip[] => SHANGHAI_QUICK_DEFS.map((d) => ({ cat: d.cat, label: t(d.labelKey), text: d.text })),
+    (): BizQuickChip[] => SHANGHAI_QUICK_DEFS.map((d) => {
+      const label = t(d.labelKey)
+      return { cat: d.cat, label, text: label.replace(/[？?]$/, '') }
+    }),
     [t],
   )
   const chips = commandProfile === 'shanghai' ? shanghaiChips : quickChips

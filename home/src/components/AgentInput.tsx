@@ -38,6 +38,7 @@ import { useFloatingDock } from '../context/FloatingDockContext'
 import { ChevronDotSign } from './ChevronDotLoader'
 import { localizeAgentContext } from '../i18n/agentContextLabels'
 import { officeCategories, PANEL_HINT_KEYS } from '../i18n/agentLabels'
+import { localizePromptPickLabel } from '../i18n/pickLabels'
 import { industryName } from '../i18n/industryLabels'
 import { showcaseCapDesc, showcaseCapName } from '../i18n/contentLabels'
 
@@ -563,13 +564,15 @@ export default forwardRef<AgentInputHandle, Props>(function AgentInput({
 
   const showGhost = focused && !value.trim() && modules.length === 0 && !isMinimal
 
-  const renderModuleButtons = () => modules.map((m) => (
+  const renderModuleButtons = () => modules.map((m) => {
+    const chipLabel = localizePromptPickLabel(t, m.type, m.key, m.label)
+    return (
     <button
       key={m.id}
       type="button"
       className={`agent-inline-module${isMinimal ? ' minimal' : ''}`}
       style={m.color ? { '--chip-color': m.color } as React.CSSProperties : undefined}
-      title={t('home.agent.chip.remove_title', { label: m.label })}
+      title={t('home.agent.chip.remove_title', { label: chipLabel })}
       onClick={() => onRemoveModule?.(m.id)}
     >
       {m.iconKey && m.color && (
@@ -577,10 +580,11 @@ export default forwardRef<AgentInputHandle, Props>(function AgentInput({
           <DynamicIcon name={m.iconKey} size={12} color={m.color} />
         </span>
       )}
-      <span className="agent-inline-module-label">{m.label}</span>
+      <span className="agent-inline-module-label">{chipLabel}</span>
       <span className="agent-inline-module-x" aria-hidden>×</span>
     </button>
-  ))
+    )
+  })
 
   let listIdx = 0
 

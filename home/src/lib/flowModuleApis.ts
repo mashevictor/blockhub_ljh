@@ -1,4 +1,5 @@
 import { api as http } from '../api/client'
+import { homeT } from '../i18n/homeT'
 import {
   buildFlowApiNodeList,
   FLOW_EGRESS_ID,
@@ -138,11 +139,11 @@ function fallbackNodeApis(
       node_id: node.node_id,
       label: node.label,
       kind: node.kind,
-      input_api: makeApi('POST', `${base}/ingress/webhook`, '外部系统 / 用户提交业务请求', {
+      input_api: makeApi('POST', `${base}/ingress/webhook`, homeT('home.plaza.mapi.fallback.ingress_in'), {
         event: 'business.request',
-        payload: { query: '示例业务请求' },
+        payload: { query: homeT('home.plaza.mapi.fallback.ingress_in_body') },
       }),
-      output_api: makeApi('POST', `${base}/ingress/dispatch`, '校验后分发至首模块', {
+      output_api: makeApi('POST', `${base}/ingress/dispatch`, homeT('home.plaza.mapi.fallback.ingress_out'), {
         routed_to: 'first_module',
         trace_id: 'demo-trace-001',
       }),
@@ -153,11 +154,11 @@ function fallbackNodeApis(
       node_id: node.node_id,
       label: node.label,
       kind: node.kind,
-      input_api: makeApi('POST', `${base}/egress/collect`, '汇聚各模块处理结果', {
+      input_api: makeApi('POST', `${base}/egress/collect`, homeT('home.plaza.mapi.fallback.egress_in'), {
         modules: ['module-a', 'module-b'],
         results: [{ module: 'module-a', ok: true }],
       }),
-      output_api: makeApi('GET', `${base}/egress/deliver`, '推送到网页 / 消息通知', {
+      output_api: makeApi('GET', `${base}/egress/deliver`, homeT('home.plaza.mapi.fallback.egress_out'), {
         channels: ['web', 'app'],
         delivered: true,
       }),
@@ -170,14 +171,14 @@ function fallbackNodeApis(
     input_api: makeApi(
       'POST',
       `${base}/modules/${modSlug}/input`,
-      `接收上游数据 · ${node.note || node.label}`,
-      { module: modSlug, input: { text: '上游传入数据' }, context: { user_id: 'u_demo' } },
+      homeT('home.plaza.mapi.fallback.module_in', { note: node.note || node.label }),
+      { module: modSlug, input: { text: homeT('home.plaza.mapi.fallback.module_in_body') }, context: { user_id: 'u_demo' } },
     ),
     output_api: makeApi(
       'GET',
       `${base}/modules/${modSlug}/output`,
-      `输出处理结果 · ${node.note || node.label}`,
-      { module: modSlug, output: { answer: '示例输出' }, confidence: 0.92 },
+      homeT('home.plaza.mapi.fallback.module_out', { note: node.note || node.label }),
+      { module: modSlug, output: { answer: homeT('home.plaza.mapi.fallback.module_out_body') }, confidence: 0.92 },
     ),
   }
 }

@@ -4,6 +4,7 @@ import { moduleId, type PromptModule } from '../components/agentInputLogic'
 import { resolveAppBundle, type ResolvedAppBundle } from './appAssembly'
 import { CAPSHIP_MODULE_KEYS, userHasCapShipModule } from './heroAlign'
 import { MODULE_ICON_KEYS } from './iconPalette'
+import type { TranslateFn } from '../i18n/pickLabels'
 
 function suggestItemToModule(it: SuggestModuleItem): PromptModule {
   const type = it.type === 'industry' ? 'industry' as const : 'module' as const
@@ -24,6 +25,7 @@ export interface ResolvePublishBundleOpts {
   scenarioIds: string[]
   catalogNames: Map<string, string>
   intentText: string
+  t?: TranslateFn
 }
 
 /** 发布前：调用后端 suggest（含 DeepSeek）解析意图，再组装 bundle */
@@ -85,5 +87,6 @@ export async function resolvePublishBundle(opts: ResolvePublishBundleOpts): Prom
     suggestedModules: suggested,
     skipBaseline,
     intentLabel: intent,
+    t: opts.t,
   })
 }

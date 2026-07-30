@@ -17,26 +17,21 @@ type CatalogItem =
   | (IndustryScenario & { kind: 'industry' })
 
 const PAGE_SIZE = 24
+const CATEGORY_ALL = '全部'
 
-const PACKS = [
-  { key: '', label: '全行业' },
-  { key: 'mfg', label: '制造业', color: '#254b9c' },
-  { key: 'sales', label: '销售', color: '#dc2626' },
-  { key: 'med', label: '医疗', color: '#059669' },
-  { key: 'game', label: '游戏', color: '#7c3aed' },
+const OFFICE_CATS: { api: string; key: string }[] = [
+  { api: CATEGORY_ALL, key: 'admin.scenarios.category.all' },
+  { api: '人事行政', key: 'admin.scenarios.category.hr_admin' },
+  { api: '财务法务', key: 'admin.scenarios.category.finance_legal' },
+  { api: '知识协同', key: 'admin.scenarios.category.knowledge' },
+  { api: '流程审批', key: 'admin.scenarios.category.approval' },
+  { api: '数据报表', key: 'admin.scenarios.category.reports' },
+  { api: '消息通知', key: 'admin.scenarios.category.notification' },
+  { api: 'IT与资产', key: 'admin.scenarios.category.it_assets' },
+  { api: '外部对接', key: 'admin.scenarios.category.integration' },
 ]
 
-const OFFICE_CATS = [
-  '全部',
-  '人事行政',
-  '财务法务',
-  '知识协同',
-  '流程审批',
-  '数据报表',
-  '消息通知',
-  'IT与资产',
-  '外部对接',
-]
+const PACK_KEYS = ['', 'mfg', 'sales', 'med', 'game'] as const
 
 const PACK_COLORS: Record<string, string> = {
   mfg: '#254b9c',
@@ -45,11 +40,9 @@ const PACK_COLORS: Record<string, string> = {
   game: '#7c3aed',
 }
 
-function standardTag(s: string) {
-  if (s === '✓') return <span className="tag-ok">标准</span>
-  if (s === '部分') return <span className="tag-warn">部分</span>
-  return <span className="tag-no">定制</span>
-}
+const OFFICE_CATEGORY_KEYS: Record<string, string> = Object.fromEntries(
+  OFFICE_CATS.filter((c) => c.api !== CATEGORY_ALL).map((c) => [c.api, c.key]),
+)
 
 function groupKey(item: CatalogItem): string {
   return item.kind === 'office' ? item.category : item.category
@@ -59,7 +52,7 @@ export default function ScenarioCatalogPage() {
   const t = useT()
   const [tab, setTab] = useState<Tab>('all')
   const [pack, setPack] = useState('')
-  const [category, setCategory] = useState('全部')
+  const [category, setCategory] = useState(CATEGORY_ALL)
   const [q, setQ] = useState('')
   const [page, setPage] = useState(1)
   const [summary, setSummary] = useState<CatalogSummary | null>(null)
@@ -67,6 +60,24 @@ export default function ScenarioCatalogPage() {
   const [industry, setIndustry] = useState<IndustryScenario[]>([])
   const [officeTotal, setOfficeTotal] = useState(0)
   const [industryTotal, setIndustryTotal] = useState(0)
+
+  const packLabel = (key: string) => {
+    if (!key) return t('admin.scenarios.industry.all')
+    const homeKey = `home.industry.${key}.name`
+    const translated = t(homeKey)
+    return translated !== homeKey ? translated : key
+  }
+
+  const categoryLabel = (apiValue: string) => {
+    const i18nKey = OFFICE_CATEGORY_KEYS[apiValue]
+    return i18nKey ? t(i18nKey) : apiValue
+  }
+
+  const standardTag = (s: string) => {
+    if (s === '✓') return <span className="tag-ok">{t('admin.scenarios.tag.standard')}</span>
+    if (s === '部分') return <span className="tag-warn">{t('admin.scenarios.tag.partial')}</span>
+    return <span className="tag-no">{t('admin.scenarios.tag.custom')}</span>
+  }
 
   useEffect(() => {
     fetchCatalogSummary().then(setSummary)
@@ -83,7 +94,7 @@ export default function ScenarioCatalogPage() {
       offset: tab === 'office' ? (page - 1) * PAGE_SIZE : 0,
     }
     if (q) params.q = q
-    if (category !== '全部') params.category = category
+    if (category !== CATEGORY_ALL) params.category = category
     fetchOfficeScenarios(params).then((d) => {
       setOffice(d.items)
       setOfficeTotal(d.total)
@@ -140,10 +151,10 @@ export default function ScenarioCatalogPage() {
     return [...map.entries()]
   }, [displayItems])
 
-  const handleTabChange = (t: Tab) => {
-    setTab(t)
-    if (t === 'office') setPack('')
-    if (t === 'industry') setCategory('全部')
+  const handleTabChange = (nextTab: Tab) => {
+    setTab(nextTab)
+    if (nextTab === 'office') setPack('')
+    if (nextTab === 'industry') setCategory(CATEGORY_ALL)
   }
 
   return (
@@ -154,33 +165,33 @@ export default function ScenarioCatalogPage() {
       </div>
 
       <div className="summary-pills">
-        <div className="summary-pill"><div className="n">{summary?.office_count ?? '—'}</div><div className="l">办公场景</div></div>
-        <div className="summary-pill"><div className="n">{summary?.industry_count ?? '—'}</div><div className="l">行业场景</div></div>
-        <div className="summary-pill"><div className="n">{summary?.total ?? '—'}</div><div className="l">场景总计</div></div>
-        <div className="summary-pill"><div className="n">{summary?.industry_packs ?? 4}</div><div className="l">行业方案包</div></div>
-        <div className="summary-pill"><div className="n">{totalCount}</div><div className="l">当前筛选</div></div>
+        <div className="summary-pill"><div className="n">{summary?.office_count ?? '—'}</div><div className="l">{t('admin.scenarios.stat.office')}</div></div>
+        <div className="summary-pill"><div className="n">{summary?.industry_count ?? '—'}</div><div className="l">{t('admin.scenarios.stat.industry')}</div></div>
+        <div className="summary-pill"><div className="n">{summary?.total ?? '—'}</div><div className="l">{t('admin.scenarios.stat.total')}</div></div>
+        <div className="summary-pill"><div className="n">{summary?.industry_packs ?? 4}</div><div className="l">{t('admin.scenarios.stat.packs')}</div></div>
+        <div className="summary-pill"><div className="n">{totalCount}</div><div className="l">{t('admin.scenarios.stat.filtered')}</div></div>
       </div>
 
       <div className="filter-bar">
         <div className="filter-tabs">
-          {(['all', 'office', 'industry'] as Tab[]).map((t) => (
+          {(['all', 'office', 'industry'] as Tab[]).map((tabKey) => (
             <button
-              key={t}
+              key={tabKey}
               type="button"
-              className={`filter-tab${tab === t ? ' active' : ''}`}
-              onClick={() => handleTabChange(t)}
+              className={`filter-tab${tab === tabKey ? ' active' : ''}`}
+              onClick={() => handleTabChange(tabKey)}
             >
-              {t === 'all'
-                ? `全部 ${summary?.total ?? PLATFORM_STATS.scenarios}`
-                : t === 'office'
-                  ? `办公 ${summary?.office_count ?? PLATFORM_STATS.officeScenarios}`
-                  : `行业 ${summary?.industry_count ?? PLATFORM_STATS.industryScenarios}`}
+              {tabKey === 'all'
+                ? t('admin.scenarios.tab.all', { n: summary?.total ?? PLATFORM_STATS.scenarios })
+                : tabKey === 'office'
+                  ? t('admin.scenarios.tab.office', { n: summary?.office_count ?? PLATFORM_STATS.officeScenarios })
+                  : t('admin.scenarios.tab.industry', { n: summary?.industry_count ?? PLATFORM_STATS.industryScenarios })}
             </button>
           ))}
         </div>
         <input
           className="search-input"
-          placeholder="搜索场景名称…"
+          placeholder={t('admin.scenarios.search_ph')}
           value={q}
           onChange={(e) => setQ(e.target.value)}
         />
@@ -189,14 +200,14 @@ export default function ScenarioCatalogPage() {
       {tab !== 'industry' && (
         <div className="filter-bar">
           <div className="filter-tabs">
-            {OFFICE_CATS.map((c) => (
+            {OFFICE_CATS.map(({ api, key }) => (
               <button
-                key={c}
+                key={api}
                 type="button"
-                className={`filter-tab${category === c ? ' active' : ''}`}
-                onClick={() => setCategory(c)}
+                className={`filter-tab${category === api ? ' active' : ''}`}
+                onClick={() => setCategory(api)}
               >
-                {c}
+                {t(key)}
               </button>
             ))}
           </div>
@@ -206,14 +217,14 @@ export default function ScenarioCatalogPage() {
       {tab !== 'office' && (
         <div className="filter-bar">
           <div className="filter-tabs">
-            {PACKS.map((p) => (
+            {PACK_KEYS.map((packKey) => (
               <button
-                key={p.key || 'all'}
+                key={packKey || 'all'}
                 type="button"
-                className={`filter-tab${pack === p.key ? ' active' : ''}`}
-                onClick={() => setPack(p.key)}
+                className={`filter-tab${pack === packKey ? ' active' : ''}`}
+                onClick={() => setPack(packKey)}
               >
-                {p.label}
+                {packLabel(packKey)}
               </button>
             ))}
           </div>
@@ -232,8 +243,8 @@ export default function ScenarioCatalogPage() {
               <div className="catalog-group-head">
                 <h3>
                   {officeIcon && <span>{officeIcon} </span>}
-                  {cat}
-                  <span className="catalog-group-count">{items.length} 项</span>
+                  {categoryLabel(cat)}
+                  <span className="catalog-group-count">{t('admin.scenarios.items_count', { n: items.length })}</span>
                 </h3>
                 {packKey && (
                   <span
@@ -244,7 +255,7 @@ export default function ScenarioCatalogPage() {
                       borderColor: `${packColor}40`,
                     }}
                   >
-                    {firstIndustry?.pack_name.replace('传统', '').replace('行业', '') || packKey}
+                    {packLabel(packKey)}
                   </span>
                 )}
               </div>
@@ -258,7 +269,7 @@ export default function ScenarioCatalogPage() {
                         <strong>{s.name}</strong>
                         <span>{s.agent}</span>
                       </div>
-                      <span className="tag-ok">标准</span>
+                      <span className="tag-ok">{t('admin.scenarios.tag.standard')}</span>
                     </div>
                   ) : (
                     <div key={s.id} className="scenario-chip">
@@ -284,7 +295,7 @@ export default function ScenarioCatalogPage() {
         <div className="placeholder-page">
           <div className="icon">🔍</div>
           <h2>{t('admin.page.scenarios.empty')}</h2>
-          <p>试试调整 Tab、行业包或搜索关键词</p>
+          <p>{t('admin.scenarios.empty_hint')}</p>
         </div>
       )}
 
@@ -296,11 +307,11 @@ export default function ScenarioCatalogPage() {
             disabled={page <= 1}
             onClick={() => setPage((p) => Math.max(1, p - 1))}
           >
-            上一页
+            {t('admin.scenarios.pagination.prev')}
           </button>
           <span style={{ fontSize: 13, color: 'var(--muted)' }}>
-            第 {page} / {pageCount} 页 · 共 {totalCount} 条
-            {summary?.total === 114 && tab === 'all' && !q && category === '全部' && !pack ? ' · count=114 ✓' : ''}
+            {t('admin.scenarios.pagination.info', { page, pageCount, total: totalCount })}
+            {summary?.total === 114 && tab === 'all' && !q && category === CATEGORY_ALL && !pack ? ' · count=114 ✓' : ''}
           </span>
           <button
             type="button"
@@ -308,7 +319,7 @@ export default function ScenarioCatalogPage() {
             disabled={page >= pageCount}
             onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
           >
-            下一页
+            {t('admin.scenarios.pagination.next')}
           </button>
         </div>
       )}

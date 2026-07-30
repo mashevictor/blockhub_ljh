@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
+import { useT } from '@blockhub/i18n/react'
 import { useDemoBookingActive } from '../../context/DemoBookingContext'
 import { scrollToHomeSection } from '../../hooks/useHomeActiveSection'
 
 /** 右侧快捷滚动：顶部 / 底部（悬浮框上方） */
 export default function HomeScrollRails() {
+  const t = useT()
   const bookingZone = useDemoBookingActive()
   const [showTop, setShowTop] = useState(false)
   const [showBottom, setShowBottom] = useState(false)
@@ -30,18 +32,25 @@ export default function HomeScrollRails() {
     scrollToHomeSection(bookingZone ? 'contact-demo' : 'contact-create')
   }
 
+  const topLabel = t('home.scroll.rail.top')
+  const topAria = t('home.scroll.rail.top_aria')
+  const bottomLabel = bookingZone ? t('home.scroll.rail.book') : t('home.scroll.rail.try')
+  const bottomAria = bookingZone ? t('home.scroll.rail.book_aria') : t('home.scroll.rail.try_aria')
+
   return (
-    <div className="b2b-scroll-rail" aria-label="页面快捷导航">
+    <div className="b2b-scroll-rail" aria-label={t('home.scroll.rail.aria')}>
       {showTop && (
         <button
           type="button"
           className="b2b-scroll-rail-btn"
           onClick={() => scrollToHomeSection('hero')}
-          aria-label="回到顶部"
-          title="回到顶部"
+          aria-label={topAria}
+          title={topAria}
         >
-          <span className="b2b-scroll-rail-icon" aria-hidden>↑</span>
-          <span className="b2b-scroll-rail-label">顶部</span>
+          <span className="b2b-scroll-rail-icon" aria-hidden>
+            ↑
+          </span>
+          <span className="b2b-scroll-rail-label">{topLabel}</span>
         </button>
       )}
       {showBottom && (
@@ -49,11 +58,13 @@ export default function HomeScrollRails() {
           type="button"
           className="b2b-scroll-rail-btn"
           onClick={goBottom}
-          aria-label={bookingZone ? '去预约区' : '去体验区'}
-          title={bookingZone ? '去预约区' : '去体验区'}
+          aria-label={bottomAria}
+          title={bottomAria}
         >
-          <span className="b2b-scroll-rail-icon" aria-hidden>↓</span>
-          <span className="b2b-scroll-rail-label">{bookingZone ? '预约' : '体验'}</span>
+          <span className="b2b-scroll-rail-icon" aria-hidden>
+            ↓
+          </span>
+          <span className="b2b-scroll-rail-label">{bottomLabel}</span>
         </button>
       )}
     </div>

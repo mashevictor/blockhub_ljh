@@ -133,8 +133,8 @@ export function useFormat() {
 
 export interface LocaleSwitchProps {
   className?: string
-  /** Visual variant: plain text (default) or bordered chip for landing headers */
-  variant?: 'text' | 'chip'
+  /** Visual variant: plain text, bordered chip, or pill toggle for landing headers */
+  variant?: 'text' | 'chip' | 'toggle'
 }
 
 /** Compact ZH | EN control for shell headers. */
@@ -143,13 +143,31 @@ export function LocaleSwitch({ className, variant = 'text' }: LocaleSwitchProps)
   const isZh = i18n.locale === 'zh-CN'
   const other: Locale = isZh ? 'en-US' : 'zh-CN'
   const switchLabel = isZh ? 'EN' : '中文'
+  const ariaLabel = isZh ? 'Switch to English' : '切换到中文'
+  if (variant === 'toggle') {
+    return (
+      <button
+        type="button"
+        role="switch"
+        className={`${className ?? ''} b2b-locale-toggle${isZh ? ' is-zh' : ' is-en'}`.trim()}
+        aria-checked={!isZh}
+        aria-label={ariaLabel}
+        title={ariaLabel}
+        onClick={() => i18n.setLocale(other)}
+      >
+        <span className="b2b-locale-toggle-track" aria-hidden>
+          <span className="b2b-locale-toggle-thumb" />
+        </span>
+      </button>
+    )
+  }
   if (variant === 'chip') {
     return (
       <button
         type="button"
         className={`${className ?? ''}${isZh ? '' : ' is-en'}`.trim()}
-        aria-label={isZh ? 'Switch to English' : '切换到中文'}
-        title={isZh ? 'Switch to English' : '切换到中文'}
+        aria-label={ariaLabel}
+        title={ariaLabel}
         onClick={() => i18n.setLocale(other)}
       >
         <span className="b2b-locale-current" lang={isZh ? 'zh-CN' : 'en'}>
@@ -168,7 +186,7 @@ export function LocaleSwitch({ className, variant = 'text' }: LocaleSwitchProps)
     <button
       type="button"
       className={className}
-      aria-label={isZh ? 'Switch to English' : '切换到中文'}
+      aria-label={ariaLabel}
       onClick={() => i18n.setLocale(other)}
     >
       {switchLabel}

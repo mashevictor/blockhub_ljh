@@ -1,9 +1,11 @@
+import { useT } from '@blockhub/i18n/react'
 import AuthPage from './AuthPage'
 
 export default function LoginPage() {
+  const t = useT()
   return (
     <AuthPage
-      subtitle="统一登录入口 · 验证码注册 / 密码登录 · 按角色进入工作台"
+      subtitle={t('admin.auth.login_subtitle')}
       defaultMode="otp"
       showPasswordLogin
       showLogo

@@ -1,4 +1,5 @@
 import { forwardRef, type CSSProperties } from 'react'
+import { useT } from '@blockhub/i18n/react'
 import {
   CHEVRON_DEFAULT_SIZE,
   CHEVRON_DOT_POINTS,
@@ -28,8 +29,10 @@ function ChevronStrokeLoader({
   variant = 'scan',
   size = CHEVRON_DEFAULT_SIZE,
   className = '',
-  label = '加载中',
+  label,
 }: LoaderProps) {
+  const t = useT()
+  const aria = label ?? t('common.loading')
   const { width, height, stroke } = CHEVRON_DOT_SIZES[size]
   const paths = chevronSignSvgPaths()
 
@@ -40,7 +43,7 @@ function ChevronStrokeLoader({
       height={height}
       viewBox={CHEVRON_SIGN_VIEWBOX}
       role="img"
-      aria-label={label}
+      aria-label={aria}
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
@@ -65,10 +68,12 @@ const ChevronDotLoader = forwardRef<HTMLSpanElement, LoaderProps>(function Chevr
     variant = 'scan',
     size = 'sm',
     className = '',
-    label = '加载中',
+    label,
   },
   ref,
 ) {
+  const t = useT()
+  const aria = label ?? t('common.loading')
   const { width, height } = CHEVRON_DOT_SIZES[size]
   const dot = chevronDotRadius(size)
   const scheme = schemeClass(variant)
@@ -87,7 +92,7 @@ const ChevronDotLoader = forwardRef<HTMLSpanElement, LoaderProps>(function Chevr
         } as CSSProperties
       }
       role="img"
-      aria-label={label}
+      aria-label={aria}
     >
       {CHEVRON_DOT_POINTS.map((p, i) => (
         <span
@@ -125,6 +130,7 @@ export function ChevronDotSign({
   /** 首页开场 FLIP 落点 */
   introTarget?: boolean
 }) {
+  const t = useT()
   const { width, height, stroke } = CHEVRON_DOT_SIZES[size]
   const paths = chevronSignSvgPaths()
 
@@ -135,7 +141,7 @@ export function ChevronDotSign({
       height={height}
       viewBox={CHEVRON_SIGN_VIEWBOX}
       role="img"
-      aria-label="大于号大于号"
+      aria-label={t('home.chevron.aria')}
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       {...(introTarget ? { 'data-intro-sign-target': '' } : {})}

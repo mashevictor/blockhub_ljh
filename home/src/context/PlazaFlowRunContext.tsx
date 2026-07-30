@@ -8,6 +8,7 @@ import {
   useState,
   type ReactNode,
 } from 'react'
+import { useT } from '@blockhub/i18n/react'
 import { FLOW_EGRESS_ID, FLOW_INGRESS_ID, loadModuleFlow } from '../lib/plazaModuleFlow'
 
 /** 流程预览动画相位（不写库；广场禁止改模块结构，允许问答与接口测试） */
@@ -66,29 +67,30 @@ const STEP_MS = 1400
 
 const PlazaFlowRunContext = createContext<Value | null>(null)
 
-function buildSteps(appKey: string, moduleLabels: string[]): PlazaRunStep[] {
+function buildSteps(appKey: string, moduleLabels: string[], intentLabel: string, outputLabel: string): PlazaRunStep[] {
   const flow = loadModuleFlow(appKey, moduleLabels)
   return [
-    { id: FLOW_INGRESS_ID, label: '用户意图' },
+    { id: FLOW_INGRESS_ID, label: intentLabel },
     ...flow.steps.map((s) => ({ id: s.id, label: s.label })),
-    { id: FLOW_EGRESS_ID, label: '触达输出' },
+    { id: FLOW_EGRESS_ID, label: outputLabel },
   ]
 }
 
-function phaseLabel(phase: PlazaRunPhase): string {
+function usePhaseLabel(phase: PlazaRunPhase): string {
+  const t = useT()
   switch (phase) {
     case 'idle':
-      return '概览'
+      return t('home.plaza.preview.phase.overview')
     case 'running':
-      return '流程预览中'
+      return t('home.plaza.preview.phase.running')
     case 'paused':
-      return '预览已暂停'
+      return t('home.plaza.preview.phase.paused')
     case 'completed':
-      return '预览完成'
+      return t('home.plaza.preview.phase.completed')
     case 'error':
-      return '预览失败'
+      return t('home.plaza.preview.phase.error')
     case 'stopped':
-      return '已停止预览'
+      return t('home.plaza.preview.phase.stopped')
   }
 }
 
@@ -106,6 +108,9 @@ export function PlazaFlowRunProvider({
   moduleLabels: string[]
   children: ReactNode
 }) {
+  const t = useT()
+  const intentLabel = t('home.plaza.cmd.intent')
+  const outputLabel = t('home.plaza.cmd.output')
   const [phase, setPhase] = useState<PlazaRunPhase>('idle')
   const [mode, setMode] = useState<PlazaWorkMode>('overview')
   const [stepIndex, setStepIndex] = useState(0)
@@ -115,8 +120,8 @@ export function PlazaFlowRunProvider({
   phaseRef.current = phase
 
   const steps = useMemo(
-    () => (appKey ? buildSteps(appKey, moduleLabels) : []),
-    [appKey, moduleLabels.join('|')],
+    () => (appKey ? buildSteps(appKey, moduleLabels, intentLabel, outputLabel) : []),
+    [appKey, moduleLabels.join('|'), intentLabel, outputLabel],
   )
 
   const clearTimer = useCallback(() => {
@@ -250,11 +255,12 @@ export function PlazaFlowRunProvider({
   const canEdit = false
   const canTestApi = true
 
+  const phaseText = usePhaseLabel(phase)
   const currentStep = steps[stepIndex] ?? null
   const progressLabel =
     steps.length > 0 && phase !== 'idle'
-      ? `${phaseLabel(phase)} · ${currentStep?.label ?? '—'} · ${Math.min(stepIndex + 1, steps.length)}/${steps.length}`
-      : phaseLabel(phase)
+      ? `${phaseText} · ${currentStep?.label ?? '—'} · ${Math.min(stepIndex + 1, steps.length)}/${steps.length}`
+      : phaseText
 
   const value = useMemo<Value>(
     () => ({
@@ -312,7 +318,7 @@ const EMPTY: Value = {
   steps: [],
   stepIndex: 0,
   currentStep: null,
-  progressLabel: '概览',
+  progressLabel: '',
   canEdit: false,
   canTestApi: true,
   start: () => {},
@@ -331,5 +337,8 @@ const EMPTY: Value = {
 }
 
 export function usePlazaFlowRun(): Value {
-  return useContext(PlazaFlowRunContext) ?? EMPTY
+  const ctx = useContext(PlazaFlowRunContext)
+  const t = useT()
+  if (ctx) return ctx
+  return { ...EMPTY, progressLabel: t('home.plaza.preview.phase.overview') }
 }

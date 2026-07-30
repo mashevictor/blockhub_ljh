@@ -16,7 +16,7 @@ from app.services.sms_service import send_sms
 
 logger = logging.getLogger(__name__)
 
-SHARE_ARTIFACTS: list[dict[str, str]] = [
+SHARE_ARTIFACTS_ZH: list[dict[str, str]] = [
     {
         "id": "one-pager",
         "title": "一页纸方案摘要",
@@ -55,6 +55,63 @@ SHARE_ARTIFACTS: list[dict[str, str]] = [
     },
 ]
 
+SHARE_ARTIFACTS_EN: list[dict[str, str]] = [
+    {
+        "id": "one-pager",
+        "title": "One-pager summary",
+        "description": "Manufacturing · fast lead response · share with decision-makers",
+        "href": "/downloads/one-pager-mfg.pdf",
+    },
+    {
+        "id": "case-mfg",
+        "title": "Manufacturing customer case (incl. pilot adjustments)",
+        "description": "800-person manufacturer · avg first response 28 min · 72% frontline adoption",
+        "href": "/cases/mfg-leads",
+    },
+    {
+        "id": "integration",
+        "title": "Systems integration checklist",
+        "description": "Common ERP (e.g. UFIDA) integration notes and data flows",
+        "href": "/downloads/integration-checklist.pdf",
+    },
+    {
+        "id": "security",
+        "title": "Security FAQ (pre-filled)",
+        "description": "IT pre-review · data residency · auditable",
+        "href": "/downloads/security-faq.pdf",
+    },
+    {
+        "id": "pricing",
+        "title": "Pricing & plans",
+        "description": "SaaS / hybrid / on-prem · what drives cost",
+        "href": "/pricing",
+    },
+    {
+        "id": "trust",
+        "title": "Trust & compliance center",
+        "description": "Security whitepaper · DPA summary · deployment modes",
+        "href": "/trust",
+    },
+]
+
+# Backward-compatible alias
+SHARE_ARTIFACTS = SHARE_ARTIFACTS_ZH
+
+
+def normalize_locale(locale: str | None) -> str:
+    raw = (locale or "zh-CN").strip().lower()
+    if raw.startswith("en"):
+        return "en-US"
+    return "zh-CN"
+
+
+def is_en(locale: str | None) -> bool:
+    return normalize_locale(locale) == "en-US"
+
+
+def share_artifacts_for(locale: str | None) -> list[dict[str, str]]:
+    return SHARE_ARTIFACTS_EN if is_en(locale) else SHARE_ARTIFACTS_ZH
+
 
 @dataclass
 class DeliveryResult:
@@ -89,7 +146,17 @@ def mask_phone(phone: str) -> str:
     return phone or ""
 
 
-def fallback_summary(*, salutation: str, company_name: str) -> str:
+def fallback_summary(*, salutation: str, company_name: str, locale: str | None = None) -> str:
+    if is_en(locale):
+        co = company_name.strip() or "your company"
+        return (
+            f"① Sales and service response scenarios for {co} align with BlockHub’s manufacturing "
+            f"approach of system linkage plus human confirmation before send.\n"
+            f"② Verified pilot results: average first response shortened from ~3.2 hours to 28 minutes, "
+            f"with 72% frontline adoption (verified metrics; no win-rate claims).\n"
+            f"③ Suggest IT colleagues also review the integration checklist and security notes in the pack "
+            f"for internal pre-review."
+        )
     co = company_name.strip() or "贵司"
     return (
         f"① {co}关注的销售与服务响应场景，可与积木仓制造行业方案中的"
@@ -100,33 +167,54 @@ def fallback_summary(*, salutation: str, company_name: str) -> str:
     )
 
 
-def generate_agent_summary(*, salutation: str, company_name: str) -> str:
-    sal = salutation.strip() or "客户"
-    co = company_name.strip() or "未填写公司"
-    data = deepseek_json_chat(
-        (
+def generate_agent_summary(
+    *,
+    salutation: str,
+    company_name: str,
+    locale: str | None = None,
+) -> str:
+    en = is_en(locale)
+    sal = salutation.strip() or ("Customer" if en else "客户")
+    co = company_name.strip() or ("Company not provided" if en else "未填写公司")
+    if en:
+        system = (
+            "You are BlockHub’s pre-sales materials assistant. From the booking info, write a 3-sentence "
+            "English internal forward summary. Require: (1) scenario fit (2) cite verified pilot data "
+            "(28-minute first response, 72% adoption; note no win-rate claims) (3) suggest IT colleagues "
+            "review security and integration materials. Professional tone, safe to forward. "
+            'Return JSON only: {"summary":"three sentences separated by newlines, optional ①②③ prefixes"}'
+        )
+        user = f"Name: {sal}\nCompany: {co}"
+    else:
+        system = (
             "你是积木仓售前材料助手。根据客户预约信息，生成 3 句中文「内部转发摘要」。"
             "要求：① 场景匹配 ② 引用已验证试点数据（28 分钟首响、72% 采纳率，注明不含赢单承诺）"
             "③ 建议信息部门同事查看安全与对接材料。"
             "语气专业、可转发给同事。禁止英文术语（如 POC、SSOT、Agent、Deal Room）。"
-            "只返回 JSON：{\"summary\":\"三句话，用换行分隔，可加 ①②③ 前缀\"}"
-        ),
-        f"称呼：{sal}\n公司：{co}",
-        temperature=0.3,
-    )
+            '只返回 JSON：{"summary":"三句话，用换行分隔，可加 ①②③ 前缀"}'
+        )
+        user = f"称呼：{sal}\n公司：{co}"
+    data = deepseek_json_chat(system, user, temperature=0.3)
     summary = (data or {}).get("summary", "").strip()
     if summary and len(summary) >= 40:
         return summary
-    return fallback_summary(salutation=salutation, company_name=company_name)
+    return fallback_summary(salutation=salutation, company_name=company_name, locale=locale)
 
 
-def deliver_booking(db: Session, row: DemoBooking) -> DeliveryResult:
+def deliver_booking(
+    db: Session,
+    row: DemoBooking,
+    *,
+    locale: str | None = None,
+) -> DeliveryResult:
+    loc = normalize_locale(locale)
     if not row.share_token:
         row.share_token = new_share_token()
     if not row.agent_summary:
         row.agent_summary = generate_agent_summary(
             salutation=row.salutation,
             company_name=row.company_name,
+            locale=loc,
         )
 
     url = share_url(row.share_token)
@@ -141,19 +229,34 @@ def deliver_booking(db: Session, row: DemoBooking) -> DeliveryResult:
             company_name=row.company_name.strip(),
             summary=row.agent_summary,
             share_url=url,
+            locale=loc,
         )
 
     if row.contact_phone.strip():
-        sal = row.salutation.strip() or "您好"
-        sms_text = (
-            f"【积木仓】{sal}，演示预约已收到，24 小时内将有顾问联系。"
-            f"您的资料包：{short_url} 详细文件已发至邮箱。"
-        )
-        if not row.contact_email.strip():
-            sms_text = (
-                f"【积木仓】{sal}，演示预约已收到，24 小时内将有顾问联系。"
-                f"资料包：{short_url}"
-            )
+        if is_en(loc):
+            sal = row.salutation.strip() or "Hello"
+            if row.contact_email.strip():
+                sms_text = (
+                    f"[BlockHub] {sal}, your demo booking is received. An advisor will contact you within 24h. "
+                    f"Pack: {short_url} Details also emailed."
+                )
+            else:
+                sms_text = (
+                    f"[BlockHub] {sal}, your demo booking is received. An advisor will contact you within 24h. "
+                    f"Pack: {short_url}"
+                )
+        else:
+            sal = row.salutation.strip() or "您好"
+            if row.contact_email.strip():
+                sms_text = (
+                    f"【积木仓】{sal}，演示预约已收到，24 小时内将有顾问联系。"
+                    f"您的资料包：{short_url} 详细文件已发至邮箱。"
+                )
+            else:
+                sms_text = (
+                    f"【积木仓】{sal}，演示预约已收到，24 小时内将有顾问联系。"
+                    f"资料包：{short_url}"
+                )
         sms_sent = send_sms(row.contact_phone.strip(), sms_text)
 
     if email_sent or sms_sent:
@@ -170,11 +273,12 @@ def deliver_booking(db: Session, row: DemoBooking) -> DeliveryResult:
     db.refresh(row)
 
     logger.info(
-        "booking delivery id=%s token=%s email=%s sms=%s",
+        "booking delivery id=%s token=%s email=%s sms=%s locale=%s",
         row.id,
         row.share_token,
         email_sent,
         sms_sent,
+        loc,
     )
     return DeliveryResult(
         share_token=row.share_token,
@@ -186,7 +290,7 @@ def deliver_booking(db: Session, row: DemoBooking) -> DeliveryResult:
     )
 
 
-def get_share_pack(db: Session, token: str) -> dict | None:
+def get_share_pack(db: Session, token: str, *, locale: str | None = None) -> dict | None:
     row = db.query(DemoBooking).filter(DemoBooking.share_token == token).first()
     if not row:
         return None
@@ -195,6 +299,6 @@ def get_share_pack(db: Session, token: str) -> dict | None:
         "salutation": row.salutation,
         "company_name": row.company_name,
         "agent_summary": row.agent_summary,
-        "artifacts": SHARE_ARTIFACTS,
+        "artifacts": share_artifacts_for(locale),
         "created_at": row.created_at.isoformat() if row.created_at else "",
     }

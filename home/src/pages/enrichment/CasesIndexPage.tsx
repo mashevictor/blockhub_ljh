@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { useT } from '@blockhub/i18n/react'
+import { useI18n, useT } from '@blockhub/i18n/react'
 import type { CSSProperties } from 'react'
 import MarketingSiteShell from '../../components/b2b/enrichment/MarketingSiteShell'
 import EnrichCardVisual from '../../components/b2b/enrichment/EnrichCardVisual'
@@ -12,6 +12,7 @@ import { usePageMeta } from '../../hooks/usePageMeta'
 
 export default function CasesIndexPage() {
   const t = useT()
+  const { locale } = useI18n()
   usePageMeta({
     title: `${t('home.enrich.cases.title')} · BlockHub`,
     description: t('home.enrich.cases.lead'),
@@ -26,7 +27,7 @@ export default function CasesIndexPage() {
     >
       <div className="enrich-cases-list">
         {CASE_STUDIES.map((raw) => {
-          const c = localizeCaseStudy(t, raw)
+          const c = localizeCaseStudy(t, raw, locale)
           const theme = caseIndustryTheme(raw.slug)
           return (
             <article

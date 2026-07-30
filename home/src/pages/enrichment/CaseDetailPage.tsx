@@ -1,5 +1,5 @@
 import { Link, Navigate, useParams } from 'react-router-dom'
-import { useT } from '@blockhub/i18n/react'
+import { useI18n, useT } from '@blockhub/i18n/react'
 import MarketingSiteShell from '../../components/b2b/enrichment/MarketingSiteShell'
 import EnrichArticleBody from '../../components/b2b/enrichment/EnrichArticleBody'
 import EnrichCardVisual from '../../components/b2b/enrichment/EnrichCardVisual'
@@ -13,9 +13,10 @@ import type { CSSProperties } from 'react'
 
 export default function CaseDetailPage() {
   const t = useT()
+  const { locale } = useI18n()
   const { slug = '' } = useParams()
   const raw = getCaseStudy(slug)
-  const study = raw ? localizeCaseStudy(t, raw) : undefined
+  const study = raw ? localizeCaseStudy(t, raw, locale) : undefined
 
   usePageMeta(
     study

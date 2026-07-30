@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
+import { useT } from '@blockhub/i18n/react'
 import { loginOtp, loginWithPassword, sendOtpCode } from '../auth/session'
 import { getToken } from '../auth/storage'
 import { ROUTES } from '../routes/paths'
@@ -14,20 +15,20 @@ function isValidAccount(v: string) {
   return /^1[3-9]\d{9}$/.test(trimmed.replace(/\s/g, ''))
 }
 
-function authErrorMessage(err: unknown, fallback: string): string {
+function authErrorMessage(
+  t: (key: string, vars?: Record<string, string | number>) => string,
+  err: unknown,
+  fallbackKey: string,
+): string {
   const resp = (err as { response?: { status?: number; data?: { detail?: string } } })?.response
-  if (!resp) {
-    return '无法连接服务。请确认网络正常，或使用演示站 http://124.222.177.43'
-  }
+  if (!resp) return t('home.auth.err.offline')
   if (resp.status === 429) {
-    return typeof resp.data?.detail === 'string' ? resp.data.detail : '发送过于频繁，请稍后再试'
+    return typeof resp.data?.detail === 'string' ? resp.data.detail : t('home.auth.err.rate_limit')
   }
   const detail = resp.data?.detail
   if (typeof detail === 'string' && detail.trim()) return detail
-  if (resp.status === 503 || resp.status === 500) {
-    return '服务暂不可用，请稍后重试'
-  }
-  return fallback
+  if (resp.status === 503 || resp.status === 500) return t('home.auth.err.unavailable')
+  return t(fallbackKey)
 }
 
 interface Props {
@@ -42,8 +43,8 @@ interface Props {
 }
 
 export default function AuthPage({
-  title = `${BRAND.nameZh} ${BRAND.nameEn}`,
-  subtitle = '登录或注册',
+  title,
+  subtitle,
   backLink = ROUTES.home,
   defaultEmail = '',
   defaultPassword = '',
@@ -51,6 +52,9 @@ export default function AuthPage({
   defaultMode = 'otp',
   showLogo = true,
 }: Props) {
+  const t = useT()
+  const resolvedTitle = title ?? `${BRAND.nameZh} ${BRAND.nameEn}`
+  const resolvedSubtitle = subtitle ?? t('home.auth.subtitle')
   const navigate = useNavigate()
   const location = useLocation()
   const from = (location.state as { from?: string } | null)?.from || ROUTES.home
@@ -86,7 +90,7 @@ export default function AuthPage({
 
   const handleSendCode = async () => {
     if (!isValidAccount(account)) {
-      setError('请输入有效邮箱或 11 位手机号')
+      setError(t('home.auth.err.account'))
       return
     }
     setError('')
@@ -97,7 +101,7 @@ export default function AuthPage({
       setCountdown(60)
       setHint(res.message)
     } catch (err: unknown) {
-      setError(authErrorMessage(err, '验证码发送失败'))
+      setError(authErrorMessage(t, err, 'home.auth.err.send_fail'))
     } finally {
       setSending(false)
     }
@@ -106,7 +110,7 @@ export default function AuthPage({
   const onSubmitOtp = async (e: FormEvent) => {
     e.preventDefault()
     if (!canSubmitOtp) {
-      setError('请填写手机号/邮箱和 6 位验证码')
+      setError(t('home.auth.err.otp_fields'))
       return
     }
     setLoading(true)
@@ -115,7 +119,7 @@ export default function AuthPage({
       await loginOtp(account.trim(), code.trim())
       navigate(from, { replace: true })
     } catch (err: unknown) {
-      setError(authErrorMessage(err, '验证码错误或已过期'))
+      setError(authErrorMessage(t, err, 'home.auth.err.otp_invalid'))
     } finally {
       setLoading(false)
     }
@@ -129,7 +133,7 @@ export default function AuthPage({
       await loginWithPassword(email, password)
       navigate(from, { replace: true })
     } catch (err: unknown) {
-      setError(authErrorMessage(err, '登录失败，请检查邮箱和密码'))
+      setError(authErrorMessage(t, err, 'home.auth.err.password'))
     } finally {
       setLoading(false)
     }
@@ -145,18 +149,18 @@ export default function AuthPage({
         <div className="login-brand">
           {showLogo && <BrandMark size={40} />}
           <div>
-            <h1>{title}</h1>
-            <p>{subtitle}</p>
+            <h1>{resolvedTitle}</h1>
+            <p>{resolvedSubtitle}</p>
           </div>
         </div>
 
         {showPasswordLogin && (
           <div className="login-mode-tabs">
             <button type="button" className={mode === 'otp' ? 'on' : ''} onClick={() => setMode('otp')}>
-              验证码{isRegister ? '注册' : '登录'}
+              {isRegister ? t('home.auth.tab.otp_register') : t('home.auth.tab.otp_login')}
             </button>
             <button type="button" className={mode === 'password' ? 'on' : ''} onClick={() => setMode('password')}>
-              密码登录
+              {t('home.auth.tab.password')}
             </button>
           </div>
         )}
@@ -164,18 +168,18 @@ export default function AuthPage({
         {mode === 'otp' ? (
           <>
             <label>
-              手机号 / 邮箱
+              {t('home.auth.account')}
               <input
                 type="text"
                 value={account}
                 onChange={(e) => setAccount(e.target.value)}
-                placeholder="13800000000 或 name@company.com"
+                placeholder={t('home.auth.account_ph')}
                 required
                 autoComplete="username"
               />
             </label>
             <label className="otp-code-row">
-              验证码
+              {t('home.auth.code')}
               <div className="otp-code-inputs">
                 <input
                   type="text"
@@ -183,7 +187,7 @@ export default function AuthPage({
                   maxLength={6}
                   value={code}
                   onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
-                  placeholder="6 位验证码"
+                  placeholder={t('home.auth.code_ph')}
                   required
                   autoComplete="one-time-code"
                 />
@@ -193,20 +197,18 @@ export default function AuthPage({
                   disabled={!canSendCode}
                   onClick={() => void handleSendCode()}
                 >
-                  {sending ? '发送中…' : countdown > 0 ? `${countdown}s` : '获取验证码'}
+                  {sending ? t('home.auth.sending') : countdown > 0 ? `${countdown}s` : t('home.auth.send')}
                 </button>
               </div>
             </label>
             <p className="login-hint login-hint-left">
-              {isRegister
-                ? '填写手机号或邮箱 → 获取验证码 → 验证后自动注册并登录'
-                : '未注册的手机号/邮箱验证后将自动创建账号'}
+              {isRegister ? t('home.auth.register_hint') : t('home.auth.login_hint')}
             </p>
           </>
         ) : (
           <>
             <label>
-              邮箱
+              {t('home.auth.email')}
               <input
                 type="email"
                 value={email}
@@ -216,7 +218,7 @@ export default function AuthPage({
               />
             </label>
             <label>
-              密码
+              {t('home.auth.password')}
               <input
                 type="password"
                 value={password}
@@ -232,22 +234,26 @@ export default function AuthPage({
         {hint && !error && <p className="login-hint login-hint-success">{hint}</p>}
 
         <button type="submit" disabled={loading || (mode === 'otp' && !canSubmitOtp)}>
-          {loading ? '处理中…' : mode === 'otp' ? (isRegister ? '注册并登录' : '登录 / 注册') : '登录'}
+          {loading
+            ? t('home.auth.submitting')
+            : mode === 'otp'
+              ? (isRegister ? t('home.auth.submit_otp_register') : t('home.auth.submit_otp_login'))
+              : t('home.auth.submit_password')}
         </button>
 
         <p className="login-switch">
           {isRegister ? (
-            <>已有账号？<Link to={ROUTES.login}>去登录</Link></>
+            <>{t('home.auth.has_account')}<Link to={ROUTES.login}>{t('home.auth.go_login')}</Link></>
           ) : (
-            <>没有账号？<Link to="/register">验证码注册</Link></>
+            <>{t('home.auth.no_account')}<Link to="/register">{t('home.auth.go_register')}</Link></>
           )}
         </p>
 
         {backLink && (
-          <p className="login-hint"><Link to={backLink}>← 返回首页</Link></p>
+          <p className="login-hint"><Link to={backLink}>{t('home.auth.back_home')}</Link></p>
         )}
         {typeof __APP_BUILD_VERSION__ === 'string' && (
-          <p className="login-hint login-version">版本 {__APP_BUILD_VERSION__}</p>
+          <p className="login-hint login-version">{t('home.auth.version', { v: __APP_BUILD_VERSION__ })}</p>
         )}
       </form>
     </div>

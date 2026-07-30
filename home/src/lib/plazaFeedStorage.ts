@@ -5,6 +5,8 @@ import type { PlazaFeedItem } from '../data/plazaMock'
 import { publishAppToPlaza, fetchPlazaFeed, type PlazaFeedApiItem } from '../api/client'
 import type { PlazaAudienceMeta } from '../lib/myAppsStorage'
 import { setMyAppPlazaAudience } from '../lib/myAppsStorage'
+import { readStoredLocale } from '@blockhub/i18n'
+import { homeT } from '../i18n/homeT'
 
 const STORAGE_KEY = 'blockhub_plaza_feed'
 export const PLAZA_FEED_UPDATED_EVENT = 'blockhub:plaza-feed-updated'
@@ -21,10 +23,11 @@ function appKey(result: Pick<PublishResult, 'appId' | 'webUrl'>) {
 
 function formatTimeLabel(iso: string) {
   const diff = Date.now() - new Date(iso).getTime()
-  if (diff < 60_000) return '刚刚'
-  if (diff < 3600_000) return `${Math.floor(diff / 60_000)} 分钟前`
-  if (diff < 86400_000) return `${Math.floor(diff / 3600_000)} 小时前`
-  return new Date(iso).toLocaleDateString('zh-CN')
+  if (diff < 60_000) return homeT('home.plaza.feed.time.just_now')
+  if (diff < 3600_000) return homeT('home.plaza.feed.time.minutes', { n: Math.floor(diff / 60_000) })
+  if (diff < 86400_000) return homeT('home.plaza.feed.time.hours', { n: Math.floor(diff / 3600_000) })
+  const locale = readStoredLocale() === 'en-US' ? 'en-US' : 'zh-CN'
+  return new Date(iso).toLocaleDateString(locale)
 }
 
 function moduleLabels(result: PublishResult): string[] {
@@ -36,11 +39,17 @@ function moduleLabels(result: PublishResult): string[] {
 
 function buildSummary(result: PublishResult, sel: AudienceSelection): string {
   const mods = moduleLabels(result).join(' · ')
-  const base = `${result.moduleCount} 项能力${mods ? `：${mods}` : ''}。网页和手机都能用。`
+  const modsPart = mods ? homeT('home.plaza.feed.summary.mods_sep', { mods }) : ''
+  const base = homeT('home.plaza.feed.summary.base', { n: result.moduleCount, mods: modsPart })
   if (sel.type === 'public') return base
-  if (sel.type === 'org') return `组织内可见 · ${base}`
-  if (sel.type === 'dept') return `范围可见 · ${sel.deptName ?? '部门'}内可访问 · ${base}`
-  return `定向发布 · 仅指定成员可见 · ${base}`
+  if (sel.type === 'org') return homeT('home.plaza.feed.summary.org', { base })
+  if (sel.type === 'dept') {
+    return homeT('home.plaza.feed.summary.dept', {
+      dept: sel.deptName ?? homeT('home.plaza.feed.summary.dept_fallback'),
+      base,
+    })
+  }
+  return homeT('home.plaza.feed.summary.targeted', { base })
 }
 
 function notifyPlazaFeedUpdated(): void {
@@ -118,7 +127,7 @@ export async function publishToPlazaFeed(
       if (res.app?.plaza_published_at) savedAt = res.app.plaza_published_at
     } catch (err) {
       // 有正式 appId 时禁止「假成功」：广场看不到却显示已发布
-      throw err instanceof Error ? err : new Error('发布到广场失败')
+      throw err instanceof Error ? err : new Error(homeT('home.plaza.feed.publish_fail'))
     }
   }
 
@@ -127,10 +136,10 @@ export async function publishToPlazaFeed(
     appKey: key,
     audienceType: selection.type,
     savedAt,
-    authorName: '我',
-    authorInitial: '我',
-    authorMeta: '本浏览器',
-    timeLabel: '刚刚',
+    authorName: homeT('home.plaza.feed.me'),
+    authorInitial: homeT('home.plaza.feed.me'),
+    authorMeta: homeT('home.plaza.feed.browser_meta'),
+    timeLabel: homeT('home.plaza.feed.time.just_now'),
     visibility: vis,
     atLabel,
     appName: result.appName,

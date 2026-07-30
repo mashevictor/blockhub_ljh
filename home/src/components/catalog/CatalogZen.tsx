@@ -1,3 +1,4 @@
+import { useT } from '@blockhub/i18n/react'
 import { DynamicIcon } from '../icons'
 import { categoryColor, iconWrapStyle } from '../../data/iconPalette'
 import { resolveCategoryIcon } from '../../data/showcase'
@@ -32,30 +33,31 @@ export default function CatalogZen({
   theme,
   loading,
 }: Props) {
+  const t = useT()
   const suggestItems = suggestions.slice(0, 6)
 
   const orbItems = items.slice(0, 14)
 
   return (
     <div className="catalog-zen">
-      <p className="catalog-zen-q">Pick modules</p>
+      <p className="catalog-zen-q">{t('home.catalog.zen.title')}</p>
       <input
         className="catalog-zen-input"
-        placeholder="搜索场景，或继续在上文描述需求…"
+        placeholder={t('home.catalog.zen.search_ph')}
         value={search}
         onChange={(e) => onSearch(e.target.value)}
-        aria-label="搜索场景"
+        aria-label={t('home.catalog.search_aria')}
       />
 
       {loading ? (
-        <p className="catalog-zen-hint">正在加载场景…</p>
+        <p className="catalog-zen-hint">{t('home.catalog.zen.loading')}</p>
       ) : orbItems.length === 0 ? (
-        <p className="catalog-zen-hint">没有匹配的场景，试试换个关键词</p>
+        <p className="catalog-zen-hint">{t('home.catalog.zen.no_match')}</p>
       ) : (
         <>
           {suggestItems.length > 0 && (
             <div className="catalog-zen-group">
-              <span className="catalog-zen-label">推荐</span>
+              <span className="catalog-zen-label">{t('home.catalog.zen.recommended')}</span>
               <div className="catalog-zen-orbs">
                 {suggestItems.map((s) => {
                   const id = moduleId(s.pick)
@@ -92,7 +94,7 @@ export default function CatalogZen({
           )}
 
           <div className="catalog-zen-group">
-            <span className="catalog-zen-label">场景</span>
+            <span className="catalog-zen-label">{t('home.catalog.zen.scenarios')}</span>
             <div className="catalog-zen-orbs">
               {orbItems.map((item) => {
                 const ic = categoryColor(item.category, theme)
@@ -119,7 +121,7 @@ export default function CatalogZen({
       )}
 
       {selectedCount > 0 && (
-        <p className="catalog-zen-selected">已选 {selectedCount} 个模块</p>
+        <p className="catalog-zen-selected">{t('home.catalog.zen.selected', { n: selectedCount })}</p>
       )}
     </div>
   )

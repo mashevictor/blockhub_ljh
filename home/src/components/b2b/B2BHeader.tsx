@@ -165,7 +165,7 @@ export default function B2BHeader({ user, activeSection = 'hero', onLogout }: Pr
   const renderActionTail = (): ReactNode => (
     <>
       {!pathname.startsWith(ROUTES.capship) && (
-        <LocaleSwitch className="b2b-locale-switch" variant="chip" />
+        <LocaleSwitch className="b2b-locale-switch" variant="toggle" />
       )}
       {user ? (
         <>
@@ -219,6 +219,9 @@ export default function B2BHeader({ user, activeSection = 'hero', onLogout }: Pr
         <div className="b2b-nav-actions">
           <div className="b2b-nav-actions-btns b2b-nav-actions-btns--desktop">{renderActionBtns()}</div>
           <div className="b2b-nav-actions-mobile">
+            {!pathname.startsWith(ROUTES.capship) && (
+              <LocaleSwitch className="b2b-locale-switch" variant="toggle" />
+            )}
             {isHome ? (
               <button
                 type="button"

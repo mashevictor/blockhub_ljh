@@ -87,7 +87,7 @@ export default function PlazaLayout() {
             <span className="plaza-nav-label-short">{t('home.plaza.nav.my_short')}</span>
             {myAppsCount > 0 && <span className="plaza-my-badge">{myAppsCount}</span>}
           </NavLink>
-          <LocaleSwitch className="b2b-locale-switch" variant="chip" />
+          <LocaleSwitch className="b2b-locale-switch" variant="toggle" />
         </nav>
       </header>
 

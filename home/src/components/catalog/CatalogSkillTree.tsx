@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { useT } from '@blockhub/i18n/react'
 import { DynamicIcon } from '../icons'
 import { categoryColor, iconWrapStyle } from '../../data/iconPalette'
 import { resolveCategoryIcon } from '../../data/showcase'
@@ -48,6 +49,7 @@ export default function CatalogSkillTree({
   theme,
   loading,
 }: Props) {
+  const t = useT()
   const [branch, setBranch] = useState<string | null>(null)
 
   const branches = useMemo(() => categoryGroups.slice(0, 8), [categoryGroups])
@@ -73,9 +75,9 @@ export default function CatalogSkillTree({
   return (
     <div className="catalog-tree">
       {loading ? (
-        <p className="catalog-tree-hint">正在加载场景…</p>
+        <p className="catalog-tree-hint">{t('home.catalog.tree.loading')}</p>
       ) : branches.length === 0 ? (
-        <p className="catalog-tree-hint">没有可展示的场景</p>
+        <p className="catalog-tree-hint">{t('home.catalog.tree.empty')}</p>
       ) : (
         <>
           <div className="catalog-tree-branches">
@@ -124,7 +126,7 @@ export default function CatalogSkillTree({
               })}
             </div>
 
-            <button type="button" className="catalog-tree-root" title="应用中心" onClick={() => setBranch(null)}>
+            <button type="button" className="catalog-tree-root" title={t('home.catalog.tree.app_center')} onClick={() => setBranch(null)}>
               <DynamicIcon name="home" size={26} color="#fff" />
             </button>
 
@@ -152,9 +154,9 @@ export default function CatalogSkillTree({
           </div>
 
           <p className="catalog-tree-foot">
-            {activeBranch ? `「${activeBranch}」` : '全部'}
+            {activeBranch ? `「${activeBranch}」` : t('home.catalog.tree.all')}
             {' · '}
-            点击节点添加模块
+            {t('home.catalog.tree.hint')}
           </p>
         </>
       )}

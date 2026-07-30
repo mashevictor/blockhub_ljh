@@ -94,10 +94,11 @@ export function parseBookingInput(raw: string): string {
   if (s.startsWith('>>')) s = s.slice(2).trim()
   const prefixes = [
     '邮箱或电话', '邮箱', '电话', '联系电话', '称呼', '公司名称', '企业名称', '公司',
+    'Email or phone', 'Email', 'Phone', 'Mobile', 'Contact', 'Name', 'Company name', 'Company',
     ...BOOKING_FIELDS.map((f) => f.label),
   ]
   for (const p of prefixes) {
-    if (s.startsWith(p)) {
+    if (s.toLowerCase().startsWith(p.toLowerCase())) {
       s = s.slice(p.length).replace(/^[：:\s,，]+/, '').trim()
       break
     }
