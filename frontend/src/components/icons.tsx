@@ -197,3 +197,21 @@ export function IconStamp({ size = 18, ...p }: P) {
     </svg>
   )
 }
+
+export function IconMenu({ size = 18, ...p }: P) {
+  const a = s(size)
+  return (
+    <svg {...a} {...p}>
+      <path d="M4 5h16M4 12h16M4 19h16" />
+    </svg>
+  )
+}
+
+export function IconX({ size = 18, ...p }: P) {
+  const a = s(size)
+  return (
+    <svg {...a} {...p}>
+      <path d="M18 6 6 18M6 6l12 12" />
+    </svg>
+  )
+}

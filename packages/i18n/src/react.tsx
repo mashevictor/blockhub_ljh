@@ -152,11 +152,13 @@ export function LocaleSwitch({ className, variant = 'text' }: LocaleSwitchProps)
         className={`${className ?? ''} b2b-locale-toggle${isZh ? ' is-zh' : ' is-en'}`.trim()}
         aria-checked={!isZh}
         aria-label={ariaLabel}
-        title={ariaLabel}
+        title={isZh ? '中文 · 点击切换 English' : 'English · click for 中文'}
         onClick={() => i18n.setLocale(other)}
       >
         <span className="b2b-locale-toggle-track" aria-hidden>
+          <span className="b2b-locale-toggle-hint b2b-locale-toggle-hint--zh">中</span>
           <span className="b2b-locale-toggle-thumb" />
+          <span className="b2b-locale-toggle-hint b2b-locale-toggle-hint--en">EN</span>
         </span>
       </button>
     )

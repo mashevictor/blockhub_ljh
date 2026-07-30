@@ -404,9 +404,9 @@
 
 /* Pill toggle locale switch (EN thumb right / ZH thumb left) */
 .b2b-locale-switch.b2b-locale-toggle {
-  width: 46px;
+  width: 58px;
   height: 26px;
-  min-width: 46px;
+  min-width: 58px;
   min-height: 26px;
   padding: 2px;
   border-radius: 999px;
@@ -424,11 +424,15 @@
 
 .b2b-locale-toggle-track {
   position: relative;
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   width: 100%;
   height: 100%;
+  padding: 0 5px;
   border-radius: 999px;
   background: #0d47a1;
+  box-sizing: border-box;
   transition: background 0.2s ease;
 }
 
@@ -436,10 +440,38 @@
   background: #1565c0;
 }
 
+.b2b-locale-toggle-hint {
+  position: relative;
+  z-index: 1;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0;
+  color: rgba(255, 255, 255, 0.55);
+  pointer-events: none;
+  transition: color 0.2s ease, opacity 0.2s ease;
+}
+
+.b2b-locale-toggle-hint--en {
+  font-size: 8px;
+  letter-spacing: -0.02em;
+}
+
+.b2b-locale-switch.b2b-locale-toggle.is-zh .b2b-locale-toggle-hint--zh,
+.b2b-locale-switch.b2b-locale-toggle.is-en .b2b-locale-toggle-hint--en {
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.b2b-locale-switch.b2b-locale-toggle.is-zh .b2b-locale-toggle-hint--en,
+.b2b-locale-switch.b2b-locale-toggle.is-en .b2b-locale-toggle-hint--zh {
+  opacity: 0.45;
+}
+
 .b2b-locale-toggle-thumb {
   position: absolute;
   top: 50%;
   left: 2px;
+  z-index: 2;
   width: 18px;
   height: 18px;
   border-radius: 50%;
@@ -450,7 +482,7 @@
 }
 
 .b2b-locale-switch.b2b-locale-toggle.is-en .b2b-locale-toggle-thumb {
-  transform: translate(20px, -50%);
+  transform: translate(32px, -50%);
 }
 
 .b2b-locale-switch.b2b-locale-toggle:focus-visible {

@@ -27,6 +27,8 @@
   "topbar.create": "Create",
   "topbar.logout": "Sign out",
   "topbar.status_ok": "All systems normal",
+  "topbar.menu": "Open menu",
+  "topbar.menu_close": "Close menu",
   "role.admin": "Admin",
   "role.tenant_owner": "Space owner",
   "role.employee": "Member",

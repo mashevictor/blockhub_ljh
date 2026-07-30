@@ -27,6 +27,8 @@
   "topbar.create": "创建入口",
   "topbar.logout": "退出",
   "topbar.status_ok": "系统运行正常",
+  "topbar.menu": "打开菜单",
+  "topbar.menu_close": "关闭菜单",
   "role.admin": "管理员",
   "role.tenant_owner": "空间所有者",
   "role.employee": "使用者",

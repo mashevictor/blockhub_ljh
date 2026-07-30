@@ -25,6 +25,8 @@ import {
   IconLayers,
   IconSettings,
   IconGrid,
+  IconMenu,
+  IconX,
 } from './icons'
 
 const NAV: Array<{ to: string; labelKey: string; icon: typeof IconHome; end?: boolean; roles: AppRole[] }> = [
@@ -49,6 +51,7 @@ export default function AdminLayout() {
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [catalog, setCatalog] = useState<CatalogSummary | null>(null)
   const [billing, setBilling] = useState<BillingMe | null>(null)
+  const [navOpen, setNavOpen] = useState(false)
   const { user, role } = useAuth()
   const location = useLocation()
 
@@ -75,6 +78,24 @@ export default function AdminLayout() {
     }
   }, [])
 
+  useEffect(() => {
+    setNavOpen(false)
+  }, [location.pathname])
+
+  useEffect(() => {
+    if (!navOpen) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setNavOpen(false)
+    }
+    document.addEventListener('keydown', onKey)
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      document.body.style.overflow = prev
+    }
+  }, [navOpen])
+
   const visibleNav = useMemo(
     () => NAV.filter((n) => canAccessRole(user?.role ?? role, n.roles)),
     [user, role],
@@ -92,9 +113,16 @@ export default function AdminLayout() {
         ? t('admin.sidebar.packs_none')
         : t('admin.sidebar.packs_n', { n: industryPacks })
 
+  const closeNav = () => setNavOpen(false)
+
   return (
-    <div className="layout">
-      <aside className="sidebar">
+    <div className={`layout${navOpen ? ' is-nav-open' : ''}`}>
+      <div
+        className={`nav-backdrop${navOpen ? ' is-open' : ''}`}
+        aria-hidden={!navOpen}
+        onClick={closeNav}
+      />
+      <aside className="sidebar" id="admin-sidebar-nav" aria-hidden={false}>
         <div className="sidebar-brand">
           <BrandMark size={42} className="sidebar-brand-mark" />
           <div>
@@ -104,6 +132,14 @@ export default function AdminLayout() {
               {user?.role === 'employee' ? t('admin.sidebar.workbench') : t('admin.sidebar.admin')}
             </p>
           </div>
+          <button
+            type="button"
+            className="sidebar-close-btn"
+            aria-label={t('admin.topbar.menu_close')}
+            onClick={closeNav}
+          >
+            <IconX size={20} aria-hidden />
+          </button>
         </div>
         {planName ? (
           <div className="sidebar-meta" style={{ marginBottom: 8 }}>
@@ -130,7 +166,7 @@ export default function AdminLayout() {
             })}
           </>
         </div>
-        <nav className="nav-section">
+        <nav className="nav-section" aria-label={t('admin.nav.section')}>
           <div className="nav-label">{t('admin.nav.section')}</div>
           {visibleNav.map((n) => {
             const NavIcon = n.icon
@@ -140,6 +176,7 @@ export default function AdminLayout() {
                 to={n.to}
                 end={n.end}
                 className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}
+                onClick={closeNav}
               >
                 <span className="nav-icon">
                   <NavIcon size={17} />
@@ -152,7 +189,19 @@ export default function AdminLayout() {
       </aside>
       <div className="main-area">
         <header className="topbar">
-          <span className="topbar-title">{BRAND.adminTitle}</span>
+          <div className="topbar-leading">
+            <button
+              type="button"
+              className="topbar-menu-btn"
+              aria-expanded={navOpen}
+              aria-controls="admin-sidebar-nav"
+              aria-label={navOpen ? t('admin.topbar.menu_close') : t('admin.topbar.menu')}
+              onClick={() => setNavOpen((v) => !v)}
+            >
+              {navOpen ? <IconX size={22} aria-hidden /> : <IconMenu size={22} aria-hidden />}
+            </button>
+            <span className="topbar-title">{BRAND.adminTitle}</span>
+          </div>
           <div className="topbar-actions">
             <a
               className="topbar-home-link"

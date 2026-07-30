@@ -3,7 +3,7 @@ import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { LocaleSwitch, useT } from '@blockhub/i18n/react'
 import BrandMark from '../../components/BrandMark'
 import { BRAND } from '../../data/brand'
-import { IconLayers } from '../../components/icons'
+import { IconLayers, IconMenu, IconX } from '../../components/icons'
 import { useMyApps } from '../../hooks/useMyApps'
 import { loadPlazaFeedItemsAsync } from '../../lib/plazaFeedStorage'
 import { ROUTES } from '../../routes/paths'
@@ -42,6 +42,7 @@ export default function PlazaLayout() {
   const myApps = useMyApps()
   const myAppsCount = myApps.length
   const [publicFeedCount, setPublicFeedCount] = useState(0)
+  const [menuOpen, setMenuOpen] = useState(false)
   const { pathname } = useLocation()
   const onMyAppsPage = pathname === ROUTES.plazaMyApps
 
@@ -58,38 +59,106 @@ export default function PlazaLayout() {
     bootstrapShanghaiVoiceProject()
   }, [])
 
+  useEffect(() => {
+    setMenuOpen(false)
+  }, [pathname])
+
+  useEffect(() => {
+    if (!menuOpen) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMenuOpen(false)
+    }
+    document.addEventListener('keydown', onKey)
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      document.body.style.overflow = prev
+    }
+  }, [menuOpen])
+
+  const closeMenu = () => setMenuOpen(false)
+
+  const renderNavLinks = (opts?: { drawer?: boolean }) => (
+    <>
+      <Link to={ROUTES.home} onClick={closeMenu}>
+        <span className="plaza-nav-label-full">{t('home.plaza.nav.create')}</span>
+        {!opts?.drawer && <span className="plaza-nav-label-short">{t('home.plaza.nav.create_short')}</span>}
+      </Link>
+      <NavLink to={ROUTES.plazaFeed} end className={topLinkClass} onClick={closeMenu}>
+        <span className="plaza-nav-label-full">{t('home.plaza.nav.feed')}</span>
+        {!opts?.drawer && <span className="plaza-nav-label-short">{t('home.plaza.nav.feed_short')}</span>}
+      </NavLink>
+      <NavLink to={ROUTES.plazaMyApps} className={topLinkClass} onClick={closeMenu}>
+        <IconLayers size={14} />
+        <span className="plaza-nav-label-full">{t('home.plaza.nav.my')}</span>
+        {!opts?.drawer && <span className="plaza-nav-label-short">{t('home.plaza.nav.my_short')}</span>}
+        {myAppsCount > 0 && <span className="plaza-my-badge">{myAppsCount}</span>}
+      </NavLink>
+    </>
+  )
+
   return (
     <AgentPageProvider initial="plaza_feed">
       <PlazaFocusProvider>
       <PlazaRunBridge>
       <PlazaContextSync />
-      <div className="plaza-page b2b-brand-scope b2b-has-floating-agent">
+      <div className={`plaza-page b2b-brand-scope b2b-has-floating-agent${menuOpen ? ' is-nav-open' : ''}`}>
       <header className="plaza-topbar">
-        <Link to={ROUTES.home} className="plaza-topbar-brand">
+        <Link to={ROUTES.home} className="plaza-topbar-brand" onClick={closeMenu}>
           <BrandMark size={32} />
           <span>
             <strong>{BRAND.nameZh}</strong>
             <em className="plaza-topbar-brand-en">{BRAND.nameEn}</em>
           </span>
         </Link>
-        <nav className="plaza-topbar-nav" aria-label={t('home.plaza.nav.aria')}>
-          <Link to={ROUTES.home}>
-            <span className="plaza-nav-label-full">{t('home.plaza.nav.create')}</span>
-            <span className="plaza-nav-label-short">{t('home.plaza.nav.create_short')}</span>
-          </Link>
-          <NavLink to={ROUTES.plazaFeed} end className={topLinkClass}>
-            <span className="plaza-nav-label-full">{t('home.plaza.nav.feed')}</span>
-            <span className="plaza-nav-label-short">{t('home.plaza.nav.feed_short')}</span>
-          </NavLink>
-          <NavLink to={ROUTES.plazaMyApps} className={topLinkClass}>
-            <IconLayers size={14} />
-            <span className="plaza-nav-label-full">{t('home.plaza.nav.my')}</span>
-            <span className="plaza-nav-label-short">{t('home.plaza.nav.my_short')}</span>
-            {myAppsCount > 0 && <span className="plaza-my-badge">{myAppsCount}</span>}
-          </NavLink>
+        <nav className="plaza-topbar-nav plaza-topbar-nav--desktop" aria-label={t('home.plaza.nav.aria')}>
+          {renderNavLinks()}
           <LocaleSwitch className="b2b-locale-switch" variant="toggle" />
         </nav>
+        <div className="plaza-topbar-mobile-actions">
+          <LocaleSwitch className="b2b-locale-switch plaza-topbar-locale-mobile" variant="toggle" />
+          <button
+            type="button"
+            className="plaza-topbar-menu-btn"
+            aria-expanded={menuOpen}
+            aria-controls="plaza-nav-drawer"
+            aria-label={menuOpen ? t('home.action.menu_close') : t('home.action.menu')}
+            onClick={() => setMenuOpen((v) => !v)}
+          >
+            {menuOpen ? <IconX size={22} aria-hidden /> : <IconMenu size={22} aria-hidden />}
+          </button>
+        </div>
       </header>
+
+      <div
+        className={`plaza-nav-drawer-backdrop${menuOpen ? ' is-open' : ''}`}
+        aria-hidden={!menuOpen}
+        onClick={closeMenu}
+      />
+      <div
+        id="plaza-nav-drawer"
+        className={`plaza-nav-drawer${menuOpen ? ' is-open' : ''}`}
+        role="dialog"
+        aria-modal="true"
+        aria-label={t('home.plaza.nav.aria')}
+        aria-hidden={!menuOpen}
+      >
+        <div className="plaza-nav-drawer-head">
+          <strong>{BRAND.nameZh}</strong>
+          <button
+            type="button"
+            className="plaza-topbar-menu-btn"
+            aria-label={t('home.action.menu_close')}
+            onClick={closeMenu}
+          >
+            <IconX size={22} aria-hidden />
+          </button>
+        </div>
+        <nav className="plaza-nav-drawer-nav" aria-label={t('home.plaza.nav.aria')}>
+          {renderNavLinks({ drawer: true })}
+        </nav>
+      </div>
 
       <div className="plaza-flow-strip" role="marquee" aria-label={t('home.plaza.strip.aria')}>
         <p className="plaza-flow-strip-text plaza-flow-strip-text--full">{t('home.plaza.strip.full')}</p>

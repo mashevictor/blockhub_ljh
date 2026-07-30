@@ -5616,7 +5616,30 @@ body.modal-scroll-lock {
 .plaza-topbar {
   display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
   padding: 12px 20px; border-bottom: 1px solid var(--border); background: var(--surface);
+  position: sticky; top: 0; z-index: 40;
 }
+.plaza-topbar-mobile-actions {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.plaza-topbar-menu-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--pri);
+  cursor: pointer;
+}
+.plaza-nav-drawer-backdrop,
+.plaza-nav-drawer { display: none; }
 .plaza-topbar-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text); font-weight: 700; font-size: 14px; }
 .plaza-topbar-brand span { display: flex; flex-direction: column; gap: 1px; line-height: 1.15; }
 .plaza-topbar-brand strong { font-size: inherit; font-weight: 800; }
@@ -5718,28 +5741,93 @@ body.modal-scroll-lock {
     padding: 10px 12px;
     gap: 8px;
     min-height: 0;
+    flex-wrap: nowrap;
   }
   .plaza-topbar-brand { font-size: 15px; gap: 8px; min-width: 0; }
   .plaza-topbar-brand-en { display: none; }
-  .plaza-topbar-nav {
-    width: 100%;
+  .plaza-topbar-nav--desktop { display: none !important; }
+  .plaza-topbar-mobile-actions { display: flex; }
+
+  .plaza-nav-drawer-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 120;
+    background: rgba(15, 23, 42, 0.42);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+  }
+  .plaza-nav-drawer-backdrop.is-open {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+  .plaza-nav-drawer {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0;
+    right: 0;
+    z-index: 130;
+    width: min(100vw - 48px, 320px);
+    height: 100dvh;
+    height: 100vh;
+    padding: env(safe-area-inset-top, 0px) 16px calc(16px + env(safe-area-inset-bottom, 0px));
+    background: var(--surface, #fff);
+    box-shadow: -12px 0 40px rgba(13, 71, 161, 0.16);
+    transform: translateX(105%);
+    visibility: hidden;
+    pointer-events: none;
+    transition: transform 0.22s ease, visibility 0.22s ease;
+  }
+  .plaza-nav-drawer.is-open {
+    transform: translateX(0);
+    visibility: visible;
+    pointer-events: auto;
+  }
+  .plaza-nav-drawer-head {
+    display: flex;
+    align-items: center;
     justify-content: space-between;
-    gap: 6px;
-    padding: 2px 0 4px;
+    gap: 12px;
+    min-height: 56px;
+    padding: 8px 0 12px;
+    border-bottom: 1px solid var(--border);
   }
-  .plaza-topbar-nav a {
-    flex: 1;
-    justify-content: center;
-    padding: 8px 6px;
-    border-radius: 10px;
+  .plaza-nav-drawer-head strong {
+    font-size: 18px;
+    color: var(--pri);
+  }
+  .plaza-nav-drawer-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-top: 16px;
+  }
+  .plaza-nav-drawer-nav a {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 48px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
     background: var(--surface-alt, #f8fafc);
-    font-size: 13px;
+    color: var(--text);
+    text-decoration: none;
+    font-size: 15px;
+    font-weight: 600;
   }
-  .plaza-topbar-nav a.on {
+  .plaza-nav-drawer-nav a.on {
     background: color-mix(in srgb, var(--pri-soft) 80%, #fff);
+    color: var(--pri);
+    border-color: color-mix(in srgb, var(--pri) 35%, var(--border));
   }
-  .plaza-nav-label-full { display: none; }
-  .plaza-nav-label-short { display: inline; }
+  .plaza-nav-drawer-nav .plaza-nav-label-short { display: none; }
+  .plaza-nav-drawer-nav .plaza-nav-label-full { display: inline; }
+
   .plaza-flow-strip { height: auto; min-height: 28px; padding: 6px 0; }
   .plaza-flow-strip-text--full { display: none; }
   .plaza-flow-strip-text--short { display: block; white-space: normal; text-align: center; letter-spacing: 0.02em; }
