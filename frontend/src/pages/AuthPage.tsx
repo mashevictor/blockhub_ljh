@@ -143,7 +143,7 @@ export default function AuthPage({
             <h1>{resolvedTitle}</h1>
             <p>{resolvedSubtitle}</p>
           </div>
-          <LocaleSwitch className="admin-locale-switch login-locale" variant="chip" />
+          <LocaleSwitch className="b2b-locale-switch login-locale" variant="toggle" />
         </div>
 
         {showPasswordLogin && (

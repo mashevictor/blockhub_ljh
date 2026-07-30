@@ -36,7 +36,7 @@ export default function AgentDetailPage() {
         <h2>{agentId ? t('admin.agent.loading') : t('admin.agent.missing')}</h2>
         {agentId && (
           <p style={{ fontSize: 13, color: 'var(--muted)' }}>
-            若长时间无内容，请确认已执行 seed 且 API 正常。
+            {t('admin.agent.seed_hint')}
           </p>
         )}
       </div>
@@ -46,7 +46,7 @@ export default function AgentDetailPage() {
   return (
     <>
       <div style={{ marginBottom: 16 }}>
-        <Link to="/agents" style={{ fontSize: 12 }}>← 返回能力中心</Link>
+        <Link to="/agents" style={{ fontSize: 12 }}>← {t('admin.page.agents.back')}</Link>
       </div>
       <div className="hero" style={{ background: `linear-gradient(135deg, ${agent.color}, #6366f1)` }}>
         <h1>{agent.icon} {agent.name}</h1>
@@ -59,20 +59,20 @@ export default function AgentDetailPage() {
             rel="noreferrer"
             style={{ marginTop: 12, display: 'inline-block' }}
           >
-            打开实时语音演示 →
+            {t('admin.page.agents.open_voice')} →
           </a>
         )}
       </div>
 
       <div className="summary-pills">
-        <div className="summary-pill"><div className="n">{caps.length}</div><div className="l">功能组件</div></div>
-        <div className="summary-pill"><div className="n">{agent.office_count}</div><div className="l">办公场景</div></div>
-        <div className="summary-pill"><div className="n">{agent.industry_count}</div><div className="l">行业场景</div></div>
-        <div className="summary-pill"><div className="n" style={{ color: 'var(--ok)' }}>已启用</div><div className="l">状态</div></div>
+        <div className="summary-pill"><div className="n">{caps.length}</div><div className="l">{t('admin.page.agents.pill_caps')}</div></div>
+        <div className="summary-pill"><div className="n">{agent.office_count}</div><div className="l">{t('admin.page.agents.pill_office')}</div></div>
+        <div className="summary-pill"><div className="n">{agent.industry_count}</div><div className="l">{t('admin.page.agents.pill_industry')}</div></div>
+        <div className="summary-pill"><div className="n" style={{ color: 'var(--ok)' }}>{t('admin.page.agents.enabled')}</div><div className="l">{t('admin.page.agents.status')}</div></div>
       </div>
 
       <div className="card">
-        <h3 style={{ marginBottom: 14, color: 'var(--pri)' }}>包含的功能</h3>
+        <h3 style={{ marginBottom: 14, color: 'var(--pri)' }}>{t('admin.page.agents.features')}</h3>
         <div className="cap-grid module-page">
           {caps.map((c) => (
             <div key={c.key} className="cap-card">

@@ -212,7 +212,7 @@ export default function AdminLayout() {
               {t('admin.topbar.create')}
             </a>
           </div>
-          <LocaleSwitch className="admin-locale-switch" variant="chip" />
+          <LocaleSwitch className="b2b-locale-switch admin-locale-switch" variant="toggle" />
         </div>
       </aside>
       <div className="main-area">
@@ -243,7 +243,7 @@ export default function AdminLayout() {
               {t('admin.topbar.create')}
             </a>
             <ThemePicker />
-            <LocaleSwitch className="admin-locale-switch topbar-locale" variant="chip" />
+            <LocaleSwitch className="b2b-locale-switch admin-locale-switch topbar-locale" variant="toggle" />
             {user && (
               <span className="topbar-user">
                 {user.display_name || user.email}

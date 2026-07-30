@@ -38,8 +38,8 @@ export default function AgentCenterPage() {
               <span className="badge-active">{t('admin.page.agents.enabled')}</span>
             </div>
             <div className="agent-card-desc">{a.description}</div>
-            <div style={{ marginTop: 10, fontSize: 11, color: 'var(--muted)' }}>
-              覆盖办公约 {a.office_count} 项 · 行业约 {a.industry_count} 项
+            <div className="agent-card-meta">
+              {t('admin.page.agents.cover', { office: a.office_count, industry: a.industry_count })}
             </div>
           </Link>
         ))}
