@@ -8,13 +8,16 @@ import {
 import { publishApp, suggestModules as suggestModulesApi, type SuggestValidation } from '../api/client'
 import { publishApiToResult } from '../api/publishHelpers'
 import { runContactPublishPipeline } from '../lib/publishFlow'
+import { useT } from '@blockhub/i18n/react'
 import { useTheme } from '../context/ThemeContext'
+import { capabilityName } from '../i18n/capabilityLabels'
+import { formatSuggestSource, type SuggestSourceSpec } from '../i18n/suggestLabels'
 import {
   categoryColor,
 } from '../data/iconPalette'
 import SelectionBox, { type SelectionItem } from '../components/SelectionBox'
 import AgentInput, { type AgentInputHandle, type AgentPick } from '../components/AgentInput'
-import { GENERATE_APP_LABEL, GENERATE_APP_LOADING } from '../data/publishUi'
+import { publishGenerateLabel, publishGenerateLoading } from '../i18n/publishLabels'
 import { AgentButtonContent } from '../components/AgentChevron'
 import PromptSuggestBar from '../components/PromptSuggestBar'
 import IntentAnalysisStrip from '../components/IntentAnalysisStrip'
@@ -58,9 +61,9 @@ import { useHomeActiveSection } from '../hooks/useHomeActiveSection'
 import {
   buildHeroDockDemoModules,
   buildHeroDockDemoSuggestions,
-  HERO_DOCK_DEMO_ENHANCED,
+  heroDockDemoEnhanced,
   HERO_DOCK_DEMO_PROMPT,
-  HERO_DOCK_DEMO_VALIDATION,
+  heroDockDemoValidation,
   HERO_DOCK_TYPING_CHAR_MS,
   isHeroDockTypingDemoSeen,
   markHeroDockTypingDemoSeen,
@@ -106,6 +109,7 @@ function filterByIndustries(
 const PROMPT_COMPOSER_MODE = COMPOSER_MODES.find((m) => m.id === 'live_edit')?.id ?? 'live_edit'
 
 export default function PromptView({ onPublish, roleApply, onRoleApplyDone, active = true }: Props) {
+  const t = useT()
   const bookingZoneActive = useDemoBookingActive()
   const pageReady = useHomePageReady()
   const activeSection = useHomeActiveSection()
@@ -144,7 +148,7 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
   const [lastAddedId, setLastAddedId] = useState<string | null>(null)
   const [debouncedIntent, setDebouncedIntent] = useState('')
   const [promptSuggestions, setPromptSuggestions] = useState<SuggestItem[]>([])
-  const [suggestSourceLabel, setSuggestSourceLabel] = useState('')
+  const [suggestSourceSpec, setSuggestSourceSpec] = useState<SuggestSourceSpec>({ id: 'none' })
   const [suggestUsedAi, setSuggestUsedAi] = useState(false)
   const [suggestFetching, setSuggestFetching] = useState(false)
   const [suggestConfidence, setSuggestConfidence] = useState(0)
@@ -186,7 +190,7 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
     heroDemoAppliedRef.current = true
     setHeroDemoActive(true)
 
-    const modules = buildHeroDockDemoModules()
+    const modules = buildHeroDockDemoModules(t)
     userSuffixRef.current = HERO_DOCK_DEMO_PROMPT
     skipSyncRef.current = true
     setDebouncedIntent(HERO_DOCK_DEMO_PROMPT)
@@ -194,9 +198,9 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
     setIndustryKeys(new Set(['office']))
     setOfficeCats(new Set(['知识协同']))
     setSelected(new Set(['hero-demo-create']))
-    setPromptSuggestions(buildHeroDockDemoSuggestions())
-    setSuggestValidation(HERO_DOCK_DEMO_VALIDATION)
-    setSuggestSourceLabel('意图 Agent · 品牌识别')
+    setPromptSuggestions(buildHeroDockDemoSuggestions(t))
+    setSuggestValidation(heroDockDemoValidation(t))
+    setSuggestSourceSpec({ id: 'brand' })
     setSuggestUsedAi(true)
     setSuggestConfidence(0.88)
     setSuggestFetching(false)
@@ -204,7 +208,7 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
     setAnalysisProgress(0)
     lastAutoSuggestSigRef.current = `${HERO_DOCK_DEMO_PROMPT}::${modules.map((m) => m.id).join(',')}`
     window.setTimeout(() => setBoxOpenSignal((n) => n + 1), 120)
-  }, [])
+  }, [t])
 
   const startHeroTypingDemo = useCallback(() => {
     if (
@@ -531,7 +535,7 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
     if (text.length < 2) {
       clearSuggestModules()
       setPromptSuggestions([])
-      setSuggestSourceLabel('')
+      setSuggestSourceSpec({ id: 'none' })
       setSuggestUsedAi(false)
       setSuggestConfidence(0)
       setSuggestValidation(null)
@@ -554,7 +558,7 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
         if (validation?.status === 'invalid') {
           clearSuggestModules()
           setPromptSuggestions([])
-          setSuggestSourceLabel('意图 Agent · 已拦截')
+          setSuggestSourceSpec({ id: 'blocked' })
           setAnalysisProgress(100)
           setAnalysisPhase('done')
           window.setTimeout(() => {
@@ -567,17 +571,21 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
         }
 
         if (hasAgent) {
-          setSuggestSourceLabel(
+          setSuggestSourceSpec(
             validation?.status === 'unclear'
-              ? '意图 Agent · 需补充'
+              ? { id: 'need_more' }
               : res.confidence >= 0.7
-                ? `意图 Agent · ${Math.round(res.confidence * 100)}%`
-                : '意图 Agent',
+                ? { id: 'intent_pct', pct: Math.round(res.confidence * 100) }
+                : { id: 'intent' },
           )
         } else if (res.items.length > 0) {
-          setSuggestSourceLabel(res.confidence >= 0.5 ? `为你匹配 · ${Math.round(res.confidence * 100)}%` : '为你匹配')
+          setSuggestSourceSpec(
+            res.confidence >= 0.5
+              ? { id: 'match_pct', pct: Math.round(res.confidence * 100) }
+              : { id: 'match' },
+          )
         } else {
-          setSuggestSourceLabel('')
+          setSuggestSourceSpec({ id: 'none' })
         }
         const mappedRaw = res.items.map((it) => ({
           pick: mapSuggestApiItem(it),
@@ -599,12 +607,12 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
             return {
               pick,
               score: 9.5 - i * 0.15,
-              reason: `与弹幕「${hero.label}」同一选型`,
+              reason: t('home.suggest.reason.danmaku_align', { label: hero.label }),
               iconKey: meta.iconKey,
               color: meta.color,
             }
           })
-          setSuggestSourceLabel(`弹幕对齐 · ${hero.label}`)
+          setSuggestSourceSpec({ id: 'danmaku', label: hero.label })
           setPromptSuggestions(mapped)
           if (canAutoApplySuggestions(validation, mapped)) {
             // 与点击弹幕同源：buildModulesFromPreset
@@ -646,13 +654,13 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
           setSuggestRegistered(undefined)
           const hero = matchHeroPreset(text)
           if (hero) {
-            setSuggestSourceLabel(`弹幕对齐 · ${hero.label}`)
+            setSuggestSourceSpec({ id: 'danmaku', label: hero.label })
             const mapped = picksForCapabilityAlign(hero).map((pick, i) => {
               const meta = pickWithMeta(pick)
               return {
                 pick,
                 score: 9.5 - i * 0.15,
-                reason: `与弹幕「${hero.label}」同一选型`,
+                reason: t('home.suggest.reason.danmaku_align', { label: hero.label }),
                 iconKey: meta.iconKey,
                 color: meta.color,
               }
@@ -669,7 +677,7 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
               clearSuggestModules()
             }
           } else {
-            setSuggestSourceLabel('关键词匹配')
+            setSuggestSourceSpec({ id: 'keyword' })
             const mapped = suggestModulesFromText(text, catalogScenarios)
             setPromptSuggestions(mapped)
             if (canAutoApplySuggestions(null, mapped)) {
@@ -690,15 +698,15 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
         if (!cancelled) setSuggestFetching(false)
       })
     return () => { cancelled = true }
-  }, [debouncedIntent, catalogScenarios, applySuggestModules, clearSuggestModules, heroDemoActive])
+  }, [debouncedIntent, catalogScenarios, applySuggestModules, clearSuggestModules, heroDemoActive, t])
 
   const displaySuggestions = useMemo(() => {
-    if (heroDemoActive) return buildHeroDockDemoSuggestions()
+    if (heroDemoActive) return buildHeroDockDemoSuggestions(t)
     if (suggestValidation?.status !== 'unclear') return promptSuggestions
     return promptSuggestions.filter(
       (s) => s.score >= 5.5 && !String(s.reason).includes('· AI'),
     )
-  }, [heroDemoActive, promptSuggestions, suggestValidation?.status])
+  }, [heroDemoActive, promptSuggestions, suggestValidation?.status, t])
 
   const selectedModuleIds = useMemo(
     () => new Set(promptModules.map((m) => m.id)),
@@ -711,11 +719,12 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
       ...(suggestRegistered?.capabilities ?? []),
     ])
     const caps = promptModules.filter((m) => m.type === 'module' || m.type === 'capability')
+    const labelOf = (m: PromptModule) => capabilityName(t, m.key, m.label || m.key)
     return {
-      known: caps.filter((m) => official.has(m.key)).map((m) => m.label),
-      pending: caps.filter((m) => !official.has(m.key)).map((m) => m.label || m.key),
+      known: caps.filter((m) => official.has(m.key)).map(labelOf),
+      pending: caps.filter((m) => !official.has(m.key)).map(labelOf),
     }
-  }, [promptModules, suggestRegistered?.capabilities])
+  }, [promptModules, suggestRegistered?.capabilities, t])
 
   const previewPicks = useMemo((): AgentPick[] => {
     const map = new Map<string, AgentPick>()
@@ -737,12 +746,12 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
   }, [promptModules, promptSuggestions, suggestUsedAi, suggestValidation?.status])
 
   const enhancedPreview = useMemo(() => {
-    if (heroDemoActive) return HERO_DOCK_DEMO_ENHANCED
+    if (heroDemoActive) return heroDockDemoEnhanced(t)
     if (debouncedIntent.trim().length < 2) return ''
     if (suggestValidation?.status === 'invalid' || suggestValidation?.status === 'unclear') return ''
     if (!hasStructuredPicks(previewPicks) && suggestValidation?.status !== 'valid') return ''
     return enhanceSimplePrompt(debouncedIntent, previewPicks, suggestValidation)
-  }, [heroDemoActive, debouncedIntent, previewPicks, suggestValidation])
+  }, [heroDemoActive, debouncedIntent, previewPicks, suggestValidation, t])
 
   const applyEnhancedPreview = useCallback(() => {
     if (!enhancedPreview) return
@@ -969,8 +978,8 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
         setError: setPublishError,
         onSuccess: handlePublishSuccess,
         errorMessage: preset
-          ? '生成失败，请确认网络正常并已填写联系方式'
-          : '生成失败，请确认已选好功能或填写描述，且网络正常',
+          ? t('home.prompt.err.preset')
+          : t('home.prompt.err.generic'),
         execute: async (markPhase) => {
           if (preset) {
             markPhase('publish')
@@ -1056,11 +1065,14 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
       else if (m.type === 'capability') kind = 'capability'
       else if (m.type === 'module') kind = 'module'
       const boxId = m.type === 'industry' ? `ind-${m.key}` : m.type === 'office' ? `off-${m.key}` : m.id
-      const typeLabel = m.type === 'capability' ? '能力' : m.type === 'module' ? '模块' : undefined
+      const localizedName =
+        m.type === 'capability' || m.type === 'module'
+          ? capabilityName(t, m.key, m.label)
+          : m.label
       return {
         id: boxId,
-        name: m.label,
-        category: typeLabel ?? (m.source === 'auto' ? '系统补齐' : undefined),
+        name: localizedName,
+        category: m.source === 'auto' ? t('home.warehouse.auto_tag') : undefined,
         kind,
         iconKey: m.iconKey,
         color: m.color,
@@ -1072,7 +1084,7 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
     const user = promptModules.map(toItem)
     const auto = resolvedBundle.autoModules.map(toItem)
     return [...user, ...auto]
-  }, [promptModules, resolvedBundle.autoModules])
+  }, [promptModules, resolvedBundle.autoModules, t])
 
   const removeSelectionItem = (id: string) => {
     const mod = promptModules.find(
@@ -1113,7 +1125,7 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
         anchorVerticalAlign="top"
         repositionSignal={dockReposition}
         closedAnchorSelector=".b2b-header .brand-mark"
-        ariaLabel="生成应用悬浮助手"
+        ariaLabel={t('home.dock.prompt_aria')}
         onExpand={handleDockExpand}
       >
         <div
@@ -1154,7 +1166,7 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
               upsertModule(pick, extra)
             }}
             onApplyPreview={applyEnhancedPreview}
-            sourceLabel={suggestSourceLabel}
+            sourceLabel={formatSuggestSource(t, suggestSourceSpec)}
             confidence={suggestConfidence}
             loading={suggestFetching || isIntentDebouncing}
             validation={suggestValidation}
@@ -1169,7 +1181,7 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
         <div className="prompt-footer minimal-footer">
           <div className="prompt-meta">
             {(promptModules.length > 0 || prompt.trim()) && (
-              <button type="button" className="link-btn" onClick={clearAll}>清空</button>
+              <button type="button" className="link-btn" onClick={clearAll}>{t('home.prompt.clear')}</button>
             )}
           </div>
           <div className="prompt-footer-right">
@@ -1186,8 +1198,8 @@ export default function PromptView({ onPublish, roleApply, onRoleApplyDone, acti
             />
             <DeliverTargetPicker value={platforms} onChange={setPlatforms} compact className="minimal-deliver" />
             <button type="button" className="btn-primary minimal-generate agent-action-btn" disabled={loading || !canGenerate} onClick={handleGenerate}>
-              {loading ? GENERATE_APP_LOADING : (
-                <AgentButtonContent>{GENERATE_APP_LABEL}</AgentButtonContent>
+              {loading ? publishGenerateLoading(t) : (
+                <AgentButtonContent>{publishGenerateLabel(t)}</AgentButtonContent>
               )}
             </button>
           </div>

@@ -21,6 +21,8 @@ export interface IndustryPageTemplate {
   tag: string
 }
 
+type TranslateFn = (key: string, vars?: Record<string, string | number>) => string
+
 const KIND_ORDER: IndustryPageTemplateKind[] = [
   'approval',
   'chat_kb',
@@ -34,7 +36,10 @@ const KIND_ORDER: IndustryPageTemplateKind[] = [
   'mobile_field',
 ]
 
-const KIND_META: Record<IndustryPageTemplateKind, { title: string; tag: string; features: string[] }> = {
+const KIND_META_FALLBACK: Record<
+  IndustryPageTemplateKind,
+  { title: string; tag: string; features: string[] }
+> = {
   approval: {
     title: '审批工作台',
     tag: '流程引擎',
@@ -87,6 +92,25 @@ const KIND_META: Record<IndustryPageTemplateKind, { title: string; tag: string; 
   },
 }
 
+function kindMeta(t: TranslateFn | undefined, kind: IndustryPageTemplateKind) {
+  const fb = KIND_META_FALLBACK[kind]
+  if (!t) return fb
+  const titleKey = `home.industry.tpl.kind.${kind}.title`
+  const tagKey = `home.industry.tpl.kind.${kind}.tag`
+  const title = t(titleKey)
+  const tag = t(tagKey)
+  const features = [0, 1, 2].map((i) => {
+    const key = `home.industry.tpl.kind.${kind}.f${i}`
+    const text = t(key)
+    return text === key ? fb.features[i] : text
+  })
+  return {
+    title: title === titleKey ? fb.title : title,
+    tag: tag === tagKey ? fb.tag : tag,
+    features,
+  }
+}
+
 /** pages 字段 → 模板类型映射 */
 const PAGES_TO_KIND: Record<string, IndustryPageTemplateKind> = {
   approval: 'approval',
@@ -100,7 +124,7 @@ const PAGES_TO_KIND: Record<string, IndustryPageTemplateKind> = {
   chart: 'dashboard',
   'chart+approval': 'dashboard',
   'chart+notify': 'dashboard',
-  'chart_funnel': 'funnel',
+  chart_funnel: 'funnel',
   list: 'list',
   'list+approval': 'list',
   'list+chat': 'list',
@@ -130,6 +154,7 @@ export interface SceneInput {
 export function buildIndustryPageTemplates(
   packName: string,
   scenes: SceneInput[],
+  t?: TranslateFn,
 ): IndustryPageTemplate[] {
   const used = new Set<IndustryPageTemplateKind>()
   const result: IndustryPageTemplate[] = []
@@ -141,7 +166,7 @@ export function buildIndustryPageTemplates(
       kind = KIND_ORDER.find((k) => !used.has(k)) ?? kind
     }
     used.add(kind)
-    const meta = KIND_META[kind]
+    const meta = kindMeta(t, kind)
     result.push({
       kind,
       title: `${packName} · ${meta.title}`,
@@ -155,11 +180,16 @@ export function buildIndustryPageTemplates(
   for (const kind of KIND_ORDER) {
     if (result.length >= 10) break
     if (used.has(kind)) continue
-    const meta = KIND_META[kind]
+    const meta = kindMeta(t, kind)
+    const fillKey = 'home.industry.tpl.fill_subtitle'
+    const fill = t?.(fillKey, { name: packName })
     result.push({
       kind,
       title: `${packName} · ${meta.title}`,
-      subtitle: `${packName}典型业务场景的标准页面模板`,
+      subtitle:
+        fill && fill !== fillKey
+          ? fill
+          : `${packName}典型业务场景的标准页面模板`,
       features: meta.features,
       sceneName: meta.title,
       tag: meta.tag,

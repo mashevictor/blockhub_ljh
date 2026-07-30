@@ -1,14 +1,6 @@
 import 'package:blockhub_flutter_core/blockhub_flutter_core.dart';
 import 'package:flutter/material.dart';
 
-const _catLabel = {'annual': '年假', 'sick': '病假', 'personal': '事假'};
-const _statusLabel = {
-  'open': '待审批',
-  'approved': '已通过',
-  'rejected': '已驳回',
-  'done': '已归档',
-};
-
 class LeaveRequestPage extends StatefulWidget {
   const LeaveRequestPage({super.key, required this.branding});
   final AppBranding branding;
@@ -27,6 +19,9 @@ class _LeaveRequestPageState extends State<LeaveRequestPage> {
   String get _base => '${widget.branding.apiBaseUrl}/leave-request';
   String get _appId => widget.branding.appPublicId.trim();
 
+  String _cat(String raw) => bhTf('cap.leave_request.cat.$raw', raw);
+  String _status(String raw) => bhTf('cap.leave_request.status.$raw', raw);
+
   List<Map<String, dynamic>> get _pending => _items
       .map((e) => Map<String, dynamic>.from(e as Map))
       .where((t) => '${t['status']}' == 'open')
@@ -40,7 +35,18 @@ class _LeaveRequestPageState extends State<LeaveRequestPage> {
   @override
   void initState() {
     super.initState();
+    BhL10n.instance.addListener(_onL10n);
     _load();
+  }
+
+  @override
+  void dispose() {
+    BhL10n.instance.removeListener(_onL10n);
+    super.dispose();
+  }
+
+  void _onL10n() {
+    if (mounted) setState(() {});
   }
 
   Future<void> _load() async {
@@ -93,50 +99,69 @@ class _LeaveRequestPageState extends State<LeaveRequestPage> {
       padding: const EdgeInsets.all(16),
       children: [
         GtgtStepComposer(
-          title: '我要请假',
-          flowHint: '假种 → 起止日期 → 交主管审',
+          title: bhTf('cap.leave_request.title.leave', '我要请假'),
+          flowHint: bhTf('cap.leave_request.flow.leave', '假种 → 起止日期 → 交主管审'),
           accent: color,
-          steps: const [
+          steps: [
             GtgtStep(
               key: 'category',
-              label: '假种',
+              label: bhTf('cap.leave_request.field.category', '假种'),
               choices: [
-                (value: 'annual', label: '年假'),
-                (value: 'sick', label: '病假'),
-                (value: 'personal', label: '事假'),
+                (value: 'annual', label: bhTf('cap.leave_request.cat.annual', '年假')),
+                (value: 'sick', label: bhTf('cap.leave_request.cat.sick', '病假')),
+                (value: 'personal', label: bhTf('cap.leave_request.cat.personal', '事假')),
               ],
             ),
-            GtgtStep(key: 'start_at', label: '开始日期', placeholder: '2026-07-20'),
-            GtgtStep(key: 'end_at', label: '结束日期', placeholder: '2026-07-22'),
-            GtgtStep(key: 'note', label: '事由（可空）', optional: true, multiline: true),
+            GtgtStep(
+              key: 'start_at',
+              label: bhTf('cap.leave_request.field.start_date', '开始日期'),
+              placeholder: '2026-07-20',
+            ),
+            GtgtStep(
+              key: 'end_at',
+              label: bhTf('cap.leave_request.field.end_date', '结束日期'),
+              placeholder: '2026-07-22',
+            ),
+            GtgtStep(
+              key: 'note',
+              label: bhTf('cap.leave_request.field.note', '事由（可空）'),
+              optional: true,
+              multiline: true,
+            ),
           ],
           values: _values,
           onChanged: (k, v) => setState(() => _values[k] = v),
           onComplete: _submit,
           busy: _busy,
           resetKey: _resetKey,
-          submitLabel: '提交请假',
+          submitLabel: bhTf('cap.leave_request.submit.leave', '提交请假'),
         ),
         const SizedBox(height: 16),
-        Text('待我审${_pending.isEmpty ? '' : ' · ${_pending.length}'}',
-            style: Theme.of(context).textTheme.titleSmall),
+        Text(
+          _pending.isEmpty
+              ? bhTf('cap.leave_request.inbox.pending', '待我审')
+              : '${bhTf('cap.leave_request.inbox.pending', '待我审')} · ${_pending.length}',
+          style: Theme.of(context).textTheme.titleSmall,
+        ),
         const SizedBox(height: 8),
         if (_loading)
           const Center(child: CircularProgressIndicator())
         else if (_pending.isEmpty)
-          const Text('暂无待审批请假')
+          Text(bhTf('cap.leave_request.inbox.empty', '暂无待审批记录'))
         else
           ..._pending.map((t) {
             final id = '${t['id']}';
-            final cat = _catLabel['${t['category']}'] ?? '${t['category']}';
+            final cat = _cat('${t['category']}');
             return Card(
               child: Padding(
                 padding: const EdgeInsets.all(12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('${t['applicant'] ?? t['reporter_name'] ?? '同事'} · $cat',
-                        style: const TextStyle(fontWeight: FontWeight.bold)),
+                    Text(
+                      '${t['applicant'] ?? t['reporter_name'] ?? bhTf('cap.leave_request.colleague', '同事')} · $cat',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
                     Text('${t['start_at']} → ${t['end_at']}'),
                     if ('${t['note'] ?? ''}'.isNotEmpty) Text('${t['note']}'),
                     const SizedBox(height: 8),
@@ -145,10 +170,13 @@ class _LeaveRequestPageState extends State<LeaveRequestPage> {
                         ElevatedButton(
                           style: ElevatedButton.styleFrom(backgroundColor: color),
                           onPressed: () => _advance(id, 'approved'),
-                          child: const Text('通过'),
+                          child: Text(bhTf('cap.leave_request.action.approve', '通过')),
                         ),
                         const SizedBox(width: 8),
-                        OutlinedButton(onPressed: () => _advance(id, 'rejected'), child: const Text('驳回')),
+                        OutlinedButton(
+                          onPressed: () => _advance(id, 'rejected'),
+                          child: Text(bhTf('cap.leave_request.action.reject', '驳回')),
+                        ),
                       ],
                     ),
                   ],
@@ -159,17 +187,28 @@ class _LeaveRequestPageState extends State<LeaveRequestPage> {
         if (_done.isNotEmpty) ...[
           TextButton(
             onPressed: () => setState(() => _showDone = !_showDone),
-            child: Text(_showDone ? '收起已处理' : '已处理 ${_done.length}'),
+            child: Text(
+              _showDone
+                  ? bhTf('cap.leave_request.done.hide', '收起已处理')
+                  : bhTf('cap.leave_request.done.show', '已处理 {{n}}', {'n': _done.length}),
+            ),
           ),
           if (_showDone)
             ..._done.map((t) {
               final id = '${t['id']}';
               return Card(
                 child: ListTile(
-                  title: Text('${t['applicant'] ?? '同事'} · ${_catLabel['${t['category']}'] ?? t['category']}'),
-                  subtitle: Text('${_statusLabel['${t['status']}'] ?? t['status']} · ${t['start_at']} → ${t['end_at']}'),
+                  title: Text(
+                    '${t['applicant'] ?? bhTf('cap.leave_request.colleague', '同事')} · ${_cat('${t['category']}')}',
+                  ),
+                  subtitle: Text(
+                    '${_status('${t['status']}')} · ${t['start_at']} → ${t['end_at']}',
+                  ),
                   trailing: '${t['status']}' == 'approved'
-                      ? TextButton(onPressed: () => _advance(id, 'done'), child: const Text('归档'))
+                      ? TextButton(
+                          onPressed: () => _advance(id, 'done'),
+                          child: Text(bhTf('cap.leave_request.action.archive', '归档')),
+                        )
                       : null,
                 ),
               );

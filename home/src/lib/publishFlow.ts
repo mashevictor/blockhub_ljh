@@ -1,10 +1,8 @@
 import type { NavigateFunction } from 'react-router-dom'
+import { createI18n, formatApiErrorDetail, readStoredLocale } from '@blockhub/i18n'
+import { APP_MESSAGES } from '@shared/i18n/shellBundles'
 import type { PublishResult } from '../data/constants'
-import {
-  GENERATE_ERROR_FALLBACK,
-  PUBLISH_ANALYZE_PHASE_MS,
-  PUBLISH_OVERLAY_PROGRESS_MS,
-} from '../data/publishUi'
+import { PUBLISH_ANALYZE_PHASE_MS, PUBLISH_OVERLAY_PROGRESS_MS } from '../data/publishUi'
 import { ROUTES } from '../routes/paths'
 import { addMyApp } from './myAppsStorage'
 
@@ -25,6 +23,15 @@ function startOverlayPhaseTimers(setPhase: (phase: PublishWorkPhase | null) => v
   }
 }
 
+function shellT(key: string, vars?: Record<string, string | number>): string {
+  const i18n = createI18n({
+    locale: readStoredLocale(),
+    fallbackLocale: 'zh-CN',
+    messages: APP_MESSAGES as Parameters<typeof createI18n>[0]['messages'],
+  })
+  return i18n.t(key, vars)
+}
+
 function errorMessageFromApi(error: unknown, fallback: string): string {
   if (typeof error === 'object' && error !== null && 'response' in error) {
     const response = (error as { response?: { data?: { detail?: unknown }; status?: number } }).response
@@ -33,12 +40,14 @@ function errorMessageFromApi(error: unknown, fallback: string): string {
     if (status === 405 || (typeof detail === 'string' && /method not allowed/i.test(detail))) {
       return `${fallback}：请求方式被拦截(405)。请用 https://blockhub.club 打开本站后强制刷新(Ctrl+F5)再试，勿用未跳转的 http 书签`
     }
+    const coded = formatApiErrorDetail(detail, shellT, '')
+    if (coded) return coded
     if (typeof detail === 'string' && detail.trim()) return detail
     if (status === 502) {
-      return `${fallback}：服务器网关错误(502)，请确认 blockhub-api 已启动`
+      return shellT('error.BAD_GATEWAY') || `${fallback}：服务器网关错误(502)，请确认 blockhub-api 已启动`
     }
     if (status === 503) {
-      return `${fallback}：服务暂时不可用(503)，请稍后重试`
+      return shellT('error.SERVICE_UNAVAILABLE') || `${fallback}：服务暂时不可用(503)，请稍后重试`
     }
   }
   if (error instanceof Error) {
@@ -200,7 +209,7 @@ export async function runContactPublishPipeline(opts: {
   } catch (error) {
     clearOverlayTimers()
     opts.setPhase(null)
-    opts.setError(errorMessageFromApi(error, opts.errorMessage ?? GENERATE_ERROR_FALLBACK))
+    opts.setError(errorMessageFromApi(error, opts.errorMessage ?? shellT('home.publish.error_fallback')))
   }
 }
 
@@ -224,6 +233,6 @@ export async function runLoadingPublishPipeline(opts: {
     opts.onSuccess(result)
   } catch (error) {
     opts.setLoading(false)
-    opts.setError(errorMessageFromApi(error, opts.errorMessage ?? GENERATE_ERROR_FALLBACK))
+    opts.setError(errorMessageFromApi(error, opts.errorMessage ?? shellT('home.publish.error_fallback')))
   }
 }

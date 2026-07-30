@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useT } from '@blockhub/i18n/react'
 import type { PublishResult } from '../data/constants'
 import { getAdminUrl } from '../data/constants'
 import type { AudienceSelection } from '../data/plazaAudience'
@@ -39,6 +40,7 @@ export default function PublishSuccessCard({
   plazaMeta: plazaMetaProp,
   onPlazaPublished,
 }: Props) {
+  const t = useT()
   const [showPicker, setShowPicker] = useState(() => {
     if (!orchestration) return false
     if (plazaMetaProp) return false
@@ -81,6 +83,16 @@ export default function PublishSuccessCard({
   const visibleChips = chipModules.slice(0, MAX_CHIPS)
   const extraChipCount = chipModules.length - visibleChips.length
   const deliverMode = normalizeDeliver(result.deliver)
+  const joiner = t('home.cap_split.joiner')
+
+  const codegenStatusLabel =
+    codegen.status === 'ready'
+      ? t('home.publish.codegen.ready')
+      : codegen.status === 'failed'
+        ? t('home.publish.codegen.failed')
+        : codegen.status === 'running'
+          ? t('home.publish.codegen.running')
+          : t('home.publish.codegen.queued')
 
   const handlePlazaConfirm = async (selection: AudienceSelection) => {
     setPlazaBusy(true)
@@ -89,7 +101,7 @@ export default function PublishSuccessCard({
       await publishToPlazaFeed(result, selection)
       const meta: PlazaAudienceMeta = {
         type: selection.type,
-        label: audienceAtLabel(selection),
+        label: audienceAtLabel(selection, t),
         deptName: selection.deptName,
         publishedAt: new Date().toISOString(),
         onPlazaFeed: selection.type === 'public' || selection.type === 'dept',
@@ -98,7 +110,7 @@ export default function PublishSuccessCard({
       setShowPicker(false)
       onPlazaPublished?.(meta)
     } catch {
-      setPlazaError('发布到广场失败，请确认应用已发布后重试')
+      setPlazaError(t('home.publish.plaza_err'))
     } finally {
       setPlazaBusy(false)
     }
@@ -116,9 +128,13 @@ export default function PublishSuccessCard({
             className="publish-result-logo"
           />
           <div>
-            <h3>{compact ? result.appName : '发布成功'}</h3>
+            <h3>{compact ? result.appName : t('home.publish.success.title')}</h3>
             <p className="modal-sub publish-result-sub">
-              {result.appName} · {result.moduleCount} 项功能 · {deliverLabel(deliverMode)}
+              {t('home.publish.success.sub', {
+                name: result.appName,
+                n: result.moduleCount,
+                deliver: deliverLabel(deliverMode, t),
+              })}
             </p>
           </div>
         </header>
@@ -129,10 +145,12 @@ export default function PublishSuccessCard({
           <DynamicIcon name="web" size={14} />
           <span>
             {result.emailSent
-              ? <>访问链接已发送至 <strong>{result.contactEmail}</strong>（含网页{result.deliver !== 'web' ? '与 APK 附件' : ''}）</>
+              ? (result.deliver !== 'web'
+                ? t('home.publish.email.sent_both', { email: result.contactEmail })
+                : t('home.publish.email.sent_web', { email: result.contactEmail }))
               : result.emailConfigured === false
-                ? <>邮件服务未配置，链接未发送。请复制下方地址手动分享。</>
-                : <>邮件发送失败，请复制下方链接手动分享给 <strong>{result.contactEmail}</strong></>}
+                ? t('home.publish.email.unconfigured')
+                : t('home.publish.email.failed', { email: result.contactEmail })}
           </span>
         </div>
       )}
@@ -141,9 +159,9 @@ export default function PublishSuccessCard({
         <div className="plaza-published-strip" role="status">
           <DynamicIcon name="layers" size={14} />
           <span>
-            已发布到应用广场 · <strong>{plazaMeta.label}</strong>
+            {t('home.publish.plaza.published', { label: plazaMeta.label })}
             {plazaMeta.onPlazaFeed && (
-              <> · <Link to={ROUTES.plazaFeed}>去应用广场查看 →</Link></>
+              <> · <Link to={ROUTES.plazaFeed}>{t('home.publish.plaza.goto')}</Link></>
             )}
           </span>
         </div>
@@ -158,21 +176,15 @@ export default function PublishSuccessCard({
           <div className="codegen-progress" role="status">
             <div className="codegen-progress-head">
               <DynamicIcon name="creation" size={14} />
-              <span>AI 页面生成</span>
+              <span>{t('home.publish.codegen.title')}</span>
               <span className={`codegen-progress-status is-${codegen.status}`}>
-                {codegen.status === 'ready'
-                  ? '完成'
-                  : codegen.status === 'failed'
-                    ? '失败'
-                    : codegen.status === 'running'
-                      ? '生成中…'
-                      : '排队中…'}
+                {codegenStatusLabel}
               </span>
             </div>
-            <p className="codegen-progress-msg">{codegen.detail || '正在为未知能力生成页面…'}</p>
+            <p className="codegen-progress-msg">{codegen.detail || t('home.publish.codegen.detail_default')}</p>
             {codegen.status === 'ready' && showWebDeliver(result) && (
               <a className="btn btn-sm btn-ghost" href={result.webUrl} target="_blank" rel="noreferrer">
-                打开网页查看生成页
+                {t('home.publish.codegen.open_web')}
               </a>
             )}
           </div>
@@ -182,7 +194,7 @@ export default function PublishSuccessCard({
           <div className="publish-manifest-strip" role="status" style={{ marginBottom: 12, fontSize: 13, color: 'var(--muted)' }}>
             <DynamicIcon name="layers" size={14} />
             <span style={{ marginLeft: 6 }}>
-              组装 {result.buildManifest.web_pkgs.length} 个 Web 包：
+              {t('home.publish.manifest.pkgs', { n: result.buildManifest.web_pkgs.length })}
               {result.buildManifest.web_pkgs.slice(0, 3).map((p) => p.replace('@blockhub/', '')).join(' · ')}
               {result.buildManifest.web_pkgs.length > 3 ? ` +${result.buildManifest.web_pkgs.length - 3}` : ''}
             </span>
@@ -193,11 +205,11 @@ export default function PublishSuccessCard({
           <div className="publish-save-warn" role="alert" style={{ marginBottom: 12 }}>
             <strong>
               {result.codegenJobId
-                ? '以下能力将由 AI 异步生成预览页：'
-                : '以下能力待 AI 生成（已知能力已可用）：'}
+                ? t('home.publish.dropped.async')
+                : t('home.publish.dropped.pending')}
             </strong>
             {' '}
-            {result.capabilityAssembly.dropped_details.map((d) => d.name || d.key).join('、')}
+            {result.capabilityAssembly.dropped_details.map((d) => d.name || d.key).join(joiner)}
           </div>
         )}
 
@@ -205,16 +217,16 @@ export default function PublishSuccessCard({
           <div className="publish-manifest-strip" role="status" style={{ marginBottom: 12, fontSize: 13, color: 'var(--muted)' }}>
             <DynamicIcon name="approval" size={14} />
             <span style={{ marginLeft: 6 }}>
-              契约已确认 {result.capabilityAssembly.resolved_keys.length} 项能力
+              {t('home.publish.contract.confirmed', { n: result.capabilityAssembly.resolved_keys.length })}
               {result.capabilityAssembly.scenario_added_keys && result.capabilityAssembly.scenario_added_keys.length > 0
-                ? `（含场景自动补充 ${result.capabilityAssembly.scenario_added_keys.length} 项）`
+                ? t('home.publish.contract.scenario_extra', { n: result.capabilityAssembly.scenario_added_keys.length })
                 : ''}
             </span>
           </div>
         )}
 
         {!orchestration && visibleChips.length > 0 && (
-          <ul className="publish-module-list" aria-label="已包含模块与能力">
+          <ul className="publish-module-list" aria-label={t('home.publish.modules_aria')}>
             {visibleChips.map((m) => (
               <li
                 key={`${m.kind}:${m.key}`}
@@ -260,7 +272,6 @@ export default function PublishSuccessCard({
           </div>
         )}
 
-        {/* 编排页此前关掉了二维码；强调交付区，避免「能下但找不到入口」 */}
         <PublishDeliveryLinks result={result} emphasize />
       </div>
 
@@ -281,7 +292,7 @@ export default function PublishSuccessCard({
       <footer className="publish-success-foot">
         {!orchestration && (
           <a className="btn-ghost" href={result.webUrl} target="_blank" rel="noreferrer">
-            打开应用 →
+            {t('home.publish.open_app')}
           </a>
         )}
         {!orchestration && !plazaMeta && !showPicker && (
@@ -290,7 +301,7 @@ export default function PublishSuccessCard({
             className="btn-ghost btn-plaza-publish"
             onClick={() => setShowPicker(true)}
           >
-            📡 发布到应用广场
+            {t('home.publish.to_plaza')}
           </button>
         )}
         {orchestration && !plazaMeta && !showPicker && (
@@ -299,7 +310,7 @@ export default function PublishSuccessCard({
             className="btn-ghost btn-plaza-publish"
             onClick={() => setShowPicker(true)}
           >
-            📡 发布到 @公开
+            {t('home.publish.to_public')}
           </button>
         )}
         {plazaMeta && !showPicker && (
@@ -308,12 +319,12 @@ export default function PublishSuccessCard({
             className="btn-ghost btn-plaza-publish secondary"
             onClick={() => setShowPicker(true)}
           >
-            修改 @ 范围
+            {t('home.publish.change_audience')}
           </button>
         )}
         {showAdminLink && (
           <a className="btn-ghost" href={getAdminUrl()} target="_blank" rel="noreferrer">
-            管理后台
+            {t('home.publish.admin')}
           </a>
         )}
       </footer>

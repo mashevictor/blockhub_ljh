@@ -1,0 +1,12 @@
+{
+  "cap.cold_chain_alert.ui.title": "Cold Chain Alert",
+  "cap.dock_queue.ui.title": "Dock Queue",
+  "cap.fleet_dispatch.ui.title": "Fleet Dispatch",
+  "cap.freight_settle.ui.title": "Freight Settle",
+  "cap.logistics_exception.ui.title": "Logistics Exception",
+  "cap.pod_signoff.ui.title": "Pod Signoff",
+  "cap.route_task.ui.title": "Route Task",
+  "cap.warehouse_inbound.ui.title": "Warehouse Inbound",
+  "cap.warehouse_outbound.ui.title": "Warehouse Outbound",
+  "cap.waybill_track.ui.title": "Waybill Track"
+}

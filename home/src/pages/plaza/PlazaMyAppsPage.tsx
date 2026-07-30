@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useT } from '@blockhub/i18n/react'
 import { IconGlobe } from '../../components/icons'
 import AppIconAvatar from '../../components/AppIconAvatar'
 import PlazaOrchestrationOverlay from '../../components/plaza/PlazaOrchestrationOverlay'
@@ -29,14 +30,19 @@ function appKey(app: StoredMyApp) {
   return app.appId || app.webUrl
 }
 
-function statusLine(app: StoredMyApp, isNew: boolean): string {
-  const parts: string[] = [`${app.moduleCount} 项`]
-  if (isNew) parts.push('刚发布')
+function statusLine(
+  app: StoredMyApp,
+  isNew: boolean,
+  t: (key: string, vars?: Record<string, string | number>) => string,
+): string {
+  const parts: string[] = [t('home.plaza.my.modules_n', { n: app.moduleCount })]
+  if (isNew) parts.push(t('home.plaza.my.just_published'))
   parts.push(formatWhen(app.savedAt))
   return parts.join(' · ')
 }
 
 export default function PlazaMyAppsPage() {
+  const t = useT()
   const publishHint = readJustPublished()
   const [justPublishedId, setJustPublishedId] = useState<string | null>(
     () => publishHint?.appKey ?? null,
@@ -148,7 +154,7 @@ export default function PlazaMyAppsPage() {
     <main className="plaza-main plaza-my-main">
       <div className="plaza-main-head plaza-my-head-slim">
         <div>
-          <h1><span className="plaza-mflow-chev chev-hero" aria-hidden>&gt;&gt;</span> 我的应用</h1>
+          <h1><span className="plaza-mflow-chev chev-hero" aria-hidden>&gt;&gt;</span> {t('home.plaza.my.title')}</h1>
           <p className="plaza-my-head-sub plaza-my-head-sub--full">
             点选应用，在底部查看模块与接口；可问答、测接口；改页请进 Runtime 对话改页。完整视图点「概览」
           </p>
@@ -156,7 +162,7 @@ export default function PlazaMyAppsPage() {
             点选应用 · 可问答/测接口 · 改页进 Runtime
           </p>
         </div>
-        <Link to={ROUTES.home} className="plaza-my-create-btn">+ 继续创建</Link>
+        <Link to={ROUTES.home} className="plaza-my-create-btn">{t('home.plaza.my.continue')}</Link>
       </div>
 
       {saveFailed && (
@@ -166,7 +172,7 @@ export default function PlazaMyAppsPage() {
       )}
 
       {justPublishedId && apps.some((a) => appKey(a) === justPublishedId) && (
-        <p className="plaza-my-success-banner">🎉 发布成功 — 请确认交付进度与分享链接，模块概览可稍后展开</p>
+        <p className="plaza-my-success-banner">{t('home.plaza.my.success')}</p>
       )}
 
       {plazaFlash && (
@@ -175,26 +181,26 @@ export default function PlazaMyAppsPage() {
           {plazaFlash.onFeed ? (
             <>
               {' '}
-              <Link to={ROUTES.plazaFeed}>去应用广场查看 →</Link>
+              <Link to={ROUTES.plazaFeed}>{t('home.plaza.my.goto_plaza')}</Link>
             </>
           ) : (
-            <span className="plaza-my-plaza-flash-hint">（当前范围不在公开 Feed，仅目标成员可见）</span>
+            <span className="plaza-my-plaza-flash-hint">{t('home.plaza.my.flash_hint')}</span>
           )}
         </p>
       )}
 
       {apps.length === 0 && (
         <div className="plaza-my-empty">
-          <p>还没有发布过应用</p>
-          <p className="plaza-my-empty-hint">在首页创建并发布后，会自动出现在这里</p>
-          <Link to={ROUTES.home} className="btn-primary plaza-my-empty-cta">去生成应用</Link>
+          <p>{t('home.plaza.my.empty')}</p>
+          <p className="plaza-my-empty-hint">{t('home.plaza.my.empty_hint')}</p>
+          <Link to={ROUTES.home} className="btn-primary plaza-my-empty-cta">{t('home.plaza.my.empty_cta')}</Link>
         </div>
       )}
 
       {apps.length > 0 && (
         <section className="plaza-my-history">
           <h2 className="plaza-my-history-label">
-            全部应用 <span className="plaza-my-count">{apps.length}</span>
+            {t('home.plaza.my.all')} <span className="plaza-my-count">{apps.length}</span>
           </h2>
           <ul className="plaza-my-list plaza-my-list-d">
             {apps.map((app) => {
@@ -218,7 +224,7 @@ export default function PlazaMyAppsPage() {
                     <div className="plaza-my-card-title-row">
                       <strong>{app.appName}</strong>
                     </div>
-                    <span className="plaza-my-card-meta">{statusLine(app, isNew)}</span>
+                    <span className="plaza-my-card-meta">{statusLine(app, isNew, t)}</span>
                   </div>
                   <div className="plaza-my-card-actions" onClick={(e) => e.stopPropagation()}>
                     <PlazaAppStatusButton
@@ -234,7 +240,7 @@ export default function PlazaMyAppsPage() {
                       className="btn-primary plaza-my-orch-btn"
                       onClick={() => openOrchestration(app)}
                     >
-                      <span className="plaza-mflow-chev">&gt;&gt;</span> 概览
+                      <span className="plaza-mflow-chev">&gt;&gt;</span> {t('home.plaza.my.overview')}
                     </button>
                     <PlazaPublishButton
                       app={app}
@@ -246,16 +252,16 @@ export default function PlazaMyAppsPage() {
                         })
                       }}
                     />
-                    <a className="btn-ghost plaza-my-card-icon-btn" href={app.webUrl} target="_blank" rel="noreferrer" title="打开网页">
+                    <a className="btn-ghost plaza-my-card-icon-btn" href={app.webUrl} target="_blank" rel="noreferrer" title={t('home.plaza.my.open_web')}>
                       <IconGlobe size={16} />
                     </a>
                     <button
                       type="button"
                       className="btn-ghost plaza-my-card-icon-btn"
-                      title="复制链接"
+                      title={t('home.plaza.my.copy_link')}
                       onClick={() => navigator.clipboard.writeText(app.webUrl)}
                     >
-                      链接
+                      {t('home.plaza.my.copy_link')}
                     </button>
                   </div>
                 </li>

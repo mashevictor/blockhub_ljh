@@ -1,4 +1,4 @@
-/** B2B 官网 · 信任与合规资料（真 PDF：home/public/downloads/*.pdf） */
+/** B2B 官网 · 信任与合规资料（真 PDF：home/public/downloads/*.pdf；英文：downloads/en-US/*.pdf） */
 
 export interface TrustDoc {
   id: string

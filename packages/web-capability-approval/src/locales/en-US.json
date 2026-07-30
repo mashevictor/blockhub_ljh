@@ -1,0 +1,23 @@
+{
+  "cap.approval_flow.expense.headline": "Expense claim",
+  "cap.approval_flow.expense.submit": "Submit claim",
+  "cap.approval_flow.field.dept": "Department",
+  "cap.approval_flow.field.summary": "Details",
+  "cap.approval_flow.field.title": "Title",
+  "cap.approval_flow.headline": "Start approval",
+  "cap.approval_flow.hint": ">> One field at a time, then inbox",
+  "cap.approval_flow.leave.headline": "Leave request",
+  "cap.approval_flow.leave.submit": "Submit leave",
+  "cap.approval_flow.seal.headline": "Seal request",
+  "cap.approval_flow.seal.submit": "Submit seal",
+  "cap.approval_flow.status.approved": "Approved",
+  "cap.approval_flow.status.pending": "Pending",
+  "cap.approval_flow.status.rejected": "Rejected",
+  "cap.approval_flow.submit": "Submit request",
+  "cap.approval_flow.success": "Submitted — awaiting approval",
+  "cap.approval_flow.ui.title": "Approval Flow",
+  "cap.approval_inbox.ui.title": "Approval Inbox",
+  "cap.form_widget.ui.title": "Form Widget",
+  "cap.list_widget.ui.title": "List Widget",
+  "cap.seal_request.ui.title": "Seal Request"
+}

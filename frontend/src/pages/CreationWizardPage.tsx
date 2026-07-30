@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useT } from '@blockhub/i18n/react'
 import {
   checkFeasibility,
   fetchCreationScenarios,
@@ -7,6 +8,7 @@ import {
   type IndustryPack,
   type WizardStep,
 } from '../api/client'
+import { homeAbsoluteUrl } from '../data/brand'
 
 type DeliverMode = 'web' | 'app' | 'both'
 
@@ -17,6 +19,7 @@ const DELIVER_OPTIONS: { key: DeliverMode; label: string; desc: string }[] = [
 ]
 
 export default function CreationWizardPage() {
+  const t = useT()
   const [steps, setSteps] = useState<WizardStep[]>([])
   const [packs, setPacks] = useState<IndustryPack[]>([])
   const [step, setStep] = useState(1)
@@ -76,6 +79,17 @@ export default function CreationWizardPage() {
       try {
         const result = await publishApp(appName, industryKey, { scenarioIds: [...selected], deliver })
         setPublished(result)
+        const app = result?.app as { id?: string; web_url?: string } | undefined
+        const runtime = result?.runtime as { web_url?: string } | undefined
+        const href =
+          runtime?.web_url ||
+          app?.web_url ||
+          (app?.id ? homeAbsoluteUrl(`/r/${encodeURIComponent(app.id)}`) : '')
+        if (href) {
+          // 生成成功后直达 Runtime（与 Home CreateStudio 一致）
+          window.location.assign(href)
+          return
+        }
         setStep(7)
       } catch {
         setPublishError('发布失败，请稍后重试')
@@ -94,8 +108,8 @@ export default function CreationWizardPage() {
   return (
     <>
       <div className="page-header">
-        <h1>创建应用</h1>
-        <p>七步向导：选行业 → 勾选场景 → 方案研判 → 命名 → 交付方式 → 确认发布 → 完成</p>
+        <h1>{t('admin.page.create.title')}</h1>
+        <p>{t('admin.page.create.desc')}</p>
       </div>
 
       <div className="wizard-steps">

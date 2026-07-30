@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
+import { useT } from '@blockhub/i18n/react'
 import { exportReport, fetchReportDashboard, nlQuery } from '../api/client'
 
 export default function ReportPage() {
+  const t = useT()
   const [data, setData] = useState<{
     kpis: Array<{ label: string; value: string; change: string; positive: boolean }>
     approval_trend: { growth: string; months: string[]; values: number[] }
@@ -31,7 +33,7 @@ export default function ReportPage() {
     alert(res.message)
   }
 
-  if (!data) return <div className="placeholder-page"><div className="icon">⏳</div><h2>加载中…</h2></div>
+  if (!data) return <div className="placeholder-page"><div className="icon">⏳</div><h2>{t('common.loading')}</h2></div>
 
   const maxApproval = Math.max(...data.approval_trend.values)
   const maxChat = Math.max(...data.chat_trend.values)
@@ -40,10 +42,10 @@ export default function ReportPage() {
     <>
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between' }}>
         <div>
-          <h1>数据报表</h1>
-          <p>查看使用情况、审批与问答趋势，支持常用报表查询</p>
+          <h1>{t('admin.page.reports.title')}</h1>
+          <p>{t('admin.page.reports.desc')}</p>
         </div>
-        <button type="button" className="btn btn-primary-dark" onClick={handleExport}>导出报表</button>
+        <button type="button" className="btn btn-primary-dark" onClick={handleExport}>{t('admin.page.reports.export')}</button>
       </div>
 
       <div className="kpi-grid">

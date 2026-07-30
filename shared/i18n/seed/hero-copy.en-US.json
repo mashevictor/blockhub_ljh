@@ -1,0 +1,454 @@
+{
+  "_comment": "Hero hint/prompt/role/flow_lines EN. Merged by codegen into hero.gen.json.",
+  "s00": {
+    "hint": "Dialect · Voice",
+    "prompt": "Real-time Shanghai dialect voice chat — ask questions and get things done in dialect.",
+    "role": "Shanghai speaker",
+    "flow_lines": [
+      ">> Shanghai voice · speak naturally",
+      ">> Real-time ASR · dialect recognition",
+      ">> Smart Q&A · voice playback",
+      ">> Web/APK · one-click generate"
+    ]
+  },
+  "s01": {
+    "hint": "HR · Workflow",
+    "prompt": "Submit leave online, manager approval, and leave balance lookup.",
+    "role": "HR",
+    "flow_lines": [
+      ">> Leave · submit online",
+      ">> Manager approve / reject",
+      ">> WeCom/DingTalk/Feishu · notify",
+      ">> CapShip · real dual-end APIs"
+    ]
+  },
+  "s02": {
+    "hint": "Finance · Receipts",
+    "prompt": "Expense claims with photo upload, finance review, and ledger lookup.",
+    "role": "Finance",
+    "flow_lines": [
+      ">> Expense · register costs",
+      ">> Finance review · payment loop",
+      ">> WeCom/DingTalk/Feishu · notify",
+      ">> CapShip · real dual-end APIs"
+    ]
+  },
+  "s03": {
+    "hint": "Knowledge · Self-serve",
+    "prompt": "Company policy and benefits Q&A — self-serve anytime.",
+    "role": "Employee",
+    "flow_lines": [
+      ">> Policy Q&A · ask & store",
+      ">> Answers archived · knowledge loop",
+      ">> WeCom/DingTalk/Feishu · notify",
+      ">> CapShip · real dual-end APIs"
+    ]
+  },
+  "s04": {
+    "hint": "HR · Talent",
+    "prompt": "Job posting, resume screening, and onboarding in one place.",
+    "role": "HR",
+    "flow_lines": [
+      ">> Hire · candidate intake",
+      ">> Interview/Offer · onboard loop",
+      ">> WeCom/DingTalk/Feishu · progress",
+      ">> CapShip · real dual-end APIs"
+    ]
+  },
+  "s05": {
+    "hint": "CRM · Follow-up",
+    "prompt": "Lead intake, customer follow-up, and sales funnel management.",
+    "role": "Sales",
+    "flow_lines": [
+      ">> Sales lead · customer intake",
+      ">> Follow-up · close the deal",
+      ">> WeCom/DingTalk/Feishu · reminders",
+      ">> CapShip · real dual-end APIs"
+    ]
+  },
+  "s06": {
+    "hint": "Sales · Closing",
+    "prompt": "Quote approval, contract review, and special-price requests.",
+    "role": "Sales",
+    "flow_lines": [
+      ">> Quote/contract · register",
+      ">> Review & sign · close loop",
+      ">> WeCom/DingTalk/Feishu · notify",
+      ">> CapShip · real dual-end APIs"
+    ]
+  },
+  "s07": {
+    "hint": "Exec · Decisions",
+    "prompt": "Core KPIs on one screen with natural-language data queries.",
+    "role": "Executive",
+    "flow_lines": [
+      ">> Ops KPI · register metrics",
+      ">> Publish alerts · archive",
+      ">> WeCom/DingTalk/Feishu · push",
+      ">> CapShip · real dual-end APIs"
+    ]
+  },
+  "s08": {
+    "hint": "Manufacturing · Ops",
+    "prompt": "On-site device fault tickets, dispatch, and repair tracking.",
+    "role": "Manufacturing",
+    "flow_lines": [
+      ">> Device repair · scan & submit",
+      ">> Work order · track progress",
+      ">> WeCom/DingTalk/Feishu · status",
+      ">> CapShip · real dual-end APIs"
+    ]
+  },
+  "s09": {
+    "hint": "Manufacturing · Process",
+    "prompt": "SOP process Q&A, quality records, and exception reporting.",
+    "role": "QA",
+    "flow_lines": [
+      ">> QA SOP · batch & step entry",
+      ">> Pass/fail · on-the-spot",
+      ">> WeCom/DingTalk/Feishu · exceptions",
+      ">> CapShip · real dual-end APIs"
+    ]
+  },
+  "s10": {
+    "hint": "Retail · Fulfillment",
+    "prompt": "Online order to store pickup, transfers, and coupon redemption.",
+    "role": "Retail",
+    "flow_lines": [
+      ">> Omni pickup · redeem code",
+      ">> Store transfer · real inventory",
+      ">> WeCom/DingTalk/Feishu · arrival",
+      ">> CapShip · real dual-end APIs"
+    ]
+  },
+  "s11": {
+    "hint": "Retail · Growth",
+    "prompt": "Member points, promotions, and outreach messaging.",
+    "role": "Ops",
+    "flow_lines": [
+      ">> Membership · campaign intake",
+      ">> Coupons/points · ready to send",
+      ">> WeCom/DingTalk/Feishu · push",
+      ">> CapShip · real dual-end APIs"
+    ]
+  },
+  "s12": {
+    "hint": "Hospital · Patient",
+    "prompt": "Care guide, schedule lookup, and triage Q&A.",
+    "role": "Clinician",
+    "flow_lines": [
+      ">> Medical triage · pre-intake",
+      ">> Recommend department · guide",
+      ">> WeCom/DingTalk/Feishu · reminders",
+      ">> CapShip · real dual-end APIs"
+    ]
+  },
+  "s13": {
+    "hint": "Hospital · Scheduling",
+    "prompt": "Nurse schedules, shift swaps, and duty notifications.",
+    "role": "Nursing",
+    "flow_lines": [
+      ">> Nurse shift · swap online",
+      ">> Head nurse · approve/reject",
+      ">> WeCom/DingTalk/Feishu · duty notice",
+      ">> CapShip · real dual-end APIs"
+    ]
+  },
+  "s14": {
+    "hint": "Gaming · Support",
+    "prompt": "Player FAQ, ticket intake, and escalation workflows.",
+    "role": "Support",
+    "flow_lines": [
+      ">> Player FAQ · ticket intake",
+      ">> Escalate · resolve loop",
+      ">> WeCom/DingTalk/Feishu · notify",
+      ">> CapShip · real dual-end APIs"
+    ]
+  },
+  "s15": {
+    "hint": "School · Notify",
+    "prompt": "School notices to parents with read tracking.",
+    "role": "Teacher",
+    "flow_lines": [
+      ">> School notice · draft & send",
+      ">> Read receipts · follow-up",
+      ">> WeCom/DingTalk/Feishu · push",
+      ">> CapShip · real dual-end APIs"
+    ]
+  },
+  "s16": {
+    "hint": "Education · Tutoring",
+    "prompt": "Homework help with step-by-step explanations.",
+    "role": "Student",
+    "flow_lines": [
+      ">> Homework help · ask a question",
+      ">> Step-by-step · understand",
+      ">> WeCom/DingTalk/Feishu · share",
+      ">> CapShip · real dual-end APIs"
+    ]
+  },
+  "s17": {
+    "hint": "Education · Schedule",
+    "prompt": "Class schedules, room changes, and reminders.",
+    "role": "Teacher",
+    "flow_lines": [
+      ">> Class schedule · publish",
+      ">> Room change · notify",
+      ">> WeCom/DingTalk/Feishu · remind",
+      ">> CapShip · real dual-end APIs"
+    ]
+  },
+  "s18": {
+    "hint": "Marketing · Campaigns",
+    "prompt": "Campaign planning, execution tracking, and results.",
+    "role": "Marketer",
+    "flow_lines": [
+      ">> Campaign · plan & launch",
+      ">> Track results · optimize",
+      ">> WeCom/DingTalk/Feishu · updates",
+      ">> CapShip · real dual-end APIs"
+    ]
+  },
+  "s19": {
+    "hint": "Property · Maintenance",
+    "prompt": "Property repair tickets from report to close.",
+    "role": "Property",
+    "flow_lines": [
+      ">> Property repair · submit",
+      ">> Dispatch · track to close",
+      ">> WeCom/DingTalk/Feishu · status",
+      ">> CapShip · real dual-end APIs"
+    ]
+  },
+  "s20": {
+    "hint": "Real estate · Viewing",
+    "prompt": "House viewing bookings and feedback capture.",
+    "role": "Agent",
+    "flow_lines": [
+      ">> Viewing · book a slot",
+      ">> Feedback · follow-up",
+      ">> WeCom/DingTalk/Feishu · remind",
+      ">> CapShip · real dual-end APIs"
+    ]
+  },
+  "s21": {
+    "hint": "Hospitality · Booking",
+    "prompt": "Hotel booking, room status, and guest requests.",
+    "role": "Hotel",
+    "flow_lines": [
+      ">> Hotel booking · reserve",
+      ">> Room status · guest requests",
+      ">> WeCom/DingTalk/Feishu · notify",
+      ">> CapShip · real dual-end APIs"
+    ]
+  },
+  "s22": {
+    "hint": "Logistics · Delivery",
+    "prompt": "Delivery / ride orders with status tracking.",
+    "role": "Ops",
+    "flow_lines": [
+      ">> Delivery · place order",
+      ">> Track status · complete",
+      ">> WeCom/DingTalk/Feishu · updates",
+      ">> CapShip · real dual-end APIs"
+    ]
+  },
+  "s23": {
+    "hint": "Fitness · Check-in",
+    "prompt": "Gym check-in, class booking, and streak tracking.",
+    "role": "Member",
+    "flow_lines": [
+      ">> Fitness · check in",
+      ">> Class booking · streaks",
+      ">> WeCom/DingTalk/Feishu · remind",
+      ">> CapShip · real dual-end APIs"
+    ]
+  },
+  "s24": {
+    "hint": "Travel · Playbook",
+    "prompt": "Travel itineraries, bookings, and day-of playbooks.",
+    "role": "Traveler",
+    "flow_lines": [
+      ">> Travel plan · build itinerary",
+      ">> Bookings · day-of guide",
+      ">> WeCom/DingTalk/Feishu · share",
+      ">> CapShip · real dual-end APIs"
+    ]
+  },
+  "s25": {
+    "hint": "Events · Wedding",
+    "prompt": "Wedding planning tasks, vendors, and timelines.",
+    "role": "Planner",
+    "flow_lines": [
+      ">> Wedding · task board",
+      ">> Vendors · timeline",
+      ">> WeCom/DingTalk/Feishu · updates",
+      ">> CapShip · real dual-end APIs"
+    ]
+  },
+  "s26": {
+    "hint": "Home · Renovation",
+    "prompt": "Renovation materials, progress, and acceptance.",
+    "role": "Owner",
+    "flow_lines": [
+      ">> Renovation · materials",
+      ">> Progress · acceptance",
+      ">> WeCom/DingTalk/Feishu · updates",
+      ">> CapShip · real dual-end APIs"
+    ]
+  },
+  "s27": {
+    "hint": "Pets · Clinic",
+    "prompt": "Pet clinic appointments, records, and reminders.",
+    "role": "Clinic",
+    "flow_lines": [
+      ">> Pet clinic · book visit",
+      ">> Records · follow-up",
+      ">> WeCom/DingTalk/Feishu · remind",
+      ">> CapShip · real dual-end APIs"
+    ]
+  },
+  "s28": {
+    "hint": "Security · Patrol",
+    "prompt": "Site patrol routes, checkpoints, and incident reports.",
+    "role": "Security",
+    "flow_lines": [
+      ">> Site patrol · start route",
+      ">> Checkpoints · incidents",
+      ">> WeCom/DingTalk/Feishu · alert",
+      ">> CapShip · real dual-end APIs"
+    ]
+  },
+  "s29": {
+    "hint": "Gov · Services",
+    "prompt": "Government service intake, tracking, and notifications.",
+    "role": "Citizen",
+    "flow_lines": [
+      ">> Gov service · submit request",
+      ">> Track progress · close",
+      ">> WeCom/DingTalk/Feishu · notify",
+      ">> CapShip · real dual-end APIs"
+    ]
+  },
+  "s30": {
+    "hint": "Legal · Contracts",
+    "prompt": "Legal contract drafting, review, and filing.",
+    "role": "Legal",
+    "flow_lines": [
+      ">> Legal contract · intake",
+      ">> Review · file",
+      ">> WeCom/DingTalk/Feishu · notify",
+      ">> CapShip · real dual-end APIs"
+    ]
+  },
+  "s31": {
+    "hint": "Dialect · Realtime",
+    "prompt": "Realtime Shanghai dialect voice agent with streaming ASR/TTS.",
+    "role": "Shanghai speaker",
+    "flow_lines": [
+      ">> Shanghai voice · realtime",
+      ">> Streaming ASR · dialect",
+      ">> Smart reply · voice out",
+      ">> CapShip · real dual-end APIs"
+    ]
+  },
+  "s32": {
+    "hint": "Learning · Coach",
+    "prompt": "Study coach with plans, quizzes, and progress.",
+    "role": "Student",
+    "flow_lines": [
+      ">> Study coach · set goals",
+      ">> Quizzes · track progress",
+      ">> WeCom/DingTalk/Feishu · remind",
+      ">> CapShip · real dual-end APIs"
+    ]
+  },
+  "s33": {
+    "hint": "Parent · Coach",
+    "prompt": "Parent coaching tips aligned with student progress.",
+    "role": "Parent",
+    "flow_lines": [
+      ">> Parent coach · guidance",
+      ">> Align with study plan",
+      ">> WeCom/DingTalk/Feishu · share",
+      ">> CapShip · real dual-end APIs"
+    ]
+  },
+  "s34": {
+    "hint": "Teacher · Planning",
+    "prompt": "Teacher lesson plans, materials, and class prep.",
+    "role": "Teacher",
+    "flow_lines": [
+      ">> Teacher plan · prepare class",
+      ">> Materials · publish",
+      ">> WeCom/DingTalk/Feishu · notify",
+      ">> CapShip · real dual-end APIs"
+    ]
+  },
+  "s35": {
+    "hint": "Banking · Onboarding",
+    "prompt": "Corporate/retail account KYC with real work orders.",
+    "role": "Bank",
+    "flow_lines": [
+      ">> Bank KYC · verify customer",
+      ">> Soft steps · persist to DB",
+      ">> WeCom/DingTalk/Feishu · onboarding",
+      ">> CapShip · real dual-end APIs"
+    ]
+  },
+  "s36": {
+    "hint": "Banking · Compliance",
+    "prompt": "Suspicious transaction detection with real AML tickets.",
+    "role": "Compliance",
+    "flow_lines": [
+      ">> AML · register alert",
+      ">> Soft steps · case archive",
+      ">> WeCom/DingTalk/Feishu · compliance",
+      ">> CapShip · real dual-end APIs"
+    ]
+  },
+  "s37": {
+    "hint": "Banking · Credit",
+    "prompt": "Credit limit / collateral approval and post-loan checks.",
+    "role": "Credit",
+    "flow_lines": [
+      ">> Credit · limit & collateral",
+      ">> Soft steps · close in DB",
+      ">> WeCom/DingTalk/Feishu · notify",
+      ">> CapShip · real dual-end APIs"
+    ]
+  },
+  "s38": {
+    "hint": "Insurance · Underwriting",
+    "prompt": "Underwriting assessment and claims intake with real tickets.",
+    "role": "Insurance",
+    "flow_lines": [
+      ">> UW & claims · policy/customer",
+      ">> Soft steps · close in DB",
+      ">> WeCom/DingTalk/Feishu · case notify",
+      ">> CapShip · real dual-end APIs"
+    ]
+  },
+  "s39": {
+    "hint": "Asset mgmt · Compliance",
+    "prompt": "Regulatory report filing tasks from intake to done.",
+    "role": "Asset mgmt",
+    "flow_lines": [
+      ">> Regulatory · report cycle",
+      ">> Soft steps · mark filed",
+      ">> WeCom/DingTalk/Feishu · deadline",
+      ">> CapShip · real dual-end APIs"
+    ]
+  },
+  "s40": {
+    "hint": "Finance · Intelligence",
+    "prompt": "Macro/micro must-read digests and discussion streams; demo or live sources.",
+    "role": "Research",
+    "flow_lines": [
+      ">> Industry news · digests",
+      ">> Demo samples · source=demo",
+      ">> Token · sync live sources",
+      ">> CapShip · real dual-end APIs"
+    ]
+  }
+}

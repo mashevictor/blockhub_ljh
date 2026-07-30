@@ -1,0 +1,23 @@
+{
+  "cap.approval_flow.expense.headline": "费用报销",
+  "cap.approval_flow.expense.submit": "提交报销",
+  "cap.approval_flow.field.dept": "所属部门",
+  "cap.approval_flow.field.summary": "说明",
+  "cap.approval_flow.field.title": "事项标题",
+  "cap.approval_flow.headline": "发起审批",
+  "cap.approval_flow.hint": ">> 单字段推进，提交后进入待办",
+  "cap.approval_flow.leave.headline": "请假申请",
+  "cap.approval_flow.leave.submit": "提交请假",
+  "cap.approval_flow.seal.headline": "用印申请",
+  "cap.approval_flow.seal.submit": "提交用印",
+  "cap.approval_flow.status.approved": "已通过",
+  "cap.approval_flow.status.pending": "审批中",
+  "cap.approval_flow.status.rejected": "已拒绝",
+  "cap.approval_flow.submit": "提交申请",
+  "cap.approval_flow.success": "申请已提交，等待审批",
+  "cap.approval_flow.ui.title": "审批流",
+  "cap.approval_inbox.ui.title": "待办中心",
+  "cap.form_widget.ui.title": "表单组件",
+  "cap.list_widget.ui.title": "列表组件",
+  "cap.seal_request.ui.title": "用印申请"
+}

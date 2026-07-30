@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useT } from '@blockhub/i18n/react'
 import {
   buildApiCurl,
   testFlowApi,
@@ -64,6 +65,7 @@ export default function FlowApiEndpointRow({
   testDisabled = false,
   showFields = true,
 }: Props) {
+  const t = useT()
   const [testing, setTesting] = useState(false)
   const [testResult, setTestResult] = useState<ApiTestResult | null>(null)
 
@@ -95,7 +97,7 @@ export default function FlowApiEndpointRow({
     try {
       setTestResult(await testFlowApi(api))
     } catch {
-      setTestResult({ ok: false, status: 0, body: '请求失败，请稍后重试', ms: 0 })
+      setTestResult({ ok: false, status: 0, body: t('home.plaza.api.req_fail'), ms: 0 })
     } finally {
       setTesting(false)
     }
@@ -118,15 +120,15 @@ export default function FlowApiEndpointRow({
       <div className="plaza-flow-api-row-head">
         <span className={`plaza-dual-rail-io-tag ${variant}`}>{title}</span>
         <span className="plaza-flow-api-row-actions">
-          <button type="button" className="btn-ghost-sm" onClick={copyCurl}>复制 curl</button>
+          <button type="button" className="btn-ghost-sm" onClick={copyCurl}>{t('home.plaza.api.copy_curl')}</button>
           <button
             type="button"
             className="btn-ghost-sm"
             disabled={testing || testDisabled}
-            title={testDisabled ? '当前不可测试' : '向该接口发起一次探测请求'}
+            title={testDisabled ? t('home.plaza.api.test_disabled') : t('home.plaza.api.test_title')}
             onClick={() => void runTest()}
           >
-            {testing ? '测试中…' : '测试'}
+            {testing ? t('home.plaza.api.testing') : t('home.plaza.api.test')}
           </button>
         </span>
       </div>
@@ -141,7 +143,7 @@ export default function FlowApiEndpointRow({
       {showFields && (
         <div className="plaza-flow-api-fields">
           <div className="plaza-flow-api-fields-head">
-            {variant === 'input' ? '输入字段' : '输出字段'}
+            {variant === 'input' ? t('home.plaza.api.fields_in') : t('home.plaza.api.fields_out')}
           </div>
           <ul>
             {fields.map((f) => (

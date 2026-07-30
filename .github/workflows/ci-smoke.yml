@@ -77,6 +77,15 @@ jobs:
       - name: Capability manifest drift check
         run: bash scripts/check-capability-manifest-drift.sh
 
+      - name: i18n messages drift + key parity
+        run: python scripts/check_i18n_drift.py
+
+      - name: i18n ESLint no-ui-literal (allowlist)
+        working-directory: tools/i18n-lint
+        run: |
+          npm ci
+          npm run lint
+
       - name: CapShip contract smoke
         run: python3 packages/capship-contract/tests/run_smoke.py
 

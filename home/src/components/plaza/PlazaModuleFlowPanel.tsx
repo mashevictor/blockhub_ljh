@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useT } from '@blockhub/i18n/react'
 import {
   modulesAvailableToAdd,
   type ModuleCapability,
@@ -37,6 +38,7 @@ export default function PlazaModuleFlowPanel({
   compact,
   orchestration,
 }: Props) {
+  const t = useT()
   const [flow, setFlow] = useState<AppModuleFlow>(() => loadModuleFlow(appKey, moduleLabels))
   const [activeNodeId, setActiveNodeId] = useState<string | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -105,15 +107,15 @@ export default function PlazaModuleFlowPanel({
   return (
     <section
       className={`plaza-mflow-panel${compact ? ' compact' : ''}${orchestration ? ' orchestration' : ''}`}
-      aria-label={`${appName} 模块数据流`}
+      aria-label={t('home.plaza.mflow.aria', { name: appName })}
     >
       {!orchestration && (
         <header className="plaza-mflow-head">
           <h3>
             <span className="plaza-mflow-chev" aria-hidden>&gt;&gt;</span>
-            {appName} · 模块数据流
+            {t('home.plaza.mflow.title', { name: appName })}
           </h3>
-          {isCreator && <span className="plaza-mflow-badge">创建者 · 可编辑</span>}
+          {isCreator && <span className="plaza-mflow-badge">{t('home.plaza.mflow.creator_badge')}</span>}
         </header>
       )}
 
@@ -138,17 +140,17 @@ export default function PlazaModuleFlowPanel({
           {editingId && activeStep && (
             <div className="plaza-mflow-edit plaza-orch-inline-edit">
               <p className="plaza-mflow-edit-label">
-                编辑 <strong>{activeStep.label}</strong> 的数据流说明
+                {t('home.plaza.mflow.edit_label', { label: activeStep.label })}
               </p>
               <input
                 value={editNote}
                 onChange={(e) => setEditNote(e.target.value)}
-                placeholder="描述此节点的数据流"
-                aria-label="节点说明"
+                placeholder={t('home.plaza.mflow.edit_ph')}
+                aria-label={t('home.plaza.mflow.note_aria')}
               />
               <div className="plaza-mflow-edit-actions">
-                <button type="button" className="btn-ghost-sm" onClick={() => setEditingId(null)}>取消</button>
-                <button type="button" className="btn-primary-sm" onClick={saveEdit}>保存</button>
+                <button type="button" className="btn-ghost-sm" onClick={() => setEditingId(null)}>{t('home.plaza.mflow.cancel')}</button>
+                <button type="button" className="btn-primary-sm" onClick={saveEdit}>{t('home.plaza.mflow.save')}</button>
               </div>
             </div>
           )}
@@ -202,7 +204,9 @@ export default function PlazaModuleFlowPanel({
               onClick={() => setShowAdvanced((v) => !v)}
               aria-expanded={showAdvanced}
             >
-              {showAdvanced ? '收起' : '高级'} · API 拨通与自定义模块
+              {t('home.plaza.mflow.advanced', {
+                state: showAdvanced ? t('home.plaza.mflow.collapse') : t('home.plaza.mflow.advanced_label'),
+              })}
             </button>
             {showAdvanced && (
               <div className="plaza-orch-advanced-body">
@@ -216,17 +220,17 @@ export default function PlazaModuleFlowPanel({
                 </div>
                 <div className="plaza-mflow-add">
                   <p className="plaza-mflow-add-title">
-                    <span className="plaza-mflow-chev">&gt;</span> 手动添加模块
+                    <span className="plaza-mflow-chev">&gt;</span> {t('home.plaza.mflow.manual_add')}
                   </p>
                   <div className="plaza-mflow-add-row">
                     <input
                       value={newLabel}
                       onChange={(e) => setNewLabel(e.target.value)}
-                      placeholder="模块名称"
-                      aria-label="新模块名称"
+                      placeholder={t('home.plaza.mflow.module_name')}
+                      aria-label={t('home.plaza.mflow.new_module_aria')}
                     />
                     <button type="button" className="btn-primary-sm" onClick={handleManualAdd} disabled={!newLabel.trim()}>
-                      + 添加
+                      {t('home.plaza.mflow.add')}
                     </button>
                   </div>
                 </div>
@@ -252,12 +256,12 @@ export default function PlazaModuleFlowPanel({
                   <input
                     value={editNote}
                     onChange={(e) => setEditNote(e.target.value)}
-                    placeholder="数据流说明"
-                    aria-label="节点说明"
+                    placeholder={t('home.plaza.mflow.note_ph')}
+                    aria-label={t('home.plaza.mflow.note_aria')}
                   />
                   <div className="plaza-mflow-edit-actions">
-                    <button type="button" className="btn-ghost-sm" onClick={() => setEditingId(null)}>取消</button>
-                    <button type="button" className="btn-primary-sm" onClick={saveEdit}>保存</button>
+                    <button type="button" className="btn-ghost-sm" onClick={() => setEditingId(null)}>{t('home.plaza.mflow.cancel')}</button>
+                    <button type="button" className="btn-primary-sm" onClick={saveEdit}>{t('home.plaza.mflow.save')}</button>
                   </div>
                 </div>
               ) : (
@@ -265,12 +269,12 @@ export default function PlazaModuleFlowPanel({
                   <span className="plaza-mflow-chev">&gt;&gt;</span>
                   <div className="plaza-mflow-step-main"><strong>{activeStep.label}</strong></div>
                   <div className="plaza-mflow-step-actions">
-                    <button type="button" className="btn-primary-sm" onClick={() => startEdit(activeStep)}>编辑说明</button>
+                    <button type="button" className="btn-primary-sm" onClick={() => startEdit(activeStep)}>{t('home.plaza.mflow.edit_note')}</button>
                     <button type="button" className="btn-ghost-sm danger" onClick={() => {
                       const next = removeFlowStep(flow, activeStep.id)
                       setFlow(next)
                       setActiveNodeId(next.steps[0]?.id ?? FLOW_INGRESS_ID)
-                    }}>删除</button>
+                    }}>{t('home.plaza.mflow.delete')}</button>
                   </div>
                 </div>
               )}

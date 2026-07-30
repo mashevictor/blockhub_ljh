@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { useT } from '@blockhub/i18n/react'
 import { useDemoBooking } from '../../context/DemoBookingContext'
 import { BOOKING_FIELDS } from '../../data/demoBookingFlow'
 import { AgentChevronGlyph } from '../AgentChevron'
@@ -8,6 +9,7 @@ import DemoBookingDeliveryLoading from './DemoBookingDeliveryLoading'
 
 /** 预约区：流程 + 底部悬浮输入 */
 export default function DemoBookingComposer() {
+  const t = useT()
   const wrapRef = useRef<HTMLDivElement>(null)
   const {
     stepIndex,
@@ -44,11 +46,11 @@ export default function DemoBookingComposer() {
       <div className="demo-booking-head">
         <span className="agent-brand-trigger mini" aria-hidden>
           <AgentChevronGlyph size="xs" className="agent-brand-chev" />
-          <span className="agent-brand-chev-label">预约</span>
+          <span className="agent-brand-chev-label">{t('home.booking.chev')}</span>
         </span>
-        <span className="demo-booking-title">预约演示</span>
+        <span className="demo-booking-title">{t('home.booking.title')}</span>
         <span className="demo-booking-meta">
-          {submitted ? '已完成' : `${filledCount}/${BOOKING_FIELDS.length}`}
+          {submitted ? t('home.booking.done') : `${filledCount}/${BOOKING_FIELDS.length}`}
         </span>
       </div>
 
@@ -64,14 +66,14 @@ export default function DemoBookingComposer() {
       )}
 
       {submitted && !submitting && !delivery && (
-        <p className="demo-booking-success-offline">提交状态未知，请滚动到底部悬浮框重试。</p>
+        <p className="demo-booking-success-offline">{t('home.booking.offline')}</p>
       )}
 
       {!submitted && (
         <p className="demo-booking-float-hint">
-          底部悬浮框填写
+          {t('home.booking.float_hint')}
           <button type="button" className="demo-booking-focus-float" onClick={focusFloatingInput}>
-            去填写
+            {t('home.booking.go_fill')}
           </button>
         </p>
       )}

@@ -1,4 +1,5 @@
 import { useMemo, type CSSProperties } from 'react'
+import { useT } from '@blockhub/i18n/react'
 import type { MicrositeRuntimeSkin } from './micrositeRuntimeSkin'
 import { listMicrositeRuntimeSkins } from './micrositeRuntimeSkin'
 
@@ -32,45 +33,46 @@ export default function IndustrySiteHome({
   menu,
   onPickSkin,
 }: Props) {
+  const t = useT()
   const skins = listMicrositeRuntimeSkins()
-  const title = industryLabel || appName || '行业应用'
+  const title = industryLabel || appName || t('runtime.home.fallback_title')
   const sceneCount = menu.length
+  const sceneFallback = t('runtime.nav.scene_fallback')
   const categories = useMemo(() => {
     const set = new Set<string>()
-    for (const m of menu) set.add(m.category || '场景')
+    for (const m of menu) set.add(m.category || sceneFallback)
     return set.size
-  }, [menu])
+  }, [menu, sceneFallback])
 
   return (
     <div className="ind-home ind-home--editorial-guided" key={micrositeId}>
       <section className="ind-hero ind-hero--cover">
-        <p className="ind-hero-eyebrow">Industry Runtime · 独立站工作台</p>
+        <p className="ind-hero-eyebrow">{t('runtime.home.eyebrow')}</p>
         <h2 className="ind-hero-title">{title}</h2>
         <p className="ind-hero-sub">
-          已装 <strong>{sceneCount}</strong> 个场景 · <strong>{categories}</strong> 个分类。
-          首页只做封面；业务入口在左侧导航，点场景即可进入。
+          {t('runtime.home.sub', { scenes: sceneCount, cats: categories })}
         </p>
 
-        <div className="ind-step-rail" aria-label="操作步骤">
+        <div className="ind-step-rail" aria-label={t('runtime.home.steps_aria')}>
           <div className="ind-step-rail-item is-current">
             <span className="ind-step-num">1</span>
             <div>
-              <strong>点左侧场景</strong>
-              <p>展开分类 → 点场景名称即可进入（唯一主操作）</p>
+              <strong>{t('runtime.home.step1_title')}</strong>
+              <p>{t('runtime.home.step1_body')}</p>
             </div>
           </div>
           <div className="ind-step-rail-item is-next">
             <span className="ind-step-num">2</span>
             <div>
-              <strong>场景页填写</strong>
-              <p>进入后用 &gt;&gt; 单字段推进，读写真 API</p>
+              <strong>{t('runtime.home.step2_title')}</strong>
+              <p>{t('runtime.home.step2_body')}</p>
             </div>
           </div>
           <div className="ind-step-rail-item is-next">
             <span className="ind-step-num">3</span>
             <div>
-              <strong>需要时再改页</strong>
-              <p>右上角折叠的 CapShip 胶囊，不挡导航</p>
+              <strong>{t('runtime.home.step3_title')}</strong>
+              <p>{t('runtime.home.step3_body')}</p>
             </div>
           </div>
         </div>
@@ -79,16 +81,18 @@ export default function IndustrySiteHome({
           <span className="ind-primary-arrow" aria-hidden>
             ←
           </span>
-          <strong>第一步：请点击左侧任意场景名称</strong>
-          <span>例如「请假申请」「制度政策问答」</span>
+          <strong>{t('runtime.home.hint_title')}</strong>
+          <span>{t('runtime.home.hint_ex')}</span>
         </p>
       </section>
 
       <details className="ind-skin-picker ind-skin-picker--compact ind-skin-details">
         <summary>
-          <strong>换皮（可选）</strong>
+          <strong>{t('runtime.home.skin_title')}</strong>
           <span>
-            当前：{skin?.styleLabel || micrositeId || '默认'} · 不改场景与能力
+            {t('runtime.home.skin_current', {
+              name: skin?.styleLabel || micrositeId || t('runtime.home.skin_default'),
+            })}
           </span>
         </summary>
         <div className="ind-skin-chips">

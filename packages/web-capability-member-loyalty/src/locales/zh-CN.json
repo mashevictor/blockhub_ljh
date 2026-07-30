@@ -1,0 +1,19 @@
+{
+  "cap.member_loyalty.field.campaign_name": "活动名称",
+  "cap.member_loyalty.field.campaign_type": "活动类型",
+  "cap.member_loyalty.field.name": "会员姓名",
+  "cap.member_loyalty.field.phone": "手机号",
+  "cap.member_loyalty.field.points": "初始积分",
+  "cap.member_loyalty.mode.campaign": "建营销活动",
+  "cap.member_loyalty.mode.list": "列表",
+  "cap.member_loyalty.mode.member": "建会员档案",
+  "cap.member_loyalty.mode.outreach": "沉睡唤醒触达",
+  "cap.member_loyalty.mode.points": "积分入账/兑礼",
+  "cap.member_loyalty.status.active": "活跃",
+  "cap.member_loyalty.status.sleeping": "沉睡",
+  "cap.member_loyalty.submit": "提交",
+  "cap.member_loyalty.type.points": "送积分",
+  "cap.member_loyalty.type.redeem": "兑礼",
+  "cap.member_loyalty.type.wake": "唤醒",
+  "cap.member_loyalty.ui.title": "会员营销"
+}

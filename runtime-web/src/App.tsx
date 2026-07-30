@@ -9,6 +9,7 @@ import {
   type ComponentType,
   type CSSProperties,
 } from 'react'
+import { LocaleSwitch, useT } from '@blockhub/i18n/react'
 import {
   DeveloperBlueprintPanel,
   RuntimeContext,
@@ -224,7 +225,57 @@ function folderMatch(pkg: string, capabilityKey: string): boolean {
   return folder.includes(slug)
 }
 
+const INDUSTRY_KEY_FALLBACK_ZH: Record<string, string> = {
+  office: '通用办公',
+  mfg: '传统制造',
+  sales: '销售行业',
+  med: '医疗健康',
+  game: '游戏娱乐',
+  retail: '零售电商',
+  edu: '教育培训',
+  finance: '金融服务',
+  logistics: '物流仓储',
+  realestate: '房地产',
+  hotel: '酒店餐饮',
+  energy: '能源电力',
+  gov: '政务公用',
+  legal: '法律服务',
+  hr: '人力资源',
+  marketing: '市场营销',
+  construction: '建筑工程',
+}
+
+function resolveIndustryLabel(
+  meta: Record<string, unknown>,
+  schemaTheme: { industryName?: string } | undefined,
+  configAppName: string,
+  t: (key: string, vars?: Record<string, string | number>) => string,
+): string {
+  const fromMeta = String(meta.industry_name || meta.pack_name || schemaTheme?.industryName || '').trim()
+  if (fromMeta) return fromMeta
+  const key = String(meta.industry_key || '')
+  if (key) {
+    const i18nKey = `home.industry.${key}.name`
+    const translated = t(i18nKey)
+    if (translated !== i18nKey) return translated
+    const fb = INDUSTRY_KEY_FALLBACK_ZH[key]
+    if (fb) return fb
+  }
+  return configAppName
+}
+
+function resolveUserDisplayName(
+  user: { display_name?: string; email?: string },
+  t: (key: string, vars?: Record<string, string | number>) => string,
+): string {
+  const dn = String(user.display_name || '').trim()
+  if (dn && dn !== '企微用户') return dn
+  if (user.email === 'sso@wecom.local' || dn === '企微用户') return t('runtime.sso.wecom_user')
+  return dn || t('runtime.chip.member')
+}
+
 export default function App() {
+  const t = useT()
   const sso = useMemo(consumeSsoCallback, [])
   useEffect(() => {
     if (sso.handled && sso.redirectTo) {
@@ -243,8 +294,8 @@ export default function App() {
 
   // 管理后台 / 官网已登录：同域有 token 但缺 runtime user 时，用 /auth/me 补齐，避免再登一次
   useEffect(() => {
-    const t = getStoredToken()
-    if (!t) {
+    const tok = getStoredToken()
+    if (!tok) {
       setAuthBootstrapping(false)
       return
     }
@@ -254,7 +305,7 @@ export default function App() {
     }
     let cancelled = false
     setAuthBootstrapping(true)
-    void fetch('/api/v1/auth/me', { headers: { Authorization: `Bearer ${t}` } })
+    void fetch('/api/v1/auth/me', { headers: { Authorization: `Bearer ${tok}` } })
       .then(async (res) => {
         if (!res.ok) throw new Error(`me ${res.status}`)
         return res.json() as Promise<{ email?: string; role?: string; display_name?: string }>
@@ -264,10 +315,10 @@ export default function App() {
         const next = {
           email: u.email || '',
           role: u.role || 'employee',
-          display_name: u.display_name || u.email || '用户',
+          display_name: u.display_name || u.email || t('runtime.boot.user'),
         }
-        storeAuth(t, next)
-        setToken(t)
+        storeAuth(tok, next)
+        setToken(tok)
         setUser(next)
       })
       .catch(() => {
@@ -282,7 +333,7 @@ export default function App() {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [t])
 
   const [config, setConfig] = useState<TenantRuntimeConfig | null>(null)
   const [schema, setSchema] = useState<PageSchema | null>(null)
@@ -339,7 +390,10 @@ export default function App() {
       Promise.race([
         p,
         new Promise<T>((_, reject) => {
-          window.setTimeout(() => reject(new Error(`${label} 超时（${ms / 1000}s）`)), ms)
+          window.setTimeout(
+            () => reject(new Error(t('runtime.timeout', { label, s: ms / 1000 }))),
+            ms,
+          )
         }),
       ])
 
@@ -364,7 +418,7 @@ export default function App() {
         }),
       ]),
       20000,
-      '应用配置',
+      t('runtime.label.config'),
     )
       .then(async ([cfg, sch, man]) => {
         if (cancelled) return
@@ -423,7 +477,7 @@ export default function App() {
         await withTimeout(
           bootWidgetsFromManifest(bm, { priorityPkgs, background: true, concurrency: 2 }),
           20000,
-          '能力模块',
+          t('runtime.label.modules'),
         )
         if (cancelled) return
         setWidgetsReady(true)
@@ -437,7 +491,7 @@ export default function App() {
     return () => {
       cancelled = true
     }
-  }, [appId, token])
+  }, [appId, token, t])
 
   const applySchemaPayload = useCallback(
     async (sch: SchemaApiPayload, man?: BuildManifest | null, opts?: { quiet?: boolean }) => {
@@ -457,11 +511,13 @@ export default function App() {
         setManifest((prev) => (prev ? scopeManifestToApp(prev, pageSchema) : prev))
       }
       if (!opts?.quiet) {
-        setRefreshHint(`已刷新 · v${Number(sch.schema_rev || sch.formal_schema_rev || 1)}`)
+        setRefreshHint(
+          t('runtime.refresh.ok', { v: Number(sch.schema_rev || sch.formal_schema_rev || 1) }),
+        )
         window.setTimeout(() => setRefreshHint(''), 2400)
       }
     },
-    [],
+    [t],
   )
 
   const refreshRuntime = useCallback(
@@ -470,7 +526,7 @@ export default function App() {
       // 本地未保存预览：禁止被轮询/广播刷掉（智能出页刚出来又消失）
       if (localPreviewDirtyRef.current && !opts?.force) {
         if (!opts?.quiet) {
-          setRefreshHint('有未保存改动，已跳过自动刷新（可点强制刷新）')
+          setRefreshHint(t('runtime.refresh.skip_dirty'))
           window.setTimeout(() => setRefreshHint(''), 2800)
         }
         return
@@ -493,14 +549,14 @@ export default function App() {
         localPreviewDirtyRef.current = false
       } catch (e) {
         if (!opts?.quiet) {
-          setRefreshHint(e instanceof Error ? e.message : '刷新失败')
+          setRefreshHint(e instanceof Error ? e.message : t('runtime.refresh.failed'))
           window.setTimeout(() => setRefreshHint(''), 3200)
         }
       } finally {
         setRefreshBusy(false)
       }
     },
-    [appId, token, applySchemaPayload],
+    [appId, token, applySchemaPayload, t],
   )
 
   // 对话改页 / 智能出页：仅在已落库后广播才拉服务端；本地 dirty 忽略
@@ -630,19 +686,19 @@ export default function App() {
   if (sso.handled) {
     return (
       <div className="login-shell" style={{ padding: 48, textAlign: 'center' }}>
-        <p>正在完成企微登录…</p>
+        <p>{t('runtime.sso.completing')}</p>
       </div>
     )
   }
 
   if (!appId) {
-    return <p className="error-msg">无效的应用链接，请使用 /r/&#123;appId&#125; 访问</p>
+    return <p className="error-msg">{t('runtime.boot.invalid_link')}</p>
   }
 
   if (authBootstrapping) {
     return (
       <div className="login-shell" style={{ padding: 48, textAlign: 'center' }}>
-        <p>正在同步登录态…</p>
+        <p>{t('runtime.boot.syncing')}</p>
       </div>
     )
   }
@@ -650,10 +706,10 @@ export default function App() {
   if (!token || !user) {
     return (
       <div className={`login-shell${entrySource === 'im' ? ' is-im-entry' : ''}`}>
-        <p className="entry-chip">统一登录</p>
-        <h1>正在前往登录…</h1>
-        <p className="muted">与管理后台同一入口：验证码注册 / 密码登录</p>
-        <p className="muted">应用 ID：{appId}</p>
+        <p className="entry-chip">{t('runtime.boot.login_chip')}</p>
+        <h1>{t('runtime.boot.redirect_login')}</h1>
+        <p className="muted">{t('runtime.boot.login_hint')}</p>
+        <p className="muted">{t('runtime.boot.app_id', { id: appId })}</p>
       </div>
     )
   }
@@ -661,16 +717,16 @@ export default function App() {
   if (error && !widgetsReady) {
     return (
       <div className="login-shell">
-        <p className="error-msg">加载失败：{error}</p>
+        <p className="error-msg">{t('runtime.boot.load_failed', { error })}</p>
         <button type="button" className="btn" onClick={() => window.location.reload()}>
-          重试
+          {t('runtime.boot.retry')}
         </button>
       </div>
     )
   }
 
   if (!config || !schema || !manifest || !widgetsReady) {
-    return <p className="loading">加载应用…</p>
+    return <p className="loading">{t('runtime.boot.loading')}</p>
   }
 
   const primaryColor = config.primary_color || schema.theme?.primaryColor || '#4338ca'
@@ -687,33 +743,14 @@ export default function App() {
   const navMode = industryEntry ? 'left' : layoutRaw === 'sidebar' ? 'left' : 'top'
   const layout = industryEntry ? 'sidebar' : layoutRaw
   const layoutMode = industryEntry ? skin?.layout || 'sidebar' : layoutRaw
-  const industryLabel =
-    String(
-      meta.industry_name ||
-        meta.pack_name ||
-        (schema.theme as { industryName?: string } | undefined)?.industryName ||
-        '',
-    ).trim() ||
-    ({
-      office: '通用办公',
-      mfg: '传统制造',
-      sales: '销售行业',
-      med: '医疗健康',
-      game: '游戏娱乐',
-      retail: '零售电商',
-      edu: '教育培训',
-      finance: '金融服务',
-      logistics: '物流仓储',
-      realestate: '房地产',
-      hotel: '酒店餐饮',
-      energy: '能源电力',
-      gov: '政务公用',
-      legal: '法律服务',
-      hr: '人力资源',
-      marketing: '市场营销',
-      construction: '建筑工程',
-    } as Record<string, string>)[String(meta.industry_key || '')] ||
-    config.app_name
+  const industryLabel = resolveIndustryLabel(
+    meta,
+    schema.theme as { industryName?: string } | undefined,
+    config.app_name,
+    t,
+  )
+  const userDisplayName = resolveUserDisplayName(user, t)
+  const sceneFallback = t('runtime.nav.scene_fallback')
   const atHome = !route || route === '/'
   // 独立站首页：不 fallback 到 menu[0]，避免与「行业首页」双高亮
   // 工作台（弹幕/选模块）：/ 无页面时 fallback 第一项主能力，禁止空白「暂无页面」
@@ -733,7 +770,7 @@ export default function App() {
     type MenuRow = (typeof menu)[number]
     const map = new Map<string, MenuRow[]>()
     for (const m of menu) {
-      const cat = String((m as { category?: string }).category || '场景')
+      const cat = String((m as { category?: string }).category || sceneFallback)
       const list = map.get(cat) ?? []
       list.push(m)
       map.set(cat, list)
@@ -779,7 +816,7 @@ export default function App() {
       },
       body: JSON.stringify({
         page_schema: nextSchema,
-        summary: `切换独立站模板 → ${id}（导航保持左侧父子）`,
+        summary: t('runtime.skin.summary', { id }),
       }),
     })
       .then((r) => (r.ok ? r.json() : null))
@@ -807,7 +844,7 @@ export default function App() {
             goRoute('/')
           }}
         >
-          行业首页
+          {t('runtime.nav.home')}
         </button>
       ) : null}
       {industryEntry
@@ -921,22 +958,22 @@ export default function App() {
         <div className={`entry-banner ${entrySource === 'im' ? 'im' : 'portal'}`} role="status">
           {entrySource === 'im' ? (
             <>
-              <strong>群消息协作入口</strong>
-              <span>流程：提单 → 派工选人 → 维修 → 完工。当前请处理工单或确认状态。</span>
+              <strong>{t('runtime.banner.im_title')}</strong>
+              <span>{t('runtime.banner.im_body')}</span>
             </>
           ) : industryEntry ? (
             <>
-              <strong>独立站工作台</strong>
+              <strong>{t('runtime.banner.site_title')}</strong>
               <span>
                 {industryLabel}
                 {skin ? ` · ${skin.styleLabel.split('·')[0].trim()}` : ''}
-                {' · 左侧导航进场景'}
+                {t('runtime.banner.site_nav')}
               </span>
             </>
           ) : (
             <>
-              <strong>CapShip 工作台</strong>
-              <span>弹幕 / 选模块 / 描述需求 · Tabs 门户</span>
+              <strong>{t('runtime.banner.capship_title')}</strong>
+              <span>{t('runtime.banner.capship_body')}</span>
             </>
           )}
         </div>
@@ -950,10 +987,10 @@ export default function App() {
               color: '#312e81',
             }}
           >
-            <strong>{changeStatus === 'pending' ? '个人待审稿生效中' : '个人草稿生效中'}</strong>
-            <span>
-              当前菜单/页面仅你可见（后端已按你的草稿返回）。同事仍看正式版；管理员通过或直接发布后全员同步。
-            </span>
+            <strong>
+              {changeStatus === 'pending' ? t('runtime.draft.pending') : t('runtime.draft.active')}
+            </strong>
+            <span>{t('runtime.draft.hint')}</span>
           </div>
         ) : null}
         <header className="runtime-header">
@@ -966,20 +1003,20 @@ export default function App() {
             <div>
               <h1>{config.app_name}</h1>
               <div className="brand-meta">
-                <span className="brand-chip brand-chip--rev" title="页面配置版本">
+                <span className="brand-chip brand-chip--rev" title={t('runtime.chip.rev_title')}>
                   v{schemaRev}
                 </span>
                 {schemaView === 'personal_draft' ? (
                   <span className="brand-chip brand-chip--draft">
-                    {changeStatus === 'pending' ? '待审稿' : '个人草稿'}
+                    {changeStatus === 'pending' ? t('runtime.chip.pending') : t('runtime.chip.draft')}
                   </span>
                 ) : null}
             {localPreviewDirty ? (
-              <span className="brand-chip brand-chip--draft" title="对话改页/智能出页预览尚未保存">
-                未保存预览
+              <span className="brand-chip brand-chip--draft" title={t('runtime.chip.unsaved_title')}>
+                {t('runtime.chip.unsaved')}
               </span>
             ) : null}
-                <span className="brand-chip">{user.display_name || '使用者'}</span>
+                <span className="brand-chip">{userDisplayName}</span>
                 <span className="brand-chip">{user.role || 'member'}</span>
                 {industryEntry ? (
                   <>
@@ -987,14 +1024,15 @@ export default function App() {
                     {skin ? <span className="brand-chip">{skin.style}</span> : null}
                   </>
                 ) : entrySource === 'im' ? (
-                  <span className="brand-chip">企微 / 钉钉 / 飞书</span>
+                  <span className="brand-chip">{t('runtime.chip.im')}</span>
                 ) : (
-                  <span className="brand-chip">应用门户</span>
+                  <span className="brand-chip">{t('runtime.chip.portal')}</span>
                 )}
               </div>
             </div>
           </div>
           <div className="runtime-header-actions">
+            <LocaleSwitch className="btn btn-ghost" />
             <RuntimeNotifyBell />
             {refreshHint ? <span className="runtime-refresh-hint">{refreshHint}</span> : null}
             <button
@@ -1003,18 +1041,22 @@ export default function App() {
               disabled={refreshBusy}
               title={
                 localPreviewDirty
-                  ? '有未保存预览时自动刷新已关闭；点此强制从服务端拉取（会丢未保存预览）'
-                  : '重新拉取已保存的页面配置'
+                  ? t('runtime.action.refresh_dirty_title')
+                  : t('runtime.action.refresh_title')
               }
               onClick={() => {
                 if (localPreviewDirty) {
-                  const ok = window.confirm('当前有未保存的对话改页预览，强制刷新会丢弃预览。继续？')
+                  const ok = window.confirm(t('runtime.action.refresh_confirm'))
                   if (!ok) return
                 }
                 void refreshRuntime({ quiet: false, force: true })
               }}
             >
-              {refreshBusy ? '刷新中…' : localPreviewDirty ? '强制刷新' : '刷新页面'}
+              {refreshBusy
+                ? t('runtime.action.refresh_busy')
+                : localPreviewDirty
+                  ? t('runtime.action.force_refresh')
+                  : t('runtime.action.refresh')}
             </button>
             {industryEntry && !atHome ? (
               <button
@@ -1025,11 +1067,11 @@ export default function App() {
                   goRoute('/')
                 }}
               >
-                行业首页
+                {t('runtime.nav.home')}
               </button>
             ) : null}
             <button type="button" className="btn btn-ghost" onClick={handleLogout}>
-              退出
+              {t('runtime.action.logout')}
             </button>
           </div>
         </header>
@@ -1089,15 +1131,15 @@ export default function App() {
                 ) : (
                   <div className="widget-loading" role="status">
                     <div className="widget-loading-spinner" aria-hidden />
-                    <strong>正在加载场景模块…</strong>
-                    <p className="muted">首次打开该能力需拉取前端包，请稍候</p>
+                    <strong>{t('runtime.main.loading_pkg')}</strong>
+                    <p className="muted">{t('runtime.main.loading_pkg_hint')}</p>
                   </div>
                 )
               ) : (
-                <p className="muted">暂无页面</p>
+                <p className="muted">{t('runtime.main.empty')}</p>
               )
             ) : (
-              <p className="muted">此应用未启用网页端</p>
+              <p className="muted">{t('runtime.main.no_web')}</p>
             )}
           </main>
         </div>
@@ -1105,10 +1147,10 @@ export default function App() {
         {showApp && (
           <footer className="runtime-footer">
             <a className="btn" href={`/api/v1/runtime/${appId}/download`} style={{ opacity: apkReady ? 1 : 0.5 }}>
-              下载 Android APK
+              {t('runtime.footer.apk')}
             </a>
             <span className="muted" title={manifest.web_pkgs.join(', ')}>
-              本应用能力包 {manifest.web_pkgs.length} 个
+              {t('runtime.footer.pkgs', { n: manifest.web_pkgs.length })}
               {manifest.web_pkgs.length <= 4
                 ? `：${manifest.web_pkgs.map((p) => p.replace('@blockhub/web-capability-', '')).join(', ')}`
                 : ''}

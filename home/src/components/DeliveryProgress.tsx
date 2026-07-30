@@ -1,3 +1,4 @@
+import { useT } from '@blockhub/i18n/react'
 import type { PublishResult } from '../data/constants'
 import { deliverLabel, normalizeDeliver } from '../data/deliverDisplay'
 import { useApkBuildProgress } from '../hooks/useApkBuildProgress'
@@ -15,6 +16,7 @@ function stepIcon(status: 'done' | 'active' | 'pending' | 'error') {
 }
 
 export default function DeliveryProgress({ app, compact }: Props) {
+  const t = useT()
   const { progress, steps, polling, apkReady, needApk } = useApkBuildProgress(app)
   const mode = normalizeDeliver(app.deliver)
 
@@ -23,10 +25,10 @@ export default function DeliveryProgress({ app, compact }: Props) {
   return (
     <div className={`delivery-progress${compact ? ' compact' : ''}`} aria-live="polite">
       <div className="delivery-progress-head">
-        <span className="delivery-progress-title">交付进度</span>
-        <span className={`publish-deliver-badge mode-${mode}`}>{deliverLabel(mode)}</span>
-        {polling && <span className="delivery-progress-polling">自动检测中…</span>}
-        {needApk && apkReady && <span className="delivery-progress-done">全部就绪</span>}
+        <span className="delivery-progress-title">{t('home.delivery.progress_title')}</span>
+        <span className={`publish-deliver-badge mode-${mode}`}>{deliverLabel(mode, t)}</span>
+        {polling && <span className="delivery-progress-polling">{t('home.delivery.polling')}</span>}
+        {needApk && apkReady && <span className="delivery-progress-done">{t('home.delivery.all_ready')}</span>}
       </div>
 
       <div className="delivery-progress-bar-wrap" aria-hidden>

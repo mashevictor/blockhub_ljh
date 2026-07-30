@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { useT } from '@blockhub/i18n/react'
 import type { PublishResult } from '../data/constants'
 import { getAdminUrl } from '../data/constants'
 import AppIconAvatar from './AppIconAvatar'
@@ -20,6 +21,7 @@ interface Props {
 const MAX_CHIPS = 8
 
 export default function PublishModal({ result, onClose, onViewMyApps, showAdminLink = false, showMyAppsHint = false }: Props) {
+  const t = useT()
   const [mounted, setMounted] = useState(false)
 
   useBodyScrollLock(true)
@@ -53,7 +55,7 @@ export default function PublishModal({ result, onClose, onViewMyApps, showAdminL
   return createPortal(
     <div className="modal-overlay modal-overlay-compact" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="modal-card publish-result-card" role="dialog" aria-modal="true">
-        <button type="button" className="modal-close" onClick={onClose} aria-label="关闭">×</button>
+        <button type="button" className="modal-close" onClick={onClose} aria-label={t('home.publish.close')}>×</button>
 
         <header className="publish-result-head">
           <AppIconAvatar
@@ -64,9 +66,13 @@ export default function PublishModal({ result, onClose, onViewMyApps, showAdminL
             className="publish-result-logo"
           />
           <div>
-            <h3>发布成功</h3>
+            <h3>{t('home.publish.success.title')}</h3>
             <p className="modal-sub publish-result-sub">
-              {result.appName} · {result.moduleCount} 项功能 · {deliverLabel(deliverMode)}
+              {t('home.publish.success.sub', {
+                name: result.appName,
+                n: result.moduleCount,
+                deliver: deliverLabel(deliverMode, t),
+              })}
             </p>
           </div>
         </header>
@@ -74,7 +80,7 @@ export default function PublishModal({ result, onClose, onViewMyApps, showAdminL
         {showMyAppsHint && (
           <div className="publish-my-apps-tip" role="note">
             <DynamicIcon name="layers" size={14} />
-            <span>已保存到右上角 <strong>「我的应用」</strong></span>
+            <span>{t('home.publish.my_apps_tip')}</span>
           </div>
         )}
 
@@ -82,7 +88,7 @@ export default function PublishModal({ result, onClose, onViewMyApps, showAdminL
           <div className="publish-my-apps-tip" role="status">
             <DynamicIcon name="layers" size={14} />
             <span>
-              将组装 {result.buildManifest.web_pkgs.length} 个 Web 包：
+              {t('home.publish.manifest.will_pkgs', { n: result.buildManifest.web_pkgs.length })}
               {' '}
               {result.buildManifest.web_pkgs.slice(0, 3).map((p) => p.replace('@blockhub/', '')).join(' · ')}
               {result.buildManifest.web_pkgs.length > 3 ? ` +${result.buildManifest.web_pkgs.length - 3}` : ''}
@@ -92,7 +98,7 @@ export default function PublishModal({ result, onClose, onViewMyApps, showAdminL
 
         <div className="publish-result-scroll">
           {visibleChips.length > 0 && (
-            <ul className="publish-module-list" aria-label="已包含模块与能力">
+            <ul className="publish-module-list" aria-label={t('home.publish.modules_aria')}>
               {visibleChips.map((m) => (
                 <li
                   key={`${m.kind}:${m.key}`}
@@ -142,13 +148,13 @@ export default function PublishModal({ result, onClose, onViewMyApps, showAdminL
         <footer className="publish-result-foot">
           {showAdminLink && (
             <a className="btn-ghost full" href={getAdminUrl()} target="_blank" rel="noreferrer">
-              在管理后台查看 →
+              {t('home.publish.admin_view')}
             </a>
           )}
           <div className="publish-result-foot-actions">
-            <button type="button" className="btn-ghost" onClick={onClose}>继续创建</button>
+            <button type="button" className="btn-ghost" onClick={onClose}>{t('home.publish.keep_creating')}</button>
             <button type="button" className="btn-primary" onClick={onViewMyApps ?? onClose}>
-              查看我的应用
+              {t('home.publish.view_my_apps')}
             </button>
           </div>
         </footer>

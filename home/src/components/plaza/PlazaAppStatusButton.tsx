@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type MouseEvent } from 'react'
+import { useT } from '@blockhub/i18n/react'
 import type { StoredMyApp } from '../../lib/myAppsStorage'
 import { useApkBuildProgress } from '../../hooks/useApkBuildProgress'
 import { usePlazaFlowRun } from '../../context/PlazaFlowRunContext'
@@ -16,28 +17,34 @@ interface Props {
   onOpenDetail?: () => void
 }
 
+type TranslateFn = (key: string, vars?: Record<string, string | number>) => string
+
 function resolveDeliveryStatus(
   app: StoredMyApp,
   isNew: boolean,
   delivery: ReturnType<typeof useApkBuildProgress>,
+  t: TranslateFn,
 ) {
   if (delivery.timedOut) {
-    return { variant: 'error' as const, label: '交付异常', sub: 'APK 未完成' }
+    return { variant: 'error' as const, label: t('home.plaza.status.error'), sub: t('home.plaza.status.error_sub') }
   }
   if (delivery.polling) {
-    return { variant: 'building' as const, label: `APK ${delivery.progress}%`, sub: '构建中' }
+    return {
+      variant: 'building' as const,
+      label: t('home.plaza.status.building', { pct: delivery.progress }),
+      sub: t('home.plaza.status.building_sub'),
+    }
   }
   if (isNew) {
-    return { variant: 'new' as const, label: '刚发布', sub: '交付检测中' }
+    return { variant: 'new' as const, label: t('home.plaza.status.new'), sub: t('home.plaza.status.new_sub') }
   }
-  // 受众文案（@公开 等）由 PlazaPublishButton 展示，此处不重复
   if (app.plaza?.onPlazaFeed) {
-    return { variant: 'plaza' as const, label: '已上广场', sub: '可打开使用' }
+    return { variant: 'plaza' as const, label: t('home.plaza.status.on_plaza'), sub: t('home.plaza.status.ready_sub') }
   }
   if (delivery.apkReady || !delivery.needApk) {
-    return { variant: 'ready' as const, label: '已就绪', sub: '可打开使用' }
+    return { variant: 'ready' as const, label: t('home.plaza.status.ready'), sub: t('home.plaza.status.ready_sub') }
   }
-  return { variant: 'pending' as const, label: '交付中', sub: '等待就绪' }
+  return { variant: 'pending' as const, label: t('home.plaza.status.pending'), sub: t('home.plaza.status.pending_sub') }
 }
 
 function runVariantFromBadge(badgeClass: string): string {
@@ -59,6 +66,7 @@ export default function PlazaAppStatusButton({
   onFocusApp,
   onOpenDetail,
 }: Props) {
+  const t = useT()
   const [open, setOpen] = useState(false)
   const [pendingTrial, setPendingTrial] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
@@ -71,19 +79,19 @@ export default function PlazaAppStatusButton({
     || run.phase === 'completed' || run.phase === 'error' || run.phase === 'stopped'
   )
   const runUi = runLive
-    ? runPhaseUi(run.phase, run.stepIndex, run.steps.length)
+    ? runPhaseUi(run.phase, run.stepIndex, run.steps.length, t)
     : null
 
   const deliveryStatus = useMemo(
-    () => resolveDeliveryStatus(app, isNew, delivery),
-    [app, isNew, delivery],
+    () => resolveDeliveryStatus(app, isNew, delivery, t),
+    [app, isNew, delivery, t],
   )
 
   const display = runUi && runLive
     ? {
         variant: runVariantFromBadge(runUi.badgeClass),
         label: runUi.badge,
-        sub: run.phase === 'running' || run.phase === 'paused' ? '流程预览' : '',
+        sub: run.phase === 'running' || run.phase === 'paused' ? t('home.plaza.status.preview_sub') : '',
       }
     : deliveryStatus
 
@@ -159,17 +167,23 @@ export default function PlazaAppStatusButton({
     run.enterOverviewMode()
   }
 
+  const trialPreview = t('home.plaza.status.trial_preview')
+  const trialPause = t('home.plaza.status.trial_pause')
+  const trialResume = t('home.plaza.status.trial_resume')
+  const trialAgain = t('home.plaza.status.trial_again')
+
   const trialLabel =
     !isFocused || run.phase === 'idle'
-      ? '流程预览'
+      ? trialPreview
       : run.phase === 'running'
-        ? '暂停'
+        ? trialPause
         : run.phase === 'paused'
-          ? '继续'
+          ? trialResume
           : run.phase === 'stopped' || run.phase === 'completed' || run.phase === 'error'
-            ? '再预览'
-            : '流程预览'
+            ? trialAgain
+            : trialPreview
 
+  const showPlayGlyph = trialLabel === trialPreview || trialLabel === trialResume || trialLabel === trialAgain
   const showStop = isFocused && (run.phase === 'running' || run.phase === 'paused')
 
   return (
@@ -181,7 +195,7 @@ export default function PlazaAppStatusButton({
         type="button"
         className={`plaza-app-status-btn variant-${display.variant}${inline ? ' is-inline' : ''}`}
         aria-expanded={open}
-        title="查看状态"
+        title={t('home.plaza.status.view_title')}
         onClick={handleStatusClick}
       >
         <span className="plaza-app-status-dot" aria-hidden />
@@ -194,10 +208,10 @@ export default function PlazaAppStatusButton({
       <button
         type="button"
         className="plaza-app-trial-btn"
-        title="在列表中切换流程预览"
+        title={t('home.plaza.status.trial_title')}
         onClick={handleTrial}
       >
-        {trialLabel === '流程预览' || trialLabel === '继续' || trialLabel === '再预览' ? '▶ ' : '⏸ '}
+        {showPlayGlyph ? '▶ ' : '⏸ '}
         {trialLabel}
       </button>
 
@@ -205,17 +219,17 @@ export default function PlazaAppStatusButton({
         <button
           type="button"
           className="plaza-app-trial-btn is-stop"
-          title="停止流程预览"
+          title={t('home.plaza.status.stop_title')}
           onClick={handleStop}
         >
-          ⏹ 停止
+          {t('home.plaza.status.trial_stop')}
         </button>
       )}
 
       {open && (
-        <div className="plaza-app-status-popover" role="dialog" aria-label={`${app.appName} 状态`}>
+        <div className="plaza-app-status-popover" role="dialog" aria-label={t('home.plaza.status.dialog', { name: app.appName })}>
           <DeliveryProgress app={app} compact />
-          <p className="plaza-app-status-hint">可问答与测接口；改模块请打开 Runtime。可在此启动流程预览。</p>
+          <p className="plaza-app-status-hint">{t('home.plaza.status.hint')}</p>
           {onOpenDetail && (
             <button
               type="button"
@@ -226,7 +240,7 @@ export default function PlazaAppStatusButton({
                 onOpenDetail()
               }}
             >
-              进入全屏概览
+              {t('home.plaza.status.fullscreen')}
             </button>
           )}
         </div>

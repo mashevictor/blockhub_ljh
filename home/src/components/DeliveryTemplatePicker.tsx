@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { useT } from '@blockhub/i18n/react'
 import type { AppUiTemplate, WebTemplate } from '../api/client'
 
 interface Props {
@@ -12,17 +13,8 @@ interface Props {
   className?: string
 }
 
-const FALLBACK_WEB: WebTemplate[] = [
-  { id: 'tabs_portal', label: 'Tabs 门户', desc: '底部/顶部多页签，适合多能力并列' },
-  { id: 'sidebar_admin', label: '侧栏后台', desc: '左侧导航 + 内容区，适合管理后台' },
-  { id: 'landing_single', label: '单页落地', desc: '英雄区 + 能力块，适合少模块宣传页' },
-]
-
-const FALLBACK_APP: AppUiTemplate[] = [
-  { id: 'bottom_tabs', label: '底部 Tab', desc: '经典底部导航多能力壳' },
-  { id: 'drawer_nav', label: '侧栏抽屉', desc: '抽屉导航 + 内容页' },
-  { id: 'immersive_chat', label: '沉浸对话', desc: '全屏对话/语音体验（上海话等语音能力推荐）' },
-]
+const WEB_IDS = ['tabs_portal', 'sidebar_admin', 'landing_single'] as const
+const APP_IDS = ['bottom_tabs', 'drawer_nav', 'immersive_chat'] as const
 
 function TemplatePreview({ id }: { id: string }) {
   return (
@@ -95,13 +87,23 @@ export default function DeliveryTemplatePicker({
   compact,
   className = '',
 }: Props) {
+  const t = useT()
   const [open, setOpen] = useState(false)
-  const web = FALLBACK_WEB
-  const appUi = FALLBACK_APP
   const [pos, setPos] = useState<PopoverPos | null>(null)
   const rootRef = useRef<HTMLDivElement>(null)
   const triggerRef = useRef<HTMLButtonElement>(null)
   const popoverRef = useRef<HTMLDivElement>(null)
+
+  const web: WebTemplate[] = WEB_IDS.map((id) => ({
+    id,
+    label: t(`home.tpl.web.${id}.label`),
+    desc: t(`home.tpl.web.${id}.desc`),
+  }))
+  const appUi: AppUiTemplate[] = APP_IDS.map((id) => ({
+    id,
+    label: t(`home.tpl.app.${id}.label`),
+    desc: t(`home.tpl.app.${id}.desc`),
+  }))
 
   const updatePosition = () => {
     const trigger = triggerRef.current
@@ -151,9 +153,9 @@ export default function DeliveryTemplatePicker({
   useEffect(() => {
     if (!open) return
     const onDoc = (e: MouseEvent) => {
-      const t = e.target as Node
-      if (rootRef.current?.contains(t)) return
-      if (popoverRef.current?.contains(t)) return
+      const node = e.target as Node
+      if (rootRef.current?.contains(node)) return
+      if (popoverRef.current?.contains(node)) return
       setOpen(false)
     }
     const onKey = (e: KeyboardEvent) => {
@@ -167,8 +169,8 @@ export default function DeliveryTemplatePicker({
     }
   }, [open])
 
-  const webLabel = web.find((t) => t.id === webTemplateId)?.label || web[0]?.label || 'Tabs 门户'
-  const appLabel = appUi.find((t) => t.id === appUiId)?.label || appUi[0]?.label || '底部 Tab'
+  const webLabel = web.find((x) => x.id === webTemplateId)?.label || web[0]?.label || t('home.tpl.web.tabs_portal.label')
+  const appLabel = appUi.find((x) => x.id === appUiId)?.label || appUi[0]?.label || t('home.tpl.app.bottom_tabs.label')
 
   const popover =
     open &&
@@ -178,7 +180,7 @@ export default function DeliveryTemplatePicker({
         ref={popoverRef}
         className="delivery-template-popover is-ported b2b-brand-scope"
         role="dialog"
-        aria-label="选择网页模板与 App UI"
+        aria-label={t('home.tpl.aria')}
         style={{
           position: 'fixed',
           left: pos.left,
@@ -191,12 +193,12 @@ export default function DeliveryTemplatePicker({
         }}
       >
         <div className="delivery-template-popover-head">
-          <strong>选择模板</strong>
+          <strong>{t('home.tpl.pick_title')}</strong>
           <button
             type="button"
             className="delivery-template-popover-close"
             onClick={() => setOpen(false)}
-            aria-label="关闭"
+            aria-label={t('home.tpl.close')}
           >
             ×
           </button>
@@ -204,21 +206,21 @@ export default function DeliveryTemplatePicker({
 
         <div className="delivery-template-popover-body">
           <div className="delivery-template-section">
-            <h4 className="delivery-template-title">网页模板</h4>
+            <h4 className="delivery-template-title">{t('home.tpl.web_title')}</h4>
             <div className="delivery-template-grid">
-              {web.map((t) => (
+              {web.map((item) => (
                 <button
-                  key={t.id}
+                  key={item.id}
                   type="button"
-                  className={`delivery-template-chip${webTemplateId === t.id ? ' on' : ''}`}
-                  onClick={() => onWebTemplateChange(t.id)}
-                  title={t.desc}
-                  aria-pressed={webTemplateId === t.id}
+                  className={`delivery-template-chip${webTemplateId === item.id ? ' on' : ''}`}
+                  onClick={() => onWebTemplateChange(item.id)}
+                  title={item.desc}
+                  aria-pressed={webTemplateId === item.id}
                 >
-                  <TemplatePreview id={t.id} />
+                  <TemplatePreview id={item.id} />
                   <span className="delivery-template-chip-text">
-                    <strong>{t.label}</strong>
-                    <span className="delivery-template-chip-desc">{t.desc}</span>
+                    <strong>{item.label}</strong>
+                    <span className="delivery-template-chip-desc">{item.desc}</span>
                   </span>
                 </button>
               ))}
@@ -227,31 +229,31 @@ export default function DeliveryTemplatePicker({
 
           <div className="delivery-template-section">
             <h4 className="delivery-template-title">
-              App UI
+              {t('home.tpl.app_title')}
               {recommendAppUiId && recommendAppUiId !== appUiId && (
                 <button
                   type="button"
                   className="delivery-template-rec"
                   onClick={() => onAppUiChange(recommendAppUiId)}
                 >
-                  采用推荐
+                  {t('home.tpl.use_recommend')}
                 </button>
               )}
             </h4>
             <div className="delivery-template-grid">
-              {appUi.map((t) => (
+              {appUi.map((item) => (
                 <button
-                  key={t.id}
+                  key={item.id}
                   type="button"
-                  className={`delivery-template-chip${appUiId === t.id ? ' on' : ''}`}
-                  onClick={() => onAppUiChange(t.id)}
-                  title={t.desc}
-                  aria-pressed={appUiId === t.id}
+                  className={`delivery-template-chip${appUiId === item.id ? ' on' : ''}`}
+                  onClick={() => onAppUiChange(item.id)}
+                  title={item.desc}
+                  aria-pressed={appUiId === item.id}
                 >
-                  <TemplatePreview id={t.id} />
+                  <TemplatePreview id={item.id} />
                   <span className="delivery-template-chip-text">
-                    <strong>{t.label}</strong>
-                    <span className="delivery-template-chip-desc">{t.desc}</span>
+                    <strong>{item.label}</strong>
+                    <span className="delivery-template-chip-desc">{item.desc}</span>
                   </span>
                 </button>
               ))}
@@ -261,7 +263,7 @@ export default function DeliveryTemplatePicker({
 
         <div className="delivery-template-popover-foot">
           <button type="button" className="btn-primary delivery-template-done" onClick={() => setOpen(false)}>
-            完成
+            {t('home.tpl.done')}
           </button>
         </div>
       </div>,
@@ -284,7 +286,7 @@ export default function DeliveryTemplatePicker({
       >
         <TemplatePreview id={webTemplateId || 'tabs_portal'} />
         <span className="delivery-template-trigger-text">
-          <strong>模板</strong>
+          <strong>{t('home.tpl.trigger')}</strong>
           <span>
             {webLabel} / {appLabel}
           </span>

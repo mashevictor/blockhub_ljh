@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useT } from '@blockhub/i18n/react'
 import type { FlowRailTag } from '../../lib/plazaModuleFlow'
 
 interface Props {
@@ -18,19 +19,20 @@ export default function PlazaModuleFlowRail({
   label,
   readOnly,
 }: Props) {
+  const t = useT()
   const [paused, setPaused] = useState(false)
 
   if (tags.length === 0) {
     return (
       <div className={`plaza-mflow-rail plaza-mflow-rail--empty${dimmed ? ' dimmed' : ''}`} aria-label={label}>
-        <span className="plaza-mflow-rail-empty">暂无模块节点</span>
+        <span className="plaza-mflow-rail-empty">{t('home.plaza.mflow.rail_empty')}</span>
       </div>
     )
   }
 
   return (
     <div className={`plaza-mflow-rail-wrap${dimmed ? ' dimmed' : ''}`}>
-      <div className="plaza-mflow-rail-label">{label}{!readOnly && onSelect ? ' · 点击选中' : ''}</div>
+      <div className="plaza-mflow-rail-label">{label}{!readOnly && onSelect ? t('home.plaza.mflow.click_hint') : ''}</div>
     <div
       className={`plaza-mflow-rail${dimmed ? ' dimmed' : ''}${paused ? ' paused' : ''}`}
       aria-label={label}

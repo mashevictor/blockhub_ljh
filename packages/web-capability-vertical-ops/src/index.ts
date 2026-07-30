@@ -1,4 +1,5 @@
 import { registerWidget } from '@blockhub/web-core'
+import './locales'
 import {
   EduGradeAlertWidget,
   EduTuitionWidget,

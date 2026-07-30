@@ -9,6 +9,7 @@ import {
   type LazyExoticComponent,
 } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
+import { useT } from '@blockhub/i18n/react'
 import type {
   ComposerPageMock,
   ComposerPageSchema,
@@ -30,6 +31,7 @@ import {
   type ScenePageKind,
   type ScenePageMock,
 } from '../data/industryRuntimeScenes'
+import { localizeRuntimePackPreview } from '../i18n/industryPackI18n'
 import { ROUTES } from '../routes/paths'
 import { usePageMeta } from '../hooks/usePageMeta'
 import { getMicrositeRuntimeSkin } from '../data/micrositeRuntimeSkin'
@@ -64,11 +66,16 @@ function asPageMock(raw: ComposerPageMock | ScenePageMock | undefined): ScenePag
   return raw as ScenePageMock
 }
 
-function scenesToSchema(packName: string, scenes: IndustryRuntimeScene[], packKey = 'mfg'): ComposerPageSchema {
+function scenesToSchema(
+  packName: string,
+  scenes: IndustryRuntimeScene[],
+  packKey = 'mfg',
+  workbenchTitle?: string,
+): ComposerPageSchema {
   return {
     version: '1',
     appId: `preview-${packKey}`,
-    title: `${packName}工作台`,
+    title: workbenchTitle || `${packName} workbench`,
     capability_keys: [...new Set(scenes.map((s) => s.capabilityHint.split(/\s*\+\s*/)[0].trim()))],
     menu: scenes.map((s) => ({
       key: s.id,
@@ -159,8 +166,8 @@ function schemaToScenes(
     out.push({
       id: item.key,
       name: item.label,
-      category: item.category || '自定义',
-      summary: item.summary || `${item.label}业务办理`,
+      category: item.category || 'Custom',
+      summary: item.summary || `${item.label} workflow`,
       pages: item.page_kind || 'custom',
       standard: '✓',
       kind,
@@ -173,14 +180,16 @@ function schemaToScenes(
 }
 
 function DemoOnlyNote({ scene }: { scene: IndustryRuntimeScene }) {
+  const t = useT()
   return (
     <p className="irp-summary" style={{ marginBottom: 12 }}>
-      「{scene.name}」当前为布局示意，按钮不可提交。请用对话加「请假 / 报销 / 团建经费 / 报修」等正式能力，或选已挂真 API 的场景。
+      {t('home.industry.runtime.demo_note', { name: scene.name })}
     </p>
   )
 }
 
 function SoftGtgtFormPreview({ scene }: { scene: IndustryRuntimeScene }) {
+  const t = useT()
   const mock = scene.pageMock
   const [vals, setVals] = useState<Record<string, string>>({})
   const [resetKey, setResetKey] = useState(0)
@@ -199,7 +208,7 @@ function SoftGtgtFormPreview({ scene }: { scene: IndustryRuntimeScene }) {
     return (
       <div className="irp-panel">
         <DemoOnlyNote scene={scene} />
-        <p className="irp-summary">暂无表单字段</p>
+        <p className="irp-summary">{t('home.industry.runtime.no_fields')}</p>
       </div>
     )
   }
@@ -209,29 +218,29 @@ function SoftGtgtFormPreview({ scene }: { scene: IndustryRuntimeScene }) {
       <section className="irp-panel irp-gtgt-panel">
         <DemoOnlyNote scene={scene} />
         <GtgtStepComposer
-          title={mock?.form_title || `新建 · ${scene.name}`}
+          title={mock?.form_title || t('home.industry.runtime.new_title', { name: scene.name })}
           meta="Gtgt · Soft"
           accent="#6366f1"
           variant="soft"
-          flowHint=">> 单字段推进 · 示意布局（正式能力请选已挂真 API 的场景）"
+          flowHint={t('home.industry.runtime.flow_hint')}
           steps={steps}
           values={vals}
           onChange={(k, v) => setVals((p) => ({ ...p, [k]: v }))}
           onComplete={() => {
-            setMsg('示意页不可提交 — 请选请假/报销/报修/质检/安环等真 API 场景')
+            setMsg(t('home.industry.runtime.submit_blocked'))
             setResetKey((k) => k + 1)
             setVals({})
           }}
           resetKey={resetKey}
-          submitLabel={mock?.primary_action || '提交'}
+          submitLabel={mock?.primary_action || t('home.industry.runtime.submit')}
         >
           {msg ? <p className="irp-summary" style={{ marginTop: 10 }}>{msg}</p> : null}
         </GtgtStepComposer>
       </section>
       <section className="irp-panel">
-        <h3>{mock?.list_title || `${scene.name}记录`}</h3>
+        <h3>{mock?.list_title || t('home.industry.runtime.list_title', { name: scene.name })}</h3>
         {list.length === 0 ? (
-          <p className="irp-summary">空库无数据 — 接入真 API 后提交会出现在这里</p>
+          <p className="irp-summary">{t('home.industry.runtime.empty_list')}</p>
         ) : (
           list.map((row) => (
             <div key={row.id} className="irp-row">
@@ -247,8 +256,9 @@ function SoftGtgtFormPreview({ scene }: { scene: IndustryRuntimeScene }) {
 }
 
 function UnderstoodBody({ scene }: { scene: IndustryRuntimeScene }) {
+  const t = useT()
   const mock = scene.pageMock
-  const action = mock?.primary_action || '提交'
+  const action = mock?.primary_action || t('home.industry.runtime.submit')
 
   if (mock?.kpis?.length) {
     return (
@@ -260,14 +270,14 @@ function UnderstoodBody({ scene }: { scene: IndustryRuntimeScene }) {
               <span>{k.label}</span>
               {/* 禁止 pageMock 假数字；登录后走 Live 真统计 */}
               <strong>—</strong>
-              <em>接真数据后刷新</em>
+              <em>{t('home.industry.runtime.refresh_live')}</em>
             </div>
           ))}
         </div>
         {mock.list_title ? (
           <section className="irp-panel">
             <h3>{mock.list_title}</h3>
-            <p className="irp-summary">空库无数据</p>
+            <p className="irp-summary">{t('home.industry.runtime.empty_short')}</p>
           </section>
         ) : null}
       </div>
@@ -279,20 +289,20 @@ function UnderstoodBody({ scene }: { scene: IndustryRuntimeScene }) {
       <div className="irp-grid-2">
         <section className="irp-panel irp-chat">
           <DemoOnlyNote scene={scene} />
-          <h3>{mock.chat_title || `${scene.name}助手`}</h3>
+          <h3>{mock.chat_title || t('home.industry.runtime.assistant', { name: scene.name })}</h3>
           <div className="irp-bubble bot">
-            空库无会话 — 登录后可查看知识库/问答真状态；正式对话在 /r/应用中进行。
+            {t('home.industry.runtime.no_session')}
           </div>
           <div className="irp-chat-input">
-            <input placeholder={`向「${scene.name}」提问…`} disabled />
-            <button type="button" className="irp-btn" disabled title="示意页不可提交">
+            <input placeholder={t('home.industry.runtime.ask_ph', { name: scene.name })} disabled />
+            <button type="button" className="irp-btn" disabled title={t('home.industry.runtime.submit_blocked')}>
               {action}
             </button>
           </div>
         </section>
         <section className="irp-panel">
-          <h3>{mock.files_title || '相关资料'}</h3>
-          <p className="irp-summary">空库无文件</p>
+          <h3>{mock.files_title || t('home.industry.runtime.related_files')}</h3>
+          <p className="irp-summary">{t('home.industry.runtime.empty_files')}</p>
         </section>
       </div>
     )
@@ -308,6 +318,7 @@ function SceneWorkspace({
   scene: IndustryRuntimeScene
   token: string
 }) {
+  const t = useT()
   const liveCap = resolveLiveCap(scene)
   const liveScene: IndustryRuntimeScene = liveCap
     ? { ...scene, capabilityHint: liveCap }
@@ -326,7 +337,7 @@ function SceneWorkspace({
       )}
       {!token && isLiveOfficeScene(scene) ? (
         <p className="irp-summary" style={{ marginTop: 12 }}>
-          登录后可真提交并推进流程（右侧开发者面板登录，或等待自动 demo 登录）。
+          {t('home.industry.runtime.login_hint')}
         </p>
       ) : null}
     </div>
@@ -346,33 +357,36 @@ function SceneBody({ kind, scene }: { kind: ScenePageKind; scene: IndustryRuntim
 }
 
 function SceneBodyStatic({ kind, scene }: { kind: ScenePageKind; scene: IndustryRuntimeScene }) {
+  const t = useT()
   /** 无真 API 时只空态 + 说明，禁止假业务数字/假工单 */
   const empty = (title: string) => (
     <section className="irp-panel">
       <DemoOnlyNote scene={scene} />
       <h3>{title}</h3>
-      <p className="irp-summary">空库无数据 — 接入真 API 或选已挂真提交的场景后，记录会出现在这里</p>
+      <p className="irp-summary">{t('home.industry.runtime.empty_panel')}</p>
     </section>
   )
 
   switch (kind) {
     case 'repair':
-      return empty('设备报修')
+      return empty(t('home.industry.runtime.repair_title'))
     case 'chat_kb':
       return (
         <div className="irp-grid-2">
           <section className="irp-panel irp-chat">
             <DemoOnlyNote scene={scene} />
             <h3>{scene.name}</h3>
-            <div className="irp-bubble bot">空库无文档时仅作引导；正式 Runtime 请使用知识库 / 问答能力。</div>
+            <div className="irp-bubble bot">{t('home.industry.runtime.kb_guide')}</div>
             <div className="irp-chat-input">
-              <input placeholder={`向「${scene.name}」提问…`} disabled />
-              <button type="button" className="irp-btn" disabled>发送</button>
+              <input placeholder={t('home.industry.runtime.ask_ph', { name: scene.name })} disabled />
+              <button type="button" className="irp-btn" disabled>
+                {t('home.industry.runtime.send')}
+              </button>
             </div>
           </section>
           <section className="irp-panel">
-            <h3>相关资料</h3>
-            <p className="irp-summary">空库无文件</p>
+            <h3>{t('home.industry.runtime.related_files')}</h3>
+            <p className="irp-summary">{t('home.industry.runtime.empty_files')}</p>
           </section>
         </div>
       )
@@ -382,17 +396,21 @@ function SceneBodyStatic({ kind, scene }: { kind: ScenePageKind; scene: Industry
         <div className="irp-stack">
           <DemoOnlyNote scene={scene} />
           <div className="irp-kpi-row">
-            {['指标 A', '指标 B', '指标 C'].map((k) => (
+            {[
+              t('home.industry.runtime.metric_a'),
+              t('home.industry.runtime.metric_b'),
+              t('home.industry.runtime.metric_c'),
+            ].map((k) => (
               <div key={k} className="irp-kpi">
                 <span>{k}</span>
                 <strong>—</strong>
-                <em>接真数据后刷新</em>
+                <em>{t('home.industry.runtime.refresh_live')}</em>
               </div>
             ))}
           </div>
           <section className="irp-panel">
             <h3>{scene.name}</h3>
-            <p className="irp-summary">空库无趋势数据</p>
+            <p className="irp-summary">{t('home.industry.runtime.empty_trend')}</p>
           </section>
         </div>
       )
@@ -404,13 +422,13 @@ function SceneBodyStatic({ kind, scene }: { kind: ScenePageKind; scene: Industry
     case 'training':
       return empty(scene.name)
     case 'bom':
-      return empty('图纸 / BOM')
+      return empty(t('home.industry.runtime.bom_title'))
     case 'integration':
       return (
         <section className="irp-panel irp-integration">
           <DemoOnlyNote scene={scene} />
-          <h3>系统对接</h3>
-          <p className="irp-summary">对接配置在正式 Runtime 中完成；本预览不展示假连通状态。</p>
+          <h3>{t('home.industry.runtime.integration_title')}</h3>
+          <p className="irp-summary">{t('home.industry.runtime.integration_hint')}</p>
         </section>
       )
     default:
@@ -419,11 +437,16 @@ function SceneBodyStatic({ kind, scene }: { kind: ScenePageKind; scene: Industry
 }
 
 export default function IndustryRuntimePreviewPage() {
+  const t = useT()
   const { pack = 'mfg' } = useParams()
   const [search] = useSearchParams()
   const micrositeId = search.get('microsite') || loadSavedMicrositeId(pack)
   const skin = getMicrositeRuntimeSkin(micrositeId)
-  const preview = useMemo(() => getIndustryRuntimePreview(pack), [pack])
+  const rawPreview = useMemo(() => getIndustryRuntimePreview(pack), [pack])
+  const preview = useMemo(
+    () => (rawPreview ? localizeRuntimePackPreview(t, rawPreview) : null),
+    [rawPreview, t],
+  )
   const catalog = preview?.scenes ?? []
   const [scenes, setScenes] = useState<IndustryRuntimeScene[]>(catalog)
   const [activeId, setActiveId] = useState(catalog[0]?.id ?? '')
@@ -432,16 +455,25 @@ export default function IndustryRuntimePreviewPage() {
   const [homeRole, setHomeRole] = useState('')
 
   usePageMeta({
-    title: preview ? `${preview.name} · 独立站 Runtime 预览` : '独立站 Runtime 预览',
-    description: '行业独立站入口的场景工作台预览（与弹幕/模块工作台壳分离）',
+    title: preview
+      ? t('home.industry.runtime.meta', { name: preview.name })
+      : t('home.industry.runtime.meta_fallback'),
+    description: t('home.industry.runtime.meta_desc'),
   })
 
   useEffect(() => {
     if (!preview) return
     setScenes(preview.scenes)
     setActiveId(preview.scenes[0]?.id ?? '')
-    setSchema(scenesToSchema(preview.name, preview.scenes, preview.key))
-  }, [preview])
+    setSchema(
+      scenesToSchema(
+        preview.name,
+        preview.scenes,
+        preview.key,
+        t('home.industry.runtime.workbench', { name: preview.name }),
+      ),
+    )
+  }, [preview, t])
 
   useEffect(() => {
     if (!homeToken) return
@@ -456,8 +488,8 @@ export default function IndustryRuntimePreviewPage() {
   if (!preview) {
     return (
       <div className="irp-root irp-empty">
-        <p>暂无「{pack}」预览包，当前可打开制造样板。</p>
-        <Link to="/preview/industry-runtime/mfg">查看传统制造 12 场景</Link>
+        <p>{t('home.industry.runtime.missing', { pack })}</p>
+        <Link to="/preview/industry-runtime/mfg">{t('home.industry.runtime.missing_cta')}</Link>
       </div>
     )
   }
@@ -465,6 +497,15 @@ export default function IndustryRuntimePreviewPage() {
   const groups = groupScenesByCategory(scenes)
   const active = scenes.find((s) => s.id === activeId) ?? scenes[0]
   const keys = [...new Set(scenes.map((s) => s.capabilityHint.split(/\s*\+\s*/)[0].trim()))]
+  const siteLabel =
+    preview.key === 'office'
+      ? t('home.industry.runtime.site_office')
+      : preview.key === 'mfg'
+        ? t('home.industry.runtime.site_mfg')
+        : t('home.industry.runtime.site_generic')
+  const hintSkin = skin
+    ? t('home.industry.runtime.hint_skin', { label: skin.styleLabel })
+    : ''
 
   const applySchema = (next: ComposerPageSchema) => {
     setSchema(next)
@@ -507,32 +548,32 @@ export default function IndustryRuntimePreviewPage() {
         <div className="irp-brand">
           <span className="irp-mark" aria-hidden />
           <div>
-            <p className="irp-brand-label">独立站 → Runtime（模板皮肤预览）</p>
+            <p className="irp-brand-label">{t('home.industry.runtime.brand')}</p>
             <strong className="irp-brand-name">{preview.name}</strong>
           </div>
         </div>
         <div className="irp-top-actions">
           <span className="irp-pill">
-            {scenes.length} 场景
+            {t('home.industry.runtime.scenes_pill', { n: scenes.length })}
             {skin ? ` · ${skin.styleLabel}` : ''}
           </span>
           <a className="irp-link" href={ROUTES.industrySiteHtml(preview.key)}>
-            {preview.key === 'office' ? '办公独立站' : preview.key === 'mfg' ? '制造独立站' : '行业独立站'}
+            {siteLabel}
           </a>
-          <Link className="irp-link" to={ROUTES.industryDetail(preview.key)}>方案站</Link>
-          <Link className="irp-link" to={ROUTES.home}>首页</Link>
+          <Link className="irp-link" to={ROUTES.industryDetail(preview.key)}>
+            {t('home.industry.runtime.site_plan')}
+          </Link>
+          <Link className="irp-link" to={ROUTES.home}>{t('home.industry.runtime.home')}</Link>
         </div>
       </header>
 
       <p className="irp-compose-hint">
-        本页是<strong>独立站入口</strong>的场景工作台预览
-        {skin ? `，视觉关联模板「${skin.styleLabel}」` : ''}
-        。弹幕 / 选模块 / 描述需求生成的是另一套 CapShip 标准工作台壳（/r/应用，无独立站皮肤）。
+        {t('home.industry.runtime.hint', { skin: hintSkin })}
       </p>
 
       <div className="irp-body">
-        <aside className="irp-nav" aria-label="场景清单">
-          <p className="irp-nav-title">场景</p>
+        <aside className="irp-nav" aria-label={t('home.industry.runtime.nav_aria')}>
+          <p className="irp-nav-title">{t('home.industry.runtime.nav_title')}</p>
           {groups.map((g) => (
             <div key={g.category} className="irp-nav-group">
               <h4>{g.category}</h4>
@@ -553,7 +594,7 @@ export default function IndustryRuntimePreviewPage() {
           {active ? (
             <SceneWorkspace scene={active} token={homeToken} />
           ) : (
-            <p className="irp-summary">请从左侧选择场景</p>
+            <p className="irp-summary">{t('home.industry.runtime.pick_scene')}</p>
           )}
         </main>
       </div>

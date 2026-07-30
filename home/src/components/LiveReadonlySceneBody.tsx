@@ -2,6 +2,7 @@
  * 行业预览 · 非表单能力：只读真 API / 配置态，禁止假 KPI、假列表。
  */
 import { useCallback, useEffect, useState } from 'react'
+import { useT } from '@blockhub/i18n/react'
 import { GtgtStepComposer, type GtgtStep } from '@blockhub/web-core/gtgt'
 import type { IndustryRuntimeScene } from '../data/industryRuntimeScenes'
 
@@ -50,6 +51,7 @@ export function LiveReadonlySceneBody({
   scene: IndustryRuntimeScene
   token: string
 }) {
+  const t = useT()
   const [loading, setLoading] = useState(true)
   const [err, setErr] = useState('')
   const [lines, setLines] = useState<string[]>([])
@@ -82,7 +84,7 @@ export function LiveReadonlySceneBody({
         setLines(
           items.length
             ? items.slice(0, 12).map((d) => String(d.title || d.name || '未命名文档'))
-            : ['空库无文档 — 上传后出现在正式 Runtime 知识库'],
+            : [t('home.liveOffice.readonly.empty_docs')],
         )
       } else if (cap === 'chat_qa') {
         const cfg = await apiJson<{ model?: string; provider?: string }>(
@@ -159,7 +161,7 @@ export function LiveReadonlySceneBody({
     } finally {
       setLoading(false)
     }
-  }, [cap, token])
+  }, [cap, token, t])
 
   useEffect(() => {
     void load()
@@ -189,11 +191,10 @@ export function LiveReadonlySceneBody({
   return (
     <div className="irp-stack">
       <p className="irp-summary">
-        真 API · {cap} ·{' '}
-        {cap === 'data_nl_query' ? '可提问' : '只读 / 配置态'} · 禁止假业务数据
+        {t('home.liveOffice.readonly.banner', { cap })}
       </p>
-      {loading ? <p className="irp-summary">加载中…</p> : null}
-      {err ? <p className="irp-summary">加载失败：{err}</p> : null}
+      {loading ? <p className="irp-summary">{t('common.loading')}</p> : null}
+      {err ? <p className="irp-summary">{t('home.liveOffice.load_error', { err })}</p> : null}
       {kpis.length > 0 ? (
         <div className="irp-kpi-row">
           {kpis.map((k) => (
@@ -216,7 +217,7 @@ export function LiveReadonlySceneBody({
       {cap === 'data_nl_query' ? (
         <section className="irp-panel irp-gtgt-panel">
           <GtgtStepComposer
-            title="自然语言查数"
+            title={t('home.liveOffice.readonly.nl')}
             accent="#6366f1"
             variant="soft"
             flowHint=">> 单字段提问 → 调真 API"
@@ -226,7 +227,7 @@ export function LiveReadonlySceneBody({
             onComplete={() => void runNl()}
             busy={nlBusy}
             resetKey={nlReset}
-            submitLabel="查询"
+            submitLabel={t('home.liveOffice.readonly.query')}
           >
             {nlMsg ? <p className="irp-summary" style={{ marginTop: 10 }}>{nlMsg}</p> : null}
           </GtgtStepComposer>

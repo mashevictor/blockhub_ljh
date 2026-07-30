@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "locales": ["zh-CN", "en-US"],
+  "fallbackLocale": "zh-CN",
+  "namespaces": {
+    "common": { "owner": "apps-shell", "source": "hand" },
+    "home": { "owner": "home-landing", "source": "hand" },
+    "product": { "owner": "home-product-showcase", "source": "hand", "genHint": "scripts/codegen-product-i18n.py" },
+    "admin": { "owner": "frontend-admin", "source": "hand", "genHint": "scripts/codegen-p2-i18n.py" },
+    "runtime": { "owner": "runtime-web", "source": "hand", "genHint": "scripts/codegen-p2-i18n.py" },
+    "content": { "owner": "home-marketing", "source": "hand", "genHint": "scripts/codegen-p3-content-i18n.py" },
+    "error": { "owner": "backend-errors", "source": "hand" },
+    "cap": { "owner": "capability_registry", "source": "codegen", "genFile": "capability.gen.json" },
+    "hero": { "owner": "hero_presets", "source": "codegen", "genFile": "hero.gen.json" },
+    "industry": { "owner": "industry_packs_all", "source": "codegen", "genFile": "industry.gen.json", "genHint": "scripts/codegen-industry-scene-i18n.py" },
+    "scene": { "owner": "industry_packs_all", "source": "codegen", "genFile": "scene.gen.json", "genHint": "scripts/codegen-industry-scene-i18n.py" }
+  },
+  "packageLocales": {
+    "pattern": "packages/web-capability-*/src/locales",
+    "keyPrefix": "cap.{owned_capability_key}.*",
+    "ci": "scripts/check_i18n_namespace.py",
+    "scaffold": "scripts/scaffold-capability-locales.py"
+  },
+  "flutter": {
+    "codegen": "scripts/codegen-flutter-arb.py",
+    "arbDir": "shared/i18n/flutter",
+    "runtimeAssets": "packages/blockhub_flutter_core/assets/i18n",
+    "api": "BhL10n / bhTf (same dotted keys as Web)"
+  }
+}

@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { useT } from '@blockhub/i18n/react'
 import { uploadAppIcon } from '../api/client'
 import type { AppBrandingInput } from '../data/appBranding'
 import { DEFAULT_PRIMARY_COLOR } from '../data/appBranding'
@@ -13,21 +14,23 @@ interface Props {
 export default function AppBrandingFields({
   value,
   onChange,
-  namePlaceholder = '应用名称（会显示在手机桌面和打开页）',
+  namePlaceholder,
   compact = false,
 }: Props) {
+  const t = useT()
   const fileRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
+  const placeholder = namePlaceholder ?? t('home.branding.name_ph')
 
   const pickIcon = async (file: File) => {
     setUploadError(null)
     if (!file.type.startsWith('image/')) {
-      setUploadError('请选择 PNG / JPEG 图片')
+      setUploadError(t('home.branding.err_type'))
       return
     }
     if (file.size > 2 * 1024 * 1024) {
-      setUploadError('图片请小于 2MB')
+      setUploadError(t('home.branding.err_size'))
       return
     }
     const dataUrl = await new Promise<string>((resolve, reject) => {
@@ -41,7 +44,7 @@ export default function AppBrandingFields({
       const iconUrl = await uploadAppIcon(dataUrl)
       onChange({ ...value, iconUrl })
     } catch {
-      setUploadError('图标上传失败，请检查网络或稍后重试')
+      setUploadError(t('home.branding.err_upload'))
     } finally {
       setUploading(false)
     }
@@ -50,23 +53,23 @@ export default function AppBrandingFields({
   return (
     <div className={`app-branding-fields${compact ? ' compact' : ''}`}>
       <label className="app-branding-label">
-        <span>应用名称</span>
+        <span>{t('home.branding.name')}</span>
         <input
           className="input-field"
           value={value.appName}
           onChange={(e) => onChange({ ...value, appName: e.target.value })}
-          placeholder={namePlaceholder}
+          placeholder={placeholder}
         />
       </label>
 
       <div className="app-branding-row">
         <div className="app-branding-icon-block">
-          <span className="app-branding-label-text">应用图标</span>
+          <span className="app-branding-label-text">{t('home.branding.icon')}</span>
           <div className="app-branding-icon-preview" style={{ background: value.primaryColor }}>
             {value.iconUrl ? (
               <img src={value.iconUrl} alt="" width={48} height={48} />
             ) : (
-              <span>{(value.appName || '应').slice(0, 1)}</span>
+              <span>{(value.appName || 'A').slice(0, 1)}</span>
             )}
           </div>
           <input
@@ -86,7 +89,11 @@ export default function AppBrandingFields({
             disabled={uploading}
             onClick={() => fileRef.current?.click()}
           >
-            {uploading ? '上传中…' : value.iconUrl ? '更换图标' : '上传图标'}
+            {uploading
+              ? t('home.branding.uploading')
+              : value.iconUrl
+                ? t('home.branding.replace')
+                : t('home.branding.upload')}
           </button>
           {value.iconUrl && (
             <button
@@ -94,19 +101,19 @@ export default function AppBrandingFields({
               className="btn-ghost btn-sm"
               onClick={() => onChange({ ...value, iconUrl: '' })}
             >
-              清除
+              {t('home.branding.clear')}
             </button>
           )}
         </div>
 
         <label className="app-branding-color">
-          <span className="app-branding-label-text">主题色</span>
+          <span className="app-branding-label-text">{t('home.branding.color')}</span>
           <div className="app-branding-color-row">
             <input
               type="color"
               value={value.primaryColor || DEFAULT_PRIMARY_COLOR}
               onChange={(e) => onChange({ ...value, primaryColor: e.target.value })}
-              aria-label="主题色"
+              aria-label={t('home.branding.color')}
             />
             <input
               className="input-field"

@@ -1,11 +1,18 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { CSSProperties } from 'react'
+import { useT } from '@blockhub/i18n/react'
 import {
   CAPABILITIES_SHOWCASE,
   PLATFORMS_SHOWCASE,
 } from '../data/showcase'
 import { fetchCatalogSummary, type CatalogSummary } from '../api/client'
 import { useTheme } from '../context/ThemeContext'
+import {
+  showcaseCapDesc,
+  showcaseCapName,
+  showcasePlatName,
+  showcasePlatSub,
+} from '../i18n/contentLabels'
 import { capabilityColor } from '../data/iconPalette'
 import { PLATFORM_STATS } from '@shared/platformStats'
 import {
@@ -17,6 +24,7 @@ import {
 } from './icons'
 
 export default function PlatformShowcaseFooter() {
+  const t = useT()
   const { theme } = useTheme()
   const [summary, setSummary] = useState<CatalogSummary | null>(null)
 
@@ -31,20 +39,25 @@ export default function PlatformShowcaseFooter() {
     const industry = summary?.industry_count ?? PLATFORM_STATS.industryScenarios
     const total = PLATFORM_STATS.scenarios
     return [
-      { label: '通用办公', count: office, color: '#4338ca' },
-      { label: '行业场景', count: industry, color: '#0891b2' },
+      { label: t('content.showcase.footer.bar_office'), count: office, color: '#4338ca' },
+      { label: t('content.showcase.footer.bar_industry'), count: industry, color: '#0891b2' },
     ].map((s) => ({ ...s, pct: (s.count / total) * 100 }))
-  }, [summary])
+  }, [summary, t])
 
   return (
-    <section className="showcase-footer" aria-label="平台能力总览">
+    <section className="showcase-footer" aria-label={t('content.showcase.footer.aria')}>
       <div className="showcase-footer-inner">
         <article className="showcase-block">
           <header className="showcase-block-head">
             <span className="showcase-block-icon tone-violet"><IconZap size={20} /></span>
             <div>
-              <h2>{PLATFORM_STATS.capabilities} 项能力 · {PLATFORM_STATS.agents} 个助手</h2>
-              <p>从想法到可用，常用能力一站配齐</p>
+              <h2>
+                {t('content.showcase.footer.caps_title', {
+                  caps: PLATFORM_STATS.capabilities,
+                  agents: PLATFORM_STATS.agents,
+                })}
+              </h2>
+              <p>{t('content.showcase.footer.caps_lead')}</p>
             </div>
           </header>
           <ul className="showcase-cap-grid">
@@ -57,8 +70,8 @@ export default function PlatformShowcaseFooter() {
                     <Icon size={18} />
                   </span>
                   <div>
-                    <strong>{c.name}</strong>
-                    <span>{c.desc}</span>
+                    <strong>{showcaseCapName(t, c.id, c.name)}</strong>
+                    <span>{showcaseCapDesc(t, c.id, c.desc)}</span>
                   </div>
                 </li>
               )
@@ -70,8 +83,8 @@ export default function PlatformShowcaseFooter() {
           <header className="showcase-block-head">
             <span className="showcase-block-icon tone-sky"><IconLayers size={20} /></span>
             <div>
-              <h2>{PLATFORM_STATS.scenarios} 业务场景</h2>
-              <p>办公与行业场景，点选就能用</p>
+              <h2>{t('content.showcase.footer.scenes_title', { n: PLATFORM_STATS.scenarios })}</h2>
+              <p>{t('content.showcase.footer.scenes_lead')}</p>
             </div>
           </header>
           <ul className="showcase-scene-bars">
@@ -86,9 +99,11 @@ export default function PlatformShowcaseFooter() {
             ))}
           </ul>
           <p className="showcase-scene-foot">
-            通用办公 <strong>{summary?.office_count ?? PLATFORM_STATS.officeScenarios}</strong> 项 ·
-            办公 <strong>{summary?.office_groups ?? PLATFORM_STATS.officeGroups}</strong> 大分类 ·
-            <strong>{summary?.industry_packs ?? PLATFORM_STATS.industryPacks}</strong> 个行业包
+            {t('content.showcase.footer.scene_foot', {
+              office: summary?.office_count ?? PLATFORM_STATS.officeScenarios,
+              groups: summary?.office_groups ?? PLATFORM_STATS.officeGroups,
+              packs: summary?.industry_packs ?? PLATFORM_STATS.industryPacks,
+            })}
           </p>
         </article>
 
@@ -96,8 +111,8 @@ export default function PlatformShowcaseFooter() {
           <header className="showcase-block-head">
             <span className="showcase-block-icon tone-cyan"><IconDevices size={20} /></span>
             <div>
-              <h2>{PLATFORM_STATS.platforms} 端全覆盖</h2>
-              <p>一次发布，网页和手机同步可用</p>
+              <h2>{t('content.showcase.footer.plat_title', { n: PLATFORM_STATS.platforms })}</h2>
+              <p>{t('content.showcase.footer.plat_lead')}</p>
             </div>
           </header>
           <ul className="showcase-plat-grid">
@@ -107,10 +122,10 @@ export default function PlatformShowcaseFooter() {
                   <DynamicIcon name={p.iconKey} size={22} />
                 </span>
                 <div>
-                  <strong>{p.name}</strong>
-                  <span>{p.sub}</span>
+                  <strong>{showcasePlatName(t, p.id, p.name)}</strong>
+                  <span>{showcasePlatSub(t, p.id, p.sub)}</span>
                 </div>
-                <em>已支持</em>
+                <em>{t('content.showcase.plat.ready')}</em>
               </li>
             ))}
           </ul>

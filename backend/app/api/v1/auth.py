@@ -6,6 +6,7 @@ from fastapi.responses import RedirectResponse
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
+from app.core.api_error import raise_api_error
 from app.core.config import settings
 from app.core.deps import get_current_user
 from app.core.security import create_access_token, verify_password
@@ -183,27 +184,18 @@ def send_code(body: SendCodeRequest, request: Request) -> SendCodeResponse:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
     if account_type == "phone" and not sms_configured() and not settings.otp_debug_expose:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="短信服务未配置，请联系管理员（需 TENCENT_SMS_*）",
-        )
+        raise_api_error(status.HTTP_503_SERVICE_UNAVAILABLE, "SMS_NOT_CONFIGURED")
     if account_type == "email" and not smtp_configured() and not settings.otp_debug_expose:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="邮件服务未配置，请联系管理员",
-        )
+        raise_api_error(status.HTTP_503_SERVICE_UNAVAILABLE, "EMAIL_NOT_CONFIGURED")
 
     try:
         code, expires_in = issue_otp(account_type, account)
     except ValueError as exc:
-        raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail=str(exc)) from exc
+        raise_api_error(status.HTTP_429_TOO_MANY_REQUESTS, "RATE_LIMITED")
 
     if account_type == "phone":
         if sms_configured() and not send_otp_sms(account, code):
-            raise HTTPException(
-                status_code=status.HTTP_502_BAD_GATEWAY,
-                detail="短信发送失败，请稍后重试",
-            )
+            raise_api_error(status.HTTP_502_BAD_GATEWAY, "SMS_SEND_FAILED")
         message = f"验证码已发送至手机 {account[:3]}****{account[-4:]}"
     else:
         if smtp_configured():
@@ -217,10 +209,7 @@ def send_code(body: SendCodeRequest, request: Request) -> SendCodeResponse:
                 ),
             )
             if not ok:
-                raise HTTPException(
-                    status_code=status.HTTP_502_BAD_GATEWAY,
-                    detail="邮件发送失败，请稍后重试",
-                )
+                raise_api_error(status.HTTP_502_BAD_GATEWAY, "EMAIL_SEND_FAILED")
         message = f"验证码已发送至邮箱 {account}"
 
     return SendCodeResponse(
@@ -239,11 +228,11 @@ def login_otp(body: LoginOtpRequest, db: Annotated[Session, Depends(get_db)]) ->
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
     if not verify_otp(account_type, account, body.code):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="验证码错误或已过期")
+        raise_api_error(status.HTTP_401_UNAUTHORIZED, "INVALID_CODE")
 
     user = _find_or_create_user(db, account_type, account)
     if not user.is_active:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="账号已禁用")
+        raise_api_error(status.HTTP_403_FORBIDDEN, "ACCOUNT_DISABLED")
 
     token = create_access_token(user.id, {"role": user.role, "tenant_id": user.tenant_id})
     return LoginResponse(access_token=token, user=_user_out(user))
@@ -253,9 +242,9 @@ def login_otp(body: LoginOtpRequest, db: Annotated[Session, Depends(get_db)]) ->
 def login(body: LoginRequest, db: Annotated[Session, Depends(get_db)]) -> LoginResponse:
     user = db.query(User).filter(User.email == body.email).first()
     if not user or not user.password_hash or not verify_password(body.password, user.password_hash):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="邮箱或密码错误")
+        raise_api_error(status.HTTP_401_UNAUTHORIZED, "BAD_CREDENTIALS")
     if not user.is_active:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="账号已禁用")
+        raise_api_error(status.HTTP_403_FORBIDDEN, "ACCOUNT_DISABLED")
     token = create_access_token(user.id, {"role": user.role, "tenant_id": user.tenant_id})
     return LoginResponse(access_token=token, user=_user_out(user))
 
@@ -267,10 +256,7 @@ def demo_bootstrap(db: Annotated[Session, Depends(get_db)]) -> dict:
 
     count = db.query(User).count()
     if count > 0:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="已有用户，请直接 login 或 bash scripts/repair-auth.sh",
-        )
+        raise_api_error(status.HTTP_409_CONFLICT, "USERS_EXIST")
     ensure_seed_data(db)
     return {
         "success": True,
@@ -287,13 +273,7 @@ def me(current_user: Annotated[User, Depends(get_current_user)]) -> UserOut:
 def wecom_oauth_start(state: str = Query("blockhub")) -> dict:
     """企微 OAuth 入口。未配置凭证时 503；配置后返回 authorize_url（前端可跳转）。"""
     if not wecom_oauth.wecom_configured():
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail=(
-                "企业微信 SSO 未配置。请在环境变量设置 WECOM_CORP_ID / WECOM_AGENT_ID / WECOM_SECRET"
-                "（可选 WECOM_OAUTH_REDIRECT_URI）。详见 docs/项目计划-合成版v1.3.md §8 P4-I2。"
-            ),
-        )
+        raise_api_error(status.HTTP_503_SERVICE_UNAVAILABLE, "WECOM_SSO_NOT_CONFIGURED")
     url = wecom_oauth.build_authorize_url(state=state or "blockhub")
     return {"authorize_url": url, "redirect_uri": wecom_oauth.redirect_uri(), "provider": "wecom"}
 
@@ -306,9 +286,9 @@ def wecom_oauth_callback(
 ) -> RedirectResponse:
     """企微回调 → 换 userid → 签发 JWT → 重定向到前端带 token。"""
     if not wecom_oauth.wecom_configured():
-        raise HTTPException(status_code=503, detail="企业微信 SSO 未配置")
+        raise_api_error(503, "WECOM_SSO_NOT_CONFIGURED")
     if not code:
-        raise HTTPException(status_code=400, detail="缺少 code")
+        raise_api_error(400, "MISSING_CODE")
     try:
         info = wecom_oauth.exchange_code_for_userid(code)
     except RuntimeError as exc:
@@ -333,7 +313,7 @@ def wecom_oauth_callback(
         db.commit()
         db.refresh(user)
     if not user.is_active:
-        raise HTTPException(status_code=403, detail="账号已禁用")
+        raise_api_error(403, "ACCOUNT_DISABLED")
 
     token = create_access_token(user.id, {"role": user.role, "tenant_id": user.tenant_id, "sso": "wecom"})
     front = settings.public_base_url.rstrip("/")

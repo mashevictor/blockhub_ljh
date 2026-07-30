@@ -1,4 +1,5 @@
 import { useState, type CSSProperties } from 'react'
+import { useT } from '@blockhub/i18n/react'
 import type { IndustryPageTemplate } from '../../data/industryPageTemplates'
 import IndustryPageTemplateMock from './IndustryPageTemplateMock'
 
@@ -9,6 +10,7 @@ interface Props {
 }
 
 export default function IndustryPageTemplateGallery({ templates, accent, packName }: Props) {
+  const t = useT()
   const [active, setActive] = useState(0)
   const [fading, setFading] = useState(false)
   const current = templates[active] ?? templates[0]
@@ -31,19 +33,15 @@ export default function IndustryPageTemplateGallery({ templates, accent, packNam
     >
       <div className="industry-tpl-gallery-head">
         <div className="b2b-section-title industry-site-section-head">
-          <span className="b2b-eyebrow">页面模板</span>
-          <h2>
-            <em>10 套</em> 行业页面模板 · 开箱即用
-          </h2>
-          <p>
-            {packName} 深度包预置审批、问答、看板、表单等 10 类页面组合，每套模板均贴合行业场景，支持 Web / App 双端发布。
-          </p>
+          <span className="b2b-eyebrow">{t('home.industry.tpl.eyebrow')}</span>
+          <h2>{t('home.industry.tpl.title')}</h2>
+          <p>{t('home.industry.tpl.desc', { name: packName })}</p>
         </div>
         <div className="industry-tpl-tech-badges">
-          <span>AI 大模型</span>
-          <span>低代码编排</span>
-          <span>五端交付</span>
-          <span>实时数据流</span>
+          <span>{t('home.industry.tpl.badge.ai')}</span>
+          <span>{t('home.industry.tpl.badge.lowcode')}</span>
+          <span>{t('home.industry.tpl.badge.ends')}</span>
+          <span>{t('home.industry.tpl.badge.stream')}</span>
         </div>
       </div>
 
@@ -71,7 +69,7 @@ export default function IndustryPageTemplateGallery({ templates, accent, packNam
           </div>
         </div>
 
-        <div className="industry-tpl-picker" role="tablist" aria-label="页面模板选择">
+        <div className="industry-tpl-picker" role="tablist" aria-label={t('home.industry.tpl.aria')}>
           {templates.map((tpl, i) => (
             <button
               key={`${tpl.kind}-${tpl.sceneName}`}

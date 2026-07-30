@@ -1,5 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
-import { HERO_PLATFORM_INTRO, HERO_PLATFORM_STATS, type HeroStatModule } from '../../data/heroPlatformHighlights'
+import { useT } from '@blockhub/i18n/react'
+import {
+  AGENT_TEMPLATES,
+  ATOMIC_AI_CAPABILITIES,
+  COMMON_INSERT_MODULES,
+  LLM_POWERED_AGENTS,
+} from '../../data/productShowcase'
+import { PLATFORM_STATS } from '@shared/platformStats'
 import { scrollToHomeSection } from '../../hooks/useHomeActiveSection'
 import { AgentChevronGlyph } from '../AgentChevron'
 
@@ -32,7 +39,13 @@ function StatModule({
   label,
   sub,
   active,
-}: HeroStatModule & { active: boolean }) {
+}: {
+  target: number
+  suffix?: string
+  label: string
+  sub: string
+  active: boolean
+}) {
   const n = useCountUp(target, active)
   return (
     <div className="b2b-stat-module">
@@ -48,7 +61,23 @@ function StatModule({
   )
 }
 
+const STAT_DEFS = [
+  { target: PLATFORM_STATS.scenarios, key: 'scenarios' },
+  { target: PLATFORM_STATS.officeScenarios, key: 'office' },
+  { target: PLATFORM_STATS.industryScenarios, key: 'industry' },
+  { target: PLATFORM_STATS.capabilities, key: 'capabilities' },
+  { target: AGENT_TEMPLATES.length, key: 'templates' },
+  { target: COMMON_INSERT_MODULES.length, key: 'modules' },
+  { target: PLATFORM_STATS.agents, key: 'agents' },
+  { target: ATOMIC_AI_CAPABILITIES.length, key: 'atomic' },
+  { target: LLM_POWERED_AGENTS.length, key: 'llm' },
+  { target: PLATFORM_STATS.platforms, key: 'platforms' },
+  { target: PLATFORM_STATS.industryPacks, key: 'packs' },
+  { target: 3, key: 'create' },
+] as const
+
 export default function HeroStatsPanel() {
+  const t = useT()
   const ref = useRef<HTMLDivElement>(null)
   const [active, setActive] = useState(false)
 
@@ -68,13 +97,26 @@ export default function HeroStatsPanel() {
   return (
     <div className="b2b-hero-panel" ref={ref}>
       <div className="b2b-hero-panel-inner">
-        <span className="b2b-hero-panel-tag">智能体 PaaS · 规模一览</span>
-        <h2 className="b2b-hero-panel-title">平台能力一览</h2>
-        <p className="b2b-hero-panel-intro">{HERO_PLATFORM_INTRO}</p>
+        <span className="b2b-hero-panel-tag">{t('home.hero.stats.tag')}</span>
+        <h2 className="b2b-hero-panel-title">{t('home.hero.stats.title')}</h2>
+        <p className="b2b-hero-panel-intro">
+          {t('home.hero.stats.intro', {
+            scenarios: PLATFORM_STATS.scenarios,
+            capabilities: PLATFORM_STATS.capabilities,
+            templates: AGENT_TEMPLATES.length,
+            agents: PLATFORM_STATS.agents,
+          })}
+        </p>
 
-        <div className="b2b-hero-panel-stats-grid" aria-label="平台能力指标">
-          {HERO_PLATFORM_STATS.map((item) => (
-            <StatModule key={item.label} {...item} active={active} />
+        <div className="b2b-hero-panel-stats-grid" aria-label={t('home.hero.stats.aria')}>
+          {STAT_DEFS.map((item) => (
+            <StatModule
+              key={item.key}
+              target={item.target}
+              label={t(`home.hero.stat.${item.key}.label`)}
+              sub={t(`home.hero.stat.${item.key}.sub`)}
+              active={active}
+            />
           ))}
         </div>
 
@@ -84,7 +126,7 @@ export default function HeroStatsPanel() {
           onClick={() => scrollToHomeSection('product')}
         >
           <AgentChevronGlyph size="xs" className="b2b-hero-panel-more-chev" />
-          查看完整产品能力
+          {t('home.hero.stats.more')}
         </button>
       </div>
     </div>

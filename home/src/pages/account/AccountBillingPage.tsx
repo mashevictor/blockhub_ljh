@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState, type CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
+import { useT } from '@blockhub/i18n/react'
 import MarketingSiteShell from '../../components/b2b/enrichment/MarketingSiteShell'
 import { AgentButtonContent } from '../../components/AgentChevron'
 import {
@@ -24,20 +25,22 @@ type QuotaItem = {
   period: string
 }
 
-function planUpgradeHint(tier: string): { label: string; href: string } | null {
-  if (tier === 'c_free') return { label: '升级 Plus', href: `${ROUTES.pricingCheckout}?plan=c_plus` }
+type TFn = (key: string, vars?: Record<string, string | number>) => string
+
+function planUpgradeHint(tier: string, t: TFn): { label: string; href: string } | null {
+  if (tier === 'c_free') return { label: t('home.billing.upgrade_plus'), href: `${ROUTES.pricingCheckout}?plan=c_plus` }
   if (tier === 'c_plus' || tier === 'b_team') {
-    return { label: '升级 Business', href: `${ROUTES.pricingCheckout}?plan=b_business` }
+    return { label: t('home.billing.upgrade_business'), href: `${ROUTES.pricingCheckout}?plan=b_business` }
   }
-  if (tier === 'b_business') return { label: '咨询 Enterprise', href: ROUTES.pricing }
+  if (tier === 'b_business') return { label: t('home.billing.consult_enterprise'), href: ROUTES.pricing }
   return null
 }
 
-function statusLabel(status: string): string {
+function statusLabel(status: string, t: TFn): string {
   const s = (status || '').toLowerCase()
-  if (s === 'paid' || s === 'success') return '已支付'
-  if (s === 'pending' || s === 'created') return '待支付'
-  if (s === 'failed' || s === 'cancelled' || s === 'canceled') return '已关闭'
+  if (s === 'paid' || s === 'success') return t('home.billing.status.paid')
+  if (s === 'pending' || s === 'created') return t('home.billing.status.pending')
+  if (s === 'failed' || s === 'cancelled' || s === 'canceled') return t('home.billing.status.closed')
   return status || '—'
 }
 
@@ -48,7 +51,7 @@ function statusTone(status: string): 'ok' | 'wait' | 'muted' {
   return 'muted'
 }
 
-function QuotaMeter({ item }: { item: QuotaItem }) {
+function QuotaMeter({ item, t }: { item: QuotaItem; t: TFn }) {
   const unlimited = item.remaining === null
   const limit = unlimited ? 0 : item.used + (item.remaining || 0)
   const pct = !unlimited && limit > 0 ? Math.min(100, Math.round((item.used / limit) * 100)) : 0
@@ -65,7 +68,7 @@ function QuotaMeter({ item }: { item: QuotaItem }) {
         <div className="acc-quota-card__value">
           <span className="acc-quota-card__used">{item.used}</span>
           <span className="acc-quota-card__sep">·</span>
-          <span className="acc-quota-card__limit">不限</span>
+          <span className="acc-quota-card__limit">{t('home.billing.unlimited')}</span>
         </div>
       ) : (
         <>
@@ -77,28 +80,24 @@ function QuotaMeter({ item }: { item: QuotaItem }) {
           <div className="acc-quota-card__bar" role="meter" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
             <span style={{ width: `${pct}%` }} />
           </div>
-          <p className="acc-quota-card__remain">剩余 {item.remaining}</p>
+          <p className="acc-quota-card__remain">{t('home.billing.remain', { n: item.remaining ?? 0 })}</p>
         </>
       )}
     </article>
   )
 }
 
-function buildQuotas(me: BillingMe): QuotaItem[] {
-  const smart = me.smart_page_label || '智能出页'
-  const smartHint =
-    me.smart_page_hint ||
-    'AI 生成整页可运行界面（含二次修订）；点选正式能力不计次'
-  const composeLabel = me.compose_edit_label || '对话改页'
-  const composeHint =
-    me.compose_edit_hint ||
-    '用聊天改菜单、表单字段与控件；成功改动计 1 次'
+function buildQuotas(me: BillingMe, t: TFn): QuotaItem[] {
+  const smart = me.smart_page_label || t('home.billing.quota.smart')
+  const smartHint = me.smart_page_hint || t('home.billing.quota.smart_hint')
+  const composeLabel = me.compose_edit_label || t('home.billing.quota.compose')
+  const composeHint = me.compose_edit_hint || t('home.billing.quota.compose_hint')
   return [
     {
       key: 'compose',
       label: composeLabel,
       hint: composeHint,
-      period: '今日',
+      period: t('home.billing.period.today'),
       used: me.usage.compose_edit_today || 0,
       remaining: me.remaining.compose_edit_today ?? null,
     },
@@ -106,31 +105,31 @@ function buildQuotas(me: BillingMe): QuotaItem[] {
       key: 'smart_day',
       label: smart,
       hint: smartHint,
-      period: '今日',
+      period: t('home.billing.period.today'),
       used: me.usage.smart_page_today || 0,
       remaining: me.remaining.smart_page_today ?? null,
     },
     {
       key: 'smart_month',
       label: smart,
-      hint: '组织共享的本月 AI 整页生成/修订次数',
-      period: '本月',
+      hint: t('home.billing.quota.smart_month_hint'),
+      period: t('home.billing.period.month'),
       used: me.usage.smart_page_month || 0,
       remaining: me.remaining.smart_page_month ?? null,
     },
     {
       key: 'dl_life',
-      label: '代码下载',
-      hint: '可下载的项目源码包数量（累计）',
-      period: '累计',
+      label: t('home.billing.quota.code'),
+      hint: t('home.billing.quota.code_hint'),
+      period: t('home.billing.period.total'),
       used: me.usage.code_download_lifetime || 0,
       remaining: me.remaining.code_download_lifetime ?? null,
     },
     {
       key: 'dl_month',
-      label: '代码下载',
-      hint: '本月可下载的契约/源码次数（组织共享）',
-      period: '本月',
+      label: t('home.billing.quota.code'),
+      hint: t('home.billing.quota.code_month_hint'),
+      period: t('home.billing.period.month'),
       used: me.usage.code_download_month || 0,
       remaining: me.remaining.code_download_month ?? null,
     },
@@ -138,13 +137,14 @@ function buildQuotas(me: BillingMe): QuotaItem[] {
 }
 
 export default function AccountBillingPage() {
+  const t = useT()
   const [me, setMe] = useState<BillingMe | null>(null)
   const [orders, setOrders] = useState<BillingOrder[]>([])
   const [error, setError] = useState('')
   const [refreshBusy, setRefreshBusy] = useState(false)
   const [refreshHint, setRefreshHint] = useState('')
 
-  usePageMeta({ title: '我的套餐 · 积木仓', description: '套餐、配额剩余与消费流水' })
+  usePageMeta({ title: t('home.billing.meta_title'), description: t('home.billing.meta_desc') })
 
   const loadBilling = useCallback(async (opts?: { quiet?: boolean }) => {
     if (!getToken()) {
@@ -158,16 +158,16 @@ export default function AccountBillingPage() {
       setOrders(list)
       setError('')
       if (!opts?.quiet) {
-        setRefreshHint('用量已更新')
+        setRefreshHint(t('home.billing.refreshed'))
         window.setTimeout(() => setRefreshHint(''), 2000)
       }
     } catch (e) {
       const detail = (e as { response?: { data?: { detail?: string } } })?.response?.data?.detail
-      setError(typeof detail === 'string' ? detail : '加载失败')
+      setError(typeof detail === 'string' ? detail : t('home.billing.load_error'))
     } finally {
       setRefreshBusy(false)
     }
-  }, [])
+  }, [t])
 
   useEffect(() => {
     void loadBilling({ quiet: true })
@@ -195,30 +195,35 @@ export default function AccountBillingPage() {
     }
   }, [loadBilling])
 
-  const upgrade = me ? planUpgradeHint(me.plan_tier) : null
+  const upgrade = me ? planUpgradeHint(me.plan_tier, t) : null
   const features = (me?.plan?.features as string[] | undefined) || []
   const packs = me?.plan?.industry_packs
   const schemaApproval = Boolean(me?.plan?.schema_approval)
   const theme = pricingTierTheme(me?.plan_tier || 'c_free')
-  const quotas = me ? buildQuotas(me) : []
+  const quotas = me ? buildQuotas(me, t) : []
   const packsLabel =
     packs === null || packs === undefined
-      ? '行业包不限'
+      ? t('home.billing.packs_unlimited')
       : packs === 0
-        ? '不含行业包'
-        : `行业包最多 ${packs} 个`
+        ? t('home.billing.packs_none')
+        : t('home.billing.packs_max', { n: packs })
   const expiresLabel = me?.plan_expires_at
-    ? `有效至 ${me.plan_expires_at.slice(0, 10)}`
-    : '无到期日'
+    ? t('home.billing.expires', { date: me.plan_expires_at.slice(0, 10) })
+    : t('home.billing.no_expiry')
   const unlimitedQuotaCount = quotas.filter((q) => q.remaining === null).length
 
   return (
-    <MarketingSiteShell skin="landed" pageTitle="我的套餐" pageEyebrow="账户中心" pageLead="当前套餐、配额剩余与消费流水">
+    <MarketingSiteShell
+      skin="landed"
+      pageTitle={t('home.billing.page_title')}
+      pageEyebrow={t('home.billing.page_eyebrow')}
+      pageLead={t('home.billing.page_lead')}
+    >
       {error ? <p className="acc-billing-error">{error}</p> : null}
       {!error && !me ? (
         <div className="acc-billing-loading" aria-live="polite">
           <span className="acc-billing-loading__pulse" />
-          正在加载套餐与用量…
+          {t('home.billing.loading')}
         </div>
       ) : null}
 
@@ -241,21 +246,21 @@ export default function AccountBillingPage() {
               </div>
               <h2 className="acc-plan-hero__name">{me.plan?.name || me.plan_tier}</h2>
               <p className="acc-plan-hero__meta">
-                <span>{me.seat_quota} 坐席</span>
+                <span>{me.seat_quota} {t('home.billing.seats')}</span>
                 <span className="acc-plan-hero__dot" aria-hidden />
                 <span>{expiresLabel}</span>
               </p>
-              <p className="acc-plan-hero__note">合同 / 订阅制 · 下方配额为用量剩余，不是钱包余额</p>
+              <p className="acc-plan-hero__note">{t('home.billing.note')}</p>
 
               <div className="acc-plan-hero__chips">
                 <span className="acc-chip">{packsLabel}</span>
                 <span className={`acc-chip${schemaApproval ? ' is-on' : ''}`}>
-                  改页审批 · {schemaApproval ? '开启' : '关闭'}
+                  {schemaApproval ? t('home.billing.schema_on') : t('home.billing.schema_off')}
                 </span>
                 {me.plan?.max_apps == null ? (
-                  <span className="acc-chip">应用数不限</span>
+                  <span className="acc-chip">{t('home.billing.apps_unlimited')}</span>
                 ) : (
-                  <span className="acc-chip">应用最多 {me.plan.max_apps} 个</span>
+                  <span className="acc-chip">{t('home.billing.apps_max', { n: me.plan.max_apps })}</span>
                 )}
               </div>
 
@@ -266,17 +271,17 @@ export default function AccountBillingPage() {
                   </Link>
                 ) : (
                   <Link to={ROUTES.pricing} className="b2b-btn-primary agent-action-btn">
-                    <AgentButtonContent>查看定价</AgentButtonContent>
+                    <AgentButtonContent>{t('home.billing.view_pricing')}</AgentButtonContent>
                   </Link>
                 )}
                 <Link to={ROUTES.pricing} className="acc-btn-ghost">
-                  全部套餐说明
+                  {t('home.billing.all_plans')}
                 </Link>
               </div>
             </div>
 
-            <aside className="acc-plan-hero__side" aria-label="套餐权益摘要">
-              <p className="acc-plan-hero__side-label">套餐权益</p>
+            <aside className="acc-plan-hero__side" aria-label={t('home.billing.perks')}>
+              <p className="acc-plan-hero__side-label">{t('home.billing.perks')}</p>
               {features.length > 0 ? (
                 <ul className="acc-feature-list">
                   {features.map((f) => (
@@ -284,16 +289,16 @@ export default function AccountBillingPage() {
                   ))}
                 </ul>
               ) : (
-                <p className="acc-plan-hero__side-empty">暂无额外权益说明</p>
+                <p className="acc-plan-hero__side-empty">{t('home.billing.perks_empty')}</p>
               )}
               <div className="acc-plan-hero__stat-row">
                 <div>
                   <strong>{unlimitedQuotaCount}</strong>
-                  <span>项不限用量</span>
+                  <span>{t('home.billing.stat.unlimited')}</span>
                 </div>
                 <div>
                   <strong>{quotas.length - unlimitedQuotaCount}</strong>
-                  <span>项有配额</span>
+                  <span>{t('home.billing.stat.limited')}</span>
                 </div>
               </div>
             </aside>
@@ -301,12 +306,12 @@ export default function AccountBillingPage() {
 
           <section className="enrich-panel acc-quota-panel reveal d2" aria-labelledby="acc-quota-title">
             <div className="enrich-panel-head">
-              <h2 id="acc-quota-title">用量与配额</h2>
+              <h2 id="acc-quota-title">{t('home.billing.quota_title')}</h2>
               <p>
-                <strong>对话改页</strong>
-                ：聊天改菜单/表单；
-                <strong>智能出页</strong>
-                ：AI 生成整页。组织套餐为共享配额。
+                <strong>{t('home.billing.quota.compose')}</strong>
+                {t('home.billing.quota_lead')}
+                <strong>{t('home.billing.quota.smart')}</strong>
+                {t('home.billing.quota_lead_smart')}
               </p>
               <div className="acc-quota-refresh-row">
                 {refreshHint ? <span className="acc-quota-refresh-hint">{refreshHint}</span> : null}
@@ -316,30 +321,28 @@ export default function AccountBillingPage() {
                   disabled={refreshBusy}
                   onClick={() => void loadBilling({ quiet: false })}
                 >
-                  {refreshBusy ? '刷新中…' : '刷新用量'}
+                  {refreshBusy ? t('home.billing.refreshing') : t('home.billing.refresh')}
                 </button>
               </div>
             </div>
             <div className="enrich-panel-body">
-              <div className="acc-quota-glossary" aria-label="配额含义说明">
+              <div className="acc-quota-glossary" aria-label={t('home.billing.glossary_aria')}>
                 <div>
-                  <strong>对话改页</strong>
+                  <strong>{t('home.billing.quota.compose')}</strong>
                   <span>
-                    {me.compose_edit_hint ||
-                      '在 Runtime 用自然语言改菜单、表单字段与控件；每次成功改动计 1 次'}
+                    {me.compose_edit_hint || t('home.billing.quota.compose_hint')}
                   </span>
                 </div>
                 <div>
-                  <strong>{me.smart_page_label || '智能出页'}</strong>
+                  <strong>{me.smart_page_label || t('home.billing.quota.smart')}</strong>
                   <span>
-                    {me.smart_page_hint ||
-                      'AI 生成或修订一整页可运行界面；点选现成正式能力不占次数'}
+                    {me.smart_page_hint || t('home.billing.quota.smart_hint')}
                   </span>
                 </div>
               </div>
               <div className="acc-quota-grid">
                 {quotas.map((q) => (
-                  <QuotaMeter key={q.key} item={q} />
+                  <QuotaMeter key={q.key} item={q} t={t} />
                 ))}
               </div>
             </div>
@@ -347,15 +350,15 @@ export default function AccountBillingPage() {
 
           <section className="enrich-panel acc-orders-panel reveal d3" aria-labelledby="acc-orders-title">
             <div className="enrich-panel-head">
-              <h2 id="acc-orders-title">消费流水</h2>
-              <p>最近 {orders.length || 0} 笔升级 / 续费订单</p>
+              <h2 id="acc-orders-title">{t('home.billing.orders_title')}</h2>
+              <p>{t('home.billing.orders_lead', { n: orders.length || 0 })}</p>
             </div>
             <div className="enrich-panel-body">
               {orders.length === 0 ? (
                 <div className="acc-orders-empty">
-                  <p>暂无订单记录</p>
+                  <p>{t('home.billing.orders_empty')}</p>
                   <Link to={ROUTES.pricing} className="acc-btn-ghost">
-                    去看定价
+                    {t('home.billing.view_pricing')}
                   </Link>
                 </div>
               ) : (
@@ -364,14 +367,14 @@ export default function AccountBillingPage() {
                     <li key={o.id} className="acc-order-row">
                       <div className="acc-order-row__main">
                         <strong>
-                          {o.plan_tier} · {o.seats} 席
+                          {o.plan_tier} · {o.seats} {t('home.billing.seats')}
                         </strong>
                         <span>{o.created_at?.slice(0, 16).replace('T', ' ') || '—'}</span>
                       </div>
                       <div className="acc-order-row__meta">
                         <span className="acc-order-row__amount">{formatFen(o.amount_fen)}</span>
                         <span className={`acc-status acc-status--${statusTone(o.status)}`}>
-                          {statusLabel(o.status)}
+                          {statusLabel(o.status, t)}
                         </span>
                       </div>
                     </li>
@@ -379,7 +382,7 @@ export default function AccountBillingPage() {
                 </ul>
               )}
               <p className="acc-orders-foot">
-                <Link to={ROUTES.pricing}>查看全部定价</Link>
+                <Link to={ROUTES.pricing}>{t('home.billing.view_pricing')}</Link>
               </p>
             </div>
           </section>

@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
+from app.core.api_error import raise_api_error
 from app.core.deps import get_current_user
 from app.db.models import User
 from app.db.session import get_db
@@ -61,7 +62,7 @@ def create_ticket_api(
     user: User = Depends(get_current_user),
 ) -> dict:
     if not body.asset_code.strip() or not body.fault.strip():
-        raise HTTPException(status_code=400, detail="设备编号与故障描述不能为空")
+        raise_api_error(400, "REQUIRED")
     item = store.create_ticket(
         db,
         user,
@@ -81,7 +82,7 @@ def get_ticket_api(
 ) -> dict:
     row = store.get_ticket(db, user.tenant_id, ticket_id)
     if not row:
-        raise HTTPException(status_code=404, detail="工单不存在")
+        raise_api_error(404, "NOT_FOUND")
     return store.ticket_to_dict(row)
 
 
@@ -94,7 +95,7 @@ def ticket_action_api(
 ) -> dict:
     action = (body.action or "").strip().lower()
     if action not in ("dispatch", "complete", "next"):
-        raise HTTPException(status_code=400, detail="action 须为 dispatch | complete | next")
+        raise_api_error(400, "UNSUPPORTED_ACTION")
     result = store.advance_ticket(
         db,
         user.tenant_id,
@@ -105,7 +106,7 @@ def ticket_action_api(
         assignee_name=body.assignee_name,
     )
     if result is None:
-        raise HTTPException(status_code=404, detail="工单不存在或 action 无效")
+        raise_api_error(404, "NOT_FOUND")
     if result.get("error") == "dispatch_requires_assignee":
         raise HTTPException(status_code=400, detail="派工请选择或填写维修工")
     if result.get("error") == "assignee_not_found":

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useTf } from '@blockhub/i18n/react'
 import type { SchemaNode } from '@blockhub/web-core'
 import { apiFetch, GtgtStepComposer, useRuntime, type GtgtStep } from '@blockhub/web-core'
 
@@ -39,8 +40,16 @@ interface Outreach {
 }
 
 export function MemberLoyaltyWidget(_props: { node: SchemaNode }) {
+  const tf = useTf()
   const { token, primaryColor, appId, user, entrySource } = useRuntime()
   const accent = primaryColor || '#fb923c'
+  const statusWord = useCallback(
+    (sleeping: boolean) =>
+      sleeping
+        ? tf('cap.member_loyalty.status.sleeping', '沉睡')
+        : tf('cap.member_loyalty.status.active', '活跃'),
+    [tf],
+  )
   const [mode, setMode] = useState<Mode>('member')
   const [members, setMembers] = useState<Member[]>([])
   const [campaigns, setCampaigns] = useState<Campaign[]>([])
@@ -80,17 +89,17 @@ export function MemberLoyaltyWidget(_props: { node: SchemaNode }) {
   const steps: GtgtStep[] = useMemo(() => {
     if (mode === 'member') {
       return [
-        { key: 'name', label: '会员姓名', placeholder: '张三' },
-        { key: 'phone', label: '手机号', placeholder: '可选', optional: true },
-        { key: 'points', label: '初始积分', placeholder: '0', optional: true },
+        { key: 'name', label: tf('cap.member_loyalty.field.name', '会员姓名'), placeholder: '张三' },
+        { key: 'phone', label: tf('cap.member_loyalty.field.phone', '手机号'), placeholder: '可选', optional: true },
+        { key: 'points', label: tf('cap.member_loyalty.field.points', '初始积分'), placeholder: '0', optional: true },
       ]
     }
     if (mode === 'campaign') {
       return [
-        { key: 'name', label: '活动名称', placeholder: '暑期双倍积分' },
+        { key: 'name', label: tf('cap.member_loyalty.field.campaign_name', '活动名称'), placeholder: '暑期双倍积分' },
         {
           key: 'campaign_type',
-          label: '活动类型',
+          label: tf('cap.member_loyalty.field.campaign_type', '活动类型'),
           render: ({ value, setValue, accent: a }) => (
             <div className="row-actions">
               {(['points', 'redeem', 'wake'] as const).map((t) => (
@@ -101,7 +110,11 @@ export function MemberLoyaltyWidget(_props: { node: SchemaNode }) {
                   style={(value || 'points') === t ? { background: a } : undefined}
                   onClick={() => setValue(t)}
                 >
-                  {t === 'points' ? '送积分' : t === 'redeem' ? '兑礼' : '唤醒'}
+                  {t === 'points'
+                    ? tf('cap.member_loyalty.type.points', '送积分')
+                    : t === 'redeem'
+                      ? tf('cap.member_loyalty.type.redeem', '兑礼')
+                      : tf('cap.member_loyalty.type.wake', '唤醒')}
                 </button>
               ))}
             </div>
@@ -120,7 +133,7 @@ export function MemberLoyaltyWidget(_props: { node: SchemaNode }) {
             <select className="input" value={value} onChange={(e) => setValue(e.target.value)}>
               <option value="">选择会员</option>
               {members.map((m) => (
-                <option key={m.id} value={m.id}>{m.name} · {m.points}分 · {m.status === 'sleeping' ? '沉睡' : '活跃'}</option>
+                <option key={m.id} value={m.id}>{m.name} · {m.points}分 · {statusWord(m.status === 'sleeping')}</option>
               ))}
             </select>
           ),
@@ -147,7 +160,7 @@ export function MemberLoyaltyWidget(_props: { node: SchemaNode }) {
           <select className="input" value={value} onChange={(e) => setValue(e.target.value)}>
             <option value="">选择会员（可先筛沉睡）</option>
             {members.map((m) => (
-              <option key={m.id} value={m.id}>{m.name} · {m.status === 'sleeping' ? '沉睡' : '活跃'} · {m.points}分</option>
+              <option key={m.id} value={m.id}>{m.name} · {statusWord(m.status === 'sleeping')} · {m.points}分</option>
             ))}
           </select>
         ),
@@ -167,7 +180,7 @@ export function MemberLoyaltyWidget(_props: { node: SchemaNode }) {
       },
       { key: 'message', label: '触达话术', placeholder: '活动提醒文案…', optional: true },
     ]
-  }, [mode, members, campaigns])
+  }, [mode, members, campaigns, tf, statusWord])
 
   const switchMode = (m: Mode) => {
     setMode(m)
@@ -249,10 +262,10 @@ export function MemberLoyaltyWidget(_props: { node: SchemaNode }) {
   }
 
   const titles: Record<Mode, string> = {
-    member: '建会员档案',
-    campaign: '建营销活动',
-    points: '积分入账/兑礼',
-    outreach: '沉睡唤醒触达',
+    member: tf('cap.member_loyalty.mode.member', '建会员档案'),
+    campaign: tf('cap.member_loyalty.mode.campaign', '建营销活动'),
+    points: tf('cap.member_loyalty.mode.points', '积分入账/兑礼'),
+    outreach: tf('cap.member_loyalty.mode.outreach', '沉睡唤醒触达'),
   }
 
   return (
@@ -263,10 +276,10 @@ export function MemberLoyaltyWidget(_props: { node: SchemaNode }) {
       </p>
       <div className="row-actions" style={{ marginBottom: 12 }}>
         {([
-          ['member', '建会员'],
-          ['campaign', '建活动'],
-          ['points', '积分'],
-          ['outreach', '触达'],
+          ['member', titles.member],
+          ['campaign', titles.campaign],
+          ['points', titles.points],
+          ['outreach', titles.outreach],
         ] as const).map(([k, label]) => (
           <button
             key={k}
@@ -296,7 +309,7 @@ export function MemberLoyaltyWidget(_props: { node: SchemaNode }) {
         onComplete={submit}
         busy={busy}
         resetKey={`${mode}-${resetKey}`}
-        submitLabel="提交"
+        submitLabel={tf('cap.member_loyalty.submit', '提交')}
       />
 
       {msg && <p className="status-msg">{msg}</p>}
@@ -313,7 +326,7 @@ export function MemberLoyaltyWidget(_props: { node: SchemaNode }) {
           <li key={m.id} className="list-card">
             <div className="list-card-head">
               <strong>{m.name}</strong>
-              <span className="tag">{m.status === 'sleeping' ? '沉睡' : '活跃'} · {m.points} 分</span>
+              <span className="tag">{statusWord(m.status === 'sleeping')} · {m.points} 分</span>
             </div>
             <p className="muted" style={{ margin: '4px 0 0' }}>{m.phone || '无手机'} · 最近到店 {m.last_visit_at?.slice(0, 10) || '—'}</p>
           </li>

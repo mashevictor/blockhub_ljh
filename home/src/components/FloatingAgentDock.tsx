@@ -9,6 +9,7 @@ import {
   type CSSProperties,
   type ReactNode,
 } from 'react'
+import { useT } from '@blockhub/i18n/react'
 import { FloatingDockProvider, type FloatingDockVariant } from '../context/FloatingDockContext'
 import { ChevronDotSign } from './ChevronDotLoader'
 
@@ -188,12 +189,12 @@ export default function FloatingAgentDock({
   children,
   storageKey,
   className = '',
-  title = '智能体助手',
-  collapsedHint = '点击展开',
-  chevLabel = '助手',
+  title: titleProp,
+  collapsedHint: collapsedHintProp,
+  chevLabel: chevLabelProp,
   variant: variantProp = 'default',
   keepInputWhenCollapsed = false,
-  ariaLabel = '智能体悬浮面板',
+  ariaLabel: ariaLabelProp,
   onExpand,
   snapBottomOnExpand = false,
   showDockToggle = false,
@@ -207,6 +208,11 @@ export default function FloatingAgentDock({
   repositionSignal = 0,
   collapseToggleInTail = false,
 }: Props) {
+  const t = useT()
+  const title = titleProp ?? t('home.dock.title')
+  const collapsedHint = collapsedHintProp ?? t('home.dock.collapsed_hint')
+  const chevLabel = chevLabelProp ?? t('home.dock.chev')
+  const ariaLabel = ariaLabelProp ?? t('home.dock.aria')
   const variant: FloatingDockVariant = variantProp === 'default' && keepInputWhenCollapsed ? 'capsule' : variantProp
   const isCapsule = variant === 'capsule'
 
@@ -600,7 +606,7 @@ export default function FloatingAgentDock({
   const dockToggle = showDockToggle && isCapsule ? (
     <label
       className="floating-agent-dock-enable-switch"
-      title={dockEnabled ? '关闭悬浮框' : '显示悬浮框'}
+      title={dockEnabled ? t('home.dock.toggle_off') : t('home.dock.toggle_on')}
       onPointerDown={(e) => e.stopPropagation()}
     >
       <input
@@ -608,7 +614,7 @@ export default function FloatingAgentDock({
         className="floating-agent-dock-enable-input"
         checked={dockEnabled}
         onChange={(e) => setEnabled(e.target.checked)}
-        aria-label="显示悬浮框"
+        aria-label={t('home.dock.toggle_on')}
       />
       <span className="floating-agent-dock-switch-track" aria-hidden />
     </label>
@@ -626,7 +632,7 @@ export default function FloatingAgentDock({
       }}
       aria-expanded={!collapsed}
       aria-controls={panelId}
-      aria-label={collapsed ? '展开悬浮框' : '折叠悬浮框'}
+      aria-label={collapsed ? t('home.dock.expand') : t('home.dock.collapse')}
     >
       <span className={`floating-agent-dock-caret${collapsed ? '' : ' open'}`} aria-hidden />
     </button>
@@ -666,20 +672,20 @@ export default function FloatingAgentDock({
         ].filter(Boolean).join(' ')}
         style={dockStyle}
         role="complementary"
-        aria-label="智能体悬浮框已关闭"
+        aria-label={t('home.dock.closed_aria')}
       >
         <div className="floating-agent-dock-frame">
           <div className="floating-agent-dock-chrome">
             <span
               className="floating-agent-dock-grip"
-              aria-label="拖动悬浮框"
-              title="拖动"
+              aria-label={t('home.dock.drag_aria')}
+              title={t('home.dock.drag')}
               onPointerDown={onDragStart}
             />
             {titleBlock}
             <label
               className="floating-agent-dock-enable-switch"
-              title="显示悬浮框"
+              title={t('home.dock.toggle_on')}
               onPointerDown={(e) => e.stopPropagation()}
             >
               <input
@@ -687,7 +693,7 @@ export default function FloatingAgentDock({
                 className="floating-agent-dock-enable-input"
                 checked={false}
                 onChange={() => setEnabled(true)}
-                aria-label="显示悬浮框"
+                aria-label={t('home.dock.toggle_on')}
               />
               <span className="floating-agent-dock-switch-track" aria-hidden />
             </label>
@@ -721,8 +727,8 @@ export default function FloatingAgentDock({
           >
             <span
               className="floating-agent-dock-grip"
-              aria-label="拖动悬浮框"
-              title="拖动"
+              aria-label={t('home.dock.drag_aria')}
+              title={t('home.dock.drag')}
               onPointerDown={collapsed ? onDragStart : undefined}
             />
             {collapsed && !isCapsule ? (
@@ -769,8 +775,8 @@ export default function FloatingAgentDock({
                       }}
                       aria-expanded={!collapsed}
                       aria-controls={panelId}
-                      aria-label="折叠悬浮框"
-                      title="折叠"
+                      aria-label={t('home.dock.collapse')}
+                      title={t('home.dock.collapse_short')}
                     >
                       <span className="floating-agent-dock-caret open" aria-hidden />
                     </button>

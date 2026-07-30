@@ -268,31 +268,73 @@ _AUTO = {
     "scenes": auto_pack_scenes(),
 }
 
+# Add labels to pack metas (zh-CN + en-US) for Catalog / Accept-Language consumers.
+# Mirrors shared/i18n industry.gen.json; keep in sync via scripts/codegen-industry-scene-i18n.py.
+_PACK_LABELS_EN: dict[str, tuple[str, str]] = {
+    "office": ("General office", "HR, finance, approvals, and knowledge in one place"),
+    "mfg": ("Manufacturing", "Repairs, SOP knowledge, QC, and MES connectivity"),
+    "sales": ("Sales", "Scripts, funnel, contracts, and CRM — sales-only scenes"),
+    "med": ("Healthcare", "Pre-visit AI, guideline RAG, scheduling, HIS closed loop"),
+    "game": ("Games & entertainment", "FAQ tickets, dual knowledge bases, events, playable 2048"),
+    "retail": ("Retail & e-commerce", "Omnichannel fulfillment · store/warehouse · membership"),
+    "edu": ("Education & training", "Courses, question banks, scheduling, school–home links"),
+    "bank": ("Commercial banking", "Corporate & retail, KYC, credit, AML"),
+    "securities": ("Securities brokerage", "Suitability, research DD, compliance, sales"),
+    "insurance": ("Insurance", "Underwriting, claims, agents, product explainers"),
+    "fund": ("Funds & asset mgmt", "Disclosures, post-investment, regulatory filings"),
+    "fintech": ("Consumer finance / fintech", "Risk alerts, collections, regulatory reporting"),
+    "logistics": ("Logistics & warehousing", "Shipments, warehouse, dispatch, proof of delivery"),
+    "realestate": ("Real estate", "Showings, contracts, property, maintenance"),
+    "hotel": ("Hospitality & dining", "Bookings, shifts, complaints, inspections"),
+    "energy": ("Energy & power", "Inspections, work orders, energy use, safety"),
+    "gov": ("Government & public", "Service guides, petitions, approvals"),
+    "legal": ("Legal services", "Matters, contracts, statute search"),
+    "hr": ("Human resources", "Recruiting, performance, training, payroll"),
+    "marketing": ("Marketing", "Campaigns, leads, content, media buying"),
+    "construction": ("Construction", "Progress, safety, materials, acceptance"),
+    "agriculture": ("Agriculture", "Traceability, inspections, subsidies, sales"),
+    "media": ("Media & content", "Topics, review, copyright, distribution"),
+    "auto": ("Auto & transport", "Aftersales, test drives, parts, tickets"),
+}
+
+
+def _with_labels(pack: dict[str, Any]) -> dict[str, Any]:
+    key = pack["key"]
+    en_name, en_tag = _PACK_LABELS_EN.get(key, (pack["name"], pack.get("tagline") or ""))
+    out = dict(pack)
+    out["labels"] = {"zh-CN": pack["name"], "en-US": en_name}
+    out["tagline_labels"] = {"zh-CN": pack.get("tagline") or "", "en-US": en_tag}
+    return out
+
+
 ALL_INDUSTRY_PACKS: list[dict[str, Any]] = [
-    _OFFICE_META,
-    _MFG,
-    _SALES,
-    _MED,
-    _GAME,
-    _RETAIL,
-    _EDU,
-    _BANK,
-    _SECURITIES,
-    _INSURANCE,
-    _FUND,
-    _FINTECH,
-    _LOGISTICS,
-    _REALESTATE,
-    _HOTEL,
-    _ENERGY,
-    _GOV,
-    _LEGAL,
-    _HR,
-    _MARKETING,
-    _CONSTRUCTION,
-    _AGRICULTURE,
-    _MEDIA,
-    _AUTO,
+    _with_labels(p)
+    for p in (
+        _OFFICE_META,
+        _MFG,
+        _SALES,
+        _MED,
+        _GAME,
+        _RETAIL,
+        _EDU,
+        _BANK,
+        _SECURITIES,
+        _INSURANCE,
+        _FUND,
+        _FINTECH,
+        _LOGISTICS,
+        _REALESTATE,
+        _HOTEL,
+        _ENERGY,
+        _GOV,
+        _LEGAL,
+        _HR,
+        _MARKETING,
+        _CONSTRUCTION,
+        _AGRICULTURE,
+        _MEDIA,
+        _AUTO,
+    )
 ]
 
 ALL_INDUSTRY_KEYS: set[str] = {p["key"] for p in ALL_INDUSTRY_PACKS}

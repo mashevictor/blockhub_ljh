@@ -1,13 +1,21 @@
 import { useState, type KeyboardEvent, type MouseEvent } from 'react'
+import { useT } from '@blockhub/i18n/react'
 import { useFloatingDock } from '../../context/FloatingDockContext'
 import { usePlazaFlowRun, type PlazaRunPhase } from '../../context/PlazaFlowRunContext'
 import { usePlazaFocus, type PlazaFocusTarget } from '../../context/PlazaFocusContext'
 import { usePlazaChevActions } from '../../hooks/usePlazaChevActions'
 import PlazaChevTrigger from './PlazaChevTrigger'
-import PlazaRunControls, { runPhaseUi } from './PlazaRunControls'
+import PlazaRunControls from './PlazaRunControls'
 
 function statusDotClass(phase: PlazaRunPhase): string {
-  return runPhaseUi(phase, 0, 1).badgeClass
+  switch (phase) {
+    case 'running': return 'is-running'
+    case 'paused': return 'is-paused'
+    case 'completed': return 'is-done'
+    case 'error': return 'is-error'
+    case 'stopped': return 'is-stopped'
+    default: return 'is-idle'
+  }
 }
 
 interface Props {
@@ -23,6 +31,7 @@ export default function PlazaDockCollapsedBar({
   onFullscreen,
   onCopyLink,
 }: Props) {
+  const t = useT()
   const dock = useFloatingDock()
   const run = usePlazaFlowRun()
   const { runCommand } = usePlazaFocus()
@@ -57,7 +66,7 @@ export default function PlazaDockCollapsedBar({
   }
 
   return (
-    <div className="plaza-dock-collapsed-bar is-dock-drag-surface" aria-label="工作台指令">
+    <div className="plaza-dock-collapsed-bar is-dock-drag-surface" aria-label={t('home.plaza.dock.cmd_aria')}>
       <div className="plaza-dock-collapsed-main">
         <PlazaChevTrigger actions={chevActions} />
 
@@ -85,8 +94,8 @@ export default function PlazaDockCollapsedBar({
             type="text"
             className="plaza-dock-collapsed-input"
             value={cmd}
-            placeholder="输入指令或提问，回车执行…"
-            aria-label="折叠态业务指令输入"
+            placeholder={t('home.plaza.dock.cmd_ph')}
+            aria-label={t('home.plaza.dock.cmd_input_aria')}
             onChange={(e) => setCmd(e.target.value)}
             onKeyDown={onKeyDown}
             onFocus={(e) => e.stopPropagation()}

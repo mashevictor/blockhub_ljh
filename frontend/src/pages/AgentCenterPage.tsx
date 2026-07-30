@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
+import { useT } from '@blockhub/i18n/react'
 import { Link } from 'react-router-dom'
 import { fetchAgents, fetchCapabilities, type Agent } from '../api/client'
 import { PLATFORM_STATS } from '@shared/platformStats'
 
 export default function AgentCenterPage() {
+  const t = useT()
   const [agents, setAgents] = useState<Agent[]>([])
   const [capCount, setCapCount] = useState(0)
 
@@ -15,15 +17,15 @@ export default function AgentCenterPage() {
   return (
     <>
       <div className="page-header">
-        <h1>能力中心</h1>
-        <p>{PLATFORM_STATS.agents} 个助手：创建、问答、知识库、审批、报表、通知、对接、编排、安全与多端门户</p>
+        <h1>{t('admin.page.agents.title')}</h1>
+        <p>{t('admin.page.agents.desc')}</p>
       </div>
 
       <div className="summary-pills">
-        <div className="summary-pill"><div className="n">{agents.length || PLATFORM_STATS.agents}</div><div className="l">助手</div></div>
-        <div className="summary-pill"><div className="n">{capCount || PLATFORM_STATS.capabilities}</div><div className="l">功能组件</div></div>
-        <div className="summary-pill"><div className="n">{PLATFORM_STATS.officeScenarios}</div><div className="l">办公场景</div></div>
-        <div className="summary-pill"><div className="n">{PLATFORM_STATS.industryScenarios}</div><div className="l">行业场景</div></div>
+        <div className="summary-pill"><div className="n">{agents.length || PLATFORM_STATS.agents}</div><div className="l">{t('admin.page.agents.pill_agents')}</div></div>
+        <div className="summary-pill"><div className="n">{capCount || PLATFORM_STATS.capabilities}</div><div className="l">{t('admin.page.agents.pill_caps')}</div></div>
+        <div className="summary-pill"><div className="n">{PLATFORM_STATS.officeScenarios}</div><div className="l">{t('admin.page.agents.pill_office')}</div></div>
+        <div className="summary-pill"><div className="n">{PLATFORM_STATS.industryScenarios}</div><div className="l">{t('admin.page.agents.pill_industry')}</div></div>
       </div>
 
       <div className="agent-grid">
@@ -33,7 +35,7 @@ export default function AgentCenterPage() {
               <div className="agent-card-title">
                 <span>{a.icon}</span> {a.name}
               </div>
-              <span className="badge-active">已启用</span>
+              <span className="badge-active">{t('admin.page.agents.enabled')}</span>
             </div>
             <div className="agent-card-desc">{a.description}</div>
             <div style={{ marginTop: 10, fontSize: 11, color: 'var(--muted)' }}>

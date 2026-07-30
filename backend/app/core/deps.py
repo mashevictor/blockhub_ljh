@@ -1,9 +1,10 @@
 from typing import Annotated
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
+from app.core.api_error import raise_api_error
 from app.core.security import decode_access_token
 from app.db.models import User
 from app.db.session import get_db
@@ -16,13 +17,13 @@ def get_current_user(
     credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer_scheme)],
 ) -> User:
     if credentials is None or credentials.scheme.lower() != "bearer":
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="未登录或缺少访问令牌")
+        raise_api_error(status.HTTP_401_UNAUTHORIZED, "UNAUTHORIZED")
     payload = decode_access_token(credentials.credentials)
     if not payload or not payload.get("sub"):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="令牌已过期或无效")
+        raise_api_error(status.HTTP_401_UNAUTHORIZED, "TOKEN_INVALID")
     user = db.get(User, payload["sub"])
     if not user or not user.is_active:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="用户不存在或已禁用")
+        raise_api_error(status.HTTP_401_UNAUTHORIZED, "ACCOUNT_DISABLED")
     return user
 
 
@@ -46,7 +47,7 @@ def require_roles(*roles: str):
 
     def _dep(user: Annotated[User, Depends(get_current_user)]) -> User:
         if user.role not in roles:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="权限不足")
+            raise_api_error(status.HTTP_403_FORBIDDEN, "FORBIDDEN")
         return user
 
     return _dep

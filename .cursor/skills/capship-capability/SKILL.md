@@ -48,11 +48,22 @@ description: >-
 
 编辑：`backend/app/data/capability_registry.py`（`CapabilityDef`）
 
+**i18n（强制）**：
+- `name` 为 zh-CN 默认文案
+- 英文优先写 `labels=(("en-US", "..."),)`，或补 `shared/i18n/seed/capability.en-US.json`
+- 改完跑 `python scripts/codegen-i18n-messages.py`（生成 `capability.gen.json`）
+
 ### A3 Web 包
 
 - 目录：`packages/web-capability-{slug}/`（或复用已有共享包并设 `web_pkg`）
 - 副作用：`registerWidget('XxxWidget', Component)`
 - 由 `runtime-web` + `manifest.web_pkgs` 懒加载；**禁止**在 `home/` 硬编码该能力特例
+
+**i18n（强制）**：
+- 必须有 `src/locales/{zh-CN,en-US}.json` + `src/locales/index.ts`（`contributeI18nMessages`）
+- `src/index.ts` 必须 `import './locales'`
+- UI 文案用 `useTf('cap.{key}.*', '中文兜底')`；**只允许**本包 owned keys（`cap.{key}.*`），CI：`python scripts/check_i18n_namespace.py`
+- 新建包可先跑：`python scripts/scaffold-capability-locales.py`
 
 ### A4 App 包
 
@@ -61,6 +72,11 @@ description: >-
 - 更新 `shared/flutter-parity-matrix.json`
 - 确认 `scripts/flutter-sync-pubspec-from-manifest.py` / 构建链能裁进该包
 - 若确需仅 Web：在注册/文档标明，并在 HTML 检查清单注释原因
+
+**i18n（强制 · 同源）**：
+- **禁止** App 单独维护一套英文；文案 SSOT 在 `shared/i18n` + 对应 `web-capability-*/src/locales`
+- 跑 `python scripts/codegen-flutter-arb.py` → `BhL10n` assets + `shared/i18n/flutter/*.arb`
+- 页面用 `bhTf('cap.{key}.*', '中文兜底')`（与 Web 同一 key）
 
 ### A5 壳与身份（勿与能力逻辑耦合）
 
@@ -102,6 +118,8 @@ description: >-
 - [ ] 无场景推荐「偷加」未选 key
 - [ ] 未把 LLM 塞进 resolver/schema 热路径
 - [ ] 业务填单为 `>>` 单字段步进（非多框同屏表单）
+- [ ] registry 有 en labels / seed；Web `locales/` + `import './locales'`；App 用 `bhTf` 同源 key
+- [ ] `python scripts/check_i18n_namespace.py` 通过（无串包 key）
 
 ## 路径 B — 暂时没有的能力
 

@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BlockHub 多语言（i18n）TodoList</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0f1419;
+      --bg-elev: #171e26;
+      --bg-card: #1c2530;
+      --line: #2a3544;
+      --text: #e8eef5;
+      --muted: #8b9bb0;
+      --accent: #3d9a7a;
+      --accent-dim: rgba(61, 154, 122, 0.15);
+      --warn: #d4a017;
+      --warn-dim: rgba(212, 160, 23, 0.14);
+      --todo: #5b8def;
+      --todo-dim: rgba(91, 141, 239, 0.14);
+      --done: #3d9a7a;
+      --done-dim: rgba(61, 154, 122, 0.14);
+      --skip: #6b7785;
+      --radius: 10px;
+      --font: "DM Sans", system-ui, sans-serif;
+      --mono: "JetBrains Mono", ui-monospace, monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font);
+      background:
+        radial-gradient(1200px 600px at 10% -10%, rgba(61, 154, 122, 0.12), transparent 55%),
+        radial-gradient(900px 500px at 90% 0%, rgba(91, 141, 239, 0.1), transparent 50%),
+        var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+      min-height: 100vh;
+    }
+
+    .wrap {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 48px 24px 80px;
+    }
+
+    header.hero {
+      margin-bottom: 36px;
+      padding-bottom: 28px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .eyebrow {
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+
+    h1 {
+      font-size: clamp(1.75rem, 3.5vw, 2.35rem);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      margin-bottom: 10px;
+    }
+
+    .lede {
+      color: var(--muted);
+      font-size: 1.05rem;
+      max-width: 62ch;
+    }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .chip {
+      font-size: 12px;
+      font-weight: 500;
+      padding: 5px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: var(--bg-elev);
+      color: var(--muted);
+    }
+
+    .chip strong { color: var(--text); font-weight: 600; }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin: 28px 0 36px;
+    }
+
+    @media (max-width: 720px) {
+      .stats { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    .stat {
+      background: var(--bg-card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+    }
+
+    .stat .n {
+      font-size: 1.75rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .stat .l {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .stat.done .n { color: var(--done); }
+    .stat.wip .n { color: var(--warn); }
+    .stat.todo .n { color: var(--todo); }
+
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .filters button {
+      font-family: var(--font);
+      font-size: 13px;
+      font-weight: 500;
+      padding: 7px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      transition: 0.15s ease;
+    }
+
+    .filters button:hover { color: var(--text); border-color: #3d4a5c; }
+    .filters button.on {
+      background: var(--accent-dim);
+      border-color: rgba(61, 154, 122, 0.45);
+      color: var(--accent);
+    }
+
+    section.phase {
+      margin-bottom: 22px;
+      background: var(--bg-card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .phase-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 18px 20px;
+      background: var(--bg-elev);
+      border-bottom: 1px solid var(--line);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .phase-head:hover { background: #1a222c; }
+
+    .phase-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .phase-id {
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--accent);
+      background: var(--accent-dim);
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+
+    .phase-title h2 {
+      font-size: 1.05rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+
+    .phase-desc {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 4px;
+      padding-left: 52px;
+    }
+
+    .badge {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      padding: 4px 9px;
+      border-radius: 6px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .badge.done { background: var(--done-dim); color: var(--done); }
+    .badge.wip { background: var(--warn-dim); color: var(--warn); }
+    .badge.todo { background: var(--todo-dim); color: var(--todo); }
+    .badge.partial { background: var(--warn-dim); color: var(--warn); }
+
+    .phase-body { padding: 8px 12px 14px; }
+    .phase.collapsed .phase-body { display: none; }
+    .phase.collapsed .phase-desc { display: none; }
+
+    .chev {
+      width: 18px;
+      height: 18px;
+      color: var(--muted);
+      transition: transform 0.2s;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .phase.collapsed .chev { transform: rotate(-90deg); }
+
+    ul.todos {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    li.item {
+      display: grid;
+      grid-template-columns: 28px 1fr auto;
+      gap: 10px;
+      align-items: start;
+      padding: 10px 12px;
+      border-radius: 8px;
+      transition: background 0.12s;
+    }
+
+    li.item:hover { background: rgba(255, 255, 255, 0.03); }
+    li.item.hidden { display: none; }
+
+    .check {
+      width: 18px;
+      height: 18px;
+      border-radius: 5px;
+      border: 1.5px solid var(--line);
+      margin-top: 2px;
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+    }
+
+    li.item[data-status="done"] .check {
+      background: var(--done);
+      border-color: var(--done);
+      color: #0a1210;
+    }
+
+    li.item[data-status="wip"] .check {
+      border-color: var(--warn);
+      background: var(--warn-dim);
+    }
+
+    li.item[data-status="todo"] .check {
+      border-color: #3d4a5c;
+    }
+
+    .item-main strong {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+
+    .item-main p {
+      font-size: 12.5px;
+      color: var(--muted);
+      margin-top: 3px;
+    }
+
+    .item-main code {
+      font-family: var(--mono);
+      font-size: 11px;
+      background: rgba(0, 0, 0, 0.35);
+      padding: 1px 5px;
+      border-radius: 4px;
+      color: #b8c9de;
+    }
+
+    .tag {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 3px 7px;
+      border-radius: 4px;
+      margin-top: 2px;
+    }
+
+    .tag.done { color: var(--done); background: var(--done-dim); }
+    .tag.wip { color: var(--warn); background: var(--warn-dim); }
+    .tag.todo { color: var(--todo); background: var(--todo-dim); }
+
+    .arch {
+      margin: 40px 0 28px;
+      padding: 22px 24px;
+      background: var(--bg-elev);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+    }
+
+    .arch h3 {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .arch pre {
+      font-family: var(--mono);
+      font-size: 11.5px;
+      line-height: 1.65;
+      color: #c5d4e6;
+      overflow-x: auto;
+      white-space: pre;
+    }
+
+    footer.note {
+      margin-top: 36px;
+      padding-top: 20px;
+      border-top: 1px solid var(--line);
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    footer.note a { color: var(--accent); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="hero">
+      <div class="eyebrow">BlockHub · CapShip</div>
+      <h1>多语言翻译 TodoList</h1>
+      <p class="lede">
+        方案组合：<strong>B</strong>（registry/hero labels + codegen）+
+        <strong>A</strong>（<code style="font-family:var(--mono);font-size:0.9em">t(key)</code> + @blockhub/i18n）+
+        <strong>CI</strong> 闸门 + <strong>D</strong>（缺译草稿 PR）。强调解耦：运行时不知来源，生成物单向流。
+      </p>
+      <div class="meta">
+        <span class="chip">目标语言 <strong>zh-CN · en-US</strong></span>
+        <span class="chip">更新 <strong>2026-07-27</strong></span>
+        <span class="chip">范围 <strong>P0–P6</strong></span>
+        <span class="chip">原则 <strong>杜绝硬编码 · 改动及时补译</strong></span>
+      </div>
+    </header>
+
+    <div class="stats" id="stats">
+      <div class="stat done"><div class="n" id="n-done">0</div><div class="l">已完成</div></div>
+      <div class="stat wip"><div class="n" id="n-wip">0</div><div class="l">进行中 / 部分</div></div>
+      <div class="stat todo"><div class="n" id="n-todo">0</div><div class="l">待办</div></div>
+      <div class="stat"><div class="n" id="n-all">0</div><div class="l">条目合计</div></div>
+    </div>
+
+    <div class="filters" id="filters">
+      <button type="button" class="on" data-filter="all">全部</button>
+      <button type="button" data-filter="done">已完成</button>
+      <button type="button" data-filter="wip">进行中</button>
+      <button type="button" data-filter="todo">待办</button>
+    </div>
+
+    <div class="arch">
+      <h3>解耦分层（勿反向依赖）</h3>
+      <pre>SSOT（可写）  capability_registry / hero_presets / packages/*/locales
+      │ codegen（唯一写生成物）
+      ▼
+shared/i18n/messages/{zh-CN,en-US}/*.json
+      │ 只读加载
+      ▼
+@blockhub/i18n  →  home · frontend · runtime-web · web-capability-* · (Flutter 另桥)
+旁路：CI i18n:check / drift · AI 草稿 PR（不进运行时）</pre>
+    </div>
+
+    <!-- P0 -->
+    <section class="phase" data-phase="P0">
+      <div class="phase-head" onclick="togglePhase(this)">
+        <div>
+          <div class="phase-title">
+            <svg class="chev" viewBox="0 0 20 20" fill="currentColor"><path d="M5.3 7.3a1 1 0 011.4 0L10 10.6l3.3-3.3a1 1 0 111.4 1.4l-4 4a1 1 0 01-1.4 0l-4-4a1 1 0 010-1.4z"/></svg>
+            <span class="phase-id">P0</span>
+            <h2>包骨架 + 契约</h2>
+          </div>
+          <p class="phase-desc">@blockhub/i18n 运行时 · shared/i18n 数据契约 · i18n:check 骨架</p>
+        </div>
+        <span class="badge done">Done</span>
+      </div>
+      <div class="phase-body">
+        <ul class="todos">
+          <li class="item" data-status="done">
+            <span class="check">✓</span>
+            <div class="item-main">
+              <strong>创建 <code>@blockhub/i18n</code></strong>
+              <p><code>createI18n</code> / <code>t</code> / <code>registerMessages</code> · 可选 <code>./react</code> · 零业务知识</p>
+            </div>
+            <span class="tag done">done</span>
+          </li>
+          <li class="item" data-status="done">
+            <span class="check">✓</span>
+            <div class="item-main">
+              <strong>建立 <code>shared/i18n/</code></strong>
+              <p>schema · namespaces · messages · seed · shellBundles</p>
+            </div>
+            <span class="tag done">done</span>
+          </li>
+          <li class="item" data-status="done">
+            <span class="check">✓</span>
+            <div class="item-main">
+              <strong><code>i18n:check</code> 骨架</strong>
+              <p><code>scripts/i18n_check.py</code> — zh/en key 对等；可 <code>--scan</code> 扫 <code>t('…')</code></p>
+            </div>
+            <span class="tag done">done</span>
+          </li>
+          <li class="item" data-status="done">
+            <span class="check">✓</span>
+            <div class="item-main">
+              <strong>locale 持久化 API</strong>
+              <p><code>readStoredLocale</code> / <code>writeStoredLocale</code> · key=<code>blockhub_locale</code></p>
+            </div>
+            <span class="tag done">done</span>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- P1 -->
+    <section class="phase" data-phase="P1">
+      <div class="phase-head" onclick="togglePhase(this)">
+        <div>
+          <div class="phase-title">
+            <svg class="chev" viewBox="0 0 20 20" fill="currentColor"><path d="M5.3 7.3a1 1 0 011.4 0L10 10.6l3.3-3.3a1 1 0 111.4 1.4l-4 4a1 1 0 01-1.4 0l-4-4a1 1 0 010-1.4z"/></svg>
+            <span class="phase-id">P1</span>
+            <h2>Registry / Hero labels + Codegen + Drift CI</h2>
+          </div>
+          <p class="phase-desc">方案 B：元数据 labels 化 · 生成 capability/hero.gen.json · CI 防漂移</p>
+        </div>
+        <span class="badge done">Done</span>
+      </div>
+      <div class="phase-body">
+        <ul class="todos">
+          <li class="item" data-status="done">
+            <span class="check">✓</span>
+            <div class="item-main">
+              <strong><code>CapabilityDef.labels</code> + <code>resolved_labels()</code></strong>
+              <p>zh-CN ← name；en 可显式声明（leave_request / device_repair / member_loyalty 已示范）</p>
+            </div>
+            <span class="tag done">done</span>
+          </li>
+          <li class="item" data-status="done">
+            <span class="check">✓</span>
+            <div class="item-main">
+              <strong>hero_presets <code>labels</code> 字段</strong>
+              <p><code>_preset(..., labels=)</code> 自动带 zh-CN</p>
+            </div>
+            <span class="tag done">done</span>
+          </li>
+          <li class="item" data-status="done">
+            <span class="check">✓</span>
+            <div class="item-main">
+              <strong>Codegen <code>*.gen.json</code></strong>
+              <p><code>scripts/codegen-i18n-messages.py</code> → 199 caps × 41 heroes · seed 合并</p>
+            </div>
+            <span class="tag done">done</span>
+          </li>
+          <li class="item" data-status="done">
+            <span class="check">✓</span>
+            <div class="item-main">
+              <strong>Drift CI</strong>
+              <p><code>check-i18n-drift.sh</code> 挂入 <code>ci-smoke.yml</code> · 对齐 manifest drift 模式</p>
+            </div>
+            <span class="tag done">done</span>
+          </li>
+          <li class="item" data-status="done">
+            <span class="check">✓</span>
+            <div class="item-main">
+              <strong>后端 <code>pick_label</code></strong>
+              <p><code>i18n_resolve.py</code> + <code>i18n_catalog.py</code> · modules/hero-presets 已按 Accept-Language 本地化</p>
+            </div>
+            <span class="tag done">done</span>
+          </li>
+          <li class="item" data-status="done">
+            <span class="check">✓</span>
+            <div class="item-main">
+              <strong>正式英译文案质量（P4 起）</strong>
+              <p>capability seed 全量 199；hero hint/prompt/flow 有 <code>hero-copy.en-US.json</code>；边缘能力名仍可继续人工校对</p>
+            </div>
+            <span class="tag done">done</span>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- P2 -->
+    <section class="phase" data-phase="P2">
+      <div class="phase-head" onclick="togglePhase(this)">
+        <div>
+          <div class="phase-title">
+            <svg class="chev" viewBox="0 0 20 20" fill="currentColor"><path d="M5.3 7.3a1 1 0 011.4 0L10 10.6l3.3-3.3a1 1 0 111.4 1.4l-4 4a1 1 0 01-1.4 0l-4-4a1 1 0 010-1.4z"/></svg>
+            <span class="phase-id">P2</span>
+            <h2>壳层接入（home / frontend / web-core）</h2>
+          </div>
+          <p class="phase-desc">I18nProvider + 少量 common.* + LocaleSwitch</p>
+        </div>
+        <span class="badge done">Done</span>
+      </div>
+      <div class="phase-body">
+        <ul class="todos">
+          <li class="item" data-status="done">
+            <span class="check">✓</span>
+            <div class="item-main">
+              <strong>home / frontend 挂 Provider</strong>
+              <p><code>HomeI18nProvider</code> / <code>AdminI18nProvider</code> · 加载 <code>SHELL_MESSAGES</code></p>
+            </div>
+            <span class="tag done">done</span>
+          </li>
+          <li class="item" data-status="done">
+            <span class="check">✓</span>
+            <div class="item-main">
+              <strong>LocaleSwitch 顶栏</strong>
+              <p>B2BHeader · AdminLayout · 持久化 localStorage</p>
+            </div>
+            <span class="tag done">done</span>
+          </li>
+          <li class="item" data-status="done">
+            <span class="check">✓</span>
+            <div class="item-main">
+              <strong>GtgtStepComposer → common.*</strong>
+              <p>submit / confirm / skip / back / submitting · <code>useI18nOptional</code> 无 Provider 回退中文</p>
+            </div>
+            <span class="tag done">done</span>
+          </li>
+          <li class="item" data-status="done">
+            <span class="check">✓</span>
+            <div class="item-main">
+              <strong>样例替换 common.*</strong>
+              <p>广场 loading · 审批 cancel · 租户 save · 报表/审核 loading · 知识库 cancel</p>
+            </div>
+            <span class="tag done">done</span>
+          </li>
+          <li class="item" data-status="todo">
+            <span class="check"></span>
+            <div class="item-main">
+              <strong>壳层剩余硬编码中文</strong>
+              <p>导航、页头、营销文案等尚未 <code>t()</code> — 属增量债，非 P2 必完</p>
+            </div>
+            <span class="tag todo">todo</span>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- P3 -->
+    <section class="phase" data-phase="P3">
+      <div class="phase-head" onclick="togglePhase(this)">
+        <div>
+          <div class="phase-title">
+            <svg class="chev" viewBox="0 0 20 20" fill="currentColor"><path d="M5.3 7.3a1 1 0 011.4 0L10 10.6l3.3-3.3a1 1 0 111.4 1.4l-4 4a1 1 0 01-1.4 0l-4-4a1 1 0 010-1.4z"/></svg>
+            <span class="phase-id">P3</span>
+            <h2>弹幕映射 Top 能力包 + registerMessages</h2>
+          </div>
+          <p class="phase-desc">选型即交付优先：报修 / 会员 / 请假等真 capability 包内 locales</p>
+        </div>
+        <span class="badge done">Done</span>
+      </div>
+      <div class="phase-body">
+        <ul class="todos">
+          <li class="item" data-status="done">
+            <span class="check">✓</span>
+            <div class="item-main">
+              <strong>runtime-web 挂 I18nProvider</strong>
+              <p><code>RuntimeI18nProvider</code> + <code>APP_MESSAGES</code> + 顶栏 <code>LocaleSwitch</code>；包侧 <code>contributeI18nMessages</code></p>
+            </div>
+            <span class="tag done">done</span>
+          </li>
+          <li class="item" data-status="done">
+            <span class="check">✓</span>
+            <div class="item-main">
+              <strong>Top N 能力包自带 <code>cap.{key}.*</code></strong>
+              <p>leave_request · device_repair · expense_claim · member_loyalty · approval_flow（locales + useTf）</p>
+            </div>
+            <span class="tag done">done</span>
+          </li>
+          <li class="item" data-status="done">
+            <span class="check">✓</span>
+            <div class="item-main">
+              <strong>弹幕 / catalog UI 消费 gen 文案</strong>
+              <p>HeroDanmakuCloud → <code>tf('hero.{id}.label')</code>；home/admin 加载 <code>APP_MESSAGES</code></p>
+            </div>
+            <span class="tag done">done</span>
+          </li>
+          <li class="item" data-status="done">
+            <span class="check">✓</span>
+            <div class="item-main">
+              <strong>废弃 CapShip OSS 手写 EN map 作为全站源</strong>
+              <p><code>capshipSceneTitle</code> 优先读 <code>hero.gen.json</code>；<code>CAPSHIP_SCENE_EN</code> 仅 deprecated 兜底</p>
+            </div>
+            <span class="tag done">done</span>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- P4 -->
+    <section class="phase" data-phase="P4">
+      <div class="phase-head" onclick="togglePhase(this)">
+        <div>
+          <div class="phase-title">
+            <svg class="chev" viewBox="0 0 20 20" fill="currentColor"><path d="M5.3 7.3a1 1 0 011.4 0L10 10.6l3.3-3.3a1 1 0 111.4 1.4l-4 4a1 1 0 01-1.4 0l-4-4a1 1 0 010-1.4z"/></svg>
+            <span class="phase-id">P4</span>
+            <h2>后端 error code + Accept-Language catalog</h2>
+          </div>
+          <p class="phase-desc">稳定错误码 · catalog/hero API 按语言返回</p>
+        </div>
+        <span class="badge done">Done</span>
+      </div>
+      <div class="phase-body">
+        <ul class="todos">
+          <li class="item" data-status="done">
+            <span class="check">✓</span>
+            <div class="item-main">
+              <strong>API 错误码化</strong>
+              <p><code>raise_api_error</code> → <code>detail={code,params}</code> · Auth/deps/DB · FE <code>formatAxiosApiError</code> + <code>t('error.*')</code> · 28 keys</p>
+            </div>
+            <span class="tag done">done</span>
+          </li>
+          <li class="item" data-status="done">
+            <span class="check">✓</span>
+            <div class="item-main">
+              <strong>Catalog / hero_presets 跟 Accept-Language</strong>
+              <p><code>/catalog/modules</code> + <code>/hero-presets</code> 用 <code>i18n_catalog.localize_*</code>；axios 带 <code>Accept-Language</code></p>
+            </div>
+            <span class="tag done">done</span>
+          </li>
+          <li class="item" data-status="done">
+            <span class="check">✓</span>
+            <div class="item-main">
+              <strong>补全 registry 显式 en labels / seed</strong>
+              <p><code>capability.en-US.json</code> 全量 199；hero labels 补 s35–s40；codegen 不再依赖 humanize 兜底</p>
+            </div>
+            <span class="tag done">done</span>
+          </li>
+          <li class="item" data-status="done">
+            <span class="check">✓</span>
+            <div class="item-main">
+              <strong>hero hint / prompt / flow_lines 英文化</strong>
+              <p><code>hero-copy.en-US.json</code> → codegen <code>hero.*.hint/prompt/flow.*</code> · API Mode L + <code>HeroRoleDialog</code> 消费</p>
+            </div>
+            <span class="tag done">done</span>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- P5 -->
+    <section class="phase" data-phase="P5">
+      <div class="phase-head" onclick="togglePhase(this)">
+        <div>
+          <div class="phase-title">
+            <svg class="chev" viewBox="0 0 20 20" fill="currentColor"><path d="M5.3 7.3a1 1 0 011.4 0L10 10.6l3.3-3.3a1 1 0 111.4 1.4l-4 4a1 1 0 01-1.4 0l-4-4a1 1 0 010-1.4z"/></svg>
+            <span class="phase-id">P5</span>
+            <h2>方案 D：缺译自动草稿 PR + 质量闸门</h2>
+          </div>
+          <p class="phase-desc">AI 旁路补齐 · 人工合入 · 未审英文告警</p>
+        </div>
+        <span class="badge done">Done</span>
+      </div>
+      <div class="phase-body">
+        <ul class="todos">
+          <li class="item" data-status="done">
+            <span class="check">✓</span>
+            <div class="item-main">
+              <strong><code>draft-en-pr</code> 工作流</strong>
+              <p><code>scripts/draft_en_pr.py</code> + <code>.github/workflows/i18n-draft-en.yml</code> · draft PR · glossary 种子 · 禁止 auto-merge</p>
+            </div>
+            <span class="tag done">done</span>
+          </li>
+          <li class="item" data-status="done">
+            <span class="check">✓</span>
+            <div class="item-main">
+              <strong>未审英文告警</strong>
+              <p><code>i18n_quality.py</code>：CJK fail / humanize warn · <code>meta/en-review-status.json</code></p>
+            </div>
+            <span class="tag done">done</span>
+          </li>
+          <li class="item" data-status="done">
+            <span class="check">✓</span>
+            <div class="item-main">
+              <strong>ESLint 禁 UI 字面量</strong>
+              <p><code>@blockhub/eslint-plugin-i18n</code> <code>no-ui-literal</code> · allowlist：web-core + Top5 capability</p>
+            </div>
+            <span class="tag done">done</span>
+          </li>
+          <li class="item" data-status="done">
+            <span class="check">✓</span>
+            <div class="item-main">
+              <strong>Windows 友好 drift（纯 Python）</strong>
+              <p><code>scripts/check_i18n_drift.py</code> · bash 薄封装 · CI 改调 Python</p>
+            </div>
+            <span class="tag done">done</span>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- P6 -->
+    <section class="phase" data-phase="P6">
+      <div class="phase-head" onclick="togglePhase(this)">
+        <div>
+          <div class="phase-title">
+            <svg class="chev" viewBox="0 0 20 20" fill="currentColor"><path d="M5.3 7.3a1 1 0 011.4 0L10 10.6l3.3-3.3a1 1 0 111.4 1.4l-4 4a1 1 0 01-1.4 0l-4-4a1 1 0 010-1.4z"/></svg>
+            <span class="phase-id">P6</span>
+            <h2>Flutter ARB 同源 + 全量能力包</h2>
+          </div>
+          <p class="phase-desc">双端同一 messages · 剩余 web-capability-* / capability_*</p>
+        </div>
+        <span class="badge done">Done</span>
+      </div>
+      <div class="phase-body">
+        <ul class="todos">
+          <li class="item" data-status="done">
+            <span class="check">✓</span>
+            <div class="item-main">
+              <strong>从 shared/i18n 生成 Flutter ARB</strong>
+              <p><code>codegen-flutter-arb.py</code> → <code>shared/i18n/flutter/*.arb</code> + <code>BhL10n</code> assets（dotted keys 与 Web 同源）</p>
+            </div>
+            <span class="tag done">done</span>
+          </li>
+          <li class="item" data-status="done">
+            <span class="check">✓</span>
+            <div class="item-main">
+              <strong>剩余 Web + Flutter Top5 能力包</strong>
+              <p>全量 <code>web-capability-*</code> 已 scaffold locales；CI <code>check_i18n_namespace</code> 防串包；Flutter Top5 已 <code>bhTf</code></p>
+            </div>
+            <span class="tag done">done</span>
+          </li>
+          <li class="item" data-status="done">
+            <span class="check">✓</span>
+            <div class="item-main">
+              <strong>Capability skill 流程补 A2 labels / A3 locales</strong>
+              <p>路径 A 新建能力默认带 i18n 检查项（labels / locales / bhTf / namespace CI）</p>
+            </div>
+            <span class="tag done">done</span>
+          </li>
+          <li class="item" data-status="done">
+            <span class="check">✓</span>
+            <div class="item-main">
+              <strong>日期/数字 locale</strong>
+              <p><code>formatDate</code> / <code>formatNumber</code> / <code>useFormat</code>；Flutter <code>BhL10n.formatDate/Number</code></p>
+            </div>
+            <span class="tag done">done</span>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <footer class="note">
+      <p>
+        验证命令：
+        <code style="font-family:var(--mono);font-size:12px">python scripts/codegen-i18n-messages.py</code>
+        ·
+        <code style="font-family:var(--mono);font-size:12px">python scripts/codegen-flutter-arb.py</code>
+        ·
+        <code style="font-family:var(--mono);font-size:12px">python scripts/check_i18n_drift.py</code>
+        ·
+        <code style="font-family:var(--mono);font-size:12px">python scripts/smoke-i18n-p6.py</code>
+        ·
+        <code style="font-family:var(--mono);font-size:12px">python scripts/check_i18n_namespace.py</code>
+      </p>
+      <p style="margin-top:8px">
+        文件位置：<code style="font-family:var(--mono);font-size:12px">docs/previews/i18n-todolist.html</code>
+        — 用浏览器直接打开即可。P0–P6 已落地；后续按包渐进把 UI 字面量迁到 <code>tf</code>/<code>bhTf</code>。
+      </p>
+    </footer>
+  </div>
+
+  <script>
+    function togglePhase(head) {
+      head.closest('.phase').classList.toggle('collapsed')
+    }
+
+    function recount() {
+      const items = [...document.querySelectorAll('li.item')]
+      const done = items.filter(i => i.dataset.status === 'done').length
+      const wip = items.filter(i => i.dataset.status === 'wip').length
+      const todo = items.filter(i => i.dataset.status === 'todo').length
+      document.getElementById('n-done').textContent = done
+      document.getElementById('n-wip').textContent = wip
+      document.getElementById('n-todo').textContent = todo
+      document.getElementById('n-all').textContent = items.length
+    }
+
+    document.getElementById('filters').addEventListener('click', (e) => {
+      const btn = e.target.closest('button')
+      if (!btn) return
+      document.querySelectorAll('#filters button').forEach(b => b.classList.remove('on'))
+      btn.classList.add('on')
+      const f = btn.dataset.filter
+      document.querySelectorAll('li.item').forEach(item => {
+        item.classList.toggle('hidden', f !== 'all' && item.dataset.status !== f)
+      })
+    })
+
+    recount()
+  </script>
+</body>
+</html>

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useT } from '@blockhub/i18n/react'
 import {
   fetchNotifications,
   markAllNotificationsRead,
@@ -15,6 +16,7 @@ const TYPE_ICON: Record<string, string> = {
 }
 
 export default function NotificationPage() {
+  const t = useT()
   const [filter, setFilter] = useState<'all' | 'unread'>('all')
   const [items, setItems] = useState<NotificationItem[]>([])
   const [unread, setUnread] = useState(0)
@@ -42,8 +44,8 @@ export default function NotificationPage() {
     <>
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between' }}>
         <div>
-          <h1>消息通知</h1>
-          <p>审批结果、系统公告与重要提醒</p>
+          <h1>{t('admin.page.notifications.title')}</h1>
+          <p>{t('admin.page.notifications.desc')}</p>
         </div>
         <button type="button" className="btn btn-primary-dark" onClick={handleReadAll}>
           全部已读

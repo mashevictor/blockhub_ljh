@@ -15,8 +15,11 @@
     "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": true,
     "baseUrl": ".",
+    "resolveJsonModule": true,
     "paths": {
       "@shared/*": ["../shared/*"],
+      "@blockhub/i18n": ["../packages/i18n/src/index.d.ts"],
+      "@blockhub/i18n/react": ["../packages/i18n/src/react.d.ts"],
       "@blockhub/web-core": ["./src/web-core-shim.d.ts"],
       "@blockhub/web-capability-*": ["../packages/web-capability-*/src/index.ts"],
       "@capship/composer": ["../packages/capship-composer/src/index.d.ts"],

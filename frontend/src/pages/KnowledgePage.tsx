@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useT } from '@blockhub/i18n/react'
 import {
   createKbBase,
   fetchKbBases,
@@ -23,6 +24,7 @@ type DocRow = {
 }
 
 export default function KnowledgePage() {
+  const t = useT()
   const [stats, setStats] = useState<{
     knowledge_bases: number
     documents: number
@@ -128,8 +130,8 @@ export default function KnowledgePage() {
     <>
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div>
-          <h1>知识库</h1>
-          <p>上传制度、手册等文档，自动分段并向量化，供智能问答引用</p>
+          <h1>{t('admin.page.knowledge.title')}</h1>
+          <p>{t('admin.page.knowledge.desc')}</p>
         </div>
         <button type="button" className="btn btn-primary-dark" onClick={() => setShowCreate(true)}>
           + 新建知识库
@@ -141,7 +143,7 @@ export default function KnowledgePage() {
           <input className="search-input" placeholder="知识库名称" value={newKbName} onChange={(e) => setNewKbName(e.target.value)} />
           <div style={{ marginTop: 10, display: 'flex', gap: 8 }}>
             <button type="button" className="btn btn-primary-dark" onClick={handleCreate}>创建</button>
-            <button type="button" className="btn btn-ghost-dark" onClick={() => setShowCreate(false)}>取消</button>
+            <button type="button" className="btn btn-ghost-dark" onClick={() => setShowCreate(false)}>{t('common.cancel')}</button>
           </div>
         </div>
       )}

@@ -1,0 +1,19 @@
+{
+  "cap.member_loyalty.field.campaign_name": "Campaign name",
+  "cap.member_loyalty.field.campaign_type": "Campaign type",
+  "cap.member_loyalty.field.name": "Member name",
+  "cap.member_loyalty.field.phone": "Phone",
+  "cap.member_loyalty.field.points": "Starting points",
+  "cap.member_loyalty.mode.campaign": "Create campaign",
+  "cap.member_loyalty.mode.list": "List",
+  "cap.member_loyalty.mode.member": "Create member",
+  "cap.member_loyalty.mode.outreach": "Win-back outreach",
+  "cap.member_loyalty.mode.points": "Points / redeem",
+  "cap.member_loyalty.status.active": "Active",
+  "cap.member_loyalty.status.sleeping": "Dormant",
+  "cap.member_loyalty.submit": "Submit",
+  "cap.member_loyalty.type.points": "Earn points",
+  "cap.member_loyalty.type.redeem": "Redeem",
+  "cap.member_loyalty.type.wake": "Wake",
+  "cap.member_loyalty.ui.title": "Membership Growth"
+}

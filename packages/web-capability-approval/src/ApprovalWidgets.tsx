@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useTf } from '@blockhub/i18n/react'
 import {
   apiFetch,
   GtgtStepComposer,
@@ -31,53 +32,58 @@ type FormCopy = {
   successMsg: string
 }
 
-function resolveFormCopy(node: SchemaNode): FormCopy {
+function resolveFormCopy(
+  node: SchemaNode,
+  tf: (key: string, fallback: string) => string,
+): FormCopy {
   const key = String(node.props?.capability_key || 'approval_flow')
   const type = String(node.props?.approval_type || key)
   const fromProps = node.props || {}
   const sceneLabel = String(fromProps.scene_label || fromProps.form_headline || '')
 
   const base: FormCopy = {
-    headline: String(fromProps.form_headline || sceneLabel || '发起审批'),
-    hint: String(fromProps.form_hint || '>> 单字段推进，提交后进入待办'),
-    titleLabel: '事项标题',
+    headline: String(
+      fromProps.form_headline || sceneLabel || tf('cap.approval_flow.headline', '发起审批'),
+    ),
+    hint: String(fromProps.form_hint || tf('cap.approval_flow.hint', '>> 单字段推进，提交后进入待办')),
+    titleLabel: tf('cap.approval_flow.field.title', '事项标题'),
     titlePlaceholder: String(fromProps.title_placeholder || '简要说明要办的事'),
-    deptLabel: '所属部门',
+    deptLabel: tf('cap.approval_flow.field.dept', '所属部门'),
     deptPlaceholder: String(fromProps.dept_placeholder || '如：生产部 / 行政部'),
-    summaryLabel: '说明',
+    summaryLabel: tf('cap.approval_flow.field.summary', '说明'),
     summaryPlaceholder: String(fromProps.summary_placeholder || '补充原因、起止时间或附件说明'),
-    submitLabel: '提交申请',
-    successMsg: '申请已提交，等待审批',
+    submitLabel: tf('cap.approval_flow.submit', '提交申请'),
+    successMsg: tf('cap.approval_flow.success', '申请已提交，等待审批'),
   }
 
   if (type.includes('leave') || /请假|年假|调休/.test(key + sceneLabel)) {
     return {
       ...base,
-      headline: String(fromProps.form_headline || '请假申请'),
+      headline: String(fromProps.form_headline || tf('cap.approval_flow.leave.headline', '请假申请')),
       hint: '填写假种与时段，提交后主管审批',
       titlePlaceholder: '如：年假 3 天（4/1–4/3）',
       summaryPlaceholder: '事由、代理人、是否出国…',
-      submitLabel: '提交请假',
+      submitLabel: tf('cap.approval_flow.leave.submit', '提交请假'),
     }
   }
   if (type.includes('expense') || /报销/.test(sceneLabel + String(fromProps.form_headline || ''))) {
     return {
       ...base,
-      headline: String(fromProps.form_headline || '费用报销'),
+      headline: String(fromProps.form_headline || tf('cap.approval_flow.expense.headline', '费用报销')),
       hint: '填写金额与用途，提交财务审批',
       titlePlaceholder: '如：差旅报销 ¥1280',
       summaryPlaceholder: '行程、发票张数、是否已垫付…',
-      submitLabel: '提交报销',
+      submitLabel: tf('cap.approval_flow.expense.submit', '提交报销'),
     }
   }
   if (type.includes('seal') || key.includes('seal') || /用印|盖章/.test(sceneLabel + String(fromProps.form_headline || ''))) {
     return {
       ...base,
-      headline: String(fromProps.form_headline || '用印申请'),
+      headline: String(fromProps.form_headline || tf('cap.approval_flow.seal.headline', '用印申请')),
       hint: '说明印章类型与文件用途',
       titlePlaceholder: '如：合同章 · 《采购协议》',
       summaryPlaceholder: '份数、是否外带、法务是否已审…',
-      submitLabel: '提交用印',
+      submitLabel: tf('cap.approval_flow.seal.submit', '提交用印'),
     }
   }
   if (fromProps.form_headline || sceneLabel) {
@@ -90,7 +96,7 @@ function resolveFormCopy(node: SchemaNode): FormCopy {
   if (key === 'approval_flow') {
     return {
       ...base,
-      headline: '发起审批',
+      headline: tf('cap.approval_flow.headline', '发起审批'),
       titlePlaceholder: '如：请假、报销、用印、合同会签…',
     }
   }
@@ -113,8 +119,9 @@ function resolveFormFields(node: SchemaNode, copy: FormCopy): FieldDef[] {
 }
 
 export function FormWidget({ node }: { node: SchemaNode }) {
+  const tf = useTf()
   const { token, primaryColor, user } = useRuntime()
-  const copy = useMemo(() => resolveFormCopy(node), [node])
+  const copy = useMemo(() => resolveFormCopy(node, tf), [node, tf])
   const fieldDefs = useMemo(() => resolveFormFields(node, copy), [node, copy])
   const [values, setValues] = useState<Record<string, string>>({})
   const [busy, setBusy] = useState(false)
@@ -196,6 +203,7 @@ export function FormWidget({ node }: { node: SchemaNode }) {
 }
 
 export function ApprovalInboxWidget(_props: { node: SchemaNode }) {
+  const tf = useTf()
   const { token, primaryColor, user } = useRuntime()
   const [items, setItems] = useState<ApprovalItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -218,7 +226,11 @@ export function ApprovalInboxWidget(_props: { node: SchemaNode }) {
         method: 'POST',
         body: JSON.stringify({ action, comment: '' }),
       })
-      setMsg(action === 'approve' ? '已通过' : '已拒绝')
+      setMsg(
+        action === 'approve'
+          ? tf('cap.approval_flow.status.approved', '已通过')
+          : tf('cap.approval_flow.status.rejected', '已拒绝'),
+      )
       load()
     } catch (e) {
       setMsg(`操作失败：${String(e)}`)

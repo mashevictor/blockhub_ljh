@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
+import { useT } from '@blockhub/i18n/react'
 import { getModuleCapability } from '../../data/moduleCatalog'
 import type { ModuleFlowStep } from '../../lib/plazaModuleFlow'
 import { FLOW_EGRESS_ID, FLOW_INGRESS_ID, splitFlowRails } from '../../lib/plazaModuleFlow'
@@ -33,18 +34,19 @@ function EndpointNode({
   onSelect: () => void
   readOnly?: boolean
 }) {
+  const t = useT()
   const nodeId = kind === 'in' ? FLOW_INGRESS_ID : FLOW_EGRESS_ID
   const inner = kind === 'in' ? (
     <>
       <span className="plaza-mflow-pipe-endpoint-icon" aria-hidden>📥</span>
-      <span className="plaza-mflow-pipe-endpoint-label">业务输入</span>
-      <span className="plaza-mflow-pipe-endpoint-sub">用户 / 业务请求</span>
+      <span className="plaza-mflow-pipe-endpoint-label">{t('home.plaza.mflow.biz_in')}</span>
+      <span className="plaza-mflow-pipe-endpoint-sub">{t('home.plaza.mflow.biz_in_sub')}</span>
     </>
   ) : (
     <>
       <span className="plaza-mflow-pipe-endpoint-icon" aria-hidden>📤</span>
-      <span className="plaza-mflow-pipe-endpoint-label">触达输出</span>
-      <span className="plaza-mflow-pipe-endpoint-sub">团队可见</span>
+      <span className="plaza-mflow-pipe-endpoint-label">{t('home.plaza.mflow.biz_out')}</span>
+      <span className="plaza-mflow-pipe-endpoint-sub">{t('home.plaza.mflow.biz_out_sub')}</span>
     </>
   )
   return (
@@ -54,7 +56,7 @@ function EndpointNode({
       onClick={onSelect}
       disabled={readOnly}
       aria-pressed={active}
-      title={kind === 'in' ? '业务输入节点' : '触达输出节点'}
+      title={kind === 'in' ? t('home.plaza.mflow.biz_in_title') : t('home.plaza.mflow.biz_out_title')}
       data-node-id={nodeId}
     >
       {inner}
@@ -85,6 +87,7 @@ function StepNode({
   isDragOver?: boolean
   onGripDown?: (e: React.PointerEvent<HTMLButtonElement>) => void
 }) {
+  const t = useT()
   const cap = getModuleCapability(step.label)
   return (
     <div
@@ -95,7 +98,7 @@ function StepNode({
         <button
           type="button"
           className="plaza-mflow-drag-handle"
-          aria-label={`拖动 ${step.label}`}
+          aria-label={t('home.plaza.mflow.drag', { name: step.label })}
           onPointerDown={(e) => {
             e.stopPropagation()
             onGripDown?.(e)
@@ -150,6 +153,7 @@ export default function PlazaModuleFlowPipeline({
   onReorder,
   orchestration,
 }: Props) {
+  const t = useT()
   const [dragIndex, setDragIndex] = useState<number | null>(null)
   const [overIndex, setOverIndex] = useState<number | null>(null)
   const overIndexRef = useRef<number | null>(null)
@@ -198,12 +202,12 @@ export default function PlazaModuleFlowPipeline({
   if (steps.length === 0) {
     return (
       <div className="plaza-mflow-pipeline plaza-mflow-pipeline--empty">
-        <p>暂无模块，在下方 <span className="plaza-mflow-chev">&gt;&gt;</span> 编排框中添加节点</p>
+        <p>{t('home.plaza.mflow.empty')}</p>
       </div>
     )
   }
 
-  const summary = ['业务输入', ...steps.map((s) => s.label), '触达输出'].join(' → ')
+  const summary = [t('home.plaza.mflow.biz_in'), ...steps.map((s) => s.label), t('home.plaza.mflow.biz_out')].join(' → ')
 
   const renderStep = (step: ModuleFlowStep, displayIndex: number, globalIndex: number) => (
     <div key={step.id} className="plaza-mflow-pipe-seg">
@@ -234,19 +238,19 @@ export default function PlazaModuleFlowPipeline({
     <div className={`plaza-mflow-pipeline${orchestration ? ' orchestration' : ''}`}>
       <div className="plaza-mflow-pipeline-head">
         <strong>
-          <span className="plaza-mflow-chev" aria-hidden>&gt;&gt;</span> 完整数据流
+          <span className="plaza-mflow-chev" aria-hidden>&gt;&gt;</span> {t('home.plaza.mflow.full_flow')}
         </strong>
         <span>
           {readOnly
-            ? '点击模块节点查看能力说明（只读）'
+            ? t('home.plaza.mflow.hint_ro')
             : draggable
-              ? '按住节点 ⠿ 拖动排序 · 点击选中后在下方查看'
-              : '点击节点查看详情'}
+              ? t('home.plaza.mflow.hint_drag')
+              : t('home.plaza.mflow.hint_click')}
         </span>
       </div>
 
       <div className="plaza-mflow-pipeline-body">
-        <ZoneBlock label="输入链 · 采集与理解" variant="in">
+        <ZoneBlock label={t('home.plaza.mflow.zone_in')} variant="in">
           <EndpointNode
             kind="in"
             active={activeNodeId === FLOW_INGRESS_ID}
@@ -265,7 +269,7 @@ export default function PlazaModuleFlowPipeline({
         )}
 
         {railOut.length > 0 ? (
-          <ZoneBlock label="输出链 · 处理与触达" variant="out">
+          <ZoneBlock label={t('home.plaza.mflow.zone_out')} variant="out">
             {railOut.map((step, i) => renderStep(step, railIn.length + i + 1, railIn.length + i))}
             <div className="plaza-mflow-pipe-seg">
               <FlowArrow />

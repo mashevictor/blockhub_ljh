@@ -1,29 +1,33 @@
 import { Link } from 'react-router-dom'
+import { useT } from '@blockhub/i18n/react'
 import type { CSSProperties } from 'react'
 import MarketingSiteShell from '../../components/b2b/enrichment/MarketingSiteShell'
 import EnrichCardVisual from '../../components/b2b/enrichment/EnrichCardVisual'
 import { AgentButtonContent } from '../../components/AgentChevron'
-import { NEWS_ARTICLES, NEWS_CATEGORY_LABELS } from '../../data/siteNews'
+import { NEWS_ARTICLES } from '../../data/siteNews'
 import { enrichCardStyle, NEWS_CATEGORY_THEMES } from '../../data/enrichVisualThemes'
+import { localizeNewsArticle, newsCategoryLabel } from '../../i18n/contentLabels'
 import { ROUTES } from '../../routes/paths'
 import { usePageMeta } from '../../hooks/usePageMeta'
 
 export default function NewsIndexPage() {
+  const t = useT()
   usePageMeta({
-    title: '新闻动态 · 积木仓',
-    description: '产品发布、客户动态与行业洞察',
+    title: `${t('home.enrich.news.title')} · BlockHub`,
+    description: t('home.enrich.news.lead'),
   })
 
   return (
     <MarketingSiteShell
-      pageTitle="新闻动态"
-      pageEyebrow="公司动态"
-      pageLead="产品发布 · 企业新闻 · 品牌活动"
+      pageTitle={t('home.enrich.news.title')}
+      pageEyebrow={t('home.enrich.news.eyebrow')}
+      pageLead={t('home.enrich.news.lead')}
     >
       <div className="enrich-news-list">
-        {NEWS_ARTICLES.map((item) => {
+        {NEWS_ARTICLES.map((raw) => {
+          const item = localizeNewsArticle(t, raw)
           const theme = NEWS_CATEGORY_THEMES[item.category]
-          const catLabel = NEWS_CATEGORY_LABELS[item.category]
+          const catLabel = newsCategoryLabel(t, item.category)
           return (
             <article
               key={item.slug}
@@ -44,7 +48,7 @@ export default function NewsIndexPage() {
                 </h2>
                 <p>{item.summary}</p>
                 <Link to={ROUTES.newsDetail(item.slug)} className="enrich-link-btn agent-action-btn">
-                  <AgentButtonContent>阅读全文</AgentButtonContent>
+                  <AgentButtonContent>{t('home.enrich.news.read')}</AgentButtonContent>
                 </Link>
               </div>
             </article>

@@ -1,18 +1,19 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useT } from '@blockhub/i18n/react'
 import {
   fetchCustomCapabilities,
   reviewCustomCapability,
   type CustomCapabilityItem,
 } from '../api/client'
 
-const STATUS_MAP: Record<string, { label: string; class: string }> = {
-  all: { label: '全部', class: '' },
-  pending: { label: '待审核', class: 'tag-warn' },
-  approved: { label: '已通过', class: 'tag-ok' },
-  rejected: { label: '已拒绝', class: 'tag-no' },
-}
-
 export default function CustomCapabilityPage() {
+  const t = useT()
+  const STATUS_MAP: Record<string, { label: string; class: string }> = {
+    all: { label: t('admin.status.all'), class: '' },
+    pending: { label: t('admin.status.review_pending'), class: 'tag-warn' },
+    approved: { label: t('admin.status.approved'), class: 'tag-ok' },
+    rejected: { label: t('admin.status.rejected'), class: 'tag-no' },
+  }
   const [filter, setFilter] = useState('pending')
   const [items, setItems] = useState<CustomCapabilityItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -34,7 +35,7 @@ export default function CustomCapabilityPage() {
       .catch((e: unknown) => {
         setItems([])
         setSelectedId(null)
-        setError(e instanceof Error ? e.message : '加载失败')
+        setError(e instanceof Error ? e.message : t('admin.err.load_failed'))
       })
       .finally(() => setLoading(false))
   }
@@ -62,7 +63,7 @@ export default function CustomCapabilityPage() {
       await reviewCustomCapability(id, action)
       load()
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : '审核失败')
+      setError(e instanceof Error ? e.message : t('admin.err.review_failed'))
     } finally {
       setActingId(null)
     }
@@ -71,8 +72,8 @@ export default function CustomCapabilityPage() {
   return (
     <>
       <div className="page-header">
-        <h1>能力审核</h1>
-        <p>审核用户提交的自定义能力提案；通过后写入有效注册表，可在创建与模块推荐中使用</p>
+        <h1>{t('admin.page.review.title')}</h1>
+        <p>{t('admin.page.review.desc')}</p>
       </div>
 
       <div className="summary-pills">
@@ -111,7 +112,7 @@ export default function CustomCapabilityPage() {
       ) : null}
 
       {loading ? (
-        <div className="card" style={{ padding: 24, color: 'var(--muted)' }}>加载中…</div>
+        <div className="card" style={{ padding: 24, color: 'var(--muted)' }}>{t('common.loading')}</div>
       ) : items.length === 0 ? (
         <div className="card" style={{ padding: 24, color: 'var(--muted)' }}>
           {filter === 'pending' ? '暂无待审核的能力提案（空库为空列表）' : '暂无记录'}

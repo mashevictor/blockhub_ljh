@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useT } from '@blockhub/i18n/react'
 import { useAgentPageContext } from '../../context/AgentPageContext'
 import { useFloatingDock } from '../../context/FloatingDockContext'
 import { usePlazaFocus, type PlazaFocusTarget } from '../../context/PlazaFocusContext'
-import { AGENT_CONTEXTS } from '../../data/agentContext'
+import { localizeAgentContext } from '../../i18n/agentContextLabels'
 import { usePlazaChevActions } from '../../hooks/usePlazaChevActions'
 import { ROUTES } from '../../routes/paths'
 import FloatingAgentDock from '../FloatingAgentDock'
@@ -28,6 +29,7 @@ function PlazaFocusDockBody({
   onOrchestration: (appKey: string) => void
   pageResetSignal: number
 }) {
+  const t = useT()
   const dock = useFloatingDock()
   const openApp = () => window.open(focus.webUrl, '_blank', 'noopener,noreferrer')
   const copyLink = () => void navigator.clipboard.writeText(focus.webUrl)
@@ -56,8 +58,8 @@ function PlazaFocusDockBody({
               e.stopPropagation()
               dock?.collapse()
             }}
-            aria-label="折叠悬浮框"
-            title="折叠"
+            aria-label={t('home.dock.collapse')}
+            title={t('home.dock.collapse_short')}
           >
             ▾
           </button>
@@ -75,7 +77,7 @@ function PlazaFocusDockBody({
                 className="plaza-dual-rail-tool is-fullscreen"
                 onClick={() => onOrchestration(focus.appKey)}
               >
-                全屏
+                {t('home.plaza.dual.fullscreen')}
               </button>
             )}
             <a
@@ -84,7 +86,7 @@ function PlazaFocusDockBody({
               target="_blank"
               rel="noreferrer"
             >
-              打开
+              {t('home.plaza.dual.open')}
             </a>
             <div className="plaza-dual-rail-menu-wrap">
               <button
@@ -105,7 +107,7 @@ function PlazaFocusDockBody({
                       setMenuOpen(false)
                     }}
                   >
-                    复制网页链接
+                    {t('home.plaza.dual.copy_web')}
                   </button>
                   {focus.source === 'my' && focus.isCreator && (
                     <button
@@ -116,7 +118,7 @@ function PlazaFocusDockBody({
                         setMenuOpen(false)
                       }}
                     >
-                      全屏概览 / 分享发布
+                      {t('home.plaza.dual.overview_share')}
                     </button>
                   )}
                 </div>
@@ -134,12 +136,12 @@ function PlazaFocusDockBody({
             pageResetSignal={pageResetSignal}
           />
         ) : (
-          <p className="plaza-dual-rail-empty">暂无模块信息，请从「我的应用」进入全屏概览</p>
+          <p className="plaza-dual-rail-empty">{t('home.plaza.dual.empty')}</p>
         )}
 
         <div className="plaza-dual-rail-dock-foot">
           <Link to={ROUTES.home} className="plaza-floating-create">
-            <span className="agent-chevron-glyph">&gt;&gt;</span> 继续创建应用
+            <span className="agent-chevron-glyph">&gt;&gt;</span> {t('home.plaza.dual.continue_create')}
           </Link>
         </div>
       </div>
@@ -149,8 +151,9 @@ function PlazaFocusDockBody({
 
 /** 广场页底部 >> 只读双轨概览（方案 A+B）— 我的应用 / 应用广场共用 */
 export default function PlazaFloatingAgent() {
+  const t = useT()
   const { contextKey } = useAgentPageContext()
-  const copy = AGENT_CONTEXTS[contextKey]
+  const copy = localizeAgentContext(t, contextKey)
   const { focus, requestOrchestration, dockExpandSignal } = usePlazaFocus()
   const [menuOpen, setMenuOpen] = useState(false)
   const [pageResetSignal, setPageResetSignal] = useState(0)
@@ -161,9 +164,9 @@ export default function PlazaFloatingAgent() {
   }, [dockExpandSignal])
 
   const collapsedHint = useMemo(() => {
-    if (focus) return `${focus.appName} · ${focus.moduleCount} 项`
+    if (focus) return `${focus.appName} · ${t('home.dock.plaza_items', { n: focus.moduleCount })}`
     return copy.placeholderCollapsed ?? copy.placeholder
-  }, [focus, copy])
+  }, [focus, copy, t])
 
   const moduleLabels = useMemo(() => {
     if (!focus?.moduleLabels?.length) return []
@@ -173,10 +176,10 @@ export default function PlazaFloatingAgent() {
   const title = focus ? (
     <span className="plaza-dual-rail-dock-title">
       <span className="plaza-dual-rail-dock-name">{focus.appName}</span>
-      <span className="plaza-dual-rail-dock-meta">· {focus.moduleCount} 项</span>
+      <span className="plaza-dual-rail-dock-meta">· {t('home.dock.plaza_items', { n: focus.moduleCount })}</span>
     </span>
   ) : (
-    <>当前应用 · 应用广场</>
+    <>{t('home.dock.plaza_idle_title')}</>
   )
 
   return (
@@ -186,7 +189,7 @@ export default function PlazaFloatingAgent() {
       title={title}
       chevLabel=""
       collapsedHint={collapsedHint}
-      ariaLabel="应用广场只读概览"
+      ariaLabel={t('home.dock.plaza_aria')}
       variant="capsule"
       showDockToggle
       collapseToggleInTail

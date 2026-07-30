@@ -8,6 +8,7 @@ import {
   useState,
   type ReactNode,
 } from 'react'
+import { useT } from '@blockhub/i18n/react'
 import { submitDemoBookingWithFallback, type DemoBookingDelivery } from '../api/client'
 import { scrollToHomeSection } from '../hooks/useHomeActiveSection'
 import { useAgentPageContext } from './AgentPageContext'
@@ -18,9 +19,13 @@ import {
   filledBookingCount,
   missingRequiredFields,
   parseBookingInput,
-  validateBookingField,
   type BookingFieldKey,
 } from '../data/demoBookingFlow'
+import {
+  bookingListJoin,
+  localizeBookingField,
+  validateBookingFieldLocalized,
+} from '../i18n/bookingLabels'
 
 interface Value {
   values: Partial<Record<BookingFieldKey, string>>
@@ -55,6 +60,7 @@ function toPayload(values: Partial<Record<BookingFieldKey, string>>) {
 }
 
 export function DemoBookingProvider({ children }: { children: ReactNode }) {
+  const t = useT()
   const [values, setValues] = useState<Partial<Record<BookingFieldKey, string>>>({})
   const [stepIndex, setStepIndex] = useState(0)
   const [submitted, setSubmitted] = useState(false)
@@ -66,14 +72,16 @@ export function DemoBookingProvider({ children }: { children: ReactNode }) {
   const floatingInputRef = useRef<HTMLInputElement | null>(null)
   const { setContextKey } = useAgentPageContext()
 
-  const currentField = BOOKING_FIELDS[stepIndex]
+  const rawCurrent = BOOKING_FIELDS[stepIndex]
+  const currentField = rawCurrent ? localizeBookingField(t, rawCurrent) : undefined
   const filledCount = filledBookingCount(values)
 
   const missingHint = useMemo(() => {
     const missing = missingRequiredFields(values)
     if (!missing.length) return null
-    return `缺少：${missing.map((f) => f.label).join('、')}`
-  }, [values])
+    const labels = missing.map((f) => localizeBookingField(t, f).label)
+    return t('home.booking.missing', { list: bookingListJoin(t, labels) })
+  }, [values, t])
 
   useEffect(() => {
     if (!inView) return
@@ -96,7 +104,8 @@ export function DemoBookingProvider({ children }: { children: ReactNode }) {
     async (nextValues: Partial<Record<BookingFieldKey, string>>) => {
       const missing = missingRequiredFields(nextValues)
       if (missing.length) {
-        setFieldError(`请填写${missing.map((f) => f.label).join('、')}`)
+        const labels = missing.map((f) => localizeBookingField(t, f).label)
+        setFieldError(t('home.booking.fill_required', { list: bookingListJoin(t, labels) }))
         const jump = BOOKING_FIELDS.findIndex((f) => f.key === missing[0].key)
         if (jump >= 0) setStepIndex(jump)
         return
@@ -111,13 +120,13 @@ export function DemoBookingProvider({ children }: { children: ReactNode }) {
         setDelivery(result)
         scrollToHomeSection('contact-demo')
       } catch {
-        setFieldError('保存失败，请稍后重试')
+        setFieldError(t('home.booking.save_fail'))
         setSubmitted(false)
       } finally {
         setSubmitting(false)
       }
     },
-    [],
+    [t],
   )
 
   const retrySubmit = useCallback(async () => {
@@ -128,11 +137,11 @@ export function DemoBookingProvider({ children }: { children: ReactNode }) {
       const result = await submitDemoBookingWithFallback(toPayload(values))
       setDelivery(result)
     } catch {
-      setFieldError('保存失败，请稍后重试')
+      setFieldError(t('home.booking.save_fail'))
     } finally {
       setSubmitting(false)
     }
-  }, [submitted, submitting, values])
+  }, [submitted, submitting, values, t])
 
   const advanceAfterField = useCallback(
     (field: (typeof BOOKING_FIELDS)[number], value: string) => {
@@ -154,27 +163,27 @@ export function DemoBookingProvider({ children }: { children: ReactNode }) {
   )
 
   const submitDraft = useCallback(() => {
-    if (submitted || submitting || !currentField) return
+    if (submitted || submitting || !rawCurrent) return
     const parsed = parseBookingInput(draft)
-    const err = validateBookingField(currentField, parsed)
+    const err = validateBookingFieldLocalized(t, rawCurrent, parsed)
     if (err) {
       setFieldError(err)
       return
     }
     setFieldError(null)
-    advanceAfterField(currentField, parsed.trim())
-  }, [advanceAfterField, currentField, draft, submitted, submitting])
+    advanceAfterField(rawCurrent, parsed.trim())
+  }, [advanceAfterField, rawCurrent, draft, submitted, submitting, t])
 
   const skipOptional = useCallback(() => {
-    if (!currentField || currentField.required || submitted || submitting) return
+    if (!rawCurrent || rawCurrent.required || submitted || submitting) return
     setFieldError(null)
     setDraft('')
-    if (currentField.key === 'company' || stepIndex + 1 >= BOOKING_FIELDS.length) {
+    if (rawCurrent.key === 'company' || stepIndex + 1 >= BOOKING_FIELDS.length) {
       void finalizeBooking(values)
       return
     }
     setStepIndex(stepIndex + 1)
-  }, [currentField, finalizeBooking, stepIndex, submitted, submitting, values])
+  }, [rawCurrent, finalizeBooking, stepIndex, submitted, submitting, values])
 
   const registerFloatingInput = useCallback((el: HTMLInputElement | null) => {
     floatingInputRef.current = el

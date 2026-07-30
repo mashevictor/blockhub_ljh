@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useT } from '@blockhub/i18n/react'
 import { Link, useParams } from 'react-router-dom'
 import { api, type Agent } from '../api/client'
 
@@ -13,6 +14,7 @@ interface Capability {
 }
 
 export default function AgentDetailPage() {
+  const t = useT()
   const { agentId } = useParams<{ agentId: string }>()
   const [agent, setAgent] = useState<Agent | null>(null)
   const [caps, setCaps] = useState<Capability[]>([])
@@ -31,7 +33,7 @@ export default function AgentDetailPage() {
     return (
       <div className="placeholder-page">
         <div className="icon">⏳</div>
-        <h2>{agentId ? '加载助手信息…' : '未指定助手'}</h2>
+        <h2>{agentId ? t('admin.agent.loading') : t('admin.agent.missing')}</h2>
         {agentId && (
           <p style={{ fontSize: 13, color: 'var(--muted)' }}>
             若长时间无内容，请确认已执行 seed 且 API 正常。

@@ -1,5 +1,8 @@
+import { useT } from '@blockhub/i18n/react'
 import type { PlazaRunPhase } from '../../context/PlazaFlowRunContext'
 import { usePlazaFlowRun } from '../../context/PlazaFlowRunContext'
+
+export type TranslateFn = (key: string, vars?: Record<string, string | number>) => string
 
 export interface RunPhaseUi {
   phase: PlazaRunPhase
@@ -7,28 +10,34 @@ export interface RunPhaseUi {
   badgeClass: string
 }
 
-export function runPhaseUi(phase: PlazaRunPhase, stepIndex: number, totalSteps: number): RunPhaseUi {
+export function runPhaseUi(
+  phase: PlazaRunPhase,
+  stepIndex: number,
+  totalSteps: number,
+  t: TranslateFn,
+): RunPhaseUi {
+  const a = Math.min(stepIndex + 1, totalSteps)
   switch (phase) {
     case 'running':
       return {
         phase,
-        badge: `预览 ${Math.min(stepIndex + 1, totalSteps)}/${totalSteps}`,
+        badge: t('home.plaza.run.badge.running', { a, b: totalSteps }),
         badgeClass: 'is-running',
       }
     case 'paused':
       return {
         phase,
-        badge: `暂停 ${Math.min(stepIndex + 1, totalSteps)}/${totalSteps}`,
+        badge: t('home.plaza.run.badge.paused', { a, b: totalSteps }),
         badgeClass: 'is-paused',
       }
     case 'completed':
-      return { phase, badge: '预览完成', badgeClass: 'is-done' }
+      return { phase, badge: t('home.plaza.run.badge.done'), badgeClass: 'is-done' }
     case 'error':
-      return { phase, badge: '预览失败', badgeClass: 'is-error' }
+      return { phase, badge: t('home.plaza.run.badge.error'), badgeClass: 'is-error' }
     case 'stopped':
-      return { phase, badge: '已停止', badgeClass: 'is-stopped' }
+      return { phase, badge: t('home.plaza.run.badge.stopped'), badgeClass: 'is-stopped' }
     default:
-      return { phase: 'idle', badge: '概览', badgeClass: 'is-idle' }
+      return { phase: 'idle', badge: t('home.plaza.run.badge.idle'), badgeClass: 'is-idle' }
   }
 }
 
@@ -39,8 +48,9 @@ interface Props {
 
 /** 流程预览控制 · 自动步进 + 手动上/下一步；不写库、不改模块结构 */
 export default function PlazaRunControls({ compact = false, showBadge = true }: Props) {
+  const t = useT()
   const run = usePlazaFlowRun()
-  const ui = runPhaseUi(run.phase, run.stepIndex, run.steps.length)
+  const ui = runPhaseUi(run.phase, run.stepIndex, run.steps.length, t)
   const disabled = !run.steps.length
   const inPreview =
     run.phase === 'running' || run.phase === 'paused' || run.phase === 'completed'
@@ -50,7 +60,7 @@ export default function PlazaRunControls({ compact = false, showBadge = true }: 
     <div
       className={`plaza-run-controls${compact ? ' compact' : ''}`}
       role="group"
-      aria-label="流程预览控制"
+      aria-label={t('home.plaza.run.aria')}
     >
       {showBadge && (
         <span className={`plaza-run-phase-badge ${ui.badgeClass}`} title={run.progressLabel}>
@@ -67,9 +77,9 @@ export default function PlazaRunControls({ compact = false, showBadge = true }: 
           className="plaza-run-btn start"
           disabled={disabled}
           onClick={() => run.start()}
-          title="自动走一遍意图→模块→输出；也可点「下一步」或点选节点推进"
+          title={t('home.plaza.run.start_title')}
         >
-          ▶ 流程预览
+          {t('home.plaza.run.start')}
         </button>
       )}
 
@@ -80,69 +90,67 @@ export default function PlazaRunControls({ compact = false, showBadge = true }: 
             className="plaza-run-btn prev"
             disabled={run.stepIndex <= 0}
             onClick={() => run.prevStep()}
-            title="上一步"
+            title={t('home.plaza.run.prev_title')}
           >
-            ← 上一步
+            {t('home.plaza.run.prev')}
           </button>
           <button
             type="button"
             className="plaza-run-btn next"
             onClick={() => run.nextStep()}
-            title="下一步（会暂停自动播放）"
+            title={t('home.plaza.run.next_title')}
           >
-            下一步 →
+            {t('home.plaza.run.next')}
           </button>
         </>
       )}
 
       {run.phase === 'running' && (
         <>
-          <button type="button" className="plaza-run-btn pause" onClick={() => run.pause()} title="暂停自动">
-            ⏸ 暂停
+          <button type="button" className="plaza-run-btn pause" onClick={() => run.pause()} title={t('home.plaza.run.pause_title')}>
+            {t('home.plaza.run.pause')}
           </button>
-          <button type="button" className="plaza-run-btn stop" onClick={() => run.stop()} title="停止预览">
-            ⏹ 停止
+          <button type="button" className="plaza-run-btn stop" onClick={() => run.stop()} title={t('home.plaza.run.stop_title')}>
+            {t('home.plaza.run.stop')}
           </button>
         </>
       )}
 
       {run.phase === 'paused' && (
         <>
-          <button type="button" className="plaza-run-btn resume" onClick={() => run.resume()} title="继续自动步进">
-            ▶ 继续自动
+          <button type="button" className="plaza-run-btn resume" onClick={() => run.resume()} title={t('home.plaza.run.resume_title')}>
+            {t('home.plaza.run.resume')}
           </button>
-          <button type="button" className="plaza-run-btn stop" onClick={() => run.stop()} title="停止预览">
-            ⏹ 停止
+          <button type="button" className="plaza-run-btn stop" onClick={() => run.stop()} title={t('home.plaza.run.stop_title')}>
+            {t('home.plaza.run.stop')}
           </button>
         </>
       )}
 
       {(run.phase === 'completed' || run.phase === 'stopped') && (
         <>
-          <button type="button" className="plaza-run-btn restart" onClick={() => run.retry()} title="再预览一遍">
-            ↻ 再预览
+          <button type="button" className="plaza-run-btn restart" onClick={() => run.retry()} title={t('home.plaza.run.restart_title')}>
+            {t('home.plaza.run.restart')}
           </button>
-          <button type="button" className="plaza-run-btn reset" onClick={() => run.reset()} title="回到概览">
-            ✕ 概览
+          <button type="button" className="plaza-run-btn reset" onClick={() => run.reset()} title={t('home.plaza.run.reset_title')}>
+            {t('home.plaza.run.reset')}
           </button>
         </>
       )}
 
       {run.phase === 'error' && (
         <>
-          <button type="button" className="plaza-run-btn retry" onClick={() => run.retry()} title="重试">
-            ↻ 重试
+          <button type="button" className="plaza-run-btn retry" onClick={() => run.retry()} title={t('home.plaza.run.retry_title')}>
+            {t('home.plaza.run.retry')}
           </button>
-          <button type="button" className="plaza-run-btn reset" onClick={() => run.reset()} title="回到概览">
-            ✕ 概览
+          <button type="button" className="plaza-run-btn reset" onClick={() => run.reset()} title={t('home.plaza.run.reset_title')}>
+            {t('home.plaza.run.reset')}
           </button>
         </>
       )}
 
       {inPreview && !compact && (
-        <span className="plaza-run-hint">
-          自动约 1.4s/步 · 或点「下一步」/ 点选上方节点
-        </span>
+        <span className="plaza-run-hint">{t('home.plaza.run.hint')}</span>
       )}
     </div>
   )

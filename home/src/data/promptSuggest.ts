@@ -25,6 +25,7 @@ const OFFICE_CATS = [
 
 export const SUGGEST_KIND_ORDER = ['industry', 'office', 'capability', 'module', 'scenario', 'supplement'] as const
 
+/** zh fallback — React UI should prefer `suggestKindLabel(t, kind)`. */
 export const SUGGEST_KIND_LABEL: Record<string, string> = {
   industry: '推荐行业',
   office: '办公场景',
@@ -32,6 +33,25 @@ export const SUGGEST_KIND_LABEL: Record<string, string> = {
   module: '功能模块',
   scenario: '业务场景',
   supplement: '扩展能力',
+}
+
+export const SUGGEST_KIND_I18N_KEY: Record<string, string> = {
+  industry: 'home.suggest.kind.industry',
+  office: 'home.suggest.kind.office',
+  capability: 'home.suggest.kind.capability',
+  module: 'home.suggest.kind.module',
+  scenario: 'home.suggest.kind.scenario',
+  supplement: 'home.suggest.kind.supplement',
+}
+
+export function suggestKindLabel(
+  t: (key: string, vars?: Record<string, string | number>) => string,
+  kind: string,
+): string {
+  const key = SUGGEST_KIND_I18N_KEY[kind]
+  if (!key) return SUGGEST_KIND_LABEL[kind] ?? kind
+  const text = t(key)
+  return text === key ? (SUGGEST_KIND_LABEL[kind] ?? kind) : text
 }
 
 const KEYWORD_HINTS: { words: string[]; pick: AgentPick; reason: string }[] = [
@@ -223,7 +243,10 @@ export function metaForSuggestItem(it: { type: string; key: string; label: strin
   return metaForPick(mapSuggestApiItem(it))
 }
 
-export function groupSuggestions(items: SuggestItem[]): { kind: string; label: string; items: SuggestItem[] }[] {
+export function groupSuggestions(
+  items: SuggestItem[],
+  t?: (key: string, vars?: Record<string, string | number>) => string,
+): { kind: string; label: string; items: SuggestItem[] }[] {
   const buckets = new Map<string, SuggestItem[]>()
   for (const s of items) {
     const k = s.pick.type === 'supplement' ? 'supplement' : s.pick.type
@@ -234,7 +257,7 @@ export function groupSuggestions(items: SuggestItem[]): { kind: string; label: s
     .filter((k) => buckets.has(k))
     .map((k) => ({
       kind: k,
-      label: SUGGEST_KIND_LABEL[k] ?? k,
+      label: t ? suggestKindLabel(t, k) : (SUGGEST_KIND_LABEL[k] ?? k),
       items: buckets.get(k)!,
     }))
 }

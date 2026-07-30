@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useT } from '@blockhub/i18n/react'
 import {
   fetchActivities,
   fetchAgents,
@@ -29,24 +30,31 @@ import {
 } from '../components/icons'
 
 const STAT_META = [
-  { key: 'agents', label: '智能能力', icon: IconBot, tone: 'violet' },
-  { key: 'capabilities', label: '功能组件', icon: IconGrid, tone: 'sky' },
-  { key: 'office_scenarios', label: '办公场景', icon: IconList, tone: 'indigo' },
-  { key: 'industry_scenarios', label: '行业场景', icon: IconList, tone: 'amber' },
-  { key: 'apps_created', label: '已建应用', icon: IconAppWindow, tone: 'emerald' },
-  { key: 'chat_sessions', label: '对话次数', icon: IconMessage, tone: 'cyan' },
-  { key: 'pending_approvals', label: '待我审批', icon: IconInbox, tone: 'orange' },
-  { key: 'unread_notifications', label: '未读消息', icon: IconBell, tone: 'rose' },
+  { key: 'agents', labelKey: 'admin.overview.stat.agents', icon: IconBot, tone: 'violet' },
+  { key: 'capabilities', labelKey: 'admin.overview.stat.capabilities', icon: IconGrid, tone: 'sky' },
+  { key: 'office_scenarios', labelKey: 'admin.overview.stat.office_scenarios', icon: IconList, tone: 'indigo' },
+  { key: 'industry_scenarios', labelKey: 'admin.overview.stat.industry_scenarios', icon: IconList, tone: 'amber' },
+  { key: 'apps_created', labelKey: 'admin.overview.stat.apps_created', icon: IconAppWindow, tone: 'emerald' },
+  { key: 'chat_sessions', labelKey: 'admin.overview.stat.chat_sessions', icon: IconMessage, tone: 'cyan' },
+  { key: 'pending_approvals', labelKey: 'admin.overview.stat.pending_approvals', icon: IconInbox, tone: 'orange' },
+  { key: 'unread_notifications', labelKey: 'admin.overview.stat.unread_notifications', icon: IconBell, tone: 'rose' },
 ] as const
 
-const QUICK_LINKS: Array<{ to: string; icon: typeof IconList; title: string; sub: string; roles: AppRole[] }> = [
-  { to: '/scenarios', icon: IconList, title: '业务场景', sub: `${PLATFORM_STATS.scenarios} 个可选`, roles: ['admin'] },
-  { to: '/create', icon: IconSparkles, title: '创建应用', sub: '选型发布 Web/App', roles: ['admin'] },
-  { to: '/knowledge', icon: IconBook, title: '知识库', sub: '上传制度文档', roles: ['admin', 'tenant_owner', 'employee'] },
-  { to: '/approvals', icon: IconCheckCircle, title: '审批中心', sub: '处理待办', roles: ['admin', 'tenant_owner', 'employee'] },
-  { to: '/reports', icon: IconBarChart, title: '数据报表', sub: '查看统计', roles: ['admin'] },
-  { to: '/chat', icon: IconMessage, title: '智能问答', sub: '开始对话', roles: ['admin', 'tenant_owner', 'employee'] },
-  { to: '/notifications', icon: IconBell, title: '消息通知', sub: '查看未读', roles: ['admin', 'tenant_owner', 'employee'] },
+const QUICK_LINKS: Array<{
+  to: string
+  icon: typeof IconList
+  titleKey: string
+  subKey: string
+  subParams?: Record<string, string | number>
+  roles: AppRole[]
+}> = [
+  { to: '/scenarios', icon: IconList, titleKey: 'admin.overview.quick.scenarios', subKey: 'admin.overview.quick.scenarios_sub', subParams: { n: PLATFORM_STATS.scenarios }, roles: ['admin'] },
+  { to: '/create', icon: IconSparkles, titleKey: 'admin.overview.quick.create', subKey: 'admin.overview.quick.create_sub', roles: ['admin'] },
+  { to: '/knowledge', icon: IconBook, titleKey: 'admin.overview.quick.knowledge', subKey: 'admin.overview.quick.knowledge_sub', roles: ['admin', 'tenant_owner', 'employee'] },
+  { to: '/approvals', icon: IconCheckCircle, titleKey: 'admin.overview.quick.approvals', subKey: 'admin.overview.quick.approvals_sub', roles: ['admin', 'tenant_owner', 'employee'] },
+  { to: '/reports', icon: IconBarChart, titleKey: 'admin.overview.quick.reports', subKey: 'admin.overview.quick.reports_sub', roles: ['admin'] },
+  { to: '/chat', icon: IconMessage, titleKey: 'admin.overview.quick.chat', subKey: 'admin.overview.quick.chat_sub', roles: ['admin', 'tenant_owner', 'employee'] },
+  { to: '/notifications', icon: IconBell, titleKey: 'admin.overview.quick.notifications', subKey: 'admin.overview.quick.notifications_sub', roles: ['admin', 'tenant_owner', 'employee'] },
 ]
 
 const PUBLIC_HOME = homePublicUrl().replace(/\/$/, '') || 'https://blockhub.club'
@@ -63,16 +71,16 @@ function qrImageUrl(data: string) {
   return `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(data)}`
 }
 
-function sourceLabel(source?: string) {
-  if (source === 'prompt') return '描述需求'
-  if (source === 'module') return '自由搭配'
-  return '按行业'
+function sourceLabel(source: string | undefined, t: ReturnType<typeof useT>) {
+  if (source === 'prompt') return t('admin.overview.source.prompt')
+  if (source === 'module') return t('admin.overview.source.module')
+  return t('admin.overview.source.industry')
 }
 
-function deliverLabel(deliver?: string) {
-  if (deliver === 'web') return '网页版'
-  if (deliver === 'app') return 'App'
-  return '双端'
+function deliverLabel(deliver: string | undefined, t: ReturnType<typeof useT>) {
+  if (deliver === 'web') return t('admin.overview.deliver.web')
+  if (deliver === 'app') return t('admin.overview.deliver.app')
+  return t('admin.overview.deliver.both')
 }
 
 function AppIcon({ app }: { app: CreatedApp }) {
@@ -111,6 +119,7 @@ function AppIcon({ app }: { app: CreatedApp }) {
 }
 
 function AppCard({ app }: { app: CreatedApp }) {
+  const t = useT()
   const webUrl = appWebUrl(app)
   const downloadUrl = appDownloadUrl(app)
   const modules = app.modules ?? []
@@ -129,38 +138,39 @@ function AppCard({ app }: { app: CreatedApp }) {
           </div>
         </div>
         <p className="created-app-meta">
-          {sourceLabel(app.source)} · {deliverLabel(app.deliver)} · {app.industry_key} · {app.scenarios.length} 个场景
+          {sourceLabel(app.source, t)} · {deliverLabel(app.deliver, t)} · {app.industry_key} · {t('admin.overview.app.scenes', { n: app.scenarios.length })}
           · {new Date(app.created_at).toLocaleString('zh-CN')}
         </p>
         <p className="created-app-features">
-          <strong>功能介绍：</strong>{featureText || '智能问答 · 审批流 · 知识库'}
+          <strong>{t('admin.overview.app.features')}</strong>{featureText || t('admin.overview.app.features_fallback')}
         </p>
         <div className="created-app-links">
           {(app.deliver === 'web' || app.deliver === 'both' || !app.deliver) && (
             <div className="created-app-link-row">
-              <span>网页访问</span>
+              <span>{t('admin.overview.app.web')}</span>
               <a href={webUrl} target="_blank" rel="noreferrer">{webUrl}</a>
-              <button type="button" onClick={() => navigator.clipboard.writeText(webUrl)}>复制</button>
+              <button type="button" onClick={() => navigator.clipboard.writeText(webUrl)}>{t('admin.overview.app.copy')}</button>
             </div>
           )}
           {(app.deliver === 'app' || app.deliver === 'both' || !app.deliver) && (
             <div className="created-app-link-row">
-              <span>APK 下载</span>
+              <span>{t('admin.overview.app.apk')}</span>
               <a href={downloadUrl} target="_blank" rel="noreferrer">{downloadUrl}</a>
-              <button type="button" onClick={() => navigator.clipboard.writeText(downloadUrl)}>复制</button>
+              <button type="button" onClick={() => navigator.clipboard.writeText(downloadUrl)}>{t('admin.overview.app.copy')}</button>
             </div>
           )}
         </div>
       </div>
       <div className="created-app-qr">
-        <img src={qrImageUrl(webUrl)} alt={`${app.name} 二维码`} width={120} height={120} />
-        <span>扫码打开应用</span>
+        <img src={qrImageUrl(webUrl)} alt={t('admin.overview.app.qr_alt', { name: app.name })} width={120} height={120} />
+        <span>{t('admin.overview.app.scan')}</span>
       </div>
     </article>
   )
 }
 
 export default function OverviewPage() {
+  const t = useT()
   const [stats, setStats] = useState<Awaited<ReturnType<typeof fetchDashboard>> | null>(null)
   const [agents, setAgents] = useState<Agent[]>([])
   const [activities, setActivities] = useState<Array<{ id: number; icon: string; title: string; desc: string; time: string }>>([])
@@ -197,20 +207,20 @@ export default function OverviewPage() {
         <div className="hero-content">
           <div className="hero-badge">
             <IconSparkles size={14} />
-            工作台
+            {t('admin.overview.badge')}
           </div>
-          <h1>欢迎回来</h1>
+          <h1>{t('admin.overview.welcome')}</h1>
           <p>
-            查看已搭建的应用，复制链接或下载地址，分享给团队使用
+            {t('admin.overview.lead')}
           </p>
           <div className="hero-actions">
             <a href={PUBLIC_HOME || homePublicUrl()} className="btn btn-primary" target="_blank" rel="noreferrer">
               <IconSparkles size={16} />
-              前往创建页
+              {t('admin.overview.cta_create')}
             </a>
             <Link to="/chat" className="btn btn-ghost">
               <IconMessage size={16} />
-              开始对话
+              {t('admin.overview.cta_chat')}
             </Link>
           </div>
         </div>
@@ -220,23 +230,23 @@ export default function OverviewPage() {
         <div className="card card-hover" style={{ marginBottom: 16 }}>
           <div className="section-header" style={{ marginBottom: 8 }}>
             <div>
-              <h2>当前套餐 · {planName}</h2>
+              <h2>{t('admin.overview.plan_title', { name: planName })}</h2>
               <div style={{ fontSize: 13, color: 'var(--muted)', marginTop: 4 }}>
                 {packs === null || packs === undefined
-                  ? '行业包不限'
+                  ? t('admin.overview.packs_unlimited')
                   : packs === 0
-                    ? '无行业包配额（办公/模块创建）'
-                    : `行业包最多 ${packs} 个`}
+                    ? t('admin.overview.packs_none')
+                    : t('admin.overview.packs_max', { n: packs })}
                 {' · '}
-                {schemaApproval ? '对话改页需管理员审批' : '对话改页提交即生效'}
-                {' · '}坐席 {billing?.seat_quota ?? '—'}
+                {schemaApproval ? t('admin.overview.schema_approval') : t('admin.overview.schema_instant')}
+                {' · '}{t('admin.overview.seats', { n: billing?.seat_quota ?? '—' })}
               </div>
             </div>
             <a
               href={`${homePublicUrl().replace(/\/$/, '')}/account/billing`}
               className="btn btn-ghost"
             >
-              管理套餐
+              {t('admin.overview.manage_plan')}
             </a>
           </div>
           {planFeatures.length > 0 ? (
@@ -254,13 +264,13 @@ export default function OverviewPage() {
           const StatIcon = s.icon
           const value = stats?.[s.key as keyof typeof stats]
           return (
-            <div key={s.label} className={`stat-card stat-tone-${s.tone}`}>
+            <div key={s.key} className={`stat-card stat-tone-${s.tone}`}>
               <div className="stat-card-icon">
                 <StatIcon size={20} />
               </div>
               <div className="stat-card-body">
                 <div className="value">{value ?? '—'}</div>
-                <div className="label">{s.label}</div>
+                <div className="label">{t(s.labelKey)}</div>
               </div>
             </div>
           )
@@ -270,16 +280,16 @@ export default function OverviewPage() {
       <div className="card card-hover created-apps-section">
         <div className="section-header" style={{ marginBottom: 16 }}>
           <div>
-            <h2>已创建应用</h2>
+            <h2>{t('admin.overview.apps_title')}</h2>
             <div style={{ fontSize: 12, color: 'var(--muted)' }}>
-              来自 Home 创建入口 · 链接均使用公网地址 {PUBLIC_HOME}
+              {t('admin.overview.apps_sub', { host: PUBLIC_HOME })}
             </div>
           </div>
         </div>
         {createdApps.length === 0 ? (
           <div className="created-apps-empty">
-            <p>还没有已发布的应用。请先在首页创建并发布。</p>
-            <a href={PUBLIC_HOME || homePublicUrl()} className="btn btn-primary" target="_blank" rel="noreferrer">去创建应用</a>
+            <p>{t('admin.overview.apps_empty')}</p>
+            <a href={PUBLIC_HOME || homePublicUrl()} className="btn btn-primary" target="_blank" rel="noreferrer">{t('admin.overview.apps_cta')}</a>
           </div>
         ) : (
           <div className="created-apps-grid">
@@ -291,8 +301,8 @@ export default function OverviewPage() {
       </div>
 
       <div className="section-header animate-fade-up">
-        <h2>{PLATFORM_STATS.agents} 个助手</h2>
-        {adminLike && <Link to="/agents" className="section-link">查看全部 →</Link>}
+        <h2>{t('admin.overview.agents_title', { n: PLATFORM_STATS.agents })}</h2>
+        {adminLike && <Link to="/agents" className="section-link">{t('admin.overview.view_all')}</Link>}
       </div>
       <div className="agent-grid stagger-in">
         {(adminLike ? agents : agents.slice(0, 4)).map((a, i) => {
@@ -303,7 +313,7 @@ export default function OverviewPage() {
                   <span className="agent-emoji">{a.icon}</span>
                   {a.name}
                 </div>
-                <span className="badge-active">已启用</span>
+                <span className="badge-active">{t('admin.overview.enabled')}</span>
               </div>
               <div className="agent-card-desc">{a.description}</div>
             </>
@@ -323,8 +333,8 @@ export default function OverviewPage() {
       <div className="two-col">
         <div className="card card-hover">
           <div className="section-header" style={{ marginBottom: 12 }}>
-            <h2>最近动态</h2>
-            <span className="live-dot">● 实时</span>
+            <h2>{t('admin.overview.activity')}</h2>
+            <span className="live-dot">{t('admin.overview.live')}</span>
           </div>
           <ul className="activity-list">
             {activities.map((a, i) => (
@@ -343,7 +353,7 @@ export default function OverviewPage() {
         <div className="card card-hover">
           <div className="trend-header">
             <div>
-              <h2 style={{ fontSize: 17, fontWeight: 700 }}>本周使用情况</h2>
+              <h2 style={{ fontSize: 17, fontWeight: 700 }}>{t('admin.overview.trends')}</h2>
               <div style={{ fontSize: 12, color: 'var(--muted)' }}>{trends?.label}</div>
             </div>
             <div className="trend-growth">{trends?.growth}</div>
@@ -376,8 +386,8 @@ export default function OverviewPage() {
                 ))}
               </div>
               <div className="trend-legend">
-                <span><i className="legend-dot" style={{ background: '#6366f1' }} /> 智能问答</span>
-                <span><i className="legend-dot" style={{ background: '#f59e0b' }} /> 审批处理</span>
+                <span><i className="legend-dot" style={{ background: '#6366f1' }} /> {t('admin.overview.legend_chat')}</span>
+                <span><i className="legend-dot" style={{ background: '#f59e0b' }} /> {t('admin.overview.legend_approval')}</span>
               </div>
             </>
           )}
@@ -388,22 +398,22 @@ export default function OverviewPage() {
         <div className="card card-hover">
           <div className="section-header" style={{ marginBottom: 14 }}>
             <div>
-              <h2>{BRAND.nameZh} 能帮您做什么</h2>
-              <div style={{ fontSize: 12, color: 'var(--muted)' }}>从创建到日常使用，一个平台搞定</div>
+              <h2>{t('admin.overview.help_title', { brand: BRAND.nameZh })}</h2>
+              <div style={{ fontSize: 12, color: 'var(--muted)' }}>{t('admin.overview.help_sub')}</div>
             </div>
           </div>
           <ul className="feature-list">
-            <li><strong>创建应用</strong> — 勾选业务场景，一键发布</li>
-            <li><strong>制度问答</strong> — 上传 PDF，提问可带出处</li>
-            <li><strong>在线审批</strong> — 请假、报销等流程在线提交与处理</li>
-            <li><strong>数据报表</strong> — 查看使用情况与业务指标</li>
-            <li><strong>消息通知</strong> — 审批结果、公告及时送达</li>
+            <li>{t('admin.overview.help.1')}</li>
+            <li>{t('admin.overview.help.2')}</li>
+            <li>{t('admin.overview.help.3')}</li>
+            <li>{t('admin.overview.help.4')}</li>
+            <li>{t('admin.overview.help.5')}</li>
           </ul>
         </div>
 
         <div className="card card-hover">
           <div className="section-header" style={{ marginBottom: 14 }}>
-            <h2>快捷入口</h2>
+            <h2>{t('admin.overview.quick')}</h2>
           </div>
           <div className="quick-grid">
             {visibleQuickLinks.map((q) => {
@@ -414,8 +424,8 @@ export default function OverviewPage() {
                     <QIcon size={20} />
                   </span>
                   <div className="quick-text">
-                    <strong>{q.title}</strong>
-                    <span>{q.sub}</span>
+                    <strong>{t(q.titleKey)}</strong>
+                    <span>{t(q.subKey, q.subParams)}</span>
                   </div>
                 </Link>
               )

@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { useT } from '@blockhub/i18n/react'
 import BrandMark from '../BrandMark'
 import { BRAND } from '../../data/brand'
 import { ROUTES } from '../../routes/paths'
@@ -25,7 +26,9 @@ function FooterLink({ to, external, children }: { to: string; external?: boolean
 }
 
 export default function B2BSiteFooter({ variant = 'dark', className = '' }: Props) {
+  const t = useT()
   const year = new Date().getFullYear()
+  const tagline = t('home.brand.tagline')
 
   return (
     <footer className={`b2b-site-footer variant-${variant}${className ? ` ${className}` : ''}`}>
@@ -38,17 +41,17 @@ export default function B2BSiteFooter({ variant = 'dark', className = '' }: Prop
               <em>{BRAND.nameEn}</em>
             </span>
           </Link>
-          <p className="b2b-site-footer-tagline">{BRAND.tagline}</p>
+          <p className="b2b-site-footer-tagline">{tagline}</p>
         </div>
 
         <div className="b2b-site-footer-columns">
           {SITE_FOOTER_COLUMNS.map((col) => (
-            <div key={col.title} className="b2b-site-footer-col">
-              <h4>{col.title}</h4>
+            <div key={col.titleKey} className="b2b-site-footer-col">
+              <h4>{t(col.titleKey)}</h4>
               <ul>
                 {col.links.map((link) => (
-                  <li key={link.label}>
-                    <FooterLink to={link.to} external={link.external}>{link.label}</FooterLink>
+                  <li key={link.labelKey}>
+                    <FooterLink to={link.to} external={link.external}>{t(link.labelKey)}</FooterLink>
                   </li>
                 ))}
               </ul>
@@ -59,11 +62,11 @@ export default function B2BSiteFooter({ variant = 'dark', className = '' }: Prop
 
       <div className="b2b-site-footer-bottom">
         <p className="b2b-site-footer-copy">
-          © {year} {BRAND.nameZh} {BRAND.nameEn} · {BRAND.tagline}
+          © {year} {BRAND.nameZh} {BRAND.nameEn} · {tagline}
         </p>
-        <nav className="b2b-site-footer-legal" aria-label="法律与合规">
+        <nav className="b2b-site-footer-legal" aria-label={t('home.footer.legal.aria')}>
           {SITE_FOOTER_LEGAL.map((link) => (
-            <FooterLink key={link.label} to={link.to}>{link.label}</FooterLink>
+            <FooterLink key={link.labelKey} to={link.to}>{t(link.labelKey)}</FooterLink>
           ))}
         </nav>
       </div>

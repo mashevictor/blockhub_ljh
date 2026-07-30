@@ -1,4 +1,5 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react'
+import { useT } from '@blockhub/i18n/react'
 import { useVoiceWebSocket } from '../../hooks/useVoiceWebSocket'
 import { api } from '../../api/client'
 
@@ -13,17 +14,8 @@ function newSessionId(): string {
   return `web-${Date.now().toString(36)}`
 }
 
-const STATE_LABEL: Record<string, string> = {
-  disconnected: '未连接',
-  connecting: '连接中…',
-  idle: '待命',
-  listening: '正在听',
-  thinking: '思考中',
-  speaking: '播报中',
-  error: '出错',
-}
-
 export default function VoiceAgentPanel() {
+  const t = useT()
   const sessionId = useMemo(() => newSessionId(), [])
   const {
     state,
@@ -99,51 +91,51 @@ export default function VoiceAgentPanel() {
   }
 
   const busy = state === 'thinking' || state === 'speaking' || sending
+  const stateLabel = t(`home.plaza.voice_panel.state.${state}`)
+  const stateDisplay = stateLabel === `home.plaza.voice_panel.state.${state}` ? state : stateLabel
 
   return (
     <div className="voice-agent-panel">
       <div className="voice-agent-header">
         <div>
-          <h2>上海话语音助手</h2>
-          <p>文字对话走真实大模型 · 回复经电信上海话 TTS 播报 · 开麦可选</p>
+          <h2>{t('home.plaza.voice_panel.title')}</h2>
+          <p>{t('home.plaza.voice_panel.sub')}</p>
         </div>
-        <span className={`voice-state-badge voice-state-${state}`}>{STATE_LABEL[state] || state}</span>
+        <span className={`voice-state-badge voice-state-${state}`}>{stateDisplay}</span>
       </div>
 
       {voiceConfigured === false && (
         <div className="voice-setup-banner" role="alert">
-          <strong>语音服务未配置</strong>
-          <p>服务器未设置电信星辰 API Key，无法连接实时语音。请联系管理员配置 <code>TELEAI_*</code>。</p>
+          <strong>{t('home.plaza.voice_panel.setup_title')}</strong>
+          <p>{t('home.plaza.voice_panel.setup_body')}</p>
         </div>
       )}
 
       {voiceConfigured === null && (
-        <p className="voice-empty">正在检查语音服务…</p>
+        <p className="voice-empty">{t('home.plaza.voice_panel.checking')}</p>
       )}
 
       <div className="voice-agent-messages">
         {messages.length === 0 && !partialText && (
           <div className="voice-welcome">
-            <p className="voice-welcome-title">真实业务链路（非演示 Mock）</p>
-            <p className="voice-empty">
-              网页端可直接输入文字或点例句：跳过麦克风，仍走 LLM + 上海话 TTS。开麦在浏览器允许时可用，失败不影响文字业务。
-            </p>
+            <p className="voice-welcome-title">{t('home.plaza.voice_panel.welcome_title')}</p>
+            <p className="voice-empty">{t('home.plaza.voice_panel.welcome_body')}</p>
             <ol className="voice-welcome-steps">
-              <li>点「连接助手」或直接发送文字</li>
-              <li>听到上海话播报后可点「打断」</li>
-              <li>可选：允许麦克风后「按住说话」（失败可忽略）</li>
+              <li>{t('home.plaza.voice_panel.step1')}</li>
+              <li>{t('home.plaza.voice_panel.step2')}</li>
+              <li>{t('home.plaza.voice_panel.step3')}</li>
             </ol>
           </div>
         )}
         {messages.map((m, idx) => (
           <div key={`${m.role}-${idx}`} className={`voice-msg voice-msg-${m.role}`}>
-            <strong>{m.role === 'user' ? '侬讲' : '助手（上海话）'}</strong>
+            <strong>{m.role === 'user' ? t('home.plaza.voice_panel.you') : t('home.plaza.voice_panel.assistant')}</strong>
             <span>{m.text}</span>
           </div>
         ))}
         {partialText && (
           <div className="voice-msg voice-msg-partial">
-            <strong>识别中（上海话）</strong>
+            <strong>{t('home.plaza.voice_panel.partial')}</strong>
             <span>{partialText}</span>
           </div>
         )}
@@ -154,7 +146,7 @@ export default function VoiceAgentPanel() {
 
       {demoSamples.length > 0 && voiceConfigured !== false && (
         <div className="voice-agent-actions" style={{ marginBottom: 12 }}>
-          <p className="voice-empty" style={{ marginBottom: 8 }}>快捷例句（真实 LLM + TTS）</p>
+          <p className="voice-empty" style={{ marginBottom: 8 }}>{t('home.plaza.voice_panel.samples')}</p>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
             {demoSamples.map((sample) => (
               <button
@@ -177,16 +169,16 @@ export default function VoiceAgentPanel() {
             type="text"
             className="voice-composer-input"
             value={draft}
-            placeholder="输入一句话，走真实对话与上海话播报…"
+            placeholder={t('home.plaza.voice_panel.ph')}
             onChange={(e) => setDraft(e.target.value)}
-            aria-label="文字输入"
+            aria-label={t('home.plaza.voice_panel.input_aria')}
           />
           <button
             type="submit"
             className="voice-btn voice-btn-primary"
             disabled={!draft.trim() || sending}
           >
-            发送
+            {t('home.plaza.voice_panel.send')}
           </button>
         </form>
       )}
@@ -199,7 +191,7 @@ export default function VoiceAgentPanel() {
             disabled={voiceConfigured === false}
             onClick={() => void handleConnect()}
           >
-            {voiceConfigured === false ? '语音服务未就绪' : '连接助手'}
+            {voiceConfigured === false ? t('home.plaza.voice_panel.not_ready') : t('home.plaza.voice_panel.connect')}
           </button>
         ) : (
           <>
@@ -207,15 +199,15 @@ export default function VoiceAgentPanel() {
               type="button"
               className={`voice-btn ${micActive ? 'voice-btn-danger' : ''}`}
               onClick={() => void handleMicToggle()}
-              title="可选：浏览器麦克风"
+              title={t('home.plaza.voice_panel.mic_title')}
             >
-              {micActive ? '结束本句' : '开麦（可选）'}
+              {micActive ? t('home.plaza.voice_panel.mic_stop') : t('home.plaza.voice_panel.mic_start')}
             </button>
             <button type="button" className="voice-btn" onClick={bargeIn} disabled={state !== 'speaking'}>
-              打断播报
+              {t('home.plaza.voice_panel.barge')}
             </button>
             <button type="button" className="voice-btn voice-btn-ghost" onClick={handleDisconnect}>
-              断开
+              {t('home.plaza.voice_panel.disconnect')}
             </button>
           </>
         )}

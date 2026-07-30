@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useT } from '@blockhub/i18n/react'
 import {
   approvalAction,
   fetchApprovalStats,
@@ -9,14 +10,14 @@ import {
 import { useAuth } from '../auth/AuthContext'
 import { isTenantAdmin } from '../lib/roles'
 
-const STATUS_MAP: Record<string, { label: string; class: string }> = {
-  all: { label: '全部', class: '' },
-  pending: { label: '审批中', class: 'tag-warn' },
-  approved: { label: '已通过', class: 'tag-ok' },
-  rejected: { label: '已拒绝', class: 'tag-no' },
-}
-
 export default function ApprovalPage() {
+  const t = useT()
+  const STATUS_MAP: Record<string, { label: string; class: string }> = {
+    all: { label: t('admin.status.all'), class: '' },
+    pending: { label: t('admin.status.pending'), class: 'tag-warn' },
+    approved: { label: t('admin.status.approved'), class: 'tag-ok' },
+    rejected: { label: t('admin.status.rejected'), class: 'tag-no' },
+  }
   const { user, role } = useAuth()
   const canApprove = isTenantAdmin(user?.role ?? role)
   const [stats, setStats] = useState<{ pending: number; approved: number; rejected: number } | null>(null)
@@ -36,7 +37,7 @@ export default function ApprovalPage() {
 
   const handleAction = async (id: string, action: 'approve' | 'reject') => {
     if (!canApprove) {
-      setActionError('仅管理员 / 空间所有者可审批')
+      setActionError(t('admin.err.approve_forbidden'))
       return
     }
     setActionError('')
@@ -45,7 +46,7 @@ export default function ApprovalPage() {
       load()
     } catch (e) {
       const detail = (e as { response?: { data?: { detail?: string } } })?.response?.data?.detail
-      setActionError(typeof detail === 'string' ? detail : '审批失败')
+      setActionError(typeof detail === 'string' ? detail : t('admin.err.approve_failed'))
     }
   }
 
@@ -72,15 +73,15 @@ export default function ApprovalPage() {
     <>
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16 }}>
         <div>
-          <h1>审批中心</h1>
+          <h1>{t('admin.page.approvals.title')}</h1>
           <p>
             {canApprove
-              ? '处理请假、报销等各类申请的提交、审批与归档'
-              : '可发起申请并查看进度；通过/拒绝由管理员或空间所有者操作'}
+              ? t('admin.page.approvals.desc_admin')
+              : t('admin.page.approvals.desc_user')}
           </p>
         </div>
         <button type="button" className="btn btn-primary-dark" onClick={() => setShowSubmit((v) => !v)}>
-          {showSubmit ? '取消' : '发起申请'}
+          {showSubmit ? t('common.cancel') : '发起申请'}
         </button>
       </div>
 
@@ -128,7 +129,7 @@ export default function ApprovalPage() {
             </label>
             <div>
               <button type="button" className="btn btn-primary-dark" disabled={submitting || !form.title.trim()} onClick={() => void handleSubmit()}>
-                {submitting ? '提交中…' : '提交申请'}
+                {submitting ? t('common.submitting') : t('admin.action.submit')}
               </button>
             </div>
           </div>

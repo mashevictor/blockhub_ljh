@@ -1,4 +1,4 @@
-import { BRAND } from '../data/brand'
+import { useT } from '@blockhub/i18n/react'
 import { ChevronDotSign } from './ChevronDotLoader'
 import type { ChevronDotSize } from '../data/chevronDotGrid'
 
@@ -12,30 +12,30 @@ const SIGN_SIZE: Record<Variant, ChevronDotSize> = {
 }
 
 interface Props {
-  /** hero：英雄区主标题；eyebrow：顶栏胶囊；section：区块标题；inline：行内短句 */
   variant?: Variant
   className?: string
   as?: 'p' | 'h1' | 'h2' | 'span'
 }
 
-/** >> 重新定义智能体新交互 — 全站统一品牌 slogan */
+/** >> brand slogan — follows global home locale (CapShip page uses its own copy) */
 export default function AgentSignLine({
   variant = 'inline',
   className = '',
   as: Tag = variant === 'hero' ? 'h2' : variant === 'section' ? 'h2' : 'p',
 }: Props) {
-  const aria = `大于号大于号${BRAND.agentSignLine}`
+  const t = useT()
+  const line = t('home.brand.agent_sign')
   return (
     <Tag
       className={`agent-sign-line agent-sign-line--${variant} ${className}`.trim()}
-      aria-label={aria}
+      aria-label={line}
     >
       <ChevronDotSign
         size={SIGN_SIZE[variant]}
         className="agent-sign-chev-dot"
         introTarget={variant === 'eyebrow'}
       />
-      {BRAND.agentSignLine}
+      {line}
     </Tag>
   )
 }

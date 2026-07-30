@@ -1,5 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useT, useTf } from '@blockhub/i18n/react'
 import {
   AGENT_TEMPLATES,
   ATOMIC_AI_CAPABILITIES,
@@ -16,6 +17,8 @@ import { CAPABILITY_ICONS, INDUSTRY_ICONS, IconSparkles } from '../icons'
 import { AgentButtonContent } from '../AgentChevron'
 import LazyCover from '../LazyCover'
 import TemplatePreviewMock from './TemplatePreviewMock'
+import { industryAlt, industryDesc, industryName } from '../../i18n/industryLabels'
+import { localizeSolutions } from '../../i18n/contentLabels'
 
 interface Props {
   onTry: () => void
@@ -45,6 +48,8 @@ function SectionBlock({
 }
 
 export default function B2BProductSection({ onTry }: Props) {
+  const t = useT()
+  const tf = useTf()
   const navigate = useNavigate()
 
   const openIndustryDetail = (key: string) => {
@@ -59,21 +64,21 @@ export default function B2BProductSection({ onTry }: Props) {
   return (
     <section id="product" className="b2b-section b2b-product-section">
       <div className="b2b-section-title b2b-product-head">
-        <span className="b2b-eyebrow">智能体产品能力</span>
-        <h2>
-          丰富 <em>AI 模板</em>，模块积木 · 全行业方案 · 大模型驱动
-        </h2>
+        <span className="b2b-eyebrow">{t('home.product.eyebrow')}</span>
+        <h2>{t('home.product.title')}</h2>
         <p>
-          {PLATFORM_STATS.scenarios} 场景、{PLATFORM_STATS.capabilities} 项模块、{PLATFORM_STATS.agents} 个智能体开箱即用；
-          对话改页即时预览，草稿审批后全员生效，一次发布五端可用。
+          {t('home.product.lead', {
+            scenarios: PLATFORM_STATS.scenarios,
+            capabilities: PLATFORM_STATS.capabilities,
+            agents: PLATFORM_STATS.agents,
+          })}
         </p>
       </div>
 
-      {/* ── CapShip 平台编排：对话改页 ── */}
       <SectionBlock
-        eyebrow="CapShip · 开源能力"
-        title={<>对话改页：先预览，审批后全员生效</>}
-        desc="用对话调整应用菜单和页面；改动先落在个人草稿，管理员通过后才正式发布"
+        eyebrow={t('home.product.compose.eyebrow')}
+        title={t('home.product.compose.title')}
+        desc={t('home.product.compose.desc')}
       >
         <div className="b2b-orchestrate-grid">
           {PLATFORM_ORCHESTRATION_STEPS.map((s) => (
@@ -81,30 +86,29 @@ export default function B2BProductSection({ onTry }: Props) {
               <span className="b2b-orchestrate-step" aria-hidden>
                 {s.step}
               </span>
-              <h4>{s.title}</h4>
-              <p>{s.summary}</p>
+              <h4>{tf(`product.orch.${s.id}.title`, s.title)}</h4>
+              <p>{tf(`product.orch.${s.id}.summary`, s.summary)}</p>
             </article>
           ))}
         </div>
         <div className="b2b-orchestrate-actions">
           <button type="button" className="b2b-btn-primary agent-action-btn" onClick={onTry}>
-            <AgentButtonContent>在线体验对话改页</AgentButtonContent>
+            <AgentButtonContent>{t('home.product.compose.cta_try')}</AgentButtonContent>
           </button>
           <button
             type="button"
             className="b2b-btn-outline agent-action-btn"
             onClick={() => navigate(ROUTES.capship)}
           >
-            <AgentButtonContent>CapShip 开源说明</AgentButtonContent>
+            <AgentButtonContent>{t('home.product.compose.cta_oss')}</AgentButtonContent>
           </button>
         </div>
       </SectionBlock>
 
-      {/* ── 开箱模板 ── */}
       <SectionBlock
-        eyebrow="场景模板"
-        title={<>9 套 <em>AI 模板</em>，开箱即用</>}
-        desc="问答、审批、知识库、看板、语音、集成等核心场景，含预览与能力清单"
+        eyebrow={t('home.product.templates.eyebrow')}
+        title={t('home.product.templates.title')}
+        desc={t('home.product.templates.desc')}
       >
         <div className="b2b-template-grid">
           {AGENT_TEMPLATES.map((tpl) => {
@@ -129,17 +133,19 @@ export default function B2BProductSection({ onTry }: Props) {
                     <span className="b2b-template-icon" aria-hidden>
                       <Icon size={18} />
                     </span>
-                    <span className="b2b-template-tag">{tpl.tag}</span>
+                    <span className="b2b-template-tag">{tf(`product.tpl.${tpl.id}.tag`, tpl.tag)}</span>
                   </div>
-                  <h4>{tpl.name}</h4>
-                  <p className="b2b-template-summary">{tpl.summary}</p>
+                  <h4>{tf(`product.tpl.${tpl.id}.name`, tpl.name)}</h4>
+                  <p className="b2b-template-summary">
+                    {tf(`product.tpl.${tpl.id}.summary`, tpl.summary)}
+                  </p>
                   <ul className="b2b-template-features">
-                    {tpl.features.map((f) => (
-                      <li key={f}>{f}</li>
+                    {tpl.features.map((f, i) => (
+                      <li key={f}>{tf(`product.tpl.${tpl.id}.f${i}`, f)}</li>
                     ))}
                   </ul>
                   <button type="button" className="b2b-btn-install agent-action-btn" onClick={onTry}>
-                    <AgentButtonContent>体验模板</AgentButtonContent>
+                    <AgentButtonContent>{t('product.action.try_template')}</AgentButtonContent>
                   </button>
                 </div>
               </article>
@@ -151,24 +157,26 @@ export default function B2BProductSection({ onTry }: Props) {
               <TemplatePreviewMock kind="suite" accent="#0d47a1" />
             </div>
             <div className="b2b-template-body">
-              <h4>更多 AI 模板</h4>
+              <h4>{t('product.more.title')}</h4>
               <p className="b2b-template-summary">
-                {PLATFORM_STATS.capabilities} 项能力模块 · {INDUSTRY_SOLUTIONS.length} 个行业包 ·
-                {PLATFORM_STATS.scenarios}+ 场景可自由搭配
+                {t('product.more.summary', {
+                  capabilities: PLATFORM_STATS.capabilities,
+                  industries: INDUSTRY_SOLUTIONS.length,
+                  scenarios: PLATFORM_STATS.scenarios,
+                })}
               </p>
               <button type="button" className="b2b-btn-install outline agent-action-btn" onClick={onTry}>
-                <AgentButtonContent>浏览全部模板</AgentButtonContent>
+                <AgentButtonContent>{t('product.action.browse_all')}</AgentButtonContent>
               </button>
             </div>
           </article>
         </div>
       </SectionBlock>
 
-      {/* ── 10 高频模块 ── */}
       <SectionBlock
-        eyebrow="插入模块"
-        title="10 个高频模块，搭积木式组装"
-        desc="创建时一键插入，与行业场景、原子能力自由组合，大模型智能补全推荐"
+        eyebrow={t('home.product.modules.eyebrow')}
+        title={t('home.product.modules.title')}
+        desc={t('home.product.modules.desc')}
       >
         <div className="b2b-module-grid">
           {COMMON_INSERT_MODULES.map((mod) => (
@@ -179,33 +187,35 @@ export default function B2BProductSection({ onTry }: Props) {
             >
               <div className="b2b-module-top">
                 <span className="b2b-module-icon" aria-hidden>{mod.icon}</span>
-                <span className="b2b-module-cat">{mod.category}</span>
+                <span className="b2b-module-cat">{tf(`product.mod.${mod.key}.category`, mod.category)}</span>
               </div>
-              <h4>{mod.name}</h4>
-              <p>{mod.desc}</p>
-              <span className="b2b-module-use">{mod.useCase}</span>
+              <h4>{tf(`product.mod.${mod.key}.name`, mod.name)}</h4>
+              <p>{tf(`product.mod.${mod.key}.desc`, mod.desc)}</p>
+              <span className="b2b-module-use">{tf(`product.mod.${mod.key}.use`, mod.useCase)}</span>
               <button type="button" className="b2b-module-add agent-action-btn" onClick={onTry}>
-                <AgentButtonContent trailing={false}>+ 插入模块</AgentButtonContent>
+                <AgentButtonContent trailing={false}>{t('product.action.insert_module')}</AgentButtonContent>
               </button>
             </article>
           ))}
         </div>
       </SectionBlock>
 
-      {/* ── 全行业方案 ── */}
       <SectionBlock
-        eyebrow="行业方案"
-        title={`${INDUSTRY_SOLUTIONS.length} 个行业 · 独立方案站`}
-        desc="覆盖 20 个行业深度包，每项有独立方案站与贴合行业配图，点选即可查看详情并创建"
+        eyebrow={t('home.product.industry.eyebrow')}
+        title={t('home.product.industry.title')}
+        desc={t('home.product.industry.desc')}
       >
         <p className="b2b-industry-hub-link">
           <button type="button" className="link-btn" onClick={openIndustryHub}>
-            浏览 20 个行业独立站 →
+            {t('home.industry.card.browse_hub')}
           </button>
         </p>
         <div className="b2b-industry-grid">
           {INDUSTRY_SOLUTIONS.map((ind) => {
             const Icon = INDUSTRY_ICONS[ind.iconKey] ?? IconSparkles
+            const name = industryName(t, ind.key, ind.name)
+            const tagline = industryDesc(t, ind.key, ind.tagline)
+            const solutions = localizeSolutions(t, ind.key, ind.solutions)
             return (
               <article
                 key={ind.key}
@@ -224,10 +234,12 @@ export default function B2BProductSection({ onTry }: Props) {
                 <LazyCover
                   className="b2b-industry-visual"
                   src={industryCardImage(ind.key)}
-                  alt={`${ind.name}行业特性配图`}
+                  alt={industryAlt(t, ind.key, ind.name)}
                 >
-                  <span className="industry-card-visual-title">{ind.name}</span>
-                  <span className="b2b-industry-visual-count">{ind.count} 场景</span>
+                  <span className="industry-card-visual-title">{name}</span>
+                  <span className="b2b-industry-visual-count">
+                    {t('home.industry.card.scenes', { n: ind.count })}
+                  </span>
                 </LazyCover>
                 <div className="b2b-industry-body">
                 <header className="b2b-industry-head">
@@ -236,18 +248,20 @@ export default function B2BProductSection({ onTry }: Props) {
                   </span>
                   <div>
                     <h4>
-                      {ind.name}
-                      {ind.fullPack && <em className="b2b-ind-badge">深度包</em>}
+                      {name}
+                      {ind.fullPack && (
+                        <em className="b2b-ind-badge">{t('home.industry.card.deep_pack')}</em>
+                      )}
                     </h4>
-                    <p className="b2b-industry-tagline">{ind.tagline}</p>
+                    <p className="b2b-industry-tagline">{tagline}</p>
                   </div>
                 </header>
                 <ul className="b2b-industry-solutions">
-                  {ind.solutions.slice(0, 3).map((s) => (
+                  {solutions.slice(0, 3).map((s) => (
                     <li key={s}>{s}</li>
                   ))}
-                  {ind.solutions.length > 3 ? (
-                    <li className="b2b-industry-solutions-more">+{ind.solutions.length - 3}</li>
+                  {solutions.length > 3 ? (
+                    <li className="b2b-industry-solutions-more">+{solutions.length - 3}</li>
                   ) : null}
                 </ul>
                 <button
@@ -258,7 +272,7 @@ export default function B2BProductSection({ onTry }: Props) {
                     openIndustryDetail(ind.key)
                   }}
                 >
-                  进入独立站
+                  {t('home.industry.card.enter')}
                 </button>
                 </div>
               </article>
@@ -267,11 +281,10 @@ export default function B2BProductSection({ onTry }: Props) {
         </div>
       </SectionBlock>
 
-      {/* ── 原子能力 ── */}
       <SectionBlock
-        eyebrow="原子能力"
-        title="AI 智能体原子能力"
-        desc="可独立启用或组合编排，沪语语音为特色方言交互能力"
+        eyebrow={t('home.product.atomic.eyebrow')}
+        title={t('home.product.atomic.title')}
+        desc={t('home.product.atomic.desc')}
       >
         <div className="b2b-atomic-grid">
           {ATOMIC_AI_CAPABILITIES.map((cap) => {
@@ -286,21 +299,20 @@ export default function B2BProductSection({ onTry }: Props) {
                   <span className="b2b-atomic-icon" aria-hidden>
                     <Icon size={18} />
                   </span>
-                  <span className="b2b-atomic-tag">{cap.tag}</span>
+                  <span className="b2b-atomic-tag">{tf(`product.atom.${cap.id}.tag`, cap.tag)}</span>
                 </div>
-                <h4>{cap.name}</h4>
-                <p>{cap.summary}</p>
+                <h4>{tf(`product.atom.${cap.id}.name`, cap.name)}</h4>
+                <p>{tf(`product.atom.${cap.id}.summary`, cap.summary)}</p>
               </article>
             )
           })}
         </div>
       </SectionBlock>
 
-      {/* ── 大模型能力 ── */}
       <SectionBlock
-        eyebrow="大模型"
-        title="5 类大模型驱动的 AI 能力"
-        desc="推荐、对话、生成、编排、方言五类大模型，覆盖意图解析到业务落地"
+        eyebrow={t('home.product.llm.eyebrow')}
+        title={t('home.product.llm.title')}
+        desc={t('home.product.llm.desc')}
       >
         <div className="b2b-deepseek-grid">
           {LLM_POWERED_AGENTS.map((agent) => (
@@ -310,21 +322,21 @@ export default function B2BProductSection({ onTry }: Props) {
               style={{ '--ds-color': agent.color } as CSSProperties}
             >
               <div className="b2b-deepseek-badge">
-                <span className="b2b-ds-model">{agent.modelLabel}</span>
-                <span className="b2b-ds-scene">{agent.scene}</span>
+                <span className="b2b-ds-model">{tf(`product.llm.${agent.id}.model`, agent.modelLabel)}</span>
+                <span className="b2b-ds-scene">{tf(`product.llm.${agent.id}.scene`, agent.scene)}</span>
               </div>
               <h4>
-                <span className="b2b-llm-prefix">大模型 · </span>
-                {agent.name}
+                <span className="b2b-llm-prefix">{t('product.llm.prefix')}</span>
+                {tf(`product.llm.${agent.id}.name`, agent.name)}
               </h4>
-              <p className="b2b-ds-summary">{agent.summary}</p>
+              <p className="b2b-ds-summary">{tf(`product.llm.${agent.id}.summary`, agent.summary)}</p>
               <ul className="b2b-ds-features">
-                {agent.features.map((f) => (
-                  <li key={f}>{f}</li>
+                {agent.features.map((f, i) => (
+                  <li key={f}>{tf(`product.llm.${agent.id}.f${i}`, f)}</li>
                 ))}
               </ul>
               <button type="button" className="b2b-btn-install agent-action-btn" onClick={onTry}>
-                <AgentButtonContent>体验能力</AgentButtonContent>
+                <AgentButtonContent>{t('product.action.try_capability')}</AgentButtonContent>
               </button>
             </article>
           ))}

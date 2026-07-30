@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'bh_l10n.dart';
+
 /// 与 Web `GtgtStepComposer` / 首页预约演示同构：单字段 `>>` + 确认推进。
 class GtgtStep {
   const GtgtStep({
@@ -44,7 +46,7 @@ class GtgtStepComposer extends StatefulWidget {
   final void Function(String key, String value) onChanged;
   final Future<void> Function() onComplete;
   final bool busy;
-  final String submitLabel;
+  final String submitLabel; // caller should pass bhTf('common.submit', '提交') or cap-specific
   final Color? accent;
   final int resetKey;
 
@@ -193,7 +195,8 @@ class _GtgtStepComposerState extends State<GtgtStepComposer> {
             keyboardType: _current.keyboardType,
             decoration: InputDecoration(
               border: const OutlineInputBorder(),
-              hintText: _current.placeholder ?? '填写${_current.label}',
+              hintText: _current.placeholder ??
+                  bhTf('common.fill', '填写{{label}}', {'label': _current.label}),
             ),
             onChanged: (v) {
               widget.onChanged(_current.key, v);
@@ -204,7 +207,11 @@ class _GtgtStepComposerState extends State<GtgtStepComposer> {
         const SizedBox(height: 12),
         Row(
           children: [
-            if (_step > 0) TextButton(onPressed: widget.busy ? null : _back, child: const Text('上一步')),
+            if (_step > 0)
+              TextButton(
+                onPressed: widget.busy ? null : _back,
+                child: Text(bhTf('common.back', '上一步')),
+              ),
             if (_current.optional && !_isLast)
               TextButton(
                 onPressed: widget.busy
@@ -216,13 +223,17 @@ class _GtgtStepComposerState extends State<GtgtStepComposer> {
                           _syncCtrl();
                         });
                       },
-                child: const Text('跳过'),
+                child: Text(bhTf('common.skip', '跳过')),
               ),
             const Spacer(),
             FilledButton(
               style: FilledButton.styleFrom(backgroundColor: color),
               onPressed: widget.busy || !_canGo ? null : _advance,
-              child: Text(widget.busy && _isLast ? '提交中…' : (_isLast ? widget.submitLabel : '确认')),
+              child: Text(
+                widget.busy && _isLast
+                    ? bhTf('common.submitting', '提交中…')
+                    : (_isLast ? widget.submitLabel : bhTf('common.confirm', '确认')),
+              ),
             ),
           ],
         ),

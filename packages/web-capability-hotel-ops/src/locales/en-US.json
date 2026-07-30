@@ -1,0 +1,20 @@
+{
+  "cap.allergen_note.ui.title": "Allergen Note",
+  "cap.banquet_order.ui.title": "Banquet Order",
+  "cap.concierge_req.ui.title": "Concierge Req",
+  "cap.fnb_order.ui.title": "Fnb Order",
+  "cap.food_purchase.ui.title": "Food Purchase",
+  "cap.group_checkin.ui.title": "Group Checkin",
+  "cap.guest_complaint.ui.title": "Guest Complaint",
+  "cap.hk_task.ui.title": "Hk Task",
+  "cap.hotel_revenue.ui.title": "Hotel Revenue",
+  "cap.hygiene_check.ui.title": "Hygiene Check",
+  "cap.kitchen_waste.ui.title": "Kitchen Waste",
+  "cap.lost_found.ui.title": "Lost Found",
+  "cap.menu_86.ui.title": "Menu 86",
+  "cap.minibar_charge.ui.title": "Minibar Charge",
+  "cap.night_audit.ui.title": "Night Audit",
+  "cap.room_service.ui.title": "Room Service",
+  "cap.room_status.ui.title": "Room Status",
+  "cap.table_reserve.ui.title": "Table Reserve"
+}

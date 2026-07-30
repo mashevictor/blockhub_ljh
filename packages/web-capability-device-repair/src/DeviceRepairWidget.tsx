@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useTf } from '@blockhub/i18n/react'
 import type { SchemaNode } from '@blockhub/web-core'
 import { apiFetch, GtgtStepComposer, useRuntime, type GtgtStep } from '@blockhub/web-core'
 
@@ -22,14 +23,13 @@ interface AssigneeCandidate {
   role: string
 }
 
-const STATUS_LABEL: Record<string, string> = {
-  pending: '待派工',
-  dispatched: '维修中',
-  done: '已完工',
-}
-
 export function DeviceRepairWidget(_props: { node: SchemaNode }) {
+  const tf = useTf()
   const { token, primaryColor, appId, user, entrySource } = useRuntime()
+  const statusLabel = useCallback(
+    (key: string) => tf(`cap.device_repair.status.${key}`, key),
+    [tf],
+  )
   const [items, setItems] = useState<RepairTicket[]>([])
   const [candidates, setCandidates] = useState<AssigneeCandidate[]>([])
   const [loading, setLoading] = useState(true)
@@ -46,11 +46,24 @@ export function DeviceRepairWidget(_props: { node: SchemaNode }) {
 
   const steps: GtgtStep[] = useMemo(
     () => [
-      { key: 'asset_code', label: '设备编号', placeholder: '扫码或输入，如 CNC-A12' },
-      { key: 'location', label: '位置/工位', placeholder: '一车间·3号线（可留空）', optional: true },
-      { key: 'fault', label: '故障描述', placeholder: '现象、是否停机、影响产线…' },
+      {
+        key: 'asset_code',
+        label: tf('cap.device_repair.field.asset_code', '设备编号'),
+        placeholder: tf('cap.device_repair.ph.asset_code', '扫码或输入，如 CNC-A12'),
+      },
+      {
+        key: 'location',
+        label: tf('cap.device_repair.field.location', '位置/工位'),
+        placeholder: tf('cap.device_repair.ph.location', '一车间·3号线（可留空）'),
+        optional: true,
+      },
+      {
+        key: 'fault',
+        label: tf('cap.device_repair.field.fault', '故障描述'),
+        placeholder: tf('cap.device_repair.ph.fault', '现象、是否停机、影响产线…'),
+      },
     ],
-    [],
+    [tf],
   )
 
   const load = useCallback(async () => {
@@ -212,7 +225,7 @@ export function DeviceRepairWidget(_props: { node: SchemaNode }) {
         </div>
       ) : (
         <GtgtStepComposer
-          title={entrySource === 'im' ? '报修协作' : '设备报修'}
+          title={tf('cap.device_repair.title', '设备报修')}
           meta={entrySource === 'im' ? '群消息入口' : '应用工作台'}
           accent={accent}
           flowHint={`提单 → 派工 → 维修 → 完工${user?.display_name ? ` · ${user.display_name}` : ''}`}
@@ -222,7 +235,7 @@ export function DeviceRepairWidget(_props: { node: SchemaNode }) {
           onComplete={submit}
           busy={busy}
           resetKey={resetKey}
-          submitLabel="提交报修"
+          submitLabel={tf('cap.device_repair.submit', '提交报修')}
         />
       )}
       {msg && <p className="status-msg">{msg}</p>}
@@ -276,7 +289,9 @@ export function DeviceRepairWidget(_props: { node: SchemaNode }) {
               disabled={busy || (!pickId && !pickName.trim())}
               onClick={() => void confirmDispatch()}
             >
-              {busy ? '派工中…' : '确认派工'}
+              {busy
+                ? tf('cap.device_repair.dispatching', '派工中…')
+                : tf('cap.device_repair.dispatch', '确认派工')}
             </button>
           </div>
         </div>
@@ -290,7 +305,7 @@ export function DeviceRepairWidget(_props: { node: SchemaNode }) {
           <li key={t.id} className="list-card">
             <div className="list-card-head">
               <strong>{t.ticket_no || t.id} · {t.asset_code}</strong>
-              <span className="tag" style={{ color: accent }}>{STATUS_LABEL[t.status] || t.status}</span>
+              <span className="tag" style={{ color: accent }}>{statusLabel(t.status)}</span>
             </div>
             <p className="muted" style={{ margin: '6px 0 0' }}>{t.location}</p>
             <p style={{ margin: '4px 0 0', fontSize: 13 }}>{t.fault}</p>

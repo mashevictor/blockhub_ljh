@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
+import { useT } from '@blockhub/i18n/react'
 import { AgentButtonContent, AgentChevronGlyph } from '../AgentChevron'
-import { BOOK_DEMO_LOADING } from '../../data/publishUi'
+import { publishBookLoading } from '../../i18n/publishLabels'
 import { useDemoBooking } from '../../context/DemoBookingContext'
 import { BOOKING_FIELDS } from '../../data/demoBookingFlow'
 import DemoBookingSuccess from './DemoBookingSuccess'
@@ -9,6 +10,7 @@ import FloatingAgentDock from '../FloatingAgentDock'
 
 /** 预约区专用 >> 悬浮输入，与创建应用悬浮框完全独立 */
 export default function BookingFloatingAgent() {
+  const t = useT()
   const inputRef = useRef<HTMLInputElement>(null)
   const {
     inView,
@@ -35,11 +37,11 @@ export default function BookingFloatingAgent() {
   }, [registerFloatingInput, inView, stepIndex, currentField?.key, submitted])
 
   const isLastStep = currentField?.key === 'company'
-  const chevLabel = submitted ? '预约' : (currentField?.chevLabel ?? '预约')
-  const dockTitle = submitted ? '预约已提交' : '预约演示'
+  const dockTitle = submitted ? t('home.booking.submitted') : t('home.booking.title')
+  const chevLabel = submitted ? t('home.booking.chev') : (currentField?.chevLabel ?? t('home.booking.chev'))
   const collapsedHint = submitted
-    ? '>> 预约已提交'
-    : `>> ${currentField?.label ?? '预约'} · ${currentField?.placeholder ?? ''}`
+    ? t('home.booking.hint_submitted')
+    : `>> ${currentField?.label ?? t('home.booking.chev')} · ${currentField?.placeholder ?? ''}`
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
@@ -58,7 +60,7 @@ export default function BookingFloatingAgent() {
       variant="capsule"
       collapseToggleInTail
       showDockToggle={false}
-      ariaLabel="预约信息悬浮输入"
+      ariaLabel={t('home.booking.aria')}
     >
       {!inView ? (
         <div className="booking-float-composer" aria-hidden />
@@ -93,10 +95,10 @@ export default function BookingFloatingAgent() {
                 />
                 <button type="button" className="booking-float-go" onClick={submitDraft} disabled={submitting}>
                   {submitting && isLastStep ? (
-                    BOOK_DEMO_LOADING
+                    publishBookLoading(t)
                   ) : (
                     <AgentButtonContent trailing={false}>
-                      {isLastStep ? '提交' : '确认'}
+                      {isLastStep ? t('home.booking.submit') : t('home.booking.confirm')}
                     </AgentButtonContent>
                   )}
                 </button>
@@ -106,7 +108,7 @@ export default function BookingFloatingAgent() {
               )}
               {!currentField.required && !submitting && (
                 <button type="button" className="booking-float-skip" onClick={skipOptional}>
-                  跳过
+                  {t('home.booking.skip')}
                 </button>
               )}
             </>
@@ -117,13 +119,14 @@ export default function BookingFloatingAgent() {
               {submitting && <DemoBookingDeliveryLoading compact />}
               {delivery && !submitting && <DemoBookingSuccess delivery={delivery} compact />}
               {!delivery && !submitting && (
-                <ul className="booking-float-review-list" aria-label="已提交的预约信息">
+                <ul className="booking-float-review-list" aria-label={t('home.booking.review_aria')}>
                   {BOOKING_FIELDS.map((field) => {
                     const value = values[field.key]?.trim()
+                    const label = t(`home.booking.field.${field.key}.label`)
                     return (
                       <li key={field.key} className={!value ? 'is-empty' : ''}>
-                        <span>{field.label}</span>
-                        <strong>{value || '未填写'}</strong>
+                        <span>{label === `home.booking.field.${field.key}.label` ? field.label : label}</span>
+                        <strong>{value || t('home.booking.empty')}</strong>
                       </li>
                     )
                   })}
@@ -138,7 +141,7 @@ export default function BookingFloatingAgent() {
               {fieldError}
               {submitted && !submitting && (
                 <button type="button" className="booking-float-retry" onClick={retrySubmit}>
-                  重试
+                  {t('home.booking.retry')}
                 </button>
               )}
             </p>

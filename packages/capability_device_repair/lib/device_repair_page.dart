@@ -21,16 +21,20 @@ class _DeviceRepairPageState extends State<DeviceRepairPage> {
   int _step = 0;
   String? _error;
 
-  static const _steps = ['设备编号', '工位位置', '故障描述'];
-
   @override
   void initState() {
     super.initState();
+    BhL10n.instance.addListener(_onL10n);
     _load();
+  }
+
+  void _onL10n() {
+    if (mounted) setState(() {});
   }
 
   @override
   void dispose() {
+    BhL10n.instance.removeListener(_onL10n);
     _assetCtrl.dispose();
     _locCtrl.dispose();
     _faultCtrl.dispose();
@@ -150,17 +154,14 @@ class _DeviceRepairPageState extends State<DeviceRepairPage> {
   }
 
   String _label(String s) {
-    switch (s) {
-      case 'pending':
-        return '待派工';
-      case 'dispatched':
-        return '维修中';
-      case 'done':
-        return '已完工';
-      default:
-        return s;
-    }
+    return bhTf('cap.device_repair.status.$s', s);
   }
+
+  List<String> get _steps => [
+        bhTf('cap.device_repair.field.asset_code', '设备编号'),
+        bhTf('cap.device_repair.field.location', '工位位置'),
+        bhTf('cap.device_repair.field.fault', '故障描述'),
+      ];
 
   bool get _canNext {
     if (_step == 0) return _assetCtrl.text.trim().isNotEmpty;
@@ -176,7 +177,12 @@ class _DeviceRepairPageState extends State<DeviceRepairPage> {
       children: [
         Row(
           children: [
-            Expanded(child: Text('设备报修', style: Theme.of(context).textTheme.titleLarge)),
+            Expanded(
+              child: Text(
+                bhTf('cap.device_repair.title', '设备报修'),
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+            ),
             Text('${_step + 1}/${_steps.length}', style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
           ],
         ),
@@ -209,9 +215,9 @@ class _DeviceRepairPageState extends State<DeviceRepairPage> {
         if (_step == 0)
           TextField(
             controller: _assetCtrl,
-            decoration: const InputDecoration(
-              border: OutlineInputBorder(),
-              hintText: '扫码或输入 CNC-A12',
+            decoration: InputDecoration(
+              border: const OutlineInputBorder(),
+              hintText: bhTf('cap.device_repair.ph.asset_code', '扫码或输入 CNC-A12'),
             ),
             onChanged: (_) => setState(() {}),
             onSubmitted: (_) {
@@ -221,9 +227,9 @@ class _DeviceRepairPageState extends State<DeviceRepairPage> {
         else if (_step == 1)
           TextField(
             controller: _locCtrl,
-            decoration: const InputDecoration(
-              border: OutlineInputBorder(),
-              hintText: '一车间·3号线（可留空）',
+            decoration: InputDecoration(
+              border: const OutlineInputBorder(),
+              hintText: bhTf('cap.device_repair.ph.location', '一车间·3号线（可留空）'),
             ),
             onSubmitted: (_) => setState(() => _step += 1),
           )
@@ -231,9 +237,9 @@ class _DeviceRepairPageState extends State<DeviceRepairPage> {
           TextField(
             controller: _faultCtrl,
             maxLines: 3,
-            decoration: const InputDecoration(
-              border: OutlineInputBorder(),
-              hintText: '现象、是否停机…',
+            decoration: InputDecoration(
+              border: const OutlineInputBorder(),
+              hintText: bhTf('cap.device_repair.ph.fault', '现象、是否停机…'),
             ),
             onChanged: (_) => setState(() {}),
           ),
@@ -241,19 +247,26 @@ class _DeviceRepairPageState extends State<DeviceRepairPage> {
         Row(
           children: [
             if (_step > 0)
-              TextButton(onPressed: () => setState(() => _step -= 1), child: const Text('上一步')),
+              TextButton(
+                onPressed: () => setState(() => _step -= 1),
+                child: Text(bhTf('common.back', '上一步')),
+              ),
             const Spacer(),
             if (_step < _steps.length - 1)
               FilledButton(
                 style: FilledButton.styleFrom(backgroundColor: color),
                 onPressed: _canNext ? () => setState(() => _step += 1) : null,
-                child: const Text('确认'),
+                child: Text(bhTf('common.confirm', '确认')),
               )
             else
               FilledButton(
                 style: FilledButton.styleFrom(backgroundColor: color),
                 onPressed: _busy || !_canNext ? null : _submit,
-                child: Text(_busy ? '提交中…' : '提交报修'),
+                child: Text(
+                  _busy
+                      ? bhTf('common.submitting', '提交中…')
+                      : bhTf('cap.device_repair.submit', '提交报修'),
+                ),
               ),
           ],
         ),

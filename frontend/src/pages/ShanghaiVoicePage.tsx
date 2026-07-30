@@ -1,13 +1,15 @@
+import { useT } from '@blockhub/i18n/react'
 import { homePublicUrl } from '../data/brand'
 
 export default function ShanghaiVoicePage() {
+  const t = useT()
   const src = `${homePublicUrl().replace(/\/$/, '')}/agents/shanghai-voice`
 
   return (
     <>
       <div className="page-header">
-        <h1>上海话语音</h1>
-        <p>电信星辰 ASR/TTS 实时方言对话 · 登录后可在此直接使用</p>
+        <h1>{t('admin.page.voice.title')}</h1>
+        <p>{t('admin.page.voice.desc')}</p>
       </div>
       <div className="card shanghai-voice-embed">
         <iframe

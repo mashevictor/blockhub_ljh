@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useT } from '@blockhub/i18n/react'
 import {
   AUDIENCE_OPTIONS,
   DEPT_PRESETS,
   type AudienceSelection,
   type AudienceType,
   audienceAtLabel,
+  audienceOptionCopy,
   audiencePreviewText,
 } from '../data/plazaAudience'
 import { ROUTES } from '../routes/paths'
@@ -19,8 +21,9 @@ interface Props {
 }
 
 export default function PlazaAudiencePicker({ appName, initial, onConfirm, onCancel, busy = false }: Props) {
+  const t = useT()
   const [type, setType] = useState<AudienceType>(initial?.type ?? 'public')
-  const [deptName, setDeptName] = useState(initial?.deptName ?? DEPT_PRESETS[0])
+  const [deptName, setDeptName] = useState(initial?.deptName ?? DEPT_PRESETS[0].value)
 
   const selection: AudienceSelection = {
     type,
@@ -28,69 +31,76 @@ export default function PlazaAudiencePicker({ appName, initial, onConfirm, onCan
   }
 
   return (
-    <div className="plaza-audience-picker" role="region" aria-label="选择 @ 受众范围">
-      <h4>📡 发布到应用广场 · 选择 @ 范围</h4>
-      <p className="plaza-audience-picker-hint">
-        <code>@</code> 表示应用交付给谁。选 <strong>@公开</strong> 会出现在应用广场列表。
-      </p>
+    <div className="plaza-audience-picker" role="region" aria-label={t('home.plaza.aud.aria')}>
+      <h4>{t('home.plaza.aud.title')}</h4>
+      <p className="plaza-audience-picker-hint">{t('home.plaza.aud.hint')}</p>
 
       <div className="plaza-audience-options">
-        {AUDIENCE_OPTIONS.map((opt) => (
-          <label
-            key={opt.id}
-            className={`plaza-audience-opt${type === opt.id ? ' selected' : ''}`}
-          >
-            <input
-              type="radio"
-              name="plaza-audience"
-              value={opt.id}
-              checked={type === opt.id}
-              onChange={() => setType(opt.id)}
-            />
-            <div>
-              <strong>
-                {opt.label}
-                {opt.badge && <span className="plaza-audience-badge">{opt.badge}</span>}
-              </strong>
-              <span>{opt.desc}</span>
-            </div>
-          </label>
-        ))}
+        {AUDIENCE_OPTIONS.map((opt) => {
+          const copy = audienceOptionCopy(t, opt)
+          return (
+            <label
+              key={opt.id}
+              className={`plaza-audience-opt${type === opt.id ? ' selected' : ''}`}
+            >
+              <input
+                type="radio"
+                name="plaza-audience"
+                value={opt.id}
+                checked={type === opt.id}
+                onChange={() => setType(opt.id)}
+              />
+              <div>
+                <strong>
+                  {copy.label}
+                  {copy.badge && <span className="plaza-audience-badge">{copy.badge}</span>}
+                </strong>
+                <span>{copy.desc}</span>
+              </div>
+            </label>
+          )
+        })}
       </div>
 
       {type === 'dept' && (
         <div className="plaza-audience-dept">
-          <span className="plaza-audience-dept-label">选择部门</span>
+          <span className="plaza-audience-dept-label">{t('home.plaza.aud.dept_label')}</span>
           <div className="plaza-audience-dept-chips">
             {DEPT_PRESETS.map((d) => (
               <button
-                key={d}
+                key={d.id}
                 type="button"
-                className={deptName === d ? 'on' : ''}
-                onClick={() => setDeptName(d)}
+                className={deptName === d.value ? 'on' : ''}
+                onClick={() => setDeptName(d.value)}
               >
-                @{d}
+                @{t(d.key)}
               </button>
             ))}
           </div>
         </div>
       )}
 
-      <p className="plaza-audience-preview">{audiencePreviewText(selection, appName)}</p>
+      <p className="plaza-audience-preview">{audiencePreviewText(selection, appName, t)}</p>
 
       <div className="plaza-audience-actions">
-        <button type="button" className="btn-ghost" onClick={onCancel} disabled={busy}>取消</button>
+        <button type="button" className="btn-ghost" onClick={onCancel} disabled={busy}>
+          {t('home.plaza.aud.cancel')}
+        </button>
         <button
           type="button"
           className="btn-primary plaza-audience-submit"
           onClick={() => onConfirm(selection)}
           disabled={busy}
         >
-          {busy ? '发布中…' : `发布到 ${audienceAtLabel(selection)}`}
+          {busy
+            ? t('home.plaza.aud.publishing')
+            : t('home.plaza.aud.publish_to', { label: audienceAtLabel(selection, t) })}
         </button>
       </div>
       <p className="plaza-audience-footnote">
-        @公开 应用可在 <Link to={ROUTES.plazaFeed}>应用广场</Link> 查看 · 已同步服务端
+        {t('home.plaza.aud.footnote_before')}{' '}
+        <Link to={ROUTES.plazaFeed}>{t('home.plaza.aud.footnote_link')}</Link>
+        {' '}{t('home.plaza.aud.footnote_after')}
       </p>
     </div>
   )

@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { useT } from '@blockhub/i18n/react'
 import { contactsForMode, saveContactHistory } from '../auth/contactHistory'
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock'
-import { GENERATE_APP_LABEL, GENERATE_APP_LOADING } from '../data/publishUi'
+import { publishGenerateLabel, publishGenerateLoading } from '../i18n/publishLabels'
 import { AgentButtonContent } from './AgentChevron'
 
 export interface ContactInfo {
@@ -46,6 +47,7 @@ export default function ContactGateModal({
   onClose,
   onConfirm,
 }: Props) {
+  const t = useT()
   const [mode, setMode] = useState<'email' | 'phone'>('email')
   const [value, setValue] = useState('')
   const [appName, setAppName] = useState('')
@@ -98,10 +100,10 @@ export default function ContactGateModal({
   const error = useMemo(() => {
     const v = value.trim()
     if (!v) return ''
-    if (mode === 'email' && v.includes('@') && !isValidEmail(v)) return '请输入有效邮箱地址'
-    if (mode === 'phone' && v.length >= 11 && !isValidPhone(v)) return '请输入 11 位手机号'
+    if (mode === 'email' && v.includes('@') && !isValidEmail(v)) return t('home.contact.err.email')
+    if (mode === 'phone' && v.length >= 11 && !isValidPhone(v)) return t('home.contact.err.phone')
     return ''
-  }, [mode, value])
+  }, [mode, value, t])
 
   const canSubmit = mode === 'email'
     ? isValidEmail(value.trim())
@@ -143,14 +145,14 @@ export default function ContactGateModal({
       onClick={(e) => !busy && e.target === e.currentTarget && onClose()}
     >
       <div className="modal-card contact-gate-card" role="dialog" aria-labelledby="contact-gate-title" aria-busy={busy}>
-        <button type="button" className="modal-close" onClick={onClose} disabled={busy} aria-label="关闭">×</button>
-        <h3 id="contact-gate-title">留个联系方式</h3>
-        <p className="modal-sub">生成完成后，我们会把访问链接发到你的邮箱或手机</p>
+        <button type="button" className="modal-close" onClick={onClose} disabled={busy} aria-label={t('home.contact.close')}>×</button>
+        <h3 id="contact-gate-title">{t('home.contact.title')}</h3>
+        <p className="modal-sub">{t('home.contact.sub')}</p>
 
         {busy && (
           <div className="contact-gate-progress" role="status" aria-live="polite">
             <div className="contact-gate-progress-bar" aria-hidden />
-            <p>{GENERATE_APP_LOADING}</p>
+            <p>{publishGenerateLoading(t)}</p>
           </div>
         )}
 
@@ -166,7 +168,7 @@ export default function ContactGateModal({
               setActiveIdx(0)
             }}
           >
-            邮箱
+            {t('home.contact.tab.email')}
           </button>
           <button
             type="button"
@@ -179,13 +181,13 @@ export default function ContactGateModal({
               setActiveIdx(0)
             }}
           >
-            手机号
+            {t('home.contact.tab.phone')}
           </button>
         </div>
 
         <div className="contact-gate-field">
           <label htmlFor="contact-gate-input">
-            {mode === 'email' ? '电子邮箱' : '手机号码'}
+            {mode === 'email' ? t('home.contact.label.email') : t('home.contact.label.phone')}
           </label>
           <input
             ref={inputRef}
@@ -209,7 +211,7 @@ export default function ContactGateModal({
               disabled={busy}
               onClick={() => setHistoryOpen((v) => !v)}
             >
-              历史记录 ({historyItems.length})
+              {t('home.contact.history', { n: historyItems.length })}
             </button>
           )}
           {error && <span className="contact-gate-error">{error}</span>}
@@ -235,8 +237,8 @@ export default function ContactGateModal({
 
         <div className="contact-gate-field contact-gate-appname">
           <label htmlFor="contact-gate-appname">
-            应用名称
-            <span className="contact-gate-optional">已按行业预填，可改可不改</span>
+            {t('home.contact.app_name')}
+            <span className="contact-gate-optional">{t('home.contact.app_name_hint')}</span>
           </label>
           <input
             id="contact-gate-appname"
@@ -244,21 +246,21 @@ export default function ContactGateModal({
             className="contact-gate-appname-input"
             value={appName}
             disabled={busy}
-            placeholder={defaultAppName.trim() || '例如：销售获客工作台'}
+            placeholder={defaultAppName.trim() || t('home.contact.app_name_ph')}
             onChange={(e) => setAppName(e.target.value)}
           />
         </div>
 
         <div className="contact-gate-actions">
-          <button type="button" className="btn-ghost" onClick={onClose} disabled={busy}>稍后再说</button>
+          <button type="button" className="btn-ghost" onClick={onClose} disabled={busy}>{t('home.contact.later')}</button>
           <button
             type="button"
             className="btn-primary agent-action-btn"
             disabled={!canSubmit || busy}
             onClick={handleConfirm}
           >
-            {busy ? GENERATE_APP_LOADING : (
-              <AgentButtonContent>{GENERATE_APP_LABEL}</AgentButtonContent>
+            {busy ? publishGenerateLoading(t) : (
+              <AgentButtonContent>{publishGenerateLabel(t)}</AgentButtonContent>
             )}
           </button>
         </div>

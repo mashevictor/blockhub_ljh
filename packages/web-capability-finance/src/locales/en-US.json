@@ -1,0 +1,9 @@
+{
+  "cap.credit_approval.ui.title": "Credit Approval",
+  "cap.due_diligence.ui.title": "Due Diligence",
+  "cap.finance_aml.ui.title": "AML Monitoring",
+  "cap.finance_kyc.ui.title": "Bank KYC",
+  "cap.finance_news.ui.title": "Industry News Agent",
+  "cap.insurance_case.ui.title": "Insurance UW & Claims",
+  "cap.regulatory_report.ui.title": "Regulatory Reporting"
+}

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useT } from '@blockhub/i18n/react'
 import {
   aiGenerateContract,
   aiReviewContract,
@@ -145,6 +146,7 @@ function FieldInput({
 }
 
 export default function ContractPage() {
+  const t = useT()
   const [config, setConfig] = useState<{
     llm_configured?: boolean
     templates?: { key: string; name: string; description?: string; category?: string }[]
@@ -409,8 +411,8 @@ export default function ContractPage() {
   return (
     <div className="contract-page">
       <div className="page-header">
-        <h1>合同盖章</h1>
-        <p>完整劳动合同模板 · 表单填空 · 智能生成 · 手写签名 · 上传/模拟电子章</p>
+        <h1>{t('admin.page.contracts.title')}</h1>
+        <p>{t('admin.page.contracts.desc')}</p>
         {config && (
           <span className={`contract-llm-badge${config.llm_configured ? ' on' : ''}`}>
             {config.llm_configured ? '智能生成已就绪' : '配置后可使用智能生成'}

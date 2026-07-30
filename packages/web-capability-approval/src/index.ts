@@ -1,5 +1,5 @@
 import { registerWidget } from '@blockhub/web-core'
-
+import './locales'
 import { FormWidget, ApprovalInboxWidget, ListWidget } from './ApprovalWidgets'
 
 // 自注册：导入即向 web-core 注册，无需在 runtime-web 渲染器中硬编码。

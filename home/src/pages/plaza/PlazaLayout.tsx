@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
+import { LocaleSwitch, useT } from '@blockhub/i18n/react'
 import BrandMark from '../../components/BrandMark'
 import { BRAND } from '../../data/brand'
 import { IconLayers } from '../../components/icons'
@@ -37,6 +38,7 @@ function topLinkClass({ isActive }: { isActive: boolean }) {
 }
 
 export default function PlazaLayout() {
+  const t = useT()
   const myApps = useMyApps()
   const myAppsCount = myApps.length
   const [publicFeedCount, setPublicFeedCount] = useState(0)
@@ -70,66 +72,65 @@ export default function PlazaLayout() {
             <em className="plaza-topbar-brand-en">{BRAND.nameEn}</em>
           </span>
         </Link>
-        <nav className="plaza-topbar-nav" aria-label="广场顶部导航">
+        <nav className="plaza-topbar-nav" aria-label={t('home.plaza.nav.aria')}>
           <Link to={ROUTES.home}>
-            <span className="plaza-nav-label-full">生成应用</span>
-            <span className="plaza-nav-label-short">生成</span>
+            <span className="plaza-nav-label-full">{t('home.plaza.nav.create')}</span>
+            <span className="plaza-nav-label-short">{t('home.plaza.nav.create_short')}</span>
           </Link>
           <NavLink to={ROUTES.plazaFeed} end className={topLinkClass}>
-            <span className="plaza-nav-label-full">应用广场</span>
-            <span className="plaza-nav-label-short">广场</span>
+            <span className="plaza-nav-label-full">{t('home.plaza.nav.feed')}</span>
+            <span className="plaza-nav-label-short">{t('home.plaza.nav.feed_short')}</span>
           </NavLink>
           <NavLink to={ROUTES.plazaMyApps} className={topLinkClass}>
             <IconLayers size={14} />
-            <span className="plaza-nav-label-full">我的应用</span>
-            <span className="plaza-nav-label-short">我的</span>
+            <span className="plaza-nav-label-full">{t('home.plaza.nav.my')}</span>
+            <span className="plaza-nav-label-short">{t('home.plaza.nav.my_short')}</span>
             {myAppsCount > 0 && <span className="plaza-my-badge">{myAppsCount}</span>}
           </NavLink>
+          <LocaleSwitch className="b2b-locale-switch" variant="chip" />
         </nav>
       </header>
 
-      <div className="plaza-flow-strip" role="marquee" aria-label="应用广场提示">
-        <p className="plaza-flow-strip-text plaza-flow-strip-text--full">应用发布 · 模块数据流 · @ 受众 · 应用广场 · 我的应用</p>
-        <p className="plaza-flow-strip-text plaza-flow-strip-text--short">发布 · 数据流 · 广场 · 我的应用</p>
+      <div className="plaza-flow-strip" role="marquee" aria-label={t('home.plaza.strip.aria')}>
+        <p className="plaza-flow-strip-text plaza-flow-strip-text--full">{t('home.plaza.strip.full')}</p>
+        <p className="plaza-flow-strip-text plaza-flow-strip-text--short">{t('home.plaza.strip.short')}</p>
       </div>
 
-      <nav className="plaza-mobile-tabs" aria-label="广场移动导航">
+      <nav className="plaza-mobile-tabs" aria-label={t('home.plaza.mobile.aria')}>
         <NavLink to={ROUTES.plazaFeed} end className={sideLinkClass}>
-          应用广场
+          {t('home.plaza.nav.feed')}
           {publicFeedCount > 0 && <span className="plaza-side-count">{publicFeedCount}</span>}
         </NavLink>
         <NavLink to={ROUTES.plazaMyApps} className={sideLinkClass}>
-          我的应用
+          {t('home.plaza.nav.my')}
           {myAppsCount > 0 && <span className="plaza-side-count">{myAppsCount}</span>}
         </NavLink>
-        <Link to={ROUTES.home}>去生成</Link>
+        <Link to={ROUTES.home}>{t('home.plaza.mobile.create')}</Link>
       </nav>
 
       <div className="plaza-layout">
-        <aside className="plaza-side" aria-label="应用广场导航">
-          <h4>导航</h4>
-          <Link to={ROUTES.home}>🏠 生成应用</Link>
+        <aside className="plaza-side" aria-label={t('home.plaza.side.aria')}>
+          <h4>{t('home.plaza.side.nav')}</h4>
+          <Link to={ROUTES.home}>🏠 {t('home.plaza.side.create')}</Link>
           <NavLink to={ROUTES.plazaFeed} end className={sideLinkClass}>
-            📡 应用广场
+            📡 {t('home.plaza.side.feed')}
             {publicFeedCount > 0 && <span className="plaza-side-count">{publicFeedCount}</span>}
           </NavLink>
           <NavLink to={ROUTES.plazaMyApps} className={sideLinkClass}>
-            📱 我的应用
+            📱 {t('home.plaza.side.my')}
             {myAppsCount > 0 && <span className="plaza-side-count">{myAppsCount}</span>}
           </NavLink>
-          <p className="plaza-side-note">
-            应用广场浏览 @公开 应用；我的应用管理你创建的应用与模块配置
-          </p>
+          <p className="plaza-side-note">{t('home.plaza.side.note')}</p>
         </aside>
 
         <Outlet />
 
         {!onMyAppsPage && (
           <aside className="plaza-right">
-            <h4>📊 应用广场</h4>
-            <p className="plaza-stats">@公开 应用 <strong>{publicFeedCount}</strong></p>
-            <p className="plaza-stats">我的应用 <strong>{myAppsCount}</strong></p>
-            <Link to={ROUTES.plazaMyApps} className="plaza-right-link">去我的应用 →</Link>
+            <h4>📊 {t('home.plaza.right.title')}</h4>
+            <p className="plaza-stats">{t('home.plaza.right.public')} <strong>{publicFeedCount}</strong></p>
+            <p className="plaza-stats">{t('home.plaza.right.mine')} <strong>{myAppsCount}</strong></p>
+            <Link to={ROUTES.plazaMyApps} className="plaza-right-link">{t('home.plaza.right.goto')}</Link>
           </aside>
         )}
       </div>

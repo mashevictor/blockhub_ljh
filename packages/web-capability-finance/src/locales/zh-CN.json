@@ -1,0 +1,9 @@
+{
+  "cap.credit_approval.ui.title": "授信审批",
+  "cap.due_diligence.ui.title": "尽调报告",
+  "cap.finance_aml.ui.title": "反洗钱监测",
+  "cap.finance_kyc.ui.title": "金融KYC",
+  "cap.finance_news.ui.title": "行业新闻Agent",
+  "cap.insurance_case.ui.title": "保险核保理赔",
+  "cap.regulatory_report.ui.title": "监管报送"
+}

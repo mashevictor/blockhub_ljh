@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { LocaleSwitch, useT } from '@blockhub/i18n/react'
 import BrandMark from '../BrandMark'
 import { BRAND } from '../../data/brand'
 import { B2B_NAV_ITEMS, homeSectionHref } from '../../data/homeNav'
@@ -18,6 +19,7 @@ interface Props {
 }
 
 export default function B2BHeader({ user, activeSection = 'hero', onLogout }: Props) {
+  const t = useT()
   const [compact, setCompact] = useState(false)
   const { pathname } = useLocation()
   const navigate = useNavigate()
@@ -84,7 +86,7 @@ export default function B2BHeader({ user, activeSection = 'hero', onLogout }: Pr
                       ) : (
                         <AgentChevronGlyph size="nav" className="b2b-nav-chev" />
                       )}
-                      <span className="b2b-nav-label">{item.label}</span>
+                      <span className="b2b-nav-label">{t(item.labelKey)}</span>
                     </Link>
                   </li>
                 )
@@ -102,7 +104,7 @@ export default function B2BHeader({ user, activeSection = 'hero', onLogout }: Pr
                       onClick={() => goHomeSection(item.id)}
                     >
                       <AgentChevronGlyph size="nav" className="b2b-nav-chev" />
-                      <span className="b2b-nav-label">{item.label}</span>
+                      <span className="b2b-nav-label">{t(item.labelKey)}</span>
                     </button>
                   </li>
                 )
@@ -115,7 +117,7 @@ export default function B2BHeader({ user, activeSection = 'hero', onLogout }: Pr
                     aria-current={active ? 'page' : undefined}
                   >
                     <AgentChevronGlyph size="nav" className="b2b-nav-chev" />
-                    <span className="b2b-nav-label">{item.label}</span>
+                    <span className="b2b-nav-label">{t(item.labelKey)}</span>
                   </Link>
                 </li>
               )
@@ -126,7 +128,7 @@ export default function B2BHeader({ user, activeSection = 'hero', onLogout }: Pr
         <div className="b2b-nav-actions">
           <div className="b2b-nav-actions-btns">
             <Link to={ROUTES.plazaFeed} className="b2b-nav-btn b2b-nav-btn-link b2b-nav-btn--compact">
-              应用广场
+              {t('home.action.plaza')}
             </Link>
             {isHome ? (
               <button
@@ -134,11 +136,11 @@ export default function B2BHeader({ user, activeSection = 'hero', onLogout }: Pr
                 className={`b2b-nav-btn b2b-nav-btn--compact${activeSection === 'contact-create' ? ' is-active' : ''}`}
                 onClick={() => goHomeSection('contact-create')}
               >
-                在线体验
+                {t('home.action.try')}
               </button>
             ) : (
               <Link to={homeSectionHref('contact-create')} className="b2b-nav-btn b2b-nav-btn-link b2b-nav-btn--compact">
-                在线体验
+                {t('home.action.try')}
               </Link>
             )}
             {isHome ? (
@@ -147,23 +149,26 @@ export default function B2BHeader({ user, activeSection = 'hero', onLogout }: Pr
                 className={`b2b-nav-btn b2b-nav-btn--compact${activeSection === 'contact-demo' ? ' is-active' : ''}`}
                 onClick={() => goHomeSection('contact-demo')}
               >
-                预约演示
+                {t('home.action.demo')}
               </button>
             ) : (
               <Link to={homeSectionHref('contact-demo')} className="b2b-nav-btn b2b-nav-btn-link b2b-nav-btn--compact">
-                预约演示
+                {t('home.action.demo')}
               </Link>
             )}
           </div>
           <div className="b2b-nav-actions-tail">
+            {!pathname.startsWith(ROUTES.capship) && (
+              <LocaleSwitch className="b2b-locale-switch" variant="chip" />
+            )}
             {user ? (
               <>
-                <Link className="b2b-nav-link" to={ROUTES.accountBilling}>我的套餐</Link>
-                <a className="b2b-nav-link" href={getAdminDashboardUrl()}>管理后台</a>
-                <button type="button" className="b2b-nav-link b2b-nav-link-btn" onClick={onLogout}>退出</button>
+                <Link className="b2b-nav-link" to={ROUTES.accountBilling}>{t('home.action.account')}</Link>
+                <a className="b2b-nav-link" href={getAdminDashboardUrl()}>{t('home.action.admin')}</a>
+                <button type="button" className="b2b-nav-link b2b-nav-link-btn" onClick={onLogout}>{t('home.action.logout')}</button>
               </>
             ) : (
-              <a className="b2b-nav-login" href={getAdminUrl()} aria-label="登录" title="登录">
+              <a className="b2b-nav-login" href={getAdminUrl()} aria-label={t('home.action.login')} title={t('home.action.login')}>
                 <IconLogIn size={20} />
               </a>
             )}

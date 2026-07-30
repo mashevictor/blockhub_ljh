@@ -2,6 +2,8 @@ import type { DeliverMode } from './deliverDisplay'
 
 export type PlatformId = 'web' | 'ios' | 'android' | 'windows' | 'mac'
 
+export type TranslateFn = (key: string, vars?: Record<string, string | number>) => string
+
 export const ALL_PLATFORMS: PlatformId[] = ['web', 'ios', 'android', 'windows', 'mac']
 
 /** 「双端」预设：网页 + 移动 App（iOS · Android） */
@@ -13,6 +15,7 @@ export const DESKTOP_PLATFORMS: PlatformId[] = ['windows', 'mac']
 
 export interface PlatformMeta {
   id: PlatformId
+  /** @deprecated Prefer `home.deliver.platform.{id}` via t() */
   label: string
   short: string
 }
@@ -27,6 +30,7 @@ export const PLATFORM_META: PlatformMeta[] = [
 
 export interface DeliverPreset {
   id: string
+  /** @deprecated Prefer `home.deliver.preset.{id}` via t() */
   label: string
   platforms: PlatformId[]
 }
@@ -83,24 +87,32 @@ export interface PlatformSummary {
   channels: DeliverChannels
 }
 
-export function platformsSummary(platforms: PlatformId[]): PlatformSummary {
+export function platformsSummary(platforms: PlatformId[], t?: TranslateFn): PlatformSummary {
   const channels = resolveDeliverChannels(platforms)
   const preset = DELIVER_PRESETS.find((p) => platformsMatch(platforms, p.platforms))
+  const presetLabel = (id: string, fallback: string) =>
+    t ? t(`home.deliver.preset.${id}`) : fallback
+  const nEnds = (n: number, fallback: string) =>
+    t ? t('home.deliver.n_ends', { n }) : fallback
 
   if (platforms.length === 0) {
-    return { label: '五端', countLabel: '5/5', channels: { web: true, mobile: true, desktop: true } }
+    return {
+      label: presetLabel('all5', '五端'),
+      countLabel: '5/5',
+      channels: { web: true, mobile: true, desktop: true },
+    }
   }
 
   if (preset) {
     return {
-      label: preset.label,
+      label: presetLabel(preset.id, preset.label),
       countLabel: preset.id === 'all5' ? '5/5' : null,
       channels,
     }
   }
 
   return {
-    label: `${platforms.length}端`,
+    label: nEnds(platforms.length, `${platforms.length}端`),
     countLabel: `${platforms.length}/5`,
     channels,
   }

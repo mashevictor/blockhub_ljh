@@ -93,30 +93,32 @@ export function getFeaturedCase(): CaseStudy {
   return CASE_STUDIES.find((c) => c.slug === FEATURED_CASE_SLUG) ?? CASE_STUDIES[0]
 }
 
-function caseRelatedLinks(study: CaseStudy): EnrichLinkItem[] {
+type TranslateFn = (key: string) => string
+
+function caseRelatedLinks(study: CaseStudy, t: TranslateFn): EnrichLinkItem[] {
   return [
-    { label: '返回案例列表', href: ROUTES.cases },
-    { label: '打开一页纸摘要', href: study.onePagerPath, external: true },
-    { label: '信任与合规', href: ROUTES.trust },
-    { label: '定价说明', href: ROUTES.pricing },
-    { label: '预约演示', href: ROUTES.contactDemo },
+    { label: t('home.enrich.case.back'), href: ROUTES.cases },
+    { label: t('home.enrich.case.open_pdf'), href: study.onePagerPath, external: true },
+    { label: t('home.enrich.case.link_trust'), href: ROUTES.trust },
+    { label: t('home.enrich.case.link_pricing'), href: ROUTES.pricing },
+    { label: t('home.enrich.case.book_demo'), href: ROUTES.contactDemo },
   ]
 }
 
 /** 案例详情页内容块（与列表页 enrich-card / enrich-panel 同系） */
-export function resolveCaseBlocks(study: CaseStudy): EnrichBlock[] {
+export function resolveCaseBlocks(study: CaseStudy, t: TranslateFn): EnrichBlock[] {
   return [
     {
       type: 'panel',
-      title: '案例故事',
-      lead: '试点背景 · 方案调整 · 验收结果',
+      title: t('home.enrich.case.story_title'),
+      lead: t('home.enrich.case.story_lead'),
       paragraphs: study.story,
     },
     {
       type: 'panel',
-      title: '试点说明',
+      title: t('home.enrich.case.pilot_title'),
       paragraphs: [study.pilotNote],
     },
-    { type: 'links', title: '延伸阅读', items: caseRelatedLinks(study) },
+    { type: 'links', title: t('home.enrich.case.related_title'), items: caseRelatedLinks(study, t) },
   ]
 }

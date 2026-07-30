@@ -1,4 +1,4 @@
-/** 生成 / 预约相关统一文案 */
+/** 生成 / 预约相关统一文案（中文 fallback；React UI 请用 i18n/publishLabels.ts + useT） */
 export const GENERATE_APP_LABEL = '生成应用'
 export const GENERATE_APP_LOADING = '生成中…'
 export const BOOK_DEMO_LABEL = '提交预约'

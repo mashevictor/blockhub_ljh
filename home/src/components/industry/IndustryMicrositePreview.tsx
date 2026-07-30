@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useT, useI18n } from '@blockhub/i18n/react'
 import {
   INDUSTRY_MICROSITE_TEMPLATES,
   getMicrositeTemplate,
@@ -10,10 +11,20 @@ import { buildIndustryMicrositeSrcDoc, type MicrositePreviewCopy } from '../../d
 import {
   MICROSITE_PREVIEW_CACHE_LIMIT,
   getCachedMicrositeIds,
-  micrositeCacheHint,
-  micrositeChipBadge,
   type MicrositeLoadState,
 } from '../../data/industryMicrositePreviewCache'
+import { msCacheHint, msChipBadge, msFrameBadge } from '../../i18n/micrositeStatus'
+import { micrositeBrand, micrositeName, micrositeStyleLabel, micrositePreviewChrome } from '../../i18n/micrositeLabels'
+import type { TranslateFn } from '../../i18n/industryLabels'
+
+function localizedMicrositeTpl(t: TranslateFn, tpl: IndustryMicrositeTemplate): IndustryMicrositeTemplate {
+  return {
+    ...tpl,
+    styleLabel: micrositeStyleLabel(t, tpl),
+    brand: micrositeBrand(t, tpl),
+    name: micrositeName(t, tpl),
+  }
+}
 
 interface Props {
   packKey: string
@@ -36,6 +47,8 @@ export default function IndustryMicrositePreview({
   accent,
   onCompose,
 }: Props) {
+  const t = useT()
+  const { locale } = useI18n()
   const [activeId, setActiveId] = useState(() => loadSavedMicrositeId(packKey))
   const [fading, setFading] = useState(false)
   const [ondemandBusy, setOndemandBusy] = useState(false)
@@ -57,8 +70,17 @@ export default function IndustryMicrositePreview({
   }, [packKey])
 
   const copy = useMemo<MicrositePreviewCopy>(
-    () => ({ packKey, packName, tagline, overview, highlights, scenes }),
-    [packKey, packName, tagline, overview, highlights, scenes],
+    () => ({
+      packKey,
+      packName,
+      tagline,
+      overview,
+      highlights,
+      scenes,
+      chrome: micrositePreviewChrome(t),
+      lang: locale.startsWith('zh') ? 'zh-CN' : 'en',
+    }),
+    [packKey, packName, tagline, overview, highlights, scenes, t, locale],
   )
 
   const current = useMemo(
@@ -71,10 +93,10 @@ export default function IndustryMicrositePreview({
     const map: Record<string, string> = {}
     for (const id of cachedIds) {
       const tpl = getMicrositeTemplate(id)
-      if (tpl) map[id] = buildIndustryMicrositeSrcDoc(copy, tpl, origin)
+      if (tpl) map[id] = buildIndustryMicrositeSrcDoc(copy, localizedMicrositeTpl(t, tpl), origin)
     }
     return map
-  }, [cachedIds, copy])
+  }, [cachedIds, copy, t])
 
   /** 预取前 N 套 CSS，标记就绪 */
   useEffect(() => {
@@ -152,7 +174,7 @@ export default function IndustryMicrositePreview({
         if (tpl) {
           const origin = window.location.origin
           window.requestAnimationFrame(() => {
-            const doc = buildIndustryMicrositeSrcDoc(copy, tpl, origin)
+            const doc = buildIndustryMicrositeSrcDoc(copy, localizedMicrositeTpl(t, tpl), origin)
             setOndemandSrcDoc(doc)
             setSessionSrcDocs((prev) => ({ ...prev, [id]: doc }))
             // 保持 busy 直到 iframe onLoad，徽章同步为「加载中…」
@@ -176,7 +198,7 @@ export default function IndustryMicrositePreview({
     }
     const origin = typeof window !== 'undefined' ? window.location.origin : ''
     setOndemandBusy(true)
-    const doc = buildIndustryMicrositeSrcDoc(copy, current, origin)
+    const doc = buildIndustryMicrositeSrcDoc(copy, localizedMicrositeTpl(t, current), origin)
     setOndemandSrcDoc(doc)
     setSessionSrcDocs((prev) => ({ ...prev, [current.id]: doc }))
     // 仅随 activeId / pack 变化补载；sessionSrcDocs 由本 effect 写入，勿放入 deps
@@ -186,24 +208,19 @@ export default function IndustryMicrositePreview({
   if (!current) return null
 
   const activeState = loadStateFor(current.id)
-  const cacheLabel = micrositeCacheHint(activeState)
+  const cacheLabel = msCacheHint(t, activeState)
 
   return (
     <section className="industry-microsite-preview industry-site-section industry-site-panel">
       <div className="b2b-section-title industry-site-section-head">
-        <span className="b2b-eyebrow">网页模板 · 可切换预览</span>
-        <h2>
-          {packName} · <em>20 套</em> 视觉模板
-        </h2>
-        <p>
-          正文固定为「{packName}」行业方案文案；切换模板只改版式与视觉气质。
-          前 {MICROSITE_PREVIEW_CACHE_LIMIT} 套已预载，点击即可切换；其余模板点选后即时生成，加载完成后标记为「已加载」。
-        </p>
+        <span className="b2b-eyebrow">{t('home.industry.ms.eyebrow')}</span>
+        <h2>{t('home.industry.ms.title', { name: packName })}</h2>
+        <p>{t('home.industry.ms.lead', { name: packName, n: MICROSITE_PREVIEW_CACHE_LIMIT })}</p>
       </div>
 
       <div className="industry-microsite-toolbar">
         <label className="industry-microsite-select-label" htmlFor={`ms-select-${packKey}`}>
-          当前视觉模板
+          {t('home.industry.ms.current')}
         </label>
         <select
           id={`ms-select-${packKey}`}
@@ -212,13 +229,13 @@ export default function IndustryMicrositePreview({
           onChange={(e) => handleSelect(e.target.value)}
           style={{ borderColor: accent }}
         >
-          {INDUSTRY_MICROSITE_TEMPLATES.map((t) => {
-            const state = loadStateFor(t.id)
-            const badge = micrositeChipBadge(state, cssReady[t.id] !== false)
+          {INDUSTRY_MICROSITE_TEMPLATES.map((tpl) => {
+            const state = loadStateFor(tpl.id)
+            const badge = msChipBadge(t, state, cssReady[tpl.id] !== false)
             return (
-              <option key={t.id} value={t.id}>
+              <option key={tpl.id} value={tpl.id}>
                 {state === 'idle' ? '○ ' : '● '}
-                {t.styleLabel} · {packName}（{badge}）
+                {micrositeStyleLabel(t, tpl)} · {packName}（{badge}）
               </option>
             )
           })}
@@ -228,48 +245,48 @@ export default function IndustryMicrositePreview({
           className="btn-primary"
           onClick={() => onCompose(current)}
         >
-          用此模板去编排应用 →
+          {t('home.industry.ms.compose')}
         </button>
       </div>
 
       <p className="industry-microsite-cache-legend" role="status">
         <span className="industry-microsite-cache-pill is-cached">
-          已预载 {cachedIds.length}/{MICROSITE_PREVIEW_CACHE_LIMIT}
+          {t('home.industry.ms.cached', { a: cachedIds.length, b: MICROSITE_PREVIEW_CACHE_LIMIT })}
         </span>
         <span className="industry-microsite-cache-pill is-live">{cacheLabel}</span>
         {sessionLoaded.size > 0 ? (
-          <span className="industry-microsite-cache-pill is-session">本会话已加载 {sessionLoaded.size}</span>
-        ) : null}
-        {activeState === 'idle' ? (
-          <span className="industry-microsite-cache-warn">
-            当前模板未纳入预载槽，首次打开需短暂生成预览（不占预载配额）
+          <span className="industry-microsite-cache-pill is-session">
+            {t('home.industry.ms.session', { n: sessionLoaded.size })}
           </span>
         ) : null}
+        {activeState === 'idle' ? (
+          <span className="industry-microsite-cache-warn">{t('home.industry.ms.uncached_hint')}</span>
+        ) : null}
         {activeState === 'loading' ? (
-          <span className="industry-microsite-cache-warn">正在加载预览…</span>
+          <span className="industry-microsite-cache-warn">{t('home.industry.ms.loading')}</span>
         ) : null}
       </p>
 
-      <div className="industry-microsite-picker" role="listbox" aria-label="视觉模板列表">
-        {INDUSTRY_MICROSITE_TEMPLATES.map((t) => {
-          const state = loadStateFor(t.id)
+      <div className="industry-microsite-picker" role="listbox" aria-label={t('home.industry.ms.aria')}>
+        {INDUSTRY_MICROSITE_TEMPLATES.map((tpl) => {
+          const state = loadStateFor(tpl.id)
           const cached = state === 'cached'
           const ready = state === 'ready' || state === 'loading'
           return (
             <button
-              key={t.id}
+              key={tpl.id}
               type="button"
               role="option"
-              aria-selected={t.id === current.id}
-              className={`industry-microsite-chip${t.id === current.id ? ' on' : ''}${cached ? ' is-cached' : ready ? ' is-session' : ' is-uncached'}`}
-              onClick={() => handleSelect(t.id)}
-              title={micrositeCacheHint(state)}
-              style={t.id === current.id ? { borderColor: accent, color: accent } : undefined}
+              aria-selected={tpl.id === current.id}
+              className={`industry-microsite-chip${tpl.id === current.id ? ' on' : ''}${cached ? ' is-cached' : ready ? ' is-session' : ' is-uncached'}`}
+              onClick={() => handleSelect(tpl.id)}
+              title={msCacheHint(t, state)}
+              style={tpl.id === current.id ? { borderColor: accent, color: accent } : undefined}
             >
-              <strong>{t.styleLabel}</strong>
+              <strong>{micrositeStyleLabel(t, tpl)}</strong>
               <span>{packName}</span>
               <em className="industry-microsite-chip-badge">
-                {micrositeChipBadge(state, cssReady[t.id] !== false)}
+                {msChipBadge(t, state, cssReady[tpl.id] !== false)}
               </em>
             </button>
           )
@@ -278,16 +295,14 @@ export default function IndustryMicrositePreview({
 
       <div className={`industry-microsite-frame-wrap${fading ? ' is-fading' : ''}`}>
         <div className="industry-microsite-frame-bar">
-          <span>{packName}方案</span>
+          <span>{t('home.industry.ms.pack_suffix', { name: packName })}</span>
           <span>
-            {current.styleLabel}
-            {activeCached
-              ? ' · 预载切换'
-              : ondemandBusy
-                ? ' · 生成中…'
-                : sessionLoaded.has(current.id)
-                  ? ' · 已加载'
-                  : ' · 即时预览'}
+            {micrositeStyleLabel(t, current)}
+            {msFrameBadge(t, {
+              cached: activeCached,
+              busy: ondemandBusy,
+              sessionLoaded: sessionLoaded.has(current.id),
+            })}
           </span>
         </div>
 
@@ -295,7 +310,7 @@ export default function IndustryMicrositePreview({
           {cachedIds.map((id) => (
             <iframe
               key={`cache-${packKey}-${id}`}
-              title={`${packName} · ${getMicrositeTemplate(id)?.styleLabel ?? id} 预载预览`}
+              title={`${packName} · ${micrositeStyleLabel(t, getMicrositeTemplate(id) ?? current)}`}
               className={`industry-microsite-frame${activeId === id ? ' is-visible' : ' is-hidden'}`}
               srcDoc={cachedSrcDocs[id] || ''}
               sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"
@@ -306,7 +321,7 @@ export default function IndustryMicrositePreview({
           {!activeCached ? (
             <iframe
               key={`ondemand-${packKey}-${current.id}`}
-              title={`${packName} · ${current.styleLabel} 即时预览`}
+              title={`${packName} · ${micrositeStyleLabel(t, current)}`}
               className={`industry-microsite-frame is-visible${ondemandBusy ? ' is-loading' : ''}`}
               srcDoc={ondemandSrcDoc || sessionSrcDocs[current.id] || ''}
               sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"
@@ -320,7 +335,7 @@ export default function IndustryMicrositePreview({
           ) : null}
           {ondemandBusy ? (
             <div className="industry-microsite-frame-loading" role="status">
-              未预载模板 · 正在生成预览…
+              {t('home.industry.ms.generating')}
             </div>
           ) : null}
         </div>

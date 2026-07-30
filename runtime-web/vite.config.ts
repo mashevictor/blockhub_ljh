@@ -31,6 +31,8 @@ export default defineConfig({
   resolve: {
     alias: {
       '@shared': path.join(root, 'shared'),
+      '@blockhub/i18n/react': path.join(root, 'packages/i18n/src/react.tsx'),
+      '@blockhub/i18n': path.join(root, 'packages/i18n/src/index.ts'),
       '@blockhub/web-core': path.join(root, 'packages/web-core/src'),
       '@capship/composer': path.join(root, 'packages/capship-composer/src'),
       '@capship/composer/styles.css': path.join(root, 'packages/capship-composer/src/styles.css'),

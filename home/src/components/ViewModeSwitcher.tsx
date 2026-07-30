@@ -1,3 +1,4 @@
+import { useT } from '@blockhub/i18n/react'
 import type { ViewMode } from '../data/constants'
 import {
   IconMessage,
@@ -5,15 +6,15 @@ import {
   IconPuzzle,
 } from './icons'
 
-const MODES: {
+const MODE_IDS: {
   id: ViewMode
-  label: string
+  labelKey: string
   icon: typeof IconMessage
-  badge?: string
+  badge?: boolean
 }[] = [
-  { id: 'prompt', label: '对话改页', icon: IconMessage, badge: '推荐' },
-  { id: 'industry', label: '按行业创建', icon: IconBuilding },
-  { id: 'module', label: '自由搭配', icon: IconPuzzle },
+  { id: 'prompt', labelKey: 'home.create.mode.prompt', icon: IconMessage, badge: true },
+  { id: 'industry', labelKey: 'home.create.mode.industry', icon: IconBuilding },
+  { id: 'module', labelKey: 'home.create.mode.module', icon: IconPuzzle },
 ]
 
 interface Props {
@@ -22,9 +23,10 @@ interface Props {
 }
 
 export default function ViewModeSwitcher({ value, onChange }: Props) {
+  const t = useT()
   return (
-    <div className="view-mode-switcher" role="tablist" aria-label="创建方式">
-      {MODES.map((m) => {
+    <div className="view-mode-switcher" role="tablist" aria-label={t('home.create.mode.aria')}>
+      {MODE_IDS.map((m) => {
         const ModeIcon = m.icon
         const active = value === m.id
         return (
@@ -39,8 +41,8 @@ export default function ViewModeSwitcher({ value, onChange }: Props) {
             <span className="view-mode-icon">
               <ModeIcon size={18} />
             </span>
-            <span className="view-mode-label">{m.label}</span>
-            {m.badge && <em className="view-mode-badge">{m.badge}</em>}
+            <span className="view-mode-label">{t(m.labelKey)}</span>
+            {m.badge ? <em className="view-mode-badge">{t('home.create.mode.badge')}</em> : null}
           </button>
         )
       })}

@@ -1,0 +1,16 @@
+{
+  "cap.device_repair.dispatch": "Confirm dispatch",
+  "cap.device_repair.dispatching": "Dispatching…",
+  "cap.device_repair.field.asset_code": "Asset code",
+  "cap.device_repair.field.fault": "Fault description",
+  "cap.device_repair.field.location": "Location / station",
+  "cap.device_repair.ph.asset_code": "Scan or type, e.g. CNC-A12",
+  "cap.device_repair.ph.fault": "Symptom, downtime, line impact…",
+  "cap.device_repair.ph.location": "Workshop · line (optional)",
+  "cap.device_repair.status.dispatched": "In repair",
+  "cap.device_repair.status.done": "Completed",
+  "cap.device_repair.status.pending": "Pending dispatch",
+  "cap.device_repair.submit": "Submit ticket",
+  "cap.device_repair.title": "Device repair",
+  "cap.device_repair.ui.title": "Device Repair"
+}
