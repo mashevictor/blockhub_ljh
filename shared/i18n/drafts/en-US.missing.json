@@ -1,0 +1,42 @@
+{
+  "_comment": "Draft EN overlays from draft_en_pr.py. Review, then merge into hand-written JSON / seed / locales. Do NOT treat as SSOT. reviewed:false.",
+  "_generated_at": "2026-08-03T06:34:38.279365+00:00",
+  "_do_not_auto_merge": true,
+  "entries": {
+    "home.plaza.cmd.hint.sh.approval_analyze": {
+      "en": "Approval Analyze",
+      "zh": "【例句】帮吾查一查今朝有啥审批要处理\n已打开网页，请点例句或开麦。",
+      "source": "humanize",
+      "reviewed": false,
+      "replaced_cjk": "[Sample] 帮吾查一查今朝有啥审批要处理\nWeb opened — tap a sample or open mic."
+    },
+    "home.plaza.cmd.hint.sh.try_hello": {
+      "en": "Try Hello",
+      "zh": "已打开网页 · 试一句侬好",
+      "source": "humanize",
+      "reviewed": false,
+      "replaced_cjk": "Opened web · try 侬好"
+    },
+    "home.plaza.cmd.hint.sh.try_hello_analyze": {
+      "en": "Try Hello Analyze",
+      "zh": "【例句】侬好，阿拉想试试上海话语音助手\n已打开网页，请点例句或开麦对练。",
+      "source": "humanize",
+      "reviewed": false,
+      "replaced_cjk": "[Sample] 侬好，阿拉想试试上海话语音助手\nWeb opened — tap a sample or open mic."
+    },
+    "home.plaza.cmd.sh.try_hello": {
+      "en": "Try Hello",
+      "zh": "试一句「侬好」",
+      "source": "humanize",
+      "reviewed": false,
+      "replaced_cjk": "Try 「侬好」"
+    },
+    "home.plaza.dock.ph_shanghai": {
+      "en": "Ph Shanghai",
+      "zh": ">> 测 voice 配置 · 试一句侬好 · 跑上海话冒烟",
+      "source": "humanize",
+      "reviewed": false,
+      "replaced_cjk": ">> Test voice config · try 侬好 · run Shanghainese smoke"
+    }
+  }
+}
